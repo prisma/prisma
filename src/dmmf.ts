@@ -1,4 +1,6 @@
-export const dmmf = {
+import { DMMF } from './dmmf-types'
+
+export const dmmf: DMMF.Document = {
   datamodel: {
     models: [
       {
@@ -521,122 +523,152 @@ export const dmmf = {
           {
             name: 'AND',
             type: 'UserWhereInput',
+            arity: 'optional',
           },
           {
             name: 'id',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_not',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_in',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_not_in',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_lt',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_lte',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_gt',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_gte',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_contains',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_not_contains',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_starts_with',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_not_starts_with',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_ends_with',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_not_ends_with',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'name',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'name_not',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'name_in',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'name_not_in',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'name_lt',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'name_lte',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'name_gt',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'name_gte',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'name_contains',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'name_not_contains',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'name_starts_with',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'name_not_starts_with',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'name_ends_with',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'name_not_ends_with',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'posts_some',
             type: 'PostWhereInput',
+            arity: 'optional',
           },
         ],
       },
@@ -646,18 +678,22 @@ export const dmmf = {
           {
             name: 'id_ASC',
             type: 'UserOrderByInput',
+            arity: 'optional',
           },
           {
             name: 'id_DESC',
             type: 'UserOrderByInput',
+            arity: 'optional',
           },
           {
             name: 'name_ASC',
             type: 'UserOrderByInput',
+            arity: 'optional',
           },
           {
             name: 'name_DESC',
             type: 'UserOrderByInput',
+            arity: 'optional',
           },
         ],
       },
@@ -667,178 +703,222 @@ export const dmmf = {
           {
             name: 'AND',
             type: 'PostWhereInput',
+            arity: 'optional',
           },
           {
             name: 'id',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_not',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_in',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_not_in',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_lt',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_lte',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_gt',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_gte',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_contains',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_not_contains',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_starts_with',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_not_starts_with',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_ends_with',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'id_not_ends_with',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'title',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'title_not',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'title_in',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'title_not_in',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'title_lt',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'title_lte',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'title_gt',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'title_gte',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'title_contains',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'title_not_contains',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'title_starts_with',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'title_not_starts_with',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'title_ends_with',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'title_not_ends_with',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content_not',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content_in',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content_not_in',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content_lt',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content_lte',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content_gt',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content_gte',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content_contains',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content_not_contains',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content_starts_with',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content_not_starts_with',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content_ends_with',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content_not_ends_with',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'author',
             type: 'UserWhereInput',
+            arity: 'optional',
           },
         ],
       },
@@ -848,26 +928,32 @@ export const dmmf = {
           {
             name: 'id_ASC',
             type: 'PostOrderByInput',
+            arity: 'optional',
           },
           {
             name: 'id_DESC',
             type: 'PostOrderByInput',
+            arity: 'optional',
           },
           {
             name: 'title_ASC',
             type: 'PostOrderByInput',
+            arity: 'optional',
           },
           {
             name: 'title_DESC',
             type: 'PostOrderByInput',
+            arity: 'optional',
           },
           {
             name: 'content_ASC',
             type: 'PostOrderByInput',
+            arity: 'optional',
           },
           {
             name: 'content_DESC',
             type: 'PostOrderByInput',
+            arity: 'optional',
           },
         ],
       },
@@ -877,6 +963,7 @@ export const dmmf = {
           {
             name: 'id',
             type: 'ID',
+            arity: 'optional',
           },
         ],
       },
@@ -886,6 +973,7 @@ export const dmmf = {
           {
             name: 'id',
             type: 'ID',
+            arity: 'optional',
           },
         ],
       },
@@ -895,18 +983,22 @@ export const dmmf = {
           {
             name: 'id',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'name',
             type: 'String',
+            arity: 'required',
           },
           {
             name: 'strings',
             type: 'UserCreatestringsInput',
+            arity: 'optional',
           },
           {
             name: 'posts',
             type: 'PostCreateManyWithoutAuthorInput',
+            arity: 'optional',
           },
         ],
       },
@@ -916,18 +1008,22 @@ export const dmmf = {
           {
             name: 'id',
             type: 'ID',
+            arity: 'optional',
           },
           {
             name: 'title',
             type: 'String',
+            arity: 'required',
           },
           {
             name: 'content',
             type: 'String',
+            arity: 'required',
           },
           {
             name: 'author',
             type: 'UserCreateOneWithoutPostsInput',
+            arity: 'required',
           },
         ],
       },
@@ -937,14 +1033,17 @@ export const dmmf = {
           {
             name: 'name',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'strings',
             type: 'UserUpdatestringsInput',
+            arity: 'optional',
           },
           {
             name: 'posts',
             type: 'PostUpdateManyWithoutAuthorInput',
+            arity: 'optional',
           },
         ],
       },
@@ -954,14 +1053,17 @@ export const dmmf = {
           {
             name: 'title',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'author',
             type: 'UserUpdateOneRequiredWithoutPostsInput',
+            arity: 'optional',
           },
         ],
       },
@@ -971,10 +1073,12 @@ export const dmmf = {
           {
             name: 'name',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'strings',
             type: 'UserUpdatestringsInput',
+            arity: 'optional',
           },
         ],
       },
@@ -984,10 +1088,12 @@ export const dmmf = {
           {
             name: 'title',
             type: 'String',
+            arity: 'optional',
           },
           {
             name: 'content',
             type: 'String',
+            arity: 'optional',
           },
         ],
       },
@@ -1008,6 +1114,7 @@ export const dmmf = {
           },
           {
             name: 'strings',
+            type: 'String',
             arity: 'list',
           },
           {

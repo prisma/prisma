@@ -10,9 +10,18 @@
   "dependencies": {
     "@types/lodash": "^4.14.123",
     "@types/node": "^11.13.8",
+    "chalk": "^2.4.2",
+    "damerau-levenshtein-js": "^1.1.2",
+    "get-own-enumerable-property-symbols": "^3.0.0",
     "indent-string": "^4.0.0",
+    "is-obj": "^2.0.0",
+    "is-regexp": "^2.1.0",
+    "jaro-winkler": "^0.2.8",
+    "js-levenshtein": "^1.1.6",
     "lodash": "^4.17.11",
     "prisma-datamodel": "^1.31.2",
-    "strip-indent": "^3.0.0"
+    "stringify-object": "^3.3.0",
+    "strip-indent": "^3.0.0",
+    "wink-jaro-distance": "^2.0.0"
   }
 }

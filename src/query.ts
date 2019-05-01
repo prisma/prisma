@@ -1,6 +1,9 @@
 import indent from 'indent-string'
 import { merge, omit } from 'lodash'
-import { dmmf } from './archive/dmmf'
+import chalk from 'chalk'
+import { printJsonErrors } from './printJsonErrors'
+import { dedent } from './dedent'
+import { dmmf } from './dmmf'
 
 const tab = 2
 
@@ -54,9 +57,15 @@ class Arg {
 
 type ArgType = string | boolean | number | Args
 
-function makeDocument(dmmf: any, input: any) {
-  const rootType = Object.keys(input)[0]
-  return new Document(rootType as any, selectionToFields(dmmf, input[rootType], [rootType]))
+interface DocumentInput {
+  dmmf: any
+  rootType: 'query' | 'mutation'
+  rootField: string
+  select: any
+}
+
+function makeDocument({ dmmf, rootType, rootField, select }: DocumentInput) {
+  return new Document(rootType as any, selectionToFields(dmmf, { [rootField]: select }, [rootType]))
 }
 
 // TODO: refactor to use the model and not the path
@@ -146,6 +155,7 @@ function objectToArgs(obj: any): Args {
 }
 
 function main() {
+  console.clear()
   // const document = new Document('query', [
   //   new Field(
   //     'users',
@@ -182,45 +192,70 @@ function main() {
   // }
   // `
 
-  const ast1 = {
-    query: {
-      users: {
+  const bigAst = {
+    first: 200,
+    skip: 200,
+    where: {
+      age_gt: 10,
+      email_endsWith: '@gmail.com',
+    },
+    select: {
+      id: false,
+      posts: {
         first: 100,
-        skip: 200,
         where: {
-          age_gt: 10,
-          email_endsWith: '@gmail.com',
+          isPublished: true,
         },
         select: {
           id: false,
-          posts: {
-            first: 100,
+          author: {
             where: {
-              isPublished: true,
+              age: {
+                gt: 10,
+              },
             },
             select: {
-              id: false,
-              author: {
-                where: {
-                  age: {
-                    gt: 10,
-                  },
-                },
-                select: {
-                  id: true,
-                  // name: false,
-                },
-              },
+              id: true,
             },
           },
         },
       },
     },
   }
-
-  const document = makeDocument(dmmf, ast1)
-
+  const document = makeDocument({ dmmf, select: bigAst, rootType: 'query', rootField: 'users' })
   console.log(String(document))
+
+  // const ast = {
+  //   first: 200,
+  //   skip: 200,
+  //   where: {
+  //     age_gt: 10,
+  //     createdAt_before: new Date(),
+  //     email_endsWith: '@gmail.com',
+  //   },
+  //   select: {
+  //     id: 5,
+  //     mosts: true,
+  //     mosts2: {
+  //       ['some-stuff']: {
+  //         deep: 'stuff',
+  //       },
+  //     },
+  //   },
+  // }
+
+  //   const errorStr = `
+  //     \nInvalid ${chalk.white.bold('`prisma.users`')} query:
+
+  // ${printJsonErrors(bigAst, ['select.posts.select.author.select.id2'], ['where.email_endsWith'])}
+
+  // Unkown field ${chalk.redBright('`mosts`')} on model ${chalk.bold.white('User')}. Did you mean ${chalk.greenBright(
+  //     '`posts`',
+  //   )}?
+  // Unkown field ${chalk.redBright('`mosts2`')} on model ${chalk.bold.white('User')}. Did you mean ${chalk.greenBright(
+  //     '`posts`',
+  //   )}?
+  //   `
 }
 
 main()
