@@ -25,6 +25,10 @@ export class DMMFClass implements DMMF.Document {
     this.resolveRelations(this.outputTypes)
 
     this.outputTypeMap = this.getMergedOutputTypeMap()
+
+    // needed as references are not kept
+    this.queryType = this.outputTypeMap['Query']
+    this.mutationType = this.outputTypeMap['Mutation']
   }
   protected outputTypeToMergedOutputType = (outputType: DMMF.OutputType): DMMF.MergedOutputType => {
     const model = this.modelMap[outputType.name]
@@ -1378,5 +1382,6 @@ const dmmfDocument: DMMF.Document = {
 
 const before = performance.now()
 export const dmmf = new DMMFClass(dmmfDocument)
+debugger
 const after = performance.now()
 console.log(`Took ${after - before}ms to build the dmmf`)

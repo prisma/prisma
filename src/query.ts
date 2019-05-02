@@ -6,6 +6,7 @@ import { dedent } from './dedent'
 import { dmmf, DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import { performance } from 'perf_hooks'
+import 'source-map-support/register'
 
 const tab = 2
 
@@ -72,18 +73,30 @@ function makeDocument({ dmmf, rootTypeName, rootField, select }: DocumentInput) 
 }
 
 // TODO: refactor to use the model and not the path
-function selectionToFields(dmmf: DMMFClass, selection: any, model: DMMF.MergedOutputType, path: string[]): Field[] {
+function selectionToFields(
+  dmmf: DMMFClass,
+  selection: any,
+  outputType: DMMF.MergedOutputType,
+  path: string[],
+): Field[] {
   return Object.entries(selection).reduce(
     (acc, [name, value]: any) => {
       if (value === false) {
         return acc
       }
-      const argsWithoutSelect = value ? omit(value, 'select') : undefined
+      const field = outputType.fields.find(f => f.name === name)
+      if (!field) {
+        throw new Error(`Could not find field ${[...path, name].join('.')}`)
+      }
+      const argsWithoutSelect = typeof value === 'object' ? omit(value, 'select') : undefined
       const args = argsWithoutSelect ? objectToArgs(argsWithoutSelect) : undefined
-      const model = getModelForPath(dmmf, [...path, name])
-      const defaultSelection = model ? getDefaultSelection(dmmf, model) : {}
+      const isRelation = field.kind === 'relation'
+      const defaultSelection = isRelation ? getDefaultSelection(field.type as DMMF.MergedOutputType) : null
       const select = merge(defaultSelection, value.select)
-      const fields = select !== false && model ? selectionToFields(dmmf, select, model, [...path, name]) : undefined
+      const fields =
+        select !== false && isRelation
+          ? selectionToFields(dmmf, select, field.type as DMMF.MergedOutputType, [...path, name])
+          : undefined
       acc.push(new Field(name, args, fields))
 
       return acc
@@ -92,48 +105,15 @@ function selectionToFields(dmmf: DMMFClass, selection: any, model: DMMF.MergedOu
   )
 }
 
-function getModelForPath(dmmf: DMMFClass, path: string[]): null | any {
-  if (path.length <= 1) {
-    return null
-  }
-  const root: string = path.shift()!
-  const rootMap: any = {
-    query: 'queries',
-    mutation: 'mutations',
-  }
-
-  const queryName = path.shift()!
-  const query = dmmf.schema[rootMap[root]].find(q => q.name === queryName)
-  const typeName = query.output.name
-
-  let model = getModel(dmmf, typeName)
-
-  if (path.length === 0) {
-    return model
-  }
-
-  while (path.length > 0) {
-    const fieldName = path.shift()
-    const field = model.fields.find(f => f.name === fieldName)
-    model = getModel(dmmf, field.type)
-  }
-
-  return model
-}
-
-function getModel(dmmf: any, modelName: string) {
-  return dmmf.datamodel.models.find((m: any) => m.name === modelName)
-}
-
-function getDefaultSelection(dmmf: any, model: any) {
-  return model.fields.reduce((acc: any, f: any) => {
+function getDefaultSelection(outputType: DMMF.MergedOutputType) {
+  return outputType.fields.reduce((acc, f) => {
     if (f.kind === 'scalar') {
       acc[f.name] = true
     } else {
-      // otherwise field is a relation. let's look up, if it's an embedded type
-      const model = getModel(dmmf, f.type)
-      if (model && model.isEmbedded) {
-        acc[f.name] = { select: getDefaultSelection(dmmf, model) }
+      // otherwise field is a relation. Only continue if it's an embedded type
+      // as normal types don't end up in the default selection
+      if ((f.type as DMMF.MergedOutputType).isEmbedded) {
+        acc[f.name] = { select: getDefaultSelection(f.type as DMMF.MergedOutputType) }
       }
     }
 
@@ -199,7 +179,7 @@ function main() {
       email_endsWith: '@gmail.com',
     },
     select: {
-      id: false,
+      id: true,
       posts: {
         first: 100,
         where: {
