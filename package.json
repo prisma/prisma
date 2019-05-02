@@ -5,6 +5,7 @@
   "license": "MIT",
   "devDependencies": {
     "benchmark": "^2.1.4",
+    "ts-node": "^8.1.0",
     "typescript": "^3.4.5"
   },
   "dependencies": {
@@ -12,6 +13,7 @@
     "@types/node": "^11.13.8",
     "chalk": "^2.4.2",
     "damerau-levenshtein-js": "^1.1.2",
+    "fast-memoize": "^2.5.1",
     "get-own-enumerable-property-symbols": "^3.0.0",
     "indent-string": "^4.0.0",
     "is-obj": "^2.0.0",

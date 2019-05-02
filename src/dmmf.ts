@@ -1,42 +1,90 @@
 import { DMMF } from './dmmf-types'
-import { keyBy } from './utils'
+import { keyBy, isScalar, Dictionary } from './utils'
+import { performance } from 'perf_hooks'
 
 export class DMMFClass implements DMMF.Document {
   datamodel: DMMF.Datamodel
   schema: DMMF.Schema
   mappings: DMMF.Mapping[]
+  queryType: DMMF.MergedOutputType
+  mutationType: DMMF.MergedOutputType
+  outputTypes: DMMF.MergedOutputType[]
+  outputTypeMap: Dictionary<DMMF.MergedOutputType> = {}
+  modelMap: Dictionary<DMMF.Model>
   constructor({ datamodel, schema, mappings }: DMMF.Document) {
     this.datamodel = datamodel
     this.schema = schema
     this.mappings = mappings
+    this.queryType = this.getQueryType()
+    this.mutationType = this.getMutationType()
     this.schema.outputTypes.push(this.queryType) // create "virtual" query type
     this.schema.outputTypes.push(this.mutationType) // create "virtual" mutation type
+    this.modelMap = this.getModelMap()
+    this.outputTypes = this.getOutputTypes()
+
+    this.resolveRelations(this.outputTypes)
+
+    this.outputTypeMap = this.getMergedOutputTypeMap()
   }
-  get queryType(): DMMF.OutputType<'Query'> {
+  protected outputTypeToMergedOutputType = (outputType: DMMF.OutputType): DMMF.MergedOutputType => {
+    const model = this.modelMap[outputType.name]
+    return {
+      ...outputType,
+      isEmbedded: model ? model.isEmbedded : false,
+      isEnum: model ? model.isEmbedded : false,
+      fields: outputType.fields.map(field => ({
+        ...field,
+        kind: isScalar(field.type as string) ? 'scalar' : ('relation' as DMMF.FieldKind),
+      })),
+    }
+  }
+  protected resolveRelations(types: DMMF.MergedOutputType[]) {
+    for (const typeA of types) {
+      for (const fieldA of typeA.fields) {
+        for (const typeB of types) {
+          if (typeof fieldA.type === 'string' && fieldA.type === typeB.name) {
+            fieldA.type = typeB
+          }
+        }
+      }
+    }
+  }
+  protected getQueryType(): DMMF.MergedOutputType {
     return {
       name: 'Query',
       fields: this.schema.queries.map(queryToSchemaField),
+      isEmbedded: false,
+      isEnum: false,
     }
   }
-  get mutationType(): DMMF.OutputType<'Mutation'> {
+  protected getMutationType(): DMMF.MergedOutputType {
     return {
       name: 'Mutation',
       fields: this.schema.mutations.map(queryToSchemaField),
+      isEmbedded: false,
+      isEnum: false,
     }
   }
-  get outputTypeMap(): { [typeName: string]: DMMF.OutputType } {
-    return keyBy(this.schema.outputTypes, t => t.name)
+  protected getOutputTypes(): DMMF.MergedOutputType[] {
+    return this.schema.outputTypes.map(this.outputTypeToMergedOutputType)
   }
-  get inputTypeMap(): { [typeName: string]: DMMF.InputType } {
+  protected getModelMap(): { [modelName: string]: DMMF.Model } {
+    return keyBy(this.datamodel.models, m => m.name)
+  }
+  protected getMergedOutputTypeMap(): { [typeName: string]: DMMF.MergedOutputType } {
+    return keyBy(this.outputTypes, t => t.name)
+  }
+  protected getInputTypeMap(): { [typeName: string]: DMMF.InputType } {
     return keyBy(this.schema.inputTypes, t => t.name)
   }
 }
 
-const queryToSchemaField = (q: DMMF.Query): DMMF.SchemaField => ({
+const queryToSchemaField = (q: DMMF.Query): DMMF.MergedSchemaField => ({
   name: q.name,
   args: q.args,
   arity: q.output.arity,
   type: q.output.name,
+  kind: 'relation',
 })
 
 const dmmfDocument: DMMF.Document = {
@@ -1328,4 +1376,7 @@ const dmmfDocument: DMMF.Document = {
   ],
 }
 
+const before = performance.now()
 export const dmmf = new DMMFClass(dmmfDocument)
+const after = performance.now()
+console.log(`Took ${after - before}ms to build the dmmf`)

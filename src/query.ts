@@ -3,8 +3,9 @@ import { merge, omit } from 'lodash'
 import chalk from 'chalk'
 import { printJsonErrors } from './printJsonErrors'
 import { dedent } from './dedent'
-import { dmmf } from './dmmf'
+import { dmmf, DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
+import { performance } from 'perf_hooks'
 
 const tab = 2
 
@@ -59,18 +60,19 @@ class Arg {
 type ArgType = string | boolean | number | Args
 
 interface DocumentInput {
-  dmmf: DMMF.Document
-  rootType: 'query' | 'mutation'
+  dmmf: DMMFClass
+  rootTypeName: 'query' | 'mutation'
   rootField: string
   select: any
 }
 
-function makeDocument({ dmmf, rootType, rootField, select }: DocumentInput) {
-  return new Document(rootType, selectionToFields(dmmf, { [rootField]: select }, [rootType]))
+function makeDocument({ dmmf, rootTypeName, rootField, select }: DocumentInput) {
+  const rootType = rootTypeName === 'query' ? dmmf.queryType : dmmf.mutationType
+  return new Document(rootTypeName, selectionToFields(dmmf, { [rootField]: select }, rootType, [rootTypeName]))
 }
 
 // TODO: refactor to use the model and not the path
-function selectionToFields(dmmf: DMMF.Document, selection: any, path: string[]): Field[] {
+function selectionToFields(dmmf: DMMFClass, selection: any, model: DMMF.MergedOutputType, path: string[]): Field[] {
   return Object.entries(selection).reduce(
     (acc, [name, value]: any) => {
       if (value === false) {
@@ -81,7 +83,7 @@ function selectionToFields(dmmf: DMMF.Document, selection: any, path: string[]):
       const model = getModelForPath(dmmf, [...path, name])
       const defaultSelection = model ? getDefaultSelection(dmmf, model) : {}
       const select = merge(defaultSelection, value.select)
-      const fields = select !== false && model ? selectionToFields(dmmf, select, [...path, name]) : undefined
+      const fields = select !== false && model ? selectionToFields(dmmf, select, model, [...path, name]) : undefined
       acc.push(new Field(name, args, fields))
 
       return acc
@@ -90,7 +92,7 @@ function selectionToFields(dmmf: DMMF.Document, selection: any, path: string[]):
   )
 }
 
-function getModelForPath(dmmf: any, path: string[]): null | any {
+function getModelForPath(dmmf: DMMFClass, path: string[]): null | any {
   if (path.length <= 1) {
     return null
   }
@@ -101,7 +103,7 @@ function getModelForPath(dmmf: any, path: string[]): null | any {
   }
 
   const queryName = path.shift()!
-  const query = dmmf.schema[rootMap[root]].find((q: any) => q.name === queryName)
+  const query = dmmf.schema[rootMap[root]].find(q => q.name === queryName)
   const typeName = query.output.name
 
   let model = getModel(dmmf, typeName)
@@ -112,7 +114,7 @@ function getModelForPath(dmmf: any, path: string[]): null | any {
 
   while (path.length > 0) {
     const fieldName = path.shift()
-    const field = model.fields.find((f: any) => f.name === fieldName)
+    const field = model.fields.find(f => f.name === fieldName)
     model = getModel(dmmf, field.type)
   }
 
@@ -171,79 +173,61 @@ function main() {
   //   ),
   // ])
 
-  //   const query1 = `query {
-  //   users(first: 100, skip: 200, where: {
-  //     age_gt: 10
-  //     email_endsWith: "@gmail.com"
-  //   }) {
-  //     id
-  //     name
-  //     friends {
-  //       id
-  //       name
-  //     }
-  //     posts(first: 200) {
-  //       id
-  //     }
-  //   }
-  // }
-  // `
+  const query1 = `query {
+    users(first: 100, skip: 200, where: {
+      age_gt: 10
+      email_endsWith: "@gmail.com"
+    }) {
+      id
+      name
+      friends {
+        id
+        name
+      }
+      posts(first: 200) {
+        id
+      }
+    }
+  }
+  `
 
   const bigAst = {
-    query: {
-      users: {
-        first: 200,
-        skip: 200,
+    first: 200,
+    skip: 200,
+    where: {
+      age_gt: 10,
+      email_endsWith: '@gmail.com',
+    },
+    select: {
+      id: false,
+      posts: {
+        first: 100,
         where: {
-          age_gt: 10,
-          email_endsWith: '@gmail.com',
+          isPublished: true,
         },
         select: {
           id: false,
-          posts: {
-            first: 100,
+          author: {
             where: {
-              isPublished: true,
+              age: {
+                gt: 10,
+              },
             },
             select: {
-              id: false,
-              author: {
-                where: {
-                  age: {
-                    gt: 10,
-                  },
-                },
-                select: {
-                  id: true,
-                },
-              },
+              id: true,
             },
           },
         },
       },
     },
   }
-  const document = makeDocument({ dmmf, select: bigAst, rootType: 'query', rootField: 'users' })
-  console.log(String(document))
 
-  // const ast = {
-  //   first: 200,
-  //   skip: 200,
-  //   where: {
-  //     age_gt: 10,
-  //     createdAt_before: new Date(),
-  //     email_endsWith: '@gmail.com',
-  //   },
-  //   select: {
-  //     id: 5,
-  //     mosts: true,
-  //     mosts2: {
-  //       ['some-stuff']: {
-  //         deep: 'stuff',
-  //       },
-  //     },
-  //   },
-  // }
+  const before = performance.now()
+  const document = makeDocument({ dmmf, select: bigAst, rootTypeName: 'query', rootField: 'users' })
+  const docStr = String(document)
+  const after = performance.now()
+  console.log(docStr)
+  console.log(`needed ${after - before} ms`)
 
   //   const errorStr = `
   //     \nInvalid ${chalk.white.bold('`prisma.users`')} query:

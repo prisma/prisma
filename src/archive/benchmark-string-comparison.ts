@@ -1,7 +1,7 @@
 import { Suite } from 'benchmark'
 import dl from 'damerau-levenshtein-js'
 import leven from 'js-levenshtein'
-import { jaro_winkler } from '../jaro-winkler'
+import { jaro_winkler } from './jaro-winkler'
 import jaroWinkler from 'jaro-winkler'
 import jaro from 'wink-jaro-distance'
 

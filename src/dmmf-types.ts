@@ -53,16 +53,26 @@ export namespace DMMF {
     arity: Arity
   }
 
-  export interface OutputType<T = string> {
-    name: T
+  export interface OutputType {
+    name: string
     fields: SchemaField[]
+  }
+
+  export interface MergedOutputType extends OutputType {
+    isEmbedded: boolean
+    isEnum: boolean
+    fields: MergedSchemaField[]
   }
 
   export interface SchemaField {
     name: string
-    type: string
+    type: string | MergedOutputType // note that in the serialized state we don't have the reference to MergedOutputTypes
     arity: Arity
     args: SchemaArg[]
+  }
+
+  export interface MergedSchemaField extends SchemaField {
+    kind: FieldKind
   }
 
   export interface InputType {
