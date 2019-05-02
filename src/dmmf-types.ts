@@ -53,8 +53,8 @@ export namespace DMMF {
     arity: Arity
   }
 
-  export interface OutputType {
-    name: string
+  export interface OutputType<T = string> {
+    name: T
     fields: SchemaField[]
   }
 
@@ -62,6 +62,7 @@ export namespace DMMF {
     name: string
     type: string
     arity: Arity
+    args: SchemaArg[]
   }
 
   export interface InputType {

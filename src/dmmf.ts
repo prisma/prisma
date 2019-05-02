@@ -1,6 +1,45 @@
 import { DMMF } from './dmmf-types'
+import { keyBy } from './utils'
 
-export const dmmf: DMMF.Document = {
+export class DMMFClass implements DMMF.Document {
+  datamodel: DMMF.Datamodel
+  schema: DMMF.Schema
+  mappings: DMMF.Mapping[]
+  constructor({ datamodel, schema, mappings }: DMMF.Document) {
+    this.datamodel = datamodel
+    this.schema = schema
+    this.mappings = mappings
+    this.schema.outputTypes.push(this.queryType) // create "virtual" query type
+    this.schema.outputTypes.push(this.mutationType) // create "virtual" mutation type
+  }
+  get queryType(): DMMF.OutputType<'Query'> {
+    return {
+      name: 'Query',
+      fields: this.schema.queries.map(queryToSchemaField),
+    }
+  }
+  get mutationType(): DMMF.OutputType<'Mutation'> {
+    return {
+      name: 'Mutation',
+      fields: this.schema.mutations.map(queryToSchemaField),
+    }
+  }
+  get outputTypeMap(): { [typeName: string]: DMMF.OutputType } {
+    return keyBy(this.schema.outputTypes, t => t.name)
+  }
+  get inputTypeMap(): { [typeName: string]: DMMF.InputType } {
+    return keyBy(this.schema.inputTypes, t => t.name)
+  }
+}
+
+const queryToSchemaField = (q: DMMF.Query): DMMF.SchemaField => ({
+  name: q.name,
+  args: q.args,
+  arity: q.output.arity,
+  type: q.output.name,
+})
+
+const dmmfDocument: DMMF.Document = {
   datamodel: {
     models: [
       {
@@ -1106,21 +1145,61 @@ export const dmmf: DMMF.Document = {
             name: 'id',
             type: 'ID',
             arity: 'required',
+            args: [],
           },
           {
             name: 'name',
             type: 'String',
             arity: 'required',
+            args: [],
           },
           {
             name: 'strings',
             type: 'String',
             arity: 'list',
+            args: [],
           },
           {
             name: 'posts',
             type: 'Post',
             arity: 'optional',
+            args: [
+              {
+                name: 'where',
+                type: 'PostWhereInput',
+                arity: 'optional',
+              },
+              {
+                name: 'orderBy',
+                type: 'PostOrderByInput',
+                arity: 'optional',
+              },
+              {
+                name: 'skip',
+                type: 'Int',
+                arity: 'optional',
+              },
+              {
+                name: 'after',
+                type: 'String',
+                arity: 'optional',
+              },
+              {
+                name: 'before',
+                type: 'String',
+                arity: 'optional',
+              },
+              {
+                name: 'first',
+                type: 'Int',
+                arity: 'optional',
+              },
+              {
+                name: 'last',
+                type: 'Int',
+                arity: 'optional',
+              },
+            ],
           },
         ],
       },
@@ -1131,21 +1210,25 @@ export const dmmf: DMMF.Document = {
             name: 'id',
             type: 'ID',
             arity: 'required',
+            args: [],
           },
           {
             name: 'title',
             type: 'String',
             arity: 'required',
+            args: [],
           },
           {
             name: 'content',
             type: 'String',
             arity: 'required',
+            args: [],
           },
           {
             name: 'author',
             type: 'User',
             arity: 'required',
+            args: [],
           },
         ],
       },
@@ -1156,16 +1239,19 @@ export const dmmf: DMMF.Document = {
             name: 'pageInfo',
             type: 'PageInfo',
             arity: 'required',
+            args: [],
           },
           {
             name: 'edges',
             type: 'UserEdge',
             arity: 'list',
+            args: [],
           },
           {
             name: 'aggregate',
             type: 'AggregateUser',
             arity: 'required',
+            args: [],
           },
         ],
       },
@@ -1176,16 +1262,19 @@ export const dmmf: DMMF.Document = {
             name: 'pageInfo',
             type: 'PageInfo',
             arity: 'required',
+            args: [],
           },
           {
             name: 'edges',
             type: 'PostEdge',
             arity: 'list',
+            args: [],
           },
           {
             name: 'aggregate',
             type: 'AggregatePost',
             arity: 'required',
+            args: [],
           },
         ],
       },
@@ -1196,6 +1285,7 @@ export const dmmf: DMMF.Document = {
             name: 'id',
             type: 'ID',
             arity: 'required',
+            args: [],
           },
         ],
       },
@@ -1206,6 +1296,7 @@ export const dmmf: DMMF.Document = {
             name: 'count',
             type: 'Long',
             arity: 'required',
+            args: [],
           },
         ],
       },
@@ -1236,3 +1327,5 @@ export const dmmf: DMMF.Document = {
     },
   ],
 }
+
+export const dmmf = new DMMFClass(dmmfDocument)

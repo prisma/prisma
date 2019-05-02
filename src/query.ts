@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import { printJsonErrors } from './printJsonErrors'
 import { dedent } from './dedent'
 import { dmmf } from './dmmf'
+import { DMMF } from './dmmf-types'
 
 const tab = 2
 
@@ -58,18 +59,18 @@ class Arg {
 type ArgType = string | boolean | number | Args
 
 interface DocumentInput {
-  dmmf: any
+  dmmf: DMMF.Document
   rootType: 'query' | 'mutation'
   rootField: string
   select: any
 }
 
 function makeDocument({ dmmf, rootType, rootField, select }: DocumentInput) {
-  return new Document(rootType as any, selectionToFields(dmmf, { [rootField]: select }, [rootType]))
+  return new Document(rootType, selectionToFields(dmmf, { [rootField]: select }, [rootType]))
 }
 
 // TODO: refactor to use the model and not the path
-function selectionToFields(dmmf: any, selection: any, path: string[]): Field[] {
+function selectionToFields(dmmf: DMMF.Document, selection: any, path: string[]): Field[] {
   return Object.entries(selection).reduce(
     (acc, [name, value]: any) => {
       if (value === false) {
@@ -80,17 +81,13 @@ function selectionToFields(dmmf: any, selection: any, path: string[]): Field[] {
       const model = getModelForPath(dmmf, [...path, name])
       const defaultSelection = model ? getDefaultSelection(dmmf, model) : {}
       const select = merge(defaultSelection, value.select)
-      const fields = isPositiveSelect(value) && model ? selectionToFields(dmmf, select, [...path, name]) : undefined
+      const fields = select !== false && model ? selectionToFields(dmmf, select, [...path, name]) : undefined
       acc.push(new Field(name, args, fields))
 
       return acc
     },
     [] as Field[],
   )
-}
-
-function isPositiveSelect(select: any) {
-  return select !== false
 }
 
 function getModelForPath(dmmf: any, path: string[]): null | any {
@@ -193,29 +190,33 @@ function main() {
   // `
 
   const bigAst = {
-    first: 200,
-    skip: 200,
-    where: {
-      age_gt: 10,
-      email_endsWith: '@gmail.com',
-    },
-    select: {
-      id: false,
-      posts: {
-        first: 100,
+    query: {
+      users: {
+        first: 200,
+        skip: 200,
         where: {
-          isPublished: true,
+          age_gt: 10,
+          email_endsWith: '@gmail.com',
         },
         select: {
           id: false,
-          author: {
+          posts: {
+            first: 100,
             where: {
-              age: {
-                gt: 10,
-              },
+              isPublished: true,
             },
             select: {
-              id: true,
+              id: false,
+              author: {
+                where: {
+                  age: {
+                    gt: 10,
+                  },
+                },
+                select: {
+                  id: true,
+                },
+              },
             },
           },
         },
