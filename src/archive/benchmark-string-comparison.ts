@@ -1,7 +1,6 @@
 import { Suite } from 'benchmark'
 import dl from 'damerau-levenshtein-js'
 import leven from 'js-levenshtein'
-import { jaro_winkler } from './jaro-winkler'
 import jaroWinkler from 'jaro-winkler'
 import jaro from 'wink-jaro-distance'
 
@@ -35,13 +34,6 @@ suite
     for (const word of words) {
       for (const word2 of words) {
         jaroWinkler(word, word2)
-      }
-    }
-  })
-  .add('jaro_winkler', () => {
-    for (const word of words) {
-      for (const word2 of words) {
-        jaro_winkler.distance(word, word2)
       }
     }
   })
