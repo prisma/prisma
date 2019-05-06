@@ -1,4 +1,6 @@
+import indent from 'indent-string'
 import leven from 'js-levenshtein'
+import { DMMF } from './dmmf-types'
 
 export type Dictionary<T> = { [key: string]: T }
 
@@ -73,7 +75,7 @@ export function getGraphQLType(value: any): string {
   }
   const jsType = typeof value
   if (jsType === 'number') {
-    if ((value | 0) === value) {
+    if (Math.trunc(value) === value) {
       return 'Int'
     } else {
       return 'Float'
@@ -112,12 +114,25 @@ export function getSuggestion(str: string, possibilities: string[]): string | nu
       return acc
     },
     {
-      distance: str.length, // if the whole string would need to be replaced, it doesn't make sense
+      // heuristic to be not too strict, but allow some big mistakes (<= ~ 5)
+      distance: Math.min(Math.floor(str.length) * 1.1, ...possibilities.map(p => p.length * 3)),
       str: null,
     },
   )
 
   return bestMatch.str
+}
+
+export function stringifyInputType(input: DMMF.InputType): string {
+  return `type ${input.name} {\n${indent(
+    input.args
+      .map(
+        arg =>
+          `${arg.name}: ${typeof arg.type === 'string' ? stringifyGraphQLType(arg.type, arg.isList) : arg.type.name}`,
+      )
+      .join('\n'),
+    2,
+  )}\n}`
 }
 
 export function destroyCircular(from, seen = []) {

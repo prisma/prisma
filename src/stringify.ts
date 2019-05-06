@@ -6,10 +6,10 @@ const getOwnEnumPropSymbols = require('get-own-enumerable-property-symbols').def
 // Fork of https://github.com/yeoman/stringify-object/blob/master/index.js
 // with possibility to overwrite the whole key-value pair (options.transformLine)
 
-const stringify = (input, options?: any, pad?: any) => {
+const stringifyObject = (input, options?: any, pad?: any) => {
   const seen = []
 
-  return (function stringify(input, options = {}, pad = '', path = []) {
+  return (function stringifyObject(input, options = {}, pad = '', path = []) {
     options.indent = options.indent || '\t'
 
     let tokens
@@ -84,7 +84,7 @@ const stringify = (input, options?: any, pad?: any) => {
           .map((el, i) => {
             const eol = input.length - 1 === i ? tokens.newLine : ',' + tokens.newLineOrSpace
 
-            let value = stringify(el, options, pad + options.indent, [...path, i])
+            let value = stringifyObject(el, options, pad + options.indent, [...path, i])
             if (options.transformValue) {
               value = options.transformValue(input, i, value)
             }
@@ -121,9 +121,9 @@ const stringify = (input, options?: any, pad?: any) => {
             const eol = objKeys.length - 1 === i ? tokens.newLine : ',' + tokens.newLineOrSpace
             const isSymbol = typeof el === 'symbol'
             const isClassic = !isSymbol && /^[a-z$_][a-z$_0-9]*$/i.test(el)
-            let key = isSymbol || isClassic ? el : stringify(el, options, undefined, [...path, el])
+            let key = isSymbol || isClassic ? el : stringifyObject(el, options, undefined, [...path, el])
 
-            let value = stringify(input[el], options, pad + options.indent, [...path, el])
+            let value = stringifyObject(input[el], options, pad + options.indent, [...path, el])
             if (options.transformValue) {
               value = options.transformValue(input, el, value)
             }
@@ -166,4 +166,4 @@ const stringify = (input, options?: any, pad?: any) => {
   })(input, options, pad)
 }
 
-export default stringify
+export default stringifyObject

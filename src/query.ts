@@ -2,18 +2,11 @@ import indent from 'indent-string'
 import { merge, omit } from 'lodash'
 import chalk from 'chalk'
 import { printJsonErrors } from './printJsonErrors'
-import { dedent } from './dedent'
 import { dmmf, DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
-import { performance } from 'perf_hooks'
-import {
-  getSuggestion,
-  GraphQLScalarToJSTypeTable,
-  graphQLToJSType,
-  getGraphQLType,
-  stringifyGraphQLType,
-} from './utils'
+import { getSuggestion, getGraphQLType, stringifyGraphQLType, stringifyInputType } from './utils'
 import { InvalidArgError, ArgError, FieldError, InvalidFieldNameError } from './types'
+import stringifyObject from './stringify'
 
 const tab = 2
 
@@ -42,7 +35,6 @@ ${indent(this.children.map(String).join('\n'), tab)}
       argErrors.push(...errors.argErrors.map(e => ({ ...e, path: isTopLevelQuery ? e.path : e.path.slice(1) })))
     }
 
-    // console.dir({ fieldErrors, argErrors }, { depth: null })
     const topLevelQueryName = this.children[0].name
     const queryName = isTopLevelQuery ? this.type : topLevelQueryName
     const keyPaths = fieldErrors.map(e => e.path.join('.'))
@@ -55,10 +47,6 @@ ${indent(this.children.map(String).join('\n'), tab)}
         valuePaths.push(argError.path.join('.'))
       }
     }
-    // valuePaths.push(...['users.where.name_in.0'])
-    // valuePaths.push(...['users.where.AND.0.age_gt'])
-    // valuePaths.push(...['users.where.AND.1.AND'])
-    // valuePaths.push(...['users.where.AND.1.AND.0.age_gt'])
 
     const errorStr = `\n\nInvalid ${chalk.white.bold(`\`prisma.${queryName}\``)} invocation:
 
@@ -82,9 +70,13 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
   }
   protected printArgError = ({ error, path }: ArgError) => {
     if (error.type === 'invalidName') {
-      let str = `Unknown arg ${chalk.redBright(`\`${error.providedName}\``)} in ${chalk.bold(path.join('.'))}.`
+      let str = `Unknown arg ${chalk.redBright(`\`${error.providedName}\``)} in ${chalk.bold(
+        path.join('.'),
+      )}. for type ${chalk.bold(error.originalType.name)}`
       if (error.didYouMean) {
         str += ` Did you mean \`${chalk.greenBright(error.didYouMean)}\`?`
+      } else {
+        str += ` The available args are:\n` + stringifyInputType(error.originalType)
       }
       return str
     }
@@ -95,24 +87,22 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
       - when nested query: in/for nested argument posts.some.id.gt in selection select.posts.first.
       - when deep: Invalid value for argument skip in select.posts.first
     */
+    // TODO: Check if TODO is still valid
     if (error.type === 'invalidType') {
-      return `Argument ${chalk.bold(error.argName)}: Got invalid value ${chalk.redBright(
-        stringify(error.providedValue),
-      )} on query ${chalk.bold('prisma.users')}. Provided ${chalk.redBright(
+      let valueStr = stringifyObject(error.providedValue, { indent: '  ' })
+      const multilineValue = valueStr.split('\n').length > 1
+      if (multilineValue) {
+        valueStr = `\n${valueStr}\n`
+      }
+      return `Argument ${chalk.bold(error.argName)}: Got invalid value ${chalk.redBright(valueStr)}${
+        multilineValue ? '' : ' '
+      }on query ${chalk.bold(`prisma.${this.children[0].name}`)}. Provided ${chalk.redBright(
         getGraphQLType(error.providedValue),
       )}, expected ${chalk.greenBright(
         stringifyGraphQLType(error.requiredType.type.toString(), error.requiredType.isList),
       )}.`
     }
   }
-}
-
-function stringify(value) {
-  if (typeof value === 'string') {
-    return `'${value}'`
-  }
-
-  return JSON.stringify(value)
 }
 
 class InvalidClientInputError extends Error {}
@@ -204,7 +194,7 @@ export class Args {
   public readonly hasInvalidArg: boolean
   constructor(args: Arg[] = []) {
     this.args = args
-    this.hasInvalidArg = args ? args.some(arg => Boolean(arg.error)) : false
+    this.hasInvalidArg = args ? args.some(arg => Boolean(arg.hasError)) : false
   }
   toString() {
     if (this.args.length === 0) {
@@ -231,7 +221,10 @@ export class Arg {
     this.key = key
     this.value = value
     this.error = error
-    this.hasError = Boolean(error) || (value instanceof Args ? value.hasInvalidArg : false)
+    this.hasError =
+      Boolean(error) ||
+      (value instanceof Args ? value.hasInvalidArg : false) ||
+      (Array.isArray(value) && value.some(v => (v instanceof Args ? v.hasInvalidArg : false)))
   }
   _toString(value: ArgValue, key: string): string {
     if (value instanceof Args) {
@@ -273,6 +266,20 @@ ${indent(value.toString(), 2)}
         error: this.error,
         path: [this.key],
       })
+    }
+
+    if (Array.isArray(this.value)) {
+      errors.push(
+        ...(this.value as Array<any>).flatMap((val, index) => {
+          if (!val.collectErrors) {
+            return []
+          }
+
+          return val.collectErrors().map(e => {
+            return { ...e, path: [this.key, index, ...e.path] }
+          })
+        }),
+      )
     }
 
     // collect errors of children if there are any
@@ -333,7 +340,7 @@ export function selectionToFields(dmmf: DMMFClass, selection: any, field: DMMF.S
       }
 
       const argsWithoutSelect = typeof value === 'object' ? omit(value, 'select') : undefined
-      const args = argsWithoutSelect ? objectToArgs(argsWithoutSelect, field.args) : undefined
+      const args = argsWithoutSelect ? objectToArgs(argsWithoutSelect, field) : undefined
       const isRelation = !field.isScalar
       const defaultSelection = isRelation ? getDefaultSelection(field.type as DMMF.MergedOutputType) : null
       const select = merge(defaultSelection, value.select)
@@ -361,6 +368,38 @@ function getDefaultSelection(outputType: DMMF.MergedOutputType) {
 
     return acc
   }, {})
+}
+
+function getInvalidTypeArg(key: string, value: any, arg: DMMF.SchemaArg): Arg {
+  return new Arg(key, value, {
+    type: 'invalidType',
+    providedValue: value,
+    argName: key,
+    requiredType: {
+      isList: arg.isList,
+      isRequired: arg.isRequired,
+      isScalar: arg.isScalar,
+      type: arg.type,
+    },
+  })
+}
+
+function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg): boolean {
+  const argType = stringifyGraphQLType(arg.type as string, arg.isList)
+  const graphQLType = getGraphQLType(value)
+  // DateTime is a subset of string
+  if (graphQLType === 'DateTime' && argType === 'string') {
+    return true
+  }
+  // Int is a subset of Float
+  if (graphQLType === 'Int' && argType === 'Float') {
+    return true
+  }
+  // Int is a subset of Long
+  if (graphQLType === 'Int' && argType === 'Long') {
+    return true
+  }
+  return graphQLType === argType
 }
 
 function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
@@ -409,7 +448,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     if (typeof value !== 'object' || !value) {
       return getInvalidTypeArg(key, value, arg)
     }
-    return new Arg(key, objectToArgs(value, (arg.type as DMMF.InputType).args))
+    return new Arg(key, objectToArgs(value, arg.type as DMMF.InputType))
   }
 
   if (arg.isList && !arg.isScalar) {
@@ -419,7 +458,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
         if (typeof v !== 'object' || !value) {
           return getInvalidTypeArg(key, v, arg)
         }
-        return objectToArgs(v, (arg.type as DMMF.InputType).args)
+        return objectToArgs(v, arg.type as DMMF.InputType)
       }),
     )
   }
@@ -428,39 +467,8 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   throw new Error('Oops. This must not happen')
 }
 
-function getInvalidTypeArg(key: string, value: any, arg: DMMF.SchemaArg): Arg {
-  return new Arg(key, value, {
-    type: 'invalidType',
-    providedValue: value,
-    argName: key,
-    requiredType: {
-      isList: arg.isList,
-      isRequired: arg.isRequired,
-      isScalar: arg.isScalar,
-      type: arg.type,
-    },
-  })
-}
-
-function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg): boolean {
-  const argType = stringifyGraphQLType(arg.type as string, arg.isList)
-  const graphQLType = getGraphQLType(value)
-  // DateTime is a subset of string
-  if (graphQLType === 'DateTime' && argType === 'string') {
-    return true
-  }
-  // Int is a subset of Float
-  if (graphQLType === 'Int' && argType === 'Float') {
-    return true
-  }
-  // Int is a subset of Long
-  if (graphQLType === 'Int' && argType === 'Long') {
-    return true
-  }
-  return graphQLType === argType
-}
-
-function objectToArgs(obj: any, args: DMMF.SchemaArg[]): Args {
+function objectToArgs(obj: any, inputType: DMMF.InputType): Args {
+  const { args } = inputType
   const entries = Object.entries(obj)
   return new Args(
     entries.reduce(
@@ -472,6 +480,7 @@ function objectToArgs(obj: any, args: DMMF.SchemaArg[]): Args {
               type: 'invalidName',
               providedName: argName,
               didYouMean: getSuggestion(argName, [...args.map(arg => arg.name), 'select']),
+              originalType: inputType,
             }),
           )
           return acc
@@ -481,8 +490,6 @@ function objectToArgs(obj: any, args: DMMF.SchemaArg[]): Args {
 
         if (arg) {
           acc.push(arg)
-        } else {
-          console.log(`Ignoring ${argName}`)
         }
 
         return acc
@@ -555,42 +562,43 @@ async function main() {
   //   }),
   // ])
   const ast = {
-    mirst: 100,
-    first: '100',
-    skip: ['200'],
+    // mirst: 100,
+    // first: '100',
+    skip: 200,
     where: {
-      age_gt: 10,
-      age_in: [1, 2, 3],
+      name_contains: 'x',
       name_in: ['hans', 'peter', 'schmidt'],
       AND: [
         {
           age_gt: 10123123123,
-          email_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
+          this_is_completely_arbitrary: 'veryLongNameGoIntoaNewLineNow@gmail.com',
         },
         {
           age_gt: 10123123123,
-          email_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
+          id_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
           name_contains: 'hans',
+          name_gt: 2131203912039123,
+          name_in: ['hans'],
           AND: [
             {
               age_gt: '10123123123',
-              email_endsWith2: 'veryLongNameGoIntoaNewLineNow@gmail.com',
+              id_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
             },
           ],
         },
       ],
     },
-    melect: {
-      id: true,
-      name2: true,
-      posts: {
-        first: 200,
-        select: {
-          id: true,
-          title: false,
-        },
-      },
-    },
+    // melect: {
+    //   id: true,
+    //   name2: true,
+    //   posts: {
+    //     first: 200,
+    //     select: {
+    //       id: true,
+    //       title: false,
+    //     },
+    //   },
+    // },
     select: {
       id: true,
       name: 'asd',

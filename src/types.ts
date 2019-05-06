@@ -27,6 +27,7 @@ export type InvalidArgNameError = {
   type: 'invalidName'
   providedName: string
   didYouMean?: string // if the possible names are too different and therefore just arbitrary, we don't suggest anything
+  originalType: DMMF.InputType
 }
 
 /**
