@@ -18,12 +18,12 @@ export namespace DMMF {
   }
 
   export type FieldKind = 'scalar' | 'relation'
-  export type Arity = 'required' | 'optional' | 'list'
 
   export interface Field {
     kind: FieldKind
     name: string
-    arity: Arity
+    isRequired: boolean
+    isList: boolean
     isUnique: boolean
     isId: boolean
     type: string
@@ -44,13 +44,16 @@ export namespace DMMF {
 
   export interface QueryOutput {
     name: string
-    arity: Arity
+    isRequired: boolean
+    isList: boolean
   }
 
   export interface SchemaArg {
     name: string
-    type: string
-    arity: Arity
+    type: string | InputType
+    isScalar: boolean
+    isRequired: boolean
+    isList: boolean
   }
 
   export interface OutputType {
@@ -61,18 +64,16 @@ export namespace DMMF {
   export interface MergedOutputType extends OutputType {
     isEmbedded: boolean
     isEnum: boolean
-    fields: MergedSchemaField[]
+    fields: SchemaField[]
   }
 
   export interface SchemaField {
     name: string
     type: string | MergedOutputType // note that in the serialized state we don't have the reference to MergedOutputTypes
-    arity: Arity
+    isList: boolean
+    isRequired: boolean
+    isScalar: boolean
     args: SchemaArg[]
-  }
-
-  export interface MergedSchemaField extends SchemaField {
-    kind: FieldKind
   }
 
   export interface InputType {

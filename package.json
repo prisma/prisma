@@ -23,6 +23,7 @@
     "lodash": "^4.17.11",
     "prisma-datamodel": "^1.31.2",
     "stringify-object": "^3.3.0",
+    "strip-ansi": "^5.2.0",
     "strip-indent": "^3.0.0",
     "wink-jaro-distance": "^2.0.0"
   }

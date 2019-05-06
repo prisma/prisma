@@ -1,5 +1,6 @@
 import stringifyObject from './stringify'
 import chalk from 'chalk'
+import stripAnsi from 'strip-ansi'
 
 export function printJsonErrors(ast: object, keyPaths: string[], valuePaths: string[]) {
   return stringifyObject(ast, {
@@ -13,9 +14,6 @@ export function printJsonErrors(ast: object, keyPaths: string[], valuePaths: str
 
       if (typeof value !== 'object' && !valueError) {
         valueStr = chalk.dim(valueStr)
-      }
-      if (valueError && typeof value === 'object') {
-        throw new Error(`Cannot render an error for a value that's an object`)
       }
 
       const keyStr = keyError ? chalk.redBright(key) : key
@@ -32,12 +30,40 @@ export function printJsonErrors(ast: object, keyPaths: string[], valuePaths: str
         const lines = output.split('\n')
         const keyLength = String(key).length
         const keyScribbles = keyError ? chalk.redBright('~'.repeat(keyLength)) : ' '.repeat(keyLength)
-        const valueLength = String(value).length + (typeof value === 'string' ? 2 : 0) // add 2 chars for the '' when it's a string
+
+        const valueLength = valueError ? getValueLength(indent, key, value, stringifiedValue) : 0
+        const hideValueScribbles = Boolean(valueError && typeof value === 'object')
         const valueScribbles = valueError ? '  ' + chalk.redBright('~'.repeat(valueLength)) : ''
-        lines.splice(1, 1, indent + keyScribbles + valueScribbles)
-        output = lines.join('\n') + (lines.length === 2 ? '\n' : '')
+
+        // Either insert both keyScribles and valueScribbles in one line
+        if (keyScribbles && keyScribbles.length > 0 && !hideValueScribbles) {
+          lines.splice(1, 0, indent + keyScribbles + valueScribbles)
+        }
+
+        // or the valueScribbles for a multiline string
+        if (keyScribbles && keyScribbles.length > 0 && hideValueScribbles) {
+          lines.splice(lines.length - 1, 0, indent.slice(0, indent.length - 2) + valueScribbles)
+        }
+
+        output = lines.join('\n')
       }
       return output
     },
   })
+}
+
+function getValueLength(indent: string, key: string, value: any, stringifiedValue: string) {
+  if (typeof value === 'string') {
+    return value.length + 2 // +2 for the quotes
+  }
+
+  if (typeof value === 'object') {
+    return getLongestLine(`${key}: ${stripAnsi(stringifiedValue)}`) - indent.length
+  }
+
+  return String(value).length
+}
+
+function getLongestLine(str: string): number {
+  return str.split('\n').reduce((max, curr) => (curr.length > max ? curr.length : max), 0)
 }

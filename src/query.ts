@@ -6,7 +6,14 @@ import { dedent } from './dedent'
 import { dmmf, DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import { performance } from 'perf_hooks'
-import { getSuggestion } from './utils'
+import {
+  getSuggestion,
+  GraphQLScalarToJSTypeTable,
+  graphQLToJSType,
+  getGraphQLType,
+  stringifyGraphQLType,
+} from './utils'
+import { InvalidArgError, ArgError, FieldError, InvalidFieldNameError } from './types'
 
 const tab = 2
 
@@ -45,9 +52,13 @@ ${indent(this.children.map(String).join('\n'), tab)}
       if (argError.error.type === 'invalidName') {
         keyPaths.push(argError.path.join('.'))
       } else {
-        valuePaths.push(argError.path.join('.k'))
+        valuePaths.push(argError.path.join('.'))
       }
     }
+    // valuePaths.push(...['users.where.name_in.0'])
+    // valuePaths.push(...['users.where.AND.0.age_gt'])
+    // valuePaths.push(...['users.where.AND.1.AND'])
+    // valuePaths.push(...['users.where.AND.1.AND.0.age_gt'])
 
     const errorStr = `\n\nInvalid ${chalk.white.bold(`\`prisma.${queryName}\``)} invocation:
 
@@ -85,24 +96,15 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
       - when deep: Invalid value for argument skip in select.posts.first
     */
     if (error.type === 'invalidType') {
-      return `Invalid value ${chalk.redBright(stringify(error.providedValue))} for argument ${chalk.bold(
-        'skip',
-      )} on query ${chalk.bold('prisma.users')}. It is a ${typeOf(
-        error.providedValue,
-      )}, but must be a ${chalk.greenBright(error.requiredType.type)}.`
+      return `Argument ${chalk.bold(error.argName)}: Got invalid value ${chalk.redBright(
+        stringify(error.providedValue),
+      )} on query ${chalk.bold('prisma.users')}. Provided ${chalk.redBright(
+        getGraphQLType(error.providedValue),
+      )}, expected ${chalk.greenBright(
+        stringifyGraphQLType(error.requiredType.type.toString(), error.requiredType.isList),
+      )}.`
     }
   }
-}
-
-/**
- * Make the typeof human understandable
- * @param value to get instance of
- */
-function typeOf(value) {
-  if (value === null) {
-    return 'null'
-  }
-  return typeof value
 }
 
 function stringify(value) {
@@ -146,7 +148,11 @@ export class Field {
     }
 
     if (this.args && this.args.args && this.args.args.length > 0) {
-      str += `(${this.args})`
+      if (this.args.args.length === 1) {
+        str += `(${this.args.toString()})`
+      } else {
+        str += `(\n${indent(this.args.toString(), tab)}\n)`
+      }
     }
 
     if (this.children) {
@@ -204,7 +210,7 @@ export class Args {
     if (this.args.length === 0) {
       return ''
     }
-    return `${this.args.map(String).join(', ')}`
+    return `${this.args.map(String).join('\n')}`
   }
   collectErrors(): ArgError[] {
     if (!this.hasInvalidArg) {
@@ -214,39 +220,6 @@ export class Args {
     return this.args.flatMap(arg => arg.collectErrors())
   }
 }
-
-export interface ArgError {
-  path: string[]
-  error: InvalidArgError
-}
-
-export interface FieldError {
-  path: string[]
-  error: InvalidFieldNameError
-}
-
-export interface InvalidFieldNameError {
-  modelName: string
-  didYouMean?: string
-  providedName: string
-}
-
-export type JavaScriptPrimitiveType = 'number' | 'string' | 'boolean'
-
-export type InvalidArgError =
-  | {
-      type: 'invalidName'
-      providedName: string
-      didYouMean?: string // if the possible names are too different and therefore just arbitrary, we don't suggest anything
-    }
-  | {
-      type: 'invalidType'
-      requiredType: {
-        type: string
-        isRequired: boolean
-      }
-      providedValue: any
-    }
 
 export class Arg {
   public readonly key: string
@@ -260,11 +233,32 @@ export class Arg {
     this.error = error
     this.hasError = Boolean(error) || (value instanceof Args ? value.hasInvalidArg : false)
   }
-  toString() {
-    if (this.value instanceof Args) {
-      return `${this.key}: { ${this.value} }`
+  _toString(value: ArgValue, key: string): string {
+    if (value instanceof Args) {
+      return `${key}: {
+${indent(value.toString(), 2)}
+}`
     }
-    return `${this.key}: ${JSON.stringify(this.value)}`
+
+    if (Array.isArray(value)) {
+      const isScalar = !(value as Array<any>).some(v => typeof v === 'object')
+      return `${key}: [${isScalar ? '' : '\n'}${indent(
+        (value as Array<any>)
+          .map(nestedValue => {
+            if (nestedValue instanceof Args) {
+              return `{\n${indent(nestedValue.toString(), tab)}\n}`
+            }
+            return JSON.stringify(nestedValue)
+          })
+          .join(`,${isScalar ? ' ' : '\n'}`),
+        isScalar ? 0 : tab,
+      )}${isScalar ? '' : '\n'}]`
+    }
+
+    return `${key}: ${JSON.stringify(value, null, 2)}`
+  }
+  toString() {
+    return this._toString(this.value, this.key)
   }
   collectErrors(): ArgError[] {
     if (!this.hasError) {
@@ -290,7 +284,7 @@ export class Arg {
   }
 }
 
-export type ArgValue = string | boolean | number | Args
+export type ArgValue = string | boolean | number | Args | string[] | boolean[] | number[] | Args[]
 
 export interface DocumentInput {
   dmmf: DMMFClass
@@ -301,15 +295,20 @@ export interface DocumentInput {
 
 export function makeDocument({ dmmf, rootTypeName, rootField, select }: DocumentInput) {
   const rootType = rootTypeName === 'query' ? dmmf.queryType : dmmf.mutationType
-  return new Document(rootTypeName, selectionToFields(dmmf, { [rootField]: select }, rootType, [rootTypeName]))
+  // Create a fake toplevel field for easier implementation
+  const _rootField: DMMF.SchemaField = {
+    args: [],
+    isList: false,
+    isRequired: true,
+    name: rootTypeName,
+    type: rootType,
+    isScalar: false,
+  }
+  return new Document(rootTypeName, selectionToFields(dmmf, { [rootField]: select }, _rootField, [rootTypeName]))
 }
 
-export function selectionToFields(
-  dmmf: DMMFClass,
-  selection: any,
-  outputType: DMMF.MergedOutputType,
-  path: string[],
-): Field[] {
+export function selectionToFields(dmmf: DMMFClass, selection: any, field: DMMF.SchemaField, path: string[]): Field[] {
+  const outputType = field.type as DMMF.MergedOutputType
   return Object.entries(selection).reduce(
     (acc, [name, value]: any) => {
       if (value === false) {
@@ -334,14 +333,12 @@ export function selectionToFields(
       }
 
       const argsWithoutSelect = typeof value === 'object' ? omit(value, 'select') : undefined
-      const args = argsWithoutSelect ? objectToArgs(argsWithoutSelect) : undefined
-      const isRelation = field.kind === 'relation'
+      const args = argsWithoutSelect ? objectToArgs(argsWithoutSelect, field.args) : undefined
+      const isRelation = !field.isScalar
       const defaultSelection = isRelation ? getDefaultSelection(field.type as DMMF.MergedOutputType) : null
       const select = merge(defaultSelection, value.select)
       const children =
-        select !== false && isRelation
-          ? selectionToFields(dmmf, select, field.type as DMMF.MergedOutputType, [...path, name])
-          : undefined
+        select !== false && isRelation ? selectionToFields(dmmf, select, field, [...path, name]) : undefined
       acc.push(new Field({ name, args, children }))
 
       return acc
@@ -352,7 +349,7 @@ export function selectionToFields(
 
 function getDefaultSelection(outputType: DMMF.MergedOutputType) {
   return outputType.fields.reduce((acc, f) => {
-    if (f.kind === 'scalar') {
+    if (f.isScalar) {
       acc[f.name] = true
     } else {
       // otherwise field is a relation. Only continue if it's an embedded type
@@ -366,64 +363,237 @@ function getDefaultSelection(outputType: DMMF.MergedOutputType) {
   }, {})
 }
 
-function objectToArgs(obj: any): Args {
+function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
+  if (typeof value === 'undefined') {
+    // the arg is undefined and not required - we're fine
+    if (!arg.isRequired) {
+      return null
+    }
+
+    // the provided value is 'undefined' but shouldn't be
+    return new Arg(key, value, {
+      type: 'missingArg',
+      missingName: key,
+      isScalar: arg.isScalar,
+      isList: arg.isList,
+      missingType: JSON.stringify(arg.type),
+    })
+  }
+
+  // the provided value should be a valid scalar, but isn't
+  if (!arg.isList && arg.isScalar) {
+    if (hasCorrectScalarType(value, arg)) {
+      return new Arg(key, value)
+    }
+    return getInvalidTypeArg(key, value, arg)
+  }
+
+  // the provided arg should be a list, but isn't
+  // that's fine for us as we can just turn this into a list with a single item
+  // and GraphQL even allows this. We're going the conservative route though
+  // and actually generate the [] around the value
+  if (arg.isList && !Array.isArray(value)) {
+    value = [value]
+  }
+
+  if (arg.isList && arg.isScalar) {
+    // if no value is incorrect
+    if (hasCorrectScalarType(value, arg)) {
+      return new Arg(key, value)
+    } else {
+      return getInvalidTypeArg(key, value, arg)
+    }
+  }
+
+  if (!arg.isList && !arg.isScalar) {
+    if (typeof value !== 'object' || !value) {
+      return getInvalidTypeArg(key, value, arg)
+    }
+    return new Arg(key, objectToArgs(value, (arg.type as DMMF.InputType).args))
+  }
+
+  if (arg.isList && !arg.isScalar) {
+    return new Arg(
+      key,
+      value.map(v => {
+        if (typeof v !== 'object' || !value) {
+          return getInvalidTypeArg(key, v, arg)
+        }
+        return objectToArgs(v, (arg.type as DMMF.InputType).args)
+      }),
+    )
+  }
+
+  // TODO: Decide for better default case
+  throw new Error('Oops. This must not happen')
+}
+
+function getInvalidTypeArg(key: string, value: any, arg: DMMF.SchemaArg): Arg {
+  return new Arg(key, value, {
+    type: 'invalidType',
+    providedValue: value,
+    argName: key,
+    requiredType: {
+      isList: arg.isList,
+      isRequired: arg.isRequired,
+      isScalar: arg.isScalar,
+      type: arg.type,
+    },
+  })
+}
+
+function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg): boolean {
+  const argType = stringifyGraphQLType(arg.type as string, arg.isList)
+  const graphQLType = getGraphQLType(value)
+  // DateTime is a subset of string
+  if (graphQLType === 'DateTime' && argType === 'string') {
+    return true
+  }
+  // Int is a subset of Float
+  if (graphQLType === 'Int' && argType === 'Float') {
+    return true
+  }
+  // Int is a subset of Long
+  if (graphQLType === 'Int' && argType === 'Long') {
+    return true
+  }
+  return graphQLType === argType
+}
+
+function objectToArgs(obj: any, args: DMMF.SchemaArg[]): Args {
   const entries = Object.entries(obj)
   return new Args(
-    entries.map(([argName, value]: any) => {
-      if (typeof value === 'object') {
-        return new Arg(argName, objectToArgs(value))
-      }
-      return new Arg(argName, value)
-    }),
+    entries.reduce(
+      (acc, [argName, value]: any) => {
+        const schemaArg = args.find(schemaArg => schemaArg.name === argName)
+        if (!schemaArg) {
+          acc.push(
+            new Arg(argName, value, {
+              type: 'invalidName',
+              providedName: argName,
+              didYouMean: getSuggestion(argName, [...args.map(arg => arg.name), 'select']),
+            }),
+          )
+          return acc
+        }
+
+        const arg = valueToArg(argName, value, schemaArg)
+
+        if (arg) {
+          acc.push(arg)
+        } else {
+          console.log(`Ignoring ${argName}`)
+        }
+
+        return acc
+      },
+      [] as Arg[],
+    ),
   )
 }
 
 async function main() {
   console.clear()
-  const document = new Document('query', [
-    new Field({
-      name: 'users',
-      args: new Args([
-        new Arg('mirst', 100, {
-          didYouMean: 'first',
-          providedName: 'mirst',
-          type: 'invalidName',
-        }),
-        new Arg('skip', '200', {
-          type: 'invalidType',
-          providedValue: '200',
-          requiredType: {
-            isRequired: false,
-            type: 'number',
-          },
-        }),
-        new Arg('where', new Args([new Arg('age_gt', 10), new Arg('email_endsWith', '@gmail.com')])),
-      ]),
-      children: [
-        new Field({ name: 'id' }),
-        new Field({ name: 'name2', error: { modelName: 'User', didYouMean: 'name', providedName: 'name2' } }),
-        new Field({
-          name: 'friends',
-          args: new Args(),
-          children: [new Field({ name: 'id' }), new Field({ name: 'name' })],
-        }),
-        new Field({
-          name: 'posts',
-          args: new Args([new Arg('first', 200)]),
-          children: [new Field({ name: 'id' }), new Field({ name: 'name' })],
-        }),
-      ],
-    }),
-  ])
+  // const document = new Document('query', [
+  //   new Field({
+  //     name: 'users',
+  //     args: new Args([
+  //       new Arg('mirst', 100, {
+  //         didYouMean: 'first',
+  //         providedName: 'mirst',
+  //         type: 'invalidName',
+  //       }),
+  //       new Arg('skip', '200', {
+  //         type: 'invalidType',
+  //         providedValue: '200',
+  //         requiredType: {
+  //           isRequired: false,
+  //           type: 'number',
+  //           isList: false,
+  //           isScalar: false,
+  //         },
+  //       }),
+  //       new Arg(
+  //         'where',
+  //         new Args([
+  //           new Arg('age_gt', 10),
+  //           new Arg('age_in', [1, 2, 3]),
+  //           new Arg('name_in', ['hans', 'peter', 'schmidt']),
+  //           new Arg('OR', [
+  //             new Args([
+  //               new Arg('age_gt', 10123123123),
+  //               new Arg('email_endsWith', 'veryLongNameGoIntoaNewLineNow@gmail.com'),
+  //             ]),
+  //             new Args([
+  //               new Arg('age_gt', 10123123123),
+  //               new Arg('email_endsWith', 'veryLongNameGoIntoaNewLineNow@gmail.com'),
+  //               new Arg('OR', [
+  //                 new Args([
+  //                   new Arg('age_gt', 10123123123),
+  //                   new Arg('email_endsWith', 'veryLongNameGoIntoaNewLineNow@gmail.com'),
+  //                 ]),
+  //               ]),
+  //             ]),
+  //           ]),
+  //         ]),
+  //       ),
+  //     ]),
+  //     children: [
+  //       new Field({ name: 'id' }),
+  //       new Field({ name: 'name2', error: { modelName: 'User', didYouMean: 'name', providedName: 'name2' } }),
+  //       new Field({
+  //         name: 'friends',
+  //         args: new Args(),
+  //         children: [new Field({ name: 'id' }), new Field({ name: 'name' })],
+  //       }),
+  //       new Field({
+  //         name: 'posts',
+  //         args: new Args([new Arg('first', 200)]),
+  //         children: [new Field({ name: 'id' }), new Field({ name: 'name' })],
+  //       }),
+  //     ],
+  //   }),
+  // ])
   const ast = {
-    mirst: 200,
-    skip: '200',
+    mirst: 100,
+    first: '100',
+    skip: ['200'],
     where: {
       age_gt: 10,
-      email_endsWith: '@gmail.com',
+      age_in: [1, 2, 3],
+      name_in: ['hans', 'peter', 'schmidt'],
+      AND: [
+        {
+          age_gt: 10123123123,
+          email_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
+        },
+        {
+          age_gt: 10123123123,
+          email_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
+          name_contains: 'hans',
+          AND: [
+            {
+              age_gt: '10123123123',
+              email_endsWith2: 'veryLongNameGoIntoaNewLineNow@gmail.com',
+            },
+          ],
+        },
+      ],
+    },
+    melect: {
+      id: true,
+      name2: true,
+      posts: {
+        first: 200,
+        select: {
+          id: true,
+          title: false,
+        },
+      },
     },
     select: {
       id: true,
+      name: 'asd',
       name2: true,
       posts: {
         first: 200,
@@ -435,10 +605,9 @@ async function main() {
     },
   }
 
-  document.validate(ast)
-  // const document = makeDocument({ dmmf, select: ast, rootTypeName: 'query', rootField: 'users' })
-
-  console.log(String(document))
+  const document = makeDocument({ dmmf, select: ast, rootTypeName: 'query', rootField: 'users' })
+  // console.log(String(document))
+  document.validate(ast, true)
 
   // const query1 = `query {
   //   users(first: 100, skip: 200, where: {

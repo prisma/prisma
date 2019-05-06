@@ -31,6 +31,73 @@ export function isScalar(str: string): boolean {
   return ScalarTypeTable[str] || false
 }
 
+export const GraphQLScalarToJSTypeTable = {
+  String: 'string',
+  Int: 'number',
+  Float: 'number',
+  Boolean: 'boolean',
+  Long: 'number',
+  DateTime: ['string', Date],
+  ID: 'string',
+  UUID: 'string',
+  Json: 'object',
+}
+
+export const JSTypeToGraphQLType = {
+  string: 'String',
+  boolean: 'Boolean',
+  object: 'Json',
+}
+
+export function stringifyGraphQLType(type: string, isList: boolean) {
+  if (!isList) {
+    return type
+  }
+
+  return `List<${type}>`
+}
+
+export function getGraphQLType(value: any): string {
+  if (value === null) {
+    return 'null'
+  }
+  if (Array.isArray(value)) {
+    const scalarTypes = value.reduce((acc, val) => {
+      const type = getGraphQLType(val)
+      if (!acc.includes(type)) {
+        acc.push(type)
+      }
+      return acc
+    }, [])
+    return `List<${scalarTypes.join(' | ')}>`
+  }
+  const jsType = typeof value
+  if (jsType === 'number') {
+    if ((value | 0) === value) {
+      return 'Int'
+    } else {
+      return 'Float'
+    }
+  }
+  if (value instanceof Date) {
+    return 'DateTime'
+  }
+  if (jsType === 'string') {
+    const date = new Date(value)
+    if (date.toString() === 'Invalid Date') {
+      return 'String'
+    }
+    if (date.toISOString() === value) {
+      return 'DateTime'
+    }
+  }
+  return JSTypeToGraphQLType[jsType]
+}
+
+export function graphQLToJSType(gql: string) {
+  return GraphQLScalarToJSTypeTable[gql]
+}
+
 export function getSuggestion(str: string, possibilities: string[]): string | null {
   const bestMatch = possibilities.reduce(
     (acc, curr) => {
@@ -51,4 +118,44 @@ export function getSuggestion(str: string, possibilities: string[]): string | nu
   )
 
   return bestMatch.str
+}
+
+export function destroyCircular(from, seen = []) {
+  const to: any = Array.isArray(from) ? [] : {}
+
+  seen.push(from)
+
+  for (const key of Object.keys(from)) {
+    const value = from[key]
+
+    if (typeof value === 'function') {
+      continue
+    }
+
+    if (!value || typeof value !== 'object') {
+      to[key] = value
+      continue
+    }
+
+    if (seen.indexOf(from[key]) === -1) {
+      to[key] = destroyCircular(from[key], seen.slice(0))
+      continue
+    }
+
+    to[key] = '[Circular]'
+  }
+
+  if (typeof from.name === 'string') {
+    to.name = from.name
+  }
+
+  if (typeof from.message === 'string') {
+    to.message = from.message
+  }
+
+  if (typeof from.stack === 'string') {
+    to.stack = from.stack
+  }
+
+  return to
 }
