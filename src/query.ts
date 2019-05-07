@@ -225,6 +225,20 @@ export class Args {
   }
 }
 
+/**
+ * Custom stringify which turns undefined into null - needed by GraphQL
+ * @param obj to stringify
+ * @param _
+ * @param tab
+ */
+function stringify(obj, _?: any, tab?: string | number) {
+  if (obj === undefined) {
+    return null
+  }
+
+  return JSON.stringify(obj, _, tab)
+}
+
 export class Arg {
   public readonly key: string
   public readonly value: ArgValue
@@ -255,14 +269,14 @@ ${indent(value.toString(), 2)}
             if (nestedValue instanceof Args) {
               return `{\n${indent(nestedValue.toString(), tab)}\n}`
             }
-            return JSON.stringify(nestedValue)
+            return stringify(nestedValue)
           })
           .join(`,${isScalar ? ' ' : '\n'}`),
         isScalar ? 0 : tab,
       )}${isScalar ? '' : '\n'}]`
     }
 
-    return `${key}: ${JSON.stringify(value, null, 2)}`
+    return `${key}: ${stringify(value, null, 2)}`
   }
   toString() {
     return this._toString(this.value, this.key)

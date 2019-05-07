@@ -2,7 +2,7 @@
 
 exports[`validation missing arg object 1`] = `
 "mutation {
-  createPost(data: undefined) {
+  createPost(data: null) {
     id
     title
     content
@@ -12,7 +12,7 @@ exports[`validation missing arg object 1`] = `
 
 exports[`validation missing arg object 3`] = `
 "mutation {
-  createPost(data: undefined) {
+  createPost(data: null) {
     id
     title
     content
@@ -24,8 +24,8 @@ exports[`validation missing arg scalar && object 1`] = `
 "mutation {
   createPost(data: {
     title: \\"string\\"
-    content: undefined
-    author: undefined
+    content: null
+    author: null
   }) {
     id
     title
@@ -43,7 +43,7 @@ exports[`validation missing arg scalar 1`] = `
         id: \\"\\"
       }
     }
-    content: undefined
+    content: null
   }) {
     id
     title
