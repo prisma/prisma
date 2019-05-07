@@ -1,4 +1,4 @@
-import { DMMF } from './dmmf-types'
+import { DMMF } from '../dmmf-types'
 
 export const dmmfDocument: DMMF.Document = {
   datamodel: {

@@ -1,6 +1,6 @@
 import { makeDocument } from '../query'
 import { DMMFClass } from '../dmmf'
-import { dmmfDocument } from '../example-dmmf'
+import { dmmfDocument } from '../fixtures/example-dmmf'
 import stripAnsi from 'strip-ansi'
 
 describe('validation', () => {
