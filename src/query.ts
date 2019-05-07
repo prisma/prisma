@@ -1,12 +1,19 @@
 import indent from 'indent-string'
 import { merge, omit } from 'lodash'
 import chalk from 'chalk'
-import { printJsonErrors } from './printJsonErrors'
+import { printJsonWithErrors, MissingItem } from './utils/printJsonErrors'
 import { dmmf, DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
-import { getSuggestion, getGraphQLType, stringifyGraphQLType, stringifyInputType } from './utils'
+import {
+  getSuggestion,
+  getGraphQLType,
+  stringifyGraphQLType,
+  stringifyInputType,
+  unionBy,
+  inputTypeToJson,
+} from './utils/common'
 import { InvalidArgError, ArgError, FieldError, InvalidFieldNameError } from './types'
-import stringifyObject from './stringify'
+import stringifyObject from './utils/stringifyObject'
 
 const tab = 2
 
@@ -39,18 +46,24 @@ ${indent(this.children.map(String).join('\n'), tab)}
     const queryName = isTopLevelQuery ? this.type : topLevelQueryName
     const keyPaths = fieldErrors.map(e => e.path.join('.'))
     const valuePaths = []
+    const missingItems: MissingItem[] = []
     // an arg error can either be an invalid key or invalid value
     for (const argError of argErrors) {
       if (argError.error.type === 'invalidName') {
         keyPaths.push(argError.path.join('.'))
-      } else {
+      } else if (argError.error.type !== 'missingArg') {
         valuePaths.push(argError.path.join('.'))
+      } else if (argError.error.type === 'missingArg') {
+        missingItems.push({
+          path: argError.path.join('.'),
+          type: inputTypeToJson(argError.error.missingType, true),
+        })
       }
     }
 
-    const errorStr = `\n\nInvalid ${chalk.white.bold(`\`prisma.${queryName}\``)} invocation:
+    const errorStr = `\n\n${chalk.red(`Invalid ${chalk.bold(`\`prisma.${queryName}\``)} invocation:`)}
 
-${printJsonErrors(isTopLevelQuery ? { [topLevelQueryName]: select } : select, keyPaths, valuePaths)}
+${printJsonWithErrors(isTopLevelQuery ? { [topLevelQueryName]: select } : select, keyPaths, valuePaths, missingItems)}
 
 ${argErrors.map(this.printArgError).join('\n')}
 ${fieldErrors.map(this.printFieldError).join('\n')}\n`
@@ -81,13 +94,6 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
       return str
     }
 
-    /*
-      TODO:
-      - on query -> could be on field X of model Y
-      - when nested query: in/for nested argument posts.some.id.gt in selection select.posts.first.
-      - when deep: Invalid value for argument skip in select.posts.first
-    */
-    // TODO: Check if TODO is still valid
     if (error.type === 'invalidType') {
       let valueStr = stringifyObject(error.providedValue, { indent: '  ' })
       const multilineValue = valueStr.split('\n').length > 1
@@ -101,6 +107,12 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
       )}, expected ${chalk.greenBright(
         stringifyGraphQLType(error.requiredType.type.toString(), error.requiredType.isList),
       )}.`
+    }
+
+    if (error.type === 'missingArg') {
+      return `Argument ${chalk.greenBright(error.missingName)} for ${chalk.bold(
+        `prisma.${path.join('.')}`,
+      )} is missing. You can see in ${chalk.greenBright('green')} what you need to add.`
     }
   }
 }
@@ -410,12 +422,13 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     }
 
     // the provided value is 'undefined' but shouldn't be
+    // console.log({ key, value })
     return new Arg(key, value, {
       type: 'missingArg',
       missingName: key,
       isScalar: arg.isScalar,
       isList: arg.isList,
-      missingType: JSON.stringify(arg.type),
+      missingType: arg.type,
     })
   }
 
@@ -469,7 +482,8 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
 
 function objectToArgs(obj: any, inputType: DMMF.InputType): Args {
   const { args } = inputType
-  const entries = Object.entries(obj)
+  const requiredArgs: [string, any][] = args.filter(arg => arg.isRequired).map(arg => [arg.name, undefined])
+  const entries = unionBy(Object.entries(obj), requiredArgs, a => a[0])
   return new Args(
     entries.reduce(
       (acc, [argName, value]: any) => {
@@ -501,6 +515,95 @@ function objectToArgs(obj: any, inputType: DMMF.InputType): Args {
 
 async function main() {
   console.clear()
+  // const ast = {
+  //   // mirst: 100,
+  //   // first: '100',
+  //   skip: 200,
+  //   where: {
+  //     name_contains: undefined,
+  //     name_in: ['hans', 'peter', 'schmidt'],
+  //     AND: [
+  //       {
+  //         age_gt: 10123123123,
+  //         this_is_completely_arbitrary: 'veryLongNameGoIntoaNewLineNow@gmail.com',
+  //       },
+  //       {
+  //         age_gt: 10123123123,
+  //         id_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
+  //         name_contains: 'hans',
+  //         name_gt: 2131203912039123,
+  //         name_in: ['hans'],
+  //         AND: [
+  //           {
+  //             age_gt: '10123123123',
+  //             id_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
+  //           },
+  //         ],
+  //       },
+  //     ],
+  //   },
+  //   // melect: {
+  //   //   id: true,
+  //   //   name2: true,
+  //   //   posts: {
+  //   //     first: 200,
+  //   //     select: {
+  //   //       id: true,
+  //   //       title: false,
+  //   //     },
+  //   //   },
+  //   // },
+  //   select: {
+  //     id: true,
+  //     name: 'asd',
+  //     name2: true,
+  //     posts: {
+  //       first: 200,
+  //       select: {
+  //         id: true,
+  //         title: false,
+  //       },
+  //     },
+  //   },
+  // }
+
+  // const document = makeDocument({ dmmf, select: ast, rootTypeName: 'query', rootField: 'users' })
+  // console.log(String(document))
+  // document.validate(ast, true)
+
+  const createUserAst = {
+    // data: {
+    // name: 'Blub',
+    // },
+    data: {
+      // content: 'ya',
+      // author: {},
+    },
+  }
+
+  const document = makeDocument({ dmmf, select: createUserAst, rootTypeName: 'mutation', rootField: 'createPost' })
+  // console.log(String(document))
+  // console.dir(document, { depth: null })
+  document.validate(createUserAst, false)
+
+  // const query1 = `query {
+  //   users(first: 100, skip: 200, where: {
+  //     age_gt: 10
+  //     email_endsWith: "@gmail.com"
+  //   }) {
+  //     id
+  //     name
+  //     friends {
+  //       id
+  //       name
+  //     }
+  //     posts(first: 200) {
+  //       id
+  //     }
+  //   }
+  // }
+  // `
+
   // const document = new Document('query', [
   //   new Field({
   //     name: 'users',
@@ -561,100 +664,6 @@ async function main() {
   //     ],
   //   }),
   // ])
-  const ast = {
-    // mirst: 100,
-    // first: '100',
-    skip: 200,
-    where: {
-      name_contains: 'x',
-      name_in: ['hans', 'peter', 'schmidt'],
-      AND: [
-        {
-          age_gt: 10123123123,
-          this_is_completely_arbitrary: 'veryLongNameGoIntoaNewLineNow@gmail.com',
-        },
-        {
-          age_gt: 10123123123,
-          id_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
-          name_contains: 'hans',
-          name_gt: 2131203912039123,
-          name_in: ['hans'],
-          AND: [
-            {
-              age_gt: '10123123123',
-              id_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
-            },
-          ],
-        },
-      ],
-    },
-    // melect: {
-    //   id: true,
-    //   name2: true,
-    //   posts: {
-    //     first: 200,
-    //     select: {
-    //       id: true,
-    //       title: false,
-    //     },
-    //   },
-    // },
-    select: {
-      id: true,
-      name: 'asd',
-      name2: true,
-      posts: {
-        first: 200,
-        select: {
-          id: true,
-          title: false,
-        },
-      },
-    },
-  }
-
-  const document = makeDocument({ dmmf, select: ast, rootTypeName: 'query', rootField: 'users' })
-  // console.log(String(document))
-  document.validate(ast, true)
-
-  // const query1 = `query {
-  //   users(first: 100, skip: 200, where: {
-  //     age_gt: 10
-  //     email_endsWith: "@gmail.com"
-  //   }) {
-  //     id
-  //     name
-  //     friends {
-  //       id
-  //       name
-  //     }
-  //     posts(first: 200) {
-  //       id
-  //     }
-  //   }
-  // }
-  // `
-
-  // const document = makeDocument({ dmmf, select: bigAst, rootTypeName: 'query', rootField: 'users' })
-
-  // const before = performance.now()
-  // const docStr = String(document)
-  // const after = performance.now()
-  // console.log(docStr)
-  // console.log(`needed ${after - before} ms`)
-
-  // const errorStr = `
-  //     \nInvalid ${chalk.white.bold('`prisma.users`')} invocation:
-
-  // ${printJsonErrors(bigAst, ['select.posts.select.author.select.id2'], ['where.email_endsWith'])}
-
-  // Unkown field ${chalk.redBright('`mosts`')} on model ${chalk.bold.white('User')}. Did you mean ${chalk.greenBright(
-  //   '`posts`',
-  // )}?
-  // Unkown field ${chalk.redBright('`mosts2`')} on model ${chalk.bold.white('User')}. Did you mean ${chalk.greenBright(
-  //   '`posts`',
-  // )}?
-  //   `
 }
 
 main().catch(e => console.error(e))

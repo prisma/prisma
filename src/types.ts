@@ -37,7 +37,7 @@ export type InvalidArgNameError = {
 export type MissingArgError = {
   type: 'missingArg'
   missingName: string
-  missingType: string // note that this could be an object or scalar type. in the object case, we print the whole object type
+  missingType: string | DMMF.InputType // note that this could be an object or scalar type. in the object case, we print the whole object type
   isScalar: boolean // useful for error printing
   isList: boolean
 }

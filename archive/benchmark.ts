@@ -1,6 +1,6 @@
 import { Suite } from 'benchmark'
-import { Field, Document, Args, Arg, makeDocument } from '../query'
-import { dmmf } from '../dmmf'
+import { Field, Document, Args, Arg, makeDocument } from '../src/query'
+import { dmmf } from '../src/dmmf'
 
 const suite = new Suite()
 

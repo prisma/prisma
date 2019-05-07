@@ -1,5 +1,5 @@
 import { DMMF } from './dmmf-types'
-import { keyBy, isScalar, Dictionary, destroyCircular } from './utils'
+import { keyBy, isScalar, Dictionary, destroyCircular } from './utils/common'
 import { performance } from 'perf_hooks'
 import { dmmfDocument } from './example-dmmf'
 

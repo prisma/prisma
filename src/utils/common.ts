@@ -1,6 +1,6 @@
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
-import { DMMF } from './dmmf-types'
+import { DMMF } from '../dmmf-types'
 
 export type Dictionary<T> = { [key: string]: T }
 
@@ -123,8 +123,11 @@ export function getSuggestion(str: string, possibilities: string[]): string | nu
   return bestMatch.str
 }
 
-export function stringifyInputType(input: DMMF.InputType): string {
-  return `type ${input.name} {\n${indent(
+export function stringifyInputType(input: string | DMMF.InputType): string {
+  if (typeof input === 'string') {
+    return input
+  }
+  const body = indent(
     input.args
       .map(
         arg =>
@@ -132,7 +135,32 @@ export function stringifyInputType(input: DMMF.InputType): string {
       )
       .join('\n'),
     2,
-  )}\n}`
+  )
+  return `type ${input.name} {\n${body}\n}`
+}
+
+export function getInputTypeName(input: string | DMMF.InputType) {
+  if (typeof input === 'string') {
+    return input
+  }
+
+  return input.name
+}
+
+export function inputTypeToJson(input: string | DMMF.InputType, isRequired: boolean): string | object {
+  if (typeof input === 'string') {
+    return input
+  }
+
+  // If the parent type is required and all fields are non-scalars,
+  // it's very useful to show to the user, which options they actually have
+  const showDeepType = isRequired && input.args.every(arg => !arg.isScalar)
+
+  return input.args.reduce((acc, curr) => {
+    acc[curr.name + (curr.isRequired ? '' : '?')] =
+      curr.isRequired || showDeepType ? inputTypeToJson(curr.type, curr.isRequired) : getInputTypeName(curr.type)
+    return acc
+  }, {})
 }
 
 export function destroyCircular(from, seen = []) {
@@ -173,4 +201,21 @@ export function destroyCircular(from, seen = []) {
   }
 
   return to
+}
+
+export function unionBy<T>(arr1: T[], arr2: T[], iteratee: (element: T) => string | number): T[] {
+  const map = {}
+
+  for (const element of arr1) {
+    map[iteratee(element)] = element
+  }
+
+  for (const element of arr2) {
+    const key = iteratee(element)
+    if (!map[key]) {
+      map[key] = element
+    }
+  }
+
+  return Object.values(map)
 }

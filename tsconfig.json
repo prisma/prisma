@@ -6,6 +6,8 @@
     "strict": false,
     "esModuleInterop": true,
     "sourceMap": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "outDir": "dist",
+    "sourceRoot": "src"
   }
 }

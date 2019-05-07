@@ -3,8 +3,16 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "build": "tsc -d"
+  },
   "devDependencies": {
+    "@strikeentco/set": "^1.0.0",
     "benchmark": "^2.1.4",
+    "immer": "^3.1.1",
+    "immutable": "^4.0.0-rc.12",
+    "object-path-immutable": "^3.0.2",
+    "set-value": "^3.0.0",
     "ts-node": "^8.1.0",
     "typescript": "^3.4.5"
   },
