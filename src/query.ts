@@ -1,5 +1,4 @@
 import indent from 'indent-string'
-import { merge, omit } from 'lodash'
 import chalk from 'chalk'
 import { printJsonWithErrors, MissingItem } from './utils/printJsonErrors'
 import { dmmf, DMMFClass } from './dmmf'
@@ -14,6 +13,8 @@ import {
 } from './utils/common'
 import { InvalidArgError, ArgError, FieldError, InvalidFieldNameError } from './types'
 import stringifyObject from './utils/stringifyObject'
+import { deepExtend } from './utils/deep-extend'
+import { omit } from './utils/omit'
 
 const tab = 2
 
@@ -355,7 +356,7 @@ export function selectionToFields(dmmf: DMMFClass, selection: any, field: DMMF.S
       const args = argsWithoutSelect ? objectToArgs(argsWithoutSelect, field) : undefined
       const isRelation = !field.isScalar
       const defaultSelection = isRelation ? getDefaultSelection(field.type as DMMF.MergedOutputType) : null
-      const select = merge(defaultSelection, value.select)
+      const select = deepExtend(defaultSelection, value.select)
       const children =
         select !== false && isRelation ? selectionToFields(dmmf, select, field, [...path, name]) : undefined
       acc.push(new Field({ name, args, children }))

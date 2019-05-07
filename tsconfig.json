@@ -8,6 +8,7 @@
     "sourceMap": true,
     "noImplicitAny": false,
     "outDir": "dist",
-    "sourceRoot": "src"
-  }
+    "rootDir": "src"
+  },
+  "exclude": ["archive", "dist"]
 }
