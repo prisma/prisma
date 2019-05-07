@@ -1,7 +1,7 @@
 import indent from 'indent-string'
 import chalk from 'chalk'
 import { printJsonWithErrors, MissingItem } from './utils/printJsonErrors'
-import { dmmf, DMMFClass } from './dmmf'
+import { /*dmmf, */ DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import {
   getSuggestion,
@@ -10,6 +10,7 @@ import {
   stringifyInputType,
   unionBy,
   inputTypeToJson,
+  getInputTypeName,
 } from './utils/common'
 import { InvalidArgError, ArgError, FieldError, InvalidFieldNameError } from './types'
 import stringifyObject from './utils/stringifyObject'
@@ -86,7 +87,7 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
     if (error.type === 'invalidName') {
       let str = `Unknown arg ${chalk.redBright(`\`${error.providedName}\``)} in ${chalk.bold(
         path.join('.'),
-      )}. for type ${chalk.bold(error.originalType.name)}`
+      )}. for type ${chalk.bold(getInputTypeName(error.originalType))}`
       if (error.didYouMean) {
         str += ` Did you mean \`${chalk.greenBright(error.didYouMean)}\`?`
       } else {
@@ -398,21 +399,24 @@ function getInvalidTypeArg(key: string, value: any, arg: DMMF.SchemaArg): Arg {
 }
 
 function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg): boolean {
-  const argType = stringifyGraphQLType(arg.type as string, arg.isList)
+  const expectedType = stringifyGraphQLType(arg.type as string, arg.isList)
   const graphQLType = getGraphQLType(value)
   // DateTime is a subset of string
-  if (graphQLType === 'DateTime' && argType === 'string') {
+  if (graphQLType === 'DateTime' && expectedType === 'String') {
+    return true
+  }
+  if (graphQLType === 'String' && expectedType === 'ID') {
     return true
   }
   // Int is a subset of Float
-  if (graphQLType === 'Int' && argType === 'Float') {
+  if (graphQLType === 'Int' && expectedType === 'Float') {
     return true
   }
   // Int is a subset of Long
-  if (graphQLType === 'Int' && argType === 'Long') {
+  if (graphQLType === 'Int' && expectedType === 'Long') {
     return true
   }
-  return graphQLType === argType
+  return graphQLType === expectedType
 }
 
 function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
@@ -513,158 +517,3 @@ function objectToArgs(obj: any, inputType: DMMF.InputType): Args {
     ),
   )
 }
-
-async function main() {
-  console.clear()
-  // const ast = {
-  //   // mirst: 100,
-  //   // first: '100',
-  //   skip: 200,
-  //   where: {
-  //     name_contains: undefined,
-  //     name_in: ['hans', 'peter', 'schmidt'],
-  //     AND: [
-  //       {
-  //         age_gt: 10123123123,
-  //         this_is_completely_arbitrary: 'veryLongNameGoIntoaNewLineNow@gmail.com',
-  //       },
-  //       {
-  //         age_gt: 10123123123,
-  //         id_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
-  //         name_contains: 'hans',
-  //         name_gt: 2131203912039123,
-  //         name_in: ['hans'],
-  //         AND: [
-  //           {
-  //             age_gt: '10123123123',
-  //             id_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //   },
-  //   // melect: {
-  //   //   id: true,
-  //   //   name2: true,
-  //   //   posts: {
-  //   //     first: 200,
-  //   //     select: {
-  //   //       id: true,
-  //   //       title: false,
-  //   //     },
-  //   //   },
-  //   // },
-  //   select: {
-  //     id: true,
-  //     name: 'asd',
-  //     name2: true,
-  //     posts: {
-  //       first: 200,
-  //       select: {
-  //         id: true,
-  //         title: false,
-  //       },
-  //     },
-  //   },
-  // }
-
-  // const document = makeDocument({ dmmf, select: ast, rootTypeName: 'query', rootField: 'users' })
-  // console.log(String(document))
-  // document.validate(ast, true)
-
-  const createUserAst = {
-    // data: {
-    // name: 'Blub',
-    // },
-    data: {
-      // content: 'ya',
-      // author: {},
-    },
-  }
-
-  const document = makeDocument({ dmmf, select: createUserAst, rootTypeName: 'mutation', rootField: 'createPost' })
-  // console.log(String(document))
-  // console.dir(document, { depth: null })
-  document.validate(createUserAst, false)
-
-  // const query1 = `query {
-  //   users(first: 100, skip: 200, where: {
-  //     age_gt: 10
-  //     email_endsWith: "@gmail.com"
-  //   }) {
-  //     id
-  //     name
-  //     friends {
-  //       id
-  //       name
-  //     }
-  //     posts(first: 200) {
-  //       id
-  //     }
-  //   }
-  // }
-  // `
-
-  // const document = new Document('query', [
-  //   new Field({
-  //     name: 'users',
-  //     args: new Args([
-  //       new Arg('mirst', 100, {
-  //         didYouMean: 'first',
-  //         providedName: 'mirst',
-  //         type: 'invalidName',
-  //       }),
-  //       new Arg('skip', '200', {
-  //         type: 'invalidType',
-  //         providedValue: '200',
-  //         requiredType: {
-  //           isRequired: false,
-  //           type: 'number',
-  //           isList: false,
-  //           isScalar: false,
-  //         },
-  //       }),
-  //       new Arg(
-  //         'where',
-  //         new Args([
-  //           new Arg('age_gt', 10),
-  //           new Arg('age_in', [1, 2, 3]),
-  //           new Arg('name_in', ['hans', 'peter', 'schmidt']),
-  //           new Arg('OR', [
-  //             new Args([
-  //               new Arg('age_gt', 10123123123),
-  //               new Arg('email_endsWith', 'veryLongNameGoIntoaNewLineNow@gmail.com'),
-  //             ]),
-  //             new Args([
-  //               new Arg('age_gt', 10123123123),
-  //               new Arg('email_endsWith', 'veryLongNameGoIntoaNewLineNow@gmail.com'),
-  //               new Arg('OR', [
-  //                 new Args([
-  //                   new Arg('age_gt', 10123123123),
-  //                   new Arg('email_endsWith', 'veryLongNameGoIntoaNewLineNow@gmail.com'),
-  //                 ]),
-  //               ]),
-  //             ]),
-  //           ]),
-  //         ]),
-  //       ),
-  //     ]),
-  //     children: [
-  //       new Field({ name: 'id' }),
-  //       new Field({ name: 'name2', error: { modelName: 'User', didYouMean: 'name', providedName: 'name2' } }),
-  //       new Field({
-  //         name: 'friends',
-  //         args: new Args(),
-  //         children: [new Field({ name: 'id' }), new Field({ name: 'name' })],
-  //       }),
-  //       new Field({
-  //         name: 'posts',
-  //         args: new Args([new Arg('first', 200)]),
-  //         children: [new Field({ name: 'id' }), new Field({ name: 'name' })],
-  //       }),
-  //     ],
-  //   }),
-  // ])
-}
-
-main().catch(e => console.error(e))

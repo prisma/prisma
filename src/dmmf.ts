@@ -1,7 +1,5 @@
 import { DMMF } from './dmmf-types'
 import { keyBy, isScalar, Dictionary, destroyCircular } from './utils/common'
-import { performance } from 'perf_hooks'
-import { dmmfDocument } from './example-dmmf'
 
 export class DMMFClass implements DMMF.Document {
   datamodel: DMMF.Datamodel
@@ -125,9 +123,3 @@ const queryToSchemaField = (q: DMMF.Query): DMMF.SchemaField => ({
   type: q.output.name,
   isScalar: false,
 })
-
-const before = performance.now()
-export const dmmf = new DMMFClass(dmmfDocument)
-debugger
-const after = performance.now()
-console.log(`Took ${after - before}ms to build the dmmf`)
