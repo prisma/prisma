@@ -361,7 +361,7 @@ ${new ModelDefault(model, this.dmmf)}
 
 ${new PayloadType(this.outputType)}
 
-${new ModelDelegate(this.outputType)}
+${new ModelDelegate(this.outputType, this.dmmf)}
 
 // InputTypes
 ${this.argsTypes.map(String).join('\n')}
@@ -468,38 +468,73 @@ ${new QueryDelegate(outputType)}
   }
 }
 export class ModelDelegate {
-  constructor(protected readonly outputType: OutputType) {}
+  constructor(protected readonly outputType: OutputType, protected readonly dmmf: DMMFClass) {}
   toString() {
     const name = this.outputType.name
+    const mapping = this.dmmf.mappings.find(m => m.model === name)
+    const actions = Object.entries(mapping).filter(([key, value]) => key !== 'model' && value)
+
     return `\
 export interface ${name}Delegate {
   <T extends ${name}Args>(args: Subset<T,${name}Args>): PromiseLike<Array<${name}GetPayload<Extract${getModelArgName(
       name,
       DMMF.ModelAction.findMany,
     )}Select<T>>>>
+${indent(
+  actions
+    .map(
+      ([actionName, fieldName]) =>
+        `${actionName}<T extends ${getModelArgName(
+          name,
+          actionName as DMMF.ModelAction,
+        )}>(args: Subset<T, ${getModelArgName(name, actionName as DMMF.ModelAction)}>): PromiseLike<${
+          actionName === 'findMany' ? 'Array<' : ''
+        }${name}GetPayload<Extract${getModelArgName(name, DMMF.ModelAction.findMany)}Select<T>>>${
+          actionName === 'findMany' ? '>' : ''
+        }`,
+    )
+    .join('\n'),
+  tab,
+)}
 }
 function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaFetcher): ${name}Delegate {
-  const ${name} = <T extends ${name}Args>(args: ${name}Args) => new ${name}Client<Array<${name}GetPayload<Extract${getModelArgName(
+  const ${name} = <T extends ${name}Args>(args: Subset<T, ${name}Args>) => new ${name}Client<Array<${name}GetPayload<Extract${getModelArgName(
       name,
       DMMF.ModelAction.findMany,
-    )}Select<T>>>>(dmmf, fetcher, args, [])
+    )}Select<T>>>>(dmmf, fetcher, 'query', '${mapping.findMany}', args, [])
+${indent(
+  actions
+    .map(
+      ([actionName, fieldName]) =>
+        `${name}.${actionName} = <T extends ${getModelArgName(
+          name,
+          actionName as DMMF.ModelAction,
+        )}>(args: Subset<T, ${getModelArgName(name, actionName as DMMF.ModelAction)}>) => new ${name}Client<${
+          actionName === 'findMany' ? 'Array<' : ''
+        }${name}GetPayload<Extract${getModelArgName(name, DMMF.ModelAction.findMany)}Select<T>>>${
+          actionName === 'findMany' ? '>' : ''
+        }(dmmf, fetcher, '${getOperation(actionName as DMMF.ModelAction)}', '${fieldName}', args, [])`,
+    )
+    .join('\n'),
+  tab,
+)}
   return ${name}
 }
 
 class ${name}Client<T> implements PromiseLike<T> {
-  constructor(private readonly dmmf: DMMFClass,private readonly fetcher: PrismaFetcher, private readonly args: ${name}Args, private readonly path: []) {}
+  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PrismaFetcher, private readonly queryType: 'query' | 'mutation', private readonly rootField: string, private readonly args: ${name}Args, private readonly path: []) {}
   readonly [Symbol.toStringTag]: 'Promise'
 
   protected get query() {
-    const rootField = Object.keys(this.args)[0]
+    const {rootField} = this
     const document = makeDocument({
       dmmf: this.dmmf,
       rootField,
-      rootTypeName: 'query',
-      select: this.args[rootField]
+      rootTypeName: this.queryType,
+      select: this.args
     })
     // console.dir(document, {depth: 8})
-    document.validate(this.args[rootField], true)
+    document.validate(this.args, true)
     return String(document)
   }
 
@@ -643,7 +678,7 @@ type Extract${type.name}Select<S extends boolean | ${type.name}> = S extends boo
   ? S
   : S extends ${type.name}WithSelect
   ? S['select']
-  : false
+  : true
 `
   }
 }

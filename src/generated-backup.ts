@@ -9,12 +9,8 @@ import { Subset } from './generated'
  * Utility Types
  */
 
-type SelectType = {
-  [key: string]: boolean | SelectType
-}
-
 export type MergeTruthyValues<R extends object, S extends object> = {
-  [key in keyof S | keyof R]: (S & R)[key] extends true & false
+  [key in keyof S | keyof R]: key extends false
     ? never
     : key extends keyof S
     ? S[key] extends false
@@ -24,8 +20,6 @@ export type MergeTruthyValues<R extends object, S extends object> = {
     ? R[key]
     : never
 }
-
-type Test = MergeTruthyValues<{ id: true }, { id: false; myd: true }>
 
 export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never : key }[keyof T]
 
@@ -77,6 +71,18 @@ export class Prisma {
   get query() {
     return this._query ? this._query : (this._query = QueryDelegate(this.dmmf, this.fetcher))
   }
+  private _users?: UserDelegate
+  get users() {
+    return this._users ? this._users : (this._users = UserDelegate(this.dmmf, this.fetcher))
+  }
+  private _profiles?: ProfileDelegate
+  get profiles() {
+    return this._profiles ? this._profiles : (this._profiles = ProfileDelegate(this.dmmf, this.fetcher))
+  }
+  private _posts?: PostDelegate
+  get posts() {
+    return this._posts ? this._posts : (this._posts = PostDelegate(this.dmmf, this.fetcher))
+  }
 }
 
 /**
@@ -94,7 +100,15 @@ export type QueryArgs = {
 
 type QueryGetPayload<S extends QueryArgs> = S extends QueryArgs
   ? {
-      [P in keyof S]: P extends 'user'
+      [P in keyof S]: P extends 'post'
+        ? PostGetPayload<ExtractFindOnePostArgsSelect<S[P]>>
+        : P extends 'posts'
+        ? Array<PostGetPayload<ExtractFindManyPostArgsSelect<S[P]>>>
+        : P extends 'profile'
+        ? ProfileGetPayload<ExtractFindOneProfileArgsSelect<S[P]>>
+        : P extends 'profiles'
+        ? Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<S[P]>>>
+        : P extends 'user'
         ? UserGetPayload<ExtractFindOneUserArgsSelect<S[P]>>
         : P extends 'users'
         ? Array<UserGetPayload<ExtractFindManyUserArgsSelect<S[P]>>>
@@ -102,50 +116,15 @@ type QueryGetPayload<S extends QueryArgs> = S extends QueryArgs
     }
   : never
 
-type QueryDelegate = {
+interface QueryDelegate {
   <T extends QueryArgs>(args: Subset<T, QueryArgs>): PromiseLike<QueryGetPayload<T>>
 }
-
-const x: QueryDelegate = null as any
-
-type Prisma2 = {
-  users: <T extends UserArgs>(
-    args?: Subset<T, UserArgs>,
-  ) => T extends UserArgsWithSelect ? UserGetPayload<T['select']> : Promise<User[]>
-}
-
-async function main() {
-  const yyyyyy = await x({
-    user: {
-      where: {
-        id: '',
-      },
-      select: {
-        id: true,
-        name: false,
-        strings: false,
-        posts: {
-          select: {
-            id: false,
-          },
-        },
-      },
-    },
-  })
-  const a: Prisma2 = null as any
-  const b = await a.users({
-    select: {
-      id: true,
-    },
-  })
-}
-
 function QueryDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): QueryDelegate {
   const Query = <T extends QueryArgs>(args: QueryArgs) => new QueryClient<T>(dmmf, fetcher, args, [])
   return Query
 }
 
-class QueryClient<T extends QueryArgs = QueryArgs, U = QueryGetPayload<T>> implements PromiseLike<U> {
+class QueryClient<T extends QueryArgs, U = QueryGetPayload<T>> implements PromiseLike<U> {
   constructor(
     private readonly dmmf: DMMFClass,
     private readonly fetcher: PrismaFetcher,
@@ -187,8 +166,8 @@ class QueryClient<T extends QueryArgs = QueryArgs, U = QueryGetPayload<T>> imple
    */
   catch<TResult = never>(
     onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
-  ): Promise<T | TResult> {
-    return this.fetcher.request<T>(this.query, this.path).catch(onrejected)
+  ): Promise<U | TResult> {
+    return this.fetcher.request<U>(this.query, this.path).catch(onrejected)
   }
 }
 
@@ -229,6 +208,129 @@ type UserGetPayload<S extends boolean | UserSelect> = S extends true
     }
   : never
 
+export interface UserDelegate {
+  <T extends UserArgs>(args: Subset<T, UserArgs>): 'select' extends keyof T
+    ? PromiseLike<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>
+    : UserDelegate
+  findOne<T extends FindOneUserArgs>(
+    args: Subset<T, FindOneUserArgs>,
+  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+  findMany<T extends FindManyUserArgs>(
+    args: Subset<T, FindManyUserArgs>,
+  ): PromiseLike<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>
+  create<T extends UserCreateArgs>(
+    args: Subset<T, UserCreateArgs>,
+  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+  update<T extends UserUpdateArgs>(
+    args: Subset<T, UserUpdateArgs>,
+  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+  updateMany<T extends UserUpdateManyArgs>(
+    args: Subset<T, UserUpdateManyArgs>,
+  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+  upsert<T extends UserUpsertArgs>(
+    args: Subset<T, UserUpsertArgs>,
+  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+  delete<T extends UserDeleteArgs>(
+    args: Subset<T, UserDeleteArgs>,
+  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+  deleteMany<T extends UserDeleteManyArgs>(
+    args: Subset<T, UserDeleteManyArgs>,
+  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+}
+function UserDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): UserDelegate {
+  const User = <T extends UserArgs>(args: Subset<T, UserArgs>) =>
+    args.select
+      ? new UserClient<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>(
+          dmmf,
+          fetcher,
+          'query',
+          'users',
+          args,
+          [],
+        )
+      : this
+  User.findOne = <T extends FindOneUserArgs>(args: Subset<T, FindOneUserArgs>) =>
+    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'query', 'user', args, [])
+  User.findMany = <T extends FindManyUserArgs>(args: Subset<T, FindManyUserArgs>) =>
+    new UserClient<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>(dmmf, fetcher, 'query', 'users', args, [])
+  User.create = <T extends UserCreateArgs>(args: Subset<T, UserCreateArgs>) =>
+    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'createUser', args, [])
+  User.update = <T extends UserUpdateArgs>(args: Subset<T, UserUpdateArgs>) =>
+    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateUser', args, [])
+  User.updateMany = <T extends UserUpdateManyArgs>(args: Subset<T, UserUpdateManyArgs>) =>
+    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(
+      dmmf,
+      fetcher,
+      'mutation',
+      'updateManyUsers',
+      args,
+      [],
+    )
+  User.upsert = <T extends UserUpsertArgs>(args: Subset<T, UserUpsertArgs>) =>
+    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'upsertUser', args, [])
+  User.delete = <T extends UserDeleteArgs>(args: Subset<T, UserDeleteArgs>) =>
+    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteUser', args, [])
+  User.deleteMany = <T extends UserDeleteManyArgs>(args: Subset<T, UserDeleteManyArgs>) =>
+    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(
+      dmmf,
+      fetcher,
+      'mutation',
+      'deleteManyUsers',
+      args,
+      [],
+    )
+  return User
+}
+
+class UserClient<T> implements PromiseLike<T> {
+  constructor(
+    private readonly dmmf: DMMFClass,
+    private readonly fetcher: PrismaFetcher,
+    private readonly queryType: 'query' | 'mutation',
+    private readonly rootField: string,
+    private readonly args: UserArgs,
+    private readonly path: [],
+  ) {}
+  readonly [Symbol.toStringTag]: 'Promise'
+
+  protected get query() {
+    const { rootField } = this
+    const document = makeDocument({
+      dmmf: this.dmmf,
+      rootField,
+      rootTypeName: this.queryType,
+      select: this.args,
+    })
+    // console.dir(document, {depth: 8})
+    document.validate(this.args, true)
+    return String(document)
+  }
+
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+  ): Promise<TResult1 | TResult2> {
+    return this.fetcher.request<T>(this.query, this.path).then(onfulfilled, onrejected)
+  }
+
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(
+    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
+  ): Promise<T | TResult> {
+    return this.fetcher.request<T>(this.query, this.path).catch(onrejected)
+  }
+}
+
 // InputTypes
 
 export type FindOneUserArgs = {
@@ -245,7 +347,7 @@ type ExtractFindOneUserArgsSelect<S extends boolean | FindOneUserArgs> = S exten
   ? S
   : S extends FindOneUserArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type FindManyUserArgs = {
   select?: UserSelect
@@ -273,7 +375,7 @@ type ExtractFindManyUserArgsSelect<S extends boolean | FindManyUserArgs> = S ext
   ? S
   : S extends FindManyUserArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type UserCreateArgs = {
   select?: UserSelect
@@ -289,7 +391,7 @@ type ExtractUserCreateArgsSelect<S extends boolean | UserCreateArgs> = S extends
   ? S
   : S extends UserCreateArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type UserUpdateArgs = {
   select?: UserSelect
@@ -307,7 +409,7 @@ type ExtractUserUpdateArgsSelect<S extends boolean | UserUpdateArgs> = S extends
   ? S
   : S extends UserUpdateArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type UserUpdateManyArgs = {
   select?: UserSelect
@@ -325,7 +427,7 @@ type ExtractUserUpdateManyArgsSelect<S extends boolean | UserUpdateManyArgs> = S
   ? S
   : S extends UserUpdateManyArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type UserUpsertArgs = {
   select?: UserSelect
@@ -345,7 +447,7 @@ type ExtractUserUpsertArgsSelect<S extends boolean | UserUpsertArgs> = S extends
   ? S
   : S extends UserUpsertArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type UserDeleteArgs = {
   select?: UserSelect
@@ -361,7 +463,7 @@ type ExtractUserDeleteArgsSelect<S extends boolean | UserDeleteArgs> = S extends
   ? S
   : S extends UserDeleteArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type UserDeleteManyArgs = {
   select?: UserSelect
@@ -377,7 +479,7 @@ type ExtractUserDeleteManyArgsSelect<S extends boolean | UserDeleteManyArgs> = S
   ? S
   : S extends UserDeleteManyArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type UserArgs = {
   select?: UserSelect
@@ -391,7 +493,7 @@ type ExtractUserArgsSelect<S extends boolean | UserArgs> = S extends boolean
   ? S
   : S extends UserArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 /**
  * Model Profile
@@ -420,6 +522,169 @@ type ProfileGetPayload<S extends boolean | ProfileSelect> = S extends true
   ? { [P in CleanupNever<MergeTruthyValues<ProfileDefault, S>>]: P extends ProfileScalars ? Profile[P] : never }
   : never
 
+export interface ProfileDelegate {
+  <T extends ProfileArgs>(args: Subset<T, ProfileArgs>): PromiseLike<
+    Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  >
+  findOne<T extends FindOneProfileArgs>(
+    args: Subset<T, FindOneProfileArgs>,
+  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  findMany<T extends FindManyProfileArgs>(
+    args: Subset<T, FindManyProfileArgs>,
+  ): PromiseLike<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>
+  create<T extends ProfileCreateArgs>(
+    args: Subset<T, ProfileCreateArgs>,
+  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  update<T extends ProfileUpdateArgs>(
+    args: Subset<T, ProfileUpdateArgs>,
+  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  updateMany<T extends ProfileUpdateManyArgs>(
+    args: Subset<T, ProfileUpdateManyArgs>,
+  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  upsert<T extends ProfileUpsertArgs>(
+    args: Subset<T, ProfileUpsertArgs>,
+  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  delete<T extends ProfileDeleteArgs>(
+    args: Subset<T, ProfileDeleteArgs>,
+  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  deleteMany<T extends ProfileDeleteManyArgs>(
+    args: Subset<T, ProfileDeleteManyArgs>,
+  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+}
+function ProfileDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): ProfileDelegate {
+  const Profile = <T extends ProfileArgs>(args: Subset<T, ProfileArgs>) =>
+    new ProfileClient<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>(
+      dmmf,
+      fetcher,
+      'query',
+      'profiles',
+      args,
+      [],
+    )
+  Profile.findOne = <T extends FindOneProfileArgs>(args: Subset<T, FindOneProfileArgs>) =>
+    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
+      dmmf,
+      fetcher,
+      'query',
+      'profile',
+      args,
+      [],
+    )
+  Profile.findMany = <T extends FindManyProfileArgs>(args: Subset<T, FindManyProfileArgs>) =>
+    new ProfileClient<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>(
+      dmmf,
+      fetcher,
+      'query',
+      'profiles',
+      args,
+      [],
+    )
+  Profile.create = <T extends ProfileCreateArgs>(args: Subset<T, ProfileCreateArgs>) =>
+    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
+      dmmf,
+      fetcher,
+      'mutation',
+      'createProfile',
+      args,
+      [],
+    )
+  Profile.update = <T extends ProfileUpdateArgs>(args: Subset<T, ProfileUpdateArgs>) =>
+    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
+      dmmf,
+      fetcher,
+      'mutation',
+      'updateProfile',
+      args,
+      [],
+    )
+  Profile.updateMany = <T extends ProfileUpdateManyArgs>(args: Subset<T, ProfileUpdateManyArgs>) =>
+    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
+      dmmf,
+      fetcher,
+      'mutation',
+      'updateManyProfiles',
+      args,
+      [],
+    )
+  Profile.upsert = <T extends ProfileUpsertArgs>(args: Subset<T, ProfileUpsertArgs>) =>
+    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
+      dmmf,
+      fetcher,
+      'mutation',
+      'upsertProfile',
+      args,
+      [],
+    )
+  Profile.delete = <T extends ProfileDeleteArgs>(args: Subset<T, ProfileDeleteArgs>) =>
+    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
+      dmmf,
+      fetcher,
+      'mutation',
+      'deleteProfile',
+      args,
+      [],
+    )
+  Profile.deleteMany = <T extends ProfileDeleteManyArgs>(args: Subset<T, ProfileDeleteManyArgs>) =>
+    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
+      dmmf,
+      fetcher,
+      'mutation',
+      'deleteManyProfiles',
+      args,
+      [],
+    )
+  return Profile
+}
+
+class ProfileClient<T> implements PromiseLike<T> {
+  constructor(
+    private readonly dmmf: DMMFClass,
+    private readonly fetcher: PrismaFetcher,
+    private readonly queryType: 'query' | 'mutation',
+    private readonly rootField: string,
+    private readonly args: ProfileArgs,
+    private readonly path: [],
+  ) {}
+  readonly [Symbol.toStringTag]: 'Promise'
+
+  protected get query() {
+    const { rootField } = this
+    const document = makeDocument({
+      dmmf: this.dmmf,
+      rootField,
+      rootTypeName: this.queryType,
+      select: this.args,
+    })
+    // console.dir(document, {depth: 8})
+    document.validate(this.args, true)
+    return String(document)
+  }
+
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+  ): Promise<TResult1 | TResult2> {
+    return this.fetcher.request<T>(this.query, this.path).then(onfulfilled, onrejected)
+  }
+
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(
+    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
+  ): Promise<T | TResult> {
+    return this.fetcher.request<T>(this.query, this.path).catch(onrejected)
+  }
+}
+
 // InputTypes
 
 export type FindOneProfileArgs = {
@@ -436,7 +701,7 @@ type ExtractFindOneProfileArgsSelect<S extends boolean | FindOneProfileArgs> = S
   ? S
   : S extends FindOneProfileArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type FindManyProfileArgs = {
   select?: ProfileSelect
@@ -464,7 +729,7 @@ type ExtractFindManyProfileArgsSelect<S extends boolean | FindManyProfileArgs> =
   ? S
   : S extends FindManyProfileArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type ProfileCreateArgs = {
   select?: ProfileSelect
@@ -480,7 +745,7 @@ type ExtractProfileCreateArgsSelect<S extends boolean | ProfileCreateArgs> = S e
   ? S
   : S extends ProfileCreateArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type ProfileUpdateArgs = {
   select?: ProfileSelect
@@ -498,7 +763,7 @@ type ExtractProfileUpdateArgsSelect<S extends boolean | ProfileUpdateArgs> = S e
   ? S
   : S extends ProfileUpdateArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type ProfileUpdateManyArgs = {
   select?: ProfileSelect
@@ -516,7 +781,7 @@ type ExtractProfileUpdateManyArgsSelect<S extends boolean | ProfileUpdateManyArg
   ? S
   : S extends ProfileUpdateManyArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type ProfileUpsertArgs = {
   select?: ProfileSelect
@@ -536,7 +801,7 @@ type ExtractProfileUpsertArgsSelect<S extends boolean | ProfileUpsertArgs> = S e
   ? S
   : S extends ProfileUpsertArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type ProfileDeleteArgs = {
   select?: ProfileSelect
@@ -552,7 +817,7 @@ type ExtractProfileDeleteArgsSelect<S extends boolean | ProfileDeleteArgs> = S e
   ? S
   : S extends ProfileDeleteArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type ProfileDeleteManyArgs = {
   select?: ProfileSelect
@@ -568,7 +833,21 @@ type ExtractProfileDeleteManyArgsSelect<S extends boolean | ProfileDeleteManyArg
   ? S
   : S extends ProfileDeleteManyArgsWithSelect
   ? S['select']
-  : false
+  : true
+
+export type ProfileArgs = {
+  select?: ProfileSelect
+}
+
+export type ProfileArgsWithSelect = {
+  select: ProfileSelect
+}
+
+type ExtractProfileArgsSelect<S extends boolean | ProfileArgs> = S extends boolean
+  ? S
+  : S extends ProfileArgsWithSelect
+  ? S['select']
+  : true
 
 /**
  * Model Post
@@ -607,6 +886,118 @@ type PostGetPayload<S extends boolean | PostSelect> = S extends true
     }
   : never
 
+export interface PostDelegate {
+  <T extends PostArgs>(args: Subset<T, PostArgs>): PromiseLike<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>
+  findOne<T extends FindOnePostArgs>(
+    args: Subset<T, FindOnePostArgs>,
+  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+  findMany<T extends FindManyPostArgs>(
+    args: Subset<T, FindManyPostArgs>,
+  ): PromiseLike<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>
+  create<T extends PostCreateArgs>(
+    args: Subset<T, PostCreateArgs>,
+  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+  update<T extends PostUpdateArgs>(
+    args: Subset<T, PostUpdateArgs>,
+  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+  updateMany<T extends PostUpdateManyArgs>(
+    args: Subset<T, PostUpdateManyArgs>,
+  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+  upsert<T extends PostUpsertArgs>(
+    args: Subset<T, PostUpsertArgs>,
+  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+  delete<T extends PostDeleteArgs>(
+    args: Subset<T, PostDeleteArgs>,
+  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+  deleteMany<T extends PostDeleteManyArgs>(
+    args: Subset<T, PostDeleteManyArgs>,
+  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+}
+function PostDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): PostDelegate {
+  const Post = <T extends PostArgs>(args: Subset<T, PostArgs>) =>
+    new PostClient<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>(dmmf, fetcher, 'query', 'posts', args, [])
+  Post.findOne = <T extends FindOnePostArgs>(args: Subset<T, FindOnePostArgs>) =>
+    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'query', 'post', args, [])
+  Post.findMany = <T extends FindManyPostArgs>(args: Subset<T, FindManyPostArgs>) =>
+    new PostClient<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>(dmmf, fetcher, 'query', 'posts', args, [])
+  Post.create = <T extends PostCreateArgs>(args: Subset<T, PostCreateArgs>) =>
+    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'createPost', args, [])
+  Post.update = <T extends PostUpdateArgs>(args: Subset<T, PostUpdateArgs>) =>
+    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updatePost', args, [])
+  Post.updateMany = <T extends PostUpdateManyArgs>(args: Subset<T, PostUpdateManyArgs>) =>
+    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(
+      dmmf,
+      fetcher,
+      'mutation',
+      'updateManyPosts',
+      args,
+      [],
+    )
+  Post.upsert = <T extends PostUpsertArgs>(args: Subset<T, PostUpsertArgs>) =>
+    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'upsertPost', args, [])
+  Post.delete = <T extends PostDeleteArgs>(args: Subset<T, PostDeleteArgs>) =>
+    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deletePost', args, [])
+  Post.deleteMany = <T extends PostDeleteManyArgs>(args: Subset<T, PostDeleteManyArgs>) =>
+    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(
+      dmmf,
+      fetcher,
+      'mutation',
+      'deleteManyPosts',
+      args,
+      [],
+    )
+  return Post
+}
+
+class PostClient<T> implements PromiseLike<T> {
+  constructor(
+    private readonly dmmf: DMMFClass,
+    private readonly fetcher: PrismaFetcher,
+    private readonly queryType: 'query' | 'mutation',
+    private readonly rootField: string,
+    private readonly args: PostArgs,
+    private readonly path: [],
+  ) {}
+  readonly [Symbol.toStringTag]: 'Promise'
+
+  protected get query() {
+    const { rootField } = this
+    const document = makeDocument({
+      dmmf: this.dmmf,
+      rootField,
+      rootTypeName: this.queryType,
+      select: this.args,
+    })
+    // console.dir(document, {depth: 8})
+    document.validate(this.args, true)
+    return String(document)
+  }
+
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+  ): Promise<TResult1 | TResult2> {
+    return this.fetcher.request<T>(this.query, this.path).then(onfulfilled, onrejected)
+  }
+
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(
+    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
+  ): Promise<T | TResult> {
+    return this.fetcher.request<T>(this.query, this.path).catch(onrejected)
+  }
+}
+
 // InputTypes
 
 export type FindOnePostArgs = {
@@ -623,7 +1014,7 @@ type ExtractFindOnePostArgsSelect<S extends boolean | FindOnePostArgs> = S exten
   ? S
   : S extends FindOnePostArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type FindManyPostArgs = {
   select?: PostSelect
@@ -651,7 +1042,7 @@ type ExtractFindManyPostArgsSelect<S extends boolean | FindManyPostArgs> = S ext
   ? S
   : S extends FindManyPostArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type PostCreateArgs = {
   select?: PostSelect
@@ -667,7 +1058,7 @@ type ExtractPostCreateArgsSelect<S extends boolean | PostCreateArgs> = S extends
   ? S
   : S extends PostCreateArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type PostUpdateArgs = {
   select?: PostSelect
@@ -685,7 +1076,7 @@ type ExtractPostUpdateArgsSelect<S extends boolean | PostUpdateArgs> = S extends
   ? S
   : S extends PostUpdateArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type PostUpdateManyArgs = {
   select?: PostSelect
@@ -703,7 +1094,7 @@ type ExtractPostUpdateManyArgsSelect<S extends boolean | PostUpdateManyArgs> = S
   ? S
   : S extends PostUpdateManyArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type PostUpsertArgs = {
   select?: PostSelect
@@ -723,7 +1114,7 @@ type ExtractPostUpsertArgsSelect<S extends boolean | PostUpsertArgs> = S extends
   ? S
   : S extends PostUpsertArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type PostDeleteArgs = {
   select?: PostSelect
@@ -739,7 +1130,7 @@ type ExtractPostDeleteArgsSelect<S extends boolean | PostDeleteArgs> = S extends
   ? S
   : S extends PostDeleteArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type PostDeleteManyArgs = {
   select?: PostSelect
@@ -755,7 +1146,7 @@ type ExtractPostDeleteManyArgsSelect<S extends boolean | PostDeleteManyArgs> = S
   ? S
   : S extends PostDeleteManyArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 export type PostArgs = {
   select?: PostSelect
@@ -769,7 +1160,7 @@ type ExtractPostArgsSelect<S extends boolean | PostArgs> = S extends boolean
   ? S
   : S extends PostArgsWithSelect
   ? S['select']
-  : false
+  : true
 
 /**
  * Deep Input Types
