@@ -7,10 +7,20 @@ export interface ArgError {
 
 export interface FieldError {
   path: string[]
-  error: InvalidFieldNameError
+  error: InvalidFieldError
+}
+
+export type InvalidFieldError = InvalidFieldNameError | InvalidFieldTypeError
+
+export interface InvalidFieldTypeError {
+  type: 'invalidFieldType'
+  modelName: string
+  fieldName: string
+  providedValue: any
 }
 
 export interface InvalidFieldNameError {
+  type: 'invalidFieldName'
   modelName: string
   didYouMean?: string
   providedName: string
@@ -26,8 +36,11 @@ export type InvalidArgError = InvalidArgNameError | MissingArgError | InvalidArg
 export type InvalidArgNameError = {
   type: 'invalidName'
   providedName: string
-  didYouMean?: string // if the possible names are too different and therefore just arbitrary, we don't suggest anything
+  providedValue: any
+  didYouMeanArg?: string // if the possible names are too different and therefore just arbitrary, we don't suggest anything
+  didYouMeanField?: string // if it's very similar to a field, they probably just forgot the select statement
   originalType: string | DMMF.InputType
+  outputType?: DMMF.OutputType
 }
 
 /**

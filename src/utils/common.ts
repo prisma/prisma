@@ -139,10 +139,19 @@ export function stringifyInputType(input: string | DMMF.InputType): string {
   return `type ${input.name} {\n${body}\n}`
 }
 
-export function getInputTypeName(input: string | DMMF.InputType) {
+export function getInputTypeName(input: string | DMMF.InputType | DMMF.SchemaField) {
   if (typeof input === 'string') {
     return input
   }
+
+  // if ((input as DMMF.SchemaField).type) {
+  //   const type = (input as DMMF.SchemaField).type
+  //   if (typeof type === 'string') {
+  //     return type
+  //   } else {
+  //     return type.name
+  //   }
+  // }
 
   return input.name
 }
@@ -218,4 +227,18 @@ export function unionBy<T>(arr1: T[], arr2: T[], iteratee: (element: T) => strin
   }
 
   return Object.values(map)
+}
+
+export function uniqBy<T>(arr: T[], iteratee: (element: T) => string | number): T[] {
+  const map = {}
+
+  for (const element of arr) {
+    map[iteratee(element)] = element
+  }
+
+  return Object.values(map)
+}
+
+export function capitalize(str: string): string {
+  return str[0].toUpperCase() + str.slice(1)
 }

@@ -72,7 +72,7 @@ export namespace DMMF {
     type: string | MergedOutputType // note that in the serialized state we don't have the reference to MergedOutputTypes
     isList: boolean
     isRequired: boolean
-    isScalar: boolean
+    kind: FieldKind
     args: SchemaArg[]
   }
 
@@ -83,13 +83,31 @@ export namespace DMMF {
 
   export interface Mapping {
     model: string
-    findOne: string
-    findMany: string
-    create: string
-    update: string
-    updateMany: string
-    upsert: string
-    delete: string
-    deleteMany: string
+    findOne?: string
+    findMany?: string
+    create?: string
+    update?: string
+    updateMany?: string
+    upsert?: string
+    delete?: string
+    deleteMany?: string
   }
+
+  export enum ModelAction {
+    findOne = 'findOne',
+    findMany = 'findMany',
+    create = 'create',
+    update = 'update',
+    updateMany = 'updateMany',
+    upsert = 'upsert',
+    delete = 'delete',
+    deleteMany = 'deleteMany',
+  }
+}
+
+export interface BaseField {
+  name: string
+  type: string | DMMF.MergedOutputType | DMMF.InputType
+  isList: boolean
+  isRequired: boolean
 }

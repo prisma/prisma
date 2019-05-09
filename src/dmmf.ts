@@ -1,5 +1,5 @@
 import { DMMF } from './dmmf-types'
-import { keyBy, isScalar, Dictionary, destroyCircular } from './utils/common'
+import { keyBy, isScalar, Dictionary, destroyCircular, uniqBy } from './utils/common'
 
 export class DMMFClass implements DMMF.Document {
   datamodel: DMMF.Datamodel
@@ -35,6 +35,12 @@ export class DMMFClass implements DMMF.Document {
     // needed as references are not kept
     this.queryType = this.outputTypeMap['Query']
     this.mutationType = this.outputTypeMap['Mutation']
+    this.outputTypes = uniqBy(this.outputTypes, o => o.name).filter(o => {
+      return !o.name.endsWith('PreviousValues') && !o.name.includes('Subscription')
+    })
+    this.inputTypes = uniqBy(this.inputTypes, o => o.name).filter(
+      o => !o.name.includes('Subscription') && o.name !== 'MutationType',
+    )
   }
   protected outputTypeToMergedOutputType = (outputType: DMMF.OutputType): DMMF.MergedOutputType => {
     const model = this.modelMap[outputType.name]
@@ -64,10 +70,6 @@ export class DMMFClass implements DMMF.Document {
       for (const fieldA of typeA.args) {
         for (const typeB of types) {
           if (typeof fieldA.type === 'string' && fieldA.type === typeB.name) {
-            ;(typeB as any).toJSON = function() {
-              const withoutCircular = destroyCircular(this)
-              return JSON.stringify(withoutCircular)
-            }
             fieldA.type = typeB
           }
         }
@@ -88,7 +90,9 @@ export class DMMFClass implements DMMF.Document {
   protected getQueryType(): DMMF.MergedOutputType {
     return {
       name: 'Query',
-      fields: this.schema.queries.map(queryToSchemaField),
+      fields: this.schema.queries
+        .map(queryToSchemaField)
+        .filter(f => !f.name.endsWith('Connection') && f.name !== 'Node'),
       isEmbedded: false,
       isEnum: false,
     }
@@ -113,6 +117,12 @@ export class DMMFClass implements DMMF.Document {
   protected getInputTypeMap(): { [typeName: string]: DMMF.InputType } {
     return keyBy(this.schema.inputTypes, t => t.name)
   }
+  public getField(fieldName: string) {
+    return (
+      // TODO: create lookup table for Query and Mutation
+      this.queryType.fields.find(f => f.name === fieldName) || this.mutationType.fields.find(f => f.name === fieldName)
+    )
+  }
 }
 
 const queryToSchemaField = (q: DMMF.Query): DMMF.SchemaField => ({
@@ -121,5 +131,5 @@ const queryToSchemaField = (q: DMMF.Query): DMMF.SchemaField => ({
   isList: q.output.isList,
   isRequired: q.output.isRequired,
   type: q.output.name,
-  isScalar: false,
+  kind: 'relation',
 })

@@ -12,7 +12,7 @@ import {
   inputTypeToJson,
   getInputTypeName,
 } from './utils/common'
-import { InvalidArgError, ArgError, FieldError, InvalidFieldNameError } from './types'
+import { InvalidArgError, ArgError, FieldError, InvalidFieldError } from './types'
 import stringifyObject from './utils/stringifyObject'
 import { deepExtend } from './utils/deep-extend'
 import { omit } from './utils/omit'
@@ -39,25 +39,34 @@ ${indent(this.children.map(String).join('\n'), tab)}
     const argErrors: ArgError[] = []
 
     for (const child of invalidChildren) {
-      const errors = child.collectErrors(null)
+      const errors = child.collectErrors()
       fieldErrors.push(...errors.fieldErrors.map(e => ({ ...e, path: isTopLevelQuery ? e.path : e.path.slice(1) })))
       argErrors.push(...errors.argErrors.map(e => ({ ...e, path: isTopLevelQuery ? e.path : e.path.slice(1) })))
     }
 
     const topLevelQueryName = this.children[0].name
     const queryName = isTopLevelQuery ? this.type : topLevelQueryName
-    const keyPaths = fieldErrors.map(e => e.path.join('.'))
+    const keyPaths = []
     const valuePaths = []
     const missingItems: MissingItem[] = []
+    for (const fieldError of fieldErrors) {
+      const path = fieldError.path.join('.')
+      if (fieldError.error.type === 'invalidFieldName') {
+        keyPaths.push(path)
+      } else {
+        valuePaths.push(path)
+      }
+    }
     // an arg error can either be an invalid key or invalid value
     for (const argError of argErrors) {
+      const path = argError.path.join('.')
       if (argError.error.type === 'invalidName') {
-        keyPaths.push(argError.path.join('.'))
+        keyPaths.push(path)
       } else if (argError.error.type !== 'missingArg') {
-        valuePaths.push(argError.path.join('.'))
+        valuePaths.push(path)
       } else if (argError.error.type === 'missingArg') {
         missingItems.push({
-          path: argError.path.join('.'),
+          path,
           type: inputTypeToJson(argError.error.missingType, true),
         })
       }
@@ -73,25 +82,44 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
     throw new InvalidClientInputError(errorStr)
   }
   protected printFieldError = ({ error }: FieldError) => {
-    let str = `Unknown field ${chalk.redBright(`\`${error.providedName}\``)} on model ${chalk.bold.white(
-      error.modelName,
-    )}.`
+    if (error.type === 'invalidFieldName') {
+      let str = `Unknown field ${chalk.redBright(`\`${error.providedName}\``)} on model ${chalk.bold.white(
+        error.modelName,
+      )}.`
 
-    if (error.didYouMean) {
-      str += ` Did you mean ${chalk.greenBright(`\`${error.didYouMean}\``)}?`
+      if (error.didYouMean) {
+        str += ` Did you mean ${chalk.greenBright(`\`${error.didYouMean}\``)}?`
+      }
+
+      return str
     }
+    if (error.type === 'invalidFieldType') {
+      let str = `Invalid value ${chalk.redBright(`${stringifyObject(error.providedValue)}`)} of type ${chalk.redBright(
+        getGraphQLType(error.providedValue),
+      )} for field ${chalk.bold(`${error.fieldName}`)} on model ${chalk.bold.white(
+        error.modelName,
+      )}. Expected either ${chalk.greenBright('true')} or ${chalk.greenBright('false')}.`
 
-    return str
+      return str
+    }
   }
   protected printArgError = ({ error, path }: ArgError) => {
     if (error.type === 'invalidName') {
       let str = `Unknown arg ${chalk.redBright(`\`${error.providedName}\``)} in ${chalk.bold(
         path.join('.'),
-      )}. for type ${chalk.bold(getInputTypeName(error.originalType))}`
-      if (error.didYouMean) {
-        str += ` Did you mean \`${chalk.greenBright(error.didYouMean)}\`?`
+      )}. for type ${chalk.bold(error.outputType ? error.outputType.name : getInputTypeName(error.originalType))}.`
+      if (error.didYouMeanField) {
+        str += `\n→ Did you forget to wrap it with \`${chalk.greenBright('select')}\`? ${chalk.dim(
+          'e.g. ' + chalk.greenBright(`{select: { ${error.providedName}: ${error.providedValue} }}`),
+        )}`
+      } else if (error.didYouMeanArg) {
+        str += ` Did you mean \`${chalk.greenBright(error.didYouMeanArg)}\`?`
       } else {
-        str += ` The available args are:\n` + stringifyInputType(error.originalType)
+        if ((error.originalType as DMMF.InputType).args.length === 0) {
+          str += ` The field ${chalk.bold((error.originalType as DMMF.InputType).name)} has no arguments.`
+        } else {
+          str += ` The available args are:\n` + stringifyInputType(error.originalType)
+        }
       }
       return str
     }
@@ -125,14 +153,14 @@ export interface FieldArgs {
   name: string
   args?: Args
   children?: Field[]
-  error?: InvalidFieldNameError
+  error?: InvalidFieldError
 }
 
 export class Field {
   public readonly name: string
   public readonly args?: Args
   public readonly children?: Field[]
-  public readonly error?: InvalidFieldNameError
+  public readonly error?: InvalidFieldError
   public readonly hasInvalidChild: boolean
   public readonly hasInvalidArg: boolean
   constructor({ name, args, children, error }: FieldArgs) {
@@ -140,7 +168,9 @@ export class Field {
     this.args = args
     this.children = children
     this.error = error
-    this.hasInvalidChild = children ? children.some(child => Boolean(child.error)) : false
+    this.hasInvalidChild = children
+      ? children.some(child => Boolean(child.error || child.hasInvalidArg || child.hasInvalidChild))
+      : false
     this.hasInvalidArg = args ? args.hasInvalidArg : false
   }
   toString() {
@@ -167,17 +197,13 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
     return str
   }
-  collectErrors(ownPrefix = 'select'): { fieldErrors: FieldError[]; argErrors: ArgError[] } {
+  collectErrors(prefix = 'select'): { fieldErrors: FieldError[]; argErrors: ArgError[] } {
     const fieldErrors: FieldError[] = []
     const argErrors: ArgError[] = []
 
     if (this.error) {
-      const ownPath = []
-      if (ownPrefix) {
-        ownPath.push(ownPrefix)
-      }
       fieldErrors.push({
-        path: [...ownPath, this.name],
+        path: [this.name],
         error: this.error,
       })
     }
@@ -186,8 +212,9 @@ ${indent(this.children.map(String).join('\n'), tab)}
     if (this.children) {
       for (const child of this.children) {
         const errors = child.collectErrors()
-        fieldErrors.push(...errors.fieldErrors.map(e => ({ ...e, path: [this.name, ...e.path] })))
-        argErrors.push(...errors.argErrors.map(e => ({ ...e, path: [this.name, ...e.path] })))
+        // Field -> Field always goes through a 'select'
+        fieldErrors.push(...errors.fieldErrors.map(e => ({ ...e, path: [this.name, 'select', ...e.path] })))
+        argErrors.push(...errors.argErrors.map(e => ({ ...e, path: [this.name, 'select', ...e.path] })))
       }
     }
 
@@ -337,7 +364,7 @@ export function makeDocument({ dmmf, rootTypeName, rootField, select }: Document
     isRequired: true,
     name: rootTypeName,
     type: rootType,
-    isScalar: false,
+    kind: 'relation',
   }
   return new Document(rootTypeName, selectionToFields(dmmf, { [rootField]: select }, _rootField, [rootTypeName]))
 }
@@ -346,9 +373,6 @@ export function selectionToFields(dmmf: DMMFClass, selection: any, field: DMMF.S
   const outputType = field.type as DMMF.MergedOutputType
   return Object.entries(selection).reduce(
     (acc, [name, value]: any) => {
-      if (value === false) {
-        return acc
-      }
       const field = outputType.fields.find(f => f.name === name)
       if (!field) {
         // if the field name is incorrect, we ignore the args and child fields altogether
@@ -357,6 +381,7 @@ export function selectionToFields(dmmf: DMMFClass, selection: any, field: DMMF.S
             name,
             children: [],
             error: {
+              type: 'invalidFieldName',
               modelName: outputType.name,
               providedName: name,
               didYouMean: getSuggestion(name, outputType.fields.map(f => f.name)),
@@ -366,10 +391,29 @@ export function selectionToFields(dmmf: DMMFClass, selection: any, field: DMMF.S
 
         return acc
       }
+      if (typeof value !== 'boolean' && field.kind === 'scalar') {
+        acc.push(
+          new Field({
+            name,
+            children: [],
+            error: {
+              type: 'invalidFieldType',
+              modelName: outputType.name,
+              fieldName: name,
+              providedValue: value,
+            },
+          }),
+        )
+
+        return acc
+      }
+      if (value === false) {
+        return acc
+      }
 
       const argsWithoutSelect = typeof value === 'object' ? omit(value, 'select') : undefined
-      const args = argsWithoutSelect ? objectToArgs(argsWithoutSelect, field) : undefined
-      const isRelation = !field.isScalar
+      const args = argsWithoutSelect ? objectToArgs(argsWithoutSelect, field, outputType) : undefined
+      const isRelation = field.kind === 'relation'
       const defaultSelection = isRelation ? getDefaultSelection(field.type as DMMF.MergedOutputType) : null
       const select = deepExtend(defaultSelection, value.select)
       const children =
@@ -384,7 +428,7 @@ export function selectionToFields(dmmf: DMMFClass, selection: any, field: DMMF.S
 
 function getDefaultSelection(outputType: DMMF.MergedOutputType) {
   return outputType.fields.reduce((acc, f) => {
-    if (f.isScalar) {
+    if (f.kind === 'scalar') {
       acc[f.name] = true
     } else {
       // otherwise field is a relation. Only continue if it's an embedded type
@@ -499,7 +543,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   throw new Error('Oops. This must not happen')
 }
 
-function objectToArgs(obj: any, inputType: DMMF.InputType): Args {
+function objectToArgs(obj: any, inputType: DMMF.InputType, outputType?: DMMF.MergedOutputType): Args {
   const { args } = inputType
   const requiredArgs: [string, any][] = args.filter(arg => arg.isRequired).map(arg => [arg.name, undefined])
   const entries = unionBy(Object.entries(obj), requiredArgs, a => a[0])
@@ -508,12 +552,17 @@ function objectToArgs(obj: any, inputType: DMMF.InputType): Args {
       (acc, [argName, value]: any) => {
         const schemaArg = args.find(schemaArg => schemaArg.name === argName)
         if (!schemaArg) {
+          const didYouMeanField =
+            typeof value === 'boolean' && outputType && outputType.fields.some(f => f.name === argName) ? argName : null
           acc.push(
             new Arg(argName, value, {
               type: 'invalidName',
               providedName: argName,
-              didYouMean: getSuggestion(argName, [...args.map(arg => arg.name), 'select']),
+              providedValue: value,
+              didYouMeanField,
+              didYouMeanArg: !didYouMeanField && getSuggestion(argName, [...args.map(arg => arg.name), 'select']),
               originalType: inputType,
+              outputType,
             }),
           )
           return acc
