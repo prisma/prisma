@@ -18,38 +18,21 @@ import { Subset } from './generated';
  * Utility Types
  */
 
-/**
- * Intersection
- * @desc From \`T\` pick properties that exist in \`U\`
- */
-export type Intersection<T extends object, U extends object> = T extends any
-  ? Pick<T, SetIntersection<keyof T, keyof U>>
-  : never
+export type MergeTruthyValues<R extends object, S extends object> = {
+  [key in keyof S | keyof R]: key extends false
+    ? never
+    : key extends keyof S
+    ? S[key] extends false
+      ? never
+      : S[key]
+    : key extends keyof R
+    ? R[key]
+    : never
+}
 
-/**
- * Diff
- * @desc From \`T\` remove properties that exist in \`U\`
- */
-export type Diff<T extends object, U extends object> = Pick<T, SetDifference<keyof T, keyof U>>
+export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never : key }[keyof T]
 
-/**
- * SetIntersection (same as Extract)
- * @desc Set intersection of given union types \`A\` and \`B\`
- */
-export type SetIntersection<A, B> = A extends B ? A : never
 
-/**
- * SetDifference (same as Exclude)
- * @desc Set difference of given union types \`A\` and \`B\`
- */
-export type SetDifference<A, B> = A extends B ? never : A
-
-export type MergeTruthyValues<
-  T extends object,
-  U extends object,
-  ValueType = false,
-  I = Diff<T, U> & Intersection<U, T> & Diff<U, T>
-> = Pick<I, { [Key in keyof I]: I[Key] extends ValueType ? never : Key }[keyof I]>
 
 /**
  * Subset
@@ -109,7 +92,7 @@ ${this.dmmf.inputTypes
  * DMMF
  */
 
-const dmmf: DMMF.Document = ${stringifyObject(this.document)} // TODO: Decide wether to go with JSON.stringify
+const dmmf: DMMF.Document = ${JSON.stringify(this.document, null, 2)}
     `
 
     // /**
@@ -122,6 +105,7 @@ const dmmf: DMMF.Document = ${stringifyObject(this.document)} // TODO: Decide we
     //   .join('\n')}
   }
 }
+
 // maybe shouldn't export this to prevent confusion
 class PrismaClientClass {
   toString() {
@@ -152,6 +136,80 @@ export class Prisma {
   }
 }
 
+/**
+ * Generates the generic type to calculate a payload based on a select statement
+ */
+class ModelPayload {
+  constructor(protected readonly model: DMMF.Model, protected readonly dmmf: DMMFClass) {}
+  protected wrapArray(field: DMMF.Field, str: string) {
+    if (field.isList) {
+      return `Array<${str}>`
+    }
+    return str
+  }
+  protected getSchemaField(fieldName: string) {
+    return this.dmmf.outputTypeMap[this.model.name].fields.find(f => f.name === fieldName)
+  }
+  toString() {
+    const { model } = this
+    const { name } = model
+
+    const relationFields = model.fields.filter(f => f.kind === 'relation')
+    const relationFieldConditions =
+      relationFields.length === 0
+        ? ''
+        : `\n${relationFields.map(f =>
+            indent(
+              `: P extends '${f.name}'\n? ${this.wrapArray(
+                f,
+                `${getPayloadName(f.type)}<Extract${getFieldArgName(this.getSchemaField(f.name))}Select<S[P]>>`,
+              )}`,
+              8,
+            ),
+          )}`
+
+    return `\
+type ${getPayloadName(name)}<S extends boolean | ${getSelectName(name)}> = S extends true
+  ? ${name}
+  : S extends ${getSelectName(name)}
+  ? {
+      [P in keyof CleanupNever<MergeTruthyValues<${getDefaultName(name)}, S>>]: P extends ${getScalarsName(name)}
+        ? ${name}[P]${relationFieldConditions}
+        : never
+    }
+  : never`
+  }
+}
+
+/**
+ * Generates the default selection of a model
+ */
+class ModelDefault {
+  constructor(protected readonly model: DMMF.Model, protected readonly dmmf: DMMFClass) {}
+  protected isDefault(field: DMMF.Field) {
+    if (field.kind === 'scalar') {
+      return true
+    }
+
+    const model = this.dmmf.datamodel.models.find(m => field.type === m.name)
+    return model!.isEmbedded
+  }
+  toString() {
+    const { model } = this
+    return `\
+type ${getDefaultName(model.name)} = {
+${indent(
+  model.fields
+    .filter(f => this.isDefault(f))
+    .map(f => `${f.name}: true`)
+    .join('\n'),
+  tab,
+)}
+}
+`
+  }
+}
+
 export class Model {
   protected outputType: OutputType
   protected mapping: DMMF.Mapping
@@ -159,9 +217,9 @@ export class Model {
     this.outputType = new OutputType(dmmf.outputTypeMap[model.name])
     this.mapping = dmmf.mappings.find(m => m.model === model.name)
   }
-  protected get inputTypes() {
+  protected get argsTypes() {
     const { mapping, model } = this
-    const inputTypes: InputType[] = []
+    const argsTypes: ArgsType[] = []
     for (const action in DMMF.ModelAction) {
       const fieldName = mapping[action]
       if (!fieldName) {
@@ -171,9 +229,9 @@ export class Model {
       if (!field) {
         throw new Error(`Oops this must not happen. Could not find field ${fieldName} on either Query or Mutation`)
       }
-      inputTypes.push(
-        new InputType({
-          name: getModelArgName(this.dmmf, model.name, action as DMMF.ModelAction),
+      argsTypes.push(
+        new ArgsType({
+          name: getModelArgName(model.name, action as DMMF.ModelAction),
           args: [
             {
               name: 'select',
@@ -189,8 +247,8 @@ export class Model {
     }
 
     if (this.appearsInToOneRelation) {
-      inputTypes.push(
-        new InputType({
+      argsTypes.push(
+        new ArgsType({
           name: `${model.name}Args`,
           args: [
             {
@@ -205,7 +263,7 @@ export class Model {
       )
     }
 
-    return inputTypes
+    return argsTypes
   }
   /**
    * We only need to generate [MODEL]Args if the [MODEL] is being used in a to one relation
@@ -231,12 +289,12 @@ ${indent(
 )}
 }
 
-export type ${model.name}Scalars = ${model.fields
+export type ${getScalarsName(model.name)}= ${model.fields
       .filter(f => f.kind === 'scalar')
       .map(f => `'${f.name}'`)
       .join(' | ')}
 
-export type ${model.name}Select = {
+export type ${getSelectName(model.name)}= {
 ${indent(
   outputType.fields
     .map(f => `${f.name}?: boolean` + (f.kind === 'relation' ? ` | ${getFieldArgName(f)}` : ''))
@@ -245,14 +303,30 @@ ${indent(
 )}
 }
 
+${new ModelDefault(model, this.dmmf).toString()}
+
+${new ModelPayload(model, this.dmmf).toString()}
+
 // InputTypes
-${this.inputTypes.map(String).join('\n')}
+${this.argsTypes.map(String).join('\n')}
 `
   }
 }
 
+function getScalarsName(modelName: string) {
+  return `${modelName}Scalars`
+}
+
+function getPayloadName(modelName: string) {
+  return `${modelName}GetPayload`
+}
+
 function getSelectName(modelName: string) {
   return `${modelName}Select`
+}
+
+function getDefaultName(modelName: string) {
+  return `${modelName}Default`
 }
 
 function getFieldArgName(field: DMMF.SchemaField): string {
@@ -266,7 +340,7 @@ function getFieldArgName(field: DMMF.SchemaField): string {
 
 // we need names for all top level args,
 // as GraphQL doesn't have the concept of unnamed args
-function getModelArgName(dmmf: DMMFClass, modelName: string, action: DMMF.ModelAction): string {
+function getModelArgName(modelName: string, action: DMMF.ModelAction): string {
   switch (action) {
     case DMMF.ModelAction.findMany:
       return `FindMany${modelName}Args`
@@ -323,7 +397,7 @@ export type ${name}Args = {
 ${indent(
   mappings
     .flatMap(({ name, mapping }) =>
-      mapping.map(([action, field]) => `${field}?: ${getModelArgName(dmmf, name, action as DMMF.ModelAction)}`),
+      mapping.map(([action, field]) => `${field}?: ${getModelArgName(name, action as DMMF.ModelAction)}`),
     )
     .join('\n'),
   tab,
@@ -430,6 +504,29 @@ ${indent(type.fields.map(field => new Field(field).toString()).join('\n'), tab)}
   }
 }
 
+export class ArgsType {
+  constructor(protected readonly type: DMMF.InputType) {}
+  toString() {
+    const { type } = this
+    const argsWithRequiredSelect = type.args.map(a => (a.name === 'select' ? { ...a, isRequired: true } : a))
+    return `
+export type ${type.name} = {
+${indent(type.args.map(arg => new Field(arg).toString()).join('\n'), tab)}
+}
+
+export type ${type.name}WithSelect = {
+${indent(argsWithRequiredSelect.map(arg => new Field(arg).toString()).join('\n'), tab)}
+}
+
+type Extract${type.name}Select<S extends boolean | ${type.name}> = S extends boolean
+  ? S
+  : S extends ${type.name}WithSelect
+  ? S['select']
+  : false
+`
+  }
+}
+
 export class InputType {
   constructor(protected readonly type: DMMF.InputType) {}
   toString() {
@@ -437,6 +534,7 @@ export class InputType {
     return `
 export type ${type.name} = {
 ${indent(type.args.map(arg => new Field(arg).toString()).join('\n'), tab)}
-}`
+}
+`
   }
 }

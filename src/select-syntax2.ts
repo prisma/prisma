@@ -95,18 +95,6 @@ type UserArgs = {
   select?: User_select
 }
 
-type ProfileArgs = {
-  select?: Profile_select
-}
-
-type HouseArgs = {
-  select?: House_select
-}
-
-type PostArgs = {
-  select?: Post_select
-}
-
 /**
  * Selection
  */
@@ -115,10 +103,10 @@ type User_select = {
   id: boolean
   name?: boolean
   email?: boolean
-  profile?: boolean | ProfileArgs
-  friends?: boolean | UserArgs
-  house?: boolean | HouseArgs
-  posts?: boolean | PostArgs
+  profile?: boolean | Profile_select
+  friends?: boolean | User_select
+  house?: boolean | House_select
+  posts?: boolean | Post_select
 }
 
 type House_select = {
@@ -175,89 +163,47 @@ type Comment_default = {
   text: true
 }
 
-type Deep = {
-  asd: {
-    asd: number
-  }
-}
-
-type deep = Deep['asd']['asd']
-
 /**
  * Payload Extractors
  */
+
 type User_getPayload<S extends boolean | User_select> = S extends true
   ? User
-  : T extends User_select
-  ? 'select' extends keyof S
-    ? {
-        [P in keyof MergeTruthyValues<User_default, T>]: P extends User_scalarFields
-          ? User[P]
-          : P extends 'profile'
-          ? Profile_getPayload<T[P]>
-          : P extends 'friends'
-          ? Array<User_getPayload<T[P]>>
-          : P extends 'house'
-          ? House_getPayload<T[P]>
-          : P extends 'posts'
-          ? Array<Post_getPayload<T[P]>>
-          : never
-      }
-    : never
+  : S extends User_select
+  ? {
+      [P in keyof MergeTruthyValues<User_default, S>]: P extends User_scalarFields
+        ? User[P]
+        : P extends 'profile'
+        ? Profile_getPayload<S[P]>
+        : P extends 'friends'
+        ? Array<User_getPayload<S[P]>>
+        : P extends 'house'
+        ? House_getPayload<S[P]>
+        : P extends 'posts'
+        ? Array<Post_getPayload<S[P]>>
+        : never
+    }
   : never
 
-// type User_getPayload<
-//   S extends boolean | UserArgs /*, T = S extends UserArgs ? 'select' extends keyof S ? S['select'] : never : never*/
-// > = S extends true
-//   ? User
-//   : S extends UserArgs
-//   ? {
-//       [P in keyof S]: P extends 'select'
-//         ? {
-//             [K in keyof MergeTruthyValues<User_default, S[P]>]: K extends User_scalarFields
-//               ? User[K]
-//               : K extends 'profile'
-//               ? Profile_getPayload<S[P][K]>
-//               : K extends 'friends'
-//               ? Array<User_getPayload<S[P][K]>>
-//               : K extends 'house'
-//               ? House_getPayload<S[P][K]>
-//               : K extends 'posts'
-//               ? Array<Post_getPayload<S[P][K]>>
-//               : never
-//           }
-//         : never
-//     }
-//   : never
-
-// type Post_getPayload<S extends boolean | PostArgs> = S
-type CrazyGenerics<keyof, S extends keyof any> = S
-
-type Post_getPayload<
-  S extends boolean | PostArgs,
-  T extends object = S extends PostArgs ? ('select' extends keyof S ? S['select'] : never) : never,
-  U = MergeTruthyValues<Post_default, T>
-> = S extends true
+type Post_getPayload<S extends boolean | Post_select> = S extends true
   ? Post
-  : T extends Post_select
-  ? 'select' extends keyof S
-    ? {
-        [P in keyof U]: P extends Post_scalarFields
-          ? Post[P]
-          : P extends 'comments'
-          ? Array<Comment_getPayload<T[P]>>
-          : never
-      }
-    : never
+  : S extends Post_select
+  ? {
+      [P in keyof MergeTruthyValues<Post_default, S>]: P extends Post_scalarFields
+        ? Post[P]
+        : P extends 'comments'
+        ? Array<Comment_getPayload<S[P]>>
+        : never
+    }
   : never
 
-type House_getPayload<S extends boolean | HouseArgs> = S extends true
+type House_getPayload<S extends boolean | House_select> = S extends true
   ? House
   : S extends House_select
-  ? { [P in keyof MergeTruthyValues<House_default, S>]: P extends House_scalarFields ? House[P] : never }
+  ? { [P in keyof MergeTruthyValues<House_default, S>]: P extends keyof House ? House[P] : never }
   : never
 
-type Profile_getPayload<S extends boolean | ProfileArgs> = S extends true
+type Profile_getPayload<S extends boolean | Profile_select> = S extends true
   ? Profile
   : S extends Profile_select
   ? { [P in keyof MergeTruthyValues<Profile_default, S>]: P extends keyof Profile ? Profile[P] : never } // this is a limitation in TS I need to understand better. // When passing in profile: true, TS is turning it into unknown. Dunno why
@@ -272,8 +218,9 @@ type Comment_getPayload<S extends boolean | Comment_select> = S extends true
   : never
 
 type Prisma = {
-  users: <T extends UserArgs>(args?: Subset<T, UserArgs>) => Promise<Array<User_getPayload<T>>>
-  // ) => 'select' extends keyof T ? Promise<Array<User_getPayload<T>>> : Promise<User[]>
+  users: <T extends UserArgs>(
+    args?: Subset<T, UserArgs>,
+  ) => 'select' extends keyof T ? Promise<Array<User_getPayload<T['select']>>> : Promise<User[]>
 }
 
 const prisma: Prisma = {
@@ -288,7 +235,6 @@ async function getDeepUsers() {
   const x = await prisma.users({
     select: {
       id: true,
-      posts: {},
     },
   })
   // x[0].email
