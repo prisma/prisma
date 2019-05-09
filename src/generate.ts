@@ -71,9 +71,9 @@ export class TSClient {
  * Client
 **/
 
-${new PrismaClientClass().toString()}
+${new PrismaClientClass(this.dmmf)}
 
-${new Query(this.dmmf, 'query').toString()}
+${new Query(this.dmmf, 'query')}
 
 ${Object.values(this.dmmf.modelMap)
   .map(model => new Model(model, this.dmmf).toString())
@@ -108,7 +108,9 @@ const dmmf: DMMF.Document = ${JSON.stringify(this.document, null, 2)}
 
 // maybe shouldn't export this to prevent confusion
 class PrismaClientClass {
+  constructor(protected readonly dmmf: DMMFClass) {}
   toString() {
+    const { dmmf } = this
     return `
 // could be a class if we want to require new Prisma(...)
 // export default function Prisma() {
@@ -132,6 +134,18 @@ export class Prisma {
   get query() {
     return this._query ? this._query: (this._query= QueryDelegate(this.dmmf, this.fetcher))
   }
+${indent(
+  dmmf.mappings
+    .filter(m => m.findMany)
+    .map(
+      m => `private _${m.findMany}?: ${m.model}Delegate
+get ${m.findMany}() {
+  return this._${m.findMany}? this._${m.findMany} : (this._${m.findMany} = ${m.model}Delegate(this.dmmf, this.fetcher))
+}`,
+    )
+    .join('\n'),
+  2,
+)}
 }`
   }
 }
@@ -286,22 +300,22 @@ export class Model {
       )
     }
 
-    if (this.appearsInToOneRelation) {
-      argsTypes.push(
-        new ArgsType({
-          name: `${model.name}Args`,
-          args: [
-            {
-              name: 'select',
-              type: getSelectName(model.name),
-              isList: false,
-              isRequired: false,
-              isScalar: false,
-            },
-          ],
-        }),
-      )
-    }
+    // if (this.appearsInToOneRelation) {
+    argsTypes.push(
+      new ArgsType({
+        name: `${model.name}Args`,
+        args: [
+          {
+            name: 'select',
+            type: getSelectName(model.name),
+            isList: false,
+            isRequired: false,
+            isScalar: false,
+          },
+        ],
+      }),
+    )
+    // }
 
     return argsTypes
   }
@@ -343,9 +357,11 @@ ${indent(
 )}
 }
 
-${new ModelDefault(model, this.dmmf).toString()}
+${new ModelDefault(model, this.dmmf)}
 
-${new PayloadType(this.outputType).toString()}
+${new PayloadType(this.outputType)}
+
+${new ModelDelegate(this.outputType)}
 
 // InputTypes
 ${this.argsTypes.map(String).join('\n')}
@@ -447,12 +463,75 @@ ${indent(
 
 ${new QueryPayloadType(outputType)}
 
-${new Delegate(outputType)}
+${new QueryDelegate(outputType)}
 `
   }
 }
+export class ModelDelegate {
+  constructor(protected readonly outputType: OutputType) {}
+  toString() {
+    const name = this.outputType.name
+    return `\
+export interface ${name}Delegate {
+  <T extends ${name}Args>(args: Subset<T,${name}Args>): PromiseLike<Array<${name}GetPayload<Extract${getModelArgName(
+      name,
+      DMMF.ModelAction.findMany,
+    )}Select<T>>>>
+}
+function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaFetcher): ${name}Delegate {
+  const ${name} = <T extends ${name}Args>(args: ${name}Args) => new ${name}Client<Array<${name}GetPayload<Extract${getModelArgName(
+      name,
+      DMMF.ModelAction.findMany,
+    )}Select<T>>>>(dmmf, fetcher, args, [])
+  return ${name}
+}
 
-export class Delegate {
+class ${name}Client<T> implements PromiseLike<T> {
+  constructor(private readonly dmmf: DMMFClass,private readonly fetcher: PrismaFetcher, private readonly args: ${name}Args, private readonly path: []) {}
+  readonly [Symbol.toStringTag]: 'Promise'
+
+  protected get query() {
+    const rootField = Object.keys(this.args)[0]
+    const document = makeDocument({
+      dmmf: this.dmmf,
+      rootField,
+      rootTypeName: 'query',
+      select: this.args[rootField]
+    })
+    // console.dir(document, {depth: 8})
+    document.validate(this.args[rootField], true)
+    return String(document)
+  }
+
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+  ): Promise<TResult1 | TResult2> {
+    return this.fetcher.request<T>(this.query, this.path).then(onfulfilled, onrejected)
+  }
+
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(
+    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
+  ): Promise<T | TResult> {
+    return this.fetcher.request<T>(this.query, this.path).catch(onrejected)
+  }
+}
+    `
+  }
+}
+
+export class QueryDelegate {
   constructor(protected readonly outputType: OutputType) {}
   toString() {
     const name = this.outputType.name

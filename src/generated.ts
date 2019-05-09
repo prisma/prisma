@@ -75,6 +75,18 @@ export class Prisma {
   get query() {
     return this._query ? this._query: (this._query= QueryDelegate(this.dmmf, this.fetcher))
   }
+  private _users?: UserDelegate
+  get users() {
+    return this._users? this._users : (this._users = UserDelegate(this.dmmf, this.fetcher))
+  }
+  private _profiles?: ProfileDelegate
+  get profiles() {
+    return this._profiles? this._profiles : (this._profiles = ProfileDelegate(this.dmmf, this.fetcher))
+  }
+  private _posts?: PostDelegate
+  get posts() {
+    return this._posts? this._posts : (this._posts = PostDelegate(this.dmmf, this.fetcher))
+  }
 }
 
 /**
@@ -199,6 +211,57 @@ type UserGetPayload<S extends boolean | UserSelect> = S extends true
         : never
     }
    : never
+
+export interface UserDelegate {
+  <T extends UserArgs>(args: Subset<T,UserArgs>): PromiseLike<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>
+}
+function UserDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): UserDelegate {
+  const User = <T extends UserArgs>(args: UserArgs) => new UserClient<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>(dmmf, fetcher, args, [])
+  return User
+}
+
+class UserClient<T> implements PromiseLike<T> {
+  constructor(private readonly dmmf: DMMFClass,private readonly fetcher: PrismaFetcher, private readonly args: UserArgs, private readonly path: []) {}
+  readonly [Symbol.toStringTag]: 'Promise'
+
+  protected get query() {
+    const rootField = Object.keys(this.args)[0]
+    const document = makeDocument({
+      dmmf: this.dmmf,
+      rootField,
+      rootTypeName: 'query',
+      select: this.args[rootField]
+    })
+    // console.dir(document, {depth: 8})
+    document.validate(this.args[rootField], true)
+    return String(document)
+  }
+
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+  ): Promise<TResult1 | TResult2> {
+    return this.fetcher.request<T>(this.query, this.path).then(onfulfilled, onrejected)
+  }
+
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(
+    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
+  ): Promise<T | TResult> {
+    return this.fetcher.request<T>(this.query, this.path).catch(onrejected)
+  }
+}
+    
 
 // InputTypes
 
@@ -406,6 +469,57 @@ type ProfileGetPayload<S extends boolean | ProfileSelect> = S extends true
     }
    : never
 
+export interface ProfileDelegate {
+  <T extends ProfileArgs>(args: Subset<T,ProfileArgs>): PromiseLike<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>
+}
+function ProfileDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): ProfileDelegate {
+  const Profile = <T extends ProfileArgs>(args: ProfileArgs) => new ProfileClient<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>(dmmf, fetcher, args, [])
+  return Profile
+}
+
+class ProfileClient<T> implements PromiseLike<T> {
+  constructor(private readonly dmmf: DMMFClass,private readonly fetcher: PrismaFetcher, private readonly args: ProfileArgs, private readonly path: []) {}
+  readonly [Symbol.toStringTag]: 'Promise'
+
+  protected get query() {
+    const rootField = Object.keys(this.args)[0]
+    const document = makeDocument({
+      dmmf: this.dmmf,
+      rootField,
+      rootTypeName: 'query',
+      select: this.args[rootField]
+    })
+    // console.dir(document, {depth: 8})
+    document.validate(this.args[rootField], true)
+    return String(document)
+  }
+
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+  ): Promise<TResult1 | TResult2> {
+    return this.fetcher.request<T>(this.query, this.path).then(onfulfilled, onrejected)
+  }
+
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(
+    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
+  ): Promise<T | TResult> {
+    return this.fetcher.request<T>(this.query, this.path).catch(onrejected)
+  }
+}
+    
+
 // InputTypes
 
 export type FindOneProfileArgs = {
@@ -564,6 +678,21 @@ type ExtractProfileDeleteManyArgsSelect<S extends boolean | ProfileDeleteManyArg
   : false
 
 
+export type ProfileArgs = {
+  select?: ProfileSelect
+}
+
+export type ProfileArgsWithSelect = {
+  select: ProfileSelect
+}
+
+type ExtractProfileArgsSelect<S extends boolean | ProfileArgs> = S extends boolean
+  ? S
+  : S extends ProfileArgsWithSelect
+  ? S['select']
+  : false
+
+
 
 /**
  * Model Post
@@ -602,6 +731,57 @@ type PostGetPayload<S extends boolean | PostSelect> = S extends true
         : never
     }
    : never
+
+export interface PostDelegate {
+  <T extends PostArgs>(args: Subset<T,PostArgs>): PromiseLike<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>
+}
+function PostDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): PostDelegate {
+  const Post = <T extends PostArgs>(args: PostArgs) => new PostClient<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>(dmmf, fetcher, args, [])
+  return Post
+}
+
+class PostClient<T> implements PromiseLike<T> {
+  constructor(private readonly dmmf: DMMFClass,private readonly fetcher: PrismaFetcher, private readonly args: PostArgs, private readonly path: []) {}
+  readonly [Symbol.toStringTag]: 'Promise'
+
+  protected get query() {
+    const rootField = Object.keys(this.args)[0]
+    const document = makeDocument({
+      dmmf: this.dmmf,
+      rootField,
+      rootTypeName: 'query',
+      select: this.args[rootField]
+    })
+    // console.dir(document, {depth: 8})
+    document.validate(this.args[rootField], true)
+    return String(document)
+  }
+
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+  ): Promise<TResult1 | TResult2> {
+    return this.fetcher.request<T>(this.query, this.path).then(onfulfilled, onrejected)
+  }
+
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(
+    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
+  ): Promise<T | TResult> {
+    return this.fetcher.request<T>(this.query, this.path).catch(onrejected)
+  }
+}
+    
 
 // InputTypes
 

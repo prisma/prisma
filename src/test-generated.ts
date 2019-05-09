@@ -10,7 +10,11 @@ async function main() {
       after: '',
       last: 200,
       select: {
-        author: {},
+        author: {
+          select: {
+            id: false,
+          },
+        },
       },
     },
   })

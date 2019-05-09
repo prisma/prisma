@@ -95,6 +95,10 @@ type UserArgs = {
   select?: User_select
 }
 
+type UserYesArgs = {
+  select: User_select
+}
+
 type ProfileArgs = {
   select?: Profile_select
 }
@@ -183,27 +187,34 @@ type Deep = {
 
 type deep = Deep['asd']['asd']
 
+type ExtractFriendsSelect<S extends User_select> = 'friends' extends keyof S
+  ? S['friends'] extends boolean
+    ? S['friends']
+    : S['friends'] extends UserYesArgs
+    ? S['friends']['select']
+    : false
+  : false
+type ExtractSelect<S extends boolean | UserArgs> = S extends boolean ? S : S extends UserYesArgs ? S['select'] : false
+
 /**
  * Payload Extractors
  */
 type User_getPayload<S extends boolean | User_select> = S extends true
   ? User
-  : T extends User_select
-  ? 'select' extends keyof S
-    ? {
-        [P in keyof MergeTruthyValues<User_default, T>]: P extends User_scalarFields
-          ? User[P]
-          : P extends 'profile'
-          ? Profile_getPayload<T[P]>
-          : P extends 'friends'
-          ? Array<User_getPayload<T[P]>>
-          : P extends 'house'
-          ? House_getPayload<T[P]>
-          : P extends 'posts'
-          ? Array<Post_getPayload<T[P]>>
-          : never
-      }
-    : never
+  : S extends User_select
+  ? {
+      [P in keyof MergeTruthyValues<User_default, S>]: P extends User_scalarFields
+        ? User[P]
+        : P extends 'profile'
+        ? Profile_getPayload<S[P]>
+        : P extends 'friends'
+        ? Array<User_getPayload<ExtractSelect<S[P]>>>
+        : P extends 'house'
+        ? House_getPayload<S[P]>
+        : P extends 'posts'
+        ? Array<Post_getPayload<S[P]>>
+        : never
+    }
   : never
 
 // type User_getPayload<
@@ -231,7 +242,6 @@ type User_getPayload<S extends boolean | User_select> = S extends true
 //   : never
 
 // type Post_getPayload<S extends boolean | PostArgs> = S
-type CrazyGenerics<keyof, S extends keyof any> = S
 
 type Post_getPayload<
   S extends boolean | PostArgs,
@@ -272,8 +282,10 @@ type Comment_getPayload<S extends boolean | Comment_select> = S extends true
   : never
 
 type Prisma = {
-  users: <T extends UserArgs>(args?: Subset<T, UserArgs>) => Promise<Array<User_getPayload<T>>>
-  // ) => 'select' extends keyof T ? Promise<Array<User_getPayload<T>>> : Promise<User[]>
+  // users: <T extends UserArgs>(args?: Subset<T, UserArgs>) => Promise<Array<User_getPayload<T>>>
+  users: <T extends UserArgs>(
+    args?: Subset<T, UserArgs>,
+  ) => 'select' extends keyof T ? Promise<Array<User_getPayload<T['select']>>> : Promise<User[]>
 }
 
 const prisma: Prisma = {
