@@ -90,16 +90,34 @@ export type QueryArgs = {
   posts?: FindManyPostArgs
 }
 
+type QueryGetPayload<S extends QueryArgs> = S extends QueryArgs
+  ? {
+      [P in keyof S] 
+        : P extends 'post'
+        ? PostGetPayload<ExtractFindOnePostArgsSelect<S[P]>>
+        : P extends 'posts'
+        ? Array<PostGetPayload<ExtractFindManyPostArgsSelect<S[P]>>>
+        : P extends 'profile'
+        ? ProfileGetPayload<ExtractFindOneProfileArgsSelect<S[P]>>
+        : P extends 'profiles'
+        ? Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<S[P]>>>
+        : P extends 'user'
+        ? UserGetPayload<ExtractFindOneUserArgsSelect<S[P]>>
+        : P extends 'users'
+        ? Array<UserGetPayload<ExtractFindManyUserArgsSelect<S[P]>>>
+        : never
+    } : never
+  
+
 interface QueryDelegate {
-  (args: QueryArgs): QueryClient
-  // <T extends QueryArgs>(args: Subset<T,QueryArgs>): QueryClient
+  <T extends QueryArgs>(args: Subset<T,QueryArgs>): PromiseLike<QueryGetPayload<T>>
 }
 function QueryDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): QueryDelegate {
-  const Query = (args: QueryArgs) => new QueryClient(dmmf, fetcher, args, [])
+  const Query = <T extends QueryArgs>(args: QueryArgs) => new QueryClient<T>(dmmf, fetcher, args, [])
   return Query
 }
 
-class QueryClient<T = any[]> implements PromiseLike<T> {
+class QueryClient<T extends QueryArgs, U = QueryGetPayload<T>> implements PromiseLike<U> {
   constructor(private readonly dmmf: DMMFClass,private readonly fetcher: PrismaFetcher, private readonly args: QueryArgs, private readonly path: []) {}
   readonly [Symbol.toStringTag]: 'Promise'
 
@@ -122,11 +140,11 @@ class QueryClient<T = any[]> implements PromiseLike<T> {
    * @param onrejected The callback to execute when the Promise is rejected.
    * @returns A Promise for the completion of which ever callback is executed.
    */
-  then<TResult1 = T, TResult2 = never>(
-    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+  then<TResult1 = U, TResult2 = never>(
+    onfulfilled?: ((value: U) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
-    return this.fetcher.request<T>(this.query, this.path).then(onfulfilled, onrejected)
+    return this.fetcher.request<U>(this.query, this.path).then(onfulfilled, onrejected)
   }
 
   /**
@@ -136,8 +154,8 @@ class QueryClient<T = any[]> implements PromiseLike<T> {
    */
   catch<TResult = never>(
     onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
-  ): Promise<T | TResult> {
-    return this.fetcher.request<T>(this.query, this.path).catch(onrejected)
+  ): Promise<U | TResult> {
+    return this.fetcher.request<U>(this.query, this.path).catch(onrejected)
   }
 }
     
@@ -174,13 +192,13 @@ type UserGetPayload<S extends boolean | UserSelect> = S extends true
   ? User
   : S extends UserSelect
   ? {
-      [P in keyof CleanupNever<MergeTruthyValues<UserDefault, S>>]: P extends UserScalars
+      [P in CleanupNever<MergeTruthyValues<UserDefault, S>>]: P extends UserScalars
         ? User[P]
         : P extends 'posts'
         ? Array<PostGetPayload<ExtractFindManyPostArgsSelect<S[P]>>>
         : never
     }
-  : never
+   : never
 
 // InputTypes
 
@@ -382,11 +400,11 @@ type ProfileGetPayload<S extends boolean | ProfileSelect> = S extends true
   ? Profile
   : S extends ProfileSelect
   ? {
-      [P in keyof CleanupNever<MergeTruthyValues<ProfileDefault, S>>]: P extends ProfileScalars
+      [P in CleanupNever<MergeTruthyValues<ProfileDefault, S>>]: P extends ProfileScalars
         ? Profile[P]
         : never
     }
-  : never
+   : never
 
 // InputTypes
 
@@ -577,13 +595,13 @@ type PostGetPayload<S extends boolean | PostSelect> = S extends true
   ? Post
   : S extends PostSelect
   ? {
-      [P in keyof CleanupNever<MergeTruthyValues<PostDefault, S>>]: P extends PostScalars
+      [P in CleanupNever<MergeTruthyValues<PostDefault, S>>]: P extends PostScalars
         ? Post[P]
         : P extends 'author'
         ? UserGetPayload<ExtractUserArgsSelect<S[P]>>
         : never
     }
-  : never
+   : never
 
 // InputTypes
 

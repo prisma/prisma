@@ -136,48 +136,88 @@ export class Prisma {
   }
 }
 
-/**
- * Generates the generic type to calculate a payload based on a select statement
- */
-class ModelPayload {
-  constructor(protected readonly model: DMMF.Model, protected readonly dmmf: DMMFClass) {}
-  protected wrapArray(field: DMMF.Field, str: string) {
+class QueryPayloadType {
+  constructor(protected readonly type: OutputType) {}
+  protected wrapArray(field: DMMF.SchemaField, str: string) {
     if (field.isList) {
       return `Array<${str}>`
     }
     return str
   }
-  protected getSchemaField(fieldName: string) {
-    return this.dmmf.outputTypeMap[this.model.name].fields.find(f => f.name === fieldName)
-  }
   toString() {
-    const { model } = this
-    const { name } = model
+    const { type } = this
+    const { name } = type
 
-    const relationFields = model.fields.filter(f => f.kind === 'relation')
+    const relationFields = type.fields.filter(f => f.kind === 'relation' && f.name !== 'node')
     const relationFieldConditions =
       relationFields.length === 0
         ? ''
-        : `\n${relationFields.map(f =>
-            indent(
-              `: P extends '${f.name}'\n? ${this.wrapArray(
-                f,
-                `${getPayloadName(f.type)}<Extract${getFieldArgName(this.getSchemaField(f.name))}Select<S[P]>>`,
-              )}`,
-              8,
-            ),
-          )}`
+        : `\n${relationFields
+            .map(f =>
+              indent(
+                `: P extends '${f.name}'\n? ${this.wrapArray(
+                  f,
+                  `${getPayloadName((f.type as DMMF.MergedOutputType).name)}<Extract${getModelArgName(
+                    (f.type as DMMF.MergedOutputType).name,
+                    f.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
+                  )}Select<S[P]>>`,
+                )}`,
+                8,
+              ),
+            )
+            .join('\n')}`
+
+    return `\
+type ${getPayloadName(name)}<S extends ${name}Args> = S extends ${name}Args
+  ? {
+      [P in keyof S] ${relationFieldConditions}
+        : never
+    } : never
+  `
+  }
+}
+
+/**
+ * Generates the generic type to calculate a payload based on a select statement
+ */
+class PayloadType {
+  constructor(protected readonly type: OutputType) {}
+  protected wrapArray(field: DMMF.SchemaField, str: string) {
+    if (field.isList) {
+      return `Array<${str}>`
+    }
+    return str
+  }
+  toString() {
+    const { type } = this
+    const { name } = type
+
+    const relationFields = type.fields.filter(f => f.kind === 'relation')
+    const relationFieldConditions =
+      relationFields.length === 0
+        ? ''
+        : `\n${relationFields
+            .map(f =>
+              indent(
+                `: P extends '${f.name}'\n? ${this.wrapArray(
+                  f,
+                  `${getPayloadName((f.type as DMMF.MergedOutputType).name)}<Extract${getFieldArgName(f)}Select<S[P]>>`,
+                )}`,
+                8,
+              ),
+            )
+            .join('\n')}`
 
     return `\
 type ${getPayloadName(name)}<S extends boolean | ${getSelectName(name)}> = S extends true
   ? ${name}
   : S extends ${getSelectName(name)}
   ? {
-      [P in keyof CleanupNever<MergeTruthyValues<${getDefaultName(name)}, S>>]: P extends ${getScalarsName(name)}
+      [P in CleanupNever<MergeTruthyValues<${getDefaultName(name)}, S>>]: P extends ${getScalarsName(name)}
         ? ${name}[P]${relationFieldConditions}
         : never
     }
-  : never`
+   : never`
   }
 }
 
@@ -305,7 +345,7 @@ ${indent(
 
 ${new ModelDefault(model, this.dmmf).toString()}
 
-${new ModelPayload(model, this.dmmf).toString()}
+${new PayloadType(this.outputType).toString()}
 
 // InputTypes
 ${this.argsTypes.map(String).join('\n')}
@@ -388,6 +428,7 @@ export class Query {
       mapping: Object.entries(mapping).filter(([key]) => isQueryAction(key as DMMF.ModelAction, operation)),
     }))
     const queryType = operation === 'query' ? dmmf.queryType : dmmf.mutationType
+    const outputType = new OutputType(queryType)
     return `\
 /**
  * ${name}
@@ -404,7 +445,9 @@ ${indent(
 )}
 }
 
-${new Delegate(new OutputType(queryType))}
+${new QueryPayloadType(outputType)}
+
+${new Delegate(outputType)}
 `
   }
 }
@@ -415,15 +458,14 @@ export class Delegate {
     const name = this.outputType.name
     return `\
 interface ${name}Delegate {
-  (args: ${name}Args): ${name}Client
-  // <T extends ${name}Args>(args: Subset<T,${name}Args>): ${name}Client
+  <T extends ${name}Args>(args: Subset<T,${name}Args>): PromiseLike<${name}GetPayload<T>>
 }
 function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaFetcher): ${name}Delegate {
-  const ${name} = (args: ${name}Args) => new ${name}Client(dmmf, fetcher, args, [])
+  const ${name} = <T extends ${name}Args>(args: ${name}Args) => new ${name}Client<T>(dmmf, fetcher, args, [])
   return ${name}
 }
 
-class ${name}Client<T = any[]> implements PromiseLike<T> {
+class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements PromiseLike<U> {
   constructor(private readonly dmmf: DMMFClass,private readonly fetcher: PrismaFetcher, private readonly args: ${name}Args, private readonly path: []) {}
   readonly [Symbol.toStringTag]: 'Promise'
 
@@ -446,11 +488,11 @@ class ${name}Client<T = any[]> implements PromiseLike<T> {
    * @param onrejected The callback to execute when the Promise is rejected.
    * @returns A Promise for the completion of which ever callback is executed.
    */
-  then<TResult1 = T, TResult2 = never>(
-    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+  then<TResult1 = U, TResult2 = never>(
+    onfulfilled?: ((value: U) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
-    return this.fetcher.request<T>(this.query, this.path).then(onfulfilled, onrejected)
+    return this.fetcher.request<U>(this.query, this.path).then(onfulfilled, onrejected)
   }
 
   /**
@@ -460,8 +502,8 @@ class ${name}Client<T = any[]> implements PromiseLike<T> {
    */
   catch<TResult = never>(
     onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
-  ): Promise<T | TResult> {
-    return this.fetcher.request<T>(this.query, this.path).catch(onrejected)
+  ): Promise<U | TResult> {
+    return this.fetcher.request<U>(this.query, this.path).catch(onrejected)
   }
 }
     `
