@@ -2,7 +2,7 @@
 <p><h3 align="center">Database Schema Migrations (by <a href="">Prisma</a>)</h3></p>
 
 <p align="center">
-  <a href="#overview">Overview</a> • <a href="#quickstart">Quickstart</a> • <a href="#supported-databases">Supported databases</a> 
+  <a href="#features">Features</a> • <a href="#how-it-works">How it works</a> • <a href="#supported-databases">Supported databases</a> 
 </p>
 
 
