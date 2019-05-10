@@ -1,9 +1,9 @@
 import { DMMF } from './dmmf-types'
 import fetch from 'node-fetch'
-import { DMMFClass } from './dmmf'
-import { deepGet } from './utils/deep-set'
-import { makeDocument } from './query'
-import { Subset } from './generated'
+import { DMMFClass } from './dmmf';
+import { deepGet } from './utils/deep-set';
+import { makeDocument } from './query';
+import { Subset } from './generated';
 
 /**
  * Utility Types
@@ -23,6 +23,8 @@ export type MergeTruthyValues<R extends object, S extends object> = {
 
 export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never : key }[keyof T]
 
+
+
 /**
  * Subset
  * @desc From `T` pick properties that exist in `U`. Simple version of Intersection
@@ -34,7 +36,7 @@ class PrismaFetcher {
   request<T>(query: string, path: string[] = []): Promise<T> {
     console.log(query)
     console.log(path)
-    return Promise.resolve({ data: { som: 'thing' } } as any)
+    return Promise.resolve({data: {som: 'thing'}} as any)
     // return fetch(this.url, {
     //   headers: {
     //     'Content-Type': 'application/json',
@@ -45,14 +47,16 @@ class PrismaFetcher {
   }
 }
 
+
 /**
  * Client
- **/
+**/
+
 
 // could be a class if we want to require new Prisma(...)
 // export default function Prisma() {
 //   return new PrismaClient(null as any)
-// }
+// } 
 
 export class Prisma {
   private fetcher?: PrismaFetcher
@@ -68,20 +72,20 @@ export class Prisma {
     // TODO: Kill Rust
   }
   private _query?: QueryDelegate
-  get query() {
-    return this._query ? this._query : (this._query = QueryDelegate(this.dmmf, this.fetcher))
+  get query(): QueryDelegate {
+    return this._query ? this._query: (this._query= QueryDelegate(this.dmmf, this.fetcher))
   }
   private _users?: UserDelegate
-  get users() {
-    return this._users ? this._users : (this._users = UserDelegate(this.dmmf, this.fetcher))
+  get users(): UserDelegate {
+    return this._users? this._users : (this._users = UserDelegate(this.dmmf, this.fetcher))
   }
   private _profiles?: ProfileDelegate
-  get profiles() {
-    return this._profiles ? this._profiles : (this._profiles = ProfileDelegate(this.dmmf, this.fetcher))
+  get profiles(): ProfileDelegate {
+    return this._profiles? this._profiles : (this._profiles = ProfileDelegate(this.dmmf, this.fetcher))
   }
   private _posts?: PostDelegate
-  get posts() {
-    return this._posts ? this._posts : (this._posts = PostDelegate(this.dmmf, this.fetcher))
+  get posts(): PostDelegate {
+    return this._posts? this._posts : (this._posts = PostDelegate(this.dmmf, this.fetcher))
   }
 }
 
@@ -100,7 +104,8 @@ export type QueryArgs = {
 
 type QueryGetPayload<S extends QueryArgs> = S extends QueryArgs
   ? {
-      [P in keyof S]: P extends 'post'
+      [P in keyof S] 
+        : P extends 'post'
         ? PostGetPayload<ExtractFindOnePostArgsSelect<S[P]>>
         : P extends 'posts'
         ? Array<PostGetPayload<ExtractFindManyPostArgsSelect<S[P]>>>
@@ -113,11 +118,11 @@ type QueryGetPayload<S extends QueryArgs> = S extends QueryArgs
         : P extends 'users'
         ? Array<UserGetPayload<ExtractFindManyUserArgsSelect<S[P]>>>
         : never
-    }
-  : never
+    } : never
+  
 
 interface QueryDelegate {
-  <T extends QueryArgs>(args: Subset<T, QueryArgs>): PromiseLike<QueryGetPayload<T>>
+  <T extends QueryArgs>(args: Subset<T,QueryArgs>): PromiseLike<QueryGetPayload<T>>
 }
 function QueryDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): QueryDelegate {
   const Query = <T extends QueryArgs>(args: QueryArgs) => new QueryClient<T>(dmmf, fetcher, args, [])
@@ -125,12 +130,7 @@ function QueryDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): QueryDelegate {
 }
 
 class QueryClient<T extends QueryArgs, U = QueryGetPayload<T>> implements PromiseLike<U> {
-  constructor(
-    private readonly dmmf: DMMFClass,
-    private readonly fetcher: PrismaFetcher,
-    private readonly args: QueryArgs,
-    private readonly path: [],
-  ) {}
+  constructor(private readonly dmmf: DMMFClass,private readonly fetcher: PrismaFetcher, private readonly args: QueryArgs, private readonly path: []) {}
   readonly [Symbol.toStringTag]: 'Promise'
 
   protected get query() {
@@ -139,7 +139,7 @@ class QueryClient<T extends QueryArgs, U = QueryGetPayload<T>> implements Promis
       dmmf: this.dmmf,
       rootField,
       rootTypeName: 'query',
-      select: this.args[rootField],
+      select: this.args[rootField]
     })
     // console.dir(document, {depth: 8})
     document.validate(this.args[rootField], true)
@@ -170,6 +170,9 @@ class QueryClient<T extends QueryArgs, U = QueryGetPayload<T>> implements Promis
     return this.fetcher.request<U>(this.query, this.path).catch(onrejected)
   }
 }
+    
+
+
 
 /**
  * Model User
@@ -181,9 +184,9 @@ export type User = {
   strings?: string[]
 }
 
-export type UserScalars = 'id' | 'name' | 'strings'
+export type UserScalars= 'id' | 'name' | 'strings'
 
-export type UserSelect = {
+export type UserSelect= {
   id?: boolean
   name?: boolean
   strings?: boolean
@@ -196,6 +199,7 @@ type UserDefault = {
   strings: true
 }
 
+
 type UserGetPayload<S extends boolean | UserSelect> = S extends true
   ? User
   : S extends UserSelect
@@ -206,100 +210,43 @@ type UserGetPayload<S extends boolean | UserSelect> = S extends true
         ? Array<PostGetPayload<ExtractFindManyPostArgsSelect<S[P]>>>
         : never
     }
-  : never
+   : never
 
 export interface UserDelegate {
-  <T extends UserArgs>(args: Subset<T, UserArgs>): 'select' extends keyof T
-    ? PromiseLike<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>
-    : UserDelegate
-  findOne<T extends FindOneUserArgs>(
-    args: Subset<T, FindOneUserArgs>,
-  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
-  findMany<T extends FindManyUserArgs>(
-    args: Subset<T, FindManyUserArgs>,
-  ): PromiseLike<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>
-  create<T extends UserCreateArgs>(
-    args: Subset<T, UserCreateArgs>,
-  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
-  update<T extends UserUpdateArgs>(
-    args: Subset<T, UserUpdateArgs>,
-  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
-  updateMany<T extends UserUpdateManyArgs>(
-    args: Subset<T, UserUpdateManyArgs>,
-  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
-  upsert<T extends UserUpsertArgs>(
-    args: Subset<T, UserUpsertArgs>,
-  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
-  delete<T extends UserDeleteArgs>(
-    args: Subset<T, UserDeleteArgs>,
-  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
-  deleteMany<T extends UserDeleteManyArgs>(
-    args: Subset<T, UserDeleteManyArgs>,
-  ): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+  <T extends UserArgs>(args: Subset<T,UserArgs>): PromiseLike<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>
+  findOne<T extends FindOneUserArgs>(args: Subset<T, FindOneUserArgs>): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+  findMany<T extends FindManyUserArgs>(args: Subset<T, FindManyUserArgs>): PromiseLike<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>
+  create<T extends UserCreateArgs>(args: Subset<T, UserCreateArgs>): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+  update<T extends UserUpdateArgs>(args: Subset<T, UserUpdateArgs>): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+  updateMany<T extends UserUpdateManyArgs>(args: Subset<T, UserUpdateManyArgs>): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+  upsert<T extends UserUpsertArgs>(args: Subset<T, UserUpsertArgs>): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+  delete<T extends UserDeleteArgs>(args: Subset<T, UserDeleteArgs>): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
+  deleteMany<T extends UserDeleteManyArgs>(args: Subset<T, UserDeleteManyArgs>): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
 }
 function UserDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): UserDelegate {
-  const User = <T extends UserArgs>(args: Subset<T, UserArgs>) =>
-    args.select
-      ? new UserClient<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>(
-          dmmf,
-          fetcher,
-          'query',
-          'users',
-          args,
-          [],
-        )
-      : this
-  User.findOne = <T extends FindOneUserArgs>(args: Subset<T, FindOneUserArgs>) =>
-    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'query', 'user', args, [])
-  User.findMany = <T extends FindManyUserArgs>(args: Subset<T, FindManyUserArgs>) =>
-    new UserClient<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>(dmmf, fetcher, 'query', 'users', args, [])
-  User.create = <T extends UserCreateArgs>(args: Subset<T, UserCreateArgs>) =>
-    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'createUser', args, [])
-  User.update = <T extends UserUpdateArgs>(args: Subset<T, UserUpdateArgs>) =>
-    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateUser', args, [])
-  User.updateMany = <T extends UserUpdateManyArgs>(args: Subset<T, UserUpdateManyArgs>) =>
-    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(
-      dmmf,
-      fetcher,
-      'mutation',
-      'updateManyUsers',
-      args,
-      [],
-    )
-  User.upsert = <T extends UserUpsertArgs>(args: Subset<T, UserUpsertArgs>) =>
-    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'upsertUser', args, [])
-  User.delete = <T extends UserDeleteArgs>(args: Subset<T, UserDeleteArgs>) =>
-    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteUser', args, [])
-  User.deleteMany = <T extends UserDeleteManyArgs>(args: Subset<T, UserDeleteManyArgs>) =>
-    new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(
-      dmmf,
-      fetcher,
-      'mutation',
-      'deleteManyUsers',
-      args,
-      [],
-    )
+  const User = <T extends UserArgs>(args: Subset<T, UserArgs>) => new UserClient<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>(dmmf, fetcher, 'query', 'users', args, [])
+  User.findOne = <T extends FindOneUserArgs>(args: Subset<T, FindOneUserArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'query', 'user', args, [])
+  User.findMany = <T extends FindManyUserArgs>(args: Subset<T, FindManyUserArgs>) => new UserClient<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>(dmmf, fetcher, 'query', 'users', args, [])
+  User.create = <T extends UserCreateArgs>(args: Subset<T, UserCreateArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'createUser', args, [])
+  User.update = <T extends UserUpdateArgs>(args: Subset<T, UserUpdateArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateUser', args, [])
+  User.updateMany = <T extends UserUpdateManyArgs>(args: Subset<T, UserUpdateManyArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateManyUsers', args, [])
+  User.upsert = <T extends UserUpsertArgs>(args: Subset<T, UserUpsertArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'upsertUser', args, [])
+  User.delete = <T extends UserDeleteArgs>(args: Subset<T, UserDeleteArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteUser', args, [])
+  User.deleteMany = <T extends UserDeleteManyArgs>(args: Subset<T, UserDeleteManyArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteManyUsers', args, [])
   return User
 }
 
 class UserClient<T> implements PromiseLike<T> {
-  constructor(
-    private readonly dmmf: DMMFClass,
-    private readonly fetcher: PrismaFetcher,
-    private readonly queryType: 'query' | 'mutation',
-    private readonly rootField: string,
-    private readonly args: UserArgs,
-    private readonly path: [],
-  ) {}
+  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PrismaFetcher, private readonly queryType: 'query' | 'mutation', private readonly rootField: string, private readonly args: UserArgs, private readonly path: []) {}
   readonly [Symbol.toStringTag]: 'Promise'
 
   protected get query() {
-    const { rootField } = this
+    const {rootField} = this
     const document = makeDocument({
       dmmf: this.dmmf,
       rootField,
       rootTypeName: this.queryType,
-      select: this.args,
+      select: this.args
     })
     // console.dir(document, {depth: 8})
     document.validate(this.args, true)
@@ -330,6 +277,7 @@ class UserClient<T> implements PromiseLike<T> {
     return this.fetcher.request<T>(this.query, this.path).catch(onrejected)
   }
 }
+    
 
 // InputTypes
 
@@ -348,6 +296,7 @@ type ExtractFindOneUserArgsSelect<S extends boolean | FindOneUserArgs> = S exten
   : S extends FindOneUserArgsWithSelect
   ? S['select']
   : true
+
 
 export type FindManyUserArgs = {
   select?: UserSelect
@@ -377,6 +326,7 @@ type ExtractFindManyUserArgsSelect<S extends boolean | FindManyUserArgs> = S ext
   ? S['select']
   : true
 
+
 export type UserCreateArgs = {
   select?: UserSelect
   data: UserCreateInput
@@ -392,6 +342,7 @@ type ExtractUserCreateArgsSelect<S extends boolean | UserCreateArgs> = S extends
   : S extends UserCreateArgsWithSelect
   ? S['select']
   : true
+
 
 export type UserUpdateArgs = {
   select?: UserSelect
@@ -411,6 +362,7 @@ type ExtractUserUpdateArgsSelect<S extends boolean | UserUpdateArgs> = S extends
   ? S['select']
   : true
 
+
 export type UserUpdateManyArgs = {
   select?: UserSelect
   data: UserUpdateManyMutationInput
@@ -428,6 +380,7 @@ type ExtractUserUpdateManyArgsSelect<S extends boolean | UserUpdateManyArgs> = S
   : S extends UserUpdateManyArgsWithSelect
   ? S['select']
   : true
+
 
 export type UserUpsertArgs = {
   select?: UserSelect
@@ -449,6 +402,7 @@ type ExtractUserUpsertArgsSelect<S extends boolean | UserUpsertArgs> = S extends
   ? S['select']
   : true
 
+
 export type UserDeleteArgs = {
   select?: UserSelect
   where: UserWhereUniqueInput
@@ -464,6 +418,7 @@ type ExtractUserDeleteArgsSelect<S extends boolean | UserDeleteArgs> = S extends
   : S extends UserDeleteArgsWithSelect
   ? S['select']
   : true
+
 
 export type UserDeleteManyArgs = {
   select?: UserSelect
@@ -481,6 +436,7 @@ type ExtractUserDeleteManyArgsSelect<S extends boolean | UserDeleteManyArgs> = S
   ? S['select']
   : true
 
+
 export type UserArgs = {
   select?: UserSelect
 }
@@ -495,6 +451,8 @@ type ExtractUserArgsSelect<S extends boolean | UserArgs> = S extends boolean
   ? S['select']
   : true
 
+
+
 /**
  * Model Profile
  */
@@ -504,9 +462,9 @@ export type Profile = {
   url: string
 }
 
-export type ProfileScalars = 'id' | 'url'
+export type ProfileScalars= 'id' | 'url'
 
-export type ProfileSelect = {
+export type ProfileSelect= {
   id?: boolean
   url?: boolean
 }
@@ -516,144 +474,52 @@ type ProfileDefault = {
   url: true
 }
 
+
 type ProfileGetPayload<S extends boolean | ProfileSelect> = S extends true
   ? Profile
   : S extends ProfileSelect
-  ? { [P in CleanupNever<MergeTruthyValues<ProfileDefault, S>>]: P extends ProfileScalars ? Profile[P] : never }
-  : never
+  ? {
+      [P in CleanupNever<MergeTruthyValues<ProfileDefault, S>>]: P extends ProfileScalars
+        ? Profile[P]
+        : never
+    }
+   : never
 
 export interface ProfileDelegate {
-  <T extends ProfileArgs>(args: Subset<T, ProfileArgs>): PromiseLike<
-    Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
-  >
-  findOne<T extends FindOneProfileArgs>(
-    args: Subset<T, FindOneProfileArgs>,
-  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
-  findMany<T extends FindManyProfileArgs>(
-    args: Subset<T, FindManyProfileArgs>,
-  ): PromiseLike<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>
-  create<T extends ProfileCreateArgs>(
-    args: Subset<T, ProfileCreateArgs>,
-  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
-  update<T extends ProfileUpdateArgs>(
-    args: Subset<T, ProfileUpdateArgs>,
-  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
-  updateMany<T extends ProfileUpdateManyArgs>(
-    args: Subset<T, ProfileUpdateManyArgs>,
-  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
-  upsert<T extends ProfileUpsertArgs>(
-    args: Subset<T, ProfileUpsertArgs>,
-  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
-  delete<T extends ProfileDeleteArgs>(
-    args: Subset<T, ProfileDeleteArgs>,
-  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
-  deleteMany<T extends ProfileDeleteManyArgs>(
-    args: Subset<T, ProfileDeleteManyArgs>,
-  ): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  <T extends ProfileArgs>(args: Subset<T,ProfileArgs>): PromiseLike<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>
+  findOne<T extends FindOneProfileArgs>(args: Subset<T, FindOneProfileArgs>): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  findMany<T extends FindManyProfileArgs>(args: Subset<T, FindManyProfileArgs>): PromiseLike<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>
+  create<T extends ProfileCreateArgs>(args: Subset<T, ProfileCreateArgs>): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  update<T extends ProfileUpdateArgs>(args: Subset<T, ProfileUpdateArgs>): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  updateMany<T extends ProfileUpdateManyArgs>(args: Subset<T, ProfileUpdateManyArgs>): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  upsert<T extends ProfileUpsertArgs>(args: Subset<T, ProfileUpsertArgs>): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  delete<T extends ProfileDeleteArgs>(args: Subset<T, ProfileDeleteArgs>): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
+  deleteMany<T extends ProfileDeleteManyArgs>(args: Subset<T, ProfileDeleteManyArgs>): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
 }
 function ProfileDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): ProfileDelegate {
-  const Profile = <T extends ProfileArgs>(args: Subset<T, ProfileArgs>) =>
-    new ProfileClient<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>(
-      dmmf,
-      fetcher,
-      'query',
-      'profiles',
-      args,
-      [],
-    )
-  Profile.findOne = <T extends FindOneProfileArgs>(args: Subset<T, FindOneProfileArgs>) =>
-    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
-      dmmf,
-      fetcher,
-      'query',
-      'profile',
-      args,
-      [],
-    )
-  Profile.findMany = <T extends FindManyProfileArgs>(args: Subset<T, FindManyProfileArgs>) =>
-    new ProfileClient<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>(
-      dmmf,
-      fetcher,
-      'query',
-      'profiles',
-      args,
-      [],
-    )
-  Profile.create = <T extends ProfileCreateArgs>(args: Subset<T, ProfileCreateArgs>) =>
-    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
-      dmmf,
-      fetcher,
-      'mutation',
-      'createProfile',
-      args,
-      [],
-    )
-  Profile.update = <T extends ProfileUpdateArgs>(args: Subset<T, ProfileUpdateArgs>) =>
-    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
-      dmmf,
-      fetcher,
-      'mutation',
-      'updateProfile',
-      args,
-      [],
-    )
-  Profile.updateMany = <T extends ProfileUpdateManyArgs>(args: Subset<T, ProfileUpdateManyArgs>) =>
-    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
-      dmmf,
-      fetcher,
-      'mutation',
-      'updateManyProfiles',
-      args,
-      [],
-    )
-  Profile.upsert = <T extends ProfileUpsertArgs>(args: Subset<T, ProfileUpsertArgs>) =>
-    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
-      dmmf,
-      fetcher,
-      'mutation',
-      'upsertProfile',
-      args,
-      [],
-    )
-  Profile.delete = <T extends ProfileDeleteArgs>(args: Subset<T, ProfileDeleteArgs>) =>
-    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
-      dmmf,
-      fetcher,
-      'mutation',
-      'deleteProfile',
-      args,
-      [],
-    )
-  Profile.deleteMany = <T extends ProfileDeleteManyArgs>(args: Subset<T, ProfileDeleteManyArgs>) =>
-    new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(
-      dmmf,
-      fetcher,
-      'mutation',
-      'deleteManyProfiles',
-      args,
-      [],
-    )
+  const Profile = <T extends ProfileArgs>(args: Subset<T, ProfileArgs>) => new ProfileClient<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>(dmmf, fetcher, 'query', 'profiles', args, [])
+  Profile.findOne = <T extends FindOneProfileArgs>(args: Subset<T, FindOneProfileArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'query', 'profile', args, [])
+  Profile.findMany = <T extends FindManyProfileArgs>(args: Subset<T, FindManyProfileArgs>) => new ProfileClient<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>(dmmf, fetcher, 'query', 'profiles', args, [])
+  Profile.create = <T extends ProfileCreateArgs>(args: Subset<T, ProfileCreateArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'createProfile', args, [])
+  Profile.update = <T extends ProfileUpdateArgs>(args: Subset<T, ProfileUpdateArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateProfile', args, [])
+  Profile.updateMany = <T extends ProfileUpdateManyArgs>(args: Subset<T, ProfileUpdateManyArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateManyProfiles', args, [])
+  Profile.upsert = <T extends ProfileUpsertArgs>(args: Subset<T, ProfileUpsertArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'upsertProfile', args, [])
+  Profile.delete = <T extends ProfileDeleteArgs>(args: Subset<T, ProfileDeleteArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteProfile', args, [])
+  Profile.deleteMany = <T extends ProfileDeleteManyArgs>(args: Subset<T, ProfileDeleteManyArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteManyProfiles', args, [])
   return Profile
 }
 
 class ProfileClient<T> implements PromiseLike<T> {
-  constructor(
-    private readonly dmmf: DMMFClass,
-    private readonly fetcher: PrismaFetcher,
-    private readonly queryType: 'query' | 'mutation',
-    private readonly rootField: string,
-    private readonly args: ProfileArgs,
-    private readonly path: [],
-  ) {}
+  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PrismaFetcher, private readonly queryType: 'query' | 'mutation', private readonly rootField: string, private readonly args: ProfileArgs, private readonly path: []) {}
   readonly [Symbol.toStringTag]: 'Promise'
 
   protected get query() {
-    const { rootField } = this
+    const {rootField} = this
     const document = makeDocument({
       dmmf: this.dmmf,
       rootField,
       rootTypeName: this.queryType,
-      select: this.args,
+      select: this.args
     })
     // console.dir(document, {depth: 8})
     document.validate(this.args, true)
@@ -684,6 +550,7 @@ class ProfileClient<T> implements PromiseLike<T> {
     return this.fetcher.request<T>(this.query, this.path).catch(onrejected)
   }
 }
+    
 
 // InputTypes
 
@@ -702,6 +569,7 @@ type ExtractFindOneProfileArgsSelect<S extends boolean | FindOneProfileArgs> = S
   : S extends FindOneProfileArgsWithSelect
   ? S['select']
   : true
+
 
 export type FindManyProfileArgs = {
   select?: ProfileSelect
@@ -731,6 +599,7 @@ type ExtractFindManyProfileArgsSelect<S extends boolean | FindManyProfileArgs> =
   ? S['select']
   : true
 
+
 export type ProfileCreateArgs = {
   select?: ProfileSelect
   data: ProfileCreateInput
@@ -746,6 +615,7 @@ type ExtractProfileCreateArgsSelect<S extends boolean | ProfileCreateArgs> = S e
   : S extends ProfileCreateArgsWithSelect
   ? S['select']
   : true
+
 
 export type ProfileUpdateArgs = {
   select?: ProfileSelect
@@ -765,6 +635,7 @@ type ExtractProfileUpdateArgsSelect<S extends boolean | ProfileUpdateArgs> = S e
   ? S['select']
   : true
 
+
 export type ProfileUpdateManyArgs = {
   select?: ProfileSelect
   data: ProfileUpdateManyMutationInput
@@ -782,6 +653,7 @@ type ExtractProfileUpdateManyArgsSelect<S extends boolean | ProfileUpdateManyArg
   : S extends ProfileUpdateManyArgsWithSelect
   ? S['select']
   : true
+
 
 export type ProfileUpsertArgs = {
   select?: ProfileSelect
@@ -803,6 +675,7 @@ type ExtractProfileUpsertArgsSelect<S extends boolean | ProfileUpsertArgs> = S e
   ? S['select']
   : true
 
+
 export type ProfileDeleteArgs = {
   select?: ProfileSelect
   where: ProfileWhereUniqueInput
@@ -818,6 +691,7 @@ type ExtractProfileDeleteArgsSelect<S extends boolean | ProfileDeleteArgs> = S e
   : S extends ProfileDeleteArgsWithSelect
   ? S['select']
   : true
+
 
 export type ProfileDeleteManyArgs = {
   select?: ProfileSelect
@@ -835,6 +709,7 @@ type ExtractProfileDeleteManyArgsSelect<S extends boolean | ProfileDeleteManyArg
   ? S['select']
   : true
 
+
 export type ProfileArgs = {
   select?: ProfileSelect
 }
@@ -849,6 +724,8 @@ type ExtractProfileArgsSelect<S extends boolean | ProfileArgs> = S extends boole
   ? S['select']
   : true
 
+
+
 /**
  * Model Post
  */
@@ -859,9 +736,9 @@ export type Post = {
   content: string
 }
 
-export type PostScalars = 'id' | 'title' | 'content'
+export type PostScalars= 'id' | 'title' | 'content'
 
-export type PostSelect = {
+export type PostSelect= {
   id?: boolean
   title?: boolean
   content?: boolean
@@ -874,6 +751,7 @@ type PostDefault = {
   content: true
 }
 
+
 type PostGetPayload<S extends boolean | PostSelect> = S extends true
   ? Post
   : S extends PostSelect
@@ -884,89 +762,43 @@ type PostGetPayload<S extends boolean | PostSelect> = S extends true
         ? UserGetPayload<ExtractUserArgsSelect<S[P]>>
         : never
     }
-  : never
+   : never
 
 export interface PostDelegate {
-  <T extends PostArgs>(args: Subset<T, PostArgs>): PromiseLike<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>
-  findOne<T extends FindOnePostArgs>(
-    args: Subset<T, FindOnePostArgs>,
-  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
-  findMany<T extends FindManyPostArgs>(
-    args: Subset<T, FindManyPostArgs>,
-  ): PromiseLike<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>
-  create<T extends PostCreateArgs>(
-    args: Subset<T, PostCreateArgs>,
-  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
-  update<T extends PostUpdateArgs>(
-    args: Subset<T, PostUpdateArgs>,
-  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
-  updateMany<T extends PostUpdateManyArgs>(
-    args: Subset<T, PostUpdateManyArgs>,
-  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
-  upsert<T extends PostUpsertArgs>(
-    args: Subset<T, PostUpsertArgs>,
-  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
-  delete<T extends PostDeleteArgs>(
-    args: Subset<T, PostDeleteArgs>,
-  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
-  deleteMany<T extends PostDeleteManyArgs>(
-    args: Subset<T, PostDeleteManyArgs>,
-  ): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+  <T extends PostArgs>(args: Subset<T,PostArgs>): PromiseLike<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>
+  findOne<T extends FindOnePostArgs>(args: Subset<T, FindOnePostArgs>): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+  findMany<T extends FindManyPostArgs>(args: Subset<T, FindManyPostArgs>): PromiseLike<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>
+  create<T extends PostCreateArgs>(args: Subset<T, PostCreateArgs>): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+  update<T extends PostUpdateArgs>(args: Subset<T, PostUpdateArgs>): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+  updateMany<T extends PostUpdateManyArgs>(args: Subset<T, PostUpdateManyArgs>): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+  upsert<T extends PostUpsertArgs>(args: Subset<T, PostUpsertArgs>): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+  delete<T extends PostDeleteArgs>(args: Subset<T, PostDeleteArgs>): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
+  deleteMany<T extends PostDeleteManyArgs>(args: Subset<T, PostDeleteManyArgs>): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
 }
 function PostDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): PostDelegate {
-  const Post = <T extends PostArgs>(args: Subset<T, PostArgs>) =>
-    new PostClient<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>(dmmf, fetcher, 'query', 'posts', args, [])
-  Post.findOne = <T extends FindOnePostArgs>(args: Subset<T, FindOnePostArgs>) =>
-    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'query', 'post', args, [])
-  Post.findMany = <T extends FindManyPostArgs>(args: Subset<T, FindManyPostArgs>) =>
-    new PostClient<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>(dmmf, fetcher, 'query', 'posts', args, [])
-  Post.create = <T extends PostCreateArgs>(args: Subset<T, PostCreateArgs>) =>
-    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'createPost', args, [])
-  Post.update = <T extends PostUpdateArgs>(args: Subset<T, PostUpdateArgs>) =>
-    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updatePost', args, [])
-  Post.updateMany = <T extends PostUpdateManyArgs>(args: Subset<T, PostUpdateManyArgs>) =>
-    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(
-      dmmf,
-      fetcher,
-      'mutation',
-      'updateManyPosts',
-      args,
-      [],
-    )
-  Post.upsert = <T extends PostUpsertArgs>(args: Subset<T, PostUpsertArgs>) =>
-    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'upsertPost', args, [])
-  Post.delete = <T extends PostDeleteArgs>(args: Subset<T, PostDeleteArgs>) =>
-    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deletePost', args, [])
-  Post.deleteMany = <T extends PostDeleteManyArgs>(args: Subset<T, PostDeleteManyArgs>) =>
-    new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(
-      dmmf,
-      fetcher,
-      'mutation',
-      'deleteManyPosts',
-      args,
-      [],
-    )
+  const Post = <T extends PostArgs>(args: Subset<T, PostArgs>) => new PostClient<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>(dmmf, fetcher, 'query', 'posts', args, [])
+  Post.findOne = <T extends FindOnePostArgs>(args: Subset<T, FindOnePostArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'query', 'post', args, [])
+  Post.findMany = <T extends FindManyPostArgs>(args: Subset<T, FindManyPostArgs>) => new PostClient<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>(dmmf, fetcher, 'query', 'posts', args, [])
+  Post.create = <T extends PostCreateArgs>(args: Subset<T, PostCreateArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'createPost', args, [])
+  Post.update = <T extends PostUpdateArgs>(args: Subset<T, PostUpdateArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updatePost', args, [])
+  Post.updateMany = <T extends PostUpdateManyArgs>(args: Subset<T, PostUpdateManyArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateManyPosts', args, [])
+  Post.upsert = <T extends PostUpsertArgs>(args: Subset<T, PostUpsertArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'upsertPost', args, [])
+  Post.delete = <T extends PostDeleteArgs>(args: Subset<T, PostDeleteArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deletePost', args, [])
+  Post.deleteMany = <T extends PostDeleteManyArgs>(args: Subset<T, PostDeleteManyArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteManyPosts', args, [])
   return Post
 }
 
 class PostClient<T> implements PromiseLike<T> {
-  constructor(
-    private readonly dmmf: DMMFClass,
-    private readonly fetcher: PrismaFetcher,
-    private readonly queryType: 'query' | 'mutation',
-    private readonly rootField: string,
-    private readonly args: PostArgs,
-    private readonly path: [],
-  ) {}
+  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PrismaFetcher, private readonly queryType: 'query' | 'mutation', private readonly rootField: string, private readonly args: PostArgs, private readonly path: []) {}
   readonly [Symbol.toStringTag]: 'Promise'
 
   protected get query() {
-    const { rootField } = this
+    const {rootField} = this
     const document = makeDocument({
       dmmf: this.dmmf,
       rootField,
       rootTypeName: this.queryType,
-      select: this.args,
+      select: this.args
     })
     // console.dir(document, {depth: 8})
     document.validate(this.args, true)
@@ -997,6 +829,7 @@ class PostClient<T> implements PromiseLike<T> {
     return this.fetcher.request<T>(this.query, this.path).catch(onrejected)
   }
 }
+    
 
 // InputTypes
 
@@ -1015,6 +848,7 @@ type ExtractFindOnePostArgsSelect<S extends boolean | FindOnePostArgs> = S exten
   : S extends FindOnePostArgsWithSelect
   ? S['select']
   : true
+
 
 export type FindManyPostArgs = {
   select?: PostSelect
@@ -1044,6 +878,7 @@ type ExtractFindManyPostArgsSelect<S extends boolean | FindManyPostArgs> = S ext
   ? S['select']
   : true
 
+
 export type PostCreateArgs = {
   select?: PostSelect
   data: PostCreateInput
@@ -1059,6 +894,7 @@ type ExtractPostCreateArgsSelect<S extends boolean | PostCreateArgs> = S extends
   : S extends PostCreateArgsWithSelect
   ? S['select']
   : true
+
 
 export type PostUpdateArgs = {
   select?: PostSelect
@@ -1078,6 +914,7 @@ type ExtractPostUpdateArgsSelect<S extends boolean | PostUpdateArgs> = S extends
   ? S['select']
   : true
 
+
 export type PostUpdateManyArgs = {
   select?: PostSelect
   data: PostUpdateManyMutationInput
@@ -1095,6 +932,7 @@ type ExtractPostUpdateManyArgsSelect<S extends boolean | PostUpdateManyArgs> = S
   : S extends PostUpdateManyArgsWithSelect
   ? S['select']
   : true
+
 
 export type PostUpsertArgs = {
   select?: PostSelect
@@ -1116,6 +954,7 @@ type ExtractPostUpsertArgsSelect<S extends boolean | PostUpsertArgs> = S extends
   ? S['select']
   : true
 
+
 export type PostDeleteArgs = {
   select?: PostSelect
   where: PostWhereUniqueInput
@@ -1131,6 +970,7 @@ type ExtractPostDeleteArgsSelect<S extends boolean | PostDeleteArgs> = S extends
   : S extends PostDeleteArgsWithSelect
   ? S['select']
   : true
+
 
 export type PostDeleteManyArgs = {
   select?: PostSelect
@@ -1148,6 +988,7 @@ type ExtractPostDeleteManyArgsSelect<S extends boolean | PostDeleteManyArgs> = S
   ? S['select']
   : true
 
+
 export type PostArgs = {
   select?: PostSelect
 }
@@ -1162,13 +1003,17 @@ type ExtractPostArgsSelect<S extends boolean | PostArgs> = S extends boolean
   ? S['select']
   : true
 
+
+
 /**
  * Deep Input Types
  */
 
+
 export type PostWhereUniqueInput = {
   id?: string
 }
+
 
 export type PostWhereInput = {
   id?: string
@@ -1219,6 +1064,7 @@ export type PostWhereInput = {
   NOT?: PostWhereInput[]
 }
 
+
 export type UserWhereInput = {
   id?: string
   id_not?: string
@@ -1256,6 +1102,7 @@ export type UserWhereInput = {
   NOT?: UserWhereInput[]
 }
 
+
 export type PostOrderByInput = {
   id_ASC?: PostOrderByInput
   id_DESC?: PostOrderByInput
@@ -1265,9 +1112,11 @@ export type PostOrderByInput = {
   content_DESC?: PostOrderByInput
 }
 
+
 export type ProfileWhereUniqueInput = {
   id?: string
 }
+
 
 export type ProfileWhereInput = {
   id?: string
@@ -1303,6 +1152,7 @@ export type ProfileWhereInput = {
   NOT?: ProfileWhereInput[]
 }
 
+
 export type ProfileOrderByInput = {
   id_ASC?: ProfileOrderByInput
   id_DESC?: ProfileOrderByInput
@@ -1310,9 +1160,11 @@ export type ProfileOrderByInput = {
   url_DESC?: ProfileOrderByInput
 }
 
+
 export type UserWhereUniqueInput = {
   id?: string
 }
+
 
 export type UserOrderByInput = {
   id_ASC?: UserOrderByInput
@@ -1321,6 +1173,7 @@ export type UserOrderByInput = {
   name_DESC?: UserOrderByInput
 }
 
+
 export type PostCreateInput = {
   id?: string
   title: string
@@ -1328,10 +1181,12 @@ export type PostCreateInput = {
   author: UserCreateOneWithoutPostsInput
 }
 
+
 export type UserCreateOneWithoutPostsInput = {
   create?: UserCreateWithoutPostsInput
   connect?: UserWhereUniqueInput
 }
+
 
 export type UserCreateWithoutPostsInput = {
   id?: string
@@ -1339,15 +1194,18 @@ export type UserCreateWithoutPostsInput = {
   strings?: UserCreatestringsInput
 }
 
+
 export type UserCreatestringsInput = {
   set?: string[]
 }
+
 
 export type PostUpdateInput = {
   title?: string
   content?: string
   author?: UserUpdateOneRequiredWithoutPostsInput
 }
+
 
 export type UserUpdateOneRequiredWithoutPostsInput = {
   create?: UserCreateWithoutPostsInput
@@ -1356,37 +1214,45 @@ export type UserUpdateOneRequiredWithoutPostsInput = {
   connect?: UserWhereUniqueInput
 }
 
+
 export type UserUpdateWithoutPostsDataInput = {
   name?: string
   strings?: UserUpdatestringsInput
 }
 
+
 export type UserUpdatestringsInput = {
   set?: string[]
 }
+
 
 export type UserUpsertWithoutPostsInput = {
   update: UserUpdateWithoutPostsDataInput
   create: UserCreateWithoutPostsInput
 }
 
+
 export type PostUpdateManyMutationInput = {
   title?: string
   content?: string
 }
+
 
 export type ProfileCreateInput = {
   id?: string
   url: string
 }
 
+
 export type ProfileUpdateInput = {
   url?: string
 }
 
+
 export type ProfileUpdateManyMutationInput = {
   url?: string
 }
+
 
 export type UserCreateInput = {
   id?: string
@@ -1395,10 +1261,12 @@ export type UserCreateInput = {
   posts?: PostCreateManyWithoutAuthorInput
 }
 
+
 export type PostCreateManyWithoutAuthorInput = {
   create?: PostCreateWithoutAuthorInput[]
   connect?: PostWhereUniqueInput[]
 }
+
 
 export type PostCreateWithoutAuthorInput = {
   id?: string
@@ -1406,11 +1274,13 @@ export type PostCreateWithoutAuthorInput = {
   content: string
 }
 
+
 export type UserUpdateInput = {
   name?: string
   strings?: UserUpdatestringsInput
   posts?: PostUpdateManyWithoutAuthorInput
 }
+
 
 export type PostUpdateManyWithoutAuthorInput = {
   create?: PostCreateWithoutAuthorInput[]
@@ -1424,21 +1294,25 @@ export type PostUpdateManyWithoutAuthorInput = {
   updateMany?: PostUpdateManyWithWhereNestedInput[]
 }
 
+
 export type PostUpdateWithWhereUniqueWithoutAuthorInput = {
   where: PostWhereUniqueInput
   data: PostUpdateWithoutAuthorDataInput
 }
+
 
 export type PostUpdateWithoutAuthorDataInput = {
   title?: string
   content?: string
 }
 
+
 export type PostUpsertWithWhereUniqueWithoutAuthorInput = {
   where: PostWhereUniqueInput
   update: PostUpdateWithoutAuthorDataInput
   create: PostCreateWithoutAuthorInput
 }
+
 
 export type PostScalarWhereInput = {
   id?: string
@@ -1488,4444 +1362,4449 @@ export type PostScalarWhereInput = {
   NOT?: PostScalarWhereInput[]
 }
 
+
 export type PostUpdateManyWithWhereNestedInput = {
   where: PostScalarWhereInput
   data: PostUpdateManyDataInput
 }
+
 
 export type PostUpdateManyDataInput = {
   title?: string
   content?: string
 }
 
+
 export type UserUpdateManyMutationInput = {
   name?: string
   strings?: UserUpdatestringsInput
 }
+
 
 /**
  * DMMF
  */
 
 const dmmf: DMMF.Document = {
-  datamodel: {
-    models: [
+  "datamodel": {
+    "models": [
       {
-        name: 'User',
-        isEmbedded: false,
-        isEnum: false,
-        dbName: '',
-        fields: [
+        "name": "User",
+        "isEmbedded": false,
+        "isEnum": false,
+        "dbName": "",
+        "fields": [
           {
-            kind: 'scalar',
-            name: 'id',
-            isUnique: true,
-            isId: true,
-            type: 'ID',
-            isList: false,
-            isRequired: true,
+            "kind": "scalar",
+            "name": "id",
+            "isUnique": true,
+            "isId": true,
+            "type": "ID",
+            "isList": false,
+            "isRequired": true
           },
           {
-            kind: 'scalar',
-            name: 'name',
-            isUnique: false,
-            isId: false,
-            type: 'String',
-            isList: false,
-            isRequired: true,
+            "kind": "scalar",
+            "name": "name",
+            "isUnique": false,
+            "isId": false,
+            "type": "String",
+            "isList": false,
+            "isRequired": true
           },
           {
-            kind: 'scalar',
-            name: 'strings',
-            isUnique: false,
-            isId: false,
-            type: 'String',
-            isList: true,
-            isRequired: false,
+            "kind": "scalar",
+            "name": "strings",
+            "isUnique": false,
+            "isId": false,
+            "type": "String",
+            "isList": true,
+            "isRequired": false
           },
           {
-            kind: 'relation',
-            name: 'posts',
-            isUnique: false,
-            isId: false,
-            type: 'Post',
-            isList: true,
-            isRequired: false,
-          },
-        ],
+            "kind": "relation",
+            "name": "posts",
+            "isUnique": false,
+            "isId": false,
+            "type": "Post",
+            "isList": true,
+            "isRequired": false
+          }
+        ]
       },
       {
-        name: 'Profile',
-        isEmbedded: false,
-        isEnum: false,
-        dbName: '',
-        fields: [
+        "name": "Profile",
+        "isEmbedded": false,
+        "isEnum": false,
+        "dbName": "",
+        "fields": [
           {
-            kind: 'scalar',
-            name: 'id',
-            isUnique: true,
-            isId: true,
-            type: 'ID',
-            isList: false,
-            isRequired: true,
+            "kind": "scalar",
+            "name": "id",
+            "isUnique": true,
+            "isId": true,
+            "type": "ID",
+            "isList": false,
+            "isRequired": true
           },
           {
-            kind: 'scalar',
-            name: 'url',
-            isUnique: false,
-            isId: false,
-            type: 'String',
-            isList: false,
-            isRequired: true,
-          },
-        ],
+            "kind": "scalar",
+            "name": "url",
+            "isUnique": false,
+            "isId": false,
+            "type": "String",
+            "isList": false,
+            "isRequired": true
+          }
+        ]
       },
       {
-        name: 'Post',
-        isEmbedded: false,
-        isEnum: false,
-        dbName: '',
-        fields: [
+        "name": "Post",
+        "isEmbedded": false,
+        "isEnum": false,
+        "dbName": "",
+        "fields": [
           {
-            kind: 'scalar',
-            name: 'id',
-            isUnique: true,
-            isId: true,
-            type: 'ID',
-            isList: false,
-            isRequired: true,
+            "kind": "scalar",
+            "name": "id",
+            "isUnique": true,
+            "isId": true,
+            "type": "ID",
+            "isList": false,
+            "isRequired": true
           },
           {
-            kind: 'scalar',
-            name: 'title',
-            isUnique: false,
-            isId: false,
-            type: 'String',
-            isList: false,
-            isRequired: true,
+            "kind": "scalar",
+            "name": "title",
+            "isUnique": false,
+            "isId": false,
+            "type": "String",
+            "isList": false,
+            "isRequired": true
           },
           {
-            kind: 'scalar',
-            name: 'content',
-            isUnique: false,
-            isId: false,
-            type: 'String',
-            isList: false,
-            isRequired: true,
+            "kind": "scalar",
+            "name": "content",
+            "isUnique": false,
+            "isId": false,
+            "type": "String",
+            "isList": false,
+            "isRequired": true
           },
           {
-            kind: 'relation',
-            name: 'author',
-            isUnique: false,
-            isId: false,
-            type: 'User',
-            isList: false,
-            isRequired: true,
-          },
-        ],
-      },
-    ],
+            "kind": "relation",
+            "name": "author",
+            "isUnique": false,
+            "isId": false,
+            "type": "User",
+            "isList": false,
+            "isRequired": true
+          }
+        ]
+      }
+    ]
   },
-  schema: {
-    queries: [
+  "schema": {
+    "queries": [
       {
-        name: 'post',
-        args: [
+        "name": "post",
+        "args": [
           {
-            name: 'where',
-            type: 'PostWhereUniqueInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "PostWhereUniqueInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'Post',
-          isList: false,
-          isRequired: false,
-        },
+        "output": {
+          "name": "Post",
+          "isList": false,
+          "isRequired": false
+        }
       },
       {
-        name: 'posts',
-        args: [
+        "name": "posts",
+        "args": [
           {
-            name: 'where',
-            type: 'PostWhereInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
+            "name": "where",
+            "type": "PostWhereInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'orderBy',
-            type: 'PostOrderByInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
+            "name": "orderBy",
+            "type": "PostOrderByInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'skip',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "skip",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'after',
-            type: 'String',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "after",
+            "type": "String",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'before',
-            type: 'String',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "before",
+            "type": "String",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'first',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "first",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'last',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
-          },
+            "name": "last",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'Post',
-          isList: true,
-          isRequired: true,
-        },
+        "output": {
+          "name": "Post",
+          "isList": true,
+          "isRequired": true
+        }
       },
       {
-        name: 'postsConnection',
-        args: [
+        "name": "postsConnection",
+        "args": [
           {
-            name: 'where',
-            type: 'PostWhereInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
+            "name": "where",
+            "type": "PostWhereInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'orderBy',
-            type: 'PostOrderByInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
+            "name": "orderBy",
+            "type": "PostOrderByInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'skip',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "skip",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'after',
-            type: 'String',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "after",
+            "type": "String",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'before',
-            type: 'String',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "before",
+            "type": "String",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'first',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "first",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'last',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
-          },
+            "name": "last",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'PostConnection',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "PostConnection",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'profile',
-        args: [
+        "name": "profile",
+        "args": [
           {
-            name: 'where',
-            type: 'ProfileWhereUniqueInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "ProfileWhereUniqueInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'Profile',
-          isList: false,
-          isRequired: false,
-        },
+        "output": {
+          "name": "Profile",
+          "isList": false,
+          "isRequired": false
+        }
       },
       {
-        name: 'profiles',
-        args: [
+        "name": "profiles",
+        "args": [
           {
-            name: 'where',
-            type: 'ProfileWhereInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
+            "name": "where",
+            "type": "ProfileWhereInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'orderBy',
-            type: 'ProfileOrderByInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
+            "name": "orderBy",
+            "type": "ProfileOrderByInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'skip',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "skip",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'after',
-            type: 'String',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "after",
+            "type": "String",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'before',
-            type: 'String',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "before",
+            "type": "String",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'first',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "first",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'last',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
-          },
+            "name": "last",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'Profile',
-          isList: true,
-          isRequired: true,
-        },
+        "output": {
+          "name": "Profile",
+          "isList": true,
+          "isRequired": true
+        }
       },
       {
-        name: 'profilesConnection',
-        args: [
+        "name": "profilesConnection",
+        "args": [
           {
-            name: 'where',
-            type: 'ProfileWhereInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
+            "name": "where",
+            "type": "ProfileWhereInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'orderBy',
-            type: 'ProfileOrderByInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
+            "name": "orderBy",
+            "type": "ProfileOrderByInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'skip',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "skip",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'after',
-            type: 'String',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "after",
+            "type": "String",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'before',
-            type: 'String',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "before",
+            "type": "String",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'first',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "first",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'last',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
-          },
+            "name": "last",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'ProfileConnection',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "ProfileConnection",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'user',
-        args: [
+        "name": "user",
+        "args": [
           {
-            name: 'where',
-            type: 'UserWhereUniqueInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "UserWhereUniqueInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'User',
-          isList: false,
-          isRequired: false,
-        },
+        "output": {
+          "name": "User",
+          "isList": false,
+          "isRequired": false
+        }
       },
       {
-        name: 'users',
-        args: [
+        "name": "users",
+        "args": [
           {
-            name: 'where',
-            type: 'UserWhereInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
+            "name": "where",
+            "type": "UserWhereInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'orderBy',
-            type: 'UserOrderByInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
+            "name": "orderBy",
+            "type": "UserOrderByInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'skip',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "skip",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'after',
-            type: 'String',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "after",
+            "type": "String",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'before',
-            type: 'String',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "before",
+            "type": "String",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'first',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "first",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'last',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
-          },
+            "name": "last",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'User',
-          isList: true,
-          isRequired: true,
-        },
+        "output": {
+          "name": "User",
+          "isList": true,
+          "isRequired": true
+        }
       },
       {
-        name: 'usersConnection',
-        args: [
+        "name": "usersConnection",
+        "args": [
           {
-            name: 'where',
-            type: 'UserWhereInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
+            "name": "where",
+            "type": "UserWhereInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'orderBy',
-            type: 'UserOrderByInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
+            "name": "orderBy",
+            "type": "UserOrderByInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'skip',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "skip",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'after',
-            type: 'String',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "after",
+            "type": "String",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'before',
-            type: 'String',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "before",
+            "type": "String",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'first',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
+            "name": "first",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
           },
           {
-            name: 'last',
-            type: 'Int',
-            isRequired: false,
-            isScalar: true,
-            isList: false,
-          },
+            "name": "last",
+            "type": "Int",
+            "isRequired": false,
+            "isScalar": true,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'UserConnection',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "UserConnection",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'node',
-        args: [
+        "name": "node",
+        "args": [
           {
-            name: 'id',
-            type: 'ID',
-            isRequired: true,
-            isScalar: true,
-            isList: false,
-          },
+            "name": "id",
+            "type": "ID",
+            "isRequired": true,
+            "isScalar": true,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'Node',
-          isList: false,
-          isRequired: false,
-        },
-      },
+        "output": {
+          "name": "Node",
+          "isList": false,
+          "isRequired": false
+        }
+      }
     ],
-    mutations: [
+    "mutations": [
       {
-        name: 'createPost',
-        args: [
+        "name": "createPost",
+        "args": [
           {
-            name: 'data',
-            type: 'PostCreateInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "data",
+            "type": "PostCreateInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'Post',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "Post",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'updatePost',
-        args: [
+        "name": "updatePost",
+        "args": [
           {
-            name: 'data',
-            type: 'PostUpdateInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
+            "name": "data",
+            "type": "PostUpdateInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'where',
-            type: 'PostWhereUniqueInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "PostWhereUniqueInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'Post',
-          isList: false,
-          isRequired: false,
-        },
+        "output": {
+          "name": "Post",
+          "isList": false,
+          "isRequired": false
+        }
       },
       {
-        name: 'updateManyPosts',
-        args: [
+        "name": "updateManyPosts",
+        "args": [
           {
-            name: 'data',
-            type: 'PostUpdateManyMutationInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
+            "name": "data",
+            "type": "PostUpdateManyMutationInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'where',
-            type: 'PostWhereInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "PostWhereInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'BatchPayload',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "BatchPayload",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'upsertPost',
-        args: [
+        "name": "upsertPost",
+        "args": [
           {
-            name: 'where',
-            type: 'PostWhereUniqueInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
+            "name": "where",
+            "type": "PostWhereUniqueInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'create',
-            type: 'PostCreateInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
+            "name": "create",
+            "type": "PostCreateInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'update',
-            type: 'PostUpdateInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "update",
+            "type": "PostUpdateInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'Post',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "Post",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'deletePost',
-        args: [
+        "name": "deletePost",
+        "args": [
           {
-            name: 'where',
-            type: 'PostWhereUniqueInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "PostWhereUniqueInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'Post',
-          isList: false,
-          isRequired: false,
-        },
+        "output": {
+          "name": "Post",
+          "isList": false,
+          "isRequired": false
+        }
       },
       {
-        name: 'deleteManyPosts',
-        args: [
+        "name": "deleteManyPosts",
+        "args": [
           {
-            name: 'where',
-            type: 'PostWhereInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "PostWhereInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'BatchPayload',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "BatchPayload",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'createProfile',
-        args: [
+        "name": "createProfile",
+        "args": [
           {
-            name: 'data',
-            type: 'ProfileCreateInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "data",
+            "type": "ProfileCreateInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'Profile',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "Profile",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'updateProfile',
-        args: [
+        "name": "updateProfile",
+        "args": [
           {
-            name: 'data',
-            type: 'ProfileUpdateInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
+            "name": "data",
+            "type": "ProfileUpdateInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'where',
-            type: 'ProfileWhereUniqueInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "ProfileWhereUniqueInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'Profile',
-          isList: false,
-          isRequired: false,
-        },
+        "output": {
+          "name": "Profile",
+          "isList": false,
+          "isRequired": false
+        }
       },
       {
-        name: 'updateManyProfiles',
-        args: [
+        "name": "updateManyProfiles",
+        "args": [
           {
-            name: 'data',
-            type: 'ProfileUpdateManyMutationInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
+            "name": "data",
+            "type": "ProfileUpdateManyMutationInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'where',
-            type: 'ProfileWhereInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "ProfileWhereInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'BatchPayload',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "BatchPayload",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'upsertProfile',
-        args: [
+        "name": "upsertProfile",
+        "args": [
           {
-            name: 'where',
-            type: 'ProfileWhereUniqueInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
+            "name": "where",
+            "type": "ProfileWhereUniqueInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'create',
-            type: 'ProfileCreateInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
+            "name": "create",
+            "type": "ProfileCreateInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'update',
-            type: 'ProfileUpdateInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "update",
+            "type": "ProfileUpdateInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'Profile',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "Profile",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'deleteProfile',
-        args: [
+        "name": "deleteProfile",
+        "args": [
           {
-            name: 'where',
-            type: 'ProfileWhereUniqueInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "ProfileWhereUniqueInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'Profile',
-          isList: false,
-          isRequired: false,
-        },
+        "output": {
+          "name": "Profile",
+          "isList": false,
+          "isRequired": false
+        }
       },
       {
-        name: 'deleteManyProfiles',
-        args: [
+        "name": "deleteManyProfiles",
+        "args": [
           {
-            name: 'where',
-            type: 'ProfileWhereInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "ProfileWhereInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'BatchPayload',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "BatchPayload",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'createUser',
-        args: [
+        "name": "createUser",
+        "args": [
           {
-            name: 'data',
-            type: 'UserCreateInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "data",
+            "type": "UserCreateInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'User',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "User",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'updateUser',
-        args: [
+        "name": "updateUser",
+        "args": [
           {
-            name: 'data',
-            type: 'UserUpdateInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
+            "name": "data",
+            "type": "UserUpdateInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'where',
-            type: 'UserWhereUniqueInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "UserWhereUniqueInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'User',
-          isList: false,
-          isRequired: false,
-        },
+        "output": {
+          "name": "User",
+          "isList": false,
+          "isRequired": false
+        }
       },
       {
-        name: 'updateManyUsers',
-        args: [
+        "name": "updateManyUsers",
+        "args": [
           {
-            name: 'data',
-            type: 'UserUpdateManyMutationInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
+            "name": "data",
+            "type": "UserUpdateManyMutationInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'where',
-            type: 'UserWhereInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "UserWhereInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'BatchPayload',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "BatchPayload",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'upsertUser',
-        args: [
+        "name": "upsertUser",
+        "args": [
           {
-            name: 'where',
-            type: 'UserWhereUniqueInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
+            "name": "where",
+            "type": "UserWhereUniqueInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'create',
-            type: 'UserCreateInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
+            "name": "create",
+            "type": "UserCreateInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
           },
           {
-            name: 'update',
-            type: 'UserUpdateInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "update",
+            "type": "UserUpdateInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'User',
-          isList: false,
-          isRequired: true,
-        },
+        "output": {
+          "name": "User",
+          "isList": false,
+          "isRequired": true
+        }
       },
       {
-        name: 'deleteUser',
-        args: [
+        "name": "deleteUser",
+        "args": [
           {
-            name: 'where',
-            type: 'UserWhereUniqueInput',
-            isRequired: true,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "UserWhereUniqueInput",
+            "isRequired": true,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'User',
-          isList: false,
-          isRequired: false,
-        },
+        "output": {
+          "name": "User",
+          "isList": false,
+          "isRequired": false
+        }
       },
       {
-        name: 'deleteManyUsers',
-        args: [
+        "name": "deleteManyUsers",
+        "args": [
           {
-            name: 'where',
-            type: 'UserWhereInput',
-            isRequired: false,
-            isScalar: false,
-            isList: false,
-          },
+            "name": "where",
+            "type": "UserWhereInput",
+            "isRequired": false,
+            "isScalar": false,
+            "isList": false
+          }
         ],
-        output: {
-          name: 'BatchPayload',
-          isList: false,
-          isRequired: true,
-        },
-      },
+        "output": {
+          "name": "BatchPayload",
+          "isList": false,
+          "isRequired": true
+        }
+      }
     ],
-    inputTypes: [
+    "inputTypes": [
       {
-        name: 'PostWhereUniqueInput',
-        args: [
+        "name": "PostWhereUniqueInput",
+        "args": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
-          },
-        ],
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'PostWhereInput',
-        args: [
+        "name": "PostWhereInput",
+        "args": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_in',
-            type: 'ID',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_in",
+            "type": "ID",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_in',
-            type: 'ID',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_in",
+            "type": "ID",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_lt',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_lt",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_lte',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_lte",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_gt',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_gt",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_gte',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_gte",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_contains',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_contains",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_contains',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_contains",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_starts_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_starts_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_starts_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_starts_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_ends_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_ends_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_ends_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_ends_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_not',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_not",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_in',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_in",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_not_in',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_not_in",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_lt',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_lt",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_lte',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_lte",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_gt',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_gt",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_gte',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_gte",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_not_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_not_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_starts_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_starts_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_not_starts_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_not_starts_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_ends_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_ends_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_not_ends_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_not_ends_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_not',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_not",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_in',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_in",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_not_in',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_not_in",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_lt',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_lt",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_lte',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_lte",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_gt',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_gt",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_gte',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_gte",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_not_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_not_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_starts_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_starts_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_not_starts_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_not_starts_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_ends_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_ends_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_not_ends_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_not_ends_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'author',
-            type: 'UserWhereInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
+            "name": "author",
+            "type": "UserWhereInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'AND',
-            type: 'PostWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "AND",
+            "type": "PostWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'OR',
-            type: 'PostWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "OR",
+            "type": "PostWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'NOT',
-            type: 'PostWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "NOT",
+            "type": "PostWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'UserWhereInput',
-        args: [
+        "name": "UserWhereInput",
+        "args": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_in',
-            type: 'ID',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_in",
+            "type": "ID",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_in',
-            type: 'ID',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_in",
+            "type": "ID",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_lt',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_lt",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_lte',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_lte",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_gt',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_gt",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_gte',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_gte",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_contains',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_contains",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_contains',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_contains",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_starts_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_starts_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_starts_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_starts_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_ends_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_ends_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_ends_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_ends_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name_not',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name_not",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name_in',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "name_in",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name_not_in',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "name_not_in",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name_lt',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name_lt",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name_lte',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name_lte",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name_gt',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name_gt",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name_gte',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name_gte",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name_not_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name_not_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name_starts_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name_starts_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name_not_starts_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name_not_starts_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name_ends_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name_ends_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name_not_ends_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name_not_ends_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'posts_every',
-            type: 'PostWhereInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
+            "name": "posts_every",
+            "type": "PostWhereInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'posts_some',
-            type: 'PostWhereInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
+            "name": "posts_some",
+            "type": "PostWhereInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'posts_none',
-            type: 'PostWhereInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
+            "name": "posts_none",
+            "type": "PostWhereInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'AND',
-            type: 'UserWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "AND",
+            "type": "UserWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'OR',
-            type: 'UserWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "OR",
+            "type": "UserWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'NOT',
-            type: 'UserWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "NOT",
+            "type": "UserWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'PostOrderByInput',
-        args: [
+        "name": "PostOrderByInput",
+        "args": [
           {
-            name: 'id_ASC',
-            type: 'PostOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
+            "name": "id_ASC",
+            "type": "PostOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
           },
           {
-            name: 'id_DESC',
-            type: 'PostOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
+            "name": "id_DESC",
+            "type": "PostOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
           },
           {
-            name: 'title_ASC',
-            type: 'PostOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
+            "name": "title_ASC",
+            "type": "PostOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
           },
           {
-            name: 'title_DESC',
-            type: 'PostOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
+            "name": "title_DESC",
+            "type": "PostOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
           },
           {
-            name: 'content_ASC',
-            type: 'PostOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
+            "name": "content_ASC",
+            "type": "PostOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
           },
           {
-            name: 'content_DESC',
-            type: 'PostOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
-          },
-        ],
+            "name": "content_DESC",
+            "type": "PostOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'ProfileWhereUniqueInput',
-        args: [
+        "name": "ProfileWhereUniqueInput",
+        "args": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
-          },
-        ],
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'ProfileWhereInput',
-        args: [
+        "name": "ProfileWhereInput",
+        "args": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_in',
-            type: 'ID',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_in",
+            "type": "ID",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_in',
-            type: 'ID',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_in",
+            "type": "ID",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_lt',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_lt",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_lte',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_lte",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_gt',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_gt",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_gte',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_gte",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_contains',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_contains",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_contains',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_contains",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_starts_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_starts_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_starts_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_starts_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_ends_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_ends_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_ends_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_ends_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "url",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url_not',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "url_not",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url_in',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "url_in",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url_not_in',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "url_not_in",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url_lt',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "url_lt",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url_lte',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "url_lte",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url_gt',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "url_gt",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url_gte',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "url_gte",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "url_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url_not_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "url_not_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url_starts_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "url_starts_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url_not_starts_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "url_not_starts_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url_ends_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "url_ends_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url_not_ends_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "url_not_ends_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'AND',
-            type: 'ProfileWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "AND",
+            "type": "ProfileWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'OR',
-            type: 'ProfileWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "OR",
+            "type": "ProfileWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'NOT',
-            type: 'ProfileWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "NOT",
+            "type": "ProfileWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'ProfileOrderByInput',
-        args: [
+        "name": "ProfileOrderByInput",
+        "args": [
           {
-            name: 'id_ASC',
-            type: 'ProfileOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
+            "name": "id_ASC",
+            "type": "ProfileOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
           },
           {
-            name: 'id_DESC',
-            type: 'ProfileOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
+            "name": "id_DESC",
+            "type": "ProfileOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
           },
           {
-            name: 'url_ASC',
-            type: 'ProfileOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
+            "name": "url_ASC",
+            "type": "ProfileOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
           },
           {
-            name: 'url_DESC',
-            type: 'ProfileOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
-          },
-        ],
+            "name": "url_DESC",
+            "type": "ProfileOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'UserWhereUniqueInput',
-        args: [
+        "name": "UserWhereUniqueInput",
+        "args": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
-          },
-        ],
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'UserOrderByInput',
-        args: [
+        "name": "UserOrderByInput",
+        "args": [
           {
-            name: 'id_ASC',
-            type: 'UserOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
+            "name": "id_ASC",
+            "type": "UserOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
           },
           {
-            name: 'id_DESC',
-            type: 'UserOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
+            "name": "id_DESC",
+            "type": "UserOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
           },
           {
-            name: 'name_ASC',
-            type: 'UserOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
+            "name": "name_ASC",
+            "type": "UserOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
           },
           {
-            name: 'name_DESC',
-            type: 'UserOrderByInput',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
-          },
-        ],
+            "name": "name_DESC",
+            "type": "UserOrderByInput",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'PostCreateInput',
-        args: [
+        "name": "PostCreateInput",
+        "args": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            isScalar: true,
+            "name": "title",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": true
           },
           {
-            name: 'content',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            isScalar: true,
+            "name": "content",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": true
           },
           {
-            name: 'author',
-            type: 'UserCreateOneWithoutPostsInput',
-            isList: false,
-            isRequired: true,
-            isScalar: false,
-          },
-        ],
+            "name": "author",
+            "type": "UserCreateOneWithoutPostsInput",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'UserCreateOneWithoutPostsInput',
-        args: [
+        "name": "UserCreateOneWithoutPostsInput",
+        "args": [
           {
-            name: 'create',
-            type: 'UserCreateWithoutPostsInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
+            "name": "create",
+            "type": "UserCreateWithoutPostsInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'connect',
-            type: 'UserWhereUniqueInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "connect",
+            "type": "UserWhereUniqueInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'UserCreateWithoutPostsInput',
-        args: [
+        "name": "UserCreateWithoutPostsInput",
+        "args": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            isScalar: true,
+            "name": "name",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": true
           },
           {
-            name: 'strings',
-            type: 'UserCreatestringsInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "strings",
+            "type": "UserCreatestringsInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'UserCreatestringsInput',
-        args: [
+        "name": "UserCreatestringsInput",
+        "args": [
           {
-            name: 'set',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
-          },
-        ],
+            "name": "set",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'PostUpdateInput',
-        args: [
+        "name": "PostUpdateInput",
+        "args": [
           {
-            name: 'title',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'author',
-            type: 'UserUpdateOneRequiredWithoutPostsInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "author",
+            "type": "UserUpdateOneRequiredWithoutPostsInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'UserUpdateOneRequiredWithoutPostsInput',
-        args: [
+        "name": "UserUpdateOneRequiredWithoutPostsInput",
+        "args": [
           {
-            name: 'create',
-            type: 'UserCreateWithoutPostsInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
+            "name": "create",
+            "type": "UserCreateWithoutPostsInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'update',
-            type: 'UserUpdateWithoutPostsDataInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
+            "name": "update",
+            "type": "UserUpdateWithoutPostsDataInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'upsert',
-            type: 'UserUpsertWithoutPostsInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
+            "name": "upsert",
+            "type": "UserUpsertWithoutPostsInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'connect',
-            type: 'UserWhereUniqueInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "connect",
+            "type": "UserWhereUniqueInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'UserUpdateWithoutPostsDataInput',
-        args: [
+        "name": "UserUpdateWithoutPostsDataInput",
+        "args": [
           {
-            name: 'name',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'strings',
-            type: 'UserUpdatestringsInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "strings",
+            "type": "UserUpdatestringsInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'UserUpdatestringsInput',
-        args: [
+        "name": "UserUpdatestringsInput",
+        "args": [
           {
-            name: 'set',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
-          },
-        ],
+            "name": "set",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'UserUpsertWithoutPostsInput',
-        args: [
+        "name": "UserUpsertWithoutPostsInput",
+        "args": [
           {
-            name: 'update',
-            type: 'UserUpdateWithoutPostsDataInput',
-            isList: false,
-            isRequired: true,
-            isScalar: false,
+            "name": "update",
+            "type": "UserUpdateWithoutPostsDataInput",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": false
           },
           {
-            name: 'create',
-            type: 'UserCreateWithoutPostsInput',
-            isList: false,
-            isRequired: true,
-            isScalar: false,
-          },
-        ],
+            "name": "create",
+            "type": "UserCreateWithoutPostsInput",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'PostUpdateManyMutationInput',
-        args: [
+        "name": "PostUpdateManyMutationInput",
+        "args": [
           {
-            name: 'title',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
-          },
-        ],
+            "name": "content",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'ProfileCreateInput',
-        args: [
+        "name": "ProfileCreateInput",
+        "args": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'url',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            isScalar: true,
-          },
-        ],
+            "name": "url",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'ProfileUpdateInput',
-        args: [
+        "name": "ProfileUpdateInput",
+        "args": [
           {
-            name: 'url',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
-          },
-        ],
+            "name": "url",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'ProfileUpdateManyMutationInput',
-        args: [
+        "name": "ProfileUpdateManyMutationInput",
+        "args": [
           {
-            name: 'url',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
-          },
-        ],
+            "name": "url",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'UserCreateInput',
-        args: [
+        "name": "UserCreateInput",
+        "args": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'name',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            isScalar: true,
+            "name": "name",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": true
           },
           {
-            name: 'strings',
-            type: 'UserCreatestringsInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
+            "name": "strings",
+            "type": "UserCreatestringsInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'posts',
-            type: 'PostCreateManyWithoutAuthorInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "posts",
+            "type": "PostCreateManyWithoutAuthorInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'PostCreateManyWithoutAuthorInput',
-        args: [
+        "name": "PostCreateManyWithoutAuthorInput",
+        "args": [
           {
-            name: 'create',
-            type: 'PostCreateWithoutAuthorInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "create",
+            "type": "PostCreateWithoutAuthorInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'connect',
-            type: 'PostWhereUniqueInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "connect",
+            "type": "PostWhereUniqueInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'PostCreateWithoutAuthorInput',
-        args: [
+        "name": "PostCreateWithoutAuthorInput",
+        "args": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            isScalar: true,
+            "name": "title",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": true
           },
           {
-            name: 'content',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            isScalar: true,
-          },
-        ],
+            "name": "content",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'UserUpdateInput',
-        args: [
+        "name": "UserUpdateInput",
+        "args": [
           {
-            name: 'name',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'strings',
-            type: 'UserUpdatestringsInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
+            "name": "strings",
+            "type": "UserUpdatestringsInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'posts',
-            type: 'PostUpdateManyWithoutAuthorInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "posts",
+            "type": "PostUpdateManyWithoutAuthorInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'PostUpdateManyWithoutAuthorInput',
-        args: [
+        "name": "PostUpdateManyWithoutAuthorInput",
+        "args": [
           {
-            name: 'create',
-            type: 'PostCreateWithoutAuthorInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "create",
+            "type": "PostCreateWithoutAuthorInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'delete',
-            type: 'PostWhereUniqueInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "delete",
+            "type": "PostWhereUniqueInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'connect',
-            type: 'PostWhereUniqueInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "connect",
+            "type": "PostWhereUniqueInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'set',
-            type: 'PostWhereUniqueInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "set",
+            "type": "PostWhereUniqueInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'disconnect',
-            type: 'PostWhereUniqueInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "disconnect",
+            "type": "PostWhereUniqueInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'update',
-            type: 'PostUpdateWithWhereUniqueWithoutAuthorInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "update",
+            "type": "PostUpdateWithWhereUniqueWithoutAuthorInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'upsert',
-            type: 'PostUpsertWithWhereUniqueWithoutAuthorInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "upsert",
+            "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'deleteMany',
-            type: 'PostScalarWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "deleteMany",
+            "type": "PostScalarWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'updateMany',
-            type: 'PostUpdateManyWithWhereNestedInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "updateMany",
+            "type": "PostUpdateManyWithWhereNestedInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'PostUpdateWithWhereUniqueWithoutAuthorInput',
-        args: [
+        "name": "PostUpdateWithWhereUniqueWithoutAuthorInput",
+        "args": [
           {
-            name: 'where',
-            type: 'PostWhereUniqueInput',
-            isList: false,
-            isRequired: true,
-            isScalar: false,
+            "name": "where",
+            "type": "PostWhereUniqueInput",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": false
           },
           {
-            name: 'data',
-            type: 'PostUpdateWithoutAuthorDataInput',
-            isList: false,
-            isRequired: true,
-            isScalar: false,
-          },
-        ],
+            "name": "data",
+            "type": "PostUpdateWithoutAuthorDataInput",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'PostUpdateWithoutAuthorDataInput',
-        args: [
+        "name": "PostUpdateWithoutAuthorDataInput",
+        "args": [
           {
-            name: 'title',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
-          },
-        ],
+            "name": "content",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'PostUpsertWithWhereUniqueWithoutAuthorInput',
-        args: [
+        "name": "PostUpsertWithWhereUniqueWithoutAuthorInput",
+        "args": [
           {
-            name: 'where',
-            type: 'PostWhereUniqueInput',
-            isList: false,
-            isRequired: true,
-            isScalar: false,
+            "name": "where",
+            "type": "PostWhereUniqueInput",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": false
           },
           {
-            name: 'update',
-            type: 'PostUpdateWithoutAuthorDataInput',
-            isList: false,
-            isRequired: true,
-            isScalar: false,
+            "name": "update",
+            "type": "PostUpdateWithoutAuthorDataInput",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": false
           },
           {
-            name: 'create',
-            type: 'PostCreateWithoutAuthorInput',
-            isList: false,
-            isRequired: true,
-            isScalar: false,
-          },
-        ],
+            "name": "create",
+            "type": "PostCreateWithoutAuthorInput",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'PostScalarWhereInput',
-        args: [
+        "name": "PostScalarWhereInput",
+        "args": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_in',
-            type: 'ID',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_in",
+            "type": "ID",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_in',
-            type: 'ID',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_in",
+            "type": "ID",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_lt',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_lt",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_lte',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_lte",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_gt',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_gt",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_gte',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_gte",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_contains',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_contains",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_contains',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_contains",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_starts_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_starts_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_starts_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_starts_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_ends_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_ends_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'id_not_ends_with',
-            type: 'ID',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "id_not_ends_with",
+            "type": "ID",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_not',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_not",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_in',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_in",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_not_in',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_not_in",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_lt',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_lt",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_lte',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_lte",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_gt',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_gt",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_gte',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_gte",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_not_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_not_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_starts_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_starts_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_not_starts_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_not_starts_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_ends_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_ends_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'title_not_ends_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title_not_ends_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_not',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_not",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_in',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_in",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_not_in',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_not_in",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_lt',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_lt",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_lte',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_lte",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_gt',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_gt",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_gte',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_gte",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_not_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_not_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_starts_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_starts_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_not_starts_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_not_starts_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_ends_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_ends_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content_not_ends_with',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "content_not_ends_with",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'AND',
-            type: 'PostScalarWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "AND",
+            "type": "PostScalarWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'OR',
-            type: 'PostScalarWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "OR",
+            "type": "PostScalarWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'NOT',
-            type: 'PostScalarWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "NOT",
+            "type": "PostScalarWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'PostUpdateManyWithWhereNestedInput',
-        args: [
+        "name": "PostUpdateManyWithWhereNestedInput",
+        "args": [
           {
-            name: 'where',
-            type: 'PostScalarWhereInput',
-            isList: false,
-            isRequired: true,
-            isScalar: false,
+            "name": "where",
+            "type": "PostScalarWhereInput",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": false
           },
           {
-            name: 'data',
-            type: 'PostUpdateManyDataInput',
-            isList: false,
-            isRequired: true,
-            isScalar: false,
-          },
-        ],
+            "name": "data",
+            "type": "PostUpdateManyDataInput",
+            "isList": false,
+            "isRequired": true,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'PostUpdateManyDataInput',
-        args: [
+        "name": "PostUpdateManyDataInput",
+        "args": [
           {
-            name: 'title',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "title",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'content',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
-          },
-        ],
+            "name": "content",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'UserUpdateManyMutationInput',
-        args: [
+        "name": "UserUpdateManyMutationInput",
+        "args": [
           {
-            name: 'name',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "name",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'strings',
-            type: 'UserUpdatestringsInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "strings",
+            "type": "UserUpdatestringsInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'PostSubscriptionWhereInput',
-        args: [
+        "name": "PostSubscriptionWhereInput",
+        "args": [
           {
-            name: 'mutation_in',
-            type: 'MutationType',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "mutation_in",
+            "type": "MutationType",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'updatedFields_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "updatedFields_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'updatedFields_contains_every',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "updatedFields_contains_every",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'updatedFields_contains_some',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "updatedFields_contains_some",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'node',
-            type: 'PostWhereInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
+            "name": "node",
+            "type": "PostWhereInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'AND',
-            type: 'PostSubscriptionWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "AND",
+            "type": "PostSubscriptionWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'OR',
-            type: 'PostSubscriptionWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "OR",
+            "type": "PostSubscriptionWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'NOT',
-            type: 'PostSubscriptionWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "NOT",
+            "type": "PostSubscriptionWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'MutationType',
-        args: [
+        "name": "MutationType",
+        "args": [
           {
-            name: 'CREATED',
-            type: 'MutationType',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
+            "name": "CREATED",
+            "type": "MutationType",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
           },
           {
-            name: 'UPDATED',
-            type: 'MutationType',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
+            "name": "UPDATED",
+            "type": "MutationType",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
           },
           {
-            name: 'DELETED',
-            type: 'MutationType',
-            isRequired: false,
-            isList: false,
-            isScalar: true,
-          },
-        ],
+            "name": "DELETED",
+            "type": "MutationType",
+            "isRequired": false,
+            "isList": false,
+            "isScalar": true
+          }
+        ]
       },
       {
-        name: 'ProfileSubscriptionWhereInput',
-        args: [
+        "name": "ProfileSubscriptionWhereInput",
+        "args": [
           {
-            name: 'mutation_in',
-            type: 'MutationType',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "mutation_in",
+            "type": "MutationType",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'updatedFields_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "updatedFields_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'updatedFields_contains_every',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "updatedFields_contains_every",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'updatedFields_contains_some',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "updatedFields_contains_some",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'node',
-            type: 'ProfileWhereInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
+            "name": "node",
+            "type": "ProfileWhereInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'AND',
-            type: 'ProfileSubscriptionWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "AND",
+            "type": "ProfileSubscriptionWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'OR',
-            type: 'ProfileSubscriptionWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "OR",
+            "type": "ProfileSubscriptionWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'NOT',
-            type: 'ProfileSubscriptionWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
+            "name": "NOT",
+            "type": "ProfileSubscriptionWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
       },
       {
-        name: 'UserSubscriptionWhereInput',
-        args: [
+        "name": "UserSubscriptionWhereInput",
+        "args": [
           {
-            name: 'mutation_in',
-            type: 'MutationType',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "mutation_in",
+            "type": "MutationType",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'updatedFields_contains',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            isScalar: true,
+            "name": "updatedFields_contains",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'updatedFields_contains_every',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "updatedFields_contains_every",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'updatedFields_contains_some',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            isScalar: true,
+            "name": "updatedFields_contains_some",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": true
           },
           {
-            name: 'node',
-            type: 'UserWhereInput',
-            isList: false,
-            isRequired: false,
-            isScalar: false,
+            "name": "node",
+            "type": "UserWhereInput",
+            "isList": false,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'AND',
-            type: 'UserSubscriptionWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "AND",
+            "type": "UserSubscriptionWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'OR',
-            type: 'UserSubscriptionWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
+            "name": "OR",
+            "type": "UserSubscriptionWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
           },
           {
-            name: 'NOT',
-            type: 'UserSubscriptionWhereInput',
-            isList: true,
-            isRequired: false,
-            isScalar: false,
-          },
-        ],
-      },
+            "name": "NOT",
+            "type": "UserSubscriptionWhereInput",
+            "isList": true,
+            "isRequired": false,
+            "isScalar": false
+          }
+        ]
+      }
     ],
-    outputTypes: [
+    "outputTypes": [
       {
-        name: 'Query',
-        fields: [
+        "name": "Query",
+        "fields": [
           {
-            name: 'post',
-            type: 'Post',
-            isList: false,
-            isRequired: false,
-            args: [
+            "name": "post",
+            "type": "Post",
+            "isList": false,
+            "isRequired": false,
+            "args": [
               {
-                name: 'where',
-                type: 'PostWhereUniqueInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "PostWhereUniqueInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'posts',
-            type: 'Post',
-            isList: true,
-            isRequired: true,
-            args: [
+            "name": "posts",
+            "type": "Post",
+            "isList": true,
+            "isRequired": true,
+            "args": [
               {
-                name: 'where',
-                type: 'PostWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "where",
+                "type": "PostWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'orderBy',
-                type: 'PostOrderByInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "orderBy",
+                "type": "PostOrderByInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'skip',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "skip",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'after',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "after",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'before',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "before",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'first',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "first",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'last',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
-              },
+                "name": "last",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'postsConnection',
-            type: 'PostConnection',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "postsConnection",
+            "type": "PostConnection",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'where',
-                type: 'PostWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "where",
+                "type": "PostWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'orderBy',
-                type: 'PostOrderByInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "orderBy",
+                "type": "PostOrderByInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'skip',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "skip",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'after',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "after",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'before',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "before",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'first',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "first",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'last',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
-              },
+                "name": "last",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'profile',
-            type: 'Profile',
-            isList: false,
-            isRequired: false,
-            args: [
+            "name": "profile",
+            "type": "Profile",
+            "isList": false,
+            "isRequired": false,
+            "args": [
               {
-                name: 'where',
-                type: 'ProfileWhereUniqueInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "ProfileWhereUniqueInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'profiles',
-            type: 'Profile',
-            isList: true,
-            isRequired: true,
-            args: [
+            "name": "profiles",
+            "type": "Profile",
+            "isList": true,
+            "isRequired": true,
+            "args": [
               {
-                name: 'where',
-                type: 'ProfileWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "where",
+                "type": "ProfileWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'orderBy',
-                type: 'ProfileOrderByInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "orderBy",
+                "type": "ProfileOrderByInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'skip',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "skip",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'after',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "after",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'before',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "before",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'first',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "first",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'last',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
-              },
+                "name": "last",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'profilesConnection',
-            type: 'ProfileConnection',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "profilesConnection",
+            "type": "ProfileConnection",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'where',
-                type: 'ProfileWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "where",
+                "type": "ProfileWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'orderBy',
-                type: 'ProfileOrderByInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "orderBy",
+                "type": "ProfileOrderByInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'skip',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "skip",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'after',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "after",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'before',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "before",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'first',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "first",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'last',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
-              },
+                "name": "last",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'user',
-            type: 'User',
-            isList: false,
-            isRequired: false,
-            args: [
+            "name": "user",
+            "type": "User",
+            "isList": false,
+            "isRequired": false,
+            "args": [
               {
-                name: 'where',
-                type: 'UserWhereUniqueInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "UserWhereUniqueInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'users',
-            type: 'User',
-            isList: true,
-            isRequired: true,
-            args: [
+            "name": "users",
+            "type": "User",
+            "isList": true,
+            "isRequired": true,
+            "args": [
               {
-                name: 'where',
-                type: 'UserWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "where",
+                "type": "UserWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'orderBy',
-                type: 'UserOrderByInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "orderBy",
+                "type": "UserOrderByInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'skip',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "skip",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'after',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "after",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'before',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "before",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'first',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "first",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'last',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
-              },
+                "name": "last",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'usersConnection',
-            type: 'UserConnection',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "usersConnection",
+            "type": "UserConnection",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'where',
-                type: 'UserWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "where",
+                "type": "UserWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'orderBy',
-                type: 'UserOrderByInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "orderBy",
+                "type": "UserOrderByInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'skip',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "skip",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'after',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "after",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'before',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "before",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'first',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "first",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'last',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
-              },
+                "name": "last",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'node',
-            type: 'Node',
-            isList: false,
-            isRequired: false,
-            args: [
+            "name": "node",
+            "type": "Node",
+            "isList": false,
+            "isRequired": false,
+            "args": [
               {
-                name: 'id',
-                type: 'ID',
-                isRequired: true,
-                isScalar: true,
-                isList: false,
-              },
+                "name": "id",
+                "type": "ID",
+                "isRequired": true,
+                "isScalar": true,
+                "isList": false
+              }
             ],
-            kind: 'relation',
-          },
-        ],
+            "kind": "relation"
+          }
+        ]
       },
       {
-        name: 'Post',
-        fields: [
+        "name": "Post",
+        "fields": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'title',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "title",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'content',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "content",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'author',
-            type: 'User',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
-          },
-        ],
+            "name": "author",
+            "type": "User",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
+          }
+        ]
       },
       {
-        name: 'User',
-        fields: [
+        "name": "User",
+        "fields": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'name',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "name",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'strings',
-            type: 'String',
-            isList: true,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "strings",
+            "type": "String",
+            "isList": true,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'posts',
-            type: 'Post',
-            isList: true,
-            isRequired: false,
-            args: [
+            "name": "posts",
+            "type": "Post",
+            "isList": true,
+            "isRequired": false,
+            "args": [
               {
-                name: 'where',
-                type: 'PostWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "where",
+                "type": "PostWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'orderBy',
-                type: 'PostOrderByInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
+                "name": "orderBy",
+                "type": "PostOrderByInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'skip',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "skip",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'after',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "after",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'before',
-                type: 'String',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "before",
+                "type": "String",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'first',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
+                "name": "first",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
               },
               {
-                name: 'last',
-                type: 'Int',
-                isRequired: false,
-                isScalar: true,
-                isList: false,
-              },
+                "name": "last",
+                "type": "Int",
+                "isRequired": false,
+                "isScalar": true,
+                "isList": false
+              }
             ],
-            kind: 'relation',
-          },
-        ],
+            "kind": "relation"
+          }
+        ]
       },
       {
-        name: 'PostConnection',
-        fields: [
+        "name": "PostConnection",
+        "fields": [
           {
-            name: 'pageInfo',
-            type: 'PageInfo',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
+            "name": "pageInfo",
+            "type": "PageInfo",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'edges',
-            type: 'PostEdge',
-            isList: true,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
+            "name": "edges",
+            "type": "PostEdge",
+            "isList": true,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'aggregate',
-            type: 'AggregatePost',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
-          },
-        ],
+            "name": "aggregate",
+            "type": "AggregatePost",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
+          }
+        ]
       },
       {
-        name: 'PageInfo',
-        fields: [
+        "name": "PageInfo",
+        "fields": [
           {
-            name: 'hasNextPage',
-            type: 'Boolean',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "hasNextPage",
+            "type": "Boolean",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'hasPreviousPage',
-            type: 'Boolean',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "hasPreviousPage",
+            "type": "Boolean",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'startCursor',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            args: [],
-            kind: 'scalar',
+            "name": "startCursor",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'endCursor',
-            type: 'String',
-            isList: false,
-            isRequired: false,
-            args: [],
-            kind: 'scalar',
-          },
-        ],
+            "name": "endCursor",
+            "type": "String",
+            "isList": false,
+            "isRequired": false,
+            "args": [],
+            "kind": "scalar"
+          }
+        ]
       },
       {
-        name: 'PostEdge',
-        fields: [
+        "name": "PostEdge",
+        "fields": [
           {
-            name: 'node',
-            type: 'Post',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
+            "name": "node",
+            "type": "Post",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'cursor',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
-          },
-        ],
+            "name": "cursor",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
+          }
+        ]
       },
       {
-        name: 'AggregatePost',
-        fields: [
+        "name": "AggregatePost",
+        "fields": [
           {
-            name: 'count',
-            type: 'Int',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
-          },
-        ],
+            "name": "count",
+            "type": "Int",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
+          }
+        ]
       },
       {
-        name: 'Profile',
-        fields: [
+        "name": "Profile",
+        "fields": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'url',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
-          },
-        ],
+            "name": "url",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
+          }
+        ]
       },
       {
-        name: 'ProfileConnection',
-        fields: [
+        "name": "ProfileConnection",
+        "fields": [
           {
-            name: 'pageInfo',
-            type: 'PageInfo',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
+            "name": "pageInfo",
+            "type": "PageInfo",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'edges',
-            type: 'ProfileEdge',
-            isList: true,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
+            "name": "edges",
+            "type": "ProfileEdge",
+            "isList": true,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'aggregate',
-            type: 'AggregateProfile',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
-          },
-        ],
+            "name": "aggregate",
+            "type": "AggregateProfile",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
+          }
+        ]
       },
       {
-        name: 'ProfileEdge',
-        fields: [
+        "name": "ProfileEdge",
+        "fields": [
           {
-            name: 'node',
-            type: 'Profile',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
+            "name": "node",
+            "type": "Profile",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'cursor',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
-          },
-        ],
+            "name": "cursor",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
+          }
+        ]
       },
       {
-        name: 'AggregateProfile',
-        fields: [
+        "name": "AggregateProfile",
+        "fields": [
           {
-            name: 'count',
-            type: 'Int',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
-          },
-        ],
+            "name": "count",
+            "type": "Int",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
+          }
+        ]
       },
       {
-        name: 'UserConnection',
-        fields: [
+        "name": "UserConnection",
+        "fields": [
           {
-            name: 'pageInfo',
-            type: 'PageInfo',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
+            "name": "pageInfo",
+            "type": "PageInfo",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'edges',
-            type: 'UserEdge',
-            isList: true,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
+            "name": "edges",
+            "type": "UserEdge",
+            "isList": true,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'aggregate',
-            type: 'AggregateUser',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
-          },
-        ],
+            "name": "aggregate",
+            "type": "AggregateUser",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
+          }
+        ]
       },
       {
-        name: 'UserEdge',
-        fields: [
+        "name": "UserEdge",
+        "fields": [
           {
-            name: 'node',
-            type: 'User',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
+            "name": "node",
+            "type": "User",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'cursor',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
-          },
-        ],
+            "name": "cursor",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
+          }
+        ]
       },
       {
-        name: 'AggregateUser',
-        fields: [
+        "name": "AggregateUser",
+        "fields": [
           {
-            name: 'count',
-            type: 'Int',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
-          },
-        ],
+            "name": "count",
+            "type": "Int",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
+          }
+        ]
       },
       {
-        name: 'Mutation',
-        fields: [
+        "name": "Mutation",
+        "fields": [
           {
-            name: 'createPost',
-            type: 'Post',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "createPost",
+            "type": "Post",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'data',
-                type: 'PostCreateInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "data",
+                "type": "PostCreateInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'updatePost',
-            type: 'Post',
-            isList: false,
-            isRequired: false,
-            args: [
+            "name": "updatePost",
+            "type": "Post",
+            "isList": false,
+            "isRequired": false,
+            "args": [
               {
-                name: 'data',
-                type: 'PostUpdateInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
+                "name": "data",
+                "type": "PostUpdateInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'where',
-                type: 'PostWhereUniqueInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "PostWhereUniqueInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'updateManyPosts',
-            type: 'BatchPayload',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "updateManyPosts",
+            "type": "BatchPayload",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'data',
-                type: 'PostUpdateManyMutationInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
+                "name": "data",
+                "type": "PostUpdateManyMutationInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'where',
-                type: 'PostWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "PostWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'upsertPost',
-            type: 'Post',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "upsertPost",
+            "type": "Post",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'where',
-                type: 'PostWhereUniqueInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
+                "name": "where",
+                "type": "PostWhereUniqueInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'create',
-                type: 'PostCreateInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
+                "name": "create",
+                "type": "PostCreateInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'update',
-                type: 'PostUpdateInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "update",
+                "type": "PostUpdateInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'deletePost',
-            type: 'Post',
-            isList: false,
-            isRequired: false,
-            args: [
+            "name": "deletePost",
+            "type": "Post",
+            "isList": false,
+            "isRequired": false,
+            "args": [
               {
-                name: 'where',
-                type: 'PostWhereUniqueInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "PostWhereUniqueInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'deleteManyPosts',
-            type: 'BatchPayload',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "deleteManyPosts",
+            "type": "BatchPayload",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'where',
-                type: 'PostWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "PostWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'createProfile',
-            type: 'Profile',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "createProfile",
+            "type": "Profile",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'data',
-                type: 'ProfileCreateInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "data",
+                "type": "ProfileCreateInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'updateProfile',
-            type: 'Profile',
-            isList: false,
-            isRequired: false,
-            args: [
+            "name": "updateProfile",
+            "type": "Profile",
+            "isList": false,
+            "isRequired": false,
+            "args": [
               {
-                name: 'data',
-                type: 'ProfileUpdateInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
+                "name": "data",
+                "type": "ProfileUpdateInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'where',
-                type: 'ProfileWhereUniqueInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "ProfileWhereUniqueInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'updateManyProfiles',
-            type: 'BatchPayload',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "updateManyProfiles",
+            "type": "BatchPayload",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'data',
-                type: 'ProfileUpdateManyMutationInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
+                "name": "data",
+                "type": "ProfileUpdateManyMutationInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'where',
-                type: 'ProfileWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "ProfileWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'upsertProfile',
-            type: 'Profile',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "upsertProfile",
+            "type": "Profile",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'where',
-                type: 'ProfileWhereUniqueInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
+                "name": "where",
+                "type": "ProfileWhereUniqueInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'create',
-                type: 'ProfileCreateInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
+                "name": "create",
+                "type": "ProfileCreateInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'update',
-                type: 'ProfileUpdateInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "update",
+                "type": "ProfileUpdateInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'deleteProfile',
-            type: 'Profile',
-            isList: false,
-            isRequired: false,
-            args: [
+            "name": "deleteProfile",
+            "type": "Profile",
+            "isList": false,
+            "isRequired": false,
+            "args": [
               {
-                name: 'where',
-                type: 'ProfileWhereUniqueInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "ProfileWhereUniqueInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'deleteManyProfiles',
-            type: 'BatchPayload',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "deleteManyProfiles",
+            "type": "BatchPayload",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'where',
-                type: 'ProfileWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "ProfileWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'createUser',
-            type: 'User',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "createUser",
+            "type": "User",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'data',
-                type: 'UserCreateInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "data",
+                "type": "UserCreateInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'updateUser',
-            type: 'User',
-            isList: false,
-            isRequired: false,
-            args: [
+            "name": "updateUser",
+            "type": "User",
+            "isList": false,
+            "isRequired": false,
+            "args": [
               {
-                name: 'data',
-                type: 'UserUpdateInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
+                "name": "data",
+                "type": "UserUpdateInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'where',
-                type: 'UserWhereUniqueInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "UserWhereUniqueInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'updateManyUsers',
-            type: 'BatchPayload',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "updateManyUsers",
+            "type": "BatchPayload",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'data',
-                type: 'UserUpdateManyMutationInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
+                "name": "data",
+                "type": "UserUpdateManyMutationInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'where',
-                type: 'UserWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "UserWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'upsertUser',
-            type: 'User',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "upsertUser",
+            "type": "User",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'where',
-                type: 'UserWhereUniqueInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
+                "name": "where",
+                "type": "UserWhereUniqueInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'create',
-                type: 'UserCreateInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
+                "name": "create",
+                "type": "UserCreateInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
               },
               {
-                name: 'update',
-                type: 'UserUpdateInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "update",
+                "type": "UserUpdateInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'deleteUser',
-            type: 'User',
-            isList: false,
-            isRequired: false,
-            args: [
+            "name": "deleteUser",
+            "type": "User",
+            "isList": false,
+            "isRequired": false,
+            "args": [
               {
-                name: 'where',
-                type: 'UserWhereUniqueInput',
-                isRequired: true,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "UserWhereUniqueInput",
+                "isRequired": true,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'deleteManyUsers',
-            type: 'BatchPayload',
-            isList: false,
-            isRequired: true,
-            args: [
+            "name": "deleteManyUsers",
+            "type": "BatchPayload",
+            "isList": false,
+            "isRequired": true,
+            "args": [
               {
-                name: 'where',
-                type: 'UserWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "UserWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
-          },
-        ],
+            "kind": "relation"
+          }
+        ]
       },
       {
-        name: 'BatchPayload',
-        fields: [
+        "name": "BatchPayload",
+        "fields": [
           {
-            name: 'count',
-            type: 'Long',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
-          },
-        ],
+            "name": "count",
+            "type": "Long",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
+          }
+        ]
       },
       {
-        name: 'Subscription',
-        fields: [
+        "name": "Subscription",
+        "fields": [
           {
-            name: 'post',
-            type: 'PostSubscriptionPayload',
-            isList: false,
-            isRequired: false,
-            args: [
+            "name": "post",
+            "type": "PostSubscriptionPayload",
+            "isList": false,
+            "isRequired": false,
+            "args": [
               {
-                name: 'where',
-                type: 'PostSubscriptionWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "PostSubscriptionWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'profile',
-            type: 'ProfileSubscriptionPayload',
-            isList: false,
-            isRequired: false,
-            args: [
+            "name": "profile",
+            "type": "ProfileSubscriptionPayload",
+            "isList": false,
+            "isRequired": false,
+            "args": [
               {
-                name: 'where',
-                type: 'ProfileSubscriptionWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "ProfileSubscriptionWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
+            "kind": "relation"
           },
           {
-            name: 'user',
-            type: 'UserSubscriptionPayload',
-            isList: false,
-            isRequired: false,
-            args: [
+            "name": "user",
+            "type": "UserSubscriptionPayload",
+            "isList": false,
+            "isRequired": false,
+            "args": [
               {
-                name: 'where',
-                type: 'UserSubscriptionWhereInput',
-                isRequired: false,
-                isScalar: false,
-                isList: false,
-              },
+                "name": "where",
+                "type": "UserSubscriptionWhereInput",
+                "isRequired": false,
+                "isScalar": false,
+                "isList": false
+              }
             ],
-            kind: 'relation',
-          },
-        ],
+            "kind": "relation"
+          }
+        ]
       },
       {
-        name: 'PostSubscriptionPayload',
-        fields: [
+        "name": "PostSubscriptionPayload",
+        "fields": [
           {
-            name: 'mutation',
-            type: 'MutationType',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
+            "name": "mutation",
+            "type": "MutationType",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'node',
-            type: 'Post',
-            isList: false,
-            isRequired: false,
-            args: [],
-            kind: 'relation',
+            "name": "node",
+            "type": "Post",
+            "isList": false,
+            "isRequired": false,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'updatedFields',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            args: [],
-            kind: 'scalar',
+            "name": "updatedFields",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'previousValues',
-            type: 'PostPreviousValues',
-            isList: false,
-            isRequired: false,
-            args: [],
-            kind: 'relation',
-          },
-        ],
+            "name": "previousValues",
+            "type": "PostPreviousValues",
+            "isList": false,
+            "isRequired": false,
+            "args": [],
+            "kind": "relation"
+          }
+        ]
       },
       {
-        name: 'PostPreviousValues',
-        fields: [
+        "name": "PostPreviousValues",
+        "fields": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'title',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "title",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'content',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
-          },
-        ],
+            "name": "content",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
+          }
+        ]
       },
       {
-        name: 'ProfileSubscriptionPayload',
-        fields: [
+        "name": "ProfileSubscriptionPayload",
+        "fields": [
           {
-            name: 'mutation',
-            type: 'MutationType',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
+            "name": "mutation",
+            "type": "MutationType",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'node',
-            type: 'Profile',
-            isList: false,
-            isRequired: false,
-            args: [],
-            kind: 'relation',
+            "name": "node",
+            "type": "Profile",
+            "isList": false,
+            "isRequired": false,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'updatedFields',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            args: [],
-            kind: 'scalar',
+            "name": "updatedFields",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'previousValues',
-            type: 'ProfilePreviousValues',
-            isList: false,
-            isRequired: false,
-            args: [],
-            kind: 'relation',
-          },
-        ],
+            "name": "previousValues",
+            "type": "ProfilePreviousValues",
+            "isList": false,
+            "isRequired": false,
+            "args": [],
+            "kind": "relation"
+          }
+        ]
       },
       {
-        name: 'ProfilePreviousValues',
-        fields: [
+        "name": "ProfilePreviousValues",
+        "fields": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'url',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
-          },
-        ],
+            "name": "url",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
+          }
+        ]
       },
       {
-        name: 'UserSubscriptionPayload',
-        fields: [
+        "name": "UserSubscriptionPayload",
+        "fields": [
           {
-            name: 'mutation',
-            type: 'MutationType',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'relation',
+            "name": "mutation",
+            "type": "MutationType",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'node',
-            type: 'User',
-            isList: false,
-            isRequired: false,
-            args: [],
-            kind: 'relation',
+            "name": "node",
+            "type": "User",
+            "isList": false,
+            "isRequired": false,
+            "args": [],
+            "kind": "relation"
           },
           {
-            name: 'updatedFields',
-            type: 'String',
-            isList: true,
-            isRequired: false,
-            args: [],
-            kind: 'scalar',
+            "name": "updatedFields",
+            "type": "String",
+            "isList": true,
+            "isRequired": false,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'previousValues',
-            type: 'UserPreviousValues',
-            isList: false,
-            isRequired: false,
-            args: [],
-            kind: 'relation',
-          },
-        ],
+            "name": "previousValues",
+            "type": "UserPreviousValues",
+            "isList": false,
+            "isRequired": false,
+            "args": [],
+            "kind": "relation"
+          }
+        ]
       },
       {
-        name: 'UserPreviousValues',
-        fields: [
+        "name": "UserPreviousValues",
+        "fields": [
           {
-            name: 'id',
-            type: 'ID',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "id",
+            "type": "ID",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'name',
-            type: 'String',
-            isList: false,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
+            "name": "name",
+            "type": "String",
+            "isList": false,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
           },
           {
-            name: 'strings',
-            type: 'String',
-            isList: true,
-            isRequired: true,
-            args: [],
-            kind: 'scalar',
-          },
-        ],
-      },
-    ],
+            "name": "strings",
+            "type": "String",
+            "isList": true,
+            "isRequired": true,
+            "args": [],
+            "kind": "scalar"
+          }
+        ]
+      }
+    ]
   },
-  mappings: [
+  "mappings": [
     {
-      model: 'User',
-      findOne: 'user',
-      findMany: 'users',
-      create: 'createUser',
-      update: 'updateUser',
-      updateMany: 'updateManyUsers',
-      upsert: 'upsertUser',
-      delete: 'deleteUser',
-      deleteMany: 'deleteManyUsers',
+      "model": "User",
+      "findOne": "user",
+      "findMany": "users",
+      "create": "createUser",
+      "update": "updateUser",
+      "updateMany": "updateManyUsers",
+      "upsert": "upsertUser",
+      "delete": "deleteUser",
+      "deleteMany": "deleteManyUsers"
     },
     {
-      model: 'Profile',
-      findOne: 'profile',
-      findMany: 'profiles',
-      create: 'createProfile',
-      update: 'updateProfile',
-      updateMany: 'updateManyProfiles',
-      upsert: 'upsertProfile',
-      delete: 'deleteProfile',
-      deleteMany: 'deleteManyProfiles',
+      "model": "Profile",
+      "findOne": "profile",
+      "findMany": "profiles",
+      "create": "createProfile",
+      "update": "updateProfile",
+      "updateMany": "updateManyProfiles",
+      "upsert": "upsertProfile",
+      "delete": "deleteProfile",
+      "deleteMany": "deleteManyProfiles"
     },
     {
-      model: 'Post',
-      findOne: 'post',
-      findMany: 'posts',
-      create: 'createPost',
-      update: 'updatePost',
-      updateMany: 'updateManyPosts',
-      upsert: 'upsertPost',
-      delete: 'deletePost',
-      deleteMany: 'deleteManyPosts',
-    },
-  ],
+      "model": "Post",
+      "findOne": "post",
+      "findMany": "posts",
+      "create": "createPost",
+      "update": "updatePost",
+      "updateMany": "updateManyPosts",
+      "upsert": "upsertPost",
+      "delete": "deletePost",
+      "deleteMany": "deleteManyPosts"
+    }
+  ]
 }
+    

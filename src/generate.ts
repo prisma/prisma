@@ -131,7 +131,7 @@ export class Prisma {
     // TODO: Kill Rust
   }
   private _query?: QueryDelegate
-  get query() {
+  get query(): QueryDelegate {
     return this._query ? this._query: (this._query= QueryDelegate(this.dmmf, this.fetcher))
   }
 ${indent(
@@ -139,7 +139,7 @@ ${indent(
     .filter(m => m.findMany)
     .map(
       m => `private _${m.findMany}?: ${m.model}Delegate
-get ${m.findMany}() {
+get ${m.findMany}(): ${m.model}Delegate {
   return this._${m.findMany}? this._${m.findMany} : (this._${m.findMany} = ${m.model}Delegate(this.dmmf, this.fetcher))
 }`,
     )
@@ -318,12 +318,6 @@ export class Model {
     // }
 
     return argsTypes
-  }
-  /**
-   * We only need to generate [MODEL]Args if the [MODEL] is being used in a to one relation
-   */
-  protected get appearsInToOneRelation(): boolean {
-    return this.dmmf.datamodel.models.some(model => model.fields.some(f => f.type === this.model.name))
   }
   toString() {
     const { model, outputType } = this

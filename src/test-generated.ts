@@ -7,13 +7,13 @@ async function main() {
   const before = performance.now()
   const result = await prisma.users.create({
     data: {
-      name: 'Tim',
+      name: 'Hans Schmitt',
       // asd: '',
     },
     select: {
       strings: false,
-      name: false,
-      id: false,
+      // name: '2019-05-10T08:50:30.658Z',
+      // id: false,
     },
   })
   console.log(`Took ${performance.now() - before}ms`)
