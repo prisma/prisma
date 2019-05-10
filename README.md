@@ -23,7 +23,7 @@ It is part of the [Prisma]() ecosystem. Prisma provides a family of tools to sim
 
 ## How it works
 
-#### 1. Configure database access
+### 1. Configure database access
 
 Specify the connection details for your database:
 
@@ -33,22 +33,36 @@ Specify the connection details for your database:
 
 ![](https://i.imgur.com/UcN3ENI.png)
 
-#### 2. Introspect your database
+### 2. Introspect your database
 
 Introspect your database schema using the Prisma CLI to generate your [datamodel](). The datamodel is a declarative and human-readable representation of your database schema.
 
 ![](https://i.imgur.com/XkRkwdE.png)
 
-#### 3. Adjust the datamodel
+### 3. Adjust the datamodel
 
 Instead of sending SQL migration statements to the database, you need to adjust the datamodel file to describe your desired database schema. You can express any schema migration you like using the new datamodel, this includes for example adding a new model, removing a model or updating the fields of a model. You can also add indexes or validation constraints in the datamodel.
 
 ![](https://i.imgur.com/ePrrlHP.png)
 
-#### 4. Migrate your database (apply datamodel changes)
+### 4. Migrate your database (apply datamodel changes)
 
 Once you're happy with the changes, you can use the Prisma CLI to migrate your database (i.e. map the adjusted datamodel to your database). Lift's migration engine will generate the corresponding SQL statements and send them to the database for you.
 
 ![](https://i.imgur.com/L6a5Vqd.png)
 
 ## Supported databases
+
+Photon JS can be used with the following databases:
+
+- MySQL
+- PostgreSQL
+- MongoDB (_coming very soon_)
+
+More databases that will be supported in the future are:
+
+- MS SQL
+- Oracle
+- Neo4J
+- FaunaDB
+- ...
