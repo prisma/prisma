@@ -36,7 +36,7 @@ Specify the connection details for your database:
 
 ### 2. Introspect your database
 
-![](https://i.imgur.com/XkRkwdE.png)
+<img src="https://i.imgur.com/XkRkwdE.png" width="355px">
 
 Introspect your database schema using the Prisma CLI to generate your [datamodel](). The datamodel is a declarative and human-readable representation of your database schema.
 
