@@ -4,7 +4,7 @@
 <p><h3 align="center">Type-safe ORM for TypeScript & Node.js (by <a href="">Prisma</a>)</h3></p>
 
 <p align="center">
-  <a href="#features">Features</a> • <a href="#quickstart">Quickstart</a> • <a href="#examples">Examples</a> • <a href="#supported-databases">Supported databases</a> 
+  <a href="#features">Features</a> • <a href="#how-photon-js-works">How Photon JS works</a> • <a href="#supported-databases">Supported databases</a> 
 </p>
 
 <!--
@@ -80,9 +80,9 @@ Photon JS gets generated into your `node_modules` folder. There's no need to ins
 
 Similar to traditional ORMs, the Photon JS client can be used any of your Node.js or TypeScript applications. For example to implement REST, GraphQL or gRPC APIs.
 
-### 5. Evolve your database
+### 5. Evolve your database and Photon JS database client
 
-You can evolve your database
+As you build your app, you'll likely migrate your database to implement new features. After each schema migration, you need to re-introspect the database (to update the generated datamodel) and re-generate the Photon JS client to account for the new schema.
 
 ## Supported databases
 
