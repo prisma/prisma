@@ -46,7 +46,7 @@ It is part of the [Prisma]() ecosystem. Prisma provides a family of tools to sim
 
 ## How Photon JS works
 
-#### 1. Configure database access
+### 1. Configure database access
 
 ![](https://i.imgur.com/UcN3ENI.png)
 
@@ -57,13 +57,13 @@ Specify the connection details for your database:
 - `user` & `password`: Credentials for your database sever.
 
 
-#### 2. Introspect your database
+### 2. Introspect your database
 
 ![](https://i.imgur.com/XkRkwdE.png)
 
 Introspect your database schema using the Prisma CLI. This generates a [datamodel]() which is the foundation for the generated Photon database client. The datamodel is a declarative and human-readable representation of your database schema.
 
-#### 3. Generate Photon JS
+### 3. Generate Photon JS
 
 ![](https://i.imgur.com/rdtKEYL.png)
 
@@ -76,8 +76,7 @@ Generate your Photon database client using the Prisma CLI. Photon is generated b
 
 Photon JS gets generated into your `node_modules` folder. There's no need to install any additional dependencies or database drivers.
 
-
-#### 4. Build an app
+### 4. Build an app
 
 Similar to traditional ORMs, the Photon JS client can be used any of your Node.js or TypeScript applications. For example to implement REST, GraphQL or gRPC APIs.
 
