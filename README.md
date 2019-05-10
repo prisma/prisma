@@ -44,7 +44,7 @@ It is part of the [Prisma]() ecosystem. Prisma provides a family of tools to sim
 - CLI to support all major workflows
 - Integrates seamlessly in your npm projects (without `npm install`)
 
-## How Photon JS works
+## How it works
 
 ### 1. Configure database access
 
