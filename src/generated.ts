@@ -409,12 +409,12 @@ class UserClient<T> implements PromiseLike<T> {
   readonly [Symbol.toStringTag]: 'PrismaPromise'
 
   private _posts?: PostClient<any>
-  posts<T extends FindManyPostArgs>(args?: Subset<T, FindManyPostArgs>): Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>> {
+  posts<T extends FindManyPostArgs>(args?: Subset<T, FindManyPostArgs>): PromiseLike<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>> {
     const path = [...this.path, 'select', 'posts']
     const newArgs = deepSet(this.args, path, args || true)
     return this._posts
       ? this._posts
-      : (this._posts = new PostClient<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path)) as any
+      : (this._posts = new PostClient<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path)) as any
   }
 
   protected get query() {
@@ -1258,12 +1258,12 @@ class PostClient<T> implements PromiseLike<T> {
   readonly [Symbol.toStringTag]: 'PrismaPromise'
 
   private _author?: UserClient<any>
-  author<T extends UserArgs>(args?: Subset<T, UserArgs>): 'select' extends keyof T ? PostGetPayload<ExtractPostArgsSelect<T>> : PostClient<Post> {
+  author<T extends UserArgs>(args?: Subset<T, UserArgs>): 'select' extends keyof T ? PromiseLike<UserGetPayload<ExtractUserArgsSelect<T>>> : UserClient<User> {
     const path = [...this.path, 'select', 'author']
     const newArgs = deepSet(this.args, path, args || true)
     return this._author
       ? this._author
-      : (this._author = new UserClient<'select' extends keyof T ? PostGetPayload<ExtractPostArgsSelect<T>> : PostClient<Post>>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path)) as any
+      : (this._author = new UserClient<'select' extends keyof T ? UserGetPayload<ExtractUserArgsSelect<T>> : UserClient<User>>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path)) as any
   }
 
   protected get query() {

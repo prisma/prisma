@@ -561,11 +561,12 @@ ${indent(
   fields
     .filter(f => f.kind === 'relation')
     .map(f => {
+      const fieldTypeName = (f.type as DMMF.OutputType).name
       return `private _${f.name}?: ${getFieldTypeName(f)}Client<any>
 ${f.name}<T extends ${getFieldArgName(f)}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType(
-        name,
+        fieldTypeName,
         f.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
-        false,
+        true,
         false,
         true,
       )} {
@@ -574,7 +575,7 @@ ${f.name}<T extends ${getFieldArgName(f)}>(args?: Subset<T, ${getFieldArgName(f)
   return this._${f.name}
     ? this._${f.name}
     : (this._${f.name} = new ${getFieldTypeName(f)}Client<${getSelectReturnType(
-        name,
+        fieldTypeName,
         f.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
         false,
         false,
