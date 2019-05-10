@@ -29,7 +29,7 @@ export class Document {
 ${indent(this.children.map(String).join('\n'), tab)}
 }`
   }
-  validate(select: any, isTopLevelQuery: boolean = false) {
+  validate(select: any, isTopLevelQuery: boolean = false, originalMethod?: string) {
     const invalidChildren = this.children.filter(child => child.hasInvalidChild || child.hasInvalidArg)
     if (invalidChildren.length === 0) {
       return
@@ -72,7 +72,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
       }
     }
 
-    const errorStr = `\n\n${chalk.red(`Invalid ${chalk.bold(`\`prisma.${queryName}\``)} invocation:`)}
+    const errorStr = `\n\n${chalk.red(`Invalid ${chalk.bold(`\`prisma.${originalMethod || queryName}\``)} invocation:`)}
 
 ${printJsonWithErrors(isTopLevelQuery ? { [topLevelQueryName]: select } : select, keyPaths, valuePaths, missingItems)}
 

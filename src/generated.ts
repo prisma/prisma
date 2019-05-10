@@ -1,7 +1,7 @@
 import { DMMF } from './dmmf-types'
 import fetch from 'node-fetch'
 import { DMMFClass } from './dmmf';
-import { deepGet } from './utils/deep-set';
+import { deepGet, deepSet } from './utils/deep-set';
 import { makeDocument } from './query';
 import { Subset } from './generated';
 
@@ -73,7 +73,7 @@ export class Prisma {
   }
   private _query?: QueryDelegate
   get query(): QueryDelegate {
-    return this._query ? this._query: (this._query= QueryDelegate(this.dmmf, this.fetcher))
+    return this._query ? this._query: (this._query = QueryDelegate(this.dmmf, this.fetcher))
   }
   private _users?: UserDelegate
   get users(): UserDelegate {
@@ -224,21 +224,38 @@ export interface UserDelegate {
   deleteMany<T extends UserDeleteManyArgs>(args: Subset<T, UserDeleteManyArgs>): PromiseLike<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>
 }
 function UserDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): UserDelegate {
-  const User = <T extends UserArgs>(args: Subset<T, UserArgs>) => new UserClient<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>(dmmf, fetcher, 'query', 'users', args, [])
-  User.findOne = <T extends FindOneUserArgs>(args: Subset<T, FindOneUserArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'query', 'user', args, [])
-  User.findMany = <T extends FindManyUserArgs>(args: Subset<T, FindManyUserArgs>) => new UserClient<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>(dmmf, fetcher, 'query', 'users', args, [])
-  User.create = <T extends UserCreateArgs>(args: Subset<T, UserCreateArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'createUser', args, [])
-  User.update = <T extends UserUpdateArgs>(args: Subset<T, UserUpdateArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateUser', args, [])
-  User.updateMany = <T extends UserUpdateManyArgs>(args: Subset<T, UserUpdateManyArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateManyUsers', args, [])
-  User.upsert = <T extends UserUpsertArgs>(args: Subset<T, UserUpsertArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'upsertUser', args, [])
-  User.delete = <T extends UserDeleteArgs>(args: Subset<T, UserDeleteArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteUser', args, [])
-  User.deleteMany = <T extends UserDeleteManyArgs>(args: Subset<T, UserDeleteManyArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteManyUsers', args, [])
+  const User = <T extends UserArgs>(args: Subset<T, UserArgs>) => new UserClient<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>(dmmf, fetcher, 'query', 'users', 'users', args, [])
+  User.findOne = <T extends FindOneUserArgs>(args: Subset<T, FindOneUserArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'query', 'user', 'users.findOne', args, [])
+  User.findMany = <T extends FindManyUserArgs>(args: Subset<T, FindManyUserArgs>) => new UserClient<Array<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>>(dmmf, fetcher, 'query', 'users', 'users.findMany', args, [])
+  User.create = <T extends UserCreateArgs>(args: Subset<T, UserCreateArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'createUser', 'users.create', args, [])
+  User.update = <T extends UserUpdateArgs>(args: Subset<T, UserUpdateArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateUser', 'users.update', args, [])
+  User.updateMany = <T extends UserUpdateManyArgs>(args: Subset<T, UserUpdateManyArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateManyUsers', 'users.updateMany', args, [])
+  User.upsert = <T extends UserUpsertArgs>(args: Subset<T, UserUpsertArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'upsertUser', 'users.upsert', args, [])
+  User.delete = <T extends UserDeleteArgs>(args: Subset<T, UserDeleteArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteUser', 'users.delete', args, [])
+  User.deleteMany = <T extends UserDeleteManyArgs>(args: Subset<T, UserDeleteManyArgs>) => new UserClient<UserGetPayload<ExtractFindManyUserArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteManyUsers', 'users.deleteMany', args, [])
   return User
 }
 
 class UserClient<T> implements PromiseLike<T> {
-  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PrismaFetcher, private readonly queryType: 'query' | 'mutation', private readonly rootField: string, private readonly args: UserArgs, private readonly path: []) {}
-  readonly [Symbol.toStringTag]: 'Promise'
+  constructor(
+    private readonly dmmf: DMMFClass,
+    private readonly fetcher: PrismaFetcher,
+    private readonly queryType: 'query' | 'mutation',
+    private readonly rootField: string,
+    private readonly clientMethod: string,
+    private readonly args: UserArgs,
+    private readonly path: string[]
+  ) {}
+  readonly [Symbol.toStringTag]: 'PrismaPromise'
+
+  private _posts?: PostClient<Post[]>
+  posts(args?: FindManyPostArgs): PostClient<Post[]> {
+    const path = [...this.path, 'posts']
+    const newArgs = args ? deepSet(this.args, path, args) : this.args
+    return this._posts
+      ? this._posts
+      : (this._posts = new PostClient<Post[]>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path))
+  }
 
   protected get query() {
     const {rootField} = this
@@ -248,8 +265,7 @@ class UserClient<T> implements PromiseLike<T> {
       rootTypeName: this.queryType,
       select: this.args
     })
-    // console.dir(document, {depth: 8})
-    document.validate(this.args, true)
+    document.validate(this.args, false, this.clientMethod)
     return String(document)
   }
 
@@ -497,21 +513,31 @@ export interface ProfileDelegate {
   deleteMany<T extends ProfileDeleteManyArgs>(args: Subset<T, ProfileDeleteManyArgs>): PromiseLike<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>
 }
 function ProfileDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): ProfileDelegate {
-  const Profile = <T extends ProfileArgs>(args: Subset<T, ProfileArgs>) => new ProfileClient<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>(dmmf, fetcher, 'query', 'profiles', args, [])
-  Profile.findOne = <T extends FindOneProfileArgs>(args: Subset<T, FindOneProfileArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'query', 'profile', args, [])
-  Profile.findMany = <T extends FindManyProfileArgs>(args: Subset<T, FindManyProfileArgs>) => new ProfileClient<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>(dmmf, fetcher, 'query', 'profiles', args, [])
-  Profile.create = <T extends ProfileCreateArgs>(args: Subset<T, ProfileCreateArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'createProfile', args, [])
-  Profile.update = <T extends ProfileUpdateArgs>(args: Subset<T, ProfileUpdateArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateProfile', args, [])
-  Profile.updateMany = <T extends ProfileUpdateManyArgs>(args: Subset<T, ProfileUpdateManyArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateManyProfiles', args, [])
-  Profile.upsert = <T extends ProfileUpsertArgs>(args: Subset<T, ProfileUpsertArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'upsertProfile', args, [])
-  Profile.delete = <T extends ProfileDeleteArgs>(args: Subset<T, ProfileDeleteArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteProfile', args, [])
-  Profile.deleteMany = <T extends ProfileDeleteManyArgs>(args: Subset<T, ProfileDeleteManyArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteManyProfiles', args, [])
+  const Profile = <T extends ProfileArgs>(args: Subset<T, ProfileArgs>) => new ProfileClient<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>(dmmf, fetcher, 'query', 'profiles', 'profiles', args, [])
+  Profile.findOne = <T extends FindOneProfileArgs>(args: Subset<T, FindOneProfileArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'query', 'profile', 'profiles.findOne', args, [])
+  Profile.findMany = <T extends FindManyProfileArgs>(args: Subset<T, FindManyProfileArgs>) => new ProfileClient<Array<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>>(dmmf, fetcher, 'query', 'profiles', 'profiles.findMany', args, [])
+  Profile.create = <T extends ProfileCreateArgs>(args: Subset<T, ProfileCreateArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'createProfile', 'profiles.create', args, [])
+  Profile.update = <T extends ProfileUpdateArgs>(args: Subset<T, ProfileUpdateArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateProfile', 'profiles.update', args, [])
+  Profile.updateMany = <T extends ProfileUpdateManyArgs>(args: Subset<T, ProfileUpdateManyArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateManyProfiles', 'profiles.updateMany', args, [])
+  Profile.upsert = <T extends ProfileUpsertArgs>(args: Subset<T, ProfileUpsertArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'upsertProfile', 'profiles.upsert', args, [])
+  Profile.delete = <T extends ProfileDeleteArgs>(args: Subset<T, ProfileDeleteArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteProfile', 'profiles.delete', args, [])
+  Profile.deleteMany = <T extends ProfileDeleteManyArgs>(args: Subset<T, ProfileDeleteManyArgs>) => new ProfileClient<ProfileGetPayload<ExtractFindManyProfileArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteManyProfiles', 'profiles.deleteMany', args, [])
   return Profile
 }
 
 class ProfileClient<T> implements PromiseLike<T> {
-  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PrismaFetcher, private readonly queryType: 'query' | 'mutation', private readonly rootField: string, private readonly args: ProfileArgs, private readonly path: []) {}
-  readonly [Symbol.toStringTag]: 'Promise'
+  constructor(
+    private readonly dmmf: DMMFClass,
+    private readonly fetcher: PrismaFetcher,
+    private readonly queryType: 'query' | 'mutation',
+    private readonly rootField: string,
+    private readonly clientMethod: string,
+    private readonly args: ProfileArgs,
+    private readonly path: string[]
+  ) {}
+  readonly [Symbol.toStringTag]: 'PrismaPromise'
+
+
 
   protected get query() {
     const {rootField} = this
@@ -521,8 +547,7 @@ class ProfileClient<T> implements PromiseLike<T> {
       rootTypeName: this.queryType,
       select: this.args
     })
-    // console.dir(document, {depth: 8})
-    document.validate(this.args, true)
+    document.validate(this.args, false, this.clientMethod)
     return String(document)
   }
 
@@ -776,21 +801,38 @@ export interface PostDelegate {
   deleteMany<T extends PostDeleteManyArgs>(args: Subset<T, PostDeleteManyArgs>): PromiseLike<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>
 }
 function PostDelegate(dmmf: DMMFClass, fetcher: PrismaFetcher): PostDelegate {
-  const Post = <T extends PostArgs>(args: Subset<T, PostArgs>) => new PostClient<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>(dmmf, fetcher, 'query', 'posts', args, [])
-  Post.findOne = <T extends FindOnePostArgs>(args: Subset<T, FindOnePostArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'query', 'post', args, [])
-  Post.findMany = <T extends FindManyPostArgs>(args: Subset<T, FindManyPostArgs>) => new PostClient<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>(dmmf, fetcher, 'query', 'posts', args, [])
-  Post.create = <T extends PostCreateArgs>(args: Subset<T, PostCreateArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'createPost', args, [])
-  Post.update = <T extends PostUpdateArgs>(args: Subset<T, PostUpdateArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updatePost', args, [])
-  Post.updateMany = <T extends PostUpdateManyArgs>(args: Subset<T, PostUpdateManyArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateManyPosts', args, [])
-  Post.upsert = <T extends PostUpsertArgs>(args: Subset<T, PostUpsertArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'upsertPost', args, [])
-  Post.delete = <T extends PostDeleteArgs>(args: Subset<T, PostDeleteArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deletePost', args, [])
-  Post.deleteMany = <T extends PostDeleteManyArgs>(args: Subset<T, PostDeleteManyArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteManyPosts', args, [])
+  const Post = <T extends PostArgs>(args: Subset<T, PostArgs>) => new PostClient<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>(dmmf, fetcher, 'query', 'posts', 'posts', args, [])
+  Post.findOne = <T extends FindOnePostArgs>(args: Subset<T, FindOnePostArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'query', 'post', 'posts.findOne', args, [])
+  Post.findMany = <T extends FindManyPostArgs>(args: Subset<T, FindManyPostArgs>) => new PostClient<Array<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>>(dmmf, fetcher, 'query', 'posts', 'posts.findMany', args, [])
+  Post.create = <T extends PostCreateArgs>(args: Subset<T, PostCreateArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'createPost', 'posts.create', args, [])
+  Post.update = <T extends PostUpdateArgs>(args: Subset<T, PostUpdateArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updatePost', 'posts.update', args, [])
+  Post.updateMany = <T extends PostUpdateManyArgs>(args: Subset<T, PostUpdateManyArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'updateManyPosts', 'posts.updateMany', args, [])
+  Post.upsert = <T extends PostUpsertArgs>(args: Subset<T, PostUpsertArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'upsertPost', 'posts.upsert', args, [])
+  Post.delete = <T extends PostDeleteArgs>(args: Subset<T, PostDeleteArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deletePost', 'posts.delete', args, [])
+  Post.deleteMany = <T extends PostDeleteManyArgs>(args: Subset<T, PostDeleteManyArgs>) => new PostClient<PostGetPayload<ExtractFindManyPostArgsSelect<T>>>(dmmf, fetcher, 'mutation', 'deleteManyPosts', 'posts.deleteMany', args, [])
   return Post
 }
 
 class PostClient<T> implements PromiseLike<T> {
-  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PrismaFetcher, private readonly queryType: 'query' | 'mutation', private readonly rootField: string, private readonly args: PostArgs, private readonly path: []) {}
-  readonly [Symbol.toStringTag]: 'Promise'
+  constructor(
+    private readonly dmmf: DMMFClass,
+    private readonly fetcher: PrismaFetcher,
+    private readonly queryType: 'query' | 'mutation',
+    private readonly rootField: string,
+    private readonly clientMethod: string,
+    private readonly args: PostArgs,
+    private readonly path: string[]
+  ) {}
+  readonly [Symbol.toStringTag]: 'PrismaPromise'
+
+  private _author?: UserClient<User>
+  author(args?: FindManyUserArgs): UserClient<User> {
+    const path = [...this.path, 'author']
+    const newArgs = args ? deepSet(this.args, path, args) : this.args
+    return this._author
+      ? this._author
+      : (this._author = new UserClient<User>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path))
+  }
 
   protected get query() {
     const {rootField} = this
@@ -800,8 +842,7 @@ class PostClient<T> implements PromiseLike<T> {
       rootTypeName: this.queryType,
       select: this.args
     })
-    // console.dir(document, {depth: 8})
-    document.validate(this.args, true)
+    document.validate(this.args, false, this.clientMethod)
     return String(document)
   }
 

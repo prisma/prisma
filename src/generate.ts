@@ -10,7 +10,7 @@ const tab = 2
 const commonCode = `import { DMMF } from './dmmf-types'
 import fetch from 'node-fetch'
 import { DMMFClass } from './dmmf';
-import { deepGet } from './utils/deep-set';
+import { deepGet, deepSet } from './utils/deep-set';
 import { makeDocument } from './query';
 import { Subset } from './generated';
 
@@ -132,7 +132,7 @@ export class Prisma {
   }
   private _query?: QueryDelegate
   get query(): QueryDelegate {
-    return this._query ? this._query: (this._query= QueryDelegate(this.dmmf, this.fetcher))
+    return this._query ? this._query: (this._query = QueryDelegate(this.dmmf, this.fetcher))
   }
 ${indent(
   dmmf.mappings
@@ -464,7 +464,7 @@ ${new QueryDelegate(outputType)}
 export class ModelDelegate {
   constructor(protected readonly outputType: OutputType, protected readonly dmmf: DMMFClass) {}
   toString() {
-    const name = this.outputType.name
+    const { fields, name } = this.outputType
     const mapping = this.dmmf.mappings.find(m => m.model === name)
     const actions = Object.entries(mapping).filter(([key, value]) => key !== 'model' && value)
 
@@ -495,7 +495,7 @@ function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaFetcher): ${name}Delega
   const ${name} = <T extends ${name}Args>(args: Subset<T, ${name}Args>) => new ${name}Client<Array<${name}GetPayload<Extract${getModelArgName(
       name,
       DMMF.ModelAction.findMany,
-    )}Select<T>>>>(dmmf, fetcher, 'query', '${mapping.findMany}', args, [])
+    )}Select<T>>>>(dmmf, fetcher, 'query', '${mapping.findMany}', '${mapping.findMany}', args, [])
 ${indent(
   actions
     .map(
@@ -507,7 +507,9 @@ ${indent(
           actionName === 'findMany' ? 'Array<' : ''
         }${name}GetPayload<Extract${getModelArgName(name, DMMF.ModelAction.findMany)}Select<T>>>${
           actionName === 'findMany' ? '>' : ''
-        }(dmmf, fetcher, '${getOperation(actionName as DMMF.ModelAction)}', '${fieldName}', args, [])`,
+        }(dmmf, fetcher, '${getOperation(actionName as DMMF.ModelAction)}', '${fieldName}', '${
+          mapping.findMany
+        }.${actionName}', args, [])`,
     )
     .join('\n'),
   tab,
@@ -516,8 +518,35 @@ ${indent(
 }
 
 class ${name}Client<T> implements PromiseLike<T> {
-  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PrismaFetcher, private readonly queryType: 'query' | 'mutation', private readonly rootField: string, private readonly args: ${name}Args, private readonly path: []) {}
-  readonly [Symbol.toStringTag]: 'Promise'
+  constructor(
+    private readonly dmmf: DMMFClass,
+    private readonly fetcher: PrismaFetcher,
+    private readonly queryType: 'query' | 'mutation',
+    private readonly rootField: string,
+    private readonly clientMethod: string,
+    private readonly args: ${name}Args,
+    private readonly path: string[]
+  ) {}
+  readonly [Symbol.toStringTag]: 'PrismaPromise'
+
+${indent(
+  fields
+    .filter(f => f.kind === 'relation')
+    .map(
+      f => `private _${f.name}?: ${getFieldTypeName(f)}Client<${getFieldType(f)}>
+${f.name}(${new Args(f)}): ${getFieldTypeName(f)}Client<${getFieldType(f)}> {
+  const path = [...this.path, '${f.name}']
+  const newArgs = args ? deepSet(this.args, path, args) : this.args
+  return this._${f.name}
+    ? this._${f.name}
+    : (this._${f.name} = new ${getFieldTypeName(f)}Client<${getFieldType(
+        f,
+      )}>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path))
+}`,
+    )
+    .join('\n'),
+  2,
+)}
 
   protected get query() {
     const {rootField} = this
@@ -527,8 +556,7 @@ class ${name}Client<T> implements PromiseLike<T> {
       rootTypeName: this.queryType,
       select: this.args
     })
-    // console.dir(document, {depth: 8})
-    document.validate(this.args, true)
+    document.validate(this.args, false, this.clientMethod)
     return String(document)
   }
 
@@ -558,6 +586,29 @@ class ${name}Client<T> implements PromiseLike<T> {
 }
     `
   }
+}
+
+class Args {
+  constructor(protected readonly field: DMMF.SchemaField) {}
+  toString() {
+    const { field } = this
+    if (!field.isList && field.args.length > 0) {
+      throw new Error(`This must not happen! There are no fields which are non-lists with args.`)
+    }
+    return `args?: ${getModelArgName(getFieldTypeName(field), DMMF.ModelAction.findMany)}`
+  }
+}
+
+function getFieldTypeName(field: DMMF.SchemaField) {
+  if (typeof field.type === 'string') {
+    return field.type
+  }
+
+  return field.type.name
+}
+
+function getFieldType(field: DMMF.SchemaField) {
+  return getFieldTypeName(field) + (field.isList ? '[]' : '')
 }
 
 export class QueryDelegate {

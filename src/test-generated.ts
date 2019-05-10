@@ -8,14 +8,16 @@ async function main() {
   const result = await prisma.users.create({
     data: {
       name: 'Hans Schmitt',
-      // asd: '',
+      // asdsd0a9usda: '',
     },
+    name: true,
     select: {
-      strings: false,
+      strings: 1,
+      // bla: false,
       // name: '2019-05-10T08:50:30.658Z',
       // id: false,
     },
-  })
+  } as any)
   console.log(`Took ${performance.now() - before}ms`)
   console.log(result)
 }
