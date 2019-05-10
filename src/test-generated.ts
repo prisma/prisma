@@ -5,21 +5,33 @@ async function main() {
   console.clear()
   const prisma = new Prisma()
   const before = performance.now()
-  const result = await prisma.users.create({
-    data: {
-      name: 'Hans Schmitt',
-      // asdsd0a9usda: '',
-    },
-    name: true,
-    select: {
-      strings: 1,
-      // bla: false,
-      // name: '2019-05-10T08:50:30.658Z',
-      // id: false,
-    },
-  } as any)
+  // const result = await prisma.posts
+  //   .create({
+  //     data: {
+  //       title: 'Title',
+  //       content: 'Content',
+  //       author: {
+  //         create: {
+  //           name: 'A name',
+  //         },
+  //       },
+  //     },
+  //   })
+  //   .author()
+  // console.log(result)
+  const result = await prisma.posts
+    .findOne({
+      // name: true,
+      where: {
+        id: '6',
+      },
+    })
+    .author()
+    .posts()
+    .author()
+    .posts()
   console.log(`Took ${performance.now() - before}ms`)
-  console.log(result)
+  // console.log(result)
 }
 
 main().catch(console.error)
