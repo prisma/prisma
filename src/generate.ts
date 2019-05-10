@@ -404,12 +404,15 @@ function getDefaultName(modelName: string) {
 }
 
 function getFieldArgName(field: DMMF.SchemaField): string {
-  const outputType = field.type as DMMF.OutputType
-  if (!field.isList) {
-    return `${outputType.name}Args`
+  return getArgName((field.type as DMMF.OutputType).name, field.isList)
+}
+
+function getArgName(name: string, isList: boolean): string {
+  if (!isList) {
+    return `${name}Args`
   }
 
-  return `FindMany${outputType.name}Args`
+  return `FindMany${name}Args`
 }
 
 // we need names for all top level args,
@@ -557,18 +560,28 @@ class ${name}Client<T> implements PromiseLike<T> {
 ${indent(
   fields
     .filter(f => f.kind === 'relation')
-    .map(
-      f => `private _${f.name}?: ${getFieldTypeName(f)}Client<${getFieldType(f)}>
-${f.name}(${new Args(f)}): ${getFieldTypeName(f)}Client<${getFieldType(f)}> {
+    .map(f => {
+      return `private _${f.name}?: ${getFieldTypeName(f)}Client<any>
+${f.name}<T extends ${getFieldArgName(f)}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType(
+        name,
+        f.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
+        false,
+        false,
+        true,
+      )} {
   const path = [...this.path, 'select', '${f.name}']
   const newArgs = deepSet(this.args, path, args || true)
   return this._${f.name}
     ? this._${f.name}
-    : (this._${f.name} = new ${getFieldTypeName(f)}Client<${getFieldType(
-        f,
-      )}>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path))
-}`,
-    )
+    : (this._${f.name} = new ${getFieldTypeName(f)}Client<${getSelectReturnType(
+        name,
+        f.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
+        false,
+        false,
+        true,
+      )}>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path)) as any
+}`
+    })
     .join('\n'),
   2,
 )}
@@ -640,20 +653,21 @@ function getSelectReturnType(
   actionName: DMMF.ModelAction,
   renderPromise: boolean = true,
   hideCondition: boolean = false,
+  isField: boolean = false,
 ) {
   const isList = actionName === DMMF.ModelAction.findMany
 
+  const argName = isField ? getArgName(name, isList) : getModelArgName(name, actionName as DMMF.ModelAction)
+
   if (isList || hideCondition) {
-    return `${renderPromise ? 'PromiseLike<' : ''}Array<${name}GetPayload<Extract${getModelArgName(
-      name,
-      actionName as DMMF.ModelAction,
-    )}Select<T>>>${renderPromise ? '>' : ''}`
+    return `${renderPromise ? 'PromiseLike<' : ''}Array<${name}GetPayload<Extract${argName}Select<T>>>${
+      renderPromise ? '>' : ''
+    }`
   }
 
-  return `'select' extends keyof T ? ${renderPromise ? 'PromiseLike<' : ''}${name}GetPayload<Extract${getModelArgName(
-    name,
-    actionName as DMMF.ModelAction,
-  )}Select<T>>> : ${name}Client<${getType(name, isList)}>`
+  return `'select' extends keyof T ? ${
+    renderPromise ? 'PromiseLike<' : ''
+  }${name}GetPayload<Extract${argName}Select<T>>${renderPromise ? '>' : ''} : ${name}Client<${getType(name, isList)}>`
 }
 
 class Args {
