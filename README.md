@@ -4,7 +4,7 @@
 <p><h3 align="center">Type-safe ORM for TypeScript & Node.js (by <a href="">Prisma</a>)</h3></p>
 
 <p align="center">
-  <a href="#overview">Overview</a> • <a href="#quickstart">Quickstart</a> • <a href="#examples">Examples</a> • <a href="#supported-databases">Supported databases</a> 
+  <a href="#features">Features</a> • <a href="#quickstart">Quickstart</a> • <a href="#examples">Examples</a> • <a href="#supported-databases">Supported databases</a> 
 </p>
 
 <!--
@@ -31,9 +31,7 @@ It is part of the [Prisma]() ecosystem. Prisma provides a family of tools to sim
 </p>
 
 
-## Overview
-
-### Features
+## Features
 
 - Auto-generated database client
 - Fully type-safe data access API (even for JavaScript)
@@ -74,3 +72,19 @@ Photon JS gets generated into your `node_modules` folder. There's no need to ins
 #### 4. Build an app
 
 Similar to traditional ORMs, the Photon JS client can be used any of your Node.js or TypeScript applications. For example to implement REST, GraphQL or gRPC APIs.
+
+## Supported databases
+
+Photon JS can be used with the following databases:
+
+- MySQL
+- PostgreSQL
+- MongoDB (_coming very soon_)
+
+More databases that will be supported in the future are:
+
+- MS SQL
+- Oracle
+- Neo4J
+- FaunaDB
+- ...
