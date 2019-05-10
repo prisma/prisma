@@ -4,7 +4,7 @@
 <p><h3 align="center">Type-safe ORM for TypeScript & Node.js (by <a href="">Prisma</a>)</h3></p>
 
 <p align="center">
-  <a href="#features">Features</a> • <a href="#how-photon-js-works">How Photon JS works</a> • <a href="#supported-databases">Supported databases</a> 
+  <a href="#features">Features</a> • <a href="#how-it-works">How it works</a> • <a href="#supported-databases">Supported databases</a> 
 </p>
 
 <!--
