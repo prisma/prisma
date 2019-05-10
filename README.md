@@ -25,7 +25,7 @@ It is part of the [Prisma]() ecosystem. Prisma provides a family of tools to sim
 
 ### 1. Configure database access
 
-![](https://i.imgur.com/UcN3ENI.png)
+<img src="https://i.imgur.com/UcN3ENI.png" width="220px">
 
 Specify the connection details for your database:
 
@@ -42,14 +42,14 @@ Introspect your database schema using the Prisma CLI to generate your [datamodel
 
 ### 3. Adjust the datamodel
 
-![](https://i.imgur.com/ePrrlHP.png)
+<img src="https://i.imgur.com/ePrrlHP.png" width="387px">
 
 Instead of sending SQL migration statements to the database, you need to adjust the datamodel file to describe your desired database schema. You can express any schema migration you like using the new datamodel, this includes for example adding a new model, removing a model or updating the fields of a model. You can also add indexes or validation constraints in the datamodel.
 
 
 ### 4. Migrate your database (apply datamodel changes)
 
-![](https://i.imgur.com/L6a5Vqd.png)
+<img src="https://i.imgur.com/L6a5Vqd.png" width="392px">
 
 Once you're happy with the changes, you can use the Prisma CLI to migrate your database (i.e. map the adjusted datamodel to your database). Lift's migration engine will generate the corresponding SQL statements and send them to the database for you.
 
