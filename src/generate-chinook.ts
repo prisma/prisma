@@ -1,15 +1,18 @@
-import { TSClient } from './generate'
-import * as fs from 'fs'
+import { generateClient } from './generation'
 import { performance } from 'perf_hooks'
-import { getDMMF } from './utils/getDMMF'
-// import { sportsdb } from './datamodels/sportsdb'
 import { chinook } from './datamodels/chinook'
+import path from 'path'
 
-const client = new TSClient(getDMMF(chinook))
+async function main() {
+  console.clear()
+  const before = performance.now()
+  generateClient(
+    chinook,
+    path.join(__dirname, '../examples/chinook-example/prisma.yml'),
+    path.join(__dirname, '../examples/chinook-example/@generated/prisma'),
+  )
+  const after = performance.now()
+  console.log(`Generated client in ${(after - before).toFixed(3)}ms`)
+}
 
-console.clear()
-const before = performance.now()
-const str = String(client)
-const after = performance.now()
-console.log(`Generated client in ${(after - before).toFixed(3)}ms`)
-fs.writeFileSync(__dirname + '/generated-chinook.ts', str)
+main().catch(console.error)

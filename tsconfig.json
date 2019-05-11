@@ -8,7 +8,8 @@
     "sourceMap": true,
     "noImplicitAny": false,
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "declaration": true
   },
-  "exclude": ["archive", "dist"]
+  "exclude": ["archive", "dist", "src/examples", "src/chinook-example", "build", "download", "cli", "examples"]
 }

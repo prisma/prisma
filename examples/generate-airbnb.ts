@@ -1,7 +1,7 @@
-import { TSClient } from '../generate'
+import { TSClient } from '../src/generation'
 import * as fs from 'fs'
 import { performance } from 'perf_hooks'
-import { getDMMF } from '../utils/getDMMF'
+import { getDMMF } from '../src/utils/getDMMF'
 
 const datamodel = `type User {
   id: ID! @id

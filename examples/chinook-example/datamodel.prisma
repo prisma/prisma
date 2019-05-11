@@ -1,0 +1,41 @@
+type Artist {
+  id: ID! @id
+  ArtistId: Int! @unique
+  Name: String!
+  Albums: [Album!]!
+}
+
+type Album {
+  id: ID! @id
+  AlbumId: Int! @unique
+  Title: String!
+  Artist: Artist! @relation(link: TABLE)
+  Tracks: [Track!]!
+}
+
+type Track {
+  id: ID! @id
+  TrackId: Int! @unique
+  Name: String!
+  Album: Album! @relation(link: TABLE)
+  MediaType: MediaType! @relation(link: TABLE)
+  Genre: Genre! @relation(link: TABLE)
+  Composer: String
+  Milliseconds: Int!
+  Bytes: Int!
+  UnitPrice: Float!
+}
+
+type Genre {
+  id: ID! @id
+  GenreId: Int! @unique
+  Name: String!
+  Tracks: [Track!]!
+}
+
+type MediaType {
+  id: ID! @id
+  MediaTypeId: Int! @unique
+  Name: String!
+  Tracks: [Track!]!
+}

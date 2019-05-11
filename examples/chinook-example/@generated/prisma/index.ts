@@ -1,4 +1,4 @@
-import { DMMF, DMMFClass, fetch, deepGet, deepSet, makeDocument } from './runtime'
+import { DMMF, DMMFClass, fetch, deepGet, deepSet, makeDocument, Engine } from './runtime'
 
 /**
  * Utility Types
@@ -18,53 +18,94 @@ export type MergeTruthyValues<R extends object, S extends object> = {
 
 export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never : key }[keyof T]
 
-
-
 /**
  * Subset
  * @desc From `T` pick properties that exist in `U`. Simple version of Intersection
  */
 export type Subset<T, U> = { [key in keyof T]: key extends keyof U ? T[key] : never }
 
+class PrismaError extends Error {
+  constructor(
+    public readonly message: string,
+    public readonly query?: string,
+    public readonly error?: any,
+  ) {
+    super(message)
+  }
+}
+
 class PrismaFetcher {
-  constructor(private readonly url: string) {}
-  request<T>(query: string, path: string[] = [], rootField?: string): Promise<T> {
-    console.log(query)
-    console.log(path)
-    // return Promise.resolve({data: {som: 'thing'}} as any)
-    return Promise.resolve(this.unpack({
-      data: {
-        createPost: {
-          id: '1',
-          title: 'Title',
-          content: 'Content',
-          author: {
-            id: '2',
-            name: 'A name',
-            strings: null,
-            posts: [
-              {
-                id: '1',
-                title: 'Title',
-                content: 'Content',
-              }
-            ]
-          }
+  private url?: string
+  constructor(private readonly connectionPromise: Promise<string>, private readonly debug = false) {}
+  async request<T>(query: string, path: string[] = [], rootField?: string): Promise<T> {
+    if (!this.url) {
+      this.url = await this.connectionPromise // allows lazily connecting the client to Rust and Rust to the Datasource
+    }
+    if (this.debug) {
+      console.log(query)
+    }
+    return fetch<any>(this.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query, variables: {}, operationName: '' }),
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(body => {
+            const { status, statusText } = response
+            this.handleErrors({
+              errors: {
+                status,
+                statusText,
+                body,
+              },
+              query,
+              rootField,
+            })
+          })
+        } else {
+          return response.json().then((result) => {
+            const {data} = result
+            if (this.debug) {
+              console.log(result)
+            }
+            const errors = result.error || result.errors
+            if (errors) {
+              return this.handleErrors({
+                errors,
+                query,
+                rootField,
+              })
+            }
+            return this.unpack(data, path, rootField)
+          })
         }
-      }},
-      path,
-      rootField
-    ) as any)
-    // return fetch(this.url, {
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({ query }),
-    //   // TODO: More error handling
-    // }).then(res => res.json()).then(res => path.length > 0 ? deepGet(res.data, path) : res.data)
+      })
+      .catch(errors => {
+        if (!(errors instanceof PrismaError)) {
+          return this.handleErrors({ errors, query })
+        } else {
+          throw errors
+        }
+      })
+  }
+  handleErrors({
+    errors,
+    query,
+    rootField
+  }: {
+    errors?: any
+    query: string
+    rootField?: string
+  }) {
+    const stringified = errors ? JSON.stringify(errors, null, 2) : null
+    const message = stringified.length > 0 ? stringified : `Error in prisma.${rootField || 'query'}`
+    throw new PrismaError(message, query, errors)
   }
   protected unpack(result: any, path: string[], rootField?: string) {
-    const getPath: string[] = ['data']
+    const getPath: string[] = []
     if (rootField) {
       getPath.push(rootField)
     }
@@ -84,18 +125,27 @@ class PrismaFetcher {
 //   return new PrismaClient(null as any)
 // } 
 
+interface PrismaOptions {
+  debug?: boolean
+}
+
 export class Prisma {
   private fetcher?: PrismaFetcher
   private readonly dmmf: DMMFClass
-  constructor() {
+  private readonly engine: Engine
+  private readonly connectionPromise: Promise<string>
+  constructor(options?: PrismaOptions) {
+    const debug = options && options.debug || false
+    this.engine = new Engine({ prismaYmlPath: 'prisma.yml', debug })
     this.dmmf = new DMMFClass(dmmf)
-    this.fetcher = new PrismaFetcher('http://localhost:8000')
+    this.connectionPromise = this.engine.start()
+    this.fetcher = new PrismaFetcher(this.connectionPromise, debug)
   }
   async connect() {
-    // TODO: Spawn Rust
+    // TODO: Provide autoConnect: false option so that this is even needed
   }
   async close() {
-    // TODO: Kill Rust
+    this.engine.stop()
   }
   private _query?: QueryDelegate
   get query(): QueryDelegate {
@@ -103,25 +153,31 @@ export class Prisma {
   }
   private _artists?: ArtistDelegate
   get artists(): ArtistDelegate {
+    this.connect()
     return this._artists? this._artists : (this._artists = ArtistDelegate(this.dmmf, this.fetcher))
   }
   private _albums?: AlbumDelegate
   get albums(): AlbumDelegate {
+    this.connect()
     return this._albums? this._albums : (this._albums = AlbumDelegate(this.dmmf, this.fetcher))
   }
   private _tracks?: TrackDelegate
   get tracks(): TrackDelegate {
+    this.connect()
     return this._tracks? this._tracks : (this._tracks = TrackDelegate(this.dmmf, this.fetcher))
   }
   private _genres?: GenreDelegate
   get genres(): GenreDelegate {
+    this.connect()
     return this._genres? this._genres : (this._genres = GenreDelegate(this.dmmf, this.fetcher))
   }
   private _mediaTypes?: MediaTypeDelegate
   get mediaTypes(): MediaTypeDelegate {
+    this.connect()
     return this._mediaTypes? this._mediaTypes : (this._mediaTypes = MediaTypeDelegate(this.dmmf, this.fetcher))
   }
 }
+
 
 /**
  * Query
@@ -228,11 +284,9 @@ export type Artist = {
   id: string
   ArtistId: number
   Name: string
-  someDate: string
-  someOptionalDate?: string
 }
 
-export type ArtistScalars = 'id' | 'ArtistId' | 'Name' | 'someDate' | 'someOptionalDate'
+export type ArtistScalars = 'id' | 'ArtistId' | 'Name'
   
 
 export type ArtistSelect= {
@@ -240,16 +294,12 @@ export type ArtistSelect= {
   ArtistId?: boolean
   Name?: boolean
   Albums?: boolean | FindManyAlbumArgs
-  someDate?: boolean
-  someOptionalDate?: boolean
 }
 
 type ArtistDefault = {
   id: true
   ArtistId: true
   Name: true
-  someDate: true
-  someOptionalDate: true
 }
 
 
@@ -2529,22 +2579,6 @@ export type ArtistWhereInput = {
   Albums_every?: AlbumWhereInput
   Albums_some?: AlbumWhereInput
   Albums_none?: AlbumWhereInput
-  someDate?: string
-  someDate_not?: string
-  someDate_in?: string[]
-  someDate_not_in?: string[]
-  someDate_lt?: string
-  someDate_lte?: string
-  someDate_gt?: string
-  someDate_gte?: string
-  someOptionalDate?: string
-  someOptionalDate_not?: string
-  someOptionalDate_in?: string[]
-  someOptionalDate_not_in?: string[]
-  someOptionalDate_lt?: string
-  someOptionalDate_lte?: string
-  someOptionalDate_gt?: string
-  someOptionalDate_gte?: string
   AND?: ArtistWhereInput[]
   OR?: ArtistWhereInput[]
   NOT?: ArtistWhereInput[]
@@ -2768,10 +2802,6 @@ export type ArtistOrderByInput = {
   ArtistId_DESC?: ArtistOrderByInput
   Name_ASC?: ArtistOrderByInput
   Name_DESC?: ArtistOrderByInput
-  someDate_ASC?: ArtistOrderByInput
-  someDate_DESC?: ArtistOrderByInput
-  someOptionalDate_ASC?: ArtistOrderByInput
-  someOptionalDate_DESC?: ArtistOrderByInput
 }
 
 
@@ -2832,8 +2862,6 @@ export type ArtistCreateWithoutAlbumsInput = {
   id?: string
   ArtistId: number
   Name: string
-  someDate: string
-  someOptionalDate?: string
 }
 
 
@@ -2901,8 +2929,6 @@ export type ArtistUpdateOneRequiredWithoutAlbumsInput = {
 export type ArtistUpdateWithoutAlbumsDataInput = {
   ArtistId?: number
   Name?: string
-  someDate?: string
-  someOptionalDate?: string
 }
 
 
@@ -3098,8 +3124,6 @@ export type ArtistCreateInput = {
   ArtistId: number
   Name: string
   Albums?: AlbumCreateManyWithoutArtistInput
-  someDate: string
-  someOptionalDate?: string
 }
 
 
@@ -3121,8 +3145,6 @@ export type ArtistUpdateInput = {
   ArtistId?: number
   Name?: string
   Albums?: AlbumUpdateManyWithoutArtistInput
-  someDate?: string
-  someOptionalDate?: string
 }
 
 
@@ -3217,8 +3239,6 @@ export type AlbumUpdateManyDataInput = {
 export type ArtistUpdateManyMutationInput = {
   ArtistId?: number
   Name?: string
-  someDate?: string
-  someOptionalDate?: string
 }
 
 
@@ -3497,24 +3517,6 @@ const dmmf: DMMF.Document = {
             "isId": false,
             "type": "Album",
             "isList": true,
-            "isRequired": false
-          },
-          {
-            "kind": "scalar",
-            "name": "someDate",
-            "isUnique": false,
-            "isId": false,
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": true
-          },
-          {
-            "kind": "scalar",
-            "name": "someOptionalDate",
-            "isUnique": false,
-            "isId": false,
-            "type": "DateTime",
-            "isList": false,
             "isRequired": false
           }
         ]
@@ -5710,118 +5712,6 @@ const dmmf: DMMF.Document = {
             "isScalar": false
           },
           {
-            "name": "someDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someDate_not",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someDate_in",
-            "type": "DateTime",
-            "isList": true,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someDate_not_in",
-            "type": "DateTime",
-            "isList": true,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someDate_lt",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someDate_lte",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someDate_gt",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someDate_gte",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate_not",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate_in",
-            "type": "DateTime",
-            "isList": true,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate_not_in",
-            "type": "DateTime",
-            "isList": true,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate_lt",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate_lte",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate_gt",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate_gte",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
             "name": "AND",
             "type": "ArtistWhereInput",
             "isList": true,
@@ -7220,34 +7110,6 @@ const dmmf: DMMF.Document = {
             "isRequired": false,
             "isList": false,
             "isScalar": true
-          },
-          {
-            "name": "someDate_ASC",
-            "type": "ArtistOrderByInput",
-            "isRequired": false,
-            "isList": false,
-            "isScalar": true
-          },
-          {
-            "name": "someDate_DESC",
-            "type": "ArtistOrderByInput",
-            "isRequired": false,
-            "isList": false,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate_ASC",
-            "type": "ArtistOrderByInput",
-            "isRequired": false,
-            "isList": false,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate_DESC",
-            "type": "ArtistOrderByInput",
-            "isRequired": false,
-            "isList": false,
-            "isScalar": true
           }
         ]
       },
@@ -7483,20 +7345,6 @@ const dmmf: DMMF.Document = {
             "type": "String",
             "isList": false,
             "isRequired": true,
-            "isScalar": true
-          },
-          {
-            "name": "someDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": true,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
             "isScalar": true
           }
         ]
@@ -7757,20 +7605,6 @@ const dmmf: DMMF.Document = {
           {
             "name": "Name",
             "type": "String",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate",
-            "type": "DateTime",
             "isList": false,
             "isRequired": false,
             "isScalar": true
@@ -8771,20 +8605,6 @@ const dmmf: DMMF.Document = {
             "isList": false,
             "isRequired": false,
             "isScalar": false
-          },
-          {
-            "name": "someDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": true,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
           }
         ]
       },
@@ -8863,20 +8683,6 @@ const dmmf: DMMF.Document = {
             "isList": false,
             "isRequired": false,
             "isScalar": false
-          },
-          {
-            "name": "someDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
           }
         ]
       },
@@ -9348,20 +9154,6 @@ const dmmf: DMMF.Document = {
           {
             "name": "Name",
             "type": "String",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "isScalar": true
-          },
-          {
-            "name": "someOptionalDate",
-            "type": "DateTime",
             "isList": false,
             "isRequired": false,
             "isScalar": true
@@ -11559,22 +11351,6 @@ const dmmf: DMMF.Document = {
               }
             ],
             "kind": "relation"
-          },
-          {
-            "name": "someDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": true,
-            "args": [],
-            "kind": "scalar"
-          },
-          {
-            "name": "someOptionalDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
-            "args": [],
-            "kind": "scalar"
           }
         ]
       },
@@ -13039,22 +12815,6 @@ const dmmf: DMMF.Document = {
             "type": "String",
             "isList": false,
             "isRequired": true,
-            "args": [],
-            "kind": "scalar"
-          },
-          {
-            "name": "someDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": true,
-            "args": [],
-            "kind": "scalar"
-          },
-          {
-            "name": "someOptionalDate",
-            "type": "DateTime",
-            "isList": false,
-            "isRequired": false,
             "args": [],
             "kind": "scalar"
           }

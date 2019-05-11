@@ -1,12 +1,12 @@
-import { DMMF, BaseField } from './runtime/dmmf-types'
-import { DMMFClass } from './runtime/dmmf'
+import { DMMF, BaseField } from '../runtime/dmmf-types'
+import { DMMFClass } from '../runtime/dmmf'
 import indent from 'indent-string'
-import { GraphQLScalarToJSTypeTable, capitalize } from './runtime/utils/common'
+import { GraphQLScalarToJSTypeTable, capitalize } from '../runtime/utils/common'
 import copy from 'fast-copy'
 
 const tab = 2
 
-const commonCode = `import { DMMF, DMMFClass, fetch, deepGet, deepSet, makeDocument } from './runtime'
+const commonCode = `import { DMMF, DMMFClass, fetch, deepGet, deepSet, makeDocument, Engine } from './runtime'
 
 /**
  * Utility Types
@@ -26,53 +26,94 @@ export type MergeTruthyValues<R extends object, S extends object> = {
 
 export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never : key }[keyof T]
 
-
-
 /**
  * Subset
  * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
  */
 export type Subset<T, U> = { [key in keyof T]: key extends keyof U ? T[key] : never }
 
+class PrismaError extends Error {
+  constructor(
+    public readonly message: string,
+    public readonly query?: string,
+    public readonly error?: any,
+  ) {
+    super(message)
+  }
+}
+
 class PrismaFetcher {
-  constructor(private readonly url: string) {}
-  request<T>(query: string, path: string[] = [], rootField?: string): Promise<T> {
-    console.log(query)
-    console.log(path)
-    // return Promise.resolve({data: {som: 'thing'}} as any)
-    return Promise.resolve(this.unpack({
-      data: {
-        createPost: {
-          id: '1',
-          title: 'Title',
-          content: 'Content',
-          author: {
-            id: '2',
-            name: 'A name',
-            strings: null,
-            posts: [
-              {
-                id: '1',
-                title: 'Title',
-                content: 'Content',
-              }
-            ]
-          }
+  private url?: string
+  constructor(private readonly connectionPromise: Promise<string>, private readonly debug = false) {}
+  async request<T>(query: string, path: string[] = [], rootField?: string): Promise<T> {
+    if (!this.url) {
+      this.url = await this.connectionPromise // allows lazily connecting the client to Rust and Rust to the Datasource
+    }
+    if (this.debug) {
+      console.log(query)
+    }
+    return fetch<any>(this.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query, variables: {}, operationName: '' }),
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(body => {
+            const { status, statusText } = response
+            this.handleErrors({
+              errors: {
+                status,
+                statusText,
+                body,
+              },
+              query,
+              rootField,
+            })
+          })
+        } else {
+          return response.json().then((result) => {
+            const {data} = result
+            if (this.debug) {
+              console.log(result)
+            }
+            const errors = result.error || result.errors
+            if (errors) {
+              return this.handleErrors({
+                errors,
+                query,
+                rootField,
+              })
+            }
+            return this.unpack(data, path, rootField)
+          })
         }
-      }},
-      path,
-      rootField
-    ) as any)
-    // return fetch(this.url, {
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({ query }),
-    //   // TODO: More error handling
-    // }).then(res => res.json()).then(res => path.length > 0 ? deepGet(res.data, path) : res.data)
+      })
+      .catch(errors => {
+        if (!(errors instanceof PrismaError)) {
+          return this.handleErrors({ errors, query })
+        } else {
+          throw errors
+        }
+      })
+  }
+  handleErrors({
+    errors,
+    query,
+    rootField
+  }: {
+    errors?: any
+    query: string
+    rootField?: string
+  }) {
+    const stringified = errors ? JSON.stringify(errors, null, 2) : null
+    const message = stringified.length > 0 ? stringified : \`Error in prisma.\$\{rootField || 'query'}\`
+    throw new PrismaError(message, query, errors)
   }
   protected unpack(result: any, path: string[], rootField?: string) {
-    const getPath: string[] = ['data']
+    const getPath: string[] = []
     if (rootField) {
       getPath.push(rootField)
     }
@@ -84,7 +125,7 @@ class PrismaFetcher {
 
 export class TSClient {
   protected readonly dmmf: DMMFClass
-  constructor(protected readonly document: DMMF.Document) {
+  constructor(protected readonly document: DMMF.Document, protected readonly prismaYmlPath: string) {
     // We make a deep clone here as otherwise we would serialize circular references
     // which we're building up in the DMMFClass
     this.dmmf = new DMMFClass(copy(document))
@@ -96,7 +137,7 @@ export class TSClient {
  * Client
 **/
 
-${new PrismaClientClass(this.dmmf)}
+${new PrismaClientClass(this.dmmf, this.prismaYmlPath)}
 
 ${new Query(this.dmmf, 'query')}
 
@@ -133,7 +174,7 @@ const dmmf: DMMF.Document = ${JSON.stringify(this.document, null, 2)}
 
 // maybe shouldn't export this to prevent confusion
 class PrismaClientClass {
-  constructor(protected readonly dmmf: DMMFClass) {}
+  constructor(protected readonly dmmf: DMMFClass, protected readonly prismaYmlPath: string) {}
   toString() {
     const { dmmf } = this
     return `
@@ -142,18 +183,27 @@ class PrismaClientClass {
 //   return new PrismaClient(null as any)
 // } 
 
+interface PrismaOptions {
+  debug?: boolean
+}
+
 export class Prisma {
   private fetcher?: PrismaFetcher
   private readonly dmmf: DMMFClass
-  constructor() {
+  private readonly engine: Engine
+  private readonly connectionPromise: Promise<string>
+  constructor(options?: PrismaOptions) {
+    const debug = options && options.debug || false
+    this.engine = new Engine({ prismaYmlPath: '${this.prismaYmlPath}', debug })
     this.dmmf = new DMMFClass(dmmf)
-    this.fetcher = new PrismaFetcher('http://localhost:8000')
+    this.connectionPromise = this.engine.start()
+    this.fetcher = new PrismaFetcher(this.connectionPromise, debug)
   }
   async connect() {
-    // TODO: Spawn Rust
+    // TODO: Provide autoConnect: false option so that this is even needed
   }
   async close() {
-    // TODO: Kill Rust
+    this.engine.stop()
   }
   private _query?: QueryDelegate
   get query(): QueryDelegate {
@@ -165,13 +215,15 @@ ${indent(
     .map(
       m => `private _${m.findMany}?: ${m.model}Delegate
 get ${m.findMany}(): ${m.model}Delegate {
+  this.connect()
   return this._${m.findMany}? this._${m.findMany} : (this._${m.findMany} = ${m.model}Delegate(this.dmmf, this.fetcher))
 }`,
     )
     .join('\n'),
   2,
 )}
-}`
+}
+`
   }
 }
 
@@ -295,15 +347,15 @@ ${indent(
 }
 
 export class Model {
-  protected outputType: OutputType
+  protected outputType?: OutputType
   protected mapping: DMMF.Mapping
   constructor(protected readonly model: DMMF.Model, protected readonly dmmf: DMMFClass) {
     const outputType = dmmf.outputTypeMap[model.name]
-    if (!outputType) {
-      throw new Error(`${model.name} is an enum and enums are not yet supported`)
+    if (outputType) {
+      // console.(`${model.name} is an enum and enums are not yet supported`)
+      this.outputType = new OutputType(outputType)
+      this.mapping = dmmf.mappings.find(m => m.model === model.name)
     }
-    this.outputType = new OutputType(outputType)
-    this.mapping = dmmf.mappings.find(m => m.model === model.name)
   }
   protected get argsTypes() {
     const { mapping, model } = this
@@ -355,6 +407,10 @@ export class Model {
   }
   toString() {
     const { model, outputType } = this
+
+    if (!outputType) {
+      return ''
+    }
 
     const scalarFields = model.fields.filter(f => f.kind === 'scalar')
 

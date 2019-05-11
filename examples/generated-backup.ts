@@ -1,8 +1,8 @@
-import { DMMF } from '../runtime/dmmf-types'
+import { DMMF } from '../src/runtime/dmmf-types'
 import fetch from 'node-fetch'
-import { DMMFClass } from '../runtime/dmmf'
-import { deepGet } from '../runtime/utils/deep-set'
-import { makeDocument } from '../runtime/query'
+import { DMMFClass } from '../src/runtime/dmmf'
+import { deepGet } from '../src/runtime/utils/deep-set'
+import { makeDocument } from '../src/runtime/query'
 import { Subset } from './generated'
 
 /**

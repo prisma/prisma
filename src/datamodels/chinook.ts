@@ -1,45 +1,104 @@
 export const chinook = /* GraphQL */ `
-  type Artist {
-    id: ID! @id
-    ArtistId: Int! @unique
-    Name: String!
-    Albums: [Album!]!
-    someDate: DateTime!
-    someOptionalDate: DateTime
-  }
-
   type Album {
-    id: ID! @id
-    AlbumId: Int! @unique
+    id: Int! @id @db(name: "AlbumId")
     Title: String!
-    Artist: Artist!
-    Tracks: [Track!]!
+    Artist: Artist! @db(name: "ArtistId")
+    Tracks: [Track]
   }
 
   type Track {
-    id: ID! @id
-    TrackId: Int! @unique
+    id: Int! @id @db(name: "TrackId")
     Name: String!
-    Album: Album!
-    MediaType: MediaType!
-    Genre: Genre!
+    Album: Album @db(name: "AlbumId")
+    AlbumId: Int
+    MediaType: MediaType! @db(name: "MediaTypeId")
+    Genre: Genre @db(name: "GenreId")
     Composer: String
     Milliseconds: Int!
-    Bytes: Int!
     UnitPrice: Float!
-  }
-
-  type Genre {
-    id: ID! @id
-    GenreId: Int! @unique
-    Name: String!
-    Tracks: [Track!]!
+    Playlists: [Playlist] @relation(name: "PlaylistTrack")
   }
 
   type MediaType {
-    id: ID! @id
-    MediaTypeId: Int! @unique
-    Name: String!
-    Tracks: [Track!]!
+    id: Int! @id @db(name: "MediaTypeId")
+    Name: String
+  }
+
+  type Genre {
+    id: Int! @id @db(name: "GenreId")
+    Name: String
+    Tracks: [Track]
+  }
+
+  type Artist {
+    id: Int! @id @db(name: "ArtistId")
+    Name: String
+    Albums: [Album]
+  }
+
+  type Customer {
+    id: Int! @id @db(name: "CustomerId")
+    FirstName: String!
+    LastName: String!
+    Company: String
+    Address: String
+    City: String
+    State: String
+    Country: String
+    PostalCode: String
+    Phone: String
+    Fax: String
+    Email: String!
+    SupportRep: Employee @db(name: "SupportRepId")
+  }
+
+  type Employee {
+    id: Int! @id @db(name: "EmployeeId")
+    FirstName: String!
+    LastName: String!
+    Title: String
+    ReportsTo: Employee
+    BirthDate: DateTime
+    HireDate: DateTime
+    Address: String
+    City: String
+    State: String
+    Country: String
+    PostalCode: String
+    Phone: String
+    Fax: String
+    Email: String
+  }
+
+  type Invoice {
+    id: Int! @id @db(name: "InvoiceId")
+    Customer: Customer! @db(name: "CustomerId")
+    InvoiceDate: DateTime!
+    BillingAddress: String
+    BillingCity: String
+    BillingState: String
+    BillingCountry: String
+    BillingPostalCode: String
+    Total: Float!
+    Lines: [InvoiceLine]
+  }
+
+  type InvoiceLine {
+    id: Int! @id @db(name: "InvoiceLineId")
+    Invoice: Invoice! @db(name: "InvoiceId")
+    Track: Track! @db(name: "TrackId")
+    UnitPrice: Float!
+    Quantity: Int!
+  }
+
+  type Playlist {
+    id: Int! @id @db(name: "PlaylistId")
+    Name: String
+    Tracks: [Track] @relation(name: "PlaylistTrack")
+  }
+
+  type PlaylistTrack @relationTable {
+    PlaylistId: Playlist
+    TrackId: Track
   }
 `

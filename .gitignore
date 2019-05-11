@@ -1,3 +1,7 @@
 node_modules
 dist
 build
+runtime
+download
+cli
+.DS_Store
