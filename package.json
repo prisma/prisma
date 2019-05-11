@@ -1,6 +1,6 @@
 {
   "name": "proton-generate",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "cli/index.js",
   "bin": {
     "proton-generate": "cli/index.js"
@@ -12,7 +12,7 @@
     "ncc:runtime": "ncc build src/runtime/index.ts -o runtime",
     "ncc:download": "ncc build dist/download/index.js -o download",
     "ncc:cli": "ncc build dist/cli.js -o cli",
-    "postinstall": "node download/index.js"
+    "install": "node download/index.js"
   },
   "files": [
     "runtime/index.js",
