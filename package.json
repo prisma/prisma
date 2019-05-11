@@ -1,6 +1,6 @@
 {
   "name": "proton-generate",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "main": "cli/index.js",
   "bin": {
     "proton-generate": "cli/index.js"
@@ -27,7 +27,7 @@
   ],
   "devDependencies": {
     "@prisma/dmmf": "^0.1.9",
-    "@prisma/engine": "^1.24.0-test.17",
+    "@prisma/engine": "^1.24.0-test.18",
     "@strikeentco/set": "^1.0.0",
     "@types/fs-extra": "^5.1.0",
     "@types/jest": "^24.0.12",
