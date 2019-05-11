@@ -17,7 +17,10 @@ async function main() {
         },
       },
     })
-    .author()
+    .author({
+      // select: {}
+    })
+    .posts()
   console.log(result)
   // const result = await prisma.posts
   //   .findOne({

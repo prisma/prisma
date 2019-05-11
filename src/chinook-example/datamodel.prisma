@@ -1,0 +1,102 @@
+type Album {
+  id: Int! @id @db(name:"AlbumId")
+  Title: String!
+  Artist: Artist! @db(name:"ArtistId")
+  Tracks: [Track]
+}
+
+type Track {
+  id: Int! @id @db(name:"TrackId")
+  Name: String!
+  Album: Album @db(name: "AlbumId")
+  AlbumId: Int
+  MediaType: MediaType! @db(name: "MediaTypeId")
+  Genre: Genre @db(name: "GenreId")
+  Composer: String
+  Milliseconds: Int!
+  UnitPrice: Float!
+  Playlists: [Playlist] @relation(name:"PlaylistTrack")
+}
+
+type MediaType {
+  id: Int! @id @db(name:"MediaTypeId")
+  Name: String
+}
+
+type Genre {
+  id: Int! @id @db(name:"GenreId")
+  Name: String
+  Tracks: [Track]
+}
+
+type Artist {
+  id: Int! @id @db(name:"ArtistId")
+  Name: String
+  Albums: [Album]
+}
+
+type Customer {
+  id: Int! @id @db(name:"CustomerId")
+  FirstName: String!
+  LastName: String!
+  Company: String
+  Address: String
+  City: String
+  State: String
+  Country: String
+  PostalCode: String
+  Phone: String
+  Fax: String
+  Email: String!
+  SupportRep: Employee @db(name: "SupportRepId")
+}
+
+type Employee {
+  id: Int! @id @db(name:"EmployeeId")
+  FirstName: String!
+  LastName: String!
+  Title: String
+  ReportsTo: Employee
+  BirthDate: DateTime
+  HireDate: DateTime
+  Address: String
+  City: String
+  State: String
+  Country: String
+  PostalCode: String
+  Phone: String
+  Fax: String
+  Email: String
+}
+
+type Invoice {
+  id: Int! @id @db(name:"InvoiceId")
+  Customer: Customer! @db(name: "CustomerId")
+  InvoiceDate: DateTime!
+  BillingAddress: String
+  BillingCity: String
+  BillingState: String
+  BillingCountry: String
+  BillingPostalCode: String
+  Total: Float!
+  Lines: [InvoiceLine]
+}
+
+type InvoiceLine {
+  id: Int! @id @db(name:"InvoiceLineId")
+  Invoice: Invoice! @db(name: "InvoiceId")
+  Track: Track! @db(name: "TrackId")
+  UnitPrice: Float!
+  Quantity: Int!
+}
+
+type Playlist {
+  id: Int! @id @db(name:"PlaylistId")
+  Name: String
+  Tracks: [Track] @relation(name:"PlaylistTrack")
+}
+
+type PlaylistTrack @relationTable {
+  PlaylistId: Playlist
+  TrackId: Track
+}

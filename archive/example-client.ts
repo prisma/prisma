@@ -1,9 +1,9 @@
-import { DMMF } from './dmmf-types'
+import { DMMF } from '../src/dmmf-types'
 import fetch from 'node-fetch'
-import { DMMFClass } from './dmmf'
-import { deepGet } from './utils/deep-set'
-import { makeDocument } from './query'
-import { Subset } from './generated'
+import { DMMFClass } from '../src/dmmf'
+import { deepGet } from '../src/utils/deep-set'
+import { makeDocument } from '../src/query'
+import { Subset } from '../src/generated'
 
 class PrismaFetcher {
   constructor(private readonly url: string) {}

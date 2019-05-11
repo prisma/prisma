@@ -1,5 +1,5 @@
-import { dmmfDocument } from './fixtures/example-dmmf'
-import { TSClient } from './generate'
+import { dmmfDocument } from '../fixtures/example-dmmf'
+import { TSClient } from '../generate'
 import * as fs from 'fs'
 import { performance } from 'perf_hooks'
 

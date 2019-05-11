@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc -d",
-    "test": "jest"
+    "test": "jest",
+    "ncc": "ncc build src/lib.ts -o build"
   },
   "devDependencies": {
     "@strikeentco/set": "^1.0.0",
@@ -15,6 +16,7 @@
     "immer": "^3.1.1",
     "immutable": "^4.0.0-rc.12",
     "jest": "^24.8.0",
+    "ncc": "^0.3.6",
     "object-path-immutable": "^3.0.2",
     "prettier": "^1.17.0",
     "set-value": "^3.0.0",
@@ -23,6 +25,7 @@
     "typescript": "^3.5.0-dev.20190509"
   },
   "dependencies": {
+    "@prisma/dmmf": "^0.1.9",
     "chalk": "^2.4.2",
     "fast-copy": "^2.0.3",
     "fastest-clone": "^1.0.2",
@@ -32,7 +35,9 @@
     "is-regexp": "^2.1.0",
     "js-levenshtein": "^1.1.6",
     "node-fetch": "^2.5.0",
-    "prisma-datamodel": "^1.31.2",
+    "prisma-datamodel": "^1.34.0-alpha.2",
+    "prisma-engine": "^1.24.0-test.5",
+    "prisma-generate-schema": "^1.34.0-alpha.2",
     "strip-ansi": "^5.2.0",
     "strip-indent": "^3.0.0"
   }

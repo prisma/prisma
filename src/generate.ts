@@ -1,18 +1,12 @@
-import { DMMF, BaseField } from './dmmf-types'
-import { DMMFClass } from './dmmf'
+import { DMMF, BaseField } from './runtime/dmmf-types'
+import { DMMFClass } from './runtime/dmmf'
 import indent from 'indent-string'
-import { GraphQLScalarToJSTypeTable, capitalize } from './utils/common'
-import stringifyObject from './utils/stringifyObject'
+import { GraphQLScalarToJSTypeTable, capitalize } from './runtime/utils/common'
 import copy from 'fast-copy'
 
 const tab = 2
 
-const commonCode = `import { DMMF } from './dmmf-types'
-import fetch from 'node-fetch'
-import { DMMFClass } from './dmmf';
-import { deepGet, deepSet } from './utils/deep-set';
-import { makeDocument } from './query';
-import { Subset } from './generated';
+const commonCode = `import { DMMF, DMMFClass, fetch, deepGet, deepSet, makeDocument } from './runtime'
 
 /**
  * Utility Types
@@ -55,7 +49,14 @@ class PrismaFetcher {
           author: {
             id: '2',
             name: 'A name',
-            strings: null
+            strings: null,
+            posts: [
+              {
+                id: '1',
+                title: 'Title',
+                content: 'Content',
+              }
+            ]
           }
         }
       }},
@@ -246,13 +247,18 @@ class PayloadType {
             )
             .join('\n')}`
 
+    const hasScalarFields = type.fields.filter(f => f.kind === 'scalar').length > 0
     return `\
 type ${getPayloadName(name)}<S extends boolean | ${getSelectName(name)}> = S extends true
   ? ${name}
   : S extends ${getSelectName(name)}
   ? {
-      [P in CleanupNever<MergeTruthyValues<${getDefaultName(name)}, S>>]: P extends ${getScalarsName(name)}
-        ? ${name}[P]${relationFieldConditions}
+      [P in CleanupNever<MergeTruthyValues<${getDefaultName(name)}, S>>]${
+      hasScalarFields
+        ? `: P extends ${getScalarsName(name)}
+        ? ${name}[P]`
+        : ''
+    }${relationFieldConditions}
         : never
     }
    : never`
@@ -292,7 +298,11 @@ export class Model {
   protected outputType: OutputType
   protected mapping: DMMF.Mapping
   constructor(protected readonly model: DMMF.Model, protected readonly dmmf: DMMFClass) {
-    this.outputType = new OutputType(dmmf.outputTypeMap[model.name])
+    const outputType = dmmf.outputTypeMap[model.name]
+    if (!outputType) {
+      throw new Error(`${model.name} is an enum and enums are not yet supported`)
+    }
+    this.outputType = new OutputType(outputType)
     this.mapping = dmmf.mappings.find(m => m.model === model.name)
   }
   protected get argsTypes() {
@@ -346,6 +356,8 @@ export class Model {
   toString() {
     const { model, outputType } = this
 
+    const scalarFields = model.fields.filter(f => f.kind === 'scalar')
+
     return `
 /**
  * Model ${model.name}
@@ -361,10 +373,14 @@ ${indent(
 )}
 }
 
-export type ${getScalarsName(model.name)}= ${model.fields
-      .filter(f => f.kind === 'scalar')
-      .map(f => `'${f.name}'`)
-      .join(' | ')}
+${
+  scalarFields.length > 0
+    ? `export type ${getScalarsName(model.name)} = ${
+        scalarFields.length > 0 ? scalarFields.map(f => `'${f.name}'`).join(' | ') : ``
+      }
+  `
+    : ''
+}
 
 export type ${getSelectName(model.name)}= {
 ${indent(
@@ -475,7 +491,9 @@ export type ${name}Args = {
 ${indent(
   mappings
     .flatMap(({ name, mapping }) =>
-      mapping.map(([action, field]) => `${field}?: ${getModelArgName(name, action as DMMF.ModelAction)}`),
+      mapping
+        .filter(([action, field]) => field)
+        .map(([action, field]) => `${field}?: ${getModelArgName(name, action as DMMF.ModelAction)}`),
     )
     .join('\n'),
   tab,
@@ -563,7 +581,7 @@ ${indent(
     .map(f => {
       const fieldTypeName = (f.type as DMMF.OutputType).name
       return `private _${f.name}?: ${getFieldTypeName(f)}Client<any>
-${f.name}<T extends ${getFieldArgName(f)}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType(
+${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType(
         fieldTypeName,
         f.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
         true,
@@ -768,11 +786,14 @@ export class Field {
   constructor(protected readonly field: BaseField) {}
   toString() {
     const { field } = this
-    const fieldName =
+    let fieldType =
       typeof field.type === 'string' ? GraphQLScalarToJSTypeTable[field.type] || field.type : field.type.name
+    if (Array.isArray(fieldType)) {
+      fieldType = fieldType[0]
+    }
     const optionalStr = field.isRequired ? '' : '?'
     const arrayStr = field.isList ? `[]` : ''
-    return `${field.name}${optionalStr}: ${fieldName}${arrayStr}`
+    return `${field.name}${optionalStr}: ${fieldType}${arrayStr}`
   }
 }
 
