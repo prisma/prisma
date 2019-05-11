@@ -1,13 +1,14 @@
 {
   "name": "proton-generate",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "main": "cli/index.js",
   "bin": {
     "proton-generate": "cli/index.js"
   },
   "license": "Apache 2.0",
   "scripts": {
-    "build": "tsc -d",
+    "tsc": "tsc -d",
+    "build": "yarn tsc && yarn ncc:runtime && yarn ncc:download && yarn ncc:cli",
     "test": "jest",
     "ncc:runtime": "ncc build src/runtime/index.ts -o runtime",
     "ncc:download": "ncc build dist/download/index.js -o download",
