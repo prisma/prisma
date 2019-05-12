@@ -1,5 +1,5 @@
 {
-  "name": "proton-generate",
+  "name": "photon-generate",
   "version": "0.0.10",
   "main": "cli/index.js",
   "bin": {
