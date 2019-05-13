@@ -11,5 +11,5 @@
     "rootDir": "src",
     "declaration": true
   },
-  "exclude": ["archive", "dist", "src/examples", "src/chinook-example", "build", "download", "cli", "examples"]
+  "exclude": ["archive", "dist", "src/examples", "src/chinook-example", "build", "cli", "examples"]
 }
