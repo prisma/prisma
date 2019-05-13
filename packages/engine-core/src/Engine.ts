@@ -14,6 +14,8 @@ interface EngineConfig {
   datamodel: string
   datamodelJson?: string
   debug?: boolean
+  schemaInferrerPath?: string
+  prismaPath?: string
 }
 
 const readFile = promisify(fs.readFile)
@@ -36,13 +38,25 @@ export class Engine {
   datamodelJson?: string
   cwd: string
   datamodel: string
-  constructor({ prismaConfig, debug, datamodelJson, prismaYmlPath, datamodel }: EngineConfig) {
+  schemaInferrerPath: string
+  prismaPath: string
+  constructor({
+    prismaConfig,
+    debug,
+    datamodelJson,
+    prismaYmlPath,
+    datamodel,
+    schemaInferrerPath,
+    prismaPath,
+  }: EngineConfig) {
     this.prismaYmlPath = prismaYmlPath
     this.prismaConfig = prismaConfig
     this.cwd = path.dirname(this.prismaYmlPath)
     this.debug = debug || false
     this.datamodelJson = datamodelJson
     this.datamodel = datamodel
+    this.schemaInferrerPath = schemaInferrerPath || path.join(__dirname, '../schema-inferrer-bin')
+    this.prismaPath = prismaPath || path.join(__dirname, '../prisma')
     if (debug) {
       debugLib.enable('engine')
     }
@@ -56,45 +70,9 @@ export class Engine {
   }
 
   /**
-   * Use the port 0 trick to get a new port
-   */
-  getFreePort(): Promise<number> {
-    return new Promise((resolve, reject) => {
-      const server = net.createServer(s => s.end(''))
-      server.listen(0, () => {
-        const address = server.address()
-        const port = typeof address === 'string' ? parseInt(address.split(':').slice(-1)[0], 10) : address.port
-        server.close(e => {
-          if (e) {
-            throw e
-          }
-          resolve(port)
-        })
-      })
-    })
-  }
-
-  /**
-   * Replace the port in the Prisma Config
-   */
-  generatePrismaConfig() {
-    return `port: ${this.port}\n${this.trimPort(this.prismaConfig)}`
-  }
-
-  /**
-   * Make sure that our internal port is not conflicting with the prisma.yml's port
-   * @param str config
-   */
-  trimPort(str: string) {
-    return str
-      .split('\n')
-      .filter(l => !l.startsWith('port:'))
-      .join('\n')
-  }
-
-  /**
    * Starts the engine, returns the url that it runs on
    */
+  // TODO: Maybe use p-retry to be more fault resistent against used ports
   async start(): Promise<string> {
     this.port = await this.getFreePort()
     const PRISMA_CONFIG = this.generatePrismaConfig()
@@ -102,7 +80,7 @@ export class Engine {
     if (this.datamodelJson) {
       schemaEnv.PRISMA_INTERNAL_DATA_MODEL_JSON = this.datamodelJson
     } else {
-      schemaEnv.SCHEMA_INFERRER_PATH = path.join(__dirname, '../schema-inferrer-bin')
+      schemaEnv.SCHEMA_INFERRER_PATH = this.schemaInferrerPath
     }
     const env = {
       PRISMA_CONFIG,
@@ -111,7 +89,7 @@ export class Engine {
       ...schemaEnv,
     }
     debug(env)
-    this.child = spawn(path.join(__dirname, '../prisma'), [], {
+    this.child = spawn(this.prismaPath, [], {
       env,
       detached: false,
       stdio: this.debug ? 'inherit' : 'pipe',
@@ -138,7 +116,56 @@ export class Engine {
     return `http://localhost:${this.port}`
   }
 
-  async engineReady() {
+  /**
+   * If Prisma runs, stop it
+   */
+  stop = () => {
+    if (this.child) {
+      this.exiting = true
+      this.child.kill()
+      delete this.child
+    }
+  }
+
+  /**
+   * Use the port 0 trick to get a new port
+   */
+  protected getFreePort(): Promise<number> {
+    return new Promise((resolve, reject) => {
+      const server = net.createServer(s => s.end(''))
+      server.listen(0, () => {
+        const address = server.address()
+        const port = typeof address === 'string' ? parseInt(address.split(':').slice(-1)[0], 10) : address.port
+        server.close(e => {
+          if (e) {
+            throw e
+          }
+          resolve(port)
+        })
+      })
+    })
+  }
+
+  /**
+   * Replace the port in the Prisma Config
+   */
+  protected generatePrismaConfig() {
+    return `port: ${this.port}\n${this.trimPort(this.prismaConfig)}`
+  }
+
+  /**
+   * Make sure that our internal port is not conflicting with the prisma.yml's port
+   * @param str config
+   */
+  protected trimPort(str: string) {
+    return str
+      .split('\n')
+      .filter(l => !l.startsWith('port:'))
+      .join('\n')
+  }
+
+  // TODO: Replace it with a simple tcp connection
+  protected async engineReady() {
     let tries = 0
     while (true) {
       try {
@@ -156,17 +183,6 @@ export class Engine {
       } finally {
         tries++
       }
-    }
-  }
-
-  /**
-   * If Prisma runs, stop it
-   */
-  stop = () => {
-    if (this.child) {
-      this.exiting = true
-      this.child.kill()
-      delete this.child
     }
   }
 }

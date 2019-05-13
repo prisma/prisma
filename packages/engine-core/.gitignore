@@ -5,3 +5,5 @@ runtime
 download
 cli
 .DS_Store
+prisma
+schema-inferrer-bin
