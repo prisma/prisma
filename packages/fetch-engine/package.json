@@ -1,0 +1,24 @@
+{
+  "name": "@prisma/fetch-engine",
+  "version": "0.0.0",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/fs-extra": "^5.1.0",
+    "@types/node": "^12.0.0",
+    "chalk": "^2.4.2",
+    "death": "^1.1.0",
+    "fs-extra": "^8.0.0",
+    "getos": "^3.1.1",
+    "ncc": "^0.3.6",
+    "node-fetch": "^2.5.0",
+    "p-retry": "^4.1.0",
+    "progress": "^2.0.3",
+    "typescript": "^3.5.0-dev.20190512"
+  },
+  "scripts": {
+    "build": "tsc",
+    "ncc": "ncc build src/index.ts -o build -m"
+  }
+}
