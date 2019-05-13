@@ -81,6 +81,8 @@ const updatedUser = await prisma.users.update({
 })
 ```
 
+[**See more exmaples**](#)
+
 ## How it works
 
 ### 1. Configure database access
