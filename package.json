@@ -1,9 +1,9 @@
 {
   "name": "photon-generate",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "main": "cli/index.js",
   "bin": {
-    "proton-generate": "cli/index.js"
+    "photon-generate": "cli/index.js"
   },
   "license": "Apache-2.0",
   "scripts": {

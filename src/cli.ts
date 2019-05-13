@@ -61,7 +61,7 @@ async function main() {
   await generateClient(datamodel, ymlPath, program.output)
   console.log(`Done generating Photon in ${(performance.now() - before).toFixed(2)}ms`)
   if (program.output) {
-    console.log(`\nYou can import it with ${chalk.greenBright(`import {Prisma} from '@generated/prisma'`)}`)
+    console.log(`\nYou can import it with ${chalk.greenBright(`import { Prisma } from '@generated/prisma'`)}`)
   }
 }
 
