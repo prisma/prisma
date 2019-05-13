@@ -2,13 +2,19 @@
 <p><h3 align="center">Database Schema Migrations (by <a href="">Prisma</a>)</h3></p>
 
 <p align="center">
-  <a href="#features">Features</a> • <a href="#how-it-works">How it works</a> • <a href="#supported-databases">Supported databases</a> 
+  <a href="#features">Features</a> • <a href="#how-it-works">How it works</a> • <a href="#supported-databases">Supported databases</a>
 </p>
 
+Lift is a powerful database schema migration tool. It uses a **declarative data
+modelling** syntax to describe your database schema. Lift stores your entire
+**migration history** and easily lets you **revert and replay migrations**. When
+migrating your database with Lift, you can run provide **before- and
+after-hooks** to execute scripts, e.g. to populate the database with required
+values during a migration.
 
-Lift is a powerful database schema migration tool. It uses a **declarative data modelling** syntax to describe your database schema. Lift stores your entire **migration history** and easily lets you **revert and replay migrations**. When migrating your database with Lift, you can run provide **before- and after-hooks** to execute scripts, e.g. to populate the database with required values during a migration.
-
-It is part of the [Prisma]() ecosystem. Prisma provides a family of tools to simplify database workflows for data access, declarative data modeling, schema migrations and visual data management. [Learn more.]()
+It is part of the [Prisma]() ecosystem. Prisma provides a family of tools to
+simplify database workflows for data access, declarative data modeling, schema
+migrations and visual data management. [Learn more.]()
 
 ## Features
 
@@ -29,29 +35,60 @@ It is part of the [Prisma]() ecosystem. Prisma provides a family of tools to sim
 
 Specify the connection details for your database:
 
-- `host`: The IP address or domain name of the machine where your database server is running.
+- `host`: The IP address or domain name of the machine where your database
+  server is running.
 - `port`: The port on which your database server is listening.
 - `user` & `password`: Credentials for your database sever.
-
 
 ### 2. Introspect your database
 
 <img src="https://i.imgur.com/XkRkwdE.png" width="355px">
 
-Introspect your database schema using the Prisma CLI to generate your [datamodel](). The datamodel is a declarative and human-readable representation of your database schema.
+Introspect your database schema using the Prisma CLI to generate your
+[datamodel](). The datamodel is a declarative and human-readable representation
+of your database schema.
 
 ### 3. Adjust the datamodel
 
 <img src="https://i.imgur.com/ePrrlHP.png" width="387px">
 
-Instead of sending SQL migration statements to the database, you need to adjust the datamodel file to describe your desired database schema. You can express any schema migration you like using the new datamodel, this includes for example adding a new model, removing a model or updating the fields of a model. You can also add indexes or validation constraints in the datamodel.
+Instead of sending SQL migration statements to the database, you need to adjust
+the datamodel file to describe your desired database schema. You can express any
+schema migration you like using the new datamodel, this includes for example
+adding a new model, removing a model or updating the fields of a model. You can
+also add indexes or validation constraints in the datamodel.
 
+You can create a new migration for your change by running `prisma lift create`
+and giving your migration a `<name>`.
+
+```bash
+$ prisma lift create "add comment model"
+
+Created a new migration in "./lift/add-comment-model"
+```
 
 ### 4. Migrate your database (apply datamodel changes)
 
 <img src="https://i.imgur.com/L6a5Vqd.png" width="392px">
 
-Once you're happy with the changes, you can use the Prisma CLI to migrate your database (i.e. map the adjusted datamodel to your database). Lift's migration engine will generate the corresponding SQL statements and send them to the database for you.
+Once you're happy with the changes, you can use the Prisma CLI to migrate your
+database (i.e. map the adjusted datamodel to your database). Lift's migration
+engine will generate the corresponding SQL statements and send them to the
+database for you.
+
+```bash
+$ prisma lift up
+
++ model Comment {
++   comment    String
++   author     User
++   createdAt  Datetime
++   updatedAt  Datetime
++ }
++
+
+🚀 Ready to lift off? [y/N]
+```
 
 ## Supported databases
 
