@@ -73,7 +73,7 @@ const newUser = await prisma.users.create({ data: {
 }})
 
 // Create a new user with two posts in a single transaction
-const newUser: User = await prisma.createUser({ data: {
+const newUser: User = await prisma.users.create({ data: {
   email: "alice@prisma.io",
   posts: {
     create: [
