@@ -47,9 +47,6 @@ It is part of the [Prisma]() ecosystem. Prisma provides a family of tools to sim
 ## Example
 
 ```ts
-// Fetch all posts
-const allPosts = await prisma.posts()
-
 // Fetch user by id or email
 const userById = await prisma.users.findOne({ where: "cjnymovv3s3ht0a516fhmria8" })
 const userByEmail = await prisma.users.findOne({ where: { email: "ada@prisma.io" }})
@@ -60,12 +57,6 @@ const userWithPosts = await prisma.users.findOne({
   include: { posts: { first: 10 } },
 })
 
-// Fetch all published posts
-const posts = await prisma.posts({
-  where: { published: true },
-  orderBy: "createdAt_ASC",
-})
-
 // Create a new user
 const newUser = await prisma.users.create({ data: {
   name: "Alice",
@@ -73,7 +64,7 @@ const newUser = await prisma.users.create({ data: {
 }})
 
 // Create a new user with two posts in a single transaction
-const newUser: User = await prisma.users.create({ data: {
+const newUser = await prisma.users.create({ data: {
   email: "alice@prisma.io",
   posts: {
     create: [
@@ -81,7 +72,13 @@ const newUser: User = await prisma.users.create({ data: {
       { title: "Follow Prisma on Twitter!" },
     ]
   }
-}});
+}})
+
+// Update an existing user
+const updatedUser = await prisma.users.update({
+  where: { email: "alice@prisma.io" },
+  data: { role: "ADMIN" },
+})
 ```
 
 ## How it works
