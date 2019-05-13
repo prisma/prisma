@@ -4,6 +4,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as net from 'net'
 import debugLib from 'debug'
+import fetch from 'node-fetch'
 
 const debug = debugLib('engine')
 

@@ -1,27 +1,32 @@
-import fs from 'fs-extra'
+import fs from 'fs'
 import path from 'path'
 import { download } from './download'
+import { promisify } from 'util'
 
-export async function ensureBinaries() {
-  const runtimeDir = await getRuntimeDir()
-  if (await fs.pathExists(runtimeDir)) {
-    const prisma = path.join(runtimeDir, 'prisma')
-    const schemaInferrer = path.join(runtimeDir, 'schema-inferrer-bin')
-    if (!(await fs.pathExists(prisma)) && !(await fs.pathExists(schemaInferrer))) {
-      await download(prisma, schemaInferrer, '0.0.1')
-    }
-  } else {
-    throw new Error(`Cannot download binaries as path ${runtimeDir} does not exist`)
+const exists = promisify(fs.exists)
+
+export async function ensureBinaries(resultPath?: string) {
+  const runtimeDir = resultPath || (await getRuntimeDir())
+  const prisma = path.join(runtimeDir, 'prisma')
+  const schemaInferrer = path.join(runtimeDir, 'schema-inferrer-bin')
+  if (!(await exists(prisma)) && !(await exists(schemaInferrer))) {
+    await download(prisma, schemaInferrer, '0.0.1')
   }
 }
 
 async function getRuntimeDir() {
-  let buildDir = path.join(__dirname, '../runtime')
-  if (await fs.pathExists(buildDir)) {
-    return buildDir
+  let runtimeDir = path.join(__dirname, '../runtime')
+  if (await exists(runtimeDir)) {
+    return runtimeDir
   }
-  buildDir = path.join(__dirname, '../../runtime')
-  if (await fs.pathExists(buildDir)) {
-    return buildDir
+  runtimeDir = path.join(__dirname, '../../runtime')
+  if (await exists(runtimeDir)) {
+    return runtimeDir
   }
+  // node_modules/fetch-engine/run.js
+  runtimeDir = path.join(__dirname, '../../../runtime')
+  if (await exists(runtimeDir)) {
+    return runtimeDir
+  }
+  throw new Error(`Cannot download binaries as path ${runtimeDir} does not exist`)
 }
