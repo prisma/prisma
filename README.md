@@ -44,6 +44,46 @@ It is part of the [Prisma]() ecosystem. Prisma provides a family of tools to sim
 - CLI to support all major workflows
 - Integrates seamlessly in your npm projects (without `npm install`)
 
+## Example
+
+```ts
+// Fetch all posts
+const allPosts = await prisma.posts()
+
+// Fetch user by id or email
+const userById = await prisma.users.findOne({ where: "cjnymovv3s3ht0a516fhmria8" })
+const userByEmail = await prisma.users.findOne({ where: { email: "ada@prisma.io" }})
+
+// Fetch a user with their first 10 posts
+const userWithPosts = await prisma.users.findOne({
+  where: { email: "ada@prisma.io" },
+  include: { posts: { first: 10 } },
+})
+
+// Fetch all published posts
+const posts = await prisma.posts({
+  where: { published: true },
+  orderBy: "createdAt_ASC",
+})
+
+// Create a new user
+const newUser = await prisma.users.create({ data: {
+  name: "Alice",
+  email: "alice@prisma.io",
+}})
+
+// Create a new user with two posts in a single transaction
+const newUser: User = await prisma.createUser({ data: {
+  email: "alice@prisma.io",
+  posts: {
+    create: [
+      { title: "Join us for Prisma Day. June 19, Berlin!" },
+      { title: "Follow Prisma on Twitter!" },
+    ]
+  }
+}});
+```
+
 ## How it works
 
 ### 1. Configure database access
