@@ -11,5 +11,5 @@
     "rootDir": "src",
     "declaration": true
   },
-  "exclude": ["archive", "dist", "build", "cli", "examples", "runtime", "src/fixtures"]
+  "exclude": ["archive", "dist", "build", "cli", "examples", "runtime", "src/fixtures", "src/__tests__"]
 }

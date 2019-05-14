@@ -1,6 +1,6 @@
 {
   "name": "@prisma/engine",
-  "version": "1.0.3",
+  "version": "1.0.10",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
@@ -8,16 +8,18 @@
   "scripts": {
     "build": "tsc -d",
     "prepublishOnly": "yarn build",
-    "install": "prisma-fetch-engine ${PWD}"
+    "install": "node download.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "download.js"
   ],
   "dependencies": {
-    "@prisma/engine-core": "^0.0.5",
-    "@prisma/fetch-engine": "^0.0.9"
+    "@prisma/engine-core": "^0.0.17",
+    "@prisma/fetch-engine": "^0.0.10",
+    "debug": "^4.1.1"
   },
   "devDependencies": {
-    "@types/node": "^12.0.0"
+    "@types/node": "^12.0.1"
   }
 }

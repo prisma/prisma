@@ -105,6 +105,10 @@ export async function download(prismaBinPath: string, schemaInferrerBinPath: str
 }
 
 async function getLocalLastModified(filePath: string): Promise<Date | null> {
+  const fileExists = await exists(filePath)
+  if (!fileExists) {
+    return null
+  }
   const file = await readFile(filePath, 'utf-8')
   if (!file || file.length === 0) {
     return null

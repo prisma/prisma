@@ -32,7 +32,7 @@ export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never :
  */
 export type Subset<T, U> = { [key in keyof T]: key extends keyof U ? T[key] : never }
 
-class PrismaError extends Error {
+class PhotonError extends Error {
   constructor(
     public readonly message: string,
     public readonly query?: string,
@@ -42,7 +42,7 @@ class PrismaError extends Error {
   }
 }
 
-class PrismaFetcher {
+class PhotonFetcher {
   private url?: string
   constructor(private readonly connectionPromise: Promise<string>, private readonly debug = false) {}
   async request<T>(query: string, path: string[] = [], rootField?: string): Promise<T> {
@@ -92,7 +92,7 @@ class PrismaFetcher {
         }
       })
       .catch(errors => {
-        if (!(errors instanceof PrismaError)) {
+        if (!(errors instanceof PhotonError)) {
           return this.handleErrors({ errors, query })
         } else {
           throw errors
@@ -110,7 +110,7 @@ class PrismaFetcher {
   }) {
     const stringified = errors ? JSON.stringify(errors, null, 2) : null
     const message = stringified.length > 0 ? stringified : \`Error in prisma.\$\{rootField || 'query'}\`
-    throw new PrismaError(message, query, errors)
+    throw new PhotonError(message, query, errors)
   }
   protected unpack(result: any, path: string[], rootField?: string) {
     const getPath: string[] = []
@@ -143,7 +143,7 @@ export class TSClient {
  * Client
 **/
 
-${new PrismaClientClass(this.dmmf, this.prismaYmlPath, this.prismaConfig, this.datamodel, this.datamodelJson)}
+${new PhotonClientClass(this.dmmf, this.prismaYmlPath, this.prismaConfig, this.datamodel, this.datamodelJson)}
 
 ${new Query(this.dmmf, 'query')}
 
@@ -179,7 +179,7 @@ const dmmf: DMMF.Document = ${JSON.stringify(this.document, null, 2)}
 }
 
 // maybe shouldn't export this to prevent confusion
-class PrismaClientClass {
+class PhotonClientClass {
   constructor(
     protected readonly dmmf: DMMFClass,
     protected readonly prismaYmlPath: string,
@@ -190,16 +190,16 @@ class PrismaClientClass {
   toString() {
     const { dmmf } = this
     return `
-interface PrismaOptions {
+interface PhotonOptions {
   debug?: boolean
 }
 
-export class Prisma {
-  private fetcher?: PrismaFetcher
+export class Photon {
+  private fetcher?: PhotonFetcher
   private readonly dmmf: DMMFClass
   private readonly engine: Engine
   private readonly connectionPromise: Promise<string>
-  constructor(options?: PrismaOptions) {
+  constructor(options?: PhotonOptions) {
     const debug = options && options.debug || false
     this.engine = new Engine({
       prismaYmlPath: ${JSON.stringify(this.prismaYmlPath)},
@@ -210,7 +210,7 @@ export class Prisma {
     })
     this.dmmf = new DMMFClass(dmmf)
     this.connectionPromise = this.engine.start()
-    this.fetcher = new PrismaFetcher(this.connectionPromise, debug)
+    this.fetcher = new PhotonFetcher(this.connectionPromise, debug)
   }
   async connect() {
     // TODO: Provide autoConnect: false option so that this is even needed
@@ -598,7 +598,7 @@ ${indent(
   tab,
 )}
 }
-function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaFetcher): ${name}Delegate {
+function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delegate {
   const ${name} = <T extends ${name}Args>(args: Subset<T, ${name}Args>) => new ${name}Client<${getSelectReturnType(
       name,
       DMMF.ModelAction.findMany,
@@ -635,14 +635,14 @@ ${indent(
 class ${name}Client<T> implements PromiseLike<T> {
   constructor(
     private readonly dmmf: DMMFClass,
-    private readonly fetcher: PrismaFetcher,
+    private readonly fetcher: PhotonFetcher,
     private readonly queryType: 'query' | 'mutation',
     private readonly rootField: string,
     private readonly clientMethod: string,
     private readonly args: ${name}Args,
     private readonly path: string[]
   ) {}
-  readonly [Symbol.toStringTag]: 'PrismaPromise'
+  readonly [Symbol.toStringTag]: 'PhotonPromise'
 
 ${indent(
   fields
@@ -793,13 +793,13 @@ export class QueryDelegate {
 interface ${name}Delegate {
   <T extends ${name}Args>(args: Subset<T,${name}Args>): PromiseLike<${name}GetPayload<T>>
 }
-function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaFetcher): ${name}Delegate {
+function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delegate {
   const ${name} = <T extends ${name}Args>(args: ${name}Args) => new ${name}Client<T>(dmmf, fetcher, args, [])
   return ${name}
 }
 
 class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements PromiseLike<U> {
-  constructor(private readonly dmmf: DMMFClass,private readonly fetcher: PrismaFetcher, private readonly args: ${name}Args, private readonly path: []) {}
+  constructor(private readonly dmmf: DMMFClass,private readonly fetcher: PhotonFetcher, private readonly args: ${name}Args, private readonly path: []) {}
   readonly [Symbol.toStringTag]: 'Promise'
 
   protected get query() {
