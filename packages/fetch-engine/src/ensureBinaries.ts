@@ -2,11 +2,13 @@ import fs from 'fs'
 import path from 'path'
 import { download } from './download'
 import { promisify } from 'util'
+import makeDir from 'make-dir'
 
 const exists = promisify(fs.exists)
 
 export async function ensureBinaries(resultPath?: string) {
   const runtimeDir = resultPath || (await getRuntimeDir())
+  await makeDir(runtimeDir)
   const prisma = path.join(runtimeDir, 'prisma')
   const schemaInferrer = path.join(runtimeDir, 'schema-inferrer-bin')
   await download(prisma, schemaInferrer, '0.0.1')

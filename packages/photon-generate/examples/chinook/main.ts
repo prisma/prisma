@@ -1,8 +1,7 @@
-import { Prisma } from './@generated/prisma'
+import { Photon } from './@generated/photon'
 
 async function main() {
-  const prisma = new Prisma({ debug: true })
-  console.clear()
+  const prisma = new Photon({ debug: false })
   const result = await prisma.albums.findMany({
     first: 1,
     select: {

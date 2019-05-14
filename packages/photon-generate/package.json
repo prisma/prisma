@@ -1,6 +1,6 @@
 {
   "name": "photon-generate",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "main": "cli/index.js",
   "bin": {
     "photon-generate": "cli/index.js"
@@ -10,7 +10,7 @@
     "tsc": "tsc -d",
     "build": "yarn tsc && yarn ncc:runtime && yarn ncc:cli",
     "test": "jest",
-    "ncc:runtime": "ncc build src/runtime/index.ts -o runtime",
+    "ncc:runtime": "node scripts/build-runtime.js",
     "ncc:cli": "ncc build dist/cli.js -o cli ",
     "install": "prisma-fetch-engine $PWD/runtime",
     "prepublishOnly": "yarn build"
@@ -26,7 +26,7 @@
   ],
   "devDependencies": {
     "@prisma/dmmf": "^0.1.9",
-    "@prisma/engine-core": "^0.0.10",
+    "@prisma/engine-core": "^0.0.17",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
     "@types/node": "^12.0.1",
@@ -36,9 +36,11 @@
     "chalk": "^2.4.2",
     "commander": "^2.20.0",
     "death": "^1.1.0",
+    "del": "^4.1.1",
     "fast-copy": "^2.0.3",
     "folder-hash": "^3.0.0",
     "fs-extra": "^8.0.1",
+    "fs-monkey": "^0.3.3",
     "get-own-enumerable-property-symbols": "^3.0.0",
     "immer": "^3.1.1",
     "immutable": "^4.0.0-rc.12",
@@ -48,6 +50,8 @@
     "jest": "^24.8.0",
     "js-levenshtein": "^1.1.6",
     "js-yaml": "^3.13.1",
+    "make-dir": "^3.0.0",
+    "mock-fs": "^4.9.0",
     "node-fetch": "^2.5.0",
     "object-path-immutable": "^3.0.2",
     "prettier": "^1.17.1",
@@ -63,6 +67,6 @@
     "zlib": "^1.0.5"
   },
   "dependencies": {
-    "@prisma/fetch-engine": "^0.0.9"
+    "@prisma/fetch-engine": "^0.0.10"
   }
 }

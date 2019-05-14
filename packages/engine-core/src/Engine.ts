@@ -5,6 +5,7 @@ import * as path from 'path'
 import * as net from 'net'
 import debugLib from 'debug'
 import fetch from 'node-fetch'
+import { getInternalDatamodelJson } from './getInternalDatamodelJson'
 
 const debug = debugLib('engine')
 
@@ -40,6 +41,8 @@ export class Engine {
   datamodel: string
   schemaInferrerPath: string
   prismaPath: string
+  static defaultSchemaInferrerPath = path.join(__dirname, '../schema-inferrer-bin')
+  static defaultPrismaPath = path.join(__dirname, '../prisma')
   constructor({
     prismaConfig,
     debug,
@@ -55,8 +58,8 @@ export class Engine {
     this.debug = debug || false
     this.datamodelJson = datamodelJson
     this.datamodel = datamodel
-    this.schemaInferrerPath = schemaInferrerPath || path.join(__dirname, '../schema-inferrer-bin')
-    this.prismaPath = prismaPath || path.join(__dirname, '../prisma')
+    this.schemaInferrerPath = schemaInferrerPath || Engine.defaultSchemaInferrerPath
+    this.prismaPath = prismaPath || Engine.defaultPrismaPath
     if (debug) {
       debugLib.enable('engine')
     }
@@ -78,34 +81,40 @@ export class Engine {
     this.prismaConfig = this.prismaConfig || (await this.getPrismaYml(this.prismaYmlPath))
     const PRISMA_CONFIG = this.generatePrismaConfig()
     const schemaEnv: any = {}
-    if (this.datamodelJson) {
-      schemaEnv.PRISMA_INTERNAL_DATA_MODEL_JSON = this.datamodelJson
-    } else {
-      schemaEnv.SCHEMA_INFERRER_PATH = this.schemaInferrerPath
+    if (!this.datamodelJson) {
+      this.datamodelJson = await getInternalDatamodelJson(this.datamodel)
     }
+    debug(`Starting binary at ${this.prismaPath}`)
     const env = {
       PRISMA_CONFIG,
       PRISMA_SDL: this.datamodel,
       SERVER_ROOT: process.cwd(),
+      PRISMA_INTERNAL_DATA_MODEL_JSON: this.datamodelJson,
       ...schemaEnv,
     }
-    fs.writeFileSync('env.json', JSON.stringify(env))
     debug(env)
     this.child = spawn(this.prismaPath, [], {
       env,
       detached: false,
-      stdio: this.debug ? 'inherit' : 'pipe',
+      // stdio: '',
       cwd: this.cwd,
     })
+    this.child.stderr.on('data', d => {
+      debug(d.toString())
+    })
+    this.child.stdout.on('data', d => {
+      debug(d.toString())
+    })
     this.child.on('error', e => {
+      debug(e)
       throw e
     })
-    this.child.on('exit', code => {
+    this.child.on('exit', (code, e) => {
       if (code !== 0 && !this.exiting) {
         const debugString = this.debug
           ? ''
           : 'Please enable "debug": true in the Engine constructor to get more insights.'
-        throw new Error(`Child exited with code ${code}${debugString}`)
+        throw new Error(`Child exited with code ${code}${debugString}${e}`)
       }
     })
 
@@ -115,7 +124,8 @@ export class Engine {
     process.once('uncaughtException', this.stop)
 
     await this.engineReady()
-    return `http://localhost:${this.port}`
+    const url = `http://localhost:${this.port}`
+    return url
   }
 
   /**
@@ -178,7 +188,7 @@ export class Engine {
           return
         }
       } catch (e) {
-        debug(e)
+        debug(e.message)
         if (tries >= 100) {
           throw e
         }
