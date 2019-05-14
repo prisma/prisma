@@ -1,6 +1,6 @@
 {
   "name": "photon-generate",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "cli/index.js",
   "bin": {
     "photon-generate": "cli/index.js"
@@ -63,7 +63,7 @@
     "strip-indent": "^3.0.0",
     "ts-jest": "^24.0.2",
     "ts-node": "^8.1.0",
-    "typescript": "^3.5.0-dev.20190509",
+    "typescript": "^3.5.0-dev.20190514",
     "zlib": "^1.0.5"
   },
   "dependencies": {

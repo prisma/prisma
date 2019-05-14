@@ -42,7 +42,11 @@ async function getDatamodelPath(config: string, configPath: string) {
   throw new Error(`${configPath} doesn't have a datamodel property`)
 }
 
-program.option('-o, --output <dir>', 'The output directory of Photon', path.join(process.cwd(), '/@generated/photon'))
+program.option(
+  '-o, --output <dir>',
+  'The output directory of Photon',
+  path.join(process.cwd(), '/node_modules/@generated/photon'),
+)
 program.parse(process.argv)
 
 async function main() {
@@ -52,7 +56,7 @@ async function main() {
   const datamodel = await fs.readFile(datamodelPath, 'utf-8')
   const before = performance.now()
   console.log(`Generating Photon to ${program.output}`)
-  await generateClient(datamodel, ymlPath, program.output)
+  await generateClient(datamodel, ymlPath, program.output, true)
   console.log(`Done generating Photon in ${(performance.now() - before).toFixed(2)}ms`)
   if (program.output) {
     console.log(`\nYou can import it with ${chalk.greenBright(`import { Photon } from '@generated/photon'`)}`)
