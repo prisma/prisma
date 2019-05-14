@@ -734,7 +734,7 @@ function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delega
 }
 
 class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements PromiseLike<U> {
-  constructor(private readonly dmmf: DMMFClass,private readonly fetcher: PhotonFetcher, private readonly args: ${name}Args, private readonly path: []) {}
+  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PhotonFetcher, private readonly args: ${name}Args, private readonly path: []) {}
   readonly [Symbol.toStringTag]: 'Promise'
 
   protected get query() {
