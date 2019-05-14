@@ -125,7 +125,13 @@ class PrismaFetcher {
 
 export class TSClient {
   protected readonly dmmf: DMMFClass
-  constructor(protected readonly document: DMMF.Document, protected readonly prismaYmlPath: string) {
+  constructor(
+    protected readonly document: DMMF.Document,
+    protected readonly prismaYmlPath: string,
+    protected readonly prismaConfig: string,
+    protected readonly datamodel: string,
+    protected readonly datamodelJson: string,
+  ) {
     // We make a deep clone here as otherwise we would serialize circular references
     // which we're building up in the DMMFClass
     this.dmmf = new DMMFClass(copy(document))
@@ -137,7 +143,7 @@ export class TSClient {
  * Client
 **/
 
-${new PrismaClientClass(this.dmmf, this.prismaYmlPath)}
+${new PrismaClientClass(this.dmmf, this.prismaYmlPath, this.prismaConfig, this.datamodel, this.datamodelJson)}
 
 ${new Query(this.dmmf, 'query')}
 
@@ -174,15 +180,16 @@ const dmmf: DMMF.Document = ${JSON.stringify(this.document, null, 2)}
 
 // maybe shouldn't export this to prevent confusion
 class PrismaClientClass {
-  constructor(protected readonly dmmf: DMMFClass, protected readonly prismaYmlPath: string) {}
+  constructor(
+    protected readonly dmmf: DMMFClass,
+    protected readonly prismaYmlPath: string,
+    protected readonly prismaConfig: string,
+    protected readonly datamodel: string,
+    protected readonly datamodelJson: string,
+  ) {}
   toString() {
     const { dmmf } = this
     return `
-// could be a class if we want to require new Prisma(...)
-// export default function Prisma() {
-//   return new PrismaClient(null as any)
-// } 
-
 interface PrismaOptions {
   debug?: boolean
 }
@@ -194,7 +201,13 @@ export class Prisma {
   private readonly connectionPromise: Promise<string>
   constructor(options?: PrismaOptions) {
     const debug = options && options.debug || false
-    this.engine = new Engine({ prismaYmlPath: '${this.prismaYmlPath}', debug })
+    this.engine = new Engine({
+      prismaYmlPath: ${JSON.stringify(this.prismaYmlPath)},
+      debug,
+      datamodel: ${JSON.stringify(this.datamodel)},
+      prismaConfig: ${JSON.stringify(this.prismaConfig)},
+      datamodelJson: ${JSON.stringify(this.datamodelJson)}
+    })
     this.dmmf = new DMMFClass(dmmf)
     this.connectionPromise = this.engine.start()
     this.fetcher = new PrismaFetcher(this.connectionPromise, debug)

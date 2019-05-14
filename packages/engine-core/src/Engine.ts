@@ -75,6 +75,7 @@ export class Engine {
   // TODO: Maybe use p-retry to be more fault resistent against used ports
   async start(): Promise<string> {
     this.port = await this.getFreePort()
+    this.prismaConfig = this.prismaConfig || (await this.getPrismaYml(this.prismaYmlPath))
     const PRISMA_CONFIG = this.generatePrismaConfig()
     const schemaEnv: any = {}
     if (this.datamodelJson) {
@@ -88,6 +89,7 @@ export class Engine {
       SERVER_ROOT: process.cwd(),
       ...schemaEnv,
     }
+    fs.writeFileSync('env.json', JSON.stringify(env))
     debug(env)
     this.child = spawn(this.prismaPath, [], {
       env,
@@ -138,7 +140,7 @@ export class Engine {
         const port = typeof address === 'string' ? parseInt(address.split(':').slice(-1)[0], 10) : address.port
         server.close(e => {
           if (e) {
-            throw e
+            reject(e)
           }
           resolve(port)
         })
