@@ -133,11 +133,11 @@ LineStream.prototype._flush = function(done) {
 // see Readable::push
 LineStream.prototype._reencode = function(line, chunkEncoding) {
   if (this.encoding && this.encoding != chunkEncoding) {
-    return new Buffer(line, chunkEncoding).toString(this.encoding)
+    return Buffer.from(line, chunkEncoding).toString(this.encoding)
   } else if (this.encoding) {
     // this should be the most common case, i.e. we're using an encoded source stream
     return line
   } else {
-    return new Buffer(line, chunkEncoding)
+    return Buffer.from(line, chunkEncoding)
   }
 }

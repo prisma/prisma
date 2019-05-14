@@ -6,7 +6,6 @@ import { safeLoad } from 'js-yaml'
 import { generateClient } from './generation'
 import { performance } from 'perf_hooks'
 import chalk from 'chalk'
-import { ensureBinaries } from './download/ensurebinaries'
 
 async function getPrismaYmlPath() {
   if (await fs.pathExists('prisma.yml')) {
@@ -55,7 +54,6 @@ async function main() {
   const config = await fs.readFile(ymlPath, 'utf-8')
   const datamodelPath = await getDatamodelPath(config, ymlPath)
   const datamodel = await fs.readFile(datamodelPath, 'utf-8')
-  // await ensureBinaries()
   const before = performance.now()
   console.log(`Generating Photon to ${program.output}`)
   await generateClient(datamodel, ymlPath, program.output)

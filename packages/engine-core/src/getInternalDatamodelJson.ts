@@ -24,7 +24,7 @@ export function getInternalDatamodelJson(
     const out = byline(proc.stdout)
     out.on('data', line => {
       const result = JSON.parse(line)
-      const resultB64 = new Buffer(result).toString('base64')
+      const resultB64 = Buffer.from(JSON.stringify(result)).toString('base64')
       resolve(resultB64)
     })
 
