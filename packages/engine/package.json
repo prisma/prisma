@@ -1,6 +1,6 @@
 {
   "name": "@prisma/engine",
-  "version": "1.0.10",
+  "version": "1.0.12",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
@@ -15,7 +15,7 @@
     "download.js"
   ],
   "dependencies": {
-    "@prisma/engine-core": "^0.0.17",
+    "@prisma/engine-core": "^0.0.21",
     "@prisma/fetch-engine": "^0.0.10",
     "debug": "^4.1.1"
   },

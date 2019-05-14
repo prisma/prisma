@@ -21,6 +21,12 @@ interface EngineConfig {
 
 const readFile = promisify(fs.readFile)
 
+class PhotonError extends Error {
+  constructor(public readonly message: string, public readonly query?: string, public readonly error?: any) {
+    super(message)
+  }
+}
+
 /**
  * Node.js based wrapper to run the Prisma binary
  */
@@ -41,28 +47,31 @@ export class Engine {
   datamodel: string
   schemaInferrerPath: string
   prismaPath: string
+  url: string
+  startPromise: Promise<string>
   static defaultSchemaInferrerPath = path.join(__dirname, '../schema-inferrer-bin')
   static defaultPrismaPath = path.join(__dirname, '../prisma')
   constructor({
     prismaConfig,
-    debug,
     datamodelJson,
     prismaYmlPath,
     datamodel,
     schemaInferrerPath,
     prismaPath,
+    ...args
   }: EngineConfig) {
     this.prismaYmlPath = prismaYmlPath
     this.prismaConfig = prismaConfig
     this.cwd = path.dirname(this.prismaYmlPath)
-    this.debug = debug || false
+    this.debug = args.debug || false
     this.datamodelJson = datamodelJson
     this.datamodel = datamodel
     this.schemaInferrerPath = schemaInferrerPath || Engine.defaultSchemaInferrerPath
     this.prismaPath = prismaPath || Engine.defaultPrismaPath
-    if (debug) {
+    if (this.debug) {
       debugLib.enable('engine')
     }
+    this.startPromise = this.start()
   }
 
   /**
@@ -75,57 +84,60 @@ export class Engine {
   /**
    * Starts the engine, returns the url that it runs on
    */
-  // TODO: Maybe use p-retry to be more fault resistent against used ports
-  async start(): Promise<string> {
-    this.port = await this.getFreePort()
-    this.prismaConfig = this.prismaConfig || (await this.getPrismaYml(this.prismaYmlPath))
-    const PRISMA_CONFIG = this.generatePrismaConfig()
-    const schemaEnv: any = {}
-    if (!this.datamodelJson) {
-      this.datamodelJson = await getInternalDatamodelJson(this.datamodel)
-    }
-    debug(`Starting binary at ${this.prismaPath}`)
-    const env = {
-      PRISMA_CONFIG,
-      PRISMA_SDL: this.datamodel,
-      SERVER_ROOT: process.cwd(),
-      PRISMA_INTERNAL_DATA_MODEL_JSON: this.datamodelJson,
-      ...schemaEnv,
-    }
-    debug(env)
-    this.child = spawn(this.prismaPath, [], {
-      env,
-      detached: false,
-      // stdio: '',
-      cwd: this.cwd,
-    })
-    this.child.stderr.on('data', d => {
-      debug(d.toString())
-    })
-    this.child.stdout.on('data', d => {
-      debug(d.toString())
-    })
-    this.child.on('error', e => {
-      debug(e)
-      throw e
-    })
-    this.child.on('exit', (code, e) => {
-      if (code !== 0 && !this.exiting) {
-        const debugString = this.debug
-          ? ''
-          : 'Please enable "debug": true in the Engine constructor to get more insights.'
-        throw new Error(`Child exited with code ${code}${debugString}${e}`)
+  start(): Promise<string> {
+    return new Promise(async (resolve, reject) => {
+      this.port = await this.getFreePort()
+      this.prismaConfig = this.prismaConfig || (await this.getPrismaYml(this.prismaYmlPath))
+      const PRISMA_CONFIG = this.generatePrismaConfig()
+      const schemaEnv: any = {}
+      if (!this.datamodelJson) {
+        this.datamodelJson = await getInternalDatamodelJson(this.datamodel)
       }
+      debug(`Starting binary at ${this.prismaPath}`)
+      const env = {
+        PRISMA_CONFIG,
+        PRISMA_SDL: this.datamodel,
+        SERVER_ROOT: process.cwd(),
+        PRISMA_INTERNAL_DATA_MODEL_JSON: this.datamodelJson,
+        ...schemaEnv,
+      }
+      debug(env)
+      this.child = spawn(this.prismaPath, [], {
+        env,
+        detached: false,
+        // stdio: '',
+        cwd: this.cwd,
+      })
+      this.child.stderr.on('data', d => {
+        debug(d.toString())
+      })
+      this.child.stdout.on('data', d => {
+        debug(d.toString())
+      })
+      this.child.on('error', e => {
+        debug(e)
+        reject(e)
+      })
+      this.child.on('exit', (code, e) => {
+        if (code !== 0 && !this.exiting) {
+          const debugString = this.debug
+            ? ''
+            : 'Please enable "debug": true in the Engine constructor to get more insights.'
+          throw new Error(`Child exited with code ${code}${debugString}${e}`)
+        }
+      })
+
+      // Make sure we kill Rust when this process is being killed
+      process.once('SIGTERM', this.stop)
+      process.once('SIGINT', this.stop)
+      process.once('uncaughtException', this.stop)
+      process.once('unhandledRejection', this.stop)
+
+      await this.engineReady()
+      const url = `http://localhost:${this.port}`
+      this.url = url
+      resolve(url)
     })
-
-    // Make sure we kill Rust when this process is being killed
-    process.once('SIGTERM', this.stop)
-    process.once('SIGINT', this.stop)
-    process.once('uncaughtException', this.stop)
-
-    await this.engineReady()
-    const url = `http://localhost:${this.port}`
-    return url
   }
 
   /**
@@ -133,6 +145,7 @@ export class Engine {
    */
   stop = () => {
     if (this.child) {
+      debug(`Stopping Prisma engine`)
       this.exiting = true
       this.child.kill()
       delete this.child
@@ -196,5 +209,57 @@ export class Engine {
         tries++
       }
     }
+  }
+
+  async request<T>(query: string): Promise<T> {
+    if (!this.url) {
+      await this.startPromise // allows lazily connecting the client to Rust and Rust to the Datasource
+    }
+    return fetch<any>(this.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query, variables: {}, operationName: '' }),
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(body => {
+            const { status, statusText } = response
+            this.handleErrors({
+              errors: {
+                status,
+                statusText,
+                body,
+              },
+              query,
+            })
+          })
+        } else {
+          return response.json().then(result => {
+            const { data } = result
+            const errors = result.error || result.errors
+            if (errors) {
+              return this.handleErrors({
+                errors,
+                query,
+              })
+            }
+            return data
+          })
+        }
+      })
+      .catch(errors => {
+        if (!(errors instanceof PhotonError)) {
+          return this.handleErrors({ errors, query })
+        } else {
+          throw errors
+        }
+      })
+  }
+  handleErrors({ errors, query }: { errors?: any; query: string }) {
+    const stringified = errors ? JSON.stringify(errors, null, 2) : null
+    const message = stringified.length > 0 ? stringified : `Error in prisma.\$\{rootField || 'query'}`
+    throw new PhotonError(message, query, errors)
   }
 }

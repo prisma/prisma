@@ -6,7 +6,9 @@ import copy from 'fast-copy'
 
 const tab = 2
 
-const commonCode = `import { DMMF, DMMFClass, fetch, deepGet, deepSet, makeDocument, Engine } from './runtime'
+const commonCode = `import { DMMF, DMMFClass, deepGet, deepSet, makeDocument, Engine, debugLib } from './runtime'
+
+const debug = debugLib('photon')
 
 /**
  * Utility Types
@@ -32,85 +34,14 @@ export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never :
  */
 export type Subset<T, U> = { [key in keyof T]: key extends keyof U ? T[key] : never }
 
-class PhotonError extends Error {
-  constructor(
-    public readonly message: string,
-    public readonly query?: string,
-    public readonly error?: any,
-  ) {
-    super(message)
-  }
-}
-
 class PhotonFetcher {
   private url?: string
-  constructor(private readonly connectionPromise: Promise<string>, private readonly debug = false) {}
+  constructor(private readonly engine: Engine, private readonly debug = false) {}
   async request<T>(query: string, path: string[] = [], rootField?: string): Promise<T> {
-    if (!this.url) {
-      this.url = await this.connectionPromise // allows lazily connecting the client to Rust and Rust to the Datasource
-    }
-    if (this.debug) {
-      console.log(query)
-    }
-    return fetch<any>(this.url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ query, variables: {}, operationName: '' }),
-    })
-      .then(response => {
-        if (!response.ok) {
-          return response.text().then(body => {
-            const { status, statusText } = response
-            this.handleErrors({
-              errors: {
-                status,
-                statusText,
-                body,
-              },
-              query,
-              rootField,
-            })
-          })
-        } else {
-          return response.json().then((result) => {
-            const {data} = result
-            if (this.debug) {
-              console.log(result)
-            }
-            const errors = result.error || result.errors
-            if (errors) {
-              return this.handleErrors({
-                errors,
-                query,
-                rootField,
-              })
-            }
-            return this.unpack(data, path, rootField)
-          })
-        }
-      })
-      .catch(errors => {
-        if (!(errors instanceof PhotonError)) {
-          return this.handleErrors({ errors, query })
-        } else {
-          throw errors
-        }
-      })
-  }
-  handleErrors({
-    errors,
-    query,
-    rootField
-  }: {
-    errors?: any
-    query: string
-    rootField?: string
-  }) {
-    const stringified = errors ? JSON.stringify(errors, null, 2) : null
-    const message = stringified.length > 0 ? stringified : \`Error in prisma.\$\{rootField || 'query'}\`
-    throw new PhotonError(message, query, errors)
+    debug(query)
+    const result = await this.engine.request(query)
+    debug(result)
+    return this.unpack(result, path, rootField)
   }
   protected unpack(result: any, path: string[], rootField?: string) {
     const getPath: string[] = []
@@ -191,6 +122,7 @@ class PhotonClientClass {
     const { dmmf } = this
     return `
 interface PhotonOptions {
+  debugEngine?: boolean
   debug?: boolean
 }
 
@@ -198,22 +130,25 @@ export class Photon {
   private fetcher?: PhotonFetcher
   private readonly dmmf: DMMFClass
   private readonly engine: Engine
-  private readonly connectionPromise: Promise<string>
-  constructor(options?: PhotonOptions) {
-    const debug = options && options.debug || false
+  constructor(options: PhotonOptions = {}) {
+    const useDebug = options.debug || false
+    if (useDebug) {
+      debugLib.enable('photon')
+    }
+    const debugEngine = options.debugEngine || false
     this.engine = new Engine({
       prismaYmlPath: ${JSON.stringify(this.prismaYmlPath)},
-      debug,
+      debug: debugEngine,
       datamodel: ${JSON.stringify(this.datamodel)},
       prismaConfig: ${JSON.stringify(this.prismaConfig)},
       datamodelJson: ${JSON.stringify(this.datamodelJson)}
     })
     this.dmmf = new DMMFClass(dmmf)
-    this.connectionPromise = this.engine.start()
-    this.fetcher = new PhotonFetcher(this.connectionPromise, debug)
+    this.fetcher = new PhotonFetcher(this.engine)
   }
   async connect() {
     // TODO: Provide autoConnect: false option so that this is even needed
+    await this.engine.startPromise
   }
   async close() {
     this.engine.stop()
