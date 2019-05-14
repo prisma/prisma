@@ -1,7 +1,8 @@
 import { Photon } from './@generated/photon'
 
 async function main() {
-  const prisma = new Photon({ debug: false })
+  const prisma = new Photon()
+  console.clear()
   const result = await prisma.albums.findMany({
     first: 1,
     select: {
@@ -9,7 +10,7 @@ async function main() {
     },
   })
   console.log(result)
-  await prisma.close()
+  prisma.close()
 }
 
 main().catch(console.error)
