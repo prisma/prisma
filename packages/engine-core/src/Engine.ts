@@ -22,7 +22,13 @@ interface EngineConfig {
 const readFile = promisify(fs.readFile)
 
 class PhotonError extends Error {
-  constructor(public readonly message: string, public readonly query?: string, public readonly error?: any) {
+  constructor(
+    public readonly message: string,
+    public readonly query?: string,
+    public readonly error?: any,
+    public readonly logs?: string,
+    public readonly isPanicked?: boolean,
+  ) {
     super(message)
   }
 }
@@ -49,6 +55,7 @@ export class Engine {
   prismaPath: string
   url: string
   startPromise: Promise<string>
+  errorLogs: string = ''
   static defaultSchemaInferrerPath = path.join(__dirname, '../schema-inferrer-bin')
   static defaultPrismaPath = path.join(__dirname, '../prisma')
   constructor({
@@ -85,6 +92,9 @@ export class Engine {
    * Starts the engine, returns the url that it runs on
    */
   start(): Promise<string> {
+    if (this.startPromise) {
+      return this.startPromise
+    }
     return new Promise(async (resolve, reject) => {
       this.port = await this.getFreePort()
       this.prismaConfig = this.prismaConfig || (await this.getPrismaYml(this.prismaYmlPath))
@@ -109,12 +119,15 @@ export class Engine {
         cwd: this.cwd,
       })
       this.child.stderr.on('data', d => {
-        debug(d.toString())
+        const str = d.toString()
+        this.errorLogs += str
+        debug(str)
       })
       this.child.stdout.on('data', d => {
         debug(d.toString())
       })
       this.child.on('error', e => {
+        this.errorLogs += e.toString()
         debug(e)
         reject(e)
       })
@@ -260,6 +273,10 @@ export class Engine {
   handleErrors({ errors, query }: { errors?: any; query: string }) {
     const stringified = errors ? JSON.stringify(errors, null, 2) : null
     const message = stringified.length > 0 ? stringified : `Error in prisma.\$\{rootField || 'query'}`
-    throw new PhotonError(message, query, errors)
+    const isPanicked = this.errorLogs.includes('panicked')
+    if (isPanicked) {
+      this.stop()
+    }
+    throw new PhotonError(message, query, errors, this.errorLogs, isPanicked)
   }
 }
