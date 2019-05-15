@@ -35,7 +35,10 @@ export async function generateClient(
   const generatedClient = String(client)
   await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
   const target = path.join(outputDir, 'index.ts')
-  // await fs.writeFile(target, generatedClient)
+  if (!transpile) {
+    await fs.writeFile(target, generatedClient)
+    return
+  }
 
   const options: CompilerOptions = {
     module: ModuleKind.CommonJS,
@@ -46,6 +49,11 @@ export async function generateClient(
     suppressOutputPathCheck: false,
   }
   const file: any = { fileName: target, content: generatedClient }
+  // /**
+  //  * If transpile === true, replace index.ts with index.js and index.d.ts
+  //  * WARNING: This takes a long time
+  //  * TODO: Implement transpilation as a separate code generator
+  //  */
 
   const compilerHost = createCompilerHost(options)
   const originalGetSourceFile = compilerHost.getSourceFile
@@ -57,36 +65,9 @@ export async function generateClient(
     }
     return originalGetSourceFile.call(compilerHost, newFileName)
   }
-  // compilerHost.writeFile = (fileName, data, writeByteOrderMark, onError, sourceFiles) => {
-  //   fs.writeFileSync(fileName, data)
-  // }
 
   const program = createProgram([file.fileName], options, compilerHost)
-  let emitResult = program.emit()
-  console.log(emitResult)
-
-  // /**
-  //  * If transpile === true, replace index.ts with index.js and index.d.ts
-  //  * WARNING: This takes a long time
-  //  * TODO: Implement transpilation as a separate code generator
-  //  */
-  // if (transpile) {
-  //   const before = Date.now()
-  //   const result = createProgram({
-  //     rootNames: [target],
-  //     options: {
-  //       declaration: true,
-  //       lib: ['esnext'],
-  //       target: ScriptTarget.ES2015,
-  //       module: ModuleKind.CommonJS,
-  //     },
-  //   }).emit()
-  //   const after = Date.now()
-  //   console.log(`Compiled TypeScript in ${after - before}ms`)
-  //   await fs.remove(target)
-  //   debug(result)
-  //   debug(`Removed ${target}`)
-  // }
+  program.emit()
 }
 
 function redirectToLib(fileName: string) {
