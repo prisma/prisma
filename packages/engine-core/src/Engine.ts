@@ -91,7 +91,7 @@ export class Engine {
       const PRISMA_CONFIG = this.generatePrismaConfig()
       const schemaEnv: any = {}
       if (!this.datamodelJson) {
-        this.datamodelJson = await getInternalDatamodelJson(this.datamodel)
+        this.datamodelJson = await getInternalDatamodelJson(this.datamodel, this.schemaInferrerPath)
       }
       debug(`Starting binary at ${this.prismaPath}`)
       const env = {
