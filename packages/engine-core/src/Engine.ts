@@ -115,7 +115,6 @@ export class Engine {
       this.child = spawn(this.prismaPath, [], {
         env,
         detached: false,
-        // stdio: '',
         cwd: this.cwd,
       })
       this.child.stderr.on('data', d => {
