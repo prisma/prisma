@@ -3,7 +3,7 @@ import program from 'commander'
 import path from 'path'
 import fs from 'fs-extra'
 import { safeLoad } from 'js-yaml'
-import { generateClient } from './generation'
+import { generateClient } from './generation/generateClient'
 import { performance } from 'perf_hooks'
 import chalk from 'chalk'
 
