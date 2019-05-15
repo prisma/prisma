@@ -11,7 +11,6 @@ import {
   createSourceFile,
   CompilerOptions,
 } from 'typescript'
-const debug = require('debug')('generate')
 
 export async function generateClient(
   datamodel: string,
@@ -24,10 +23,9 @@ export async function generateClient(
   }
 
   const prismaConfig = await fs.readFile(prismaYmlPath, 'utf-8')
-  const internalDatamodelJson = await getInternalDatamodelJson(
-    datamodel,
-    path.join(__dirname, '../../runtime/schema-inferrer-bin'),
-  )
+  const internalDatamodelJson =
+    process.env.PRISMA_INTERNAL_DATAMODEL_JSON ||
+    (await getInternalDatamodelJson(datamodel, path.join(__dirname, '../../runtime/schema-inferrer-bin')))
 
   await fs.mkdirp(outputDir)
 
