@@ -520,24 +520,36 @@ export class ModelDelegate {
     // TODO: The following code needs to be split up and is a mess
     return `\
 export interface ${name}Delegate {
-  <T extends ${name}Args>(args: Subset<T,${name}Args>): ${getSelectReturnType(name, DMMF.ModelAction.findMany)}
+  <T extends ${getModelArgName(name, DMMF.ModelAction.findMany)}>(args: Subset<T, ${getModelArgName(
+      name,
+      DMMF.ModelAction.findMany,
+    )}>): ${getSelectReturnType({
+      name,
+      actionName: DMMF.ModelAction.findMany,
+      hideCondition: true,
+      isField: false,
+      renderPromise: true,
+    })}
 ${indent(
   actions
     .map(
       ([actionName]: [DMMF.ModelAction, string]) =>
         `${actionName}<T extends ${getModelArgName(name, actionName)}>(
   args: Subset<T, ${getModelArgName(name, actionName)}>
-): ${getSelectReturnType(name, actionName)}`,
+): ${getSelectReturnType({ name, actionName })}`,
     )
     .join('\n'),
   tab,
 )}
 }
 function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delegate {
-  const ${name} = <T extends ${name}Args>(args: Subset<T, ${name}Args>) => new ${name}Client<${getSelectReturnType(
+  const ${name} = <T extends ${getModelArgName(name, DMMF.ModelAction.findMany)}>(args: Subset<T, ${getModelArgName(
       name,
       DMMF.ModelAction.findMany,
-    )}>(dmmf, fetcher, 'query', '${mapping.findMany}', '${mapping.findMany}', args, [])
+    )}>) => new ${name}Client<${getSelectReturnType({
+      name,
+      actionName: DMMF.ModelAction.findMany,
+    })}>(dmmf, fetcher, 'query', '${mapping.findMany}', '${mapping.findMany}', args, [])
 ${indent(
   actions
     .map(
@@ -547,11 +559,12 @@ ${indent(
           actionName as DMMF.ModelAction,
         )}>(args: Subset<T, ${getModelArgName(name, actionName as DMMF.ModelAction)}>) => ${
           actionName !== 'findMany' ? `args.select ? ` : ''
-        }new ${name}Client<${getSelectReturnType(name, actionName, false, true)}>(${renderInitialClientArgs(
+        }new ${name}Client<${getSelectReturnType({
+          name,
           actionName,
-          fieldName,
-          mapping,
-        )})${
+          hideCondition: false,
+          isField: true,
+        })}>(${renderInitialClientArgs(actionName, fieldName, mapping)})${
           actionName !== 'findMany'
             ? ` : new ${name}Client<${getType(name, actionName === 'findMany')}>(${renderInitialClientArgs(
                 actionName,
@@ -585,24 +598,24 @@ ${indent(
     .map(f => {
       const fieldTypeName = (f.type as DMMF.OutputType).name
       return `private _${f.name}?: ${getFieldTypeName(f)}Client<any>
-${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType(
-        fieldTypeName,
-        f.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
-        true,
-        false,
-        true,
-      )} {
+${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType({
+        name: fieldTypeName,
+        actionName: f.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
+        hideCondition: true,
+        isField: true,
+        renderPromise: true,
+      })} {
   const path = [...this.path, 'select', '${f.name}']
   const newArgs = deepSet(this.args, path, args || true)
   return this._${f.name}
     ? this._${f.name}
-    : (this._${f.name} = new ${getFieldTypeName(f)}Client<${getSelectReturnType(
-        fieldTypeName,
-        f.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
-        false,
-        false,
-        true,
-      )}>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path)) as any
+    : (this._${f.name} = new ${getFieldTypeName(f)}Client<${getSelectReturnType({
+        name: fieldTypeName,
+        actionName: f.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
+        hideCondition: false,
+        isField: true,
+        renderPromise: true,
+      })}>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path)) as any
 }`
     })
     .join('\n'),
@@ -610,7 +623,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
 )}
 
   protected get query() {
-    const {rootField} = this
+    const { rootField } = this
     const document = makeDocument({
       dmmf: this.dmmf,
       rootField,
@@ -666,18 +679,26 @@ function renderInitialClientArgs(actionName: DMMF.ModelAction, fieldName: string
   []\n`
 }
 
+interface SelectReturnTypeOptions {
+  name: string
+  actionName: DMMF.ModelAction
+  renderPromise?: boolean
+  hideCondition?: boolean
+  isField?: boolean
+}
+
 /**
  * Get the complicated extract output
  * @param name Model name
  * @param actionName action name
  */
-function getSelectReturnType(
-  name: string,
-  actionName: DMMF.ModelAction,
-  renderPromise: boolean = true,
-  hideCondition: boolean = false,
-  isField: boolean = false,
-) {
+function getSelectReturnType({
+  name,
+  actionName,
+  renderPromise = true,
+  hideCondition = false,
+  isField = false,
+}: SelectReturnTypeOptions) {
   const isList = actionName === DMMF.ModelAction.findMany
 
   const argName = isField ? getArgName(name, isList) : getModelArgName(name, actionName as DMMF.ModelAction)

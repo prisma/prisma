@@ -5,11 +5,11 @@ import path from 'path'
 
 async function main() {
   const before = performance.now()
-  generateClient(
+  await generateClient(
     chinook,
     path.join(__dirname, './chinook/prisma.yml'),
-    path.join(__dirname, './chinook/node_modules/@generated/photon'),
-    true,
+    path.join(__dirname, './chinook/@generated/photon'),
+    false,
   )
   const after = performance.now()
   console.log(`Generated Photon in ${(after - before).toFixed(3)}ms`)

@@ -35,10 +35,17 @@ export async function generateClient(
   const generatedClient = String(client)
   await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
   const target = path.join(outputDir, 'index.ts')
+
   if (!transpile) {
     await fs.writeFile(target, generatedClient)
     return
   }
+
+  /**
+   * If transpile === true, replace index.ts with index.js and index.d.ts
+   * WARNING: This takes a long time
+   * TODO: Implement transpilation as a separate code generator
+   */
 
   const options: CompilerOptions = {
     module: ModuleKind.CommonJS,
@@ -49,11 +56,6 @@ export async function generateClient(
     suppressOutputPathCheck: false,
   }
   const file: any = { fileName: target, content: generatedClient }
-  // /**
-  //  * If transpile === true, replace index.ts with index.js and index.d.ts
-  //  * WARNING: This takes a long time
-  //  * TODO: Implement transpilation as a separate code generator
-  //  */
 
   const compilerHost = createCompilerHost(options)
   const originalGetSourceFile = compilerHost.getSourceFile
