@@ -1,6 +1,6 @@
 {
   "name": "photon-generate",
-  "version": "0.0.10",
+  "version": "0.0.13",
   "main": "cli/index.js",
   "bin": {
     "photon-generate": "cli/index.js"
@@ -38,6 +38,7 @@
     "commander": "^2.20.0",
     "death": "^1.1.0",
     "del": "^4.1.1",
+    "dotenv": "^8.0.0",
     "fast-copy": "^2.0.3",
     "flat-map-polyfill": "^0.3.8",
     "folder-hash": "^3.0.0",

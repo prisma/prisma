@@ -6,6 +6,7 @@ import { safeLoad } from 'js-yaml'
 import { generateClient } from './generation/generateClient'
 import { performance } from 'perf_hooks'
 import chalk from 'chalk'
+require('dotenv').config()
 
 async function getPrismaYmlPath() {
   if (await fs.pathExists('prisma.yml')) {
