@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@prisma/engine-core@^0.0.22":
-  version "0.0.22"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.22.tgz#10a8a40b8c6a37fc92de4c6d82d3ca0ecad4b176"
-  integrity sha512-JCliIuv+JFkr+nC4yEbIOiWbYIWnu7A9aGslI66Cpq5olZqnSLMqphFxut0Al3ohHqUD2Wln7NtHfFvaIOSOHw==
+"@prisma/engine-core@^0.0.25":
+  version "0.0.25"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.25.tgz#de051311cae30b2abbc282b73f57b2c02e3e8941"
+  integrity sha512-pAwVaSPi0q1hUGaM0MJgozk+AB43dpuFn6l7SrqqEzebaKaPPtWHRKOzfkOh2qhE/njabeNlbKS9ZHQtpZDKYg==
   dependencies:
     debug "^4.1.1"
     node-fetch "^2.5.0"
@@ -25,10 +25,10 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@types/node@^12.0.1":
-  version "12.0.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.1.tgz#3dde31f8da274dfeb90e96abf55038fef46285f0"
-  integrity sha512-7sy7DKVJrCTbaAERJZq/CU12bzdmpjRr321/Ne9QmzhB3iZ//L16Cizcni5hHNbANxDbxwMb9EFoWkM8KPkp0A==
+"@types/node@^12.0.2":
+  version "12.0.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.2.tgz#3452a24edf9fea138b48fad4a0a028a683da1e40"
+  integrity sha512-5tabW/i+9mhrfEOUcLDu2xBPsHJ+X5Orqy9FKpale3SjDA17j5AEpYq5vfy3oAeAHGcvANRCO3NV3d2D6q3NiA==
 
 "@types/retry@^0.12.0":
   version "0.12.0"
