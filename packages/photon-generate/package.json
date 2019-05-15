@@ -1,6 +1,6 @@
 {
   "name": "photon-generate",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "main": "cli/index.js",
   "bin": {
     "photon-generate": "cli/index.js"
@@ -26,10 +26,10 @@
   ],
   "devDependencies": {
     "@prisma/dmmf": "^0.1.9",
-    "@prisma/engine-core": "^0.0.17",
+    "@prisma/engine-core": "^0.0.25",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
-    "@types/node": "^12.0.1",
+    "@types/node": "^12.0.2",
     "@zeit/ncc": "^0.18.5",
     "async-retry": "^1.2.3",
     "benchmark": "^2.1.4",
