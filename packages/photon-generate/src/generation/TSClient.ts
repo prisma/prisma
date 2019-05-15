@@ -96,7 +96,7 @@ ${this.dmmf.inputTypes
  * DMMF
  */
 
-const dmmf: DMMF.Document = ${JSON.stringify(this.document, null, 2)}
+const dmmf: DMMF.Document = ${JSON.stringify(this.document)}
     `
 
     // /**

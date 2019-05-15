@@ -27,6 +27,10 @@ export async function generateClient(
     process.env.PRISMA_INTERNAL_DATAMODEL_JSON ||
     (await getInternalDatamodelJson(datamodel, path.join(__dirname, '../../runtime/schema-inferrer-bin')))
 
+  if (process.env.PRISMA_INTERNAL_DATAMODEL_JSON) {
+    console.log(`Taking cached datamodel json`)
+  }
+
   await fs.mkdirp(outputDir)
 
   const client = new TSClient(getDMMF(datamodel), prismaYmlPath, prismaConfig, datamodel, internalDatamodelJson)
