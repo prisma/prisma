@@ -70,6 +70,7 @@ export async function generateClient(
   program.emit()
 }
 
+// This is needed because ncc rewrite some paths
 function redirectToLib(fileName: string) {
   const file = path.basename(fileName)
   if (/^lib\.(.*?)\.d\.ts$/.test(file)) {
