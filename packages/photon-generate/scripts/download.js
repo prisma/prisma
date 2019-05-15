@@ -1,0 +1,6 @@
+const { ensureBinaries } = require('@prisma/fetch-engine')
+const path = require('path')
+const debug = require('debug')('download')
+const runtimePath = path.join(__dirname, '../runtime')
+debug(`Downloading binaries to ${runtimePath}`)
+ensureBinaries(runtimePath)

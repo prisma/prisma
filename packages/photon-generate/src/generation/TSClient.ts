@@ -3,6 +3,7 @@ import { DMMFClass } from '../runtime/dmmf'
 import indent from 'indent-string'
 import { GraphQLScalarToJSTypeTable, capitalize } from '../runtime/utils/common'
 import copy from 'fast-copy'
+import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfilled in TypeScript
 
 const tab = 2
 

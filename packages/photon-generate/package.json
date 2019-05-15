@@ -1,6 +1,6 @@
 {
   "name": "photon-generate",
-  "version": "0.0.7",
+  "version": "0.0.10",
   "main": "cli/index.js",
   "bin": {
     "photon-generate": "cli/index.js"
@@ -8,11 +8,12 @@
   "license": "Apache-2.0",
   "scripts": {
     "tsc": "tsc -d",
-    "build": "yarn tsc && yarn ncc:runtime && yarn ncc:cli",
+    "build": "yarn tsc && yarn ncc:runtime && yarn ncc:download && yarn ncc:cli",
     "test": "jest",
     "ncc:runtime": "node scripts/build-runtime.js",
     "ncc:cli": "ncc build dist/cli.js -o cli ",
-    "install": "prisma-fetch-engine $PWD/runtime",
+    "ncc:download": "ncc build scripts/download.js -o download && rm -f download/runtime/prisma download/runtime/schema-inferrer-bin",
+    "install": "node download/index.js",
     "prepublishOnly": "yarn build"
   },
   "files": [
@@ -22,7 +23,7 @@
     "runtime/runtime",
     "runtime/utils",
     "cli",
-    "download"
+    "download/index.js"
   ],
   "devDependencies": {
     "@prisma/dmmf": "^0.1.9",
@@ -38,6 +39,7 @@
     "death": "^1.1.0",
     "del": "^4.1.1",
     "fast-copy": "^2.0.3",
+    "flat-map-polyfill": "^0.3.8",
     "folder-hash": "^3.0.0",
     "fs-extra": "^8.0.1",
     "fs-monkey": "^0.3.3",
