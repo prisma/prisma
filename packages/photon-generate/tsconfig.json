@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "lib": ["esnext", "esnext.asynciterable"],
+    "lib": ["esnext"],
     "module": "commonjs",
-    "target": "es2017",
+    "target": "es2016",
     "strict": false,
     "esModuleInterop": true,
     "sourceMap": true,
