@@ -4,10 +4,23 @@ import indent from 'indent-string'
 import { GraphQLScalarToJSTypeTable, capitalize } from '../runtime/utils/common'
 import copy from 'fast-copy'
 import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfilled in TypeScript
+import {
+  getModelArgName,
+  getFieldTypeName,
+  getPayloadName,
+  getFieldArgName,
+  getSelectName,
+  getDefaultName,
+  getScalarsName,
+  isQueryAction,
+  getSelectReturnType,
+  renderInitialClientArgs,
+  getType,
+} from './utils'
 
 const tab = 2
 
-const commonCode = `import { DMMF, DMMFClass, deepGet, deepSet, makeDocument, Engine, debugLib } from './runtime'
+const commonCode = runtimePath => `import { DMMF, DMMFClass, deepGet, deepSet, makeDocument, Engine, debugLib } from '${runtimePath}'
 
 const debug = debugLib('photon')
 
@@ -63,13 +76,14 @@ export class TSClient {
     protected readonly prismaConfig: string,
     protected readonly datamodel: string,
     protected readonly datamodelJson: string,
+    protected readonly runtimePath: string,
   ) {
     // We make a deep clone here as otherwise we would serialize circular references
     // which we're building up in the DMMFClass
     this.dmmf = new DMMFClass(copy(document))
   }
   toString() {
-    return `${commonCode}
+    return `${commonCode(this.runtimePath)}
 
 /**
  * Client
@@ -79,8 +93,14 @@ ${new PhotonClientClass(this.dmmf, this.prismaYmlPath, this.prismaConfig, this.d
 
 ${new Query(this.dmmf, 'query')}
 
+/**
+ * Enums
+ */
+
+${this.dmmf.schema.enums.map(type => new Enum(type)).join('\n\n')}
+
 ${Object.values(this.dmmf.modelMap)
-  .map(model => new Model(model, this.dmmf).toString())
+  .map(model => new Model(model, this.dmmf))
   .join('\n')}
 
 /**
@@ -89,14 +109,14 @@ ${Object.values(this.dmmf.modelMap)
 
 ${this.dmmf.inputTypes
   .filter(o => !this.dmmf.modelMap[o.name])
-  .map(inputType => String(new InputType(inputType)))
+  .map(inputType => new InputType(inputType))
   .join('\n')}
 
 /**
  * DMMF
  */
 
-const dmmf: DMMF.Document = ${JSON.stringify(this.document)}
+const dmmf: DMMF.Document = ${JSON.stringify(this.document, null, 2)}
     `
 
     // /**
@@ -248,7 +268,7 @@ class PayloadType {
             )
             .join('\n')}`
 
-    const hasScalarFields = type.fields.filter(f => f.kind === 'scalar').length > 0
+    const hasScalarFields = type.fields.filter(f => f.kind !== 'relation').length > 0
     return `\
 type ${getPayloadName(name)}<S extends boolean | ${getSelectName(name)}> = S extends true
   ? ${name}
@@ -272,7 +292,7 @@ type ${getPayloadName(name)}<S extends boolean | ${getSelectName(name)}> = S ext
 class ModelDefault {
   constructor(protected readonly model: DMMF.Model, protected readonly dmmf: DMMFClass) {}
   protected isDefault(field: DMMF.Field) {
-    if (field.kind === 'scalar') {
+    if (field.kind !== 'relation') {
       return true
     }
 
@@ -328,6 +348,7 @@ export class Model {
               isList: false,
               isRequired: false,
               isScalar: false,
+              isEnum: false,
             },
             ...field.args,
           ],
@@ -346,6 +367,7 @@ export class Model {
             isList: false,
             isRequired: false,
             isScalar: false,
+            isEnum: false,
           },
         ],
       }),
@@ -361,7 +383,7 @@ export class Model {
       return ''
     }
 
-    const scalarFields = model.fields.filter(f => f.kind === 'scalar')
+    const scalarFields = model.fields.filter(f => f.kind !== 'relation')
 
     return `
 /**
@@ -371,7 +393,7 @@ export class Model {
 export type ${model.name} = {
 ${indent(
   model.fields
-    .filter(f => f.kind === 'scalar')
+    .filter(f => f.kind !== 'relation')
     .map(field => new Field(field).toString())
     .join('\n'),
   tab,
@@ -387,7 +409,7 @@ ${
     : ''
 }
 
-export type ${getSelectName(model.name)}= {
+export type ${getSelectName(model.name)} = {
 ${indent(
   outputType.fields
     .map(f => `${f.name}?: boolean` + (f.kind === 'relation' ? ` | ${getFieldArgName(f)}` : ''))
@@ -406,74 +428,6 @@ ${new ModelDelegate(this.outputType, this.dmmf)}
 ${this.argsTypes.map(String).join('\n')}
 `
   }
-}
-
-function getScalarsName(modelName: string) {
-  return `${modelName}Scalars`
-}
-
-function getPayloadName(modelName: string) {
-  return `${modelName}GetPayload`
-}
-
-function getSelectName(modelName: string) {
-  return `${modelName}Select`
-}
-
-function getDefaultName(modelName: string) {
-  return `${modelName}Default`
-}
-
-function getFieldArgName(field: DMMF.SchemaField): string {
-  return getArgName((field.type as DMMF.OutputType).name, field.isList)
-}
-
-function getArgName(name: string, isList: boolean): string {
-  if (!isList) {
-    return `${name}Args`
-  }
-
-  return `FindMany${name}Args`
-}
-
-// we need names for all top level args,
-// as GraphQL doesn't have the concept of unnamed args
-function getModelArgName(modelName: string, action: DMMF.ModelAction): string {
-  switch (action) {
-    case DMMF.ModelAction.findMany:
-      return `FindMany${modelName}Args`
-    case DMMF.ModelAction.findOne:
-      return `FindOne${modelName}Args`
-    case DMMF.ModelAction.upsert:
-      return `${modelName}UpsertArgs`
-    case DMMF.ModelAction.update:
-      return `${modelName}UpdateArgs`
-    case DMMF.ModelAction.updateMany:
-      return `${modelName}UpdateManyArgs`
-    case DMMF.ModelAction.delete:
-      return `${modelName}DeleteArgs`
-    case DMMF.ModelAction.create:
-      return `${modelName}CreateArgs`
-    case DMMF.ModelAction.deleteMany:
-      return `${modelName}DeleteManyArgs`
-  }
-}
-
-function getDefaultArgName(dmmf: DMMFClass, modelName: string, action: DMMF.ModelAction) {
-  const mapping = dmmf.mappings.find(mapping => mapping.model === modelName)!
-
-  const fieldName = mapping[action]
-  const operation = getOperation(action)
-  const queryType = operation === 'query' ? dmmf.queryType : dmmf.mutationType
-  const field = queryType.fields.find(f => f.name === fieldName)
-  return (field.args[0].type as DMMF.InputType).name
-}
-
-function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
-  if (action === DMMF.ModelAction.findMany || action === DMMF.ModelAction.findOne) {
-    return 'query'
-  }
-  return 'mutation'
 }
 
 export class Query {
@@ -663,58 +617,6 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
   }
 }
 
-/**
- * Used to render the initial client args
- * @param modelName
- * @param fieldName
- * @param mapping
- */
-function renderInitialClientArgs(actionName: DMMF.ModelAction, fieldName: string, mapping: DMMF.Mapping): string {
-  return `
-  dmmf,
-  fetcher,
-  '${getOperation(actionName as DMMF.ModelAction)}',
-  '${fieldName}',
-  '${mapping.findMany}.${actionName}',
-  args,
-  []\n`
-}
-
-interface SelectReturnTypeOptions {
-  name: string
-  actionName: DMMF.ModelAction
-  renderPromise?: boolean
-  hideCondition?: boolean
-  isField?: boolean
-}
-
-/**
- * Get the complicated extract output
- * @param name Model name
- * @param actionName action name
- */
-function getSelectReturnType({
-  name,
-  actionName,
-  renderPromise = true,
-  hideCondition = false,
-  isField = false,
-}: SelectReturnTypeOptions) {
-  const isList = actionName === DMMF.ModelAction.findMany
-
-  const argName = isField ? getArgName(name, isList) : getModelArgName(name, actionName as DMMF.ModelAction)
-
-  if (isList || hideCondition) {
-    return `${renderPromise ? 'PromiseLike<' : ''}Array<${name}GetPayload<Extract${argName}Select<T>>>${
-      renderPromise ? '>' : ''
-    }`
-  }
-
-  return `'select' extends keyof T ? ${
-    renderPromise ? 'PromiseLike<' : ''
-  }${name}GetPayload<Extract${argName}Select<T>>${renderPromise ? '>' : ''} : ${name}Client<${getType(name, isList)}>`
-}
-
 class Args {
   constructor(protected readonly field: DMMF.SchemaField) {}
   toString() {
@@ -724,22 +626,6 @@ class Args {
     }
     return `args?: ${getModelArgName(getFieldTypeName(field), DMMF.ModelAction.findMany)}`
   }
-}
-
-function getFieldTypeName(field: DMMF.SchemaField) {
-  if (typeof field.type === 'string') {
-    return field.type
-  }
-
-  return field.type.name
-}
-
-function getType(name: string, isList: boolean) {
-  return name + (isList ? '[]' : '')
-}
-
-function getFieldType(field: DMMF.SchemaField) {
-  return getType(getFieldTypeName(field), field.isList)
 }
 
 export class QueryDelegate {
@@ -800,18 +686,11 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
   }
 }
 
-function isQueryAction(action: DMMF.ModelAction, operation: 'query' | 'mutation'): boolean {
-  if (!(action in DMMF.ModelAction)) {
-    return false
-  }
-  const result = action === DMMF.ModelAction.findOne || action === DMMF.ModelAction.findMany
-  return operation === 'query' ? result : !result
-}
-
 export class Field {
   constructor(protected readonly field: BaseField) {}
   toString() {
     const { field } = this
+    // ENUMTODO
     let fieldType =
       typeof field.type === 'string' ? GraphQLScalarToJSTypeTable[field.type] || field.type : field.type.name
     if (Array.isArray(fieldType)) {
@@ -871,5 +750,15 @@ export type ${type.name} = {
 ${indent(type.args.map(arg => new Field(arg).toString()).join('\n'), tab)}
 }
 `
+  }
+}
+
+export class Enum {
+  constructor(protected readonly type: DMMF.Enum) {}
+  toString() {
+    const { type } = this
+    return `export enum ${type.name} {
+${indent(type.values.map(v => `${v} = '${v}'`).join(',\n'), tab)}
+}`
   }
 }

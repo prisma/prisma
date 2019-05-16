@@ -6,6 +6,7 @@ import { dedent } from './dedent'
 
 export interface MissingItem {
   path: string
+  isRequired: boolean
   type: string | object
 }
 
@@ -37,7 +38,11 @@ export function printJsonWithErrors(
         if (typeof value === 'string') {
           valueStr = valueStr.slice(1, valueStr.length - 1)
         }
-        let output = chalk.greenBright(prefixLines(key + ': ' + valueStr + eol, indent, '+'))
+        const isRequiredStr = missingItem.isRequired ? '' : '?'
+        let output = chalk.greenBright(prefixLines(key + isRequiredStr + ': ' + valueStr + eol, indent, '+'))
+        if (!missingItem.isRequired) {
+          output = chalk.dim(output)
+        }
         return output
       } else {
         const isOnMissingItemPath = missingItems.some(item => dottedPath.startsWith(item.path))

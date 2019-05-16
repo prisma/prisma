@@ -1,0 +1,58 @@
+type User {
+  id: ID! @id # id
+  name: String! # non-nullable scalar
+  email: String! @unique # unique scalar
+  status: String # nullable scalar
+  nicknames: [String!]! # scalar list
+  location: Location # embedded relation
+  vacations: [Vacation!]! # embedded relation list
+  favoriteBook: Book @relation(link: INLINE) # non-embedded relation
+  favoriteMovies: [Movie!]! @relation(link: INLINE) # non-embedded relation list
+  permissions: [Permission!]!
+}
+
+# embedded type
+type Location @embedded {
+  city: String! # scalar inside embedded
+  cordinates: Coordinates! # embedded relation to embedded type
+}
+
+# embedded type within an embedded type
+type Coordinates @embedded {
+  lat: Float!
+  lng: Float!
+}
+
+type Vacation @embedded {
+  date: DateTime!
+  locations: [Location!]! # list of embedded types inside an embedded type
+}
+
+type Movie {
+  id: ID! @id
+  name: String!
+  actors: [Actor!]! @relation(link: INLINE)
+}
+
+type Actor {
+  id: ID! @id
+  name: String!
+}
+
+type Book {
+  bookId: ID! @id
+  name: String!
+  genre: Genre @relation(link: INLINE)
+}
+
+type Genre {
+  id: ID! @id
+  name: String!
+}
+
+enum Permission {
+  ADMIN
+  USER
+  OWNER
+  COLLABORATOR
+}

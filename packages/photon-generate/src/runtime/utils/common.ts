@@ -1,6 +1,7 @@
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
 import { DMMF } from '../dmmf-types'
+import chalk from 'chalk'
 
 export type Dictionary<T> = { [key: string]: T }
 
@@ -51,21 +52,28 @@ export const JSTypeToGraphQLType = {
   object: 'Json',
 }
 
-export function stringifyGraphQLType(type: string, isList: boolean) {
-  if (!isList) {
+export function stringifyGraphQLType(type: string | DMMF.InputType | DMMF.Enum) {
+  if (typeof type === 'string') {
     return type
   }
-
-  return `List<${type}>`
+  return type.name
 }
 
-export function getGraphQLType(value: any): string {
+export function wrapWithList(str: string, isList: boolean) {
+  if (isList) {
+    return `List<${str}>`
+  }
+
+  return str
+}
+
+export function getGraphQLType(value: any, potentialType?: string | DMMF.Enum | DMMF.InputType): string {
   if (value === null) {
     return 'null'
   }
   if (Array.isArray(value)) {
     const scalarTypes = value.reduce((acc, val) => {
-      const type = getGraphQLType(val)
+      const type = getGraphQLType(val, potentialType)
       if (!acc.includes(type)) {
         acc.push(type)
       }
@@ -86,6 +94,14 @@ export function getGraphQLType(value: any): string {
   }
   if (jsType === 'string') {
     const date = new Date(value)
+    if (
+      potentialType &&
+      typeof potentialType === 'object' &&
+      (potentialType as DMMF.Enum).values &&
+      (potentialType as DMMF.Enum).values.includes(value)
+    ) {
+      return potentialType.name
+    }
     if (date.toString() === 'Invalid Date') {
       return 'String'
     }
@@ -123,23 +139,35 @@ export function getSuggestion(str: string, possibilities: string[]): string | nu
   return bestMatch.str
 }
 
-export function stringifyInputType(input: string | DMMF.InputType): string {
+export function stringifyInputType(input: string | DMMF.InputType | DMMF.Enum): string {
   if (typeof input === 'string') {
     return input
   }
-  const body = indent(
-    input.args
-      .map(
-        arg =>
-          `${arg.name}: ${typeof arg.type === 'string' ? stringifyGraphQLType(arg.type, arg.isList) : arg.type.name}`,
-      )
-      .join('\n'),
-    2,
-  )
-  return `type ${input.name} {\n${body}\n}`
+  if ((input as DMMF.Enum).values) {
+    return `enum ${input.name} {\n${indent((input as DMMF.Enum).values.join(', '), 2)}\n}`
+  } else {
+    const body = indent(
+      (input as DMMF.InputType).args // TS doesn't discriminate based on existence of fields properly
+        .map(arg => {
+          const str = `${arg.name}${arg.isRequired ? '' : '?'}: ${chalk.white(
+            typeof arg.type === 'string' ? wrapWithList(stringifyGraphQLType(arg.type), arg.isList) : arg.type.name,
+          )}`
+          if (!arg.isRequired) {
+            return chalk.dim(str)
+          }
+
+          return str
+        })
+        .join('\n'),
+      2,
+    )
+    return `${chalk.dim('type')} ${chalk.bold.dim(input.name)} ${chalk.dim('{')}\n${body}\n${chalk.dim('}')}`
+  }
 }
 
-export function getInputTypeName(input: string | DMMF.InputType | DMMF.SchemaField) {
+type X = {}
+
+export function getInputTypeName(input: string | DMMF.InputType | DMMF.SchemaField | DMMF.Enum) {
   if (typeof input === 'string') {
     return input
   }
@@ -156,16 +184,22 @@ export function getInputTypeName(input: string | DMMF.InputType | DMMF.SchemaFie
   return input.name
 }
 
-export function inputTypeToJson(input: string | DMMF.InputType, isRequired: boolean): string | object {
+export function inputTypeToJson(input: string | DMMF.InputType | DMMF.Enum, isRequired: boolean): string | object {
   if (typeof input === 'string') {
     return input
   }
 
+  if ((input as DMMF.Enum).values) {
+    return (input as DMMF.Enum).values.join(' | ')
+  }
+
+  // TS "Trick" :/
+  const inputType: DMMF.InputType = input as DMMF.InputType
   // If the parent type is required and all fields are non-scalars,
   // it's very useful to show to the user, which options they actually have
-  const showDeepType = isRequired && input.args.every(arg => !arg.isScalar)
+  const showDeepType = isRequired && inputType.args.every(arg => !arg.isScalar)
 
-  return input.args.reduce((acc, curr) => {
+  return inputType.args.reduce((acc, curr) => {
     acc[curr.name + (curr.isRequired ? '' : '?')] =
       curr.isRequired || showDeepType ? inputTypeToJson(curr.type, curr.isRequired) : getInputTypeName(curr.type)
     return acc

@@ -285,10 +285,10 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^12.0.9"
 
-"@prisma/dmmf@^0.1.12":
-  version "0.1.12"
-  resolved "https://registry.yarnpkg.com/@prisma/dmmf/-/dmmf-0.1.12.tgz#f248f8f6b6e0812e58c1bee65200d84f0123ae51"
-  integrity sha512-NXJvRZNFomgF2OeTUn+3kf1ZiBuSiNs5SJ1rN8DRsixK2hj9CdiddquA0AjOPSRCcTXDM7UcBcy5FoKfnbYJlA==
+"@prisma/dmmf@^0.1.23":
+  version "0.1.23"
+  resolved "https://registry.yarnpkg.com/@prisma/dmmf/-/dmmf-0.1.23.tgz#ef651460811e30da0ccb7d1ff23fa553bcd790fa"
+  integrity sha512-JK3Cc7LlW+KgfJ312eafXmIi2W9G47SauQwBZCjHvmZn7hgG0Q7Dg0/6nNHbdT1wy2+VHcm6MqypHyN0oZb1ig==
   dependencies:
     graphql "14.3.0"
     pluralize "7.0.0"

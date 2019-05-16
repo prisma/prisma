@@ -17,6 +17,7 @@ export async function generateClient(
   prismaYmlPath: string,
   outputDir: string,
   transpile: boolean = false,
+  runtimePath: string = './runtime',
 ) {
   if (!(await fs.pathExists(prismaYmlPath))) {
     throw new Error(`Provided prisma.yml path ${prismaYmlPath} does not exist`)
@@ -33,7 +34,9 @@ export async function generateClient(
 
   await fs.mkdirp(outputDir)
 
-  const client = new TSClient(getDMMF(datamodel), prismaYmlPath, prismaConfig, datamodel, internalDatamodelJson)
+  const dmmf = getDMMF(datamodel)
+  await fs.writeFile(path.join(outputDir, 'dmmf.json'), JSON.stringify(dmmf, null, 2))
+  const client = new TSClient(dmmf, prismaYmlPath, prismaConfig, datamodel, internalDatamodelJson, runtimePath)
   const generatedClient = String(client)
   await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
   const target = path.join(outputDir, 'index.ts')
