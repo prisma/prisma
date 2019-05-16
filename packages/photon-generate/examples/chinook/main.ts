@@ -1,18 +1,11 @@
-import { Photon } from './@generated/photon'
+import { Photon, Artist } from './@generated/photon'
 
 async function main() {
   const prisma = new Photon({ debug: true })
   console.clear()
-  const result = await prisma.albums({
-    first: 1,
-    select: {
-      Artist: {
-        select: {},
-      },
-      Tracks: {
-        first: 2,
-      },
-    },
+  const result = await prisma.artists.findMany({
+    first: 20,
+    // select: {},
   })
   console.dir(result, { depth: null })
   prisma.close()

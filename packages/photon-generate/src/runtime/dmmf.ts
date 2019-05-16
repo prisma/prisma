@@ -11,11 +11,13 @@ export class DMMFClass implements DMMF.Document {
   outputTypeMap: Dictionary<DMMF.MergedOutputType> = {}
   inputTypes: DMMF.InputType[]
   inputTypeMap: Dictionary<DMMF.InputType>
+  enumMap: Dictionary<DMMF.Enum>
   modelMap: Dictionary<DMMF.Model>
   constructor({ datamodel, schema, mappings }: DMMF.Document) {
     this.datamodel = datamodel
     this.schema = schema
     this.mappings = mappings
+    this.enumMap = this.getEnumMap()
     this.queryType = this.getQueryType()
     this.mutationType = this.getMutationType()
     this.schema.outputTypes.push(this.queryType) // create "virtual" query type
@@ -47,19 +49,19 @@ export class DMMFClass implements DMMF.Document {
     return {
       ...outputType,
       isEmbedded: model ? model.isEmbedded : false,
-      isEnum: model ? model.isEmbedded : false,
-      fields: outputType.fields.map(field => ({
-        ...field,
-        kind: isScalar(field.type as string) ? 'scalar' : ('relation' as DMMF.FieldKind),
-      })),
+      fields: outputType.fields,
     }
   }
   protected resolveOutputTypes(types: DMMF.MergedOutputType[]) {
     for (const typeA of types) {
       for (const fieldA of typeA.fields) {
         for (const typeB of types) {
-          if (typeof fieldA.type === 'string' && fieldA.type === typeB.name) {
-            fieldA.type = typeB
+          if (typeof fieldA.type === 'string') {
+            if (fieldA.type === typeB.name) {
+              fieldA.type = typeB
+            } else if (this.enumMap[fieldA.type]) {
+              fieldA.type = this.enumMap[fieldA.type]
+            }
           }
         }
       }
@@ -69,8 +71,12 @@ export class DMMFClass implements DMMF.Document {
     for (const typeA of types) {
       for (const fieldA of typeA.args) {
         for (const typeB of types) {
-          if (typeof fieldA.type === 'string' && fieldA.type === typeB.name) {
-            fieldA.type = typeB
+          if (typeof fieldA.type === 'string') {
+            if (fieldA.type === typeB.name) {
+              fieldA.type = typeB
+            } else if (this.enumMap[fieldA.type]) {
+              fieldA.type = this.enumMap[fieldA.type]
+            }
           }
         }
       }
@@ -80,8 +86,12 @@ export class DMMFClass implements DMMF.Document {
     for (const type of types) {
       for (const field of type.fields) {
         for (const arg of field.args) {
-          if (typeof arg.type === 'string' && inputTypeMap[arg.type]) {
-            arg.type = inputTypeMap[arg.type]
+          if (typeof arg.type === 'string') {
+            if (inputTypeMap[arg.type]) {
+              arg.type = inputTypeMap[arg.type]
+            } else if (this.enumMap[arg.type]) {
+              arg.type = this.enumMap[arg.type]
+            }
           }
         }
       }
@@ -94,7 +104,6 @@ export class DMMFClass implements DMMF.Document {
         .map(queryToSchemaField)
         .filter(f => !f.name.endsWith('Connection') && f.name !== 'Node'),
       isEmbedded: false,
-      isEnum: false,
     }
   }
   protected getMutationType(): DMMF.MergedOutputType {
@@ -102,19 +111,21 @@ export class DMMFClass implements DMMF.Document {
       name: 'Mutation',
       fields: this.schema.mutations.map(queryToSchemaField),
       isEmbedded: false,
-      isEnum: false,
     }
   }
   protected getOutputTypes(): DMMF.MergedOutputType[] {
     return this.schema.outputTypes.map(this.outputTypeToMergedOutputType)
   }
-  protected getModelMap(): { [modelName: string]: DMMF.Model } {
+  protected getEnumMap(): Dictionary<DMMF.Enum> {
+    return keyBy(this.schema.enums, e => e.name)
+  }
+  protected getModelMap(): Dictionary<DMMF.Model> {
     return keyBy(this.datamodel.models, m => m.name)
   }
-  protected getMergedOutputTypeMap(): { [typeName: string]: DMMF.MergedOutputType } {
+  protected getMergedOutputTypeMap(): Dictionary<DMMF.MergedOutputType> {
     return keyBy(this.outputTypes, t => t.name)
   }
-  protected getInputTypeMap(): { [typeName: string]: DMMF.InputType } {
+  protected getInputTypeMap(): Dictionary<DMMF.InputType> {
     return keyBy(this.schema.inputTypes, t => t.name)
   }
   public getField(fieldName: string) {

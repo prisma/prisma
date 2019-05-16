@@ -26,7 +26,7 @@
     "download/index.js"
   ],
   "devDependencies": {
-    "@prisma/dmmf": "^0.1.12",
+    "@prisma/dmmf": "^0.1.23",
     "@prisma/engine-core": "^0.0.25",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
