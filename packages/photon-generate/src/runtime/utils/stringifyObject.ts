@@ -7,7 +7,7 @@ const getOwnEnumPropSymbols = require('get-own-enumerable-property-symbols').def
 // with possibility to overwrite the whole key-value pair (options.transformLine)
 
 const stringifyObject = (input, options?: any, pad?: any) => {
-  const seen = []
+  const seen: any[] = []
 
   return (function stringifyObject(input, options = {}, pad = '', path = []) {
     options.indent = options.indent || '\t'
@@ -84,7 +84,7 @@ const stringifyObject = (input, options?: any, pad?: any) => {
           .map((el, i) => {
             const eol = input.length - 1 === i ? tokens.newLine : ',' + tokens.newLineOrSpace
 
-            let value = stringifyObject(el, options, pad + options.indent, [...path, i])
+            let value = stringifyObject(el, options, pad + options.indent, [...path, i] as any)
             if (options.transformValue) {
               value = options.transformValue(input, i, value)
             }
@@ -121,9 +121,9 @@ const stringifyObject = (input, options?: any, pad?: any) => {
             const eol = objKeys.length - 1 === i ? tokens.newLine : ',' + tokens.newLineOrSpace
             const isSymbol = typeof el === 'symbol'
             const isClassic = !isSymbol && /^[a-z$_][a-z$_0-9]*$/i.test(el)
-            let key = isSymbol || isClassic ? el : stringifyObject(el, options, undefined, [...path, el])
+            let key = isSymbol || isClassic ? el : stringifyObject(el, options, undefined, [...path, el] as any)
 
-            let value = stringifyObject(input[el], options, pad + options.indent, [...path, el])
+            let value = stringifyObject(input[el], options, pad + options.indent, [...path, el] as any)
             if (options.transformValue) {
               value = options.transformValue(input, el, value)
             }

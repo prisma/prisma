@@ -70,7 +70,7 @@ export async function generateClient(
       file.sourceFile = file.sourceFile || createSourceFile(fileName, file.content, ScriptTarget.ES2015, true)
       return file.sourceFile
     }
-    return originalGetSourceFile.call(compilerHost, newFileName)
+    return (originalGetSourceFile as any).call(compilerHost, newFileName)
   }
 
   const program = createProgram([file.fileName], options, compilerHost)

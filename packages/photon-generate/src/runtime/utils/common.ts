@@ -117,7 +117,7 @@ export function graphQLToJSType(gql: string) {
 }
 
 export function getSuggestion(str: string, possibilities: string[]): string | null {
-  const bestMatch = possibilities.reduce(
+  const bestMatch = possibilities.reduce<{ distance: number; str: string | null }>(
     (acc, curr) => {
       const distance = leven(str, curr)
       if (distance < acc.distance) {
@@ -206,7 +206,7 @@ export function inputTypeToJson(input: string | DMMF.InputType | DMMF.Enum, isRe
   }, {})
 }
 
-export function destroyCircular(from, seen = []) {
+export function destroyCircular(from, seen: any[] = []) {
   const to: any = Array.isArray(from) ? [] : {}
 
   seen.push(from)

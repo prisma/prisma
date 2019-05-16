@@ -27,8 +27,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-'use strict'
-
 function isSpecificValue(val) {
   return val instanceof Buffer || val instanceof Date || val instanceof RegExp ? true : false
 }
@@ -51,7 +49,7 @@ function cloneSpecificValue(val) {
  * Recursive cloning array.
  */
 function deepCloneArray(arr) {
-  const clone = []
+  const clone: any = []
   arr.forEach(function(item, index) {
     if (typeof item === 'object' && item !== null) {
       if (Array.isArray(item)) {
@@ -139,3 +137,5 @@ export const deepExtend = function(target, ...args) {
 
   return target
 }
+
+// @ts-ignore-end

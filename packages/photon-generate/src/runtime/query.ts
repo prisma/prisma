@@ -47,8 +47,8 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
     const topLevelQueryName = this.children[0].name
     const queryName = isTopLevelQuery ? this.type : topLevelQueryName
-    const keyPaths = []
-    const valuePaths = []
+    const keyPaths: string[] = []
+    const valuePaths: string[] = []
     const missingItems: MissingItem[] = []
     for (const fieldError of fieldErrors) {
       const path = fieldError.path.join('.')
@@ -102,7 +102,7 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
     }
     if (error.type === 'invalidFieldType') {
       let str = `Invalid value ${chalk.redBright(`${stringifyObject(error.providedValue)}`)} of type ${chalk.redBright(
-        getGraphQLType(error.providedValue, null),
+        getGraphQLType(error.providedValue, undefined),
       )} for field ${chalk.bold(`${error.fieldName}`)} on model ${chalk.bold.white(
         error.modelName,
       )}. Expected either ${chalk.greenBright('true')} or ${chalk.greenBright('false')}.`
@@ -255,7 +255,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
 }
 
 export class Args {
-  public readonly args?: Arg[]
+  public readonly args: Arg[]
   public readonly hasInvalidArg: boolean
   constructor(args: Arg[] = []) {
     this.args = args
@@ -380,7 +380,7 @@ ${indent(value.toString(), 2)}
   }
 }
 
-export type ArgValue = string | boolean | number | Args | string[] | boolean[] | number[] | Args[]
+export type ArgValue = string | boolean | number | undefined | Args | string[] | boolean[] | number[] | Args[]
 
 export interface DocumentInput {
   dmmf: DMMFClass
@@ -414,6 +414,7 @@ export function selectionToFields(dmmf: DMMFClass, selection: any, field: DMMF.S
           new Field({
             name,
             children: [],
+            // @ts-ignore
             error: {
               type: 'invalidFieldName',
               modelName: outputType.name,
@@ -450,7 +451,7 @@ export function selectionToFields(dmmf: DMMFClass, selection: any, field: DMMF.S
         ? objectToArgs(
             argsWithoutSelect,
             field,
-            typeof field === 'string' ? null : (field.type as DMMF.MergedOutputType),
+            typeof field === 'string' ? undefined : (field.type as DMMF.MergedOutputType),
           )
         : undefined
       const isRelation = field.kind === 'relation'
@@ -602,7 +603,8 @@ function objectToArgs(obj: any, inputType: DMMF.InputType, outputType?: DMMF.Mer
             providedName: argName,
             providedValue: value,
             didYouMeanField,
-            didYouMeanArg: !didYouMeanField && getSuggestion(argName, [...args.map(arg => arg.name), 'select']),
+            didYouMeanArg:
+              (!didYouMeanField && getSuggestion(argName, [...args.map(arg => arg.name), 'select'])) || undefined,
             originalType: inputType,
             outputType,
           }),

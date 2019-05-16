@@ -6,13 +6,13 @@ async function main() {
   })
 
   console.clear()
-  await photon.users.create({
+  const user = await photon.users.create({
     // data: '',
     data: {
       nicknames: {
         set: ['name1', 'mane2'],
       },
-      // name: '',
+      name: '',
       email: '',
       // favoriteTree: Tree.BlackAsh,
     },
@@ -23,7 +23,7 @@ async function main() {
         },
       },
     },
-  } as any)
+  })
   await photon.users({
     where: {
       favoriteTree_in: [Tree.Arborvitae, Tree.BlackAsh],
