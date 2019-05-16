@@ -1,6 +1,6 @@
 {
   "name": "photon-generate",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "main": "cli/index.js",
   "bin": {
     "photon-generate": "cli/index.js"
@@ -17,23 +17,18 @@
     "prepublishOnly": "yarn build"
   },
   "files": [
-    "runtime/index.js",
-    "runtime/index.d.ts",
-    "runtime/dmmf.d.ts",
-    "runtime/dmmf-types.d.ts",
-    "runtime/cli.d.ts",
-    "runtime/generate-chinook.d.ts",
-    "runtime/runtime",
-    "runtime/utils",
+    "runtime",
     "cli",
     "download/index.js"
   ],
   "devDependencies": {
     "@prisma/dmmf": "^0.1.24",
     "@prisma/engine-core": "^0.0.25",
+    "@types/debug": "^4.1.4",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
     "@types/node": "^12.0.2",
+    "@types/node-fetch": "^2.3.4",
     "@zeit/ncc": "^0.18.5",
     "async-retry": "^1.2.3",
     "benchmark": "^2.1.4",
