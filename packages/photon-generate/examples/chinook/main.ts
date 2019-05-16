@@ -5,7 +5,7 @@ async function main() {
   console.clear()
   const result = await prisma.artists.findMany({
     first: 20,
-    // select: {},
+    select: {},
   })
   console.dir(result, { depth: null })
   prisma.close()

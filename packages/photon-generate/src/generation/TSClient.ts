@@ -320,7 +320,6 @@ export class Model {
   protected mapping: DMMF.Mapping
   constructor(protected readonly model: DMMF.Model, protected readonly dmmf: DMMFClass) {
     const outputType = dmmf.outputTypeMap[model.name]
-    // console.(`${model.name} is an enum and enums are not yet supported`)
     this.outputType = new OutputType(outputType)
     this.mapping = dmmf.mappings.find(m => m.model === model.name)!
   }
@@ -649,9 +648,10 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
       dmmf: this.dmmf,
       rootField,
       rootTypeName: 'query',
+      // @ts-ignore
       select: this.args[rootField]
     })
-    // console.dir(document, {depth: 8})
+    // @ts-ignore
     document.validate(this.args[rootField], true)
     return String(document)
   }
@@ -746,7 +746,9 @@ export type ${type.name}WithSelect = {
 ${indent(argsWithRequiredSelect.map(arg => new InputField(arg).toString()).join('\n'), tab)}
 }
 
-type Extract${type.name}Select<S extends boolean | ${type.name}> = S extends boolean
+type Extract${type.name}Select<S extends undefined | boolean | ${type.name}> = S extends undefined
+  ? false
+  : S extends boolean
   ? S
   : S extends ${type.name}WithSelect
   ? S['select']
