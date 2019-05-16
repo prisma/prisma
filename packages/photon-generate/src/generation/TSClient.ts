@@ -116,7 +116,7 @@ ${this.dmmf.inputTypes
  * DMMF
  */
 
-const dmmf: DMMF.Document = ${JSON.stringify(this.document, null, 2)}
+const dmmf: DMMF.Document = ${JSON.stringify(this.document)}
     `
 
     // /**
@@ -148,7 +148,7 @@ interface PhotonOptions {
 }
 
 export class Photon {
-  private fetcher?: PhotonFetcher
+  private fetcher: PhotonFetcher
   private readonly dmmf: DMMFClass
   private readonly engine: Engine
   constructor(options: PhotonOptions = {}) {
@@ -320,11 +320,9 @@ export class Model {
   protected mapping: DMMF.Mapping
   constructor(protected readonly model: DMMF.Model, protected readonly dmmf: DMMFClass) {
     const outputType = dmmf.outputTypeMap[model.name]
-    if (outputType) {
-      // console.(`${model.name} is an enum and enums are not yet supported`)
-      this.outputType = new OutputType(outputType)
-      this.mapping = dmmf.mappings.find(m => m.model === model.name)
-    }
+    // console.(`${model.name} is an enum and enums are not yet supported`)
+    this.outputType = new OutputType(outputType)
+    this.mapping = dmmf.mappings.find(m => m.model === model.name)!
   }
   protected get argsTypes() {
     const { mapping, model } = this
@@ -394,7 +392,7 @@ export type ${model.name} = {
 ${indent(
   model.fields
     .filter(f => f.kind !== 'relation')
-    .map(field => new Field(field).toString())
+    .map(field => new OutputField(field).toString())
     .join('\n'),
   tab,
 )}
@@ -420,9 +418,9 @@ ${indent(
 
 ${new ModelDefault(model, this.dmmf)}
 
-${new PayloadType(this.outputType)}
+${new PayloadType(this.outputType!)}
 
-${new ModelDelegate(this.outputType, this.dmmf)}
+${new ModelDelegate(this.outputType!, this.dmmf)}
 
 // InputTypes
 ${this.argsTypes.map(String).join('\n')}
@@ -469,7 +467,7 @@ export class ModelDelegate {
   constructor(protected readonly outputType: OutputType, protected readonly dmmf: DMMFClass) {}
   toString() {
     const { fields, name } = this.outputType
-    const mapping = this.dmmf.mappings.find(m => m.model === name)
+    const mapping = this.dmmf.mappings.find(m => m.model === name)!
     const actions = Object.entries(mapping).filter(([key, value]) => key !== 'model' && value)
 
     // TODO: The following code needs to be split up and is a mess
@@ -488,7 +486,7 @@ export interface ${name}Delegate {
 ${indent(
   actions
     .map(
-      ([actionName]: [DMMF.ModelAction, string]) =>
+      ([actionName]: [any, any]) =>
         `${actionName}<T extends ${getModelArgName(name, actionName)}>(
   args: Subset<T, ${getModelArgName(name, actionName)}>
 ): ${getSelectReturnType({ name, actionName })}`,
@@ -508,7 +506,7 @@ function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delega
 ${indent(
   actions
     .map(
-      ([actionName, fieldName]: [DMMF.ModelAction, string]) =>
+      ([actionName, fieldName]: [any, any]) =>
         `${name}.${actionName} = <T extends ${getModelArgName(
           name,
           actionName as DMMF.ModelAction,
@@ -686,7 +684,7 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
   }
 }
 
-export class Field {
+export class InputField {
   constructor(protected readonly field: BaseField) {}
   toString() {
     const { field } = this
@@ -702,6 +700,22 @@ export class Field {
   }
 }
 
+export class OutputField {
+  constructor(protected readonly field: BaseField) {}
+  toString() {
+    const { field } = this
+    // ENUMTODO
+    let fieldType =
+      typeof field.type === 'string' ? GraphQLScalarToJSTypeTable[field.type] || field.type : field.type.name
+    if (Array.isArray(fieldType)) {
+      fieldType = fieldType[0]
+    }
+    const arrayStr = field.isList ? `[]` : ''
+    const nullableStr = !field.isRequired && !field.isList ? ' | null' : ''
+    return `${field.name}: ${fieldType}${arrayStr}${nullableStr}`
+  }
+}
+
 export class OutputType {
   name: string
   fields: DMMF.SchemaField[]
@@ -713,7 +727,7 @@ export class OutputType {
     const { type } = this
     return `
 export type ${type.name} = {
-${indent(type.fields.map(field => new Field(field).toString()).join('\n'), tab)}
+${indent(type.fields.map(field => new OutputField(field).toString()).join('\n'), tab)}
 }`
   }
 }
@@ -725,11 +739,11 @@ export class ArgsType {
     const argsWithRequiredSelect = type.args.map(a => (a.name === 'select' ? { ...a, isRequired: true } : a))
     return `
 export type ${type.name} = {
-${indent(type.args.map(arg => new Field(arg).toString()).join('\n'), tab)}
+${indent(type.args.map(arg => new InputField(arg).toString()).join('\n'), tab)}
 }
 
 export type ${type.name}WithSelect = {
-${indent(argsWithRequiredSelect.map(arg => new Field(arg).toString()).join('\n'), tab)}
+${indent(argsWithRequiredSelect.map(arg => new InputField(arg).toString()).join('\n'), tab)}
 }
 
 type Extract${type.name}Select<S extends boolean | ${type.name}> = S extends boolean
@@ -747,7 +761,7 @@ export class InputType {
     const { type } = this
     return `
 export type ${type.name} = {
-${indent(type.args.map(arg => new Field(arg).toString()).join('\n'), tab)}
+${indent(type.args.map(arg => new InputField(arg).toString()).join('\n'), tab)}
 }
 `
   }
