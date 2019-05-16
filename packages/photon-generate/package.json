@@ -1,6 +1,6 @@
 {
   "name": "photon-generate",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "main": "cli/index.js",
   "bin": {
     "photon-generate": "cli/index.js"
@@ -18,6 +18,9 @@
   },
   "files": [
     "runtime/index.js",
+    "runtime/index.d.ts",
+    "runtime/dmmf.d.ts",
+    "runtime/dmmf-types.d.ts",
     "runtime/cli.d.ts",
     "runtime/generate-chinook.d.ts",
     "runtime/runtime",
