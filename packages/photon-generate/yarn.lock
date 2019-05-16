@@ -285,10 +285,10 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^12.0.9"
 
-"@prisma/dmmf@^0.1.9":
-  version "0.1.11"
-  resolved "https://registry.yarnpkg.com/@prisma/dmmf/-/dmmf-0.1.11.tgz#932a0413b429021e64fe3bb166fbd4afb331bdd5"
-  integrity sha512-e1WrtuY4oU5s2E0ZPYGg7yEQg+nT/pBfIhA3q0mrooEmzUeOW6iNMS837Anxni1q6xeY/AEG5xE0kZFdgdZJSA==
+"@prisma/dmmf@^0.1.12":
+  version "0.1.12"
+  resolved "https://registry.yarnpkg.com/@prisma/dmmf/-/dmmf-0.1.12.tgz#f248f8f6b6e0812e58c1bee65200d84f0123ae51"
+  integrity sha512-NXJvRZNFomgF2OeTUn+3kf1ZiBuSiNs5SJ1rN8DRsixK2hj9CdiddquA0AjOPSRCcTXDM7UcBcy5FoKfnbYJlA==
   dependencies:
     graphql "14.3.0"
     pluralize "7.0.0"
@@ -1650,11 +1650,6 @@ ignore-walk@^3.0.1:
   dependencies:
     minimatch "^3.0.4"
 
-immer@^3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/immer/-/immer-3.1.1.tgz#eddd2c28403f494df604992c554eade8d9e5c2bb"
-  integrity sha512-8mH3vMqkvCy0jADoJGJR/+RNsIJOsrVhN1/8NBSLGV+Y4S8bSQ5i2VsDHu+1fm+IFhd8cZFX0shms2nsTBJUbA==
-
 immutable@^4.0.0-rc.12:
   version "4.0.0-rc.12"
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-4.0.0-rc.12.tgz#ca59a7e4c19ae8d9bf74a97bdf0f6e2f2a5d0217"
@@ -2736,6 +2731,11 @@ node-fetch@^2.5.0:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.5.0.tgz#8028c49fc1191bba56a07adc6e2a954644a48501"
   integrity sha512-YuZKluhWGJwCcUu4RlZstdAxr8bFfOVHakc1mplwHkk8J+tqM1Y5yraYvIUpeX8aY7+crCwiELJq7Vl0o0LWXw==
+
+node-fetch@^2.6.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.0.tgz#e633456386d4aa55863f676a7ab0daa8fdecb0fd"
+  integrity sha512-8dG4H5ujfvFiqDmVu9fQ5bOHUC15JMjMY/Zumv26oOvvVJjM67KF8koCWIabKQ1GJIa9r2mMZscBq/TbdOcmNA==
 
 node-int64@^0.4.0:
   version "0.4.0"

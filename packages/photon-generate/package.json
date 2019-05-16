@@ -26,7 +26,7 @@
     "download/index.js"
   ],
   "devDependencies": {
-    "@prisma/dmmf": "^0.1.9",
+    "@prisma/dmmf": "^0.1.12",
     "@prisma/engine-core": "^0.0.25",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
@@ -45,7 +45,6 @@
     "fs-extra": "^8.0.1",
     "fs-monkey": "^0.3.3",
     "get-own-enumerable-property-symbols": "^3.0.0",
-    "immer": "^3.1.1",
     "immutable": "^4.0.0-rc.12",
     "indent-string": "^4.0.0",
     "is-obj": "^2.0.0",
@@ -55,7 +54,7 @@
     "js-yaml": "^3.13.1",
     "make-dir": "^3.0.0",
     "mock-fs": "^4.9.0",
-    "node-fetch": "^2.5.0",
+    "node-fetch": "^2.6.0",
     "object-path-immutable": "^3.0.2",
     "prettier": "^1.17.1",
     "prisma-datamodel": "^1.34.0-alpha.2",
