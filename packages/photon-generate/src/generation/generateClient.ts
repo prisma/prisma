@@ -35,7 +35,6 @@ export async function generateClient(
   await fs.mkdirp(outputDir)
 
   const dmmf = getDMMF(datamodel)
-  await fs.writeFile(path.join(outputDir, 'dmmf.json'), JSON.stringify(dmmf, null, 2))
   const client = new TSClient(dmmf, prismaYmlPath, prismaConfig, datamodel, internalDatamodelJson, runtimePath)
   const generatedClient = String(client)
   await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))

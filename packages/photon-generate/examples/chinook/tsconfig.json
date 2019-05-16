@@ -3,7 +3,7 @@
     "lib": ["esnext", "esnext.asynciterable"],
     "module": "commonjs",
     "target": "es2017",
-    "strict": false,
+    "strict": true,
     "esModuleInterop": true,
     "sourceMap": true,
     "noImplicitAny": false,
