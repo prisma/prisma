@@ -1,53 +1,25 @@
 type User {
-  id: ID! @id # id
-  name: String! # non-nullable scalar
-  email: String! @unique # unique scalar
-  status: String # nullable scalar
-  nicknames: [String!]! # scalar list
-  location: Location # embedded relation
-  vacations: [Vacation!]! # embedded relation list
-  favoriteBook: Book @relation(link: INLINE) # non-embedded relation
-  favoriteMovies: [Movie!]! @relation(link: INLINE) # non-embedded relation list
-  permissions: [Permission!]!
-}
-
-# embedded type
-type Location @embedded {
-  city: String! # scalar inside embedded
-  cordinates: Coordinates! # embedded relation to embedded type
-}
-
-# embedded type within an embedded type
-type Coordinates @embedded {
-  lat: Float!
-  lng: Float!
-}
-
-type Vacation @embedded {
-  date: DateTime!
-  locations: [Location!]! # list of embedded types inside an embedded type
-}
-
-type Movie {
   id: ID! @id
   name: String!
-  actors: [Actor!]! @relation(link: INLINE)
+  email: String! @unique
+  status: String
+  nicknames: [String!]! @scalarList(strategy: RELATION)
+  permissions: [Permission!]! @scalarList(strategy: RELATION)
+  favoriteTree: Tree
+  location: Location
 }
 
-type Actor {
-  id: ID! @id
-  name: String!
+type Location {
+  id: Int! @id
+  city: String!
 }
 
-type Book {
-  bookId: ID! @id
-  name: String!
-  genre: Genre @relation(link: INLINE)
-}
-
-type Genre {
-  id: ID! @id
-  name: String!
+enum Tree {
+  Arborvitae
+  YellowBirch
+  BlackAsh
+  DouglasFir
+  Oak
 }
 
 enum Permission {

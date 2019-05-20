@@ -39,7 +39,6 @@
     "dotenv": "^8.0.0",
     "fast-copy": "^2.0.3",
     "flat-map-polyfill": "^0.3.8",
-    "folder-hash": "^3.0.0",
     "fs-extra": "^8.0.1",
     "fs-monkey": "^0.3.3",
     "get-own-enumerable-property-symbols": "^3.0.0",
