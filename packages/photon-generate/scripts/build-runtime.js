@@ -27,15 +27,6 @@ mockFs({
   [path.join(__dirname, '../tsconfig.json')]: JSON.stringify(runtimeTsConfig, null, 2),
 })
 
-const indexDTS = `export { DMMF } from './dmmf-types'
-export { DMMFClass } from './dmmf'
-export { deepGet, deepSet } from './utils/deep-set'
-export { makeDocument } from './query'
-export type Engine = any
-export type debugLib = any
-export type fetch = any
-`
-
 require('@zeit/ncc')(path.join(__dirname, '../src/runtime/index.ts'), {})
   .then(async ({ code, map, assets }) => {
     // Assets is an object of asset file names to { source, permissions, symlinks }
@@ -66,13 +57,13 @@ async function saveToDisc(source, map, assets, outputDir) {
         await makeDir(targetDir)
         madeDirs[targetDir] = true
       }
-      if (filePath === 'index.d.ts') {
-        // let content = file.source.toString()
-        // content = content.replace('@prisma/engine-core', './dist/Engine')
-        await writeFile(targetPath, indexDTS, 'utf-8')
-      } else {
-        await writeFile(targetPath, file.source)
-      }
+      // if (filePath === 'index.d.ts') {
+      // let content = file.source.toString()
+      // content = content.replace('@prisma/engine-core', './dist/Engine')
+      //   await writeFile(targetPath, indexDTS, 'utf-8')
+      // } else {
+      await writeFile(targetPath, file.source)
+      // }
     }),
   )
   const after = Date.now()

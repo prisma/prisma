@@ -73,15 +73,65 @@ export async function generateClient(
   }
 
   const program = createProgram([file.fileName], options, compilerHost)
-  program.emit()
+  const result = program.emit()
+  if (result.diagnostics.length > 0) {
+    console.error(result.diagnostics)
+  }
+  await fs.writeFile(path.join(outputDir, '/runtime/index.d.ts'), indexDTS)
 }
+
+const indexDTS = `export { DMMF } from './dmmf-types'
+export { DMMFClass } from './dmmf'
+export { deepGet, deepSet } from './utils/deep-set'
+export { makeDocument } from './query'
+export { Engine } from './dist/Engine'
+
+declare var debugLib: debug.Debug & { debug: debug.Debug; default: debug.Debug };
+export debugLib
+
+declare namespace debug {
+    interface Debug {
+        (namespace: string): Debugger;
+        coerce: (val: any) => any;
+        disable: () => string;
+        enable: (namespaces: string) => void;
+        enabled: (namespaces: string) => boolean;
+        log: (...args: any[]) => any;
+
+        names: RegExp[];
+        skips: RegExp[];
+
+        formatters: Formatters;
+    }
+
+    type IDebug = Debug;
+
+    interface Formatters {
+        [formatter: string]: (v: any) => string;
+    }
+
+    type IDebugger = Debugger;
+
+    interface Debugger {
+        (formatter: any, ...args: any[]): void;
+
+        enabled: boolean;
+        log: (...args: any[]) => any;
+        namespace: string;
+        destroy: () => boolean;
+        extend: (namespace: string, delimiter?: string) => Debugger;
+    }
+}
+`
 
 // This is needed because ncc rewrite some paths
 function redirectToLib(fileName: string) {
   const file = path.basename(fileName)
   if (/^lib\.(.*?)\.d\.ts$/.test(file)) {
-    const dir = path.dirname(fileName)
-    return path.join(dir, 'lib', file)
+    if (!fs.pathExistsSync(fileName)) {
+      const dir = path.dirname(fileName)
+      return path.join(dir, 'lib', file)
+    }
   }
 
   return fileName

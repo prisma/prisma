@@ -1,5 +1,4 @@
 export { DMMF } from './dmmf-types'
-export { default as fetch } from 'node-fetch'
 export { DMMFClass } from './dmmf'
 export { deepGet, deepSet } from './utils/deep-set'
 export { makeDocument } from './query'
