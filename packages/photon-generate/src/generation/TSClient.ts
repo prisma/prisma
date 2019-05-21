@@ -2,7 +2,6 @@ import { DMMF, BaseField } from '../runtime/dmmf-types'
 import { DMMFClass } from '../runtime/dmmf'
 import indent from 'indent-string'
 import { GraphQLScalarToJSTypeTable, capitalize } from '../runtime/utils/common'
-import copy from 'fast-copy'
 import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfilled in TypeScript
 import {
   getModelArgName,
@@ -80,7 +79,7 @@ export class TSClient {
   ) {
     // We make a deep clone here as otherwise we would serialize circular references
     // which we're building up in the DMMFClass
-    this.dmmf = new DMMFClass(copy(document))
+    this.dmmf = new DMMFClass(JSON.parse(JSON.stringify(document)))
   }
   toString() {
     return `${commonCode(this.runtimePath)}

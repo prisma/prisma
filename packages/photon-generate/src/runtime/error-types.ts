@@ -28,7 +28,7 @@ export interface InvalidFieldNameError {
 
 export type JavaScriptPrimitiveType = 'number' | 'string' | 'boolean'
 
-export type InvalidArgError = InvalidArgNameError | MissingArgError | InvalidArgTypeError
+export type InvalidArgError = InvalidArgNameError | MissingArgError | InvalidArgTypeError | AtLeastOneError
 
 /**
  * This error occurs if the user provides an arg name that doens't exist
@@ -39,7 +39,8 @@ export type InvalidArgNameError = {
   providedValue: any
   didYouMeanArg?: string // if the possible names are too different and therefore just arbitrary, we don't suggest anything
   didYouMeanField?: string // if it's very similar to a field, they probably just forgot the select statement
-  originalType: DMMF.ArgType[]
+  originalType: DMMF.ArgType
+  possibilities?: DMMF.ArgType[]
   outputType?: DMMF.OutputType
 }
 
@@ -55,6 +56,14 @@ export type MissingArgError = {
   isEnum: boolean
   isList: boolean
   isRequired: boolean
+  atLeastOne: boolean
+  atMostOne: boolean
+}
+
+export type AtLeastOneError = {
+  type: 'atLeastOne'
+  key: string
+  inputType: DMMF.InputType
 }
 
 /**
@@ -64,7 +73,8 @@ export type InvalidArgTypeError = {
   type: 'invalidType'
   argName: string
   requiredType: {
-    type: DMMF.ArgType[]
+    bestFittingType: DMMF.ArgType
+    types: DMMF.ArgType[]
     isRequired: boolean
     isScalar: boolean
     isEnum: boolean

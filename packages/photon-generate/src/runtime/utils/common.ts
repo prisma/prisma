@@ -9,7 +9,7 @@ export const keyBy: <T>(collection: Array<T>, iteratee: (value: T) => string) =>
   collection,
   iteratee,
 ) => {
-  return collection.reduce((acc, curr) => {
+  return collection.reduce<any>((acc, curr) => {
     acc[iteratee(curr)] = curr
     return acc
   }, {})
@@ -139,7 +139,7 @@ export function getSuggestion(str: string, possibilities: string[]): string | nu
   return bestMatch.str
 }
 
-export function stringifyInputType(input: string | DMMF.InputType | DMMF.Enum): string {
+export function stringifyInputType(input: string | DMMF.InputType | DMMF.Enum, greenKeys: boolean = false): string {
   if (typeof input === 'string') {
     return input
   }
@@ -149,7 +149,8 @@ export function stringifyInputType(input: string | DMMF.InputType | DMMF.Enum): 
     const body = indent(
       (input as DMMF.InputType).args // TS doesn't discriminate based on existence of fields properly
         .map(arg => {
-          const str = `${arg.name}${arg.isRequired ? '' : '?'}: ${chalk.white(
+          const key = `${arg.name}`
+          const str = `${greenKeys ? chalk.green(key) : key}${arg.isRequired ? '' : '?'}: ${chalk.white(
             arg.type
               .map(argType =>
                 argIsInputType(argType) ? argType.name : wrapWithList(stringifyGraphQLType(argType), arg.isList),

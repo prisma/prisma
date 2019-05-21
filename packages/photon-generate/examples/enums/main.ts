@@ -6,29 +6,16 @@ async function main() {
   })
 
   console.clear()
-  const user = await photon.users.create({
-    // data: '',
-    data: {
-      nicknames: {
-        set: ['name1', 'mane2'],
-      },
-      name: '',
-      email: '',
-      // favoriteTree: Tree.BlackAsh,
-    },
-    select: {
-      location: {
-        select: {
-          id: false,
-        },
-      },
-    },
-  })
-  await photon.users({
+  const user = await photon.users({
     where: {
-      favoriteTree_in: [Tree.Arborvitae, Tree.BlackAsh],
+      email: {},
     },
-  })
+  } as any)
+  // await photon.users({
+  //   where: {
+  //     favoriteTree_in: [Tree.Arborvitae, Tree.BlackAsh],
+  //   },
+  // })
 }
 
 main().catch(console.error)

@@ -13,7 +13,7 @@ import {
   getInputTypeName,
   wrapWithList,
 } from './utils/common'
-import { InvalidArgError, ArgError, FieldError, InvalidFieldError } from './error-types'
+import { InvalidArgError, ArgError, FieldError, InvalidFieldError, AtLeastOneError } from './error-types'
 import stringifyObject from './utils/stringifyObject'
 import { deepExtend } from './utils/deep-extend'
 import { omit } from './utils/omit'
@@ -63,12 +63,12 @@ ${indent(this.children.map(String).join('\n'), tab)}
       const path = argError.path.join('.')
       if (argError.error.type === 'invalidName') {
         keyPaths.push(path)
-      } else if (argError.error.type !== 'missingArg') {
+      } else if (argError.error.type !== 'missingArg' && argError.error.type !== 'atLeastOne') {
         valuePaths.push(path)
       } else if (argError.error.type === 'missingArg') {
         missingItems.push({
           path,
-          type: inputTypeToJson(argError.error.missingType[0], true),
+          type: inputTypeToJson(argError.error.missingType.map(getInputTypeName).join(' | '), true),
           isRequired: argError.error.isRequired,
         })
       }
@@ -114,18 +114,19 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
     if (error.type === 'invalidName') {
       let str = `Unknown arg ${chalk.redBright(`\`${error.providedName}\``)} in ${chalk.bold(
         path.join('.'),
-      )}. for type ${chalk.bold(error.outputType ? error.outputType.name : getInputTypeName(error.originalType[0]))}.`
+      )}. for type ${chalk.bold(error.outputType ? error.outputType.name : getInputTypeName(error.originalType))}.`
       if (error.didYouMeanField) {
         str += `\n→ Did you forget to wrap it with \`${chalk.greenBright('select')}\`? ${chalk.dim(
           'e.g. ' + chalk.greenBright(`{ select: { ${error.providedName}: ${error.providedValue} } }`),
         )}`
       } else if (error.didYouMeanArg) {
         str += ` Did you mean \`${chalk.greenBright(error.didYouMeanArg)}\`?`
+        str += ` ${chalk.dim('Available args:\n')}` + stringifyInputType(error.originalType, true)
       } else {
-        if ((error.originalType[0] as DMMF.InputType).args.length === 0) {
-          str += ` The field ${chalk.bold((error.originalType[0] as DMMF.InputType).name)} has no arguments.`
+        if ((error.originalType as DMMF.InputType).args.length === 0) {
+          str += ` The field ${chalk.bold((error.originalType as DMMF.InputType).name)} has no arguments.`
         } else {
-          str += ` The available args are:\n` + stringifyInputType(error.originalType[0])
+          str += ` Available args:\n` + stringifyInputType(error.originalType, true)
         }
       }
       return str
@@ -137,36 +138,51 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
       if (multilineValue) {
         valueStr = `\n${valueStr}\n`
       }
+      // TODO: we don't yet support enums in a union with a non enum. This is mostly due to not implemented error handling
+      // at this code part.
       if (error.requiredType.isEnum) {
         return `Argument ${chalk.bold(error.argName)}: Provided value ${chalk.redBright(valueStr)}${
           multilineValue ? '' : ' '
         }of type ${chalk.redBright(getGraphQLType(error.providedValue))} on ${chalk.bold(
           `photon.${this.children[0].name}`,
         )} is not a ${chalk.greenBright(
-          wrapWithList(stringifyGraphQLType(error.requiredType.type[0]), error.requiredType.isList),
+          wrapWithList(stringifyGraphQLType(error.requiredType.bestFittingType), error.requiredType.isList),
         )}.
-→ Possible values: ${(error.requiredType.type[0] as DMMF.Enum).values
-          .map(v => chalk.greenBright(`${stringifyGraphQLType(error.requiredType.type[0])}.${v}`))
+→ Possible values: ${(error.requiredType.bestFittingType as DMMF.Enum).values
+          .map(v => chalk.greenBright(`${stringifyGraphQLType(error.requiredType.bestFittingType)}.${v}`))
           .join(', ')}`
       }
 
       let typeStr = '.'
-      if (!error.requiredType.isScalar) {
-        typeStr = ':\n' + stringifyInputType(error.requiredType.type[0])
+      if (isInputArgType(error.requiredType.bestFittingType)) {
+        typeStr = ':\n' + stringifyInputType(error.requiredType.bestFittingType)
+      }
+      let expected = `${error.requiredType.types
+        .map(t => chalk.greenBright(wrapWithList(stringifyGraphQLType(t), error.requiredType.isList)))
+        .join(' or ')}${typeStr}`
+      const inputType: null | DMMF.InputType =
+        ((error.requiredType.types.length === 2 &&
+          error.requiredType.types.find(t => isInputArgType(t))) as DMMF.InputType) || null
+      if (inputType) {
+        expected += `\n` + stringifyInputType(inputType, true)
       }
       return `Argument ${chalk.bold(error.argName)}: Got invalid value ${chalk.redBright(valueStr)}${
         multilineValue ? '' : ' '
       }on ${chalk.bold(`photon.${this.children[0].name}`)}. Provided ${chalk.redBright(
         getGraphQLType(error.providedValue),
-      )}, expected ${chalk.greenBright(
-        wrapWithList(stringifyGraphQLType(error.requiredType.type[0]), error.requiredType.isList),
-      )}${typeStr}`
+      )}, expected ${expected}`
     }
 
     if (error.type === 'missingArg') {
       return `Argument ${chalk.greenBright(error.missingName)} for ${chalk.bold(
         `photon.${path.join('.')}`,
       )} is missing. You can see in ${chalk.greenBright('green')} what you need to add.`
+    }
+
+    if (error.type === 'atLeastOne') {
+      return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
+        error.inputType.name,
+      )} needs ${chalk.greenBright('at least one')} argument. Available args are listed in ${chalk.dim.green('green')}.`
     }
   }
 }
@@ -390,6 +406,8 @@ export interface DocumentInput {
 }
 
 export function makeDocument({ dmmf, rootTypeName, rootField, select }: DocumentInput) {
+  const input = dmmf.inputTypes.find(t => t.name === 'UserWhereInput')!
+  // console.log(stringifyInputType(input))
   const rootType = rootTypeName === 'query' ? dmmf.queryType : dmmf.mutationType
   // Create a fake toplevel field for easier implementation
   const _rootField: DMMF.SchemaField = {
@@ -451,6 +469,7 @@ export function selectionToFields(dmmf: DMMFClass, selection: any, field: DMMF.S
         ? objectToArgs(
             argsWithoutSelect,
             field,
+            [],
             typeof field === 'string' ? undefined : (field.type as DMMF.MergedOutputType),
           )
         : undefined
@@ -483,7 +502,7 @@ function getDefaultSelection(outputType: DMMF.MergedOutputType) {
   }, {})
 }
 
-function getInvalidTypeArg(key: string, value: any, arg: DMMF.SchemaArg): Arg {
+function getInvalidTypeArg(key: string, value: any, arg: DMMF.SchemaArg, bestFittingType: DMMF.ArgType): Arg {
   return new Arg(key, value, arg.isEnum, {
     type: 'invalidType',
     providedValue: value,
@@ -493,15 +512,16 @@ function getInvalidTypeArg(key: string, value: any, arg: DMMF.SchemaArg): Arg {
       isEnum: arg.isEnum,
       isRequired: arg.isRequired,
       isScalar: arg.isScalar,
-      type: arg.type,
+      types: arg.type,
+      bestFittingType,
     },
   })
 }
 
 // TODO: Add type check for union in here
-function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg): boolean {
-  const expectedType = wrapWithList(stringifyGraphQLType(arg.type[0] as string), arg.isList)
-  const graphQLType = getGraphQLType(value, arg.type[0])
+function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, type: string | DMMF.Enum): boolean {
+  const expectedType = wrapWithList(stringifyGraphQLType(type), arg.isList)
+  const graphQLType = getGraphQLType(value, type)
   // DateTime is a subset of string
   if (graphQLType === 'DateTime' && expectedType === 'String') {
     return true
@@ -517,7 +537,11 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg): boolean {
   if (graphQLType === 'Int' && expectedType === 'Long') {
     return true
   }
-  return graphQLType === expectedType
+
+  if (graphQLType === expectedType) {
+    return true
+  }
+  return false
 }
 
 function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
@@ -536,48 +560,103 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
       isList: arg.isList,
       missingType: arg.type,
       isRequired: true,
+      atLeastOne: false,
+      atMostOne: false,
     })
   }
 
-  // the provided value should be a valid scalar, but isn't
-  if (!arg.isList && arg.isScalar) {
-    if (hasCorrectScalarType(value, arg)) {
-      return new Arg(key, value, arg.isEnum)
+  if (!arg.isList) {
+    const args = arg.type.map(t => {
+      if (isInputArgType(t)) {
+        if (typeof value !== 'object') {
+          return getInvalidTypeArg(key, value, arg, t)
+        } else {
+          let error: AtLeastOneError | undefined = undefined
+          if (Object.values(value).length === 0 && t.atLeastOne) {
+            error = {
+              type: 'atLeastOne',
+              key,
+              inputType: t,
+            }
+          }
+          return new Arg(key, objectToArgs(value, t, arg.type), arg.isEnum, error)
+        }
+      } else {
+        return scalarToArg(key, value, arg, t)
+      }
+    })
+
+    // is it just one possible type? Then no matter what just return that one
+    if (args.length === 1) {
+      return args[0]
     }
-    return getInvalidTypeArg(key, value, arg)
+
+    // do we have more then one, but does it fit one of the args? Then let's just take that one arg
+    const argWithoutError = args.find(arg => !arg.hasError)
+    if (argWithoutError) {
+      return argWithoutError
+    }
+
+    // if there are exactly 2 options, one scalar and one object, take the one that fits the provided type
+    // (scalar or object)
+    if (args.length === 2 && isInputArgType(arg.type[0]) !== isInputArgType(arg.type[1])) {
+      if (value && typeof value === 'object') {
+        if (isInputArgType(arg.type[0])) {
+          return args[0]
+        }
+        return args[1]
+      } else {
+        if (isInputArgType(arg.type[0])) {
+          return arg[1]
+        }
+        return args[0]
+      }
+    }
+
+    // if we have 2 deeply nested objects and it fits way better with one of them,
+    // show that one
+    const argWithMinimumErrors = args.reduce<{ arg: null | Arg; numErrors: number }>(
+      (acc, curr) => {
+        const numErrors = curr.collectErrors().length
+        if (numErrors < acc.numErrors) {
+          return {
+            arg: curr,
+            numErrors,
+          }
+        }
+        return acc
+      },
+      {
+        arg: null,
+        numErrors: Infinity,
+      },
+    )
+    return argWithMinimumErrors.arg!
+  }
+
+  if (arg.type.length > 1) {
+    throw new Error(`List types with more than one argument type are not supported`)
   }
 
   // the provided arg should be a list, but isn't
   // that's fine for us as we can just turn this into a list with a single item
   // and GraphQL even allows this. We're going the conservative route though
   // and actually generate the [] around the value
-  if (arg.isList && !Array.isArray(value)) {
+  if (!Array.isArray(value)) {
     value = [value]
   }
 
-  if (arg.isList && arg.isScalar) {
+  if (arg.isScalar) {
     // if no value is incorrect
-    if (hasCorrectScalarType(value, arg)) {
-      return new Arg(key, value, arg.isEnum)
-    } else {
-      return getInvalidTypeArg(key, value, arg)
-    }
+    return scalarToArg(key, value, arg, arg.type[0] as string | DMMF.Enum)
   }
 
-  if (!arg.isList && !arg.isScalar) {
-    if (typeof value !== 'object' || !value) {
-      return getInvalidTypeArg(key, value, arg)
-    }
-    // TODO
-    return new Arg(key, objectToArgs(value, arg.type[0] as DMMF.InputType), arg.isEnum)
-  }
-
-  if (arg.isList && !arg.isScalar) {
+  if (!arg.isScalar) {
     return new Arg(
       key,
       value.map(v => {
         if (typeof v !== 'object' || !value) {
-          return getInvalidTypeArg(key, v, arg)
+          return getInvalidTypeArg(key, v, arg, arg.type[0])
         }
         // TODO
         return objectToArgs(v, arg.type[0] as DMMF.InputType)
@@ -590,7 +669,30 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   throw new Error('Oops. This must not happen')
 }
 
-function objectToArgs(obj: any, inputType: DMMF.InputType, outputType?: DMMF.MergedOutputType): Args {
+function isInputArgType(argType: DMMF.ArgType): argType is DMMF.InputType {
+  if (typeof argType === 'string') {
+    return false
+  }
+  if (argType.hasOwnProperty('values')) {
+    return false
+  }
+
+  return true
+}
+
+function scalarToArg(key: string, value: any, arg: DMMF.SchemaArg, type: string | DMMF.Enum): Arg {
+  if (hasCorrectScalarType(value, arg, type)) {
+    return new Arg(key, value, arg.isEnum)
+  }
+  return getInvalidTypeArg(key, value, arg, type)
+}
+
+function objectToArgs(
+  obj: any,
+  inputType: DMMF.InputType,
+  possibilities?: DMMF.ArgType[],
+  outputType?: DMMF.MergedOutputType,
+): Args {
   const { args } = inputType
   const requiredArgs: [string, any][] = args.filter(arg => arg.isRequired).map(arg => [arg.name, undefined])
   const entries = unionBy(Object.entries(obj), requiredArgs, a => a[0])
@@ -608,7 +710,8 @@ function objectToArgs(obj: any, inputType: DMMF.InputType, outputType?: DMMF.Mer
             didYouMeanField,
             didYouMeanArg:
               (!didYouMeanField && getSuggestion(argName, [...args.map(arg => arg.name), 'select'])) || undefined,
-            originalType: [inputType],
+            originalType: inputType,
+            possibilities,
             outputType,
           }),
         )
@@ -626,7 +729,10 @@ function objectToArgs(obj: any, inputType: DMMF.InputType, outputType?: DMMF.Mer
     [] as Arg[],
   )
   // Also show optional neighbour args, if there is any arg missing
-  if (argsList.find(arg => arg.error && arg.error.type === 'missingArg')) {
+  if (
+    (entries.length === 0 && inputType.atLeastOne) ||
+    argsList.find(arg => arg.error && arg.error.type === 'missingArg')
+  ) {
     const optionalMissingArgs = inputType.args.filter(arg => !entries.some(([entry]) => entry === arg.name))
     argsList.push(
       ...optionalMissingArgs.map(
@@ -639,6 +745,8 @@ function objectToArgs(obj: any, inputType: DMMF.InputType, outputType?: DMMF.Mer
             missingName: arg.name,
             missingType: arg.type,
             isRequired: false, // must be false here
+            atLeastOne: inputType.atLeastOne || false,
+            atMostOne: inputType.atMostOne || false,
           }),
       ),
     )
