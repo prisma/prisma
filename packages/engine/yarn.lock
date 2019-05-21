@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@prisma/engine-core@^0.0.25":
-  version "0.0.25"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.25.tgz#de051311cae30b2abbc282b73f57b2c02e3e8941"
-  integrity sha512-pAwVaSPi0q1hUGaM0MJgozk+AB43dpuFn6l7SrqqEzebaKaPPtWHRKOzfkOh2qhE/njabeNlbKS9ZHQtpZDKYg==
+"@prisma/engine-core@^0.0.26":
+  version "0.0.26"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.26.tgz#bf32128803b1bf2c45504dc54269b968601eecf0"
+  integrity sha512-1u7WBI4Ova8wsGD4R44CzjL6uNBOc3WDM1vU9Zc1ZtOa/o1RLSJE7aG2wz7rV3t17d1lunfAUoQ9Hrp0jiAoCA==
   dependencies:
     debug "^4.1.1"
     node-fetch "^2.5.0"

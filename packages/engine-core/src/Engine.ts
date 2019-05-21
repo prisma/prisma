@@ -10,7 +10,7 @@ import { getInternalDatamodelJson } from './getInternalDatamodelJson'
 const debug = debugLib('engine')
 
 interface EngineConfig {
-  prismaYmlPath: string
+  prismaYmlPath?: string
   prismaConfig?: string
   datamodel: string
   datamodelJson?: string
@@ -37,7 +37,7 @@ class PhotonError extends Error {
  * Node.js based wrapper to run the Prisma binary
  */
 export class Engine {
-  prismaYmlPath: string
+  prismaYmlPath?: string
   prismaConfig?: string
   port?: number
   debug: boolean
@@ -69,7 +69,7 @@ export class Engine {
   }: EngineConfig) {
     this.prismaYmlPath = prismaYmlPath
     this.prismaConfig = prismaConfig
-    this.cwd = path.dirname(this.prismaYmlPath)
+    this.cwd = prismaYmlPath ? path.dirname(this.prismaYmlPath) : process.cwd()
     this.debug = args.debug || false
     this.datamodelJson = datamodelJson
     this.datamodel = datamodel
