@@ -66,9 +66,13 @@ ${indent(this.children.map(String).join('\n'), tab)}
       } else if (argError.error.type !== 'missingArg' && argError.error.type !== 'atLeastOne') {
         valuePaths.push(path)
       } else if (argError.error.type === 'missingArg') {
+        const type =
+          argError.error.missingType.length === 1
+            ? argError.error.missingType[0]
+            : argError.error.missingType.map(getInputTypeName).join(' | ')
         missingItems.push({
           path,
-          type: inputTypeToJson(argError.error.missingType.map(getInputTypeName).join(' | '), true),
+          type: inputTypeToJson(type, true),
           isRequired: argError.error.isRequired,
         })
       }

@@ -10,7 +10,7 @@ test('document stringify', () => {
           providedName: 'mirst',
           providedValue: '',
           type: 'invalidName',
-          originalType: ['String'],
+          originalType: 'String',
         }),
         new Arg('skip', '200', false, {
           type: 'invalidType',
@@ -19,9 +19,10 @@ test('document stringify', () => {
           requiredType: {
             isEnum: false,
             isRequired: false,
-            type: ['number'],
+            types: ['number'],
             isList: false,
             isScalar: false,
+            bestFittingType: 'number',
           },
         }),
         new Arg(
