@@ -1,5 +1,5 @@
 import { DMMF } from './dmmf-types'
-import { keyBy, isScalar, Dictionary, destroyCircular, uniqBy } from './utils/common'
+import { keyBy, Dictionary } from './utils/common'
 
 export class DMMFClass implements DMMF.Document {
   datamodel: DMMF.Datamodel
@@ -37,12 +37,7 @@ export class DMMFClass implements DMMF.Document {
     // needed as references are not kept
     this.queryType = this.outputTypeMap['Query']
     this.mutationType = this.outputTypeMap['Mutation']
-    this.outputTypes = uniqBy(this.outputTypes, o => o.name).filter(o => {
-      return !o.name.endsWith('PreviousValues') && !o.name.includes('Subscription')
-    })
-    this.inputTypes = uniqBy(this.inputTypes, o => o.name).filter(
-      o => !o.name.includes('Subscription') && o.name !== 'MutationType',
-    )
+    this.outputTypes = this.outputTypes
   }
   protected outputTypeToMergedOutputType = (outputType: DMMF.OutputType): DMMF.MergedOutputType => {
     const model = this.modelMap[outputType.name]
