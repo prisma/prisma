@@ -149,8 +149,9 @@ export function stringifyInputType(input: string | DMMF.InputType | DMMF.Enum): 
     const body = indent(
       (input as DMMF.InputType).args // TS doesn't discriminate based on existence of fields properly
         .map(arg => {
+          const argType = arg.type[0]
           const str = `${arg.name}${arg.isRequired ? '' : '?'}: ${chalk.white(
-            typeof arg.type === 'string' ? wrapWithList(stringifyGraphQLType(arg.type), arg.isList) : arg.type.name,
+            argIsInputType(argType) ? argType.name : wrapWithList(stringifyGraphQLType(argType), arg.isList),
           )}`
           if (!arg.isRequired) {
             return chalk.dim(str)
@@ -165,7 +166,13 @@ export function stringifyInputType(input: string | DMMF.InputType | DMMF.Enum): 
   }
 }
 
-type X = {}
+function argIsInputType(arg: DMMF.ArgType): arg is DMMF.InputType {
+  if (typeof arg === 'string') {
+    return false
+  }
+
+  return true
+}
 
 export function getInputTypeName(input: string | DMMF.InputType | DMMF.SchemaField | DMMF.Enum) {
   if (typeof input === 'string') {
@@ -201,7 +208,7 @@ export function inputTypeToJson(input: string | DMMF.InputType | DMMF.Enum, isRe
 
   return inputType.args.reduce((acc, curr) => {
     acc[curr.name + (curr.isRequired ? '' : '?')] =
-      curr.isRequired || showDeepType ? inputTypeToJson(curr.type, curr.isRequired) : getInputTypeName(curr.type)
+      curr.isRequired || showDeepType ? inputTypeToJson(curr.type[0], curr.isRequired) : getInputTypeName(curr.type[0])
     return acc
   }, {})
 }

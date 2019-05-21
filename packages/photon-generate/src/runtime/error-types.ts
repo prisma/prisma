@@ -39,7 +39,7 @@ export type InvalidArgNameError = {
   providedValue: any
   didYouMeanArg?: string // if the possible names are too different and therefore just arbitrary, we don't suggest anything
   didYouMeanField?: string // if it's very similar to a field, they probably just forgot the select statement
-  originalType: string | DMMF.InputType | DMMF.Enum
+  originalType: DMMF.ArgType[]
   outputType?: DMMF.OutputType
 }
 
@@ -50,7 +50,7 @@ export type InvalidArgNameError = {
 export type MissingArgError = {
   type: 'missingArg'
   missingName: string
-  missingType: string | DMMF.InputType | DMMF.Enum // note that this could be an object or scalar type. in the object case, we print the whole object type
+  missingType: DMMF.ArgType[] // note that this could be an object or scalar type. in the object case, we print the whole object type
   isScalar: boolean // useful for error printing
   isEnum: boolean
   isList: boolean
@@ -64,7 +64,7 @@ export type InvalidArgTypeError = {
   type: 'invalidType'
   argName: string
   requiredType: {
-    type: string | DMMF.InputType | DMMF.Enum
+    type: DMMF.ArgType[]
     isRequired: boolean
     isScalar: boolean
     isEnum: boolean

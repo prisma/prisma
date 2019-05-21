@@ -1,7 +1,7 @@
 export namespace DMMF {
-  export interface Document {
+  export interface Document<T extends BaseSchemaArg = SchemaArg> {
     datamodel: Datamodel
-    schema: Schema
+    schema: Schema<T>
     mappings: Mapping[]
   }
 
@@ -34,17 +34,17 @@ export namespace DMMF {
     type: string
   }
 
-  export interface Schema {
-    queries: Query[]
-    mutations: Query[]
-    inputTypes: InputType[]
-    outputTypes: OutputType[]
+  export interface Schema<T extends BaseSchemaArg = SchemaArg> {
+    queries: Query<T>[]
+    mutations: Query<T>[]
+    inputTypes: InputType<T>[]
+    outputTypes: OutputType<T>[]
     enums: Enum[]
   }
 
-  export interface Query {
+  export interface Query<T extends BaseSchemaArg = SchemaArg> {
     name: string
-    args: SchemaArg[]
+    args: T[]
     output: QueryOutput
   }
 
@@ -54,37 +54,57 @@ export namespace DMMF {
     isList: boolean
   }
 
-  export interface SchemaArg {
+  export type ArgType<T extends BaseSchemaArg = SchemaArg> = string | InputType<T> | Enum
+
+  export interface BaseSchemaArg {
     name: string
-    type: string | InputType | Enum
+    type: ArgType | ArgType[]
     isScalar: boolean
     isRequired: boolean
     isEnum: boolean
     isList: boolean
   }
 
-  export interface OutputType {
+  export interface RawSchemaArg extends BaseSchemaArg {
     name: string
-    fields: SchemaField[]
+    type: ArgType
+    isScalar: boolean
+    isRequired: boolean
+    isEnum: boolean
+    isList: boolean
   }
 
-  export interface MergedOutputType extends OutputType {
+  export interface SchemaArg extends BaseSchemaArg {
+    name: string
+    type: ArgType[]
+    isScalar: boolean
+    isRequired: boolean
+    isEnum: boolean
+    isList: boolean
+  }
+
+  export interface OutputType<T extends BaseSchemaArg = SchemaArg> {
+    name: string
+    fields: SchemaField<T>[]
+  }
+
+  export interface MergedOutputType<T extends BaseSchemaArg = SchemaArg> extends OutputType<T> {
     isEmbedded: boolean
-    fields: SchemaField[]
+    fields: SchemaField<T>[]
   }
 
-  export interface SchemaField {
+  export interface SchemaField<T extends BaseSchemaArg = SchemaArg> {
     name: string
-    type: string | MergedOutputType | Enum // note that in the serialized state we don't have the reference to MergedOutputTypes
+    type: string | MergedOutputType<T> | Enum // note that in the serialized state we don't have the reference to MergedOutputTypes
     isList: boolean
     isRequired: boolean
     kind: FieldKind
-    args: SchemaArg[]
+    args: T[]
   }
 
-  export interface InputType {
+  export interface InputType<T extends BaseSchemaArg = SchemaArg> {
     name: string
-    args: SchemaArg[]
+    args: T[]
   }
 
   export interface Mapping {
@@ -111,9 +131,9 @@ export namespace DMMF {
   }
 }
 
-export interface BaseField {
+export interface BaseField<T extends DMMF.BaseSchemaArg = DMMF.SchemaArg> {
   name: string
-  type: string | DMMF.MergedOutputType | DMMF.InputType | DMMF.Enum
+  type: string | DMMF.Enum | DMMF.MergedOutputType<T> | T['type']
   isList: boolean
   isRequired: boolean
 }

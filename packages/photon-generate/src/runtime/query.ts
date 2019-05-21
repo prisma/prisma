@@ -13,7 +13,7 @@ import {
   getInputTypeName,
   wrapWithList,
 } from './utils/common'
-import { InvalidArgError, ArgError, FieldError, InvalidFieldError } from './types'
+import { InvalidArgError, ArgError, FieldError, InvalidFieldError } from './error-types'
 import stringifyObject from './utils/stringifyObject'
 import { deepExtend } from './utils/deep-extend'
 import { omit } from './utils/omit'
@@ -68,7 +68,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
       } else if (argError.error.type === 'missingArg') {
         missingItems.push({
           path,
-          type: inputTypeToJson(argError.error.missingType, true),
+          type: inputTypeToJson(argError.error.missingType[0], true),
           isRequired: argError.error.isRequired,
         })
       }
@@ -114,7 +114,7 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
     if (error.type === 'invalidName') {
       let str = `Unknown arg ${chalk.redBright(`\`${error.providedName}\``)} in ${chalk.bold(
         path.join('.'),
-      )}. for type ${chalk.bold(error.outputType ? error.outputType.name : getInputTypeName(error.originalType))}.`
+      )}. for type ${chalk.bold(error.outputType ? error.outputType.name : getInputTypeName(error.originalType[0]))}.`
       if (error.didYouMeanField) {
         str += `\n→ Did you forget to wrap it with \`${chalk.greenBright('select')}\`? ${chalk.dim(
           'e.g. ' + chalk.greenBright(`{ select: { ${error.providedName}: ${error.providedValue} } }`),
@@ -122,10 +122,10 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
       } else if (error.didYouMeanArg) {
         str += ` Did you mean \`${chalk.greenBright(error.didYouMeanArg)}\`?`
       } else {
-        if ((error.originalType as DMMF.InputType).args.length === 0) {
-          str += ` The field ${chalk.bold((error.originalType as DMMF.InputType).name)} has no arguments.`
+        if ((error.originalType[0] as DMMF.InputType).args.length === 0) {
+          str += ` The field ${chalk.bold((error.originalType[0] as DMMF.InputType).name)} has no arguments.`
         } else {
-          str += ` The available args are:\n` + stringifyInputType(error.originalType)
+          str += ` The available args are:\n` + stringifyInputType(error.originalType[0])
         }
       }
       return str
@@ -143,23 +143,23 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
         }of type ${chalk.redBright(getGraphQLType(error.providedValue))} on ${chalk.bold(
           `photon.${this.children[0].name}`,
         )} is not a ${chalk.greenBright(
-          wrapWithList(stringifyGraphQLType(error.requiredType.type), error.requiredType.isList),
+          wrapWithList(stringifyGraphQLType(error.requiredType.type[0]), error.requiredType.isList),
         )}.
-→ Possible values: ${(error.requiredType.type as DMMF.Enum).values
-          .map(v => chalk.greenBright(`${stringifyGraphQLType(error.requiredType.type)}.${v}`))
+→ Possible values: ${(error.requiredType.type[0] as DMMF.Enum).values
+          .map(v => chalk.greenBright(`${stringifyGraphQLType(error.requiredType.type[0])}.${v}`))
           .join(', ')}`
       }
 
       let typeStr = '.'
       if (!error.requiredType.isScalar) {
-        typeStr = ':\n' + stringifyInputType(error.requiredType.type)
+        typeStr = ':\n' + stringifyInputType(error.requiredType.type[0])
       }
       return `Argument ${chalk.bold(error.argName)}: Got invalid value ${chalk.redBright(valueStr)}${
         multilineValue ? '' : ' '
       }on ${chalk.bold(`photon.${this.children[0].name}`)}. Provided ${chalk.redBright(
         getGraphQLType(error.providedValue),
       )}, expected ${chalk.greenBright(
-        wrapWithList(stringifyGraphQLType(error.requiredType.type), error.requiredType.isList),
+        wrapWithList(stringifyGraphQLType(error.requiredType.type[0]), error.requiredType.isList),
       )}${typeStr}`
     }
 
@@ -305,7 +305,7 @@ export class Arg {
   public readonly hasError: boolean
   public readonly isEnum: boolean
 
-  constructor(key: string, value: ArgValue, isEnum: boolean, error?: InvalidArgError) {
+  constructor(key: string, value: ArgValue, isEnum: boolean = false, error?: InvalidArgError) {
     this.key = key
     this.value = value
     this.error = error
@@ -498,9 +498,10 @@ function getInvalidTypeArg(key: string, value: any, arg: DMMF.SchemaArg): Arg {
   })
 }
 
+// TODO: Add type check for union in here
 function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg): boolean {
-  const expectedType = wrapWithList(stringifyGraphQLType(arg.type as string), arg.isList)
-  const graphQLType = getGraphQLType(value, arg.type)
+  const expectedType = wrapWithList(stringifyGraphQLType(arg.type[0] as string), arg.isList)
+  const graphQLType = getGraphQLType(value, arg.type[0])
   // DateTime is a subset of string
   if (graphQLType === 'DateTime' && expectedType === 'String') {
     return true
@@ -567,7 +568,8 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     if (typeof value !== 'object' || !value) {
       return getInvalidTypeArg(key, value, arg)
     }
-    return new Arg(key, objectToArgs(value, arg.type as DMMF.InputType), arg.isEnum)
+    // TODO
+    return new Arg(key, objectToArgs(value, arg.type[0] as DMMF.InputType), arg.isEnum)
   }
 
   if (arg.isList && !arg.isScalar) {
@@ -577,7 +579,8 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
         if (typeof v !== 'object' || !value) {
           return getInvalidTypeArg(key, v, arg)
         }
-        return objectToArgs(v, arg.type as DMMF.InputType)
+        // TODO
+        return objectToArgs(v, arg.type[0] as DMMF.InputType)
       }),
       arg.isEnum,
     )
@@ -605,7 +608,7 @@ function objectToArgs(obj: any, inputType: DMMF.InputType, outputType?: DMMF.Mer
             didYouMeanField,
             didYouMeanArg:
               (!didYouMeanField && getSuggestion(argName, [...args.map(arg => arg.name), 'select'])) || undefined,
-            originalType: inputType,
+            originalType: [inputType],
             outputType,
           }),
         )

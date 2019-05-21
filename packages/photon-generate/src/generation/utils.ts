@@ -59,7 +59,7 @@ export function getDefaultArgName(dmmf: DMMFClass, modelName: string, action: DM
   const operation = getOperation(action)
   const queryType = operation === 'query' ? dmmf.queryType : dmmf.mutationType
   const field = queryType.fields.find(f => f.name === fieldName)!
-  return (field.args[0].type as DMMF.InputType).name
+  return (field.args[0].type[0] as DMMF.InputType).name
 }
 
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {

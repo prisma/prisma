@@ -26,6 +26,7 @@ exports[`validation missing arg scalar && object 1`] = `
     title: \\"string\\"
     content: null
     author: null
+    id: null
   }) {
     id
     title
@@ -44,6 +45,7 @@ exports[`validation missing arg scalar 1`] = `
       }
     }
     content: null
+    id: null
   }) {
     id
     title
@@ -80,7 +82,7 @@ exports[`validation unknown arg, field, incorrect arg type 1`] = `
     }
   ) {
     id
-    name
+    name # INVALID_FIELD
     strings
     name2 # INVALID_FIELD
     posts(first: 200) {

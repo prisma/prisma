@@ -341,7 +341,7 @@ export class Model {
           args: [
             {
               name: 'select',
-              type: getSelectName(model.name),
+              type: [getSelectName(model.name)],
               isList: false,
               isRequired: false,
               isScalar: false,
@@ -360,7 +360,7 @@ export class Model {
         args: [
           {
             name: 'select',
-            type: getSelectName(model.name),
+            type: [getSelectName(model.name)],
             isList: false,
             isRequired: false,
             isScalar: false,
@@ -690,7 +690,7 @@ export class InputField {
     const { field } = this
     // ENUMTODO
     let fieldType =
-      typeof field.type === 'string' ? GraphQLScalarToJSTypeTable[field.type] || field.type : field.type.name
+      typeof field.type === 'string' ? GraphQLScalarToJSTypeTable[field.type] || field.type : field.type[0].name
     if (Array.isArray(fieldType)) {
       fieldType = fieldType[0]
     }
@@ -706,7 +706,7 @@ export class OutputField {
     const { field } = this
     // ENUMTODO
     let fieldType =
-      typeof field.type === 'string' ? GraphQLScalarToJSTypeTable[field.type] || field.type : field.type.name
+      typeof field.type === 'string' ? GraphQLScalarToJSTypeTable[field.type] || field.type : field.type[0].name
     if (Array.isArray(fieldType)) {
       fieldType = fieldType[0]
     }
