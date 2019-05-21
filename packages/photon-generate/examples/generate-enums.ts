@@ -11,6 +11,7 @@ async function main() {
     path.join(__dirname, './enums/@generated/photon'),
     false,
     '../../../../src/runtime',
+    true,
   )
   const after = performance.now()
   console.log(`Generated Photon in ${(after - before).toFixed(3)}ms`)

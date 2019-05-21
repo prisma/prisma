@@ -2,25 +2,30 @@ import { DMMF } from './dmmf-types'
 import { uniqBy, Dictionary, stringifyInputType } from './utils/common'
 
 export function transformDmmf(document: DMMF.Document): DMMF.Document {
-  filterInputTypes(document)
-  filterOutputTypes(document)
-  transformInputTypes(document)
-  return document
+  return {
+    datamodel: document.datamodel,
+    mappings: document.mappings,
+    schema: {
+      enums: document.schema.enums,
+      queries: document.schema.queries,
+      mutations: document.schema.mutations,
+      outputTypes: filterOutputTypes(document.schema.outputTypes),
+      inputTypes: filterInputTypes(transformInputTypes(document)),
+    },
+  }
 }
 
-function filterInputTypes(document: DMMF.Document) {
-  document.schema.inputTypes = uniqBy(document.schema.inputTypes, o => o.name).filter(
-    o => !o.name.includes('Subscription') && o.name !== 'MutationType',
-  )
+function filterInputTypes(types: DMMF.InputType[]): DMMF.InputType[] {
+  return uniqBy(types, o => o.name).filter(o => !o.name.includes('Subscription') && o.name !== 'MutationType')
 }
 
-function filterOutputTypes(document: DMMF.Document) {
-  document.schema.outputTypes = uniqBy(document.schema.outputTypes, o => o.name).filter(o => {
+function filterOutputTypes(types: DMMF.OutputType[]): DMMF.OutputType[] {
+  return uniqBy(types, o => o.name).filter(o => {
     return !o.name.endsWith('PreviousValues') && !o.name.includes('Subscription')
   })
 }
 
-function transformInputTypes(document: DMMF.Document) {
+function transformInputTypes(document: DMMF.Document): DMMF.InputType[] {
   const types = document.schema.inputTypes
   const inputTypes: DMMF.InputType[] = []
   const filterTypes: Dictionary<DMMF.InputType> = {}
@@ -35,7 +40,7 @@ function transformInputTypes(document: DMMF.Document) {
     const modelName = type.name.slice(0, index)
     const model = document.datamodel.models.find(m => m.name === modelName)!
     if (!model) {
-      console.log(`${modelName} is not a model`)
+      inputTypes.push(type)
       continue
     }
     const whiteList = ['AND', 'OR', 'NOT']
@@ -66,19 +71,15 @@ function transformInputTypes(document: DMMF.Document) {
           }
         }),
     )
-    const newType = {
+    const newType: DMMF.InputType = {
       name: type.name,
       args,
     }
-    console.log(modelName, !!model)
-    console.log(stringifyInputType(newType) + '\n')
     inputTypes.push(newType)
   }
   const scalarFilters = Object.values(filterTypes)
-  scalarFilters.forEach(f => {
-    console.log(stringifyInputType(f))
-  })
-  return inputTypes.push(...scalarFilters)
+  inputTypes.push(...scalarFilters)
+  return inputTypes
 }
 
 function getFilterName(type: string) {
@@ -89,6 +90,7 @@ function makeFilterType(type: string): DMMF.InputType {
   return {
     name: getFilterName(type),
     args: getFilterArgs(type),
+    atLeastOne: true,
   }
 }
 
@@ -121,7 +123,8 @@ function getBaseFilters(type: string): DMMF.SchemaArg[] {
   const filterName = getFilterName(type)
   // TODO: reintroduce AND, NOT, OR
   return [
-    ...getScalarArgs(['equals', 'not'], [type, filterName]) /*, ...getScalarArgs(['AND', 'NOT', 'OR'], [filterName])*/,
+    ...getScalarArgs(['equals'], [type]),
+    ...getScalarArgs(['not'], [type, filterName]) /*, ...getScalarArgs(['AND', 'NOT', 'OR'], [filterName])*/,
   ]
 }
 

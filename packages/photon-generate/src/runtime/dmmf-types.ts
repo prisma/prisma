@@ -104,6 +104,8 @@ export namespace DMMF {
 
   export interface InputType<T extends BaseSchemaArg = SchemaArg> {
     name: string
+    atLeastOne?: boolean
+    atMostOne?: boolean
     args: T[]
   }
 
