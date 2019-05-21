@@ -66,13 +66,15 @@ export class DMMFClass implements DMMF.Document {
     for (const typeA of types) {
       for (const fieldA of typeA.args) {
         for (const typeB of types) {
-          if (typeof fieldA.type === 'string') {
-            if (fieldA.type === typeB.name) {
-              fieldA.type = typeB
-            } else if (this.enumMap[fieldA.type]) {
-              fieldA.type = this.enumMap[fieldA.type]
+          fieldA.type.forEach((type, index) => {
+            if (typeof type === 'string') {
+              if (type === typeB.name) {
+                fieldA.type[index] = typeB
+              } else if (this.enumMap[type]) {
+                fieldA.type[index] = this.enumMap[type]
+              }
             }
-          }
+          })
         }
       }
     }
@@ -81,13 +83,15 @@ export class DMMFClass implements DMMF.Document {
     for (const type of types) {
       for (const field of type.fields) {
         for (const arg of field.args) {
-          if (typeof arg.type === 'string') {
-            if (inputTypeMap[arg.type]) {
-              arg.type = inputTypeMap[arg.type]
-            } else if (this.enumMap[arg.type]) {
-              arg.type = this.enumMap[arg.type]
+          arg.type.forEach((type, index) => {
+            if (typeof type === 'string') {
+              if (inputTypeMap[type]) {
+                arg.type[index] = inputTypeMap[type]
+              } else if (this.enumMap[type]) {
+                arg.type[index] = this.enumMap[type]
+              }
             }
-          }
+          })
         }
       }
     }

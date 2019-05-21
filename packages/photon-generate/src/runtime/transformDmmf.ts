@@ -45,7 +45,7 @@ function transformInputTypes(document: DMMF.Document) {
           }
           return {
             name: f.name,
-            type: `${f.type}${f.isList ? 'List' : ''}Filter`,
+            type: [`${f.type}${f.isList ? 'List' : ''}Filter`],
             isScalar: false,
             isRequired: false,
             isEnum: false,
@@ -130,6 +130,6 @@ function getScalarArg(name: string, type: string, isList = false): DMMF.SchemaAr
     isList,
     isRequired: false,
     isScalar: true,
-    type,
+    type: [type],
   }
 }

@@ -5,20 +5,21 @@ test('document stringify', () => {
     new Field({
       name: 'users',
       args: new Args([
-        new Arg('mirst', 100, {
+        new Arg('mirst', 100, false, {
           didYouMeanArg: 'first',
           providedName: 'mirst',
           providedValue: '',
           type: 'invalidName',
-          originalType: 'String',
+          originalType: ['String'],
         }),
-        new Arg('skip', '200', {
+        new Arg('skip', '200', false, {
           type: 'invalidType',
           providedValue: '200',
           argName: 'skip',
           requiredType: {
+            isEnum: false,
             isRequired: false,
-            type: 'number',
+            type: ['number'],
             isList: false,
             isScalar: false,
           },
