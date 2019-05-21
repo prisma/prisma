@@ -1,7 +1,7 @@
 import { DMMF } from './dmmf-types'
 import { uniqBy, Dictionary, stringifyInputType } from './utils/common'
 
-function transformDmmf(document: DMMF.Document): DMMF.Document {
+export function transformDmmf(document: DMMF.Document): DMMF.Document {
   filterInputTypes(document)
   filterOutputTypes(document)
   transformInputTypes(document)
@@ -34,18 +34,31 @@ function transformInputTypes(document: DMMF.Document) {
     const index = type.name.lastIndexOf('WhereInput')
     const modelName = type.name.slice(0, index)
     const model = document.datamodel.models.find(m => m.name === modelName)!
-    const args = type.args.filter(a => ['AND', 'OR', 'NOT'].includes(a.name))
+    if (!model) {
+      console.log(`${modelName} is not a model`)
+      continue
+    }
+    const whiteList = ['AND', 'OR', 'NOT']
+    for (const field of model.fields.filter(f => f.kind === 'relation')) {
+      const { name } = field
+      if (field.isList) {
+        whiteList.push(...[`${name}_every`, `${name}_some`, `${name}_none`])
+      } else {
+        whiteList.push(name)
+      }
+    }
+    const args = type.args.filter(a => whiteList.includes(a.name))
     // NOTE: list scalar fields don't have where arguments!
-    args.push(
+    args.unshift(
       ...model.fields
-        .filter(f => !f.isList)
+        .filter(f => !f.isList && f.kind === 'scalar')
         .map(f => {
           if (!filterTypes[getFilterName(f.type)]) {
             filterTypes[getFilterName(f.type)] = makeFilterType(f.type)
           }
           return {
             name: f.name,
-            type: [`${f.type}${f.isList ? 'List' : ''}Filter`],
+            type: [f.type, `${f.type}${f.isList ? 'List' : ''}Filter`, ...(f.isRequired ? [] : ['null'])],
             isScalar: false,
             isRequired: false,
             isEnum: false,
@@ -62,6 +75,9 @@ function transformInputTypes(document: DMMF.Document) {
     inputTypes.push(newType)
   }
   const scalarFilters = Object.values(filterTypes)
+  scalarFilters.forEach(f => {
+    console.log(stringifyInputType(f))
+  })
   return inputTypes.push(...scalarFilters)
 }
 
@@ -76,60 +92,62 @@ function makeFilterType(type: string): DMMF.InputType {
   }
 }
 
-function getFilterArgs(type: string): DMMF.SchemaArg[] {
-  const args: DMMF.SchemaArg[] = getScalarArgs(['equals', 'not'], type)
+function getFilterArgs(type: string, isEnum = false): DMMF.SchemaArg[] {
+  if (isEnum) {
+    return [...getBaseFilters(type), ...getInclusionFilters(type)]
+  }
   switch (type) {
     case 'String':
     case 'ID':
     case 'UUID':
-      args.push(...getScalarArgs(['contains', 'startsWith', 'endsWith'], type))
+      return [
+        ...getBaseFilters(type),
+        ...getInclusionFilters(type),
+        ...getAlphanumericFilters(type),
+        ...getStringFilters(type),
+      ]
+    case 'Int':
+    case 'Float':
+    case 'DateTime':
+      return [...getBaseFilters(type), ...getInclusionFilters(type), ...getAlphanumericFilters(type)]
+    case 'Boolean':
+      return [...getBaseFilters(type)]
   }
 
-  return args
+  return []
 }
 
-// CONTINUE HERE: Add support for Union Input Types in DMMF, then think about places where we have them:
-// - not: {} or not: 5
-// - equals: {} or equals: 5
-// - id: {} or id: 5
-
 function getBaseFilters(type: string): DMMF.SchemaArg[] {
-  return [...getScalarArgs(['equals', 'not'], type), ...getScalarArgs(['AND', 'NOT', 'OR'], getFilterName(type))]
+  const filterName = getFilterName(type)
+  // TODO: reintroduce AND, NOT, OR
+  return [
+    ...getScalarArgs(['equals', 'not'], [type, filterName]) /*, ...getScalarArgs(['AND', 'NOT', 'OR'], [filterName])*/,
+  ]
 }
 
 function getStringFilters(type: string): DMMF.SchemaArg[] {
-  return getScalarArgs(['contains', 'startsWith', 'endsWith'], type)
+  return getScalarArgs(['contains', 'startsWith', 'endsWith'], [type])
 }
 
 function getAlphanumericFilters(type: string): DMMF.SchemaArg[] {
-  return getScalarArgs(['lt', 'lte', 'gt', 'gte'], type)
+  return getScalarArgs(['lt', 'lte', 'gt', 'gte'], [type])
 }
 
 function getInclusionFilters(type: string): DMMF.SchemaArg[] {
-  return getScalarArgs(['in', 'notIn'], type)
+  return getScalarArgs(['in', 'notIn'], [type])
 }
 
-function getScalarArgs(names: string[], type: string): DMMF.SchemaArg[] {
+function getScalarArgs(names: string[], type: string[]): DMMF.SchemaArg[] {
   return names.map(name => getScalarArg(name, type))
 }
 
-// {
-//   where: {
-//     id: {
-//       not: {
-//         equals: 5
-//       }
-//     }
-//   }
-// }
-
-function getScalarArg(name: string, type: string, isList = false): DMMF.SchemaArg {
+function getScalarArg(name: string, type: string[], isList = false): DMMF.SchemaArg {
   return {
     name,
     isEnum: false,
     isList,
     isRequired: false,
     isScalar: true,
-    type: [type],
+    type,
   }
 }

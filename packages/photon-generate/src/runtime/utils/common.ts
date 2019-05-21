@@ -149,9 +149,12 @@ export function stringifyInputType(input: string | DMMF.InputType | DMMF.Enum): 
     const body = indent(
       (input as DMMF.InputType).args // TS doesn't discriminate based on existence of fields properly
         .map(arg => {
-          const argType = arg.type[0]
           const str = `${arg.name}${arg.isRequired ? '' : '?'}: ${chalk.white(
-            argIsInputType(argType) ? argType.name : wrapWithList(stringifyGraphQLType(argType), arg.isList),
+            arg.type
+              .map(argType =>
+                argIsInputType(argType) ? argType.name : wrapWithList(stringifyGraphQLType(argType), arg.isList),
+              )
+              .join(' | '),
           )}`
           if (!arg.isRequired) {
             return chalk.dim(str)

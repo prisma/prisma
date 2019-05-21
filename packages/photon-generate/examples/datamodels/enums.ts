@@ -8,6 +8,13 @@ export const enums = /* GraphQL */ `
     permissions: [Permission!]! @scalarList(strategy: RELATION)
     favoriteTree: Tree
     location: Location
+    posts: [Post!]!
+  }
+
+  type Post {
+    id: ID! @id
+    name: String!
+    email: String! @unique
   }
 
   type Location {
