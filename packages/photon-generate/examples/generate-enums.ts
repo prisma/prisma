@@ -9,7 +9,7 @@ async function main() {
     enums,
     path.join(__dirname, './enums/prisma.yml'),
     path.join(__dirname, './enums/@generated/photon'),
-    false,
+    true,
     '../../../../src/runtime',
     true,
   )

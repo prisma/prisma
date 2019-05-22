@@ -712,7 +712,7 @@ export class InputField {
     let fieldType
     if (Array.isArray(field.type)) {
       fieldType = field.type
-        .map(t =>
+        .flatMap(t =>
           typeof t === 'string' ? GraphQLScalarToJSTypeTable[t] || t : this.prefixFilter ? `Base${t.name}` : t.name,
         )
         .join(' | ')
@@ -806,6 +806,7 @@ export class Enum {
   constructor(protected readonly type: DMMF.Enum) {}
   toString() {
     const { type } = this
+
     return `export const ${type.name} = makeEnum({
 ${indent(type.values.map(v => `${v}: '${v}'`).join(',\n'), tab)}
 })

@@ -75,6 +75,12 @@ export async function generateClient(
     }
     return (originalGetSourceFile as any).call(compilerHost, newFileName)
   }
+  const originalWriteFile = compilerHost.writeFile
+  compilerHost.writeFile = (fileName, ...args) => {
+    if (fileName.includes('@generated/photon')) {
+      return originalWriteFile(fileName, ...args)
+    }
+  }
 
   const program = createProgram([file.fileName], options, compilerHost)
   const result = program.emit()
@@ -87,11 +93,10 @@ export async function generateClient(
 const indexDTS = `export { DMMF } from './dmmf-types'
 export { DMMFClass } from './dmmf'
 export { deepGet, deepSet } from './utils/deep-set'
-export { makeDocument } from './query'
+export { makeDocument, transformDocument } from './query'
 export { Engine } from './dist/Engine'
 
-declare var debugLib: debug.Debug & { debug: debug.Debug; default: debug.Debug };
-export debugLib
+export declare var debugLib: debug.Debug & { debug: debug.Debug; default: debug.Debug };
 
 declare namespace debug {
     interface Debug {
