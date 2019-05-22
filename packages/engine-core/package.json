@@ -1,6 +1,6 @@
 {
   "name": "@prisma/engine-core",
-  "version": "0.0.26",
+  "version": "0.0.28",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,8 +16,8 @@
     "download": "prisma-fetch-engine $PWD"
   },
   "dependencies": {
-    "debug": "^4.1.1",
-    "node-fetch": "^2.5.0"
+    "cross-fetch": "^3.0.2",
+    "debug": "^4.1.1"
   },
   "files": [
     "dist"
