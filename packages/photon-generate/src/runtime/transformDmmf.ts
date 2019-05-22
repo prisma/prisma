@@ -2,15 +2,16 @@ import { DMMF } from './dmmf-types'
 import { uniqBy, Dictionary, stringifyInputType } from './utils/common'
 
 export function transformDmmf(document: DMMF.Document): DMMF.Document {
+  const doc = transformOrderInputTypes(transformWhereInputTypes(document))
   return {
-    datamodel: document.datamodel,
-    mappings: document.mappings,
+    datamodel: doc.datamodel,
+    mappings: doc.mappings,
     schema: {
-      enums: document.schema.enums,
-      queries: document.schema.queries,
-      mutations: document.schema.mutations,
-      outputTypes: filterOutputTypes(document.schema.outputTypes),
-      inputTypes: filterInputTypes(transformInputTypes(document)),
+      enums: doc.schema.enums,
+      queries: doc.schema.queries,
+      mutations: doc.schema.mutations,
+      outputTypes: filterOutputTypes(doc.schema.outputTypes),
+      inputTypes: filterInputTypes(doc.schema.inputTypes),
     },
   }
 }
@@ -25,7 +26,56 @@ function filterOutputTypes(types: DMMF.OutputType[]): DMMF.OutputType[] {
   })
 }
 
-function transformInputTypes(document: DMMF.Document): DMMF.InputType[] {
+function transformOrderInputTypes(document: DMMF.Document): DMMF.Document {
+  const inputTypes: DMMF.InputType[] = document.schema.inputTypes
+  const enums: DMMF.Enum[] = [
+    {
+      name: 'OrderByArg',
+      values: ['asc', 'desc'],
+    },
+  ]
+  for (const type of document.schema.enums) {
+    if (!type.name.endsWith('OrderByInput')) {
+      enums.push(type)
+      continue
+    }
+    const argNames = type.values.reduce<string[]>((acc, curr) => {
+      if (curr.endsWith('ASC')) {
+        const index = curr.lastIndexOf('_ASC')
+        acc.push(curr.slice(0, index))
+      }
+      return acc
+    }, [])
+    const inputType = {
+      name: type.name,
+      atLeastOne: true,
+      atMostOne: true,
+      isOrderType: true,
+      args: argNames.map(name => ({
+        name,
+        type: ['OrderByArg'],
+        isEnum: false,
+        isList: false,
+        isRelationFilter: false,
+        isRequired: false,
+        isScalar: true,
+      })),
+    }
+    inputTypes.push(inputType)
+  }
+
+  return {
+    datamodel: document.datamodel,
+    mappings: document.mappings,
+    schema: {
+      ...document.schema,
+      inputTypes,
+      enums,
+    },
+  }
+}
+
+function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
   const types = document.schema.inputTypes
   const inputTypes: DMMF.InputType[] = []
   const filterTypes: Dictionary<DMMF.InputType> = {}
@@ -81,7 +131,15 @@ function transformInputTypes(document: DMMF.Document): DMMF.InputType[] {
   }
   const scalarFilters = Object.values(filterTypes)
   inputTypes.push(...scalarFilters)
-  return inputTypes
+
+  return {
+    datamodel: document.datamodel,
+    mappings: document.mappings,
+    schema: {
+      ...document.schema,
+      inputTypes,
+    },
+  }
 }
 
 function getFilterName(type: string) {

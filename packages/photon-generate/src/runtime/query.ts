@@ -13,7 +13,14 @@ import {
   getInputTypeName,
   wrapWithList,
 } from './utils/common'
-import { InvalidArgError, ArgError, FieldError, InvalidFieldError, AtLeastOneError } from './error-types'
+import {
+  InvalidArgError,
+  ArgError,
+  FieldError,
+  InvalidFieldError,
+  AtLeastOneError,
+  AtMostOneError,
+} from './error-types'
 import stringifyObject from './utils/stringifyObject'
 import { deepExtend } from './utils/deep-extend'
 import { omit } from './utils/omit'
@@ -188,6 +195,17 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
       return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
         error.inputType.name,
       )} needs ${chalk.greenBright('at least one')} argument. Available args are listed in ${chalk.dim.green('green')}.`
+    }
+
+    if (error.type === 'atMostOne') {
+      return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
+        error.inputType.name,
+      )} needs ${chalk.greenBright('exactly one')} argument, but you provided ${error.providedKeys
+        .map(key => chalk.redBright(key))
+        .join(' and ')}. Please choose one. ${chalk.dim('Available args:')} \n${stringifyInputType(
+        error.inputType,
+        true,
+      )}`
     }
   }
 }
@@ -439,12 +457,12 @@ export function makeDocument({ dmmf, rootTypeName, rootField, select }: Document
 }
 
 export function transformDocument(document: Document): Document {
-  function transformArgs(args: Args) {
+  function transformWhereArgs(args: Args) {
     return new Args(
       args.args.flatMap(ar => {
         if (isArgsArray(ar.value)) {
           const value = ar.value.map(args => {
-            return transformArgs(args)
+            return transformWhereArgs(args)
           })
           return new Arg({ ...ar, value })
         } else if (ar.value instanceof Args) {
@@ -462,6 +480,18 @@ export function transformDocument(document: Document): Document {
       }),
     )
   }
+  function transformOrderArg(arg: Arg) {
+    if (arg.value instanceof Args) {
+      const orderArg = arg.value.args[0]
+      return new Arg({
+        ...arg,
+        isEnum: true,
+        value: `${orderArg.key}_${orderArg.value!.toString().toUpperCase()}`,
+      })
+    }
+
+    return arg
+  }
   return visit(document, {
     Arg: {
       enter(arg) {
@@ -470,12 +500,16 @@ export function transformDocument(document: Document): Document {
           return undefined
         }
 
+        if (isInputArgType(argType) && argType.isOrderType) {
+          return transformOrderArg(arg)
+        }
+
         if (isInputArgType(argType) && argType.isWhereType && schemaArg) {
           let value
           if (isArgsArray(arg.value)) {
-            value = arg.value.map(val => transformArgs(val))
+            value = arg.value.map(val => transformWhereArgs(val))
           } else if (arg.value instanceof Args) {
-            value = transformArgs(arg.value)
+            value = transformWhereArgs(arg.value)
           }
           return new Arg({ ...arg, value })
         }
@@ -662,12 +696,22 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
         if (typeof value !== 'object') {
           return getInvalidTypeArg(key, value, arg, t)
         } else {
-          let error: AtLeastOneError | undefined = undefined
-          if (Object.values(value).length === 0 && t.atLeastOne) {
+          let error: AtMostOneError | AtLeastOneError | undefined = undefined
+          const keys = Object.keys(value)
+          const numKeys = keys.length
+          if (numKeys === 0 && t.atLeastOne) {
             error = {
               type: 'atLeastOne',
               key,
               inputType: t,
+            }
+          }
+          if (numKeys > 1 && t.atMostOne) {
+            error = {
+              type: 'atMostOne',
+              key,
+              inputType: t,
+              providedKeys: keys,
             }
           }
           return new Arg({
