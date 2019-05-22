@@ -41,6 +41,20 @@ export type MergeTruthyValues<R extends object, S extends object> = {
 
 export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never : key }[keyof T]
 
+type AtLeastOne<T, Keys extends keyof T = keyof T> =
+    Pick<T, Exclude<keyof T, Keys>> 
+    & {
+        [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
+    }[Keys]
+
+type OnlyOne<T, Keys extends keyof T = keyof T> =
+    Pick<T, Exclude<keyof T, Keys>>
+    & {
+        [K in Keys]-?:
+            Required<Pick<T, K>>
+            & Partial<Record<Exclude<Keys, K>, undefined>>
+    }[Keys]
+
 /**
  * Subset
  * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
@@ -686,13 +700,17 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
 }
 
 export class InputField {
-  constructor(protected readonly field: BaseField) {}
+  constructor(protected readonly field: BaseField, protected readonly prefixFilter = false) {}
   toString() {
     const { field } = this
     // ENUMTODO
     let fieldType
     if (Array.isArray(field.type)) {
-      fieldType = field.type.map(t => (typeof t === 'string' ? GraphQLScalarToJSTypeTable[t] || t : t.name)).join(' | ')
+      fieldType = field.type
+        .map(t =>
+          typeof t === 'string' ? GraphQLScalarToJSTypeTable[t] || t : this.prefixFilter ? `Base${t.name}` : t.name,
+        )
+        .join(' | ')
     }
     const optionalStr = field.isRequired ? '' : '?'
     const arrayStr = field.isList ? `[]` : ''
@@ -761,11 +779,21 @@ export class InputType {
   constructor(protected readonly type: DMMF.InputType) {}
   toString() {
     const { type } = this
+    // TO DISCUSS: Should we rely on TypeScript's error messages?
+    let body = `{
+${indent(type.args.map(arg => new InputField(arg /*, type.atLeastOne && !type.atMostOne*/)).join('\n'), tab)}
+}`
+    //     if (type.atLeastOne && !type.atMostOne) {
+    //       return `export type Base${type.name} = ${body}
+    // export type ${type.name} = AtLeastOne<Base${type.name}>
+    //       `
+    //     } else if (type.atLeastOne && type.atMostOne) {
+    //       return `export type Base${type.name} = ${body}
+    // export type ${type.name} = OnlyOne<Base${type.name}>
+    //       `
+    //     }
     return `
-export type ${type.name} = {
-${indent(type.args.map(arg => new InputField(arg).toString()).join('\n'), tab)}
-}
-`
+export type ${type.name} = ${body}`
   }
 }
 
