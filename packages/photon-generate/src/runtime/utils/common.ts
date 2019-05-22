@@ -40,7 +40,7 @@ export const GraphQLScalarToJSTypeTable = {
   Float: 'number',
   Boolean: 'boolean',
   Long: 'number',
-  DateTime: ['string', Date],
+  DateTime: ['string', 'Date'],
   ID: 'string',
   UUID: 'string',
   Json: 'object',
