@@ -52,7 +52,7 @@ function transformInputTypes(document: DMMF.Document): DMMF.InputType[] {
         whiteList.push(name)
       }
     }
-    const args = type.args.filter(a => whiteList.includes(a.name))
+    const args = type.args.filter(a => whiteList.includes(a.name)).map(a => ({ ...a, isRelationFilter: true }))
     // NOTE: list scalar fields don't have where arguments!
     args.unshift(
       ...model.fields
@@ -68,6 +68,7 @@ function transformInputTypes(document: DMMF.Document): DMMF.InputType[] {
             isRequired: false,
             isEnum: false,
             isList: false,
+            isRelationFilter: false,
           }
         }),
     )

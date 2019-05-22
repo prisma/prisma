@@ -19,7 +19,7 @@ import {
 
 const tab = 2
 
-const commonCode = runtimePath => `import { DMMF, DMMFClass, deepGet, deepSet, makeDocument, Engine, debugLib } from '${runtimePath}'
+const commonCode = runtimePath => `import { DMMF, DMMFClass, deepGet, deepSet, makeDocument, Engine, debugLib, transformDocument } from '${runtimePath}'
 
 const debug = debugLib('photon')
 
@@ -582,7 +582,9 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
       select: this.args
     })
     document.validate(this.args, false, this.clientMethod)
-    return String(document)
+    debug(String(document))
+    const newDocument = transformDocument(document)
+    return String(newDocument)
   }
 
   /**

@@ -8,9 +8,48 @@ async function main() {
   console.clear()
   const user = await photon.users({
     where: {
-      email: {
-        equals: 'a@a.de',
-      },
+      AND: [
+        {
+          email: {
+            equals: 'a@a.de',
+            gt: '0',
+          },
+          AND: [
+            {
+              name: {
+                equals: '5',
+                not: '7',
+              },
+              OR: [
+                {
+                  id: {
+                    not: '8',
+                  },
+                },
+                {
+                  id: {
+                    not: '9',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: {
+            equals: '1',
+            gt: '0',
+          },
+        },
+      ],
+      // location: {
+      //   OR: {
+      //     city: {
+      //       gt: '10',
+      //       not: 'x',
+      //     },
+      //   },
+      // },
     },
   } as any)
   // await photon.users({
