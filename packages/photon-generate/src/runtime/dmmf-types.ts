@@ -104,6 +104,7 @@ export namespace DMMF {
 
   export interface InputType<T extends BaseSchemaArg = SchemaArg> {
     name: string
+    isWhereType?: boolean // this is needed to transform it back
     atLeastOne?: boolean
     atMostOne?: boolean
     args: T[]

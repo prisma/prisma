@@ -74,6 +74,7 @@ function transformInputTypes(document: DMMF.Document): DMMF.InputType[] {
     const newType: DMMF.InputType = {
       name: type.name,
       args,
+      isWhereType: true,
     }
     inputTypes.push(newType)
   }

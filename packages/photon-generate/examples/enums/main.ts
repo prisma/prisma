@@ -8,7 +8,9 @@ async function main() {
   console.clear()
   const user = await photon.users({
     where: {
-      email: {},
+      email: {
+        equals: 'a@a.de',
+      },
     },
   } as any)
   // await photon.users({

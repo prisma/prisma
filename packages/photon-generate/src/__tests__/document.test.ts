@@ -5,50 +5,64 @@ test('document stringify', () => {
     new Field({
       name: 'users',
       args: new Args([
-        new Arg('mirst', 100, false, {
-          didYouMeanArg: 'first',
-          providedName: 'mirst',
-          providedValue: '',
-          type: 'invalidName',
-          originalType: 'String',
-        }),
-        new Arg('skip', '200', false, {
-          type: 'invalidType',
-          providedValue: '200',
-          argName: 'skip',
-          requiredType: {
-            isEnum: false,
-            isRequired: false,
-            types: ['number'],
-            isList: false,
-            isScalar: false,
-            bestFittingType: 'number',
+        new Arg({
+          key: 'mirst',
+          value: 100,
+          error: {
+            didYouMeanArg: 'first',
+            providedName: 'mirst',
+            providedValue: '',
+            type: 'invalidName',
+            originalType: 'String',
           },
         }),
-        new Arg(
-          'where',
-          new Args([
-            new Arg('age_gt', 10),
-            new Arg('age_in', [1, 2, 3]),
-            new Arg('name_in', ['hans', 'peter', 'schmidt']),
-            new Arg('OR', [
-              new Args([
-                new Arg('age_gt', 10123123123),
-                new Arg('email_endsWith', 'veryLongNameGoIntoaNewLineNow@gmail.com'),
-              ]),
-              new Args([
-                new Arg('age_gt', 10123123123),
-                new Arg('email_endsWith', 'veryLongNameGoIntoaNewLineNow@gmail.com'),
-                new Arg('OR', [
-                  new Args([
-                    new Arg('age_gt', 10123123123),
-                    new Arg('email_endsWith', 'veryLongNameGoIntoaNewLineNow@gmail.com'),
-                  ]),
+        new Arg({
+          key: 'skip',
+          value: '200',
+          error: {
+            type: 'invalidType',
+            providedValue: '200',
+            argName: 'skip',
+            requiredType: {
+              isEnum: false,
+              isRequired: false,
+              types: ['number'],
+              isList: false,
+              isScalar: false,
+              bestFittingType: 'number',
+            },
+          },
+        }),
+        new Arg({
+          key: 'where',
+          value: new Args([
+            new Arg({ key: 'age_gt', value: 10 }),
+            new Arg({ key: 'age_in', value: [1, 2, 3] }),
+            new Arg({ key: 'name_in', value: ['hans', 'peter', 'schmidt'] }),
+            new Arg({
+              key: 'OR',
+              value: [
+                new Args([
+                  new Arg({ key: 'age_gt', value: 10123123123 }),
+                  new Arg({ key: 'email_endsWith', value: 'veryLongNameGoIntoaNewLineNow@gmail.com' }),
                 ]),
-              ]),
-            ]),
+                new Args([
+                  new Arg({ key: 'age_gt', value: 10123123123 }),
+                  new Arg({ key: 'email_endsWith', value: 'veryLongNameGoIntoaNewLineNow@gmail.com' }),
+                  new Arg({
+                    key: 'OR',
+                    value: [
+                      new Args([
+                        new Arg({ key: 'age_gt', value: 10123123123 }),
+                        new Arg({ key: 'email_endsWith', value: 'veryLongNameGoIntoaNewLineNow@gmail.com' }),
+                      ]),
+                    ],
+                  }),
+                ]),
+              ],
+            }),
           ]),
-        ),
+        }),
       ]),
       children: [
         new Field({ name: 'id' }),
@@ -68,7 +82,7 @@ test('document stringify', () => {
         }),
         new Field({
           name: 'posts',
-          args: new Args([new Arg('first', 200)]),
+          args: new Args([new Arg({ key: 'first', value: 200 })]),
           children: [new Field({ name: 'id' }), new Field({ name: 'name' })],
         }),
       ],
