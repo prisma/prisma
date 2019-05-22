@@ -1,6 +1,6 @@
 {
   "name": "photon-generate",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "main": "cli/index.js",
   "bin": {
     "photon-generate": "cli/index.js"

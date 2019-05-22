@@ -1,7 +1,7 @@
 import { getDMMF } from '../utils/getDMMF'
-import { enums } from '../../examples/datamodels/enums'
 import { DMMFClass, makeDocument } from '../runtime'
 import stripAnsi from 'strip-ansi'
+import { enums } from '../fixtures/enums'
 
 describe('at least one validation', () => {
   const dmmf = new DMMFClass(getDMMF(enums))
