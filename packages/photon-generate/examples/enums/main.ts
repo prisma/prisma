@@ -9,7 +9,7 @@ async function main() {
   const user = await photon.users({
     orderBy: {
       email: OrderByArg.asc,
-      id: OrderByArg.asc,
+      id: 'asc',
     },
   })
   // await photon.users({

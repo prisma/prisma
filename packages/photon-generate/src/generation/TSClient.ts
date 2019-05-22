@@ -110,6 +110,11 @@ ${new Query(this.dmmf, 'query')}
  * Enums
  */
 
+// Based on
+// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
+
+function makeEnum<T extends {[index: string]: U}, U extends string>(x: T) { return x }
+
 ${this.dmmf.schema.enums.map(type => new Enum(type)).join('\n\n')}
 
 ${Object.values(this.dmmf.modelMap)
@@ -801,8 +806,10 @@ export class Enum {
   constructor(protected readonly type: DMMF.Enum) {}
   toString() {
     const { type } = this
-    return `export enum ${type.name} {
-${indent(type.values.map(v => `${v} = '${v}'`).join(',\n'), tab)}
-}`
+    return `export const ${type.name} = makeEnum({
+${indent(type.values.map(v => `${v}: '${v}'`).join(',\n'), tab)}
+})
+
+export type ${type.name} = (typeof ${type.name})[keyof typeof ${type.name}]\n`
   }
 }
