@@ -115,7 +115,7 @@ ${this.dmmf.inputTypes
  * DMMF
  */
 
-const dmmf: DMMF.Document = ${JSON.stringify(this.document, null, 2)}
+const dmmf: DMMF.Document = ${JSON.stringify(this.document)}
     `
 
     // /**
@@ -690,10 +690,9 @@ export class InputField {
   toString() {
     const { field } = this
     // ENUMTODO
-    let fieldType =
-      typeof field.type === 'string' ? GraphQLScalarToJSTypeTable[field.type] || field.type : field.type[0].name
-    if (Array.isArray(fieldType)) {
-      fieldType = fieldType[0]
+    let fieldType
+    if (Array.isArray(field.type)) {
+      fieldType = field.type.map(t => (typeof t === 'string' ? GraphQLScalarToJSTypeTable[t] || t : t.name)).join(' | ')
     }
     const optionalStr = field.isRequired ? '' : '?'
     const arrayStr = field.isList ? `[]` : ''

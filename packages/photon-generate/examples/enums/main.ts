@@ -51,7 +51,7 @@ async function main() {
       //   },
       // },
     },
-  } as any)
+  })
   // await photon.users({
   //   where: {
   //     favoriteTree_in: [Tree.Arborvitae, Tree.BlackAsh],
