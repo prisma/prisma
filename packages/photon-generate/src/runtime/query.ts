@@ -318,18 +318,28 @@ function stringify(obj, _?: any, tab?: string | number, isEnum?: boolean) {
   return JSON.stringify(obj, _, tab)
 }
 
+interface ArgOptions {
+  key: string
+  value: ArgValue
+  argType?: DMMF.ArgType[] // just needed to transform the ast
+  isEnum?: boolean
+  error?: InvalidArgError
+}
+
 export class Arg {
   public readonly key: string
   public readonly value: ArgValue
   public readonly error?: InvalidArgError
   public readonly hasError: boolean
   public readonly isEnum: boolean
+  public readonly argType: DMMF.ArgType[]
 
-  constructor(key: string, value: ArgValue, isEnum: boolean = false, error?: InvalidArgError) {
+  constructor({ key, value, argType = [], isEnum = false, error }: ArgOptions) {
     this.key = key
     this.value = value
-    this.error = error
+    this.argType = argType
     this.isEnum = isEnum
+    this.error = error
     this.hasError =
       Boolean(error) ||
       (value instanceof Args ? value.hasInvalidArg : false) ||
@@ -507,17 +517,23 @@ function getDefaultSelection(outputType: DMMF.MergedOutputType) {
 }
 
 function getInvalidTypeArg(key: string, value: any, arg: DMMF.SchemaArg, bestFittingType: DMMF.ArgType): Arg {
-  return new Arg(key, value, arg.isEnum, {
-    type: 'invalidType',
-    providedValue: value,
-    argName: key,
-    requiredType: {
-      isList: arg.isList,
-      isEnum: arg.isEnum,
-      isRequired: arg.isRequired,
-      isScalar: arg.isScalar,
-      types: arg.type,
-      bestFittingType,
+  return new Arg({
+    key,
+    value,
+    isEnum: arg.isEnum,
+    argType: arg.type,
+    error: {
+      type: 'invalidType',
+      providedValue: value,
+      argName: key,
+      requiredType: {
+        isList: arg.isList,
+        isEnum: arg.isEnum,
+        isRequired: arg.isRequired,
+        isScalar: arg.isScalar,
+        types: arg.type,
+        bestFittingType,
+      },
     },
   })
 }
@@ -556,16 +572,22 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     }
 
     // the provided value is 'undefined' but shouldn't be
-    return new Arg(key, value, arg.isEnum, {
-      type: 'missingArg',
-      missingName: key,
-      isScalar: arg.isScalar,
+    return new Arg({
+      key,
+      value,
       isEnum: arg.isEnum,
-      isList: arg.isList,
-      missingType: arg.type,
-      isRequired: true,
-      atLeastOne: false,
-      atMostOne: false,
+      argType: arg.type,
+      error: {
+        type: 'missingArg',
+        missingName: key,
+        isScalar: arg.isScalar,
+        isEnum: arg.isEnum,
+        isList: arg.isList,
+        missingType: arg.type,
+        isRequired: true,
+        atLeastOne: false,
+        atMostOne: false,
+      },
     })
   }
 
@@ -583,7 +605,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
               inputType: t,
             }
           }
-          return new Arg(key, objectToArgs(value, t, arg.type), arg.isEnum, error)
+          return new Arg({ key, value: objectToArgs(value, t, arg.type), isEnum: arg.isEnum, error, argType: arg.type })
         }
       } else {
         return scalarToArg(key, value, arg, t)
@@ -639,7 +661,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   }
 
   if (arg.type.length > 1) {
-    throw new Error(`List types with more than one argument type are not supported`)
+    throw new Error(`List types with union input types are not supported`)
   }
 
   // the provided arg should be a list, but isn't
@@ -656,17 +678,17 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   }
 
   if (!arg.isScalar) {
-    return new Arg(
+    return new Arg({
       key,
-      value.map(v => {
+      value: value.map(v => {
         if (typeof v !== 'object' || !value) {
           return getInvalidTypeArg(key, v, arg, arg.type[0])
         }
-        // TODO
         return objectToArgs(v, arg.type[0] as DMMF.InputType)
       }),
-      arg.isEnum,
-    )
+      isEnum: arg.isEnum,
+      argType: arg.type,
+    })
   }
 
   // TODO: Decide for better default case
@@ -686,7 +708,7 @@ function isInputArgType(argType: DMMF.ArgType): argType is DMMF.InputType {
 
 function scalarToArg(key: string, value: any, arg: DMMF.SchemaArg, type: string | DMMF.Enum): Arg {
   if (hasCorrectScalarType(value, arg, type)) {
-    return new Arg(key, value, arg.isEnum)
+    return new Arg({ key, value, isEnum: arg.isEnum, argType: arg.type })
   }
   return getInvalidTypeArg(key, value, arg, type)
 }
@@ -707,16 +729,21 @@ function objectToArgs(
         const didYouMeanField =
           typeof value === 'boolean' && outputType && outputType.fields.some(f => f.name === argName) ? argName : null
         acc.push(
-          new Arg(argName, value, false, {
-            type: 'invalidName',
-            providedName: argName,
-            providedValue: value,
-            didYouMeanField,
-            didYouMeanArg:
-              (!didYouMeanField && getSuggestion(argName, [...args.map(arg => arg.name), 'select'])) || undefined,
-            originalType: inputType,
-            possibilities,
-            outputType,
+          new Arg({
+            key: argName,
+            value,
+            argType: [inputType],
+            error: {
+              type: 'invalidName',
+              providedName: argName,
+              providedValue: value,
+              didYouMeanField,
+              didYouMeanArg:
+                (!didYouMeanField && getSuggestion(argName, [...args.map(arg => arg.name), 'select'])) || undefined,
+              originalType: inputType,
+              possibilities,
+              outputType,
+            },
           }),
         )
         return acc
@@ -741,16 +768,22 @@ function objectToArgs(
     argsList.push(
       ...optionalMissingArgs.map(
         arg =>
-          new Arg(arg.name, undefined, arg.isEnum, {
-            type: 'missingArg',
+          new Arg({
+            key: arg.name,
+            value: undefined,
             isEnum: arg.isEnum,
-            isList: arg.isList,
-            isScalar: arg.isScalar,
-            missingName: arg.name,
-            missingType: arg.type,
-            isRequired: false, // must be false here
-            atLeastOne: inputType.atLeastOne || false,
-            atMostOne: inputType.atMostOne || false,
+            argType: arg.type,
+            error: {
+              type: 'missingArg',
+              isEnum: arg.isEnum,
+              isList: arg.isList,
+              isScalar: arg.isScalar,
+              missingName: arg.name,
+              missingType: arg.type,
+              isRequired: false, // must be false here
+              atLeastOne: inputType.atLeastOne || false,
+              atMostOne: inputType.atMostOne || false,
+            },
           }),
       ),
     )
