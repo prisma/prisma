@@ -28,7 +28,12 @@ export interface InvalidFieldNameError {
 
 export type JavaScriptPrimitiveType = 'number' | 'string' | 'boolean'
 
-export type InvalidArgError = InvalidArgNameError | MissingArgError | InvalidArgTypeError | AtLeastOneError
+export type InvalidArgError =
+  | InvalidArgNameError
+  | MissingArgError
+  | InvalidArgTypeError
+  | AtLeastOneError
+  | AtMostOneError
 
 /**
  * This error occurs if the user provides an arg name that doens't exist
@@ -58,6 +63,13 @@ export type MissingArgError = {
   isRequired: boolean
   atLeastOne: boolean
   atMostOne: boolean
+}
+
+export type AtMostOneError = {
+  type: 'atMostOne'
+  key: string
+  inputType: DMMF.InputType
+  providedKeys: string[]
 }
 
 export type AtLeastOneError = {
