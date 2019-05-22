@@ -81,6 +81,7 @@ export namespace DMMF {
     isRequired: boolean
     isEnum: boolean
     isList: boolean
+    isRelationFilter?: boolean
   }
 
   export interface OutputType<T extends BaseSchemaArg = SchemaArg> {

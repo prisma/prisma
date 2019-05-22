@@ -17,6 +17,7 @@ import { InvalidArgError, ArgError, FieldError, InvalidFieldError, AtLeastOneErr
 import stringifyObject from './utils/stringifyObject'
 import { deepExtend } from './utils/deep-extend'
 import { omit } from './utils/omit'
+import { visit } from './visit'
 
 const tab = 2
 
@@ -321,9 +322,10 @@ function stringify(obj, _?: any, tab?: string | number, isEnum?: boolean) {
 interface ArgOptions {
   key: string
   value: ArgValue
-  argType?: DMMF.ArgType[] // just needed to transform the ast
+  argType?: DMMF.ArgType // just needed to transform the ast
   isEnum?: boolean
   error?: InvalidArgError
+  schemaArg?: DMMF.SchemaArg
 }
 
 export class Arg {
@@ -332,14 +334,16 @@ export class Arg {
   public readonly error?: InvalidArgError
   public readonly hasError: boolean
   public readonly isEnum: boolean
-  public readonly argType: DMMF.ArgType[]
+  public readonly schemaArg?: DMMF.SchemaArg
+  public readonly argType?: DMMF.ArgType
 
-  constructor({ key, value, argType = [], isEnum = false, error }: ArgOptions) {
+  constructor({ key, value, argType, isEnum = false, error, schemaArg }: ArgOptions) {
     this.key = key
     this.value = value
     this.argType = argType
     this.isEnum = isEnum
     this.error = error
+    this.schemaArg = schemaArg
     this.hasError =
       Boolean(error) ||
       (value instanceof Args ? value.hasInvalidArg : false) ||
@@ -420,7 +424,6 @@ export interface DocumentInput {
 }
 
 export function makeDocument({ dmmf, rootTypeName, rootField, select }: DocumentInput) {
-  const input = dmmf.inputTypes.find(t => t.name === 'UserWhereInput')!
   // console.log(stringifyInputType(input))
   const rootType = rootTypeName === 'query' ? dmmf.queryType : dmmf.mutationType
   // Create a fake toplevel field for easier implementation
@@ -433,6 +436,69 @@ export function makeDocument({ dmmf, rootTypeName, rootField, select }: Document
     kind: 'relation',
   }
   return new Document(rootTypeName, selectionToFields(dmmf, { [rootField]: select }, _rootField, [rootTypeName]))
+}
+
+export function transformDocument(document: Document): Document {
+  function transformArgs(args: Args) {
+    return new Args(
+      args.args.flatMap(ar => {
+        if (isArgsArray(ar.value)) {
+          const value = ar.value.map(args => {
+            return transformArgs(args)
+          })
+          return new Arg({ ...ar, value })
+        } else if (ar.value instanceof Args) {
+          if (ar.schemaArg && !ar.schemaArg.isRelationFilter) {
+            return ar.value.args.map(
+              a =>
+                new Arg({
+                  key: getFilterArgName(ar.key, a.key),
+                  value: a.value,
+                }),
+            )
+          }
+        }
+        return [ar]
+      }),
+    )
+  }
+  return visit(document, {
+    Arg: {
+      enter(arg) {
+        const { argType, schemaArg } = arg
+        if (!argType) {
+          return undefined
+        }
+
+        if (isInputArgType(argType) && argType.isWhereType && schemaArg) {
+          let value
+          if (isArgsArray(arg.value)) {
+            value = arg.value.map(val => transformArgs(val))
+          } else if (arg.value instanceof Args) {
+            value = transformArgs(arg.value)
+          }
+          return new Arg({ ...arg, value })
+        }
+        return undefined
+      },
+    },
+  })
+}
+
+function isArgsArray(input: any): input is Array<Args> {
+  if (Array.isArray(input)) {
+    return input.every(arg => arg instanceof Args)
+  }
+
+  return false
+}
+
+function getFilterArgName(arg: string, filter: string) {
+  if (filter === 'equals') {
+    return arg
+  }
+
+  return `${arg}_${filter}`
 }
 
 export function selectionToFields(dmmf: DMMFClass, selection: any, field: DMMF.SchemaField, path: string[]): Field[] {
@@ -521,7 +587,7 @@ function getInvalidTypeArg(key: string, value: any, arg: DMMF.SchemaArg, bestFit
     key,
     value,
     isEnum: arg.isEnum,
-    argType: arg.type,
+    argType: bestFittingType,
     error: {
       type: 'invalidType',
       providedValue: value,
@@ -576,7 +642,6 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
       key,
       value,
       isEnum: arg.isEnum,
-      argType: arg.type,
       error: {
         type: 'missingArg',
         missingName: key,
@@ -605,7 +670,14 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
               inputType: t,
             }
           }
-          return new Arg({ key, value: objectToArgs(value, t, arg.type), isEnum: arg.isEnum, error, argType: arg.type })
+          return new Arg({
+            key,
+            value: objectToArgs(value, t, arg.type),
+            isEnum: arg.isEnum,
+            error,
+            argType: t,
+            schemaArg: arg,
+          })
         }
       } else {
         return scalarToArg(key, value, arg, t)
@@ -687,7 +759,8 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
         return objectToArgs(v, arg.type[0] as DMMF.InputType)
       }),
       isEnum: arg.isEnum,
-      argType: arg.type,
+      argType: arg.type[0],
+      schemaArg: arg,
     })
   }
 
@@ -695,7 +768,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   throw new Error('Oops. This must not happen')
 }
 
-function isInputArgType(argType: DMMF.ArgType): argType is DMMF.InputType {
+export function isInputArgType(argType: DMMF.ArgType): argType is DMMF.InputType {
   if (typeof argType === 'string') {
     return false
   }
@@ -708,7 +781,7 @@ function isInputArgType(argType: DMMF.ArgType): argType is DMMF.InputType {
 
 function scalarToArg(key: string, value: any, arg: DMMF.SchemaArg, type: string | DMMF.Enum): Arg {
   if (hasCorrectScalarType(value, arg, type)) {
-    return new Arg({ key, value, isEnum: arg.isEnum, argType: arg.type })
+    return new Arg({ key, value, isEnum: arg.isEnum, argType: type, schemaArg: arg })
   }
   return getInvalidTypeArg(key, value, arg, type)
 }
@@ -732,7 +805,6 @@ function objectToArgs(
           new Arg({
             key: argName,
             value,
-            argType: [inputType],
             error: {
               type: 'invalidName',
               providedName: argName,
@@ -772,7 +844,6 @@ function objectToArgs(
             key: arg.name,
             value: undefined,
             isEnum: arg.isEnum,
-            argType: arg.type,
             error: {
               type: 'missingArg',
               isEnum: arg.isEnum,

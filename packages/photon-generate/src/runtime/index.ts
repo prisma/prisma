@@ -1,6 +1,6 @@
 export { DMMF } from './dmmf-types'
 export { DMMFClass } from './dmmf'
 export { deepGet, deepSet } from './utils/deep-set'
-export { makeDocument } from './query'
+export { makeDocument, transformDocument } from './query'
 export { Engine } from '@prisma/engine-core'
 export { default as debugLib } from 'debug'
