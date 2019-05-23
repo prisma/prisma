@@ -11,5 +11,5 @@
     "rootDir": "src",
     "declaration": true
   },
-  "exclude": ["archive", "dist", "build", "cli", "examples", "runtime", "browser-runtime"]
+  "exclude": ["archive", "dist", "build", "cli", "examples", "runtime", "browser-runtime", "generator"]
 }

@@ -21,6 +21,8 @@ module.exports = {
   output: {
     filename: 'index.js',
     path: path.resolve(__dirname, 'browser-runtime'),
+    library: 'photon-generate',
+    libraryTarget: 'umd',
   },
   optimization: {
     minimize: false,

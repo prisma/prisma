@@ -11,20 +11,26 @@ import {
   createSourceFile,
   CompilerOptions,
 } from 'typescript'
+import { Dictionary } from '../runtime/utils/common'
+import makeDir from 'make-dir'
 
-export async function generateClient(
-  datamodel: string,
-  prismaYmlPath: string,
-  outputDir: string,
-  transpile: boolean = false,
-  runtimePath: string = './runtime',
-  printDMMF: boolean = false, // needed for debugging
-) {
-  if (!(await fs.pathExists(prismaYmlPath))) {
-    throw new Error(`Provided prisma.yml path ${prismaYmlPath} does not exist`)
-  }
+interface BuildClientOptions {
+  datamodel: string
+  browser: boolean
+  prismaYmlPath?: string
+  transpile?: boolean
+  runtimePath?: string
+}
 
-  const prismaConfig = await fs.readFile(prismaYmlPath, 'utf-8')
+export async function buildClient({
+  datamodel,
+  prismaYmlPath,
+  transpile = false,
+  runtimePath = './runtime',
+  browser = false,
+}: BuildClientOptions): Promise<Dictionary<string>> {
+  const fileMap = {}
+  const prismaConfig = prismaYmlPath ? await fs.readFile(prismaYmlPath, 'utf-8') : undefined
   const internalDatamodelJson =
     process.env.PRISMA_INTERNAL_DATAMODEL_JSON ||
     (await getInternalDatamodelJson(datamodel, path.join(__dirname, '../../runtime/schema-inferrer-bin')))
@@ -33,20 +39,22 @@ export async function generateClient(
     console.log(`Taking cached datamodel json`)
   }
 
-  await fs.mkdirp(outputDir)
-
   const dmmf = getDMMF(datamodel)
-  if (printDMMF) {
-    await fs.writeFile(path.join(outputDir, 'dmmf2.json'), JSON.stringify(dmmf, null, 2))
-  }
-  const client = new TSClient(dmmf, prismaYmlPath, prismaConfig, datamodel, internalDatamodelJson, runtimePath)
+  const client = new TSClient({
+    document: dmmf,
+    prismaYmlPath,
+    prismaConfig,
+    datamodel,
+    datamodelJson: internalDatamodelJson,
+    runtimePath,
+    browser,
+  })
   const generatedClient = String(client)
-  await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
-  const target = path.join(outputDir, 'index.ts')
+  const target = '@generated/photon/index.ts'
 
   if (!transpile) {
-    await fs.writeFile(target, generatedClient)
-    return
+    fileMap[target] = generatedClient
+    return normalizeFileMap(fileMap)
   }
 
   /**
@@ -75,10 +83,9 @@ export async function generateClient(
     }
     return (originalGetSourceFile as any).call(compilerHost, newFileName)
   }
-  const originalWriteFile = compilerHost.writeFile
-  compilerHost.writeFile = (fileName, ...args) => {
+  compilerHost.writeFile = (fileName, data) => {
     if (fileName.includes('@generated/photon')) {
-      return originalWriteFile(fileName, ...args)
+      fileMap[fileName] = data
     }
   }
 
@@ -87,6 +94,33 @@ export async function generateClient(
   if (result.diagnostics.length > 0) {
     console.error(result.diagnostics)
   }
+  return normalizeFileMap(fileMap)
+}
+
+function normalizeFileMap(fileMap: Dictionary<string>) {
+  const sliceLength = '@generated/photon/'.length
+  return Object.entries(fileMap).reduce((acc, [key, value]) => {
+    acc[key.slice(sliceLength)] = value
+    return acc
+  }, {})
+}
+
+export async function generateClient(
+  datamodel: string,
+  prismaYmlPath: string,
+  outputDir: string,
+  transpile: boolean = false,
+  runtimePath: string = './runtime',
+  browser: boolean = false,
+  printDMMF: boolean = false, // needed for debugging
+) {
+  if (!(await fs.pathExists(prismaYmlPath))) {
+    throw new Error(`Provided prisma.yml path ${prismaYmlPath} does not exist`)
+  }
+  const files = await buildClient({ datamodel, prismaYmlPath, transpile, runtimePath, browser })
+  await makeDir(outputDir)
+  await Promise.all(Object.entries(files).map(([fileName, file]) => fs.writeFile(path.join(outputDir, fileName), file)))
+  await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
   await fs.writeFile(path.join(outputDir, '/runtime/index.d.ts'), indexDTS)
 }
 
