@@ -1,6 +1,6 @@
 {
   "name": "photon-generate",
-  "version": "0.0.29",
+  "version": "0.0.31",
   "main": "runtime/index.js",
   "types": "runtime/index.d.ts",
   "bin": {
@@ -10,11 +10,12 @@
   "license": "Apache-2.0",
   "scripts": {
     "tsc": "tsc -d",
-    "build": "yarn tsc && yarn ncc:runtime && yarn webpack && yarn ncc:download && yarn ncc:cli",
+    "build": "yarn tsc && yarn ncc:runtime && yarn webpack && yarn ncc:download && yarn ncc:cli && yarn ncc:generator",
     "test": "jest",
     "ncc:runtime": "node scripts/build-runtime.js",
     "ncc:cli": "ncc build dist/cli.js -o cli ",
     "ncc:download": "ncc build scripts/download.js -o download && rm -f download/runtime/prisma download/runtime/schema-inferrer-bin",
+    "ncc:generator": "ncc build src/generation/generateClient.ts -o generator",
     "install": "node download/index.js",
     "prepublishOnly": "yarn build",
     "webpack": "webpack"
@@ -22,7 +23,7 @@
   "files": [
     "runtime",
     "browser-runtime",
-    "dist",
+    "generator",
     "cli",
     "download/index.js"
   ],
