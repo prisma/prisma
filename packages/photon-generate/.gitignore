@@ -2,7 +2,9 @@ node_modules
 dist
 build
 runtime
+browser-runtime
 download
 cli
 .DS_Store
 !src/runtime
+yarn-error.log

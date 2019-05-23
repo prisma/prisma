@@ -634,17 +634,6 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
   }
 }
 
-class Args {
-  constructor(protected readonly field: DMMF.SchemaField) {}
-  toString() {
-    const { field } = this
-    if (!field.isList && field.args.length > 0) {
-      throw new Error(`This must not happen! There are no fields which are non-lists with args.`)
-    }
-    return `args?: ${getModelArgName(getFieldTypeName(field), DMMF.ModelAction.findMany)}`
-  }
-}
-
 export class QueryDelegate {
   constructor(protected readonly outputType: OutputType) {}
   toString() {

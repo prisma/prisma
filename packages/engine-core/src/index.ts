@@ -1,2 +1,2 @@
-export { Engine } from './Engine'
+export { NodeEngine as Engine } from './NodeEngine'
 export { getInternalDatamodelJson } from './getInternalDatamodelJson'

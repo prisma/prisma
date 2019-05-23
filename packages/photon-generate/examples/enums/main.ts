@@ -1,4 +1,4 @@
-import { Photon, UserOrderByInput, Tree, OrderByArg } from './@generated/photon'
+import { Photon, OrderByArg } from './@generated/photon'
 
 async function main() {
   const photon = new Photon({
@@ -12,11 +12,6 @@ async function main() {
       id: 'asc',
     },
   })
-  // await photon.users({
-  //   where: {
-  //     favoriteTree_in: [Tree.Arborvitae, Tree.BlackAsh],
-  //   },
-  // })
 }
 
 main().catch(console.error)
