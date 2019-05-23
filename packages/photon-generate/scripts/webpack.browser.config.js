@@ -1,8 +1,7 @@
 const path = require('path')
-// const Plugin = require('typescript-declaration-webpack-plugin')
 
 module.exports = {
-  entry: './src/runtime/browser.ts',
+  entry: path.resolve(__dirname, '../src/runtime/browser.ts'),
   module: {
     rules: [
       {
@@ -15,22 +14,16 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
     alias: {
-      chalk: path.resolve(__dirname, 'dist/runtime/browser-chalk.js'),
+      chalk: path.resolve(__dirname, '../dist/runtime/browser-chalk.js'),
     },
   },
   output: {
     filename: 'index.js',
-    path: path.resolve(__dirname, 'browser-runtime'),
+    path: path.resolve(__dirname, '../browser-runtime'),
     library: 'photon-generate',
     libraryTarget: 'umd',
   },
   optimization: {
     minimize: false,
   },
-  // plugins: [
-  //   new Plugin({
-  //     // moduleName: './src/runtime/browser.ts',
-  //     out: path.resolve(__dirname, 'webpack-browser/main.d.ts'),
-  //   }),
-  // ],
 }
