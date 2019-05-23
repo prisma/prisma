@@ -1,41 +1,45 @@
 {
   "name": "photon-generate",
   "version": "0.0.22",
-  "main": "cli/index.js",
+  "main": "runtime/index.js",
+  "types": "runtime/index.d.ts",
   "bin": {
     "photon-generate": "cli/index.js"
   },
+  "browser": "browser-runtime/index.js",
   "license": "Apache-2.0",
   "scripts": {
     "tsc": "tsc -d",
-    "build": "yarn tsc && yarn ncc:runtime && yarn ncc:download && yarn ncc:cli",
+    "build": "yarn tsc && yarn ncc:runtime && yarn webpack && yarn ncc:download && yarn ncc:cli",
     "test": "jest",
     "ncc:runtime": "node scripts/build-runtime.js",
+    "ncc:runtime:browser": "node scripts/build-runtime.js --browser",
     "ncc:cli": "ncc build dist/cli.js -o cli ",
     "ncc:download": "ncc build scripts/download.js -o download && rm -f download/runtime/prisma download/runtime/schema-inferrer-bin",
     "install": "node download/index.js",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "yarn build",
+    "webpack": "webpack"
   },
   "files": [
     "runtime",
+    "browser-runtime",
     "cli",
     "download/index.js"
   ],
   "devDependencies": {
     "@prisma/dmmf": "^0.1.24",
-    "@prisma/engine-core": "^0.0.25",
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
     "@types/js-levenshtein": "^1.1.0",
     "@types/node": "^12.0.2",
     "@types/node-fetch": "^2.3.4",
-    "@zeit/ncc": "^0.18.5",
     "async-retry": "^1.2.3",
     "benchmark": "^2.1.4",
     "chalk": "^2.4.2",
     "commander": "^2.20.0",
     "death": "^1.1.0",
+    "declaration-bundler-webpack-plugin": "^1.0.3",
     "del": "^4.1.1",
     "dotenv": "^8.0.0",
     "flat-map-polyfill": "^0.3.8",
@@ -53,19 +57,26 @@
     "mock-fs": "^4.9.0",
     "node-fetch": "^2.6.0",
     "object-path-immutable": "^3.0.2",
+    "optimize-css-assets-webpack-plugin": "^5.0.1",
     "prettier": "^1.17.1",
     "prisma-datamodel": "^1.34.0-alpha.2",
     "prisma-generate-schema": "^1.34.0-alpha.2",
     "progress": "^2.0.3",
     "set-value": "^3.0.0",
+    "source-map-loader": "^0.2.4",
     "strip-ansi": "^5.2.0",
     "strip-indent": "^3.0.0",
     "ts-jest": "^24.0.2",
+    "ts-loader": "^6.0.1",
     "ts-node": "^8.1.0",
     "typescript": "^3.5.0-dev.20190514",
+    "typescript-declaration-webpack-plugin": "^0.1.1",
+    "webpack": "5.0.0-alpha.14",
+    "webpack-cli": "4.0.0-alpha-4",
     "zlib": "^1.0.5"
   },
   "dependencies": {
+    "@prisma/engine-core": "^0.0.28",
     "@prisma/fetch-engine": "^0.0.10"
   }
 }

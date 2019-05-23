@@ -27,11 +27,35 @@ mockFs({
   [path.join(__dirname, '../tsconfig.json')]: JSON.stringify(runtimeTsConfig, null, 2),
 })
 
-require('@zeit/ncc')(path.join(__dirname, '../src/runtime/index.ts'), {})
+const options = {}
+
+let targetDir = path.join(__dirname, '../runtime')
+let sourceFile = path.join(__dirname, '../src/runtime/index.ts')
+if (process.argv.includes('--browser')) {
+  sourceFile = path.join(__dirname, '../src/runtime/browser.ts')
+  targetDir = path.join(__dirname, '../browser-runtime')
+
+  options.externals = ['cross-fetch', 'chalk']
+  options.webpackConfig = {
+    target: 'web',
+    resolve: {
+      alias: {
+        chalk: path.resolve(__dirname, '../dist/runtime/browser-chalk.js'),
+        debug: path.resolve(__dirname, '../node_modules/debug/src/browser.js'),
+      },
+      mainFields: ['browser', 'module', 'main'],
+      // aliasFields: ['browser'],
+    },
+  }
+}
+
+console.log(sourceFile)
+console.log(options)
+require('@zeit/ncc')(sourceFile, options)
   .then(async ({ code, map, assets }) => {
     // Assets is an object of asset file names to { source, permissions, symlinks }
     // expected relative to the output code (if any)
-    await saveToDisc(code, map, assets, path.join(__dirname, '../runtime'))
+    await saveToDisc(code, map, assets, targetDir)
   })
   .catch(console.error)
 
@@ -62,6 +86,7 @@ async function saveToDisc(source, map, assets, outputDir) {
       // content = content.replace('@prisma/engine-core', './dist/Engine')
       //   await writeFile(targetPath, indexDTS, 'utf-8')
       // } else {
+      console.log(`writing`, targetPath)
       await writeFile(targetPath, file.source)
       // }
     }),
