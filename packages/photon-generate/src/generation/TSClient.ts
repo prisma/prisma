@@ -81,16 +81,41 @@ class PhotonFetcher {
 }
 `
 
+interface TSClientOptions {
+  document: DMMF.Document
+  prismaYmlPath?: string
+  prismaConfig?: string
+  datamodel: string
+  datamodelJson?: string
+  runtimePath: string
+  browser?: boolean
+}
+
 export class TSClient {
   protected readonly dmmf: DMMFClass
-  constructor(
-    protected readonly document: DMMF.Document,
-    protected readonly prismaYmlPath: string,
-    protected readonly prismaConfig: string,
-    protected readonly datamodel: string,
-    protected readonly datamodelJson: string,
-    protected readonly runtimePath: string,
-  ) {
+  protected readonly document: DMMF.Document
+  protected readonly prismaYmlPath?: string
+  protected readonly prismaConfig?: string
+  protected readonly datamodel: string
+  protected readonly datamodelJson?: string
+  protected readonly runtimePath: string
+  protected readonly browser: boolean
+  constructor({
+    document,
+    prismaYmlPath,
+    prismaConfig,
+    datamodel,
+    datamodelJson,
+    runtimePath,
+    browser = false,
+  }: TSClientOptions) {
+    this.document = document
+    this.prismaYmlPath = prismaYmlPath
+    this.prismaConfig = prismaConfig
+    this.datamodel = datamodel
+    this.datamodelJson = datamodelJson
+    this.runtimePath = runtimePath
+    this.browser = browser
     // We make a deep clone here as otherwise we would serialize circular references
     // which we're building up in the DMMFClass
     this.dmmf = new DMMFClass(JSON.parse(JSON.stringify(document)))
@@ -102,7 +127,14 @@ export class TSClient {
  * Client
 **/
 
-${new PhotonClientClass(this.dmmf, this.prismaYmlPath, this.prismaConfig, this.datamodel, this.datamodelJson)}
+${new PhotonClientClass(
+  this.dmmf,
+  this.datamodel,
+  this.prismaYmlPath,
+  this.prismaConfig,
+  this.datamodelJson,
+  this.browser,
+)}
 
 ${new Query(this.dmmf, 'query')}
 
@@ -148,21 +180,28 @@ const dmmf: DMMF.Document = ${JSON.stringify(this.document)}
   }
 }
 
-// maybe shouldn't export this to prevent confusion
 class PhotonClientClass {
   constructor(
     protected readonly dmmf: DMMFClass,
-    protected readonly prismaYmlPath: string,
-    protected readonly prismaConfig: string,
     protected readonly datamodel: string,
-    protected readonly datamodelJson: string,
+    protected readonly prismaYmlPath?: string,
+    protected readonly prismaConfig?: string,
+    protected readonly datamodelJson?: string,
+    protected readonly browser?: boolean,
   ) {}
   toString() {
     const { dmmf } = this
+
+    let engineConfig = `\
+      `
+    if (this.browser) {
+      engineConfig = `fetcher: `
+    }
     return `
 interface PhotonOptions {
   debugEngine?: boolean
   debug?: boolean
+  fetcher?: (query: string) => Promise<any>
 }
 
 export class Photon {
@@ -176,11 +215,18 @@ export class Photon {
     }
     const debugEngine = options.debugEngine || false
     this.engine = new Engine({
-      prismaYmlPath: ${JSON.stringify(this.prismaYmlPath)},
+      ${
+        this.browser
+          ? `\
+      fetcher: options.fetcher!\n`
+          : `
+      prismaYmlPath: ${this.prismaYmlPath ? JSON.stringify(this.prismaYmlPath) : 'undefined'},
       debug: debugEngine,
       datamodel: ${JSON.stringify(this.datamodel)},
-      prismaConfig: ${JSON.stringify(this.prismaConfig)},
-      datamodelJson: ${JSON.stringify(this.datamodelJson)}
+      prismaConfig: ${this.prismaConfig ? JSON.stringify(this.prismaConfig) : 'undefined'},
+      datamodelJson: ${this.datamodelJson ? JSON.stringify(this.datamodelJson) : 'undefined'}
+      `
+      }
     })
     this.dmmf = new DMMFClass(dmmf)
     this.fetcher = new PhotonFetcher(this.engine)

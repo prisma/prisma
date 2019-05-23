@@ -4,6 +4,7 @@ build
 runtime
 browser-runtime
 download
+generator
 cli
 .DS_Store
 !src/runtime
