@@ -7,11 +7,14 @@ async function main() {
 
   console.clear()
   const user = await photon.users({
-    orderBy: {
-      email: OrderByArg.asc,
-      id: 'asc',
+    where: {
+      posts: {
+        every: {
+          name: null,
+        },
+      },
     },
-  })
+  } as any)
 }
 
 main().catch(console.error)
