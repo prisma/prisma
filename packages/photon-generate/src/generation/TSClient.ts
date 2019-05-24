@@ -27,6 +27,9 @@ const debug = debugLib('photon')
  * Utility Types
  */
 
+
+export type Enumerable<T> = T | Array<T>
+
 export type MergeTruthyValues<R extends object, S extends object> = {
   [key in keyof S | keyof R]: key extends false
     ? never
@@ -748,8 +751,10 @@ export class InputField {
         .join(' | ')
     }
     const optionalStr = field.isRequired ? '' : '?'
-    const arrayStr = field.isList ? `[]` : ''
-    return `${field.name}${optionalStr}: ${fieldType}${arrayStr}`
+    if (field.isList) {
+      fieldType = `Enumerable<${fieldType}>`
+    }
+    return `${field.name}${optionalStr}: ${fieldType}`
   }
 }
 
