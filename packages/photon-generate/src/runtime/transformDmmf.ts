@@ -1,5 +1,5 @@
 import { DMMF } from './dmmf-types'
-import { uniqBy, Dictionary, stringifyInputType } from './utils/common'
+import { Dictionary, stringifyInputType, uniqBy } from './utils/common'
 
 export function transformDmmf(document: DMMF.Document): DMMF.Document {
   const doc = transformOrderInputTypes(transformWhereInputTypes(document))

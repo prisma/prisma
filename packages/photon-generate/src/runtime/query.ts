@@ -1,29 +1,29 @@
-import indent from 'indent-string'
 import chalk from 'chalk'
-import { printJsonWithErrors, MissingItem } from './utils/printJsonErrors'
+import indent from 'indent-string'
 import { /*dmmf, */ DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import {
-  getSuggestion,
+  ArgError,
+  AtLeastOneError,
+  AtMostOneError,
+  FieldError,
+  InvalidArgError,
+  InvalidFieldError,
+} from './error-types'
+import {
   getGraphQLType,
+  getInputTypeName,
+  getSuggestion,
+  inputTypeToJson,
   stringifyGraphQLType,
   stringifyInputType,
   unionBy,
-  inputTypeToJson,
-  getInputTypeName,
   wrapWithList,
 } from './utils/common'
-import {
-  InvalidArgError,
-  ArgError,
-  FieldError,
-  InvalidFieldError,
-  AtLeastOneError,
-  AtMostOneError,
-} from './error-types'
-import stringifyObject from './utils/stringifyObject'
 import { deepExtend } from './utils/deep-extend'
 import { omit } from './utils/omit'
+import { MissingItem, printJsonWithErrors } from './utils/printJsonErrors'
+import stringifyObject from './utils/stringifyObject'
 import { visit } from './visit'
 
 const tab = 2
@@ -33,12 +33,12 @@ export class Document {
     this.type = type
     this.children = children
   }
-  toString() {
+  public toString() {
     return `${this.type} {
 ${indent(this.children.map(String).join('\n'), tab)}
 }`
   }
-  validate(select: any, isTopLevelQuery: boolean = false, originalMethod?: string) {
+  public validate(select: any, isTopLevelQuery: boolean = false, originalMethod?: string) {
     const invalidChildren = this.children.filter(child => child.hasInvalidChild || child.hasInvalidArg)
     if (invalidChildren.length === 0) {
       return
@@ -113,11 +113,13 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
       return str
     }
     if (error.type === 'invalidFieldType') {
-      let str = `Invalid value ${chalk.redBright(`${stringifyObject(error.providedValue)}`)} of type ${chalk.redBright(
-        getGraphQLType(error.providedValue, undefined),
-      )} for field ${chalk.bold(`${error.fieldName}`)} on model ${chalk.bold.white(
-        error.modelName,
-      )}. Expected either ${chalk.greenBright('true')} or ${chalk.greenBright('false')}.`
+      const str = `Invalid value ${chalk.redBright(
+        `${stringifyObject(error.providedValue)}`,
+      )} of type ${chalk.redBright(getGraphQLType(error.providedValue, undefined))} for field ${chalk.bold(
+        `${error.fieldName}`,
+      )} on model ${chalk.bold.white(error.modelName)}. Expected either ${chalk.greenBright(
+        'true',
+      )} or ${chalk.greenBright('false')}.`
 
       return str
     }
@@ -236,7 +238,7 @@ export class Field {
       : false
     this.hasInvalidArg = args ? args.hasInvalidArg : false
   }
-  toString() {
+  public toString() {
     let str = this.name
 
     // TODO: Decide if we should do this
@@ -260,7 +262,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
     return str
   }
-  collectErrors(prefix = 'select'): { fieldErrors: FieldError[]; argErrors: ArgError[] } {
+  public collectErrors(prefix = 'select'): { fieldErrors: FieldError[]; argErrors: ArgError[] } {
     const fieldErrors: FieldError[] = []
     const argErrors: ArgError[] = []
 
@@ -300,13 +302,13 @@ export class Args {
     this.args = args
     this.hasInvalidArg = args ? args.some(arg => Boolean(arg.hasError)) : false
   }
-  toString() {
+  public toString() {
     if (this.args.length === 0) {
       return ''
     }
     return `${this.args.map(String).join('\n')}`
   }
-  collectErrors(): ArgError[] {
+  public collectErrors(): ArgError[] {
     if (!this.hasInvalidArg) {
       return []
     }
@@ -321,7 +323,7 @@ export class Args {
  * @param _
  * @param tab
  */
-function stringify(obj, _?: any, tab?: string | number, isEnum?: boolean) {
+function stringify(obj, _?: any, tabbing?: string | number, isEnum?: boolean) {
   if (obj === undefined) {
     return null
   }
@@ -334,7 +336,7 @@ function stringify(obj, _?: any, tab?: string | number, isEnum?: boolean) {
     return `[${obj.join(', ')}]`
   }
 
-  return JSON.stringify(obj, _, tab)
+  return JSON.stringify(obj, _, tabbing)
 }
 
 interface ArgOptions {
@@ -367,7 +369,7 @@ export class Arg {
       (value instanceof Args ? value.hasInvalidArg : false) ||
       (Array.isArray(value) && value.some(v => (v instanceof Args ? v.hasInvalidArg : false)))
   }
-  _toString(value: ArgValue, key: string): string {
+  public _toString(value: ArgValue, key: string): string {
     if (value instanceof Args) {
       return `${key}: {
 ${indent(value.toString(), 2)}
@@ -375,9 +377,9 @@ ${indent(value.toString(), 2)}
     }
 
     if (Array.isArray(value)) {
-      const isScalar = !(value as Array<any>).some(v => typeof v === 'object')
+      const isScalar = !(value as any[]).some(v => typeof v === 'object')
       return `${key}: [${isScalar ? '' : '\n'}${indent(
-        (value as Array<any>)
+        (value as any[])
           .map(nestedValue => {
             if (nestedValue instanceof Args) {
               return `{\n${indent(nestedValue.toString(), tab)}\n}`
@@ -391,10 +393,10 @@ ${indent(value.toString(), 2)}
 
     return `${key}: ${stringify(value, null, 2, this.isEnum)}`
   }
-  toString() {
+  public toString() {
     return this._toString(this.value, this.key)
   }
-  collectErrors(): ArgError[] {
+  public collectErrors(): ArgError[] {
     if (!this.hasError) {
       return []
     }
@@ -411,7 +413,7 @@ ${indent(value.toString(), 2)}
 
     if (Array.isArray(this.value)) {
       errors.push(
-        ...(this.value as Array<any>).flatMap((val, index) => {
+        ...(this.value as any[]).flatMap((val, index) => {
           if (!val.collectErrors) {
             return []
           }
@@ -445,7 +447,7 @@ export function makeDocument({ dmmf, rootTypeName, rootField, select }: Document
   // console.log(stringifyInputType(input))
   const rootType = rootTypeName === 'query' ? dmmf.queryType : dmmf.mutationType
   // Create a fake toplevel field for easier implementation
-  const _rootField: DMMF.SchemaField = {
+  const fakeRootField: DMMF.SchemaField = {
     args: [],
     isList: false,
     isRequired: true,
@@ -453,7 +455,7 @@ export function makeDocument({ dmmf, rootTypeName, rootField, select }: Document
     type: rootType,
     kind: 'relation',
   }
-  return new Document(rootTypeName, selectionToFields(dmmf, { [rootField]: select }, _rootField, [rootTypeName]))
+  return new Document(rootTypeName, selectionToFields(dmmf, { [rootField]: select }, fakeRootField, [rootTypeName]))
 }
 
 export function transformDocument(document: Document): Document {
@@ -461,8 +463,9 @@ export function transformDocument(document: Document): Document {
     return new Args(
       args.args.flatMap(ar => {
         if (isArgsArray(ar.value)) {
-          const value = ar.value.map(args => {
-            return transformWhereArgs(args)
+          // long variable name to prevent shadowing
+          const value = ar.value.map(argsInstance => {
+            return transformWhereArgs(argsInstance)
           })
           return new Arg({ ...ar, value })
         } else if (ar.value instanceof Args) {
@@ -519,7 +522,7 @@ export function transformDocument(document: Document): Document {
   })
 }
 
-function isArgsArray(input: any): input is Array<Args> {
+function isArgsArray(input: any): input is Args[] {
   if (Array.isArray(input)) {
     return input.every(arg => arg instanceof Args)
   }
@@ -535,8 +538,13 @@ function getFilterArgName(arg: string, filter: string) {
   return `${arg}_${filter}`
 }
 
-export function selectionToFields(dmmf: DMMFClass, selection: any, field: DMMF.SchemaField, path: string[]): Field[] {
-  const outputType = field.type as DMMF.MergedOutputType
+export function selectionToFields(
+  dmmf: DMMFClass,
+  selection: any,
+  schemaField: DMMF.SchemaField,
+  path: string[],
+): Field[] {
+  const outputType = schemaField.type as DMMF.MergedOutputType
   return Object.entries(selection).reduce(
     (acc, [name, value]: any) => {
       const field = outputType.fields.find(f => f.name === name)
@@ -696,7 +704,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
         if (typeof value !== 'object') {
           return getInvalidTypeArg(key, value, arg, t)
         } else {
-          let error: AtMostOneError | AtLeastOneError | undefined = undefined
+          let error: AtMostOneError | AtLeastOneError | undefined
           const keys = Object.keys(value)
           const numKeys = keys.length
           if (numKeys === 0 && t.atLeastOne) {
@@ -734,7 +742,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     }
 
     // do we have more then one, but does it fit one of the args? Then let's just take that one arg
-    const argWithoutError = args.find(arg => !arg.hasError)
+    const argWithoutError = args.find(a => !a.hasError)
     if (argWithoutError) {
       return argWithoutError
     }
@@ -837,11 +845,11 @@ function objectToArgs(
   outputType?: DMMF.MergedOutputType,
 ): Args {
   const { args } = inputType
-  const requiredArgs: [string, any][] = args.filter(arg => arg.isRequired).map(arg => [arg.name, undefined])
+  const requiredArgs: Array<[string, any]> = args.filter(arg => arg.isRequired).map(arg => [arg.name, undefined])
   const entries = unionBy(Object.entries(obj), requiredArgs, a => a[0])
   const argsList = entries.reduce(
     (acc, [argName, value]: any) => {
-      const schemaArg = args.find(schemaArg => schemaArg.name === argName)
+      const schemaArg = args.find(a => a.name === argName)
       if (!schemaArg) {
         const didYouMeanField =
           typeof value === 'boolean' && outputType && outputType.fields.some(f => f.name === argName) ? argName : null
@@ -855,7 +863,7 @@ function objectToArgs(
               providedValue: value,
               didYouMeanField,
               didYouMeanArg:
-                (!didYouMeanField && getSuggestion(argName, [...args.map(arg => arg.name), 'select'])) || undefined,
+                (!didYouMeanField && getSuggestion(argName, [...args.map(a => a.name), 'select'])) || undefined,
               originalType: inputType,
               possibilities,
               outputType,

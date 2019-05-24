@@ -1,7 +1,7 @@
-import { makeDocument } from '../runtime/query'
-import { DMMFClass } from '../runtime/dmmf'
-import { dmmfDocument } from '../fixtures/example-dmmf'
 import stripAnsi from 'strip-ansi'
+import { dmmfDocument } from '../fixtures/example-dmmf'
+import { DMMFClass } from '../runtime/dmmf'
+import { makeDocument } from '../runtime/query'
 
 describe('validation', () => {
   const dmmf = new DMMFClass(dmmfDocument)

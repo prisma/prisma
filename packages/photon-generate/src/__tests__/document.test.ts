@@ -1,4 +1,4 @@
-import { Document, Field, Args, Arg } from '../runtime/query'
+import { Arg, Args, Document, Field } from '../runtime/query'
 
 test('document stringify', () => {
   const document = new Document('query', [

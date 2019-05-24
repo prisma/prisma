@@ -35,10 +35,10 @@ export namespace DMMF {
   }
 
   export interface Schema<T extends BaseSchemaArg = SchemaArg> {
-    queries: Query<T>[]
-    mutations: Query<T>[]
-    inputTypes: InputType<T>[]
-    outputTypes: OutputType<T>[]
+    queries: Array<Query<T>>
+    mutations: Array<Query<T>>
+    inputTypes: Array<InputType<T>>
+    outputTypes: Array<OutputType<T>>
     enums: Enum[]
   }
 
@@ -86,12 +86,12 @@ export namespace DMMF {
 
   export interface OutputType<T extends BaseSchemaArg = SchemaArg> {
     name: string
-    fields: SchemaField<T>[]
+    fields: Array<SchemaField<T>>
   }
 
   export interface MergedOutputType<T extends BaseSchemaArg = SchemaArg> extends OutputType<T> {
     isEmbedded: boolean
-    fields: SchemaField<T>[]
+    fields: Array<SchemaField<T>>
   }
 
   export interface SchemaField<T extends BaseSchemaArg = SchemaArg> {

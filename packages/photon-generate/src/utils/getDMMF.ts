@@ -1,6 +1,6 @@
 import { DMMF as DMMFComponent } from '@prisma/dmmf'
-import { generateCRUDSchema } from 'prisma-generate-schema'
 import { DatabaseType } from 'prisma-datamodel'
+import { generateCRUDSchema } from 'prisma-generate-schema'
 import { DMMF } from '../runtime/dmmf-types'
 import { getUnionDocument } from '../runtime/getUnionDocument'
 import { transformDmmf } from '../runtime/transformDmmf'

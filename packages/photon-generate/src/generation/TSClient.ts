@@ -1,20 +1,20 @@
-import { DMMF, BaseField } from '../runtime/dmmf-types'
-import { DMMFClass } from '../runtime/dmmf'
-import indent from 'indent-string'
-import { GraphQLScalarToJSTypeTable, capitalize } from '../runtime/utils/common'
 import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfilled in TypeScript
+import indent from 'indent-string'
+import { DMMFClass } from '../runtime/dmmf'
+import { BaseField, DMMF } from '../runtime/dmmf-types'
+import { capitalize, GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
 import {
-  getModelArgName,
-  getFieldTypeName,
-  getPayloadName,
-  getFieldArgName,
-  getSelectName,
   getDefaultName,
+  getFieldArgName,
+  getFieldTypeName,
+  getModelArgName,
+  getPayloadName,
   getScalarsName,
-  isQueryAction,
+  getSelectName,
   getSelectReturnType,
-  renderInitialClientArgs,
   getType,
+  isQueryAction,
+  renderInitialClientArgs,
 } from './utils'
 
 const tab = 2
@@ -120,7 +120,7 @@ export class TSClient {
     // which we're building up in the DMMFClass
     this.dmmf = new DMMFClass(JSON.parse(JSON.stringify(document)))
   }
-  toString() {
+  public toString() {
     return `${commonCode(this.runtimePath)}
 
 /**
@@ -189,14 +189,9 @@ class PhotonClientClass {
     protected readonly datamodelJson?: string,
     protected readonly browser?: boolean,
   ) {}
-  toString() {
+  public toString() {
     const { dmmf } = this
 
-    let engineConfig = `\
-      `
-    if (this.browser) {
-      engineConfig = `fetcher: `
-    }
     return `
 interface PhotonOptions {
   debugEngine?: boolean
@@ -262,13 +257,7 @@ get ${m.findMany}(): ${m.model}Delegate {
 
 class QueryPayloadType {
   constructor(protected readonly type: OutputType) {}
-  protected wrapArray(field: DMMF.SchemaField, str: string) {
-    if (field.isList) {
-      return `Array<${str}>`
-    }
-    return str
-  }
-  toString() {
+  public toString() {
     const { type } = this
     const { name } = type
 
@@ -299,6 +288,12 @@ type ${getPayloadName(name)}<S extends ${name}Args> = S extends ${name}Args
     } : never
   `
   }
+  protected wrapArray(field: DMMF.SchemaField, str: string) {
+    if (field.isList) {
+      return `Array<${str}>`
+    }
+    return str
+  }
 }
 
 /**
@@ -306,13 +301,7 @@ type ${getPayloadName(name)}<S extends ${name}Args> = S extends ${name}Args
  */
 class PayloadType {
   constructor(protected readonly type: OutputType) {}
-  protected wrapArray(field: DMMF.SchemaField, str: string) {
-    if (field.isList) {
-      return `Array<${str}>`
-    }
-    return str
-  }
-  toString() {
+  public toString() {
     const { type } = this
     const { name } = type
 
@@ -348,6 +337,12 @@ type ${getPayloadName(name)}<S extends boolean | ${getSelectName(name)}> = S ext
     }
    : never`
   }
+  protected wrapArray(field: DMMF.SchemaField, str: string) {
+    if (field.isList) {
+      return `Array<${str}>`
+    }
+    return str
+  }
 }
 
 /**
@@ -355,15 +350,7 @@ type ${getPayloadName(name)}<S extends boolean | ${getSelectName(name)}> = S ext
  */
 class ModelDefault {
   constructor(protected readonly model: DMMF.Model, protected readonly dmmf: DMMFClass) {}
-  protected isDefault(field: DMMF.Field) {
-    if (field.kind !== 'relation') {
-      return true
-    }
-
-    const model = this.dmmf.datamodel.models.find(m => field.type === m.name)
-    return model!.isEmbedded
-  }
-  toString() {
+  public toString() {
     const { model } = this
     return `\
 type ${getDefaultName(model.name)} = {
@@ -376,6 +363,14 @@ ${indent(
 )}
 }
 `
+  }
+  protected isDefault(field: DMMF.Field) {
+    if (field.kind !== 'relation') {
+      return true
+    }
+
+    const model = this.dmmf.datamodel.models.find(m => field.type === m.name)
+    return model!.isEmbedded
   }
 }
 
@@ -437,7 +432,7 @@ export class Model {
 
     return argsTypes
   }
-  toString() {
+  public toString() {
     const { model, outputType } = this
 
     if (!outputType) {
@@ -493,9 +488,9 @@ ${this.argsTypes.map(String).join('\n')}
 
 export class Query {
   constructor(protected readonly dmmf: DMMFClass, protected readonly operation: 'query' | 'mutation') {}
-  toString() {
+  public toString() {
     const { dmmf, operation } = this
-    const name = capitalize(operation)
+    const queryName = capitalize(operation)
     const mappings = dmmf.mappings.map(mapping => ({
       name: mapping.model,
       mapping: Object.entries(mapping).filter(([key]) => isQueryAction(key as DMMF.ModelAction, operation)),
@@ -504,10 +499,10 @@ export class Query {
     const outputType = new OutputType(queryType)
     return `\
 /**
- * ${name}
+ * ${queryName}
  */
 
-export type ${name}Args = {
+export type ${queryName}Args = {
 ${indent(
   mappings
     .flatMap(({ name, mapping }) =>
@@ -528,7 +523,7 @@ ${new QueryDelegate(outputType)}
 }
 export class ModelDelegate {
   constructor(protected readonly outputType: OutputType, protected readonly dmmf: DMMFClass) {}
-  toString() {
+  public toString() {
     const { fields, name } = this.outputType
     const mapping = this.dmmf.mappings.find(m => m.model === name)!
     const actions = Object.entries(mapping).filter(([key, value]) => key !== 'model' && value)
@@ -682,7 +677,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
 
 export class QueryDelegate {
   constructor(protected readonly outputType: OutputType) {}
-  toString() {
+  public toString() {
     const name = this.outputType.name
     return `\
 interface ${name}Delegate {
@@ -741,7 +736,7 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
 
 export class InputField {
   constructor(protected readonly field: BaseField, protected readonly prefixFilter = false) {}
-  toString() {
+  public toString() {
     const { field } = this
     // ENUMTODO
     let fieldType
@@ -760,7 +755,7 @@ export class InputField {
 
 export class OutputField {
   constructor(protected readonly field: BaseField) {}
-  toString() {
+  public toString() {
     const { field } = this
     // ENUMTODO
     let fieldType =
@@ -775,13 +770,13 @@ export class OutputField {
 }
 
 export class OutputType {
-  name: string
-  fields: DMMF.SchemaField[]
+  public name: string
+  public fields: DMMF.SchemaField[]
   constructor(protected readonly type: DMMF.OutputType) {
     this.name = type.name
     this.fields = type.fields
   }
-  toString() {
+  public toString() {
     const { type } = this
     return `
 export type ${type.name} = {
@@ -792,7 +787,7 @@ ${indent(type.fields.map(field => new OutputField(field).toString()).join('\n'),
 
 export class ArgsType {
   constructor(protected readonly type: DMMF.InputType) {}
-  toString() {
+  public toString() {
     const { type } = this
     const argsWithRequiredSelect = type.args.map(a => (a.name === 'select' ? { ...a, isRequired: true } : a))
     return `
@@ -817,10 +812,10 @@ type Extract${type.name}Select<S extends undefined | boolean | ${type.name}> = S
 
 export class InputType {
   constructor(protected readonly type: DMMF.InputType) {}
-  toString() {
+  public toString() {
     const { type } = this
     // TO DISCUSS: Should we rely on TypeScript's error messages?
-    let body = `{
+    const body = `{
 ${indent(type.args.map(arg => new InputField(arg /*, type.atLeastOne && !type.atMostOne*/)).join('\n'), tab)}
 }`
     //     if (type.atLeastOne && !type.atMostOne) {
@@ -839,7 +834,7 @@ export type ${type.name} = ${body}`
 
 export class Enum {
   constructor(protected readonly type: DMMF.Enum) {}
-  toString() {
+  public toString() {
     const { type } = this
 
     return `export const ${type.name} = makeEnum({

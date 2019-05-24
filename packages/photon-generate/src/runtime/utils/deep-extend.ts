@@ -27,6 +27,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+/* tslint:disable */
+
 function isSpecificValue(val) {
   return val instanceof Buffer || val instanceof Date || val instanceof RegExp ? true : false
 }

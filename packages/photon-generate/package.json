@@ -10,7 +10,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "tsc": "tsc -d",
-    "build": "yarn tsc && yarn ncc:runtime && yarn build:browser && yarn ncc:download && yarn ncc:cli && yarn ncc:generator",
+    "build": "yarn lint && yarn tsc && yarn ncc:runtime && yarn build:browser && yarn ncc:download && yarn ncc:cli && yarn ncc:generator",
     "test": "jest",
     "ncc:runtime": "node scripts/build-runtime.js",
     "ncc:cli": "ncc build dist/cli.js -o cli ",
@@ -18,7 +18,20 @@
     "ncc:generator": "ncc build src/generation/generateClient.ts -o generator",
     "install": "node download/index.js",
     "prepublishOnly": "yarn build",
-    "build:browser": "webpack -c scripts/webpack.browser.config.js"
+    "build:browser": "webpack -c scripts/webpack.browser.config.js",
+    "lint": "tslint -c tslint.json 'src/**/*.ts' --fix"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "tslint --project tsconfig.json -c tslint.json --fix",
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged && yarn tsc"
+    }
   },
   "files": [
     "runtime",
@@ -48,6 +61,7 @@
     "fs-extra": "^8.0.1",
     "fs-monkey": "^0.3.3",
     "get-own-enumerable-property-symbols": "^3.0.0",
+    "husky": "^2.3.0",
     "immutable": "^4.0.0-rc.12",
     "indent-string": "^4.0.0",
     "is-obj": "^2.0.0",
@@ -55,6 +69,7 @@
     "jest": "^24.8.0",
     "js-levenshtein": "^1.1.6",
     "js-yaml": "^3.13.1",
+    "lint-staged": "^8.1.7",
     "make-dir": "^3.0.0",
     "mock-fs": "^4.9.0",
     "node-fetch": "^2.6.0",
@@ -71,6 +86,8 @@
     "ts-jest": "^24.0.2",
     "ts-loader": "^6.0.1",
     "ts-node": "^8.1.0",
+    "tslint": "^5.16.0",
+    "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.5.0-dev.20190514",
     "typescript-declaration-webpack-plugin": "^0.1.1",
     "webpack": "5.0.0-alpha.14",

@@ -1,6 +1,6 @@
-import { Arg, Document, Field, Args } from './query'
-import { stringifyInputType } from './utils/common'
 import chalk from 'chalk'
+import { Arg, Args, Document, Field } from './query'
+import { stringifyInputType } from './utils/common'
 
 interface Visitor {
   Arg: {
@@ -51,7 +51,7 @@ function visitField(field: Field, visitor: Visitor): Field {
   })
 }
 
-function isArgsArray(input: any): input is Array<Args> {
+function isArgsArray(input: any): input is Args[] {
   if (Array.isArray(input)) {
     return input.every(arg => arg instanceof Args)
   }
@@ -62,7 +62,7 @@ function isArgsArray(input: any): input is Array<Args> {
 function visitArg(arg: Arg, visitor: Visitor): Arg {
   function mapArgs(inputArgs: Args) {
     const { args } = inputArgs
-    const newArgs = args.map(arg => visitArg(arg, visitor))
+    const newArgs = args.map(a => visitArg(a, visitor))
     if (newArgs.length !== args.length || args.find((a, i) => a !== newArgs[i])) {
       return new Args(newArgs)
     }

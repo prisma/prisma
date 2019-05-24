@@ -38,7 +38,7 @@ export type InvalidArgError =
 /**
  * This error occurs if the user provides an arg name that doens't exist
  */
-export type InvalidArgNameError = {
+export interface InvalidArgNameError {
   type: 'invalidName'
   providedName: string
   providedValue: any
@@ -53,7 +53,7 @@ export type InvalidArgNameError = {
  * Opposite of InvalidArgNameError - if the user *doesn't* provide an arg that should be provided
  * This error both happens with an implicit and explicit `undefined`
  */
-export type MissingArgError = {
+export interface MissingArgError {
   type: 'missingArg'
   missingName: string
   missingType: DMMF.ArgType[] // note that this could be an object or scalar type. in the object case, we print the whole object type
@@ -65,14 +65,14 @@ export type MissingArgError = {
   atMostOne: boolean
 }
 
-export type AtMostOneError = {
+export interface AtMostOneError {
   type: 'atMostOne'
   key: string
   inputType: DMMF.InputType
   providedKeys: string[]
 }
 
-export type AtLeastOneError = {
+export interface AtLeastOneError {
   type: 'atLeastOne'
   key: string
   inputType: DMMF.InputType
@@ -81,7 +81,7 @@ export type AtLeastOneError = {
 /**
  * If the scalar type of an arg is not matching what is required
  */
-export type InvalidArgTypeError = {
+export interface InvalidArgTypeError {
   type: 'invalidType'
   argName: string
   requiredType: {

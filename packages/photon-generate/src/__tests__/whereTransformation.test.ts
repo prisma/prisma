@@ -1,6 +1,6 @@
-import { getDMMF } from '../utils/getDMMF'
-import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { enums } from '../fixtures/enums'
+import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+import { getDMMF } from '../utils/getDMMF'
 
 describe('where transformation', () => {
   const dmmf = new DMMFClass(getDMMF(enums))

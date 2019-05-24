@@ -1,5 +1,5 @@
-import { DMMF } from '../runtime/dmmf-types'
 import { DMMFClass } from '../runtime/dmmf'
+import { DMMF } from '../runtime/dmmf-types'
 
 export function getScalarsName(modelName: string) {
   return `${modelName}Scalars`
@@ -53,7 +53,7 @@ export function getModelArgName(modelName: string, action: DMMF.ModelAction): st
 }
 
 export function getDefaultArgName(dmmf: DMMFClass, modelName: string, action: DMMF.ModelAction) {
-  const mapping = dmmf.mappings.find(mapping => mapping.model === modelName)!
+  const mapping = dmmf.mappings.find(m => m.model === modelName)!
 
   const fieldName = mapping[action]
   const operation = getOperation(action)

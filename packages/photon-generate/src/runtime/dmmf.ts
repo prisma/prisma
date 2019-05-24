@@ -1,18 +1,18 @@
 import { DMMF } from './dmmf-types'
-import { keyBy, Dictionary } from './utils/common'
+import { Dictionary, keyBy } from './utils/common'
 
 export class DMMFClass implements DMMF.Document {
-  datamodel: DMMF.Datamodel
-  schema: DMMF.Schema
-  mappings: DMMF.Mapping[]
-  queryType: DMMF.MergedOutputType
-  mutationType: DMMF.MergedOutputType
-  outputTypes: DMMF.MergedOutputType[]
-  outputTypeMap: Dictionary<DMMF.MergedOutputType> = {}
-  inputTypes: DMMF.InputType[]
-  inputTypeMap: Dictionary<DMMF.InputType>
-  enumMap: Dictionary<DMMF.Enum>
-  modelMap: Dictionary<DMMF.Model>
+  public datamodel: DMMF.Datamodel
+  public schema: DMMF.Schema
+  public mappings: DMMF.Mapping[]
+  public queryType: DMMF.MergedOutputType
+  public mutationType: DMMF.MergedOutputType
+  public outputTypes: DMMF.MergedOutputType[]
+  public outputTypeMap: Dictionary<DMMF.MergedOutputType> = {}
+  public inputTypes: DMMF.InputType[]
+  public inputTypeMap: Dictionary<DMMF.InputType>
+  public enumMap: Dictionary<DMMF.Enum>
+  public modelMap: Dictionary<DMMF.Model>
   constructor({ datamodel, schema, mappings }: DMMF.Document) {
     this.datamodel = datamodel
     this.schema = schema
@@ -35,9 +35,15 @@ export class DMMFClass implements DMMF.Document {
     this.outputTypeMap = this.getMergedOutputTypeMap()
 
     // needed as references are not kept
-    this.queryType = this.outputTypeMap['Query']
-    this.mutationType = this.outputTypeMap['Mutation']
+    this.queryType = this.outputTypeMap.Query
+    this.mutationType = this.outputTypeMap.Mutation
     this.outputTypes = this.outputTypes
+  }
+  public getField(fieldName: string) {
+    return (
+      // TODO: create lookup table for Query and Mutation
+      this.queryType.fields.find(f => f.name === fieldName) || this.mutationType.fields.find(f => f.name === fieldName)
+    )
   }
   protected outputTypeToMergedOutputType = (outputType: DMMF.OutputType): DMMF.MergedOutputType => {
     const model = this.modelMap[outputType.name]
@@ -83,12 +89,12 @@ export class DMMFClass implements DMMF.Document {
     for (const type of types) {
       for (const field of type.fields) {
         for (const arg of field.args) {
-          arg.type.forEach((type, index) => {
-            if (typeof type === 'string') {
-              if (inputTypeMap[type]) {
-                arg.type[index] = inputTypeMap[type]
-              } else if (this.enumMap[type]) {
-                arg.type[index] = this.enumMap[type]
+          arg.type.forEach((t, index) => {
+            if (typeof t === 'string') {
+              if (inputTypeMap[t]) {
+                arg.type[index] = inputTypeMap[t]
+              } else if (this.enumMap[t]) {
+                arg.type[index] = this.enumMap[t]
               }
             }
           })
@@ -126,12 +132,6 @@ export class DMMFClass implements DMMF.Document {
   }
   protected getInputTypeMap(): Dictionary<DMMF.InputType> {
     return keyBy(this.schema.inputTypes, t => t.name)
-  }
-  public getField(fieldName: string) {
-    return (
-      // TODO: create lookup table for Query and Mutation
-      this.queryType.fields.find(f => f.name === fieldName) || this.mutationType.fields.find(f => f.name === fieldName)
-    )
   }
 }
 
