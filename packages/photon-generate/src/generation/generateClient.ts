@@ -10,6 +10,7 @@ import {
   ModuleKind,
   ScriptTarget,
 } from 'typescript'
+import { DMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
 import { getDMMF } from '../utils/getDMMF'
 import { TSClient } from './TSClient'
