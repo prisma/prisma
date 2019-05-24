@@ -2,7 +2,7 @@ import { enums } from '../fixtures/enums'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { getDMMF } from '../utils/getDMMF'
 
-describe('where transformation', () => {
+describe('scalar where transformation', () => {
   const dmmf = new DMMFClass(getDMMF(enums))
   test('transform correctly', () => {
     const select = {

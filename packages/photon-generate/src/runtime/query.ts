@@ -21,6 +21,8 @@ import {
   wrapWithList,
 } from './utils/common'
 import { deepExtend } from './utils/deep-extend'
+import { deepGet } from './utils/deep-set'
+import { filterObject } from './utils/filterObject'
 import { omit } from './utils/omit'
 import { MissingItem, printJsonWithErrors } from './utils/printJsonErrors'
 import stringifyObject from './utils/stringifyObject'
@@ -59,7 +61,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
     const valuePaths: string[] = []
     const missingItems: MissingItem[] = []
     for (const fieldError of fieldErrors) {
-      const path = fieldError.path.join('.')
+      const path = this.normalizePath(fieldError.path, select).join('.')
       if (fieldError.error.type === 'invalidFieldName') {
         keyPaths.push(path)
       } else {
@@ -68,7 +70,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
     }
     // an arg error can either be an invalid key or invalid value
     for (const argError of argErrors) {
-      const path = argError.path.join('.')
+      const path = this.normalizePath(argError.path, select).join('.')
       if (argError.error.type === 'invalidName') {
         keyPaths.push(path)
       } else if (argError.error.type !== 'missingArg' && argError.error.type !== 'atLeastOne') {
@@ -209,6 +211,27 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
         true,
       )}`
     }
+  }
+  /**
+   * As we're allowing both single objects and array of objects for list inputs, we need to remove incorrect
+   * zero indexes from the path
+   * @param inputPath e.g. ['where', 'AND', 0, 'id']
+   * @param select select object
+   */
+  private normalizePath(inputPath: Array<string | number>, select: any) {
+    const path = inputPath.slice()
+    const newPath: Array<string | number> = []
+    let key: undefined | string | number
+    let pointer = select
+    // tslint:disable-next-line:no-conditional-assignment
+    while ((key = path.shift()) !== undefined) {
+      if (!Array.isArray(pointer) && key === 0) {
+        continue
+      }
+      pointer = pointer[key]
+      newPath.push(key)
+    }
+    return newPath
   }
 }
 
@@ -475,6 +498,12 @@ export function transformDocument(document: Document): Document {
                 new Arg({
                   key: getFilterArgName(ar.key, a.key),
                   value: a.value,
+                  /**
+                   * This is an ugly hack. It assumes, that deeploy somewhere must be a valid inputType for
+                   * this argument
+                   */
+                  argType: deepGet(ar, ['value', 'args', '0', 'argType']),
+                  schemaArg: ar.schemaArg,
                 }),
             )
           }
@@ -498,24 +527,35 @@ export function transformDocument(document: Document): Document {
   return visit(document, {
     Arg: {
       enter(arg) {
+        // if (arg.key === 'Albums') {
+        //   console.log('Albums', arg)
+        // }
+        // if (arg.key === 'Tracks') {
+        //   console.log('Tracks', arg)
+        // }
+        // if (arg.key === 'some') {
+        //   console.log('some', arg)
+        // }
         const { argType, schemaArg } = arg
         if (!argType) {
           return undefined
         }
-
-        if (isInputArgType(argType) && argType.isOrderType) {
-          return transformOrderArg(arg)
-        }
-
-        if (isInputArgType(argType) && argType.isWhereType && schemaArg) {
-          let value
-          if (isArgsArray(arg.value)) {
-            value = arg.value.map(val => transformWhereArgs(val))
-          } else if (arg.value instanceof Args) {
-            value = transformWhereArgs(arg.value)
+        if (isInputArgType(argType)) {
+          if (argType.isOrderType) {
+            return transformOrderArg(arg)
           }
-          return new Arg({ ...arg, value })
+
+          if (argType.isWhereType && schemaArg) {
+            let value
+            if (isArgsArray(arg.value)) {
+              value = arg.value.map(val => transformWhereArgs(val))
+            } else if (arg.value instanceof Args) {
+              value = transformWhereArgs(arg.value)
+            }
+            return new Arg({ ...arg, value })
+          }
         }
+
         return undefined
       },
     },
@@ -671,6 +711,8 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, type: string | DM
   return false
 }
 
+const cleanObject = obj => filterObject(obj, (k, v) => v !== undefined)
+
 function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   if (typeof value === 'undefined') {
     // the arg is undefined and not required - we're fine
@@ -703,8 +745,9 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
         if (typeof value !== 'object') {
           return getInvalidTypeArg(key, value, arg, t)
         } else {
+          const val = cleanObject(value)
           let error: AtMostOneError | AtLeastOneError | undefined
-          const keys = Object.keys(value || {})
+          const keys = Object.keys(val || {})
           const numKeys = keys.length
           if (numKeys === 0 && t.atLeastOne) {
             error = {
@@ -723,7 +766,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
           }
           return new Arg({
             key,
-            value: objectToArgs(value, t, arg.type),
+            value: objectToArgs(val, t, arg.type),
             isEnum: arg.isEnum,
             error,
             argType: t,
@@ -802,6 +845,15 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   }
 
   if (!arg.isScalar) {
+    const inputType = arg.type[0] as DMMF.InputType
+    const hasAtLeastOneError = inputType.atLeastOne ? value.some(v => Object.keys(cleanObject(v)).length === 0) : false
+    const error: AtLeastOneError | undefined = hasAtLeastOneError
+      ? {
+          inputType,
+          key,
+          type: 'atLeastOne',
+        }
+      : undefined
     return new Arg({
       key,
       value: value.map(v => {
@@ -813,6 +865,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
       isEnum: arg.isEnum,
       argType: arg.type[0],
       schemaArg: arg,
+      error,
     })
   }
 
@@ -839,11 +892,14 @@ function scalarToArg(key: string, value: any, arg: DMMF.SchemaArg, type: string 
 }
 
 function objectToArgs(
-  obj: any,
+  initialObj: any,
   inputType: DMMF.InputType,
   possibilities?: DMMF.ArgType[],
   outputType?: DMMF.MergedOutputType,
 ): Args {
+  // filter out undefined values and treat them if they weren't provided
+  // TODO: think about using JSON.parse(JSON.stringify()) upfront instead to simplify things
+  const obj = cleanObject(initialObj)
   const { args } = inputType
   const requiredArgs: Array<[string, any]> = args.filter(arg => arg.isRequired).map(arg => [arg.name, undefined])
   const entries = unionBy(Object.entries(obj || {}), requiredArgs, a => a[0])
