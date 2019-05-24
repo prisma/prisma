@@ -8,9 +8,18 @@ async function main() {
   console.clear()
   const user = await photon.users({
     where: {
+      location: {
+        AND: {
+          AND: {
+            // id: '5',
+          },
+        },
+      },
       posts: {
         every: {
-          name: null,
+          NOT: {
+            name: '',
+          },
         },
       },
     },

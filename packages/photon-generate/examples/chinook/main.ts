@@ -5,12 +5,27 @@ async function main() {
   console.clear()
   const result = await prisma.artists({
     where: {
-      Name: {
-        not: null,
-      },
-      OR: {
-        Name: {
-          not: null,
+      Albums: {
+        some: {
+          Tracks: {
+            some: {
+              AND: {
+                UnitPrice: 5,
+                Playlists: {
+                  some: {
+                    Tracks: {
+                      some: {
+                        Name: '',
+                        Genre: {
+                          id: 5,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },

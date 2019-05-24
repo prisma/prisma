@@ -18,7 +18,6 @@ export function printJsonWithErrors(
   valuePaths: string[],
   missingItems: MissingItem[] = [],
 ) {
-  console.log({ keyPaths, valuePaths, missingItems })
   let obj = ast
   for (const { path, type } of missingItems) {
     obj = deepSet(obj, path, type)
