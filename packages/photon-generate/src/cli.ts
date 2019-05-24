@@ -1,11 +1,11 @@
 #!/usr/bin/env node
+import chalk from 'chalk'
 import program from 'commander'
-import path from 'path'
 import fs from 'fs-extra'
 import { safeLoad } from 'js-yaml'
-import { generateClient } from './generation/generateClient'
+import path from 'path'
 import { performance } from 'perf_hooks'
-import chalk from 'chalk'
+import { generateClient } from './generation/generateClient'
 require('dotenv').config()
 
 async function getPrismaYmlPath() {

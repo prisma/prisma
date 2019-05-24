@@ -1,18 +1,18 @@
-import fs from 'fs-extra'
-import path from 'path'
-import { TSClient } from './TSClient'
-import { getDMMF } from '../utils/getDMMF'
 import { getInternalDatamodelJson } from '@prisma/engine-core'
+import fs from 'fs-extra'
+import makeDir from 'make-dir'
+import path from 'path'
 import {
-  createProgram,
-  ScriptTarget,
-  ModuleKind,
-  createCompilerHost,
-  createSourceFile,
   CompilerOptions,
+  createCompilerHost,
+  createProgram,
+  createSourceFile,
+  ModuleKind,
+  ScriptTarget,
 } from 'typescript'
 import { Dictionary } from '../runtime/utils/common'
-import makeDir from 'make-dir'
+import { getDMMF } from '../utils/getDMMF'
+import { TSClient } from './TSClient'
 
 interface BuildClientOptions {
   datamodel: string

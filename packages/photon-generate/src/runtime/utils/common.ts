@@ -1,14 +1,13 @@
+import chalk from 'chalk'
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
 import { DMMF } from '../dmmf-types'
-import chalk from 'chalk'
 
-export type Dictionary<T> = { [key: string]: T }
+export interface Dictionary<T> {
+  [key: string]: T
+}
 
-export const keyBy: <T>(collection: Array<T>, iteratee: (value: T) => string) => Dictionary<T> = (
-  collection,
-  iteratee,
-) => {
+export const keyBy: <T>(collection: T[], iteratee: (value: T) => string) => Dictionary<T> = (collection, iteratee) => {
   return collection.reduce<any>((acc, curr) => {
     acc[iteratee(curr)] = curr
     return acc

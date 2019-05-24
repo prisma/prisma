@@ -9,7 +9,7 @@ async function main() {
     chinook,
     path.join(__dirname, './chinook/prisma.yml'),
     path.join(__dirname, './chinook/@generated/photon'),
-    true,
+    false,
   )
   const after = performance.now()
   console.log(`Generated Photon in ${(after - before).toFixed(3)}ms`)

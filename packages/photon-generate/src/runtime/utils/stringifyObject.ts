@@ -6,6 +6,8 @@ const getOwnEnumPropSymbols = require('get-own-enumerable-property-symbols').def
 // Fork of https://github.com/yeoman/stringify-object/blob/master/index.js
 // with possibility to overwrite the whole key-value pair (options.transformLine)
 
+/* tslint:disable */
+
 const stringifyObject = (input, options?: any, pad?: any) => {
   const seen: any[] = []
 
@@ -121,7 +123,7 @@ const stringifyObject = (input, options?: any, pad?: any) => {
             const eol = objKeys.length - 1 === i ? tokens.newLine : ',' + tokens.newLineOrSpace
             const isSymbol = typeof el === 'symbol'
             const isClassic = !isSymbol && /^[a-z$_][a-z$_0-9]*$/i.test(el)
-            let key = isSymbol || isClassic ? el : stringifyObject(el, options, undefined, [...path, el] as any)
+            const key = isSymbol || isClassic ? el : stringifyObject(el, options, undefined, [...path, el] as any)
 
             let value = stringifyObject(input[el], options, pad + options.indent, [...path, el] as any)
             if (options.transformValue) {

@@ -1,8 +1,8 @@
-import stringifyObject from './stringifyObject'
 import chalk from 'chalk'
 import stripAnsi from 'strip-ansi'
-import { deepSet } from './deep-set'
 import { dedent } from './dedent'
+import { deepSet } from './deep-set'
+import stringifyObject from './stringifyObject'
 
 export interface MissingItem {
   path: string
