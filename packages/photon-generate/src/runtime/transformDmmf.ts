@@ -126,6 +126,7 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
       name: type.name,
       args,
       isWhereType: true,
+      atLeastOne: true,
     }
     inputTypes.push(newType)
   }

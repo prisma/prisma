@@ -182,19 +182,14 @@ export function getInputTypeName(input: string | DMMF.InputType | DMMF.SchemaFie
     return input
   }
 
-  // if ((input as DMMF.SchemaField).type) {
-  //   const type = (input as DMMF.SchemaField).type
-  //   if (typeof type === 'string') {
-  //     return type
-  //   } else {
-  //     return type.name
-  //   }
-  // }
-
   return input.name
 }
 
-export function inputTypeToJson(input: string | DMMF.InputType | DMMF.Enum, isRequired: boolean): string | object {
+export function inputTypeToJson(
+  input: string | DMMF.InputType | DMMF.Enum,
+  isRequired: boolean,
+  nameOnly: boolean = false,
+): string | object {
   if (typeof input === 'string') {
     return input
   }
@@ -207,11 +202,21 @@ export function inputTypeToJson(input: string | DMMF.InputType | DMMF.Enum, isRe
   const inputType: DMMF.InputType = input as DMMF.InputType
   // If the parent type is required and all fields are non-scalars,
   // it's very useful to show to the user, which options they actually have
-  const showDeepType = isRequired && inputType.args.every(arg => !arg.isScalar)
+  const showDeepType =
+    isRequired && inputType.args.every(arg => !arg.isScalar) && !inputType.isWhereType && !inputType.atLeastOne
+  if (nameOnly) {
+    return getInputTypeName(input)
+  }
 
   return inputType.args.reduce((acc, curr) => {
-    acc[curr.name + (curr.isRequired ? '' : '?')] =
-      curr.isRequired || showDeepType ? inputTypeToJson(curr.type[0], curr.isRequired) : getInputTypeName(curr.type[0])
+    if (curr.name === 'Albums_every') {
+      acc[curr.name + (curr.isRequired ? '' : '?')] = getInputTypeName(curr.type[0])
+    } else {
+      acc[curr.name + (curr.isRequired ? '' : '?')] =
+        curr.isRelationFilter && !showDeepType && !curr.isRequired
+          ? getInputTypeName(curr.type[0])
+          : inputTypeToJson(curr.type[0], curr.isRequired)
+    }
     return acc
   }, {})
 }

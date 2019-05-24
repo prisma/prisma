@@ -80,7 +80,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
             : argError.error.missingType.map(getInputTypeName).join(' | ')
         missingItems.push({
           path,
-          type: inputTypeToJson(type, true),
+          type: inputTypeToJson(type, true, path.split('where.').length === 2),
           isRequired: argError.error.isRequired,
         })
       }
@@ -705,7 +705,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
           return getInvalidTypeArg(key, value, arg, t)
         } else {
           let error: AtMostOneError | AtLeastOneError | undefined
-          const keys = Object.keys(value)
+          const keys = Object.keys(value || {})
           const numKeys = keys.length
           if (numKeys === 0 && t.atLeastOne) {
             error = {
@@ -846,7 +846,7 @@ function objectToArgs(
 ): Args {
   const { args } = inputType
   const requiredArgs: Array<[string, any]> = args.filter(arg => arg.isRequired).map(arg => [arg.name, undefined])
-  const entries = unionBy(Object.entries(obj), requiredArgs, a => a[0])
+  const entries = unionBy(Object.entries(obj || {}), requiredArgs, a => a[0])
   const argsList = entries.reduce(
     (acc, [argName, value]: any) => {
       const schemaArg = args.find(a => a.name === argName)
