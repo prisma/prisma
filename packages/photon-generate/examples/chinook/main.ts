@@ -5,7 +5,14 @@ async function main() {
   console.clear()
   const result = await prisma.artists({
     where: {
-      Name: null,
+      Name: {
+        not: null,
+      },
+      OR: {
+        Name: {
+          not: null,
+        },
+      },
     },
   })
   console.dir(result, { depth: null })

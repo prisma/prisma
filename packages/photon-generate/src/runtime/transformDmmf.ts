@@ -108,12 +108,13 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
       ...model.fields
         .filter(f => !f.isList && f.kind === 'scalar')
         .map(f => {
-          if (!filterTypes[getFilterName(f.type)]) {
-            filterTypes[getFilterName(f.type)] = makeFilterType(f.type)
+          if (!filterTypes[getFilterName(f.type, f.isRequired)]) {
+            filterTypes[getFilterName(f.type, f.isRequired)] = makeFilterType(f.type, f.isRequired)
           }
           return {
             name: f.name,
-            type: [f.type, `${f.type}${f.isList ? 'List' : ''}Filter`, ...(f.isRequired ? [] : ['null'])],
+            // type: [f.type, `${f.type}${f.isList ? 'List' : ''}Filter`, ...(f.isRequired ? [] : ['null'])],
+            type: [f.type, getFilterName(f.type, f.isRequired), ...(f.isRequired ? [] : ['null'])],
             isScalar: false,
             isRequired: false,
             isEnum: false,
@@ -143,28 +144,28 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
   }
 }
 
-function getFilterName(type: string) {
-  return `${type}Filter`
+function getFilterName(type: string, isRequired: boolean) {
+  return `${isRequired ? '' : 'Nullable'}${type}Filter`
 }
 
-function makeFilterType(type: string): DMMF.InputType {
+function makeFilterType(type: string, isRequired: boolean): DMMF.InputType {
   return {
-    name: getFilterName(type),
-    args: getFilterArgs(type),
+    name: getFilterName(type, isRequired),
+    args: getFilterArgs(type, isRequired),
     atLeastOne: true,
   }
 }
 
-function getFilterArgs(type: string, isEnum = false): DMMF.SchemaArg[] {
+function getFilterArgs(type: string, isRequired: boolean, isEnum = false): DMMF.SchemaArg[] {
   if (isEnum) {
-    return [...getBaseFilters(type), ...getInclusionFilters(type)]
+    return [...getBaseFilters(type, isRequired), ...getInclusionFilters(type)]
   }
   switch (type) {
     case 'String':
     case 'ID':
     case 'UUID':
       return [
-        ...getBaseFilters(type),
+        ...getBaseFilters(type, isRequired),
         ...getInclusionFilters(type),
         ...getAlphanumericFilters(type),
         ...getStringFilters(type),
@@ -172,20 +173,24 @@ function getFilterArgs(type: string, isEnum = false): DMMF.SchemaArg[] {
     case 'Int':
     case 'Float':
     case 'DateTime':
-      return [...getBaseFilters(type), ...getInclusionFilters(type), ...getAlphanumericFilters(type)]
+      return [...getBaseFilters(type, isRequired), ...getInclusionFilters(type), ...getAlphanumericFilters(type)]
     case 'Boolean':
-      return [...getBaseFilters(type)]
+      return [...getBaseFilters(type, isRequired)]
   }
 
   return []
 }
 
-function getBaseFilters(type: string): DMMF.SchemaArg[] {
-  const filterName = getFilterName(type)
+function getBaseFilters(type: string, isRequired: boolean): DMMF.SchemaArg[] {
+  const filterName = getFilterName(type, isRequired)
   // TODO: reintroduce AND, NOT, OR
+  const nullArray = isRequired ? [] : ['null']
   return [
-    ...getScalarArgs(['equals'], [type]),
-    ...getScalarArgs(['not'], [type, filterName]) /*, ...getScalarArgs(['AND', 'NOT', 'OR'], [filterName])*/,
+    ...getScalarArgs(['equals'], [type, ...nullArray]),
+    ...getScalarArgs(
+      ['not'],
+      [type, ...nullArray, filterName],
+    ) /*, ...getScalarArgs(['AND', 'NOT', 'OR'], [filterName])*/,
   ]
 }
 
@@ -198,14 +203,14 @@ function getAlphanumericFilters(type: string): DMMF.SchemaArg[] {
 }
 
 function getInclusionFilters(type: string): DMMF.SchemaArg[] {
-  return getScalarArgs(['in', 'notIn'], [type])
+  return getScalarArgs(['in', 'notIn'], [type], true)
 }
 
-function getScalarArgs(names: string[], type: string[]): DMMF.SchemaArg[] {
-  return names.map(name => getScalarArg(name, type))
+function getScalarArgs(names: string[], type: string[], isList = false): DMMF.SchemaArg[] {
+  return names.map(name => getScalarArg(name, type, isList))
 }
 
-function getScalarArg(name: string, type: string[], isList = false): DMMF.SchemaArg {
+function getScalarArg(name: string, type: string[], isList): DMMF.SchemaArg {
   return {
     name,
     isEnum: false,

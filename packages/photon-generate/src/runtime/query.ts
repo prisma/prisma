@@ -747,41 +747,42 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
       return argWithoutError
     }
 
-    // if there are exactly 2 options, one scalar and one object, take the one that fits the provided type
-    // (scalar or object)
-    if (args.length === 2 && isInputArgType(arg.type[0]) !== isInputArgType(arg.type[1])) {
-      if (value && typeof value === 'object') {
-        if (isInputArgType(arg.type[0])) {
-          return args[0]
-        }
-        return args[1]
-      } else {
-        if (isInputArgType(arg.type[0])) {
-          return arg[1]
-        }
-        return args[0]
+    const hasSameKind = (argType: DMMF.ArgType, val: any) => {
+      if (argType === 'null' && val === null) {
+        return true
       }
+      return isInputArgType(argType) ? typeof val === 'object' : typeof val !== 'object'
     }
 
-    // if we have 2 deeply nested objects and it fits way better with one of them,
-    // show that one
-    const argWithMinimumErrors = args.reduce<{ arg: null | Arg; numErrors: number }>(
-      (acc, curr) => {
-        const numErrors = curr.collectErrors().length
-        if (numErrors < acc.numErrors) {
-          return {
-            arg: curr,
-            numErrors,
+    /**
+     * If there are more than 1 args, do the following:
+     * First check if there are any possible arg types which at least have the
+     * correct base type (scalar, null or object)
+     * Take either these, or if they don't exist just again the normal args and
+     * take the arg with the minimum amount of errors
+     */
+    if (args.length > 1) {
+      const argsWithSameKind = args.filter(a => hasSameKind(a.argType!, value))
+      const argsToFilter = argsWithSameKind.length > 0 ? argsWithSameKind : args
+
+      const argWithMinimumErrors = argsToFilter.reduce<{ arg: null | Arg; numErrors: number }>(
+        (acc, curr) => {
+          const numErrors = curr.collectErrors().length
+          if (numErrors < acc.numErrors) {
+            return {
+              arg: curr,
+              numErrors,
+            }
           }
-        }
-        return acc
-      },
-      {
-        arg: null,
-        numErrors: Infinity,
-      },
-    )
-    return argWithMinimumErrors.arg!
+          return acc
+        },
+        {
+          arg: null,
+          numErrors: Infinity,
+        },
+      )
+      return argWithMinimumErrors.arg!
+    }
   }
 
   if (arg.type.length > 1) {
