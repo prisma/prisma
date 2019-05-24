@@ -9,9 +9,8 @@ async function main() {
     enums,
     path.join(__dirname, './enums/prisma.yml'),
     path.join(__dirname, './enums/@generated/photon'),
-    true,
+    false,
     '../../../../src/runtime',
-    true,
   )
   const after = performance.now()
   console.log(`Generated Photon in ${(after - before).toFixed(3)}ms`)

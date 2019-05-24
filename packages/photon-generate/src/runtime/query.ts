@@ -646,7 +646,6 @@ function getInvalidTypeArg(key: string, value: any, arg: DMMF.SchemaArg, bestFit
   })
 }
 
-// TODO: Add type check for union in here
 function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, type: string | DMMF.Enum): boolean {
   const expectedType = wrapWithList(stringifyGraphQLType(type), arg.isList)
   const graphQLType = getGraphQLType(value, type)
@@ -748,7 +747,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     }
 
     const hasSameKind = (argType: DMMF.ArgType, val: any) => {
-      if (argType === 'null' && val === null) {
+      if (val === null && (argType === 'null' || !isInputArgType(argType))) {
         return true
       }
       return isInputArgType(argType) ? typeof val === 'object' : typeof val !== 'object'

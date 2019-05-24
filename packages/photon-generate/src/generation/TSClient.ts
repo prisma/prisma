@@ -160,10 +160,7 @@ ${Object.values(this.dmmf.modelMap)
  * Deep Input Types
  */
 
-${this.dmmf.inputTypes
-  .filter(o => !this.dmmf.modelMap[o.name])
-  .map(inputType => new InputType(inputType))
-  .join('\n')}
+${this.dmmf.inputTypes.map(inputType => new InputType(inputType)).join('\n')}
 
 /**
  * DMMF

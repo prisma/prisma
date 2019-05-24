@@ -94,27 +94,38 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
       continue
     }
     const whiteList = ['AND', 'OR', 'NOT']
-    for (const field of model.fields.filter(f => f.kind === 'relation')) {
-      const { name } = field
-      if (field.isList) {
-        whiteList.push(...[`${name}_every`, `${name}_some`, `${name}_none`])
-      } else {
-        whiteList.push(name)
-      }
-    }
+    whiteList.push(...model.fields.filter(f => f.kind === 'relation' && !f.isList).map(f => f.name))
+
     const args = type.args.filter(a => whiteList.includes(a.name)).map(a => ({ ...a, isRelationFilter: true }))
     // NOTE: list scalar fields don't have where arguments!
     args.unshift(
       ...model.fields
-        .filter(f => !f.isList && f.kind === 'scalar')
+        // filter out scalar lists as Prisma doesn't have filters for them
+        // also filter out relation non-lists, as we don't need to transform them
+        .filter(f => (f.kind === 'relation' ? f.isList : !f.isList))
         .map(f => {
-          if (!filterTypes[getFilterName(f.type, f.isRequired)]) {
-            filterTypes[getFilterName(f.type, f.isRequired)] = makeFilterType(f.type, f.isRequired)
+          if (!filterTypes[getFilterName(f.type, f.isRequired || f.kind === 'relation')]) {
+            filterTypes[getFilterName(f.type, f.isRequired || f.kind === 'relation')] = makeFilterType(
+              f.type,
+              f.isRequired,
+              f.kind !== 'relation',
+            )
           }
+
+          const typeList: any[] = []
+          if (f.kind !== 'relation') {
+            typeList.push(f.type)
+          }
+          typeList.push(getFilterName(f.type, f.isRequired || f.kind === 'relation'))
+
+          // for optional scalars you can directly provide null
+          if (!f.isRequired && f.kind !== 'relation') {
+            typeList.push('null')
+          }
+
           return {
             name: f.name,
-            // type: [f.type, `${f.type}${f.isList ? 'List' : ''}Filter`, ...(f.isRequired ? [] : ['null'])],
-            type: [f.type, getFilterName(f.type, f.isRequired), ...(f.isRequired ? [] : ['null'])],
+            type: typeList,
             isScalar: false,
             isRequired: false,
             isEnum: false,
@@ -148,15 +159,23 @@ function getFilterName(type: string, isRequired: boolean) {
   return `${isRequired ? '' : 'Nullable'}${type}Filter`
 }
 
-function makeFilterType(type: string, isRequired: boolean): DMMF.InputType {
+function getWhereInputName(type: string) {
+  return `${type}WhereInput`
+}
+
+function makeFilterType(type: string, isRequired: boolean, isScalar: boolean): DMMF.InputType {
   return {
-    name: getFilterName(type, isRequired),
-    args: getFilterArgs(type, isRequired),
+    name: getFilterName(type, isRequired || !isScalar),
+    args: isScalar ? getScalarFilterArgs(type, isRequired) : getRelationFilterArgs(type),
     atLeastOne: true,
   }
 }
 
-function getFilterArgs(type: string, isRequired: boolean, isEnum = false): DMMF.SchemaArg[] {
+function getRelationFilterArgs(type: string): DMMF.SchemaArg[] {
+  return getScalarArgs(['every', 'some', 'none'], [getWhereInputName(type)])
+}
+
+function getScalarFilterArgs(type: string, isRequired: boolean, isEnum = false): DMMF.SchemaArg[] {
   if (isEnum) {
     return [...getBaseFilters(type, isRequired), ...getInclusionFilters(type)]
   }

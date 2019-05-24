@@ -18,6 +18,7 @@ export function printJsonWithErrors(
   valuePaths: string[],
   missingItems: MissingItem[] = [],
 ) {
+  console.log({ keyPaths, valuePaths, missingItems })
   let obj = ast
   for (const { path, type } of missingItems) {
     obj = deepSet(obj, path, type)
@@ -50,7 +51,7 @@ export function printJsonWithErrors(
         if (isOptional) {
           key = key.slice(1, key.length - 1)
         }
-        if (isOptional && typeof value === 'object') {
+        if (isOptional && typeof value === 'object' && value !== null) {
           valueStr = valueStr
             .split('\n')
             .map((line, index, arr) => (index === arr.length - 1 ? line + DIM_TOKEN : line))
@@ -62,7 +63,7 @@ export function printJsonWithErrors(
             valueStr = chalk.bold(valueStr)
           }
         }
-        if (typeof value !== 'object' && !valueError && !isOnMissingItemPath) {
+        if ((typeof value !== 'object' || value === null) && !valueError && !isOnMissingItemPath) {
           valueStr = chalk.dim(valueStr)
         }
 
@@ -82,7 +83,7 @@ export function printJsonWithErrors(
           const keyScribbles = keyError ? chalk.redBright('~'.repeat(keyLength)) : ' '.repeat(keyLength)
 
           const valueLength = valueError ? getValueLength(indent, key, value, stringifiedValue) : 0
-          const hideValueScribbles = Boolean(valueError && typeof value === 'object')
+          const hideValueScribbles = Boolean(valueError && (typeof value === 'object' && value !== null))
           const valueScribbles = valueError ? '  ' + chalk.redBright('~'.repeat(valueLength)) : ''
 
           // Either insert both keyScribles and valueScribbles in one line
@@ -104,6 +105,9 @@ export function printJsonWithErrors(
 }
 
 function getValueLength(indent: string, key: string, value: any, stringifiedValue: string) {
+  if (value === null) {
+    return 4
+  }
   if (typeof value === 'string') {
     return value.length + 2 // +2 for the quotes
   }
