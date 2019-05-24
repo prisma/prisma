@@ -531,7 +531,7 @@ export class ModelDelegate {
     // TODO: The following code needs to be split up and is a mess
     return `\
 export interface ${name}Delegate {
-  <T extends ${getModelArgName(name, DMMF.ModelAction.findMany)}>(args: Subset<T, ${getModelArgName(
+  <T extends ${getModelArgName(name, DMMF.ModelAction.findMany)}>(args?: Subset<T, ${getModelArgName(
       name,
       DMMF.ModelAction.findMany,
     )}>): ${getSelectReturnType({
@@ -546,7 +546,7 @@ ${indent(
     .map(
       ([actionName]: [any, any]) =>
         `${actionName}<T extends ${getModelArgName(name, actionName)}>(
-  args: Subset<T, ${getModelArgName(name, actionName)}>
+  args${actionName === DMMF.ModelAction.findMany ? '?' : ''}: Subset<T, ${getModelArgName(name, actionName)}>
 ): ${getSelectReturnType({ name, actionName })}`,
     )
     .join('\n'),

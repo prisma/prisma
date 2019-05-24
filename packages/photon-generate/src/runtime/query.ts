@@ -597,7 +597,7 @@ export function selectionToFields(
         : undefined
       const isRelation = field.kind === 'relation'
       const defaultSelection = isRelation ? getDefaultSelection(field.type as DMMF.MergedOutputType) : null
-      const select = deepExtend(defaultSelection, value.select)
+      const select = deepExtend(defaultSelection, value ? value.select : {})
       const children =
         select !== false && isRelation ? selectionToFields(dmmf, select, field, [...path, name]) : undefined
       acc.push(new Field({ name, args, children }))
