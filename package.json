@@ -1,0 +1,28 @@
+{
+  "name": "lift-prototype",
+  "version": "0.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:prisma/lift.git",
+  "author": "Tim Suchanek <suchanek@prisma.io>",
+  "license": "Apache-2.0",
+  "private": false,
+  "devDependencies": {
+    "@prisma/fetch-engine": "^0.0.13",
+    "@types/debug": "^4.1.4",
+    "@types/fs-extra": "^7.0.0",
+    "@types/node": "^12.0.2",
+    "husky": "^2.3.0",
+    "prettier": "^1.17.1",
+    "tslint": "^5.16.0",
+    "typescript": "^3.4.5"
+  },
+  "dependencies": {
+    "debug": "^4.1.1",
+    "fast-diff": "^1.2.0",
+    "fs-extra": "^8.0.1",
+    "kleur": "^3.0.3"
+  },
+  "scripts": {
+    "install": "node download.js"
+  }
+}
