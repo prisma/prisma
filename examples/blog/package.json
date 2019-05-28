@@ -1,0 +1,12 @@
+{
+  "name": "blog",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "photon-generate": "^0.0.32"
+  },
+  "scripts": {
+    "install": "photon-generate"
+  }
+}

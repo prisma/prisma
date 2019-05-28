@@ -3,7 +3,8 @@ import path from 'path'
 
 async function main() {
   const lift = new Lift(path.resolve(__dirname, '../examples/blog/'))
-  await lift.run()
+  const result = await lift.create()
+  console.log(result)
 }
 
 main().catch(console.error)

@@ -51,9 +51,31 @@ export namespace EngineArgs {
   }
   export type InferMigrationSteps = {
     migrationId: string
-    datamodel: string
+    dataModel: string
   }
   export type MigrationProgress = {
     migrationId: string
   }
+}
+
+export namespace EngineResults {
+  export type InferMigrationSteps = {
+    datamodelSteps: MigrationStep[]
+    databaseSteps: any[]
+    warnings: any[]
+    errors: any[]
+    generalErrors: any[]
+  }
+}
+
+export interface FileMap {
+  [fileName: string]: string
+}
+
+export type LockFile = {
+  localMigrations: string[]
+  remoteMigrations: string[]
+  localBranch?: string
+  remoteBranch?: string
+  // TODO: add the conflicts here
 }

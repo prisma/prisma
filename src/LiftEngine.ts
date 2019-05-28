@@ -24,23 +24,27 @@ export type LiftEngineOptions = {
 export class LiftEngine {
   private binaryPath: string
   private projectDir: string
+  private debug: boolean
   constructor({
     projectDir,
     binaryPath = path.resolve(__dirname, '../migration-engine'),
-    debug = true,
+    debug = false,
   }: LiftEngineOptions) {
     this.projectDir = projectDir
     this.binaryPath = binaryPath
     if (debug) {
       debugLib.enable('LiftEngine')
+      debugLib.enable('LiftEngine:stderr')
     }
+    this.debug = debug
   }
   private runCommand(request: any): Promise<any> {
     return new Promise((resolve, reject) => {
       const child = spawn(this.binaryPath, {
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
         env: {
           SERVER_ROOT: this.projectDir,
+          RUST_BACKTRACE: '1',
         },
       })
 
@@ -56,16 +60,27 @@ export class LiftEngine {
         reject()
       })
 
-      child.stderr.on('data', data => {
-        debugStderr(data.toString())
-      })
+      if (!this.debug) {
+        child.stderr!.on('data', data => {
+          debugStderr(data.toString())
+        })
+      }
 
       const out = byline(child.stdout)
       out.on('data', line => {
         const lineString = line.toString()
         try {
           const result = JSON.parse(lineString)
-          resolve(result)
+          if (result.result) {
+            resolve(result.result)
+          } else {
+            if (result.error) {
+              console.log(result)
+              reject(new Error(result.error.message))
+            } else {
+              reject(new Error(`Got invalid RPC response without .result property: ${JSON.stringify(result)}`))
+            }
+          }
         } catch (e) {
           debug(lineString)
         }
