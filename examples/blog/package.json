@@ -8,5 +8,8 @@
   },
   "scripts": {
     "install": "photon-generate"
+  },
+  "dependencies": {
+    "chalk": "^2.4.2"
   }
 }

@@ -20,10 +20,14 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
+    "@types/diff": "^4.0.2",
     "arg": "^4.1.0",
     "debug": "^4.1.1",
+    "diff": "^4.0.1",
     "fast-diff": "^1.2.0",
+    "fast-equals": "^2.0.0",
     "fs-extra": "^8.0.1",
+    "globby": "^9.2.0",
     "indent-string": "^4.0.0",
     "kleur": "^3.0.3",
     "make-dir": "^3.0.0",
