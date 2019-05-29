@@ -55,7 +55,11 @@ export class LiftEngine {
 
       child.on('exit', (code, signal) => {
         if (code !== 0) {
-          console.error('[migration-engine] exit: code=%s signal=%s', code, signal)
+          console.error(
+            '[migration-engine] exit: code=%s signal=%s',
+            code,
+            signal,
+          )
         }
         reject()
       })
@@ -78,7 +82,13 @@ export class LiftEngine {
               console.log(result)
               reject(new Error(result.error.message))
             } else {
-              reject(new Error(`Got invalid RPC response without .result property: ${JSON.stringify(result)}`))
+              reject(
+                new Error(
+                  `Got invalid RPC response without .result property: ${JSON.stringify(
+                    result,
+                  )}`,
+                ),
+              )
             }
           }
         } catch (e) {

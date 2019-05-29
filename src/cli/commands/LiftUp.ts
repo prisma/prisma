@@ -3,6 +3,7 @@ import { arg, isError, format } from '../utils'
 import { unknownCommand, HelpError } from '../Help'
 import kleur from 'kleur'
 import { Env } from '../Env'
+import { Lift } from '../../Lift'
 
 export class LiftUp implements Command {
   static new(env: Env): LiftUp {
@@ -22,14 +23,18 @@ export class LiftUp implements Command {
     } else if (args['--help']) {
       return this.help()
     }
-    // unknown command
-    return unknownCommand(LiftUp.help, args._[0])
+
+    const lift = new Lift(this.env.cwd)
+
+    return lift.up()
   }
 
   // help message
   help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${kleur.bold().red(`!`)} ${error}\n${LiftUp.help}`)
+      return new HelpError(
+        `\n${kleur.bold().red(`!`)} ${error}\n${LiftUp.help}`,
+      )
     }
     return LiftUp.help
   }

@@ -1,0 +1,147 @@
+[
+  {
+    "CreateTable": {
+      "name": "Blog",
+      "columns": [
+        {
+          "name": "id",
+          "tpe": "Int",
+          "required": true,
+          "foreign_key": null
+        },
+        {
+          "name": "name",
+          "tpe": "String",
+          "required": true,
+          "foreign_key": null
+        },
+        {
+          "name": "viewCount",
+          "tpe": "Int",
+          "required": true,
+          "foreign_key": null
+        }
+      ],
+      "primary_columns": [
+        "id"
+      ]
+    }
+  },
+  {
+    "CreateTable": {
+      "name": "Author",
+      "columns": [
+        {
+          "name": "id",
+          "tpe": "Int",
+          "required": true,
+          "foreign_key": null
+        },
+        {
+          "name": "name",
+          "tpe": "String",
+          "required": false,
+          "foreign_key": null
+        }
+      ],
+      "primary_columns": [
+        "id"
+      ]
+    }
+  },
+  {
+    "CreateTable": {
+      "name": "Post",
+      "columns": [
+        {
+          "name": "id",
+          "tpe": "Int",
+          "required": true,
+          "foreign_key": null
+        },
+        {
+          "name": "title",
+          "tpe": "String",
+          "required": true,
+          "foreign_key": null
+        },
+        {
+          "name": "text",
+          "tpe": "String",
+          "required": true,
+          "foreign_key": null
+        },
+        {
+          "name": "blog",
+          "tpe": "Int",
+          "required": true,
+          "foreign_key": {
+            "table": "Blog",
+            "column": "id"
+          }
+        }
+      ],
+      "primary_columns": [
+        "id"
+      ]
+    }
+  },
+  {
+    "CreateTable": {
+      "name": "Post_tags",
+      "columns": [
+        {
+          "name": "nodeId",
+          "tpe": "Int",
+          "required": true,
+          "foreign_key": {
+            "table": "Post",
+            "column": "id"
+          }
+        },
+        {
+          "name": "position",
+          "tpe": "Int",
+          "required": true,
+          "foreign_key": null
+        },
+        {
+          "name": "value",
+          "tpe": "String",
+          "required": true,
+          "foreign_key": null
+        }
+      ],
+      "primary_columns": [
+        "nodeId",
+        "position"
+      ]
+    }
+  },
+  {
+    "CreateTable": {
+      "name": "_AuthorToBlog",
+      "columns": [
+        {
+          "name": "A",
+          "tpe": "Int",
+          "required": true,
+          "foreign_key": {
+            "table": "Author",
+            "column": "id"
+          }
+        },
+        {
+          "name": "B",
+          "tpe": "Int",
+          "required": true,
+          "foreign_key": {
+            "table": "Blog",
+            "column": "id"
+          }
+        }
+      ],
+      "primary_columns": []
+    }
+  }
+]

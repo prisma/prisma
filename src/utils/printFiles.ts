@@ -2,13 +2,15 @@ import { FileMap } from '../types'
 import indent from 'indent-string'
 import path from 'path'
 import { cyan } from 'kleur'
+import { printMigrationId } from './printMigrationId'
 
-export function printFiles(folder: string, files: FileMap) {
+export function printFiles(printPath: string, files: FileMap) {
   const fileNames = Object.keys(files)
-  const deepFolder = path.dirname(fileNames[0])
+  const folders = printPath.split('/')
+  const deepFolder = folders[1]
 
   return `\
-${folder}/
-  └─ ${cyan(`${deepFolder}/`)}
-${indent(fileNames.map(f => `└─ ${path.basename(f)}`).join('\n'), 4)}`
+${folders[0]}/
+  └─ ${`${printMigrationId(deepFolder)}/`}
+${indent(fileNames.map(f => `└─ ${f}`).join('\n'), 4)}`
 }

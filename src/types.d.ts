@@ -79,3 +79,49 @@ export type LockFile = {
   remoteBranch?: string
   // TODO: add the conflicts here
 }
+
+export type Migration = {
+  id: string
+  steps: any[]
+}
+
+export type RawSqlStep = {
+  RawSql: string
+}
+
+export type DropTableStep = {
+  DropTable: {
+    name: string
+  }
+}
+
+export type RenameTableStep = {
+  RenameTable: {
+    name: string
+    new_name: string
+  }
+}
+
+export type CreateTableStep = {
+  CreateTable: {
+    name: string
+    columns: CreateColumn[]
+    primary_columns: string[]
+  }
+}
+
+export type CreateColumn = {
+  name: string
+  tpe: string
+  required: boolean
+  foreign_key: null | {
+    table: string
+    column: string
+  }
+}
+
+export type DatabaseStep =
+  | RawSqlStep
+  | DropTableStep
+  | RenameTableStep
+  | CreateTableStep

@@ -8,6 +8,8 @@ import path from 'path'
 import { serializeFileMap } from '../../utils/serializeFileMap'
 import { Env } from '../Env'
 import { printFiles } from '../../utils/printFiles'
+import chalk from 'chalk'
+import { printMigrationId } from '../../utils/printMigrationId'
 
 /**
  * $ prisma migrate new
@@ -39,17 +41,20 @@ export class LiftCreate implements Command {
     const migration = await lift.create(name)
 
     if (!migration) {
-      return `Everything up-to-date`
+      return `Everything up-to-date\n` //TODO: find better wording
     }
 
     const { files, migrationId } = migration
 
-    const migrationsDir = path.join(this.env.cwd, 'migrations')
-    await serializeFileMap(files, migrationsDir)
+    // TODO enable again
+    // const migrationsDir = path.join(this.env.cwd, 'migrations', migrationId)
+    // await serializeFileMap(files, migrationsDir)
 
-    return `There are changes (We'll visualize them soon nicely). We just created your migration ${cyan(
+    return `\nWe just created your migration ${printMigrationId(
       migrationId,
-    )} in\n\n${dim(printFiles('migrations', files))}`
+    )} in\n\n${dim(
+      printFiles(`migrations/${migrationId}`, files),
+    )}\n\nRun ${chalk.greenBright('prisma lift up')} to apply the migration\n`
   }
 
   // get the name
@@ -67,7 +72,9 @@ export class LiftCreate implements Command {
   // help message
   help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${kleur.bold().red(`!`)} ${error}\n${LiftCreate.help}`)
+      return new HelpError(
+        `\n${kleur.bold().red(`!`)} ${error}\n${LiftCreate.help}`,
+      )
     }
     return LiftCreate.help
   }
