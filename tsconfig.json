@@ -11,5 +11,5 @@
     "rootDir": "src",
     "declaration": true
   },
-  "exclude": ["dist"]
+  "exclude": ["dist", "build"]
 }

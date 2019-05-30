@@ -1,27 +1,22 @@
 {
   "name": "lift-prototype",
-  "version": "0.0.0",
+  "version": "0.0.5",
   "main": "index.js",
   "repository": "git@github.com:prisma/lift.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
   "private": false,
+  "bin": {
+    "prisma2": "build/index.js"
+  },
   "devDependencies": {
-    "@prisma/fetch-engine": "^0.0.13",
+    "@types/charm": "^1.0.1",
     "@types/debug": "^4.1.4",
+    "@types/diff": "^4.0.2",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
     "@types/node": "^12.0.2",
-    "husky": "^2.3.0",
-    "jest": "^24.8.0",
-    "prettier": "^1.17.1",
-    "ts-jest": "^24.0.2",
-    "tslint": "^5.16.0",
-    "typescript": "^3.4.5"
-  },
-  "dependencies": {
-    "@types/charm": "^1.0.1",
-    "@types/diff": "^4.0.2",
+    "@zeit/ncc": "^0.18.5",
     "arg": "^4.1.0",
     "charm": "^1.0.2",
     "debounce": "^1.2.0",
@@ -30,19 +25,37 @@
     "fast-diff": "^1.2.0",
     "fast-equals": "^2.0.0",
     "fs-extra": "^8.0.1",
+    "git-user-email": "^0.2.2",
+    "git-user-name": "^2.0.0",
     "globby": "^9.2.0",
+    "husky": "^2.3.0",
     "indent-string": "^4.0.0",
+    "jest": "^24.8.0",
     "kleur": "^3.0.3",
     "make-dir": "^3.0.0",
     "ms": "^2.1.1",
+    "prettier": "^1.17.1",
     "prompts": "^2.1.0",
     "strip-ansi": "^5.2.0",
-    "strip-indent": "^3.0.0"
+    "strip-indent": "^3.0.0",
+    "ts-jest": "^24.0.2",
+    "tslint": "^5.16.0",
+    "typescript": "^3.4.5"
+  },
+  "dependencies": {
+    "@prisma/fetch-engine": "^0.0.13"
   },
   "scripts": {
     "install": "node download.js",
-    "build": "tsc -d",
     "run": "node dist/bin.js",
-    "test": "jest"
-  }
+    "test": "jest",
+    "tsc": "tsc -d",
+    "ncc": "ncc build dist/bin.js -o build",
+    "build": "yarn tsc && yarn ncc",
+    "prepublishOnly": "yarn build"
+  },
+  "files": [
+    "build",
+    "download.js"
+  ]
 }
