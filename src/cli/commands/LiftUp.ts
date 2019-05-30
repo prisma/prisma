@@ -3,7 +3,7 @@ import { arg, isError, format } from '../utils'
 import { unknownCommand, HelpError } from '../Help'
 import kleur from 'kleur'
 import { Env } from '../Env'
-import { Lift } from '../../Lift'
+import { Lift, UpOptions } from '../../Lift'
 
 export class LiftUp implements Command {
   static new(env: Env): LiftUp {
@@ -17,7 +17,10 @@ export class LiftUp implements Command {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
+      '--preview': Boolean,
+      '-p': '--preview',
     })
+
     if (isError(args)) {
       return this.help(args.message)
     } else if (args['--help']) {
@@ -26,7 +29,23 @@ export class LiftUp implements Command {
 
     const lift = new Lift(this.env.cwd)
 
-    return lift.up()
+    const options: UpOptions = {
+      preview: args['--preview'],
+    }
+
+    if (args._.length > 0) {
+      const arg = args._[0]
+      const maybeNumber = parseInt(arg)
+
+      // in this case it's a migration id
+      if (isNaN(maybeNumber)) {
+        throw new Error(`Invalid migration step ${maybeNumber}`)
+      } else {
+        options.n = maybeNumber
+      }
+    }
+
+    return lift.up(options)
   }
 
   // help message
@@ -49,7 +68,7 @@ export class LiftUp implements Command {
 
     ${kleur.bold('Arguments')}
 
-      [<inc|ts|name>]   go up by an increment or to a timestamp or name [default: latest]
+      [<inc>]   go up by an increment [default: latest]
 
     ${kleur.bold('Options')}
 

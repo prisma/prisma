@@ -1,13 +1,13 @@
-# Migration `20190530105628`
+# Migration `20190530140815-second`
 
 ## Changes
 
 ```diff
 diff --git datamodel.mdl datamodel.mdl
-migration last migration id..20190530105628
+migration last migration id..20190530140815-second
 --- datamodel.dml
 +++ datamodel.dml
-@@ -1,0 +1,31 @@
+@@ -1,0 +1,35 @@
 +model Blog {
 +  id: Int @id
 +  name: String
@@ -24,7 +24,7 @@ migration last migration id..20190530105628
 +
 +model Post {
 +  id: Int @id
-+  title2: String
++  title: String
 +  anotherText: String
 +  tags: String[]
 +  blog: Blog
@@ -32,22 +32,26 @@ migration last migration id..20190530105628
 +
 +model AnotherModel {
 +  id: Int @id
-+  title: String
++  title2: String
 +  anotherText: String
 +  anotherText2: String
 +  anotherText3: String
 +  tags: String[]
 +}
 +
++model HelloWorld {
++  id: Int @id
++  text: String
++}
 ```
 
 ## Photon Usage
 
-You can use a specific Photon built for this migration (20190530105628)
+You can use a specific Photon built for this migration (20190530140815-second)
 in your `before` or `after` migration script like this:
 
 ```ts
-import Photon from '@generated/photon/20190530105628'
+import Photon from '@generated/photon/20190530140815-second'
 
 const photon = new Photon()
 

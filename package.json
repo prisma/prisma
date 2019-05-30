@@ -20,8 +20,10 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
+    "@types/charm": "^1.0.1",
     "@types/diff": "^4.0.2",
     "arg": "^4.1.0",
+    "charm": "^1.0.2",
     "debug": "^4.1.1",
     "diff": "^4.0.1",
     "fast-diff": "^1.2.0",
@@ -31,7 +33,9 @@
     "indent-string": "^4.0.0",
     "kleur": "^3.0.3",
     "make-dir": "^3.0.0",
+    "ms": "^2.1.1",
     "prompts": "^2.1.0",
+    "strip-ansi": "^5.2.0",
     "strip-indent": "^3.0.0"
   },
   "scripts": {

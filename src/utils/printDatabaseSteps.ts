@@ -6,26 +6,28 @@ import {
   CreateTableStep,
 } from '../types'
 import cleur from './cleur'
+import { darkBrightBlue } from './highlightDatamodel'
 
 export function printDatabaseSteps(
   databaseSteps: DatabaseStep[],
-  short = false,
+  short = true,
 ) {
-  const intro = `Going to perform ${cleur.bold(
-    databaseSteps.length,
-  )} SQL statements.`
-
   if (short) {
-    return (
-      intro +
-      `\n` +
-      cleur.dim(
-        `You can get the full overview with ${cleur.greenBright(
-          'prisma lift up --verbose',
-        )}`,
-      )
-    )
+    const counts = getStepCounts(databaseSteps)
+    const overview =
+      Object.entries(counts)
+        .reduce<string[]>((acc, [key, value]) => {
+          if (value > 0) {
+            acc.push(`${value} ${darkBrightBlue(key)}`)
+          }
+
+          return acc
+        }, [])
+        .join(', ') + ' statements.'
+    return overview
   }
+
+  const intro = `${cleur.bold(databaseSteps.length)} steps in total`
 
   return (
     intro +
@@ -38,20 +40,6 @@ export function printDatabaseSteps(
       .join('\n\n') +
     '\n'
   )
-  //   return `\n
-
-  // 1)  ${ct} Blog with 3 columns
-
-  // 2)  ${ct} Author with 2 columns
-
-  // 3)  ${ct} Post with 4 columns, 1 foreign key, one primary column
-
-  // 4)  ${ct} Post_tags with 3 columns, 2 primary columns
-
-  // 5)  ${ct} _AuthorToBlog with 1 column
-
-  // To get the full report, run "prisma lift up --verbose"
-  // `
 }
 
 const bold = str => str
@@ -83,6 +71,29 @@ function renderStep(step: DatabaseStep) {
       } columns${foreignKeyStr}${primaryColumns}`,
     )}`
   }
+}
+
+type StepCounts = {
+  RawSql: number
+  DropTable: number
+  RenameTable: number
+  CreateTable: number
+}
+
+function getStepCounts(databaseSteps: DatabaseStep[]): StepCounts {
+  const stepCounts = {
+    RawSql: 0,
+    DropTable: 0,
+    RenameTable: 0,
+    CreateTable: 0,
+  }
+
+  for (const step of databaseSteps) {
+    const key = Object.keys(step)[0]
+    stepCounts[key]++
+  }
+
+  return stepCounts
 }
 
 function isRawSqlStep(databaseStep: DatabaseStep): databaseStep is RawSqlStep {
