@@ -10,13 +10,22 @@ model Author {
   id: Int @id
   name: String?
   authors: Blog[]
-}
+}         
 
 model Post {
   id: Int @id
   title2: String
   anotherText: String
-  text: String
   tags: String[]
   blog: Blog
+} 
+
+model AnotherModel {
+  id: Int @id
+  title: String
+  anotherText: String
+  anotherText2: String
+  anotherText3: String
+  tags: String[]
 }
+
