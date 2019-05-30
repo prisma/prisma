@@ -37,36 +37,3 @@ model AnotherModel1 {
   anotherText3: String
   tags: String[]
 }
-
-model AnotherModel2 {
-  id: Int @id
-  title2: String
-  anotherText: String
-  anotherText2: String
-  anotherText3: String
-  tags: String[]
-}
-
-model AnotherModel3 {
-  id: Int @id
-  title2: String
-  anotherText: String
-  anotherText2: String
-  anotherText3: String
-  tags: String[]
-}
-
-model AnotherModel4 {
-
-  id: Int @id
-}
-
-model AnotherModel5 {
-
-  id: Int @id
-}
-
-model AnotherModel6 {
-
-  id: Int @id
-}

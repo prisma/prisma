@@ -1,4 +1,6 @@
 import { createPatch } from 'diff'
+import getUserName from 'git-user-name'
+import getEmail from 'git-user-email'
 
 export type MigrationReadmeInput = {
   migrationId: string
@@ -13,8 +15,22 @@ export function printMigrationReadme({
   datamodelA,
   datamodelB,
 }: MigrationReadmeInput) {
+  const user = getUserName()
+  const email = getEmail()
+  let byStr = ''
+  if (user) {
+    byStr = ` by ${user}`
+    if (email) {
+      byStr += ` <${email}>`
+    }
+  }
   return `\
 # Migration \`${migrationId}\`
+
+This migration has been generated${byStr} at ${new Date().toLocaleString(
+    'en-US',
+  )}.
+You can check out the [state of the datamodel](./datamodel.prisma) after the migration.
 
 ## Changes
 

@@ -2,3 +2,4 @@ node_modules
 migration-engine
 yarn-error.log
 dist
+build

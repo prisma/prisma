@@ -1,4 +1,3 @@
-import path from 'path'
 import { spawn } from 'child_process'
 import byline from './utils/byline'
 import { EngineArgs, EngineResults } from './types'
@@ -28,7 +27,7 @@ export class LiftEngine {
   private debug: boolean
   constructor({
     projectDir,
-    binaryPath = path.resolve(__dirname, '../migration-engine'),
+    binaryPath = eval(`require('path').join(__dirname, '../migration-engine')`), // ncc go home
     debug = false,
   }: LiftEngineOptions) {
     this.projectDir = projectDir
