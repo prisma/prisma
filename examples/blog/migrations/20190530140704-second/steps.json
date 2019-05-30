@@ -71,7 +71,7 @@
   {
     "stepType": "CreateField",
     "model": "Blog",
-    "name": "authors3",
+    "name": "authors",
     "type": {
       "Relation": {
         "to": "Author",
@@ -110,16 +110,6 @@
   {
     "stepType": "CreateField",
     "model": "Author",
-    "name": "name2",
-    "type": {
-      "Base": "String"
-    },
-    "arity": "optional",
-    "isUnique": false
-  },
-  {
-    "stepType": "CreateField",
-    "model": "Author",
     "name": "authors",
     "type": {
       "Relation": {
@@ -149,7 +139,7 @@
   {
     "stepType": "CreateField",
     "model": "Post",
-    "name": "title2",
+    "name": "title",
     "type": {
       "Base": "String"
     },
@@ -229,6 +219,16 @@
     "stepType": "CreateField",
     "model": "AnotherModel",
     "name": "anotherText2",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel",
+    "name": "anotherText3",
     "type": {
       "Base": "String"
     },

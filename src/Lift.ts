@@ -18,37 +18,32 @@ import indent from 'indent-string'
 import { printMigrationReadme } from './utils/printMigrationReadme'
 import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import chalk from 'chalk'
-import { highlightDatamodel } from './utils/highlightDatamodel'
+import {
+  highlightDatamodel,
+  darkBrightBlue,
+  blue,
+} from './utils/highlightDatamodel'
+import { groupBy } from './utils/groupBy'
+import { exampleDbSteps } from './example-db-steps'
+import stripAnsi from 'strip-ansi'
+import Charm from 'charm'
+import { formatms } from './utils/formartms'
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
+
+export type UpOptions = {
+  preview?: boolean
+  n?: number
+}
+const brightGreen = chalk.rgb(127, 224, 152)
+const charm = Charm()
+charm.pipe(process.stdout)
 
 export class Lift {
   engine: LiftEngine
   constructor(protected projectDir: string) {
     this.engine = new LiftEngine({ projectDir })
-  }
-  public async run() {
-    const stepsResult = await this.engine.inferMigrationSteps({
-      dataModel: fs.readFileSync(
-        path.resolve(this.projectDir, 'datamodel.prisma'),
-        'utf-8',
-      ),
-      migrationId: 'test-id2',
-    })
-    console.log(stepsResult)
-    const applyResult = await this.engine.applyMigration({
-      migrationId: 'test-id2',
-      force: false,
-      steps: stepsResult.datamodelSteps,
-    })
-    console.log(applyResult)
-    const progress = await this.engine.migrationProgess({
-      migrationId: 'test-id2',
-    })
-    console.log(progress)
-    const migrations = await this.engine.listMigrations()
-    console.log(migrations)
   }
 
   async getDatamodel() {
@@ -112,22 +107,22 @@ export class Lift {
       }
     }
 
+    // TODO better printing of params
     const nameStr = name ? ` --name ${chalk.bold(name)}` : ''
     const previewStr = preview ? ` --preview` : ''
-    console.log(`\n🏋️‍ lift create${nameStr}${previewStr}`)
+    console.log(`🏋️‍ lift create${nameStr}${previewStr}`)
     if (lastDatamodel) {
       const wording = preview
         ? `Potential datamodel changes:`
         : 'Datamodel Changes:'
       console.log(cleur.bold(`\n${wording}\n`))
     } else {
-      const brightGreen = chalk.rgb(127, 224, 152)
       console.log(brightGreen.bold('\nNew datamodel:\n'))
     }
     if (lastDatamodel) {
-      console.log(indent(printDatamodelDiff(lastDatamodel, datamodel), 2))
+      console.log(printDatamodelDiff(lastDatamodel, datamodel))
     } else {
-      console.log(indent(highlightDatamodel(datamodel), 2))
+      console.log(highlightDatamodel(datamodel))
     }
 
     lockFile.localMigrations.push(migrationId)
@@ -168,24 +163,36 @@ export class Lift {
     if (!(await exists(migrationsDir))) {
       return []
     }
-    const migrationSteps = await globby('**/steps.json', {
-      cwd: migrationsDir,
-    }).then(files =>
+    const migrationSteps = await globby(
+      ['**/steps.json', '**/datamodel.prisma'],
+      {
+        cwd: migrationsDir,
+      },
+    ).then(files =>
       Promise.all(
         files.map(async fileName => ({
-          fileName,
+          fileName: fileName.split('/')[1],
+          migrationId: fileName.split('/')[0],
           file: await readFile(path.join(migrationsDir, fileName), 'utf-8'),
         })),
       ),
     )
 
-    return migrationSteps.map(({ fileName, file }) => ({
-      id: fileName.split('.')[0],
-      steps: JSON.parse(file),
-    }))
+    const groupedByMigration = groupBy(migrationSteps, step => step.migrationId)
+
+    return Object.entries(groupedByMigration).map(([migrationId, files]) => {
+      const stepsFile = files.find(f => f.fileName === 'steps.json')!
+      const datamodelFile = files.find(f => f.fileName === 'datamodel.prisma')!
+      return {
+        id: migrationId,
+        steps: JSON.parse(stepsFile.file),
+        datamodel: datamodelFile.file,
+      }
+    })
   }
 
-  public async up(): Promise<string> {
+  public async up({ n, preview }: UpOptions): Promise<string> {
+    const before = Date.now()
     const localMigrations = await this.getLocalMigrations()
     const remoteMigrations = await this.engine.listMigrations()
     if (remoteMigrations.length > localMigrations.length) {
@@ -194,9 +201,13 @@ export class Lift {
       )
     }
 
+    let lastAppliedIndex = -1
     const migrationsToApply = localMigrations.filter(
       (localMigration, index) => {
         const remoteMigration = remoteMigrations[index]
+        // if there is already a corresponding remote migration,
+        // we don't need to apply this migration
+
         if (remoteMigration) {
           if (localMigration.id !== remoteMigration.id) {
             throw new Error(
@@ -207,30 +218,163 @@ export class Lift {
               } remotely at the same position in the history.`,
             )
           }
+          lastAppliedIndex = index
           return false
         }
         return true
       },
     )
+
+    const previewStr = preview ? ` --preview` : ''
+    console.log(`🏋️‍ lift up${previewStr}\n`)
+
     if (migrationsToApply.length === 0) {
       return 'All migrations are already applied'
     }
-    for (const { id, steps } of migrationsToApply) {
-      console.log(`Applying migration ${id}`)
-      const result = await this.engine.applyMigration({
-        force: false,
-        migrationId: id,
-        steps: steps,
-      })
-      const progress = await this.engine.migrationProgess({
-        migrationId: id,
-      })
-      if (progress.status === 'Success') {
-        console.log(`Done`)
-      } else {
-        throw new Error(`Oops. ${JSON.stringify(progress)}`)
-      }
+
+    const lastAppliedMigration: Migration | undefined =
+      lastAppliedIndex > -1 ? localMigrations[lastAppliedIndex] : undefined
+    const lastUnappliedMigration: Migration = migrationsToApply.slice(-1)[0]
+
+    if (lastAppliedMigration) {
+      console.log(chalk.bold('Changes to be applied:'))
+      console.log(
+        printDatamodelDiff(
+          lastAppliedMigration.datamodel,
+          lastUnappliedMigration.datamodel,
+        ),
+      )
+    } else {
+      console.log(brightGreen.bold('Datamodel that will initialize the db:\n'))
+      console.log(highlightDatamodel(lastUnappliedMigration.datamodel))
     }
-    return ''
+
+    const progressRenderer = new ProgressRenderer(migrationsToApply)
+
+    progressRenderer.render()
+
+    if (preview) {
+      return `To apply the migrations, run ${chalk.greenBright(
+        'prisma lift up',
+      )}\n`
+    }
+
+    for (let i = 0; i < migrationsToApply.length; i++) {
+      const { id, steps } = migrationsToApply[i]
+      let progress = 0
+      for (let j = 0; j <= 10; j++) {
+        await new Promise(r => setTimeout(r, 16))
+        progress += 0.1
+        await progressRenderer.setProgress(i, progress)
+      }
+      // const result = await this.engine.applyMigration({
+      //   force: false,
+      //   migrationId: id,
+      //   steps: steps,
+      // })
+      // const progress = await this.engine.migrationProgess({
+      //   migrationId: id,
+      // })
+      // if (progress.status === 'Success') {
+      //   console.log(`Done`)
+      // } else {
+      //   throw new Error(`Oops. ${JSON.stringify(progress)}`)
+      // }
+    }
+    await progressRenderer.done()
+    return `🚀 Done with ${migrationsToApply.length} migrations in ${formatms(
+      Date.now() - before,
+    )}.`
+  }
+}
+
+class ProgressRenderer {
+  currentIndex = 0
+  currentProgress = 0
+  zeroPosition = 0
+  constructor(private readonly migrations: Migration[]) {}
+
+  async setProgress(index: number, progressPercentage: number) {
+    const width = 6
+    const progress = Math.min(Math.floor(progressPercentage * width), width)
+    if (progress === 6 && this.currentProgress === 6) {
+      return
+    }
+    if (index > this.currentIndex) {
+      ;(<any>process.stdout).cursorTo(this.zeroPosition)
+      charm.down(1)
+    }
+    if (progress > this.currentProgress) {
+      // TODO: If I have time, render the Done Rocket
+      // if (progress === width) {
+      //   // charm.left(6)
+      //   ;(<any>process.stdout).cursorTo(this.zeroPosition)
+      //   await new Promise(r => setTimeout(r, 100))
+      //   const doneText = `Done 🚀`
+      //   process.stdout.write(doneText)
+      //   await new Promise(r => setTimeout(r, 100))
+      //   ;(<any>process.stdout).cursorTo(this.zeroPosition)
+      //   await new Promise(r => setTimeout(r, 100))
+      //   // charm.position(this.zeroPosition)
+      // } else {
+      process.stdout.write('\u25A0')
+      // }
+    }
+
+    this.currentIndex = index
+    this.currentProgress = progress
+  }
+
+  render() {
+    charm.cursor(false)
+    const longestMigration = this.migrations.reduce(
+      (acc, curr) => Math.max(curr.id.length, acc),
+      0,
+    )
+    let maxStepLength = 0
+    const rows = this.migrations
+      .map(m => {
+        const steps = printDatabaseSteps(exampleDbSteps)
+        maxStepLength = Math.max(stripAnsi(steps).length, maxStepLength)
+        return `${blue(m.id)}${' '.repeat(
+          longestMigration - m.id.length + 2,
+        )}${steps}`
+      })
+      .join('\n')
+
+    const column1 = 'Migration'
+    const column2 = 'Database actions'
+    const column3 = 'Status'
+    const header =
+      chalk.underline(column1) +
+      ' '.repeat(longestMigration - column1.length) +
+      '  ' +
+      chalk.underline(column2) +
+      ' '.repeat(maxStepLength - column2.length + 2) +
+      chalk.underline(column3) +
+      '\n\n'
+
+    const changeOverview = header + rows
+
+    console.log(chalk.bold('\nDatabase Changes:\n'))
+    console.log(changeOverview)
+    console.log(
+      chalk.dim(
+        `\nYou can get the detailed db changes with ${cleur.greenBright(
+          'prisma lift up --verbose',
+        )}\n`,
+      ),
+    )
+
+    charm.up(this.migrations.length + 3)
+    this.zeroPosition = longestMigration + maxStepLength + 4
+    charm.right(this.zeroPosition)
+  }
+
+  async done() {
+    await new Promise(r => setTimeout(r, 50))
+    charm.cursor(true)
+    charm.down(4)
+    ;(<any>process.stdout).cursorTo(0)
   }
 }

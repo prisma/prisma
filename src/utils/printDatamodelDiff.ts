@@ -89,6 +89,8 @@ function trimWholeModels(str: string) {
 
   lines.forEach((line, index) => {
     const trimmed = line.trim()
+    // TODO: add support for enum etc
+    // maybe just by removing the startsWith
     if (trimmed.startsWith('model') && line.endsWith('{')) {
       modelOpen = true
       currentStart = index

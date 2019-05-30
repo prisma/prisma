@@ -29,8 +29,3 @@ model AnotherModel {
   tags: String[]
 }
 
-model HelloWorld {
-  id: Int @id
-  text: String
-
-}

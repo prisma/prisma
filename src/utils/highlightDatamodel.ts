@@ -33,25 +33,27 @@ export function highlightDatamodel(datamodel: string): string {
 
   replacements.sort((a, b) => (a.start < b.start ? -1 : 1))
 
-  return replacements.reduce<{ datamodel: string; currentOffset: number }>(
-    ({ datamodel, currentOffset }, { start, end, replacement }) => {
-      const newDatamodel =
-        datamodel.slice(0, start + currentOffset) +
-        replacement +
-        datamodel.slice(end + currentOffset)
+  return replacements
+    .reduce<{ datamodel: string; currentOffset: number }>(
+      ({ datamodel, currentOffset }, { start, end, replacement }) => {
+        const newDatamodel =
+          datamodel.slice(0, start + currentOffset) +
+          replacement +
+          datamodel.slice(end + currentOffset)
 
-      return {
-        datamodel: newDatamodel,
-        currentOffset: currentOffset + (replacement.length - (end - start)),
-      }
-    },
-    { datamodel, currentOffset: 0 },
-  ).datamodel
+        return {
+          datamodel: newDatamodel,
+          currentOffset: currentOffset + (replacement.length - (end - start)),
+        }
+      },
+      { datamodel, currentOffset: 0 },
+    )
+    .datamodel.trimEnd()
 }
 
-const darkBrightBlue = chalk.rgb(107, 139, 140)
-const blue = chalk.rgb(24, 109, 178)
-const brightBlue = chalk.rgb(127, 155, 155)
+export const darkBrightBlue = chalk.rgb(107, 139, 140)
+export const blue = chalk.rgb(24, 109, 178)
+export const brightBlue = chalk.rgb(127, 155, 155)
 
 type Highlight = {
   regex: RegExp

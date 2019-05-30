@@ -20,6 +20,11 @@
     "embedded": false
   },
   {
+    "stepType": "CreateModel",
+    "name": "HelloWorld",
+    "embedded": false
+  },
+  {
     "stepType": "CreateField",
     "model": "Blog",
     "name": "id",
@@ -71,7 +76,7 @@
   {
     "stepType": "CreateField",
     "model": "Blog",
-    "name": "authors3",
+    "name": "authors",
     "type": {
       "Relation": {
         "to": "Author",
@@ -110,16 +115,6 @@
   {
     "stepType": "CreateField",
     "model": "Author",
-    "name": "name2",
-    "type": {
-      "Base": "String"
-    },
-    "arity": "optional",
-    "isUnique": false
-  },
-  {
-    "stepType": "CreateField",
-    "model": "Author",
     "name": "authors",
     "type": {
       "Relation": {
@@ -149,7 +144,7 @@
   {
     "stepType": "CreateField",
     "model": "Post",
-    "name": "title2",
+    "name": "title",
     "type": {
       "Base": "String"
     },
@@ -208,7 +203,7 @@
   {
     "stepType": "CreateField",
     "model": "AnotherModel",
-    "name": "title",
+    "name": "title2",
     "type": {
       "Base": "String"
     },
@@ -253,6 +248,40 @@
       "Base": "String"
     },
     "arity": "list",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "HelloWorld",
+    "name": "id",
+    "type": {
+      "Base": "Int"
+    },
+    "arity": "required",
+    "isUnique": false,
+    "id": {
+      "strategy": "Auto",
+      "sequence": null
+    }
+  },
+  {
+    "stepType": "CreateField",
+    "model": "HelloWorld",
+    "name": "text",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "HelloWorld",
+    "name": "text5",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
     "isUnique": false
   }
 ]

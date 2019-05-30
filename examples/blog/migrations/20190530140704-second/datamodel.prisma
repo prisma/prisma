@@ -3,19 +3,18 @@ model Blog {
   name: String
   viewCount: Int
   posts: Post[]
-  authors3: Author[]
+  authors: Author[]
 }
 
 model Author {
   id: Int @id
   name: String?
-  name2: String?
   authors: Blog[]
 }         
 
 model Post {
   id: Int @id
-  title2: String
+  title: String
   anotherText: String
   tags: String[]
   blog: Blog

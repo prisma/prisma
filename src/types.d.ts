@@ -80,9 +80,14 @@ export type LockFile = {
   // TODO: add the conflicts here
 }
 
+export type Dictionary<T> = {
+  [key: string]: T
+}
+
 export type Migration = {
   id: string
   steps: any[]
+  datamodel: string
 }
 
 export type RawSqlStep = {
