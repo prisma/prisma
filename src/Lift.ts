@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { now } from './utils/now'
 import { promisify } from 'util'
-import { FileMap, LockFile, Migration } from './types'
+import { FileMap, LockFile, Migration, EngineResults } from './types'
 import {
   deserializeLockFile,
   initLockFile,
@@ -28,6 +28,7 @@ import { exampleDbSteps } from './example-db-steps'
 import stripAnsi from 'strip-ansi'
 import Charm from 'charm'
 import { formatms } from './utils/formartms'
+import debounce from 'debounce'
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
@@ -152,6 +153,7 @@ export class Lift {
     const datamodelFiles = await globby('**/datamodel.prisma', {
       cwd: migrationsDir,
     })
+    datamodelFiles.sort()
     return readFile(
       path.join(migrationsDir, datamodelFiles.slice(-1)[0]),
       'utf-8',
@@ -177,6 +179,8 @@ export class Lift {
         })),
       ),
     )
+
+    migrationSteps.sort((a, b) => (a.migrationId < b.migrationId ? -1 : 1))
 
     const groupedByMigration = groupBy(migrationSteps, step => step.migrationId)
 
@@ -261,31 +265,76 @@ export class Lift {
 
     for (let i = 0; i < migrationsToApply.length; i++) {
       const { id, steps } = migrationsToApply[i]
-      let progress = 0
-      for (let j = 0; j <= 10; j++) {
-        await new Promise(r => setTimeout(r, 16))
-        progress += 0.1
-        await progressRenderer.setProgress(i, progress)
+      const result = await this.engine.applyMigration({
+        force: false,
+        migrationId: id,
+        steps: steps,
+      })
+      const totalSteps = result.databaseSteps.length
+      let progress: EngineResults.MigrationProgress | undefined
+      loop2: while (
+        (progress = await this.engine.migrationProgess({
+          migrationId: id,
+        }))
+      ) {
+        if (progress.status === 'InProgress') {
+          progressRenderer.setProgress(i, progress.applied / totalSteps)
+        }
+        if (progress.status === 'Success') {
+          progressRenderer.setProgress(i, 1)
+          break loop2
+        }
+        if (progress.status === 'RollbackSuccess') {
+          charm.cursor(true)
+          throw new Error(`Rolled back migration. ${JSON.stringify(progress)}`)
+        }
+        if (progress.status === 'RollbackFailure') {
+          charm.cursor(true)
+          throw new Error(
+            `Failed to roll back migration. ${JSON.stringify(progress)}`,
+          )
+        }
+        await new Promise(r => setTimeout(r, 20))
       }
-      // const result = await this.engine.applyMigration({
-      //   force: false,
-      //   migrationId: id,
-      //   steps: steps,
-      // })
-      // const progress = await this.engine.migrationProgess({
-      //   migrationId: id,
-      // })
-      // if (progress.status === 'Success') {
-      //   console.log(`Done`)
-      // } else {
-      //   throw new Error(`Oops. ${JSON.stringify(progress)}`)
-      // }
     }
     await progressRenderer.done()
     return `🚀 Done with ${migrationsToApply.length} migrations in ${formatms(
       Date.now() - before,
-    )}.`
+    )}.\n`
   }
+}
+
+function rateLimit(fn: any, delay: any, context?: any) {
+  var canInvoke = true,
+    queue = [] as any[],
+    timeout,
+    limited = function(this: any) {
+      queue.push({
+        context: context || this,
+        arguments: Array.prototype.slice.call(arguments),
+      })
+      if (canInvoke) {
+        canInvoke = false
+        timeEnd()
+      }
+    } as any
+  function run(context, args) {
+    fn.apply(context, args)
+  }
+  function timeEnd() {
+    var e
+    if (queue.length) {
+      e = queue.splice(0, 1)[0]
+      run(e.context, e.arguments)
+      timeout = setTimeout(timeEnd, delay)
+    } else canInvoke = true
+  }
+  limited.reset = function() {
+    clearTimeout(timeout)
+    queue = []
+    canInvoke = true
+  }
+  return limited
 }
 
 class ProgressRenderer {
@@ -294,14 +343,12 @@ class ProgressRenderer {
   zeroPosition = 0
   constructor(private readonly migrations: Migration[]) {}
 
-  async setProgress(index: number, progressPercentage: number) {
+  setProgress(index: number, progressPercentage: number) {
     const width = 6
     const progress = Math.min(Math.floor(progressPercentage * width), width)
-    if (progress === 6 && this.currentProgress === 6) {
-      return
-    }
     if (index > this.currentIndex) {
       ;(<any>process.stdout).cursorTo(this.zeroPosition)
+      this.currentProgress = 0
       charm.down(1)
     }
     if (progress > this.currentProgress) {
@@ -317,9 +364,10 @@ class ProgressRenderer {
       //   await new Promise(r => setTimeout(r, 100))
       //   // charm.position(this.zeroPosition)
       // } else {
-      process.stdout.write('\u25A0')
+      process.stdout.write('\u25A0'.repeat(progress - this.currentProgress))
       // }
     }
+    // console.log(this.currentIndex, this.currentProgress)
 
     this.currentIndex = index
     this.currentProgress = progress

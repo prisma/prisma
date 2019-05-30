@@ -66,6 +66,23 @@ export namespace EngineResults {
     errors: any[]
     generalErrors: any[]
   }
+  export enum MigrationStatus {
+    Success = 'Success',
+    InProgress = 'InProgress',
+    Pending = 'Pending',
+    RollingBack = 'RollingBack',
+    RollbackSuccess = 'RollbackSuccess',
+    RollbackFailure = 'RollbackFailure',
+  }
+  export type MigrationProgress = {
+    status: MigrationStatus
+    steps: number
+    applied: number
+    rolledBack: number
+    errors: any[]
+    startedAt: string
+    finishedAt: string
+  }
 }
 
 export interface FileMap {
