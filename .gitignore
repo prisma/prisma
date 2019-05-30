@@ -3,3 +3,4 @@ migration-engine
 yarn-error.log
 dist
 build
+.DS_Store
