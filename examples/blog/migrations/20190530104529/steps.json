@@ -15,6 +15,11 @@
     "embedded": false
   },
   {
+    "stepType": "CreateModel",
+    "name": "AnotherModel",
+    "embedded": false
+  },
+  {
     "stepType": "CreateField",
     "model": "Blog",
     "name": "id",
@@ -66,7 +71,7 @@
   {
     "stepType": "CreateField",
     "model": "Blog",
-    "name": "authors",
+    "name": "authors3",
     "type": {
       "Relation": {
         "to": "Author",
@@ -96,6 +101,16 @@
     "stepType": "CreateField",
     "model": "Author",
     "name": "name",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "optional",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "Author",
+    "name": "name2",
     "type": {
       "Base": "String"
     },
@@ -154,16 +169,6 @@
   {
     "stepType": "CreateField",
     "model": "Post",
-    "name": "text",
-    "type": {
-      "Base": "String"
-    },
-    "arity": "required",
-    "isUnique": false
-  },
-  {
-    "stepType": "CreateField",
-    "model": "Post",
     "name": "tags",
     "type": {
       "Base": "String"
@@ -184,6 +189,60 @@
       }
     },
     "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel",
+    "name": "id",
+    "type": {
+      "Base": "Int"
+    },
+    "arity": "required",
+    "isUnique": false,
+    "id": {
+      "strategy": "Auto",
+      "sequence": null
+    }
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel",
+    "name": "title",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel",
+    "name": "anotherText",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel",
+    "name": "anotherText2",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel",
+    "name": "tags",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "list",
     "isUnique": false
   }
 ]

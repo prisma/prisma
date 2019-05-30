@@ -113,7 +113,7 @@ function trimWholeModels(str: string) {
       return acc
     }, lines)
     .join('\n')
-    .trim()
+    .trimEnd()
 }
 
 // filter unnecessary space changes
