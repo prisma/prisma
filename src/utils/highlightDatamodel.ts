@@ -48,7 +48,7 @@ export function highlightDatamodel(datamodel: string): string {
       },
       { datamodel, currentOffset: 0 },
     )
-    .datamodel.trimEnd()
+    .datamodel.trim()
 }
 
 export const darkBrightBlue = chalk.rgb(107, 139, 140)

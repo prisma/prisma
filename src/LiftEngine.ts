@@ -1,8 +1,9 @@
 import path from 'path'
 import { spawn } from 'child_process'
 import byline from './utils/byline'
-import { EngineArgs } from './types'
+import { EngineArgs, EngineResults } from './types'
 import debugLib from 'debug'
+import chalk from 'chalk'
 const debug = debugLib('LiftEngine')
 const debugStderr = debugLib('LiftEngine:stderr')
 
@@ -40,6 +41,7 @@ export class LiftEngine {
   }
   private runCommand(request: any): Promise<any> {
     return new Promise((resolve, reject) => {
+      const messages: string[] = []
       const child = spawn(this.binaryPath, {
         stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
         env: {
@@ -50,7 +52,11 @@ export class LiftEngine {
 
       child.on('error', err => {
         console.error('[migration-engine] error: %s', err)
-        reject(err)
+        reject(
+          new Error(
+            `${chalk.redBright('Error in lift engine:')} ${messages.join('')}`,
+          ),
+        )
       })
 
       child.on('exit', (code, signal) => {
@@ -61,11 +67,16 @@ export class LiftEngine {
             signal,
           )
         }
-        reject()
+        reject(
+          new Error(
+            `${chalk.redBright('Error in lift engine:')} ${messages.join('')}`,
+          ),
+        )
       })
 
       if (!this.debug) {
         child.stderr!.on('data', data => {
+          messages.push(data.toString())
           debugStderr(data.toString())
         })
       }
@@ -119,7 +130,9 @@ export class LiftEngine {
   listMigrations(): Promise<any> {
     return this.runCommand(this.getRPCPayload('listMigrations', {}))
   }
-  migrationProgess(args: EngineArgs.MigrationProgress): Promise<any> {
+  migrationProgess(
+    args: EngineArgs.MigrationProgress,
+  ): Promise<EngineResults.MigrationProgress> {
     return this.runCommand(this.getRPCPayload('migrationProgress', args))
   }
 }

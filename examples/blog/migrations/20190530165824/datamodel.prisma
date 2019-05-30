@@ -65,8 +65,3 @@ model AnotherModel5 {
 
   id: Int @id
 }
-
-model AnotherModel6 {
-
-  id: Int @id
-}

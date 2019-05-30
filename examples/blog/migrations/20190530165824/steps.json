@@ -21,7 +21,27 @@
   },
   {
     "stepType": "CreateModel",
-    "name": "HelloWorld",
+    "name": "AnotherModel1",
+    "embedded": false
+  },
+  {
+    "stepType": "CreateModel",
+    "name": "AnotherModel2",
+    "embedded": false
+  },
+  {
+    "stepType": "CreateModel",
+    "name": "AnotherModel3",
+    "embedded": false
+  },
+  {
+    "stepType": "CreateModel",
+    "name": "AnotherModel4",
+    "embedded": false
+  },
+  {
+    "stepType": "CreateModel",
+    "name": "AnotherModel5",
     "embedded": false
   },
   {
@@ -252,7 +272,7 @@
   },
   {
     "stepType": "CreateField",
-    "model": "HelloWorld",
+    "model": "AnotherModel1",
     "name": "id",
     "type": {
       "Base": "Int"
@@ -266,8 +286,8 @@
   },
   {
     "stepType": "CreateField",
-    "model": "HelloWorld",
-    "name": "text",
+    "model": "AnotherModel1",
+    "name": "title2",
     "type": {
       "Base": "String"
     },
@@ -276,12 +296,198 @@
   },
   {
     "stepType": "CreateField",
-    "model": "HelloWorld",
-    "name": "text5",
+    "model": "AnotherModel1",
+    "name": "anotherText",
     "type": {
       "Base": "String"
     },
     "arity": "required",
     "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel1",
+    "name": "anotherText2",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel1",
+    "name": "anotherText3",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel1",
+    "name": "tags",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "list",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel2",
+    "name": "id",
+    "type": {
+      "Base": "Int"
+    },
+    "arity": "required",
+    "isUnique": false,
+    "id": {
+      "strategy": "Auto",
+      "sequence": null
+    }
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel2",
+    "name": "title2",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel2",
+    "name": "anotherText",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel2",
+    "name": "anotherText2",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel2",
+    "name": "anotherText3",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel2",
+    "name": "tags",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "list",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel3",
+    "name": "id",
+    "type": {
+      "Base": "Int"
+    },
+    "arity": "required",
+    "isUnique": false,
+    "id": {
+      "strategy": "Auto",
+      "sequence": null
+    }
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel3",
+    "name": "title2",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel3",
+    "name": "anotherText",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel3",
+    "name": "anotherText2",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel3",
+    "name": "anotherText3",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "required",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel3",
+    "name": "tags",
+    "type": {
+      "Base": "String"
+    },
+    "arity": "list",
+    "isUnique": false
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel4",
+    "name": "id",
+    "type": {
+      "Base": "Int"
+    },
+    "arity": "required",
+    "isUnique": false,
+    "id": {
+      "strategy": "Auto",
+      "sequence": null
+    }
+  },
+  {
+    "stepType": "CreateField",
+    "model": "AnotherModel5",
+    "name": "id",
+    "type": {
+      "Base": "Int"
+    },
+    "arity": "required",
+    "isUnique": false,
+    "id": {
+      "strategy": "Auto",
+      "sequence": null
+    }
   }
 ]
