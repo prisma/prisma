@@ -109,15 +109,18 @@ export type Migration = {
 
 export type RawSqlStep = {
   RawSql: string
+  raw: string
 }
 
 export type DropTableStep = {
+  raw: string
   DropTable: {
     name: string
   }
 }
 
 export type RenameTableStep = {
+  raw: string
   RenameTable: {
     name: string
     new_name: string
@@ -125,6 +128,7 @@ export type RenameTableStep = {
 }
 
 export type CreateTableStep = {
+  raw: string
   CreateTable: {
     name: string
     columns: CreateColumn[]
@@ -133,6 +137,7 @@ export type CreateTableStep = {
 }
 
 export type CreateColumn = {
+  raw: string
   name: string
   tpe: string
   required: boolean

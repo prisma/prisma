@@ -1,12 +1,15 @@
 import { createPatch } from 'diff'
 import getUserName from 'git-user-name'
 import getEmail from 'git-user-email'
+import { DatabaseStep } from '../types'
+import { printDetailedDatabaseSteps } from './printDatabaseSteps'
 
 export type MigrationReadmeInput = {
   migrationId: string
   lastMigrationId: string
   datamodelA: string
   datamodelB: string
+  databaseSteps: DatabaseStep[]
 }
 
 export function printMigrationReadme({
@@ -14,6 +17,7 @@ export function printMigrationReadme({
   lastMigrationId,
   datamodelA,
   datamodelB,
+  databaseSteps,
 }: MigrationReadmeInput) {
   const user = getUserName()
   const email = getEmail()
@@ -32,10 +36,22 @@ This migration has been generated${byStr} at ${new Date().toLocaleString(
   )}.
 You can check out the [state of the datamodel](./datamodel.prisma) after the migration.
 
+## Database Steps
+
+\`\`\`sql
+${printDetailedDatabaseSteps(databaseSteps)}
+\`\`\`
+
 ## Changes
 
 \`\`\`diff
-${makePatch({ migrationId, lastMigrationId, datamodelA, datamodelB })}
+${makePatch({
+  migrationId,
+  lastMigrationId,
+  datamodelA,
+  datamodelB,
+  databaseSteps,
+})}
 \`\`\`
 
 ## Photon Usage

@@ -8,38 +8,23 @@ import {
 import cleur from './cleur'
 import { darkBrightBlue } from './highlightDatamodel'
 
-export function printDatabaseSteps(
-  databaseSteps: DatabaseStep[],
-  short = true,
-) {
-  if (short) {
-    const counts = getStepCounts(databaseSteps)
-    const overview =
-      Object.entries(counts)
-        .reduce<string[]>((acc, [key, value]) => {
-          if (value > 0) {
-            acc.push(`${value} ${darkBrightBlue(key)}`)
-          }
+export function printDatabaseStepsOverview(databaseSteps: DatabaseStep[]) {
+  const counts = getStepCounts(databaseSteps)
+  const overview =
+    Object.entries(counts)
+      .reduce<string[]>((acc, [key, value]) => {
+        if (value > 0) {
+          acc.push(`${value} ${darkBrightBlue(key)}`)
+        }
 
-          return acc
-        }, [])
-        .join(', ') + ' statements.'
-    return overview
-  }
+        return acc
+      }, [])
+      .join(', ') + ' statements.'
+  return overview
+}
 
-  const intro = `${cleur.bold(databaseSteps.length)} steps in total`
-
-  return (
-    intro +
-    ':\n\n\n' +
-    databaseSteps
-      .map(
-        (step, index) =>
-          `  ${cleur.grey().dim(index + 1 + ')')} ${renderStep(step)}`,
-      )
-      .join('\n\n') +
-    '\n'
-  )
+export function printDetailedDatabaseSteps(databaseSteps: DatabaseStep[]) {
+  return databaseSteps.map(step => step.raw).join('\n\n')
 }
 
 const bold = str => str
