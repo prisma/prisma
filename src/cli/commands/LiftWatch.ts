@@ -2,13 +2,12 @@ import { Command } from '../types'
 import { arg, isError, format } from '../utils'
 import prompt from 'prompts'
 import { HelpError } from '../Help'
-import kleur, { dim, cyan } from 'kleur'
+import chalk from 'chalk'
 import { Lift } from '../../Lift'
 import path from 'path'
 import { serializeFileMap } from '../../utils/serializeFileMap'
 import { Env } from '../Env'
 import { printFiles } from '../../utils/printFiles'
-import chalk from 'chalk'
 import { printMigrationId } from '../../utils/printMigrationId'
 import fs from 'fs'
 import { promisify } from 'util'
@@ -79,7 +78,7 @@ export class LiftWatch implements Command {
     let response = await prompt({
       type: 'text',
       name: 'name',
-      message: `Name of migration ${dim('(optional)')}`,
+      message: `Name of migration ${chalk.dim('(optional)')}`,
       // validate: value => value.length,
     })
     return response.name || undefined
@@ -89,7 +88,7 @@ export class LiftWatch implements Command {
   help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(
-        `\n${kleur.bold().red(`!`)} ${error}\n${LiftWatch.help}`,
+        `\n${chalk.bold.red(`!`)} ${error}\n${LiftWatch.help}`,
       )
     }
     return LiftWatch.help
@@ -99,22 +98,22 @@ export class LiftWatch implements Command {
   private static help = format(`
     Create a new migration.
 
-    ${kleur.bold('Usage')}
+    ${chalk.bold('Usage')}
 
       prisma migrate new [options]
 
-    ${kleur.bold('Options')}
+    ${chalk.bold('Options')}
 
       -n, --name     Name of the migration
       -p, --preview  Preview the changes
 
-    ${kleur.bold('Examples')}
+    ${chalk.bold('Examples')}
 
       Create a new migration
-      ${kleur.dim(`$`)} prisma migrate new
+      ${chalk.dim(`$`)} prisma migrate new
 
       Create a new migration by name
-      ${kleur.dim(`$`)} prisma migrate new --name "add unique to email"
+      ${chalk.dim(`$`)} prisma migrate new --name "add unique to email"
 
   `)
 }

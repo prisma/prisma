@@ -1,7 +1,7 @@
 import { Command } from '../types'
 import { arg, isError, format } from '../utils'
-import { unknownCommand, HelpError } from '../Help'
-import kleur from 'kleur'
+import { HelpError } from '../Help'
+import chalk from 'chalk'
 import { Env } from '../Env'
 import { Lift, UpOptions } from '../../Lift'
 
@@ -51,9 +51,7 @@ export class LiftUp implements Command {
   // help message
   help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${kleur.bold().red(`!`)} ${error}\n${LiftUp.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftUp.help}`)
     }
     return LiftUp.help
   }
@@ -62,34 +60,34 @@ export class LiftUp implements Command {
   private static help = format(`
     Migrate your database up to a specific state.
 
-    ${kleur.bold('Usage')}
+    ${chalk.bold('Usage')}
 
       prisma migrate up [<inc|name|timestamp>]
 
-    ${kleur.bold('Arguments')}
+    ${chalk.bold('Arguments')}
 
       [<inc>]   go up by an increment [default: latest]
 
-    ${kleur.bold('Options')}
+    ${chalk.bold('Options')}
 
       -p, --preview   Preview the migration changes
 
-    ${kleur.bold('Examples')}
+    ${chalk.bold('Examples')}
 
       Create a new migration and migrate up
-      ${kleur.dim(`$`)} prisma migrate new --name "add unique to email"
-      ${kleur.dim(`$`)} prisma migrate up
+      ${chalk.dim(`$`)} prisma migrate new --name "add unique to email"
+      ${chalk.dim(`$`)} prisma migrate up
 
       Preview a migration without applying
-      ${kleur.dim(`$`)} prisma migrate up --preview
+      ${chalk.dim(`$`)} prisma migrate up --preview
 
       Go up by one migration
-      ${kleur.dim(`$`)} prisma migrate up 1
+      ${chalk.dim(`$`)} prisma migrate up 1
 
       Go up by one migration
-      ${kleur.dim(`$`)} prisma migrate up 1
+      ${chalk.dim(`$`)} prisma migrate up 1
 
       Go up by to a migration by name
-      ${kleur.dim(`$`)} prisma migrate up
+      ${chalk.dim(`$`)} prisma migrate up
   `)
 }

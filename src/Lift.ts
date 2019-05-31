@@ -11,24 +11,16 @@ import {
 } from './utils/LockFile'
 import globby from 'globby'
 import { deepEqual } from 'fast-equals'
-import { printDatamodelSteps } from './utils/printDatamodelSteps'
 import { printDatabaseStepsOverview } from './utils/printDatabaseSteps'
-import cleur from './utils/cleur'
-import indent from 'indent-string'
 import { printMigrationReadme } from './utils/printMigrationReadme'
 import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import chalk from 'chalk'
-import {
-  highlightDatamodel,
-  darkBrightBlue,
-  blue,
-} from './utils/highlightDatamodel'
+import { highlightDatamodel, blue } from './utils/highlightDatamodel'
 import { groupBy } from './utils/groupBy'
 import { exampleDbSteps } from './example-db-steps'
 import stripAnsi from 'strip-ansi'
 import Charm from 'charm'
 import { formatms } from './utils/formartms'
-import debounce from 'debounce'
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
@@ -117,7 +109,7 @@ export class Lift {
       const wording = preview
         ? `Potential datamodel changes:`
         : 'Datamodel Changes:'
-      console.log(cleur.bold(`\n${wording}\n`))
+      console.log(chalk.bold(`\n${wording}\n`))
     } else {
       console.log(brightGreen.bold('\nNew datamodel:\n'))
     }
@@ -383,7 +375,7 @@ class ProgressRenderer {
     console.log(changeOverview)
     console.log(
       chalk.dim(
-        `\nYou can get the detailed db changes with ${cleur.greenBright(
+        `\nYou can get the detailed db changes with ${chalk.greenBright(
           'prisma lift up --verbose',
         )}\nOr read about them in the ./migrations/MIGRATION_ID/README.md`,
       ),
