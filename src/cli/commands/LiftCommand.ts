@@ -1,9 +1,15 @@
-import { Command, Commands } from '../types'
-import { arg, isError, format } from '../utils'
-import { unknownCommand, HelpError } from '../Help'
+import {
+  Command,
+  Commands,
+  arg,
+  isError,
+  format,
+  unknownCommand,
+  HelpError,
+  Env,
+} from '@prisma/cli'
 import chalk from 'chalk'
 import { LiftWatch } from './LiftWatch'
-import { Env } from '../Env'
 
 /**
  * Migrate command

@@ -1,18 +1,9 @@
-import { Command } from '../types'
-import { arg, isError, format } from '../utils'
+import { Command, arg, format, Env, HelpError } from '@prisma/cli'
 import prompt from 'prompts'
-import { HelpError } from '../Help'
 import chalk from 'chalk'
 import { Lift } from '../../Lift'
 import path from 'path'
-import { serializeFileMap } from '../../utils/serializeFileMap'
-import { Env } from '../Env'
-import { printFiles } from '../../utils/printFiles'
-import { printMigrationId } from '../../utils/printMigrationId'
 import fs from 'fs'
-import { promisify } from 'util'
-
-const writeFile = promisify(fs.writeFile)
 
 /**
  * $ prisma migrate new
@@ -69,19 +60,6 @@ export class LiftWatch implements Command {
       short: true,
     })
     return ''
-  }
-
-  // get the name
-  async name(name?: string): Promise<string | undefined> {
-    if (name === '') return undefined
-    if (name) return name
-    let response = await prompt({
-      type: 'text',
-      name: 'name',
-      message: `Name of migration ${chalk.dim('(optional)')}`,
-      // validate: value => value.length,
-    })
-    return response.name || undefined
   }
 
   // help message
