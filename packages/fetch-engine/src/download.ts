@@ -9,8 +9,8 @@ import makeDir from 'make-dir'
 import onDeath from 'death'
 import fetch from 'node-fetch'
 import retry from 'p-retry'
-import getos from 'getos'
 import path from 'path'
+import { getos } from './getos'
 
 // Utils
 import { disableProgress, enableProgress, info, showProgress, warn } from './log'
@@ -22,6 +22,78 @@ import { promisify } from 'util'
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
+
+export async function downloadMigrationBinary(migrationBinary: string, version: string) {
+  try {
+    fs.writeFileSync(
+      migrationBinary,
+      '#!/usr/bin/env node\n' + 'console.log("Please wait until the \'prisma\' installation completes!")\n',
+    )
+  } catch (err) {
+    if (err.code === 'EACCES') {
+      warn('Please try installing Prisma CLI again with the `--unsafe-perm` option.')
+      info('Example: `npm i -g --unsafe-perm prisma`')
+
+      process.exit()
+    }
+
+    throw err
+  }
+
+  onDeath(() => {
+    fs.writeFileSync(
+      migrationBinary,
+      '#!/usr/bin/env node\n' +
+        'console.log("The \'prisma\' installation did not complete successfully.")\n' +
+        'console.log("Please run \'npm i -g prisma\' to reinstall!")\n',
+    )
+    process.exit()
+  })
+
+  info('For the source code, check out: https://github.com/prisma/lift')
+
+  // Print an empty line
+  const platform = await getPlatform()
+  const cacheDir = await getCacheDir(platform)
+  const cachedMigrationEnginePath = path.join(cacheDir, 'migration-engine')
+  const cachedLastModifiedPath = path.join(cacheDir, 'lastModifiedMigrationEngine')
+
+  const [cachedMigrationEngineExists, localLastModified] = await Promise.all([
+    exists(cachedMigrationEnginePath),
+    getLocalLastModified(cachedLastModifiedPath),
+  ])
+
+  if (cachedMigrationEngineExists && localLastModified) {
+    const remoteLastModified = await getRemoteLastModified(getMigrationEngineDownloadUrl(platform))
+    // If there is no new binary and we have it localy, copy it over
+    if (localLastModified >= remoteLastModified) {
+      console.log(`Taking migration engine binary from local cache from ${localLastModified.toISOString()}`)
+      await Promise.all([copy(cachedMigrationEnginePath, migrationBinary)])
+      return
+    }
+  }
+
+  enableProgress('Downloading Prisma Binary ' + version)
+  showProgress(0)
+
+  const lastModified = await downloadFile(getMigrationEngineDownloadUrl(platform), migrationBinary, 0, 100)
+  disableProgress()
+
+  plusxSync(migrationBinary)
+
+  /**
+   * Cache the result only on Mac for better dev experience
+   */
+  if (platform === 'darwin') {
+    try {
+      await copy(migrationBinary, cachedMigrationEnginePath)
+      await writeFile(cachedLastModifiedPath, lastModified)
+    } catch (e) {
+      // console.error(e)
+      // let this fail silently - the CI system may have reached the file size limit
+    }
+  }
+}
 
 /**
  * TODO: Check if binary already exists and if checksum is the same!
@@ -96,7 +168,7 @@ export async function download(prismaBinPath: string, schemaInferrerBinPath: str
     try {
       await copy(prismaBinPath, cachedPrismaPath)
       await copy(schemaInferrerBinPath, cachedSchemaInferrerPath)
-      writeFile(cachedLastModifiedPath, lastModified)
+      await writeFile(cachedLastModifiedPath, lastModified)
     } catch (e) {
       // console.error(e)
       // let this fail silently - the CI system may have reached the file size limit
@@ -170,7 +242,7 @@ async function downloadZip(url: string, target: string, progressOffset = 0) {
   fs.renameSync(partial, target)
 }
 
-async function downloadFile(url: string, target: string, progressOffset = 0): Promise<string> {
+async function downloadFile(url: string, target: string, progressOffset = 0, maxProgress = 50): Promise<string> {
   return retry<string>(
     async () => {
       const resp = await fetch(url, { compress: false })
@@ -191,7 +263,7 @@ async function downloadFile(url: string, target: string, progressOffset = 0): Pr
           bytesRead += chunk.length
 
           if (size) {
-            showProgress((50 * bytesRead) / parseFloat(size) + progressOffset)
+            showProgress((maxProgress * bytesRead) / parseFloat(size) + progressOffset)
           }
         })
 
@@ -219,17 +291,13 @@ async function getCacheDir(platform: string): Promise<string> {
 }
 
 async function getPlatform() {
-  const { os, dist } = (await new Promise(r => {
-    getos((e, os) => {
-      r(os)
-    })
-  })) as any
+  const { platform, isMusl } = await getos()
 
-  if (os === 'darwin') {
+  if (platform === 'darwin') {
     return 'darwin'
   }
 
-  if (os === 'linux' && dist === 'Raspbian') {
+  if (platform === 'linux' && isMusl) {
     return 'linux-musl'
   }
 
@@ -245,4 +313,8 @@ function getSchemaInferrerDownloadUrl(platform: string) {
 
 function getPrismaDownloadUrl(platform: string) {
   return `https://s3-eu-west-1.amazonaws.com/prisma-native/alpha/latest/${platform}/prisma`
+}
+
+function getMigrationEngineDownloadUrl(platform: string) {
+  return `https://s3-eu-west-1.amazonaws.com/prisma-native/alpha/latest/${platform}/migration-engine`
 }

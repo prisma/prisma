@@ -98,6 +98,7 @@ export class NodeEngine extends Engine {
       const env = {
         PRISMA_CONFIG,
         PRISMA_SDL: this.datamodel,
+        PRISMA_DML: '',
         SERVER_ROOT: process.cwd(),
         PRISMA_INTERNAL_DATA_MODEL_JSON: this.datamodelJson,
         ...schemaEnv,
