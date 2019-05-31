@@ -36,6 +36,7 @@ const exists = promisify(fs.exists)
 export type UpOptions = {
   preview?: boolean
   n?: number
+  short?: boolean
 }
 const brightGreen = chalk.rgb(127, 224, 152)
 const charm = Charm()
@@ -195,7 +196,7 @@ export class Lift {
     })
   }
 
-  public async up({ n, preview }: UpOptions): Promise<string> {
+  public async up({ n, preview, short }: UpOptions): Promise<string> {
     const before = Date.now()
     const localMigrations = await this.getLocalMigrations()
     const remoteMigrations = await this.engine.listMigrations()
@@ -229,28 +230,32 @@ export class Lift {
       },
     )
 
-    const previewStr = preview ? ` --preview` : ''
-    console.log(`🏋️‍ lift up${previewStr}\n`)
+    if (!short) {
+      const previewStr = preview ? ` --preview` : ''
+      console.log(`🏋️‍ lift up${previewStr}\n`)
 
-    if (migrationsToApply.length === 0) {
-      return 'All migrations are already applied'
-    }
+      if (migrationsToApply.length === 0) {
+        return 'All migrations are already applied'
+      }
 
-    const lastAppliedMigration: Migration | undefined =
-      lastAppliedIndex > -1 ? localMigrations[lastAppliedIndex] : undefined
-    const lastUnappliedMigration: Migration = migrationsToApply.slice(-1)[0]
+      const lastAppliedMigration: Migration | undefined =
+        lastAppliedIndex > -1 ? localMigrations[lastAppliedIndex] : undefined
+      const lastUnappliedMigration: Migration = migrationsToApply.slice(-1)[0]
 
-    if (lastAppliedMigration) {
-      console.log(chalk.bold('Changes to be applied:'))
-      console.log(
-        printDatamodelDiff(
-          lastAppliedMigration.datamodel,
-          lastUnappliedMigration.datamodel,
-        ),
-      )
-    } else {
-      console.log(brightGreen.bold('Datamodel that will initialize the db:\n'))
-      console.log(highlightDatamodel(lastUnappliedMigration.datamodel))
+      if (lastAppliedMigration) {
+        console.log(chalk.bold('Changes to be applied:'))
+        console.log(
+          printDatamodelDiff(
+            lastAppliedMigration.datamodel,
+            lastUnappliedMigration.datamodel,
+          ),
+        )
+      } else {
+        console.log(
+          brightGreen.bold('Datamodel that will initialize the db:\n'),
+        )
+        console.log(highlightDatamodel(lastUnappliedMigration.datamodel))
+      }
     }
 
     const progressRenderer = new ProgressRenderer(migrationsToApply)
@@ -298,9 +303,9 @@ export class Lift {
       }
     }
     await progressRenderer.done()
-    return `🚀 Done with ${migrationsToApply.length} migrations in ${formatms(
-      Date.now() - before,
-    )}.\n`
+    return `🚀  Done with ${migrationsToApply.length} migration${
+      migrationsToApply.length > 1 ? 's' : ''
+    } in ${formatms(Date.now() - before)}.\n`
   }
 }
 

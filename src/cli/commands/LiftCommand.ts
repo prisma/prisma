@@ -2,21 +2,30 @@ import { Command, Commands } from '../types'
 import { arg, isError, format } from '../utils'
 import { unknownCommand, HelpError } from '../Help'
 import kleur from 'kleur'
+import { LiftWatch } from './LiftWatch'
+import { Env } from '../Env'
 
 /**
  * Migrate command
  */
 export class LiftCommand implements Command {
-  static new(cmds: Commands): LiftCommand {
-    return new LiftCommand(cmds)
+  static new(cmds: Commands, env: Env): LiftCommand {
+    return new LiftCommand(cmds, env)
   }
-  private constructor(private readonly cmds: Commands) {}
+  private constructor(
+    private readonly cmds: Commands,
+    private readonly env: Env,
+  ) {}
 
   async parse(argv: string[]): Promise<string | Error> {
     // parse the arguments according to the spec
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
+      '--watch': Boolean,
+      '-w': '--watch',
+      '--preview': Boolean,
+      '-p': '--preview',
     })
     if (isError(args)) {
       return this.help(args.message)
@@ -30,12 +39,19 @@ export class LiftCommand implements Command {
     if (cmd) {
       return cmd.parse(args._.slice(1))
     }
+
+    if (args['--watch']) {
+      return LiftWatch.new(this.env).parse(argv)
+    }
+
     return unknownCommand(LiftCommand.help, args._[0])
   }
 
   help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${kleur.bold().red(`!`)} ${error}\n${LiftCommand.help}`)
+      return new HelpError(
+        `\n${kleur.bold().red(`!`)} ${error}\n${LiftCommand.help}`,
+      )
     }
     return LiftCommand.help
   }

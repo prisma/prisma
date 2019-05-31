@@ -14,57 +14,34 @@ model Author {
 
 model Post {
   id: Int @id
-  title: String?
+  title: String
   anotherText: String
   tags: String[]
   blog: Blog
 }
 
+model AnotherModel {
+  id: Int @id
+  title2: String
+  anotherText: String
+  anotherText2: String
+  anotherText3: String
+  tags: String[]
+}
+
 model AnotherModel1 {
   id: Int @id
   title2: String
-  anotherTex: String
-  tags: String[]
-}
-
-model Anodel2 {
-  id: Int @id
-  title2: String
-  anotherTex: String
-}
-
-model AnotherModel3 {
-  id: Int @id
-  title2: String
-  anotherTex: String
-  anotherText2: String?
-  anotherText3: String
-  tags: Int[]
-}
-
-model AnotherModel4 {
-  id: Int @id
-  title2: String
-  anotherTex: String
+  anotherText: String
   anotherText2: String
   anotherText3: String
   tags: String[]
 }
 
-model AnotherModel5 {
+model AnotherModel2 {
   id: Int @id
   title2: String
-  anotherTex: String
-  anotherText2: String
-  anotherText3: String
-  # tags: String[]
-}
-
-
-model AnotherModel6 {
-  id: Int @id
-  title2: String
-  anotherTex: String
+  anotherText: String
   anotherText2: String
   anotherText3: String
   tags: String[]
