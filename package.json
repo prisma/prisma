@@ -51,7 +51,7 @@
     "test": "jest",
     "tsc": "tsc -d",
     "ncc": "ncc build dist/bin.js -o build",
-    "build": "yarn tsc && yarn ncc",
+    "build": "yarn tsc && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js'",
     "prepublishOnly": "yarn build"
   },
   "files": [

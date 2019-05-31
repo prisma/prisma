@@ -96,6 +96,7 @@ export class Lift {
       migrationId,
     })
     const { datamodelSteps, databaseSteps } = result
+    console.log(databaseSteps)
     if (databaseSteps.length === 0) {
       return undefined
     }
@@ -207,28 +208,30 @@ export class Lift {
     }
 
     let lastAppliedIndex = -1
-    const migrationsToApply = localMigrations.filter(
-      (localMigration, index) => {
-        const remoteMigration = remoteMigrations[index]
-        // if there is already a corresponding remote migration,
-        // we don't need to apply this migration
+    let migrationsToApply = localMigrations.filter((localMigration, index) => {
+      const remoteMigration = remoteMigrations[index]
+      // if there is already a corresponding remote migration,
+      // we don't need to apply this migration
 
-        if (remoteMigration) {
-          if (localMigration.id !== remoteMigration.id) {
-            throw new Error(
-              `Local and remote migrations are not in lockstep. We have migration ${
-                localMigration.id
-              } locally and ${
-                remoteMigration.id
-              } remotely at the same position in the history.`,
-            )
-          }
-          lastAppliedIndex = index
-          return false
+      if (remoteMigration) {
+        if (localMigration.id !== remoteMigration.id) {
+          throw new Error(
+            `Local and remote migrations are not in lockstep. We have migration ${
+              localMigration.id
+            } locally and ${
+              remoteMigration.id
+            } remotely at the same position in the history.`,
+          )
         }
-        return true
-      },
-    )
+        lastAppliedIndex = index
+        return false
+      }
+      return true
+    })
+
+    if (typeof n === 'number') {
+      migrationsToApply = migrationsToApply.slice(0, n)
+    }
 
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
@@ -277,7 +280,7 @@ export class Lift {
       })
       const totalSteps = result.databaseSteps.length
       let progress: EngineResults.MigrationProgress | undefined
-      loop2: while (
+      progressLoop: while (
         (progress = await this.engine.migrationProgess({
           migrationId: id,
         }))
@@ -287,7 +290,7 @@ export class Lift {
         }
         if (progress.status === 'Success') {
           progressRenderer.setProgress(i, 1)
-          break loop2
+          break progressLoop
         }
         if (progress.status === 'RollbackSuccess') {
           charm.cursor(true)
@@ -307,39 +310,6 @@ export class Lift {
       migrationsToApply.length > 1 ? 's' : ''
     } in ${formatms(Date.now() - before)}.\n`
   }
-}
-
-function rateLimit(fn: any, delay: any, context?: any) {
-  var canInvoke = true,
-    queue = [] as any[],
-    timeout,
-    limited = function(this: any) {
-      queue.push({
-        context: context || this,
-        arguments: Array.prototype.slice.call(arguments),
-      })
-      if (canInvoke) {
-        canInvoke = false
-        timeEnd()
-      }
-    } as any
-  function run(context, args) {
-    fn.apply(context, args)
-  }
-  function timeEnd() {
-    var e
-    if (queue.length) {
-      e = queue.splice(0, 1)[0]
-      run(e.context, e.arguments)
-      timeout = setTimeout(timeEnd, delay)
-    } else canInvoke = true
-  }
-  limited.reset = function() {
-    clearTimeout(timeout)
-    queue = []
-    canInvoke = true
-  }
-  return limited
 }
 
 class ProgressRenderer {
@@ -415,7 +385,7 @@ class ProgressRenderer {
       chalk.dim(
         `\nYou can get the detailed db changes with ${cleur.greenBright(
           'prisma lift up --verbose',
-        )}\n`,
+        )}\nOr read about them in the ./migrations/MIGRATION_ID/README.md`,
       ),
     )
 
