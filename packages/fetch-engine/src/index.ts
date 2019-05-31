@@ -1,2 +1,2 @@
-export { ensureBinaries } from './ensureBinaries'
+export { ensureBinaries, ensureMigrationBinary } from './ensureBinaries'
 export { download } from './download'
