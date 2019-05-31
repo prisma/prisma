@@ -38,7 +38,7 @@ export class LiftUp implements Command {
       const maybeNumber = parseInt(arg)
 
       // in this case it's a migration id
-      if (isNaN(maybeNumber)) {
+      if (isNaN(maybeNumber) || typeof maybeNumber !== 'number') {
         throw new Error(`Invalid migration step ${maybeNumber}`)
       } else {
         options.n = maybeNumber

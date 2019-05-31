@@ -59,3 +59,13 @@ model AnotherModel5 {
   anotherText3: String
   # tags: String[]
 }
+
+
+model AnotherModel6 {
+  id: Int @id
+  title2: String
+  anotherTex: String
+  anotherText2: String
+  anotherText3: String
+  tags: String[]
+}
