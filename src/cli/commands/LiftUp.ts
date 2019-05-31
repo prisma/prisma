@@ -1,8 +1,5 @@
-import { Command } from '../types'
-import { arg, isError, format } from '../utils'
-import { HelpError } from '../Help'
+import { Command, arg, isError, format, Env, HelpError } from '@prisma/cli'
 import chalk from 'chalk'
-import { Env } from '../Env'
 import { Lift, UpOptions } from '../../Lift'
 
 export class LiftUp implements Command {
