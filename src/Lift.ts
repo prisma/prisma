@@ -12,7 +12,7 @@ import {
 import globby from 'globby'
 import { deepEqual } from 'fast-equals'
 import { printDatamodelSteps } from './utils/printDatamodelSteps'
-import { printDatabaseSteps } from './utils/printDatabaseSteps'
+import { printDatabaseStepsOverview } from './utils/printDatabaseSteps'
 import cleur from './utils/cleur'
 import indent from 'indent-string'
 import { printMigrationReadme } from './utils/printMigrationReadme'
@@ -96,7 +96,6 @@ export class Lift {
       migrationId,
     })
     const { datamodelSteps, databaseSteps } = result
-    console.log(databaseSteps)
     if (databaseSteps.length === 0) {
       return undefined
     }
@@ -141,6 +140,7 @@ export class Lift {
           lastMigrationId: 'last migration id', //TODO
           datamodelA: '',
           datamodelB: datamodel,
+          databaseSteps,
         }),
       },
       newLockFile,
@@ -357,7 +357,7 @@ class ProgressRenderer {
     let maxStepLength = 0
     const rows = this.migrations
       .map(m => {
-        const steps = printDatabaseSteps(exampleDbSteps)
+        const steps = printDatabaseStepsOverview(exampleDbSteps)
         maxStepLength = Math.max(stripAnsi(steps).length, maxStepLength)
         return `${blue(m.id)}${' '.repeat(
           longestMigration - m.id.length + 2,
