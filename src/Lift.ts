@@ -19,7 +19,7 @@ import { highlightDatamodel, blue } from './utils/highlightDatamodel'
 import { groupBy } from './utils/groupBy'
 import { exampleDbSteps } from './example-db-steps'
 import stripAnsi from 'strip-ansi'
-import Charm from 'charm'
+import Charm from './utils/charm'
 import { formatms } from './utils/formartms'
 
 const readFile = promisify(fs.readFile)
@@ -298,7 +298,7 @@ export class Lift {
       }
     }
     await progressRenderer.done()
-    return `🚀  Done with ${migrationsToApply.length} migration${
+    return `\n🚀  Done with ${migrationsToApply.length} migration${
       migrationsToApply.length > 1 ? 's' : ''
     } in ${formatms(Date.now() - before)}.\n`
   }

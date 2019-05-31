@@ -1,6 +1,6 @@
 {
   "name": "@prisma/lift",
-  "version": "0.0.4",
+  "version": "0.0.7",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
@@ -30,7 +30,6 @@
     "@prisma/cli": "^0.0.4",
     "@prisma/fetch-engine": "^0.0.13",
     "arg": "^4.1.0",
-    "charm": "^1.0.2",
     "debug": "^4.1.1",
     "diff": "^4.0.1",
     "fast-equals": "^2.0.0",
