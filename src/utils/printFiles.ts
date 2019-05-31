@@ -1,7 +1,5 @@
 import { FileMap } from '../types'
 import indent from 'indent-string'
-import path from 'path'
-import { cyan } from 'kleur'
 import { printMigrationId } from './printMigrationId'
 
 export function printFiles(printPath: string, files: FileMap) {

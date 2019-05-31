@@ -1,7 +1,7 @@
 import { Command, Commands } from '../types'
 import { arg, isError, format } from '../utils'
 import { unknownCommand, HelpError } from '../Help'
-import kleur from 'kleur'
+import chalk from 'chalk'
 import { LiftWatch } from './LiftWatch'
 import { Env } from '../Env'
 
@@ -50,7 +50,7 @@ export class LiftCommand implements Command {
   help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(
-        `\n${kleur.bold().red(`!`)} ${error}\n${LiftCommand.help}`,
+        `\n${chalk.bold.red(`!`)} ${error}\n${LiftCommand.help}`,
       )
     }
     return LiftCommand.help
@@ -58,19 +58,19 @@ export class LiftCommand implements Command {
 
   // static help template
   private static help = format(`
-    ${kleur.bold('🏋️‍')}  Lift - Migrate your database schema and data safely
+    ${chalk.bold('🏋️‍')}  Lift - Migrate your database schema and data safely
 
-    ${kleur.bold('Usage')}
+    ${chalk.bold('Usage')}
 
       prisma lift [command] [options]
 
-    ${kleur.bold('Options')}
+    ${chalk.bold('Options')}
 
       -n, --name      Name of the migration
       -p, --preview   Preview the migration changes
       -w, --watch     Watch for datamodel changes
 
-    ${kleur.bold('Commands')}
+    ${chalk.bold('Commands')}
 
       docs   Open documentation in the browser
       down   Migrate your database down
@@ -78,21 +78,21 @@ export class LiftCommand implements Command {
     create   Setup a new migration
         up   Migrate your database up
 
-    ${kleur.bold('Examples')}
+    ${chalk.bold('Examples')}
 
       Migrate up to the latest datamodel
-      ${kleur.dim(`$`)} prisma lift
+      ${chalk.dim(`$`)} prisma lift
 
       Create new migration folder
-      ${kleur.dim(`$`)} prisma lift create
+      ${chalk.dim(`$`)} prisma lift create
 
       Rollback a migration
-      ${kleur.dim(`$`)} prisma lift down 1
+      ${chalk.dim(`$`)} prisma lift down 1
 
       Preview the next migration without applying
-      ${kleur.dim(`$`)} prisma lift up 1 --preview
+      ${chalk.dim(`$`)} prisma lift up 1 --preview
 
       Watch for any changes to the datamodel
-      ${kleur.dim(`$`)} prisma lift --watch
+      ${chalk.dim(`$`)} prisma lift --watch
   `)
 }

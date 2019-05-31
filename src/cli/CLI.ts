@@ -1,4 +1,4 @@
-import kleur from 'kleur'
+import chalk from 'chalk'
 import { Command, Commands } from './types'
 import { arg, isError, format } from './utils'
 import { HelpError, unknownCommand } from './Help'
@@ -37,31 +37,31 @@ export class CLI implements Command {
   // help function
   private help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${kleur.bold().red(`!`)} ${error}\n${CLI.help}`)
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${CLI.help}`)
     }
     return CLI.help
   }
 
   // static help template
   private static help = format(`
-    ${kleur.bold().green('◭')} Prisma makes your data easy (https://prisma.io)
+    ${chalk.bold.green('◭')} Prisma makes your data easy (https://prisma.io)
 
-    ${kleur.bold('Usage')}
+    ${chalk.bold('Usage')}
 
-      ${kleur.dim(`$`)} prisma [command]
+      ${chalk.dim(`$`)} prisma [command]
 
-    ${kleur.bold('Commands')}
+    ${chalk.bold('Commands')}
 
           lift   Migrate your datamodel
            new   Setup Prisma for your app
           seed   Seed data into your database
 
-    ${kleur.bold('Examples')}
+    ${chalk.bold('Examples')}
 
       Initialize files for a new Prisma service
-      ${kleur.dim(`$`)} prisma new
+      ${chalk.dim(`$`)} prisma new
 
       Deploy service changes (or new service)
-      ${kleur.dim(`$`)} prisma lift
+      ${chalk.dim(`$`)} prisma lift
   `)
 }

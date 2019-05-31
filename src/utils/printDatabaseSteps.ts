@@ -5,7 +5,7 @@ import {
   RenameTableStep,
   CreateTableStep,
 } from '../types'
-import cleur from './cleur'
+import chalk from 'chalk'
 import { darkBrightBlue } from './highlightDatamodel'
 
 export function printDatabaseStepsOverview(databaseSteps: DatabaseStep[]) {
@@ -31,15 +31,15 @@ const bold = str => str
 
 function renderStep(step: DatabaseStep) {
   if (isRawSqlStep(step)) {
-    return `${bold('Raw SQL')} ${cleur.dim(step.RawSql)}`
+    return `${bold('Raw SQL')} ${chalk.dim(step.RawSql)}`
   }
   if (isDropTableStep(step)) {
-    return `${bold('Drop table')} ${cleur.bold().dim(step.DropTable.name)}`
+    return `${bold('Drop table')} ${chalk.bold.dim(step.DropTable.name)}`
   }
   if (isRenameTableStep(step)) {
-    return `${bold('Rename table')} ${cleur.dim(
+    return `${bold('Rename table')} ${chalk.dim(
       step.RenameTable.name,
-    )} ${cleur.dim('→')} ${cleur.dim(step.RenameTable.new_name)}`
+    )} ${chalk.dim('→')} ${chalk.dim(step.RenameTable.new_name)}`
   }
   if (isCreateTableStep(step)) {
     const foreignKeyCount = step.CreateTable.columns.filter(c => c.foreign_key)
@@ -48,9 +48,9 @@ function renderStep(step: DatabaseStep) {
     const foreignKeyStr =
       foreignKeyCount > 0 ? `, ${foreignKeyCount} foreign keys` : ''
     const primaryColumns = primaryCount > 0 ? `, ${primaryCount} primary` : ''
-    return `${bold('Create table')} ${cleur
-      .bold()
-      .dim(step.CreateTable.name)}${cleur.dim(
+    return `${bold('Create table')} ${chalk.bold.dim(
+      step.CreateTable.name,
+    )}${chalk.dim(
       `, ${
         step.CreateTable.columns.length
       } columns${foreignKeyStr}${primaryColumns}`,
@@ -103,4 +103,4 @@ function isCreateTableStep(
   return databaseStep.hasOwnProperty('CreateTable')
 }
 
-const ct = cleur.bold('CreateTable')
+const ct = chalk.bold('CreateTable')
