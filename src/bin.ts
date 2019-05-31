@@ -23,10 +23,13 @@ async function main(): Promise<number> {
   }
   // create a new CLI with our subcommands
   const cli = CLI.new({
-    lift: LiftCommand.new({
-      create: LiftCreate.new(env),
-      up: LiftUp.new(env),
-    }),
+    lift: LiftCommand.new(
+      {
+        create: LiftCreate.new(env),
+        up: LiftUp.new(env),
+      },
+      env,
+    ),
   })
   // parse the arguments
   var result = await cli.parse(process.argv.slice(2))
@@ -45,7 +48,11 @@ async function main(): Promise<number> {
  * Run our program
  */
 main()
-  .then(code => process.exit(code))
+  .then(code => {
+    if (code !== 0) {
+      process.exit(code)
+    }
+  })
   .catch(err => {
     console.error(err)
     process.exit(1)

@@ -1,6 +1,6 @@
 {
   "name": "lift-prototype",
-  "version": "0.0.5",
+  "version": "0.0.10",
   "main": "index.js",
   "repository": "git@github.com:prisma/lift.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",

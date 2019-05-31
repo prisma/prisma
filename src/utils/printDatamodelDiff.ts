@@ -15,6 +15,7 @@ export function printDatamodelDiff(datamodelA: string, datamodelB?: string) {
         if (
           change.value.split('\n').length <= 2 &&
           index > 0 &&
+          changes[index - 1] &&
           changes[index - 1].removed
         ) {
           const charChanges = diffChars(changes[index - 1].value, change.value)
@@ -38,7 +39,9 @@ export function printDatamodelDiff(datamodelA: string, datamodelB?: string) {
       }
       if (change.removed) {
         if (
+          change.value.split('\n').length <= 2 &&
           index > 0 &&
+          changes[index + 1] &&
           changes[index + 1].added &&
           changes[index + 1].value.split('\n').length <= 2
         ) {
@@ -115,19 +118,26 @@ function trimWholeModels(str: string) {
       return acc
     }, lines)
     .join('\n')
-    .trimEnd()
+    .trim()
 }
 
 // filter unnecessary space changes
 function normalizeText(str: string) {
   return str
     .split('\n')
-    .map(line => {
+    .reduce<string[]>((acc, line) => {
       const trimmed = line.trim()
-      if (trimmed.length <= 1) {
-        return trimmed
+      if (trimmed.startsWith('#')) {
+        return acc
       }
-      return line
-    })
+
+      if (trimmed.length <= 1) {
+        acc.push(trimmed)
+      } else {
+        acc.push(line)
+      }
+
+      return acc
+    }, [])
     .join('\n')
 }
