@@ -1,16 +1,15 @@
 {
   "name": "@prisma/photon",
-  "version": "0.0.0",
-  "main": "runtime/index.js",
-  "types": "runtime/index.d.ts",
-  "browser": "browser-runtime/index.js",
+  "version": "0.0.5",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "scripts": {
     "tsc": "tsc -d",
     "build": "yarn lint && yarn tsc && yarn ncc:runtime && yarn build:browser",
     "test": "jest",
     "ncc:runtime": "node scripts/build-runtime.js",
-    "install": "test -f scripts/download.js && node scripts/download.js",
+    "install": "test -f scripts/download.js && node scripts/download.js || echo \"\"",
     "prepublishOnly": "yarn build",
     "build:browser": "webpack -c scripts/webpack.browser.config.js",
     "lint": "tslint -c tslint.json 'src/**/*.ts' --fix"
@@ -33,7 +32,6 @@
     "dist"
   ],
   "devDependencies": {
-    "@prisma/dmmf": "^0.1.24",
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
@@ -64,8 +62,9 @@
   },
   "dependencies": {
     "@prisma/cli": "^0.0.4",
-    "@prisma/engine-core": "^0.0.28",
-    "@prisma/fetch-engine": "^0.0.15",
+    "@prisma/dmmf": "^0.1.24",
+    "@prisma/engine-core": "^0.0.29",
+    "@prisma/fetch-engine": "^0.0.17",
     "chalk": "^2.4.2",
     "dotenv": "^8.0.0",
     "fs-monkey": "^0.3.3",

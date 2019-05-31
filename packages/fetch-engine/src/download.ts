@@ -50,8 +50,6 @@ export async function downloadMigrationBinary(migrationBinary: string, version: 
     process.exit()
   })
 
-  info('For the source code, check out: https://github.com/prisma/lift')
-
   // Print an empty line
   const platform = await getPlatform()
   const cacheDir = await getCacheDir(platform)
@@ -67,7 +65,7 @@ export async function downloadMigrationBinary(migrationBinary: string, version: 
     const remoteLastModified = await getRemoteLastModified(getMigrationEngineDownloadUrl(platform))
     // If there is no new binary and we have it localy, copy it over
     if (localLastModified >= remoteLastModified) {
-      console.log(`Taking migration engine binary from local cache from ${localLastModified.toISOString()}`)
+      // console.log(`Taking migration engine binary from local cache from ${localLastModified.toISOString()}`)
       await Promise.all([copy(cachedMigrationEnginePath, migrationBinary)])
       return
     }
@@ -125,8 +123,6 @@ export async function download(prismaBinPath: string, schemaInferrerBinPath: str
     process.exit()
   })
 
-  info('For the source code, check out: https://github.com/prisma/prisma')
-
   // Print an empty line
   const platform = await getPlatform()
   const cacheDir = await getCacheDir(platform)
@@ -144,7 +140,7 @@ export async function download(prismaBinPath: string, schemaInferrerBinPath: str
     const remoteLastModified = await getRemoteLastModified(getPrismaDownloadUrl(platform))
     // If there is no new binary and we have it localy, copy it over
     if (localLastModified >= remoteLastModified) {
-      console.log(`Taking binaries from local cache from ${localLastModified.toISOString()}`)
+      // console.log(`Taking binaries from local cache from ${localLastModified.toISOString()}`)
       await Promise.all([copy(cachedPrismaPath, prismaBinPath), copy(cachedSchemaInferrerPath, schemaInferrerBinPath)])
       return
     }

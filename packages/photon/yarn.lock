@@ -308,18 +308,18 @@
     pluralize "7.0.0"
     prisma-datamodel "^1.34.0-alpha.2"
 
-"@prisma/engine-core@^0.0.28":
-  version "0.0.28"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.28.tgz#d6ec9c3ac6db43643656d14fd7b31ff97271b26d"
-  integrity sha512-5QalWs+UKJZd2ci0Lm9QuXZ6y8C/1Xyr6vcjz+ELKFmegfKxIoeAjGe+Vj+THtqrOmABNfmYRMMbjIULq7LLOQ==
+"@prisma/engine-core@^0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.29.tgz#2959125061c0d025dbae1b5cad35b0822e79d7d4"
+  integrity sha512-NUzjyS+H5KH96ZgVbmKP6Y2zrIiRjBE+sdQWzn8M/VKHhAX6GiX6dsWayBKxOxtH8PNFD2us93w6s8E5NM0foA==
   dependencies:
     cross-fetch "^3.0.2"
     debug "^4.1.1"
 
-"@prisma/fetch-engine@^0.0.15":
-  version "0.0.15"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.15.tgz#aae3152f6d021a44afce59662483459563370113"
-  integrity sha512-cPXhmK8cJIMT/L1JexHvkQ7hItGse1IubNTX0Qfijo8aoNHLQQrmOdGWK7TwKqg7y3svJE+5TbUPjd9mQMwQ/w==
+"@prisma/fetch-engine@^0.0.17":
+  version "0.0.17"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.17.tgz#ed9ee19ca1304bd7f6d8f627aa88d67a0b204a88"
+  integrity sha512-tAWRmd2sBcOvy017uObBQ8o4JD9K8KDhcnkS38TAzf9DBSEkD8L0e6As5QdjrMfbRTiCrcbmAQW5WuXdii4/fg==
   dependencies:
     chalk "^2.4.2"
     death "^1.1.0"
