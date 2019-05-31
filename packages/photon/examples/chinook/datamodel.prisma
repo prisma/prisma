@@ -1,0 +1,102 @@
+type Album {
+  id: Int! @id @db(name: "AlbumId")
+  title: String! @db(name: "Title")
+  artist: Artist! @db(name: "ArtistId")
+  tracks: [Track]
+}
+
+type Track {
+  id: Int! @id @db(name: "TrackId")
+  name: String! @db(name: "Name")
+  album: Album @db(name: "AlbumId")
+  albumId: Int @db(name: "AlbumId")
+  mediaType: MediaType! @db(name: "MediaTypeId")
+  genre: Genre @db(name: "GenreId")
+  composer: String @db(name: "Composer")
+  milliseconds: Int! @db(name: "Milliseconds")
+  unitPrice: Float! @db(name: "UnitPrice")
+  playlists: [Playlist] @relation(name: "PlaylistTrack")
+}
+
+type MediaType {
+  id: Int! @id @db(name: "MediaTypeId")
+  name: String @db(name: "Name")
+}
+
+type Genre {
+  id: Int! @id @db(name: "GenreId")
+  name: String @db(name: "Name")
+  tracks: [Track]
+}
+
+type Artist {
+  id: Int! @id @db(name: "ArtistId")
+  name: String @db(name: "Name")
+  albums: [Album]
+}
+
+type Customer {
+  id: Int! @id @db(name: "CustomerId")
+  FirstName: String!
+  LastName: String!
+  Company: String
+  Address: String
+  City: String
+  State: String
+  Country: String
+  PostalCode: String
+  Phone: String
+  Fax: String
+  Email: String!
+  supportRep: Employee @db(name: "SupportRepId")
+}
+
+type Employee {
+  id: Int! @id @db(name: "EmployeeId")
+  FirstName: String!
+  LastName: String!
+  Title: String
+  ReportsTo: Employee
+  BirthDate: DateTime
+  HireDate: DateTime
+  Address: String
+  City: String
+  State: String
+  Country: String
+  PostalCode: String
+  Phone: String
+  Fax: String
+  Email: String
+}
+
+type Invoice {
+  id: Int! @id @db(name: "InvoiceId")
+  Customer: Customer! @db(name: "CustomerId")
+  InvoiceDate: DateTime!
+  BillingAddress: String
+  BillingCity: String
+  BillingState: String
+  BillingCountry: String
+  BillingPostalCode: String
+  Total: Float!
+  Lines: [InvoiceLine]
+}
+
+type InvoiceLine {
+  id: Int! @id @db(name: "InvoiceLineId")
+  Invoice: Invoice! @db(name: "InvoiceId")
+  Track: Track! @db(name: "TrackId")
+  UnitPrice: Float!
+  Quantity: Int!
+}
+
+type Playlist {
+  id: Int! @id @db(name: "PlaylistId")
+  Name: String
+  Tracks: [Track] @relation(name: "PlaylistTrack")
+}
+
+type PlaylistTrack @relationTable {
+  PlaylistId: Playlist
+  TrackId: Track
+}

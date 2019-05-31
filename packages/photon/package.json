@@ -1,0 +1,85 @@
+{
+  "name": "@prisma/photon",
+  "version": "0.0.0",
+  "main": "runtime/index.js",
+  "types": "runtime/index.d.ts",
+  "browser": "browser-runtime/index.js",
+  "license": "Apache-2.0",
+  "scripts": {
+    "tsc": "tsc -d",
+    "build": "yarn lint && yarn tsc && yarn ncc:runtime && yarn build:browser",
+    "test": "jest",
+    "ncc:runtime": "node scripts/build-runtime.js",
+    "install": "test -f scripts/download.js && node scripts/download.js",
+    "prepublishOnly": "yarn build",
+    "build:browser": "webpack -c scripts/webpack.browser.config.js",
+    "lint": "tslint -c tslint.json 'src/**/*.ts' --fix"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "tslint --project tsconfig.json -c tslint.json --fix",
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "files": [
+    "runtime",
+    "browser-runtime",
+    "dist"
+  ],
+  "devDependencies": {
+    "@prisma/dmmf": "^0.1.24",
+    "@types/debug": "^4.1.4",
+    "@types/fs-extra": "^7.0.0",
+    "@types/jest": "^24.0.13",
+    "@types/js-levenshtein": "^1.1.0",
+    "@types/node": "^12.0.4",
+    "@types/node-fetch": "^2.3.4",
+    "@zeit/ncc": "^0.18.5",
+    "benchmark": "^2.1.4",
+    "declaration-bundler-webpack-plugin": "^1.0.3",
+    "del": "^4.1.1",
+    "flat-map-polyfill": "^0.3.8",
+    "fs-extra": "^8.0.1",
+    "get-own-enumerable-property-symbols": "^3.0.0",
+    "husky": "^2.3.0",
+    "jest": "^24.8.0",
+    "lint-staged": "^8.1.7",
+    "optimize-css-assets-webpack-plugin": "^5.0.1",
+    "prettier": "^1.17.1",
+    "source-map-loader": "^0.2.4",
+    "ts-jest": "^24.0.2",
+    "ts-loader": "^6.0.2",
+    "ts-node": "^8.2.0",
+    "tslint": "^5.17.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.5.1",
+    "webpack": "5.0.0-alpha.14",
+    "webpack-cli": "4.0.0-alpha-4"
+  },
+  "dependencies": {
+    "@prisma/cli": "^0.0.4",
+    "@prisma/engine-core": "^0.0.28",
+    "@prisma/fetch-engine": "^0.0.15",
+    "chalk": "^2.4.2",
+    "dotenv": "^8.0.0",
+    "fs-monkey": "^0.3.3",
+    "indent-string": "^4.0.0",
+    "is-obj": "^2.0.0",
+    "is-regexp": "^2.1.0",
+    "js-levenshtein": "^1.1.6",
+    "js-yaml": "^3.13.1",
+    "make-dir": "^3.0.0",
+    "node-fetch": "^2.6.0",
+    "prisma-datamodel": "^1.34.0",
+    "prisma-generate-schema": "^1.34.0",
+    "set-value": "^3.0.0",
+    "strip-ansi": "^5.2.0",
+    "strip-indent": "^3.0.0"
+  }
+}

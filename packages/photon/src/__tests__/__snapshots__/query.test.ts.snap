@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`validation missing arg object 1`] = `
+"mutation {
+  createPost(data: null) {
+    id
+    title
+    content
+  }
+}"
+`;
+
+exports[`validation missing arg object 3`] = `
+"mutation {
+  createPost(data: null) {
+    id
+    title
+    content
+  }
+}"
+`;
+
+exports[`validation missing arg scalar && object 1`] = `
+"mutation {
+  createPost(data: {
+    title: \\"string\\"
+    content: null
+    author: null
+    id: null
+  }) {
+    id
+    title
+    content
+  }
+}"
+`;
+
+exports[`validation missing arg scalar 1`] = `
+"mutation {
+  createPost(data: {
+    title: \\"string\\"
+    author: {
+      connect: {
+        id: \\"\\"
+      }
+    }
+    content: null
+    id: null
+  }) {
+    id
+    title
+    content
+  }
+}"
+`;
+
+exports[`validation unknown arg, field, incorrect arg type 1`] = `
+"query {
+  users(
+    skip: 200
+    where: {
+      name_in: [\\"hans\\", \\"peter\\", \\"schmidt\\"]
+      AND: [
+        {
+          age_gt: 10123123123
+          this_is_completely_arbitrary: \\"veryLongNameGoIntoaNewLineNow@gmail.com\\"
+        },
+        {
+          age_gt: 10123123123
+          id_endsWith: \\"veryLongNameGoIntoaNewLineNow@gmail.com\\"
+          name_contains: \\"hans\\"
+          name_gt: 2131203912039123
+          name_in: [\\"hans\\"]
+          AND: [
+            {
+              age_gt: \\"10123123123\\"
+              id_endsWith: \\"veryLongNameGoIntoaNewLineNow@gmail.com\\"
+            }
+          ]
+        }
+      ]
+    }
+  ) {
+    id
+    name # INVALID_FIELD
+    strings
+    name2 # INVALID_FIELD
+    posts(first: 200) {
+      id
+      content
+    }
+  }
+}"
+`;
