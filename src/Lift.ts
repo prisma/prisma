@@ -15,12 +15,13 @@ import { printDatabaseStepsOverview } from './utils/printDatabaseSteps'
 import { printMigrationReadme } from './utils/printMigrationReadme'
 import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import chalk from 'chalk'
-import { highlightDatamodel, blue } from './utils/highlightDatamodel'
+import { highlightDatamodel } from './cli/highlight/highlight'
 import { groupBy } from './utils/groupBy'
 import { exampleDbSteps } from './example-db-steps'
 import stripAnsi from 'strip-ansi'
 import Charm from './utils/charm'
 import { formatms } from './utils/formartms'
+import { blue } from './cli/highlight/theme'
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
