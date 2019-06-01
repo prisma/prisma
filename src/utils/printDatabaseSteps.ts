@@ -6,7 +6,7 @@ import {
   CreateTableStep,
 } from '../types'
 import chalk from 'chalk'
-import { darkBrightBlue } from './highlightDatamodel'
+import { darkBrightBlue } from '../cli/highlight/theme'
 
 export function printDatabaseStepsOverview(databaseSteps: DatabaseStep[]) {
   const counts = getStepCounts(databaseSteps)

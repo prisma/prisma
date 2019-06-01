@@ -1,4 +1,4 @@
-import { highlightDatamodel } from '../highlightDatamodel'
+import { highlightDatamodel } from '../../cli/highlight/highlight'
 import { printDatamodelDiff } from '../printDatamodelDiff'
 
 const datamodelA = `model Blog {

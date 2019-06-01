@@ -1,4 +1,4 @@
-import { highlightDatamodel } from './highlightDatamodel'
+import { highlightDatamodel } from '../cli/highlight/highlight'
 import { diffLines, diffChars } from 'diff'
 import chalk from 'chalk'
 import { strongGreen, strongRed } from './customColors'
