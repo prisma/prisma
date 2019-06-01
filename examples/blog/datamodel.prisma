@@ -18,4 +18,5 @@ model Post {
   anotherText: String
   tags: String[]
   blog: Blog
+  anotherString: String?
 }

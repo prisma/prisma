@@ -110,6 +110,20 @@ export class LiftEngine {
     })
   }
   private getRPCPayload(method: string, params: any) {
+    if (
+      method === 'calculateDatamodel' ||
+      method === 'calculateDatabaseSteps'
+    ) {
+      return {
+        id: 1,
+        jsonrpc: '2.0',
+        method,
+        params: {
+          project_info: '',
+          ...params,
+        },
+      }
+    }
     return {
       id: 1,
       jsonrpc: '2.0',
@@ -120,13 +134,27 @@ export class LiftEngine {
       },
     }
   }
-  applyMigration(args: EngineArgs.ApplyMigration): Promise<any> {
+  applyMigration(
+    args: EngineArgs.ApplyMigration,
+  ): Promise<EngineResults.ApplyMigration> {
     return this.runCommand(this.getRPCPayload('applyMigration', args))
   }
-  inferMigrationSteps(args: EngineArgs.InferMigrationSteps): Promise<any> {
+  calculateDatamodel(
+    args: EngineArgs.CalculateDatamodel,
+  ): Promise<EngineResults.CalculateDatamodel> {
+    return this.runCommand(this.getRPCPayload('calculateDatamodel', args))
+  }
+  calculateDatabaseSteps(
+    args: EngineArgs.CalculateDatabaseSteps,
+  ): Promise<EngineResults.ApplyMigration> {
+    return this.runCommand(this.getRPCPayload('calculateDatabaseSteps', args))
+  }
+  inferMigrationSteps(
+    args: EngineArgs.InferMigrationSteps,
+  ): Promise<EngineResults.InferMigrationSteps> {
     return this.runCommand(this.getRPCPayload('inferMigrationSteps', args))
   }
-  listMigrations(): Promise<any> {
+  listMigrations(): Promise<EngineResults.ListMigrations> {
     return this.runCommand(this.getRPCPayload('listMigrations', {}))
   }
   migrationProgess(
