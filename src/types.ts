@@ -1,4 +1,19 @@
-export type MigrationStep = CreateModelStep | CreateFieldStep
+export type DatamodelStep = CreateModelStep | CreateFieldStep
+
+export type CreateModelStep = {
+  stepType: 'CreateModel'
+  name: string
+  embedded: boolean
+}
+
+export type CreateFieldStep = {
+  stepType: 'CreateField'
+  model: string
+  name: string
+  type: FieldType
+  arity: FieldArity
+  isUnique: boolean
+}
 
 export enum PrimitiveType {
   String = 'String',
@@ -28,26 +43,14 @@ export type RelationFieldType = {
   }
 }
 
-export type CreateModelStep = {
-  stepType: 'CreateModel'
-  name: string
-  embedded: boolean
-}
-
-export type CreateFieldStep = {
-  stepType: 'CreateField'
-  model: string
-  name: string
-  type: FieldType
-  arity: FieldArity
-  isUnique: boolean
-}
-
 export namespace EngineArgs {
   export type ApplyMigration = {
     migrationId: string
-    steps: MigrationStep[]
+    steps: DatamodelStep[]
     force: boolean
+  }
+  export type CalculateDatamodel = {
+    steps: DatamodelStep[]
   }
   export type InferMigrationSteps = {
     migrationId: string
@@ -56,11 +59,15 @@ export namespace EngineArgs {
   export type MigrationProgress = {
     migrationId: string
   }
+  export type CalculateDatabaseSteps = {
+    assume_to_be_applied: DatamodelStep[]
+    steps_to_apply: DatamodelStep[]
+  }
 }
 
 export namespace EngineResults {
   export type InferMigrationSteps = {
-    datamodelSteps: MigrationStep[]
+    datamodelSteps: DatamodelStep[]
     databaseSteps: any[]
     warnings: any[]
     errors: any[]
@@ -83,6 +90,22 @@ export namespace EngineResults {
     startedAt: string
     finishedAt: string
   }
+  export type ApplyMigration = {
+    datamodelSteps: DatamodelStep[]
+    databaseSteps: DatabaseStep[]
+    warnings: any[]
+    errors: any[]
+    generalErrors: any[]
+  }
+  export type StoredMigration = {
+    id: string
+    steps: DatamodelStep[]
+    status: MigrationStatus
+  }
+  export type CalculateDatamodel = {
+    datamodel: string
+  }
+  export type ListMigrations = StoredMigration[]
 }
 
 export interface FileMap {

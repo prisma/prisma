@@ -193,6 +193,14 @@ export class Lift {
     const before = Date.now()
     const localMigrations = await this.getLocalMigrations()
     const remoteMigrations = await this.engine.listMigrations()
+    // console.log(localMigrations.length)
+    // const result = await this.engine.calculateDatabaseSteps({
+    //   assume_to_be_applied: [], //localMigrations[0].steps,
+
+    //   steps_to_apply: localMigrations[0].steps,
+    // })
+    // console.log(result)
+    // return ''
     if (remoteMigrations.length > localMigrations.length) {
       throw new Error(
         `There are more migrations in the database than locally. This must not happen`,
