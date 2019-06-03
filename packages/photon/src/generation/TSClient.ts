@@ -67,9 +67,9 @@ export type Subset<T, U> = { [key in keyof T]: key extends keyof U ? T[key] : ne
 class PhotonFetcher {
   private url?: string
   constructor(private readonly engine: Engine, private readonly debug = false) {}
-  async request<T>(query: string, path: string[] = [], rootField?: string): Promise<T> {
+  async request<T>(query: string, path: string[] = [], rootField?: string, typeName?: string): Promise<T> {
     debug(query)
-    const result = await this.engine.request(query)
+    const result = await this.engine.request(query, typeName)
     debug(result)
     return this.unpack(result, path, rootField)
   }
@@ -193,10 +193,17 @@ class PhotonClientClass {
     const { dmmf } = this
 
     return `
-interface PhotonOptions {
+
+
+export type Fetcher = (input: {
+  query: string
+  typeName?: string
+}) => Promise<{ data?: any; error?: any; errors?: any }>
+
+export interface PhotonOptions {
   debugEngine?: boolean
   debug?: boolean
-  fetcher?: (query: string) => Promise<any>
+  fetcher?: Fetcher
 }
 
 export class Photon {
@@ -657,7 +664,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
     onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
-    return this.fetcher.request<T>(this.query, this.path, this.rootField).then(onfulfilled, onrejected)
+    return this.fetcher.request<T>(this.query, this.path, this.rootField, '${name}').then(onfulfilled, onrejected)
   }
 
   /**
@@ -668,7 +675,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
   catch<TResult = never>(
     onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
   ): Promise<T | TResult> {
-    return this.fetcher.request<T>(this.query, this.path, this.rootField).catch(onrejected)
+    return this.fetcher.request<T>(this.query, this.path, this.rootField, '${name}').catch(onrejected)
   }
 }
     `
@@ -716,7 +723,7 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
     onfulfilled?: ((value: U) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
-    return this.fetcher.request<U>(this.query, this.path).then(onfulfilled, onrejected)
+    return this.fetcher.request<U>(this.query, this.path, undefined, '${name}').then(onfulfilled, onrejected)
   }
 
   /**
@@ -727,7 +734,7 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
   catch<TResult = never>(
     onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
   ): Promise<U | TResult> {
-    return this.fetcher.request<U>(this.query, this.path).catch(onrejected)
+    return this.fetcher.request<U>(this.query, this.path, undefined, '${name}').catch(onrejected)
   }
 }
     `
