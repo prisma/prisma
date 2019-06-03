@@ -1,15 +1,12 @@
 {
   "name": "@prisma/lift",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
   "private": false,
-  "bin": {
-    "prisma2": "build/index.js"
-  },
   "devDependencies": {
     "@types/charm": "^1.0.1",
     "@types/debug": "^4.1.4",

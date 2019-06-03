@@ -3,7 +3,9 @@ import byline from './utils/byline'
 import { EngineArgs, EngineResults } from './types'
 import debugLib from 'debug'
 import chalk from 'chalk'
+import util from 'util'
 const debug = debugLib('LiftEngine')
+const debugRpc = debugLib('LiftEngine:rpc')
 const debugStderr = debugLib('LiftEngine:stderr')
 
 // enum StepType {
@@ -39,6 +41,7 @@ export class LiftEngine {
     this.debug = debug
   }
   private runCommand(request: any): Promise<any> {
+    debugRpc('SENDING RPC CALL', util.inspect(request, { depth: null }))
     return new Promise((resolve, reject) => {
       const messages: string[] = []
       const child = spawn(this.binaryPath, {
@@ -86,10 +89,14 @@ export class LiftEngine {
         try {
           const result = JSON.parse(lineString)
           if (result.result) {
+            debugRpc(
+              `RECEIVING RPC ANSWER`,
+              util.inspect(result.result, { depth: null }),
+            )
             resolve(result.result)
           } else {
             if (result.error) {
-              console.log(result)
+              console.error(result)
               reject(new Error(result.error.message))
             } else {
               reject(
