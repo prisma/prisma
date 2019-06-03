@@ -1,12 +1,17 @@
 import { PhotonError } from './Engine'
 
+export type Fetcher = (input: {
+  query: string
+  typeName?: string
+}) => Promise<{ data?: any; error?: any; errors?: any }>
+
 interface EngineConfig {
   url?: string
-  fetcher?: (query: string) => Promise<{ data?: any; error?: any; errors?: any }>
+  fetcher?: Fetcher
 }
 
 export class BrowserEngine {
-  fetcher: (query: string) => Promise<{ data?: any; error?: any; errors?: any }>
+  fetcher: Fetcher
   url?: string
   constructor({ fetcher }: EngineConfig) {
     this.fetcher = fetcher || this.defaultFetcher
@@ -15,7 +20,7 @@ export class BrowserEngine {
 
   async stop() {}
 
-  defaultFetcher = async (query: string) => {
+  defaultFetcher = async ({ query, typeName }: { query: string; typeName?: string }) => {
     return fetch(this.url, {
       method: 'POST',
       headers: {
@@ -49,8 +54,8 @@ export class BrowserEngine {
       })
   }
 
-  async request<T>(query: string): Promise<T> {
-    return this.fetcher(query).then(result => {
+  async request<T>(query: string, typeName?: string): Promise<T> {
+    return this.fetcher({ query, typeName }).then(result => {
       const { data } = result
       const errors = result.error || result.errors
       if (errors) {
