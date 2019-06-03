@@ -11,9 +11,10 @@ import fetch from 'node-fetch'
 import retry from 'p-retry'
 import path from 'path'
 import { getos } from './getos'
+import Progress from 'progress'
 
 // Utils
-import { disableProgress, enableProgress, info, showProgress, warn } from './log'
+import { getBar, info, warn } from './log'
 import plusxSync from './chmod'
 import findCacheDir from 'find-cache-dir'
 import { copy } from './copy'
@@ -23,7 +24,7 @@ const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
 
-export async function downloadMigrationBinary(migrationBinary: string, version: string) {
+export async function downloadMigrationBinary(migrationBinary: string, version: string, showProgress = false) {
   try {
     fs.writeFileSync(
       migrationBinary,
@@ -71,11 +72,16 @@ export async function downloadMigrationBinary(migrationBinary: string, version: 
     }
   }
 
-  enableProgress('Downloading Prisma Binary ' + version)
-  showProgress(0)
+  const bar = showProgress ? getBar('Downloading Prisma Binary ' + version) : null
+  if (bar) {
+    bar.update(0)
+  }
 
   const lastModified = await downloadFile(getMigrationEngineDownloadUrl(platform), migrationBinary, 0, 100)
-  disableProgress()
+  if (bar) {
+    bar.update(1)
+    bar.terminate()
+  }
 
   plusxSync(migrationBinary)
 
@@ -96,7 +102,12 @@ export async function downloadMigrationBinary(migrationBinary: string, version: 
 /**
  * TODO: Check if binary already exists and if checksum is the same!
  */
-export async function download(prismaBinPath: string, schemaInferrerBinPath: string, version: string) {
+export async function download(
+  prismaBinPath: string,
+  schemaInferrerBinPath: string,
+  version: string,
+  showProgress = false,
+) {
   try {
     fs.writeFileSync(
       prismaBinPath,
@@ -146,13 +157,17 @@ export async function download(prismaBinPath: string, schemaInferrerBinPath: str
     }
   }
 
-  enableProgress('Downloading Prisma Binary ' + version)
-  showProgress(0)
+  const bar = showProgress ? getBar('Downloading Prisma Binary ' + version) : null
+  if (bar) {
+    bar.update(0)
+  }
 
-  const lastModified = await downloadFile(getPrismaDownloadUrl(platform), prismaBinPath)
-  await downloadZip(getSchemaInferrerDownloadUrl(platform), schemaInferrerBinPath, 50)
-  showProgress(100)
-  disableProgress()
+  const lastModified = await downloadFile(getPrismaDownloadUrl(platform), prismaBinPath, 0, 50, bar)
+  await downloadZip(getSchemaInferrerDownloadUrl(platform), schemaInferrerBinPath, 50, bar)
+  if (bar) {
+    bar.update(1)
+    bar.terminate()
+  }
 
   plusxSync(prismaBinPath)
   plusxSync(schemaInferrerBinPath)
@@ -191,7 +206,7 @@ async function getRemoteLastModified(url: string): Promise<Date> {
   return new Date(response.headers.get('last-modified'))
 }
 
-async function downloadZip(url: string, target: string, progressOffset = 0) {
+async function downloadZip(url: string, target: string, progressOffset = 0, bar?: Progress) {
   const partial = target + '.partial'
   await retry(
     async () => {
@@ -211,8 +226,8 @@ async function downloadZip(url: string, target: string, progressOffset = 0) {
           resp.body.on('error', reject).on('data', chunk => {
             bytesRead += chunk.length
 
-            if (size) {
-              showProgress((50 * bytesRead) / parseFloat(size) + progressOffset)
+            if (size && bar) {
+              bar.update(((50 * bytesRead) / parseFloat(size) + progressOffset) / 100)
             }
           })
 
@@ -238,7 +253,13 @@ async function downloadZip(url: string, target: string, progressOffset = 0) {
   fs.renameSync(partial, target)
 }
 
-async function downloadFile(url: string, target: string, progressOffset = 0, maxProgress = 50): Promise<string> {
+async function downloadFile(
+  url: string,
+  target: string,
+  progressOffset = 0,
+  maxProgress = 50,
+  bar?: Progress,
+): Promise<string> {
   return retry<string>(
     async () => {
       const resp = await fetch(url, { compress: false })
@@ -258,8 +279,8 @@ async function downloadFile(url: string, target: string, progressOffset = 0, max
         resp.body.on('error', reject).on('data', chunk => {
           bytesRead += chunk.length
 
-          if (size) {
-            showProgress((maxProgress * bytesRead) / parseFloat(size) + progressOffset)
+          if (size && bar) {
+            bar.update(((maxProgress * bytesRead) / parseFloat(size) + progressOffset) / 100)
           }
         })
 
