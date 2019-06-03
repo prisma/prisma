@@ -1,6 +1,6 @@
 {
   "name": "@prisma/fetch-engine",
-  "version": "0.0.17",
+  "version": "0.0.19",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -9,6 +9,7 @@
     "@types/fs-extra": "^5.1.0",
     "@types/node": "^12.0.0",
     "@types/node-fetch": "^2.3.3",
+    "@types/progress": "^2.0.3",
     "ncc": "^0.3.6",
     "typescript": "^3.5.0-dev.20190512"
   },
