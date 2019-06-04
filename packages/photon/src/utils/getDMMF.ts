@@ -1,8 +1,10 @@
 import { DMMF as DMMFComponent } from '@prisma/dmmf'
+import { NodeEngine } from '@prisma/engine-core/dist/NodeEngine'
+import path from 'path'
 import { DatabaseType, DefaultParser, ISDL } from 'prisma-datamodel'
 import { generateCRUDSchemaFromInternalISDL } from 'prisma-generate-schema'
-import { DMMF } from '../runtime/dmmf-types'
-import { getUnionDocument } from '../runtime/getUnionDocument'
+import { DMMF, ExternalDMMF } from '../runtime/dmmf-types'
+import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
 import { transformDmmf } from '../runtime/transformDmmf'
 
 const modelBlacklist = {
@@ -43,8 +45,8 @@ const fieldBlacklist = {
  * Checks if a model or field shouldn't be there
  * @param document DMMF.Document
  */
-function checkBlacklist(sdl: ISDL) {
-  for (const model of sdl.types) {
+function checkBlacklist(sdl: DMMF.Datamodel) {
+  for (const model of sdl.models) {
     if (modelBlacklist[model.name]) {
       throw new Error(`Model name ${model.name} is a reserved name and not allowed in the datamodel`)
     }
@@ -56,11 +58,35 @@ function checkBlacklist(sdl: ISDL) {
   }
 }
 
-export function getDMMF(datamodel: string): DMMF.Document {
-  const parser = DefaultParser.create(DatabaseType.postgres)
-  const sdl = parser.parseFromSchemaString(datamodel)
-  checkBlacklist(sdl)
-  const schema = generateCRUDSchemaFromInternalISDL(sdl, DatabaseType.postgres)
-  const dmmf: DMMF.Document<DMMF.RawSchemaArg> = JSON.parse(JSON.stringify(new DMMFComponent(datamodel, schema)))
-  return transformDmmf(getUnionDocument(dmmf))
+export async function getDMMF(datamodel: string): Promise<DMMF.Document> {
+  const engine = new NodeEngine({
+    datamodel,
+    prismaPath: path.join(__dirname, '../../runtime/prisma'),
+    prismaConfig: `prototype: true
+databases:
+  default:
+    connector: sqlite-native
+    databaseFile: ./db/Chinook.db
+    migrations: true
+    active: true
+    rawAccess: true
+    `,
+  })
+
+  await engine.start()
+  const externalDmmf: ExternalDMMF.Document = await engine.getDmmf()
+  const dmmf = transformDmmf(externalToInternalDmmf(externalDmmf))
+  checkBlacklist(dmmf.datamodel)
+
+  engine.stop()
+  return dmmf
 }
+
+// export function getDMMF(datamodel: string): DMMF.Document {
+//   const parser = DefaultParser.create(DatabaseType.postgres)
+//   const sdl = parser.parseFromSchemaString(datamodel)
+//   checkBlacklist(sdl)
+//   const schema = generateCRUDSchemaFromInternalISDL(sdl, DatabaseType.postgres)
+//   const dmmf: DMMF.Document = JSON.parse(JSON.stringify(new DMMFComponent(datamodel, schema)))
+//   return transformDmmf(getUnionDocument(dmmf))
+// }

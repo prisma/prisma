@@ -4,8 +4,8 @@ import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { getDMMF } from '../utils/getDMMF'
 chalk.enabled = false
 
-describe('relation where transformation', () => {
-  const dmmf = new DMMFClass(getDMMF(chinook))
+describe('relation where transformation', async () => {
+  const dmmf = new DMMFClass(await getDMMF(chinook))
   test('transform correctly', () => {
     const select = {
       where: {

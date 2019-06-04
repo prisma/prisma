@@ -24,7 +24,7 @@ export abstract class Engine {
    */
   abstract stop(): void
 
-  abstract request<T>(query: string): Promise<T>
+  abstract request<T>(query: string, typeName?: string): Promise<T>
 
   abstract handleErrors({ errors, query }: { errors?: any; query: string }): void
 }

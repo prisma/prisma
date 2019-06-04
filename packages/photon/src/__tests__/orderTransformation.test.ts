@@ -3,8 +3,8 @@ import { enums } from '../fixtures/enums'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { getDMMF } from '../utils/getDMMF'
 
-describe('where transformation', () => {
-  const dmmf = new DMMFClass(getDMMF(enums))
+describe('where transformation', async () => {
+  const dmmf = new DMMFClass(await getDMMF(enums))
   test('transform correctly', () => {
     const select = {
       orderBy: {

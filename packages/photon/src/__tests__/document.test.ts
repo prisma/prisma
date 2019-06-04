@@ -24,12 +24,20 @@ test('document stringify', () => {
             providedValue: '200',
             argName: 'skip',
             requiredType: {
-              isEnum: false,
-              isRequired: false,
-              types: ['number'],
-              isList: false,
-              isScalar: false,
-              bestFittingType: 'number',
+              inputType: [
+                {
+                  isList: false,
+                  isRequired: false,
+                  kind: 'scalar',
+                  type: 'number',
+                },
+              ],
+              bestFittingType: {
+                isList: false,
+                isRequired: false,
+                kind: 'scalar',
+                type: 'number',
+              },
             },
           },
         }),

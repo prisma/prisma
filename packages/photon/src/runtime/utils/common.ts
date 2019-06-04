@@ -146,17 +146,20 @@ export function stringifyInputType(input: string | DMMF.InputType | DMMF.Enum, g
     return `enum ${input.name} {\n${indent((input as DMMF.Enum).values.join(', '), 2)}\n}`
   } else {
     const body = indent(
-      (input as DMMF.InputType).args // TS doesn't discriminate based on existence of fields properly
+      (input as DMMF.InputType).fields // TS doesn't discriminate based on existence of fields properly
         .map(arg => {
+          const argInputType = arg.inputType[0]
           const key = `${arg.name}`
-          const str = `${greenKeys ? chalk.green(key) : key}${arg.isRequired ? '' : '?'}: ${chalk.white(
-            arg.type
+          const str = `${greenKeys ? chalk.green(key) : key}${argInputType.isRequired ? '' : '?'}: ${chalk.white(
+            arg.inputType
               .map(argType =>
-                argIsInputType(argType) ? argType.name : wrapWithList(stringifyGraphQLType(argType), arg.isList),
+                argIsInputType(argType.type)
+                  ? argType.type.name
+                  : wrapWithList(stringifyGraphQLType(argType.type), argType.isList),
               )
               .join(' | '),
           )}`
-          if (!arg.isRequired) {
+          if (!argInputType.isRequired) {
             return chalk.dim(str)
           }
 
@@ -203,20 +206,20 @@ export function inputTypeToJson(
   // If the parent type is required and all fields are non-scalars,
   // it's very useful to show to the user, which options they actually have
   const showDeepType =
-    isRequired && inputType.args.every(arg => !arg.isScalar) && !inputType.isWhereType && !inputType.atLeastOne
+    isRequired &&
+    inputType.fields.every(arg => arg.inputType[0].kind === 'object') &&
+    !inputType.isWhereType &&
+    !inputType.atLeastOne
   if (nameOnly) {
     return getInputTypeName(input)
   }
 
-  return inputType.args.reduce((acc, curr) => {
-    if (curr.name === 'Albums_every') {
-      acc[curr.name + (curr.isRequired ? '' : '?')] = getInputTypeName(curr.type[0])
-    } else {
-      acc[curr.name + (curr.isRequired ? '' : '?')] =
-        curr.isRelationFilter && !showDeepType && !curr.isRequired
-          ? getInputTypeName(curr.type[0])
-          : inputTypeToJson(curr.type[0], curr.isRequired)
-    }
+  return inputType.fields.reduce((acc, curr) => {
+    const argInputType = curr.inputType[0]
+    acc[curr.name + (argInputType.isRequired ? '' : '?')] =
+      curr.isRelationFilter && !showDeepType && !argInputType.isRequired
+        ? getInputTypeName(argInputType.type)
+        : inputTypeToJson(argInputType.type, argInputType.isRequired)
     return acc
   }, {})
 }

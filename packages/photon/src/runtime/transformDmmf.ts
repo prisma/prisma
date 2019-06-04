@@ -1,5 +1,5 @@
 import { DMMF } from './dmmf-types'
-import { Dictionary, stringifyInputType, uniqBy } from './utils/common'
+import { Dictionary, uniqBy } from './utils/common'
 
 export function transformDmmf(document: DMMF.Document): DMMF.Document {
   const doc = transformOrderInputTypes(transformWhereInputTypes(document))
@@ -8,8 +8,8 @@ export function transformDmmf(document: DMMF.Document): DMMF.Document {
     mappings: doc.mappings,
     schema: {
       enums: doc.schema.enums,
-      queries: doc.schema.queries,
-      mutations: doc.schema.mutations,
+      rootMutationType: doc.schema.rootMutationType,
+      rootQueryType: doc.schema.rootQueryType,
       outputTypes: filterOutputTypes(doc.schema.outputTypes),
       inputTypes: filterInputTypes(doc.schema.inputTypes),
     },
@@ -46,19 +46,22 @@ function transformOrderInputTypes(document: DMMF.Document): DMMF.Document {
       }
       return acc
     }, [])
-    const inputType = {
+    const inputType: DMMF.InputType = {
       name: type.name,
       atLeastOne: true,
       atMostOne: true,
       isOrderType: true,
-      args: argNames.map(name => ({
+      fields: argNames.map(name => ({
         name,
-        type: ['OrderByArg'],
-        isEnum: false,
-        isList: false,
+        inputType: [
+          {
+            type: 'OrderByArg',
+            isList: false,
+            isRequired: false,
+            kind: 'scalar',
+          },
+        ],
         isRelationFilter: false,
-        isRequired: false,
-        isScalar: true,
       })),
     }
     inputTypes.push(inputType)
@@ -94,49 +97,56 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
       continue
     }
     const whiteList = ['AND', 'OR', 'NOT']
-    whiteList.push(...model.fields.filter(f => f.kind === 'relation' && !f.isList).map(f => f.name))
+    whiteList.push(...model.fields.filter(f => f.kind === 'object' && !f.isList).map(f => f.name))
 
-    const args = type.args.filter(a => whiteList.includes(a.name)).map(a => ({ ...a, isRelationFilter: true }))
-    // NOTE: list scalar fields don't have where arguments!
-    args.unshift(
-      ...model.fields
-        // filter out scalar lists as Prisma doesn't have filters for them
-        // also filter out relation non-lists, as we don't need to transform them
-        .filter(f => (f.kind === 'relation' ? f.isList : !f.isList))
-        .map(f => {
-          if (!filterTypes[getFilterName(f.type, f.isRequired || f.kind === 'relation')]) {
-            filterTypes[getFilterName(f.type, f.isRequired || f.kind === 'relation')] = makeFilterType(
-              f.type,
-              f.isRequired,
-              f.kind !== 'relation',
-            )
-          }
+    const fields = type.fields.filter(a => whiteList.includes(a.name)).map(a => ({ ...a, isRelationFilter: true }))
 
-          const typeList: any[] = []
-          if (f.kind !== 'relation') {
-            typeList.push(f.type)
-          }
-          typeList.push(getFilterName(f.type, f.isRequired || f.kind === 'relation'))
+    const filterTypesList = model.fields
+      // filter out scalar lists as Prisma doesn't have filters for them
+      // also filter out object non-lists, as we don't need to transform them
+      .filter(f => (f.kind === 'object' ? f.isList : !f.isList))
+      .map(f => {
+        if (!filterTypes[getFilterName(f.type, f.isRequired || f.kind === 'object')]) {
+          filterTypes[getFilterName(f.type, f.isRequired || f.kind === 'object')] = makeFilterType(
+            f.type,
+            f.isRequired,
+            f.kind !== 'object',
+          )
+        }
 
-          // for optional scalars you can directly provide null
-          if (!f.isRequired && f.kind !== 'relation') {
-            typeList.push('null')
-          }
-
-          return {
-            name: f.name,
-            type: typeList,
-            isScalar: false,
+        const typeList: DMMF.SchemaArgInputType[] = []
+        if (f.kind !== 'object') {
+          typeList.push({
+            isList: f.isList,
             isRequired: false,
-            isEnum: false,
-            isList: false,
-            isRelationFilter: false,
-          }
-        }),
-    )
+            kind: f.kind,
+            type: f.type,
+          })
+        }
+        typeList.push({
+          type: getFilterName(f.type, f.isRequired || f.kind === 'object'),
+          isList: false,
+          isRequired: false,
+          kind: 'object',
+        })
+
+        // for optional scalars you can directly provide null
+        if (!f.isRequired && f.kind !== 'object') {
+          typeList.push({ type: 'null', isList: false, isRequired: false, kind: 'scalar' })
+        }
+
+        return {
+          name: f.name,
+          inputType: typeList,
+          isRelationFilter: false,
+        }
+      })
+
+    // NOTE: list scalar fields don't have where arguments!
+    fields.unshift(...filterTypesList)
     const newType: DMMF.InputType = {
       name: type.name,
-      args,
+      fields,
       isWhereType: true,
       atLeastOne: true,
     }
@@ -166,7 +176,7 @@ function getWhereInputName(type: string) {
 function makeFilterType(type: string, isRequired: boolean, isScalar: boolean): DMMF.InputType {
   return {
     name: getFilterName(type, isRequired || !isScalar),
-    args: isScalar ? getScalarFilterArgs(type, isRequired) : getRelationFilterArgs(type),
+    fields: isScalar ? getScalarFilterArgs(type, isRequired) : getRelationFilterArgs(type),
     atLeastOne: true,
   }
 }
@@ -232,10 +242,11 @@ function getScalarArgs(names: string[], type: string[], isList = false): DMMF.Sc
 function getScalarArg(name: string, type: string[], isList): DMMF.SchemaArg {
   return {
     name,
-    isEnum: false,
-    isList,
-    isRequired: false,
-    isScalar: true,
-    type,
+    inputType: type.map(t => ({
+      isList,
+      isRequired: false,
+      kind: 'scalar',
+      type: t,
+    })),
   }
 }

@@ -32,21 +32,13 @@ export async function buildClient({
 }: BuildClientOptions): Promise<Dictionary<string>> {
   const fileMap = {}
   const prismaConfig = prismaYmlPath ? await fs.readFile(prismaYmlPath, 'utf-8') : undefined
-  const internalDatamodelJson =
-    process.env.PRISMA_INTERNAL_DATAMODEL_JSON ||
-    (await getInternalDatamodelJson(datamodel, path.join(__dirname, '../../runtime/schema-inferrer-bin')))
 
-  if (process.env.PRISMA_INTERNAL_DATAMODEL_JSON) {
-    console.log(`Taking cached datamodel json`)
-  }
-
-  const dmmf = getDMMF(datamodel)
+  const dmmf = await getDMMF(datamodel)
   const client = new TSClient({
     document: dmmf,
     prismaYmlPath,
     prismaConfig,
     datamodel,
-    datamodelJson: internalDatamodelJson,
     runtimePath,
     browser,
   })
@@ -125,11 +117,15 @@ export async function generateClient(
   await fs.writeFile(path.join(outputDir, '/runtime/index.d.ts'), indexDTS)
 }
 
+// TODO: fix type
+// export { Engine } from './dist/Engine'
 const indexDTS = `export { DMMF } from './dmmf-types'
 export { DMMFClass } from './dmmf'
 export { deepGet, deepSet } from './utils/deep-set'
 export { makeDocument, transformDocument } from './query'
-export { Engine } from './dist/Engine'
+
+export declare var Engine: any
+export declare type Engine = any
 
 export declare var debugLib: debug.Debug & { debug: debug.Debug; default: debug.Debug };
 
