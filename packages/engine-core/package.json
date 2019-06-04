@@ -13,7 +13,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc -d",
     "prepublishOnly": "yarn build",
-    "download": "prisma-fetch-engine $PWD"
+    "download": "node download.js"
   },
   "dependencies": {
     "cross-fetch": "^3.0.2",
