@@ -90,11 +90,11 @@ export class DMMFClass implements DMMF.Document {
       for (const field of type.fields) {
         for (const arg of field.args) {
           arg.inputType.forEach((t, index) => {
-            if (typeof t === 'string') {
-              if (inputTypeMap[t]) {
-                arg.inputType[index].type = inputTypeMap[t]
-              } else if (this.enumMap[t]) {
-                arg.inputType[index].type = this.enumMap[t]
+            if (typeof t.type === 'string') {
+              if (inputTypeMap[t.type]) {
+                arg.inputType[index].type = inputTypeMap[t.type]
+              } else if (this.enumMap[t.type]) {
+                arg.inputType[index].type = this.enumMap[t.type]
               }
             }
           })

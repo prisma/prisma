@@ -95,7 +95,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
 ${printJsonWithErrors(isTopLevelQuery ? { [topLevelQueryName]: select } : select, keyPaths, valuePaths, missingItems)}
 
 ${argErrors
-  .filter(e => e.error.type !== 'missingArg' || e.error[0].isRequired)
+  .filter(e => e.error.type !== 'missingArg' || e.error.missingType[0].isRequired)
   .map(this.printArgError)
   .join('\n')}
 ${fieldErrors.map(this.printFieldError).join('\n')}\n`
