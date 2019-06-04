@@ -3,8 +3,8 @@ import { enums } from '../fixtures/enums'
 import { DMMFClass, makeDocument } from '../runtime'
 import { getDMMF } from '../utils/getDMMF'
 
-describe('at least one validation', () => {
-  const dmmf = new DMMFClass(getDMMF(enums))
+describe('at least one validation', async () => {
+  const dmmf = new DMMFClass(await getDMMF(enums))
   test('invalid query', () => {
     const select = {
       where: {

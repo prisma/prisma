@@ -18,7 +18,7 @@ export function getDefaultName(modelName: string) {
 }
 
 export function getFieldArgName(field: DMMF.SchemaField): string {
-  return getArgName((field.type as DMMF.OutputType).name, field.isList)
+  return getArgName((field.outputType.type as DMMF.OutputType).name, field.outputType.isList)
 }
 
 export function getArgName(name: string, isList: boolean): string {
@@ -59,7 +59,7 @@ export function getDefaultArgName(dmmf: DMMFClass, modelName: string, action: DM
   const operation = getOperation(action)
   const queryType = operation === 'query' ? dmmf.queryType : dmmf.mutationType
   const field = queryType.fields.find(f => f.name === fieldName)!
-  return (field.args[0].type[0] as DMMF.InputType).name
+  return (field.args[0].inputType[0].type as DMMF.InputType).name
 }
 
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
@@ -91,11 +91,11 @@ export function renderInitialClientArgs(
 }
 
 export function getFieldTypeName(field: DMMF.SchemaField) {
-  if (typeof field.type === 'string') {
-    return field.type
+  if (typeof field.outputType.type === 'string') {
+    return field.outputType.type
   }
 
-  return field.type.name
+  return field.outputType.type.name
 }
 
 export function getType(name: string, isList: boolean) {
@@ -103,7 +103,7 @@ export function getType(name: string, isList: boolean) {
 }
 
 export function getFieldType(field: DMMF.SchemaField) {
-  return getType(getFieldTypeName(field), field.isList)
+  return getType(getFieldTypeName(field), field.outputType.isList)
 }
 
 interface SelectReturnTypeOptions {

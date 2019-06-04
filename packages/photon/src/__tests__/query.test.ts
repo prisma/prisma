@@ -3,7 +3,7 @@ import { dmmfDocument } from '../fixtures/example-dmmf'
 import { DMMFClass } from '../runtime/dmmf'
 import { makeDocument } from '../runtime/query'
 
-describe('validation', () => {
+describe.skip('validation', () => {
   const dmmf = new DMMFClass(dmmfDocument)
   test('unknown arg, field, incorrect arg type', () => {
     const ast = {

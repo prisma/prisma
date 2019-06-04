@@ -62,7 +62,7 @@
   "dependencies": {
     "@prisma/cli": "^0.0.4",
     "@prisma/dmmf": "^0.1.26",
-    "@prisma/engine-core": "^0.0.30",
+    "@prisma/engine-core": "^0.0.32",
     "@prisma/fetch-engine": "^0.0.19",
     "chalk": "^2.4.2",
     "dotenv": "^8.0.0",

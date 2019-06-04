@@ -1,33 +1,33 @@
 export const enums = /* GraphQL */ `
-  type User {
-    id: ID! @id
-    name: String!
-    email: String! @unique
+  model User {
+    id: ID @id
+    name: String
+    email: String @unique
     status: String
-    nicknames: [String!]! @scalarList(strategy: RELATION)
-    permissions: [Permission!]! @scalarList(strategy: RELATION)
+    nicknames: String[]
+    permissions: Permission[]
     favoriteTree: Tree
     location: Location
-    posts: [Post!]!
+    posts: Post[]
   }
 
-  type Post {
-    id: ID! @id
-    name: String!
-    email: String! @unique
+  model Post {
+    id: ID @id
+    name: String
+    email: String @unique
   }
 
-  type Location {
-    id: Int! @id
-    city: String!
+  model Location {
+    id: Int @id
+    city: String
   }
 
   enum Tree {
-    Arborvitae
-    YellowBirch
-    BlackAsh
-    DouglasFir
-    Oak
+    ARBORVITAE
+    YELLOWBIRCH
+    BLACKASH
+    DOUGLASFIR
+    OAK
   }
 
   enum Permission {

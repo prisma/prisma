@@ -45,7 +45,7 @@ export interface InvalidArgNameError {
   didYouMeanArg?: string // if the possible names are too different and therefore just arbitrary, we don't suggest anything
   didYouMeanField?: string // if it's very similar to a field, they probably just forgot the select statement
   originalType: DMMF.ArgType
-  possibilities?: DMMF.ArgType[]
+  possibilities?: DMMF.SchemaArgInputType[]
   outputType?: DMMF.OutputType
 }
 
@@ -56,11 +56,7 @@ export interface InvalidArgNameError {
 export interface MissingArgError {
   type: 'missingArg'
   missingName: string
-  missingType: DMMF.ArgType[] // note that this could be an object or scalar type. in the object case, we print the whole object type
-  isScalar: boolean // useful for error printing
-  isEnum: boolean
-  isList: boolean
-  isRequired: boolean
+  missingType: DMMF.SchemaArgInputType[] // note that this could be an object or scalar type. in the object case, we print the whole object type
   atLeastOne: boolean
   atMostOne: boolean
 }
@@ -85,12 +81,8 @@ export interface InvalidArgTypeError {
   type: 'invalidType'
   argName: string
   requiredType: {
-    bestFittingType: DMMF.ArgType
-    types: DMMF.ArgType[]
-    isRequired: boolean
-    isScalar: boolean
-    isEnum: boolean
-    isList: boolean
+    bestFittingType: DMMF.SchemaArgInputType
+    inputType: DMMF.SchemaArgInputType[]
   }
   providedValue: any
 }

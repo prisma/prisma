@@ -1,13 +1,14 @@
-export namespace DMMF {
-  export interface Document<T extends BaseSchemaArg = SchemaArg> {
+export namespace ExternalDMMF {
+  export interface Document {
     datamodel: Datamodel
-    schema: Schema<T>
+    schema: Schema
     mappings: Mapping[]
   }
 
   export interface Enum {
     name: string
     values: string[]
+    dbName?: string | null
   }
 
   export interface Datamodel {
@@ -18,34 +19,33 @@ export namespace DMMF {
   export interface Model {
     name: string
     isEmbedded: boolean
-    dbName: string
+    dbName: string | null
     fields: Field[]
   }
 
-  export type FieldKind = 'scalar' | 'relation' | 'enum'
+  export type FieldKind = 'scalar' | 'object' | 'enum'
+  export type DatamodelFieldKind = 'scalar' | 'relation' | 'enum'
 
   export interface Field {
-    kind: FieldKind
+    kind: DatamodelFieldKind
     name: string
     isRequired: boolean
     isList: boolean
     isUnique: boolean
     isId: boolean
     type: string
+    dbName: string | null
+    isGenerated: boolean
+    relationToFields?: any[]
+    relationOnDelete?: string
   }
 
-  export interface Schema<T extends BaseSchemaArg = SchemaArg> {
-    queries: Array<Query<T>>
-    mutations: Array<Query<T>>
-    inputTypes: Array<InputType<T>>
-    outputTypes: Array<OutputType<T>>
+  export interface Schema {
+    rootQueryType?: string
+    rootMutationType?: string
+    inputTypes: InputType[]
+    outputTypes: OutputType[]
     enums: Enum[]
-  }
-
-  export interface Query<T extends BaseSchemaArg = SchemaArg> {
-    name: string
-    args: T[]
-    output: QueryOutput
   }
 
   export interface QueryOutput {
@@ -54,62 +54,43 @@ export namespace DMMF {
     isList: boolean
   }
 
-  export type ArgType<T extends BaseSchemaArg = SchemaArg> = string | InputType<T> | Enum
+  export type ArgType = string
 
-  export interface BaseSchemaArg {
+  export interface SchemaArg {
     name: string
-    type: ArgType | ArgType[]
-    isScalar: boolean
-    isRequired: boolean
-    isEnum: boolean
-    isList: boolean
-  }
-
-  export interface RawSchemaArg extends BaseSchemaArg {
-    name: string
-    type: ArgType
-    isScalar: boolean
-    isRequired: boolean
-    isEnum: boolean
-    isList: boolean
-  }
-
-  export interface SchemaArg extends BaseSchemaArg {
-    name: string
-    type: ArgType[]
-    isScalar: boolean
-    isRequired: boolean
-    isEnum: boolean
-    isList: boolean
+    inputType: {
+      isRequired: boolean
+      isList: boolean
+      type: ArgType
+      kind: FieldKind
+    }
     isRelationFilter?: boolean
   }
 
-  export interface OutputType<T extends BaseSchemaArg = SchemaArg> {
+  export interface OutputType {
     name: string
-    fields: Array<SchemaField<T>>
+    fields: SchemaField[]
+    isEmbedded?: boolean
   }
 
-  export interface MergedOutputType<T extends BaseSchemaArg = SchemaArg> extends OutputType<T> {
-    isEmbedded: boolean
-    fields: Array<SchemaField<T>>
-  }
-
-  export interface SchemaField<T extends BaseSchemaArg = SchemaArg> {
+  export interface SchemaField {
     name: string
-    type: string | MergedOutputType<T> | Enum // note that in the serialized state we don't have the reference to MergedOutputTypes
-    isList: boolean
-    isRequired: boolean
-    kind: FieldKind
-    args: T[]
+    outputType: {
+      type: string // note that in the serialized state we don't have the reference to MergedOutputTypes
+      isList: boolean
+      isRequired: boolean
+      kind: FieldKind
+    }
+    args: SchemaArg[]
   }
 
-  export interface InputType<T extends BaseSchemaArg = SchemaArg> {
+  export interface InputType {
     name: string
     isWhereType?: boolean // this is needed to transform it back
     isOrderType?: boolean
     atLeastOne?: boolean
     atMostOne?: boolean
-    args: T[]
+    fields: SchemaArg[]
   }
 
   export interface Mapping {
@@ -136,9 +117,135 @@ export namespace DMMF {
   }
 }
 
-export interface BaseField<T extends DMMF.BaseSchemaArg = DMMF.SchemaArg> {
+export namespace DMMF {
+  export interface Document {
+    datamodel: Datamodel
+    schema: Schema
+    mappings: Mapping[]
+  }
+
+  export interface Enum {
+    name: string
+    values: string[]
+    dbName?: string | null
+  }
+
+  export interface Datamodel {
+    models: Model[]
+    enums: Enum[]
+  }
+
+  export interface Model {
+    name: string
+    isEmbedded: boolean
+    dbName: string | null
+    fields: Field[]
+  }
+
+  export type FieldKind = 'scalar' | 'object' | 'enum'
+
+  export interface Field {
+    kind: FieldKind
+    name: string
+    isRequired: boolean
+    isList: boolean
+    isUnique: boolean
+    isId: boolean
+    type: string
+    dbName: string | null
+    isGenerated: boolean
+    relationToFields?: any[]
+    relationOnDelete?: string
+  }
+
+  export interface Schema {
+    rootQueryType?: string
+    rootMutationType?: string
+    inputTypes: InputType[]
+    outputTypes: OutputType[]
+    enums: Enum[]
+  }
+
+  export interface Query {
+    name: string
+    args: SchemaArg[]
+    output: QueryOutput
+  }
+
+  export interface QueryOutput {
+    name: string
+    isRequired: boolean
+    isList: boolean
+  }
+
+  export type ArgType = string | InputType | Enum
+
+  export interface SchemaArgInputType {
+    isRequired: boolean
+    isList: boolean
+    type: ArgType
+    kind: FieldKind
+  }
+
+  export interface SchemaArg {
+    name: string
+    inputType: SchemaArgInputType[]
+    isRelationFilter?: boolean
+  }
+
+  export interface OutputType {
+    name: string
+    fields: SchemaField[]
+    isEmbedded?: boolean
+  }
+
+  export interface SchemaField {
+    name: string
+    outputType: {
+      type: string | OutputType | Enum // note that in the serialized state we don't have the reference to MergedOutputTypes
+      isList: boolean
+      isRequired: boolean
+      kind: FieldKind
+    }
+    args: SchemaArg[]
+  }
+
+  export interface InputType {
+    name: string
+    isWhereType?: boolean // this is needed to transform it back
+    isOrderType?: boolean
+    atLeastOne?: boolean
+    atMostOne?: boolean
+    fields: SchemaArg[]
+  }
+
+  export interface Mapping {
+    model: string
+    findOne?: string | null
+    findMany?: string | null
+    create?: string | null
+    update?: string | null
+    updateMany?: string | null
+    upsert?: string | null
+    delete?: string | null
+    deleteMany?: string | null
+  }
+
+  export enum ModelAction {
+    findOne = 'findOne',
+    findMany = 'findMany',
+    create = 'create',
+    update = 'update',
+    updateMany = 'updateMany',
+    upsert = 'upsert',
+    delete = 'delete',
+    deleteMany = 'deleteMany',
+  }
+}
+
+export interface BaseField {
   name: string
-  type: string | DMMF.Enum | DMMF.MergedOutputType<T> | T['type']
+  type: string | DMMF.Enum | DMMF.OutputType | DMMF.SchemaArg
   isList: boolean
   isRequired: boolean
 }

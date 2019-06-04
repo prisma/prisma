@@ -5,10 +5,10 @@ export class DMMFClass implements DMMF.Document {
   public datamodel: DMMF.Datamodel
   public schema: DMMF.Schema
   public mappings: DMMF.Mapping[]
-  public queryType: DMMF.MergedOutputType
-  public mutationType: DMMF.MergedOutputType
-  public outputTypes: DMMF.MergedOutputType[]
-  public outputTypeMap: Dictionary<DMMF.MergedOutputType> = {}
+  public queryType: DMMF.OutputType
+  public mutationType: DMMF.OutputType
+  public outputTypes: DMMF.OutputType[]
+  public outputTypeMap: Dictionary<DMMF.OutputType> = {}
   public inputTypes: DMMF.InputType[]
   public inputTypeMap: Dictionary<DMMF.InputType>
   public enumMap: Dictionary<DMMF.Enum>
@@ -45,7 +45,7 @@ export class DMMFClass implements DMMF.Document {
       this.queryType.fields.find(f => f.name === fieldName) || this.mutationType.fields.find(f => f.name === fieldName)
     )
   }
-  protected outputTypeToMergedOutputType = (outputType: DMMF.OutputType): DMMF.MergedOutputType => {
+  protected outputTypeToMergedOutputType = (outputType: DMMF.OutputType): DMMF.OutputType => {
     const model = this.modelMap[outputType.name]
     return {
       ...outputType,
@@ -53,15 +53,15 @@ export class DMMFClass implements DMMF.Document {
       fields: outputType.fields,
     }
   }
-  protected resolveOutputTypes(types: DMMF.MergedOutputType[]) {
+  protected resolveOutputTypes(types: DMMF.OutputType[]) {
     for (const typeA of types) {
       for (const fieldA of typeA.fields) {
         for (const typeB of types) {
-          if (typeof fieldA.type === 'string') {
-            if (fieldA.type === typeB.name) {
-              fieldA.type = typeB
-            } else if (this.enumMap[fieldA.type]) {
-              fieldA.type = this.enumMap[fieldA.type]
+          if (typeof fieldA.outputType.type === 'string') {
+            if (fieldA.outputType.type === typeB.name) {
+              fieldA.outputType.type = typeB
+            } else if (this.enumMap[fieldA.outputType.type]) {
+              fieldA.outputType.type = this.enumMap[fieldA.outputType.type]
             }
           }
         }
@@ -70,14 +70,14 @@ export class DMMFClass implements DMMF.Document {
   }
   protected resolveInputTypes(types: DMMF.InputType[]) {
     for (const typeA of types) {
-      for (const fieldA of typeA.args) {
+      for (const fieldA of typeA.fields) {
         for (const typeB of types) {
-          fieldA.type.forEach((type, index) => {
-            if (typeof type === 'string') {
-              if (type === typeB.name) {
-                fieldA.type[index] = typeB
-              } else if (this.enumMap[type]) {
-                fieldA.type[index] = this.enumMap[type]
+          fieldA.inputType.forEach((inputType, index) => {
+            if (typeof inputType.type === 'string') {
+              if (inputType.type === typeB.name) {
+                fieldA.inputType[index].type = typeB
+              } else if (this.enumMap[inputType.type]) {
+                fieldA.inputType[index].type = this.enumMap[inputType.type]
               }
             }
           })
@@ -85,16 +85,16 @@ export class DMMFClass implements DMMF.Document {
       }
     }
   }
-  protected resolveFieldArgumentTypes(types: DMMF.MergedOutputType[], inputTypeMap: Dictionary<DMMF.InputType>) {
+  protected resolveFieldArgumentTypes(types: DMMF.OutputType[], inputTypeMap: Dictionary<DMMF.InputType>) {
     for (const type of types) {
       for (const field of type.fields) {
         for (const arg of field.args) {
-          arg.type.forEach((t, index) => {
+          arg.inputType.forEach((t, index) => {
             if (typeof t === 'string') {
               if (inputTypeMap[t]) {
-                arg.type[index] = inputTypeMap[t]
+                arg.inputType[index].type = inputTypeMap[t]
               } else if (this.enumMap[t]) {
-                arg.type[index] = this.enumMap[t]
+                arg.inputType[index].type = this.enumMap[t]
               }
             }
           })
@@ -102,23 +102,13 @@ export class DMMFClass implements DMMF.Document {
       }
     }
   }
-  protected getQueryType(): DMMF.MergedOutputType {
-    return {
-      name: 'Query',
-      fields: this.schema.queries
-        .map(queryToSchemaField)
-        .filter(f => !f.name.endsWith('Connection') && f.name !== 'Node'),
-      isEmbedded: false,
-    }
+  protected getQueryType(): DMMF.OutputType {
+    return this.schema.outputTypes.find(t => t.name === 'Query')!
   }
-  protected getMutationType(): DMMF.MergedOutputType {
-    return {
-      name: 'Mutation',
-      fields: this.schema.mutations.map(queryToSchemaField),
-      isEmbedded: false,
-    }
+  protected getMutationType(): DMMF.OutputType {
+    return this.schema.outputTypes.find(t => t.name === 'Mutation')!
   }
-  protected getOutputTypes(): DMMF.MergedOutputType[] {
+  protected getOutputTypes(): DMMF.OutputType[] {
     return this.schema.outputTypes.map(this.outputTypeToMergedOutputType)
   }
   protected getEnumMap(): Dictionary<DMMF.Enum> {
@@ -127,19 +117,10 @@ export class DMMFClass implements DMMF.Document {
   protected getModelMap(): Dictionary<DMMF.Model> {
     return keyBy(this.datamodel.models, m => m.name)
   }
-  protected getMergedOutputTypeMap(): Dictionary<DMMF.MergedOutputType> {
+  protected getMergedOutputTypeMap(): Dictionary<DMMF.OutputType> {
     return keyBy(this.outputTypes, t => t.name)
   }
   protected getInputTypeMap(): Dictionary<DMMF.InputType> {
     return keyBy(this.schema.inputTypes, t => t.name)
   }
 }
-
-const queryToSchemaField = (q: DMMF.Query): DMMF.SchemaField => ({
-  name: q.name,
-  args: q.args,
-  isList: q.output.isList,
-  isRequired: q.output.isRequired,
-  type: q.output.name,
-  kind: 'relation',
-})

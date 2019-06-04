@@ -1,104 +1,107 @@
 export const chinook = /* GraphQL */ `
-  type Album {
-    id: Int! @id @db(name: "AlbumId")
-    Title: String!
-    Artist: Artist! @db(name: "ArtistId")
-    Tracks: [Track]
-  }
+model Album {
+  id: Int @id @db(name:"AlbumId")
+  Title: String
+  Artist: Artist @db(name:"ArtistId")
+  Tracks: Track[]
+}
 
-  type Track {
-    id: Int! @id @db(name: "TrackId")
-    Name: String!
-    Album: Album @db(name: "AlbumId")
-    AlbumId: Int
-    MediaType: MediaType! @db(name: "MediaTypeId")
-    Genre: Genre @db(name: "GenreId")
-    Composer: String
-    Milliseconds: Int!
-    UnitPrice: Float!
-    Playlists: [Playlist] @relation(name: "PlaylistTrack")
-  }
+model Track {
+  id: Int @id @db(name:"TrackId")
+  Name: String
+  Album: Album? @db(name: "AlbumId")
+  AlbumId: Int?
+  Mediamodel: Mediamodel @db(name: "MediamodelId")
+  Genre: Genre? @db(name: "GenreId")
+  Composer: String?
+  Milliseconds: Int
+  UnitPrice: Float
+  Playlists: PlaylistTrack[]
+  InvoiceLines: InvoiceLine[]
+}
 
-  type MediaType {
-    id: Int! @id @db(name: "MediaTypeId")
-    Name: String
-  }
+model Mediamodel {
+  id: Int @id @db(name:"MediamodelId")
+  Name: String?
+}
 
-  type Genre {
-    id: Int! @id @db(name: "GenreId")
-    Name: String
-    Tracks: [Track]
-  }
+model Genre {
+  id: Int @id @db(name:"GenreId")
+  Name: String?
+  Tracks: Track[]
+}
 
-  type Artist {
-    id: Int! @id @db(name: "ArtistId")
-    Name: String
-    Albums: [Album]
-  }
+model Artist {
+  id: Int @id @db(name:"ArtistId")
+  Name: String?
+  Albums: Album[]
+}
 
-  type Customer {
-    id: Int! @id @db(name: "CustomerId")
-    FirstName: String!
-    LastName: String!
-    Company: String
-    Address: String
-    City: String
-    State: String
-    Country: String
-    PostalCode: String
-    Phone: String
-    Fax: String
-    Email: String!
-    SupportRep: Employee @db(name: "SupportRepId")
-  }
+model Customer {
+  id: Int @id @db(name:"CustomerId")
+  FirstName: String
+  LastName: String
+  Company: String?
+  Address: String?
+  City: String?
+  State: String?
+  Country: String?
+  PostalCode: String?
+  Phone: String?
+  Fax: String?
+  Email: String
+  SupportRep: Employee? @db(name: "SupportRepId")
+  Invoices: Invoice[]
+}
 
-  type Employee {
-    id: Int! @id @db(name: "EmployeeId")
-    FirstName: String!
-    LastName: String!
-    Title: String
-    ReportsTo: Employee
-    BirthDate: DateTime
-    HireDate: DateTime
-    Address: String
-    City: String
-    State: String
-    Country: String
-    PostalCode: String
-    Phone: String
-    Fax: String
-    Email: String
-  }
+model Employee {
+  id: Int @id @db(name:"EmployeeId")
+  FirstName: String
+  LastName: String
+  Title: String?
+  BirthDate: DateTime?
+  HireDate: DateTime?
+  Address: String?
+  City: String?
+  State: String?
+  Country: String?
+  PostalCode: String?
+  Phone: String?
+  Fax: String?
+  Email: String?
+  Customers: Customer[]
+}
 
-  type Invoice {
-    id: Int! @id @db(name: "InvoiceId")
-    Customer: Customer! @db(name: "CustomerId")
-    InvoiceDate: DateTime!
-    BillingAddress: String
-    BillingCity: String
-    BillingState: String
-    BillingCountry: String
-    BillingPostalCode: String
-    Total: Float!
-    Lines: [InvoiceLine]
-  }
+model Invoice {
+  id: Int @id @db(name:"InvoiceId")
+  Customer: Customer @db(name: "CustomerId")
+  InvoiceDate: DateTime
+  BillingAddress: String?
+  BillingCity: String?
+  BillingState: String?
+  BillingCountry: String?
+  BillingPostalCode: String?
+  Total: Float
+  Lines: InvoiceLine[]
+}
 
-  type InvoiceLine {
-    id: Int! @id @db(name: "InvoiceLineId")
-    Invoice: Invoice! @db(name: "InvoiceId")
-    Track: Track! @db(name: "TrackId")
-    UnitPrice: Float!
-    Quantity: Int!
-  }
+model InvoiceLine {
+  id: Int @id @db(name:"InvoiceLineId")
+  Invoice: Invoice @db(name: "InvoiceId")
+  Track: Track @db(name: "TrackId")
+  UnitPrice: Float
+  Quantity: Int
+}
 
-  type Playlist {
-    id: Int! @id @db(name: "PlaylistId")
-    Name: String
-    Tracks: [Track] @relation(name: "PlaylistTrack")
-  }
+model Playlist {
+  id: Int @id @db(name:"PlaylistId")
+  Name: String?
+  Tracks: PlaylistTrack[]
+}
 
-  type PlaylistTrack @relationTable {
-    PlaylistId: Playlist
-    TrackId: Track
-  }
+model PlaylistTrack {
+  id: Int @id
+  Playlist: Playlist @db(name: "PlaylistId")
+  Track: Track @db(name: "TrackId")
+}
 `

@@ -22,6 +22,7 @@ interface EngineConfig {
 }
 
 const readFile = promisify(fs.readFile)
+const exists = promisify(fs.exists)
 
 /**
  * Node.js based wrapper to run the Prisma binary
@@ -76,6 +77,9 @@ export class NodeEngine extends Engine {
    * Resolve the prisma.yml
    */
   async getPrismaYml(ymlPath: string) {
+    if (!exists(ymlPath)) {
+      return undefined
+    }
     return await readFile(ymlPath, 'utf-8')
   }
 
@@ -91,17 +95,13 @@ export class NodeEngine extends Engine {
       this.prismaConfig = this.prismaConfig || (await this.getPrismaYml(this.prismaYmlPath))
       const PRISMA_CONFIG = this.generatePrismaConfig()
       const schemaEnv: any = {}
-      if (!this.datamodelJson) {
-        this.datamodelJson = await getInternalDatamodelJson(this.datamodel, this.schemaInferrerPath)
-      }
       debug(`Starting binary at ${this.prismaPath}`)
       const env = {
         PRISMA_CONFIG,
-        PRISMA_SDL: this.datamodel,
-        PRISMA_DML: '',
-        SERVER_ROOT: process.cwd(),
-        PRISMA_INTERNAL_DATA_MODEL_JSON: this.datamodelJson,
-        ...schemaEnv,
+        PRISMA_DML: this.datamodel,
+        // PRISMA_DML_PATH: '/Users/tim/code/lift-demo/datamodel.prisma',
+        // SERVER_ROOT: process.cwd(),
+        // ...schemaEnv,
       }
       debug(env)
       this.child = spawn(this.prismaPath, [], {
@@ -124,24 +124,27 @@ export class NodeEngine extends Engine {
       })
       this.child.on('exit', (code, e) => {
         if (code !== 0 && !this.exiting) {
-          const debugString = this.debug
-            ? ''
-            : 'Please enable "debug": true in the Engine constructor to get more insights.'
-          throw new Error(`Child exited with code ${code}${debugString}${e}`)
+          console.error(`Engine path: ${this.prismaPath}`)
+          throw new PhotonError(`Error in query engine: ` + this.errorLogs, undefined, undefined, this.errorLogs)
         }
       })
 
       // Make sure we kill Rust when this process is being killed
-      process.once('SIGTERM', this.stop)
-      process.once('SIGINT', this.stop)
-      process.once('uncaughtException', this.stop)
-      process.once('unhandledRejection', this.stop)
+      process.once('SIGTERM', e => this.fail(e, 'SIGTERM'))
+      process.once('SIGINT', e => this.fail(e, 'SIGINT'))
+      // process.once('uncaughtException', e => this.fail(e, 'uncaughtException'))
+      // process.once('unhandledRejection', e => this.fail(e, 'unhandledRejection'))
 
       await this.engineReady()
       const url = `http://localhost:${this.port}`
       this.url = url
       resolve()
     })
+  }
+
+  fail = (e, why) => {
+    debug(e, why)
+    this.stop()
   }
 
   /**
@@ -206,7 +209,7 @@ export class NodeEngine extends Engine {
         }
       } catch (e) {
         debug(e.message)
-        if (tries >= 100) {
+        if (tries >= 10) {
           throw e
         }
       } finally {
@@ -215,7 +218,11 @@ export class NodeEngine extends Engine {
     }
   }
 
-  async request<T>(query: string): Promise<T> {
+  async getDmmf(): Promise<any> {
+    return fetch(this.url + '/dmmf').then(res => res.json())
+  }
+
+  async request<T>(query: string, typeName?: string): Promise<T> {
     if (!this.url) {
       await this.startPromise // allows lazily connecting the client to Rust and Rust to the Datasource
     }
@@ -263,7 +270,7 @@ export class NodeEngine extends Engine {
   }
   handleErrors({ errors, query }: { errors?: any; query: string }) {
     const stringified = errors ? JSON.stringify(errors, null, 2) : null
-    const message = stringified.length > 0 ? stringified : `Error in prisma.\$\{rootField || 'query'}`
+    const message = stringified.length > 0 ? stringified : `Error in photon.\$\{rootField || 'query'}`
     const isPanicked = this.errorLogs.includes('panicked')
     if (isPanicked) {
       this.stop()

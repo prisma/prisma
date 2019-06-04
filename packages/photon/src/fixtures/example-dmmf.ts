@@ -1,6 +1,6 @@
-import { DMMF } from '../runtime/dmmf-types'
+// TODO: replace this with proper new dmmf
 
-export const dmmfDocument: DMMF.Document = {
+export const dmmfDocument: any = {
   datamodel: {
     models: [
       {

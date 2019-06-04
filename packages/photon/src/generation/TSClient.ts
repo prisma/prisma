@@ -226,7 +226,6 @@ export class Photon {
       debug: debugEngine,
       datamodel: ${JSON.stringify(this.datamodel)},
       prismaConfig: ${this.prismaConfig ? JSON.stringify(this.prismaConfig) : 'undefined'},
-      datamodelJson: ${this.datamodelJson ? JSON.stringify(this.datamodelJson) : 'undefined'}
       `
       }
     })
@@ -268,7 +267,7 @@ class QueryPayloadType {
     const { type } = this
     const { name } = type
 
-    const relationFields = type.fields.filter(f => f.kind === 'relation' && f.name !== 'node')
+    const relationFields = type.fields.filter(f => f.outputType.kind === 'object' && f.name !== 'node')
     const relationFieldConditions =
       relationFields.length === 0
         ? ''
@@ -277,9 +276,9 @@ class QueryPayloadType {
               indent(
                 `: P extends '${f.name}'\n? ${this.wrapArray(
                   f,
-                  `${getPayloadName((f.type as DMMF.MergedOutputType).name)}<Extract${getModelArgName(
-                    (f.type as DMMF.MergedOutputType).name,
-                    f.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
+                  `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<Extract${getModelArgName(
+                    (f.outputType.type as DMMF.OutputType).name,
+                    f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
                   )}Select<S[P]>>`,
                 )}`,
                 8,
@@ -296,7 +295,7 @@ type ${getPayloadName(name)}<S extends ${name}Args> = S extends ${name}Args
   `
   }
   protected wrapArray(field: DMMF.SchemaField, str: string) {
-    if (field.isList) {
+    if (field.outputType.isList) {
       return `Array<${str}>`
     }
     return str
@@ -312,7 +311,7 @@ class PayloadType {
     const { type } = this
     const { name } = type
 
-    const relationFields = type.fields.filter(f => f.kind === 'relation')
+    const relationFields = type.fields.filter(f => f.outputType.kind === 'object')
     const relationFieldConditions =
       relationFields.length === 0
         ? ''
@@ -321,14 +320,16 @@ class PayloadType {
               indent(
                 `: P extends '${f.name}'\n? ${this.wrapArray(
                   f,
-                  `${getPayloadName((f.type as DMMF.MergedOutputType).name)}<Extract${getFieldArgName(f)}Select<S[P]>>`,
+                  `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<Extract${getFieldArgName(
+                    f,
+                  )}Select<S[P]>>`,
                 )}`,
                 8,
               ),
             )
             .join('\n')}`
 
-    const hasScalarFields = type.fields.filter(f => f.kind !== 'relation').length > 0
+    const hasScalarFields = type.fields.filter(f => f.outputType.kind !== 'object').length > 0
     return `\
 type ${getPayloadName(name)}<S extends boolean | ${getSelectName(name)}> = S extends true
   ? ${name}
@@ -345,7 +346,7 @@ type ${getPayloadName(name)}<S extends boolean | ${getSelectName(name)}> = S ext
    : never`
   }
   protected wrapArray(field: DMMF.SchemaField, str: string) {
-    if (field.isList) {
+    if (field.outputType.isList) {
       return `Array<${str}>`
     }
     return str
@@ -372,7 +373,7 @@ ${indent(
 `
   }
   protected isDefault(field: DMMF.Field) {
-    if (field.kind !== 'relation') {
+    if (field.kind !== 'object') {
       return true
     }
 
@@ -404,14 +405,17 @@ export class Model {
       argsTypes.push(
         new ArgsType({
           name: getModelArgName(model.name, action as DMMF.ModelAction),
-          args: [
+          fields: [
             {
               name: 'select',
-              type: [getSelectName(model.name)],
-              isList: false,
-              isRequired: false,
-              isScalar: false,
-              isEnum: false,
+              inputType: [
+                {
+                  type: getSelectName(model.name),
+                  kind: 'object',
+                  isList: false,
+                  isRequired: false,
+                },
+              ],
             },
             ...field.args,
           ],
@@ -423,14 +427,17 @@ export class Model {
     argsTypes.push(
       new ArgsType({
         name: `${model.name}Args`,
-        args: [
+        fields: [
           {
             name: 'select',
-            type: [getSelectName(model.name)],
-            isList: false,
-            isRequired: false,
-            isScalar: false,
-            isEnum: false,
+            inputType: [
+              {
+                type: getSelectName(model.name),
+                isList: false,
+                isRequired: false,
+                kind: 'object',
+              },
+            ],
           },
         ],
       }),
@@ -446,7 +453,7 @@ export class Model {
       return ''
     }
 
-    const scalarFields = model.fields.filter(f => f.kind !== 'relation')
+    const scalarFields = model.fields.filter(f => f.kind !== 'object')
 
     return `
 /**
@@ -456,7 +463,7 @@ export class Model {
 export type ${model.name} = {
 ${indent(
   model.fields
-    .filter(f => f.kind !== 'relation')
+    .filter(f => f.kind !== 'object')
     .map(field => new OutputField(field).toString())
     .join('\n'),
   tab,
@@ -475,7 +482,7 @@ ${
 export type ${getSelectName(model.name)} = {
 ${indent(
   outputType.fields
-    .map(f => `${f.name}?: boolean` + (f.kind === 'relation' ? ` | ${getFieldArgName(f)}` : ''))
+    .map(f => `${f.name}?: boolean` + (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''))
     .join('\n'),
   tab,
 )}
@@ -612,13 +619,13 @@ class ${name}Client<T> implements PromiseLike<T> {
 
 ${indent(
   fields
-    .filter(f => f.kind === 'relation')
+    .filter(f => f.outputType.kind === 'object')
     .map(f => {
-      const fieldTypeName = (f.type as DMMF.OutputType).name
+      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `private _${f.name}?: ${getFieldTypeName(f)}Client<any>
 ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType({
         name: fieldTypeName,
-        actionName: f.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
+        actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
         hideCondition: true,
         isField: true,
         renderPromise: true,
@@ -629,7 +636,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
     ? this._${f.name}
     : (this._${f.name} = new ${getFieldTypeName(f)}Client<${getSelectReturnType({
         name: fieldTypeName,
-        actionName: f.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
+        actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
         hideCondition: false,
         isField: true,
         renderPromise: true,
@@ -742,20 +749,24 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
 }
 
 export class InputField {
-  constructor(protected readonly field: BaseField, protected readonly prefixFilter = false) {}
+  constructor(protected readonly field: DMMF.SchemaArg, protected readonly prefixFilter = false) {}
   public toString() {
     const { field } = this
-    // ENUMTODO
     let fieldType
-    if (Array.isArray(field.type)) {
-      fieldType = field.type
+    if (Array.isArray(field.inputType)) {
+      fieldType = field.inputType
         .flatMap(t =>
-          typeof t === 'string' ? GraphQLScalarToJSTypeTable[t] || t : this.prefixFilter ? `Base${t.name}` : t.name,
+          typeof t.type === 'string'
+            ? GraphQLScalarToJSTypeTable[t.type] || t.type
+            : this.prefixFilter
+            ? `Base${t.type.name}`
+            : t.type.name,
         )
         .join(' | ')
     }
-    const optionalStr = field.isRequired ? '' : '?'
-    if (field.isList) {
+    const fieldInputType = field.inputType[0]
+    const optionalStr = fieldInputType.isRequired ? '' : '?'
+    if (fieldInputType.isList) {
       fieldType = `Enumerable<${fieldType}>`
     }
     return `${field.name}${optionalStr}: ${fieldType}`
@@ -789,7 +800,7 @@ export class OutputType {
     const { type } = this
     return `
 export type ${type.name} = {
-${indent(type.fields.map(field => new OutputField(field).toString()).join('\n'), tab)}
+${indent(type.fields.map(field => new OutputField({ ...field, ...field.outputType }).toString()).join('\n'), tab)}
 }`
   }
 }
@@ -798,10 +809,12 @@ export class ArgsType {
   constructor(protected readonly type: DMMF.InputType) {}
   public toString() {
     const { type } = this
-    const argsWithRequiredSelect = type.args.map(a => (a.name === 'select' ? { ...a, isRequired: true } : a))
+    const argsWithRequiredSelect = type.fields.map(a =>
+      a.name === 'select' ? { ...a, inputType: a.inputType.map(i => ({ ...i, isRequired: true })) } : a,
+    )
     return `
 export type ${type.name} = {
-${indent(type.args.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+${indent(type.fields.map(arg => new InputField(arg).toString()).join('\n'), tab)}
 }
 
 export type ${type.name}WithSelect = {
@@ -825,7 +838,7 @@ export class InputType {
     const { type } = this
     // TO DISCUSS: Should we rely on TypeScript's error messages?
     const body = `{
-${indent(type.args.map(arg => new InputField(arg /*, type.atLeastOne && !type.atMostOne*/)).join('\n'), tab)}
+${indent(type.fields.map(arg => new InputField(arg /*, type.atLeastOne && !type.atMostOne*/)).join('\n'), tab)}
 }`
     //     if (type.atLeastOne && !type.atMostOne) {
     //       return `export type Base${type.name} = ${body}
