@@ -209,7 +209,7 @@ export class NodeEngine extends Engine {
         }
       } catch (e) {
         debug(e.message)
-        if (tries >= 10) {
+        if (tries >= 50) {
           throw e
         }
       } finally {
