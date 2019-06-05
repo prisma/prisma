@@ -147,6 +147,8 @@ function normalizeText(str: string) {
     .join('\n')
 }
 
+// jsdiff spreads the } curly braces all over the place
+// we don't want that
 function fixCurly(changes: Change[]): Change[] {
   return changes.reduce<Change[]>((acc, change, index) => {
     if (
