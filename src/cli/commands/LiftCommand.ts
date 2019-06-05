@@ -43,7 +43,7 @@ export class LiftCommand implements Command {
     }
 
     if (args['--watch']) {
-      return LiftWatch.new(this.env).parse(argv)
+      return LiftWatch.new(this.env, {}).parse(argv)
     }
 
     return unknownCommand(LiftCommand.help, args._[0])
