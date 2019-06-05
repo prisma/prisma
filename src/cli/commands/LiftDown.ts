@@ -28,6 +28,7 @@ export class LiftDown implements Command {
 
     const options: DownOptions = {}
 
+    // TODO add go down by name and timestamp
     if (args._.length > 0) {
       const arg = args._[0]
       const maybeNumber = parseInt(arg)
@@ -55,22 +56,34 @@ export class LiftDown implements Command {
 
   // static help template
   private static help = format(`
-    Migrate your database up to a specific state.
+    Migrate your database down to a specific state.
 
     ${chalk.bold('Usage')}
 
-      prisma lift down [<inc>]
+      prisma lift down [<dec|name|timestamp>]
 
     ${chalk.bold('Arguments')}
 
-      [<inc>]   go down by an increment [default: latest]
+      [<dec>]   go down by an amount [default: 1]
+
+    ${chalk.bold('Options')}
+
+      --auto-approve   Skip interactive approval before migrating
+      -h, --help       Displays this help message
+      -p, --preview    Preview the migration changes
 
     ${chalk.bold('Examples')}
 
-      Go down by one migration
-      ${chalk.dim(`$`)} prisma lift down
+      Preview a migration without migrating
+      ${chalk.dim(`$`)} prisma migrate down --preview
 
-      Go down by one migration
-      ${chalk.dim(`$`)} prisma lift down 1
+      Rollback a migration
+      ${chalk.dim(`$`)} prisma migrate down 1
+
+      Go down to a migration by timestamp
+      ${chalk.dim(`$`)} prisma migrate down 20190605204907
+
+      Go down to a migration by name
+      ${chalk.dim(`$`)} prisma migrate down "add first_name field"
   `)
 }
