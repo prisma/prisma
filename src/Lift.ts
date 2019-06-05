@@ -265,38 +265,60 @@ export class Lift {
 
     // TODO cleanup
     let lastAppliedIndex = -1
-    localMigrations.forEach((localMigration, index) => {
-      const remoteMigration = appliedRemoteMigrations[index]
-      // if there is already a corresponding remote migration,
-      // we don't need to apply this migration
+    const appliedMigrations = localMigrations.filter(
+      (localMigration, index) => {
+        const remoteMigration = appliedRemoteMigrations[index]
+        // if there is already a corresponding remote migration,
+        // we don't need to apply this migration
 
-      if (remoteMigration) {
-        if (localMigration.id !== remoteMigration.id) {
-          throw new Error(
-            `Local and remote migrations are not in lockstep. We have migration ${
-              localMigration.id
-            } locally and ${
-              remoteMigration.id
-            } remotely at the same position in the history.`,
-          )
+        if (remoteMigration) {
+          if (localMigration.id !== remoteMigration.id) {
+            throw new Error(
+              `Local and remote migrations are not in lockstep. We have migration ${
+                localMigration.id
+              } locally and ${
+                remoteMigration.id
+              } remotely at the same position in the history.`,
+            )
+          }
+          lastAppliedIndex = index
+          return true
         }
-        lastAppliedIndex = index
-      }
-    })
+        return false
+      },
+    )
 
     if (lastAppliedIndex === -1) {
       return 'No migration to roll back'
     }
 
-    const lastApplied = localMigrations[lastAppliedIndex]
-    console.log(`Rolling back migration ${blue(lastApplied.id)}`)
-
-    const result = await this.engine.unapplyMigration()
-
-    if (result.errors && result.errors.length > 0) {
+    if (n && n > appliedMigrations.length) {
       throw new Error(
-        `Errors during rollback: ${JSON.stringify(result.errors)}`,
+        `You provided ${chalk.redBright(
+          `n = ${chalk.bold(String(n))}`,
+        )}, but there are only ${
+          appliedMigrations.length
+        } applied migrations that can be rolled back. Please provide ${chalk.green(
+          String(appliedMigrations.length),
+        )} or lower.`,
       )
+    }
+
+    n = n || 1
+
+    for (let i = 0; i < n; i++) {
+      const lastApplied = localMigrations[lastAppliedIndex]
+      console.log(`Rolling back migration ${blue(lastApplied.id)}`)
+
+      const result = await this.engine.unapplyMigration()
+
+      if (result.errors && result.errors.length > 0) {
+        throw new Error(
+          `Errors during rollback: ${JSON.stringify(result.errors)}`,
+        )
+      }
+
+      lastAppliedIndex--
     }
 
     return `🚀 Done with ${chalk.bold('down')} in ${formatms(
