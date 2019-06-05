@@ -1,5 +1,5 @@
 import { highlightDatamodel } from '../cli/highlight/highlight'
-import { diffLines, diffWords } from 'diff'
+import { diffLines, diffWords, Change } from 'diff'
 import chalk from 'chalk'
 import { strongGreen, strongRed } from './customColors'
 
@@ -8,8 +8,9 @@ export function printDatamodelDiff(datamodelA: string, datamodelB?: string) {
   if (!datamodelB) {
     return highlightDatamodel(datamodelA)
   }
-  const result = diffLines(normalizeText(datamodelA), normalizeText(datamodelB))
-  console.log(result)
+  const result = fixCurly(
+    diffLines(normalizeText(datamodelA), normalizeText(datamodelB)),
+  )
   return result
     .map((change, index, changes) => {
       if (change.added) {
@@ -144,4 +145,36 @@ function normalizeText(str: string) {
       return acc
     }, [])
     .join('\n')
+}
+
+function fixCurly(changes: Change[]): Change[] {
+  return changes.reduce<Change[]>((acc, change, index) => {
+    if (
+      change.removed &&
+      change.value.trim() === '}' &&
+      changes[index + 1] &&
+      changes[index + 1].value.startsWith('}')
+    ) {
+      return acc
+    }
+
+    if (change.added && change.value.startsWith('}')) {
+      const lastValue = acc.slice(-1)[0]
+      if (lastValue) {
+        acc[acc.indexOf(lastValue)] = {
+          ...lastValue,
+          value: lastValue.value + '}',
+        }
+        acc.push({
+          ...change,
+          value: change.value.slice(2), // trim away the } and the \n after that
+        })
+        return acc
+      }
+    }
+
+    acc.push(change)
+
+    return acc
+  }, [])
 }
