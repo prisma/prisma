@@ -27,6 +27,9 @@ import { omit } from './utils/omit'
 import { MissingItem, printJsonWithErrors } from './utils/printJsonErrors'
 import stringifyObject from './utils/stringifyObject'
 import { visit } from './visit'
+// import callSites from 'callsites'
+// import fs from 'fs'
+// import path from 'path'
 
 const tab = 2
 
@@ -88,8 +91,25 @@ ${indent(this.children.map(String).join('\n'), tab)}
       }
     }
 
+    // TODO
+    // const sites = callSites()
+
+    // const callSite = sites.length > 2 ? sites[sites.length - 3] : sites[0]
+
+    // const lineNumber = callSite.getLineNumber()
+    // const fileName = callSite.getFileName()
+    // const file = fs.readFileSync(fileName, 'utf-8')
+    // const relativePath = path.relative(process.cwd(), fileName)
+
+    // const linesBefore = file
+    //   .split('\n')
+    //   .slice(lineNumber - 3, lineNumber)
+    //   .join('\n')
+
+    // // console.log(sites)
+
     const errorStr = `\n\n${chalk.red(
-      `Invalid ${chalk.bold(`\`photon.${originalMethod || queryName}()\``)} invocation:`,
+      `Invalid ${chalk.bold(`\`photon.${originalMethod || queryName}()\``)} invocation`,
     )}
 
 ${printJsonWithErrors(isTopLevelQuery ? { [topLevelQueryName]: select } : select, keyPaths, valuePaths, missingItems)}
