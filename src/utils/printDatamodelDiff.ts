@@ -1,5 +1,5 @@
 import { highlightDatamodel } from '../cli/highlight/highlight'
-import { diffLines, diffChars } from 'diff'
+import { diffLines, diffWords } from 'diff'
 import chalk from 'chalk'
 import { strongGreen, strongRed } from './customColors'
 
@@ -9,6 +9,7 @@ export function printDatamodelDiff(datamodelA: string, datamodelB?: string) {
     return highlightDatamodel(datamodelA)
   }
   const result = diffLines(normalizeText(datamodelA), normalizeText(datamodelB))
+  console.log(result)
   return result
     .map((change, index, changes) => {
       if (change.added) {
@@ -18,7 +19,7 @@ export function printDatamodelDiff(datamodelA: string, datamodelB?: string) {
           changes[index - 1] &&
           changes[index - 1].removed
         ) {
-          const charChanges = diffChars(changes[index - 1].value, change.value)
+          const charChanges = diffWords(changes[index - 1].value, change.value)
 
           if (charChanges.length < change.value.length - 4) {
             return charChanges
@@ -45,7 +46,7 @@ export function printDatamodelDiff(datamodelA: string, datamodelB?: string) {
           changes[index + 1].added &&
           changes[index + 1].value.split('\n').length <= 2
         ) {
-          const charChanges = diffChars(change.value, changes[index + 1].value)
+          const charChanges = diffWords(change.value, changes[index + 1].value)
 
           if (charChanges.length < change.value.length - 3) {
             return charChanges
@@ -113,13 +114,15 @@ function trimWholeModels(str: string) {
     return str
   }
 
-  return modelPositions
-    .reduceRight((acc, position) => {
-      acc.splice(position.start, position.end - position.start + 1)
-      return acc
-    }, lines)
-    .join('\n')
-    .trim()
+  return trimNewLine(
+    modelPositions
+      .reduceRight((acc, position) => {
+        acc.splice(position.start, position.end - position.start + 1)
+        return acc
+      }, lines)
+      .join('\n'),
+  )
+  // .trim()
 }
 
 // filter unnecessary space changes
