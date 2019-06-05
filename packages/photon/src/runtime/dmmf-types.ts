@@ -38,6 +38,7 @@ export namespace ExternalDMMF {
     isGenerated: boolean
     relationToFields?: any[]
     relationOnDelete?: string
+    relationName?: string
   }
 
   export interface Schema {
@@ -156,6 +157,7 @@ export namespace DMMF {
     isGenerated: boolean
     relationToFields?: any[]
     relationOnDelete?: string
+    relationName?: string
   }
 
   export interface Schema {
