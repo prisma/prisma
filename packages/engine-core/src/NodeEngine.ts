@@ -165,6 +165,8 @@ export class NodeEngine extends Engine {
   protected getFreePort(): Promise<number> {
     return new Promise((resolve, reject) => {
       const server = net.createServer(s => s.end(''))
+      server.unref()
+      server.on('error', reject)
       server.listen(0, () => {
         const address = server.address()
         const port = typeof address === 'string' ? parseInt(address.split(':').slice(-1)[0], 10) : address.port
@@ -201,15 +203,15 @@ export class NodeEngine extends Engine {
     let tries = 0
     while (true) {
       try {
-        const response = await fetch(`http://localhost:${this.port}/datamodel`)
         await new Promise(r => setTimeout(r, 50)) // TODO: Try out lower intervals here, but we also don't want to spam it too much.
+        const response = await fetch(`http://localhost:${this.port}/datamodel`)
         if (response.ok) {
           debug(`Ready after try number ${tries}`)
           return
         }
       } catch (e) {
         debug(e.message)
-        if (tries >= 50) {
+        if (tries >= 100) {
           throw e
         }
       } finally {
