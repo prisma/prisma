@@ -19,9 +19,12 @@ import { highlightDatamodel } from './cli/highlight/highlight'
 import { groupBy } from './utils/groupBy'
 import { exampleDbSteps } from './example-db-steps'
 import stripAnsi from 'strip-ansi'
-import Charm from './utils/charm'
+import cliCursor from 'cli-cursor'
 import { formatms } from './utils/formartms'
 import { blue } from './cli/highlight/theme'
+import logUpdate from 'log-update'
+import { Readable } from 'stream'
+import { drawBox } from './utils/drawBox'
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
@@ -32,8 +35,6 @@ export type UpOptions = {
   short?: boolean
 }
 const brightGreen = chalk.rgb(127, 224, 152)
-const charm = Charm()
-charm.pipe(process.stdout)
 
 export class Lift {
   engine: LiftEngine
@@ -84,22 +85,19 @@ export class Lift {
     }
     const datamodel = await this.getDatamodel()
     const lastDatamodel = await this.getLastDatamodel()
+    const localMigrations = await this.getLocalMigrations()
+
+    const localSteps = localMigrations.flatMap(m => m.steps)
+
     const result = await this.engine.inferMigrationSteps({
       dataModel: datamodel,
       migrationId,
+      assumeToBeApplied: localSteps,
     })
-    const { datamodelSteps, databaseSteps } = result
-    if (databaseSteps.length === 0) {
-      return undefined
-    }
 
-    const localMigrations = await this.getLocalMigrations()
-    if (localMigrations.length > 0) {
-      const lastLocalMigration = localMigrations.slice(-1)[0]
-      // TODO: as soon as the backend returns the actual steps, we need to check for datamodelSteps.length === 0
-      if (deepEqual(lastLocalMigration.steps, datamodelSteps)) {
-        return undefined
-      }
+    const { datamodelSteps, databaseSteps } = result
+    if (datamodelSteps.length === 0) {
+      return undefined
     }
 
     // TODO better printing of params
@@ -109,7 +107,7 @@ export class Lift {
     if (lastDatamodel) {
       const wording = preview
         ? `Potential datamodel changes:`
-        : 'Datamodel Changes:'
+        : 'Local datamodel Changes:'
       console.log(chalk.bold(`\n${wording}\n`))
     } else {
       console.log(brightGreen.bold('\nNew datamodel:\n'))
@@ -196,11 +194,16 @@ export class Lift {
     const remoteMigrations = await this.engine.listMigrations()
     // console.log(localMigrations.length)
     // const result = await this.engine.calculateDatabaseSteps({
-    //   assume_to_be_applied: [], //localMigrations[0].steps,
+    //   assumeToBeApplied: [], //localMigrations[0].steps,
 
-    //   steps_to_apply: localMigrations[0].steps,
+    //   stepsToApply: localMigrations[0].steps,
     // })
     // console.log(result)
+
+    // const datamodel = await this.engine.calculateDatamodel({
+    //   steps: localMigrations[0].steps,
+    // })
+    // console.log(datamodel.datamodel)
     // return ''
     if (remoteMigrations.length > localMigrations.length) {
       throw new Error(
@@ -265,9 +268,25 @@ export class Lift {
     const progressRenderer = new ProgressRenderer(migrationsToApply)
 
     progressRenderer.render()
+    // const child = spawn('node', [path.join(__dirname, 'mock-command.js')], {
+    //   // stdio: ['pipe', 'pipe', 'pipe'],
+    // })
+    // progressRenderer.showLogs('before.sh', child.stdout)
+
+    // let progress = 0
+    // const progressIt = () => {
+    //   progressRenderer.setProgress(0, progress)
+    //   progress += 0.1
+    //   if (progress <= 1.1) {
+    //     setTimeout(progressIt, 400)
+    //   }
+    // }
+    // setTimeout(progressIt, 400)
+    // await new Promise(r => setTimeout(r, 50000))
 
     if (preview) {
-      return `To apply the migrations, run ${chalk.greenBright(
+      await progressRenderer.done()
+      return `\nTo apply the migrations, run ${chalk.greenBright(
         'prisma lift up',
       )}\n`
     }
@@ -294,11 +313,11 @@ export class Lift {
           break progressLoop
         }
         if (progress.status === 'RollbackSuccess') {
-          charm.cursor(true)
+          cliCursor.show()
           throw new Error(`Rolled back migration. ${JSON.stringify(progress)}`)
         }
         if (progress.status === 'RollbackFailure') {
-          charm.cursor(true)
+          cliCursor.show()
           throw new Error(
             `Failed to roll back migration. ${JSON.stringify(progress)}`,
           )
@@ -314,55 +333,65 @@ export class Lift {
 }
 
 class ProgressRenderer {
-  currentIndex = 0
-  currentProgress = 0
-  zeroPosition = 0
-  constructor(private readonly migrations: Migration[]) {}
+  private currentIndex = 0
+  private currentProgress = 0
+  private statusWidth = 6
+  private logsString = ''
+  private logsName?: string
+  constructor(private readonly migrations: Migration[]) {
+    cliCursor.hide()
+  }
 
   setProgress(index: number, progressPercentage: number) {
-    const width = 6
-    const progress = Math.min(Math.floor(progressPercentage * width), width)
-    if (index > this.currentIndex) {
-      ;(<any>process.stdout).cursorTo(this.zeroPosition)
-      this.currentProgress = 0
-      charm.down(1)
-    }
-    if (progress > this.currentProgress) {
-      // TODO: If I have time, render the Done Rocket
-      // if (progress === width) {
-      //   // charm.left(6)
-      //   ;(<any>process.stdout).cursorTo(this.zeroPosition)
-      //   await new Promise(r => setTimeout(r, 100))
-      //   const doneText = `Done 🚀`
-      //   process.stdout.write(doneText)
-      //   await new Promise(r => setTimeout(r, 100))
-      //   ;(<any>process.stdout).cursorTo(this.zeroPosition)
-      //   await new Promise(r => setTimeout(r, 100))
-      //   // charm.position(this.zeroPosition)
-      // } else {
-      process.stdout.write('\u25A0'.repeat(progress - this.currentProgress))
-      // }
-    }
-    // console.log(this.currentIndex, this.currentProgress)
+    const progress = Math.min(
+      Math.floor(progressPercentage * this.statusWidth),
+      this.statusWidth,
+    )
 
     this.currentIndex = index
     this.currentProgress = progress
   }
 
+  showLogs(name, stream: Readable) {
+    this.logsName = name
+    this.logsString = ''
+    stream.on('data', data => {
+      this.logsString += data.toString()
+      this.render()
+    })
+  }
+
   render() {
-    charm.cursor(false)
-    const longestMigration = this.migrations.reduce(
+    const maxMigrationLength = this.migrations.reduce(
       (acc, curr) => Math.max(curr.id.length, acc),
       0,
     )
     let maxStepLength = 0
+    //   const scripts = `
+    // └─ before.sh
+    // └─ ${blue('Datamodel migration')}
+    // └─ after.sh`
     const rows = this.migrations
       .map(m => {
         const steps = printDatabaseStepsOverview(exampleDbSteps)
         maxStepLength = Math.max(stripAnsi(steps).length, maxStepLength)
         return `${blue(m.id)}${' '.repeat(
-          longestMigration - m.id.length + 2,
+          maxMigrationLength - m.id.length + 2,
         )}${steps}`
+      })
+      .map((m, index) => {
+        const maxLength = maxStepLength + maxMigrationLength
+        const paddingLeft = maxLength - stripAnsi(m).length + 2
+        let newLine = m + ' '.repeat(paddingLeft) + '  '
+        if (
+          this.currentIndex > index ||
+          (this.currentIndex === index &&
+            this.currentProgress === this.statusWidth)
+        ) {
+          return newLine + 'Done 🚀' //+ scripts
+        } else if (this.currentIndex === index) {
+          return newLine + '\u25A0'.repeat(this.currentProgress) //+ scripts
+        }
       })
       .join('\n')
 
@@ -371,7 +400,7 @@ class ProgressRenderer {
     const column3 = 'Status'
     const header =
       chalk.underline(column1) +
-      ' '.repeat(longestMigration - column1.length) +
+      ' '.repeat(maxMigrationLength - column1.length) +
       '  ' +
       chalk.underline(column2) +
       ' '.repeat(maxStepLength - column2.length + 2) +
@@ -380,25 +409,32 @@ class ProgressRenderer {
 
     const changeOverview = header + rows
 
-    console.log(chalk.bold('\nDatabase Changes:\n'))
-    console.log(changeOverview)
-    console.log(
-      chalk.dim(
-        `\nYou can get the detailed db changes with ${chalk.greenBright(
-          'prisma lift up --verbose',
-        )}\nOr read about them in the ./migrations/MIGRATION_ID/README.md`,
-      ),
+    let str = ''
+    str += chalk.bold('\nDatabase Changes:\n\n')
+    str += changeOverview
+
+    str += chalk.dim(
+      `\n\nYou can get the detailed db changes with ${chalk.greenBright(
+        'prisma lift up --verbose',
+      )}\nOr read about them in the ./migrations/MIGRATION_ID/README.md`,
     )
 
-    charm.up(this.migrations.length + 3)
-    this.zeroPosition = longestMigration + maxStepLength + 4
-    charm.right(this.zeroPosition)
+    if (this.logsName && this.logsString.length > 0) {
+      str +=
+        '\n\n' +
+        drawBox({
+          height: Math.min(15, process.stdout.rows || 15),
+          width: process.stdout.columns || 40,
+          str: this.logsString,
+          title: this.logsName,
+        }) +
+        '\n'
+    }
+
+    logUpdate(str)
   }
 
   async done() {
-    await new Promise(r => setTimeout(r, 50))
-    charm.cursor(true)
-    charm.down(4)
-    ;(<any>process.stdout).cursorTo(0)
+    cliCursor.show()
   }
 }

@@ -8,15 +8,6 @@ const debug = debugLib('LiftEngine')
 const debugRpc = debugLib('LiftEngine:rpc')
 const debugStderr = debugLib('LiftEngine:stderr')
 
-// enum StepType {
-//   CreateModel = 'CreateModel',
-//   UpdateModel = 'UpdateModel',
-//   DeleteModel = 'DeleteModel',
-//   CreateField = 'CreateField',
-//   UpdateField = 'UpdateField',
-//   DeleteField = 'DeleteField',
-// }
-
 export type LiftEngineOptions = {
   projectDir: string
   binaryPath?: string
@@ -117,20 +108,6 @@ export class LiftEngine {
     })
   }
   private getRPCPayload(method: string, params: any) {
-    if (
-      method === 'calculateDatamodel' ||
-      method === 'calculateDatabaseSteps'
-    ) {
-      return {
-        id: 1,
-        jsonrpc: '2.0',
-        method,
-        params: {
-          project_info: '',
-          ...params,
-        },
-      }
-    }
     return {
       id: 1,
       jsonrpc: '2.0',
