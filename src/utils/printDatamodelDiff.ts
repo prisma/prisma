@@ -73,10 +73,14 @@ export function printDatamodelDiff(datamodelA: string, datamodelB?: string) {
 }
 
 function trimNewLine(str: string) {
+  let newStr = str
   if (str.slice(-1)[0] === '\n') {
-    return str.slice(0, str.length - 1)
+    newStr = str.slice(0, str.length - 1)
   }
-  return str
+  if (newStr[0] === '\n') {
+    newStr = str.slice(1)
+  }
+  return newStr
 }
 
 type Position = {

@@ -107,6 +107,7 @@ export namespace EngineResults {
     id: string
     steps: DatamodelStep[]
     status: MigrationStatus
+    datamodel: string
   }
   export type CalculateDatamodel = {
     datamodel: string

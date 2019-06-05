@@ -4,62 +4,37 @@ import chalk from 'chalk'
 import { Lift } from '../../Lift'
 import path from 'path'
 import fs from 'fs'
+import logUpdate from 'log-update'
+
+export type Hooks = {
+  afterUp?: () => any
+}
 
 /**
  * $ prisma migrate new
  */
 export class LiftWatch implements Command {
-  static new(env: Env): LiftWatch {
-    return new LiftWatch(env)
+  static new(env: Env, hooks?: Hooks): LiftWatch {
+    return new LiftWatch(env, hooks)
   }
-  private constructor(private readonly env: Env) {}
+  private constructor(
+    private readonly env: Env,
+    private readonly hooks?: Hooks,
+  ) {}
 
   // parse arguments
-  async parse(argv: string[], allowWatch = true): Promise<string | Error> {
+  async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
       '--preview': Boolean,
       '-p': '--preview',
     })
     const preview = args['--preview'] || false
 
-    // needed to not have infinite rewatching
-    if (allowWatch) {
-      fs.watch(
-        path.join(this.env.cwd, 'datamodel.prisma'),
-        (eventType, filename) => {
-          if (eventType === 'change') {
-            console.clear()
-            this.parse(argv, false)
-          }
-        },
-      )
-    }
-
     const lift = new Lift(this.env.cwd)
-
-    const migration = await lift.create('', preview)
-
-    if (!migration) {
-      return `Everything up-to-date\n` //TODO: find better wording
-    }
-
-    const { files, migrationId, newLockFile } = migration
-
-    if (preview)
-      return `\nWatching for changes in ${chalk.greenBright(
-        'datamodel.prisma',
-      )}`
-
-    if (preview)
-      return `\nRun ${chalk.greenBright(
-        'prisma lift create --name MIGRATION_NAME',
-      )} to create the migration\n`
-
-    await lift.up({
-      n: 1,
-      short: true,
+    return lift.watch({
+      preview,
+      hooks: this.hooks,
     })
-    return ''
   }
 
   // help message
@@ -74,24 +49,10 @@ export class LiftWatch implements Command {
 
   // static help template
   private static help = format(`
-    Create a new migration.
+    Watch local changes and migrate automatically
 
     ${chalk.bold('Usage')}
 
-      prisma migrate new [options]
-
-    ${chalk.bold('Options')}
-
-      -n, --name     Name of the migration
-      -p, --preview  Preview the changes
-
-    ${chalk.bold('Examples')}
-
-      Create a new migration
-      ${chalk.dim(`$`)} prisma migrate new
-
-      Create a new migration by name
-      ${chalk.dim(`$`)} prisma migrate new --name "add unique to email"
-
+      prisma dev
   `)
 }

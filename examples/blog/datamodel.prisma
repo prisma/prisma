@@ -9,9 +9,21 @@ model Blog {
 model Author {
   id: Int @id
   name: String?
+  name2: String?
 }         
 
 model Post {
+  id: Int @id
+  anotherString: String?
+}
+
+model Post5 {
+  id: Int @id
+  anotherString: String?
+}
+
+
+model Post6 {
   id: Int @id
   anotherString: String?
 }

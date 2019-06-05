@@ -8,6 +8,7 @@ import { LiftCommand } from './cli/commands/LiftCommand'
 import { LiftCreate } from './cli/commands/LiftCreate'
 import { LiftUp } from './cli/commands/LiftUp'
 import { LiftDown } from './cli/commands/LiftDown'
+import { LiftWatch } from './cli/commands/LiftWatch'
 
 /**
  * Main function
@@ -25,11 +26,12 @@ async function main(): Promise<number> {
       create: LiftCreate.new(env),
       up: LiftUp.new(env),
       down: LiftDown.new(env),
+      watch: LiftWatch.new(env),
     },
     env,
   )
   // parse the arguments
-  var result = await cli.parse(process.argv.slice(2))
+  const result = await cli.parse(process.argv.slice(2))
   if (result instanceof HelpError) {
     console.error(result)
     return 1

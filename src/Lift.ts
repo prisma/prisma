@@ -34,6 +34,7 @@ import logUpdate from 'log-update'
 import { Readable } from 'stream'
 import { drawBox } from './utils/drawBox'
 import pMap from 'p-map'
+import { Hooks } from './cli/commands/LiftWatch'
 const packageJson = require('../package.json')
 
 const readFile = promisify(fs.readFile)
@@ -48,10 +49,16 @@ export type UpOptions = {
 export type DownOptions = {
   n?: number
 }
+export type WatchOptions = {
+  preview?: boolean
+  hooks?: Hooks
+}
 const brightGreen = chalk.rgb(127, 224, 152)
 
 export class Lift {
   engine: LiftEngine
+  static devMigrationId = 'prisma-dev-migration'
+  private lastWatchDatamodel?: string
   constructor(protected projectDir: string) {
     this.engine = new LiftEngine({ projectDir })
   }
@@ -89,17 +96,10 @@ export class Lift {
     return initLockFile()
   }
 
-  public async create(
-    name?: string,
-    preview?: boolean,
-  ): Promise<
-    { files: FileMap; migrationId: string; newLockFile: string } | undefined
-  > {
-    const lockFile = await this.getLockFile()
-    const timestamp = now()
-    const migrationId = timestamp + (name ? `-${name}` : '')
+  public async createMigration(
+    migrationId: string,
+  ): Promise<MigrationWithDatabaseSteps | undefined> {
     const datamodel = await this.getDatamodel()
-    const lastDatamodel = await this.getLastDatamodel()
     const localMigrations = await this.getLocalMigrations()
 
     const localSteps = localMigrations.flatMap(m => m.datamodelSteps)
@@ -114,6 +114,30 @@ export class Lift {
     if (datamodelSteps.length === 0) {
       return undefined
     }
+
+    return {
+      id: migrationId,
+      datamodel,
+      datamodelSteps,
+      databaseSteps,
+    }
+  }
+
+  public async create(
+    name?: string,
+    preview?: boolean,
+  ): Promise<
+    { files: FileMap; migrationId: string; newLockFile: string } | undefined
+  > {
+    const lockFile = await this.getLockFile()
+    const timestamp = now()
+    const migrationId = timestamp + (name ? `-${name}` : '')
+    const migration = await this.createMigration(migrationId)
+    if (!migration) {
+      return undefined
+    }
+    const { datamodel, datamodelSteps, databaseSteps } = migration
+    const lastDatamodel = await this.getLastDatamodel()
 
     // TODO better printing of params
     const nameStr = name ? ` --name ${chalk.bold(name)}` : ''
@@ -259,6 +283,74 @@ export class Lift {
     return migrationsWithDatabaseSteps.filter(m => m.databaseSteps.length > 0)
   }
 
+  public async watch(
+    options: WatchOptions = { preview: false },
+  ): Promise<string> {
+    fs.watch(
+      path.join(this.projectDir, 'datamodel.prisma'),
+      (eventType, filename) => {
+        if (eventType === 'change') {
+          this.createAndUp(options)
+        }
+      },
+    )
+
+    console.log(`Applying unapplied migrations\n`)
+    await this.up()
+    this.createAndUp(options)
+    return ''
+  }
+
+  async createAndUp({ preview, hooks }: WatchOptions) {
+    console.clear()
+    console.log(`🏋️‍  Watching`)
+    try {
+      if (preview)
+        return `\nWatching for changes in ${chalk.greenBright(
+          'datamodel.prisma',
+        )}`
+
+      if (preview)
+        return `\nRun ${chalk.greenBright(
+          'prisma lift create --name MIGRATION_NAME',
+        )} to create the migration\n`
+
+      const remoteMigrations = await this.engine.listMigrations()
+      const lastMigration = remoteMigrations.slice(-1)[0]
+      if (
+        lastMigration.id === Lift.devMigrationId &&
+        lastMigration.status === 'Success'
+      ) {
+        await this.engine.unapplyMigration()
+      }
+      const migration = await this.createMigration('prisma-dev-migration')
+      if (!migration) {
+        return 'Everything up-to-date'
+      }
+
+      const before = Date.now()
+      await this.engine.applyMigration({
+        force: true,
+        migrationId: migration.id,
+        steps: migration.datamodelSteps,
+      })
+
+      if (this.lastWatchDatamodel) {
+        console.log(
+          printDatamodelDiff(this.lastWatchDatamodel, migration.datamodel),
+        )
+        console.log(`Applied Migration in ${formatms(Date.now() - before)}`)
+      }
+      this.lastWatchDatamodel = migration.datamodel
+
+      if (hooks && hooks.afterUp) {
+        hooks.afterUp()
+      }
+    } catch (e) {
+      console.error(`Oh noez`, e)
+    }
+  }
+
   public async down({ n }: DownOptions): Promise<string> {
     await this.getLockFile()
     const before = Date.now()
@@ -331,7 +423,9 @@ export class Lift {
     )}`
   }
 
-  public async up({ n, preview, short, verbose }: UpOptions): Promise<string> {
+  public async up({ n, preview, short, verbose }: UpOptions = {}): Promise<
+    string
+  > {
     await this.getLockFile()
     const before = Date.now()
     const localMigrations = await this.getLocalMigrations()
@@ -340,7 +434,10 @@ export class Lift {
       m => m.status === 'Success',
     )
 
-    if (appliedRemoteMigrations.length > localMigrations.length) {
+    if (
+      appliedRemoteMigrations.filter(m => m.id !== Lift.devMigrationId).length >
+      localMigrations.length
+    ) {
       throw new Error(
         `There are more migrations in the database than locally. This must not happen`,
       )
