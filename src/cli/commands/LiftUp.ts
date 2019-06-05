@@ -70,24 +70,26 @@ export class LiftUp implements Command {
 
     ${chalk.bold('Options')}
 
-      -p, --preview   Preview the migration changes
+      --auto-approve   Skip interactive approval before migrating
+      -h, --help       Displays this help message
+      -p, --preview    Preview the migration changes
 
     ${chalk.bold('Examples')}
 
-      Create a new migration and migrate up
-      ${chalk.dim(`$`)} prisma migrate new --name "add unique to email"
+      Create a new migration, then migrate up
+      ${chalk.dim(`$`)} prisma migrate create --name "add unique to email"
       ${chalk.dim(`$`)} prisma migrate up
 
-      Preview a migration without applying
+      Preview a migration without migrating
       ${chalk.dim(`$`)} prisma migrate up --preview
 
       Go up by one migration
       ${chalk.dim(`$`)} prisma migrate up 1
 
-      Go up by one migration
-      ${chalk.dim(`$`)} prisma migrate up 1
+      Go up by to a migration by timestamp
+      ${chalk.dim(`$`)} prisma migrate up 20190605204907
 
       Go up by to a migration by name
-      ${chalk.dim(`$`)} prisma migrate up
+      ${chalk.dim(`$`)} prisma migrate up "add first_name field"
   `)
 }
