@@ -28,10 +28,6 @@ export class LiftCommand implements Command {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
-      '--watch': Boolean,
-      '-w': '--watch',
-      '--preview': Boolean,
-      '-p': '--preview',
     })
     if (isError(args)) {
       return this.help(args.message)
@@ -64,7 +60,7 @@ export class LiftCommand implements Command {
 
   // static help template
   private static help = format(`
-    ${chalk.bold('🏋️‍')}  Lift - Migrate your database schema and data safely
+    ${chalk.bold('🏋️')}‍‍‍  Migrate your database with confidence
 
     ${chalk.bold('Usage')}
 
@@ -72,33 +68,30 @@ export class LiftCommand implements Command {
 
     ${chalk.bold('Options')}
 
-      -n, --name      Name of the migration
-      -p, --preview   Preview the migration changes
-      -w, --watch     Watch for datamodel changes
+      -h, --help   Display this help message
 
     ${chalk.bold('Commands')}
 
-      docs   Open documentation in the browser
-      down   Migrate your database down
-      help   Display command-specific help
-    create   Setup a new migration
-        up   Migrate your database up
+      create   Create a new migration
+        docs   Open documentation in the browser
+        down   Migrate your database down
+          up   Migrate your database up
 
     ${chalk.bold('Examples')}
+
+      Create new migration
+      ${chalk.dim(`$`)} prisma lift create
 
       Migrate up to the latest datamodel
       ${chalk.dim(`$`)} prisma lift
 
-      Create new migration folder
-      ${chalk.dim(`$`)} prisma lift create
+      Preview the next migration without migrating
+      ${chalk.dim(`$`)} prisma lift up --preview
 
       Rollback a migration
       ${chalk.dim(`$`)} prisma lift down 1
 
-      Preview the next migration without applying
-      ${chalk.dim(`$`)} prisma lift up 1 --preview
-
-      Watch for any changes to the datamodel
-      ${chalk.dim(`$`)} prisma lift --watch
+      Get more help on a lift up
+      ${chalk.dim(`$`)} prisma lift up -h
   `)
 }

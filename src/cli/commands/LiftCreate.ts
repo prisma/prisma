@@ -38,7 +38,6 @@ export class LiftCreate implements Command {
     }
     const preview = args['--preview'] || false
     const name = preview ? args['--name'] : await this.name(args['--name'])
-
     const lift = new Lift(this.env.cwd)
 
     const migration = await lift.create(name, preview)
@@ -49,10 +48,11 @@ export class LiftCreate implements Command {
 
     const { files, migrationId, newLockFile } = migration
 
-    if (preview)
+    if (preview) {
       return `\nRun ${chalk.greenBright(
         'prisma lift create --name MIGRATION_NAME',
       )} to create the migration\n`
+    }
 
     const migrationsDir = path.join(this.env.cwd, 'migrations', migrationId)
     await serializeFileMap(files, migrationsDir)
@@ -73,8 +73,8 @@ export class LiftCreate implements Command {
     let response = await prompt({
       type: 'text',
       name: 'name',
-      message: `Name of migration ${chalk.dim('(optional)')}`,
-      // validate: value => value.length,
+      message: `Name of migration`,
+      validate: value => value.length,
     })
     return response.name || undefined
   }
@@ -91,24 +91,24 @@ export class LiftCreate implements Command {
 
   // static help template
   private static help = format(`
-    Create a new migration.
+    Create a new migration
 
     ${chalk.bold('Usage')}
 
-      prisma migrate new [options]
+      prisma migrate create [options]
 
     ${chalk.bold('Options')}
 
-      -n, --name     Name of the migration
-      -p, --preview  Preview the changes
+      -h, --help     Displays this help message
+      -n, --name     Name the migration
 
     ${chalk.bold('Examples')}
 
       Create a new migration
-      ${chalk.dim(`$`)} prisma migrate new
+      ${chalk.dim(`$`)} prisma migrate create
 
       Create a new migration by name
-      ${chalk.dim(`$`)} prisma migrate new --name "add unique to email"
+      ${chalk.dim(`$`)} prisma migrate create --name "add unique to email"
 
   `)
 }

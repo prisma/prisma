@@ -113,7 +113,7 @@ export class Lift {
     // TODO better printing of params
     const nameStr = name ? ` --name ${chalk.bold(name)}` : ''
     const previewStr = preview ? ` --preview` : ''
-    console.log(`🏋️‍ lift create${nameStr}${previewStr}`)
+    console.log(`🏋️‍  lift create${nameStr}${previewStr}`)
     if (lastDatamodel) {
       const wording = preview
         ? `Potential datamodel changes:`
