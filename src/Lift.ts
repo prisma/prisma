@@ -67,7 +67,18 @@ export class Lift {
     )
     if (await exists(lockFilePath)) {
       const file = await readFile(lockFilePath, 'utf-8')
-      return deserializeLockFile(file)
+      const lockFile = deserializeLockFile(file)
+      if (lockFile.remoteBranch) {
+        // TODO: Implement handling the conflict
+        throw new Error(
+          `There's a merge conflict in the ${chalk.bold(
+            'migrations/lift.lock',
+          )} file. Please execute ${chalk.greenBright(
+            'prisma lift fix',
+          )} to solve it`,
+        )
+      }
+      return lockFile
     }
 
     return initLockFile()
@@ -79,19 +90,9 @@ export class Lift {
   ): Promise<
     { files: FileMap; migrationId: string; newLockFile: string } | undefined
   > {
+    const lockFile = await this.getLockFile()
     const timestamp = now()
     const migrationId = timestamp + (name ? `-${name}` : '')
-    const lockFile = await this.getLockFile()
-    if (lockFile.remoteBranch) {
-      // TODO: Implement handling the conflict
-      throw new Error(
-        `There's a merge conflict in the ${chalk.bold(
-          'migrations/lift.lock',
-        )} file. Please execute ${chalk.greenBright(
-          'prisma lift fix',
-        )} to solve it`,
-      )
-    }
     const datamodel = await this.getDatamodel()
     const lastDatamodel = await this.getLastDatamodel()
     const localMigrations = await this.getLocalMigrations()
@@ -254,6 +255,7 @@ export class Lift {
   }
 
   public async down({ n }: DownOptions): Promise<string> {
+    await this.getLockFile()
     const before = Date.now()
     const localMigrations = await this.getLocalMigrations()
     const allRemoteMigrations = await this.engine.listMigrations()
@@ -303,6 +305,7 @@ export class Lift {
   }
 
   public async up({ n, preview, short }: UpOptions): Promise<string> {
+    await this.getLockFile()
     const before = Date.now()
     const localMigrations = await this.getLocalMigrations()
     const allRemoteMigrations = await this.engine.listMigrations()
