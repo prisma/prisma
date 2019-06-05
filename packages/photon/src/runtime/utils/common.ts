@@ -219,7 +219,7 @@ export function inputTypeToJson(
     acc[curr.name + (argInputType.isRequired ? '' : '?')] =
       curr.isRelationFilter && !showDeepType && !argInputType.isRequired
         ? getInputTypeName(argInputType.type)
-        : inputTypeToJson(argInputType.type, argInputType.isRequired)
+        : inputTypeToJson(argInputType.type, argInputType.isRequired, true)
     return acc
   }, {})
 }

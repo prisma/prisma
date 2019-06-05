@@ -6,24 +6,11 @@ async function main() {
   })
 
   console.clear()
-  const user = await photon.users({
-    // where: {
-    // location: {
-    //   AND: {
-    //     AND: {
-    //       // id: 5,
-    //     },
-    //   },
-    // },
-    // posts: {
-    //   every: {
-    //     NOT: {
-    //       name: '',
-    //     },
-    //   },
-    // },
-    // },
-  })
+  const user = await photon.users.create({
+    data: {
+      email: 'some@mail.com',
+    },
+  } as any)
 }
 
 main().catch(console.error)
