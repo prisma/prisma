@@ -308,10 +308,10 @@
     pluralize "7.0.0"
     prisma-datamodel "^1.34.0-alpha.2"
 
-"@prisma/engine-core@^0.0.33":
-  version "0.0.33"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.33.tgz#3e0fc9a83636de51cecbdb5d2ac0859d9a513f17"
-  integrity sha512-tAe/jFZTTpzys3DaoEMvNR6K3Lpq9Z2OHUhkfsNkxLlItei0njqNcxRZYaoevx0sh/dyWsGFUQP1lPPwe7K8HA==
+"@prisma/engine-core@0.0.34":
+  version "0.0.34"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.34.tgz#aeda2146b6e5db9646fb003a4735b9324ce1b6a3"
+  integrity sha512-LFfDLR1TUR618x4qLQcS0ZCtTLa6EvJNP0Fm4E7OtOShSLZ5o3dPU82tKctGPKlEmHJ9Hxc91MasrKA3h/x4Qw==
   dependencies:
     cross-fetch "^3.0.2"
     debug "^4.1.1"
