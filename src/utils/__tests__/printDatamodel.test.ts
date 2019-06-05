@@ -1,5 +1,5 @@
-import { highlightDatamodel } from '../../cli/highlight/highlight'
-import { printDatamodelDiff } from '../printDatamodelDiff'
+import { highlightDatamodel } from "../../cli/highlight/highlight";
+import { printDatamodelDiff } from "../printDatamodelDiff";
 
 const datamodelA = `model Blog {
   id: Int @primary
@@ -22,7 +22,7 @@ model Post {
   text: String
   tags: String[]
   blog: Blog
-}`
+}`;
 
 const datamodelB = `model Blog {
   id: Int @primary
@@ -45,7 +45,7 @@ model Post {
   text: String
   tags: String[]
   blog: Blog
-}`
+}`;
 
 // const datamodelB = `model Blog {
 //   id: Int @primary
@@ -68,6 +68,15 @@ model Post {
 //   blog: Blog
 // }`
 
-console.clear()
-console.log()
-console.log(printDatamodelDiff(datamodelA, datamodelB))
+test("basic diff", () => {
+  expect(printDatamodelDiff(datamodelA, datamodelB)).toMatchInlineSnapshot(`
+    "[38;5;31mmodel Blog[39m [38;5;109m{[39m
+      id[38;5;109m: Int[39m [38;5;31m@primary[39m
+    [91m  [39m[1;31;48;5;52mname[m[91m: String[39m
+    [92m  [39m[1;32;48;5;22mthis[m[92m: String[39m
+    viewCount[38;5;109m: Int[39m
+      posts[38;5;109m: Post[39m[]
+      authors[38;5;109m: Author[39m[]
+    [38;5;109m}[39m"
+  `);
+});
