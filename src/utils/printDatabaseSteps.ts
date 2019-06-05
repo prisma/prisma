@@ -4,9 +4,11 @@ import {
   DropTableStep,
   RenameTableStep,
   CreateTableStep,
+  MigrationWithDatabaseSteps,
 } from '../types'
 import chalk from 'chalk'
 import { darkBrightBlue } from '../cli/highlight/theme'
+import { highlightSql } from '../cli/highlight/highlight'
 
 export function printDatabaseStepsOverview(databaseSteps: DatabaseStep[]) {
   const counts = getStepCounts(databaseSteps)
@@ -21,6 +23,21 @@ export function printDatabaseStepsOverview(databaseSteps: DatabaseStep[]) {
       }, [])
       .join(', ') + ' statements.'
   return overview
+}
+export function highlightMigrationsSQL(
+  migrations: MigrationWithDatabaseSteps[],
+) {
+  return highlightSql(
+    '-- Start Migrations\n\n' +
+      migrations
+        .map(
+          migration =>
+            `-- Migration ${migration.id}\n` +
+            migration.databaseSteps.map(s => s.raw).join('\n'),
+        )
+        .join('\n\n') +
+      '\n\n-- End Migrations',
+  )
 }
 
 export function printDetailedDatabaseSteps(databaseSteps: DatabaseStep[]) {
