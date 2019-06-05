@@ -7,6 +7,7 @@ import util from 'util'
 const debug = debugLib('LiftEngine')
 const debugRpc = debugLib('LiftEngine:rpc')
 const debugStderr = debugLib('LiftEngine:stderr')
+import fs from 'fs'
 
 export type LiftEngineOptions = {
   projectDir: string
@@ -54,17 +55,20 @@ export class LiftEngine {
 
       child.on('exit', (code, signal) => {
         if (code !== 0) {
-          console.error(
-            '[migration-engine] exit: code=%s signal=%s',
-            code,
-            signal,
+          // console.error(
+          //   '[migration-engine] exit: code=%s signal=%s',
+          //   code,
+          //   signal,
+          // )
+          this.persistError(request, messages)
+          reject(
+            new Error(
+              `${chalk.redBright('Error in lift engine:')} ${messages.join(
+                '',
+              )}`,
+            ),
           )
         }
-        reject(
-          new Error(
-            `${chalk.redBright('Error in lift engine:')} ${messages.join('')}`,
-          ),
-        )
       })
 
       if (!this.debug) {
@@ -87,8 +91,16 @@ export class LiftEngine {
             resolve(result.result)
           } else {
             if (result.error) {
-              console.error(result)
-              reject(new Error(result.error.message))
+              this.persistError(request, messages)
+              reject(
+                new Error(
+                  `${chalk.redBright('Error in RPC')} ${JSON.stringify(
+                    request,
+                    null,
+                    2,
+                  )} ${result.error.message}`,
+                ),
+              )
             } else {
               reject(
                 new Error(
@@ -107,6 +119,24 @@ export class LiftEngine {
       child.stdin!.write(JSON.stringify(request) + '\n')
     })
   }
+  private persistError(request: any, messages: string[]) {
+    if (debugLib.enabled('LiftEngine') || debugLib.enabled('LiftEngine:rpc')) {
+      fs.writeFileSync(
+        `failed-${request.method}.md`,
+        `# Failed ${request.method}
+## RPC Input
+\`\`\`json
+${JSON.stringify(request)}
+\`\`\`
+
+## Stack Trace
+\`\`\`bash
+${messages.join('')}
+\`\`\`
+`,
+      )
+    }
+  }
   private getRPCPayload(method: string, params: any) {
     return {
       id: 1,
@@ -122,6 +152,9 @@ export class LiftEngine {
     args: EngineArgs.ApplyMigration,
   ): Promise<EngineResults.ApplyMigration> {
     return this.runCommand(this.getRPCPayload('applyMigration', args))
+  }
+  unapplyMigration(): Promise<EngineResults.UnapplyMigration> {
+    return this.runCommand(this.getRPCPayload('unapplyMigration', {}))
   }
   calculateDatamodel(
     args: EngineArgs.CalculateDatamodel,

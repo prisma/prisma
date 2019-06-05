@@ -9,7 +9,8 @@
     "noImplicitAny": false,
     "outDir": "dist",
     "rootDir": "src",
-    "declaration": true
+    "declaration": true,
+    "resolveJsonModule": true
   },
   "exclude": ["dist", "build"]
 }

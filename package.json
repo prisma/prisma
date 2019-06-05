@@ -37,6 +37,7 @@
     "globby": "^9.2.0",
     "indent-string": "^4.0.0",
     "log-update": "^3.2.0",
+    "p-map": "^2.1.0",
     "prompts": "^2.1.0",
     "string-width": "^4.1.0",
     "strip-ansi": "^5.2.0",

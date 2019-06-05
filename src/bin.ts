@@ -7,6 +7,7 @@ import { isError, HelpError, Env } from '@prisma/cli'
 import { LiftCommand } from './cli/commands/LiftCommand'
 import { LiftCreate } from './cli/commands/LiftCreate'
 import { LiftUp } from './cli/commands/LiftUp'
+import { LiftDown } from './cli/commands/LiftDown'
 
 /**
  * Main function
@@ -23,6 +24,7 @@ async function main(): Promise<number> {
     {
       create: LiftCreate.new(env),
       up: LiftUp.new(env),
+      down: LiftDown.new(env),
     },
     env,
   )

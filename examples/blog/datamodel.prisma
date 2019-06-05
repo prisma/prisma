@@ -9,14 +9,9 @@ model Blog {
 model Author {
   id: Int @id
   name: String?
-  authors: Blog[]
 }         
 
 model Post {
   id: Int @id
-  title: String?
-  anotherText: String
-  tags: String[]
-  blog: Blog
   anotherString: String?
 }
