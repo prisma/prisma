@@ -67,6 +67,7 @@ export function printDatamodelDiff(datamodelA: string, datamodelB?: string) {
       return highlightDatamodel(trimWholeModels(trimNewLine(change.value)))
     })
     .join('\n')
+    .trim()
 }
 
 function trimNewLine(str: string) {

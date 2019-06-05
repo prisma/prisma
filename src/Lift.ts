@@ -3,21 +3,25 @@ import fs from 'fs'
 import path from 'path'
 import { now } from './utils/now'
 import { promisify } from 'util'
-import { FileMap, LockFile, Migration, EngineResults } from './types'
+import {
+  FileMap,
+  LockFile,
+  Migration,
+  EngineResults,
+  MigrationWithDatabaseSteps,
+} from './types'
 import {
   deserializeLockFile,
   initLockFile,
   serializeLockFile,
 } from './utils/LockFile'
 import globby from 'globby'
-import { deepEqual } from 'fast-equals'
 import { printDatabaseStepsOverview } from './utils/printDatabaseSteps'
 import { printMigrationReadme } from './utils/printMigrationReadme'
 import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import chalk from 'chalk'
 import { highlightDatamodel } from './cli/highlight/highlight'
 import { groupBy } from './utils/groupBy'
-import { exampleDbSteps } from './example-db-steps'
 import stripAnsi from 'strip-ansi'
 import cliCursor from 'cli-cursor'
 import { formatms } from './utils/formartms'
@@ -25,6 +29,8 @@ import { blue } from './cli/highlight/theme'
 import logUpdate from 'log-update'
 import { Readable } from 'stream'
 import { drawBox } from './utils/drawBox'
+import pMap from 'p-map'
+const packageJson = require('../package.json')
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
@@ -33,6 +39,9 @@ export type UpOptions = {
   preview?: boolean
   n?: number
   short?: boolean
+}
+export type DownOptions = {
+  n?: number
 }
 const brightGreen = chalk.rgb(127, 224, 152)
 
@@ -87,7 +96,7 @@ export class Lift {
     const lastDatamodel = await this.getLastDatamodel()
     const localMigrations = await this.getLocalMigrations()
 
-    const localSteps = localMigrations.flatMap(m => m.steps)
+    const localSteps = localMigrations.flatMap(m => m.datamodelSteps)
 
     const result = await this.engine.inferMigrationSteps({
       dataModel: datamodel,
@@ -121,10 +130,16 @@ export class Lift {
     lockFile.localMigrations.push(migrationId)
     const newLockFile = serializeLockFile(lockFile)
 
+    const { version } = packageJson
+
     return {
       migrationId,
       files: {
-        ['steps.json']: JSON.stringify(datamodelSteps, null, 2),
+        ['steps.json']: JSON.stringify(
+          { version, steps: datamodelSteps },
+          null,
+          2,
+        ),
         ['datamodel.prisma']: datamodel,
         ['README.md']: printMigrationReadme({
           migrationId,
@@ -146,6 +161,9 @@ export class Lift {
     const datamodelFiles = await globby('**/datamodel.prisma', {
       cwd: migrationsDir,
     })
+    if (datamodelFiles.length === 0) {
+      return undefined
+    }
     datamodelFiles.sort()
     return readFile(
       path.join(migrationsDir, datamodelFiles.slice(-1)[0]),
@@ -180,32 +198,119 @@ export class Lift {
     return Object.entries(groupedByMigration).map(([migrationId, files]) => {
       const stepsFile = files.find(f => f.fileName === 'steps.json')!
       const datamodelFile = files.find(f => f.fileName === 'datamodel.prisma')!
+      const stepsFileJson = JSON.parse(stepsFile.file)
+      if (Array.isArray(stepsFileJson)) {
+        throw new Error(
+          `We changed the steps.json format - please delete your migrations folder and run prisma lift create again`,
+        )
+      }
+      if (!stepsFileJson.steps) {
+        throw new Error(
+          `${stepsFile.fileName} is expected to have a .steps property`,
+        )
+      }
+
       return {
         id: migrationId,
-        steps: JSON.parse(stepsFile.file),
+        datamodelSteps: stepsFileJson.steps,
         datamodel: datamodelFile.file,
       }
     })
   }
 
+  private async getDatabaseSteps(
+    migrations: Migration[],
+    fromIndex: number,
+  ): Promise<MigrationWithDatabaseSteps[]> {
+    const migrationsWithDatabaseSteps = await pMap(
+      migrations,
+      async (migration, index) => {
+        if (index < fromIndex) {
+          return {
+            ...migration,
+            databaseSteps: [],
+          }
+        }
+        const stepsUntilNow =
+          index > 0
+            ? migrations.slice(0, index).flatMap(m => m.datamodelSteps)
+            : []
+        const input = {
+          assumeToBeApplied: stepsUntilNow,
+          stepsToApply: migration.datamodelSteps,
+        }
+        const { databaseSteps } = await this.engine.calculateDatabaseSteps(
+          input,
+        )
+        return {
+          ...migration,
+          databaseSteps,
+        }
+      },
+      { concurrency: 1 },
+    )
+
+    return migrationsWithDatabaseSteps.filter(m => m.databaseSteps.length > 0)
+  }
+
+  public async down({ n }: DownOptions): Promise<string> {
+    const before = Date.now()
+    const localMigrations = await this.getLocalMigrations()
+    const allRemoteMigrations = await this.engine.listMigrations()
+    const appliedRemoteMigrations = allRemoteMigrations.filter(
+      m => m.status === 'Success',
+    )
+
+    // TODO cleanup
+    let lastAppliedIndex = -1
+    localMigrations.forEach((localMigration, index) => {
+      const remoteMigration = appliedRemoteMigrations[index]
+      // if there is already a corresponding remote migration,
+      // we don't need to apply this migration
+
+      if (remoteMigration) {
+        if (localMigration.id !== remoteMigration.id) {
+          throw new Error(
+            `Local and remote migrations are not in lockstep. We have migration ${
+              localMigration.id
+            } locally and ${
+              remoteMigration.id
+            } remotely at the same position in the history.`,
+          )
+        }
+        lastAppliedIndex = index
+      }
+    })
+
+    if (lastAppliedIndex === -1) {
+      return 'No migration to roll back'
+    }
+
+    const lastApplied = localMigrations[lastAppliedIndex]
+    console.log(`Rolling back migration ${blue(lastApplied.id)}`)
+
+    const result = await this.engine.unapplyMigration()
+
+    if (result.errors && result.errors.length > 0) {
+      throw new Error(
+        `Errors during rollback: ${JSON.stringify(result.errors)}`,
+      )
+    }
+
+    return `🚀 Done with ${chalk.bold('down')} in ${formatms(
+      Date.now() - before,
+    )}`
+  }
+
   public async up({ n, preview, short }: UpOptions): Promise<string> {
     const before = Date.now()
     const localMigrations = await this.getLocalMigrations()
-    const remoteMigrations = await this.engine.listMigrations()
-    // console.log(localMigrations.length)
-    // const result = await this.engine.calculateDatabaseSteps({
-    //   assumeToBeApplied: [], //localMigrations[0].steps,
+    const allRemoteMigrations = await this.engine.listMigrations()
+    const appliedRemoteMigrations = allRemoteMigrations.filter(
+      m => m.status === 'Success',
+    )
 
-    //   stepsToApply: localMigrations[0].steps,
-    // })
-    // console.log(result)
-
-    // const datamodel = await this.engine.calculateDatamodel({
-    //   steps: localMigrations[0].steps,
-    // })
-    // console.log(datamodel.datamodel)
-    // return ''
-    if (remoteMigrations.length > localMigrations.length) {
+    if (appliedRemoteMigrations.length > localMigrations.length) {
       throw new Error(
         `There are more migrations in the database than locally. This must not happen`,
       )
@@ -213,7 +318,7 @@ export class Lift {
 
     let lastAppliedIndex = -1
     let migrationsToApply = localMigrations.filter((localMigration, index) => {
-      const remoteMigration = remoteMigrations[index]
+      const remoteMigration = appliedRemoteMigrations[index]
       // if there is already a corresponding remote migration,
       // we don't need to apply this migration
 
@@ -265,24 +370,17 @@ export class Lift {
       }
     }
 
-    const progressRenderer = new ProgressRenderer(migrationsToApply)
+    const firstMigrationToApplyIndex = localMigrations.indexOf(
+      migrationsToApply[0],
+    )
+    const migrationsWithDbSteps = await this.getDatabaseSteps(
+      localMigrations,
+      firstMigrationToApplyIndex,
+    )
+
+    const progressRenderer = new ProgressRenderer(migrationsWithDbSteps)
 
     progressRenderer.render()
-    // const child = spawn('node', [path.join(__dirname, 'mock-command.js')], {
-    //   // stdio: ['pipe', 'pipe', 'pipe'],
-    // })
-    // progressRenderer.showLogs('before.sh', child.stdout)
-
-    // let progress = 0
-    // const progressIt = () => {
-    //   progressRenderer.setProgress(0, progress)
-    //   progress += 0.1
-    //   if (progress <= 1.1) {
-    //     setTimeout(progressIt, 400)
-    //   }
-    // }
-    // setTimeout(progressIt, 400)
-    // await new Promise(r => setTimeout(r, 50000))
 
     if (preview) {
       await progressRenderer.done()
@@ -292,12 +390,14 @@ export class Lift {
     }
 
     for (let i = 0; i < migrationsToApply.length; i++) {
-      const { id, steps } = migrationsToApply[i]
+      const { id, datamodelSteps } = migrationsToApply[i]
       const result = await this.engine.applyMigration({
         force: false,
         migrationId: id,
-        steps: steps,
+        steps: datamodelSteps,
       })
+      // needed for the ProgressRenderer
+      migrationsWithDbSteps[i].databaseSteps = result.databaseSteps
       const totalSteps = result.databaseSteps.length
       let progress: EngineResults.MigrationProgress | undefined
       progressLoop: while (
@@ -338,8 +438,13 @@ class ProgressRenderer {
   private statusWidth = 6
   private logsString = ''
   private logsName?: string
-  constructor(private readonly migrations: Migration[]) {
+  constructor(private migrations: MigrationWithDatabaseSteps[]) {
     cliCursor.hide()
+  }
+
+  setMigrations(migrations: MigrationWithDatabaseSteps[]) {
+    this.migrations = migrations
+    this.render()
   }
 
   setProgress(index: number, progressPercentage: number) {
@@ -350,6 +455,7 @@ class ProgressRenderer {
 
     this.currentIndex = index
     this.currentProgress = progress
+    this.render()
   }
 
   showLogs(name, stream: Readable) {
@@ -373,7 +479,7 @@ class ProgressRenderer {
     // └─ after.sh`
     const rows = this.migrations
       .map(m => {
-        const steps = printDatabaseStepsOverview(exampleDbSteps)
+        const steps = printDatabaseStepsOverview(m.databaseSteps)
         maxStepLength = Math.max(stripAnsi(steps).length, maxStepLength)
         return `${blue(m.id)}${' '.repeat(
           maxMigrationLength - m.id.length + 2,
@@ -392,6 +498,8 @@ class ProgressRenderer {
         } else if (this.currentIndex === index) {
           return newLine + '\u25A0'.repeat(this.currentProgress) //+ scripts
         }
+
+        return newLine
       })
       .join('\n')
 
@@ -403,7 +511,7 @@ class ProgressRenderer {
       ' '.repeat(maxMigrationLength - column1.length) +
       '  ' +
       chalk.underline(column2) +
-      ' '.repeat(maxStepLength - column2.length + 2) +
+      ' '.repeat(Math.max(0, maxStepLength - column2.length + 2)) +
       chalk.underline(column3) +
       '\n\n'
 

@@ -98,6 +98,11 @@ export namespace EngineResults {
     errors: any[]
     generalErrors: any[]
   }
+  export type UnapplyMigration = {
+    rolledBack: DatamodelStep[]
+    active: DatamodelStep[]
+    errors: any[]
+  }
   export type StoredMigration = {
     id: string
     steps: DatamodelStep[]
@@ -127,7 +132,15 @@ export type Dictionary<T> = {
 
 export type Migration = {
   id: string
-  steps: any[]
+  datamodelSteps: DatamodelStep[]
+  databaseSteps?: DatabaseStep[]
+  datamodel: string
+}
+
+export type MigrationWithDatabaseSteps = {
+  id: string
+  datamodelSteps: DatamodelStep[]
+  databaseSteps: DatabaseStep[]
   datamodel: string
 }
 
