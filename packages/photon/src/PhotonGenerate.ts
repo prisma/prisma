@@ -37,10 +37,9 @@ export class PhotonGenerate implements Command {
     const datamodel = await readFile(datamodelPath, 'utf-8')
     const output = path.join(this.env.cwd, '/node_modules/@generated/photon')
     const before = performance.now()
-    console.log(`\n✨  prisma generate\n`)
     console.log(`Generating Photon to ${output}`)
     await generateClient(datamodel, ymlPath, output, true)
-    console.log(`Done generating Photon in ${(performance.now() - before).toFixed(2)}ms`)
+    console.log(`✨ Done generating Photon in ${(performance.now() - before).toFixed(2)}ms`)
     console.log(`\nYou can import it with ${chalk.greenBright(`import { Photon } from '@generated/photon'`)}`)
     return ''
   }
