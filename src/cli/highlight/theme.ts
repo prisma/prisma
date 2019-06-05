@@ -14,7 +14,7 @@ export const theme: Theme = {
   directive: blue,
   function: blue,
   variable: brightBlue,
-  string: chalk.redBright,
-  boolean: chalk.redBright.bold,
+  string: chalk.greenBright,
+  boolean: blue.bold,
   comment: chalk.dim,
 }
