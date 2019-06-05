@@ -16,6 +16,8 @@ export class LiftUp implements Command {
       '-h': '--help',
       '--preview': Boolean,
       '-p': '--preview',
+      '-v': '--verbose',
+      '--verbose': Boolean,
     })
 
     if (isError(args)) {
@@ -28,6 +30,7 @@ export class LiftUp implements Command {
 
     const options: UpOptions = {
       preview: args['--preview'],
+      verbose: args['--verbose'],
     }
 
     if (args._.length > 0) {

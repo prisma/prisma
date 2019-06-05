@@ -9,6 +9,7 @@ import {
   Migration,
   EngineResults,
   MigrationWithDatabaseSteps,
+  DatabaseStep,
 } from './types'
 import {
   deserializeLockFile,
@@ -16,7 +17,10 @@ import {
   serializeLockFile,
 } from './utils/LockFile'
 import globby from 'globby'
-import { printDatabaseStepsOverview } from './utils/printDatabaseSteps'
+import {
+  printDatabaseStepsOverview,
+  highlightMigrationsSQL,
+} from './utils/printDatabaseSteps'
 import { printMigrationReadme } from './utils/printMigrationReadme'
 import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import chalk from 'chalk'
@@ -39,6 +43,7 @@ export type UpOptions = {
   preview?: boolean
   n?: number
   short?: boolean
+  verbose?: boolean
 }
 export type DownOptions = {
   n?: number
@@ -326,7 +331,7 @@ export class Lift {
     )}`
   }
 
-  public async up({ n, preview, short }: UpOptions): Promise<string> {
+  public async up({ n, preview, short, verbose }: UpOptions): Promise<string> {
     await this.getLockFile()
     const before = Date.now()
     const localMigrations = await this.getLocalMigrations()
@@ -422,6 +427,7 @@ export class Lift {
         steps: datamodelSteps,
       })
       // needed for the ProgressRenderer
+      // and for verbose printing
       migrationsWithDbSteps[i].databaseSteps = result.databaseSteps
       const totalSteps = result.databaseSteps.length
       let progress: EngineResults.MigrationProgress | undefined
@@ -451,6 +457,13 @@ export class Lift {
       }
     }
     await progressRenderer.done()
+
+    if (verbose) {
+      console.log(chalk.bold(`\nSQL Commands:\n`))
+      console.log(highlightMigrationsSQL(migrationsWithDbSteps))
+      console.log('\n')
+    }
+
     return `\n🚀  Done with ${migrationsToApply.length} migration${
       migrationsToApply.length > 1 ? 's' : ''
     } in ${formatms(Date.now() - before)}.\n`
