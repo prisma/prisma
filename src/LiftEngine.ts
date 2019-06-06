@@ -63,9 +63,9 @@ export class LiftEngine {
           this.persistError(request, messages)
           reject(
             new Error(
-              `${chalk.redBright('Error in lift engine:')} ${messages.join(
-                '',
-              )}`,
+              `${chalk.redBright(
+                `Error in lift engine for rpc ${request.method}:`,
+              )} ${messages.join('')}`,
             ),
           )
         }

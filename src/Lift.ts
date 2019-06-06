@@ -9,6 +9,7 @@ import {
   Migration,
   EngineResults,
   MigrationWithDatabaseSteps,
+  DatamodelStep,
   DatabaseStep,
 } from './types'
 import {
@@ -35,7 +36,11 @@ import { Readable } from 'stream'
 import { drawBox } from './utils/drawBox'
 import pMap from 'p-map'
 import { Hooks } from './cli/commands/LiftWatch'
+import { watchMigrationName } from './utils/constants'
+import { deepEqual } from 'fast-equals'
+import debugLib from 'debug'
 const packageJson = require('../package.json')
+const debug = debugLib('Lift')
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
@@ -52,12 +57,12 @@ export type DownOptions = {
 export type WatchOptions = {
   preview?: boolean
   hooks?: Hooks
+  clear?: boolean
 }
 const brightGreen = chalk.rgb(127, 224, 152)
 
 export class Lift {
   engine: LiftEngine
-  static devMigrationId = 'prisma-dev-migration'
   private lastWatchDatamodel?: string
   constructor(protected projectDir: string) {
     this.engine = new LiftEngine({ projectDir })
@@ -100,7 +105,11 @@ export class Lift {
     migrationId: string,
   ): Promise<MigrationWithDatabaseSteps | undefined> {
     const datamodel = await this.getDatamodel()
-    const localMigrations = await this.getLocalMigrations()
+    const {
+      localMigrations,
+      migrationsToApply,
+    } = await this.getMigrationsToApply()
+    const remoteMigrations = await this.engine.listMigrations()
 
     const localSteps = localMigrations.flatMap(m => m.datamodelSteps)
 
@@ -110,7 +119,48 @@ export class Lift {
       assumeToBeApplied: localSteps,
     })
 
-    const { datamodelSteps, databaseSteps } = result
+    let datamodelSteps: DatamodelStep[] = []
+    let databaseSteps: DatabaseStep[] = []
+
+    if (
+      /**
+       * this is crucial to support more local unapplied migrations
+       * after a local unapplied watch-surplus migration
+       */
+      migrationsToApply.length === 0 &&
+      remoteMigrations.length > 0 &&
+      remoteMigrations[remoteMigrations.length - 1].id === watchMigrationName
+    ) {
+      /**
+       * In this case we rely on a special implementation in the migration engine:
+       * If we send "applyMigration" with exactly the same steps as the last applied migration,
+       * while the last applied migration is called "watch", the migration engine will just rename that migration
+       */
+      const watchMigration = remoteMigrations[remoteMigrations.length - 1]
+      const lastLocalMigration =
+        localMigrations.length > 0
+          ? localMigrations[localMigrations.length - 1]
+          : undefined
+      if (lastLocalMigration) {
+        if (
+          deepEqual(
+            lastLocalMigration.datamodelSteps,
+            watchMigration.datamodelSteps,
+          )
+        ) {
+          return undefined
+        }
+      }
+      datamodelSteps = watchMigration.datamodelSteps.concat(
+        result.datamodelSteps,
+      )
+      databaseSteps = watchMigration.databaseSteps.concat(result.databaseSteps)
+      // TODO: the database steps are empty for now, but Marcus adds that to the migration engine
+    } else {
+      datamodelSteps = result.datamodelSteps
+      databaseSteps = result.databaseSteps
+    }
+
     if (datamodelSteps.length === 0) {
       return undefined
     }
@@ -249,11 +299,13 @@ export class Lift {
   }
 
   private async getDatabaseSteps(
-    migrations: Migration[],
+    localMigrations: Migration[],
     fromIndex: number,
+    remoteMigrations: EngineResults.StoredMigration[],
   ): Promise<MigrationWithDatabaseSteps[]> {
+    const lastRemoteMigration = remoteMigrations[remoteMigrations.length - 1]
     const migrationsWithDatabaseSteps = await pMap(
-      migrations,
+      localMigrations,
       async (migration, index) => {
         if (index < fromIndex) {
           return {
@@ -261,9 +313,19 @@ export class Lift {
             databaseSteps: [],
           }
         }
+        if (
+          index === fromIndex &&
+          lastRemoteMigration &&
+          lastRemoteMigration.id === watchMigrationName
+        ) {
+          return {
+            ...migration,
+            databaseSteps: lastRemoteMigration.databaseSteps,
+          }
+        }
         const stepsUntilNow =
           index > 0
-            ? migrations.slice(0, index).flatMap(m => m.datamodelSteps)
+            ? localMigrations.slice(0, index).flatMap(m => m.datamodelSteps)
             : []
         const input = {
           assumeToBeApplied: stepsUntilNow,
@@ -280,30 +342,51 @@ export class Lift {
       { concurrency: 1 },
     )
 
-    return migrationsWithDatabaseSteps.filter(m => m.databaseSteps.length > 0)
+    return migrationsWithDatabaseSteps.slice(fromIndex)
   }
 
   public async watch(
-    options: WatchOptions = { preview: false },
+    options: WatchOptions = { preview: false, clear: true },
   ): Promise<string> {
+    if (!options.clear) {
+      options.clear = true
+    }
     fs.watch(
       path.join(this.projectDir, 'datamodel.prisma'),
       (eventType, filename) => {
         if (eventType === 'change') {
-          this.createAndUp(options)
+          this.watchUp(options)
         }
       },
     )
+    const { migrationsToApply } = await this.getMigrationsToApply()
+    if (migrationsToApply.length > 0) {
+      // TODO: Ask for permission if we actually want to do it?
+      const before = Date.now()
+      console.log(
+        `Applying unapplied migrations ${chalk.blue(
+          migrationsToApply.map(m => m.id).join(', '),
+        )}\n`,
+      )
+      await this.up({
+        short: true,
+      })
+      console.log(
+        `Done applying migrations in ${formatms(Date.now() - before)}`,
+      )
+      options.clear = false
+    }
 
-    console.log(`Applying unapplied migrations\n`)
-    await this.up()
-    this.createAndUp(options)
+    this.watchUp(options)
     return ''
   }
 
-  async createAndUp({ preview, hooks }: WatchOptions) {
-    console.clear()
-    console.log(`🏋️‍  Watching`)
+  async watchUp({ preview, hooks, clear }: WatchOptions = { clear: true }) {
+    console.log({ clear })
+    if (clear) {
+      console.clear()
+    }
+    console.log(`🏋️‍  Watching for changes in datamodel.prisma`)
     try {
       if (preview)
         return `\nWatching for changes in ${chalk.greenBright(
@@ -318,12 +401,13 @@ export class Lift {
       const remoteMigrations = await this.engine.listMigrations()
       const lastMigration = remoteMigrations.slice(-1)[0]
       if (
-        lastMigration.id === Lift.devMigrationId &&
+        lastMigration &&
+        lastMigration.id === watchMigrationName &&
         lastMigration.status === 'Success'
       ) {
         await this.engine.unapplyMigration()
       }
-      const migration = await this.createMigration('prisma-dev-migration')
+      const migration = await this.createMigration(watchMigrationName)
       if (!migration) {
         return 'Everything up-to-date'
       }
@@ -369,7 +453,10 @@ export class Lift {
         // we don't need to apply this migration
 
         if (remoteMigration) {
-          if (localMigration.id !== remoteMigration.id) {
+          if (
+            localMigration.id !== remoteMigration.id &&
+            remoteMigration.id !== watchMigrationName // it's fine to have the watch migration remotely
+          ) {
             throw new Error(
               `Local and remote migrations are not in lockstep. We have migration ${
                 localMigration.id
@@ -423,47 +510,86 @@ export class Lift {
     )}`
   }
 
-  public async up({ n, preview, short, verbose }: UpOptions = {}): Promise<
-    string
-  > {
-    await this.getLockFile()
-    const before = Date.now()
+  private async getMigrationsToApply(): Promise<{
+    localMigrations: Migration[]
+    lastAppliedIndex: number
+    migrationsToApply: Migration[]
+    appliedRemoteMigrations: EngineResults.StoredMigration[]
+  }> {
     const localMigrations = await this.getLocalMigrations()
     const allRemoteMigrations = await this.engine.listMigrations()
     const appliedRemoteMigrations = allRemoteMigrations.filter(
       m => m.status === 'Success',
     )
+    const appliedRemoteMigrationsWithoutWatch = appliedRemoteMigrations.filter(
+      m => m.id !== watchMigrationName,
+    )
 
-    if (
-      appliedRemoteMigrations.filter(m => m.id !== Lift.devMigrationId).length >
-      localMigrations.length
-    ) {
+    if (appliedRemoteMigrationsWithoutWatch.length > localMigrations.length) {
+      const localMigrationIds = localMigrations.map(m => m.id)
+      const remoteMigrationIds = appliedRemoteMigrationsWithoutWatch.map(
+        m => m.id,
+      )
+
       throw new Error(
-        `There are more migrations in the database than locally. This must not happen`,
+        `There are more migrations in the database than locally. This must not happen. Local migration ids: ${localMigrationIds.join(
+          ', ',
+        )}. Remote migration ids: ${remoteMigrationIds.join(', ')}`,
       )
     }
 
     let lastAppliedIndex = -1
-    let migrationsToApply = localMigrations.filter((localMigration, index) => {
-      const remoteMigration = appliedRemoteMigrations[index]
-      // if there is already a corresponding remote migration,
-      // we don't need to apply this migration
+    const migrationsToApply = localMigrations.filter(
+      (localMigration, index) => {
+        const remoteMigration = appliedRemoteMigrations[index]
+        // if there is already a corresponding remote migration,
+        // we don't need to apply this migration
 
-      if (remoteMigration) {
-        if (localMigration.id !== remoteMigration.id) {
-          throw new Error(
-            `Local and remote migrations are not in lockstep. We have migration ${
-              localMigration.id
-            } locally and ${
-              remoteMigration.id
-            } remotely at the same position in the history.`,
-          )
+        if (remoteMigration) {
+          if (
+            localMigration.id !== remoteMigration.id &&
+            remoteMigration.id !== watchMigrationName
+          ) {
+            throw new Error(
+              `Local and remote migrations are not in lockstep. We have migration ${
+                localMigration.id
+              } locally and ${
+                remoteMigration.id
+              } remotely at the same position in the history.`,
+            )
+          }
+          // if the current remote migration we're looking at is a watch migration,
+          // we still want to "over apply" it
+          if (remoteMigration.id !== watchMigrationName) {
+            lastAppliedIndex = index
+            return false
+          }
         }
-        lastAppliedIndex = index
-        return false
-      }
-      return true
-    })
+        return true
+      },
+    )
+
+    return {
+      localMigrations,
+      lastAppliedIndex,
+      migrationsToApply,
+      appliedRemoteMigrations,
+    }
+  }
+
+  public async up({ n, preview, short, verbose }: UpOptions = {}): Promise<
+    string
+  > {
+    await this.getLockFile()
+    const before = Date.now()
+
+    const migrationsToApplyResult = await this.getMigrationsToApply()
+    const {
+      lastAppliedIndex,
+      localMigrations,
+      appliedRemoteMigrations,
+    } = migrationsToApplyResult
+    let { migrationsToApply } = migrationsToApplyResult
 
     if (typeof n === 'number') {
       migrationsToApply = migrationsToApply.slice(0, n)
@@ -503,7 +629,34 @@ export class Lift {
     const migrationsWithDbSteps = await this.getDatabaseSteps(
       localMigrations,
       firstMigrationToApplyIndex,
+      appliedRemoteMigrations,
     )
+
+    // The case we're checking for: After `watch`, there may have been additional changes to the datamodel,
+    // which are now included in the first unapplied migration
+    // This will be much better in the future (maybe before, maybe after Prisma Day),
+    // we'll not just unapply the last watch migration, but rather make sure that we append the difference
+
+    const lastAppliedRemoteMigration =
+      appliedRemoteMigrations[appliedRemoteMigrations.length - 1]
+    if (
+      lastAppliedRemoteMigration &&
+      lastAppliedRemoteMigration.id === watchMigrationName
+    ) {
+      const firstUnappliedMigration = migrationsToApply[0]
+      if (
+        !deepEqual(
+          firstUnappliedMigration.datamodelSteps,
+          lastAppliedRemoteMigration.datamodelSteps,
+        )
+      ) {
+        try {
+          await this.engine.unapplyMigration()
+        } catch (e) {
+          debug(e)
+        }
+      }
+    }
 
     const progressRenderer = new ProgressRenderer(migrationsWithDbSteps)
 
@@ -643,7 +796,7 @@ class ProgressRenderer {
     const column3 = 'Status'
     const header =
       chalk.underline(column1) +
-      ' '.repeat(maxMigrationLength - column1.length) +
+      ' '.repeat(Math.max(0, maxMigrationLength - column1.length)) +
       '  ' +
       chalk.underline(column2) +
       ' '.repeat(Math.max(0, maxStepLength - column2.length + 2)) +

@@ -11,6 +11,9 @@ import { darkBrightBlue } from '../cli/highlight/theme'
 import { highlightSql } from '../cli/highlight/highlight'
 
 export function printDatabaseStepsOverview(databaseSteps: DatabaseStep[]) {
+  if (databaseSteps.length === 0) {
+    return `No statements inferrable.`
+  }
   const counts = getStepCounts(databaseSteps)
   const overview =
     Object.entries(counts)

@@ -105,7 +105,8 @@ export namespace EngineResults {
   }
   export type StoredMigration = {
     id: string
-    steps: DatamodelStep[]
+    datamodelSteps: DatamodelStep[]
+    databaseSteps: DatabaseStep[]
     status: MigrationStatus
     datamodel: string
   }

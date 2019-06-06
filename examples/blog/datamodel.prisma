@@ -17,13 +17,12 @@ model Post {
   anotherString: String?
 }
 
-model Post5 {
+model Post4 {
   id: Int @id
   anotherString: String?
 }
 
-
-model Post6 {
+model Post5 {
   id: Int @id
   anotherString: String?
 }
