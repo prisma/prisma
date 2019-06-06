@@ -382,7 +382,6 @@ export class Lift {
   }
 
   async watchUp({ preview, hooks, clear }: WatchOptions = { clear: true }) {
-    console.log({ clear })
     if (clear) {
       console.clear()
     }
