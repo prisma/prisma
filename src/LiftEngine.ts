@@ -174,6 +174,11 @@ ${messages.join('')}
   listMigrations(): Promise<EngineResults.ListMigrations> {
     return this.runCommand(this.getRPCPayload('listMigrations', {}))
   }
+  convertDmmfToDml(
+    args: EngineArgs.DmmfToDml,
+  ): Promise<EngineResults.DmmfToDml> {
+    return this.runCommand(this.getRPCPayload('convertDmmfToDml', args))
+  }
   // Helper function, oftentimes we just want the applied migrations
   async listAppliedMigrations(): Promise<EngineResults.ListMigrations> {
     const migrations = await this.runCommand(

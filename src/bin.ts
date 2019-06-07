@@ -9,6 +9,7 @@ import { LiftCreate } from './cli/commands/LiftCreate'
 import { LiftUp } from './cli/commands/LiftUp'
 import { LiftDown } from './cli/commands/LiftDown'
 import { LiftWatch } from './cli/commands/LiftWatch'
+import { Converter } from '.'
 
 /**
  * Main function
@@ -27,6 +28,7 @@ async function main(): Promise<number> {
       up: LiftUp.new(env),
       down: LiftDown.new(env),
       watch: LiftWatch.new(env),
+      convert: Converter.new(env),
     },
     env,
   )

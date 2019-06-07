@@ -64,6 +64,10 @@ export namespace EngineArgs {
     assumeToBeApplied: DatamodelStep[]
     stepsToApply: DatamodelStep[]
   }
+  export type DmmfToDml = {
+    dmmf: any // TODO type this
+    dataSources: any[]
+  }
 }
 
 export namespace EngineResults {
@@ -114,6 +118,9 @@ export namespace EngineResults {
     datamodel: string
   }
   export type ListMigrations = StoredMigration[]
+  export type DmmfToDml = {
+    datamodel: string
+  }
 }
 
 export interface FileMap {
