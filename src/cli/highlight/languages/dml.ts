@@ -1,9 +1,9 @@
 import { SyntaxDefinition } from '../types'
 
 export const dml: SyntaxDefinition = {
-  value: { pattern: /\:\s+(\w+)/g },
+  entity: [/model\s+\w+/g, /enum\s+\w+/g],
+  value: { pattern: /\b\s(\w+)/g },
   punctuation: /(\:|}|{)/g,
-  entity: /model\s+\w+/g,
   directive: { pattern: /(@.*)/g },
   comment: /#.*/g,
 }
