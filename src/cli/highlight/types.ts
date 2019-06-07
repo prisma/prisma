@@ -19,6 +19,7 @@ export type SyntaxDefinition = {
   directive?: SyntaxCondition | Array<SyntaxCondition>
   entity?: SyntaxCondition | Array<SyntaxCondition>
   value?: SyntaxCondition | Array<SyntaxCondition>
+  field?: SyntaxCondition | Array<SyntaxCondition>
 }
 
 export type Theme = {
@@ -34,4 +35,5 @@ export type Theme = {
   directive?: (str: string) => string
   entity?: (str: string) => string
   value?: (str: string) => string
+  field?: (str: string) => string
 }
