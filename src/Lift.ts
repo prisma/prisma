@@ -39,6 +39,7 @@ import { Hooks } from './cli/commands/LiftWatch'
 import { watchMigrationName } from './utils/constants'
 import { deepEqual } from 'fast-equals'
 import debugLib from 'debug'
+import { findLast } from './utils/findLast'
 const packageJson = require('../package.json')
 const debug = debugLib('Lift')
 
@@ -63,7 +64,7 @@ const brightGreen = chalk.rgb(127, 224, 152)
 
 export class Lift {
   engine: LiftEngine
-  private lastWatchDatamodel?: string
+  private datamodelBeforeWatch?: string
   constructor(protected projectDir: string) {
     this.engine = new LiftEngine({ projectDir })
   }
@@ -109,7 +110,7 @@ export class Lift {
       localMigrations,
       migrationsToApply,
     } = await this.getMigrationsToApply()
-    const remoteMigrations = await this.engine.listMigrations()
+    const remoteMigrations = await this.engine.listAppliedMigrations()
 
     const localSteps = localMigrations.flatMap(m => m.datamodelSteps)
 
@@ -359,7 +360,22 @@ export class Lift {
         }
       },
     )
-    const { migrationsToApply } = await this.getMigrationsToApply()
+    const {
+      migrationsToApply,
+      appliedRemoteMigrations,
+    } = await this.getMigrationsToApply()
+
+    const lastNonWatchMigration = findLast(
+      appliedRemoteMigrations,
+      m => m.id !== 'watch',
+    )
+
+    if (lastNonWatchMigration) {
+      this.datamodelBeforeWatch = lastNonWatchMigration.datamodel
+    } else {
+      this.datamodelBeforeWatch = ''
+    }
+
     if (migrationsToApply.length > 0) {
       // TODO: Ask for permission if we actually want to do it?
       const before = Date.now()
@@ -397,14 +413,10 @@ export class Lift {
           'prisma lift create --name MIGRATION_NAME',
         )} to create the migration\n`
 
-      const remoteMigrations = await this.engine.listMigrations()
+      const remoteMigrations = await this.engine.listAppliedMigrations()
       const lastMigration = remoteMigrations.slice(-1)[0]
-      if (
-        lastMigration &&
-        lastMigration.id === watchMigrationName &&
-        lastMigration.status === 'Success'
-      ) {
-        await this.engine.unapplyMigration()
+      if (lastMigration && lastMigration.id === watchMigrationName) {
+        const unapplyResult = await this.engine.unapplyMigration()
       }
       const migration = await this.createMigration(watchMigrationName)
       if (!migration) {
@@ -418,19 +430,25 @@ export class Lift {
         steps: migration.datamodelSteps,
       })
 
-      if (this.lastWatchDatamodel) {
+      const newAppliedRemoteMigrations = await this.engine.listAppliedMigrations()
+
+      if (this.datamodelBeforeWatch) {
+        console.log(`Changes since last ${chalk.bold('prisma lift create')}\n`)
         console.log(
-          printDatamodelDiff(this.lastWatchDatamodel, migration.datamodel),
+          printDatamodelDiff(
+            this.datamodelBeforeWatch,
+            newAppliedRemoteMigrations[newAppliedRemoteMigrations.length - 1]
+              .datamodel,
+          ),
         )
-        console.log(`Applied Migration in ${formatms(Date.now() - before)}`)
+        console.log(`\nApplied Migration in ${formatms(Date.now() - before)}`)
       }
-      this.lastWatchDatamodel = migration.datamodel
 
       if (hooks && hooks.afterUp) {
         hooks.afterUp()
       }
     } catch (e) {
-      console.error(`Oh noez`, e)
+      console.error(e)
     }
   }
 
@@ -438,10 +456,7 @@ export class Lift {
     await this.getLockFile()
     const before = Date.now()
     const localMigrations = await this.getLocalMigrations()
-    const allRemoteMigrations = await this.engine.listMigrations()
-    const appliedRemoteMigrations = allRemoteMigrations.filter(
-      m => m.status === 'Success',
-    )
+    const appliedRemoteMigrations = await this.engine.listAppliedMigrations()
 
     // TODO cleanup
     let lastAppliedIndex = -1
@@ -516,10 +531,7 @@ export class Lift {
     appliedRemoteMigrations: EngineResults.StoredMigration[]
   }> {
     const localMigrations = await this.getLocalMigrations()
-    const allRemoteMigrations = await this.engine.listMigrations()
-    const appliedRemoteMigrations = allRemoteMigrations.filter(
-      m => m.status === 'Success',
-    )
+    const appliedRemoteMigrations = await this.engine.listAppliedMigrations()
     const appliedRemoteMigrationsWithoutWatch = appliedRemoteMigrations.filter(
       m => m.id !== watchMigrationName,
     )
