@@ -1,6 +1,6 @@
 export const enums = /* GraphQL */ `
   model User {
-    id: ID @id
+    id: String @id @default(cuid())
     name: String
     email: String @unique
     status: String
@@ -12,9 +12,11 @@ export const enums = /* GraphQL */ `
   }
 
   model Post {
-    id: ID @id
+    id: String @id @default(cuid())
     name: String
     email: String @unique
+    createdAt: DateTime @default(now())
+    updatedAt: DateTime @updatedAt
   }
 
   model Location {
