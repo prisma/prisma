@@ -9,7 +9,6 @@ model Blog {
 model Author {
   id: Int @id
   name: String?
-  name2: String?
 }         
 
 model Post {
@@ -23,6 +22,16 @@ model Post4 {
 }
 
 model Post5 {
+  id: Int @id
+  anotherString: String?
+}
+
+model Post6 {
+  id: Int @id
+  anotherString: String?
+}
+
+model Post100 {
   id: Int @id
   anotherString: String?
 }

@@ -174,6 +174,13 @@ ${messages.join('')}
   listMigrations(): Promise<EngineResults.ListMigrations> {
     return this.runCommand(this.getRPCPayload('listMigrations', {}))
   }
+  // Helper function, oftentimes we just want the applied migrations
+  async listAppliedMigrations(): Promise<EngineResults.ListMigrations> {
+    const migrations = await this.runCommand(
+      this.getRPCPayload('listMigrations', {}),
+    )
+    return migrations.filter(m => m.status === 'Success')
+  }
   migrationProgess(
     args: EngineArgs.MigrationProgress,
   ): Promise<EngineResults.MigrationProgress> {

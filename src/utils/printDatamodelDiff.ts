@@ -12,7 +12,7 @@ export function printDatamodelDiff(datamodelA: string, datamodelB?: string) {
   const result = fixCurly(
     diffLines(normalizeText(datamodelA), normalizeText(datamodelB)),
   )
-  return result
+  const diff = result
     .map((change, index, changes) => {
       if (change.added) {
         if (
@@ -71,6 +71,30 @@ export function printDatamodelDiff(datamodelA: string, datamodelB?: string) {
     })
     .join('\n')
     .trim()
+  return trimMultiEmptyLines(diff)
+}
+
+// trims to consecutive empty lines from a string
+function trimMultiEmptyLines(str: string) {
+  const lines = str.split('\n')
+  const newLines: string[] = []
+
+  let i = lines.length
+  while (i--) {
+    const line = lines[i]
+    const trimmed = line.trim()
+    if (trimmed.length > 0) {
+      newLines.unshift(line)
+      continue
+    }
+    // in this case it's an empty line
+    // if the next line is also empty, remove this one
+    if (lines[i - 1] && lines[i - 1].trim().length > 0) {
+      newLines.unshift(line)
+    }
+  }
+
+  return newLines.join('\n')
 }
 
 function trimNewLine(str: string) {
