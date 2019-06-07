@@ -5,7 +5,6 @@ import * as path from 'path'
 import * as net from 'net'
 import debugLib from 'debug'
 import fetch from 'cross-fetch'
-import { getInternalDatamodelJson } from './getInternalDatamodelJson'
 import { Engine, PhotonError } from './Engine'
 
 const debug = debugLib('engine')
@@ -42,12 +41,10 @@ export class NodeEngine extends Engine {
   datamodelJson?: string
   cwd: string
   datamodel: string
-  schemaInferrerPath: string
   prismaPath: string
   url: string
   startPromise: Promise<void>
   errorLogs: string = ''
-  static defaultSchemaInferrerPath = path.join(__dirname, '../schema-inferrer-bin')
   static defaultPrismaPath = path.join(__dirname, '../prisma')
   constructor({
     prismaConfig,
@@ -65,7 +62,6 @@ export class NodeEngine extends Engine {
     this.debug = args.debug || false
     this.datamodelJson = datamodelJson
     this.datamodel = datamodel
-    this.schemaInferrerPath = schemaInferrerPath || NodeEngine.defaultSchemaInferrerPath
     this.prismaPath = prismaPath || NodeEngine.defaultPrismaPath
     if (this.debug) {
       debugLib.enable('engine')
@@ -204,7 +200,9 @@ export class NodeEngine extends Engine {
     while (true) {
       try {
         await new Promise(r => setTimeout(r, 50)) // TODO: Try out lower intervals here, but we also don't want to spam it too much.
-        const response = await fetch(`http://localhost:${this.port}/datamodel`)
+        const response = await fetch(`http://localhost:${this.port}/dmmf`, {
+          timeout: 5000, // not official but node-fetch supports it
+        } as any)
         if (response.ok) {
           debug(`Ready after try number ${tries}`)
           return

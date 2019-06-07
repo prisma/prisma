@@ -1,11 +1,12 @@
 import { identity, theme } from './theme'
 
+/* tslint:disable */
+
 /* **********************************************
      Begin prism-core.js
 ********************************************** */
-/* tslint:disable */
 
-let _self: any = {}
+var _self: any = {}
 
 /**
  * Prism: Lightweight, robust, elegant syntax highlighting
@@ -14,13 +15,13 @@ let _self: any = {}
  */
 
 // Private helper vars
-let uniqueId = 0
+var uniqueId = 0
 
-export let Prism: any = {
+export var Prism: any = {
   manual: _self.Prism && _self.Prism.manual,
   disableWorkerMessageHandler: _self.Prism && _self.Prism.disableWorkerMessageHandler,
   util: {
-    encode(tokens: any) {
+    encode: function(tokens: any) {
       if (tokens instanceof Token) {
         const anyTokens: any = tokens
         return new Token(anyTokens.type, Prism.util.encode(anyTokens.content), anyTokens.alias)
@@ -34,20 +35,20 @@ export let Prism: any = {
       }
     },
 
-    type(o) {
+    type: function(o) {
       return Object.prototype.toString.call(o).slice(8, -1)
     },
 
-    objId(obj) {
-      if (!obj.__id) {
+    objId: function(obj) {
+      if (!obj['__id']) {
         Object.defineProperty(obj, '__id', { value: ++uniqueId })
       }
-      return obj.__id
+      return obj['__id']
     },
 
     // Deep clone a language definition (e.g. to extend it)
     clone: function deepClone(o, visited?: any) {
-      let clone,
+      var clone,
         id,
         type = Prism.util.type(o)
       visited = visited || {}
@@ -61,7 +62,7 @@ export let Prism: any = {
           clone = {}
           visited[id] = clone
 
-          for (let key in o) {
+          for (var key in o) {
             if (o.hasOwnProperty(key)) {
               clone[key] = deepClone(o[key], visited)
             }
@@ -90,10 +91,10 @@ export let Prism: any = {
   },
 
   languages: {
-    extend(id, redef) {
-      let lang = Prism.util.clone(Prism.languages[id])
+    extend: function(id, redef) {
+      var lang = Prism.util.clone(Prism.languages[id])
 
-      for (let key in redef) {
+      for (var key in redef) {
         lang[key] = redef[key]
       }
 
@@ -109,15 +110,15 @@ export let Prism: any = {
      * @param insert Object with the key/value pairs to insert
      * @param root The object that contains `inside`. If equal to Prism.languages, it can be omitted.
      */
-    insertBefore(inside, before, insert, root) {
+    insertBefore: function(inside, before, insert, root) {
       root = root || Prism.languages
-      let grammar = root[inside]
-      let ret = {}
+      var grammar = root[inside]
+      var ret = {}
 
-      for (let token in grammar) {
+      for (var token in grammar) {
         if (grammar.hasOwnProperty(token)) {
           if (token == before) {
-            for (let newToken in insert) {
+            for (var newToken in insert) {
               if (insert.hasOwnProperty(newToken)) {
                 ret[newToken] = insert[newToken]
               }
@@ -131,7 +132,7 @@ export let Prism: any = {
         }
       }
 
-      let old = root[inside]
+      var old = root[inside]
       root[inside] = ret
 
       // Update references in other language definitions
@@ -148,13 +149,13 @@ export let Prism: any = {
     DFS: function DFS(o, callback, type?: any, visited?: any) {
       visited = visited || {}
 
-      let objId = Prism.util.objId
+      var objId = Prism.util.objId
 
-      for (let i in o) {
+      for (var i in o) {
         if (o.hasOwnProperty(i)) {
           callback.call(o, i, o[i], type || i)
 
-          let property = o[i],
+          var property = o[i],
             propertyType = Prism.util.type(property)
 
           if (propertyType === 'Object' && !visited[objId(property)]) {
@@ -170,11 +171,11 @@ export let Prism: any = {
   },
   plugins: {},
 
-  highlight(text, grammar, language) {
-    let env: any = {
+  highlight: function(text, grammar, language) {
+    var env: any = {
       code: text,
-      grammar,
-      language,
+      grammar: grammar,
+      language: language,
     }
     Prism.hooks.run('before-tokenize', env)
     env.tokens = Prism.tokenize(env.code, env.grammar)
@@ -182,8 +183,8 @@ export let Prism: any = {
     return Token.stringify(Prism.util.encode(env.tokens), env.language)
   },
 
-  matchGrammar(text, strarr, grammar, index, startPos, oneshot, target?: any) {
-    for (let token in grammar) {
+  matchGrammar: function(text, strarr, grammar, index, startPos, oneshot, target?: any) {
+    for (var token in grammar) {
       if (!grammar.hasOwnProperty(token) || !grammar[token]) {
         continue
       }
@@ -192,11 +193,11 @@ export let Prism: any = {
         return
       }
 
-      let patterns = grammar[token]
+      var patterns = grammar[token]
       patterns = Prism.util.type(patterns) === 'Array' ? patterns : [patterns]
 
-      for (let j = 0; j < patterns.length; ++j) {
-        let pattern = patterns[j],
+      for (var j = 0; j < patterns.length; ++j) {
+        var pattern = patterns[j],
           inside = pattern.inside,
           lookbehind = !!pattern.lookbehind,
           greedy = !!pattern.greedy,
@@ -205,15 +206,15 @@ export let Prism: any = {
 
         if (greedy && !pattern.pattern.global) {
           // Without the global flag, lastIndex won't work
-          let flags = pattern.pattern.toString().match(/[imuy]*$/)[0]
+          var flags = pattern.pattern.toString().match(/[imuy]*$/)[0]
           pattern.pattern = RegExp(pattern.pattern.source, flags + 'g')
         }
 
         pattern = pattern.pattern || pattern
 
         // Don’t cache length as it changes during the loop
-        for (let i = index, pos = startPos; i < strarr.length; pos += strarr[i].length, ++i) {
-          let str = strarr[i]
+        for (var i = index, pos = startPos; i < strarr.length; pos += strarr[i].length, ++i) {
+          var str = strarr[i]
 
           if (strarr.length > text.length) {
             // Something went terribly wrong, ABORT, ABORT!
@@ -226,17 +227,17 @@ export let Prism: any = {
 
           if (greedy && i != strarr.length - 1) {
             pattern.lastIndex = pos
-            let match = pattern.exec(text)
+            var match = pattern.exec(text)
             if (!match) {
               break
             }
 
-            let from = match.index + (lookbehind ? match[1].length : 0),
+            var from = match.index + (lookbehind ? match[1].length : 0),
               to = match.index + match[0].length,
               k = i,
               p = pos
 
-            for (let len = strarr.length; k < len && (p < to || (!strarr[k].type && !strarr[k - 1].greedy)); ++k) {
+            for (var len = strarr.length; k < len && (p < to || (!strarr[k].type && !strarr[k - 1].greedy)); ++k) {
               p += strarr[k].length
               // Move the index i to the element in strarr that is closest to from
               if (from >= p) {
@@ -251,18 +252,17 @@ export let Prism: any = {
             }
 
             // Number of tokens to delete and replace with the new match
-            var delNum = k - i
+            delNum = k - i
             str = text.slice(pos, p)
             match.index -= pos
           } else {
             pattern.lastIndex = 0
 
-            let match = pattern.exec(str),
+            var match = pattern.exec(str),
               delNum = 1
           }
 
-          // @ts-ignore
-          if (typeof match !== 'undefined') {
+          if (!match) {
             if (oneshot) {
               break
             }
@@ -271,19 +271,16 @@ export let Prism: any = {
           }
 
           if (lookbehind) {
-            // @ts-ignore
             lookbehindLength = match[1] ? match[1].length : 0
           }
 
-          // @ts-ignore
-          let from = match.index + lookbehindLength,
-            // @ts-ignore
+          var from = match.index + lookbehindLength,
             match = match[0].slice(lookbehindLength),
             to = from + match.length,
             before = str.slice(0, from),
             after = str.slice(to)
 
-          let args: any = [i, delNum]
+          var args: any = [i, delNum]
 
           if (before) {
             ++i
@@ -291,7 +288,7 @@ export let Prism: any = {
             args.push(before)
           }
 
-          let wrapped = new Token(token, inside ? Prism.tokenize(match, inside) : match, alias, match, greedy)
+          var wrapped = new Token(token, inside ? Prism.tokenize(match, inside) : match, alias, match, greedy)
 
           args.push(wrapped)
 
@@ -301,25 +298,21 @@ export let Prism: any = {
 
           Array.prototype.splice.apply(strarr, args)
 
-          if (delNum != 1) {
-            Prism.matchGrammar(text, strarr, grammar, i, pos, true, token)
-          }
+          if (delNum != 1) Prism.matchGrammar(text, strarr, grammar, i, pos, true, token)
 
-          if (oneshot) {
-            break
-          }
+          if (oneshot) break
         }
       }
     }
   },
 
-  tokenize(text, grammar) {
-    let strarr = [text]
+  tokenize: function(text, grammar) {
+    var strarr = [text]
 
-    let rest = grammar.rest
+    var rest = grammar.rest
 
     if (rest) {
-      for (let token in rest) {
+      for (var token in rest) {
         grammar[token] = rest[token]
       }
 
@@ -334,28 +327,28 @@ export let Prism: any = {
   hooks: {
     all: {},
 
-    add(name, callback) {
-      let hooks = Prism.hooks.all
+    add: function(name, callback) {
+      var hooks = Prism.hooks.all
 
       hooks[name] = hooks[name] || []
 
       hooks[name].push(callback)
     },
 
-    run(name, env) {
-      let callbacks = Prism.hooks.all[name]
+    run: function(name, env) {
+      var callbacks = Prism.hooks.all[name]
 
       if (!callbacks || !callbacks.length) {
         return
       }
 
-      for (let i = 0, callback; (callback = callbacks[i++]); ) {
+      for (var i = 0, callback; (callback = callbacks[i++]); ) {
         callback(env)
       }
     },
   },
 
-  Token,
+  Token: Token,
 }
 
 Prism.languages.clike = {
