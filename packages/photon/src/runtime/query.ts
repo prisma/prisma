@@ -183,7 +183,7 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
       return errorStr
     }
 
-    const error = new InvalidClientInputError(renderErrorStr())
+    const error = new PhotonError(renderErrorStr())
     // @ts-ignore
     if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
       Object.defineProperty(error, 'render', {
@@ -331,7 +331,7 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
   }
 }
 
-class InvalidClientInputError extends Error {}
+class PhotonError extends Error {}
 
 export interface FieldArgs {
   name: string
