@@ -200,7 +200,7 @@ export class NodeEngine extends Engine {
     while (true) {
       try {
         await new Promise(r => setTimeout(r, 50)) // TODO: Try out lower intervals here, but we also don't want to spam it too much.
-        const response = await fetch(`http://localhost:${this.port}/dmmf`, {
+        const response = await fetch(`http://localhost:${this.port}/status`, {
           timeout: 5000, // not official but node-fetch supports it
         } as any)
         if (response.ok) {
