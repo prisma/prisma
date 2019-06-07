@@ -30,17 +30,21 @@ export class PhotonGenerate implements Command {
   private constructor(private readonly env: Env) {}
 
   // parse arguments
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], minimalOutput = false): Promise<string | Error> {
     const ymlPath = await this.getPrismaYmlPath()
     const config = await readFile(ymlPath, 'utf-8')
     const datamodelPath = await this.getDatamodelPath(config, ymlPath)
     const datamodel = await readFile(datamodelPath, 'utf-8')
     const output = path.join(this.env.cwd, '/node_modules/@generated/photon')
     const before = performance.now()
-    console.log(`\nGenerating Photon to ${output}`)
+    if (!minimalOutput) {
+      console.log(`\nGenerating Photon to ${output}`)
+    }
     await generateClient(datamodel, ymlPath, output, true)
     console.log(`✨ Done generating Photon in ${(performance.now() - before).toFixed(2)}ms`)
-    console.log(`\nYou can import it with ${chalk.greenBright(`import { Photon } from '@generated/photon'`)}`)
+    if (!minimalOutput) {
+      console.log(`\nYou can import it with ${chalk.greenBright(`import { Photon } from '@generated/photon'`)}`)
+    }
     return ''
   }
 

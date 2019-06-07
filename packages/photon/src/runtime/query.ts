@@ -10,6 +10,7 @@ import {
   InvalidArgError,
   InvalidFieldError,
 } from './error-types'
+import { highlightTS } from './highlight/highlight'
 import {
   getGraphQLType,
   getInputTypeName,
@@ -20,6 +21,7 @@ import {
   unionBy,
   wrapWithList,
 } from './utils/common'
+import { dedent } from './utils/dedent'
 import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
@@ -27,9 +29,6 @@ import { omit } from './utils/omit'
 import { MissingItem, printJsonWithErrors } from './utils/printJsonErrors'
 import stringifyObject from './utils/stringifyObject'
 import { visit } from './visit'
-// import callSites from 'callsites'
-// import fs from 'fs'
-// import path from 'path'
 
 const tab = 2
 
@@ -91,36 +90,108 @@ ${indent(this.children.map(String).join('\n'), tab)}
       }
     }
 
-    // TODO
-    // const sites = callSites()
+    function renderN(n: number, max: number): string {
+      const wantedLetters = String(max).length
+      const hasLetters = String(n).length
+      if (hasLetters >= wantedLetters) {
+        return String(n)
+      }
 
-    // const callSite = sites.length > 2 ? sites[sites.length - 3] : sites[0]
+      return String(' '.repeat(wantedLetters - hasLetters) + n)
+    }
+    let lastErrorHeight = 20
 
-    // const lineNumber = callSite.getLineNumber()
-    // const fileName = callSite.getFileName()
-    // const file = fs.readFileSync(fileName, 'utf-8')
-    // const relativePath = path.relative(process.cwd(), fileName)
+    const renderErrorStr = (callsite?: string) => {
+      let callsiteStr = ''
+      let prevLines = '\n'
+      let afterLines = ''
+      let indentValue = 0
+      let functionName = `photon.${originalMethod || queryName}()`
 
-    // const linesBefore = file
-    //   .split('\n')
-    //   .slice(lineNumber - 3, lineNumber)
-    //   .join('\n')
+      if (callsite) {
+        const [fileName, lineNumberString] = callsite.split(':')
+        const lineNumber = parseInt(lineNumberString, 10)
+        callsiteStr = callsite ? ` in ${chalk.underline(callsite)}` : ''
+        if (
+          // @ts-ignore
+          typeof window === 'undefined' &&
+          lineNumber &&
+          !isNaN(lineNumber) &&
+          process.env.NODE_ENV !== 'production'
+        ) {
+          const height = process.stdout.rows
+          const start = Math.max(0, lineNumber - 15)
+          const neededHeight = lastErrorHeight + lineNumber - start
+          if (height > neededHeight) {
+            const fs = require('fs')
+            const file = fs.readFileSync(fileName, 'utf-8')
+            const slicedFile = file
+              .split('\n')
+              .slice(start, lineNumber)
+              .join('\n')
+            const lines = dedent(slicedFile).split('\n')
 
-    // // console.log(sites)
+            const theLine = lines[lines.length - 1]
+            const photonRegex = /(=|return)+\s+(await)?\s*(.*\()/
+            const match = theLine.match(photonRegex)
+            if (match) {
+              functionName = `${match[3]})`
+            }
+            const highlightedLines = highlightTS(
+              lines.map((l, i, all) => (i === all.length - 1 ? l.slice(0, l.length - 1) : l)).join('\n'),
+            ).split('\n')
+            prevLines =
+              '\n' +
+              highlightedLines
+                .map((l, i) => chalk.grey(renderN(i + start + 1, lineNumber + start + 1) + ' ') + chalk.reset() + l)
+                .join('\n')
+            afterLines = ')'
+            indentValue = String(lineNumber + start + 1).length + getIndent(theLine) + 1
+          }
+        }
+      }
 
-    const errorStr = `\n\n${chalk.red(
-      `Invalid ${chalk.bold(`\`photon.${originalMethod || queryName}()\``)} invocation`,
-    )}
+      function getIndent(line: string) {
+        let spaceCount = 0
+        for (let i = 0; i < line.length; i++) {
+          if (line.charAt(i) !== ' ') {
+            return spaceCount
+          }
+          spaceCount++
+        }
 
-${printJsonWithErrors(isTopLevelQuery ? { [topLevelQueryName]: select } : select, keyPaths, valuePaths, missingItems)}
+        return spaceCount
+      }
+
+      const errorStr = `\n\n${chalk.red(`Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`)}
+${chalk.dim(prevLines)}${chalk.reset()}${indent(
+        printJsonWithErrors(
+          isTopLevelQuery ? { [topLevelQueryName]: select } : select,
+          keyPaths,
+          valuePaths,
+          missingItems,
+        ),
+        indentValue,
+      ).slice(indentValue)}${chalk.dim(afterLines)}
 
 ${argErrors
   .filter(e => e.error.type !== 'missingArg' || e.error.missingType[0].isRequired)
   .map(this.printArgError)
   .join('\n')}
 ${fieldErrors.map(this.printFieldError).join('\n')}\n`
+      lastErrorHeight = errorStr.split('\n').length
+      return errorStr
+    }
 
-    throw new InvalidClientInputError(errorStr)
+    const error = new InvalidClientInputError(renderErrorStr())
+    // @ts-ignore
+    if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
+      Object.defineProperty(error, 'render', {
+        get: () => renderErrorStr,
+        enumerable: false,
+      })
+    }
+    throw error
   }
   protected printFieldError = ({ error }: FieldError) => {
     if (error.type === 'invalidFieldName') {
