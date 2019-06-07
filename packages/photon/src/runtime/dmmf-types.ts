@@ -141,6 +141,7 @@ export namespace DMMF {
     isEmbedded: boolean
     dbName: string | null
     fields: Field[]
+    [key: string]: any // safe net for additional new props
   }
 
   export type FieldKind = 'scalar' | 'object' | 'enum'
@@ -158,6 +159,7 @@ export namespace DMMF {
     relationToFields?: any[]
     relationOnDelete?: string
     relationName?: string
+    [key: string]: any // safe net for additional new props
   }
 
   export interface Schema {

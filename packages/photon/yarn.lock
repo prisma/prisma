@@ -6318,6 +6318,11 @@ uuid@^3.1.0, uuid@^3.3.2:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
   integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
 
+v8-callsites@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/v8-callsites/-/v8-callsites-1.2.1.tgz#3ca4e2dedf50eb489e37056ed64b0255e95ef386"
+  integrity sha1-PKTi3t9Q60ieNwVu1ksCVele84Y=
+
 v8-compile-cache@^2.0.2:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/v8-compile-cache/-/v8-compile-cache-2.0.3.tgz#00f7494d2ae2b688cfe2899df6ed2c54bef91dbe"

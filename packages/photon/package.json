@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "0.0.13",
+  "version": "0.0.21",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -11,7 +11,7 @@
     "ncc:runtime": "node scripts/build-runtime.js",
     "install": "test -f scripts/download.js && node scripts/download.js || echo \"\"",
     "prepublishOnly": "yarn build",
-    "build:browser": "webpack -c scripts/webpack.browser.config.js",
+    "build:browser": "webpack -c scripts/webpack.browser.config.js --verbose",
     "lint": "tslint -c tslint.json 'src/**/*.ts' --fix"
   },
   "lint-staged": {
@@ -80,6 +80,7 @@
     "prisma-generate-schema": "^1.34.0",
     "set-value": "^3.0.0",
     "strip-ansi": "^5.2.0",
-    "strip-indent": "^3.0.0"
+    "strip-indent": "^3.0.0",
+    "v8-callsites": "^1.2.1"
   }
 }

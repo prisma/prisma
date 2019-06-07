@@ -1,7 +1,9 @@
 const path = require('path')
 
+const entry = path.resolve(__dirname, '../src/runtime/browser.ts')
+
 module.exports = {
-  entry: path.resolve(__dirname, '../src/runtime/browser.ts'),
+  entry,
   module: {
     rules: [
       {
@@ -10,6 +12,10 @@ module.exports = {
         exclude: /node_modules/,
       },
     ],
+  },
+  externals: {
+    path: 'path',
+    fs: 'fs',
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],

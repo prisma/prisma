@@ -606,6 +606,7 @@ ${indent(
 }
 
 class ${name}Client<T> implements PromiseLike<T> {
+  private callsite: any
   constructor(
     private readonly dmmf: DMMFClass,
     private readonly fetcher: PhotonFetcher,
@@ -614,7 +615,17 @@ class ${name}Client<T> implements PromiseLike<T> {
     private readonly clientMethod: string,
     private readonly args: ${name}Args,
     private readonly path: string[]
-  ) {}
+  ) {
+    // @ts-ignore
+    if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
+      const error = new Error()
+      const stack = error.stack.toString()
+      const line = stack.split('\\n').find(l => l.includes('at') && !l.includes('@generated/photon'))
+      if (line) {
+        this.callsite = line.trim().slice(3)
+      }
+    }
+  }
   readonly [Symbol.toStringTag]: 'PhotonPromise'
 
 ${indent(
@@ -655,7 +666,17 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
       rootTypeName: this.queryType,
       select: this.args
     })
-    document.validate(this.args, false, this.clientMethod)
+    try {
+      document.validate(this.args, false, this.clientMethod)
+    } catch (e) {
+      const x: any = e
+      if (x.render) {
+        if (this.callsite) {
+          e.message = x.render(this.callsite)
+        }
+      }
+      throw e
+    }
     debug(String(document))
     const newDocument = transformDocument(document)
     return String(newDocument)
