@@ -1,6 +1,6 @@
 {
   "name": "@prisma/lift",
-  "version": "0.0.20",
+  "version": "0.0.24",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
@@ -38,7 +38,7 @@
     "indent-string": "^4.0.0",
     "log-update": "^3.2.0",
     "p-map": "^2.1.0",
-    "prisma-datamodel": "^1.36.0-alpha.6",
+    "prisma-datamodel": "^1.36.0-test.2",
     "prompts": "^2.1.0",
     "string-width": "^4.1.0",
     "strip-ansi": "^5.2.0",

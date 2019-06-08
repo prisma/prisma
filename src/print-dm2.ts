@@ -11,7 +11,7 @@ async function main() {
   const parser = DefaultParser.create(DatabaseType.postgres)
   const isdl = parser.parseFromSchemaString(dm1)
 
-  const datamodel = await isdlToDatamodel2(isdl)
+  const datamodel = await isdlToDatamodel2(isdl, [])
   console.log(datamodel)
 }
 

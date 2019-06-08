@@ -46,11 +46,7 @@ export class LiftEngine {
 
       child.on('error', err => {
         console.error('[migration-engine] error: %s', err)
-        reject(
-          new Error(
-            `${chalk.redBright('Error in lift engine:')} ${messages.join('')}`,
-          ),
-        )
+        reject(new Error(`${chalk.redBright('Error in lift engine:')} ${messages.join('')}`))
       })
 
       child.on('exit', (code, signal) => {
@@ -60,13 +56,9 @@ export class LiftEngine {
           //   code,
           //   signal,
           // )
-          this.persistError(request, messages)
+          this.persistError(request, null, messages)
           reject(
-            new Error(
-              `${chalk.redBright(
-                `Error in lift engine for rpc ${request.method}:`,
-              )} ${messages.join('')}`,
-            ),
+            new Error(`${chalk.redBright(`Error in lift engine for rpc ${request.method}:`)}\n  ${messages.join('')}`),
           )
         }
       })
@@ -84,31 +76,22 @@ export class LiftEngine {
         try {
           const result = JSON.parse(lineString)
           if (result.result) {
-            debugRpc(
-              `RECEIVING RPC ANSWER`,
-              util.inspect(result.result, { depth: null }),
-            )
+            debugRpc(`RECEIVING RPC ANSWER`, util.inspect(result.result, { depth: null }))
             resolve(result.result)
           } else {
             if (result.error) {
-              this.persistError(request, messages)
+              const text = this.persistError(request, result, messages)
               reject(
                 new Error(
-                  `${chalk.redBright('Error in RPC')} ${JSON.stringify(
+                  `${chalk.redBright('Error in RPC')}\n Request: ${JSON.stringify(
                     request,
                     null,
                     2,
-                  )} ${result.error.message}`,
+                  )}\nResponse: ${JSON.stringify(result, null, 2)}\n${result.error.message}\n\n${text}\n`,
                 ),
               )
             } else {
-              reject(
-                new Error(
-                  `Got invalid RPC response without .result property: ${JSON.stringify(
-                    result,
-                  )}`,
-                ),
-              )
+              reject(new Error(`Got invalid RPC response without .result property: ${JSON.stringify(result)}`))
             }
           }
         } catch (e) {
@@ -119,14 +102,26 @@ export class LiftEngine {
       child.stdin!.write(JSON.stringify(request) + '\n')
     })
   }
-  private persistError(request: any, messages: string[]) {
-    if (debugLib.enabled('LiftEngine') || debugLib.enabled('LiftEngine:rpc')) {
-      fs.writeFileSync(
-        `failed-${request.method}.md`,
-        `# Failed ${request.method}
-## RPC Input
+  private persistError(request: any, response: any, messages: string[]): string {
+    // if (debugLib.enabled('LiftEngine') || debugLib.enabled('LiftEngine:rpc')) {
+    const filename = `failed-${request.method}.md`
+    fs.writeFileSync(
+      filename,
+      `# Failed ${request.method}
+## RPC Input One Line
 \`\`\`json
 ${JSON.stringify(request)}
+\`\`\`
+
+## RPC Input Readable
+\`\`\`json
+${JSON.stringify(request, null, 2)}
+\`\`\`
+
+
+## RPC Response
+\`\`\`
+${JSON.stringify(response, null, 2)}
 \`\`\`
 
 ## Stack Trace
@@ -134,8 +129,12 @@ ${JSON.stringify(request)}
 ${messages.join('')}
 \`\`\`
 `,
-      )
-    }
+    )
+    return `Wrote ${chalk.bold(filename)} with debugging information.
+Please put that file into a gist and post it in Slack.
+1. ${chalk.greenBright(`cat ${filename} | pbcopy`)}
+2. Create a gist ${chalk.greenBright.underline(`https://gist.github.com/new`)}`
+    // }
   }
   private getRPCPayload(method: string, params: any) {
     return {
@@ -148,47 +147,49 @@ ${messages.join('')}
       },
     }
   }
-  applyMigration(
-    args: EngineArgs.ApplyMigration,
-  ): Promise<EngineResults.ApplyMigration> {
+  applyMigration(args: EngineArgs.ApplyMigration): Promise<EngineResults.ApplyMigration> {
     return this.runCommand(this.getRPCPayload('applyMigration', args))
   }
   unapplyMigration(): Promise<EngineResults.UnapplyMigration> {
     return this.runCommand(this.getRPCPayload('unapplyMigration', {}))
   }
-  calculateDatamodel(
-    args: EngineArgs.CalculateDatamodel,
-  ): Promise<EngineResults.CalculateDatamodel> {
+  calculateDatamodel(args: EngineArgs.CalculateDatamodel): Promise<EngineResults.CalculateDatamodel> {
     return this.runCommand(this.getRPCPayload('calculateDatamodel', args))
   }
-  calculateDatabaseSteps(
-    args: EngineArgs.CalculateDatabaseSteps,
-  ): Promise<EngineResults.ApplyMigration> {
+  calculateDatabaseSteps(args: EngineArgs.CalculateDatabaseSteps): Promise<EngineResults.ApplyMigration> {
     return this.runCommand(this.getRPCPayload('calculateDatabaseSteps', args))
   }
-  inferMigrationSteps(
-    args: EngineArgs.InferMigrationSteps,
-  ): Promise<EngineResults.InferMigrationSteps> {
+  inferMigrationSteps(args: EngineArgs.InferMigrationSteps): Promise<EngineResults.InferMigrationSteps> {
     return this.runCommand(this.getRPCPayload('inferMigrationSteps', args))
   }
   listMigrations(): Promise<EngineResults.ListMigrations> {
     return this.runCommand(this.getRPCPayload('listMigrations', {}))
   }
-  convertDmmfToDml(
-    args: EngineArgs.DmmfToDml,
-  ): Promise<EngineResults.DmmfToDml> {
-    return this.runCommand(this.getRPCPayload('convertDmmfToDml', args))
+  convertDmmfToDml(args: EngineArgs.DmmfToDml): Promise<EngineResults.DmmfToDml> {
+    return this.runCommand(
+      this.getRPCPayload('convertDmmfToDml', {
+        dataSources: args.dataSources.map(uglifySource),
+        dmmf: args.dmmf,
+      } as EngineArgs.DmmfToDml),
+    )
+  }
+  listDataSources(args: EngineArgs.ListDataSources): Promise<EngineResults.ListDataSources> {
+    return this.runCommand(this.getRPCPayload('listDataSources', args))
   }
   // Helper function, oftentimes we just want the applied migrations
   async listAppliedMigrations(): Promise<EngineResults.ListMigrations> {
-    const migrations = await this.runCommand(
-      this.getRPCPayload('listMigrations', {}),
-    )
+    const migrations = await this.runCommand(this.getRPCPayload('listMigrations', {}))
     return migrations.filter(m => m.status === 'Success')
   }
-  migrationProgess(
-    args: EngineArgs.MigrationProgress,
-  ): Promise<EngineResults.MigrationProgress> {
+  migrationProgess(args: EngineArgs.MigrationProgress): Promise<EngineResults.MigrationProgress> {
     return this.runCommand(this.getRPCPayload('migrationProgress', args))
+  }
+}
+
+function uglifySource(source) {
+  return {
+    tpe: source.type,
+    name: source.name,
+    url: source.url,
   }
 }
