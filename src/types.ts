@@ -68,6 +68,9 @@ export namespace EngineArgs {
     dmmf: any // TODO type this
     dataSources: any[]
   }
+  export type ListDataSources = {
+    datamodel: string
+  }
 }
 
 export namespace EngineResults {
@@ -121,6 +124,13 @@ export namespace EngineResults {
   export type DmmfToDml = {
     datamodel: string
   }
+  export type ListDataSources = DataSource[]
+}
+
+export type DataSource = {
+  name: string
+  type: string
+  url: string
 }
 
 export interface FileMap {
@@ -193,8 +203,4 @@ export type CreateColumn = {
   }
 }
 
-export type DatabaseStep =
-  | RawSqlStep
-  | DropTableStep
-  | RenameTableStep
-  | CreateTableStep
+export type DatabaseStep = RawSqlStep | DropTableStep | RenameTableStep | CreateTableStep
