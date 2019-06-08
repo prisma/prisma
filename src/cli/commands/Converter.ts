@@ -1,11 +1,8 @@
 import { Command, arg, isError, format, Env, HelpError } from '@prisma/cli'
 import chalk from 'chalk'
 import { LiftEngine } from '../../LiftEngine'
-import {
-  DefaultParser,
-  DatabaseType,
-  isdlToDmmfDatamodel,
-} from 'prisma-datamodel'
+import { DefaultParser, DatabaseType, isdlToDmmfDatamodel } from 'prisma-datamodel'
+import { isdlToDatamodel2 } from '../../utils/isdlToDatamodel2'
 
 export class Converter implements Command {
   static new(env: Env): Converter {
@@ -31,14 +28,7 @@ export class Converter implements Command {
     const engine = new LiftEngine({ projectDir: process.cwd() })
     const parser = DefaultParser.create(DatabaseType.postgres)
     const isdl = parser.parseFromSchemaString(datamodel)
-    const { dmmf, dataSources } = isdlToDmmfDatamodel(isdl)
-
-    const result = await engine.convertDmmfToDml({
-      dmmf: JSON.stringify(dmmf),
-      dataSources,
-    })
-
-    return result.datamodel
+    return isdlToDatamodel2(isdl)
   }
 
   readStdin(): Promise<string> {
@@ -59,9 +49,7 @@ export class Converter implements Command {
   // help message
   help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${Converter.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Converter.help}`)
     }
     return Converter.help
   }
@@ -80,8 +68,6 @@ export class Converter implements Command {
 
     ${chalk.bold('Examples')}
 
-      ${chalk.dim(
-        `$`,
-      )} cat old-datamodel.prisma | prisma convert > new-datamodel.prisma
+      ${chalk.dim(`$`)} cat old-datamodel.prisma | prisma convert > new-datamodel.prisma
   `)
 }

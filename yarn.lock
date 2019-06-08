@@ -3308,10 +3308,10 @@ pretty-format@^24.8.0:
     ansi-styles "^3.2.0"
     react-is "^16.8.4"
 
-prisma-datamodel@^1.36.0-alpha.2:
-  version "1.36.0-alpha.2"
-  resolved "https://registry.yarnpkg.com/prisma-datamodel/-/prisma-datamodel-1.36.0-alpha.2.tgz#4ed0bdd70506436dc8540c15ce040f0b8e2e490d"
-  integrity sha512-6YLhLUB+eUCl98mmuim8ETmeAjwAqpYbMYrjPW8bPPX5fQbBg/cQNxD/X9opuTa+a+rJHaO1/Q2D6l6FWI7ZvQ==
+prisma-datamodel@^1.36.0-alpha.6:
+  version "1.36.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/prisma-datamodel/-/prisma-datamodel-1.36.0-alpha.6.tgz#c4d03d5018c055512b4c8f85b8a512598983e8f9"
+  integrity sha512-xhB0HFKzBrJ04ErB9QbO4qheGHY1NYbgr7YFtd/zwPUbiRSFLKiO5BHf9JvtFPCRgV2JWAaWU0gOzqArrYNGRw==
   dependencies:
     debug "^4.1.1"
     graphql "^14.3.0"
