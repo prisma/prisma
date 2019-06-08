@@ -619,10 +619,12 @@ class ${name}Client<T> implements PromiseLike<T> {
     // @ts-ignore
     if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
       const error = new Error()
-      const stack = error.stack.toString()
-      const line = stack.split('\\n').find(l => l.includes('at') && !l.includes('@generated/photon'))
-      if (line) {
-        this.callsite = line.trim().slice(3)
+      if (error && error.stack) {
+        const stack = error.stack.toString()
+        const line = stack.split('\\n').find(l => l.includes('at') && !l.includes('@generated/photon'))
+        if (line) {
+          this.callsite = line.trim().slice(3)
+        }
       }
     }
   }

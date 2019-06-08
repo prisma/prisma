@@ -6,8 +6,10 @@ import path from 'path'
 import { performance } from 'perf_hooks'
 import { promisify } from 'util'
 import { generateClient } from './generation/generateClient'
+import { getRandomString } from './utils/getRandomString'
 
 const readFile = promisify(fs.readFile)
+const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 
 /**
@@ -41,6 +43,14 @@ export class PhotonGenerate implements Command {
       console.log(`\nGenerating Photon to ${output}`)
     }
     await generateClient(datamodel, ymlPath, output, true)
+
+    const packageJson = {
+      name: 'photon',
+      description: 'Your personal photon client',
+      version: `0.1.0-${getRandomString()}`,
+    }
+
+    await writeFile(path.join(output, 'package.json'), JSON.stringify(packageJson, null, 2))
     console.log(`✨ Done generating Photon in ${(performance.now() - before).toFixed(2)}ms`)
     if (!minimalOutput) {
       console.log(`\nYou can import it with ${chalk.greenBright(`import { Photon } from '@generated/photon'`)}`)

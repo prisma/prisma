@@ -17,13 +17,11 @@ export function transformDmmf(document: DMMF.Document): DMMF.Document {
 }
 
 function filterInputTypes(types: DMMF.InputType[]): DMMF.InputType[] {
-  return uniqBy(types, o => o.name).filter(o => !o.name.includes('Subscription') && o.name !== 'MutationType')
+  return uniqBy(types, o => o.name)
 }
 
 function filterOutputTypes(types: DMMF.OutputType[]): DMMF.OutputType[] {
-  return uniqBy(types, o => o.name).filter(o => {
-    return !o.name.endsWith('PreviousValues') && !o.name.includes('Subscription')
-  })
+  return uniqBy(types, o => o.name)
 }
 
 function transformOrderInputTypes(document: DMMF.Document): DMMF.Document {
