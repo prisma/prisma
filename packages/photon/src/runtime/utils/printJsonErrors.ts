@@ -39,7 +39,9 @@ export function printJsonWithErrors(
           valueStr = valueStr.slice(1, valueStr.length - 1)
         }
         const isRequiredStr = missingItem.isRequired ? '' : '?'
-        let output = chalk.greenBright(prefixLines(key + isRequiredStr + ': ' + valueStr + eol, indent, '+'))
+        const prefix = missingItem.isRequired ? '+' : '?'
+        const color = missingItem.isRequired ? chalk.greenBright : chalk.green
+        let output = color(prefixLines(key + isRequiredStr + ': ' + valueStr + eol, indent, prefix))
         if (!missingItem.isRequired) {
           output = chalk.dim(output)
         }

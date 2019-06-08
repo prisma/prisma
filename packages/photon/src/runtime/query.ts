@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import 'flat-map-polyfill'
 import indent from 'indent-string'
 import { /*dmmf, */ DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
@@ -119,8 +120,8 @@ ${indent(this.children.map(String).join('\n'), tab)}
           !isNaN(lineNumber) &&
           process.env.NODE_ENV !== 'production'
         ) {
-          const height = process.stdout.rows
-          const start = Math.max(0, lineNumber - 15)
+          const height = process.stdout.rows || 20
+          const start = Math.max(0, lineNumber - 5)
           const neededHeight = lastErrorHeight + lineNumber - start
           if (height > neededHeight) {
             const fs = require('fs')
@@ -288,7 +289,9 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
     if (error.type === 'missingArg') {
       return `Argument ${chalk.greenBright(error.missingName)} for ${chalk.bold(
         `photon.${path.join('.')}`,
-      )} is missing. You can see in ${chalk.greenBright('green')} what you need to add.`
+      )} is missing. Lines with ${chalk.greenBright('+')} are required, lines with ${chalk.green.dim(
+        '?',
+      )} are optional.`
     }
 
     if (error.type === 'atLeastOne') {
