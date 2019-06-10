@@ -31,9 +31,7 @@ export function printMigrationReadme({
   return `\
 # Migration \`${migrationId}\`
 
-This migration has been generated${byStr} at ${new Date().toLocaleString(
-    'en-US',
-  )}.
+This migration has been generated${byStr} at ${new Date().toLocaleString('en-US')}.
 You can check out the [state of the datamodel](./datamodel.prisma) after the migration.
 
 ## Database Steps
@@ -75,12 +73,7 @@ main()
 `
 }
 
-function makePatch({
-  datamodelA,
-  datamodelB,
-  migrationId,
-  lastMigrationId,
-}: MigrationReadmeInput) {
+function makePatch({ datamodelA, datamodelB, migrationId, lastMigrationId }: MigrationReadmeInput) {
   const patch = createPatch('datamodel.dml', datamodelA, datamodelB)
   const header = `diff --git datamodel.mdl datamodel.mdl
 migration ${lastMigrationId}..${migrationId}\n`

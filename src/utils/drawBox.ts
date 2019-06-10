@@ -24,13 +24,10 @@ export function drawBox({ title, width, height, str }: BoxOptions) {
     ' ' +
     chalk.reset.bold(title) +
     ' ' +
-    chalk.grey(
-      chars.horizontal.repeat(width - title.length - 2 - 3) + chars.topRight,
-    ) +
+    chalk.grey(chars.horizontal.repeat(width - title.length - 2 - 3) + chars.topRight) +
     chalk.reset()
 
-  const bottomLine =
-    chars.bottomLeft + chars.horizontal.repeat(width - 2) + chars.bottomRight
+  const bottomLine = chars.bottomLeft + chars.horizontal.repeat(width - 2) + chars.bottomRight
 
   const lines = str.split('\n')
 
@@ -43,9 +40,9 @@ export function drawBox({ title, width, height, str }: BoxOptions) {
     .map(l => {
       const lineWidth = Math.min(stringWidth(l), width)
       const paddingRight = Math.max(width - lineWidth - 2, 0)
-      return `${chalk.grey(chars.vertical)}${chalk.reset(
-        cliTruncate(l, width - 2),
-      )}${' '.repeat(paddingRight)}${chalk.grey(chars.vertical)}`
+      return `${chalk.grey(chars.vertical)}${chalk.reset(cliTruncate(l, width - 2))}${' '.repeat(
+        paddingRight,
+      )}${chalk.grey(chars.vertical)}`
     })
     .join('\n')
 
