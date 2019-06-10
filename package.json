@@ -47,6 +47,8 @@
   "scripts": {
     "install": "node download.js",
     "run": "node dist/bin.js",
+    "precommit": "yarn lint && yarn test",
+    "lint": "prettier --write **/*.{ts,tsx,js,jsx,md,graphql}",
     "test": "jest",
     "build": "tsc -d",
     "ncc": "ncc build dist/bin.js -o build",
@@ -56,5 +58,10 @@
   "files": [
     "dist",
     "download.js"
-  ]
+  ],
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn precommit"
+    }
+  }
 }

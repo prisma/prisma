@@ -12,16 +12,9 @@ import {
   DatamodelStep,
   DatabaseStep,
 } from './types'
-import {
-  deserializeLockFile,
-  initLockFile,
-  serializeLockFile,
-} from './utils/LockFile'
+import { deserializeLockFile, initLockFile, serializeLockFile } from './utils/LockFile'
 import globby from 'globby'
-import {
-  printDatabaseStepsOverview,
-  highlightMigrationsSQL,
-} from './utils/printDatabaseSteps'
+import { printDatabaseStepsOverview, highlightMigrationsSQL } from './utils/printDatabaseSteps'
 import { printMigrationReadme } from './utils/printMigrationReadme'
 import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import chalk from 'chalk'
@@ -78,11 +71,7 @@ export class Lift {
   }
 
   public async getLockFile(): Promise<LockFile> {
-    const lockFilePath = path.resolve(
-      this.projectDir,
-      'migrations',
-      'lift.lock',
-    )
+    const lockFilePath = path.resolve(this.projectDir, 'migrations', 'lift.lock')
     if (await exists(lockFilePath)) {
       const file = await readFile(lockFilePath, 'utf-8')
       const lockFile = deserializeLockFile(file)
@@ -91,9 +80,7 @@ export class Lift {
         throw new Error(
           `There's a merge conflict in the ${chalk.bold(
             'migrations/lift.lock',
-          )} file. Please execute ${chalk.greenBright(
-            'prisma lift fix',
-          )} to solve it`,
+          )} file. Please execute ${chalk.greenBright('prisma lift fix')} to solve it`,
         )
       }
       return lockFile
@@ -102,14 +89,9 @@ export class Lift {
     return initLockFile()
   }
 
-  public async createMigration(
-    migrationId: string,
-  ): Promise<MigrationWithDatabaseSteps | undefined> {
+  public async createMigration(migrationId: string): Promise<MigrationWithDatabaseSteps | undefined> {
     const datamodel = await this.getDatamodel()
-    const {
-      localMigrations,
-      migrationsToApply,
-    } = await this.getMigrationsToApply()
+    const { localMigrations, migrationsToApply } = await this.getMigrationsToApply()
     const remoteMigrations = await this.engine.listAppliedMigrations()
 
     const localSteps = localMigrations.flatMap(m => m.datamodelSteps)
@@ -138,23 +120,13 @@ export class Lift {
        * while the last applied migration is called "watch", the migration engine will just rename that migration
        */
       const watchMigration = remoteMigrations[remoteMigrations.length - 1]
-      const lastLocalMigration =
-        localMigrations.length > 0
-          ? localMigrations[localMigrations.length - 1]
-          : undefined
+      const lastLocalMigration = localMigrations.length > 0 ? localMigrations[localMigrations.length - 1] : undefined
       if (lastLocalMigration) {
-        if (
-          deepEqual(
-            lastLocalMigration.datamodelSteps,
-            watchMigration.datamodelSteps,
-          )
-        ) {
+        if (deepEqual(lastLocalMigration.datamodelSteps, watchMigration.datamodelSteps)) {
           return undefined
         }
       }
-      datamodelSteps = watchMigration.datamodelSteps.concat(
-        result.datamodelSteps,
-      )
+      datamodelSteps = watchMigration.datamodelSteps.concat(result.datamodelSteps)
       databaseSteps = watchMigration.databaseSteps.concat(result.databaseSteps)
       // TODO: the database steps are empty for now, but Marcus adds that to the migration engine
     } else {
@@ -177,9 +149,7 @@ export class Lift {
   public async create(
     name?: string,
     preview?: boolean,
-  ): Promise<
-    { files: FileMap; migrationId: string; newLockFile: string } | undefined
-  > {
+  ): Promise<{ files: FileMap; migrationId: string; newLockFile: string } | undefined> {
     const lockFile = await this.getLockFile()
     const timestamp = now()
     const migrationId = timestamp + (name ? `-${name}` : '')
@@ -195,9 +165,7 @@ export class Lift {
     const previewStr = preview ? ` --preview` : ''
     console.log(`🏋️‍  lift create${nameStr}${previewStr}`)
     if (lastDatamodel) {
-      const wording = preview
-        ? `Potential datamodel changes:`
-        : 'Local datamodel Changes:'
+      const wording = preview ? `Potential datamodel changes:` : 'Local datamodel Changes:'
       console.log(chalk.bold(`\n${wording}\n`))
     } else {
       console.log(brightGreen.bold('\nNew datamodel:\n'))
@@ -216,11 +184,7 @@ export class Lift {
     return {
       migrationId,
       files: {
-        ['steps.json']: JSON.stringify(
-          { version, steps: datamodelSteps },
-          null,
-          2,
-        ),
+        ['steps.json']: JSON.stringify({ version, steps: datamodelSteps }, null, 2),
         ['datamodel.prisma']: datamodel,
         ['README.md']: printMigrationReadme({
           migrationId,
@@ -246,10 +210,7 @@ export class Lift {
       return undefined
     }
     datamodelFiles.sort()
-    return readFile(
-      path.join(migrationsDir, datamodelFiles.slice(-1)[0]),
-      'utf-8',
-    )
+    return readFile(path.join(migrationsDir, datamodelFiles.slice(-1)[0]), 'utf-8')
   }
 
   private async getLocalMigrations(): Promise<Migration[]> {
@@ -257,12 +218,9 @@ export class Lift {
     if (!(await exists(migrationsDir))) {
       return []
     }
-    const migrationSteps = await globby(
-      ['**/steps.json', '**/datamodel.prisma'],
-      {
-        cwd: migrationsDir,
-      },
-    ).then(files =>
+    const migrationSteps = await globby(['**/steps.json', '**/datamodel.prisma'], {
+      cwd: migrationsDir,
+    }).then(files =>
       Promise.all(
         files.map(async fileName => ({
           fileName: fileName.split('/')[1],
@@ -286,9 +244,7 @@ export class Lift {
         )
       }
       if (!stepsFileJson.steps) {
-        throw new Error(
-          `${stepsFile.fileName} is expected to have a .steps property`,
-        )
+        throw new Error(`${stepsFile.fileName} is expected to have a .steps property`)
       }
 
       return {
@@ -314,27 +270,18 @@ export class Lift {
             databaseSteps: [],
           }
         }
-        if (
-          index === fromIndex &&
-          lastRemoteMigration &&
-          lastRemoteMigration.id === watchMigrationName
-        ) {
+        if (index === fromIndex && lastRemoteMigration && lastRemoteMigration.id === watchMigrationName) {
           return {
             ...migration,
             databaseSteps: lastRemoteMigration.databaseSteps,
           }
         }
-        const stepsUntilNow =
-          index > 0
-            ? localMigrations.slice(0, index).flatMap(m => m.datamodelSteps)
-            : []
+        const stepsUntilNow = index > 0 ? localMigrations.slice(0, index).flatMap(m => m.datamodelSteps) : []
         const input = {
           assumeToBeApplied: stepsUntilNow,
           stepsToApply: migration.datamodelSteps,
         }
-        const { databaseSteps } = await this.engine.calculateDatabaseSteps(
-          input,
-        )
+        const { databaseSteps } = await this.engine.calculateDatabaseSteps(input)
         return {
           ...migration,
           databaseSteps,
@@ -346,29 +293,18 @@ export class Lift {
     return migrationsWithDatabaseSteps.slice(fromIndex)
   }
 
-  public async watch(
-    options: WatchOptions = { preview: false, clear: true },
-  ): Promise<string> {
+  public async watch(options: WatchOptions = { preview: false, clear: true }): Promise<string> {
     if (!options.clear) {
       options.clear = true
     }
-    fs.watch(
-      path.join(this.projectDir, 'datamodel.prisma'),
-      (eventType, filename) => {
-        if (eventType === 'change') {
-          this.watchUp(options)
-        }
-      },
-    )
-    const {
-      migrationsToApply,
-      appliedRemoteMigrations,
-    } = await this.getMigrationsToApply()
+    fs.watch(path.join(this.projectDir, 'datamodel.prisma'), (eventType, filename) => {
+      if (eventType === 'change') {
+        this.watchUp(options)
+      }
+    })
+    const { migrationsToApply, appliedRemoteMigrations } = await this.getMigrationsToApply()
 
-    const lastNonWatchMigration = findLast(
-      appliedRemoteMigrations,
-      m => m.id !== 'watch',
-    )
+    const lastNonWatchMigration = findLast(appliedRemoteMigrations, m => m.id !== 'watch')
 
     if (lastNonWatchMigration) {
       this.datamodelBeforeWatch = lastNonWatchMigration.datamodel
@@ -379,17 +315,11 @@ export class Lift {
     if (migrationsToApply.length > 0) {
       // TODO: Ask for permission if we actually want to do it?
       const before = Date.now()
-      console.log(
-        `Applying unapplied migrations ${chalk.blue(
-          migrationsToApply.map(m => m.id).join(', '),
-        )}\n`,
-      )
+      console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
       await this.up({
         short: true,
       })
-      console.log(
-        `Done applying migrations in ${formatms(Date.now() - before)}`,
-      )
+      console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
       options.clear = false
     }
 
@@ -403,15 +333,10 @@ export class Lift {
     }
     console.log(`🏋️‍  Watching for changes in datamodel.prisma`)
     try {
-      if (preview)
-        return `\nWatching for changes in ${chalk.greenBright(
-          'datamodel.prisma',
-        )}`
+      if (preview) return `\nWatching for changes in ${chalk.greenBright('datamodel.prisma')}`
 
       if (preview)
-        return `\nRun ${chalk.greenBright(
-          'prisma lift create --name MIGRATION_NAME',
-        )} to create the migration\n`
+        return `\nRun ${chalk.greenBright('prisma lift create --name MIGRATION_NAME')} to create the migration\n`
 
       const remoteMigrations = await this.engine.listAppliedMigrations()
       const lastMigration = remoteMigrations.slice(-1)[0]
@@ -437,8 +362,7 @@ export class Lift {
         console.log(
           printDatamodelDiff(
             this.datamodelBeforeWatch,
-            newAppliedRemoteMigrations[newAppliedRemoteMigrations.length - 1]
-              .datamodel,
+            newAppliedRemoteMigrations[newAppliedRemoteMigrations.length - 1].datamodel,
           ),
         )
         console.log(`\nApplied Migration in ${formatms(Date.now() - before)}`)
@@ -460,31 +384,27 @@ export class Lift {
 
     // TODO cleanup
     let lastAppliedIndex = -1
-    const appliedMigrations = localMigrations.filter(
-      (localMigration, index) => {
-        const remoteMigration = appliedRemoteMigrations[index]
-        // if there is already a corresponding remote migration,
-        // we don't need to apply this migration
+    const appliedMigrations = localMigrations.filter((localMigration, index) => {
+      const remoteMigration = appliedRemoteMigrations[index]
+      // if there is already a corresponding remote migration,
+      // we don't need to apply this migration
 
-        if (remoteMigration) {
-          if (
-            localMigration.id !== remoteMigration.id &&
-            remoteMigration.id !== watchMigrationName // it's fine to have the watch migration remotely
-          ) {
-            throw new Error(
-              `Local and remote migrations are not in lockstep. We have migration ${
-                localMigration.id
-              } locally and ${
-                remoteMigration.id
-              } remotely at the same position in the history.`,
-            )
-          }
-          lastAppliedIndex = index
-          return true
+      if (remoteMigration) {
+        if (
+          localMigration.id !== remoteMigration.id &&
+          remoteMigration.id !== watchMigrationName // it's fine to have the watch migration remotely
+        ) {
+          throw new Error(
+            `Local and remote migrations are not in lockstep. We have migration ${localMigration.id} locally and ${
+              remoteMigration.id
+            } remotely at the same position in the history.`,
+          )
         }
-        return false
-      },
-    )
+        lastAppliedIndex = index
+        return true
+      }
+      return false
+    })
 
     if (lastAppliedIndex === -1) {
       return 'No migration to roll back'
@@ -492,9 +412,7 @@ export class Lift {
 
     if (n && n > appliedMigrations.length) {
       throw new Error(
-        `You provided ${chalk.redBright(
-          `n = ${chalk.bold(String(n))}`,
-        )}, but there are only ${
+        `You provided ${chalk.redBright(`n = ${chalk.bold(String(n))}`)}, but there are only ${
           appliedMigrations.length
         } applied migrations that can be rolled back. Please provide ${chalk.green(
           String(appliedMigrations.length),
@@ -511,17 +429,13 @@ export class Lift {
       const result = await this.engine.unapplyMigration()
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(
-          `Errors during rollback: ${JSON.stringify(result.errors)}`,
-        )
+        throw new Error(`Errors during rollback: ${JSON.stringify(result.errors)}`)
       }
 
       lastAppliedIndex--
     }
 
-    return `🚀 Done with ${chalk.bold('down')} in ${formatms(
-      Date.now() - before,
-    )}`
+    return `🚀 Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
   private async getMigrationsToApply(): Promise<{
@@ -532,15 +446,11 @@ export class Lift {
   }> {
     const localMigrations = await this.getLocalMigrations()
     const appliedRemoteMigrations = await this.engine.listAppliedMigrations()
-    const appliedRemoteMigrationsWithoutWatch = appliedRemoteMigrations.filter(
-      m => m.id !== watchMigrationName,
-    )
+    const appliedRemoteMigrationsWithoutWatch = appliedRemoteMigrations.filter(m => m.id !== watchMigrationName)
 
     if (appliedRemoteMigrationsWithoutWatch.length > localMigrations.length) {
       const localMigrationIds = localMigrations.map(m => m.id)
-      const remoteMigrationIds = appliedRemoteMigrationsWithoutWatch.map(
-        m => m.id,
-      )
+      const remoteMigrationIds = appliedRemoteMigrationsWithoutWatch.map(m => m.id)
 
       throw new Error(
         `There are more migrations in the database than locally. This must not happen. Local migration ids: ${localMigrationIds.join(
@@ -550,35 +460,28 @@ export class Lift {
     }
 
     let lastAppliedIndex = -1
-    const migrationsToApply = localMigrations.filter(
-      (localMigration, index) => {
-        const remoteMigration = appliedRemoteMigrations[index]
-        // if there is already a corresponding remote migration,
-        // we don't need to apply this migration
+    const migrationsToApply = localMigrations.filter((localMigration, index) => {
+      const remoteMigration = appliedRemoteMigrations[index]
+      // if there is already a corresponding remote migration,
+      // we don't need to apply this migration
 
-        if (remoteMigration) {
-          if (
-            localMigration.id !== remoteMigration.id &&
-            remoteMigration.id !== watchMigrationName
-          ) {
-            throw new Error(
-              `Local and remote migrations are not in lockstep. We have migration ${
-                localMigration.id
-              } locally and ${
-                remoteMigration.id
-              } remotely at the same position in the history.`,
-            )
-          }
-          // if the current remote migration we're looking at is a watch migration,
-          // we still want to "over apply" it
-          if (remoteMigration.id !== watchMigrationName) {
-            lastAppliedIndex = index
-            return false
-          }
+      if (remoteMigration) {
+        if (localMigration.id !== remoteMigration.id && remoteMigration.id !== watchMigrationName) {
+          throw new Error(
+            `Local and remote migrations are not in lockstep. We have migration ${localMigration.id} locally and ${
+              remoteMigration.id
+            } remotely at the same position in the history.`,
+          )
         }
-        return true
-      },
-    )
+        // if the current remote migration we're looking at is a watch migration,
+        // we still want to "over apply" it
+        if (remoteMigration.id !== watchMigrationName) {
+          lastAppliedIndex = index
+          return false
+        }
+      }
+      return true
+    })
 
     return {
       localMigrations,
@@ -588,18 +491,12 @@ export class Lift {
     }
   }
 
-  public async up({ n, preview, short, verbose }: UpOptions = {}): Promise<
-    string
-  > {
+  public async up({ n, preview, short, verbose }: UpOptions = {}): Promise<string> {
     await this.getLockFile()
     const before = Date.now()
 
     const migrationsToApplyResult = await this.getMigrationsToApply()
-    const {
-      lastAppliedIndex,
-      localMigrations,
-      appliedRemoteMigrations,
-    } = migrationsToApplyResult
+    const { lastAppliedIndex, localMigrations, appliedRemoteMigrations } = migrationsToApplyResult
     let { migrationsToApply } = migrationsToApplyResult
 
     if (typeof n === 'number') {
@@ -620,23 +517,14 @@ export class Lift {
 
       if (lastAppliedMigration) {
         console.log(chalk.bold('Changes to be applied:'))
-        console.log(
-          printDatamodelDiff(
-            lastAppliedMigration.datamodel,
-            lastUnappliedMigration.datamodel,
-          ),
-        )
+        console.log(printDatamodelDiff(lastAppliedMigration.datamodel, lastUnappliedMigration.datamodel))
       } else {
-        console.log(
-          brightGreen.bold('Datamodel that will initialize the db:\n'),
-        )
+        console.log(brightGreen.bold('Datamodel that will initialize the db:\n'))
         console.log(highlightDatamodel(lastUnappliedMigration.datamodel))
       }
     }
 
-    const firstMigrationToApplyIndex = localMigrations.indexOf(
-      migrationsToApply[0],
-    )
+    const firstMigrationToApplyIndex = localMigrations.indexOf(migrationsToApply[0])
     const migrationsWithDbSteps = await this.getDatabaseSteps(
       localMigrations,
       firstMigrationToApplyIndex,
@@ -648,19 +536,10 @@ export class Lift {
     // This will be much better in the future (maybe before, maybe after Prisma Day),
     // we'll not just unapply the last watch migration, but rather make sure that we append the difference
 
-    const lastAppliedRemoteMigration =
-      appliedRemoteMigrations[appliedRemoteMigrations.length - 1]
-    if (
-      lastAppliedRemoteMigration &&
-      lastAppliedRemoteMigration.id === watchMigrationName
-    ) {
+    const lastAppliedRemoteMigration = appliedRemoteMigrations[appliedRemoteMigrations.length - 1]
+    if (lastAppliedRemoteMigration && lastAppliedRemoteMigration.id === watchMigrationName) {
       const firstUnappliedMigration = migrationsToApply[0]
-      if (
-        !deepEqual(
-          firstUnappliedMigration.datamodelSteps,
-          lastAppliedRemoteMigration.datamodelSteps,
-        )
-      ) {
+      if (!deepEqual(firstUnappliedMigration.datamodelSteps, lastAppliedRemoteMigration.datamodelSteps)) {
         try {
           await this.engine.unapplyMigration()
         } catch (e) {
@@ -675,9 +554,7 @@ export class Lift {
 
     if (preview) {
       await progressRenderer.done()
-      return `\nTo apply the migrations, run ${chalk.greenBright(
-        'prisma lift up',
-      )}\n`
+      return `\nTo apply the migrations, run ${chalk.greenBright('prisma lift up')}\n`
     }
 
     for (let i = 0; i < migrationsToApply.length; i++) {
@@ -710,9 +587,7 @@ export class Lift {
         }
         if (progress.status === 'RollbackFailure') {
           cliCursor.show()
-          throw new Error(
-            `Failed to roll back migration. ${JSON.stringify(progress)}`,
-          )
+          throw new Error(`Failed to roll back migration. ${JSON.stringify(progress)}`)
         }
         await new Promise(r => setTimeout(r, 20))
       }
@@ -747,10 +622,7 @@ class ProgressRenderer {
   }
 
   setProgress(index: number, progressPercentage: number) {
-    const progress = Math.min(
-      Math.floor(progressPercentage * this.statusWidth),
-      this.statusWidth,
-    )
+    const progress = Math.min(Math.floor(progressPercentage * this.statusWidth), this.statusWidth)
 
     this.currentIndex = index
     this.currentProgress = progress
@@ -767,10 +639,7 @@ class ProgressRenderer {
   }
 
   render() {
-    const maxMigrationLength = this.migrations.reduce(
-      (acc, curr) => Math.max(curr.id.length, acc),
-      0,
-    )
+    const maxMigrationLength = this.migrations.reduce((acc, curr) => Math.max(curr.id.length, acc), 0)
     let maxStepLength = 0
     //   const scripts = `
     // └─ before.sh
@@ -780,19 +649,13 @@ class ProgressRenderer {
       .map(m => {
         const steps = printDatabaseStepsOverview(m.databaseSteps)
         maxStepLength = Math.max(stripAnsi(steps).length, maxStepLength)
-        return `${blue(m.id)}${' '.repeat(
-          maxMigrationLength - m.id.length + 2,
-        )}${steps}`
+        return `${blue(m.id)}${' '.repeat(maxMigrationLength - m.id.length + 2)}${steps}`
       })
       .map((m, index) => {
         const maxLength = maxStepLength + maxMigrationLength
         const paddingLeft = maxLength - stripAnsi(m).length + 2
         let newLine = m + ' '.repeat(paddingLeft) + '  '
-        if (
-          this.currentIndex > index ||
-          (this.currentIndex === index &&
-            this.currentProgress === this.statusWidth)
-        ) {
+        if (this.currentIndex > index || (this.currentIndex === index && this.currentProgress === this.statusWidth)) {
           return newLine + 'Done 🚀' //+ scripts
         } else if (this.currentIndex === index) {
           return newLine + '\u25A0'.repeat(this.currentProgress) //+ scripts
