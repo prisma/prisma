@@ -1,6 +1,7 @@
 import { LiftEngine } from '../LiftEngine'
-import { ISDL, isdlToDmmfDatamodel } from 'prisma-datamodel'
+import { ISDL } from 'prisma-datamodel'
 import { DataSource } from '../types'
+import { isdlToDmmfDatamodel } from './isdlToDmmf'
 
 export async function isdlToDatamodel2(isdl: ISDL, dataSources: DataSource[]) {
   const engine = new LiftEngine({ projectDir: process.cwd() })
