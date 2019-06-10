@@ -229,12 +229,12 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
         )}`
       } else if (error.didYouMeanArg) {
         str += ` Did you mean \`${chalk.greenBright(error.didYouMeanArg)}\`?`
-        str += ` ${chalk.dim('Available args:\n')}` + stringifyInputType(error.originalType, true)
+        str += ` ${chalk.dim('Available args:\n\n')}` + stringifyInputType(error.originalType, true)
       } else {
         if ((error.originalType as DMMF.InputType).fields.length === 0) {
           str += ` The field ${chalk.bold((error.originalType as DMMF.InputType).name)} has no arguments.`
         } else {
-          str += ` Available args:\n` + stringifyInputType(error.originalType, true)
+          str += ` Available args:\n\n` + stringifyInputType(error.originalType, true)
         }
       }
       return str

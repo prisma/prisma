@@ -93,8 +93,10 @@ export class NodeEngine extends Engine {
       const schemaEnv: any = {}
       debug(`Starting binary at ${this.prismaPath}`)
       const env = {
+        ...process.env,
         PRISMA_CONFIG,
         PRISMA_DML: this.datamodel,
+        RUST_BACKTRACE: '1',
         // PRISMA_DML_PATH: '/Users/tim/code/lift-demo/datamodel.prisma',
         // SERVER_ROOT: process.cwd(),
         // ...schemaEnv,
@@ -146,7 +148,8 @@ export class NodeEngine extends Engine {
   /**
    * If Prisma runs, stop it
    */
-  stop = () => {
+  stop = async () => {
+    await this.startPromise
     if (this.child) {
       debug(`Stopping Prisma engine`)
       this.exiting = true
