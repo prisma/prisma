@@ -1,4 +1,4 @@
-import { printDatamodelDiff } from "../printDatamodelDiff";
+import { printDatamodelDiff } from '../printDatamodelDiff'
 
 const datamodelA = `model Blog {
   id: Int @id
@@ -21,7 +21,7 @@ model Post {
   text: String
   tags: String[]
   blog: Blog
-}`;
+}`
 
 const datamodelB = `model Blog {
   id: Int @id
@@ -44,31 +44,31 @@ model Post {
   text: String
   tags: String[]
   blog: Blog
-}`;
+}`
 
-test("basic diff", () => {
-  const diff = printDatamodelDiff(datamodelA, datamodelB);
-  console.log(diff);
+test('basic diff', () => {
+  const diff = printDatamodelDiff(datamodelA, datamodelB)
+  console.log(diff)
   expect(diff).toMatchInlineSnapshot(`
-    "[38;2;24;109;178mmodel Blog[39m [38;2;107;139;140m{[39m
-      id[38;2;127;155;155m: Int[39m [38;2;24;109;178m@id[39m
+    "[36mmodel Blog[39m [38;2;107;139;140m{[39m
+      id[38;2;107;139;140m:[39m Int [36m@id[39m
     [91m  [39m[1;31;48;5;52mname[m[91m: String[39m
     [92m  [39m[1;32;48;5;22mthis[m[92m: String[39m
-      viewCount[38;2;127;155;155m: Int[39m
-      posts[38;2;127;155;155m: Post[39m[]
-      authors[38;2;127;155;155m: Author[39m[]
+      viewCount[38;2;107;139;140m:[39m Int[38;2;127;155;155m[39m
+    [38;2;127;155;155m  posts[39m[38;2;107;139;140m:[39m Post[]
+      authors[38;2;107;139;140m:[39m Author[]
     [38;2;107;139;140m}[39m"
-  `);
-});
+  `)
+})
 
-test("rename field", () => {
+test('rename field', () => {
   const before = `model Blog {
   id: Int @id
   name: String
   viewCount: Int
   posts: Post[]
   authors: Author[]
-}`;
+}`
 
   const after = `model Blog {
   id: String @id
@@ -76,30 +76,30 @@ test("rename field", () => {
   viewCount: Int
   posts: Post[]
   authors: Author[]
-}`;
+}`
 
-  const diff = printDatamodelDiff(before, after);
-  console.log(diff);
+  const diff = printDatamodelDiff(before, after)
+  console.log(diff)
   expect(diff).toMatchInlineSnapshot(`
-    "[38;2;24;109;178mmodel Blog[39m [38;2;107;139;140m{[39m
+    "[36mmodel Blog[39m [38;2;107;139;140m{[39m
     [91m  id: [39m[1;31;48;5;52mInt[m[91m @id[39m
     [92m  id: [39m[1;32;48;5;22mString[m[92m @id[39m
-      name[38;2;127;155;155m: String[39m
-      viewCount[38;2;127;155;155m: Int[39m
-      posts[38;2;127;155;155m: Post[39m[]
-      authors[38;2;127;155;155m: Author[39m[]
+      name[38;2;107;139;140m:[39m String[38;2;127;155;155m[39m
+    [38;2;127;155;155m  viewCount[39m[38;2;107;139;140m:[39m Int[38;2;127;155;155m[39m
+    [38;2;127;155;155m  posts[39m[38;2;107;139;140m:[39m Post[]
+      authors[38;2;107;139;140m:[39m Author[]
     [38;2;107;139;140m}[39m"
-  `);
-});
+  `)
+})
 
-test("add model", () => {
+test('add model', () => {
   const before = `model Blog {
   id: Int @id
   name: String
   viewCount: Int
   posts: Post[]
   authors: Author[]
-}`;
+}`
 
   const after = `model Blog {
   id: String @id
@@ -116,18 +116,18 @@ model Blog2 {
   posts: Post[]
   authors: Author[]
 }
-`;
+`
 
-  const diff = printDatamodelDiff(before, after);
-  console.log(diff);
+  const diff = printDatamodelDiff(before, after)
+  console.log(diff)
   expect(diff).toMatchInlineSnapshot(`
-    "[38;2;24;109;178mmodel Blog[39m [38;2;107;139;140m{[39m
+    "[36mmodel Blog[39m [38;2;107;139;140m{[39m
     [91m  id: [39m[1;31;48;5;52mInt[m[91m @id[39m
     [92m  id: [39m[1;32;48;5;22mString[m[92m @id[39m
-      name[38;2;127;155;155m: String[39m
-      viewCount[38;2;127;155;155m: Int[39m
-      posts[38;2;127;155;155m: Post[39m[]
-      authors[38;2;127;155;155m: Author[39m[]
+      name[38;2;107;139;140m:[39m String[38;2;127;155;155m[39m
+    [38;2;127;155;155m  viewCount[39m[38;2;107;139;140m:[39m Int[38;2;127;155;155m[39m
+    [38;2;127;155;155m  posts[39m[38;2;107;139;140m:[39m Post[]
+      authors[38;2;107;139;140m:[39m Author[]
     [38;2;107;139;140m}[39m
     [92mmodel Blog2 {[39m
     [92m  id: String @id[39m
@@ -137,10 +137,10 @@ model Blog2 {
     [92m  authors: Author[][39m
     [92m}[39m
     [92m[39m"
-  `);
-});
+  `)
+})
 
-test("copy model", () => {
+test('copy model', () => {
   const datamodelC = `model Blog {
   id: Int @id
   name: String
@@ -171,22 +171,22 @@ model Blog2 {
   posts: Post[]
   authors: Author[]
 }
-`;
-  const diff = printDatamodelDiff(datamodelA, datamodelC);
-  console.log(diff);
+`
+  const diff = printDatamodelDiff(datamodelA, datamodelC)
+  console.log(diff)
   expect(diff).toMatchInlineSnapshot(`
-    "[92mmodel Blog2 {[39m
-    [92m  id: Int @id[39m
-    [92m  name: String[39m
-    [92m  viewCount: Int[39m
-    [92m  posts: Post[][39m
-    [92m  authors: Author[][39m
-    [92m}[39m
-    [92m[39m"
-  `);
-});
+        "[92mmodel Blog2 {[39m
+        [92m  id: Int @id[39m
+        [92m  name: String[39m
+        [92m  viewCount: Int[39m
+        [92m  posts: Post[][39m
+        [92m  authors: Author[][39m
+        [92m}[39m
+        [92m[39m"
+    `)
+})
 
-test("add post4", () => {
+test('add post4', () => {
   const newBefore = `model Blog {
   id: Int @id
   name: String
@@ -209,7 +209,7 @@ model Post {
 model Post4 {
   id: Int @id
   anotherString: String?
-}`;
+}`
 
   const newAfter = `model Blog {
   id: Int @id
@@ -238,24 +238,24 @@ model Post4 {
 model Post5 {
   id: Int @id
   anotherString: String?
-}`;
+}`
 
-  const diff = printDatamodelDiff(newBefore, newAfter);
-  console.log(diff);
+  const diff = printDatamodelDiff(newBefore, newAfter)
+  console.log(diff)
   expect(diff).toMatchInlineSnapshot(`
-        "[38;2;24;109;178mmodel Post4[39m [38;2;107;139;140m{[39m
-          id[38;2;127;155;155m: Int[39m [38;2;24;109;178m@id[39m
-          anotherString[38;2;127;155;155m: String[39m?
-        [38;2;107;139;140m}[39m
+    "[36mmodel Post4[39m [38;2;107;139;140m{[39m
+      id[38;2;107;139;140m:[39m Int [36m@id[39m
+      anotherString[38;2;107;139;140m:[39m String?
+    [38;2;107;139;140m}[39m
 
-        [92mmodel Post5 {[39m
-        [92m  id: Int @id[39m
-        [92m  anotherString: String?[39m
-        [92m}[39m"
-    `);
-});
+    [92mmodel Post5 {[39m
+    [92m  id: Int @id[39m
+    [92m  anotherString: String?[39m
+    [92m}[39m"
+  `)
+})
 
-test("add comments", () => {
+test('add comments', () => {
   const nikoBefore = `model Blog {
   id: Int @id
   name: String
@@ -276,7 +276,7 @@ model Post {
   title: String
   tags: String[]
   blog: Blog
-}`;
+}`
 
   const nikoAfter = `model Blog {
   id: Int @id
@@ -307,32 +307,32 @@ model Comment {
   text: String
   writtenBy: Author
   post: Post
-}`;
+}`
 
-  const diff = printDatamodelDiff(nikoBefore, nikoAfter);
-  console.log(diff);
+  const diff = printDatamodelDiff(nikoBefore, nikoAfter)
+  console.log(diff)
   expect(diff).toMatchInlineSnapshot(`
-        "[38;2;24;109;178mmodel Author[39m [38;2;107;139;140m{[39m
-          id[38;2;127;155;155m: Int[39m [38;2;24;109;178m@id[39m
-          name[38;2;127;155;155m: String[39m?
-          posts[38;2;127;155;155m: Post[39m[]
-          blog[38;2;127;155;155m: Blog[39m
-        [92m  comments: Comment[][39m
-        [38;2;107;139;140m}[39m
+    "[36mmodel Author[39m [38;2;107;139;140m{[39m
+      id[38;2;107;139;140m:[39m Int [36m@id[39m
+      name[38;2;107;139;140m:[39m String?
+      posts[38;2;107;139;140m:[39m Post[]
+      blog[38;2;107;139;140m:[39m Blog
+    [92m  comments: Comment[][39m
+    [38;2;107;139;140m}[39m
 
-        [38;2;24;109;178mmodel Post[39m [38;2;107;139;140m{[39m
-          id[38;2;127;155;155m: Int[39m [38;2;24;109;178m@id[39m
-          title[38;2;127;155;155m: String[39m
-          tags[38;2;127;155;155m: String[39m[]
-          blog[38;2;127;155;155m: Blog[39m
-        [92m  comments: Comment[][39m
-        [38;2;107;139;140m}[39m
+    [36mmodel Post[39m [38;2;107;139;140m{[39m
+      id[38;2;107;139;140m:[39m Int [36m@id[39m
+      title[38;2;107;139;140m:[39m String[38;2;127;155;155m[39m
+    [38;2;127;155;155m  tags[39m[38;2;107;139;140m:[39m String[]
+      blog[38;2;107;139;140m:[39m Blog
+    [92m  comments: Comment[][39m
+    [38;2;107;139;140m}[39m
 
-        [92mmodel Comment {[39m
-        [92m  id: Int @id[39m
-        [92m  text: String[39m
-        [92m  writtenBy: Author[39m
-        [92m  post: Post[39m
-        [92m}[39m"
-    `);
-});
+    [92mmodel Comment {[39m
+    [92m  id: Int @id[39m
+    [92m  text: String[39m
+    [92m  writtenBy: Author[39m
+    [92m  post: Post[39m
+    [92m}[39m"
+  `)
+})
