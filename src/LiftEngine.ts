@@ -168,7 +168,7 @@ Please put that file into a gist and post it in Slack.
   convertDmmfToDml(args: EngineArgs.DmmfToDml): Promise<EngineResults.DmmfToDml> {
     return this.runCommand(
       this.getRPCPayload('convertDmmfToDml', {
-        dataSources: args.dataSources.map(uglifySource),
+        dataSources: args.dataSources,
         dmmf: args.dmmf,
       } as EngineArgs.DmmfToDml),
     )
@@ -183,13 +183,5 @@ Please put that file into a gist and post it in Slack.
   }
   migrationProgess(args: EngineArgs.MigrationProgress): Promise<EngineResults.MigrationProgress> {
     return this.runCommand(this.getRPCPayload('migrationProgress', args))
-  }
-}
-
-function uglifySource(source) {
-  return {
-    tpe: source.type,
-    name: source.name,
-    url: source.url,
   }
 }

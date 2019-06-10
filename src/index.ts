@@ -7,3 +7,5 @@ export { LiftWatch } from './cli/commands/LiftWatch'
 export { LiftDown } from './cli/commands/LiftDown'
 export { Converter } from './cli/commands/Converter'
 export { isdlToDatamodel2 } from './utils/isdlToDatamodel2'
+
+export * from './types'
