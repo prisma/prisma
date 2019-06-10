@@ -1,37 +1,25 @@
 model Blog {
   id: Int @id
-  name: String
-  viewCount: Int
+  viewCount2: Int
   posts: Post[]
-  authors: Author[]
 }
-
-model Author {
-  id: Int @id
-  name: String?
-}         
 
 model Post {
   id: Int @id
   anotherString: String?
 }
 
-model Post4 {
+model Post2 {
   id: Int @id
   anotherString: String?
 }
 
-model Post5 {
+model Post7 {
   id: Int @id
   anotherString: String?
 }
 
-model Post6 {
-  id: Int @id
-  anotherString: String?
-}
-
-model Post100 {
+model Post8 {
   id: Int @id
   anotherString: String?
 }

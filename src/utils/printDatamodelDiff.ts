@@ -9,18 +9,11 @@ export function printDatamodelDiff(datamodelA: string, datamodelB?: string) {
   if (!datamodelB) {
     return highlightDatamodel(datamodelA)
   }
-  const result = fixCurly(
-    diffLines(normalizeText(datamodelA), normalizeText(datamodelB)),
-  )
+  const result = fixCurly(diffLines(normalizeText(datamodelA), normalizeText(datamodelB)))
   const diff = result
     .map((change, index, changes) => {
       if (change.added) {
-        if (
-          change.value.split('\n').length <= 2 &&
-          index > 0 &&
-          changes[index - 1] &&
-          changes[index - 1].removed
-        ) {
+        if (change.value.split('\n').length <= 2 && index > 0 && changes[index - 1] && changes[index - 1].removed) {
           const charChanges = diffWords(changes[index - 1].value, change.value)
 
           if (charChanges.length < change.value.length - 4) {
@@ -177,18 +170,12 @@ function normalizeText(str: string) {
 }
 
 function fixCurly(changes: Change[]): Change[] {
-  return fixCurlyRemoved(fixCurlyAdded(changes))
+  return fixCurlyRemoved(fixCurlyRemovedDangling(fixCurlyAdded(changes)))
 }
 
 function fixCurlyAdded(changes: Change[]): Change[] {
   changes.forEach((change, index) => {
-    if (
-      !change.added &&
-      !change.removed &&
-      change.value.trim() === '}' &&
-      index > 0 &&
-      changes[index - 1].added
-    ) {
+    if (!change.added && !change.removed && change.value.trim() === '}' && index > 0 && changes[index - 1].added) {
       const correspondingIndex = changes.slice(0, index).findIndex(c => {
         if (!c.added) {
           return false
@@ -233,9 +220,56 @@ function fixCurlyAdded(changes: Change[]): Change[] {
   return changes.filter(change => change.value !== '')
 }
 
-// jsdiff spreads the } curly braces all over the place
-// we don't want that
 function fixCurlyRemoved(changes: Change[]): Change[] {
+  changes.forEach((change, index) => {
+    if (!change.added && !change.removed && change.value.trim() === '}' && index > 0 && changes[index - 1].removed) {
+      const correspondingIndex = changes.slice(0, index).findIndex(c => {
+        if (!c.removed) {
+          return false
+        }
+        let sawOpen = false
+        let hasCloseBeforeOpen = false
+        const lines = c.value.split('\n')
+        for (const line of lines) {
+          if (!sawOpen && line.trim() === '}') {
+            hasCloseBeforeOpen = true
+            break
+          }
+        }
+        return hasCloseBeforeOpen
+      })
+      if (correspondingIndex > -1) {
+        const correspondingChange = changes[correspondingIndex]
+        // 1. Merge our lonely curly with the removed before and delete it
+        changes[index - 1].value = changes[index - 1].value + change.value
+        changes.splice(index, 1)
+        // 2. get rid of the unnecessary } in the corresponding block we just found
+        // and turn it into a normal curly
+        const lines = correspondingChange.value.split('\n')
+        const indexOfWrongCurly = lines.findIndex(l => l.trim() === '}')
+        const newChanges: Change[] = [
+          {
+            value: lines.slice(0, indexOfWrongCurly).join('\n'),
+            removed: true,
+          },
+          {
+            value: stripAnsi(lines[indexOfWrongCurly]) + '\n\n',
+          },
+          {
+            value: lines.slice(indexOfWrongCurly + 1).join('\n'),
+            removed: true,
+          },
+        ]
+        changes.splice(correspondingIndex, 1, ...newChanges)
+      }
+    }
+  })
+  return changes.filter(change => change.value !== '')
+}
+
+// // jsdiff spreads the } curly braces all over the place
+// // we don't want that
+function fixCurlyRemovedDangling(changes: Change[]): Change[] {
   return changes.reduce<Change[]>((acc, change, index) => {
     if (
       change.removed &&

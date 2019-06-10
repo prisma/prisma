@@ -27,17 +27,11 @@ export function printDatabaseStepsOverview(databaseSteps: DatabaseStep[]) {
       .join(', ') + ' statements.'
   return overview
 }
-export function highlightMigrationsSQL(
-  migrations: MigrationWithDatabaseSteps[],
-) {
+export function highlightMigrationsSQL(migrations: MigrationWithDatabaseSteps[]) {
   return highlightSql(
     '-- Start Migrations\n\n' +
       migrations
-        .map(
-          migration =>
-            `-- Migration ${migration.id}\n` +
-            migration.databaseSteps.map(s => s.raw).join('\n'),
-        )
+        .map(migration => `-- Migration ${migration.id}\n` + migration.databaseSteps.map(s => s.raw).join('\n'))
         .join('\n\n') +
       '\n\n-- End Migrations',
   )
@@ -57,23 +51,17 @@ function renderStep(step: DatabaseStep) {
     return `${bold('Drop table')} ${chalk.bold.dim(step.DropTable.name)}`
   }
   if (isRenameTableStep(step)) {
-    return `${bold('Rename table')} ${chalk.dim(
-      step.RenameTable.name,
-    )} ${chalk.dim('→')} ${chalk.dim(step.RenameTable.new_name)}`
+    return `${bold('Rename table')} ${chalk.dim(step.RenameTable.name)} ${chalk.dim('→')} ${chalk.dim(
+      step.RenameTable.new_name,
+    )}`
   }
   if (isCreateTableStep(step)) {
-    const foreignKeyCount = step.CreateTable.columns.filter(c => c.foreign_key)
-      .length
+    const foreignKeyCount = step.CreateTable.columns.filter(c => c.foreign_key).length
     const primaryCount = step.CreateTable.primary_columns.length
-    const foreignKeyStr =
-      foreignKeyCount > 0 ? `, ${foreignKeyCount} foreign keys` : ''
+    const foreignKeyStr = foreignKeyCount > 0 ? `, ${foreignKeyCount} foreign keys` : ''
     const primaryColumns = primaryCount > 0 ? `, ${primaryCount} primary` : ''
-    return `${bold('Create table')} ${chalk.bold.dim(
-      step.CreateTable.name,
-    )}${chalk.dim(
-      `, ${
-        step.CreateTable.columns.length
-      } columns${foreignKeyStr}${primaryColumns}`,
+    return `${bold('Create table')} ${chalk.bold.dim(step.CreateTable.name)}${chalk.dim(
+      `, ${step.CreateTable.columns.length} columns${foreignKeyStr}${primaryColumns}`,
     )}`
   }
 }
@@ -105,21 +93,15 @@ function isRawSqlStep(databaseStep: DatabaseStep): databaseStep is RawSqlStep {
   return databaseStep.hasOwnProperty('RawSql')
 }
 
-function isDropTableStep(
-  databaseStep: DatabaseStep,
-): databaseStep is DropTableStep {
+function isDropTableStep(databaseStep: DatabaseStep): databaseStep is DropTableStep {
   return databaseStep.hasOwnProperty('DropTable')
 }
 
-function isRenameTableStep(
-  databaseStep: DatabaseStep,
-): databaseStep is RenameTableStep {
+function isRenameTableStep(databaseStep: DatabaseStep): databaseStep is RenameTableStep {
   return databaseStep.hasOwnProperty('RenameTable')
 }
 
-function isCreateTableStep(
-  databaseStep: DatabaseStep,
-): databaseStep is CreateTableStep {
+function isCreateTableStep(databaseStep: DatabaseStep): databaseStep is CreateTableStep {
   return databaseStep.hasOwnProperty('CreateTable')
 }
 

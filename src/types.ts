@@ -54,7 +54,7 @@ export namespace EngineArgs {
   }
   export type InferMigrationSteps = {
     migrationId: string
-    dataModel: string
+    datamodel: string
     assumeToBeApplied: DatamodelStep[]
   }
   export type MigrationProgress = {
