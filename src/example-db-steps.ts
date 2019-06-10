@@ -54,8 +54,7 @@ export const exampleDbSteps: DatabaseStep[] = [
   },
   {
     raw: '',
-    RawSql:
-      'INSERT INTO new_Post (id,title,text,blog) SELECT id,title,text,blog from Post',
+    RawSql: 'INSERT INTO new_Post (id,title,text,blog) SELECT id,title,text,blog from Post',
   },
   {
     raw: '',
