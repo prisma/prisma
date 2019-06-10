@@ -1,8 +1,5 @@
-import { DMMF as DMMFComponent } from '@prisma/dmmf'
 import { NodeEngine } from '@prisma/engine-core/dist/NodeEngine'
 import path from 'path'
-import { DatabaseType, DefaultParser, ISDL } from 'prisma-datamodel'
-import { generateCRUDSchemaFromInternalISDL } from 'prisma-generate-schema'
 import { DMMF, ExternalDMMF } from '../runtime/dmmf-types'
 import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
 import { transformDmmf } from '../runtime/transformDmmf'

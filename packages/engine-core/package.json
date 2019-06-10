@@ -1,6 +1,6 @@
 {
   "name": "@prisma/engine-core",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
