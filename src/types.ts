@@ -66,7 +66,7 @@ export namespace EngineArgs {
   }
   export type DmmfToDml = {
     dmmf: any // TODO type this
-    dataSources: any[]
+    dataSources: DataSource[]
   }
   export type ListDataSources = {
     datamodel: string
@@ -127,10 +127,13 @@ export namespace EngineResults {
   export type ListDataSources = DataSource[]
 }
 
+export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgres'
+
 export type DataSource = {
   name: string
-  type: string
+  connectorType: ConnectorType
   url: string
+  config: {}
 }
 
 export interface FileMap {

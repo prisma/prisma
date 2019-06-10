@@ -28,7 +28,7 @@ export class Converter implements Command {
     const engine = new LiftEngine({ projectDir: process.cwd() })
     const parser = DefaultParser.create(DatabaseType.postgres)
     const isdl = parser.parseFromSchemaString(datamodel)
-    return isdlToDatamodel2(isdl)
+    return isdlToDatamodel2(isdl, [])
   }
 
   readStdin(): Promise<string> {
