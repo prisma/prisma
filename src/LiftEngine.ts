@@ -107,7 +107,7 @@ export class LiftEngine {
     const filename = `failed-${request.method}.md`
     fs.writeFileSync(
       filename,
-      `# Failed ${request.method}
+      `# Failed ${request.method} at ${new Date().toISOString()}
 ## RPC Input One Line
 \`\`\`json
 ${JSON.stringify(request)}
@@ -162,8 +162,10 @@ Please put that file into a gist and post it in Slack.
   inferMigrationSteps(args: EngineArgs.InferMigrationSteps): Promise<EngineResults.InferMigrationSteps> {
     return this.runCommand(this.getRPCPayload('inferMigrationSteps', args))
   }
-  listMigrations(): Promise<EngineResults.ListMigrations> {
-    return this.runCommand(this.getRPCPayload('listMigrations', {}))
+  // Helper function, oftentimes we just want the applied migrations
+  async listAppliedMigrations(args: EngineArgs.ListMigrations): Promise<EngineResults.ListMigrations> {
+    const migrations = await this.runCommand(this.getRPCPayload('listMigrations', args))
+    return migrations.filter(m => m.status === 'Success')
   }
   convertDmmfToDml(args: EngineArgs.DmmfToDml): Promise<EngineResults.DmmfToDml> {
     return this.runCommand(
@@ -175,11 +177,6 @@ Please put that file into a gist and post it in Slack.
   }
   listDataSources(args: EngineArgs.ListDataSources): Promise<EngineResults.ListDataSources> {
     return this.runCommand(this.getRPCPayload('listDataSources', args))
-  }
-  // Helper function, oftentimes we just want the applied migrations
-  async listAppliedMigrations(): Promise<EngineResults.ListMigrations> {
-    const migrations = await this.runCommand(this.getRPCPayload('listMigrations', {}))
-    return migrations.filter(m => m.status === 'Success')
   }
   migrationProgess(args: EngineArgs.MigrationProgress): Promise<EngineResults.MigrationProgress> {
     return this.runCommand(this.getRPCPayload('migrationProgress', args))

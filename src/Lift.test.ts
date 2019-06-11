@@ -42,6 +42,12 @@ function createTests() {
       name: 'simple ok',
       fs: {
         'datamodel.prisma': `
+          datasource my_db {
+            provider = "sqlite"
+            url = "file:./db/db_file.db"
+            default = true
+          }
+
           model User {
             id Int @id
           }
@@ -50,10 +56,12 @@ function createTests() {
       },
       fn: async (root: string) => {
         const lift = new Lift(root)
-        const result = await lift.create('setup')
+        const migration = await lift.createMigration('setup')
+        const result = await lift.create(migration!, 'setup')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }
+        console.log(result.migrationId)
         assert.ok(~result.migrationId.indexOf(`-setup`))
         assert.ok(result.newLockFile)
         assert.ok(result.files['steps.json'])
@@ -65,6 +73,12 @@ function createTests() {
       name: 'spaces ok',
       fs: {
         'datamodel.prisma': `
+          datasource my_db {
+            provider = "sqlite"
+            url = "file:./db/db_file.db"
+            default = true
+          }
+
           model User {
             id Int @id
           }
@@ -73,10 +87,12 @@ function createTests() {
       },
       fn: async (root: string) => {
         const lift = new Lift(root)
-        const result = await lift.create('initial setup')
+        const migration = await lift.createMigration('initial setup')
+        const result = await lift.create(migration!, 'initial setup')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }
+        console.log(result.migrationId)
         assert.ok(~result.migrationId.indexOf(`-initial-setup`))
         assert.ok(result.newLockFile)
         assert.ok(result.files['steps.json'])
@@ -88,6 +104,12 @@ function createTests() {
       name: 'dashes ok',
       fs: {
         'datamodel.prisma': `
+          datasource my_db {
+            provider = "sqlite"
+            url = "file:./db/db_file.db"
+            default = true
+          }
+          
           model User {
             id Int @id
           }
@@ -96,10 +118,12 @@ function createTests() {
       },
       fn: async (root: string) => {
         const lift = new Lift(root)
-        const result = await lift.create('initial-setup')
+        const migration = await lift.createMigration('initial setup')
+        const result = await lift.create(migration!, 'initial setup')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }
+        console.log(result.migrationId)
         assert.ok(~result.migrationId.indexOf(`-initial-setup`))
         assert.ok(result.newLockFile)
         assert.ok(result.files['steps.json'])
