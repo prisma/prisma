@@ -33,6 +33,7 @@ import 'array-flat-polyfill'
 import debugLib from 'debug'
 import { findLast } from './utils/findLast'
 import { isWatchMigrationName } from './utils/isWatchMigrationName'
+import { absolutizeRelativePath } from './utils/absolutizeRelativePath'
 const packageJson = require('../package.json')
 
 const readFile = promisify(fs.readFile)
@@ -61,12 +62,31 @@ export class Lift {
     this.engine = new LiftEngine({ projectDir })
   }
 
-  async getDatamodel() {
+  async getDatamodel(): Promise<string> {
     const datamodelPath = path.resolve(this.projectDir, 'datamodel.prisma')
     if (!(await exists(datamodelPath))) {
       throw new Error(`Could not find ${datamodelPath}`)
     }
     return readFile(datamodelPath, 'utf-8')
+  }
+
+  async getSourceConfig(): Promise<string> {
+    const datamodel = await this.getDatamodel()
+    const sources = await this.engine.listDataSources({ datamodel })
+    const absoluteSources = sources.map(source => ({
+      ...source,
+      url: absolutizeRelativePath(source.url, this.projectDir),
+    }))
+
+    const printedSources = await this.engine.convertDmmfToDml({
+      dataSources: absoluteSources,
+      dmmf: JSON.stringify({
+        enums: [],
+        models: [],
+      }),
+    })
+
+    return printedSources.datamodel
   }
 
   public async getLockFile(): Promise<LockFile> {
@@ -89,12 +109,13 @@ export class Lift {
   }
 
   public async createMigration(migrationId: string): Promise<MigrationWithDatabaseSteps | undefined> {
-    const { migrationsToApply, datamodel } = await this.getMigrationsToApply()
+    const { migrationsToApply, sourceConfig } = await this.getMigrationsToApply()
 
     const assumeToBeApplied = migrationsToApply.flatMap(m => m.datamodelSteps)
 
+    const datamodel = await this.getDatamodel()
     const { datamodelSteps, databaseSteps } = await this.engine.inferMigrationSteps({
-      sourceConfig: datamodel,
+      sourceConfig,
       datamodel,
       migrationId,
       assumeToBeApplied,
@@ -225,7 +246,7 @@ export class Lift {
     localMigrations: Migration[],
     fromIndex: number,
     remoteMigrations: EngineResults.StoredMigration[],
-    datamodel: string,
+    sourceConfig: string,
   ): Promise<MigrationWithDatabaseSteps[]> {
     // const lastRemoteMigration = remoteMigrations[remoteMigrations.length - 1]
     const migrationsWithDatabaseSteps = await pMap(
@@ -247,7 +268,7 @@ export class Lift {
         const input = {
           assumeToBeApplied: stepsUntilNow,
           stepsToApply: migration.datamodelSteps,
-          sourceConfig: datamodel,
+          sourceConfig,
         }
         const { databaseSteps } = await this.engine.calculateDatabaseSteps(input)
         return {
@@ -400,12 +421,14 @@ export class Lift {
     localMigrations: Migration[]
     lastAppliedIndex: number
     migrationsToApply: Migration[]
-    datamodel: string
+    sourceConfig: string
     appliedRemoteMigrations: EngineResults.StoredMigration[]
   }> {
     const localMigrations = await this.getLocalMigrations()
     const datamodel = await this.getDatamodel()
-    const appliedRemoteMigrations = await this.engine.listAppliedMigrations({ sourceConfig: datamodel })
+
+    const sourceConfig = await this.getSourceConfig()
+    const appliedRemoteMigrations = await this.engine.listAppliedMigrations({ sourceConfig })
     const appliedRemoteMigrationsWithoutWatch = appliedRemoteMigrations.filter(m => !isWatchMigrationName(m.id))
 
     if (appliedRemoteMigrationsWithoutWatch.length > localMigrations.length) {
@@ -446,7 +469,7 @@ export class Lift {
       lastAppliedIndex,
       migrationsToApply,
       appliedRemoteMigrations,
-      datamodel,
+      sourceConfig,
     }
   }
 
@@ -455,7 +478,7 @@ export class Lift {
     const before = Date.now()
 
     const migrationsToApplyResult = await this.getMigrationsToApply()
-    const { lastAppliedIndex, localMigrations, appliedRemoteMigrations, datamodel } = migrationsToApplyResult
+    const { lastAppliedIndex, localMigrations, appliedRemoteMigrations, sourceConfig } = migrationsToApplyResult
     let { migrationsToApply } = migrationsToApplyResult
 
     if (typeof n === 'number') {
@@ -488,7 +511,7 @@ export class Lift {
       localMigrations,
       firstMigrationToApplyIndex,
       appliedRemoteMigrations,
-      datamodel,
+      sourceConfig,
     )
 
     const progressRenderer = new ProgressRenderer(migrationsWithDbSteps)
@@ -506,7 +529,7 @@ export class Lift {
         force: false,
         migrationId: id,
         steps: datamodelSteps,
-        sourceConfig: datamodel,
+        sourceConfig,
       })
       // needed for the ProgressRenderer
       // and for verbose printing
@@ -516,7 +539,7 @@ export class Lift {
       progressLoop: while (
         (progress = await this.engine.migrationProgess({
           migrationId: id,
-          sourceConfig: datamodel,
+          sourceConfig,
         }))
       ) {
         if (progress.status === 'InProgress') {
