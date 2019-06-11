@@ -73,12 +73,12 @@ export namespace EngineArgs {
    */
   export type DmmfToDml = {
     dmmf: any // TODO type this
-    dataSources: DataSource[]
+    config: any
   }
   export type CalculateDatamodel = {
     steps: DatamodelStep[]
   }
-  export type ListDataSources = {
+  export type GetConfig = {
     datamodel: string
   }
   export type ListMigrations = {
@@ -137,10 +137,18 @@ export namespace EngineResults {
   export type DmmfToDml = {
     datamodel: string
   }
-  export type ListDataSources = DataSource[]
 }
 
 export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgres'
+
+export type ConfigMetaFormat = { datasources: DataSource[]; generators: GeneratorConfig[] }
+
+export type GeneratorConfig = {
+  name: string
+  output: string | null
+  provider: string
+  config: Dictionary<string>
+}
 
 export type DataSource = {
   name: string

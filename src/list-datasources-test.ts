@@ -1,6 +1,7 @@
 import { LiftEngine } from './LiftEngine'
 import path from 'path'
 import { dmmf } from './example-dmmf'
+import { GeneratorConfig } from './types'
 
 async function main() {
   const engine = new LiftEngine({
@@ -12,14 +13,24 @@ async function main() {
   name String
 }
 
-source postgres 
-  type = "Postgres"
-  url  = "postgres://localhost:5432/prisma"
+datasource postgres {
+  provider = "postgres"
+  url      = "postgres://localhost:5432/prisma"
+  default  = true
 }`
-  const sources = await engine.listDataSources({ datamodel })
+  const { datasources } = await engine.getConfig({ datamodel })
+  const generators: GeneratorConfig[] = [
+    {
+      name: 'Photon',
+      output: null,
+      provider: 'javascript',
+      config: {},
+    },
+  ]
+
   const dml = await engine.convertDmmfToDml({
     dmmf: JSON.stringify(dmmf),
-    dataSources: sources,
+    config: { datasources, generators },
   })
   console.log(dml.datamodel)
 }

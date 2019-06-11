@@ -1,6 +1,6 @@
 import { spawn } from 'child_process'
 import byline from './utils/byline'
-import { EngineArgs, EngineResults } from './types'
+import { EngineArgs, EngineResults, ConfigMetaFormat } from './types'
 import debugLib from 'debug'
 import chalk from 'chalk'
 import util from 'util'
@@ -168,15 +168,10 @@ Please put that file into a gist and post it in Slack.
     return migrations.filter(m => m.status === 'Success')
   }
   convertDmmfToDml(args: EngineArgs.DmmfToDml): Promise<EngineResults.DmmfToDml> {
-    return this.runCommand(
-      this.getRPCPayload('convertDmmfToDml', {
-        dataSources: args.dataSources,
-        dmmf: args.dmmf,
-      } as EngineArgs.DmmfToDml),
-    )
+    return this.runCommand(this.getRPCPayload('convertDmmfToDml', args))
   }
-  listDataSources(args: EngineArgs.ListDataSources): Promise<EngineResults.ListDataSources> {
-    return this.runCommand(this.getRPCPayload('listDataSources', args))
+  getConfig(args: EngineArgs.GetConfig): Promise<ConfigMetaFormat> {
+    return this.runCommand(this.getRPCPayload('getConfig', args))
   }
   migrationProgess(args: EngineArgs.MigrationProgress): Promise<EngineResults.MigrationProgress> {
     return this.runCommand(this.getRPCPayload('migrationProgress', args))
