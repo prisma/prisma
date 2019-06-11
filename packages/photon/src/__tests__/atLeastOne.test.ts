@@ -28,7 +28,7 @@ describe('at least one validation', () => {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
 
-        Invalid \`photon.users()\` invocation
+        Invalid \`photon.users()\` invocation:
 
         {
           where: {

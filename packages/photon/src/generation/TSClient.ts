@@ -204,6 +204,8 @@ export interface PhotonOptions {
   debugEngine?: boolean
   debug?: boolean
   fetcher?: Fetcher
+  prismaYmlPath?: string
+  prismaConfig?: string
 }
 
 export class Photon {
@@ -222,10 +224,10 @@ export class Photon {
           ? `\
       fetcher: options.fetcher!\n`
           : `
-      prismaYmlPath: ${this.prismaYmlPath ? JSON.stringify(this.prismaYmlPath) : 'undefined'},
+      prismaYmlPath: options.prismaYmlPath || ${this.prismaYmlPath ? JSON.stringify(this.prismaYmlPath) : 'undefined'},
       debug: debugEngine,
       datamodel: ${JSON.stringify(this.datamodel)},
-      prismaConfig: ${this.prismaConfig ? JSON.stringify(this.prismaConfig) : 'undefined'},
+      prismaConfig: options.prismaConfig || ${this.prismaConfig ? JSON.stringify(this.prismaConfig) : 'undefined'},
       `
       }
     })

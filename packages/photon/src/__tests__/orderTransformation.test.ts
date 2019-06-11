@@ -23,29 +23,29 @@ describe('where transformation', () => {
       rootField: 'users',
     })
     expect(String(document)).toMatchInlineSnapshot(`
-            "query {
-              users(orderBy: {
-                email: \\"asc\\"
-              }) {
-                id
-                name
-                email
-                status
-                nicknames
-              }
-            }"
-        `)
+                  "query {
+                    users(orderBy: {
+                      email: \\"asc\\"
+                    }) {
+                      id
+                      name
+                      email
+                      status
+                      nicknames
+                    }
+                  }"
+            `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-            "query {
-              users(orderBy: email_ASC) {
-                id
-                name
-                email
-                status
-                nicknames
-              }
-            }"
-        `)
+                  "query {
+                    users(orderBy: email_ASC) {
+                      id
+                      name
+                      email
+                      status
+                      nicknames
+                    }
+                  }"
+            `)
   })
 
   test('throw when 2 order by args provided', () => {
@@ -62,37 +62,37 @@ describe('where transformation', () => {
       rootField: 'users',
     })
     expect(String(document)).toMatchInlineSnapshot(`
-            "query {
-              users(orderBy: {
-                email: \\"asc\\"
-                id: \\"asc\\"
-              }) {
-                id
-                name
-                email
-                status
-                nicknames
-              }
-            }"
-        `)
+                  "query {
+                    users(orderBy: {
+                      email: \\"asc\\"
+                      id: \\"asc\\"
+                    }) {
+                      id
+                      name
+                      email
+                      status
+                      nicknames
+                    }
+                  }"
+            `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-            "query {
-              users(orderBy: email_ASC) {
-                id
-                name
-                email
-                status
-                nicknames
-              }
-            }"
-        `)
+                  "query {
+                    users(orderBy: email_ASC) {
+                      id
+                      name
+                      email
+                      status
+                      nicknames
+                    }
+                  }"
+            `)
     try {
       document.validate(select)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
 
-        Invalid \`photon.users()\` invocation
+        Invalid \`photon.users()\` invocation:
 
         {
           orderBy: {
