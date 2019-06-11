@@ -37,21 +37,22 @@ export class LiftCreate implements Command {
       return this.help()
     }
     const preview = args['--preview'] || false
-    const name = preview ? args['--name'] : await this.name(args['--name'])
     const lift = new Lift(this.env.cwd)
 
-    const migration = await lift.create(name, preview)
+    const migration = await lift.createMigration('DUMMY_NAME')
 
     if (!migration) {
       return `Everything up-to-date\n` //TODO: find better wording
     }
 
-    const { files, migrationId, newLockFile } = migration
+    const name = preview ? args['--name'] : await this.name(args['--name'])
+    const migrationId = lift.getMigrationId(name)
+    migration.id = migrationId
+
+    const { files, newLockFile } = await lift.create(migration, name, preview)
 
     if (preview) {
-      return `\nRun ${chalk.greenBright(
-        'prisma lift create --name MIGRATION_NAME',
-      )} to create the migration\n`
+      return `\nRun ${chalk.greenBright('prisma lift create --name MIGRATION_NAME')} to create the migration\n`
     }
 
     const migrationsDir = path.join(this.env.cwd, 'migrations', migrationId)
@@ -59,9 +60,7 @@ export class LiftCreate implements Command {
     const lockFilePath = path.join(this.env.cwd, 'migrations', 'lift.lock')
     await writeFile(lockFilePath, newLockFile)
 
-    return `\nWe just created your migration ${printMigrationId(
-      migrationId,
-    )} in\n\n${chalk.dim(
+    return `\nWe just created your migration ${printMigrationId(migrationId)} in\n\n${chalk.dim(
       printFiles(`migrations/${migrationId}`, files),
     )}\n\nRun ${chalk.greenBright('prisma lift up')} to apply the migration\n`
   }
@@ -74,7 +73,6 @@ export class LiftCreate implements Command {
       type: 'text',
       name: 'name',
       message: `Name of migration`,
-      validate: value => value.length,
     })
     return response.name || undefined
   }
@@ -82,9 +80,7 @@ export class LiftCreate implements Command {
   // help message
   help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${LiftCreate.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftCreate.help}`)
     }
     return LiftCreate.help
   }
