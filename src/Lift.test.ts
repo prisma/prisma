@@ -1,5 +1,5 @@
-import { writeFile, realpath } from 'mz/fs'
 import { join, dirname } from 'path'
+import { writeFile } from 'mz/fs'
 import dedent from 'strip-indent'
 import { Lift } from './Lift'
 import mkdir from 'make-dir'
