@@ -9,3 +9,5 @@ cli
 .DS_Store
 !src/runtime
 yarn-error.log
+src/utils/transformed-dmmf.json
+*-dmmf.json

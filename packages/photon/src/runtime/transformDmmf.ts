@@ -56,7 +56,7 @@ function transformOrderInputTypes(document: DMMF.Document): DMMF.Document {
             type: 'OrderByArg',
             isList: false,
             isRequired: false,
-            kind: 'scalar',
+            kind: 'enum',
           },
         ],
         isRelationFilter: false,
@@ -180,7 +180,7 @@ function makeFilterType(type: string, isRequired: boolean, isScalar: boolean): D
 }
 
 function getRelationFilterArgs(type: string): DMMF.SchemaArg[] {
-  return getScalarArgs(['every', 'some', 'none'], [getWhereInputName(type)])
+  return getScalarArgs(['every', 'some', 'none'], [getWhereInputName(type)], undefined, 'object')
 }
 
 function getScalarFilterArgs(type: string, isRequired: boolean, isEnum = false): DMMF.SchemaArg[] {
@@ -233,17 +233,22 @@ function getInclusionFilters(type: string): DMMF.SchemaArg[] {
   return getScalarArgs(['in', 'notIn'], [type], true)
 }
 
-function getScalarArgs(names: string[], type: string[], isList = false): DMMF.SchemaArg[] {
-  return names.map(name => getScalarArg(name, type, isList))
+function getScalarArgs(
+  names: string[],
+  type: string[],
+  isList = false,
+  kind: DMMF.FieldKind = 'scalar',
+): DMMF.SchemaArg[] {
+  return names.map(name => getScalarArg(name, type, isList, kind))
 }
 
-function getScalarArg(name: string, type: string[], isList): DMMF.SchemaArg {
+function getScalarArg(name: string, type: string[], isList, kind: DMMF.FieldKind = 'scalar'): DMMF.SchemaArg {
   return {
     name,
     inputType: type.map(t => ({
       isList,
       isRequired: false,
-      kind: 'scalar',
+      kind,
       type: t,
     })),
   }
