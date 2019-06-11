@@ -1,6 +1,6 @@
 source my_db {
   type = "sqlite"
-  url = "file://db_file.db"
+  url = "file:db/db_file.db"
 }
 
 model Blog {
