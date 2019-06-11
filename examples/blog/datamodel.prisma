@@ -1,12 +1,17 @@
+source my_db {
+  type = "sqlite"
+  url = "file://Users/tim/code/lift/examples/blog/db_file.sqlite"
+}
+
 model Blog {
-  id: Int @id
-  viewCount2: Int
-  posts: Post[]
+  id Int @id
+  viewCount2 Int
+  posts Post[]
 }
 
 model Post {
-  id: Int @id
-  anotherString: String?
+  id Int @id
+  anotherString String?
 }
 
 model Post2 {

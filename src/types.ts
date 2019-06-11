@@ -44,32 +44,45 @@ export type RelationFieldType = {
 }
 
 export namespace EngineArgs {
+  /**
+   * These RPCs need a sourceConfig, therefore a db connection to function
+   */
   export type ApplyMigration = {
     migrationId: string
     steps: DatamodelStep[]
     force: boolean
-  }
-  export type CalculateDatamodel = {
-    steps: DatamodelStep[]
+    sourceConfig: string
   }
   export type InferMigrationSteps = {
     migrationId: string
     datamodel: string
     assumeToBeApplied: DatamodelStep[]
+    sourceConfig: string
   }
   export type MigrationProgress = {
     migrationId: string
+    sourceConfig: string
   }
   export type CalculateDatabaseSteps = {
     assumeToBeApplied: DatamodelStep[]
     stepsToApply: DatamodelStep[]
+    sourceConfig: string
   }
+  /**
+   * These don't
+   */
   export type DmmfToDml = {
     dmmf: any // TODO type this
     dataSources: DataSource[]
   }
+  export type CalculateDatamodel = {
+    steps: DatamodelStep[]
+  }
   export type ListDataSources = {
     datamodel: string
+  }
+  export type ListMigrations = {
+    sourceConfig: string
   }
 }
 
