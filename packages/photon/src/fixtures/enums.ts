@@ -1,27 +1,33 @@
 export const enums = /* GraphQL */ `
+  datasource my_db {
+    provider = "sqlite"
+    url  = "file:db/migration_engine.db"
+    default = true
+  }
+
   model User {
-    id: String @id @default(cuid())
-    name: String
-    email: String @unique
-    status: String
-    nicknames: String[]
-    permissions: Permission[]
-    favoriteTree: Tree
-    location: Location
-    posts: Post[]
+    id String @id @default(cuid())
+    name String
+    email String @unique
+    status String
+    nicknames String[]
+    permissions Permission[]
+    favoriteTree Tree
+    location Location
+    posts Post[]
   }
 
   model Post {
-    id: String @id @default(cuid())
-    name: String
-    email: String @unique
-    createdAt: DateTime @default(now())
-    updatedAt: DateTime @updatedAt
+    id String @id @default(cuid())
+    name String
+    email String @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
   }
 
   model Location {
-    id: Int @id
-    city: String
+    id Int @id
+    city String
   }
 
   enum Tree {

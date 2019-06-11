@@ -59,15 +59,6 @@ export async function getDMMF(datamodel: string): Promise<DMMF.Document> {
   const engine = new NodeEngine({
     datamodel,
     prismaPath: path.join(__dirname, '../../runtime/prisma'),
-    prismaConfig: `prototype: true
-databases:
-  default:
-    connector: sqlite-native
-    databaseFile: ./db/Chinook.db
-    migrations: true
-    active: true
-    rawAccess: true
-    `,
   })
 
   await engine.start()
@@ -75,15 +66,6 @@ databases:
   const dmmf = transformDmmf(externalToInternalDmmf(externalDmmf))
   checkBlacklist(dmmf.datamodel)
 
-  engine.stop()
+  await engine.stop()
   return dmmf
 }
-
-// export function getDMMF(datamodel: string): DMMF.Document {
-//   const parser = DefaultParser.create(DatabaseType.postgres)
-//   const sdl = parser.parseFromSchemaString(datamodel)
-//   checkBlacklist(sdl)
-//   const schema = generateCRUDSchemaFromInternalISDL(sdl, DatabaseType.postgres)
-//   const dmmf: DMMF.Document = JSON.parse(JSON.stringify(new DMMFComponent(datamodel, schema)))
-//   return transformDmmf(getUnionDocument(dmmf))
-// }

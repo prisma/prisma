@@ -1,4 +1,11 @@
-export const discourse = `model ApiKey {
+export const discourse = `
+datasource my_db {
+  provider = "sqlite"
+  url  = "file:db/migration_engine.db"
+  default = true
+}
+
+model ApiKey {
   id Int @id
   createdAt DateTime @db("created_at")
   createdById Int? @db("created_by_id")

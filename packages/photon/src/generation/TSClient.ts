@@ -86,10 +86,8 @@ class PhotonFetcher {
 
 interface TSClientOptions {
   document: DMMF.Document
-  prismaYmlPath?: string
-  prismaConfig?: string
   datamodel: string
-  datamodelJson?: string
+  cwd?: string
   runtimePath: string
   browser?: boolean
 }
@@ -97,26 +95,14 @@ interface TSClientOptions {
 export class TSClient {
   protected readonly dmmf: DMMFClass
   protected readonly document: DMMF.Document
-  protected readonly prismaYmlPath?: string
-  protected readonly prismaConfig?: string
+  protected readonly cwd: string
   protected readonly datamodel: string
-  protected readonly datamodelJson?: string
   protected readonly runtimePath: string
   protected readonly browser: boolean
-  constructor({
-    document,
-    prismaYmlPath,
-    prismaConfig,
-    datamodel,
-    datamodelJson,
-    runtimePath,
-    browser = false,
-  }: TSClientOptions) {
+  constructor({ document, datamodel, runtimePath, browser = false, cwd }: TSClientOptions) {
     this.document = document
-    this.prismaYmlPath = prismaYmlPath
-    this.prismaConfig = prismaConfig
+    this.cwd = cwd
     this.datamodel = datamodel
-    this.datamodelJson = datamodelJson
     this.runtimePath = runtimePath
     this.browser = browser
     // We make a deep clone here as otherwise we would serialize circular references
@@ -130,14 +116,7 @@ export class TSClient {
  * Client
 **/
 
-${new PhotonClientClass(
-  this.dmmf,
-  this.datamodel,
-  this.prismaYmlPath,
-  this.prismaConfig,
-  this.datamodelJson,
-  this.browser,
-)}
+${new PhotonClientClass(this.dmmf, this.datamodel, this.cwd, this.browser)}
 
 ${new Query(this.dmmf, 'query')}
 
@@ -184,9 +163,7 @@ class PhotonClientClass {
   constructor(
     protected readonly dmmf: DMMFClass,
     protected readonly datamodel: string,
-    protected readonly prismaYmlPath?: string,
-    protected readonly prismaConfig?: string,
-    protected readonly datamodelJson?: string,
+    protected readonly cwd?: string,
     protected readonly browser?: boolean,
   ) {}
   public toString() {
@@ -204,41 +181,42 @@ export interface PhotonOptions {
   debugEngine?: boolean
   debug?: boolean
   fetcher?: Fetcher
-  prismaYmlPath?: string
-  prismaConfig?: string
+  cwd?: string
+  datamodel?: string
+  autoconnect?: boolean
 }
 
 export class Photon {
   private fetcher: PhotonFetcher
   private readonly dmmf: DMMFClass
   private readonly engine: Engine
-  constructor(options: PhotonOptions = {}) {
+  private readonly autoconnect: boolean
+  constructor(options: PhotonOptions = {autoconnect: true}) {
     const useDebug = options.debug || false
     if (useDebug) {
       debugLib.enable('photon')
     }
     const debugEngine = options.debugEngine || false
-    this.engine = new Engine({
-      ${
-        this.browser
-          ? `\
+    this.engine = new Engine({${
+      this.browser
+        ? `\
       fetcher: options.fetcher!\n`
-          : `
-      prismaYmlPath: options.prismaYmlPath || ${this.prismaYmlPath ? JSON.stringify(this.prismaYmlPath) : 'undefined'},
+        : `
+      cwd: options.cwd || ${this.cwd ? JSON.stringify(this.cwd) : 'undefined'},
       debug: debugEngine,
-      datamodel: ${JSON.stringify(this.datamodel)},
-      prismaConfig: options.prismaConfig || ${this.prismaConfig ? JSON.stringify(this.prismaConfig) : 'undefined'},
-      `
-      }
+      datamodel: options.datamodel || ${JSON.stringify(this.datamodel)},`
+    }
     })
     this.dmmf = new DMMFClass(dmmf)
     this.fetcher = new PhotonFetcher(this.engine)
+    this.autoconnect = typeof options.autoconnect === 'boolean' ? options.autoconnect : true
   }
   async connect() {
-    // TODO: Provide autoConnect: false option so that this is even needed
-    await this.engine.startPromise
+    if (this.autoconnect) {
+      await this.engine.startPromise
+    }
   }
-  async close() {
+  async disconnect() {
     this.engine.stop()
   }
   private _query?: QueryDelegate

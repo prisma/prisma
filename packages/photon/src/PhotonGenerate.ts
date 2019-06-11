@@ -1,7 +1,6 @@
-import { arg, Command, Env, format, HelpError } from '@prisma/cli'
+import { Command, Env, format, HelpError } from '@prisma/cli'
 import chalk from 'chalk'
 import fs from 'fs'
-import { safeLoad } from 'js-yaml'
 import path from 'path'
 import { performance } from 'perf_hooks'
 import { promisify } from 'util'
@@ -33,16 +32,13 @@ export class PhotonGenerate implements Command {
 
   // parse arguments
   public async parse(argv: string[], minimalOutput = false): Promise<string | Error> {
-    const ymlPath = await this.getPrismaYmlPath()
-    const config = await readFile(ymlPath, 'utf-8')
-    const datamodelPath = await this.getDatamodelPath(config, ymlPath)
-    const datamodel = await readFile(datamodelPath, 'utf-8')
+    const datamodel = await this.getDatamodel()
     const output = path.join(this.env.cwd, '/node_modules/@generated/photon')
     const before = performance.now()
     if (!minimalOutput) {
       console.log(`\nGenerating Photon to ${output}`)
     }
-    await generateClient(datamodel, ymlPath, output, true)
+    await generateClient(datamodel, this.env.cwd, output, true)
 
     const packageJson = {
       name: 'photon',
@@ -66,38 +62,11 @@ export class PhotonGenerate implements Command {
     return PhotonGenerate.help
   }
 
-  private async getPrismaYmlPath() {
-    if (await exists('prisma.yml')) {
-      return 'prisma.yml'
+  private async getDatamodel(): Promise<string> {
+    const datamodelPath = path.join(this.env.cwd, 'datamodel.prisma')
+    if (!(await exists(datamodelPath))) {
+      throw new Error(`Could not find ${datamodelPath}`)
     }
-
-    const prismaPath = path.join(process.cwd(), 'prisma/prisma.yml')
-    if (await exists(prismaPath)) {
-      return prismaPath
-    }
-
-    const parentPath = path.join(process.cwd(), '../prisma.yml')
-    if (await exists(parentPath)) {
-      return parentPath
-    }
-
-    throw new Error(`Could not find prisma.yml`)
-  }
-
-  private async getDatamodelPath(config: string, configPath: string) {
-    const yml = safeLoad(config)
-    if (yml.datamodel) {
-      const datamodelPath = path.resolve(yml.datamodel)
-      if (await exists(datamodelPath)) {
-        return datamodelPath
-      } else {
-        throw new Error(`datamodel: ${yml.datamodel} provided in ${configPath} does not exist in ${datamodelPath}`)
-      }
-    }
-    const potentialPath = path.join(path.dirname(configPath), 'datamodel.prisma')
-    if (await exists(potentialPath)) {
-      return potentialPath
-    }
-    throw new Error(`${configPath} doesn't have a datamodel property`)
+    return readFile(datamodelPath, 'utf-8')
   }
 }
