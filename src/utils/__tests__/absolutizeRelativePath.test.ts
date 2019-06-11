@@ -9,4 +9,7 @@ test('parses files correctly', () => {
     `"file://User/name/my/file.db"`,
   )
   expect(absolutizeRelativePath('file:/User/name/file.db', cwd)).toMatchInlineSnapshot(`"file://User/name/file.db"`)
+  expect(absolutizeRelativePath('file:../name/file.db', cwd)).toMatchInlineSnapshot(
+    `"file://Users/user/code/name/file.db"`,
+  )
 })
