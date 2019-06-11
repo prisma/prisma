@@ -43,7 +43,23 @@ function transformArgs(args: ExternalDMMF.SchemaArg[]): DMMF.SchemaArg[] {
   return args.map(transformArg)
 }
 
-function transformArg(arg: ExternalDMMF.SchemaArg): DMMF.SchemaArg {
+function fixOrderByEnum(arg: ExternalDMMF.SchemaArg): ExternalDMMF.SchemaArg {
+  if (arg.name === 'orderBy' && arg.inputType.type.endsWith('OrderByInput')) {
+    return {
+      name: arg.name,
+      inputType: {
+        isList: arg.inputType.isList,
+        isRequired: arg.inputType.isRequired,
+        type: arg.inputType.type,
+        kind: 'object',
+      },
+    }
+  }
+  return arg
+}
+
+function transformArg(argBefore: ExternalDMMF.SchemaArg): DMMF.SchemaArg {
+  const arg = fixOrderByEnum(argBefore)
   return {
     name: arg.name,
     inputType: [arg.inputType],
