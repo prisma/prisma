@@ -45,7 +45,7 @@ export type MergeTruthyValues<R extends object, S extends object> = {
 export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never : key }[keyof T]
 
 type AtLeastOne<T, Keys extends keyof T = keyof T> =
-    Pick<T, Exclude<keyof T, Keys>> 
+    Pick<T, Exclude<keyof T, Keys>>
     & {
         [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
     }[Keys]

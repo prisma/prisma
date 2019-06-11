@@ -8,6 +8,7 @@
     "tsc": "tsc -d",
     "build": "yarn lint && yarn tsc && yarn ncc:runtime && yarn build:browser",
     "test": "jest",
+    "precommit": "lint-staged && jest",
     "ncc:runtime": "node scripts/build-runtime.js",
     "install": "test -f scripts/download.js && node scripts/download.js || echo \"\"",
     "prepublishOnly": "yarn build",
@@ -18,7 +19,7 @@
     "src/**/*.{ts,tsx}": [
       "tslint --project tsconfig.json -c tslint.json --fix",
       "prettier --write",
-      "git add"
+      "tsc"
     ]
   },
   "husky": {

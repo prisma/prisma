@@ -4,8 +4,12 @@ import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { getDMMF } from '../utils/getDMMF'
 chalk.enabled = false
 
-describe('relation where transformation', async () => {
-  const dmmf = new DMMFClass(await getDMMF(chinook))
+describe('relation where transformation', () => {
+  let dmmf
+  beforeEach(async () => {
+    dmmf = new DMMFClass(await getDMMF(chinook))
+  })
+
   test('transform correctly', () => {
     const select = {
       where: {
@@ -41,65 +45,65 @@ describe('relation where transformation', async () => {
       rootField: 'artists',
     })
     expect(String(document)).toMatchInlineSnapshot(`
-            "query {
-              artists(where: {
-                Albums: {
-                  some: {
-                    Tracks: {
-                      some: {
-                        AND: [
-                          {
-                            UnitPrice: 5
-                            Playlists: {
-                              some: {
-                                Tracks: {
-                                  some: {
-                                    Name: \\"\\"
-                                    Genre: {
-                                      id: 5
-                                    }
-                                  }
-                                }
+      "query {
+        artists(where: {
+          Albums: {
+            some: {
+              Tracks: {
+                some: {
+                  AND: [
+                    {
+                      UnitPrice: 5
+                      Playlists: {
+                        some: {
+                          Tracks: {
+                            \\"some\\": {
+                              \\"Name\\": \\"\\",
+                              \\"Genre\\": {
+                                \\"id\\": 5
                               }
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  }
-                }
-              }) {
-                id
-                Name
-              }
-            }"
-        `)
-    expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-            "query {
-              artists(where: {
-                Albums_some: {
-                  Tracks_some: {
-                    AND: [
-                      {
-                        UnitPrice: 5
-                        Playlists_some_Tracks: {
-                          some: {
-                            Name: \\"\\"
-                            Genre: {
-                              id: 5
                             }
                           }
                         }
                       }
-                    ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }) {
+          id
+          Name
+        }
+      }"
+    `)
+    expect(String(transformDocument(document))).toMatchInlineSnapshot(`
+      "query {
+        artists(where: {
+          Albums_some: {
+            Tracks_some: {
+              AND: [
+                {
+                  UnitPrice: 5
+                  Playlists_some_Tracks: {
+                    \\"some\\": {
+                      \\"Name\\": \\"\\",
+                      \\"Genre\\": {
+                        \\"id\\": 5
+                      }
+                    }
                   }
                 }
-              }) {
-                id
-                Name
-              }
-            }"
-        `)
+              ]
+            }
+          }
+        }) {
+          id
+          Name
+        }
+      }"
+    `)
   })
 
   test('throw correctly for incorrect deep scalar', () => {
@@ -139,7 +143,7 @@ describe('relation where transformation', async () => {
     expect(() => document.validate(select)).toThrowErrorMatchingInlineSnapshot(`
 "
 
-Invalid \`photon.artists()\` invocation:
+Invalid \`photon.artists()\` invocation
 
 {
   where: {
@@ -152,11 +156,11 @@ Invalid \`photon.artists()\` invocation:
               Playlists: {
                 some: {
                   Tracks: {
+                  ~~~~~~
                     some: {
                       Name: '',
                       Genre: {
                         id: '5'
-                            ~~~
                       }
                     }
                   }
@@ -170,16 +174,15 @@ Invalid \`photon.artists()\` invocation:
   }
 }
 
-Argument id: Got invalid value '5' on photon.artists. Provided String, expected Int or IntFilter.
-type IntFilter {
-  equals?: Int
-  not?: Int | IntFilter
-  in?: List<Int>
-  notIn?: List<Int>
-  lt?: Int
-  lte?: Int
-  gt?: Int
-  gte?: Int
+Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks. for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
+
+type PlaylistTrackWhereInput {
+  id?: Int | IntFilter
+  AND?: PlaylistTrackWhereInput
+  OR?: PlaylistTrackWhereInput
+  NOT?: PlaylistTrackWhereInput
+  Playlist?: PlaylistWhereInput
+  Track?: TrackWhereInput
 }
 
 "
@@ -220,7 +223,7 @@ type IntFilter {
     expect(() => document.validate(select)).toThrowErrorMatchingInlineSnapshot(`
 "
 
-Invalid \`photon.artists()\` invocation:
+Invalid \`photon.artists()\` invocation
 
 {
   where: {
@@ -233,16 +236,10 @@ Invalid \`photon.artists()\` invocation:
               Playlists: {
                 some: {
                   Tracks: {
+                  ~~~~~~
                     some: {
                       Name: '',
-                      Genre: {
-+                       id?: Int | IntFilter,
-+                       Name?: String | NullableStringFilter | null,
-+                       Tracks?: TrackFilter,
-+                       AND?: GenreWhereInput,
-+                       OR?: GenreWhereInput,
-+                       NOT?: GenreWhereInput
-                      }
+                      Genre: {}
                     }
                   }
                 }
@@ -255,7 +252,16 @@ Invalid \`photon.artists()\` invocation:
   }
 }
 
-Argument where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks.some.Genre of type GenreWhereInput needs at least one argument. Available args are listed in green.
+Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks. for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
+
+type PlaylistTrackWhereInput {
+  id?: Int | IntFilter
+  AND?: PlaylistTrackWhereInput
+  OR?: PlaylistTrackWhereInput
+  NOT?: PlaylistTrackWhereInput
+  Playlist?: PlaylistWhereInput
+  Track?: TrackWhereInput
+}
 
 "
 `)
