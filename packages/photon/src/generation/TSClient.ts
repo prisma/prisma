@@ -166,7 +166,7 @@ ${this.dmmf.inputTypes.map(inputType => new InputType(inputType)).join('\n')}
  * DMMF
  */
 
-const dmmf: DMMF.Document = ${JSON.stringify(this.document)}
+export const dmmf: DMMF.Document = ${JSON.stringify(this.document)}
     `
 
     // /**
