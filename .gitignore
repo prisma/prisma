@@ -4,3 +4,5 @@ yarn-error.log
 dist
 build
 .DS_Store
+failed-*.md
+*.db
