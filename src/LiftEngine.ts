@@ -107,7 +107,7 @@ export class LiftEngine {
     const filename = `failed-${request.method}.md`
     fs.writeFileSync(
       filename,
-      `# Failed ${request.method}
+      `# Failed ${request.method} at ${new Date().toISOString()}
 ## RPC Input One Line
 \`\`\`json
 ${JSON.stringify(request)}

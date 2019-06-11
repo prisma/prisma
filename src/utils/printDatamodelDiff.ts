@@ -6,11 +6,11 @@ import stripAnsi from 'strip-ansi'
 
 // TODO diff on trimmed text
 export function printDatamodelDiff(rawDatamodelA: string, rawDatamodelB?: string) {
-  const datamodelA = trimWholeBlocks(rawDatamodelA, ['datasource', 'generator'])
+  const datamodelA = trimWholeBlocks(rawDatamodelA, ['source', 'datasource', 'generator'])
   if (!rawDatamodelB) {
     return highlightDatamodel(datamodelA)
   }
-  const datamodelB = trimWholeBlocks(rawDatamodelB, ['datasource', 'generator'])
+  const datamodelB = trimWholeBlocks(rawDatamodelB, ['source', 'datasource', 'generator'])
   const result = fixCurly(diffLines(normalizeText(datamodelA), normalizeText(datamodelB)))
   const diff = result
     .map((change, index, changes) => {
