@@ -278,7 +278,10 @@ model Post {
   blog Blog
 }`
 
-  const nikoAfter = `model Blog {
+  const nikoAfter = `datasource pg {
+  
+}
+model Blog {
   id Int @id
   name String
   viewCount Int

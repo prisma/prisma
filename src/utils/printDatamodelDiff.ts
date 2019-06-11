@@ -5,10 +5,12 @@ import { strongGreen, strongRed } from './customColors'
 import stripAnsi from 'strip-ansi'
 
 // TODO diff on trimmed text
-export function printDatamodelDiff(datamodelA: string, datamodelB?: string) {
-  if (!datamodelB) {
+export function printDatamodelDiff(rawDatamodelA: string, rawDatamodelB?: string) {
+  const datamodelA = trimWholeBlocks(rawDatamodelA, ['datasource', 'generator'])
+  if (!rawDatamodelB) {
     return highlightDatamodel(datamodelA)
   }
+  const datamodelB = trimWholeBlocks(rawDatamodelB, ['datasource', 'generator'])
   const result = fixCurly(diffLines(normalizeText(datamodelA), normalizeText(datamodelB)))
   const diff = result
     .map((change, index, changes) => {
@@ -60,7 +62,7 @@ export function printDatamodelDiff(datamodelA: string, datamodelB?: string) {
         }
         return chalk.redBright(trimNewLine(change.value))
       }
-      return highlightDatamodel(trimWholeModels(trimNewLine(change.value)))
+      return highlightDatamodel(trimWholeBlocks(trimNewLine(change.value)))
     })
     .join('\n')
     .trim()
@@ -106,29 +108,29 @@ type Position = {
   end: number
 }
 
-function trimWholeModels(str: string) {
+function trimWholeBlocks(str: string, blocks = ['model', 'enum', 'datasource', 'generator']) {
   const lines = str.split('\n')
   if (lines.length <= 2) {
     return str
   }
   const modelPositions: Position[] = []
-  let modelOpen = false
+  let blockOpen = false
   let currentStart = -1
 
   lines.forEach((line, index) => {
     const trimmed = line.trim()
     // TODO: add support for enum etc
     // maybe just by removing the startsWith
-    if (trimmed.startsWith('model') && line.endsWith('{')) {
-      modelOpen = true
+    if (blocks.some(b => line.startsWith(b)) && line.endsWith('{')) {
+      blockOpen = true
       currentStart = index
     }
-    if (trimmed.endsWith('}') && currentStart > -1 && modelOpen) {
+    if (trimmed.endsWith('}') && currentStart > -1 && blockOpen) {
       modelPositions.push({
         start: currentStart,
         end: index,
       })
-      modelOpen = false
+      blockOpen = false
       currentStart = -1
     }
   })
