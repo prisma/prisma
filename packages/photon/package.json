@@ -24,7 +24,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "precommit"
+      "pre-commit": "yarn precommit"
     }
   },
   "files": [
