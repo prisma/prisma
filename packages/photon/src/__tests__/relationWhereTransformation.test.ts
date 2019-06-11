@@ -45,65 +45,65 @@ describe('relation where transformation', () => {
       rootField: 'artists',
     })
     expect(String(document)).toMatchInlineSnapshot(`
-      "query {
-        artists(where: {
-          Albums: {
-            some: {
-              Tracks: {
-                some: {
-                  AND: [
-                    {
-                      UnitPrice: 5
-                      Playlists: {
-                        some: {
-                          Tracks: {
-                            \\"some\\": {
-                              \\"Name\\": \\"\\",
-                              \\"Genre\\": {
-                                \\"id\\": 5
+            "query {
+              artists(where: {
+                Albums: {
+                  some: {
+                    Tracks: {
+                      some: {
+                        AND: [
+                          {
+                            UnitPrice: 5
+                            Playlists: {
+                              some: {
+                                Tracks: {
+                                  \\"some\\": {
+                                    \\"Name\\": \\"\\",
+                                    \\"Genre\\": {
+                                      \\"id\\": 5
+                                    }
+                                  }
+                                }
                               }
                             }
                           }
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        }) {
-          id
-          Name
-        }
-      }"
-    `)
-    expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-      "query {
-        artists(where: {
-          Albums_some: {
-            Tracks_some: {
-              AND: [
-                {
-                  UnitPrice: 5
-                  Playlists_some_Tracks: {
-                    \\"some\\": {
-                      \\"Name\\": \\"\\",
-                      \\"Genre\\": {
-                        \\"id\\": 5
+                        ]
                       }
                     }
                   }
                 }
-              ]
-            }
-          }
-        }) {
-          id
-          Name
-        }
-      }"
-    `)
+              }) {
+                id
+                Name
+              }
+            }"
+        `)
+    expect(String(transformDocument(document))).toMatchInlineSnapshot(`
+            "query {
+              artists(where: {
+                Albums_some: {
+                  Tracks_some: {
+                    AND: [
+                      {
+                        UnitPrice: 5
+                        Playlists_some_Tracks: {
+                          \\"some\\": {
+                            \\"Name\\": \\"\\",
+                            \\"Genre\\": {
+                              \\"id\\": 5
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }) {
+                id
+                Name
+              }
+            }"
+        `)
   })
 
   test('throw correctly for incorrect deep scalar', () => {
@@ -143,7 +143,7 @@ describe('relation where transformation', () => {
     expect(() => document.validate(select)).toThrowErrorMatchingInlineSnapshot(`
 "
 
-Invalid \`photon.artists()\` invocation
+Invalid \`photon.artists()\` invocation:
 
 {
   where: {
@@ -223,7 +223,7 @@ type PlaylistTrackWhereInput {
     expect(() => document.validate(select)).toThrowErrorMatchingInlineSnapshot(`
 "
 
-Invalid \`photon.artists()\` invocation
+Invalid \`photon.artists()\` invocation:
 
 {
   where: {

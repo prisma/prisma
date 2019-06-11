@@ -1,4 +1,4 @@
-const identity = str => str
+const identity = str => str || ''
 
 const browserChalk: any = new Proxy(identity, {
   get: (obj, prop) => {

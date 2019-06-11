@@ -103,23 +103,18 @@ ${indent(this.children.map(String).join('\n'), tab)}
     let lastErrorHeight = 20
 
     const renderErrorStr = (callsite?: string) => {
-      let callsiteStr = ''
+      let callsiteStr = ':'
       let prevLines = '\n'
       let afterLines = ''
       let indentValue = 0
       let functionName = `photon.${originalMethod || queryName}()`
 
-      if (callsite) {
+      // @ts-ignore
+      if (callsite && typeof window === 'undefined') {
         const [fileName, lineNumberString] = callsite.split(':')
         const lineNumber = parseInt(lineNumberString, 10)
-        callsiteStr = callsite ? ` in ${chalk.underline(callsite)}` : ''
-        if (
-          // @ts-ignore
-          typeof window === 'undefined' &&
-          lineNumber &&
-          !isNaN(lineNumber) &&
-          process.env.NODE_ENV !== 'production'
-        ) {
+        if (lineNumber && !isNaN(lineNumber) && process.env.NODE_ENV !== 'production') {
+          callsiteStr = callsite ? ` in ${chalk.underline(callsite)}` : ''
           const height = process.stdout.rows || 20
           const start = Math.max(0, lineNumber - 5)
           const neededHeight = lastErrorHeight + lineNumber - start

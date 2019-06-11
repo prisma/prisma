@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "0.0.30",
+  "version": "0.0.38",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -18,8 +18,7 @@
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
       "tslint --project tsconfig.json -c tslint.json --fix",
-      "prettier --write",
-      "tsc"
+      "prettier --write"
     ]
   },
   "files": [
@@ -56,7 +55,7 @@
   },
   "dependencies": {
     "@prisma/cli": "^0.0.4",
-    "@prisma/engine-core": "0.0.37",
+    "@prisma/engine-core": "0.0.38",
     "@prisma/fetch-engine": "^0.0.19",
     "callsites": "^3.1.0",
     "chalk": "^2.4.2",
