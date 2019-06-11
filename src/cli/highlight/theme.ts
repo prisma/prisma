@@ -10,7 +10,7 @@ export const identity = str => str
 export const theme: Theme = {
   keyword: blue,
   entity: blue,
-  value: brightBlue,
+  value: darkBrightBlue,
   punctuation: darkBrightBlue,
   directive: blue,
   function: blue,

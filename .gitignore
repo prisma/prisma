@@ -5,3 +5,5 @@ dist
 build
 .DS_Store
 tmp/
+failed-*.md
+*.db
