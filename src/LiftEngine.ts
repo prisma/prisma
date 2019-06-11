@@ -39,6 +39,7 @@ export class LiftEngine {
       const child = spawn(this.binaryPath, {
         stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
         env: {
+          ...process.env,
           SERVER_ROOT: this.projectDir,
           RUST_BACKTRACE: '1',
         },
@@ -51,11 +52,6 @@ export class LiftEngine {
 
       child.on('exit', (code, signal) => {
         if (code !== 0) {
-          // console.error(
-          //   '[migration-engine] exit: code=%s signal=%s',
-          //   code,
-          //   signal,
-          // )
           this.persistError(request, null, messages)
           reject(
             new Error(`${chalk.redBright(`Error in lift engine for rpc ${request.method}:`)}\n  ${messages.join('')}`),
