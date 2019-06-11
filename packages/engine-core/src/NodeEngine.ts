@@ -1,6 +1,4 @@
-import { promisify } from 'util'
 import { spawn, ChildProcess } from 'child_process'
-import * as fs from 'fs'
 import * as path from 'path'
 import * as net from 'net'
 import debugLib from 'debug'
@@ -10,25 +8,17 @@ import { Engine, PhotonError } from './Engine'
 const debug = debugLib('engine')
 
 interface EngineConfig {
-  prismaYmlPath?: string
-  prismaConfig?: string
+  cwd?: string
   datamodel: string
-  datamodelJson?: string
   debug?: boolean
-  schemaInferrerPath?: string
   prismaPath?: string
   fetcher?: (query: string) => Promise<{ data?: any; error?: any }>
 }
-
-const readFile = promisify(fs.readFile)
-const exists = promisify(fs.exists)
 
 /**
  * Node.js based wrapper to run the Prisma binary
  */
 export class NodeEngine extends Engine {
-  prismaYmlPath?: string
-  prismaConfig?: string
   port?: number
   debug: boolean
   child?: ChildProcess
@@ -44,39 +34,19 @@ export class NodeEngine extends Engine {
   prismaPath: string
   url: string
   startPromise: Promise<void>
-  errorLogs: string = ''
+  stderrLogs: string = ''
+  stdoutLogs: string = ''
   static defaultPrismaPath = path.join(__dirname, '../prisma')
-  constructor({
-    prismaConfig,
-    datamodelJson,
-    prismaYmlPath,
-    datamodel,
-    schemaInferrerPath,
-    prismaPath,
-    ...args
-  }: EngineConfig) {
+  constructor({ cwd, datamodel, prismaPath, ...args }: EngineConfig) {
     super()
-    this.prismaYmlPath = prismaYmlPath
-    this.prismaConfig = prismaConfig
-    this.cwd = prismaYmlPath ? path.dirname(this.prismaYmlPath) : process.cwd()
+    this.cwd = cwd || process.cwd()
     this.debug = args.debug || false
-    this.datamodelJson = datamodelJson
     this.datamodel = datamodel
     this.prismaPath = prismaPath || NodeEngine.defaultPrismaPath
     if (this.debug) {
       debugLib.enable('engine')
     }
     this.startPromise = this.start()
-  }
-
-  /**
-   * Resolve the prisma.yml
-   */
-  async getPrismaYml(ymlPath: string) {
-    if (!exists(ymlPath)) {
-      return undefined
-    }
-    return await readFile(ymlPath, 'utf-8')
   }
 
   /**
@@ -88,18 +58,12 @@ export class NodeEngine extends Engine {
     }
     return new Promise(async (resolve, reject) => {
       this.port = await this.getFreePort()
-      this.prismaConfig = this.prismaConfig || (await this.getPrismaYml(this.prismaYmlPath))
-      const PRISMA_CONFIG = this.generatePrismaConfig()
-      const schemaEnv: any = {}
       debug(`Starting binary at ${this.prismaPath}`)
       const env = {
         ...process.env,
-        PRISMA_CONFIG,
         PRISMA_DML: this.datamodel,
+        PORT: String(this.port),
         RUST_BACKTRACE: '1',
-        // PRISMA_DML_PATH: '/Users/tim/code/lift-demo/datamodel.prisma',
-        // SERVER_ROOT: process.cwd(),
-        // ...schemaEnv,
       }
       debug(env)
       this.child = spawn(this.prismaPath, [], {
@@ -109,27 +73,30 @@ export class NodeEngine extends Engine {
       })
       this.child.stderr.on('data', d => {
         const str = d.toString()
-        this.errorLogs += str
+        this.stdoutLogs += str
         debug(str)
       })
       this.child.stdout.on('data', d => {
-        debug(d.toString())
+        const data = d.toString()
+        this.stderrLogs += data
+        debug(data)
       })
       this.child.on('error', e => {
-        this.errorLogs += e.toString()
+        this.stderrLogs += e.toString()
         debug(e)
         reject(e)
       })
       this.child.on('exit', (code, e) => {
         if (code !== 0 && !this.exiting) {
           console.error(`Engine path: ${this.prismaPath}`)
-          throw new PhotonError(`Error in query engine: ` + this.errorLogs, undefined, undefined, this.errorLogs)
+          const logs = this.stderrLogs || this.stdoutLogs
+          throw new PhotonError(`Error in query engine: ` + logs, undefined, undefined, logs)
         }
       })
 
       // Make sure we kill Rust when this process is being killed
-      process.once('SIGTERM', e => this.fail(e, 'SIGTERM'))
-      process.once('SIGINT', e => this.fail(e, 'SIGINT'))
+      process.on('SIGTERM', e => this.fail(e, 'SIGTERM'))
+      process.on('SIGINT', e => this.fail(e, 'SIGINT'))
       // process.once('uncaughtException', e => this.fail(e, 'uncaughtException'))
       // process.once('unhandledRejection', e => this.fail(e, 'unhandledRejection'))
 
@@ -140,9 +107,9 @@ export class NodeEngine extends Engine {
     })
   }
 
-  fail = (e, why) => {
+  fail = async (e, why) => {
     debug(e, why)
-    this.stop()
+    await this.stop()
   }
 
   /**
@@ -177,13 +144,6 @@ export class NodeEngine extends Engine {
         })
       })
     })
-  }
-
-  /**
-   * Replace the port in the Prisma Config
-   */
-  protected generatePrismaConfig() {
-    return `port: ${this.port}\n${this.trimPort(this.prismaConfig)}`
   }
 
   /**
@@ -274,10 +234,10 @@ export class NodeEngine extends Engine {
   handleErrors({ errors, query }: { errors?: any; query: string }) {
     const stringified = errors ? JSON.stringify(errors, null, 2) : null
     const message = stringified.length > 0 ? stringified : `Error in photon.\$\{rootField || 'query'}`
-    const isPanicked = this.errorLogs.includes('panicked')
+    const isPanicked = this.stderrLogs.includes('panicked')
     if (isPanicked) {
       this.stop()
     }
-    throw new PhotonError(message, query, errors, this.errorLogs, isPanicked)
+    throw new PhotonError(message, query, errors, this.stderrLogs, isPanicked)
   }
 }

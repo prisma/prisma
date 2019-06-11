@@ -1,4 +1,3 @@
-import { getInternalDatamodelJson } from '@prisma/engine-core'
 import fs from 'fs-extra'
 import makeDir from 'make-dir'
 import path from 'path'
@@ -10,7 +9,6 @@ import {
   ModuleKind,
   ScriptTarget,
 } from 'typescript'
-import { DMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
 import { getDMMF } from '../utils/getDMMF'
 import { TSClient } from './TSClient'
@@ -18,26 +16,24 @@ import { TSClient } from './TSClient'
 interface BuildClientOptions {
   datamodel: string
   browser: boolean
-  prismaYmlPath?: string
+  cwd?: string
   transpile?: boolean
   runtimePath?: string
 }
 
 export async function buildClient({
   datamodel,
-  prismaYmlPath,
+  cwd,
   transpile = false,
   runtimePath = './runtime',
   browser = false,
 }: BuildClientOptions): Promise<Dictionary<string>> {
   const fileMap = {}
-  const prismaConfig = prismaYmlPath ? await fs.readFile(prismaYmlPath, 'utf-8') : undefined
 
   const dmmf = await getDMMF(datamodel)
   const client = new TSClient({
     document: dmmf,
-    prismaYmlPath,
-    prismaConfig,
+    cwd,
     datamodel,
     runtimePath,
     browser,
@@ -100,17 +96,16 @@ function normalizeFileMap(fileMap: Dictionary<string>) {
 
 export async function generateClient(
   datamodel: string,
-  prismaYmlPath: string,
+  cwd: string,
   outputDir: string,
   transpile: boolean = false,
   runtimePath: string = './runtime',
   browser: boolean = false,
-  printDMMF: boolean = false, // needed for debugging
 ) {
-  if (!(await fs.pathExists(prismaYmlPath))) {
-    throw new Error(`Provided prisma.yml path ${prismaYmlPath} does not exist`)
+  if (cwd.endsWith('.yml')) {
+    cwd = path.dirname(cwd)
   }
-  const files = await buildClient({ datamodel, prismaYmlPath, transpile, runtimePath, browser })
+  const files = await buildClient({ datamodel, cwd, transpile, runtimePath, browser })
   await makeDir(outputDir)
   await Promise.all(Object.entries(files).map(([fileName, file]) => fs.writeFile(path.join(outputDir, fileName), file)))
   await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
@@ -130,37 +125,37 @@ export declare type Engine = any
 export declare var debugLib: debug.Debug & { debug: debug.Debug; default: debug.Debug };
 
 declare namespace debug {
-    interface Debug {
-        (namespace: string): Debugger;
-        coerce: (val: any) => any;
-        disable: () => string;
-        enable: (namespaces: string) => void;
-        enabled: (namespaces: string) => boolean;
-        log: (...args: any[]) => any;
+  interface Debug {
+    (namespace: string): Debugger;
+    coerce: (val: any) => any;
+    disable: () => string;
+    enable: (namespaces: string) => void;
+    enabled: (namespaces: string) => boolean;
+    log: (...args: any[]) => any;
 
-        names: RegExp[];
-        skips: RegExp[];
+    names: RegExp[];
+    skips: RegExp[];
 
-        formatters: Formatters;
-    }
+    formatters: Formatters;
+  }
 
-    type IDebug = Debug;
+  type IDebug = Debug;
 
-    interface Formatters {
-        [formatter: string]: (v: any) => string;
-    }
+  interface Formatters {
+    [formatter: string]: (v: any) => string;
+  }
 
-    type IDebugger = Debugger;
+  type IDebugger = Debugger;
 
-    interface Debugger {
-        (formatter: any, ...args: any[]): void;
+  interface Debugger {
+    (formatter: any, ...args: any[]): void;
 
-        enabled: boolean;
-        log: (...args: any[]) => any;
-        namespace: string;
-        destroy: () => boolean;
-        extend: (namespace: string, delimiter?: string) => Debugger;
-    }
+    enabled: boolean;
+    log: (...args: any[]) => any;
+    namespace: string;
+    destroy: () => boolean;
+    extend: (namespace: string, delimiter?: string) => Debugger;
+  }
 }
 `
 

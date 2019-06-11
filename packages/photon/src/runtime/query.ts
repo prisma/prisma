@@ -159,6 +159,20 @@ ${indent(this.children.map(String).join('\n'), tab)}
         return spaceCount
       }
 
+      const hasRequiredMissingArgsErrors = true
+      const hasOptionalMissingArgsErrors = true
+      let missingArgsLegend = '\n'
+      if (hasRequiredMissingArgsErrors) {
+        missingArgsLegend += `${chalk.dim('Note: Lines with ')}${chalk.reset.greenBright('+')} ${chalk.dim(
+          'are required',
+        )}`
+      }
+
+      if (hasOptionalMissingArgsErrors) {
+        missingArgsLegend += chalk.dim(`, lines with ${chalk.green('?')} are optional`)
+      }
+      missingArgsLegend += chalk.dim('.')
+
       const errorStr = `\n\n${chalk.red(`Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`)}
 ${chalk.dim(prevLines)}${chalk.reset()}${indent(
         printJsonWithErrors(
@@ -173,7 +187,7 @@ ${chalk.dim(prevLines)}${chalk.reset()}${indent(
 ${argErrors
   .filter(e => e.error.type !== 'missingArg' || e.error.missingType[0].isRequired)
   .map(this.printArgError)
-  .join('\n')}
+  .join('\n')}${missingArgsLegend}
 ${fieldErrors.map(this.printFieldError).join('\n')}\n`
       lastErrorHeight = errorStr.split('\n').length
       return errorStr
@@ -284,9 +298,7 @@ ${fieldErrors.map(this.printFieldError).join('\n')}\n`
     if (error.type === 'missingArg') {
       return `Argument ${chalk.greenBright(error.missingName)} for ${chalk.bold(
         `photon.${path.join('.')}`,
-      )} is missing. Lines with ${chalk.greenBright('+')} are required, lines with ${chalk.green.dim(
-        '?',
-      )} are optional.`
+      )} is missing.`
     }
 
     if (error.type === 'atLeastOne') {

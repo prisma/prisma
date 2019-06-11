@@ -11,3 +11,5 @@ cli
 yarn-error.log
 src/utils/transformed-dmmf.json
 *-dmmf.json
+db
+failed-*.md
