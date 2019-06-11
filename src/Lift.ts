@@ -363,9 +363,7 @@ export class Lift {
           !isWatchMigrationName(remoteMigration.id) // it's fine to have the watch migration remotely
         ) {
           throw new Error(
-            `Local and remote migrations are not in lockstep. We have migration ${localMigration.id} locally and ${
-              remoteMigration.id
-            } remotely at the same position in the history.`,
+            `Local and remote migrations are not in lockstep. We have migration ${localMigration.id} locally and ${remoteMigration.id} remotely at the same position in the history.`,
           )
         }
         lastAppliedIndex = index
@@ -440,9 +438,7 @@ export class Lift {
       if (remoteMigration) {
         if (localMigration.id !== remoteMigration.id && !isWatchMigrationName(remoteMigration.id)) {
           throw new Error(
-            `Local and remote migrations are not in lockstep. We have migration ${localMigration.id} locally and ${
-              remoteMigration.id
-            } remotely at the same position in the history.`,
+            `Local and remote migrations are not in lockstep. We have migration ${localMigration.id} locally and ${remoteMigration.id} remotely at the same position in the history.`,
           )
         }
         if (!isWatchMigrationName(remoteMigration.id)) {
