@@ -33,6 +33,7 @@ import 'array-flat-polyfill'
 import debugLib from 'debug'
 import { findLast } from './utils/findLast'
 import { isWatchMigrationName } from './utils/isWatchMigrationName'
+import dashify from 'dashify'
 const packageJson = require('../package.json')
 
 const readFile = promisify(fs.readFile)
@@ -119,7 +120,7 @@ export class Lift {
   ): Promise<{ files: FileMap; migrationId: string; newLockFile: string } | undefined> {
     const lockFile = await this.getLockFile()
     const timestamp = now()
-    const migrationId = timestamp + (name ? `-${name}` : '')
+    const migrationId = dashify(timestamp + (name ? ` ${name}` : ''))
     const migration = await this.createMigration(migrationId)
     if (!migration) {
       return undefined
