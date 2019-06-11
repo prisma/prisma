@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "devDependencies": {
+    "husky": "2.4.0"
+  },
+  "scripts": {
+    "precommit": "yarn precommit-photon",
+    "precommit-photon": "(cd packages/photon && yarn precommit)"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn precommit"
+    }
+  }
+}

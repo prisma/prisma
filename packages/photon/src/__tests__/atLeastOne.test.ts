@@ -3,8 +3,12 @@ import { enums } from '../fixtures/enums'
 import { DMMFClass, makeDocument } from '../runtime'
 import { getDMMF } from '../utils/getDMMF'
 
-describe('at least one validation', async () => {
-  const dmmf = new DMMFClass(await getDMMF(enums))
+describe('at least one validation', () => {
+  let dmmf
+  beforeEach(async () => {
+    dmmf = new DMMFClass(await getDMMF(enums))
+  })
+
   test('invalid query', () => {
     const select = {
       where: {
@@ -24,22 +28,22 @@ describe('at least one validation', async () => {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
 
-        Invalid \`photon.users()\` invocation:
+        Invalid \`photon.users()\` invocation
 
         {
           where: {
             email: {
-        +     equals?: String,
-        +     not?: String | StringFilter,
-        +     in?: String,
-        +     notIn?: String,
-        +     lt?: String,
-        +     lte?: String,
-        +     gt?: String,
-        +     gte?: String,
-        +     contains?: String,
-        +     startsWith?: String,
-        +     endsWith?: String
+        ?     equals?: String,
+        ?     not?: String | StringFilter,
+        ?     in?: String,
+        ?     notIn?: String,
+        ?     lt?: String,
+        ?     lte?: String,
+        ?     gt?: String,
+        ?     gte?: String,
+        ?     contains?: String,
+        ?     startsWith?: String,
+        ?     endsWith?: String
             }
           }
         }
