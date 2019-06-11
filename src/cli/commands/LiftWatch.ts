@@ -1,10 +1,6 @@
 import { Command, arg, format, Env, HelpError } from '@prisma/cli'
-import prompt from 'prompts'
 import chalk from 'chalk'
 import { Lift } from '../../Lift'
-import path from 'path'
-import fs from 'fs'
-import logUpdate from 'log-update'
 
 export type Hooks = {
   afterUp?: () => any
@@ -17,10 +13,7 @@ export class LiftWatch implements Command {
   static new(env: Env, hooks?: Hooks): LiftWatch {
     return new LiftWatch(env, hooks)
   }
-  private constructor(
-    private readonly env: Env,
-    private readonly hooks?: Hooks,
-  ) {}
+  private constructor(private readonly env: Env, private readonly hooks?: Hooks) {}
 
   // parse arguments
   async parse(argv: string[]): Promise<string | Error> {
@@ -40,9 +33,7 @@ export class LiftWatch implements Command {
   // help message
   help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${LiftWatch.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftWatch.help}`)
     }
     return LiftWatch.help
   }

@@ -5,5 +5,6 @@ export const dml: SyntaxDefinition = {
   comment: /#.*/g,
   directive: { pattern: /(@.*)/g },
   value: [/\"(.*)\"/g, /\b\s+(\w+)/g],
-  punctuation: /(\:|}|{|")/g,
+  punctuation: /(\:|}|{|"|=)/g,
+  boolean: /(true|false)/g,
 }
