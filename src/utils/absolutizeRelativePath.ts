@@ -6,7 +6,17 @@ export function absolutizeRelativePath(filePath: string, cwd: string): string {
   if (url.protocol !== 'file:') {
     return filePath
   }
+  const prefix = 'file:'
+  let restPath = filePath.slice(prefix.length)
 
-  const joined = path.join(cwd, url.hostname)
+  if (restPath[0] === '/' && restPath[1] === '/') {
+    restPath = restPath.slice(1)
+  }
+
+  if (restPath.startsWith('/')) {
+    return `file:/${restPath}`
+  }
+
+  const joined = path.join(cwd, restPath)
   return `file:/${joined}`
 }
