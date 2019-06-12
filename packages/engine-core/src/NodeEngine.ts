@@ -36,6 +36,7 @@ export class NodeEngine extends Engine {
   startPromise: Promise<void>
   stderrLogs: string = ''
   stdoutLogs: string = ''
+  currentRequestPromise?: Promise<any>
   static defaultPrismaPath = path.join(__dirname, '../prisma')
   constructor({ cwd, datamodel, prismaPath, ...args }: EngineConfig) {
     super()
@@ -116,7 +117,18 @@ export class NodeEngine extends Engine {
    * If Prisma runs, stop it
    */
   stop = async () => {
-    await this.startPromise
+    try {
+      await this.startPromise
+    } catch (e) {
+      //
+    }
+    if (this.currentRequestPromise) {
+      try {
+        await this.currentRequestPromise
+      } catch (e) {
+        //
+      }
+    }
     if (this.child) {
       debug(`Stopping Prisma engine`)
       this.exiting = true
@@ -161,6 +173,9 @@ export class NodeEngine extends Engine {
   protected async engineReady() {
     let tries = 0
     while (true) {
+      if (!this.child) {
+        return
+      }
       try {
         await new Promise(r => setTimeout(r, 50)) // TODO: Try out lower intervals here, but we also don't want to spam it too much.
         const response = await fetch(`http://localhost:${this.port}/status`, {
@@ -186,10 +201,11 @@ export class NodeEngine extends Engine {
   }
 
   async request<T>(query: string, typeName?: string): Promise<T> {
-    if (!this.url) {
-      await this.startPromise // allows lazily connecting the client to Rust and Rust to the Datasource
+    await this.startPromise
+    if (!this.child) {
+      throw new Error(`Engine has already been stopped`)
     }
-    return fetch(this.url, {
+    this.currentRequestPromise = fetch(this.url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -230,6 +246,7 @@ export class NodeEngine extends Engine {
           throw errors
         }
       })
+    return this.currentRequestPromise
   }
   handleErrors({ errors, query }: { errors?: any; query: string }) {
     const stringified = errors ? JSON.stringify(errors, null, 2) : null

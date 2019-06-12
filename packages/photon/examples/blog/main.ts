@@ -6,23 +6,14 @@ async function main() {
   })
   await photon.connect()
 
-  const result = await photon.authors.create({
+  const result = await photon.blogs.create({
     data: {
-      name: 'Test',
+      name: 'Blog Name',
+      viewCount: 100,
     },
-  } as any)
+  })
 
-  // return proton.blogs
-  //   .findOne({
-  //     where: {
-  //       id: 5,
-  //     },
-  //   })
-  //   .authors({
-  //     asdf: '',
-  //   } as any)
-
-  // console.log(result)
+  console.log(result)
 }
 
 main().catch(console.error)

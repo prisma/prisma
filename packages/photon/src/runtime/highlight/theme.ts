@@ -18,5 +18,5 @@ export const theme: Theme = {
   string: chalk.greenBright,
   boolean: orange,
   number: chalk.cyan,
-  comment: chalk.dim,
+  comment: chalk.grey,
 }
