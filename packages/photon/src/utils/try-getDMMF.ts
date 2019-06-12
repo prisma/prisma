@@ -1,12 +1,12 @@
 import fs from 'fs'
-import { enums } from '../fixtures/enums'
-import { getDMMF } from './getDMMF'
+import { blog } from '../fixtures/blog'
+import { getRawDMMF } from './getDMMF'
 
 async function main() {
   console.log('fetching dmmf')
-  const dmmf = await getDMMF(enums)
+  const dmmf = await getRawDMMF(blog)
   console.log({ dmmf })
-  fs.writeFileSync(__dirname + '/transformed-dmmf.json', JSON.stringify(dmmf, null, 2))
+  fs.writeFileSync(__dirname + '/blog-raw-dmmf.json', JSON.stringify(dmmf, null, 2))
 }
 
 main().catch(console.error)

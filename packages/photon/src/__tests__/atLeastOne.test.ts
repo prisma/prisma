@@ -49,6 +49,7 @@ describe('at least one validation', () => {
         }
 
         Argument where.email of type StringFilter needs at least one argument. Available args are listed in green.
+        Note: Lines with + are required, lines with ? are optional.
 
         "
       `)

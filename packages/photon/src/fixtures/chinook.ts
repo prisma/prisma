@@ -6,19 +6,19 @@ datasource my_db {
 }
 
 model Album {
-  id Int @id @db(name"AlbumId")
+  id Int @id @db("AlbumId")
   Title String
-  Artist Artist @db(name"ArtistId")
+  Artist Artist @db("ArtistId")
   Tracks Track[]
 }
 
 model Track {
-  id Int @id @db(name"TrackId")
+  id Int @id @db("TrackId")
   Name String
-  Album Album? @db(name "AlbumId")
+  Album Album? @db("AlbumId")
   AlbumId Int?
-  Mediamodel Mediamodel @db(name "MediamodelId")
-  Genre Genre? @db(name "GenreId")
+  Mediamodel Mediamodel @db("MediamodelId")
+  Genre Genre? @db("GenreId")
   Composer String?
   Milliseconds Int
   UnitPrice Float
@@ -27,24 +27,24 @@ model Track {
 }
 
 model Mediamodel {
-  id Int @id @db(name"MediamodelId")
+  id Int @id @db("MediamodelId")
   Name String?
 }
 
 model Genre {
-  id Int @id @db(name"GenreId")
+  id Int @id @db("GenreId")
   Name String?
   Tracks Track[]
 }
 
 model Artist {
-  id Int @id @db(name"ArtistId")
+  id Int @id @db("ArtistId")
   Name String?
   Albums Album[]
 }
 
 model Customer {
-  id Int @id @db(name"CustomerId")
+  id Int @id @db("CustomerId")
   FirstName String
   LastName String
   Company String?
@@ -56,12 +56,12 @@ model Customer {
   Phone String?
   Fax String?
   Email String
-  SupportRep Employee? @db(name "SupportRepId")
+  SupportRep Employee? @db("SupportRepId")
   Invoices Invoice[]
 }
 
 model Employee {
-  id Int @id @db(name"EmployeeId")
+  id Int @id @db("EmployeeId")
   FirstName String
   LastName String
   Title String?
@@ -79,8 +79,8 @@ model Employee {
 }
 
 model Invoice {
-  id Int @id @db(name"InvoiceId")
-  Customer Customer @db(name "CustomerId")
+  id Int @id @db("InvoiceId")
+  Customer Customer @db("CustomerId")
   InvoiceDate DateTime
   BillingAddress String?
   BillingCity String?
@@ -92,22 +92,22 @@ model Invoice {
 }
 
 model InvoiceLine {
-  id Int @id @db(name"InvoiceLineId")
-  Invoice Invoice @db(name "InvoiceId")
-  Track Track @db(name "TrackId")
+  id Int @id @db("InvoiceLineId")
+  Invoice Invoice @db("InvoiceId")
+  Track Track @db("TrackId")
   UnitPrice Float
   Quantity Int
 }
 
 model Playlist {
-  id Int @id @db(name"PlaylistId")
+  id Int @id @db("PlaylistId")
   Name String?
   Tracks PlaylistTrack[]
 }
 
 model PlaylistTrack {
   id Int @id
-  Playlist Playlist @db(name "PlaylistId")
-  Track Track @db(name "TrackId")
+  Playlist Playlist @db("PlaylistId")
+  Track Track @db("TrackId")
 }
 `

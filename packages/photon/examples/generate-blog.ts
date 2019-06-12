@@ -9,7 +9,7 @@ async function main() {
     blog,
     path.join(__dirname, './blog/prisma.yml'),
     path.join(__dirname, './blog/@generated/photon'),
-    false,
+    true,
     '../../../../src/runtime',
   )
   const after = performance.now()

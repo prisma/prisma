@@ -89,7 +89,7 @@ export class NodeEngine extends Engine {
       this.child.on('exit', (code, e) => {
         if (code !== 0 && !this.exiting) {
           console.error(`Engine path: ${this.prismaPath}`)
-          const logs = this.stderrLogs || this.stdoutLogs
+          const logs = this.stderrLogs + this.stdoutLogs
           throw new PhotonError(`Error in query engine: ` + logs, undefined, undefined, logs)
         }
       })
@@ -238,6 +238,6 @@ export class NodeEngine extends Engine {
     if (isPanicked) {
       this.stop()
     }
-    throw new PhotonError(message, query, errors, this.stderrLogs, isPanicked)
+    throw new PhotonError(message, query, errors, this.stderrLogs + this.stdoutLogs, isPanicked)
   }
 }

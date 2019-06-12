@@ -55,7 +55,7 @@ function checkBlacklist(sdl: DMMF.Datamodel) {
   }
 }
 
-export async function getDMMF(datamodel: string): Promise<DMMF.Document> {
+export async function getRawDMMF(datamodel: string): Promise<ExternalDMMF.Document> {
   const engine = new NodeEngine({
     datamodel,
     prismaPath: path.join(__dirname, '../../runtime/prisma'),
@@ -63,9 +63,14 @@ export async function getDMMF(datamodel: string): Promise<DMMF.Document> {
 
   await engine.start()
   const externalDmmf: ExternalDMMF.Document = await engine.getDmmf()
+  await engine.stop()
+  return externalDmmf
+}
+
+export async function getDMMF(datamodel: string): Promise<DMMF.Document> {
+  const externalDmmf = await getRawDMMF(datamodel)
   const dmmf = transformDmmf(externalToInternalDmmf(externalDmmf))
   checkBlacklist(dmmf.datamodel)
 
-  await engine.stop()
   return dmmf
 }
