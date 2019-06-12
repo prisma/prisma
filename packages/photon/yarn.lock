@@ -292,17 +292,17 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^12.0.9"
 
-"@prisma/cli@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.4.tgz#59f7b1f1f7294531169f17e985abaf72293e4fad"
-  integrity sha512-l/9n/l13NJlP0HNN4cU51A8I+E6pzbeEyrXPdAOZjR3ZxcouVUXcDrWZK2S3iSYsqdWBymTxyahmIGZ5yOwR0A==
+"@prisma/cli@^0.0.10":
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.10.tgz#def3a2be3d9b2b2abcbc778dac829495709415f9"
+  integrity sha512-0qP/+2TwbhwNyYQsPHuIrci9C+zbxMEuNAhrBo8UzurtGKsAskKfhmdBr1aUx0/WiXEcIi0JTC7aaUzLRZItBA==
   dependencies:
     arg "^4.1.0"
 
-"@prisma/engine-core@0.0.42":
-  version "0.0.42"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.42.tgz#b22c85fc9e948c50c18662bf3e9e73709fae1cad"
-  integrity sha512-BkXVnztg2BEoyL+KZ5rN/uql7GwEw1r0pndiihDS6rEi5XZcYTMost9TpGl6jzYwwNwtZWM2iKFEQDov9UzJ1Q==
+"@prisma/engine-core@0.0.43":
+  version "0.0.43"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.43.tgz#7e6eb53fb54986b76e413216d787d4ee7a9ac728"
+  integrity sha512-wQ+HSL4vZxGh6OP3TMZ627tWYDD8M7D6OHyfeEyv48lOM1ij2BFpDWR2vUt4prCo9s9auqUn71peeFJ/YwYrJA==
   dependencies:
     cross-fetch "^3.0.2"
     debug "^4.1.1"
@@ -1127,7 +1127,7 @@ callsites@^2.0.0:
   resolved "https://registry.yarnpkg.com/callsites/-/callsites-2.0.0.tgz#06eb84f00eea413da86affefacbffb36093b3c50"
   integrity sha1-BuuE8A7qQT2oav/vrL/7Ngk7PFA=
 
-callsites@^3.0.0, callsites@^3.1.0:
+callsites@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/callsites/-/callsites-3.1.0.tgz#b3630abd8943432f54b3f0519238e33cd7df2f73"
   integrity sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==
@@ -6239,11 +6239,6 @@ uuid@^3.1.0, uuid@^3.3.2:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
   integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
-
-v8-callsites@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/v8-callsites/-/v8-callsites-1.2.1.tgz#3ca4e2dedf50eb489e37056ed64b0255e95ef386"
-  integrity sha1-PKTi3t9Q60ieNwVu1ksCVele84Y=
 
 v8-compile-cache@^2.0.2:
   version "2.0.3"

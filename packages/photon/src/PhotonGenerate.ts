@@ -5,11 +5,10 @@ import path from 'path'
 import { performance } from 'perf_hooks'
 import { promisify } from 'util'
 import { generateClient } from './generation/generateClient'
+import { getDatamodel } from './utils/getDatamodel'
 import { getRandomString } from './utils/getRandomString'
 
-const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
-const exists = promisify(fs.exists)
 
 /**
  * $ prisma migrate new
@@ -32,7 +31,7 @@ export class PhotonGenerate implements Command {
 
   // parse arguments
   public async parse(argv: string[], minimalOutput = false): Promise<string | Error> {
-    const datamodel = await this.getDatamodel()
+    const datamodel = await getDatamodel(this.env.cwd)
     const output = path.join(this.env.cwd, '/node_modules/@generated/photon')
     const before = performance.now()
     if (!minimalOutput) {
@@ -60,13 +59,5 @@ export class PhotonGenerate implements Command {
       return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${PhotonGenerate.help}`)
     }
     return PhotonGenerate.help
-  }
-
-  private async getDatamodel(): Promise<string> {
-    const datamodelPath = path.join(this.env.cwd, 'datamodel.prisma')
-    if (!(await exists(datamodelPath))) {
-      throw new Error(`Could not find ${datamodelPath}`)
-    }
-    return readFile(datamodelPath, 'utf-8')
   }
 }
