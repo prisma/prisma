@@ -21,6 +21,7 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
     alias: {
       chalk: path.resolve(__dirname, '../dist/runtime/browser-chalk.js'),
+      ['terminal-link']: path.resolve(__dirname, '../dist/runtime/browser-terminal-link.js'),
     },
   },
   output: {
