@@ -1,0 +1,20 @@
+datasource my_db {
+  provider = "sqlite"
+  url = "file:./db/db_file.db"
+  default = true
+}
+
+model Blog {
+  id Int @id
+  viewCount2 Int
+}
+
+model Post {
+  id Int @id
+  anotherString2 String?
+}
+
+model Post2 {
+  id Int @id
+  anotherString2 String?
+}

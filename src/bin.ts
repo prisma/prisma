@@ -3,13 +3,15 @@
 /**
  * Dependencies
  */
-import { isError, HelpError, Env } from '@prisma/cli'
+import { isError, HelpError, Env, CompiledGeneratorDefinition } from '@prisma/cli'
 import { LiftCommand } from './cli/commands/LiftCommand'
-import { LiftCreate } from './cli/commands/LiftCreate'
+import { LiftSave } from './cli/commands/LiftSave'
 import { LiftUp } from './cli/commands/LiftUp'
 import { LiftDown } from './cli/commands/LiftDown'
 import { LiftWatch } from './cli/commands/LiftWatch'
 import { Converter } from '.'
+import { generatorDefinition } from '@prisma/photon'
+import path from 'path'
 
 /**
  * Main function
@@ -21,13 +23,30 @@ async function main(): Promise<number> {
     console.error(env)
     return 1
   }
+
+  const generators: CompiledGeneratorDefinition[] = [
+    {
+      prettyName: generatorDefinition.prettyName,
+      generate: () =>
+        generatorDefinition.generate({
+          cwd: env.cwd,
+          generator: {
+            config: {},
+            name: 'photon',
+            output: path.join(env.cwd, '/node_modules/@generated/photon'),
+          },
+          otherGenerators: [],
+        }),
+    },
+  ]
+
   // create a new CLI with our subcommands
   const cli = LiftCommand.new(
     {
-      create: LiftCreate.new(env),
+      create: LiftSave.new(env),
       up: LiftUp.new(env),
       down: LiftDown.new(env),
-      watch: LiftWatch.new(env),
+      watch: LiftWatch.new(env, generators),
       convert: Converter.new(env),
     },
     env,
@@ -45,6 +64,10 @@ async function main(): Promise<number> {
 
   return 0
 }
+process.on('SIGINT', () => {
+  process.exit(1) // now the "exit" event will fire
+})
+
 /**
  * Run our program
  */

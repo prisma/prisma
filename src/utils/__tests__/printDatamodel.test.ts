@@ -50,15 +50,15 @@ test('basic diff', () => {
   const diff = printDatamodelDiff(datamodelA, datamodelB)
   console.log(diff)
   expect(diff).toMatchInlineSnapshot(`
-        "[36mmodel Blog[39m [38;5;109m{[39m
-          id[38;5;109m Int[39m [36m@id[39m
-        [91m  [39m[1;31;48;5;52mname[m[91m String[39m
-        [92m  [39m[1;32;48;5;22mthis[m[92m String[39m
-          viewCount[38;5;109m Int[39m
-          posts[38;5;109m Post[39m[]
-          authors[38;5;109m Author[39m[]
-        [38;5;109m}[39m"
-    `)
+    "[36mmodel Blog[39m [38;2;107;139;140m{[39m
+      id[38;2;127;155;175m Int[39m [36m@id[39m
+    [91m  [39m[1;31;48;5;52mname[m[91m String[39m
+    [92m  [39m[1;32;48;5;22mthis[m[92m String[39m
+      viewCount[38;2;127;155;175m Int[39m
+      posts[38;2;127;155;175m Post[39m[]
+      authors[38;2;127;155;175m Author[39m[]
+    [38;2;107;139;140m}[39m"
+  `)
 })
 
 test('rename field', () => {
@@ -81,15 +81,15 @@ test('rename field', () => {
   const diff = printDatamodelDiff(before, after)
   console.log(diff)
   expect(diff).toMatchInlineSnapshot(`
-        "[36mmodel Blog[39m [38;5;109m{[39m
-        [91m  id [39m[1;31;48;5;52mInt[m[91m @id[39m
-        [92m  id [39m[1;32;48;5;22mString[m[92m @id[39m
-          name[38;5;109m String[39m
-          viewCount[38;5;109m Int[39m
-          posts[38;5;109m Post[39m[]
-          authors[38;5;109m Author[39m[]
-        [38;5;109m}[39m"
-    `)
+    "[36mmodel Blog[39m [38;2;107;139;140m{[39m
+    [91m  id [39m[1;31;48;5;52mInt[m[91m @id[39m
+    [92m  id [39m[1;32;48;5;22mString[m[92m @id[39m
+      name[38;2;127;155;175m String[39m
+      viewCount[38;2;127;155;175m Int[39m
+      posts[38;2;127;155;175m Post[39m[]
+      authors[38;2;127;155;175m Author[39m[]
+    [38;2;107;139;140m}[39m"
+  `)
 })
 
 test('add model', () => {
@@ -121,23 +121,23 @@ model Blog2 {
   const diff = printDatamodelDiff(before, after)
   console.log(diff)
   expect(diff).toMatchInlineSnapshot(`
-        "[36mmodel Blog[39m [38;5;109m{[39m
-        [91m  id [39m[1;31;48;5;52mInt[m[91m @id[39m
-        [92m  id [39m[1;32;48;5;22mString[m[92m @id[39m
-          name[38;5;109m String[39m
-          viewCount[38;5;109m Int[39m
-          posts[38;5;109m Post[39m[]
-          authors[38;5;109m Author[39m[]
-        [38;5;109m}[39m
-        [92mmodel Blog2 {[39m
-        [92m  id String @id[39m
-        [92m  name String[39m
-        [92m  viewCount Int[39m
-        [92m  posts Post[][39m
-        [92m  authors Author[][39m
-        [92m}[39m
-        [92m[39m"
-    `)
+    "[36mmodel Blog[39m [38;2;107;139;140m{[39m
+    [91m  id [39m[1;31;48;5;52mInt[m[91m @id[39m
+    [92m  id [39m[1;32;48;5;22mString[m[92m @id[39m
+      name[38;2;127;155;175m String[39m
+      viewCount[38;2;127;155;175m Int[39m
+      posts[38;2;127;155;175m Post[39m[]
+      authors[38;2;127;155;175m Author[39m[]
+    [38;2;107;139;140m}[39m
+    [92mmodel Blog2 {[39m
+    [92m  id String @id[39m
+    [92m  name String[39m
+    [92m  viewCount Int[39m
+    [92m  posts Post[][39m
+    [92m  authors Author[][39m
+    [92m}[39m
+    [92m[39m"
+  `)
 })
 
 test('copy model', () => {
@@ -175,15 +175,15 @@ model Blog2 {
   const diff = printDatamodelDiff(datamodelA, datamodelC)
   console.log(diff)
   expect(diff).toMatchInlineSnapshot(`
-                    "[92mmodel Blog2 {[39m
-                    [92m  id Int @id[39m
-                    [92m  name String[39m
-                    [92m  viewCount Int[39m
-                    [92m  posts Post[][39m
-                    [92m  authors Author[][39m
-                    [92m}[39m
-                    [92m[39m"
-          `)
+                        "[92mmodel Blog2 {[39m
+                        [92m  id Int @id[39m
+                        [92m  name String[39m
+                        [92m  viewCount Int[39m
+                        [92m  posts Post[][39m
+                        [92m  authors Author[][39m
+                        [92m}[39m
+                        [92m[39m"
+            `)
 })
 
 test('add post4', () => {
@@ -243,10 +243,10 @@ model Post5 {
   const diff = printDatamodelDiff(newBefore, newAfter)
   console.log(diff)
   expect(diff).toMatchInlineSnapshot(`
-    "[36mmodel Post4[39m [38;5;109m{[39m
-      id[38;5;109m Int[39m [36m@id[39m[38;5;109m[39m
-    [38;5;109m  anotherString[39m String?
-    [38;5;109m}[39m
+    "[36mmodel Post4[39m [38;2;107;139;140m{[39m
+      id[38;2;127;155;175m Int[39m [36m@id[39m
+      anotherString[38;2;127;155;175m String[39m?
+    [38;2;107;139;140m}[39m
 
     [92mmodel Post5 {[39m
     [92m  id Int @id[39m
@@ -315,21 +315,21 @@ model Comment {
   const diff = printDatamodelDiff(nikoBefore, nikoAfter)
   console.log(diff)
   expect(diff).toMatchInlineSnapshot(`
-    "[36mmodel Author[39m [38;5;109m{[39m
-      id[38;5;109m Int[39m [36m@id[39m[38;5;109m[39m
-    [38;5;109m  name[39m String?
-      posts[38;5;109m Post[39m[]
-      blog[38;5;109m Blog[39m
+    "[36mmodel Author[39m [38;2;107;139;140m{[39m
+      id[38;2;127;155;175m Int[39m [36m@id[39m
+      name[38;2;127;155;175m String[39m?
+      posts[38;2;127;155;175m Post[39m[]
+      blog[38;2;127;155;175m Blog[39m
     [92m  comments Comment[][39m
-    [38;5;109m}[39m
+    [38;2;107;139;140m}[39m
 
-    [36mmodel Post[39m [38;5;109m{[39m
-      id[38;5;109m Int[39m [36m@id[39m[38;5;109m[39m
-    [38;5;109m  title[39m String[38;5;109m[39m
-    [38;5;109m  tags[39m String[]
-      blog[38;5;109m Blog[39m
+    [36mmodel Post[39m [38;2;107;139;140m{[39m
+      id[38;2;127;155;175m Int[39m [36m@id[39m
+      title[38;2;127;155;175m String[39m
+      tags[38;2;127;155;175m String[39m[]
+      blog[38;2;127;155;175m Blog[39m
     [92m  comments Comment[][39m
-    [38;5;109m}[39m
+    [38;2;107;139;140m}[39m
 
     [92mmodel Comment {[39m
     [92m  id Int @id[39m

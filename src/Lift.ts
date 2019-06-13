@@ -20,14 +20,14 @@ import logUpdate from 'log-update'
 import { Readable } from 'stream'
 import { drawBox } from './utils/drawBox'
 import pMap from 'p-map'
-import { Hooks } from './cli/commands/LiftWatch'
+import { CompiledGeneratorDefinition } from '@prisma/cli'
 import 'array-flat-polyfill'
-import { findLast } from './utils/findLast'
 import { isWatchMigrationName } from './utils/isWatchMigrationName'
 import dashify from 'dashify'
 import makeDir = require('make-dir')
 import { serializeFileMap } from './utils/serializeFileMap'
 import del from 'del'
+import { missingGeneratorMessage } from './utils/missingGeneratorMessage'
 const packageJson = require('../package.json')
 
 const readFile = promisify(fs.readFile)
@@ -44,7 +44,7 @@ export type DownOptions = {
 }
 export type WatchOptions = {
   preview?: boolean
-  hooks?: Hooks
+  generators: CompiledGeneratorDefinition[]
   clear?: boolean
 }
 type MigrationFileMapOptions = {
@@ -148,7 +148,7 @@ export class Lift {
     return timestamp + (name ? `-${dashify(name)}` : '')
   }
 
-  public async create(
+  public async save(
     migration: MigrationWithDatabaseSteps,
     name?: string,
     preview?: boolean,
@@ -163,7 +163,7 @@ export class Lift {
     // TODO better printing of params
     const nameStr = name ? ` --name ${chalk.bold(name)}` : ''
     const previewStr = preview ? ` --preview` : ''
-    console.log(`🏋️‍  lift create${nameStr}${previewStr}`)
+    console.log(`📼  lift save${nameStr}${previewStr}`)
     if (lastMigration) {
       const wording = preview ? `Potential datamodel changes:` : 'Local datamodel Changes:'
       console.log(chalk.bold(`\n${wording}\n`))
@@ -265,7 +265,7 @@ export class Lift {
     return migrationsWithDatabaseSteps.slice(fromIndex)
   }
 
-  public async watch(options: WatchOptions = { preview: false, clear: true }): Promise<string> {
+  public async watch(options: WatchOptions = { preview: false, clear: true, generators: [] }): Promise<string> {
     if (!options.clear) {
       options.clear = true
     }
@@ -298,7 +298,7 @@ export class Lift {
     return ''
   }
 
-  async watchUp({ preview, hooks, clear }: WatchOptions = { clear: true }) {
+  async watchUp({ preview, generators, clear }: WatchOptions = { clear: true, generators: [] }) {
     if (clear) {
       console.clear()
     }
@@ -335,8 +335,20 @@ export class Lift {
         console.log(`\nApplied Migration in ${formatms(Date.now() - before)}`)
       }
 
-      if (hooks && hooks.afterUp) {
-        hooks.afterUp()
+      if (generators.length === 0) {
+        console.log(missingGeneratorMessage)
+      }
+
+      for (const generator of generators) {
+        console.log(`Running ${generator.prettyName}`)
+        const before = Date.now()
+        try {
+          await generator.generate()
+          const after = Date.now()
+          console.log(`Done in ${formatms(after - before)}`)
+        } catch (e) {
+          console.error(e)
+        }
       }
     } catch (e) {
       console.error(e)

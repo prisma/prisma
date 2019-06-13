@@ -8,6 +8,7 @@ const debug = debugLib('LiftEngine')
 const debugRpc = debugLib('LiftEngine:rpc')
 const debugStderr = debugLib('LiftEngine:stderr')
 import fs from 'fs'
+import { now } from './utils/now'
 
 export type LiftEngineOptions = {
   projectDir: string
@@ -100,7 +101,7 @@ export class LiftEngine {
   }
   private persistError(request: any, response: any, messages: string[]): string {
     // if (debugLib.enabled('LiftEngine') || debugLib.enabled('LiftEngine:rpc')) {
-    const filename = `failed-${request.method}.md`
+    const filename = `failed-${request.method}-${now()}.md`
     fs.writeFileSync(
       filename,
       `# Failed ${request.method} at ${new Date().toISOString()}
