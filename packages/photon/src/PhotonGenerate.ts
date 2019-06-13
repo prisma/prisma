@@ -37,7 +37,7 @@ export class PhotonGenerate implements Command {
     if (!minimalOutput) {
       console.log(`\nGenerating Photon to ${output}`)
     }
-    await generateClient(datamodel, this.env.cwd, output, true)
+    await generateClient({ datamodel, cwd: this.env.cwd, outputDir: output, transpile: true })
 
     const packageJson = {
       name: 'photon',

@@ -19,6 +19,7 @@ interface BuildClientOptions {
   cwd?: string
   transpile?: boolean
   runtimePath?: string
+  binaryPath?: string
 }
 
 export async function buildClient({
@@ -27,10 +28,11 @@ export async function buildClient({
   transpile = false,
   runtimePath = './runtime',
   browser = false,
+  binaryPath,
 }: BuildClientOptions): Promise<Dictionary<string>> {
   const fileMap = {}
 
-  const dmmf = await getDMMF(datamodel)
+  const dmmf = await getDMMF(datamodel, binaryPath)
   const client = new TSClient({
     document: dmmf,
     cwd,
@@ -94,18 +96,30 @@ function normalizeFileMap(fileMap: Dictionary<string>) {
   }, {})
 }
 
-export async function generateClient(
-  datamodel: string,
-  cwd: string,
-  outputDir: string,
-  transpile: boolean = false,
-  runtimePath: string = './runtime',
-  browser: boolean = false,
-) {
-  if (cwd.endsWith('.yml')) {
+export interface GenerateClientOptions {
+  datamodel: string
+  cwd?: string
+  outputDir: string
+  transpile?: boolean
+  runtimePath?: string
+  browser?: boolean
+  binaryPath?: string
+}
+
+export async function generateClient({
+  datamodel,
+  cwd,
+  outputDir,
+  transpile,
+  runtimePath,
+  browser,
+  binaryPath,
+}: GenerateClientOptions) {
+  if (cwd && cwd.endsWith('.yml')) {
     cwd = path.dirname(cwd)
   }
-  const files = await buildClient({ datamodel, cwd, transpile, runtimePath, browser })
+  runtimePath = runtimePath || './runtime'
+  const files = await buildClient({ datamodel, cwd, transpile, runtimePath, browser, binaryPath })
   await makeDir(outputDir)
   await Promise.all(Object.entries(files).map(([fileName, file]) => fs.writeFile(path.join(outputDir, fileName), file)))
   await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
