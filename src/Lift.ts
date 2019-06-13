@@ -379,11 +379,11 @@ export class Lift {
               generatedIn: after - before,
             })
           } catch (e) {
-            renderer.setState({ error: e })
+            renderer.setState({ error: e.message })
           }
         }
       } catch (e) {
-        renderer.setState({ error: e })
+        renderer.setState({ error: e.message })
       }
     },
   )

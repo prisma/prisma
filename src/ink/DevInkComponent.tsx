@@ -99,20 +99,24 @@ class DevComponent extends Component<Props, State> {
     if (this.state.showDiff) {
       const diff = printDatamodelDiff(datamodelBefore, datamodelAfter)
       return (
-        <Box flexDirection="column" marginTop={1} alignItems="flex-start" justifyContent="flex-start">
-          <Box>
-            <Color>
-              Changes in datamodel since last <Color bold>prisma lift save</Color>
-            </Color>
-          </Box>
-          <Box marginTop={1} marginBottom={1}>
-            {diff.trim() === '' ? `No unsaved changes` : diff}
-          </Box>
-          <Color gray>{'─'.repeat(this.width)}</Color>
-          <Box>
+        <Box flexDirection="column" marginTop={1} justifyContent="space-between" height={this.height}>
+          <Box flexDirection="column">
             <Box>
-              <Color bold>b: </Color>
-              <Color grey>back</Color>
+              <Color dim>
+                Changes in datamodel since last <Color bold>prisma lift save</Color>
+              </Color>
+            </Box>
+            <Box marginTop={1} marginLeft={2}>
+              {diff.trim() === '' ? `No unsaved changes` : diff}
+            </Box>
+          </Box>
+          <Box flexDirection="column">
+            <Color gray>{'─'.repeat(this.width)}</Color>
+            <Box>
+              <Box>
+                <Color bold>b: </Color>
+                <Color grey>back</Color>
+              </Box>
             </Box>
           </Box>
         </Box>
@@ -143,7 +147,7 @@ class DevComponent extends Component<Props, State> {
               <Color gray>{'─'.repeat(this.width)}</Color>
             </Box>
           </Box>
-          <Box marginTop={0}>
+          <Box marginTop={0} marginLeft={0}>
             {generators.length === 0 ? (
               missingGeneratorMessage
             ) : (
