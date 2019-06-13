@@ -1,7 +1,7 @@
 import { LiftEngine } from './LiftEngine'
 import fs from 'fs'
 import path from 'path'
-import { now } from './utils/now'
+import { now, timestampToDate } from './utils/now'
 import { promisify } from 'util'
 import { FileMap, LockFile, Migration, EngineResults, MigrationWithDatabaseSteps } from './types'
 import { deserializeLockFile, initLockFile, serializeLockFile } from './utils/LockFile'
@@ -27,8 +27,9 @@ import dashify from 'dashify'
 import makeDir = require('make-dir')
 import { serializeFileMap } from './utils/serializeFileMap'
 import del from 'del'
-import { missingGeneratorMessage } from './utils/missingGeneratorMessage'
 import { simpleDebounce } from './utils/simpleDebounce'
+// import { startServer } from '@prisma/studio-server'
+import { DevComponentRenderer } from './ink/DevComponentRenderer'
 const packageJson = require('../package.json')
 
 const readFile = promisify(fs.readFile)
@@ -270,91 +271,122 @@ export class Lift {
     if (!options.clear) {
       options.clear = true
     }
-    fs.watch(path.join(this.projectDir, 'datamodel.prisma'), (eventType, filename) => {
-      if (eventType === 'change') {
-        this.watchUp(options)
-      }
-    })
+    // startServer(5555)
     const { migrationsToApply, appliedRemoteMigrations } = await this.getMigrationsToApply()
 
     if (migrationsToApply.length > 0) {
       // TODO: Ask for permission if we actually want to do it?
       const before = Date.now()
-      console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
+      // console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
       await this.up({
         short: true,
       })
-      console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
+      // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
       options.clear = false
     }
 
     const localMigrations = await this.getLocalMigrations()
+    const watchMigrations = await this.getLocalWatchMigrations()
+
+    let lastChanged: undefined | Date
+    if (watchMigrations.length > 0) {
+      const timestamp = watchMigrations[watchMigrations.length - 1].id.split('-')[1]
+      lastChanged = timestampToDate(timestamp)
+    } else if (localMigrations.length > 0) {
+      lastChanged = timestampToDate(localMigrations[localMigrations.length - 1].id.split('-')[0])
+    }
+
     if (localMigrations.length > 0) {
       this.datamodelBeforeWatch = localMigrations[localMigrations.length - 1].datamodel
     }
 
     await makeDir(this.devMigrationsDir)
 
-    this.watchUp(options)
+    const renderer = new DevComponentRenderer({
+      port: 5555,
+      initialState: {
+        datamodelBefore: this.datamodelBeforeWatch,
+        datamodelAfter: this.datamodelBeforeWatch,
+        generators: options.generators.map(gen => ({
+          name: gen.prettyName || 'Generator',
+          generatedIn: undefined,
+          generating: false,
+        })),
+        migrating: false,
+        migratedIn: undefined,
+        lastChanged,
+      },
+    })
+
+    fs.watch(path.join(this.projectDir, 'datamodel.prisma'), (eventType, filename) => {
+      if (eventType === 'change') {
+        this.watchUp(options, renderer)
+      }
+    })
+
+    this.watchUp(options, renderer)
     return ''
   }
 
-  watchUp = simpleDebounce(async ({ preview, generators, clear }: WatchOptions = { clear: true, generators: [] }) => {
-    if (clear) {
-      console.clear()
-    }
-    console.log(`🏋️‍  Watching for changes in datamodel.prisma`)
-    const datamodel = await this.getDatamodel()
-    try {
-      const watchMigrationName = `watch-${now()}`
-      const migration = await this.createMigration(watchMigrationName)
-      const before = Date.now()
-      const existingWatchMigrations = await this.getLocalWatchMigrations()
+  watchUp = simpleDebounce(
+    async (
+      { preview, generators, clear }: WatchOptions = { clear: true, generators: [] },
+      renderer: DevComponentRenderer,
+    ) => {
+      renderer.setState({ error: undefined })
+      const datamodel = await this.getDatamodel()
+      try {
+        const watchMigrationName = `watch-${now()}`
+        const migration = await this.createMigration(watchMigrationName)
+        const existingWatchMigrations = await this.getLocalWatchMigrations()
 
-      if (migration) {
-        await this.engine.applyMigration({
-          force: true,
-          migrationId: migration.id,
-          steps: migration.datamodelSteps,
-          sourceConfig: datamodel,
-        })
-        const lastWatchMigration =
-          existingWatchMigrations.length > 0 ? existingWatchMigrations[existingWatchMigrations.length - 1] : undefined
+        if (migration) {
+          const before = Date.now()
+          renderer.setState({ lastChanged: new Date() })
+          renderer.setState({ migrating: true })
+          await this.engine.applyMigration({
+            force: true,
+            migrationId: migration.id,
+            steps: migration.datamodelSteps,
+            sourceConfig: datamodel,
+          })
+          const lastWatchMigration =
+            existingWatchMigrations.length > 0 ? existingWatchMigrations[existingWatchMigrations.length - 1] : undefined
 
-        await this.persistWatchMigration({ migration, lastMigration: lastWatchMigration })
-      }
-
-      if (datamodel !== this.datamodelBeforeWatch) {
-        const diff = printDatamodelDiff(this.datamodelBeforeWatch, datamodel)
-        if (diff.trim().length > 0) {
-          console.log(`Changes since last ${chalk.bold('prisma lift create')}\n`)
-          console.log(diff)
-        }
-      }
-
-      if (migration) {
-        console.log(`\nApplied Migration in ${formatms(Date.now() - before)}`)
-      }
-
-      if (generators.length === 0) {
-        console.log(missingGeneratorMessage)
-      }
-
-      for (const generator of generators) {
-        console.log(`Generating ${generator.prettyName}`)
-        const before = Date.now()
-        try {
-          await generator.generate()
+          await this.persistWatchMigration({ migration, lastMigration: lastWatchMigration })
           const after = Date.now()
-          console.log(`Done in ${formatms(after - before)}`)
-        } catch (e) {
-          console.error(e)
+          renderer.setState({ migrating: false, migratedIn: after - before })
         }
+
+        if (datamodel !== this.datamodelBeforeWatch) {
+          renderer.setState({
+            datamodelBefore: this.datamodelBeforeWatch,
+            datamodelAfter: datamodel,
+          })
+        }
+
+        for (let i = 0; i < generators.length; i++) {
+          const generator = generators[i]
+          const before = Date.now()
+          renderer.setGeneratorState(i, {
+            generating: true,
+          })
+          try {
+            await generator.generate()
+            const after = Date.now()
+            renderer.setGeneratorState(i, {
+              generating: false,
+              generatedIn: after - before,
+            })
+          } catch (e) {
+            renderer.setState({ error: e })
+          }
+        }
+      } catch (e) {
+        renderer.setState({ error: e })
       }
-    } catch (e) {
-      console.error(e)
-    }
-  })
+    },
+  )
 
   public async down({ n }: DownOptions): Promise<string> {
     await this.getLockFile()

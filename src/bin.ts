@@ -12,6 +12,7 @@ import { LiftWatch } from './cli/commands/LiftWatch'
 import { Converter } from '.'
 import { generatorDefinition } from '@prisma/photon'
 import path from 'path'
+import { generateInThread } from './generateInThread'
 
 /**
  * Main function
@@ -28,14 +29,17 @@ async function main(): Promise<number> {
     {
       prettyName: generatorDefinition.prettyName,
       generate: () =>
-        generatorDefinition.generate({
-          cwd: env.cwd,
-          generator: {
-            config: {},
-            name: 'photon',
-            output: path.join(env.cwd, '/node_modules/@generated/photon'),
+        generateInThread({
+          packagePath: '@prisma/photon',
+          config: {
+            cwd: env.cwd,
+            generator: {
+              config: {},
+              name: 'photon',
+              output: path.join(env.cwd, '/node_modules/@generated/photon'),
+            },
+            otherGenerators: [],
           },
-          otherGenerators: [],
         }),
     },
   ]

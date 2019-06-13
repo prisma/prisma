@@ -6,7 +6,7 @@ datasource my_db {
 
 model Blog {
   id Int @id
-  viewCount2 Int
+  viewCount Int
 }
 
 model Post {
@@ -14,7 +14,12 @@ model Post {
   anotherString2 String?
 }
 
-model Post2 {
+model Post12 {
   id Int @id
-  anotherString2 String?
+  anothe String?
+}
+
+model Post15 {
+  id Int @id
+  anothe String?
 }
