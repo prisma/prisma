@@ -1,0 +1,91 @@
+import net from 'net'
+import chalk from 'chalk'
+
+const portList = [
+  10405, // Prenzlauer Berg
+  10119, // Mitte
+  10785, // Kreuzberg
+  8419, // Reverse Orwell
+  8420,
+  8421,
+  8422,
+  8423,
+  8424,
+  8425,
+  8426,
+  8427,
+  8428,
+  8429,
+]
+
+const isPortFree = (port: number) =>
+  new Promise(resolve => {
+    const server = net.createServer()
+    server.on('error', () => resolve(false))
+    server.listen(port, () => {
+      server.close(() => {
+        resolve(true)
+      })
+    })
+  })
+
+const fetchPath = (port): Promise<string | null> =>
+  new Promise(resolve => {
+    const client = new net.Socket()
+
+    client.connect(port)
+
+    client.on('error', () => {
+      resolve(null)
+    })
+
+    client.on('data', data => {
+      try {
+        const result = JSON.parse(data.toString())
+        if (result && result.prismaProjectPath) {
+          resolve(result.prismaProjectPath)
+        }
+      } catch (e) {
+        resolve(null)
+      } finally {
+        client.destroy()
+      }
+    })
+  })
+
+function startServer(projectPath: string, port: number): () => void {
+  const server = net.createServer(socket => {
+    socket.write(JSON.stringify({ prismaProjectPath: projectPath }))
+    socket.pipe(socket)
+  })
+
+  server.listen(port)
+
+  return () => {
+    server.close()
+  }
+}
+
+// occupy a path so that the user doesn't run prisma dev multiple times in the same path
+export async function occupyPath(projectPath: string): Promise<() => void> {
+  const portOccupancy = await Promise.all(portList.map(async port => ({ port, free: await isPortFree(port) })))
+  const usedPorts = portOccupancy.filter(o => !o.free)
+  const nextFreePort = portOccupancy.find(p => p.free)
+
+  if (usedPorts.length === portList.length || !nextFreePort) {
+    throw new Error(
+      `prisma dev could not start, as all port of ${portList.join(', ')} are used. Please free one of them.`,
+    )
+  }
+
+  // of the used ports, check if they are running prisma dev and if they can tell us what path they're running on
+  const potentialPaths = await Promise.all(usedPorts.map(usedPort => fetchPath(usedPort.port)))
+  const paths = potentialPaths.filter(p => p)
+  if (paths.includes(projectPath)) {
+    throw new Error(
+      `There is already another ${chalk.bold('prisma dev')} command running in ${chalk.underline(projectPath)}`,
+    )
+  }
+
+  return startServer(projectPath, nextFreePort.port)
+}

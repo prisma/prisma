@@ -1,6 +1,7 @@
 import { Command, arg, format, Env, HelpError, CompiledGeneratorDefinition } from '@prisma/cli'
 import chalk from 'chalk'
 import { Lift } from '../../Lift'
+import { occupyPath } from '../../utils/occupyPath'
 
 /**
  * $ prisma migrate new
@@ -18,6 +19,8 @@ export class LiftWatch implements Command {
       '-p': '--preview',
     })
     const preview = args['--preview'] || false
+
+    await occupyPath(this.env.cwd)
 
     const lift = new Lift(this.env.cwd)
     return lift.watch({
