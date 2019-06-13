@@ -10,7 +10,8 @@
     "outDir": "dist",
     "rootDir": "src",
     "declaration": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "jsx": "react"
   },
   "exclude": ["dist", "build"]
 }

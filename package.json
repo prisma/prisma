@@ -28,8 +28,9 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
-    "@prisma/cli": "^0.0.10",
+    "@prisma/cli": "^0.0.11",
     "@prisma/fetch-engine": "^0.0.19",
+    "@types/react": "^16.8.19",
     "arg": "^4.1.0",
     "array-flat-polyfill": "^1.0.1",
     "cli-cursor": "^3.0.0",
@@ -43,13 +44,20 @@
     "git-user-name": "^2.0.0",
     "globby": "^9.2.0",
     "indent-string": "^4.0.0",
+    "ink": "^2.2.0",
+    "ink-link": "^1.0.0",
+    "ink-spinner": "^3.0.1",
+    "keypress": "^0.2.1",
     "log-update": "^3.2.0",
+    "microjob": "^0.5.2",
     "p-map": "^2.1.0",
     "prisma-datamodel": "^1.36.0-alpha.8",
     "prompts": "^2.1.0",
+    "react": "^16.8.6",
     "string-width": "^4.1.0",
     "strip-ansi": "^5.2.0",
-    "strip-indent": "^3.0.0"
+    "strip-indent": "^3.0.0",
+    "supports-hyperlinks": "^1.0.1"
   },
   "scripts": {
     "install": "node download.js",
