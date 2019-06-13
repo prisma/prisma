@@ -1,15 +1,5 @@
-import {
-  Command,
-  Commands,
-  arg,
-  isError,
-  format,
-  unknownCommand,
-  HelpError,
-  Env,
-} from '@prisma/cli'
+import { Command, Commands, arg, isError, format, unknownCommand, HelpError, Env } from '@prisma/cli'
 import chalk from 'chalk'
-import { LiftWatch } from './LiftWatch'
 
 /**
  * Migrate command
@@ -18,10 +8,7 @@ export class LiftCommand implements Command {
   static new(cmds: Commands, env: Env): LiftCommand {
     return new LiftCommand(cmds, env)
   }
-  private constructor(
-    private readonly cmds: Commands,
-    private readonly env: Env,
-  ) {}
+  private constructor(private readonly cmds: Commands, private readonly env: Env) {}
 
   async parse(argv: string[]): Promise<string | Error> {
     // parse the arguments according to the spec
@@ -42,18 +29,12 @@ export class LiftCommand implements Command {
       return cmd.parse(args._.slice(1))
     }
 
-    if (args['--watch']) {
-      return LiftWatch.new(this.env, {}).parse(argv)
-    }
-
     return unknownCommand(LiftCommand.help, args._[0])
   }
 
   help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${LiftCommand.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftCommand.help}`)
     }
     return LiftCommand.help
   }
@@ -72,7 +53,7 @@ export class LiftCommand implements Command {
 
     ${chalk.bold('Commands')}
 
-      create   Create a new migration
+      save     Create a new migration
         docs   Open documentation in the browser
         down   Migrate your database down
           up   Migrate your database up
@@ -80,7 +61,7 @@ export class LiftCommand implements Command {
     ${chalk.bold('Examples')}
 
       Create new migration
-      ${chalk.dim(`$`)} prisma lift create
+      ${chalk.dim(`$`)} prisma lift save
 
       Migrate up to the latest datamodel
       ${chalk.dim(`$`)} prisma lift

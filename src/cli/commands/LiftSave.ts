@@ -14,9 +14,9 @@ const writeFile = promisify(fs.writeFile)
 /**
  * $ prisma migrate new
  */
-export class LiftCreate implements Command {
-  static new(env: Env): LiftCreate {
-    return new LiftCreate(env)
+export class LiftSave implements Command {
+  static new(env: Env): LiftSave {
+    return new LiftSave(env)
   }
   private constructor(private readonly env: Env) {}
 
@@ -47,10 +47,10 @@ export class LiftCreate implements Command {
 
     const name = preview ? args['--name'] : await this.name(args['--name'])
 
-    const { files, newLockFile, migrationId } = await lift.create(migration, name, preview)
+    const { files, newLockFile, migrationId } = await lift.save(migration, name, preview)
 
     if (preview) {
-      return `\nRun ${chalk.greenBright('prisma lift create --name MIGRATION_NAME')} to create the migration\n`
+      return `\nRun ${chalk.greenBright('prisma lift save --name MIGRATION_NAME')} to create the migration\n`
     }
 
     const migrationsDir = path.join(this.env.cwd, 'migrations', migrationId)
@@ -78,18 +78,18 @@ export class LiftCreate implements Command {
   // help message
   help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftCreate.help}`)
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftSave.help}`)
     }
-    return LiftCreate.help
+    return LiftSave.help
   }
 
   // static help template
   private static help = format(`
-    Create a new migration
+    Save a migration
 
     ${chalk.bold('Usage')}
 
-      prisma migrate create [options]
+      prisma migrate save [options]
 
     ${chalk.bold('Options')}
 
@@ -99,10 +99,10 @@ export class LiftCreate implements Command {
     ${chalk.bold('Examples')}
 
       Create a new migration
-      ${chalk.dim(`$`)} prisma migrate create
+      ${chalk.dim(`$`)} prisma migrate save
 
       Create a new migration by name
-      ${chalk.dim(`$`)} prisma migrate create --name "add unique to email"
+      ${chalk.dim(`$`)} prisma migrate save --name "add unique to email"
 
   `)
 }

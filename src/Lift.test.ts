@@ -57,7 +57,7 @@ function createTests() {
       fn: async (root: string) => {
         const lift = new Lift(root)
         const migration = await lift.createMigration('setup')
-        const result = await lift.create(migration!, 'setup')
+        const result = await lift.save(migration!, 'setup')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }
@@ -88,7 +88,7 @@ function createTests() {
       fn: async (root: string) => {
         const lift = new Lift(root)
         const migration = await lift.createMigration('initial setup')
-        const result = await lift.create(migration!, 'initial setup')
+        const result = await lift.save(migration!, 'initial setup')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }
@@ -119,7 +119,7 @@ function createTests() {
       fn: async (root: string) => {
         const lift = new Lift(root)
         const migration = await lift.createMigration('initial setup')
-        const result = await lift.create(migration!, 'initial setup')
+        const result = await lift.save(migration!, 'initial setup')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }

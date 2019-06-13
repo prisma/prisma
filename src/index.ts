@@ -1,11 +1,12 @@
 export { Lift } from './Lift'
 export { LiftEngine } from './LiftEngine'
 export { LiftCommand } from './cli/commands/LiftCommand'
-export { LiftCreate } from './cli/commands/LiftCreate'
+export { LiftSave } from './cli/commands/LiftSave'
 export { LiftUp } from './cli/commands/LiftUp'
 export { LiftWatch } from './cli/commands/LiftWatch'
 export { LiftDown } from './cli/commands/LiftDown'
 export { Converter } from './cli/commands/Converter'
 export { isdlToDatamodel2 } from './utils/isdlToDatamodel2'
+export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
 
 export * from './types'
