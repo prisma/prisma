@@ -405,7 +405,7 @@ export class Lift {
       const lastApplied = localMigrations[lastAppliedIndex]
       console.log(`Rolling back migration ${blue(lastApplied.id)}`)
 
-      const result = await this.engine.unapplyMigration()
+      const result = await this.engine.unapplyMigration({ sourceConfig: datamodel })
 
       if (result.errors && result.errors.length > 0) {
         throw new Error(`Errors during rollback: ${JSON.stringify(result.errors)}`)
