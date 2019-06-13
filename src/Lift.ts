@@ -28,6 +28,7 @@ import makeDir = require('make-dir')
 import { serializeFileMap } from './utils/serializeFileMap'
 import del from 'del'
 import { missingGeneratorMessage } from './utils/missingGeneratorMessage'
+import { simpleDebounce } from './utils/simpleDebounce'
 const packageJson = require('../package.json')
 
 const readFile = promisify(fs.readFile)
@@ -298,7 +299,7 @@ export class Lift {
     return ''
   }
 
-  async watchUp({ preview, generators, clear }: WatchOptions = { clear: true, generators: [] }) {
+  watchUp = simpleDebounce(async ({ preview, generators, clear }: WatchOptions = { clear: true, generators: [] }) => {
     if (clear) {
       console.clear()
     }
@@ -340,7 +341,7 @@ export class Lift {
       }
 
       for (const generator of generators) {
-        console.log(`Running ${generator.prettyName}`)
+        console.log(`Generating ${generator.prettyName}`)
         const before = Date.now()
         try {
           await generator.generate()
@@ -353,7 +354,7 @@ export class Lift {
     } catch (e) {
       console.error(e)
     }
-  }
+  })
 
   public async down({ n }: DownOptions): Promise<string> {
     await this.getLockFile()
