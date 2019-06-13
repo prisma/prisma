@@ -43,7 +43,7 @@ async function main(): Promise<number> {
   // create a new CLI with our subcommands
   const cli = LiftCommand.new(
     {
-      create: LiftSave.new(env),
+      save: LiftSave.new(env),
       up: LiftUp.new(env),
       down: LiftDown.new(env),
       watch: LiftWatch.new(env, generators),

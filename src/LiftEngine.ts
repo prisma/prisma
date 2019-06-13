@@ -147,8 +147,8 @@ Please put that file into a gist and post it in Slack.
   applyMigration(args: EngineArgs.ApplyMigration): Promise<EngineResults.ApplyMigration> {
     return this.runCommand(this.getRPCPayload('applyMigration', args))
   }
-  unapplyMigration(): Promise<EngineResults.UnapplyMigration> {
-    return this.runCommand(this.getRPCPayload('unapplyMigration', {}))
+  unapplyMigration(args: EngineArgs.UnapplyMigration): Promise<EngineResults.UnapplyMigration> {
+    return this.runCommand(this.getRPCPayload('unapplyMigration', args))
   }
   calculateDatamodel(args: EngineArgs.CalculateDatamodel): Promise<EngineResults.CalculateDatamodel> {
     return this.runCommand(this.getRPCPayload('calculateDatamodel', args))

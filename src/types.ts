@@ -81,6 +81,9 @@ export namespace EngineArgs {
   export type GetConfig = {
     datamodel: string
   }
+  export type UnapplyMigration = {
+    sourceConfig: string
+  }
   export type ListMigrations = {
     sourceConfig: string
   }
