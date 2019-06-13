@@ -184,6 +184,7 @@ export interface PhotonOptions {
   cwd?: string
   datamodel?: string
   autoconnect?: boolean
+  binaryPath?: string
 }
 
 export class Photon {
@@ -204,7 +205,8 @@ export class Photon {
         : `
       cwd: options.cwd || ${this.cwd ? JSON.stringify(this.cwd) : 'undefined'},
       debug: debugEngine,
-      datamodel: options.datamodel || ${JSON.stringify(this.datamodel)},`
+      datamodel: options.datamodel || ${JSON.stringify(this.datamodel)},
+      prismaPath: options.binaryPath || undefined`
     }
     })
     this.dmmf = new DMMFClass(dmmf)
