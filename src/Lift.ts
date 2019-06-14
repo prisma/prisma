@@ -3,14 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { now, timestampToDate } from './utils/now'
 import { promisify } from 'util'
-import {
-  FileMap,
-  LockFile,
-  Migration,
-  EngineResults,
-  MigrationWithDatabaseSteps,
-  GeneratorDefinitionWithPackage,
-} from './types'
+import { FileMap, LockFile, Migration, EngineResults, MigrationWithDatabaseSteps } from './types'
 import { deserializeLockFile, initLockFile, serializeLockFile } from './utils/LockFile'
 import globby from 'globby'
 import { printDatabaseStepsOverview, highlightMigrationsSQL } from './utils/printDatabaseSteps'
@@ -27,7 +20,7 @@ import logUpdate from 'log-update'
 import { Readable } from 'stream'
 import { drawBox } from './utils/drawBox'
 import pMap from 'p-map'
-import { CompiledGeneratorDefinition, GeneratorDefinition, Dictionary } from '@prisma/cli'
+import { Dictionary, GeneratorDefinitionWithPackage } from '@prisma/cli'
 import 'array-flat-polyfill'
 import { isWatchMigrationName } from './utils/isWatchMigrationName'
 import dashify from 'dashify'

@@ -1,6 +1,5 @@
-import { CompiledGeneratorDefinition, Dictionary } from '@prisma/cli'
+import { CompiledGeneratorDefinition, Dictionary, GeneratorDefinitionWithPackage } from '@prisma/cli'
 import path from 'path'
-import { GeneratorDefinitionWithPackage } from '../types'
 import { LiftEngine } from '../LiftEngine'
 import { generateInThread } from '../generateInThread'
 

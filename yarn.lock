@@ -305,10 +305,10 @@
   dependencies:
     arg "^4.1.0"
 
-"@prisma/cli@^0.0.11":
-  version "0.0.11"
-  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.11.tgz#d3b48a76c5b4b98fbd4ddc2b837b815acce5b940"
-  integrity sha512-gQ6PedwjiKNtcZlD4Ruv73zc8DBRjCFpWi2Shs3tPyxbyymJHUyV3TlNGaSlASVCHK9qXhIPMelTupXHGG1etg==
+"@prisma/cli@^0.0.12":
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.12.tgz#21d41cedc08e262452667bc2cd6a53de56ce702f"
+  integrity sha512-9rfAlCfRA5oZH5CWDRIEBsz/31RHYiXe36QeQjKnc6JiprdDETycthgTBTHFtr/hoRfUlpr7rFrtV5kssWsYyA==
   dependencies:
     arg "^4.1.0"
 

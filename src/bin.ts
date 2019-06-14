@@ -3,13 +3,13 @@
 /**
  * Dependencies
  */
-import { isError, HelpError, Env, Dictionary } from '@prisma/cli'
+import { isError, HelpError, Env, Dictionary, GeneratorDefinitionWithPackage } from '@prisma/cli'
 import { LiftCommand } from './cli/commands/LiftCommand'
 import { LiftSave } from './cli/commands/LiftSave'
 import { LiftUp } from './cli/commands/LiftUp'
 import { LiftDown } from './cli/commands/LiftDown'
 import { LiftWatch } from './cli/commands/LiftWatch'
-import { Converter, GeneratorDefinitionWithPackage } from '.'
+import { Converter } from '.'
 import { generatorDefinition as definition } from '@prisma/photon'
 
 const photon = {

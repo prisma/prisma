@@ -1,17 +1,7 @@
-import {
-  Command,
-  arg,
-  format,
-  Env,
-  HelpError,
-  CompiledGeneratorDefinition,
-  GeneratorDefinition,
-  Dictionary,
-} from '@prisma/cli'
+import { Command, arg, format, Env, HelpError, GeneratorDefinitionWithPackage, Dictionary } from '@prisma/cli'
 import chalk from 'chalk'
 import { Lift } from '../../Lift'
 import { occupyPath } from '../../utils/occupyPath'
-import { GeneratorDefinitionWithPackage } from '../../types'
 
 /**
  * $ prisma migrate new
