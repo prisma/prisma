@@ -1,19 +1,19 @@
 import { getInternalDatamodelJson } from '../getInternalDatamodelJson'
 
 const datamodel = `type Album {
-  id: Int! @id @db(name: "AlbumId")
+  id: Int! @id @map(name: "AlbumId")
   Title: String!
-  Artist: Artist! @db(name: "ArtistId")
+  Artist: Artist! @map(name: "ArtistId")
   Tracks: [Track]
 }
 
 type Track {
-  id: Int! @id @db(name: "TrackId")
+  id: Int! @id @map(name: "TrackId")
   Name: String!
-  Album: Album @db(name: "AlbumId")
+  Album: Album @map(name: "AlbumId")
   AlbumId: Int
-  MediaType: MediaType! @db(name: "MediaTypeId")
-  Genre: Genre @db(name: "GenreId")
+  MediaType: MediaType! @map(name: "MediaTypeId")
+  Genre: Genre @map(name: "GenreId")
   Composer: String
   Milliseconds: Int!
   UnitPrice: Float!
@@ -21,24 +21,24 @@ type Track {
 }
 
 type MediaType {
-  id: Int! @id @db(name: "MediaTypeId")
+  id: Int! @id @map(name: "MediaTypeId")
   Name: String
 }
 
 type Genre {
-  id: Int! @id @db(name: "GenreId")
+  id: Int! @id @map(name: "GenreId")
   Name: String
   Tracks: [Track]
 }
 
 type Artist {
-  id: Int! @id @db(name: "ArtistId")
+  id: Int! @id @map(name: "ArtistId")
   Name: String
   Albums: [Album]
 }
 
 type Customer {
-  id: Int! @id @db(name: "CustomerId")
+  id: Int! @id @map(name: "CustomerId")
   FirstName: String!
   LastName: String!
   Company: String
@@ -50,11 +50,11 @@ type Customer {
   Phone: String
   Fax: String
   Email: String!
-  SupportRep: Employee @db(name: "SupportRepId")
+  SupportRep: Employee @map(name: "SupportRepId")
 }
 
 type Employee {
-  id: Int! @id @db(name: "EmployeeId")
+  id: Int! @id @map(name: "EmployeeId")
   FirstName: String!
   LastName: String!
   Title: String
@@ -72,8 +72,8 @@ type Employee {
 }
 
 type Invoice {
-  id: Int! @id @db(name: "InvoiceId")
-  Customer: Customer! @db(name: "CustomerId")
+  id: Int! @id @map(name: "InvoiceId")
+  Customer: Customer! @map(name: "CustomerId")
   InvoiceDate: DateTime!
   BillingAddress: String
   BillingCity: String
@@ -85,15 +85,15 @@ type Invoice {
 }
 
 type InvoiceLine {
-  id: Int! @id @db(name: "InvoiceLineId")
-  Invoice: Invoice! @db(name: "InvoiceId")
-  Track: Track! @db(name: "TrackId")
+  id: Int! @id @map(name: "InvoiceLineId")
+  Invoice: Invoice! @map(name: "InvoiceId")
+  Track: Track! @map(name: "TrackId")
   UnitPrice: Float!
   Quantity: Int!
 }
 
 type Playlist {
-  id: Int! @id @db(name: "PlaylistId")
+  id: Int! @id @map(name: "PlaylistId")
   Name: String
   Tracks: [Track] @relation(name: "PlaylistTrack")
 }
