@@ -428,6 +428,16 @@ export class Lift {
     await this.getLockFile()
     const before = Date.now()
     const localMigrations = await this.getLocalMigrations()
+    const localWatchMigrations = await this.getLocalWatchMigrations()
+    if (localWatchMigrations.length > 0) {
+      throw new Error(
+        `Before running ${chalk.yellow('prisma lift down')}, please save your ${chalk.bold(
+          'dev',
+        )} changes using ${chalk.bold.greenBright('prisma lift create')} and ${chalk.bold.greenBright(
+          'prisma lift up',
+        )}`,
+      )
+    }
     const datamodel = await this.getDatamodel()
     const appliedRemoteMigrations = await this.engine.listAppliedMigrations({ sourceConfig: datamodel })
 
