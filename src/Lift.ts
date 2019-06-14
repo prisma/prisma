@@ -35,7 +35,7 @@ import makeDir = require('make-dir')
 import { serializeFileMap } from './utils/serializeFileMap'
 import del from 'del'
 import { simpleDebounce } from './utils/simpleDebounce'
-// import { startServer } from '@prisma/studio-server'
+import StudioServer from '@prisma/studio-server'
 import { DevComponentRenderer } from './ink/DevComponentRenderer'
 import { getCompiledGenerators } from './utils/getCompiledGenerators'
 const packageJson = require('../package.json')
@@ -66,6 +66,7 @@ const brightGreen = chalk.rgb(127, 224, 152)
 export class Lift {
   engine: LiftEngine
   private datamodelBeforeWatch: string = ''
+  private studioServer?: StudioServer
   constructor(protected projectDir: string) {
     this.engine = new LiftEngine({ projectDir })
   }
@@ -85,6 +86,36 @@ export class Lift {
   // TODO: optimize datapaths, where we have a datamodel already, use it
   getSourceConfig(): Promise<string> {
     return this.getDatamodel()
+  }
+
+  async recreateStudioServer(datamodel: string) {
+    if (this.studioServer) {
+      this.studioServer.stop('')
+      delete this.studioServer
+    }
+
+    const pathCandidates = [
+      // ncc go home
+      eval(`require('path').join(__dirname, '../node_modules/@prisma/photon/runtime/prisma')`), // for local dev
+      eval(`require('path').join(__dirname, '../runtime/prisma')`), // for production
+    ]
+
+    const pathsExist = await Promise.all(
+      pathCandidates.map(async candidate => ({ exists: await exists(candidate), path: candidate })),
+    )
+
+    const firstExistingPath = pathsExist.find(p => p.exists)
+
+    if (!firstExistingPath) {
+      throw new Error(`Could not find any binary path for Studio. Looked in ${pathCandidates.join(', ')}`)
+    }
+
+    this.studioServer = new StudioServer({
+      port: 5555,
+      debug: false,
+      datamodel,
+      binaryPath: firstExistingPath.path,
+    })
   }
 
   public async getLockFile(): Promise<LockFile> {
@@ -303,15 +334,18 @@ export class Lift {
       },
     })
 
-    const { migrationsToApply, appliedRemoteMigrations } = await this.getMigrationsToApply()
+    // TODO: binaryPath calculation
+    this.recreateStudioServer(datamodel)
+
+    const { migrationsToApply } = await this.getMigrationsToApply()
 
     if (migrationsToApply.length > 0) {
       renderer.setState({ migrating: true }) // TODO: Show that this is actually applying real migrations, not just watch migrations
       // TODO: Ask for permission if we actually want to do it?
       // console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
-      // await this.up({
-      //   short: true,
-      // })
+      await this.up({
+        short: true,
+      })
       // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
       options.clear = false
       renderer.setState({ migrating: false })
@@ -376,6 +410,7 @@ export class Lift {
         }
 
         if (datamodel !== this.datamodelBeforeWatch) {
+          this.recreateStudioServer(datamodel)
           renderer.setState({
             datamodelBefore: this.datamodelBeforeWatch,
             datamodelAfter: datamodel,
