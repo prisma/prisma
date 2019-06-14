@@ -13,6 +13,15 @@ export async function generateInThread(options: GeneratorWorkerJob): Promise<str
       silent: true,
     })
     child.send(JSON.stringify(options))
+    child.on('error', e => {
+      reject(e)
+    })
+    child.on('message', msg => {
+      const data = JSON.parse(msg)
+      if (data.error) {
+        reject(data.error)
+      }
+    })
     child.on('close', code => {
       if (code === 0) {
         resolve('')

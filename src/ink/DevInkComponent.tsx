@@ -22,7 +22,8 @@ export interface DevComponentProps {
   migratedIn: number | undefined
   generators: GeneratorInfo[]
   lastChanged: Date | undefined
-  error?: string
+  error?: Error
+  datamodelPath: string
 }
 
 export interface Props extends DevComponentProps {
@@ -102,7 +103,7 @@ class DevComponent extends Component<Props, State> {
         <Box flexDirection="column" marginTop={1} justifyContent="space-between" height={this.height}>
           <Box flexDirection="column">
             <Box>
-              <Color dim>
+              <Color>
                 Changes in datamodel since last <Color bold>prisma lift save</Color>
               </Color>
             </Box>
@@ -123,12 +124,31 @@ class DevComponent extends Component<Props, State> {
       )
     }
     if (this.props.error) {
+      const error: any = this.props.error
+      let kind = ''
+      let callsite: Element | undefined
+      if (error.code && error.code === 1001) {
+        kind = 'Datamodel Validation '
+        callsite = (
+          <Box marginLeft={1}>
+            <Color redBright>
+              in <Color underline>{this.props.datamodelPath}</Color>
+            </Color>
+          </Box>
+        )
+      }
+
       return (
-        <Box flexDirection="column">
-          <Color bold redBright>
-            Error
-          </Color>
-          <Color>{this.props.error}</Color>
+        <Box flexDirection="column" marginTop={1} justifyContent="flex-start">
+          <Box>
+            <Color bold redBright>
+              {kind}Error
+            </Color>
+            {callsite}
+          </Box>
+          <Box marginTop={1}>
+            <Color>{this.props.error.message}</Color>
+          </Box>
         </Box>
       )
     }
@@ -140,7 +160,7 @@ class DevComponent extends Component<Props, State> {
             {this.props.lastChanged ? (
               <Color gray>Last changed at {renderDate(this.props.lastChanged)}</Color>
             ) : (
-              <Color />
+              <Color gray>No changes yet</Color>
             )}
             <Box marginTop={2} flexDirection="column">
               <Color bold>Generator</Color>
@@ -149,7 +169,9 @@ class DevComponent extends Component<Props, State> {
           </Box>
           <Box marginTop={0} marginLeft={0}>
             {generators.length === 0 ? (
-              missingGeneratorMessage
+              <Box height={missingGeneratorMessage.split('\n').length} marginLeft={4}>
+                {missingGeneratorMessage}
+              </Box>
             ) : (
               <>
                 <Box flexDirection="column">

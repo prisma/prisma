@@ -1,3 +1,5 @@
+import { GeneratorDefinition } from '@prisma/cli'
+
 export type DatamodelStep = CreateModelStep | CreateFieldStep
 
 export type CreateModelStep = {
@@ -231,3 +233,8 @@ export type CreateColumn = {
 }
 
 export type DatabaseStep = RawSqlStep | DropTableStep | RenameTableStep | CreateTableStep
+
+export type GeneratorDefinitionWithPackage = {
+  definition: GeneratorDefinition
+  packagePath: string
+}

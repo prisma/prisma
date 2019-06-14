@@ -149,7 +149,7 @@ export function isdlToDmmfDatamodel(
               isList: field.isList,
               isRequired: field.isRequired,
               isUnique: field.isUnique,
-              relationName: field.relationName,
+              relationName: field.relationName === '' ? undefined : field.relationName,
               type: mapIdType(getType(field)),
               default: defaultValue,
               isUpdatedAt: field.isUpdatedAt,

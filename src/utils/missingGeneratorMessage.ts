@@ -7,9 +7,9 @@ export const missingGeneratorMessage = `\n${chalk.blue(
   'datamodel.prisma',
 )}, so nothing will be generated. You can define them like this:
 
-${highlightDatamodel(`generator photon {
+${chalk.bold(
+  highlightDatamodel(`generator photon {
   provider = "javascript"
   output   = "node_modules/@generated/photon"
-}`)}
-
-Please restart the cli after adding them`
+}`),
+)}`

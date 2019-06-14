@@ -16,6 +16,14 @@ export type LiftEngineOptions = {
   debug?: boolean
 }
 
+export class EngineError extends Error {
+  code: number
+  constructor(message: string, code: number) {
+    super(message)
+    this.code = code
+  }
+}
+
 export class LiftEngine {
   private binaryPath: string
   private projectDir: string
@@ -77,16 +85,20 @@ export class LiftEngine {
             resolve(result.result)
           } else {
             if (result.error) {
-              const text = this.persistError(request, result, messages)
-              reject(
-                new Error(
-                  `${chalk.redBright('Error in RPC')}\n Request: ${JSON.stringify(
-                    request,
-                    null,
-                    2,
-                  )}\nResponse: ${JSON.stringify(result, null, 2)}\n${result.error.message}\n\n${text}\n`,
-                ),
-              )
+              if (result.error.data && result.error.data.error && result.error.data.code) {
+                reject(new EngineError(result.error.data.error, result.error.data.code))
+              } else {
+                const text = this.persistError(request, result, messages)
+                reject(
+                  new Error(
+                    `${chalk.redBright('Error in RPC')}\n Request: ${JSON.stringify(
+                      request,
+                      null,
+                      2,
+                    )}\nResponse: ${JSON.stringify(result, null, 2)}\n${result.error.message}\n\n${text}\n`,
+                  ),
+                )
+              }
             } else {
               reject(new Error(`Got invalid RPC response without .result property: ${JSON.stringify(result)}`))
             }

@@ -3,7 +3,14 @@ import fs from 'fs'
 import path from 'path'
 import { now, timestampToDate } from './utils/now'
 import { promisify } from 'util'
-import { FileMap, LockFile, Migration, EngineResults, MigrationWithDatabaseSteps } from './types'
+import {
+  FileMap,
+  LockFile,
+  Migration,
+  EngineResults,
+  MigrationWithDatabaseSteps,
+  GeneratorDefinitionWithPackage,
+} from './types'
 import { deserializeLockFile, initLockFile, serializeLockFile } from './utils/LockFile'
 import globby from 'globby'
 import { printDatabaseStepsOverview, highlightMigrationsSQL } from './utils/printDatabaseSteps'
@@ -20,7 +27,7 @@ import logUpdate from 'log-update'
 import { Readable } from 'stream'
 import { drawBox } from './utils/drawBox'
 import pMap from 'p-map'
-import { CompiledGeneratorDefinition } from '@prisma/cli'
+import { CompiledGeneratorDefinition, GeneratorDefinition, Dictionary } from '@prisma/cli'
 import 'array-flat-polyfill'
 import { isWatchMigrationName } from './utils/isWatchMigrationName'
 import dashify from 'dashify'
@@ -30,6 +37,7 @@ import del from 'del'
 import { simpleDebounce } from './utils/simpleDebounce'
 // import { startServer } from '@prisma/studio-server'
 import { DevComponentRenderer } from './ink/DevComponentRenderer'
+import { getCompiledGenerators } from './utils/getCompiledGenerators'
 const packageJson = require('../package.json')
 
 const readFile = promisify(fs.readFile)
@@ -46,7 +54,7 @@ export type DownOptions = {
 }
 export type WatchOptions = {
   preview?: boolean
-  generators: CompiledGeneratorDefinition[]
+  generatorDefinitions: Dictionary<GeneratorDefinitionWithPackage>
   clear?: boolean
 }
 type MigrationFileMapOptions = {
@@ -267,22 +275,46 @@ export class Lift {
     return migrationsWithDatabaseSteps.slice(fromIndex)
   }
 
-  public async watch(options: WatchOptions = { preview: false, clear: true, generators: [] }): Promise<string> {
+  public async watch(
+    options: WatchOptions = { preview: false, clear: true, generatorDefinitions: {} },
+  ): Promise<string> {
     if (!options.clear) {
       options.clear = true
     }
-    // startServer(5555)
+
+    const datamodel = await this.getDatamodel()
+
+    const generators = await getCompiledGenerators(this.projectDir, datamodel, options.generatorDefinitions)
+
+    const renderer = new DevComponentRenderer({
+      port: 5555,
+      initialState: {
+        datamodelBefore: this.datamodelBeforeWatch,
+        datamodelAfter: datamodel,
+        generators: generators.map(gen => ({
+          name: gen.prettyName || 'Generator',
+          generatedIn: undefined,
+          generating: false,
+        })),
+        datamodelPath: path.join(this.projectDir, 'datamodel.prisma'),
+        migrating: false,
+        migratedIn: undefined,
+        lastChanged: undefined,
+      },
+    })
+
     const { migrationsToApply, appliedRemoteMigrations } = await this.getMigrationsToApply()
 
     if (migrationsToApply.length > 0) {
+      renderer.setState({ migrating: true }) // TODO: Show that this is actually applying real migrations, not just watch migrations
       // TODO: Ask for permission if we actually want to do it?
-      const before = Date.now()
       // console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
-      await this.up({
-        short: true,
-      })
+      // await this.up({
+      //   short: true,
+      // })
       // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
       options.clear = false
+      renderer.setState({ migrating: false })
     }
 
     const localMigrations = await this.getLocalMigrations()
@@ -295,28 +327,13 @@ export class Lift {
     } else if (localMigrations.length > 0) {
       lastChanged = timestampToDate(localMigrations[localMigrations.length - 1].id.split('-')[0])
     }
+    renderer.setState({ lastChanged })
 
     if (localMigrations.length > 0) {
       this.datamodelBeforeWatch = localMigrations[localMigrations.length - 1].datamodel
     }
 
     await makeDir(this.devMigrationsDir)
-
-    const renderer = new DevComponentRenderer({
-      port: 5555,
-      initialState: {
-        datamodelBefore: this.datamodelBeforeWatch,
-        datamodelAfter: this.datamodelBeforeWatch,
-        generators: options.generators.map(gen => ({
-          name: gen.prettyName || 'Generator',
-          generatedIn: undefined,
-          generating: false,
-        })),
-        migrating: false,
-        migratedIn: undefined,
-        lastChanged,
-      },
-    })
 
     fs.watch(path.join(this.projectDir, 'datamodel.prisma'), (eventType, filename) => {
       if (eventType === 'change') {
@@ -330,7 +347,7 @@ export class Lift {
 
   watchUp = simpleDebounce(
     async (
-      { preview, generators, clear }: WatchOptions = { clear: true, generators: [] },
+      { preview, generatorDefinitions, clear }: WatchOptions = { clear: true, generatorDefinitions: {} },
       renderer: DevComponentRenderer,
     ) => {
       renderer.setState({ error: undefined })
@@ -365,6 +382,25 @@ export class Lift {
           })
         }
 
+        const generators = await getCompiledGenerators(this.projectDir, datamodel, generatorDefinitions)
+
+        const newGenerators = generators.map(gen => ({
+          name: gen.prettyName || 'Generator',
+          generatedIn: undefined,
+          generating: false,
+        }))
+
+        const addedGenerators = newGenerators.filter(g => !renderer.state.generators.some(gg => gg.name === g.name))
+        const removedGenerators = renderer.state.generators.filter(g => newGenerators.some(gg => gg.name === g.name))
+
+        if (
+          renderer.state.generators.length !== newGenerators.length ||
+          addedGenerators.length > 0 ||
+          removedGenerators.length > 0
+        ) {
+          renderer.setState({ generators: newGenerators })
+        }
+
         for (let i = 0; i < generators.length; i++) {
           const generator = generators[i]
           const before = Date.now()
@@ -378,12 +414,12 @@ export class Lift {
               generating: false,
               generatedIn: after - before,
             })
-          } catch (e) {
-            renderer.setState({ error: e.message })
+          } catch (error) {
+            renderer.setState({ error })
           }
         }
-      } catch (e) {
-        renderer.setState({ error: e.message })
+      } catch (error) {
+        renderer.setState({ error })
       }
     },
   )
