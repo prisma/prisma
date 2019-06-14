@@ -18,13 +18,3 @@ model Post {
   id             Int     @id
   anotherString2 String?
 }
-
-model Post12 {
-  id     Int     @id
-  anothe String?
-}
-
-model Post15 {
-  id     Int     @id
-  anothe String?
-}
