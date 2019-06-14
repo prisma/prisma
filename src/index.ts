@@ -1,3 +1,4 @@
+export { generateInThread } from './generateInThread'
 export { Lift } from './Lift'
 export { LiftEngine } from './LiftEngine'
 export { LiftCommand } from './cli/commands/LiftCommand'
@@ -8,5 +9,6 @@ export { LiftDown } from './cli/commands/LiftDown'
 export { Converter } from './cli/commands/Converter'
 export { isdlToDatamodel2 } from './utils/isdlToDatamodel2'
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
+export { getCompiledGenerators } from './utils/getCompiledGenerators'
 
 export * from './types'
