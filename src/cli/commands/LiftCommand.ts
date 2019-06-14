@@ -1,5 +1,7 @@
 import { Command, Commands, arg, isError, format, unknownCommand, HelpError, Env } from '@prisma/cli'
 import chalk from 'chalk'
+import { getNextFreePort } from '../../utils/occupyPath'
+import { gamboge } from '../highlight/theme'
 
 /**
  * Migrate command
@@ -26,6 +28,14 @@ export class LiftCommand implements Command {
     // check if we have that subcommand
     const cmd = this.cmds[args._[0]]
     if (cmd) {
+      const nextFreePort = await getNextFreePort(this.env.cwd)
+      if (typeof nextFreePort !== 'number') {
+        const command = `prisma ${argv.join(' ')}`
+        throw new Error(`Cannot run ${chalk.bold(command)} because there is a ${chalk.bold(
+          'prisma dev',
+        )} command running in this directory.
+Please ${gamboge(`stop ${chalk.bold('prisma dev')} first`)}, then try ${chalk.greenBright.bold(command)} again`)
+      }
       return cmd.parse(args._.slice(1))
     }
 

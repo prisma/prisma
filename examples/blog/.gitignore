@@ -1,1 +1,3 @@
 migrations
+failed*.md
+@generated

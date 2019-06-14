@@ -15,7 +15,7 @@ model Blog {
 }
 
 model Post {
-  id             Int     @id @default(cuid())
+  id             Int     @id
   anotherString2 String?
 }
 

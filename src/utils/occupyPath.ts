@@ -66,15 +66,16 @@ function startServer(projectPath: string, port: number): () => void {
   }
 }
 
-// occupy a path so that the user doesn't run prisma dev multiple times in the same path
-export async function occupyPath(projectPath: string): Promise<() => void> {
+// checks if dev command is running in projectPath
+// and returns next free port if not the case
+export async function getNextFreePort(projectPath: string): Promise<number | undefined> {
   const portOccupancy = await Promise.all(portList.map(async port => ({ port, free: await isPortFree(port) })))
   const usedPorts = portOccupancy.filter(o => !o.free)
   const nextFreePort = portOccupancy.find(p => p.free)
 
   if (usedPorts.length === portList.length || !nextFreePort) {
     throw new Error(
-      `prisma dev could not start, as all port of ${portList.join(', ')} are used. Please free one of them.`,
+      `prisma lift could not start, as all port of ${portList.join(', ')} are used. Please free one of them.`,
     )
   }
 
@@ -82,10 +83,20 @@ export async function occupyPath(projectPath: string): Promise<() => void> {
   const potentialPaths = await Promise.all(usedPorts.map(usedPort => fetchPath(usedPort.port)))
   const paths = potentialPaths.filter(p => p)
   if (paths.includes(projectPath)) {
+    return undefined
+  }
+
+  return nextFreePort.port
+}
+
+// occupy a path so that the user doesn't run prisma dev multiple times in the same path
+export async function occupyPath(projectPath: string): Promise<() => void> {
+  const nextFreePort = await getNextFreePort(projectPath)
+  if (typeof nextFreePort !== 'number') {
     throw new Error(
       `There is already another ${chalk.bold('prisma dev')} command running in ${chalk.underline(projectPath)}`,
     )
   }
 
-  return startServer(projectPath, nextFreePort.port)
+  return startServer(projectPath, nextFreePort)
 }
