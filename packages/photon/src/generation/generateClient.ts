@@ -1,5 +1,7 @@
+import copy from 'cpy'
 import fs from 'fs-extra'
 import makeDir from 'make-dir'
+import { cpus } from 'os'
 import path from 'path'
 import {
   CompilerOptions,
@@ -122,7 +124,7 @@ export async function generateClient({
   const files = await buildClient({ datamodel, cwd, transpile, runtimePath, browser, binaryPath })
   await makeDir(outputDir)
   await Promise.all(Object.entries(files).map(([fileName, file]) => fs.writeFile(path.join(outputDir, fileName), file)))
-  await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
+  await copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
   await fs.writeFile(path.join(outputDir, '/runtime/index.d.ts'), indexDTS)
 }
 

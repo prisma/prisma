@@ -6,19 +6,19 @@ datasource my_db {
 }
 
 model Album {
-  id Int @id @db("AlbumId")
+  id Int @id @map("AlbumId")
   Title String
-  Artist Artist @db("ArtistId")
+  Artist Artist @map("ArtistId")
   Tracks Track[]
 }
 
 model Track {
-  id Int @id @db("TrackId")
+  id Int @id @map("TrackId")
   Name String
-  Album Album? @db("AlbumId")
+  Album Album? @map("AlbumId")
   AlbumId Int?
-  Mediamodel Mediamodel @db("MediamodelId")
-  Genre Genre? @db("GenreId")
+  Mediamodel Mediamodel @map("MediamodelId")
+  Genre Genre? @map("GenreId")
   Composer String?
   Milliseconds Int
   UnitPrice Float
@@ -27,24 +27,24 @@ model Track {
 }
 
 model Mediamodel {
-  id Int @id @db("MediamodelId")
+  id Int @id @map("MediamodelId")
   Name String?
 }
 
 model Genre {
-  id Int @id @db("GenreId")
+  id Int @id @map("GenreId")
   Name String?
   Tracks Track[]
 }
 
 model Artist {
-  id Int @id @db("ArtistId")
+  id Int @id @map("ArtistId")
   Name String?
   Albums Album[]
 }
 
 model Customer {
-  id Int @id @db("CustomerId")
+  id Int @id @map("CustomerId")
   FirstName String
   LastName String
   Company String?
@@ -56,12 +56,12 @@ model Customer {
   Phone String?
   Fax String?
   Email String
-  SupportRep Employee? @db("SupportRepId")
+  SupportRep Employee? @map("SupportRepId")
   Invoices Invoice[]
 }
 
 model Employee {
-  id Int @id @db("EmployeeId")
+  id Int @id @map("EmployeeId")
   FirstName String
   LastName String
   Title String?
@@ -79,8 +79,8 @@ model Employee {
 }
 
 model Invoice {
-  id Int @id @db("InvoiceId")
-  Customer Customer @db("CustomerId")
+  id Int @id @map("InvoiceId")
+  Customer Customer @map("CustomerId")
   InvoiceDate DateTime
   BillingAddress String?
   BillingCity String?
@@ -92,22 +92,22 @@ model Invoice {
 }
 
 model InvoiceLine {
-  id Int @id @db("InvoiceLineId")
-  Invoice Invoice @db("InvoiceId")
-  Track Track @db("TrackId")
+  id Int @id @map("InvoiceLineId")
+  Invoice Invoice @map("InvoiceId")
+  Track Track @map("TrackId")
   UnitPrice Float
   Quantity Int
 }
 
 model Playlist {
-  id Int @id @db("PlaylistId")
+  id Int @id @map("PlaylistId")
   Name String?
   Tracks PlaylistTrack[]
 }
 
 model PlaylistTrack {
   id Int @id
-  Playlist Playlist @db("PlaylistId")
-  Track Track @db("TrackId")
+  Playlist Playlist @map("PlaylistId")
+  Track Track @map("TrackId")
 }
 `
