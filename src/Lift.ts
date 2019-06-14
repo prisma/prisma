@@ -31,6 +31,7 @@ import { simpleDebounce } from './utils/simpleDebounce'
 import StudioServer from '@prisma/studio-server'
 import { DevComponentRenderer } from './ink/DevComponentRenderer'
 import { getCompiledGenerators } from './utils/getCompiledGenerators'
+import getPort from 'get-port'
 const packageJson = require('../package.json')
 
 const readFile = promisify(fs.readFile)
@@ -60,6 +61,7 @@ export class Lift {
   engine: LiftEngine
   private datamodelBeforeWatch: string = ''
   private studioServer?: StudioServer
+  private studioPort: number = 5555
   constructor(protected projectDir: string) {
     this.engine = new LiftEngine({ projectDir })
   }
@@ -104,7 +106,7 @@ export class Lift {
     }
 
     this.studioServer = new StudioServer({
-      port: 5555,
+      port: this.studioPort,
       debug: false,
       datamodel,
       binaryPath: firstExistingPath.path,
@@ -310,8 +312,10 @@ export class Lift {
 
     const generators = await getCompiledGenerators(this.projectDir, datamodel, options.generatorDefinitions)
 
+    this.studioPort = await getPort({ port: getPort.makeRange(5555, 5600) })
+
     const renderer = new DevComponentRenderer({
-      port: 5555,
+      port: this.studioPort,
       initialState: {
         datamodelBefore: this.datamodelBeforeWatch,
         datamodelAfter: datamodel,
@@ -327,7 +331,10 @@ export class Lift {
       },
     })
 
-    // TODO: binaryPath calculation
+    // silence everyone else. this is not a democracy
+    console.log = () => ''
+    console.error = () => ''
+
     this.recreateStudioServer(datamodel)
 
     const { migrationsToApply } = await this.getMigrationsToApply()

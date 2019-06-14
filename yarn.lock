@@ -359,10 +359,10 @@
     strip-indent "^3.0.0"
     terminal-link "^1.3.0"
 
-"@prisma/studio-server@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.0.6.tgz#e54b336cef86a624ad5fcb19fbe6737610e92af4"
-  integrity sha512-AIPIQ0JYnoEGMzASWsEhoWmbeUySrv3nj0dXUVeDbQqHwy+pT3sVVmHIhWPBngD2pIw79S+NKEXMPvqtmvLsag==
+"@prisma/studio-server@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.0.7.tgz#261442c582d1e78c42496fa85825e19cd5fd38bf"
+  integrity sha512-GX/CSqRp601K61Edtc6WZojMfxQl+1AJ0mCv0rC1lrSOHX3SDTYdZBp8mKYC4U8N/gpSYbX8epXTh04ntdm4/Q==
   dependencies:
     "@prisma/studio" "^0.0.3"
     express "^4.17.1"
@@ -520,7 +520,7 @@
   resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.7.1.tgz#f1a11e7babb0c3cad68100be381d1e064c68f1f6"
   integrity sha512-CFzn9idOEpHrgdw8JsoTkaDDyRWk1jrzIV8djzcgpq0y9tG4B4lFT+Nxh52DVpDXV+n4+NPNv7M1Dj5uMp6XFg==
 
-"@types/react@^16.8.12", "@types/react@^16.8.19", "@types/react@^16.8.6":
+"@types/react@^16.8.12", "@types/react@^16.8.6":
   version "16.8.19"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-16.8.19.tgz#629154ef05e2e1985cdde94477deefd823ad9be3"
   integrity sha512-QzEzjrd1zFzY9cDlbIiFvdr+YUmefuuRYrPxmkwG0UQv5XF35gFIi7a95m1bNVcFU0VimxSZ5QVGSiBmlggQXQ==
@@ -1812,6 +1812,13 @@ get-caller-file@^1.0.1:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/get-caller-file/-/get-caller-file-1.0.3.tgz#f978fa4c90d1dfe7ff2d6beda2a515e713bdcf4a"
   integrity sha512-3t6rVToeoZfYSGd8YoLFR2DJkiQrIiUrGcjvFX2mDw3bn6k2OtwHN0TNCLbBO+w8qTvimhDkv+LSscbJY1vE6w==
+
+get-port@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/get-port/-/get-port-5.0.0.tgz#aa22b6b86fd926dd7884de3e23332c9f70c031a6"
+  integrity sha512-imzMU0FjsZqNa6BqOjbbW6w5BivHIuQKopjpPqcnx0AVHJQKCxK1O+Ab3OrVXhrekqfVMjwA9ZYu062R+KcIsQ==
+  dependencies:
+    type-fest "^0.3.0"
 
 get-stdin@^7.0.0:
   version "7.0.0"

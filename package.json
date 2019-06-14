@@ -1,6 +1,6 @@
 {
   "name": "@prisma/lift",
-  "version": "0.0.46",
+  "version": "0.0.57",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
@@ -30,8 +30,7 @@
   "dependencies": {
     "@prisma/cli": "^0.0.12",
     "@prisma/fetch-engine": "^0.0.19",
-    "@prisma/studio-server": "^0.0.6",
-    "@types/react": "^16.8.19",
+    "@prisma/studio-server": "^0.0.7",
     "arg": "^4.1.0",
     "array-flat-polyfill": "^1.0.1",
     "cli-cursor": "^3.0.0",
@@ -41,6 +40,7 @@
     "del": "^4.1.1",
     "diff": "^4.0.1",
     "fast-equals": "^2.0.0",
+    "get-port": "^5.0.0",
     "git-user-email": "^0.2.2",
     "git-user-name": "^2.0.0",
     "globby": "^9.2.0",
@@ -66,7 +66,7 @@
     "precommit": "yarn lint && yarn test",
     "lint": "prettier --write src/*.{ts,tsx,js,jsx,md,graphql} src/**/*.{ts,tsx,js,jsx,md,graphql} && tsc",
     "test": "jest",
-    "build": "tsc -d",
+    "build": "tsc -d && cp src/GeneratorWorker.js dist/GeneratorWorker.js",
     "ncc": "ncc build dist/bin.js -o build",
     "build-cli": "yarn build && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js'",
     "prepublishOnly": "yarn build"
