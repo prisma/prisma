@@ -233,8 +233,3 @@ export type CreateColumn = {
 }
 
 export type DatabaseStep = RawSqlStep | DropTableStep | RenameTableStep | CreateTableStep
-
-export type GeneratorDefinitionWithPackage = {
-  definition: GeneratorDefinition
-  packagePath: string
-}
