@@ -1,16 +1,29 @@
-import { Command, arg, format, Env, HelpError, CompiledGeneratorDefinition } from '@prisma/cli'
+import {
+  Command,
+  arg,
+  format,
+  Env,
+  HelpError,
+  CompiledGeneratorDefinition,
+  GeneratorDefinition,
+  Dictionary,
+} from '@prisma/cli'
 import chalk from 'chalk'
 import { Lift } from '../../Lift'
 import { occupyPath } from '../../utils/occupyPath'
+import { GeneratorDefinitionWithPackage } from '../../types'
 
 /**
  * $ prisma migrate new
  */
 export class LiftWatch implements Command {
-  static new(env: Env, generators: CompiledGeneratorDefinition[]): LiftWatch {
+  static new(env: Env, generators: Dictionary<GeneratorDefinitionWithPackage>): LiftWatch {
     return new LiftWatch(env, generators)
   }
-  private constructor(private readonly env: Env, private readonly generators: CompiledGeneratorDefinition[]) {}
+  private constructor(
+    private readonly env: Env,
+    private readonly generators: Dictionary<GeneratorDefinitionWithPackage>,
+  ) {}
 
   // parse arguments
   async parse(argv: string[]): Promise<string | Error> {
@@ -25,7 +38,7 @@ export class LiftWatch implements Command {
     const lift = new Lift(this.env.cwd)
     return lift.watch({
       preview,
-      generators: this.generators,
+      generatorDefinitions: this.generators,
     })
   }
 

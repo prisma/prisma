@@ -1,25 +1,30 @@
 datasource my_db {
   provider = "sqlite"
-  url = "file:./db/db_file.db"
-  default = true
+  url      = "file:./db/db_file.db"
+  default  = true
+}
+
+generator photon {
+  provider = "javascript"
+  output   = "@generated/photon"
 }
 
 model Blog {
-  id Int @id
+  id        Int @id
   viewCount Int
 }
 
 model Post {
-  id Int @id
+  id             Int     @id @default(cuid())
   anotherString2 String?
 }
 
 model Post12 {
-  id Int @id
+  id     Int     @id
   anothe String?
 }
 
 model Post15 {
-  id Int @id
+  id     Int     @id
   anothe String?
 }
