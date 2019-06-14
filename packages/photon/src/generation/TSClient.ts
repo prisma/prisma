@@ -66,9 +66,12 @@ export type Subset<T, U> = { [key in keyof T]: key extends keyof U ? T[key] : ne
 
 class PhotonFetcher {
   private url?: string
-  constructor(private readonly engine: Engine, private readonly debug = false) {}
+  constructor(private readonly engine: Engine, private readonly debug = false, private readonly hooks?: Hooks) {}
   async request<T>(query: string, path: string[] = [], rootField?: string, typeName?: string): Promise<T> {
     debug(query)
+    if (this.hooks && this.hooks.beforeRequest) {
+      this.hooks.beforeRequest({query, path, rootField, typeName})
+    }
     const result = await this.engine.request(query, typeName)
     debug(result)
     return this.unpack(result, path, rootField)
@@ -185,9 +188,14 @@ export interface PhotonOptions {
   datamodel?: string
   autoconnect?: boolean
   binaryPath?: string
+  hooks?: Hooks
 }
 
-export class Photon {
+export type Hooks = {
+  beforeRequest?: (options: {query: string, path: string[], rootField?: string, typeName?: string}) => any
+}
+
+export default class Photon {
   private fetcher: PhotonFetcher
   private readonly dmmf: DMMFClass
   private readonly engine: Engine
@@ -210,7 +218,7 @@ export class Photon {
     }
     })
     this.dmmf = new DMMFClass(dmmf)
-    this.fetcher = new PhotonFetcher(this.engine)
+    this.fetcher = new PhotonFetcher(this.engine, false, options.hooks)
     this.autoconnect = typeof options.autoconnect === 'boolean' ? options.autoconnect : true
   }
   async connect() {
@@ -229,10 +237,10 @@ ${indent(
   dmmf.mappings
     .filter(m => m.findMany)
     .map(
-      m => `private _${m.findMany}?: ${m.model}Delegate
-get ${m.findMany}(): ${m.model}Delegate {
+      m => `private _${m.plural}?: ${m.model}Delegate
+get ${m.plural}(): ${m.model}Delegate {
   this.connect()
-  return this._${m.findMany}? this._${m.findMany} : (this._${m.findMany} = ${m.model}Delegate(this.dmmf, this.fetcher))
+  return this._${m.plural}? this._${m.plural} : (this._${m.plural} = ${m.model}Delegate(this.dmmf, this.fetcher))
 }`,
     )
     .join('\n'),
@@ -522,7 +530,7 @@ export class ModelDelegate {
   public toString() {
     const { fields, name } = this.outputType
     const mapping = this.dmmf.mappings.find(m => m.model === name)!
-    const actions = Object.entries(mapping).filter(([key, value]) => key !== 'model' && value)
+    const actions = Object.entries(mapping).filter(([key, value]) => key !== 'model' && key !== 'plural' && value)
 
     // TODO: The following code needs to be split up and is a mess
     return `\
@@ -556,7 +564,7 @@ function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delega
     )}>) => new ${name}Client<${getSelectReturnType({
       name,
       actionName: DMMF.ModelAction.findMany,
-    })}>(dmmf, fetcher, 'query', '${mapping.findMany}', '${mapping.findMany}', args, [])
+    })}>(dmmf, fetcher, 'query', '${mapping.plural}', '${mapping.plural}', args, [])
 ${indent(
   actions
     .map(

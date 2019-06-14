@@ -1,12 +1,12 @@
 import fs from 'fs'
 import { blog } from '../fixtures/blog'
-import { getRawDMMF } from './getDMMF'
+import { getRawDMMF, getDMMF } from './getDMMF'
 
 async function main() {
   console.log('fetching dmmf')
-  const dmmf = await getRawDMMF(blog)
+  const dmmf = await getDMMF(blog)
   console.log({ dmmf })
-  fs.writeFileSync(__dirname + '/blog-raw-dmmf.json', JSON.stringify(dmmf, null, 2))
+  fs.writeFileSync(__dirname + '/blog-dmmf.json', JSON.stringify(dmmf, null, 2))
 }
 
 main().catch(console.error)

@@ -1,6 +1,6 @@
-import { capitalize, lowerCase, plural } from 'prisma-datamodel'
 import { DMMF, ExternalDMMF } from './dmmf-types'
-import { keyBy } from './utils/common'
+import { keyBy, capitalize, lowerCase } from './utils/common'
+import pluralize from 'pluralize'
 
 function transformFieldKind(model: ExternalDMMF.Model): DMMF.Model {
   return {
@@ -23,7 +23,7 @@ function transformDatamodel(datamodel: ExternalDMMF.Datamodel): DMMF.Datamodel {
 export function externalToInternalDmmf(document: ExternalDMMF.Document): DMMF.Document {
   return {
     datamodel: transformDatamodel(document.datamodel),
-    mappings: getMappings(document),
+    mappings: getMappings(document.mappings),
     schema: transformSchema(document.schema),
   }
 }
@@ -66,49 +66,17 @@ function transformArg(argBefore: ExternalDMMF.SchemaArg): DMMF.SchemaArg {
   }
 }
 
-function getMappings(dmmf: ExternalDMMF.Document): DMMF.Mapping[] {
-  return dmmf.datamodel.models.map(model => {
-    const modelName = capitalize(model.name)
-
-    const query = dmmf.schema.outputTypes.find(t => t.name === 'Query')
-    const mutation = dmmf.schema.outputTypes.find(t => t.name === 'Mutation')
-
-    const queryFields = keyBy(query.fields, f => f.name)
-    const mutationFields = keyBy(mutation.fields, f => f.name)
-
-    const mapping: DMMF.Mapping = {
-      model: modelName,
-    }
-    for (const action in DMMF.ModelAction) {
-      const queryName = getQueryName(action as DMMF.ModelAction, modelName)
-      if (queryFields[queryName] || mutationFields[queryName]) {
-        mapping[action] = queryName
-      } else {
-        mapping[action] = null
-      }
-    }
-
-    return mapping
-  })
-}
-
-function getQueryName(action: DMMF.ModelAction, modelName: string) {
-  switch (action) {
-    case DMMF.ModelAction.findOne:
-      return lowerCase(modelName)
-    case DMMF.ModelAction.findMany:
-      return plural(lowerCase(modelName))
-    case DMMF.ModelAction.create:
-      return `create${modelName}`
-    case DMMF.ModelAction.update:
-      return `update${modelName}`
-    case DMMF.ModelAction.updateMany:
-      return `updateMany${plural(modelName)}`
-    case DMMF.ModelAction.upsert:
-      return `upsert${modelName}`
-    case DMMF.ModelAction.delete:
-      return `delete${modelName}`
-    case DMMF.ModelAction.deleteMany:
-      return `deleteMany${plural(modelName)}`
-  }
+function getMappings(mappings: ExternalDMMF.Mapping[]): DMMF.Mapping[] {
+  return mappings.map((mapping: any) => ({
+    model: mapping.model,
+    plural: pluralize(lowerCase(mapping.model)),
+    findOne: mapping.findSingle || mapping.findOne,
+    findMany: mapping.findMany,
+    create: mapping.createOne || mapping.createSingle || mapping.create,
+    delete: mapping.deleteOne || mapping.deleteSingle || mapping.delete,
+    update: mapping.updateOne || mapping.updateSingle || mapping.update,
+    deleteMany: mapping.deleteMany,
+    updateMany: mapping.updateMany,
+    upsert: mapping.upsertOne || mapping.upsertSingle || mapping.upsert,
+  }))
 }
