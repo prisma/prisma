@@ -225,6 +225,7 @@ export namespace DMMF {
 
   export interface Mapping {
     model: string
+    plural: string
     findOne?: string | null
     findMany?: string | null
     create?: string | null

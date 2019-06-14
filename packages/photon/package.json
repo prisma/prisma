@@ -71,7 +71,7 @@
     "js-levenshtein": "^1.1.6",
     "make-dir": "^3.0.0",
     "node-fetch": "^2.6.0",
-    "prisma-datamodel": "^1.36.0-alpha.8",
+    "pluralize": "^8.0.0",
     "set-value": "^3.0.0",
     "strip-ansi": "^5.2.0",
     "strip-indent": "^3.0.0",

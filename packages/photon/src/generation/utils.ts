@@ -85,7 +85,7 @@ export function renderInitialClientArgs(
   fetcher,
   '${getOperation(actionName as DMMF.ModelAction)}',
   '${fieldName}',
-  '${mapping.findMany}.${actionName}',
+  '${mapping.plural}.${actionName}',
   args,
   []\n`
 }
