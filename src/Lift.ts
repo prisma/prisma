@@ -28,7 +28,6 @@ import makeDir = require('make-dir')
 import { serializeFileMap } from './utils/serializeFileMap'
 import del from 'del'
 import { simpleDebounce } from './utils/simpleDebounce'
-import StudioServer from '@prisma/studio-server'
 import { DevComponentRenderer } from './ink/DevComponentRenderer'
 import { getCompiledGenerators } from './utils/getCompiledGenerators'
 import getPort from 'get-port'
@@ -60,7 +59,7 @@ const brightGreen = chalk.rgb(127, 224, 152)
 export class Lift {
   engine: LiftEngine
   private datamodelBeforeWatch: string = ''
-  private studioServer?: StudioServer
+  private studioServer?: any
   private studioPort: number = 5555
   constructor(protected projectDir: string) {
     this.engine = new LiftEngine({ projectDir })
@@ -85,7 +84,7 @@ export class Lift {
 
   async recreateStudioServer(datamodel: string) {
     if (this.studioServer) {
-      this.studioServer.stop('')
+      this.studioServer.stop()
       delete this.studioServer
     }
 
@@ -105,12 +104,16 @@ export class Lift {
       throw new Error(`Could not find any binary path for Studio. Looked in ${pathCandidates.join(', ')}`)
     }
 
+    const StudioServer = require('@prisma/studio-server').default
+
     this.studioServer = new StudioServer({
       port: this.studioPort,
       debug: false,
       datamodel,
       binaryPath: firstExistingPath.path,
     })
+
+    await this.studioServer.start()
   }
 
   public async getLockFile(): Promise<LockFile> {
@@ -317,6 +320,7 @@ export class Lift {
     const renderer = new DevComponentRenderer({
       port: this.studioPort,
       initialState: {
+        studioPort: this.studioPort,
         datamodelBefore: this.datamodelBeforeWatch,
         datamodelAfter: datamodel,
         generators: generators.map(gen => ({
@@ -332,8 +336,8 @@ export class Lift {
     })
 
     // silence everyone else. this is not a democracy
-    console.log = () => ''
-    console.error = () => ''
+    // console.log = () => ''
+    // console.error = () => ''
 
     this.recreateStudioServer(datamodel)
 
@@ -648,10 +652,10 @@ export class Lift {
           sourceConfig,
         }))
       ) {
-        if (progress.status === 'InProgress') {
+        if (progress.status === 'MigrationInProgress') {
           progressRenderer.setProgress(i, progress.applied / totalSteps)
         }
-        if (progress.status === 'Success') {
+        if (progress.status === 'MigrationSuccess') {
           progressRenderer.setProgress(i, 1)
           break progressLoop
         }

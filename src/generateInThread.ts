@@ -11,6 +11,14 @@ export type GeneratorWorkerJob = {
   config: GeneratorOptions
 }
 
+// generateInThread({
+//   packagePath: generator.packagePath,
+//   config: {
+//     cwd,
+//     generator: definition,
+//     otherGenerators,
+//   },
+// }),
 export async function generateInThread(options: GeneratorWorkerJob): Promise<string> {
   const workerPath = eval(`require('path').join(__dirname, 'GeneratorWorker.js')`) // ncc, leave us alone
   await ensureWorker(workerPath)

@@ -1,5 +1,6 @@
 import { ISDL, IGQLField, IGQLType, isTypeIdentifier } from 'prisma-datamodel'
 import { Dictionary, keyBy } from './keyBy'
+import fs from 'fs'
 
 export namespace DMMF {
   export interface Datamodel {
@@ -140,6 +141,10 @@ export function isdlToDmmfDatamodel(
               }
             }
 
+            if (field.name === 'providerPerformance') {
+              debugger
+            }
+
             return {
               name: field.name,
               kind,
@@ -149,7 +154,7 @@ export function isdlToDmmfDatamodel(
               isList: field.isList,
               isRequired: field.isRequired,
               isUnique: field.isUnique,
-              relationName: field.relationName === '' ? undefined : field.relationName,
+              relationName: field.relationName === '' ? undefined : field.relationName || undefined,
               type: mapIdType(getType(field)),
               default: defaultValue,
               isUpdatedAt: field.isUpdatedAt,
@@ -158,7 +163,9 @@ export function isdlToDmmfDatamodel(
       }
     })
 
-  return { dmmf: { models, enums }, dataSources }
+  const result = { dmmf: { models, enums }, dataSources }
+
+  return result
 }
 
 function hasId(type: IGQLType) {

@@ -29,7 +29,7 @@ const isPortFree = (port: number) =>
     })
   })
 
-const fetchPath = (port): Promise<string | null> =>
+const fetchPath = (port: number): Promise<string | null> =>
   new Promise(resolve => {
     const client = new net.Socket()
 
