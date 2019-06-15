@@ -25,17 +25,7 @@ describe('at least one validation', () => {
       "query {
         findManyUser(where: {
           email: {
-            equals: null
-            not: null
-            in: null
-            notIn: null
-            lt: null
-            lte: null
-            gt: null
-            gte: null
-            contains: null
-            startsWith: null
-            endsWith: null
+
           }
         }) {
           id
@@ -50,33 +40,33 @@ describe('at least one validation', () => {
       document.validate(select, false, 'users')
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-                "
+                                "
 
-                Invalid \`photon.users()\` invocation:
+                                Invalid \`photon.users()\` invocation:
 
-                {
-                  where: {
-                    email: {
-                ?     equals?: String,
-                ?     not?: String | StringFilter,
-                ?     in?: String,
-                ?     notIn?: String,
-                ?     lt?: String,
-                ?     lte?: String,
-                ?     gt?: String,
-                ?     gte?: String,
-                ?     contains?: String,
-                ?     startsWith?: String,
-                ?     endsWith?: String
-                    }
-                  }
-                }
+                                {
+                                  where: {
+                                    email: {
+                                ?     equals?: String,
+                                ?     not?: String | StringFilter,
+                                ?     in?: String,
+                                ?     notIn?: String,
+                                ?     lt?: String,
+                                ?     lte?: String,
+                                ?     gt?: String,
+                                ?     gte?: String,
+                                ?     contains?: String,
+                                ?     startsWith?: String,
+                                ?     endsWith?: String
+                                    }
+                                  }
+                                }
 
-                Argument where.email of type StringFilter needs at least one argument. Available args are listed in green.
-                Note: Lines with + are required, lines with ? are optional.
+                                Argument where.email of type StringFilter needs at least one argument. Available args are listed in green.
+                                Note: Lines with + are required, lines with ? are optional.
 
-                "
-            `)
+                                "
+                        `)
     }
   })
   test('valid query', () => {

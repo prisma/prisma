@@ -452,7 +452,10 @@ export class Args {
     if (this.args.length === 0) {
       return ''
     }
-    return `${this.args.map(String).join('\n')}`
+    return `${this.args
+      .map(arg => arg.toString())
+      .filter(a => a)
+      .join('\n')}`
   }
   public collectErrors(): ArgError[] {
     if (!this.hasInvalidArg) {
@@ -515,7 +518,10 @@ export class Arg {
       (value instanceof Args ? value.hasInvalidArg : false) ||
       (Array.isArray(value) && value.some(v => (v instanceof Args ? v.hasInvalidArg : false)))
   }
-  public _toString(value: ArgValue, key: string): string {
+  public _toString(value: ArgValue, key: string): string | undefined {
+    if (typeof value === 'undefined') {
+      return undefined
+    }
     if (value instanceof Args) {
       return `${key}: {
 ${indent(value.toString(), 2)}
