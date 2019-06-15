@@ -78,6 +78,7 @@ export async function buildClient({
   }
   compilerHost.writeFile = (fileName, data) => {
     if (fileName.includes('@generated/photon')) {
+      // TODO: We can't rely on this anymore!
       fileMap[fileName] = data
     }
   }
