@@ -11,6 +11,8 @@ import { LiftDown } from './cli/commands/LiftDown'
 import { LiftWatch } from './cli/commands/LiftWatch'
 import { Converter } from '.'
 import { generatorDefinition as definition } from '@prisma/photon'
+import path from 'path'
+import fs from 'fs'
 
 const photon = {
   definition,
@@ -23,12 +25,15 @@ const predefinedGenerators: Dictionary<GeneratorDefinitionWithPackage> = {
   typescript: photon,
 }
 
+// const access = fs.createWriteStream('out.log')
+// process.stdout.write = process.stderr.write = access.write.bind(access)
+
 /**
  * Main function
  */
 async function main(): Promise<number> {
   // load the environment
-  const env = await Env.load(process.env, process.cwd())
+  const env = await Env.load(process.env, path.join(process.cwd()))
   if (isError(env)) {
     console.error(env)
     return 1

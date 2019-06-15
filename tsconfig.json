@@ -13,5 +13,5 @@
     "resolveJsonModule": true,
     "jsx": "react"
   },
-  "exclude": ["dist", "build"]
+  "exclude": ["dist", "build", "examples"]
 }
