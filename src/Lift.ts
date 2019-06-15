@@ -70,7 +70,7 @@ export class Lift {
   }
 
   async getDatamodel(): Promise<string> {
-    const datamodelPath = path.resolve(this.projectDir, 'datamodel.prisma')
+    const datamodelPath = path.resolve(this.projectDir, 'project.prisma')
     if (!(await exists(datamodelPath))) {
       throw new Error(`Could not find ${datamodelPath}`)
     }
@@ -317,6 +317,9 @@ export class Lift {
 
     this.studioPort = await getPort({ port: getPort.makeRange(5555, 5600) })
 
+    const relativeProjectPath = path.relative(process.cwd(), this.projectDir)
+    const relativeDatamodelPath = path.join(relativeProjectPath, 'project.prisma')
+
     const renderer = new DevComponentRenderer({
       port: this.studioPort,
       initialState: {
@@ -328,10 +331,11 @@ export class Lift {
           generatedIn: undefined,
           generating: false,
         })),
-        datamodelPath: path.join(this.projectDir, 'datamodel.prisma'),
+        datamodelPath: path.join(this.projectDir, 'project.prisma'),
         migrating: false,
         migratedIn: undefined,
         lastChanged: undefined,
+        relativeDatamodelPath,
       },
     })
 
@@ -373,7 +377,7 @@ export class Lift {
 
     await makeDir(this.devMigrationsDir)
 
-    fs.watch(path.join(this.projectDir, 'datamodel.prisma'), (eventType, filename) => {
+    fs.watch(path.join(this.projectDir, 'project.prisma'), (eventType, filename) => {
       if (eventType === 'change') {
         this.watchUp(options, renderer)
       }

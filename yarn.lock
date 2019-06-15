@@ -298,17 +298,10 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@prisma/cli@^0.0.10":
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.10.tgz#def3a2be3d9b2b2abcbc778dac829495709415f9"
-  integrity sha512-0qP/+2TwbhwNyYQsPHuIrci9C+zbxMEuNAhrBo8UzurtGKsAskKfhmdBr1aUx0/WiXEcIi0JTC7aaUzLRZItBA==
-  dependencies:
-    arg "^4.1.0"
-
-"@prisma/cli@^0.0.12":
-  version "0.0.12"
-  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.12.tgz#21d41cedc08e262452667bc2cd6a53de56ce702f"
-  integrity sha512-9rfAlCfRA5oZH5CWDRIEBsz/31RHYiXe36QeQjKnc6JiprdDETycthgTBTHFtr/hoRfUlpr7rFrtV5kssWsYyA==
+"@prisma/cli@^0.0.13":
+  version "0.0.13"
+  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.13.tgz#d351930c5e15608357a7720b88aec11eeb130dd9"
+  integrity sha512-fY7UGwTuryH15kqbVRtWZEZRn9Wxw4ZBpNWsFUx+h6TNAOHYR7Qv5BmmrdUtUXV0K1O1kw7YDiOFkpRbKAoaqQ==
   dependencies:
     arg "^4.1.0"
 
@@ -334,15 +327,16 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/photon@^0.0.67":
-  version "0.0.67"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.67.tgz#0ec684fdc6c3f7dde1a815dcf1f10282cc01cdb9"
-  integrity sha512-c0cq6D97HAS5km4IWhYPp0msoI6TGd8JTTIE5b5t7lvyczQDx3/SjW3zabFFdHb1DWOtH/qk5zKb6S6EugSeaA==
+"@prisma/photon@^0.0.85":
+  version "0.0.85"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.85.tgz#dab60cbc30000d754a862aecd992648f70abe74b"
+  integrity sha512-zYkuSmfs9bGojto5RKVZU0+516s4GYuxp7B7xT6gBp7NImnA+Rk+TU7wu+BzPR7aT//1HFtYjxxL/3GQlyLCFg==
   dependencies:
-    "@prisma/cli" "^0.0.10"
+    "@prisma/cli" "^0.0.13"
     "@prisma/engine-core" "0.0.49"
     "@prisma/fetch-engine" "^0.0.19"
     chalk "^2.4.2"
+    cpy "7.3.0"
     dotenv "^8.0.0"
     flat-map-polyfill "^0.3.8"
     fs-extra "^8.0.1"
@@ -359,19 +353,13 @@
     strip-indent "^3.0.0"
     terminal-link "^1.3.0"
 
-"@prisma/studio-server@^0.0.14":
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.0.14.tgz#960d983aef7926ff2e21d1172a5ee51cb3de0125"
-  integrity sha512-aH14EPTiO9XF874Rdsyb9wxJQrOSboOBrYVHFylo5+A0bgl1UsgxsGmTJUqYf++ZU13z28iIECekqtBYI/vZJA==
+"@prisma/studio-server@^0.0.19":
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.0.19.tgz#f30409499b9336f24160110917b6dfa2da69517b"
+  integrity sha512-FjQxWdodT4kzSnZ/sj/Nspehiktoovicf0pswsWxawXvHHMdY7V0cQZ8IyQQXPSOCt8WZFFEay4p6mOS71V/BQ==
   dependencies:
-    "@prisma/studio" "^0.0.5"
     express "^4.17.1"
     express-ws "^4.0.0"
-
-"@prisma/studio@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.0.5.tgz#f88855c751fa8233d7d2098936e897a45569297a"
-  integrity sha512-LrJ3Jecsdt/lLum8uxFZQdnt1KK7/P2kJ6sWSpyccpHGOKfvVSOkjcGGqSgww+4Zr5aHdT5XjRUQUfpoEx3pBg==
 
 "@types/babel__core@^7.1.0":
   version "7.1.2"
@@ -1169,6 +1157,27 @@ cosmiconfig@^5.2.0:
     is-directory "^0.3.1"
     js-yaml "^3.13.1"
     parse-json "^4.0.0"
+
+cp-file@^6.1.0:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/cp-file/-/cp-file-6.2.0.tgz#40d5ea4a1def2a9acdd07ba5c0b0246ef73dc10d"
+  integrity sha512-fmvV4caBnofhPe8kOcitBwSn2f39QLjnAnGq3gO9dfd75mUytzKNZB1hde6QHunW2Rt+OwuBOMc3i1tNElbszA==
+  dependencies:
+    graceful-fs "^4.1.2"
+    make-dir "^2.0.0"
+    nested-error-stacks "^2.0.0"
+    pify "^4.0.1"
+    safe-buffer "^5.0.1"
+
+cpy@7.3.0:
+  version "7.3.0"
+  resolved "https://registry.yarnpkg.com/cpy/-/cpy-7.3.0.tgz#62f2847986b4ff9d029710568a49e9a9ab5a210e"
+  integrity sha512-auvDu6h/J+cO1uqV40ymL/VoPM0+qPpNGaNttTzkYVXO/+GeynuyAK/MwFcWgU/P82ezcZw7RaN34CIIWajKLA==
+  dependencies:
+    arrify "^1.0.1"
+    cp-file "^6.1.0"
+    globby "^9.2.0"
+    nested-error-stacks "^2.1.0"
 
 cross-fetch@^3.0.2:
   version "3.0.4"
@@ -3064,7 +3073,7 @@ loose-envify@^1.0.0, loose-envify@^1.1.0, loose-envify@^1.4.0:
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
-make-dir@^2.1.0:
+make-dir@^2.0.0, make-dir@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/make-dir/-/make-dir-2.1.0.tgz#5f0310e18b8be898cc07009295a30ae41e91e6f5"
   integrity sha512-LS9X+dc8KLxXCb8dni79fLIIUA5VyZoyjSMCwTluaXA0o27cCK0bhXkpgw+sTXVpPy/lSO57ilRixqk0vDmtRA==
@@ -3330,6 +3339,11 @@ neo-async@^2.6.0:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.1.tgz#ac27ada66167fa8849a6addd837f6b189ad2081c"
   integrity sha512-iyam8fBuCUpWeKPGpaNMetEocMt364qkCsfL9JuhjXX6dRnguRVOfk2GZaDpPjcOKiiXCPINZC1GczQ7iTq3Zw==
+
+nested-error-stacks@^2.0.0, nested-error-stacks@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/nested-error-stacks/-/nested-error-stacks-2.1.0.tgz#0fbdcf3e13fe4994781280524f8b96b0cdff9c61"
+  integrity sha512-AO81vsIO1k1sM4Zrd6Hu7regmJN1NSiAja10gc4bX3F0wd+9rQmcuHQaHVQCYIEC8iFXnE+mavh23GOt7wBgug==
 
 nice-try@^1.0.4:
   version "1.0.5"

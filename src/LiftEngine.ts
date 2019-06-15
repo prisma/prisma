@@ -45,10 +45,12 @@ export class LiftEngine {
     debugRpc('SENDING RPC CALL', util.inspect(request, { depth: null }))
     return new Promise((resolve, reject) => {
       const messages: string[] = []
+      const { PWD, ...rest } = process.env
       const child = spawn(this.binaryPath, {
+        cwd: this.projectDir,
         stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
         env: {
-          ...process.env,
+          ...rest,
           SERVER_ROOT: this.projectDir,
           RUST_BACKTRACE: '1',
         },

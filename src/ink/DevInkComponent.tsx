@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { render, Color, Box, StdoutContext, StdinContext } from 'ink'
+import { Color, Box, StdoutContext, StdinContext } from 'ink'
 import Link from 'ink-link'
 import supportsHyperlinks from 'supports-hyperlinks'
 import cliCursor from 'cli-cursor'
@@ -25,6 +25,7 @@ export interface DevComponentProps {
   error?: Error
   datamodelPath: string
   studioPort: number
+  relativeDatamodelPath: string
 }
 
 export interface Props extends DevComponentProps {
@@ -53,7 +54,7 @@ class DevComponent extends Component<Props, State> {
     showDiff: false,
   }
   get width() {
-    return Math.min(this.props.stdout.columns || 64, 120) - 4
+    return (this.props.stdout.columns || 64) - 4
   }
   get height() {
     return Math.min(this.props.stdout.rows || 19, 120) - 2
@@ -113,11 +114,11 @@ class DevComponent extends Component<Props, State> {
             </Box>
           </Box>
           <Box flexDirection="column">
-            <Color gray>{'─'.repeat(this.width)}</Color>
+            <Color dim>{'─'.repeat(this.width)}</Color>
             <Box>
               <Box>
                 <Color bold>b: </Color>
-                <Color grey>back</Color>
+                <Color dim>back</Color>
               </Box>
             </Box>
           </Box>
@@ -148,7 +149,7 @@ class DevComponent extends Component<Props, State> {
             {callsite}
           </Box>
           <Box marginTop={1}>
-            <Color>{this.props.error.message}</Color>
+            <Color>{this.props.error.stack}</Color>
           </Box>
         </Box>
       )
@@ -157,15 +158,15 @@ class DevComponent extends Component<Props, State> {
       <Box flexDirection="column" marginTop={1} marginLeft={1} height={this.height} justifyContent="space-between">
         <Box flexDirection="column">
           <Box marginLeft={2} flexDirection="column">
-            <Color bold>Watching for changes in project.prisma</Color>
+            <Color bold>Watching for changes in {this.props.relativeDatamodelPath}</Color>
             {this.props.lastChanged ? (
-              <Color gray>Last changed at {renderDate(this.props.lastChanged)}</Color>
+              <Color dim>Last changed at {renderDate(this.props.lastChanged)}</Color>
             ) : (
-              <Color gray>No changes yet</Color>
+              <Color dim>No changes yet</Color>
             )}
             <Box marginTop={2} flexDirection="column">
               <Color bold>Generator</Color>
-              <Color gray>{'─'.repeat(this.width)}</Color>
+              <Color dim>{'─'.repeat(this.width)}</Color>
             </Box>
           </Box>
           <Box marginTop={0} marginLeft={0}>
@@ -191,15 +192,15 @@ class DevComponent extends Component<Props, State> {
                 <Box flexDirection="column" marginLeft={4}>
                   {generators.map(gen =>
                     gen.generating ? (
-                      <Color grey key={gen.name}>
+                      <Color dim key={gen.name}>
                         Generating...
                       </Color>
                     ) : gen.generatedIn ? (
-                      <Color grey key={gen.name}>
+                      <Color dim key={gen.name}>
                         generated in {formatms(gen.generatedIn)}
                       </Color>
                     ) : (
-                      <Color grey key={gen.name}>
+                      <Color dim key={gen.name}>
                         not yet generated
                       </Color>
                     ),
@@ -211,7 +212,7 @@ class DevComponent extends Component<Props, State> {
           <Box marginLeft={2} flexDirection="column">
             <Box marginTop={2} flexDirection="column">
               <Color bold>Migrations</Color>
-              <Color gray>{'─'.repeat(this.width)}</Color>
+              <Color dim>{'─'.repeat(this.width)}</Color>
             </Box>
           </Box>
           <Box marginTop={0} flexDirection="column">
@@ -226,7 +227,7 @@ class DevComponent extends Component<Props, State> {
               </Color>
             )}
             <Box marginLeft={2}>
-              <Color gray>
+              <Color dim>
                 To save changes into a migration file, run{' '}
                 <Color bold dim green>
                   prisma lift save
@@ -248,11 +249,11 @@ class DevComponent extends Component<Props, State> {
               )}
             </Box>
           </Box>
-          <Color gray>{'─'.repeat(this.width)}</Color>
+          <Color dim>{'─'.repeat(this.width)}</Color>
           <Box>
             <Box>
               <Color bold>d: </Color>
-              <Color grey>diff</Color>
+              <Color dim>diff</Color>
             </Box>
           </Box>
         </Box>
