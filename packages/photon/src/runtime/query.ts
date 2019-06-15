@@ -1,6 +1,7 @@
 import chalk from 'chalk'
 import 'flat-map-polyfill'
 import indent from 'indent-string'
+import * as stackTraceParser from 'stacktrace-parser'
 import { /*dmmf, */ DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import {
@@ -111,38 +112,45 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
       // @ts-ignore
       if (callsite && typeof window === 'undefined') {
-        const [fileName, lineNumberString] = callsite.split(':')
-        const lineNumber = parseInt(lineNumberString, 10)
-        if (lineNumber && !isNaN(lineNumber) && process.env.NODE_ENV !== 'production') {
-          callsiteStr = callsite ? ` in ${chalk.underline(callsite)}` : ''
+        const stack = stackTraceParser.parse(callsite)
+        // TODO: more resilient logic to check that it's not relative to cwd
+        const trace = stack.find(
+          t => !t.file.includes('@generated') && !t.methodName.includes('new ') && t.methodName.split('.').length < 4,
+        )
+        if (trace && process.env.NODE_ENV !== 'production') {
+          const fileName = trace.file
+          const lineNumber = trace.lineNumber
+          callsiteStr = callsite ? ` in ${chalk.underline(`${trace.file}:${trace.lineNumber}:${trace.column}`)}` : ''
           const height = process.stdout.rows || 20
           const start = Math.max(0, lineNumber - 5)
           const neededHeight = lastErrorHeight + lineNumber - start
           if (height > neededHeight) {
             const fs = require('fs')
-            const file = fs.readFileSync(fileName, 'utf-8')
-            const slicedFile = file
-              .split('\n')
-              .slice(start, lineNumber)
-              .join('\n')
-            const lines = dedent(slicedFile).split('\n')
-
-            const theLine = lines[lines.length - 1]
-            const photonRegex = /(=|return)+\s+(await)?\s*(.*\()/
-            const match = theLine.match(photonRegex)
-            if (match) {
-              functionName = `${match[3]})`
-            }
-            const highlightedLines = highlightTS(
-              lines.map((l, i, all) => (i === all.length - 1 ? l.slice(0, l.length - 1) : l)).join('\n'),
-            ).split('\n')
-            prevLines =
-              '\n' +
-              highlightedLines
-                .map((l, i) => chalk.grey(renderN(i + start + 1, lineNumber + start + 1) + ' ') + chalk.reset() + l)
+            if (fs.existsSync(fileName)) {
+              const file = fs.readFileSync(fileName, 'utf-8')
+              const slicedFile = file
+                .split('\n')
+                .slice(start, lineNumber)
                 .join('\n')
-            afterLines = ')'
-            indentValue = String(lineNumber + start + 1).length + getIndent(theLine) + 1
+              const lines = dedent(slicedFile).split('\n')
+
+              const theLine = lines[lines.length - 1]
+              const photonRegex = /(=|return)+\s+(await)?\s*(.*\()/
+              const match = theLine.match(photonRegex)
+              if (match) {
+                functionName = `${match[3]})`
+              }
+              const highlightedLines = highlightTS(
+                lines.map((l, i, all) => (i === all.length - 1 ? l.slice(0, l.length - 1) : l)).join('\n'),
+              ).split('\n')
+              prevLines =
+                '\n' +
+                highlightedLines
+                  .map((l, i) => chalk.grey(renderN(i + start + 1, lineNumber + start + 1) + ' ') + chalk.reset() + l)
+                  .join('\n')
+              afterLines = ')'
+              indentValue = String(lineNumber + start + 1).length + getIndent(theLine) + 1
+            }
           }
         }
       }

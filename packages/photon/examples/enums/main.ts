@@ -10,7 +10,7 @@ async function main() {
   })
 
   console.clear()
-  const user = await photon.ppusers.create({
+  const user = await photon.users.create({
     data: {
       email: 'some@mail.com',
       location: {
@@ -20,7 +20,7 @@ async function main() {
       },
       name: 'Tom Tailor',
       status: 'active',
-      favoriteTree: 'YELLOWBIRCH',
+      favoriteTree: 'YELLOWBIRC',
     },
   })
   console.log(user)

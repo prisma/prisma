@@ -1,6 +1,6 @@
-import { DMMF, ExternalDMMF } from './dmmf-types'
-import { keyBy, capitalize, lowerCase } from './utils/common'
 import pluralize from 'pluralize'
+import { DMMF, ExternalDMMF } from './dmmf-types'
+import { capitalize, keyBy, lowerCase } from './utils/common'
 
 function transformFieldKind(model: ExternalDMMF.Model): DMMF.Model {
   return {
