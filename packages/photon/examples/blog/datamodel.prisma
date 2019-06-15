@@ -22,7 +22,7 @@ model Author {
   name  String?
   posts Post[]
   blog  Blog
-}         
+}
 
 model Post {
   id    Int      @id
@@ -32,6 +32,6 @@ model Post {
 }
 
 model PostNews {
-  new Int @id
+  new        Int     @id
   otherField String?
 }

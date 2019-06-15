@@ -1,3 +1,4 @@
+import { LiftEngine } from '@prisma/lift'
 import copy from 'cpy'
 import fs from 'fs-extra'
 import makeDir from 'make-dir'
@@ -35,12 +36,24 @@ export async function buildClient({
   const fileMap = {}
 
   const dmmf = await getDMMF(datamodel, binaryPath)
+  const liftEngine = new LiftEngine({
+    projectDir: cwd,
+  })
+  const config = await liftEngine.getConfig({ datamodel })
+  const datamodelWithoutDatasources = await liftEngine.convertDmmfToDml({
+    config: {
+      datasources: [],
+      generators: [],
+    },
+    dmmf: JSON.stringify(dmmf.datamodel),
+  })
   const client = new TSClient({
     document: dmmf,
     cwd,
-    datamodel,
+    datamodel: datamodelWithoutDatasources.datamodel,
     runtimePath,
     browser,
+    datasources: config.datasources,
   })
   const generatedClient = String(client)
   const target = '@generated/photon/index.ts'
