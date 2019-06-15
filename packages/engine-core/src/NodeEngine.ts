@@ -4,6 +4,7 @@ import * as net from 'net'
 import debugLib from 'debug'
 import fetch from 'cross-fetch'
 import { Engine, PhotonError } from './Engine'
+import Process from './process'
 
 const debug = debugLib('engine')
 
@@ -16,12 +17,24 @@ interface EngineConfig {
 }
 
 /**
+ * Global process list so node.js doesn't get all uptight
+ * about "Possible EventEmitter memory leak detected. 11 SIGTERM listeners added"
+ */
+const processes: Process[] = []
+
+/**
+ * Pass the signals through
+ */
+process.once('SIGTERM', sig => processes.map(proc => proc.signal(sig)))
+process.once('SIGINT', sig => processes.map(proc => proc.signal(sig)))
+
+/**
  * Node.js based wrapper to run the Prisma binary
  */
 export class NodeEngine extends Engine {
   port?: number
   debug: boolean
-  child?: ChildProcess
+  child?: Process
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -38,6 +51,7 @@ export class NodeEngine extends Engine {
   stdoutLogs: string = ''
   currentRequestPromise?: Promise<any>
   static defaultPrismaPath = path.join(__dirname, '../prisma')
+
   constructor({ cwd, datamodel, prismaPath, ...args }: EngineConfig) {
     super()
     this.cwd = cwd || process.cwd()
@@ -47,7 +61,6 @@ export class NodeEngine extends Engine {
     if (this.debug) {
       debugLib.enable('engine')
     }
-    this.startPromise = this.start()
   }
 
   /**
@@ -59,49 +72,35 @@ export class NodeEngine extends Engine {
     }
     return new Promise(async (resolve, reject) => {
       this.port = await this.getFreePort()
-      debug(`Starting binary at ${this.prismaPath}`)
-      const env = {
+      const proc = (this.child = new Process(this.prismaPath))
+
+      // set the working directory
+      proc.cwd(this.cwd)
+
+      // add the environment
+      proc.env({
         ...process.env,
         PRISMA_DML: this.datamodel,
         PORT: String(this.port),
         RUST_BACKTRACE: '1',
+      })
+
+      // proxy stdout and stderr
+      proc.stderr(process.stderr)
+      proc.stdout(process.stdout)
+
+      // start the process
+      const err = await proc.start()
+      if (err instanceof Error) {
+        return reject(err)
       }
-      debug(env)
-      this.child = spawn(this.prismaPath, [], {
-        env,
-        detached: false,
-        cwd: this.cwd,
-      })
-      this.child.stderr.on('data', d => {
-        const str = d.toString()
-        this.stdoutLogs += str
-        debug(str)
-      })
-      this.child.stdout.on('data', d => {
-        const data = d.toString()
-        this.stderrLogs += data
-        debug(data)
-      })
-      this.child.on('error', e => {
-        this.stderrLogs += e.toString()
-        debug(e)
-        reject(e)
-      })
-      this.child.on('exit', (code, e) => {
-        if (code !== 0 && !this.exiting) {
-          console.error(`Engine path: ${this.prismaPath}`)
-          const logs = this.stderrLogs + this.stdoutLogs
-          throw new PhotonError(`Error in query engine: ` + logs, undefined, undefined, logs)
-        }
-      })
 
-      // Make sure we kill Rust when this process is being killed
-      process.on('SIGTERM', e => this.fail(e, 'SIGTERM'))
-      process.on('SIGINT', e => this.fail(e, 'SIGINT'))
-      // process.once('uncaughtException', e => this.fail(e, 'uncaughtException'))
-      // process.once('unhandledRejection', e => this.fail(e, 'unhandledRejection'))
+      // add process to processes list
+      processes.push(proc)
 
+      // wait for the engine to be ready
       await this.engineReady()
+
       const url = `http://localhost:${this.port}`
       this.url = url
       resolve()
@@ -132,8 +131,11 @@ export class NodeEngine extends Engine {
     if (this.child) {
       debug(`Stopping Prisma engine`)
       this.exiting = true
-      this.child.kill()
+      await this.child.kill()
       delete this.child
+      // cleanup processes array
+      const i = processes.indexOf(this.child)
+      if (~i) processes.splice(i, 1)
     }
   }
 
@@ -248,6 +250,7 @@ export class NodeEngine extends Engine {
       })
     return this.currentRequestPromise
   }
+
   handleErrors({ errors, query }: { errors?: any; query: string }) {
     const stringified = errors ? JSON.stringify(errors, null, 2) : null
     const message = stringified.length > 0 ? stringified : `Error in photon.\$\{rootField || 'query'}`
