@@ -1,42 +1,42 @@
 type Album {
-  id: Int! @id @db(name: "AlbumId")
-  title: String! @db(name: "Title")
-  artist: Artist! @db(name: "ArtistId")
+  id: Int! @id @map(name: "AlbumId")
+  title: String! @map(name: "Title")
+  artist: Artist! @map(name: "ArtistId")
   tracks: [Track]
 }
 
 type Track {
-  id: Int! @id @db(name: "TrackId")
-  name: String! @db(name: "Name")
-  album: Album @db(name: "AlbumId")
-  albumId: Int @db(name: "AlbumId")
-  mediaType: MediaType! @db(name: "MediaTypeId")
-  genre: Genre @db(name: "GenreId")
-  composer: String @db(name: "Composer")
-  milliseconds: Int! @db(name: "Milliseconds")
-  unitPrice: Float! @db(name: "UnitPrice")
+  id: Int! @id @map(name: "TrackId")
+  name: String! @map(name: "Name")
+  album: Album @map(name: "AlbumId")
+  albumId: Int @map(name: "AlbumId")
+  mediaType: MediaType! @map(name: "MediaTypeId")
+  genre: Genre @map(name: "GenreId")
+  composer: String @map(name: "Composer")
+  milliseconds: Int! @map(name: "Milliseconds")
+  unitPrice: Float! @map(name: "UnitPrice")
   playlists: [Playlist] @relation(name: "PlaylistTrack")
 }
 
 type MediaType {
-  id: Int! @id @db(name: "MediaTypeId")
-  name: String @db(name: "Name")
+  id: Int! @id @map(name: "MediaTypeId")
+  name: String @map(name: "Name")
 }
 
 type Genre {
-  id: Int! @id @db(name: "GenreId")
-  name: String @db(name: "Name")
+  id: Int! @id @map(name: "GenreId")
+  name: String @map(name: "Name")
   tracks: [Track]
 }
 
 type Artist {
-  id: Int! @id @db(name: "ArtistId")
-  name: String @db(name: "Name")
+  id: Int! @id @map(name: "ArtistId")
+  name: String @map(name: "Name")
   albums: [Album]
 }
 
 type Customer {
-  id: Int! @id @db(name: "CustomerId")
+  id: Int! @id @map(name: "CustomerId")
   FirstName: String!
   LastName: String!
   Company: String
@@ -48,11 +48,11 @@ type Customer {
   Phone: String
   Fax: String
   Email: String!
-  supportRep: Employee @db(name: "SupportRepId")
+  supportRep: Employee @map(name: "SupportRepId")
 }
 
 type Employee {
-  id: Int! @id @db(name: "EmployeeId")
+  id: Int! @id @map(name: "EmployeeId")
   FirstName: String!
   LastName: String!
   Title: String
@@ -70,8 +70,8 @@ type Employee {
 }
 
 type Invoice {
-  id: Int! @id @db(name: "InvoiceId")
-  Customer: Customer! @db(name: "CustomerId")
+  id: Int! @id @map(name: "InvoiceId")
+  Customer: Customer! @map(name: "CustomerId")
   InvoiceDate: DateTime!
   BillingAddress: String
   BillingCity: String
@@ -83,15 +83,15 @@ type Invoice {
 }
 
 type InvoiceLine {
-  id: Int! @id @db(name: "InvoiceLineId")
-  Invoice: Invoice! @db(name: "InvoiceId")
-  Track: Track! @db(name: "TrackId")
+  id: Int! @id @map(name: "InvoiceLineId")
+  Invoice: Invoice! @map(name: "InvoiceId")
+  Track: Track! @map(name: "TrackId")
   UnitPrice: Float!
   Quantity: Int!
 }
 
 type Playlist {
-  id: Int! @id @db(name: "PlaylistId")
+  id: Int! @id @map(name: "PlaylistId")
   Name: String
   Tracks: [Track] @relation(name: "PlaylistTrack")
 }
