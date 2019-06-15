@@ -2,15 +2,17 @@ import Photon from './@generated/photon'
 
 async function main() {
   const photon = new Photon({
-    hooks: {
-      beforeRequest: args => {
-        console.log(args)
+    __internal: {
+      hooks: {
+        beforeRequest: args => {
+          // console.log(args)
+        },
       },
     },
   })
 
   console.clear()
-  const res = await photon.users({ asd: 123 } as any)
+  const res = await photon.users()
   console.log(res)
   // const user = await photon.users.create({
   //   data: {

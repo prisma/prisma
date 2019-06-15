@@ -3,6 +3,7 @@ import indent from 'indent-string'
 import { DMMFClass } from '../runtime/dmmf'
 import { BaseField, DMMF } from '../runtime/dmmf-types'
 import { capitalize, GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
+import { InternalDatasource } from '../runtime/utils/printDatasources'
 import {
   getDefaultName,
   getFieldArgName,
@@ -19,7 +20,19 @@ import {
 
 const tab = 2
 
-const commonCode = runtimePath => `import { DMMF, DMMFClass, deepGet, deepSet, makeDocument, Engine, debugLib, transformDocument } from '${runtimePath}'
+const commonCode = runtimePath => `import {
+  DMMF,
+  DMMFClass,
+  deepGet,
+  deepSet,
+  makeDocument,
+  Engine,
+  debugLib,
+  transformDocument,
+  InternalDatasource,
+  Datasource,
+  printDatasources
+} from '${runtimePath}'
 
 const debug = debugLib('photon')
 
@@ -94,6 +107,7 @@ interface TSClientOptions {
   cwd?: string
   runtimePath: string
   browser?: boolean
+  datasources: InternalDatasource[]
 }
 
 export class TSClient {
@@ -103,12 +117,14 @@ export class TSClient {
   protected readonly datamodel: string
   protected readonly runtimePath: string
   protected readonly browser: boolean
-  constructor({ document, datamodel, runtimePath, browser = false, cwd }: TSClientOptions) {
+  protected readonly internalDatasources: InternalDatasource[]
+  constructor({ document, datamodel, runtimePath, browser = false, cwd, datasources }: TSClientOptions) {
     this.document = document
     this.cwd = cwd
     this.datamodel = datamodel
     this.runtimePath = runtimePath
     this.browser = browser
+    this.internalDatasources = datasources
     // We make a deep clone here as otherwise we would serialize circular references
     // which we're building up in the DMMFClass
     this.dmmf = new DMMFClass(JSON.parse(JSON.stringify(document)))
@@ -120,7 +136,7 @@ export class TSClient {
  * Client
 **/
 
-${new PhotonClientClass(this.dmmf, this.datamodel, this.cwd, this.browser)}
+${new PhotonClientClass(this.dmmf, this.datamodel, this.internalDatasources, this.cwd, this.browser)}
 
 ${new Query(this.dmmf, 'query')}
 
@@ -162,11 +178,27 @@ export const dmmf: DMMF.Document = ${JSON.stringify(this.document)}
     //   .join('\n')}
   }
 }
+// export type Fetcher = (input: {
+//   query: string
+//   typeName?: string
+// }) => Promise<{ data?: any; error?: any; errors?: any }>
+// fetcher?: Fetcher
+
+class Datasources {
+  constructor(protected readonly internalDatasources: InternalDatasource[]) {}
+  public toString() {
+    const sources = this.internalDatasources
+    return `export type Datasources = {
+${indent(sources.map(s => `${s.name}?: Datasource`).join('\n'), 2)}
+}`
+  }
+}
 
 class PhotonClientClass {
   constructor(
     protected readonly dmmf: DMMFClass,
     protected readonly datamodel: string,
+    protected readonly internalDatasources: InternalDatasource[],
     protected readonly cwd?: string,
     protected readonly browser?: boolean,
   ) {}
@@ -174,22 +206,27 @@ class PhotonClientClass {
     const { dmmf } = this
 
     return `
-
-
-export type Fetcher = (input: {
-  query: string
-  typeName?: string
-}) => Promise<{ data?: any; error?: any; errors?: any }>
+${new Datasources(this.internalDatasources)}
 
 export interface PhotonOptions {
-  debugEngine?: boolean
-  debug?: boolean
-  fetcher?: Fetcher
-  cwd?: string
-  datamodel?: string
-  autoconnect?: boolean
-  binaryPath?: string
-  hooks?: Hooks
+  datasources?: Datasources
+  autoConnect?: boolean
+
+  debug?: boolean | {
+    engine?: boolean
+    library?: boolean
+  }
+
+  /**
+   * You probably don't want to use this. \`__internal\` is used by internal tooling.
+   */
+  __internal?: {
+    hooks?: Hooks
+    engine?: {
+      cwd?: string
+      binaryPath?: string
+    }
+  }
 }
 
 export type Hooks = {
@@ -200,35 +237,46 @@ export default class Photon {
   private fetcher: PhotonFetcher
   private readonly dmmf: DMMFClass
   private readonly engine: Engine
-  private readonly autoconnect: boolean
-  constructor(options: PhotonOptions = {autoconnect: true}) {
-    const useDebug = options.debug || false
+  private readonly autoConnect: boolean
+  private readonly internalDatasources: InternalDatasource[]
+  private readonly datamodel: string
+  constructor(options: PhotonOptions = {autoConnect: true}) {
+    const useDebug = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.library) : false
     if (useDebug) {
       debugLib.enable('photon')
     }
-    const debugEngine = options.debugEngine || false
-    this.engine = new Engine({${
-      this.browser
-        ? `\
-      fetcher: options.fetcher!\n`
-        : `
-      cwd: options.cwd || ${this.cwd ? JSON.stringify(this.cwd) : 'undefined'},
+    const debugEngine = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.engine) : false
+
+    // datamodel = datamodel without datasources + printed datasources
+    this.datamodel = ${JSON.stringify(this.datamodel)}
+    this.internalDatasources = ${JSON.stringify(this.internalDatasources)}
+    const printedDatasources = printDatasources(options.datasources || {}, this.internalDatasources)
+    const datamodel = printedDatasources + '\\n\\n' + this.datamodel
+    debug('datamodel:')
+    debug(datamodel)
+
+    const internal = options.__internal || {}
+    const engineConfig = internal.engine || {}
+
+    this.engine = new Engine({
+      cwd: engineConfig.cwd || ${this.cwd ? JSON.stringify(this.cwd) : 'undefined'},
       debug: debugEngine,
-      datamodel: options.datamodel || ${JSON.stringify(this.datamodel)},
-      prismaPath: options.binaryPath || undefined`
-    }
+      datamodel,
+      prismaPath: engineConfig.binaryPath || undefined
     })
+
     this.dmmf = new DMMFClass(dmmf)
-    this.fetcher = new PhotonFetcher(this.engine, false, options.hooks)
-    this.autoconnect = typeof options.autoconnect === 'boolean' ? options.autoconnect : true
-  }
-  async connect() {
-    if (this.autoconnect) {
-      await this.engine.startPromise
+    this.fetcher = new PhotonFetcher(this.engine, false, internal.hooks)
+    this.autoConnect = typeof options.autoConnect === 'boolean' ? options.autoConnect : true
+    if (this.autoConnect) {
+      this.connect()
     }
+  }
+  connect(): Promise<void> {
+    return this.engine.start()
   }
   async disconnect() {
-    this.engine.stop()
+    await this.engine.stop()
   }
   private _query?: QueryDelegate
   get query(): QueryDelegate {

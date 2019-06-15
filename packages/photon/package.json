@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "0.0.70",
+  "version": "0.0.71",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -31,6 +31,7 @@
     "scripts"
   ],
   "devDependencies": {
+    "@prisma/lift": "^0.0.70",
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
@@ -55,6 +56,9 @@
     "typescript": "^3.5.1",
     "webpack": "5.0.0-alpha.14",
     "webpack-cli": "4.0.0-alpha-4"
+  },
+  "peerDependencies": {
+    "@prisma/lift": "*"
   },
   "dependencies": {
     "@prisma/cli": "^0.0.10",
