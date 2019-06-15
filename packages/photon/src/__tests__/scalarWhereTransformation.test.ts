@@ -51,11 +51,11 @@ describe('scalar where transformation', () => {
       dmmf,
       select,
       rootTypeName: 'query',
-      rootField: 'users',
+      rootField: 'findManyUser',
     })
     expect(String(document)).toMatchInlineSnapshot(`
       "query {
-        users(where: {
+        findManyUser(where: {
           AND: [
             {
               email: {
@@ -101,7 +101,7 @@ describe('scalar where transformation', () => {
     `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       "query {
-        users(where: {
+        findManyUser(where: {
           AND: [
             {
               email: \\"a@a.de\\"

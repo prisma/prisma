@@ -10,20 +10,22 @@ async function main() {
   })
 
   console.clear()
-  const user = await photon.users.create({
-    data: {
-      email: 'some@mail.com',
-      location: {
-        create: {
-          city: 'Berlin',
-        },
-      },
-      name: 'Tom Tailor',
-      status: 'active',
-      favoriteTree: 'YELLOWBIRC',
-    },
-  })
-  console.log(user)
+  const res = await photon.users({ asd: 123 } as any)
+  console.log(res)
+  // const user = await photon.users.create({
+  //   data: {
+  //     email: 'some@mail.com',
+  //     location: {
+  //       create: {
+  //         city: 'Berlin',
+  //       },
+  //     },
+  //     name: 'Tom Tailor',
+  //     status: 'active',
+  //     favoriteTree: 'YELLOWBIRCH',
+  //   },
+  // })
+  // console.log(user)
   photon.disconnect()
 }
 
