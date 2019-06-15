@@ -100,8 +100,9 @@ export namespace EngineResults {
     generalErrors: any[]
   }
   export enum MigrationStatus {
-    Success = 'Success',
-    InProgress = 'InProgress',
+    MigrationSuccess = 'MigrationSuccess',
+    MigrationInProgress = 'MigrationInProgress',
+    MigrationFailure = 'MigrationFailure',
     Pending = 'Pending',
     RollingBack = 'RollingBack',
     RollbackSuccess = 'RollbackSuccess',

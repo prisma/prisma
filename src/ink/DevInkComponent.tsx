@@ -24,6 +24,7 @@ export interface DevComponentProps {
   lastChanged: Date | undefined
   error?: Error
   datamodelPath: string
+  studioPort: number
 }
 
 export interface Props extends DevComponentProps {
@@ -239,9 +240,11 @@ class DevComponent extends Component<Props, State> {
             <Box>
               <Color bold>Studio endpoint: </Color>
               {supportsHyperlinks.stdout ? (
-                <Link url={'http://localhost:5555/'}>http://localhost:5555/</Link>
+                <Link url={'http://localhost:/' + this.props.studioPort}>
+                  http://localhost:{this.props.studioPort}/
+                </Link>
               ) : (
-                <Color underline>http://localhost:5555/</Color>
+                <Color underline>http://localhost:{this.props.studioPort}/</Color>
               )}
             </Box>
           </Box>

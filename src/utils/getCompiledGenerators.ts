@@ -34,13 +34,10 @@ export async function getCompiledGenerators(
     return {
       prettyName: generator.definition.prettyName,
       generate: () =>
-        generateInThread({
-          packagePath: generator.packagePath,
-          config: {
-            cwd,
-            generator: definition,
-            otherGenerators,
-          },
+        generator.definition.generate({
+          cwd,
+          generator: definition,
+          otherGenerators,
         }),
     } as CompiledGeneratorDefinition
   })
