@@ -565,7 +565,7 @@ function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delega
     )}>) => new ${name}Client<${getSelectReturnType({
       name,
       actionName: DMMF.ModelAction.findMany,
-    })}>(dmmf, fetcher, 'query', '${mapping.plural}', '${mapping.plural}', args, [])
+    })}>(dmmf, fetcher, 'query', '${mapping.findMany}', '${mapping.plural}', args, [])
 ${indent(
   actions
     .map(

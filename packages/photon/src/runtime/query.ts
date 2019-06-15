@@ -115,9 +115,13 @@ ${indent(this.children.map(String).join('\n'), tab)}
         const stack = stackTraceParser.parse(callsite)
         // TODO: more resilient logic to check that it's not relative to cwd
         const trace = stack.find(
-          t => !t.file.includes('@generated') && !t.methodName.includes('new ') && t.methodName.split('.').length < 4,
+          t =>
+            t.file &&
+            !t.file.includes('@generated') &&
+            !t.methodName.includes('new ') &&
+            t.methodName.split('.').length < 4,
         )
-        if (trace && process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV !== 'production' && trace && trace.file && trace.lineNumber && trace.column) {
           const fileName = trace.file
           const lineNumber = trace.lineNumber
           callsiteStr = callsite ? ` in ${chalk.underline(`${trace.file}:${trace.lineNumber}:${trace.column}`)}` : ''
@@ -140,8 +144,13 @@ ${indent(this.children.map(String).join('\n'), tab)}
               if (match) {
                 functionName = `${match[3]})`
               }
+              const slicePoint = theLine.indexOf('{')
               const highlightedLines = highlightTS(
-                lines.map((l, i, all) => (i === all.length - 1 ? l.slice(0, l.length - 1) : l)).join('\n'),
+                lines
+                  .map((l, i, all) =>
+                    i === all.length - 1 ? l.slice(0, slicePoint > -1 ? slicePoint : l.length - 1) : l,
+                  )
+                  .join('\n'),
               ).split('\n')
               prevLines =
                 '\n' +

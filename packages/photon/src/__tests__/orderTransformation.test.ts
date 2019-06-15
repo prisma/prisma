@@ -20,32 +20,32 @@ describe('where transformation', () => {
       dmmf,
       select,
       rootTypeName: 'query',
-      rootField: 'users',
+      rootField: 'findManyUser',
     })
     expect(String(document)).toMatchInlineSnapshot(`
-            "query {
-              users(orderBy: {
-                email: asc
-              }) {
-                id
-                name
-                email
-                status
-                nicknames
-              }
-            }"
-        `)
+      "query {
+        findManyUser(orderBy: {
+          email: asc
+        }) {
+          id
+          name
+          email
+          status
+          nicknames
+        }
+      }"
+    `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-                              "query {
-                                users(orderBy: email_ASC) {
-                                  id
-                                  name
-                                  email
-                                  status
-                                  nicknames
-                                }
-                              }"
-                    `)
+      "query {
+        findManyUser(orderBy: email_ASC) {
+          id
+          name
+          email
+          status
+          nicknames
+        }
+      }"
+    `)
   })
 
   test('throw when 2 order by args provided', () => {
@@ -59,61 +59,61 @@ describe('where transformation', () => {
       dmmf,
       select,
       rootTypeName: 'query',
-      rootField: 'users',
+      rootField: 'findManyUser',
     })
     expect(String(document)).toMatchInlineSnapshot(`
-            "query {
-              users(orderBy: {
-                email: asc
-                id: asc
-              }) {
-                id
-                name
-                email
-                status
-                nicknames
-              }
-            }"
-        `)
+      "query {
+        findManyUser(orderBy: {
+          email: asc
+          id: asc
+        }) {
+          id
+          name
+          email
+          status
+          nicknames
+        }
+      }"
+    `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-                              "query {
-                                users(orderBy: email_ASC) {
-                                  id
-                                  name
-                                  email
-                                  status
-                                  nicknames
-                                }
-                              }"
-                    `)
+      "query {
+        findManyUser(orderBy: email_ASC) {
+          id
+          name
+          email
+          status
+          nicknames
+        }
+      }"
+    `)
     try {
-      document.validate(select)
+      document.validate(select, false, 'users')
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
+                "
 
-        Invalid \`photon.users()\` invocation:
+                Invalid \`photon.users()\` invocation:
 
-        {
-          orderBy: {
-            email: 'asc',
-            id: 'asc'
-          }
-          ~~~~~~~~~~~~~~~
-        }
+                {
+                  orderBy: {
+                    email: 'asc',
+                    id: 'asc'
+                  }
+                  ~~~~~~~~~~~~~~~
+                }
 
-        Argument orderBy of type UserOrderByInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
-        type UserOrderByInput {
-          id?: OrderByArg
-          name?: OrderByArg
-          email?: OrderByArg
-          status?: OrderByArg
-          favoriteTree?: OrderByArg
-        }
-        Note: Lines with + are required, lines with ? are optional.
+                Argument orderBy of type UserOrderByInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
+                type UserOrderByInput {
+                  id?: OrderByArg
+                  name?: OrderByArg
+                  email?: OrderByArg
+                  status?: OrderByArg
+                  favoriteTree?: OrderByArg
+                }
+                Note: Lines with + are required, lines with ? are optional.
 
-        "
-      `)
+                "
+            `)
     }
   })
 })

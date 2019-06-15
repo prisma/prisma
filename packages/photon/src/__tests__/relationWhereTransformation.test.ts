@@ -42,68 +42,68 @@ describe('relation where transformation', () => {
       dmmf,
       select,
       rootTypeName: 'query',
-      rootField: 'artists',
+      rootField: 'findManyArtist',
     })
     expect(String(document)).toMatchInlineSnapshot(`
-                  "query {
-                    artists(where: {
-                      Albums: {
+      "query {
+        findManyArtist(where: {
+          Albums: {
+            some: {
+              Tracks: {
+                some: {
+                  AND: [
+                    {
+                      UnitPrice: 5
+                      Playlists: {
                         some: {
                           Tracks: {
-                            some: {
-                              AND: [
-                                {
-                                  UnitPrice: 5
-                                  Playlists: {
-                                    some: {
-                                      Tracks: {
-                                        \\"some\\": {
-                                          \\"Name\\": \\"\\",
-                                          \\"Genre\\": {
-                                            \\"id\\": 5
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              ]
+                            \\"some\\": {
+                              \\"Name\\": \\"\\",
+                              \\"Genre\\": {
+                                \\"id\\": 5
+                              }
                             }
                           }
                         }
                       }
-                    }) {
-                      id
-                      Name
                     }
-                  }"
-            `)
+                  ]
+                }
+              }
+            }
+          }
+        }) {
+          id
+          Name
+        }
+      }"
+    `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-                  "query {
-                    artists(where: {
-                      Albums_some: {
-                        Tracks_some: {
-                          AND: [
-                            {
-                              UnitPrice: 5
-                              Playlists_some_Tracks: {
-                                \\"some\\": {
-                                  \\"Name\\": \\"\\",
-                                  \\"Genre\\": {
-                                    \\"id\\": 5
-                                  }
-                                }
-                              }
-                            }
-                          ]
-                        }
+      "query {
+        findManyArtist(where: {
+          Albums_some: {
+            Tracks_some: {
+              AND: [
+                {
+                  UnitPrice: 5
+                  Playlists_some_Tracks: {
+                    \\"some\\": {
+                      \\"Name\\": \\"\\",
+                      \\"Genre\\": {
+                        \\"id\\": 5
                       }
-                    }) {
-                      id
-                      Name
                     }
-                  }"
-            `)
+                  }
+                }
+              ]
+            }
+          }
+        }) {
+          id
+          Name
+        }
+      }"
+    `)
   })
 
   test('throw correctly for incorrect deep scalar', () => {
@@ -138,12 +138,12 @@ describe('relation where transformation', () => {
       dmmf,
       select,
       rootTypeName: 'query',
-      rootField: 'artists',
+      rootField: 'findManyArtist',
     })
-    expect(() => document.validate(select)).toThrowErrorMatchingInlineSnapshot(`
+    expect(() => document.validate(select, false, 'users')).toThrowErrorMatchingInlineSnapshot(`
 "
 
-Invalid \`photon.artists()\` invocation:
+Invalid \`photon.users()\` invocation:
 
 {
   where: {
@@ -219,9 +219,9 @@ Note: Lines with + are required, lines with ? are optional.
       dmmf,
       select,
       rootTypeName: 'query',
-      rootField: 'artists',
+      rootField: 'findManyArtist',
     })
-    expect(() => document.validate(select)).toThrowErrorMatchingInlineSnapshot(`
+    expect(() => document.validate(select, false, 'artists')).toThrowErrorMatchingInlineSnapshot(`
 "
 
 Invalid \`photon.artists()\` invocation:

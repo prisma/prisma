@@ -1,34 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`at least one validation invalid query 1`] = `
-"query {
-  users(where: {
-    email: {
-      equals: null
-      not: null
-      in: null
-      notIn: null
-      lt: null
-      lte: null
-      gt: null
-      gte: null
-      contains: null
-      startsWith: null
-      endsWith: null
-    }
-  }) {
-    id
-    name
-    email
-    status
-    nicknames
-  }
-}"
-`;
-
 exports[`at least one validation valid query 1`] = `
 "query {
-  users(where: {
+  findManyUser(where: {
     email: \\"\\"
   }) {
     id
