@@ -2,7 +2,6 @@ import { LiftEngine } from '@prisma/lift'
 import copy from 'cpy'
 import fs from 'fs-extra'
 import makeDir from 'make-dir'
-import { cpus } from 'os'
 import path from 'path'
 import {
   CompilerOptions,
@@ -35,7 +34,7 @@ export async function buildClient({
 }: BuildClientOptions): Promise<Dictionary<string>> {
   const fileMap = {}
 
-  const dmmf = await getDMMF(datamodel, binaryPath)
+  const dmmf = await getDMMF({ datamodel, cwd, prismaPath: binaryPath })
   const liftEngine = new LiftEngine({
     projectDir: cwd,
   })
@@ -47,6 +46,7 @@ export async function buildClient({
     },
     dmmf: JSON.stringify(dmmf.datamodel),
   })
+
   const client = new TSClient({
     document: dmmf,
     cwd,

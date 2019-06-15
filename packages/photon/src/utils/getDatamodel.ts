@@ -6,7 +6,7 @@ const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
 
 export async function getDatamodel(cwd: string): Promise<string> {
-  const datamodelPath = path.join(cwd, 'datamodel.prisma')
+  const datamodelPath = path.join(cwd, 'project.prisma')
   if (!(await exists(datamodelPath))) {
     throw new Error(`Could not find ${datamodelPath}`)
   }
