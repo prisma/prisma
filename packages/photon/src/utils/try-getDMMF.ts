@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { blog } from '../fixtures/blog'
-import { getRawDMMF, getDMMF } from './getDMMF'
+import { getDMMF, getRawDMMF } from './getDMMF'
 
 async function main() {
   console.log('fetching dmmf')

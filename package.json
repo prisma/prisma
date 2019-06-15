@@ -11,5 +11,8 @@
     "hooks": {
       "pre-commit": "yarn precommit"
     }
+  },
+  "dependencies": {
+    "stacktrace-parser": "^0.1.6"
   }
 }

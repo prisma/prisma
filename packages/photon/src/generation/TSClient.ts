@@ -67,10 +67,11 @@ export type Subset<T, U> = { [key in keyof T]: key extends keyof U ? T[key] : ne
 class PhotonFetcher {
   private url?: string
   constructor(private readonly engine: Engine, private readonly debug = false, private readonly hooks?: Hooks) {}
-  async request<T>(query: string, path: string[] = [], rootField?: string, typeName?: string): Promise<T> {
+  async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string): Promise<T> {
+    const query = String(document)
     debug(query)
     if (this.hooks && this.hooks.beforeRequest) {
-      this.hooks.beforeRequest({query, path, rootField, typeName})
+      this.hooks.beforeRequest({query, path, rootField, typeName, document})
     }
     const result = await this.engine.request(query, typeName)
     debug(result)
@@ -192,7 +193,7 @@ export interface PhotonOptions {
 }
 
 export type Hooks = {
-  beforeRequest?: (options: {query: string, path: string[], rootField?: string, typeName?: string}) => any
+  beforeRequest?: (options: {query: string, path: string[], rootField?: string, typeName?: string, document: any}) => any
 }
 
 export default class Photon {
@@ -610,11 +611,8 @@ class ${name}Client<T> implements PromiseLike<T> {
     if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
       const error = new Error()
       if (error && error.stack) {
-        const stack = error.stack.toString()
-        const line = stack.split('\\n').find(l => l.includes('at') && !l.includes('@generated/photon'))
-        if (line) {
-          this.callsite = line.trim().slice(3)
-        }
+        const stack = error.stack
+        this.callsite = stack
       }
     }
   }
@@ -650,7 +648,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
   2,
 )}
 
-  protected get query() {
+  protected get document() {
     const { rootField } = this
     const document = makeDocument({
       dmmf: this.dmmf,
@@ -670,8 +668,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
       throw e
     }
     debug(String(document))
-    const newDocument = transformDocument(document)
-    return String(newDocument)
+    return transformDocument(document)
   }
 
   /**
@@ -684,7 +681,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
     onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
-    return this.fetcher.request<T>(this.query, this.path, this.rootField, '${name}').then(onfulfilled, onrejected)
+    return this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}').then(onfulfilled, onrejected)
   }
 
   /**
@@ -695,7 +692,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
   catch<TResult = never>(
     onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
   ): Promise<T | TResult> {
-    return this.fetcher.request<T>(this.query, this.path, this.rootField, '${name}').catch(onrejected)
+    return this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}').catch(onrejected)
   }
 }
     `
@@ -719,7 +716,7 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
   constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PhotonFetcher, private readonly args: ${name}Args, private readonly path: []) {}
   readonly [Symbol.toStringTag]: 'Promise'
 
-  protected get query() {
+  protected get document() {
     const rootField = Object.keys(this.args)[0]
     const document = makeDocument({
       dmmf: this.dmmf,
@@ -730,7 +727,7 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
     })
     // @ts-ignore
     document.validate(this.args[rootField], true)
-    return String(document)
+    return document
   }
 
   /**
@@ -743,7 +740,7 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
     onfulfilled?: ((value: U) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
-    return this.fetcher.request<U>(this.query, this.path, undefined, '${name}').then(onfulfilled, onrejected)
+    return this.fetcher.request<U>(this.document, this.path, undefined, '${name}').then(onfulfilled, onrejected)
   }
 
   /**
@@ -754,7 +751,7 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
   catch<TResult = never>(
     onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
   ): Promise<U | TResult> {
-    return this.fetcher.request<U>(this.query, this.path, undefined, '${name}').catch(onrejected)
+    return this.fetcher.request<U>(this.document, this.path, undefined, '${name}').catch(onrejected)
   }
 }
     `
