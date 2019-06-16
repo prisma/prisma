@@ -684,9 +684,10 @@ ${indent(
 ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
-        hideCondition: true,
+        hideCondition: false,
         isField: true,
         renderPromise: true,
+        fieldName: f.name,
       })} {
   const path = [...this.path, 'select', '${f.name}']
   const newArgs = deepSet(this.args, path, args || true)

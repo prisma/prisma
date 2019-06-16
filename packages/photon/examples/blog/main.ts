@@ -7,26 +7,30 @@ async function main() {
     },
   })
 
-  const x = await photon.authors.create({
-    data: {
-      name: 'Mark',
-      posts: {
-        create: {
-          title: 'some title',
-          tags: {
-            set: ['asd'],
+  const a = await photon.posts
+    .create({
+      data: {
+        author: {
+          create: {
+            email: 'a@a.de',
+            name: 'A name',
           },
         },
+        title: 'Mitle',
       },
-      blog: {
-        create: {
-          name: 'Blog',
-          viewCount: 5,
-        },
-      },
-    },
-  })
-  console.log(x)
+    })
+    .author()
+    .profile()
+    .user()
+    .profile()
+
+  // const x = await photon.posts
+  //   .findOne({
+  //     where: {
+  //       id: 1,
+  //     },
+  //   })
+  //   .author()
 }
 
 main().catch(console.error)

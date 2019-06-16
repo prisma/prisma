@@ -112,6 +112,7 @@ interface SelectReturnTypeOptions {
   renderPromise?: boolean
   hideCondition?: boolean
   isField?: boolean
+  fieldName?: string
 }
 
 /**
@@ -125,13 +126,16 @@ export function getSelectReturnType({
   renderPromise = true,
   hideCondition = false,
   isField = false,
+  fieldName,
 }: SelectReturnTypeOptions) {
   const isList = actionName === DMMF.ModelAction.findMany
 
   const argName = isField ? getArgName(name, isList) : getModelArgName(name, actionName as DMMF.ModelAction)
 
   if (isList || hideCondition) {
-    return `${renderPromise ? 'PromiseLike<' : ''}Array<${name}GetPayload<Extract${argName}Select<T>>>${
+    const listOpen = isList ? 'Array<' : ''
+    const listClose = isList ? '>' : ''
+    return `${renderPromise ? 'PromiseLike<' : ''}${listOpen}${name}GetPayload<Extract${argName}Select<T>>${listClose}${
       renderPromise ? '>' : ''
     }`
   }
