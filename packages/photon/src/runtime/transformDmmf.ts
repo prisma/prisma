@@ -56,7 +56,7 @@ function transformOrderInputTypes(document: DMMF.Document): DMMF.Document {
             type: 'OrderByArg',
             isList: false,
             isRequired: false,
-            kind: 'enum',
+            kind: 'enum' as any,
           },
         ],
         isRelationFilter: false,

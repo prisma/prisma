@@ -79,9 +79,12 @@
     "make-dir": "^3.0.0",
     "node-fetch": "^2.6.0",
     "pluralize": "^8.0.0",
+    "prisma2": "0.0.47",
     "set-value": "^3.0.0",
+    "stacktrace-parser": "0.1.6",
     "strip-ansi": "^5.2.0",
     "strip-indent": "^3.0.0",
-    "terminal-link": "^1.3.0"
+    "terminal-link": "^1.3.0",
+    "wtfnode": "0.8.0"
   }
 }
