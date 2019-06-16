@@ -26,6 +26,7 @@ export default class Process {
   constructor(name: string, ...args: string[]) {
     this.name = name
     this.args = args || []
+    this.start = this.start.bind(this)
   }
 
   /**
@@ -33,6 +34,13 @@ export default class Process {
    */
   pid() {
     return this._process ? this._process.pid : 0
+  }
+
+  /**
+   * Running?
+   */
+  running(): boolean {
+    return !!this._running
   }
 
   /**
@@ -70,7 +78,12 @@ export default class Process {
    * in the future we should check to see if we had
    * an error immediately, using Promise.race([tick, deferred])
    */
-  async start(): Promise<Error | void> {
+  async start(): Promise<void> {
+    // don't spawn another process if we already have one running
+    if (this._running) {
+      return
+    }
+
     debug('starting: %s %s cwd: %s env: %j', this.name, this.args, this._cwd, this._env)
     this._process = spawn(this.name, this.args || [], {
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -88,31 +101,31 @@ export default class Process {
     const code = await Promise.race([tick(), this._running.wait()])
     // @todo buffer stderr and return that
     if (code) {
-      return new Error(`process exited with a non-zero code: ${code}`)
+      throw new Error(`process exited with a non-zero code: ${code}`)
     }
   }
 
   /**
    * Wait until the process exits or errors out
    */
-  async wait(): Promise<Error | void> {
+  async wait(): Promise<void> {
     if (!this._running) {
-      return new Error('process is not running')
+      throw new Error('process is not running')
     }
     const code = await this._running.wait()
     this._running = null
     if (code) {
-      return new Error(`process exited with a non-zero code: ${code}`)
+      throw new Error(`process exited with a non-zero code: ${code}`)
     }
   }
 
   /**
    * Run starts the process and waits for the result
    */
-  async run(): Promise<Error | void> {
-    const err = await this.start()
-    if (err instanceof Error) return err
-    return await this.wait()
+  async run(): Promise<void> {
+    await this.start()
+    await this.wait()
+    return
   }
 
   /**
@@ -125,9 +138,9 @@ export default class Process {
   /**
    * Kill and wait for the process to exit
    */
-  async kill(): Promise<Error | void> {
+  async kill(): Promise<void> {
     await this.signal('SIGTERM')
-    return this.wait()
+    await this.wait()
   }
 }
 module.exports = Process

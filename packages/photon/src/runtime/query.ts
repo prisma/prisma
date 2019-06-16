@@ -1040,9 +1040,7 @@ function objectToArgs(
   // TODO: think about using JSON.parse(JSON.stringify()) upfront instead to simplify things
   const obj = cleanObject(initialObj)
   const { fields: args } = inputType
-  const requiredArgs: Array<[string, any]> = args
-    .filter(arg => arg.inputType.some(t => t.isRequired))
-    .map(arg => [arg.name, undefined])
+  const requiredArgs: any = args.filter(arg => arg.inputType.some(t => t.isRequired)).map(arg => [arg.name, undefined])
   const entries = unionBy(Object.entries(obj || {}), requiredArgs, a => a[0])
   const argsList = entries.reduce(
     (acc, [argName, value]: any) => {
