@@ -9,12 +9,14 @@ export type DevComponentOptions = {
 
 export class DevComponentRenderer {
   state: DevComponentProps
-  app: Instance
+  app?: Instance
+  count: number = 0
+  lastNewState?: any
   constructor(options: DevComponentOptions) {
     this.state = options.initialState
     this.app = this.render()
     process.on('SIGINT', () => {
-      this.app.unmount()
+      this.app && this.app.unmount()
     })
   }
   // setState for nested array
@@ -23,6 +25,7 @@ export class DevComponentRenderer {
     this.render()
   }
   setState(state: Partial<DevComponentProps>) {
+    this.lastNewState = state
     this.state = { ...this.state, ...state }
     this.render()
   }
@@ -30,7 +33,6 @@ export class DevComponentRenderer {
     if (!this.app) {
       return render(<DevInkComponent {...this.state} />)
     }
-
     this.app.rerender(<DevInkComponent {...this.state} />)
 
     return this.app

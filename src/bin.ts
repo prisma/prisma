@@ -1,5 +1,12 @@
 #!/usr/bin/env ts-node
 
+process.on('uncaughtException', e => {
+  // console.log(e.name)
+})
+process.on('unhandledRejection', (e, promise) => {
+  // console.log(String(e), String(promise))
+})
+
 /**
  * Dependencies
  */

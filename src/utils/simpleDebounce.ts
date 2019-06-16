@@ -5,13 +5,9 @@
 export function simpleDebounce<T extends Function>(fn: T): T {
   let executing = false
   let pendingExecution: any = null
-  let lastExecution: number | undefined
   return <any>(async (...args) => {
     if (executing) {
       // if there are 2 executions 50ms apart, ignore the last one
-      if (lastExecution && Date.now() - lastExecution < 50) {
-        return null
-      }
       pendingExecution = args
       return null as any
     }
