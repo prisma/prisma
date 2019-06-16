@@ -89,12 +89,7 @@ class PhotonFetcher {
     if (this.hooks && this.hooks.beforeRequest) {
       this.hooks.beforeRequest({query, path, rootField, typeName, document})
     }
-    if (!this.engine.startPromise) {
-      // throw new Error('Could not perform query. Please either turn autoConnect: true or await photon.connect() first')
-      await this.engine.start()
-    } else {
-      await this.engine.startPromise
-    }
+    await this.engine.start()
     const result = await this.engine.request(query, typeName)
     debug(result)
     return this.unpack(result, path, rootField)

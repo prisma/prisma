@@ -22,14 +22,14 @@ model Author {
   id    Int     @id
   name  String?
   posts Post[]
-  blog  Blog
+  blog  Blog?
 }         
 
 model Post {
   id    Int      @id
   title String
   tags  String[]
-  blog  Blog
+  blog  Blog?
 }
 
 model PostNews {
