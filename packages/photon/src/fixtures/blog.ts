@@ -6,34 +6,42 @@ datasource db {
 }
 
 generator photon {
-  provider = "javascript"
-  output   = "node_modules/@generated/photon"
+  provider  = "javascript"
+  output    = "@generated/photon"
+  transpile = false
 }
 
-model Blog {
-  id        Int      @id
-  name      String
-  viewCount Int
-  posts     Post[]
-  authors   Author[]
+model User {
+  id      Int      @id
+  email   String   @unique
+  name    String
+  role    Role     @default(USER)
+  posts   Post[]
+  profile Profile? @relation(link: INLINE)
 }
 
-model Author {
-  id    Int     @id
-  name  String?
-  posts Post[]
-  blog  Blog?
-}         
+model Profile {
+  id   Int    @id
+  user User
+  bio  String
+}
 
 model Post {
-  id    Int      @id
-  title String
-  tags  String[]
-  blog  Blog?
+  id         Int        @id
+  author     User?
+  title      String
+  published  Boolean    @default(false)
+  categories Category[] @relation("PostToCategory")
 }
 
-model PostNews {
-  new Int @id
-  otherField String?
+model Category {
+  id    Int    @id
+  name  String
+  posts Post[] @relation("PostToCategory")
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 `
