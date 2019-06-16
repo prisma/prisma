@@ -1,4 +1,5 @@
 import Photon from './@generated/photon'
+// var wtf = require('wtfnode')
 
 async function main() {
   let photons: Photon[] = []
