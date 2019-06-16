@@ -18,10 +18,19 @@ export async function getos() {
     }
   }
 
-  const isMusl = await exists('/etc/os-release')
+  const isMusl = isAWSLambda()
 
   return {
     platform: 'linux',
     isMusl,
   }
+}
+
+// There doesn't seem to be a reliable way to
+// check if the distro supports glibc's shared
+// libraries or not.
+//
+// For now, we can add these checks as needed.
+function isAWSLambda(): boolean {
+  return !!process.env['AWS_EXECUTION_ENV']
 }
