@@ -1,10 +1,11 @@
-import { spawn, ChildProcess } from 'child_process'
+import { Engine, PhotonError } from './Engine'
+import fetch from 'cross-fetch'
+import Process from './process'
+import Deferred from 'deferral'
+import through from 'through2'
+import debugLib from 'debug'
 import * as path from 'path'
 import * as net from 'net'
-import debugLib from 'debug'
-import fetch from 'cross-fetch'
-import { Engine, PhotonError } from './Engine'
-import Process from './process'
 
 const debug = debugLib('engine')
 
@@ -46,7 +47,7 @@ export class NodeEngine extends Engine {
   datamodel: string
   prismaPath: string
   url: string
-  startPromise: Promise<void>
+  starting?: Deferred<void>
   stderrLogs: string = ''
   stdoutLogs: string = ''
   currentRequestPromise?: Promise<any>
@@ -66,45 +67,45 @@ export class NodeEngine extends Engine {
   /**
    * Starts the engine, returns the url that it runs on
    */
-  start(): Promise<void> {
-    if (this.startPromise) {
-      return this.startPromise
+  async start(): Promise<void> {
+    if (this.starting) {
+      return this.starting.wait()
     }
-    return new Promise(async (resolve, reject) => {
-      this.port = await this.getFreePort()
-      const proc = (this.child = new Process(this.prismaPath))
+    this.starting = new Deferred()
+    this.child = new Process(this.prismaPath)
 
-      // set the working directory
-      proc.cwd(this.cwd)
+    // set the working directory
+    this.child.cwd(this.cwd)
 
-      // add the environment
-      proc.env({
-        ...process.env,
-        PRISMA_DML: this.datamodel,
-        PORT: String(this.port),
-        RUST_BACKTRACE: '1',
-      })
+    this.port = await this.getFreePort()
 
-      // proxy stdout and stderr
-      proc.stderr(process.stderr)
-      proc.stdout(process.stdout)
-
-      // start the process
-      const err = await proc.start()
-      if (err instanceof Error) {
-        return reject(err)
-      }
-
-      // add process to processes list
-      processes.push(proc)
-
-      // wait for the engine to be ready
-      await this.engineReady()
-
-      const url = `http://localhost:${this.port}`
-      this.url = url
-      resolve()
+    // add the environment
+    this.child.env({
+      ...process.env,
+      PRISMA_DML: this.datamodel,
+      PORT: String(this.port),
+      RUST_BACKTRACE: '1',
     })
+
+    // proxy stdout and stderr
+    this.child.stderr(debugStream(debugLib('engine:stderr')))
+    this.child.stdout(debugStream(debugLib('engine:stdout')))
+
+    // start the process
+    await this.child.start()
+
+    // add process to processes list
+    processes.push(this.child)
+
+    // wait for the engine to be ready
+    await this.engineReady()
+
+    const url = `http://localhost:${this.port}`
+    this.url = url
+
+    // resolve starting to unlock other stakeholders
+    this.starting.resolve()
+    return
   }
 
   fail = async (e, why) => {
@@ -115,12 +116,8 @@ export class NodeEngine extends Engine {
   /**
    * If Prisma runs, stop it
    */
-  stop = async () => {
-    try {
-      await this.startPromise
-    } catch (e) {
-      //
-    }
+  async stop() {
+    await this.start()
     if (this.currentRequestPromise) {
       try {
         await this.currentRequestPromise
@@ -203,7 +200,8 @@ export class NodeEngine extends Engine {
   }
 
   async request<T>(query: string, typeName?: string): Promise<T> {
-    await this.startPromise
+    await this.start()
+
     if (!this.child) {
       throw new Error(`Engine has already been stopped`)
     }
@@ -260,4 +258,13 @@ export class NodeEngine extends Engine {
     }
     throw new PhotonError(message, query, errors, this.stderrLogs + this.stdoutLogs, isPanicked)
   }
+}
+
+// simple utility function to turn debug into a writable stream
+function debugStream(debugFn: any): NodeJS.WritableStream {
+  return through(function(chunk, _enc, fn) {
+    debugFn(chunk.toString())
+    this.push(chunk)
+    fn()
+  })
 }

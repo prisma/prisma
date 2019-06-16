@@ -5584,6 +5584,11 @@ prisma-datamodel@^1.36.0-alpha.8:
     pluralize "^7.0.0"
     popsicle "10"
 
+prisma2@0.0.47:
+  version "0.0.47"
+  resolved "https://registry.yarnpkg.com/prisma2/-/prisma2-0.0.47.tgz#bfb4ff233946317226c8235defac1004b806772a"
+  integrity sha512-kl59YC217o3/t4zH8YGL3lKf81uYhvausddrjgqeU7l3T7V4MVzIASUTW8EOoXMdXB7Ki61316QjoXfibSPW2w==
+
 process-nextick-args@~2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/process-nextick-args/-/process-nextick-args-2.0.0.tgz#a37d732f4271b4ab1ad070d35508e8290788ffaa"
@@ -6343,6 +6348,13 @@ stack-utils@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/stack-utils/-/stack-utils-1.0.2.tgz#33eba3897788558bebfc2db059dc158ec36cebb8"
   integrity sha512-MTX+MeG5U994cazkjd/9KNAapsHnibjMLnfXodlkXw76JEea0UiNzrqidzo1emMwk7w5Qhc9jd4Bn9TBb1MFwA==
+
+stacktrace-parser@0.1.6:
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/stacktrace-parser/-/stacktrace-parser-0.1.6.tgz#c17d466d15ba51bee2f753d064f17327a886ff37"
+  integrity sha512-wXhu0Z8YgCGigUtHQq+J7pjXCppk3Um5DwH4qskOKHMlJmKwuuUSm+wDAgU7t4sbVjvuDTNGwOfFKgjMEqSflA==
+  dependencies:
+    type-fest "^0.3.0"
 
 staged-git-files@1.1.2:
   version "1.1.2"
@@ -7304,6 +7316,11 @@ ws@^5.2.0:
   integrity sha512-jaHFD6PFv6UgoIVda6qZllptQsMlDEJkTQcybzzXDYM1XO9Y8em691FGMPmM46WGyLU4z9KMgQN+qrux/nhlHA==
   dependencies:
     async-limiter "~1.0.0"
+
+wtfnode@0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/wtfnode/-/wtfnode-0.8.0.tgz#26a1a6b8e07727d7ed29dacc6708bea4647ccd20"
+  integrity sha512-A5jm/0REykxUac1q4Q5kv+hDIiacvqVpwIoXzCQcRL7syeEKucVVOxyLLrt+jIiZoXfla3lnsxUw/cmWXIaGWA==
 
 xdg-basedir@^3.0.0:
   version "3.0.0"

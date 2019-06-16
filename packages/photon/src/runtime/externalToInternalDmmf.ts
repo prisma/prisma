@@ -5,7 +5,7 @@ import { capitalize, keyBy, lowerCase } from './utils/common'
 function transformFieldKind(model: ExternalDMMF.Model): DMMF.Model {
   return {
     ...model,
-    fields: model.fields.map(field => ({ ...field, kind: field.kind === 'relation' ? 'object' : field.kind })),
+    fields: model.fields.map(field => ({ ...field, kind: field.kind === 'relation' ? ('object' as any) : field.kind })),
   }
 }
 
