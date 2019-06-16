@@ -46,6 +46,8 @@ const ENTER = '\r'
 const BACKSPACE = '\x08'
 const DELETE = '\x7F'
 
+const height = Math.min(process.stdout.rows || 19, 120) - 2
+
 class DevComponent extends Component<Props, State> {
   lastHeight = process.stdout.rows
   lastWidth = process.stdout.columns
@@ -57,15 +59,10 @@ class DevComponent extends Component<Props, State> {
     return (this.props.stdout.columns || 64) - 4
   }
   get height() {
-    return Math.min(this.props.stdout.rows || 19, 120) - 2
+    return height
   }
   componentDidMount() {
     cliCursor.hide()
-    this.resizeInterval = setInterval(() => {
-      if (this.props.stdout.rows !== this.lastHeight || this.props.stdout.columns !== this.lastWidth) {
-        this.forceUpdate()
-      }
-    }, 100)
     process.stdout.on('resize', () => {
       this.forceUpdate()
     })
@@ -89,7 +86,6 @@ class DevComponent extends Component<Props, State> {
   }
   componentWillUnmount() {
     cliCursor.show()
-    clearInterval(this.resizeInterval)
     if (this.props.setRawMode) {
       this.props.setRawMode(false)
     }
@@ -166,7 +162,7 @@ class DevComponent extends Component<Props, State> {
             )}
             <Box marginTop={2} flexDirection="column">
               <Color bold>Generator</Color>
-              <Color dim>{'─'.repeat(this.width)}</Color>
+              <Color dim>{' '.repeat(this.width)}</Color>
             </Box>
           </Box>
           <Box marginTop={0} marginLeft={0}>

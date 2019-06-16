@@ -32,6 +32,8 @@ import { DevComponentRenderer } from './ink/DevComponentRenderer'
 import { getCompiledGenerators } from './utils/getCompiledGenerators'
 import getPort from 'get-port'
 const packageJson = require('../package.json')
+import debugLib from 'debug'
+const debug = debugLib('Lift')
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
@@ -83,37 +85,41 @@ export class Lift {
   }
 
   async recreateStudioServer(datamodel: string) {
-    if (this.studioServer) {
-      this.studioServer.stop()
-      delete this.studioServer
+    try {
+      if (this.studioServer) {
+        this.studioServer.stop()
+        delete this.studioServer
+      }
+
+      const pathCandidates = [
+        // ncc go home
+        eval(`require('path').join(__dirname, '../node_modules/@prisma/photon/runtime/prisma')`), // for local dev
+        eval(`require('path').join(__dirname, '../runtime/prisma')`), // for production
+      ]
+
+      const pathsExist = await Promise.all(
+        pathCandidates.map(async candidate => ({ exists: await exists(candidate), path: candidate })),
+      )
+
+      const firstExistingPath = pathsExist.find(p => p.exists)
+
+      if (!firstExistingPath) {
+        throw new Error(`Could not find any binary path for Studio. Looked in ${pathCandidates.join(', ')}`)
+      }
+
+      const StudioServer = require('@prisma/studio-server').default
+
+      this.studioServer = new StudioServer({
+        port: this.studioPort,
+        debug: false,
+        datamodel,
+        binaryPath: firstExistingPath.path,
+      })
+
+      await this.studioServer.start()
+    } catch (e) {
+      debug(e)
     }
-
-    const pathCandidates = [
-      // ncc go home
-      eval(`require('path').join(__dirname, '../node_modules/@prisma/photon/runtime/prisma')`), // for local dev
-      eval(`require('path').join(__dirname, '../runtime/prisma')`), // for production
-    ]
-
-    const pathsExist = await Promise.all(
-      pathCandidates.map(async candidate => ({ exists: await exists(candidate), path: candidate })),
-    )
-
-    const firstExistingPath = pathsExist.find(p => p.exists)
-
-    if (!firstExistingPath) {
-      throw new Error(`Could not find any binary path for Studio. Looked in ${pathCandidates.join(', ')}`)
-    }
-
-    const StudioServer = require('@prisma/studio-server').default
-
-    this.studioServer = new StudioServer({
-      port: this.studioPort,
-      debug: false,
-      datamodel,
-      binaryPath: firstExistingPath.path,
-    })
-
-    await this.studioServer.start()
   }
 
   public async getLockFile(): Promise<LockFile> {
@@ -340,8 +346,9 @@ export class Lift {
     })
 
     // silence everyone else. this is not a democracy
-    // console.log = () => ''
-    // console.error = () => ''
+    console.log = (...args) => {
+      debug(...args)
+    }
 
     this.recreateStudioServer(datamodel)
 
@@ -415,10 +422,10 @@ export class Lift {
           await this.persistWatchMigration({ migration, lastMigration: lastWatchMigration })
           const after = Date.now()
           renderer.setState({ migrating: false, migratedIn: after - before })
+          this.recreateStudioServer(datamodel)
         }
 
         if (datamodel !== this.datamodelBeforeWatch) {
-          this.recreateStudioServer(datamodel)
           renderer.setState({
             datamodelBefore: this.datamodelBeforeWatch,
             datamodelAfter: datamodel,
