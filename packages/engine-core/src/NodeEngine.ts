@@ -1,12 +1,11 @@
-import { spawn, ChildProcess } from 'child_process'
-import * as path from 'path'
-import * as net from 'net'
-import debugLib from 'debug'
-import fetch from 'cross-fetch'
 import { Engine, PhotonError } from './Engine'
+import fetch from 'cross-fetch'
 import Process from './process'
 import Deferred from 'deferral'
 import through from 'through2'
+import debugLib from 'debug'
+import * as path from 'path'
+import * as net from 'net'
 
 const debug = debugLib('engine')
 
