@@ -978,38 +978,33 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     value = [value]
   }
 
-  if (argInputType.kind === 'enum') {
+  if (argInputType.kind === 'enum' || argInputType.kind === 'scalar') {
     // if no value is incorrect
     return scalarToArg(key, value, arg, argInputType)
   }
 
-  if (argInputType.kind !== 'scalar') {
-    const inputType = argInputType.type as DMMF.InputType
-    const hasAtLeastOneError = inputType.atLeastOne ? value.some(v => Object.keys(cleanObject(v)).length === 0) : false
-    const error: AtLeastOneError | undefined = hasAtLeastOneError
-      ? {
-          inputType,
-          key,
-          type: 'atLeastOne',
-        }
-      : undefined
-    return new Arg({
-      key,
-      value: value.map(v => {
-        if (typeof v !== 'object' || !value) {
-          return getInvalidTypeArg(key, v, arg, argInputType)
-        }
-        return objectToArgs(v, argInputType.type as DMMF.InputType)
-      }),
-      isEnum: false,
-      argType: argInputType.type,
-      schemaArg: arg,
-      error,
-    })
-  }
-
-  // TODO: Decide for better default case
-  throw new Error('Oops. This must not happen')
+  const inputType = argInputType.type as DMMF.InputType
+  const hasAtLeastOneError = inputType.atLeastOne ? value.some(v => Object.keys(cleanObject(v)).length === 0) : false
+  const err: AtLeastOneError | undefined = hasAtLeastOneError
+    ? {
+        inputType,
+        key,
+        type: 'atLeastOne',
+      }
+    : undefined
+  return new Arg({
+    key,
+    value: value.map(v => {
+      if (typeof v !== 'object' || !value) {
+        return getInvalidTypeArg(key, v, arg, argInputType)
+      }
+      return objectToArgs(v, argInputType.type as DMMF.InputType)
+    }),
+    isEnum: false,
+    argType: argInputType.type,
+    schemaArg: arg,
+    error: err,
+  })
 }
 
 export function isInputArgType(argType: DMMF.ArgType): argType is DMMF.InputType {

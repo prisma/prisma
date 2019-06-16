@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "0.0.94",
+  "version": "0.0.96",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -33,7 +33,7 @@
     "scripts"
   ],
   "devDependencies": {
-    "@prisma/lift": "^0.0.76",
+    "@prisma/lift": "^0.0.78",
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
@@ -64,8 +64,8 @@
   },
   "dependencies": {
     "@prisma/cli": "^0.0.13",
-    "@prisma/engine-core": "0.0.49",
-    "@prisma/fetch-engine": "^0.0.19",
+    "@prisma/engine-core": "0.0.52",
+    "@prisma/fetch-engine": "^0.0.20",
     "chalk": "^2.4.2",
     "cpy": "7.3.0",
     "dotenv": "^8.0.0",
@@ -79,7 +79,6 @@
     "make-dir": "^3.0.0",
     "node-fetch": "^2.6.0",
     "pluralize": "^8.0.0",
-    "prisma2": "0.0.47",
     "set-value": "^3.0.0",
     "stacktrace-parser": "0.1.6",
     "strip-ansi": "^5.2.0",

@@ -6,7 +6,7 @@ datasource db {
 
 generator photon {
   provider = "javascript"
-  output   = "@generated/photon"
+  output   = "node_modules/@generated/photon"
 }
 
 model Blog {
@@ -21,17 +21,17 @@ model Author {
   id    Int     @id
   name  String?
   posts Post[]
-  blog  Blog
-}
+  blog  Blog?
+}         
 
 model Post {
   id    Int      @id
   title String
   tags  String[]
-  blog  Blog
+  blog  Blog?
 }
 
 model PostNews {
-  new        Int     @id
+  new Int @id
   otherField String?
 }
