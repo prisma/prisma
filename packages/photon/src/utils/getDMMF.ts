@@ -3,6 +3,8 @@ import path from 'path'
 import { DMMF, ExternalDMMF } from '../runtime/dmmf-types'
 import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
 import { transformDmmf } from '../runtime/transformDmmf'
+import Process from '@prisma/engine-core/dist/process'
+import through from 'through2'
 
 const modelBlacklist = {
   // helper types
@@ -60,16 +62,31 @@ export async function getRawDMMF(
   cwd = process.cwd(),
   prismaPath = path.join(__dirname, '../../runtime/prisma'), // improve the binary resolution
 ): Promise<ExternalDMMF.Document> {
-  const engine = new NodeEngine({
-    datamodel,
-    prismaPath,
-    cwd,
-  })
+  const child = new Process(prismaPath, 'cli', '--dmmf')
+  let dmmf
+  child.cwd(cwd)
+  child.env({ PRISMA_DML: datamodel })
+  child.stdout(
+    concat(d => {
+      dmmf = JSON.parse(d)
+    }),
+  )
+  child.stderr(process.stderr)
+  await child.run()
+  return dmmf
+}
 
-  await engine.start()
-  const externalDmmf: ExternalDMMF.Document = await engine.getDmmf()
-  await engine.stop()
-  return externalDmmf
+function concat(fn: (result: string) => void): NodeJS.WriteStream {
+  let buf = ''
+  function transform(chunk, _enc, callback) {
+    buf += chunk.toString()
+    callback()
+  }
+  function flush(callback) {
+    fn(buf)
+    callback()
+  }
+  return through(transform, flush)
 }
 
 export interface GetDmmfOptions {
