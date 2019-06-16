@@ -34,6 +34,9 @@ const commonCode = runtimePath => `import {
   printDatasources
 } from '${runtimePath}'
 
+// @ts-ignore
+process.setMaxListeners(100)
+
 const debug = debugLib('photon')
 
 /**
@@ -85,6 +88,12 @@ class PhotonFetcher {
     debug(query)
     if (this.hooks && this.hooks.beforeRequest) {
       this.hooks.beforeRequest({query, path, rootField, typeName, document})
+    }
+    if (!this.engine.startPromise) {
+      // throw new Error('Could not perform query. Please either turn autoConnect: true or await photon.connect() first')
+      await this.engine.start()
+    } else {
+      await this.engine.startPromise
     }
     const result = await this.engine.request(query, typeName)
     debug(result)
@@ -240,6 +249,7 @@ export default class Photon {
   private readonly autoConnect: boolean
   private readonly internalDatasources: InternalDatasource[]
   private readonly datamodel: string
+  private connectionPromise?: Promise<any>
   constructor(options: PhotonOptions = {autoConnect: true}) {
     const useDebug = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.library) : false
     if (useDebug) {
@@ -273,7 +283,11 @@ export default class Photon {
     }
   }
   connect(): Promise<void> {
-    return this.engine.start()
+    if (this.connectionPromise) {
+      return this.connectionPromise
+    }
+    this.connectionPromise = this.engine.start()
+    return this.connectionPromise!
   }
   async disconnect() {
     await this.engine.stop()

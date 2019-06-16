@@ -1,12 +1,12 @@
 {
   "name": "@prisma/photon",
-  "version": "0.0.75",
+  "version": "0.0.94",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "scripts": {
     "tsc": "tsc -d",
-    "build": "yarn lint && yarn tsc && yarn ncc:runtime && yarn build:browser",
+    "build": "yarn lint && yarn tsc && yarn ncc:runtime",
     "test": "jest",
     "precommit": "lint-staged && jest",
     "ncc:runtime": "node scripts/build-runtime.js",
@@ -24,8 +24,10 @@
   "files": [
     "runtime/*.js",
     "runtime/*.d.ts",
-    "runtime/utils",
-    "runtime/dist",
+    "runtime/**/*.js",
+    "runtime/**/*.d.ts",
+    "runtime/utils/*",
+    "runtime/dist/*",
     "browser-runtime",
     "dist",
     "scripts"

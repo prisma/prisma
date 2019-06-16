@@ -1,5 +1,4 @@
 import { LiftEngine } from '@prisma/lift'
-import copy from 'cpy'
 import fs from 'fs-extra'
 import makeDir from 'make-dir'
 import path from 'path'
@@ -138,56 +137,100 @@ export async function generateClient({
   const files = await buildClient({ datamodel, cwd, transpile, runtimePath, browser, binaryPath })
   await makeDir(outputDir)
   await Promise.all(Object.entries(files).map(([fileName, file]) => fs.writeFile(path.join(outputDir, fileName), file)))
-  await copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
-  await fs.writeFile(path.join(outputDir, '/runtime/index.d.ts'), indexDTS)
+  await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
+  await fs.writeFile(path.join(outputDir, '/runtime/index.d.ts'), backup)
 }
 
 // TODO: fix type
 // export { Engine } from './dist/Engine'
-const indexDTS = `export { DMMF } from './dmmf-types'
-export { DMMFClass } from './dmmf'
-export { deepGet, deepSet } from './utils/deep-set'
-export { makeDocument, transformDocument } from './query'
+
+const backup = `export { DMMF } from './dmmf-types'
+// export { DMMFClass } from './dmmf'
+// export { deepGet, deepSet } from './utils/deep-set'
+// export { makeDocument, transformDocument } from './query'
 
 export declare var Engine: any
 export declare type Engine = any
 
-export declare var debugLib: debug.Debug & { debug: debug.Debug; default: debug.Debug };
+// export declare var DMMF: any
+// export declare type DMMF = any
 
-declare namespace debug {
-  interface Debug {
-    (namespace: string): Debugger;
-    coerce: (val: any) => any;
-    disable: () => string;
-    enable: (namespaces: string) => void;
-    enabled: (namespaces: string) => boolean;
-    log: (...args: any[]) => any;
+export declare var DMMFClass: any
+export declare type DMMFClass = any
 
-    names: RegExp[];
-    skips: RegExp[];
+export declare var deepGet: any
+export declare type deepGet = any
 
-    formatters: Formatters;
-  }
+export declare var deepSet: any
+export declare type deepSet = any
 
-  type IDebug = Debug;
+export declare var makeDocument: any
+export declare type makeDocument = any
 
-  interface Formatters {
-    [formatter: string]: (v: any) => string;
-  }
+export declare var transformDocument: any
+export declare type transformDocument = any
 
-  type IDebugger = Debugger;
+export declare var debug: any
+export declare type debug = any
 
-  interface Debugger {
-    (formatter: any, ...args: any[]): void;
+export declare var debugLib: any
+export declare type debugLib = any
 
-    enabled: boolean;
-    log: (...args: any[]) => any;
-    namespace: string;
-    destroy: () => boolean;
-    extend: (namespace: string, delimiter?: string) => Debugger;
-  }
-}
+export declare var InternalDatasource: any
+export declare type InternalDatasource = any
+
+export declare var Datasource: any
+export declare type Datasource = any
+
+export declare var printDatasources: any
+export declare type printDatasources = any
 `
+
+// const indexDTS = `export { DMMF } from './dmmf-types'
+// export { DMMFClass } from './dmmf'
+// export { deepGet, deepSet } from './utils/deep-set'
+// export { InternalDatasource, Datasource, printDatasources } from './utils/printDatasources';
+// export { makeDocument, transformDocument } from './query'
+
+// export declare var Engine: any
+// export declare type Engine = any
+
+// export declare var debugLib: debug.Debug & { debug: debug.Debug; default: debug.Debug };
+
+// declare namespace debug {
+//   interface Debug {
+//     (namespace: string): Debugger;
+//     coerce: (val: any) => any;
+//     disable: () => string;
+//     enable: (namespaces: string) => void;
+//     enabled: (namespaces: string) => boolean;
+//     log: (...args: any[]) => any;
+
+//     names: RegExp[];
+//     skips: RegExp[];
+
+//     formatters: Formatters;
+//   }
+
+//   type IDebug = Debug;
+
+//   interface Formatters {
+//     [formatter: string]: (v: any) => string;
+//   }
+
+//   type IDebugger = Debugger;
+
+//   interface Debugger {
+//     (formatter: any, ...args: any[]): void;
+
+//     enabled: boolean;
+//     log: (...args: any[]) => any;
+//     namespace: string;
+//     destroy: () => boolean;
+//     extend: (namespace: string, delimiter?: string) => Debugger;
+//   }
+// }
+// `
 
 // This is needed because ncc rewrite some paths
 function redirectToLib(fileName: string) {
