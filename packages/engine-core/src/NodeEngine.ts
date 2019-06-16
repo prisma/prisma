@@ -7,7 +7,6 @@ import { Engine, PhotonError } from './Engine'
 import Process from './process'
 import Deferred from 'deferral'
 import through from 'through2'
-import byline from './byline'
 
 const debug = debugLib('engine')
 
