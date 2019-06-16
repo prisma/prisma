@@ -140,7 +140,9 @@ export async function generateClient({
     const filePath = path.join(outputDir, fileName)
     // The deletion of the file is necessary, so VSCode
     // picks up the changes.
-    await fs.unlink(filePath)
+    if (fs.exists(filePath)) {
+      await fs.unlink(filePath)
+    }
     await fs.writeFile(filePath, file)
   }))
   await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
