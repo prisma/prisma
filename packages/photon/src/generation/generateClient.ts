@@ -136,9 +136,14 @@ export async function generateClient({
   runtimePath = runtimePath || './runtime'
   const files = await buildClient({ datamodel, cwd, transpile, runtimePath, browser, binaryPath })
   await makeDir(outputDir)
-  await Promise.all(Object.entries(files).map(([fileName, file]) => fs.writeFile(path.join(outputDir, fileName), file)))
+  await Promise.all(Object.entries(files).map(async ([fileName, file]) => {
+    const path = path.join(outputDir, fileName);
+    await fs.unlink(path)
+    await fs.writeFile(path, file)
+  }))
   await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
   await fs.writeFile(path.join(outputDir, '/runtime/index.d.ts'), backup)
+  await fs.writeFile(path.join(outputDir, '/runtime/hook-works.d.ts'), backup)
 }
 
 // TODO: fix type
