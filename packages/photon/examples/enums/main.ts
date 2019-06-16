@@ -1,34 +1,16 @@
 import Photon from './@generated/photon'
 
 async function main() {
-  const photon = new Photon({
-    __internal: {
-      hooks: {
-        beforeRequest: args => {
-          // console.log(args)
-        },
-      },
-    },
-  })
+  let photons: Photon[] = []
+  for (let i = 0; i < 15; i++) {
+    const photon = new Photon()
 
-  console.clear()
-  const res = await photon.users()
-  console.log(res)
-  // const user = await photon.users.create({
-  //   data: {
-  //     email: 'some@mail.com',
-  //     location: {
-  //       create: {
-  //         city: 'Berlin',
-  //       },
-  //     },
-  //     name: 'Tom Tailor',
-  //     status: 'active',
-  //     favoriteTree: 'YELLOWBIRCH',
-  //   },
-  // })
-  // console.log(user)
-  photon.disconnect()
+    const result = await photon.users({ first: 1 })
+    console.log(result)
+    photons.push(photon)
+  }
+
+  photons.forEach(p => p.disconnect())
 }
 
 main().catch(console.error)
