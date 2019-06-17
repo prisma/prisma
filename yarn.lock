@@ -329,10 +329,10 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/photon@^0.0.102":
-  version "0.0.102"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.102.tgz#f129cfe6cd7e32bb8c6666aa98f854ab930694be"
-  integrity sha512-VHScoRNulxRFQhmJF7+Xo99i7bMuAIz/Vz9zAR8pKMHVhih2nzRUd+4jo2Z6KVeI3sVcmJcWRRdBdneRITqUXQ==
+"@prisma/photon@^0.0.107":
+  version "0.0.107"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.107.tgz#b604adbcac53623cab2fcdbb71767b7c10c4973b"
+  integrity sha512-mI+ObeaPSeN9/2FwkBCVTlbbRdV3ja6vspwLH6HkoG+DzJ7mKKy+4ej3kypvFybVz3jFWFlW6r62fA6HA1f+Zw==
   dependencies:
     "@prisma/cli" "^0.0.13"
     "@prisma/engine-core" "0.0.52"
@@ -357,10 +357,10 @@
     terminal-link "^1.3.0"
     wtfnode "0.8.0"
 
-"@prisma/studio-server@^0.0.24":
-  version "0.0.24"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.0.24.tgz#c74c0656dfe09436e7909d9498f0a9a39218c720"
-  integrity sha512-s+E8F4KjnN+yOlZhZbBgY0jxi7kl1Z4dLc5HS5hCHziuZzjMTGVNUrsbO+8Y6U2t3SL1/3KSdVnR1AYTcs1ZwQ==
+"@prisma/studio-server@^0.0.26":
+  version "0.0.26"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.0.26.tgz#f04a954963a3f8bb4f69c1fdceb3444e9719cf44"
+  integrity sha512-EfLhwcKd07G3UIKHLm9ACw+4RuazphNGt8pkHoV/vDlpGuK0lYiayUVq8jYMNJlCeHEo22m+QK3v6TRxCfyJSA==
   dependencies:
     express "^4.17.1"
     express-ws "^4.0.0"
