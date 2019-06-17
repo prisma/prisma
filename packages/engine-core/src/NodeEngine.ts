@@ -185,6 +185,8 @@ export class NodeEngine extends Engine {
     while (true) {
       if (!this.child) {
         return
+      } else if (!(await this.child.running())) {
+        throw new Error('Engine has died')
       }
       try {
         await new Promise(r => setTimeout(r, 50)) // TODO: Try out lower intervals here, but we also don't want to spam it too much.
