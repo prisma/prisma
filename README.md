@@ -249,11 +249,24 @@ As you build your app, you'll likely migrate your database to implement new feat
 
 #### Option A: Without Lift
 
-If you're not using Lift, you need to re-introspect your database (to update the generated datamodel) and re-generate the Photon JS client after each schema migration.
+If you're not using Lift, you need to re-introspect your database (to update the generated datamodel) and re-generate the Photon JS client after each schema migration:
+
+```
+prisma2 introspect
+prisma2 generate
+```
 
 #### Option B: With Lift
 
-When using Lift, you need to re-generate the Photon JS client immediately after you performed a schema migration using `prisma lift up`.
+When using Lift, you need to re-generate the Photon JS client immediately after you performed a schema migration:
+
+```
+# adjust data model definition in project.prisma
+prisma2 lift save
+prisma2 lift up
+prisma2 generate
+```
+
 
 ## Supported databases
 
