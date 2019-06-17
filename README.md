@@ -4,7 +4,7 @@
 <p><h3 align="center">Type-safe database client (ORM) for TypeScript & Node.js</h3></p>
 
 <p align="center">
-  <a href="https://www.github.com/prisma/prisma2-docs">Docs</a> • <a href="https://photonjs.prisma.io/">Website</a>  • <a href="#features">Features</a> • <a href="#how-it-works">How it works</a> • <a href="#supported-databases">Supported databases</a> 
+  <a href="#getting-started">Getting started</a> • <a href="#features">Features</a> • <a href="#api-examples">API examples</a> • <a href="#the-photon-js-workflow">The Photon JS workflow</a> • <a href="#supported-databases">Supported databases</a> 
 </p>
 
 <!--
@@ -15,7 +15,7 @@
 </p>
 -->
 
-Photon JS is an **auto-generated database client** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or Knex.js
+[Photon JS](https://photonjs.prisma.io/) is an **auto-generated database client** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or Knex.js
 
 It is part of the [Prisma 2](https://www.github.com/prisma/prisma2-docs) ecosystem. Prisma 2 provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
 
@@ -58,6 +58,10 @@ Learn more about the `prisma2 init` flow [here](https://github.com/prisma/prisma
 - Works with existing databases using schema introspection
 - CLI to support all major workflows
 - Integrates seamlessly in your npm projects (without `npm install`)
+
+## Docs
+
+You can find comprehensive documentation for Photon in the [Prisma 2 docs](https://github.com/prisma/prisma2-docs/).
 
 ## API examples
 
@@ -134,7 +138,7 @@ Learn more about the data model in the [docs](https://github.com/prisma/prisma2-
 You can learn more about the Photon's API features on the [website](https://photonjs.prisma.io/) or in the [API reference](https://github.com/prisma/prisma2-docs/blob/master/photon/api.md).
 
 
-## How it works
+## The Photon JS workflow
 
 ### 1. Configure data source
 
