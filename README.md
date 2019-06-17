@@ -159,7 +159,24 @@ Specify the connection details for your database as a _data source_ in your [Pri
 
 Here is an example project file that connects to a local PostgreSQL database: 
 
+```groovy
+// project.prisma
+
+datasource mysql {
+  url      = "postgresql://user:password@localhost:5432"
+  provider = "postgres"
+}
+
+generator photonjs {
+  provider = 'photonjs'
+}
 ```
+
+### 2. Define initial data model
+
+The [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Here is the project file from above extended with a sample data model:
+
+```groovy
 // project.prisma
 
 datasource mysql {
@@ -195,9 +212,8 @@ enum Role {
 }
 ```
 
-### 2. Define initial data model
 
-The [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Read below to learn how you obtain it for your project.
+Read below to learn how you obtain it for your project.
 
 #### Option A: Starting with an existing database (_brownfield_)
 
