@@ -103,7 +103,7 @@ main().catch(e => {
 
 You can learn more about the Photon's API features on the [website](https://photonjs.prisma.io/) or in the [API reference](https://github.com/prisma/prisma2-docs/blob/master/photon/api.md).
 
-<Details><Summary>Expand to the view the data model</Summary>
+<Details><Summary>Expand to the view the <strong>data model</strong> based on which the Photon API was generated</Summary>
 
 ```groovy
 model User {
@@ -122,8 +122,9 @@ model Post {
 }
 ```
 
-</Details>
+Learn more about the data model in the [docs](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md).
 
+</Details>
 
 ## How it works
 
