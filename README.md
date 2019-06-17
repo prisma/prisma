@@ -4,7 +4,7 @@
 <p><h3 align="center">Type-safe database client (ORM) for TypeScript & Node.js</h3></p>
 
 <p align="center">
-  <a href="https://www.github.com/prisma/prisma2-docs">Docs</a> • <a href="#features">Features</a> • <a href="#how-it-works">How it works</a> • <a href="#supported-databases">Supported databases</a> 
+  <a href="https://www.github.com/prisma/prisma2-docs">Docs</a> • <a href="https://photonjs.prisma.io/">Website</a>  • <a href="#features">Features</a> • <a href="#how-it-works">How it works</a> • <a href="#supported-databases">Supported databases</a> 
 </p>
 
 <!--
@@ -17,7 +17,7 @@
 
 Photon JS is an **auto-generated database client** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or Knex.js
 
-It is part of the [Prisma](https://www.github.com/prisma/prisma2-docs) ecosystem. Prisma provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
+It is part of the [Prisma 2](https://www.github.com/prisma/prisma2-docs) ecosystem. Prisma provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
 
 <br />
 
@@ -86,7 +86,26 @@ const updatedUser = await prisma.users.update({
 })
 ```
 
-<Details><Summary>Exampd</Summary>
+You can learn more about the generated API on the [Photon website]https://photonjs.prisma.io/) or the [API reference docs](https://github.com/prisma/prisma2-docs/blob/master/photon/api.md).
+
+<Details><Summary>Expand to the view the data model</Summary>
+
+```groovy
+model User {
+  id         Int       @id
+  email      String    @unique
+  name       String
+  posts      Post[]
+}
+
+model Post {
+  id          Int       @id
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  draft       Boolean   @default(true)
+  author      User
+}
+```
 
 </Details>
 
