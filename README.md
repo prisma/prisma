@@ -115,6 +115,14 @@ main().catch(e => {
 <Details><Summary>Expand to the view the <strong>data model</strong> based on which the above Photon API was generated</Summary>
 
 ```groovy
+datasource ds {
+  // some data source config, e.g. SQLite, PostgreSQL, ...
+}
+
+generator photonjs {
+  provider = 'photonjs'
+}
+
 model User {
   id         Int       @id
   email      String    @unique
@@ -137,22 +145,75 @@ Learn more about the data model in the [docs](https://github.com/prisma/prisma2-
 
 You can learn more about the Photon's API features on the [website](https://photonjs.prisma.io/) or in the [API reference](https://github.com/prisma/prisma2-docs/blob/master/photon/api.md).
 
-
 ## The Photon JS workflow
 
 ### 1. Configure data source
 
 <img src="https://i.imgur.com/UcN3ENI.png" width="220px">
 
-Specify the connection details for your database as a _data source_ in your [Prisma project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md). The connection details might defer per database, but most commonly you'll probide the following:
+Specify the connection details for your database as a _data source_ in your [Prisma project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md). The connection details might differ per database, but most commonly you'll probide the following:
 
-- `host`: The IP address or domain name of the machine where your database server is running.
-- `port`: The port on which your database server is listening.
-- `user` & `password`: Credentials for your database sever.
+- Host: The IP address or domain name of the machine where your database server is running.
+- Port: The port on which your database server is listening.
+- User & password: Credentials for your database server.
+
+Here is an example project file that connects to a local PostgreSQL database: 
+
+```groovy
+// project.prisma
+
+datasource mysql {
+  url      = "postgresql://user:password@localhost:5432"
+  provider = "postgres"
+}
+
+generator photonjs {
+  provider = 'photonjs'
+}
+```
 
 ### 2. Define initial data model
 
-The [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Read below to learn how you obtain it for your project.
+The [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Here is the project file from above extended with a sample data model:
+
+```groovy
+// project.prisma
+
+datasource mysql {
+  url      = "postgresql://user:password@localhost:5432"
+  provider = "postgres"
+}
+
+generator photonjs {
+  provider = 'photonjs'
+}
+
+model User {
+  id        Int      @id
+  createdAt DateTime @default(now())
+  email     String   @unique
+  name      String?
+  role      Role     @default(USER)
+  posts     Post[]
+}
+
+model Post {
+  id         Int        @id
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  author     User
+  title      String
+  published  Boolean    @default(false)
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+```
+
+
+Read below to learn how you obtain it for your project.
 
 #### Option A: Starting with an existing database (_brownfield_)
 
