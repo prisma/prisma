@@ -136,11 +136,13 @@ Specify the connection details for your database as a _data source_ in your [Pri
 
 ### 2. Define data model
 
+The [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Read below to learn how you obtain it for your project.
+
 #### Option A: Starting with an existing database (_brownfield_)
 
 <img src="https://i.imgur.com/XkRkwdE.png" width="355px">
 
-If you want to use Photon with an existing database, you can [introspect](https://github.com/prisma/prisma2-docs/blob/master/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md). This generates a [data model](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) which is the foundation for the generated Photon API. The data model is a declarative and human-readable representation of your database schema.
+If you want to use Photon with an existing database, you can [introspect](https://github.com/prisma/prisma2-docs/blob/master/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md). This generates a [data model](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) which is the foundation for the generated Photon API. 
 
 #### Option B: Start from scratch (_greenfield_)
 
