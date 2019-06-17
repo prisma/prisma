@@ -1,6 +1,7 @@
 // @ts-check
 
 import { spawn, ChildProcess } from 'child_process'
+import getStream from 'get-stream'
 import Deferred from 'deferral'
 import through from 'through2'
 import Debug from 'debug'
@@ -19,6 +20,7 @@ export default class Process {
   private _running?: Deferred<number> = null
   private _stderr?: NodeJS.WritableStream = null
   private _stdout?: NodeJS.WritableStream = null
+  private _stdio?: NodeJS.ReadWriteStream = null
 
   /**
    * Create a process
@@ -91,17 +93,25 @@ export default class Process {
       env: this._env,
     })
 
-    this._stderr && this._process.stderr.pipe(through(filter)).pipe(this._stderr)
-    this._stdout && this._process.stdout.pipe(this._stdout)
+    const stdio = (this._stdio = buffer())
+    this._stderr && this._process.stderr.pipe(multiwriter(stdio, this._stderr))
+    this._stdout && this._process.stdout.pipe(multiwriter(stdio, this._stdout))
 
     this._running = new Deferred()
     this._process.once('error', err => this._running.reject(err))
-    this._process.once('exit', code => this._running.resolve(code))
+    this._process.once('exit', code => {
+      if (!code) {
+        return this._running.resolve(code)
+      }
+      readAll(stdio)
+        .then(buf => this._running.reject(this.error(code, buf)))
+        .catch(err => console.error(err))
+    })
 
     const code = await Promise.race([tick(), this._running.wait()])
     // @todo buffer stderr and return that
     if (code) {
-      throw new Error(`process exited with a non-zero code: ${code}`)
+      throw this.error(code, await readAll(stdio))
     }
   }
 
@@ -115,7 +125,11 @@ export default class Process {
     const code = await this._running.wait()
     this._running = null
     if (code) {
-      throw new Error(`process exited with a non-zero code: ${code}`)
+      let buf = ''
+      if (this._stdio) {
+        buf = await readAll(this._stdio)
+      }
+      throw this.error(code, buf)
     }
   }
 
@@ -142,16 +156,16 @@ export default class Process {
     await this.signal('SIGTERM')
     await this.wait()
   }
-}
-module.exports = Process
 
-/**
- * Filter out lines from a stream
- * Pass everything through for now
- */
-function filter(chunk, _enc, fn) {
-  this.push(chunk)
-  return fn()
+  /**
+   * Error
+   */
+  error(code: number, stdio?: string): Error {
+    if (stdio) {
+      return new Error(`process exited with a non-zero code: ${code}\n${stdio}`)
+    }
+    return new Error(`process exited with a non-zero code: ${code}`)
+  }
 }
 
 /**
@@ -159,4 +173,38 @@ function filter(chunk, _enc, fn) {
  */
 function tick(ms: number = 0): Promise<void> {
   return new Promise((resolve, _) => setTimeout(resolve, ms))
+}
+
+// write to multiple streams
+function multiwriter(...writers: NodeJS.WritableStream[]): NodeJS.WritableStream {
+  function transform(chunk, _enc, fn) {
+    for (let i = 0; i < writers.length; i++) {
+      writers[i].write(chunk)
+    }
+    fn()
+  }
+  function flush(fn) {
+    for (let i = 0; i < writers.length; i++) {
+      writers[i].end()
+    }
+    fn()
+  }
+  return through(transform, flush)
+}
+
+// simple utility function to buffer a stream
+function buffer(): NodeJS.ReadWriteStream {
+  return through(function(chunk, _enc, fn) {
+    this.push(chunk)
+    fn()
+  })
+}
+
+async function readAll(reader: NodeJS.ReadableStream): Promise<string> {
+  const chunks = []
+  return new Promise((resolve, reject) => {
+    reader.on('data', chunk => chunks.push(chunk))
+    reader.on('error', err => reject(err))
+    reader.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
+  })
 }

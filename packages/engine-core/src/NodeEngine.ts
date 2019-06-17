@@ -6,6 +6,7 @@ import through from 'through2'
 import debugLib from 'debug'
 import * as path from 'path'
 import * as net from 'net'
+import { writer } from 'repl'
 
 const debug = debugLib('engine')
 
@@ -98,7 +99,18 @@ export class NodeEngine extends Engine {
     processes.push(this.child)
 
     // wait for the engine to be ready
-    await this.engineReady()
+    // TODO: we should fix this since it's not obvious what's happening
+    // here. We wait for the engine to try and connect, if it fails
+    // we'll try to kill the child. Often times the child is already
+    // dead and will also throw. We prefer that error over engineReady's
+    // error, so we take that first. If there wasn't an error, we'll use
+    // engineReady's error.
+    try {
+      await this.engineReady()
+    } catch (err) {
+      await this.child.kill()
+      throw err
+    }
 
     const url = `http://localhost:${this.port}`
     this.url = url
@@ -264,7 +276,6 @@ export class NodeEngine extends Engine {
 function debugStream(debugFn: any): NodeJS.WritableStream {
   return through(function(chunk, _enc, fn) {
     debugFn(chunk.toString())
-    this.push(chunk)
     fn()
   })
 }

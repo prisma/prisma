@@ -5,6 +5,7 @@ async function main() {
   let photons: Photon[] = []
   for (let i = 0; i < 15; i++) {
     const photon = new Photon()
+    await photon.connect()
 
     const result = await photon.users({ first: 1 })
     console.log(result)
