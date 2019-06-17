@@ -2,7 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const Photon = require('../prisma/generated/photon')
 
-const photon = new Photon.default()
+const photon = new Photon()
 const app = express()
 
 app.use(bodyParser.json())

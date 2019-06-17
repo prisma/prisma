@@ -9,6 +9,6 @@
     "start": "node src/script.js"
   },
   "devDependencies": {
-    "prisma2": "^0.0.56"
+    "prisma2": "^0.0.62"
   }
 }

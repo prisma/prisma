@@ -20,7 +20,7 @@
     "deletePost": "ts-node ./client/deletePost.ts"
   },
   "devDependencies": {
-    "prisma2": "^0.0.56",
+    "prisma2": "^0.0.62",
     "ts-node": "8.0.2",
     "typescript": "3.5.2"
   }

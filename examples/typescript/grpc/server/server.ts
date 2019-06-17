@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 const PROTO_PATH = __dirname + '/../service.proto'
 
-import Photon from '../prisma/generated/photon'
+import Photon from '@generated/photon'
 import * as grpc from 'grpc'
 import * as protoLoader from '@grpc/proto-loader'
 

@@ -27,7 +27,7 @@ migration ..20190617102350-init
 +
 +generator photon {
 +  provider = "photon-js"
-+  output   = "./generated/photon"
++  output   = "../node_modules/@generated/photon"
 +}
 +
 +model User {
@@ -64,5 +64,4 @@ async function main() {
 }
 
 main()
-
 ```

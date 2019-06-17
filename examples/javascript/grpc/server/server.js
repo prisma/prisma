@@ -2,7 +2,7 @@ const chalk = require('chalk')
 const PROTO_PATH = __dirname + '/../service.proto'
 
 const Photon = require('../prisma/generated/photon')
-const photon = new Photon.default()
+const photon = new Photon()
 
 const grpc = require('grpc')
 const protoLoader = require('@grpc/proto-loader')

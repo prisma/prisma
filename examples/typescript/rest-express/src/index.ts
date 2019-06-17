@@ -1,6 +1,6 @@
 import * as express from 'express'
 import * as bodyParser from 'body-parser'
-import Photon from '../prisma/generated/photon'
+import Photon from '@generated/photon'
 
 const photon = new Photon()
 const app = express()

@@ -7,11 +7,12 @@
   "devDependencies": {
     "@types/graphql": "14.2.1",
     "@types/ws": "6.0.1",
-    "prisma2": "^0.0.54",
+    "prisma2": "0.0.62",
     "ts-node": "7.0.1",
     "typescript": "3.5.2"
   },
   "scripts": {
-    "start": "ts-node src/script.ts"
+    "start": "ts-node src/script.ts",
+    "seed": "ts-node prisma/seed.ts"
   }
 }
