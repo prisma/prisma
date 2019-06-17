@@ -200,6 +200,7 @@ function buffer(): NodeJS.ReadWriteStream {
   })
 }
 
+// read the entire stream into a string
 async function readAll(reader: NodeJS.ReadableStream): Promise<string> {
   const chunks = []
   return new Promise((resolve, reject) => {
