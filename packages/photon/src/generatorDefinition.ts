@@ -5,7 +5,7 @@ import { getDatamodel } from './utils/getDatamodel'
 
 const generate: GeneratorFunction = async ({ generator, cwd }) => {
   const datamodel = await getDatamodel(cwd)
-  const output = generator.output || 'generated/photon'
+  const output = generator.output || 'node_modules/@generated/photon'
   const transpile =
     generator.config && typeof generator.config.transpile !== 'undefined'
       ? parseBoolean(generator.config.transpile)

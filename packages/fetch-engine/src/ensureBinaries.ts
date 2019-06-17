@@ -10,8 +10,7 @@ export async function ensureBinaries(resultPath?: string) {
   const runtimeDir = resultPath || (await getRuntimeDir())
   await makeDir(runtimeDir)
   const prisma = path.join(runtimeDir, 'prisma')
-  const schemaInferrer = path.join(runtimeDir, 'schema-inferrer-bin')
-  await download(prisma, schemaInferrer, '0.0.1')
+  await download(prisma, '0.0.1')
 }
 
 export async function ensureMigrationBinary(resultPath: string) {

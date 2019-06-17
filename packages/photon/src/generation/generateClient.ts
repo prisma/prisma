@@ -90,7 +90,6 @@ export async function buildClient({
   }
   compilerHost.writeFile = (fileName, data) => {
     if (fileName.includes('@generated/photon')) {
-      // TODO: We can't rely on this anymore!
       fileMap[fileName] = data
     }
   }
@@ -100,7 +99,13 @@ export async function buildClient({
   if (result.diagnostics.length > 0) {
     console.error(result.diagnostics)
   }
-  return normalizeFileMap(fileMap)
+
+  const normalizedFileMap = normalizeFileMap(fileMap)
+  if (normalizedFileMap['index.js']) {
+    // add module.exports = Photon for javascript usage
+    normalizedFileMap['index.js'] = addEsInteropRequire(normalizedFileMap['index.js'])
+  }
+  return normalizedFileMap
 }
 
 function normalizeFileMap(fileMap: Dictionary<string>) {
@@ -251,4 +256,14 @@ function redirectToLib(fileName: string) {
   }
 
   return fileName
+}
+
+function addEsInteropRequire(code: string) {
+  const interopCode = `module.exports = Photon; // needed to support const Photon = require('...') in js
+Object.defineProperty(module.exports, "__esModule", { value: true });`
+  const lines = code.split('\n')
+  const exportLineIndex = lines.findIndex(line => line.startsWith('exports.default'))
+
+  lines.splice(exportLineIndex, 0, interopCode)
+  return lines.join('\n')
 }
