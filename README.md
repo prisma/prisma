@@ -1,7 +1,7 @@
 <p align="center"><a href="https://www.prisma.io"><img src="https://svgur.com/i/CXu.svg" alt="Prisma" height="66px"></a></p>
 
 <p><h1 align="center">Photon JS</h1></p>
-<p><h3 align="center">Type-safe ORM for TypeScript & Node.js (by <a href="">Prisma</a>)</h3></p>
+<p><h3 align="center">Type-safe database client (ORM) for TypeScript & Node.js (by <a href="">Prisma</a>)</h3></p>
 
 <p align="center">
   <a href="#features">Features</a> • <a href="#how-it-works">How it works</a> • <a href="#supported-databases">Supported databases</a> 
