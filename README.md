@@ -245,7 +245,7 @@ Similar to traditional ORMs, the Photon JS client can be used any of your Node.j
 
 ### 5. Evolve your database and Photon JS database client
 
-As you build your app, you'll likely migrate your database to implement new features. Depending on how you obtained your [initial data model](#2-define-initial-data-model) and whethere you're using [Lift](https://github.com/prisma/lift), there might be two ways for evolving your application going forward.
+As you build your app, you'll likely migrate your database to implement new features. Depending on how you obtained your [initial data model](#2-define-initial-data-model) and whether or not you're using [Lift](https://github.com/prisma/lift), there might be two ways for evolving your application going forward.
 
 #### Option A: Without Lift
 
