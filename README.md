@@ -168,16 +168,21 @@ Similar to traditional ORMs, the Photon JS client can be used any of your Node.j
 
 ### 5. Evolve your database and Photon JS database client
 
-Depending on how you obtained your [initial data model](https://github.com/prisma/photonjs/tree/readme#2-define-data-model), there might be two ways for evolving your application going forward.
+As you build your app, you'll likely migrate your database to implement new features. Depending on how you obtained your [initial data model](#2-define-initial-data-model) and whethere you're using [Lift](https://github.com/prisma/lift), there might be two ways for evolving your application going forward.
 
-####
+#### Option A: Without Lift
 
-As you build your app, you'll likely migrate your database to implement new features. After each schema migration, you need to re-introspect the database (to update the generated datamodel) and re-generate the Photon JS client to account for the new schema.
+If you're not using Lift, you need to re-introspect your database (to update the generated datamodel) and re-generate the Photon JS client after each schema migration.
+
+#### Option B: With Lift
+
+When using Lift, you need to re-generate the Photon JS client immediately after you performed a schema migration using `prisma lift up`.
 
 ## Supported databases
 
 Photon JS can be used with the following databases:
 
+- SQLite
 - MySQL
 - PostgreSQL
 - MongoDB (_coming very soon_)
