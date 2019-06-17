@@ -1,10 +1,10 @@
 import { NodeEngine } from '@prisma/engine-core/dist/NodeEngine'
+import Process from '@prisma/engine-core/dist/process'
 import path from 'path'
+import through from 'through2'
 import { DMMF, ExternalDMMF } from '../runtime/dmmf-types'
 import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
 import { transformDmmf } from '../runtime/transformDmmf'
-import Process from '@prisma/engine-core/dist/process'
-import through from 'through2'
 
 const modelBlacklist = {
   // helper types
@@ -78,7 +78,7 @@ export async function getRawDMMF(
 
 function concat(fn: (result: string) => void): NodeJS.WriteStream {
   let buf = ''
-  function transform(chunk, _enc, callback) {
+  function transform(chunk, enc, callback) {
     buf += chunk.toString()
     callback()
   }

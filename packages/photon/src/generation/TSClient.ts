@@ -410,13 +410,15 @@ class ModelDefault {
     const { model } = this
     return `\
 type ${getDefaultName(model.name)} = {
-${indent(
+${
+  /*indent(
   model.fields
     .filter(f => this.isDefault(f))
     .map(f => `${f.name}: true`)
     .join('\n'),
   tab,
-)}
+)*/ ''
+}
 }
 `
   }

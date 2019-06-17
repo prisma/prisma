@@ -188,6 +188,14 @@ export function getInputTypeName(input: string | DMMF.InputType | DMMF.SchemaFie
   return input.name
 }
 
+export function getOutputTypeName(input: string | DMMF.OutputType | DMMF.SchemaField | DMMF.Enum) {
+  if (typeof input === 'string') {
+    return input
+  }
+
+  return input.name
+}
+
 export function inputTypeToJson(
   input: string | DMMF.InputType | DMMF.Enum,
   isRequired: boolean,

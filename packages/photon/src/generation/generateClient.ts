@@ -136,15 +136,15 @@ export async function generateClient({
   runtimePath = runtimePath || './runtime'
   const files = await buildClient({ datamodel, cwd, transpile, runtimePath, browser, binaryPath })
   await makeDir(outputDir)
-  await Promise.all(Object.entries(files).map(async ([fileName, file]) => {
-    const filePath = path.join(outputDir, fileName)
-    // The deletion of the file is necessary, so VSCode
-    // picks up the changes.
-    if (fs.exists(filePath)) {
-      await fs.unlink(filePath)
-    }
-    await fs.writeFile(filePath, file)
-  }))
+  await Promise.all(
+    Object.entries(files).map(async ([fileName, file]) => {
+      const filePath = path.join(outputDir, fileName)
+      // The deletion of the file is necessary, so VSCode
+      // picks up the changes.
+      await fs.remove(filePath)
+      await fs.writeFile(filePath, file)
+    }),
+  )
   await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
   await fs.writeFile(path.join(outputDir, '/runtime/index.d.ts'), backup)
 }
