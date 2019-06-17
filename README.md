@@ -164,7 +164,7 @@ Photon JS gets generated into your `node_modules` folder. There's no need to ins
 
 ### 4. Build an app
 
-Similar to traditional ORMs, the Photon JS client can be used any of your Node.js or TypeScript application. For example to implement REST, GraphQL or gRPC APIs.
+Similar to traditional ORMs, the Photon JS client can be used any of your Node.js or TypeScript application. For example to implement REST, GraphQL or gRPC APIs. You can find reference examples for these use cases in the [`examples`](./examples) directory.
 
 ### 5. Evolve your database and Photon JS database client
 
