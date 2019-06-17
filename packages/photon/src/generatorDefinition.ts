@@ -1,11 +1,12 @@
 import { GeneratorDefinition, GeneratorFunction } from '@prisma/cli'
-import fs from 'fs'
 import { generateClient } from './generation/generateClient'
 import { getDatamodel } from './utils/getDatamodel'
 
+const defaultOutput = 'node_modules/@generated/photon'
+
 const generate: GeneratorFunction = async ({ generator, cwd }) => {
   const datamodel = await getDatamodel(cwd)
-  const output = generator.output || 'node_modules/@generated/photon'
+  const output = generator.output || defaultOutput
   const transpile =
     generator.config && typeof generator.config.transpile !== 'undefined'
       ? parseBoolean(generator.config.transpile)
@@ -17,6 +18,7 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
 export const generatorDefinition: GeneratorDefinition = {
   prettyName: 'Photon JS Client',
   generate,
+  defaultOutput,
 }
 
 function parseBoolean(value: any): boolean {
