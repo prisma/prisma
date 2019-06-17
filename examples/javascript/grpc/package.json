@@ -1,0 +1,22 @@
+{
+  "name": "node-grpc",
+  "dependencies": {
+    "@grpc/proto-loader": "0.5.1",
+    "chalk": "2.4.2",
+    "grpc": "1.21.1",
+    "prisma-client-lib": "1.34.0"
+  },
+  "scripts": {
+    "start": "node ./server/server.js",
+    "feed": "node ./client/feed.js",
+    "filterPosts": "node ./client/filterPosts.js",
+    "post": "node ./client/post.js",
+    "signupUser": "node ./client/signupUser.js",
+    "createDraft": "node ./client/createDraft.js",
+    "publish": "node ./client/publish.js",
+    "deletePost": "node ./client/deletePost.js"
+  },
+  "devDependencies": {
+    "prisma2": "^0.0.57"
+  }
+}

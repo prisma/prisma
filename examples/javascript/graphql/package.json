@@ -1,0 +1,13 @@
+{
+  "name": "node-graphql",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "graphql-yoga": "^1.16.1",
+    "prisma-client-lib": "1.34.0"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  }
+}
