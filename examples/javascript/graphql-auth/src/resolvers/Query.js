@@ -3,27 +3,35 @@ const { getUserId } = require('../utils')
 const Query = {
   me: (parent, args, context) => {
     const userId = getUserId(context)
-    return context.prisma.user({ id: userId })
+    return context.photon.users.findOne({ where: { id: userId } })
   },
   feed: (parent, args, context) => {
-    return context.prisma.posts({ where: { published: true } })
+    return context.photon.posts.findMany({ where: { published: true } })
   },
   filterPosts: (parent, { searchString }, context) => {
-    return context.prisma.posts({
+    return context.photon.posts.findMany({
       where: {
         OR: [
           {
-            title_contains: searchString,
+            title: {
+              contains: searchString,
+            },
           },
           {
-            content_contains: searchString,
+            content: {
+              contains: searchString,
+            },
           },
         ],
       },
     })
   },
   post: (parent, { id }, context) => {
-    return context.prisma.post({ id })
+    return context.photon.posts.findOne({
+      where: {
+        id,
+      },
+    })
   },
 }
 

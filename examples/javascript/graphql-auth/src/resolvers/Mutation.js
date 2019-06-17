@@ -5,10 +5,12 @@ const { APP_SECRET, getUserId } = require('../utils')
 const Mutation = {
   signup: async (parent, { name, email, password }, context) => {
     const hashedPassword = await hash(password, 10)
-    const user = await context.prisma.createUser({
-      name,
-      email,
-      password: hashedPassword,
+    const user = await context.photon.users.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+      },
     })
     return {
       token: sign({ userId: user.id }, APP_SECRET),
@@ -16,7 +18,11 @@ const Mutation = {
     }
   },
   login: async (parent, { email, password }, context) => {
-    const user = await context.prisma.user({ email })
+    const user = await context.photon.users.findOne({
+      where: {
+        email,
+      },
+    })
     if (!user) {
       throw new Error(`No user found for email: ${email}`)
     }
@@ -31,17 +37,24 @@ const Mutation = {
   },
   createDraft: async (parent, { title, content }, context) => {
     const userId = getUserId(context)
-    return context.prisma.createPost({
-      title,
-      content,
-      author: { connect: { id: userId } },
+    return context.photon.posts.create({
+      data: {
+        title,
+        content,
+        published: false,
+        author: { connect: { id: userId } },
+      },
     })
   },
   deletePost: async (parent, { id }, context) => {
-    return context.prisma.deletePost({ id })
+    return context.photon.posts.delete({
+      where: {
+        id,
+      },
+    })
   },
   publish: async (parent, { id }, context) => {
-    return context.prisma.updatePost({
+    return context.photon.posts.update({
       where: { id },
       data: { published: true },
     })
