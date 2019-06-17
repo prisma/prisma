@@ -101,7 +101,7 @@ export default class Process {
     this._process.once('error', () => this._running.reject(1))
     this._process.once('exit', code => {
       // for some reason signals cause code to be null... wierd
-      this._running.resolve(code === null ? 1 : code)
+      this._running.resolve(typeof code === 'number' ? code : 1)
     })
 
     const code = await Promise.race([tick(), this._running.wait()])
