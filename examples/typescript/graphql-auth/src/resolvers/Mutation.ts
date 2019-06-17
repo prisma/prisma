@@ -14,10 +14,12 @@ export const Mutation = mutationType({
       },
       resolve: async (parent, { name, email, password }, ctx) => {
         const hashedPassword = await hash(password, 10)
-        const user = await ctx.prisma.createUser({
-          name,
-          email,
-          password: hashedPassword,
+        const user = await ctx.photon.users.create({
+          data: {
+            name,
+            email,
+            password: hashedPassword,
+          },
         })
         return {
           token: sign({ userId: user.id }, APP_SECRET),
@@ -33,7 +35,11 @@ export const Mutation = mutationType({
         password: stringArg(),
       },
       resolve: async (parent, { email, password }, context) => {
-        const user = await context.prisma.user({ email })
+        const user = await context.photon.users.findOne({
+          where: {
+            email,
+          },
+        })
         if (!user) {
           throw new Error(`No user found for email: ${email}`)
         }
@@ -56,10 +62,13 @@ export const Mutation = mutationType({
       },
       resolve: (parent, { title, content }, ctx) => {
         const userId = getUserId(ctx)
-        return ctx.prisma.createPost({
-          title,
-          content,
-          author: { connect: { id: userId } },
+        return ctx.photon.posts.create({
+          data: {
+            title,
+            content,
+            published: false,
+            author: { connect: { id: userId } },
+          },
         })
       },
     })
@@ -69,7 +78,11 @@ export const Mutation = mutationType({
       nullable: true,
       args: { id: idArg() },
       resolve: (parent, { id }, ctx) => {
-        return ctx.prisma.deletePost({ id })
+        return ctx.photon.posts.delete({
+          where: {
+            id,
+          },
+        })
       },
     })
 
@@ -78,7 +91,7 @@ export const Mutation = mutationType({
       nullable: true,
       args: { id: idArg() },
       resolve: (parent, { id }, ctx) => {
-        return ctx.prisma.updatePost({
+        return ctx.photon.posts.update({
           where: { id },
           data: { published: true },
         })

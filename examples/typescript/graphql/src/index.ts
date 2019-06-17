@@ -1,38 +1,54 @@
 import { GraphQLServer } from 'graphql-yoga'
-import { idArg, queryType, stringArg } from 'nexus'
-import { makePrismaSchema, prismaObjectType } from 'nexus-prisma'
-import * as path from 'path'
-import datamodelInfo from './generated/nexus-prisma'
-import { prisma } from './generated/prisma-client'
+import { join } from 'path'
+import { makeSchema, objectType } from '@prisma/nexus'
+import Photon from '@generated/photon'
+import { Context } from './types'
+import { nexusPrismaMethod } from '@generated/nexus-prisma'
+import { idArg, stringArg } from 'nexus'
 
-const User = prismaObjectType({
+const photon = new Photon({
+  debug: true,
+})
+
+const nexusPrisma = nexusPrismaMethod({
+  photon: (ctx: Context) => ctx.photon,
+})
+
+export const User = objectType({
   name: 'User',
   definition(t) {
-    t.prismaFields([
-      'id',
-      'name',
-      'email',
-      {
-        name: 'posts',
-        args: [], // remove the arguments from the `posts` field of the `User` type in the Prisma schema
-      },
-    ])
+    t.model.id()
+    t.model.name()
+    t.model.email()
+    t.model.posts({
+      pagination: false,
+    })
   },
 })
 
-const Post = prismaObjectType({
+export const Post = objectType({
   name: 'Post',
   definition(t) {
-    t.prismaFields(['*'])
+    t.model.id()
+    t.model.title()
+    t.model.content()
+    // t.model.createdAt()
+    // t.model.updatedAt()
+    t.model.published()
   },
 })
 
-const Query = queryType({
+const Query = objectType({
+  name: 'Query',
   definition(t) {
+    t.crud.findOnePost({
+      alias: 'post',
+    })
+
     t.list.field('feed', {
       type: 'Post',
       resolve: (parent, args, ctx) => {
-        return ctx.prisma.posts({
+        return ctx.photon.posts.findMany({
           where: { published: true },
         })
       },
@@ -42,46 +58,34 @@ const Query = queryType({
       type: 'Post',
       args: {
         searchString: stringArg({ nullable: true }),
-      },
+      } as any, // TODO: Fix this cast
       resolve: (parent, { searchString }, ctx) => {
-        return ctx.prisma.posts({
+        return ctx.photon.posts.findMany({
           where: {
             OR: [
-              { title_contains: searchString },
-              { content_contains: searchString },
+              {
+                title: {
+                  contains: searchString,
+                },
+              },
+              {
+                content: {
+                  contains: searchString,
+                },
+              },
             ],
           },
         })
       },
     })
-
-    t.field('post', {
-      type: 'Post',
-      nullable: true,
-      args: { id: idArg() },
-      resolve: (parent, { id }, ctx) => {
-        return ctx.prisma.post({ id })
-      },
-    })
   },
 })
 
-const Mutation = prismaObjectType({
+const Mutation = objectType({
   name: 'Mutation',
   definition(t) {
-    t.field('signupUser', {
-      type: 'User',
-      args: {
-        name: stringArg({ nullable: true }),
-        email: stringArg(),
-      },
-      resolve: (parent, { name, email }, ctx) => {
-        return ctx.prisma.createUser({
-          name,
-          email,
-        })
-      },
-    })
+    t.crud.createOneUser({ alias: 'signupUser' })
+    t.crud.deleteOnePost()
 
     t.field('createDraft', {
       type: 'Post',
@@ -89,26 +93,18 @@ const Mutation = prismaObjectType({
         title: stringArg(),
         content: stringArg({ nullable: true }),
         authorEmail: stringArg(),
-      },
+      } as any, // TODO: Fix this cast
       resolve: (parent, { title, content, authorEmail }, ctx) => {
-        return ctx.prisma.createPost({
-          title,
-          content,
-          author: {
-            connect: { email: authorEmail },
+        return ctx.photon.posts.create({
+          data: {
+            title,
+            content,
+            published: false,
+            author: {
+              connect: { email: authorEmail },
+            },
           },
         })
-      },
-    })
-
-    t.field('deletePost', {
-      type: 'Post',
-      nullable: true,
-      args: {
-        id: idArg(),
-      },
-      resolve: (parent, { id }, ctx) => {
-        return ctx.prisma.deletePost({ id })
       },
     })
 
@@ -117,9 +113,9 @@ const Mutation = prismaObjectType({
       nullable: true,
       args: {
         id: idArg(),
-      },
+      } as any, // TODO: Fix this cast
       resolve: (parent, { id }, ctx) => {
-        return ctx.prisma.updatePost({
+        return ctx.photon.posts.update({
           where: { id },
           data: { published: true },
         })
@@ -128,43 +124,45 @@ const Mutation = prismaObjectType({
   },
 })
 
-const schema = makePrismaSchema({
-  // Provide all the GraphQL types we've implemented
-  types: [Query, Mutation, User, Post],
-
-  // Configure the interface to Prisma
-  prisma: {
-    datamodelInfo,
-    client: prisma,
-  },
-
-  // Specify where Nexus should put the generated files
+const schema = makeSchema({
+  types: [Query, Mutation, Post, User, nexusPrisma],
   outputs: {
-    schema: path.join(__dirname, './generated/schema.graphql'),
-    typegen: path.join(__dirname, './generated/nexus.ts'),
+    typegen: join(__dirname, '../generated/nexus-typegen.ts'),
+    schema: join(__dirname, '/schema.graphql'),
   },
-
-  // Configure nullability of input arguments: All arguments are non-nullable by default
-  nonNullDefaults: {
-    input: false,
-    output: false,
-  },
-
-  // Configure automatic type resolution for the TS representations of the associated types
   typegenAutoConfig: {
     sources: [
       {
-        source: path.join(__dirname, './types.ts'),
-        alias: 'types',
+        source: '@generated/photon',
+        alias: 'photon',
+      },
+      {
+        source: join(__dirname, 'types.ts'),
+        alias: 'ctx',
       },
     ],
-    contextType: 'types.Context',
+    contextType: 'ctx.Context',
   },
 })
 
 const server = new GraphQLServer({
   schema,
-  context: { prisma },
+  context: request => {
+    return {
+      ...request,
+      photon,
+    }
+  },
 })
 
-server.start(() => console.log(`🚀 Server ready at http://localhost:4000`))
+server
+  .start(() => console.log(`🚀 Server ready at http://localhost:4000`))
+  .then(httpServer => {
+    async function cleanup() {
+      await photon.disconnect()
+      httpServer.close()
+    }
+
+    process.on('SIGINT', cleanup)
+    process.on('SIGTERM', cleanup)
+  })

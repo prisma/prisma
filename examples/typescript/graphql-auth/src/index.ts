@@ -1,54 +1,60 @@
 import { GraphQLServer } from 'graphql-yoga'
-import { prisma } from './generated/prisma-client'
-import * as path from 'path'
-import { makePrismaSchema } from 'nexus-prisma'
+import { join } from 'path'
+import { makeSchema } from '@prisma/nexus'
 import { permissions } from './permissions'
 import * as allTypes from './resolvers'
-import datamodelInfo from './generated/nexus-prisma'
+import Photon from '@generated/photon'
+import { Context } from './types'
+import { nexusPrismaMethod } from '@generated/nexus-prisma'
 
-const schema = makePrismaSchema({
-  // Provide all the GraphQL types we've implemented
-  types: allTypes,
+const photon = new Photon({
+  debug: true,
+})
 
-  // Configure the interface to Prisma
-  prisma: {
-    datamodelInfo,
-    client: prisma,
-  },
+const nexusPrisma = nexusPrismaMethod({
+  photon: (ctx: Context) => ctx.photon,
+})
 
-  // Specify where Nexus should put the generated files
+const schema = makeSchema({
+  types: [allTypes, nexusPrisma],
   outputs: {
-    schema: path.join(__dirname, './generated/schema.graphql'),
-    typegen: path.join(__dirname, './generated/nexus.ts'),
+    typegen: join(__dirname, '../generated/nexus-typegen.ts'),
+    schema: join(__dirname, '/schema.graphql'),
   },
-
-  // Configure nullability of input arguments: All arguments are non-nullable by default
-  nonNullDefaults: {
-    input: false,
-    output: false,
-  },
-
-  // Configure automatic type resolution for the TS representations of the associated types
   typegenAutoConfig: {
     sources: [
       {
-        source: path.join(__dirname, './types.ts'),
-        alias: 'types',
+        source: '@generated/photon',
+        alias: 'photon',
+      },
+      {
+        source: join(__dirname, 'types.ts'),
+        alias: 'ctx',
       },
     ],
-    contextType: 'types.Context',
+    contextType: 'ctx.Context',
   },
 })
 
 const server = new GraphQLServer({
   schema,
-  middlewares: [permissions],
+  // middlewares: [permissions], // TODO: Fix this, crashing binary via photon for some reason
   context: request => {
     return {
       ...request,
-      prisma,
+      photon,
     }
   },
 })
 
-server.start(() => console.log(`🚀 Server ready at http://localhost:4000`))
+server
+  .start(() => console.log(`🚀 Server ready at http://localhost:4000`))
+  .then(httpServer => {
+    async function cleanup() {
+      await photon.disconnect()
+      httpServer.close()
+    }
+
+    process.on('SIGINT', cleanup)
+    process.on('SIGTERM', cleanup)
+  })
