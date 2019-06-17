@@ -59,23 +59,19 @@ const photon = new Photon()
 async function main() {
   await photon.connect()
 
-  // Fetch user by id or email
   const userById = await prisma.users.findOne({ where: 1 })
   const userByEmail = await prisma.users.findOne({ where: { email: "ada@prisma.io" }})
 
-  // Fetch a user with their first 10 posts
   const userWithPosts = await prisma.users.findOne({
     where: { email: "ada@prisma.io" },
     include: { posts: { first: 10 } },
   })
 
-  // Create a new user
   const newUser = await prisma.users.create({ data: {
     name: "Alice",
     email: "alice@prisma.io",
   }})
 
-  // Create a new user with two posts in a single transaction
   const newUser = await prisma.users.create({ data: {
     email: "alice@prisma.io",
     posts: {
@@ -86,7 +82,6 @@ async function main() {
     }
   }})
 
-  // Update an existing user
   const updatedUser = await prisma.users.update({
     where: { email: "alice@prisma.io" },
     data: { role: "ADMIN" },
