@@ -4,7 +4,7 @@
 <p><h3 align="center">Type-safe database client (ORM) for TypeScript & Node.js</h3></p>
 
 <p align="center">
-  <a href="#getting-started">Getting started</a> • <a href="#features">Features</a> • <a href="#api-examples">API examples</a> • <a href="#the-photon-js-workflow">The Photon JS workflow</a> • <a href="#supported-databases">Supported databases</a> 
+  <a href="#getting-started">Get started</a> • <a href="#features">Features</a> • <a href="#docs">Docs</a> • <a href="#api-examples">API</a> • <a href="#the-photon-js-workflow">Workflow</a> • <a href="#supported-databases">Supported databases</a> 
 </p>
 
 <!--
