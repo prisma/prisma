@@ -127,7 +127,7 @@ When starting from scratch, you can simply write your own [data model definition
 Instead of sending SQL migration statements to the database, you need to adjust the data model file to describe your desired database schema. You can express any schema migration you like using the new data model, this includes for example adding a new model, removing a model or updating the fields of a model. You can
 also add indexes or validation constraints in the data model.
 
-You can create a new migration for your change by running `prisma lift save` (optionally giving your migration a name):
+You can create a new migration for your change by running `prisma lift save`:
 
 ```bash
 prisma lift save --name "add-comment-model"
