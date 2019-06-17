@@ -9,5 +9,8 @@
   },
   "scripts": {
     "start": "node src/index.js"
+  },
+  "devDependencies": {
+    "prisma2": "^0.0.68"
   }
 }
