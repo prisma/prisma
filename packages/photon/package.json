@@ -72,7 +72,6 @@
     "flat-map-polyfill": "^0.3.8",
     "fs-extra": "^8.0.1",
     "fs-monkey": "^0.3.3",
-    "get-stream": "5.1.0",
     "indent-string": "^4.0.0",
     "is-obj": "^2.0.0",
     "is-regexp": "^2.1.0",
