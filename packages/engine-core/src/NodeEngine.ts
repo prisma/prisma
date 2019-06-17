@@ -6,7 +6,6 @@ import through from 'through2'
 import debugLib from 'debug'
 import * as path from 'path'
 import * as net from 'net'
-import { writer } from 'repl'
 
 const debug = debugLib('engine')
 
