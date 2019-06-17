@@ -38,6 +38,11 @@ Learn more about the `prisma2 init` flow [here](https://github.com/prisma/prisma
 - Works with existing databases using schema introspection
 - CLI to support all major workflows
 
+## Docs
+
+You can find comprehensive documentation for Photon in the [Prisma 2 docs](https://github.com/prisma/prisma2-docs/).
+
+
 ## The Lift workflow
 
 ### 1. Configure database access
