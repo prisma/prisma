@@ -124,31 +124,37 @@ You can learn more about the Photon's API features on the [website](https://phot
 
 ## How it works
 
-### 1. Configure database access
+### 1. Configure data source
 
 <img src="https://i.imgur.com/UcN3ENI.png" width="220px">
 
-Specify the connection details for your database:
+Specify the connection details for your database as a _data source_ in your [Prisma project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md). The connection details might defer per database, but most commonly you'll probide the following:
 
 - `host`: The IP address or domain name of the machine where your database server is running.
 - `port`: The port on which your database server is listening.
 - `user` & `password`: Credentials for your database sever.
 
+### 2. Define data model
 
-### 2. Introspect your database
+#### Option A: Starting with an existing database (_brownfield_)
 
 <img src="https://i.imgur.com/XkRkwdE.png" width="355px">
 
-Introspect your database schema using the Prisma CLI. This generates a [datamodel]() which is the foundation for the generated Photon database client. The datamodel is a declarative and human-readable representation of your database schema.
+If you want to use Photon with an existing database, you can [introspect](https://github.com/prisma/prisma2-docs/blob/master/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md). This generates a [data model](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) which is the foundation for the generated Photon API. The data model is a declarative and human-readable representation of your database schema.
+
+#### Option B: Start from scratch (_greenfield_)
+
+To start from scratch, you can simply start writing your own [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) inside your [project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md).
 
 ### 3. Generate Photon JS
 
 <img src="https://i.imgur.com/rdtKEYL.png" width="453px">
 
-Generate your Photon database client using the Prisma CLI. Photon is generated based on the datamodel and provides an API with the following features:
+Generate your Photon database client using the Prisma 2 CLI. Photon is generated based on the [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) and provides an API with the following features:
 
 - CRUD
 - Filter, sorting and (cursor) pagination
+- Field selection and eager loading
 - Relations and transactions
 - Raw database access
 
