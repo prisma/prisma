@@ -21,10 +21,10 @@ It is part of the [Prisma](https://www.github.com/prisma/prisma2-docs) ecosystem
 
 <br />
 
-<!-- <p align="center">
-  <a href="https://codesandbox.io/s/github/prisma-csb/prisma-client-demo-ts"><img src="https://svgur.com/i/CXj.svg" alt="CodeSandbox"></a>
+<p align="center">
+  <!-- <a href="https://codesandbox.io/s/github/prisma-csb/prisma-client-demo-ts"><img src="https://svgur.com/i/CXj.svg" alt="CodeSandbox"></a> -->
   <a href="https://www.prisma.io/docs/prisma-client/"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
-</p> -->
+</p>
 
 <p align="center">
   Or try an online <a href="https://codesandbox.io/s/github/prisma-csb/graphql-example-ts">GraphQL API</a> or <a href="https://codesandbox.io/s/github/prisma-csb/rest-example-ts?initialpath=/feed">REST API</a> example in CodeSandbox instead.
