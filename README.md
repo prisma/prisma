@@ -237,7 +237,7 @@ Generate your Photon database client using the `prisma2 generate` command of the
 - Relations and transactions
 - Raw database access
 
-Photon JS gets generated into your `node_modules` folder. There's no need to install any additional dependencies or database drivers.
+Photon JS gets generated into your `node_modules` folder so you can import it directly from `'@generated/photon'`. There's no need to install any additional dependencies or database drivers.
 
 ### 4. Build an app
 
