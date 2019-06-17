@@ -14,6 +14,7 @@ async function main() {
     },
   })
   console.log(users)
+  console.log(Photon.dmmf)
 
   // const x = await photon.users.update({
   //   where: {
