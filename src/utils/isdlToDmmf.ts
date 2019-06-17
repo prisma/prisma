@@ -106,7 +106,7 @@ export function isdlToDmmfDatamodel(
   const enumMap = keyBy(enums, e => e.name)
 
   const models: DMMF.Model[] = isdl.types
-    .filter(t => !t.isEnum && hasId(t))
+    .filter(t => !t.isEnum)
     .map(type => {
       return {
         name: type.name,
