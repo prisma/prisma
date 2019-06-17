@@ -229,7 +229,13 @@ When starting from scratch, you can simply write your own [data model definition
 
 <img src="https://i.imgur.com/rdtKEYL.png" width="453px">
 
-Generate your Photon database client using the `prisma2 generate` command of the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md). Photon is generated based on the [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) and provides an API with the following features:
+Generate your Photon database client using the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md):
+
+```
+prisma2 generate
+```
+
+Photon is generated based on the [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) and provides an API with the following features:
 
 - CRUD
 - Filter, sorting and (cursor) pagination
