@@ -9,7 +9,9 @@ app.use(bodyParser.json())
 
 app.post(`/user`, async (req, res) => {
   const result = await photon.users.create({
-    ...req.body,
+    data: {
+      ...req.body,
+    },
   })
   res.json(result)
 })
