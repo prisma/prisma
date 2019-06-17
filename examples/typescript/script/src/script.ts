@@ -1,5 +1,4 @@
-// import { prisma } from './generated/prisma-client'
-import Photon from '../prisma/generated/photon'
+import Photon from '@generated/photon'
 
 const photon = new Photon()
 

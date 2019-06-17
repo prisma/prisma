@@ -1,5 +1,5 @@
 const Photon = require('./generated/photon')
-const photon = new Photon.default()
+const photon = new Photon()
 
 async function main() {
   await photon.users.create({

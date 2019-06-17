@@ -1,6 +1,5 @@
-const { prisma } = require('../server/generated/prisma-client')
 const Photon = require('../prisma/generated/photon')
-const photon = new Photon.default()
+const photon = new Photon()
 
 async function main() {
   await photon.users.create({
