@@ -305,18 +305,20 @@
   dependencies:
     arg "^4.1.0"
 
-"@prisma/engine-core@0.0.49":
-  version "0.0.49"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.49.tgz#8e349072f3d1f7ba9efca160d58b5c9cf30d2acd"
-  integrity sha512-2ca18+++ae4j8aVtDp3lc+bCOPru5FlNJOJpPTi4vkLdST+zyapvv05iOLoniqgc0Ox3ZwxsoGMJ2AJXYCzf2g==
+"@prisma/engine-core@0.0.52":
+  version "0.0.52"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.52.tgz#0e67689098c756e95bc614e06500de70817a31e3"
+  integrity sha512-Ji+1gsNDB11EgZ4rpFmV0hgVnShHkmdW20bq1pGDRRAh1v30Z66+IB29vKQDROtxDqq+ZIsAtlYPh8obaNvDpg==
   dependencies:
     cross-fetch "^3.0.2"
     debug "^4.1.1"
+    deferral "2.0.4"
+    through2 "3.0.1"
 
-"@prisma/fetch-engine@^0.0.19":
-  version "0.0.19"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.19.tgz#bb6038401d731eaad8754e690a6f1a2b88d10820"
-  integrity sha512-FeDL/rMOJgFi3JPpDhYk+huiT0MONPuNtURigVYhSzytoN52CTGl98hvVBl66ssYsDB83gM+TA7AsHv3iAfS/w==
+"@prisma/fetch-engine@^0.0.21":
+  version "0.0.21"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.21.tgz#58af311e478d40628cefed549a13ef18e0f7ee15"
+  integrity sha512-zFmpAcMlJAjsE77873eX4wUKnDVYU4HBStrQK4o+YOUpYp7ZjMFxh18Xgjd1rDvh31p05ugdUiR+4Bh/2G2Fcg==
   dependencies:
     chalk "^2.4.2"
     death "^1.1.0"
@@ -327,14 +329,14 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/photon@^0.0.94":
-  version "0.0.94"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.94.tgz#de54eb491d9be053fc31c3a8ee7ba401061b7091"
-  integrity sha512-GMQutzm0t7khMlbp/EMrx61Pb00wVknggK07Ao7P73IVng+JmegL78/QWFoA7Owcih5lfTvoK4iuNZ5/dYXePw==
+"@prisma/photon@^0.0.102":
+  version "0.0.102"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.102.tgz#f129cfe6cd7e32bb8c6666aa98f854ab930694be"
+  integrity sha512-VHScoRNulxRFQhmJF7+Xo99i7bMuAIz/Vz9zAR8pKMHVhih2nzRUd+4jo2Z6KVeI3sVcmJcWRRdBdneRITqUXQ==
   dependencies:
     "@prisma/cli" "^0.0.13"
-    "@prisma/engine-core" "0.0.49"
-    "@prisma/fetch-engine" "^0.0.19"
+    "@prisma/engine-core" "0.0.52"
+    "@prisma/fetch-engine" "^0.0.21"
     chalk "^2.4.2"
     cpy "7.3.0"
     dotenv "^8.0.0"
@@ -349,14 +351,16 @@
     node-fetch "^2.6.0"
     pluralize "^8.0.0"
     set-value "^3.0.0"
+    stacktrace-parser "0.1.6"
     strip-ansi "^5.2.0"
     strip-indent "^3.0.0"
     terminal-link "^1.3.0"
+    wtfnode "0.8.0"
 
-"@prisma/studio-server@^0.0.20":
-  version "0.0.20"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.0.20.tgz#9bccbe4bf515f12de0cb75c5661cf7b031390585"
-  integrity sha512-BC+tir0cDKn4BKUO5gWM2uVtuZcc4f26a4zgCYTQcAayO7GB4pfJMll8FkFSMvUm2Ikeqk/46B17Q4sljDYuZQ==
+"@prisma/studio-server@^0.0.24":
+  version "0.0.24"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.0.24.tgz#c74c0656dfe09436e7909d9498f0a9a39218c720"
+  integrity sha512-s+E8F4KjnN+yOlZhZbBgY0jxi7kl1Z4dLc5HS5hCHziuZzjMTGVNUrsbO+8Y6U2t3SL1/3KSdVnR1AYTcs1ZwQ==
   dependencies:
     express "^4.17.1"
     express-ws "^4.0.0"
@@ -1281,6 +1285,11 @@ deep-is@~0.1.3:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/deep-is/-/deep-is-0.1.3.tgz#b369d6fb5dbc13eecf524f91b070feedc357cf34"
   integrity sha1-s2nW+128E+7PUk+RsHD+7cNXzzQ=
+
+deferral@2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/deferral/-/deferral-2.0.4.tgz#70f7b211a2b5de22ef01ed279009282e083b7a12"
+  integrity sha512-0boSIyWI9ZhvEBJreqhJ5JQcqmD1JghWGOKWnjK4aO51FQBHwSr9apstfbI5X27uahTCBK04isZRe/5jUcfYvg==
 
 define-properties@^1.1.2:
   version "1.1.3"
@@ -4000,6 +4009,15 @@ read-pkg@^5.1.1:
     parse-json "^4.0.0"
     type-fest "^0.4.1"
 
+"readable-stream@2 || 3":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-3.4.0.tgz#a51c26754658e0a3c21dbf59163bd45ba6f447fc"
+  integrity sha512-jItXPLmrSR8jmTRmRWJXCnGJsfy85mB3Wd/uINMXA65yrnFo0cPClFIUWzo2najVNSl+mx7/4W8ttlLWJe99pQ==
+  dependencies:
+    inherits "^2.0.3"
+    string_decoder "^1.1.1"
+    util-deprecate "^1.0.1"
+
 readable-stream@^2.0.1, readable-stream@^2.0.6, readable-stream@^2.2.2:
   version "2.3.6"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.3.6.tgz#b11c27d88b8ff1fbe070643cf94b0c79ae1b0aaf"
@@ -4464,6 +4482,13 @@ stack-utils@^1.0.1:
   resolved "https://registry.yarnpkg.com/stack-utils/-/stack-utils-1.0.2.tgz#33eba3897788558bebfc2db059dc158ec36cebb8"
   integrity sha512-MTX+MeG5U994cazkjd/9KNAapsHnibjMLnfXodlkXw76JEea0UiNzrqidzo1emMwk7w5Qhc9jd4Bn9TBb1MFwA==
 
+stacktrace-parser@0.1.6:
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/stacktrace-parser/-/stacktrace-parser-0.1.6.tgz#c17d466d15ba51bee2f753d064f17327a886ff37"
+  integrity sha512-wXhu0Z8YgCGigUtHQq+J7pjXCppk3Um5DwH4qskOKHMlJmKwuuUSm+wDAgU7t4sbVjvuDTNGwOfFKgjMEqSflA==
+  dependencies:
+    type-fest "^0.3.0"
+
 static-extend@^0.1.1:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/static-extend/-/static-extend-0.1.2.tgz#60809c39cbff55337226fd5e0b520f341f1fb5c6"
@@ -4524,6 +4549,13 @@ string-width@^4.1.0:
     emoji-regex "^8.0.0"
     is-fullwidth-code-point "^3.0.0"
     strip-ansi "^5.2.0"
+
+string_decoder@^1.1.1:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/string_decoder/-/string_decoder-1.2.0.tgz#fe86e738b19544afe70469243b2a1ee9240eae8d"
+  integrity sha512-6YqyX6ZWEYguAxgZzHGL7SsCeGx3V2TtOTqZz1xSTSWnqsbWwbptafNyvf/ACquZUXV3DANr5BDIwNYe1mN42w==
+  dependencies:
+    safe-buffer "~5.1.0"
 
 string_decoder@~1.1.1:
   version "1.1.1"
@@ -4651,6 +4683,13 @@ throat@^4.0.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/throat/-/throat-4.1.0.tgz#89037cbc92c56ab18926e6ba4cbb200e15672a6a"
   integrity sha1-iQN8vJLFarGJJua6TLsgDhVnKmo=
+
+through2@3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/through2/-/through2-3.0.1.tgz#39276e713c3302edf9e388dd9c812dd3b825bd5a"
+  integrity sha512-M96dvTalPT3YbYLaKaCuwu+j06D/8Jfib0o/PxbVt6Amhv3dUAtW6rTV1jPgJSBG83I/e04Y6xkVdVhSRhi0ww==
+  dependencies:
+    readable-stream "2 || 3"
 
 tmpl@1.0.x:
   version "1.0.4"
@@ -4866,7 +4905,7 @@ use@^3.1.0:
   resolved "https://registry.yarnpkg.com/use/-/use-3.1.1.tgz#d50c8cac79a19fbc20f2911f56eb973f4e10070f"
   integrity sha512-cwESVXlO3url9YWlFW/TA9cshCEhtu7IKJ/p5soJ/gGpj7vbvFrAY/eIioQ6Dw23KjZhYgiIo8HOs1nQ2vr/oQ==
 
-util-deprecate@~1.0.1:
+util-deprecate@^1.0.1, util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
   integrity sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8=
@@ -5038,6 +5077,11 @@ ws@^5.2.0:
   integrity sha512-jaHFD6PFv6UgoIVda6qZllptQsMlDEJkTQcybzzXDYM1XO9Y8em691FGMPmM46WGyLU4z9KMgQN+qrux/nhlHA==
   dependencies:
     async-limiter "~1.0.0"
+
+wtfnode@0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/wtfnode/-/wtfnode-0.8.0.tgz#26a1a6b8e07727d7ed29dacc6708bea4647ccd20"
+  integrity sha512-A5jm/0REykxUac1q4Q5kv+hDIiacvqVpwIoXzCQcRL7syeEKucVVOxyLLrt+jIiZoXfla3lnsxUw/cmWXIaGWA==
 
 xml-name-validator@^3.0.0:
   version "3.0.0"

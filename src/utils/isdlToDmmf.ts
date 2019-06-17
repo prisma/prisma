@@ -1,5 +1,5 @@
 import { ISDL, IGQLField, IGQLType, isTypeIdentifier } from 'prisma-datamodel'
-import { Dictionary, keyBy } from './keyBy'
+import { Dictionary, keyBy } from './keyby'
 import fs from 'fs'
 
 export namespace DMMF {
