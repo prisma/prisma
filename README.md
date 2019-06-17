@@ -23,7 +23,7 @@ It is part of the [Prisma](https://www.github.com/prisma/prisma2-docs) ecosystem
 
 <p align="center">
   <!-- <a href="https://codesandbox.io/s/github/prisma-csb/prisma-client-demo-ts"><img src="https://svgur.com/i/CXj.svg" alt="CodeSandbox"></a> -->
-  <a href="https://www.prisma.io/docs/prisma-client/"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
+  <a href="https://www.github.com/prisma/prisma2-docs/"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
 </p>
 
 <!-- <p align="center">
