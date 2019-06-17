@@ -1,10 +1,10 @@
 <p align="center"><a href="https://www.prisma.io"><img src="https://svgur.com/i/CXu.svg" alt="Prisma" height="66px"></a></p>
 
 <p><h1 align="center">Photon JS</h1></p>
-<p><h3 align="center">Type-safe database client (ORM) for TypeScript & Node.js (by <a href="">Prisma</a>)</h3></p>
+<p><h3 align="center">Type-safe database client (ORM) for TypeScript & Node.js</h3></p>
 
 <p align="center">
-  <a href="#features">Features</a> • <a href="#how-it-works">How it works</a> • <a href="#supported-databases">Supported databases</a> 
+  <a href="https://www.github.com/prisma/prisma2-docs">Docs</a> • <a href="#features">Features</a> • <a href="#how-it-works">How it works</a> • <a href="#supported-databases">Supported databases</a> 
 </p>
 
 <!--
@@ -15,9 +15,9 @@
 </p>
 -->
 
-Photon JS is an **auto-generated database client library** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or Knex.js.
+Photon JS is an **auto-generated database client library** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or Knex.js
 
-It is part of the [Prisma]() ecosystem. Prisma provides a family of tools to simplify database workflows for data access, declarative data modeling, schema migrations and visual data management. [Learn more.]()
+It is part of the [Prisma](https://www.github.com/prisma/prisma2-docs) ecosystem. Prisma provides a family of tools to simplify database workflows for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
 
 <br />
 
