@@ -26,9 +26,9 @@ It is part of the [Prisma](https://www.github.com/prisma/prisma2-docs) ecosystem
   <a href="https://www.prisma.io/docs/prisma-client/"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
 </p>
 
-<p align="center">
+<!-- <p align="center">
   Or try an online <a href="https://codesandbox.io/s/github/prisma-csb/graphql-example-ts">GraphQL API</a> or <a href="https://codesandbox.io/s/github/prisma-csb/rest-example-ts?initialpath=/feed">REST API</a> example in CodeSandbox instead.
-</p>
+</p> -->
 
 
 ## Features
