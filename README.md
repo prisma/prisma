@@ -34,17 +34,19 @@ It is part of the [Prisma](https://www.github.com/prisma/prisma2-docs) ecosystem
 ## Features
 
 - Auto-generated database client
-- Fully type-safe data access API (even for JavaScript)
-- Powerful methods for filtering, sorting and (cursor) pagination
+- Fully **type-safe** data access API (even for JavaScript), including:
+  - Powerful methods for filtering, sorting and (cursor) pagination
+  - Field selection, lazy/eager loading
+  - Fluent API for relations
+  - Transactional nested writes and batching API
 - [Data mapper](https://en.wikipedia.org/wiki/Data_mapper_pattern) ORM pattern
-- Transactional nested writes and batching API
-- Declarative data modelling and migrations
+- Declarative data modelling and migrations with [Lift](https://github.com/prisma/lift)
 - Connection pooling
 - Works with existing databases using schema introspection
 - CLI to support all major workflows
 - Integrates seamlessly in your npm projects (without `npm install`)
 
-## Example
+## API examples
 
 ```ts
 // Fetch user by id or email
