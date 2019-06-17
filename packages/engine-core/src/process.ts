@@ -40,8 +40,9 @@ export default class Process {
   /**
    * Running?
    */
-  running(): boolean {
-    return !!this._running
+  async running(): Promise<boolean> {
+    const code = await Promise.race([this._running.wait(), tick()])
+    return typeof code !== 'number'
   }
 
   /**
@@ -97,14 +98,10 @@ export default class Process {
     this._stdout && this._process.stdout.pipe(multiwriter(stdio, this._stdout))
 
     this._running = new Deferred()
-    this._process.once('error', err => this._running.reject(err))
+    this._process.once('error', () => this._running.reject(1))
     this._process.once('exit', code => {
-      if (!code) {
-        return this._running.resolve(code)
-      }
-      readAll(stdio)
-        .then(buf => this._running.reject(this.error(code, buf)))
-        .catch(err => console.error(err))
+      // for some reason signals cause code to be null... wierd
+      this._running.resolve(typeof code === 'number' ? code : 1)
     })
 
     const code = await Promise.race([tick(), this._running.wait()])
@@ -115,7 +112,10 @@ export default class Process {
   }
 
   /**
-   * Wait until the process exits or errors out
+   * Wait until the process exits
+   *
+   * Wait will throw if the process
+   * exits with a non-zero value
    */
   async wait(): Promise<void> {
     if (!this._running) {
@@ -134,6 +134,9 @@ export default class Process {
 
   /**
    * Run starts the process and waits for the result
+   *
+   * Wait will throw if the process
+   * exits with a non-zero value
    */
   async run(): Promise<void> {
     await this.start()
