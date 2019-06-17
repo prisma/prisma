@@ -235,7 +235,7 @@ Generate your Photon database client using the [Prisma 2 CLI](https://github.com
 prisma2 generate
 ```
 
-Photon is generated based on the [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) and provides an API with the following features:
+Photon is generated based on the [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) and provides a type-safe API with the following features:
 
 - CRUD
 - Filter, sorting and (cursor) pagination
