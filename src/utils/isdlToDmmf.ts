@@ -1,4 +1,4 @@
-import { ISDL, IGQLField, IGQLType, isTypeIdentifier } from 'prisma-datamodel'
+import { ISDL, IGQLField, IGQLType, isTypeIdentifier, LegacyRelationalReservedFields, IComment } from 'prisma-datamodel'
 import { Dictionary, keyBy } from './keyby'
 import fs from 'fs'
 
@@ -90,6 +90,14 @@ function getType(field: IGQLField): string {
   return field.type.name
 }
 
+function convertComments(comments: IComment[]) {
+  if (comments.length === 0) {
+    return null
+  } else {
+    return comments.map(c => c.text).join('\n')
+  }
+}
+
 export function isdlToDmmfDatamodel(
   isdl: ISDL,
   dataSources: DMMF.DataSource[] = [],
@@ -100,6 +108,7 @@ export function isdlToDmmfDatamodel(
       return {
         name: type.name,
         values: type.fields.map(f => f.name),
+        documentation: convertComments(type.comments),
       }
     })
 
@@ -112,6 +121,7 @@ export function isdlToDmmfDatamodel(
         name: type.name,
         isEmbedded: type.isEmbedded,
         dbName: type.databaseName,
+        documentation: convertComments(type.comments),
         fields: type.fields
           .filter(f => f.type !== 'Json' && getKind(f, enumMap))
           .map(field => {
@@ -158,6 +168,7 @@ export function isdlToDmmfDatamodel(
               type: mapIdType(getType(field)),
               default: defaultValue,
               isUpdatedAt: field.isUpdatedAt,
+              documentation: convertComments(field.comments),
             } as DMMF.Field
           }),
       }
