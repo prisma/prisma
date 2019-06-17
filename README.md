@@ -151,11 +151,49 @@ You can learn more about the Photon's API features on the [website](https://phot
 
 <img src="https://i.imgur.com/UcN3ENI.png" width="220px">
 
-Specify the connection details for your database as a _data source_ in your [Prisma project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md). The connection details might defer per database, but most commonly you'll probide the following:
+Specify the connection details for your database as a _data source_ in your [Prisma project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md). The connection details might differ per database, but most commonly you'll probide the following:
 
-- `host`: The IP address or domain name of the machine where your database server is running.
-- `port`: The port on which your database server is listening.
-- `user` & `password`: Credentials for your database sever.
+- Host: The IP address or domain name of the machine where your database server is running.
+- Port: The port on which your database server is listening.
+- User & password: Credentials for your database server.
+
+Here is an example project file that connects to a local PostgreSQL database: 
+
+```
+// project.prisma
+
+datasource mysql {
+  url      = "postgresql://user:password@localhost:5432"
+  provider = "postgres"
+}
+
+generator photonjs {
+  provider = 'photonjs'
+}
+
+model User {
+  id        Int      @id
+  createdAt DateTime @default(now())
+  email     String   @unique
+  name      String?
+  role      Role     @default(USER)
+  posts     Post[]
+}
+
+model Post {
+  id         Int        @id
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  author     User
+  title      String
+  published  Boolean    @default(false)
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+```
 
 ### 2. Define initial data model
 
