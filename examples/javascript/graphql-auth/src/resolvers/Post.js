@@ -1,6 +1,12 @@
 const Post = {
   author: ({ id }, args, context) => {
-    return context.prisma.post({ id }).author()
+    return context.photon.posts
+      .findOne({
+        where: {
+          id,
+        },
+      })
+      .author()
   },
 }
 
