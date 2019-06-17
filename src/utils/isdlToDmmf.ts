@@ -1,4 +1,4 @@
-import { ISDL, IGQLField, IGQLType, isTypeIdentifier, LegacyRelationalReservedFields, IComment } from 'prisma-datamodel'
+import { ISDL, IGQLField, IGQLType, isTypeIdentifier, IComment } from 'prisma-datamodel'
 import { Dictionary, keyBy } from './keyby'
 import fs from 'fs'
 
