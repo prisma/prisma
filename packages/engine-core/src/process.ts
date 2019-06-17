@@ -1,7 +1,6 @@
 // @ts-check
 
 import { spawn, ChildProcess } from 'child_process'
-import getStream from 'get-stream'
 import Deferred from 'deferral'
 import through from 'through2'
 import Debug from 'debug'
