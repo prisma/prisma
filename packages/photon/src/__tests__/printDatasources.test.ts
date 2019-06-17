@@ -1,5 +1,5 @@
-import { Dictionary } from '../common'
-import { Datasource, InternalDatasource, printDatasources } from '../printDatasources'
+import { Dictionary } from '../runtime/utils/common'
+import { Datasource, InternalDatasource, printDatasources } from '../runtime/utils/printDatasources'
 
 const internalDatasources: InternalDatasource[] = [
   {

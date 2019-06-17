@@ -64,15 +64,23 @@ export async function getRawDMMF(
 ): Promise<ExternalDMMF.Document> {
   const child = new Process(prismaPath, 'cli', '--dmmf')
   let dmmf
+  let error
   child.cwd(cwd)
-  child.env({ PRISMA_DML: datamodel })
+  child.env({ PRISMA_DML: datamodel, RUST_BACKTRACE: '1' })
   child.stdout(
     concat(d => {
-      dmmf = JSON.parse(d)
+      try {
+        dmmf = JSON.parse(d)
+      } catch (e) {
+        error = d
+      }
     }),
   )
   child.stderr(process.stderr)
   await child.run()
+  if (error) {
+    throw new Error(error)
+  }
   return dmmf
 }
 

@@ -102,12 +102,7 @@ export async function downloadMigrationBinary(migrationBinary: string, version: 
 /**
  * TODO: Check if binary already exists and if checksum is the same!
  */
-export async function download(
-  prismaBinPath: string,
-  schemaInferrerBinPath: string,
-  version: string,
-  showProgress = false,
-) {
+export async function download(prismaBinPath: string, version: string, showProgress = false) {
   try {
     fs.writeFileSync(
       prismaBinPath,
@@ -138,21 +133,19 @@ export async function download(
   const platform = await getPlatform()
   const cacheDir = await getCacheDir(platform)
   const cachedPrismaPath = path.join(cacheDir, 'prisma')
-  const cachedSchemaInferrerPath = path.join(cacheDir, 'schema-inferrer-bin')
   const cachedLastModifiedPath = path.join(cacheDir, 'lastModified')
 
-  const [cachedPrismaExists, cachedSchemaInferrerExists, localLastModified] = await Promise.all([
+  const [cachedPrismaExists, localLastModified] = await Promise.all([
     exists(cachedPrismaPath),
-    exists(cachedSchemaInferrerPath),
     getLocalLastModified(cachedLastModifiedPath),
   ])
 
-  if (cachedPrismaExists && cachedSchemaInferrerExists && localLastModified) {
+  if (cachedPrismaExists && localLastModified) {
     const remoteLastModified = await getRemoteLastModified(getPrismaDownloadUrl(platform))
     // If there is no new binary and we have it localy, copy it over
     if (localLastModified >= remoteLastModified) {
       // console.log(`Taking binaries from local cache from ${localLastModified.toISOString()}`)
-      await Promise.all([copy(cachedPrismaPath, prismaBinPath), copy(cachedSchemaInferrerPath, schemaInferrerBinPath)])
+      await copy(cachedPrismaPath, prismaBinPath)
       return
     }
   }
@@ -162,15 +155,13 @@ export async function download(
     bar.update(0)
   }
 
-  const lastModified = await downloadFile(getPrismaDownloadUrl(platform), prismaBinPath, 0, 50, bar)
-  await downloadZip(getSchemaInferrerDownloadUrl(platform), schemaInferrerBinPath, 50, bar)
+  const lastModified = await downloadFile(getPrismaDownloadUrl(platform), prismaBinPath, 0, 100, bar)
   if (bar) {
     bar.update(1)
     bar.terminate()
   }
 
   plusxSync(prismaBinPath)
-  plusxSync(schemaInferrerBinPath)
 
   /**
    * Cache the result only on Mac for better dev experience
@@ -178,7 +169,6 @@ export async function download(
   if (platform === 'darwin') {
     try {
       await copy(prismaBinPath, cachedPrismaPath)
-      await copy(schemaInferrerBinPath, cachedSchemaInferrerPath)
       await writeFile(cachedLastModifiedPath, lastModified)
     } catch (e) {
       // console.error(e)
@@ -257,7 +247,7 @@ async function downloadFile(
   url: string,
   target: string,
   progressOffset = 0,
-  maxProgress = 50,
+  maxProgress = 100,
   bar?: Progress,
 ): Promise<string> {
   return retry<string>(
@@ -319,13 +309,6 @@ async function getPlatform() {
   }
 
   return 'linux-glibc'
-}
-
-function getSchemaInferrerDownloadUrl(platform: string) {
-  if (platform.startsWith('linux-')) {
-    platform = 'linux'
-  }
-  return `https://s3-eu-west-1.amazonaws.com/curl-linux/prisma-native/${platform}/schema-inferrer-bin.gz`
 }
 
 function getPrismaDownloadUrl(platform: string) {
