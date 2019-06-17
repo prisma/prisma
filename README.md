@@ -52,41 +52,56 @@ It is part of the [Prisma 2](https://www.github.com/prisma/prisma2-docs) ecosyst
 Here are few example API calls:
 
 ```ts
-// Fetch user by id or email
-const userById = await prisma.users.findOne({ where: "cjnymovv3s3ht0a516fhmria8" })
-const userByEmail = await prisma.users.findOne({ where: { email: "ada@prisma.io" }})
+import Photon from '@generated/photon'
 
-// Fetch a user with their first 10 posts
-const userWithPosts = await prisma.users.findOne({
-  where: { email: "ada@prisma.io" },
-  include: { posts: { first: 10 } },
-})
+const photon = new Photon()
 
-// Create a new user
-const newUser = await prisma.users.create({ data: {
-  name: "Alice",
-  email: "alice@prisma.io",
-}})
+async function main() {
+  await photon.connect()
 
-// Create a new user with two posts in a single transaction
-const newUser = await prisma.users.create({ data: {
-  email: "alice@prisma.io",
-  posts: {
-    create: [
-      { title: "Join us for Prisma Day. June 19, Berlin!" },
-      { title: "Follow Prisma on Twitter!" },
-    ]
-  }
-}})
+  // Fetch user by id or email
+  const userById = await prisma.users.findOne({ where: 1 })
+  const userByEmail = await prisma.users.findOne({ where: { email: "ada@prisma.io" }})
 
-// Update an existing user
-const updatedUser = await prisma.users.update({
-  where: { email: "alice@prisma.io" },
-  data: { role: "ADMIN" },
+  // Fetch a user with their first 10 posts
+  const userWithPosts = await prisma.users.findOne({
+    where: { email: "ada@prisma.io" },
+    include: { posts: { first: 10 } },
+  })
+
+  // Create a new user
+  const newUser = await prisma.users.create({ data: {
+    name: "Alice",
+    email: "alice@prisma.io",
+  }})
+
+  // Create a new user with two posts in a single transaction
+  const newUser = await prisma.users.create({ data: {
+    email: "alice@prisma.io",
+    posts: {
+      create: [
+        { title: "Join us for Prisma Day. June 19, Berlin!" },
+        { title: "Follow Prisma on Twitter!" },
+      ]
+    }
+  }})
+
+  // Update an existing user
+  const updatedUser = await prisma.users.update({
+    where: { email: "alice@prisma.io" },
+    data: { role: "ADMIN" },
+  })
+
+  await photon.disconnect()
+}
+
+main().catch(e => {
+  console.error(e)
+  photon.disconnect()
 })
 ```
 
-You can learn more about the generated API on the [Photon website]https://photonjs.prisma.io/) or the [API reference docs](https://github.com/prisma/prisma2-docs/blob/master/photon/api.md).
+You can learn more about the Photon's API features on the [website](https://photonjs.prisma.io/) or in the [API reference](https://github.com/prisma/prisma2-docs/blob/master/photon/api.md).
 
 <Details><Summary>Expand to the view the data model</Summary>
 
