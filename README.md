@@ -30,6 +30,18 @@ It is part of the [Prisma 2](https://www.github.com/prisma/prisma2-docs) ecosyst
   Or try an online <a href="https://codesandbox.io/s/github/prisma-csb/graphql-example-ts">GraphQL API</a> or <a href="https://codesandbox.io/s/github/prisma-csb/rest-example-ts?initialpath=/feed">REST API</a> example in CodeSandbox instead.
 </p> -->
 
+## Getting started
+
+The easiest way to get started with Photon is by installing the Prisma 2 CLI and running the interactive `init` command:
+
+```
+npm install -g prisma2
+prisma2 init hello-prisma
+```
+
+The interactive prompt will ask you to provide database credentials for your database. If you don't have a database yet, select **SQLite** and let the CLI set up a database file for you.
+
+Learn more about the `prisma2 init` flow [here](https://github.com/prisma/prisma2-docs/blob/master/getting-started.md).
 
 ## Features
 
@@ -46,17 +58,6 @@ It is part of the [Prisma 2](https://www.github.com/prisma/prisma2-docs) ecosyst
 - Works with existing databases using schema introspection
 - CLI to support all major workflows
 - Integrates seamlessly in your npm projects (without `npm install`)
-
-## Getting started
-
-The easiest way to get started with Photon is by installing the Prisma 2 CLI and running the interactive `init` command:
-
-```
-npm install -g prisma2
-prisma2 init hello-prisma
-```
-
-Learn more about the `prisma2 init` flow [here](https://github.com/prisma/prisma2-docs/blob/master/getting-started.md).
 
 ## API examples
 
