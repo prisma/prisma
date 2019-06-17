@@ -115,6 +115,14 @@ main().catch(e => {
 <Details><Summary>Expand to the view the <strong>data model</strong> based on which the above Photon API was generated</Summary>
 
 ```groovy
+datasource ds {
+  // some data source config, e.g. SQLite, PostgreSQL, ...
+}
+
+generator photonjs {
+  provider = 'photonjs'
+}
+
 model User {
   id         Int       @id
   email      String    @unique
