@@ -41,7 +41,7 @@ export default class Process {
    * Running?
    */
   async running(): Promise<boolean> {
-    const code = await Promise.race([this._running.wait(), tick(50)])
+    const code = await Promise.race([this._running.wait(), tick()])
     return typeof code !== 'number'
   }
 
