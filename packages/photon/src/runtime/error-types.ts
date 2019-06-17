@@ -10,7 +10,7 @@ export interface FieldError {
   error: InvalidFieldError
 }
 
-export type InvalidFieldError = InvalidFieldNameError | InvalidFieldTypeError
+export type InvalidFieldError = InvalidFieldNameError | InvalidFieldTypeError | EmptySelectError | NoTrueSelectError
 
 export interface InvalidFieldTypeError {
   type: 'invalidFieldType'
@@ -24,6 +24,16 @@ export interface InvalidFieldNameError {
   modelName: string
   didYouMean?: string
   providedName: string
+}
+
+export interface EmptySelectError {
+  type: 'emptySelect'
+  field: DMMF.SchemaField
+}
+
+export interface NoTrueSelectError {
+  type: 'noTrueSelect'
+  field: DMMF.SchemaField
 }
 
 export type JavaScriptPrimitiveType = 'number' | 'string' | 'boolean'

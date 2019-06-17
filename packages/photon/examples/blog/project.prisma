@@ -11,35 +11,14 @@ generator photon {
 }
 
 model User {
-  id      Int      @id
-  email   String   @unique
-  name    String
-  role    Role     @default(USER)
-  posts   Post[]
-  profile Profile? @relation(link: INLINE)
-}
-
-model Profile {
-  id   Int    @id
-  user User
-  bio  String
+  id    Int     @id
+  name  String?
+  posts Post[]
 }
 
 model Post {
-  id         Int        @id
-  author     User?
-  title      String
-  published  Boolean    @default(false)
-  categories Category[] @relation("PostToCategory")
-}
-
-model Category {
-  id    Int    @id
-  name  String
-  posts Post[] @relation("PostToCategory")
-}
-
-enum Role {
-  USER
-  ADMIN
+  id     Int      @id
+  title  String
+  tags   String[]
+  author User
 }
