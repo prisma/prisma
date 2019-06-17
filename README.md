@@ -146,7 +146,7 @@ If you want to use Photon with an existing database, you can [introspect](https:
 
 #### Option B: Start from scratch (_greenfield_)
 
-To start from scratch, you can simply start writing your own [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) inside your [project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md).
+When starting from scratch, you can simply write your own [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) inside your [project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md). You can then use [Lift](https://github.com/prisma/lift) to migrate your database (Lift maps your data model definition to the schema of the underlying database).
 
 ### 3. Generate Photon JS
 
