@@ -134,7 +134,7 @@ Specify the connection details for your database as a _data source_ in your [Pri
 - `port`: The port on which your database server is listening.
 - `user` & `password`: Credentials for your database sever.
 
-### 2. Define data model
+### 2. Define initial data model
 
 The [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Read below to learn how you obtain it for your project.
 
@@ -164,9 +164,13 @@ Photon JS gets generated into your `node_modules` folder. There's no need to ins
 
 ### 4. Build an app
 
-Similar to traditional ORMs, the Photon JS client can be used any of your Node.js or TypeScript applications. For example to implement REST, GraphQL or gRPC APIs.
+Similar to traditional ORMs, the Photon JS client can be used any of your Node.js or TypeScript application. For example to implement REST, GraphQL or gRPC APIs.
 
 ### 5. Evolve your database and Photon JS database client
+
+Depending on how you obtained your [initial data model](https://github.com/prisma/photonjs/tree/readme#2-define-data-model), there might be two ways for evolving your application going forward.
+
+####
 
 As you build your app, you'll likely migrate your database to implement new features. After each schema migration, you need to re-introspect the database (to update the generated datamodel) and re-generate the Photon JS client to account for the new schema.
 
