@@ -26,7 +26,7 @@ migration ..20190617102350-init
 +}
 +
 +generator photon {
-+  provider = "photon-js"
++  provider = "photonjs"
 +  output   = "../node_modules/@generated/photon"
 +}
 +

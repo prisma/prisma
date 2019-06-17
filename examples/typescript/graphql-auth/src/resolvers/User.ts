@@ -1,16 +1,11 @@
-import { prismaObjectType } from 'nexus-prisma'
+import { objectType } from '@prisma/nexus'
 
-export const User = prismaObjectType({
+export const User = objectType({
   name: 'User',
   definition(t) {
-    t.prismaFields([
-      'id',
-      'name',
-      'email',
-      {
-        name: 'posts',
-        args: [], // remove the arguments from the `posts` field of the `User` type in the Prisma schema
-      },
-    ])
+    t.model.id()
+    t.model.name()
+    t.model.email()
+    t.model.posts({ pagination: false })
   },
 })

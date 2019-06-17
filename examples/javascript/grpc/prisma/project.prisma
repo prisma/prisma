@@ -5,7 +5,7 @@ datasource db {
 }
 
 generator photon {
-  provider = "photon-js"
+  provider = "photonjs"
   output   = "../node_modules/@generated/photon"
 }
 

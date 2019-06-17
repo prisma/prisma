@@ -1,8 +1,14 @@
-import { prismaObjectType } from 'nexus-prisma'
+import { objectType } from '@prisma/nexus'
 
-export const Post = prismaObjectType({
+export const Post = objectType({
   name: 'Post',
   definition(t) {
-    t.prismaFields(['*'])
+    t.model.id()
+    // t.model.createdAt()
+    // t.model.updatedAt()
+    t.model.published()
+    t.model.title()
+    t.model.content()
+    t.model.author()
   },
 })
