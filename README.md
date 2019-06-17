@@ -35,10 +35,11 @@ It is part of the [Prisma](https://www.github.com/prisma/prisma2-docs) ecosystem
 
 - Auto-generated database client
 - Fully **type-safe** data access API (even for JavaScript), including:
-  - Powerful methods for filtering, sorting and (cursor) pagination
   - Field selection, lazy/eager loading
-  - Fluent API for relations
+  - Fluent API to traverse relations
   - Transactional nested writes and batching API
+  - Relation filters (filter on JOINed tables)
+  - Powerful methods for filtering, sorting and (cursor) pagination
 - [Data mapper](https://en.wikipedia.org/wiki/Data_mapper_pattern) ORM pattern
 - Declarative data modelling and migrations with [Lift](https://github.com/prisma/lift)
 - Connection pooling
