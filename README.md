@@ -145,7 +145,6 @@ Learn more about the data model in the [docs](https://github.com/prisma/prisma2-
 
 You can learn more about the Photon's API features on the [website](https://photonjs.prisma.io/) or in the [API reference](https://github.com/prisma/prisma2-docs/blob/master/photon/api.md).
 
-
 ## The Photon JS workflow
 
 ### 1. Configure data source
