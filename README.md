@@ -17,7 +17,7 @@
 
 Photon JS is an **auto-generated database client** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or Knex.js
 
-It is part of the [Prisma 2](https://www.github.com/prisma/prisma2-docs) ecosystem. Prisma provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
+It is part of the [Prisma 2](https://www.github.com/prisma/prisma2-docs) ecosystem. Prisma 2 provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
 
 <br />
 
@@ -46,6 +46,17 @@ It is part of the [Prisma 2](https://www.github.com/prisma/prisma2-docs) ecosyst
 - Works with existing databases using schema introspection
 - CLI to support all major workflows
 - Integrates seamlessly in your npm projects (without `npm install`)
+
+## Getting started
+
+The easiest way to get started with Photon is by installing the Prisma 2 CLI and running the interactive `init` command:
+
+```
+npm install -g prisma2
+prisma2 init hello-prisma
+```
+
+Learn more about the `prisma2 init` flow [here](https://github.com/prisma/prisma2-docs/blob/master/getting-started.md).
 
 ## API examples
 
