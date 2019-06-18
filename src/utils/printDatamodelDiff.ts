@@ -11,7 +11,8 @@ export function printDatamodelDiff(rawDatamodelA: string, rawDatamodelB?: string
     return highlightDatamodel(datamodelA)
   }
   const datamodelB = trimWholeBlocks(rawDatamodelB, ['source', 'datasource', 'generator'])
-  const result = fixCurly(diffLines(normalizeText(datamodelA), normalizeText(datamodelB)))
+  let result = fixCurly(diffLines(normalizeText(datamodelA), normalizeText(datamodelB)))
+  result = result.map(diff => ({ ...diff, value: trimNewLine(diff.value) }))
   const diff = result
     .map((change, index, changes) => {
       if (change.added) {
@@ -28,12 +29,12 @@ export function printDatamodelDiff(rawDatamodelA: string, rawDatamodelB?: string
                   return ''
                 }
 
-                return chalk.greenBright(trimNewLine(charChange.value))
+                return chalk.greenBright(charChange.value)
               })
               .join('')
           }
         }
-        return chalk.greenBright(trimNewLine(change.value))
+        return chalk.greenBright(change.value)
       }
       if (change.removed) {
         if (
@@ -55,14 +56,14 @@ export function printDatamodelDiff(rawDatamodelA: string, rawDatamodelB?: string
                   return ''
                 }
 
-                return chalk.redBright(trimNewLine(charChange.value))
+                return chalk.redBright(charChange.value)
               })
               .join('')
           }
         }
-        return chalk.redBright(trimNewLine(change.value))
+        return chalk.redBright(change.value)
       }
-      return highlightDatamodel(trimWholeBlocks(trimNewLine(change.value)))
+      return highlightDatamodel(trimWholeBlocks(change.value))
     })
     .join('\n')
     .trim()
@@ -92,13 +93,16 @@ function trimMultiEmptyLines(str: string) {
   return newLines.join('\n')
 }
 
-function trimNewLine(str: string) {
-  let newStr = str
-  if (str.slice(-1)[0] === '\n') {
-    newStr = str.slice(0, str.length - 1)
+export function trimNewLine(str: string) {
+  if (str === '') {
+    return str
   }
-  if (newStr[0] === '\n') {
-    newStr = str.slice(1)
+  let newStr = str
+  if (newStr[0].match(/\r?\n|\r/)) {
+    newStr = newStr.slice(1)
+  }
+  if (newStr.length > 0 && newStr[newStr.length - 1].match(/\r?\n|\r/)) {
+    newStr = newStr.slice(0, newStr.length - 1)
   }
   return newStr
 }
@@ -152,23 +156,47 @@ function trimWholeBlocks(str: string, blocks = ['model', 'enum', 'datasource', '
 
 // filter unnecessary space changes
 function normalizeText(str: string) {
-  return str
-    .split('\n')
-    .reduce<string[]>((acc, line) => {
-      const trimmed = line.trim()
-      if (trimmed.startsWith('#')) {
+  return (
+    str
+      .split('\n')
+      .reduce<string[]>((acc, line) => {
+        const trimmed = line.trim()
+        if (trimmed.startsWith('#')) {
+          return acc
+        }
+
+        if (trimmed.length <= 1) {
+          acc.push(trimmed)
+        } else {
+          acc.push(removeSpacing(line)) // TODO normalize white spaces
+        }
+
         return acc
-      }
+      }, [])
+      .join('\n') + '\n'
+  )
+}
 
-      if (trimmed.length <= 1) {
-        acc.push(trimmed)
-      } else {
-        acc.push(line)
-      }
+function removeSpacing(line: string) {
+  return removeDirectiveSpacing(removeValueSpacing(line))
+}
 
-      return acc
-    }, [])
-    .join('\n')
+function removeValueSpacing(line: string) {
+  const match = /\b(\s+)\w+/g.exec(line)
+
+  if (match && match[1].length > 1) {
+    return line.slice(0, match.index) + ' ' + line.slice(match.index + match[1].length)
+  }
+  return line
+}
+
+function removeDirectiveSpacing(line: string) {
+  const match = /(\s+)@/g.exec(line)
+
+  if (match && match[1].length > 1) {
+    return line.slice(0, match.index) + ' ' + line.slice(match.index + match[1].length)
+  }
+  return line
 }
 
 function fixCurly(changes: Change[]): Change[] {
