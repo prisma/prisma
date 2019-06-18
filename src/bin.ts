@@ -1,10 +1,10 @@
 #!/usr/bin/env ts-node
 
 process.on('uncaughtException', e => {
-  // console.log(e.name)
+  console.log(e)
 })
 process.on('unhandledRejection', (e, promise) => {
-  // console.log(String(e), String(promise))
+  console.log(String(e), String(promise))
 })
 
 /**

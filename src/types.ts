@@ -179,18 +179,20 @@ export type Dictionary<T> = {
   [key: string]: T
 }
 
-export type Migration = {
+export interface LocalMigration extends Migration {
+  afterFilePath?: string
+  beforeFilePath?: string
+}
+
+export interface Migration {
   id: string
   datamodelSteps: DatamodelStep[]
   databaseSteps?: DatabaseStep[]
   datamodel: string
 }
 
-export type MigrationWithDatabaseSteps = {
-  id: string
-  datamodelSteps: DatamodelStep[]
+export interface LocalMigrationWithDatabaseSteps extends LocalMigration {
   databaseSteps: DatabaseStep[]
-  datamodel: string
 }
 
 export type RawSqlStep = {
