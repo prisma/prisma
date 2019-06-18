@@ -383,10 +383,10 @@ prisma-generate-schema@1.34.0:
     popsicle "10"
     prisma-datamodel "1.34.0"
 
-prisma2@^0.0.62:
-  version "0.0.62"
-  resolved "https://registry.yarnpkg.com/prisma2/-/prisma2-0.0.62.tgz#8b704624b88d0ef9334abe0c195c899fb3a323c8"
-  integrity sha512-lp+ZFDEyFthrpa5Y0RqdjoJt3Nqr0aZXVPBIU03dWy4Toz96YRVTjfaRLgkSdV1++CMyzL6cZIpuvVCbMBYWcw==
+prisma2@^0.0.79:
+  version "0.0.79"
+  resolved "https://registry.yarnpkg.com/prisma2/-/prisma2-0.0.79.tgz#4f6568ffdbe90c2f3e995f51874bd9cd6959e824"
+  integrity sha512-E1acg5zysYVjydWRb5M1MHv08Tw0XeW712jBMrOnDafKtIvQWFxuoeVBRoSj2/AsnlTjBmdLEV3R0RM5+qgCsg==
 
 process-nextick-args@~2.0.0:
   version "2.0.0"
