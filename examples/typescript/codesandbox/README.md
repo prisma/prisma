@@ -6,6 +6,10 @@ This example shows how to use the Prisma client in a **Codesandbox container** t
 
 ### 1. Create a new Codesandbox by importing a GitHub repository and point it to this folder.
 
+```
+https://github.com/prisma/photonjs/tree/feature/example-csb/examples/typescript/codesandbox
+```
+
 ### 2. Codesandbox automatically runs the `start` script
 
 ### 3. To iterate quickly, open a new Terminal tab in Codesandbox and start Prisma in Dev mode
