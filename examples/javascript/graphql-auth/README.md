@@ -15,7 +15,7 @@ git clone git@github.com:prisma/prisma-examples.git
 Install Node dependencies:
 
 ```
-cd prisma-examples/node/graphql-auth
+cd examples/javascript/graphql-auth
 npm install
 ```
 

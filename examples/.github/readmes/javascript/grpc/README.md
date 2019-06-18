@@ -3,7 +3,7 @@
 This example shows how to implement a **gRPC API with Node.js** and Prisma.
 
 __INLINE(../_setup-1.md)__
-cd prisma-examples/node/grpc
+cd examples/javascript/grpc
 __INLINE(../_setup-2.md)__
 
 ### 4. Start the gRPC server
