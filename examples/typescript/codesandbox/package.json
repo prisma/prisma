@@ -7,7 +7,7 @@
   "devDependencies": {
     "@types/graphql": "14.2.1",
     "@types/ws": "6.0.1",
-    "prisma2": "^0.0.73",
+    "prisma2": "^0.0.81",
     "ts-node": "7.0.1",
     "typescript": "3.5.2"
   },
