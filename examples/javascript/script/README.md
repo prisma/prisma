@@ -9,7 +9,7 @@ This example shows how to use the Prisma client in a **simple Node script** to r
 Clone the repository:
 
 ```
-git clone git@github.com:prisma/prisma-examples.git
+git clone git@github.com:prisma/photonjs.git
 ```
 
 Install Node dependencies:
