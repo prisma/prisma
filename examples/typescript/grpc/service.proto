@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package blog;
+
+service Blog {
+  // Read operations
+  rpc Feed(FeedRequest) returns (FeedResponse) {};
+  rpc FilterPosts(FilterPostsRequest) returns (FilterPostsResponse) {};
+  rpc Post(PostRequest) returns (Post) {};
+
+  // Write operations
+  rpc SignupUser(SignupUserRequest) returns (User) {};
+  rpc CreateDraft(CreateDraftRequest) returns (Post) {};
+  rpc DeletePost(DeletePostRequest) returns (Post) {};
+  rpc Publish(PublishRequest) returns (Post) {};
+}
+
+message Post {
+  string id = 1;
+  string createdAt = 2;
+  string updatedAt = 3;
+  string title = 4;
+  string content = 5;
+  bool published = 6;
+  User author = 7; 
+}
+
+message User {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  repeated Post posts = 4;
+}
+
+message FeedRequest {}
+
+message FeedResponse {
+  repeated Post feed = 1;
+}
+
+message FilterPostsRequest {
+  string searchString = 1;
+}
+
+message FilterPostsResponse {
+  repeated Post filteredPosts = 1;
+}
+
+message PostRequest {
+  string id = 1;
+}
+
+message SignupUserRequest {
+  string name = 1;
+  string email = 2;
+}
+
+message CreateDraftRequest {
+  string title = 1;
+  string content = 2;
+  string authorEmail = 3;
+}
+
+message PublishRequest {
+  string id = 1;
+}
+
+message DeletePostRequest {
+  string id = 1;
+}
