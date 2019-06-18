@@ -9,9 +9,10 @@
     "prisma-client-lib": "1.34.0"
   },
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "seed": "node prisma/seed.js"
   },
   "devDependencies": {
-    "prisma2": "^0.0.73"
+    "prisma2": "^0.0.79"
   }
 }

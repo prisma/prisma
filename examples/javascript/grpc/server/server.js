@@ -1,7 +1,7 @@
 const chalk = require('chalk')
 const PROTO_PATH = __dirname + '/../service.proto'
 
-const Photon = require('../prisma/generated/photon')
+const Photon = require('@generated/photon')
 const photon = new Photon()
 
 const grpc = require('grpc')
@@ -76,7 +76,7 @@ async function createDraft(call, callback) {
         title,
         content,
         published: false,
-        author: { connect: { email: authorEmail } },
+        // author: { connect: { email: authorEmail } },
       },
     })
     callback(null, newDraft)

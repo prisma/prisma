@@ -10,7 +10,7 @@ type Mutation {
 }
 
 type Post {
-  author: User!
+  author: User
   content: String
   id: ID!
   published: Boolean!
@@ -28,5 +28,5 @@ type User {
   email: String!
   id: ID!
   name: String
-  posts(after: String, before: String, first: Int, last: Int, skip: String): [Post!]
+  posts(after: String, before: String, first: Int, last: Int, skip: Int): [Post!]
 }

@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node ./server/server.js",
+    "seed": "node prisma/seed.js",
     "feed": "node ./client/feed.js",
     "filterPosts": "node ./client/filterPosts.js",
     "post": "node ./client/post.js",
@@ -17,6 +18,6 @@
     "deletePost": "node ./client/deletePost.js"
   },
   "devDependencies": {
-    "prisma2": "^0.0.57"
+    "prisma2": "^0.0.79"
   }
 }

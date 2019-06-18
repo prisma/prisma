@@ -1,14 +1,11 @@
 import { GraphQLServer } from 'graphql-yoga'
 import { join } from 'path'
-import { makeSchema, objectType } from '@prisma/nexus'
+import { makeSchema, objectType, idArg, stringArg } from '@prisma/nexus'
 import Photon from '@generated/photon'
 import { Context } from './types'
 import { nexusPrismaMethod } from '@generated/nexus-prisma'
-import { idArg, stringArg } from 'nexus'
 
-const photon = new Photon({
-  debug: true,
-})
+const photon = new Photon()
 
 const nexusPrisma = nexusPrismaMethod({
   photon: (ctx: Context) => ctx.photon,
@@ -58,7 +55,7 @@ const Query = objectType({
       type: 'Post',
       args: {
         searchString: stringArg({ nullable: true }),
-      } as any, // TODO: Fix this cast
+      },
       resolve: (parent, { searchString }, ctx) => {
         return ctx.photon.posts.findMany({
           where: {
@@ -93,16 +90,16 @@ const Mutation = objectType({
         title: stringArg(),
         content: stringArg({ nullable: true }),
         authorEmail: stringArg(),
-      } as any, // TODO: Fix this cast
+      },
       resolve: (parent, { title, content, authorEmail }, ctx) => {
         return ctx.photon.posts.create({
           data: {
             title,
             content,
             published: false,
-            author: {
-              connect: { email: authorEmail },
-            },
+            // author: {
+            //   connect: { email: authorEmail },
+            // },
           },
         })
       },
@@ -113,7 +110,7 @@ const Mutation = objectType({
       nullable: true,
       args: {
         id: idArg(),
-      } as any, // TODO: Fix this cast
+      },
       resolve: (parent, { id }, ctx) => {
         return ctx.photon.posts.update({
           where: { id },
@@ -159,8 +156,8 @@ server
   .start(() => console.log(`🚀 Server ready at http://localhost:4000`))
   .then(httpServer => {
     async function cleanup() {
-      await photon.disconnect()
       httpServer.close()
+      await photon.disconnect()
     }
 
     process.on('SIGINT', cleanup)
