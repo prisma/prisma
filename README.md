@@ -13,7 +13,8 @@
 
 It is part of the [Prisma 2](https://www.github.com/prisma/prisma2-docs) ecosystem. Prisma 2 provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
 
-> Note that Lift is currently running in Preview. During the Preview period, there might still be breaking changes and a couple of general [limitations](https://github.com/prisma/prisma2-docs/blob/master/limitations.md) that will be gradually removed over the next few weeks.
+> Note that Lift is currently running in Preview. The version available has severe [limitations](https://github.com/prisma/prisma2-docs/blob/master/limitations.md) that make it unsuitable for production workloads, including missing features, limited performance and stability issues. We will address all these limitations before issuing a stable release later this year.
+
 
 <p align="center">
   <!-- <a href="https://codesandbox.io/s/github/prisma-csb/prisma-client-demo-ts"><img src="https://svgur.com/i/CXj.svg" alt="CodeSandbox"></a> -->
