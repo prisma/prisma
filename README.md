@@ -1,3 +1,4 @@
+<br />
 <p align="center"><a href="https://photonjs.prisma.io/"><img src="logo.svg" alt="Prisma" height="40px"></a></p>
 
 <!-- <p><h1 align="center">Photon JS</h1></p> -->
