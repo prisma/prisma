@@ -9,7 +9,7 @@ This example shows how to implement a **gRPC API with TypeScript** and Prisma.
 Clone the repository:
 
 ```
-git clone git@github.com:prisma/prisma-examples.git
+git clone git@github.com:prisma/photonjs.git
 ```
 
 Install Node dependencies:
