@@ -42,7 +42,7 @@ type User {
   email: String!
   id: ID!
   name: String
-  posts(after: String, before: String, first: Int, last: Int, skip: String): [Post!]
+  posts(after: String, before: String, first: Int, last: Int, skip: Int): [Post!]
 }
 
 input UserCreateInput {
