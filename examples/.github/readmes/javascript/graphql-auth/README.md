@@ -2,13 +2,13 @@
 
 This example shows how to implement a **GraphQL server with an email-password-based authentication workflow and authentication rules** based on Prisma, [graphql-yoga](https://github.com/prisma/graphql-yoga) & [graphql-shield](https://github.com/maticzav/graphql-shield).
 
-**INLINE(../\_setup-1.md)**
-cd examples/javascript/graphql-auth
-**INLINE(../\_setup-2.md)**
+__INLINE(../_setup-1.md)__
+cd prisma-examples/node/graphql-auth
+__INLINE(../_setup-2.md)__
 
-**INLINE(../\_start-graphql-server.md)**
+__INLINE(../_start-graphql-server.md)__
 
-**INLINE(../../\_using-the-graphql-api-auth.md)**
+__INLINE(../../_using-the-graphql-api-auth.md)__
 
 ### 6. Evolving the example
 
@@ -16,7 +16,7 @@ If you want to change the GraphQL API, you need to adjust the GraphQL schema in 
 
 <Details><Summary><strong>Adding an operation without updating the datamodel</strong></Summary>
 
-To add new operation that can be based on the current [datamodel](./prisma/datamodel.prisma), you first need to add the operation to the GraphQL schema's `Query` or `Mutation` type and then add the corresponding resolver function.
+To add new operation that can be based on the current [datamodel](./prisma/datamodel.prisma), you first need to add the operation to the GraphQL schema's `Query` or `Mutation` type and then add the corresponding resolver function. 
 
 For example, to add a new mutation that updates a user's name, you can extend the `Mutation` type as follows:
 
@@ -53,7 +53,7 @@ You can now send the following mutation to your GraphQL API:
 ```graphql
 mutation {
   updateUserName(
-    id: "__USER_ID__"
+    id: "__USER_ID__" 
     newName: "John")
   ) {
     id
@@ -153,7 +153,7 @@ Next, you need to implement the resolver for the new operation in [`./src/resolv
 
 ```diff
 const resolvers = {
-  // ...
+  // ... 
   Mutation: {
     // ...
 +   writeComment(parent, { postId, userId }, context) {
@@ -176,7 +176,7 @@ Finally, because `Comment` has a relation to `Post` and `User`, you need to upda
 
 ```diff
 const resolvers = {
-  // ...
+  // ... 
   User: {
     // ...
 +   comments: ({ id }, args, context) {
@@ -204,7 +204,10 @@ You can now send the following mutation to your GraphQL API. Note that this muta
 
 ```graphql
 mutation {
-  writeComment(postId: "__POST_ID__", text: "I like turtles 🐢") {
+  writeComment(
+    postId: "__POST_ID__" 
+    text: "I like turtles 🐢"
+  ) {
     id
     name
   }
@@ -213,7 +216,7 @@ mutation {
 
 </Details>
 
-**INLINE(../\_next-steps.md)**
+__INLINE(../_next-steps.md)__
 
 ## The idea behind the example
 
