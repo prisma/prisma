@@ -2,9 +2,9 @@
 
 This example shows how to implement a **REST API with TypeScript** using [Express.JS](https://expressjs.com/de/) and Prisma.
 
-__INLINE(../_setup-1.md)__
-cd prisma-examples/typescript/rest-express
-__INLINE(../_setup-2.md)__
+**INLINE(../\_setup-1.md)**
+cd examples/typescript/rest-express
+**INLINE(../\_setup-2.md)**
 
 ### 4. Start the REST API server
 
@@ -14,6 +14,6 @@ npm run start
 
 The server is now running on `http://localhost:3000`. You can send the API requests implemented in `index.js`, e.g. [`http://localhost:3000/feed`](http://localhost:3000/feed).
 
-__INLINE(../../_using-the-rest-api.md)__
+**INLINE(../../\_using-the-rest-api.md)**
 
-__INLINE(../_next-steps.md)__
+**INLINE(../\_next-steps.md)**
