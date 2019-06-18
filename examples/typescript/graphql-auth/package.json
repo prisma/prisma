@@ -2,7 +2,8 @@
   "name": "graphql-auth",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node-dev --no-notify --respawn --transpileOnly ./src"
+    "start": "ts-node-dev --no-notify --respawn --transpileOnly ./src",
+    "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/nexus": "^0.0.1",
@@ -21,7 +22,7 @@
     "@types/jsonwebtoken": "8.3.2",
     "@types/node": "10.14.9",
     "@types/ws": "6.0.1",
-    "prisma2": "^0.0.66",
+    "prisma2": "^0.0.78",
     "ts-node-dev": "1.0.0-pre.40",
     "typescript": "3.5.2"
   }
