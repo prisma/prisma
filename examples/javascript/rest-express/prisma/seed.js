@@ -1,8 +1,8 @@
-const Photon = require('./generated/photon')
+const Photon = require('@generated/photon')
 const photon = new Photon()
 
 async function main() {
-  await photon.users.create({
+  const user1 = await photon.users.create({
     data: {
       email: 'alice@prisma.io',
       name: 'Alice',
@@ -15,7 +15,7 @@ async function main() {
       },
     },
   })
-  await photon.users.create({
+  const user2 = await photon.users.create({
     data: {
       email: 'bob@prisma.io',
       name: 'Bob',
@@ -35,6 +35,7 @@ async function main() {
       },
     },
   })
+  console.log({ user1, user2 })
 }
 
 main()
