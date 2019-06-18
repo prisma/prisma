@@ -52,6 +52,5 @@ In case you prefer a GUI client, we recommend [BloomRPC](https://github.com/uw-l
 
 ## Next steps
 
-- [Use Prisma with an existing database](https://www.prisma.io/docs/-a003/)
-- [Explore the Prisma client API](https://www.prisma.io/client/client-javascript)
-- [Learn more about the GraphQL schema](https://www.prisma.io/blog/graphql-server-basics-the-schema-ac5e2950214e/)
+- [Use Prisma with an existing database](https://github.com/prisma/prisma2-docs/blob/master/introspection.md)
+- [Explore the Photon API](https://github.com/prisma/prisma2-docs/blob/master/photon/api.md)
