@@ -55,7 +55,7 @@ Please ${gamboge(`stop ${chalk.bold('prisma dev')} first`)}, then try ${chalk.gr
 
     ${chalk.bold('Usage')}
 
-      prisma lift [command] [options]
+      prisma2 lift [command] [options]
 
     ${chalk.bold('Options')}
 
@@ -71,18 +71,18 @@ Please ${gamboge(`stop ${chalk.bold('prisma dev')} first`)}, then try ${chalk.gr
     ${chalk.bold('Examples')}
 
       Create new migration
-      ${chalk.dim(`$`)} prisma lift save
+      ${chalk.dim(`$`)} prisma2 lift save
 
       Migrate up to the latest datamodel
-      ${chalk.dim(`$`)} prisma lift
+      ${chalk.dim(`$`)} prisma2 lift
 
       Preview the next migration without migrating
-      ${chalk.dim(`$`)} prisma lift up --preview
+      ${chalk.dim(`$`)} prisma2 lift up --preview
 
       Rollback a migration
-      ${chalk.dim(`$`)} prisma lift down 1
+      ${chalk.dim(`$`)} prisma2 lift down 1
 
       Get more help on a lift up
-      ${chalk.dim(`$`)} prisma lift up -h
+      ${chalk.dim(`$`)} prisma2 lift up -h
   `)
 }
