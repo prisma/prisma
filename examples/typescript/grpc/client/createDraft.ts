@@ -23,7 +23,7 @@ function main() {
     content: '',
     authorEmail: 'alice@prisma.io',
   }
-  client.signupUser(data, (err: any, response: any) => {
+  client.createDraft(data, (err: any, response: any) => {
     if (err) {
       console.error(err)
       return
