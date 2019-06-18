@@ -1,3 +1,3 @@
 ## Lift example
 
-This example is currently work in progress. We'll update it soon.
+This example is currently **work in progress**. We'll update it soon.
