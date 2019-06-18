@@ -15,7 +15,7 @@ git clone git@github.com:prisma/prisma-examples.git
 Install Node dependencies:
 
 ```
-cd prisma-examples/typescript/graphql
+cd examples/typescript/graphql
 npm install
 ```
 

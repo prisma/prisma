@@ -3,7 +3,7 @@
 This example shows how to implement a **GraphQL server with TypeScript** based on Prisma, [apollo-server](https://www.apollographql.com/docs/apollo-server/) and [GraphQL Nexus](https://graphql-nexus.com/).
 
 __INLINE(../_setup-1.md)__
-cd prisma-examples/typescript/graphql-apollo-server
+cd examples/typescript/graphql-apollo-server
 __INLINE(../_setup-2.md)__
 
 __INLINE(../_start-graphql-server.md)__

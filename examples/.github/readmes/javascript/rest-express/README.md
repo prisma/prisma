@@ -3,7 +3,7 @@
 This example shows how to implement a **REST API** using [Express.JS](https://expressjs.com/de/) and Prisma.
 
 __INLINE(../_setup-1.md)__
-cd prisma-examples/node/rest-express
+cd examples/javascript/rest-express
 __INLINE(../_setup-2.md)__
 
 ### 4. Start the REST API server

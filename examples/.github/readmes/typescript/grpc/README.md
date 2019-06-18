@@ -3,7 +3,7 @@
 This example shows how to implement a **gRPC API with TypeScript** and Prisma.
 
 __INLINE(../_setup-1.md)__
-cd prisma-examples/typescript/grpc
+cd examples/typescript/grpc
 __INLINE(../_setup-2.md)__
 
 ### 4. Start the gRPC server
