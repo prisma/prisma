@@ -5,6 +5,13 @@ const main = async () => {
 
   await photon.connect();
 
+  // Create a new post (written by an already existing user with email alice@prisma.io)
+  await photon.users.create({
+    data: {
+      name: "Alice",
+      email: "alice@prisma.io"
+    }
+  });
   await photon.users.findMany({});
 
   await photon.disconnect();
