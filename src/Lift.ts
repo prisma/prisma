@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { now, timestampToDate } from './utils/now'
 import { promisify } from 'util'
-import { FileMap, LockFile, Migration, EngineResults, MigrationWithDatabaseSteps } from './types'
+import { FileMap, LockFile, Migration, EngineResults, LocalMigrationWithDatabaseSteps, LocalMigration } from './types'
 import { deserializeLockFile, initLockFile, serializeLockFile } from './utils/LockFile'
 import globby from 'globby'
 import { printDatabaseStepsOverview, highlightMigrationsSQL } from './utils/printDatabaseSteps'
@@ -33,6 +33,9 @@ import { getCompiledGenerators } from './utils/getCompiledGenerators'
 import getPort from 'get-port'
 const packageJson = require('../package.json')
 import debugLib from 'debug'
+import plusX from './utils/plusX'
+import { spawn } from 'child_process'
+import indent from 'indent-string'
 const debug = debugLib('Lift')
 
 const readFile = promisify(fs.readFile)
@@ -53,7 +56,7 @@ export type WatchOptions = {
   clear?: boolean
 }
 type MigrationFileMapOptions = {
-  migration: MigrationWithDatabaseSteps
+  migration: LocalMigrationWithDatabaseSteps
   lastMigration?: Migration
 }
 const brightGreen = chalk.rgb(127, 224, 152)
@@ -141,7 +144,7 @@ export class Lift {
     return initLockFile()
   }
 
-  public async createMigration(migrationId: string): Promise<MigrationWithDatabaseSteps | undefined> {
+  public async createMigration(migrationId: string): Promise<LocalMigrationWithDatabaseSteps | undefined> {
     const { migrationsToApply, sourceConfig } = await this.getMigrationsToApply()
 
     const assumeToBeApplied = migrationsToApply.flatMap(m => m.datamodelSteps)
@@ -194,7 +197,7 @@ export class Lift {
   }
 
   public async save(
-    migration: MigrationWithDatabaseSteps,
+    migration: LocalMigrationWithDatabaseSteps,
     name?: string,
     preview?: boolean,
   ): Promise<{ files: FileMap; migrationId: string; newLockFile: string }> {
@@ -233,13 +236,18 @@ export class Lift {
     }
   }
 
-  private async getLocalMigrations(migrationsDir = path.join(this.projectDir, 'migrations')): Promise<Migration[]> {
+  private async getLocalMigrations(
+    migrationsDir = path.join(this.projectDir, 'migrations'),
+  ): Promise<LocalMigration[]> {
     if (!(await exists(migrationsDir))) {
       return []
     }
-    const migrationSteps = await globby(['**/steps.json', '**/datamodel.prisma', '!dev'], {
-      cwd: migrationsDir,
-    }).then(files =>
+    const migrationSteps = await globby(
+      ['**/steps.json', '**/datamodel.prisma', '**/after.sh', '**/before.sh', '**/after.ts', '**/before.ts', '!dev'],
+      {
+        cwd: migrationsDir,
+      },
+    ).then(files =>
       Promise.all(
         files.map(async fileName => ({
           fileName: fileName.split('/')[1],
@@ -256,6 +264,8 @@ export class Lift {
     return Object.entries(groupedByMigration).map(([migrationId, files]) => {
       const stepsFile = files.find(f => f.fileName === 'steps.json')!
       const datamodelFile = files.find(f => f.fileName === 'datamodel.prisma')!
+      const afterFile = files.find(f => f.fileName === 'after.sh' || f.fileName === 'after.ts')
+      const beforeFile = files.find(f => f.fileName === 'before.sh' || f.fileName === 'before.ts')
       const stepsFileJson = JSON.parse(stepsFile.file)
       if (Array.isArray(stepsFileJson)) {
         throw new Error(
@@ -270,6 +280,8 @@ export class Lift {
         id: migrationId,
         datamodelSteps: stepsFileJson.steps,
         datamodel: datamodelFile.file,
+        afterFilePath: afterFile ? path.resolve(migrationsDir, migrationId, afterFile.fileName) : undefined,
+        beforeFilePath: beforeFile ? path.resolve(migrationsDir, migrationId, beforeFile.fileName) : undefined,
       }
     })
   }
@@ -282,7 +294,7 @@ export class Lift {
     localMigrations: Migration[],
     fromIndex: number,
     sourceConfig: string,
-  ): Promise<MigrationWithDatabaseSteps[]> {
+  ): Promise<LocalMigrationWithDatabaseSteps[]> {
     const migrationsWithDatabaseSteps = await pMap(
       localMigrations,
       async (migration, index) => {
@@ -546,14 +558,13 @@ export class Lift {
   }
 
   private async getMigrationsToApply(): Promise<{
-    localMigrations: Migration[]
+    localMigrations: LocalMigration[]
     lastAppliedIndex: number
-    migrationsToApply: Migration[]
+    migrationsToApply: LocalMigration[]
     sourceConfig: string
     appliedRemoteMigrations: EngineResults.StoredMigration[]
   }> {
     const localMigrations = await this.getLocalMigrations()
-    const datamodel = await this.getDatamodel()
 
     const sourceConfig = await this.getSourceConfig()
     const appliedRemoteMigrations = await this.engine.listAppliedMigrations({ sourceConfig })
@@ -645,7 +656,8 @@ export class Lift {
     }
 
     for (let i = 0; i < migrationsToApply.length; i++) {
-      const { id, datamodelSteps } = migrationsToApply[i]
+      const migrationToApply = migrationsToApply[i]
+      const { id, datamodelSteps } = migrationToApply
       const result = await this.engine.applyMigration({
         force: false,
         migrationId: id,
@@ -680,6 +692,27 @@ export class Lift {
         }
         await new Promise(r => setTimeout(r, 20))
       }
+
+      if (migrationToApply.afterFilePath) {
+        const after = migrationToApply.afterFilePath
+        plusX(after)
+        const child = spawn(after)
+        child.on('error', e => {
+          console.error(e)
+        })
+        child.stderr.on('data', d => {
+          console.log(`stderr ${d.toString()}`)
+        })
+        progressRenderer.showLogs(path.basename(after), child.stdout)
+        await new Promise(r => {
+          child.on('close', () => {
+            r()
+          })
+          child.on('exit', () => {
+            r()
+          })
+        })
+      }
     }
     await progressRenderer.done()
 
@@ -701,11 +734,11 @@ class ProgressRenderer {
   private statusWidth = 6
   private logsString = ''
   private logsName?: string
-  constructor(private migrations: MigrationWithDatabaseSteps[]) {
+  constructor(private migrations: LocalMigrationWithDatabaseSteps[]) {
     cliCursor.hide()
   }
 
-  setMigrations(migrations: MigrationWithDatabaseSteps[]) {
+  setMigrations(migrations: LocalMigrationWithDatabaseSteps[]) {
     this.migrations = migrations
     this.render()
   }
@@ -730,24 +763,36 @@ class ProgressRenderer {
   render() {
     const maxMigrationLength = this.migrations.reduce((acc, curr) => Math.max(curr.id.length, acc), 0)
     let maxStepLength = 0
-    //   const scripts = `
-    // └─ before.sh
-    // └─ ${blue('Datamodel migration')}
-    // └─ after.sh`
     const rows = this.migrations
       .map(m => {
         const steps = printDatabaseStepsOverview(m.databaseSteps)
         maxStepLength = Math.max(stripAnsi(steps).length, maxStepLength)
-        return `${blue(m.id)}${' '.repeat(maxMigrationLength - m.id.length + 2)}${steps}`
+        let scripts = ''
+        if (m.beforeFilePath || m.afterFilePath) {
+          if (m.beforeFilePath && m.afterFilePath) {
+            const beforeStr = m.beforeFilePath ? `└─ ${path.basename(m.beforeFilePath)}\n` : ''
+            const afterStr = m.afterFilePath ? `\n└─ ${path.basename(m.afterFilePath)}` : ''
+            scripts = '\n' + indent(`${beforeStr}└─ ${blue('Datamodel migration')}${afterStr}`, 2)
+          } else {
+            const beforeStr = m.beforeFilePath ? `└─ ${path.basename(m.beforeFilePath)}\n` : ''
+            const afterStr = m.afterFilePath ? `└─ ${path.basename(m.afterFilePath)}` : ''
+            scripts = '\n' + indent(`${beforeStr}${afterStr}`, 2)
+          }
+        }
+        return {
+          line: `${blue(m.id)}${' '.repeat(maxMigrationLength - m.id.length + 2)}${steps}`,
+          scripts,
+        }
       })
       .map((m, index) => {
         const maxLength = maxStepLength + maxMigrationLength
-        const paddingLeft = maxLength - stripAnsi(m).length + 2
-        let newLine = m + ' '.repeat(paddingLeft) + '  '
+        const paddingLeft = maxLength - stripAnsi(m.line).length + 2
+        let newLine = m.line + ' '.repeat(paddingLeft) + '  '
+
         if (this.currentIndex > index || (this.currentIndex === index && this.currentProgress === this.statusWidth)) {
-          return newLine + 'Done 🚀' //+ scripts
+          return newLine + 'Done 🚀' + m.scripts
         } else if (this.currentIndex === index) {
-          return newLine + '\u25A0'.repeat(this.currentProgress) //+ scripts
+          return newLine + '\u25A0'.repeat(this.currentProgress) + m.scripts
         }
 
         return newLine
