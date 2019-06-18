@@ -93,6 +93,5 @@ npm run start
 
 ## Next steps
 
-- [Use Prisma with an existing database](https://www.prisma.io/docs/-t003/)
-- [Explore the Prisma client API](https://www.prisma.io/client/client-typescript)
-- [Learn more about the GraphQL schema](https://www.prisma.io/blog/graphql-server-basics-the-schema-ac5e2950214e/)
+- [Use Prisma with an existing database](https://github.com/prisma/prisma2-docs/blob/master/introspection.md)
+- [Explore the Photon API](https://github.com/prisma/prisma2-docs/blob/master/photon/api.md)
