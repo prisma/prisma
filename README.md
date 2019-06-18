@@ -1,4 +1,5 @@
-<p align="center"><a href="https://www.prisma.io"><img src="https://imgur.com/BDWqDoo.png" alt="Prisma" height="66px"></a></p>
+<br />
+<p align="center"><a href="https://lift.prisma.io/"><img src="logo.svg" alt="Prisma" height="40px"></a></p>
 
 <!--<p><h1 align="center">Lift</h1></p>-->
 <p><h3 align="center">Declarative data modeling & database migrations</h3></p>
