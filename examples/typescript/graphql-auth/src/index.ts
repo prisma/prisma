@@ -38,7 +38,7 @@ const schema = makeSchema({
 
 const server = new GraphQLServer({
   schema,
-  middlewares: [permissions], // TODO: Fix after https://github.com/maticzav/graphql-shield/issues/361
+  // middlewares: [permissions], // TODO: Fix after https://github.com/maticzav/graphql-shield/issues/361
   context: request => {
     return {
       ...request,

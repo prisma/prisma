@@ -32,6 +32,7 @@ npm install -g prisma2
 ```
 prisma2 lift save --name 'init'
 prisma2 lift up
+prisma2 generate
 ```
 
 ### 4. Start the GraphQL server
