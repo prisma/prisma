@@ -1,21 +1,3 @@
-# Simple TypeScript Script Example
-
-This example shows how to use the Prisma client in a **simple TypeScript script** to read and write data in a database.
-
-## How to use
-
-### 1. Download example & install dependencies
-
-Clone the repository:
-
-```
-git clone git@github.com:prisma/prisma-examples.git
-```
-
-Install Node dependencies:
-
-```
-cd prisma-examples/typescript/script
 npm install
 ```
 
@@ -82,17 +64,3 @@ Then, follow these steps in the interactive CLI wizard:
 </details>
 
 You can now use [Prisma Admin](https://www.prisma.io/docs/prisma-admin/overview-el3e/) to view and edit your data by appending `/_admin` to your Prisma endpoint.
-
-### 4. Run the script
-
-Execute the script with this command: 
-
-```
-npm run start
-```
-
-## Next steps
-
-- [Use Prisma with an existing database](https://www.prisma.io/docs/-t003/)
-- [Explore the Prisma client API](https://www.prisma.io/client/client-typescript)
-- [Learn more about the GraphQL schema](https://www.prisma.io/blog/graphql-server-basics-the-schema-ac5e2950214e/)
