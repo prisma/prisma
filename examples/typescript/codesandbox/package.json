@@ -12,7 +12,7 @@
     "typescript": "3.5.2"
   },
   "scripts": {
-    "start": "ts-node src/script.ts",
+    "start": "prisma2 generate && npm run seed && ts-node src/script.ts",
     "seed": "ts-node prisma/seed.ts"
   }
 }
