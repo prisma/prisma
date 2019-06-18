@@ -4,45 +4,14 @@ This example shows how to use the Prisma client in a **Codesandbox container** t
 
 ## How to use
 
-### 1. Create a new Codesandbox bu importing a GitHub repository and point it to this folder.
+### 1. Create a new Codesandbox by importing a GitHub repository and point it to this folder.
 
-Clone the repository:
+### 2. Codesandbox automatically runs the `start` script
 
-```
-git clone git@github.com:prisma/photonjs.git
-```
-
-Install Node dependencies:
+### 3. To iterate quickly, open a new Terminal tab in Codesandbox and start Prisma in Dev mode
 
 ```
-cd examples/typescript/script
-npm install
-```
-
-### 2. Install the Prisma CLI
-
-To run the example, you need the Prisma CLI. Please install it via NPM. 
-
-```
-npm install -g prisma2
-```
-
-### 3. Set up database & deploy Prisma schema
-
-```
-prisma2 lift save --name 'init'
-prisma2 lift up
-prisma2 generate
-```
-
-
-
-### 4. Run the script
-
-Execute the script with this command: 
-
-```
-npm run start
+npx prisma2 dev
 ```
 
 ## Next steps
