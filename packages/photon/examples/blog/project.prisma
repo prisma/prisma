@@ -5,7 +5,7 @@ datasource db {
 }
 
 generator photon {
-  provider  = "javascript"
+  provider  = "photonjs"
   output    = "@generated/photon"
   transpile = false
 }
