@@ -42,7 +42,7 @@ const Mutation = {
         title,
         content,
         published: false,
-        author: { connect: { id: userId } },
+        // author: { connect: { id: userId } },
       },
     })
   },
