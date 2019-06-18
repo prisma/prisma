@@ -70,12 +70,10 @@ export class LiftEngine {
         }
       })
 
-      if (!this.debug) {
-        child.stderr!.on('data', data => {
-          messages.push(data.toString())
-          debugStderr(data.toString())
-        })
-      }
+      child.stderr!.on('data', data => {
+        messages.push(data.toString())
+        debugStderr(data.toString())
+      })
 
       const out = byline(child.stdout)
       out.on('data', line => {
