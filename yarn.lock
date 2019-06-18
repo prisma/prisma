@@ -305,10 +305,10 @@
   dependencies:
     arg "^4.1.0"
 
-"@prisma/engine-core@0.0.53":
-  version "0.0.53"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.53.tgz#020a8fe387a3ac59cceb79f4d4febf6ead9260ae"
-  integrity sha512-6ogwNi9eMg4pLA49/dZ0cDRpagu7vJBtfhHPT6l2wIaGr06MZNTcAQPrCfOpYegDNIrNPDzLv2OKUrYm3raxxA==
+"@prisma/engine-core@0.0.54":
+  version "0.0.54"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.54.tgz#f50357565d63c025972e47797b5930d580f181a5"
+  integrity sha512-aXXvu3tX/UbkTr2rRNsgP+vzUOJO3UY9+wt6lKThgEdtMwOBrdrQa2nMS488TugfFqNXp69tq5+LqG9BCOFPHA==
   dependencies:
     cross-fetch "^3.0.2"
     debug "^4.1.1"
@@ -329,13 +329,13 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/photon@0.0.113":
-  version "0.0.113"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.113.tgz#d35bc2cd5c15ef2097de818e2ca78e88047d5f4e"
-  integrity sha512-7xx66ef+5N+yBU1WT5c2nnMpNBw2LNSJ8EYzLIVmR9xb/8D1r6l6OCnVR3Rouoll+MKZ5+3xemYnHN/RCspghw==
+"@prisma/photon@0.0.116":
+  version "0.0.116"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.116.tgz#bc56b5695961a8d484b46922c12e8982019c1aba"
+  integrity sha512-ktoZZ9fMyly0driWJs22fjejaIdHn77dIQiazmSfRPpE4uU4o2wisisJevkKz4jRtvWFd1TyGRPM7CqKZkY/Sw==
   dependencies:
     "@prisma/cli" "0.0.17"
-    "@prisma/engine-core" "0.0.53"
+    "@prisma/engine-core" "0.0.54"
     "@prisma/fetch-engine" "^0.0.21"
     chalk "^2.4.2"
     cpy "7.3.0"
@@ -357,10 +357,10 @@
     terminal-link "^1.3.0"
     wtfnode "0.8.0"
 
-"@prisma/studio-server@^0.0.33":
-  version "0.0.33"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.0.33.tgz#6bf65fe7cdd5baea032be92f30c01cbfe07f9946"
-  integrity sha512-Qql2IfavUntq7j190I4iwfcc/+jSZQ5s00QlR9wYxP+NItmHWx6mJR47OHy7QRmFx894OBGpQhamq6lmT1X5eQ==
+"@prisma/studio-server@^0.0.34":
+  version "0.0.34"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.0.34.tgz#54bd68bb731c1100dd842fd2efebf5ef49112e73"
+  integrity sha512-6EmmD80gc0mgAaqW71xmp2c+cGyVloGuPQakZ4PEXw3BVxCdYsIJR6sP/5kI14fLbXUagT6C7HE3V79PYVtaOA==
   dependencies:
     express "^4.17.1"
     express-ws "^4.0.0"
