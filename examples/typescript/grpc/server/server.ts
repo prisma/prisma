@@ -55,12 +55,13 @@ async function filterPosts(call: any, callback: any) {
 }
 
 async function signupUser(call: any, callback: any) {
-  const { email, name } = call.request
+  const { email, name, password } = call.request
   try {
     const newUser = await photon.users.create({
       data: {
         name,
         email,
+        password,
       },
     })
     callback(null, newUser)
@@ -77,7 +78,7 @@ async function createDraft(call: any, callback: any) {
         title,
         content,
         published: false,
-        author: { connect: { email: authorEmail } },
+        // author: { connect: { email: authorEmail } },
       },
     })
     callback(null, newDraft)

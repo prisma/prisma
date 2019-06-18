@@ -3,10 +3,11 @@ import Photon from '@generated/photon'
 const photon = new Photon()
 
 async function main() {
-  await photon.users.create({
+  const user1 = await photon.users.create({
     data: {
       email: 'alice@prisma.io',
       name: 'Alice',
+      password: 'alice',
       posts: {
         create: {
           title: 'Join us for Prisma Day 2019 in Berlin',
@@ -16,10 +17,11 @@ async function main() {
       },
     },
   })
-  await photon.users.create({
+  const user2 = await photon.users.create({
     data: {
       email: 'bob@prisma.io',
       name: 'Bob',
+      password: 'alice',
       posts: {
         create: [
           {
@@ -36,6 +38,7 @@ async function main() {
       },
     },
   })
+  console.log({ user1, user2 })
 }
 
 main()
