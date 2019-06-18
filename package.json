@@ -1,6 +1,6 @@
 {
   "name": "@prisma/lift",
-  "version": "0.0.99",
+  "version": "0.0.102",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
@@ -8,6 +8,7 @@
   "license": "Apache-2.0",
   "private": false,
   "devDependencies": {
+    "@prisma/cli": "^0.0.17",
     "@prisma/photon": "0.0.113",
     "@types/charm": "^1.0.1",
     "@types/debug": "^4.1.4",
@@ -27,10 +28,12 @@
     "tslint": "^5.16.0",
     "typescript": "^3.4.5"
   },
+  "peerDependencies": {
+    "@prisma/cli": "*"
+  },
   "dependencies": {
-    "@prisma/cli": "^0.0.17",
     "@prisma/fetch-engine": "^0.0.21",
-    "@prisma/studio-server": "^0.0.32",
+    "@prisma/studio-server": "^0.0.33",
     "arg": "^4.1.0",
     "array-flat-polyfill": "^1.0.1",
     "cli-cursor": "^3.0.0",
