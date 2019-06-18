@@ -162,7 +162,7 @@ Here is an example project file that connects to a local PostgreSQL database:
 ```groovy
 // project.prisma
 
-datasource mysql {
+datasource postgres {
   url      = "postgresql://user:password@localhost:5432"
   provider = "postgres"
 }
@@ -179,7 +179,7 @@ The [data model definition](https://github.com/prisma/prisma2-docs/blob/master/d
 ```groovy
 // project.prisma
 
-datasource mysql {
+datasource postgres {
   url      = "postgresql://user:password@localhost:5432"
   provider = "postgres"
 }
