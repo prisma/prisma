@@ -237,9 +237,7 @@ class DevComponent extends Component<Props, State> {
             <Box>
               <Color bold>Studio endpoint: </Color>
               {supportsHyperlinks.stdout ? (
-                <Link url={'http://localhost:/' + this.props.studioPort}>
-                  http://localhost:{this.props.studioPort}/
-                </Link>
+                <Link url={'http://localhost:' + this.props.studioPort}>http://localhost:{this.props.studioPort}/</Link>
               ) : (
                 <Color underline>http://localhost:{this.props.studioPort}/</Color>
               )}
