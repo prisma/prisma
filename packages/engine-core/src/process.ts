@@ -19,7 +19,7 @@ export default class Process {
   private _running?: Deferred<number> = null
   private _stderr?: NodeJS.WritableStream = null
   private _stdout?: NodeJS.WritableStream = null
-  private _stdio?: NodeJS.ReadWriteStream = null
+  private _stdio: string = ''
 
   /**
    * Create a process
@@ -93,9 +93,10 @@ export default class Process {
       env: this._env,
     })
 
-    const stdio = (this._stdio = buffer())
-    this._stderr && this._process.stderr.pipe(multiwriter(stdio, this._stderr))
-    this._stdout && this._process.stdout.pipe(multiwriter(stdio, this._stdout))
+    this._process.stderr.on('data', chunk => (this._stdio += chunk.toString()))
+    this._stderr && this._process.stderr.pipe(this._stderr)
+    this._process.stdout.on('data', chunk => (this._stdio += chunk.toString()))
+    this._stdout && this._process.stdout.pipe(this._stdout)
 
     this._running = new Deferred()
     this._process.once('error', () => this._running.reject(1))
@@ -107,7 +108,7 @@ export default class Process {
     const code = await Promise.race([tick(), this._running.wait()])
     // @todo buffer stderr and return that
     if (code) {
-      throw this.error(code, await readAll(stdio))
+      throw this.error(code, this._stdio)
     }
   }
 
@@ -124,11 +125,7 @@ export default class Process {
     const code = await this._running.wait()
     this._running = null
     if (code) {
-      let buf = ''
-      if (this._stdio) {
-        buf = await readAll(this._stdio)
-      }
-      throw this.error(code, buf)
+      throw this.error(code, this._stdio)
     }
   }
 
@@ -175,39 +172,4 @@ export default class Process {
  */
 function tick(ms: number = 0): Promise<void> {
   return new Promise((resolve, _) => setTimeout(resolve, ms))
-}
-
-// write to multiple streams
-function multiwriter(...writers: NodeJS.WritableStream[]): NodeJS.WritableStream {
-  function transform(chunk, _enc, fn) {
-    for (let i = 0; i < writers.length; i++) {
-      writers[i].write(chunk)
-    }
-    fn()
-  }
-  function flush(fn) {
-    for (let i = 0; i < writers.length; i++) {
-      writers[i].end()
-    }
-    fn()
-  }
-  return through(transform, flush)
-}
-
-// simple utility function to buffer a stream
-function buffer(): NodeJS.ReadWriteStream {
-  return through(function(chunk, _enc, fn) {
-    this.push(chunk)
-    fn()
-  })
-}
-
-// read the entire stream into a string
-async function readAll(reader: NodeJS.ReadableStream): Promise<string> {
-  const chunks = []
-  return new Promise((resolve, reject) => {
-    reader.on('data', chunk => chunks.push(chunk))
-    reader.on('error', err => reject(err))
-    reader.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
-  })
 }
