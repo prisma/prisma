@@ -22,26 +22,25 @@ describe('at least one validation', () => {
       rootField: 'findManyUser',
     })
     expect(String(document)).toMatchInlineSnapshot(`
-            "query {
-              findManyUser(where: {
-                email: {
+                  "query {
+                    findManyUser(where: {
+                      email: {
 
-                }
-              }) {
-                id
-                name
-                email
-                status
-                nicknames
-              }
-            }"
-        `)
+                      }
+                    }) {
+                      id
+                      name
+                      email
+                      status
+                      nicknames
+                    }
+                  }"
+            `)
     try {
       document.validate(select, false, 'users')
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-
         Invalid \`photon.users()\` invocation:
 
         {
