@@ -1,0 +1,11 @@
+{
+  "version": "0.0.104",
+  "steps": [
+    {
+      "stepType": "UpdateField",
+      "model": "Post",
+      "name": "author",
+      "arity": "optional"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const Photon = require('../prisma/generated/photon')
+const Photon = require('@generated/photon')
 
-const photon = new Photon()
+const photon = new Photon.default()
 const app = express()
 
 app.use(bodyParser.json())
@@ -23,7 +23,7 @@ app.post(`/post`, async (req, res) => {
       title: title,
       content: content,
       published: false,
-      author: { connect: { email: authorEmail } },
+      // author: { connect: { email: authorEmail } },
     },
   })
   res.json(result)
@@ -50,7 +50,7 @@ app.delete(`/post/:id`, async (req, res) => {
 
 app.get(`/post/:id`, async (req, res) => {
   const { id } = req.params
-  const post = await prisma.post({
+  const post = await photon.posts.findOne({
     where: {
       id,
     },
@@ -59,30 +59,31 @@ app.get(`/post/:id`, async (req, res) => {
 })
 
 app.get('/feed', async (req, res) => {
-  const posts = await prisma.posts({ where: { published: true } })
+  const posts = await photon.posts.findMany({ where: { published: true } })
   res.json(posts)
 })
 
-app.get('/filterPosts', async (req, res) => {
-  const { searchString } = req.query
-  const draftPosts = await prisma.posts({
-    where: {
-      OR: [
-        {
-          title: {
-            contains: searchString,
-          },
-        },
-        {
-          content: {
-            contains: searchString,
-          },
-        },
-      ],
-    },
-  })
-  res.json(draftPosts)
-})
+// TODO: Bring this back after https://github.com/prisma/photonjs/issues/37
+// app.get('/filterPosts', async (req, res) => {
+//   const { searchString } = req.query
+//   const draftPosts = await photon.posts.findMany({
+//     where: {
+//       OR: [
+//         {
+//           title: {
+//             contains: searchString,
+//           },
+//         },
+//         {
+//           content: {
+//             contains: searchString,
+//           },
+//         },
+//       ],
+//     },
+//   })
+//   res.json(draftPosts)
+// })
 
 const server = app.listen(3000, () =>
   console.log('Server is running on http://localhost:3000'),

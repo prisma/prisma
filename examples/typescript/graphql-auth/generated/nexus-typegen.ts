@@ -56,7 +56,7 @@ export interface NexusGenFieldTypes {
     signup: NexusGenRootTypes['AuthPayload']; // AuthPayload!
   }
   Post: { // field return type
-    author: NexusGenRootTypes['User']; // User!
+    author: NexusGenRootTypes['User'] | null; // User
     content: string | null; // String
     id: string; // ID!
     published: boolean; // Boolean!
@@ -112,7 +112,7 @@ export interface NexusGenArgTypes {
       before?: string | null; // String
       first?: number | null; // Int
       last?: number | null; // Int
-      skip?: string | null; // String
+      skip?: number | null; // Int
     }
   }
 }

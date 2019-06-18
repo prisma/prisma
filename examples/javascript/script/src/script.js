@@ -1,4 +1,4 @@
-const Photon = require('../prisma/generated/photon')
+const Photon = require('@generated/photon')
 const photon = new Photon()
 
 // A `main` function so that we can use async/await
@@ -15,11 +15,11 @@ async function main() {
       title: 'Join the Prisma Slack community',
       content: 'http://slack.prisma.io',
       published: false,
-      author: {
-        connect: {
-          email: 'alice@prisma.io', // Should have been created during initial seeding
-        },
-      },
+      // author: {
+      //   connect: {
+      //     email: 'alice@prisma.io', // Should have been created during initial seeding
+      //   },
+      // },
     },
   })
   console.log(`Created a new post: `, newPost)
@@ -36,12 +36,13 @@ async function main() {
   console.log(`Published the newly created post: `, updatedPost)
 
   // Retrieve all posts by user with email alice@prisma.io
-  const postsByUser = await photon.users
-    .findOne({
-      email: 'alice@prisma.io',
-    })
-    .posts()
-  console.log(`Retrieved all posts from a specific user: `, postsByUser)
+  // TODO: Bring this back after nested connect works with required relations
+  // const postsByUser = await photon.users
+  //   .findOne({
+  //     email: 'alice@prisma.io',
+  //   })
+  //   .posts()
+  // console.log(`Retrieved all posts from a specific user: `, postsByUser)
 }
 
 main()

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "seed": "node prisma/seed.js"
   },
   "dependencies": {
     "body-parser": "1.19.0",

@@ -11,6 +11,7 @@
   },
   "scripts": {
     "start": "ts-node ./server/server.ts",
+    "seed": "ts-node prisma/seed.ts",
     "feed": "ts-node ./client/feed.ts",
     "filterPosts": "ts-node ./client/filterPosts.ts",
     "post": "ts-node ./client/post.ts",
@@ -20,7 +21,7 @@
     "deletePost": "ts-node ./client/deletePost.ts"
   },
   "devDependencies": {
-    "prisma2": "^0.0.62",
+    "prisma2": "^0.0.78",
     "ts-node": "8.0.2",
     "typescript": "3.5.2"
   }
