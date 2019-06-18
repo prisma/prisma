@@ -196,6 +196,8 @@ ${indent(this.children.map(String).join('\n'), tab)}
       const hasOptionalMissingArgsErrors = argErrors.some(
         e => e.error.type === 'missingArg' && !e.error.missingType[0].isRequired,
       )
+      const hasMissingArgsErrors = hasOptionalMissingArgsErrors || hasRequiredMissingArgsErrors
+
       let missingArgsLegend = ''
       if (hasRequiredMissingArgsErrors) {
         missingArgsLegend += `\n${chalk.dim('Note: Lines with ')}${chalk.reset.greenBright('+')} ${chalk.dim(
@@ -211,7 +213,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
         missingArgsLegend += chalk.dim('.')
       }
 
-      const errorStr = `\n\n${chalk.red(`Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`)}
+      const errorStr = `\n${chalk.red(`Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`)}
 ${chalk.dim(prevLines)}${chalk.reset()}${indent(
         printJsonWithErrors(
           isTopLevelQuery ? { [topLevelQueryName]: select } : select,
@@ -224,7 +226,7 @@ ${chalk.dim(prevLines)}${chalk.reset()}${indent(
 
 ${argErrors
   .filter(e => e.error.type !== 'missingArg' || e.error.missingType[0].isRequired)
-  .map(this.printArgError)
+  .map(e => this.printArgError(e, hasMissingArgsErrors))
   .join('\n')}
 ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
       lastErrorHeight = errorStr.split('\n').length
@@ -277,22 +279,25 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
       return str
     }
   }
-  protected printArgError = ({ error, path }: ArgError) => {
+  protected printArgError = ({ error, path }: ArgError, hasMissingItems: boolean) => {
     if (error.type === 'invalidName') {
       let str = `Unknown arg ${chalk.redBright(`\`${error.providedName}\``)} in ${chalk.bold(
         path.join('.'),
-      )}. for type ${chalk.bold(error.outputType ? error.outputType.name : getInputTypeName(error.originalType))}.`
+      )} for type ${chalk.bold(error.outputType ? error.outputType.name : getInputTypeName(error.originalType))}.`
       if (error.didYouMeanField) {
         str += `\n→ Did you forget to wrap it with \`${chalk.greenBright('select')}\`? ${chalk.dim(
           'e.g. ' + chalk.greenBright(`{ select: { ${error.providedName}: ${error.providedValue} } }`),
         )}`
       } else if (error.didYouMeanArg) {
         str += ` Did you mean \`${chalk.greenBright(error.didYouMeanArg)}\`?`
+        if (!hasMissingItems) {
+
         str += ` ${chalk.dim('Available args:')}\n` + stringifyInputType(error.originalType, true)
+        }
       } else {
         if ((error.originalType as DMMF.InputType).fields.length === 0) {
           str += ` The field ${chalk.bold((error.originalType as DMMF.InputType).name)} has no arguments.`
-        } else {
+        } else if (!hasMissingItems) {
           str += ` Available args:\n\n` + stringifyInputType(error.originalType, true)
         }
       }
@@ -347,7 +352,7 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
 
     if (error.type === 'missingArg') {
       return `Argument ${chalk.greenBright(error.missingName)} for ${chalk.bold(
-        `photon.${path.join('.')}`,
+        `${path.join('.')}`,
       )} is missing.`
     }
 

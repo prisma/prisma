@@ -1,5 +1,6 @@
 import Photon from '@generated/photon'
 
+console.clear()
 async function main() {
   const photon = new Photon({
     autoConnect: false,
@@ -8,10 +9,10 @@ async function main() {
     },
   })
 
-  const users = await photon.users({
-    select: {
-      id: true,
-    },
+  const users = await photon.users.create({
+    data: {
+      name: 'asd'
+    }
   })
   console.log(users)
 
@@ -34,4 +35,4 @@ async function main() {
   //   .author()
 }
 
-main().catch(console.error)
+main().catch(e => console.error(e.message))
