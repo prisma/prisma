@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "start": "ts-node src/index.ts",
+    "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "body-parser": "1.19.0",
