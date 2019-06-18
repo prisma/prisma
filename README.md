@@ -1,9 +1,13 @@
-<p><h1 align="center">Lift</h1></p>
+<p align="center"><a href="https://www.prisma.io"><img src="https://imgur.com/BDWqDoo.png" alt="Prisma" height="66px"></a></p>
+
+<!--<p><h1 align="center">Lift</h1></p>-->
 <p><h3 align="center">Declarative data modeling & database migrations</h3></p>
 
 <p align="center">
   <a href="#getting-started">Get started</a> • <a href="#features">Features</a> • <a href="#docs">Docs</a> • <a href="#the-lift-workflow">Workflow</a> • <a href="#supported-databases">Supported databases</a>
 </p>
+
+<hr />
 
 [Lift](https://lift.prisma.io/) is a powerful database schema migration tool. It uses a **declarative [data modelling](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md) syntax** to describe your database schema. Lift stores your entire **migration history** and easily lets you **revert and replay migrations**. When migrating your database with Lift, you can run provide **before- and after-hooks** to execute scripts, e.g. to populate the database with required values during a migration.
 
