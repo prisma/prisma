@@ -12,6 +12,7 @@ generateInThread({
     generator: {
       config: {},
       name: 'photon',
+      provider: 'photonjs',
       output: path.join(env.cwd, '/node_modules/@generated/photon'),
     },
     otherGenerators: [],

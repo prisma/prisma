@@ -1,7 +1,15 @@
 import { CompiledGeneratorDefinition, Dictionary, GeneratorDefinitionWithPackage } from '@prisma/cli'
 import path from 'path'
 import { LiftEngine } from '../LiftEngine'
-import { generateInThread } from '../generateInThread'
+import chalk from 'chalk'
+// import { generateInThread } from '../generateInThread'
+
+const didYouMeanMap = {
+  javascript: 'photonjs',
+  typescript: 'photonjs',
+  'photon-js': 'photonjs',
+  photon: 'photonjs',
+}
 
 export async function getCompiledGenerators(
   cwd: string,
@@ -11,24 +19,28 @@ export async function getCompiledGenerators(
   const engine = new LiftEngine({ projectDir: cwd })
   const config = await engine.getConfig({ datamodel })
 
-  const generators = config.generators.map(g => ({
-    ...g,
-    output: g.output && !g.output.startsWith('/') ? path.join(cwd, g.output) : null,
-  }))
+  const generators = config.generators.map(g => {
+    const generator = definitions[g.provider]
+    if (!generator) {
+      const replacement = didYouMeanMap[g.provider]
+      const didYouMean = replacement ? `\nDid you mean ${chalk.greenBright(replacement)}?` : ''
+      throw new Error(
+        `Unknown generator provider ${g.provider} for generator ${g.name} defined in ${chalk.underline(
+          path.join(cwd, 'project.prisma'),
+        )}${didYouMean}`,
+      )
+    }
+    const output = g.output || generator.definition.defaultOutput || `node_modules/@generated/${generator.packagePath}`
+    return {
+      ...g,
+      output: path.resolve(process.cwd(), output), // TODO: More sophisticated logic to resolve project dir vs prisma dir...
+    }
+  })
 
-  generators.sort((a, b) => (a.provider === 'photogen' ? 1 : b.provider === 'photogen' ? -1 : a.name < b.name ? -1 : 1))
+  generators.sort((a, b) => (a.provider === 'photonjs' ? -1 : b.provider === 'photonjs' ? 1 : a.name < b.name ? -1 : 1))
 
   return generators.map((definition, index) => {
     const generator = definitions[definition.provider]
-    if (!generator) {
-      throw new Error(
-        `Unknown generator provider ${definition.provider} for generator ${definition.name} defined in ${path.join(
-          cwd,
-          'datamodel.prisma',
-        )}`,
-      )
-    }
-
     const otherGenerators = generators.filter((g, i) => i !== index)
 
     return {
