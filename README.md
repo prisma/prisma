@@ -40,8 +40,7 @@ Learn more about the `prisma2 init` flow [here](https://github.com/prisma/prisma
 
 ## Docs
 
-You can find comprehensive documentation for Photon in the [Prisma 2 docs](https://github.com/prisma/prisma2-docs/).
-
+You can find comprehensive documentation for Lift in the [Prisma 2 docs](https://github.com/prisma/prisma2-docs/).
 
 ## The Lift workflow
 
