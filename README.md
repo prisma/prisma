@@ -125,7 +125,7 @@ datasource ds {
 }
 
 generator photonjs {
-  provider = 'photonjs'
+  provider = "photonjs"
 }
 
 model User {
@@ -173,7 +173,7 @@ datasource postgres {
 }
 
 generator photonjs {
-  provider = 'photonjs'
+  provider = "photonjs"
 }
 ```
 
@@ -190,7 +190,7 @@ datasource postgres {
 }
 
 generator photonjs {
-  provider = 'photonjs'
+  provider = "photonjs"
 }
 
 model User {
