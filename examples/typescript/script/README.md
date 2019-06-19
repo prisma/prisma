@@ -36,8 +36,15 @@ prisma2 generate
 ```
 
 
+### 4. Seed the database data with this script
 
-### 4. Run the script
+Execute the script with this command: 
+
+```
+npm run seed
+```
+
+### 5. Run the script
 
 Execute the script with this command: 
 
