@@ -1,25 +1,13 @@
-import Photon from '@generated/photon'
+import Photon from './@generated/photon'
 
 console.clear()
 async function main() {
-  const photon = new Photon(/*{
+  const photon = new Photon({
     autoConnect: false,
     debug: {
-      library: false,
-    },
-  }*/)
-
-  const testData = await photon.users.create({
-    data: {
-      username: 'harshit',
-      posts: {
-        create: {
-          data: 'test',
-        },
-      },
+      library: true,
     },
   })
-  console.log(testData)
 
   // const x = await photon.users.update({
   //   where: {
@@ -31,13 +19,15 @@ async function main() {
   // })
 
   // console.log(x)
-  // const x = await photon.posts
-  //   .findOne({
-  //     where: {
-  //       id: 1,
-  //     },
-  //   })
-  //   .author()
+  const prom = photon.users()
+  prom.then(res => {
+    console.log('jau')
+    console.log(res)
+  })
+  prom.then(res => {
+    console.log('jau')
+    console.log(res)
+  })
 }
 
 main().catch(e => console.error(e))

@@ -10,9 +10,9 @@ async function main() {
   await generateClient({
     datamodel: blog,
     cwd: path.join(__dirname, './blog/'),
-    outputDir: path.join(__dirname, './blog/node_modules/@generated/photon'),
-    transpile: true,
-    runtimePath: '../../../../../src/runtime',
+    outputDir: path.join(__dirname, './blog/@generated/photon'),
+    transpile: false,
+    runtimePath: '../../../../src/runtime',
   })
   const after = performance.now()
   console.log(`Generated Photon in ${(after - before).toFixed(3)}ms`)

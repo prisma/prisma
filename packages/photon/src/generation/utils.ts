@@ -135,14 +135,14 @@ export function getSelectReturnType({
   if (isList || hideCondition) {
     const listOpen = isList ? 'Array<' : ''
     const listClose = isList ? '>' : ''
-    return `${renderPromise ? 'PromiseLike<' : ''}${listOpen}${name}GetPayload<Extract${argName}Select<T>>${listClose}${
+    return `${renderPromise ? 'Promise<' : ''}${listOpen}${name}GetPayload<Extract${argName}Select<T>>${listClose}${
       renderPromise ? '>' : ''
     }`
   }
 
-  return `'select' extends keyof T ? ${
-    renderPromise ? 'PromiseLike<' : ''
-  }${name}GetPayload<Extract${argName}Select<T>>${renderPromise ? '>' : ''} : ${name}Client<${getType(name, isList)}>`
+  return `'select' extends keyof T ? ${renderPromise ? 'Promise<' : ''}${name}GetPayload<Extract${argName}Select<T>>${
+    renderPromise ? '>' : ''
+  } : ${name}Client<${getType(name, isList)}>`
 }
 
 export function isQueryAction(action: DMMF.ModelAction, operation: 'query' | 'mutation'): boolean {
