@@ -746,9 +746,9 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
     onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
     if (!this.requestPromise){
-      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}').then(onfulfilled, onrejected)
+      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}')
     }
-    return this.requestPromise
+    return this.requestPromise.then(onfulfilled, onrejected)
   }
 
   /**
@@ -760,9 +760,9 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
     onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null,
   ): Promise<T | TResult> {
     if (!this.requestPromise) {
-      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}').catch(onrejected)
+      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}')
     }
-    return this.requestPromise
+    return this.requestPromise.catch(onrejected)
   }
 
   /**
@@ -773,9 +773,9 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
    */
   finally(onfinally?: (() => void) | undefined | null): Promise<T> {
     if (!this.requestPromise) {
-      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}').finally(onfinally)
+      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}')
     }
-    return this.requestPromise
+    return this.requestPromise.finally(onfinally)
   }
 }
     `
