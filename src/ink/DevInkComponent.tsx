@@ -8,6 +8,8 @@ import { formatms } from '../utils/formartms'
 import { printDatamodelDiff } from '../utils/printDatamodelDiff'
 import { missingGeneratorMessage } from '../utils/missingGeneratorMessage'
 import { renderDate } from '../utils/now'
+import stripAnsi from 'strip-ansi'
+import memoize from 'fast-memoize'
 
 export type GeneratorInfo = {
   name: string
@@ -36,6 +38,7 @@ export interface Props extends DevComponentProps {
 
 export type State = {
   showDiff: boolean
+  diffScroll: number
 }
 // const ARROW_UP = '\u001B[A'
 // const ARROW_DOWN = '\u001B[B'
@@ -46,21 +49,26 @@ const ENTER = '\r'
 const BACKSPACE = '\x08'
 const DELETE = '\x7F'
 
-const height = Math.min(process.stdout.rows || 19, 120) - 2
-
 class DevComponent extends Component<Props, State> {
-  lastHeight = process.stdout.rows
-  lastWidth = process.stdout.columns
   resizeInterval: any
   state = {
     showDiff: false,
+    diffScroll: 0,
   }
   get width() {
     return (this.props.stdout.columns || 64) - 4
   }
   get height() {
-    return height
+    return Math.max(Math.min(process.stdout.rows || 19, 120) - 2, 10)
   }
+  get diff(): { diff: string; rowCount: number } {
+    return this.getDiff()
+  }
+  getDiff = memoize(() => {
+    const { datamodelBefore, datamodelAfter } = this.props
+    const diff = printDatamodelDiff(datamodelBefore, datamodelAfter)
+    return { diff, rowCount: stripAnsi(diff).split('\n').length }
+  })
   componentDidMount() {
     cliCursor.hide()
     process.stdout.on('resize', () => {
@@ -76,14 +84,38 @@ class DevComponent extends Component<Props, State> {
         this.setState(state => ({ ...state, showDiff: !state.showDiff }))
       }
 
-      if (this.state.showDiff && (key === ENTER || key === BACKSPACE || key === DELETE)) {
-        this.setState({ showDiff: false })
+      if (this.state.showDiff) {
+        if (key === ENTER || key === BACKSPACE || key === DELETE) {
+          this.setState({ showDiff: false })
+        }
+        // TODO: Implement scrolling view
+        // if (key === 'j') {
+        //   const { rowCount } = this.diff
+        //   const max = rowCount - 3
+        //   if (this.state.diffScroll <= max) {
+        //     this.setState(state => {
+        //       // check 2 times to prevent unnecessary setState execution
+        //       // and to prevent parallel execution
+        //       return { ...state, diffScroll: Math.min(max, state.diffScroll + 1) }
+        //     })
+        //   }
+        // }
+        // if (key === 'k') {
+        //   const { rowCount } = this.diff
+        //   const min = -rowCount + 3
+        //   if (this.state.diffScroll > min) {
+        //     this.setState(state => {
+        //       return { ...state, diffScroll: Math.max(min, state.diffScroll - 1) }
+        //     })
+        //   }
+        // }
       }
     })
     if (this.props.setRawMode) {
       this.props.setRawMode(true)
     }
   }
+
   componentWillUnmount() {
     cliCursor.show()
     if (this.props.setRawMode) {
@@ -91,14 +123,29 @@ class DevComponent extends Component<Props, State> {
     }
   }
 
+  trimmedDiff() {
+    return this.diff.diff
+    // const { diff, rowCount } = this.diff
+    // const { diffScroll } = this.state
+    // if (diffScroll === 0) {
+    //   return diff
+    // }
+    // const lines = diff.split('\n')
+    // if (diffScroll > 0) {
+    //   return lines.slice(diffScroll).join('\n')
+    // }
+    // return lines.slice(0, rowCount + diffScroll).join('\n')
+  }
+
   render() {
-    const { generators, datamodelBefore, datamodelAfter } = this.props
-    this.lastHeight = this.props.stdout.rows
-    this.lastWidth = this.props.stdout.columns
+    const { generators } = this.props
+    const smallScreen = this.height <= 16
+    const paddingTop = smallScreen ? 1 : 2
     if (this.state.showDiff) {
-      const diff = printDatamodelDiff(datamodelBefore, datamodelAfter)
+      const { diff, rowCount } = this.diff
+      const height = Math.max(this.height, rowCount + 5)
       return (
-        <Box flexDirection="column" marginTop={1} justifyContent="space-between" height={this.height}>
+        <Box flexDirection="column" marginTop={1} justifyContent="space-between" height={height}>
           <Box flexDirection="column">
             <Box>
               <Color>
@@ -106,7 +153,7 @@ class DevComponent extends Component<Props, State> {
               </Color>
             </Box>
             <Box marginTop={1} marginLeft={2}>
-              {diff.trim() === '' ? `No unsaved changes` : diff}
+              {diff.trim() === '' ? `No unsaved changes` : this.trimmedDiff()}
             </Box>
           </Box>
           <Box flexDirection="column">
@@ -160,9 +207,9 @@ class DevComponent extends Component<Props, State> {
             ) : (
               <Color dim>No changes yet</Color>
             )}
-            <Box marginTop={2} flexDirection="column">
+            <Box marginTop={paddingTop} flexDirection="column">
               <Color bold>Generator</Color>
-              <Color dim>{' '.repeat(this.width)}</Color>
+              {!smallScreen && <Color dim>{'─'.repeat(this.width)}</Color>}
             </Box>
           </Box>
           <Box marginTop={0} marginLeft={0}>
@@ -206,9 +253,9 @@ class DevComponent extends Component<Props, State> {
             )}
           </Box>
           <Box marginLeft={2} flexDirection="column">
-            <Box marginTop={2} flexDirection="column">
+            <Box marginTop={paddingTop} flexDirection="column">
               <Color bold>Migrations</Color>
-              <Color dim>{'─'.repeat(this.width)}</Color>
+              {!smallScreen && <Color dim>{'─'.repeat(this.width)}</Color>}
             </Box>
           </Box>
           <Box marginTop={0} flexDirection="column">
@@ -232,7 +279,7 @@ class DevComponent extends Component<Props, State> {
             </Box>
           </Box>
         </Box>
-        <Box flexDirection="column" marginLeft={2} marginTop={2}>
+        <Box flexDirection="column" marginLeft={2} marginTop={0}>
           <Box marginTop={1} width={this.width} justifyContent="space-between">
             <Box>
               <Color bold>Studio endpoint: </Color>

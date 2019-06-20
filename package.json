@@ -1,6 +1,6 @@
 {
   "name": "@prisma/lift",
-  "version": "0.0.104",
+  "version": "0.0.106",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
@@ -44,6 +44,7 @@
     "diff": "^4.0.1",
     "execa": "^1.0.0",
     "fast-equals": "^2.0.0",
+    "fast-memoize": "^2.5.1",
     "get-port": "^5.0.0",
     "get-stream": "^5.1.0",
     "git-user-email": "^0.2.2",

@@ -357,7 +357,7 @@ export class Lift {
       },
     })
 
-    // silence everyone else. this is not a democracy
+    // silent everyone else. this is not a democracy
     console.log = (...args) => {
       debug(...args)
     }
@@ -646,7 +646,7 @@ export class Lift {
     const firstMigrationToApplyIndex = localMigrations.indexOf(migrationsToApply[0])
     const migrationsWithDbSteps = await this.getDatabaseSteps(localMigrations, firstMigrationToApplyIndex, sourceConfig)
 
-    const progressRenderer = new ProgressRenderer(migrationsWithDbSteps)
+    const progressRenderer = new ProgressRenderer(migrationsWithDbSteps, short || false)
 
     progressRenderer.render()
 
@@ -696,7 +696,12 @@ export class Lift {
       if (migrationToApply.afterFilePath) {
         const after = migrationToApply.afterFilePath
         plusX(after)
-        const child = spawn(after)
+        const child = spawn(after, {
+          env: {
+            ...process.env,
+            FORCE_COLOR: '1',
+          },
+        })
         child.on('error', e => {
           console.error(e)
         })
@@ -734,8 +739,10 @@ class ProgressRenderer {
   private statusWidth = 6
   private logsString = ''
   private logsName?: string
-  constructor(private migrations: LocalMigrationWithDatabaseSteps[]) {
+  private silent: boolean
+  constructor(private migrations: LocalMigrationWithDatabaseSteps[], silent: boolean) {
     cliCursor.hide()
+    this.silent = silent
   }
 
   setMigrations(migrations: LocalMigrationWithDatabaseSteps[]) {
@@ -761,6 +768,9 @@ class ProgressRenderer {
   }
 
   render() {
+    if (this.silent) {
+      return
+    }
     const maxMigrationLength = this.migrations.reduce((acc, curr) => Math.max(curr.id.length, acc), 0)
     let maxStepLength = 0
     const rows = this.migrations
