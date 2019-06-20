@@ -30,7 +30,7 @@ export async function getCompiledGenerators(
         )}${didYouMean}`,
       )
     }
-    const output = g.output || generator.definition.defaultOutput || `node_modules/@generated/${generator.packagePath}`
+    const output = g.output || `node_modules/@generated/${generator.packagePath}`
     return {
       ...g,
       output: path.resolve(process.cwd(), output), // TODO: More sophisticated logic to resolve project dir vs prisma dir...
