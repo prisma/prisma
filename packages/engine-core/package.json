@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/fetch-engine": "^0.0.22",
+    "@prisma/fetch-engine": "^0.0.24",
     "@types/jest": "24.0.14",
     "@types/node": "^12.0.0",
     "jest": "24.8.0",

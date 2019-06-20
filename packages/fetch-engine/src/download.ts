@@ -198,7 +198,7 @@ async function getRemoteLastModified(url: string): Promise<Date> {
 
 async function downloadZip(url: string, target: string, progressOffset = 0, bar?: Progress) {
   const partial = target + '.partial'
-  await retry(
+  const result = await retry(
     async () => {
       try {
         const resp = await fetch(url, { compress: false })
@@ -207,10 +207,11 @@ async function downloadZip(url: string, target: string, progressOffset = 0, bar?
           throw new Error(resp.statusText + ' ' + url)
         }
 
+        const lastModified = resp.headers.get('last-modified')!
         const size = resp.headers.get('content-length')
         const ws = fs.createWriteStream(partial)
 
-        await new Promise((resolve, reject) => {
+        return await new Promise((resolve, reject) => {
           let bytesRead = 0
 
           resp.body.on('error', reject).on('data', chunk => {
@@ -228,7 +229,7 @@ async function downloadZip(url: string, target: string, progressOffset = 0, bar?
           resp.body.pipe(gunzip).pipe(ws)
 
           ws.on('error', reject).on('close', () => {
-            resolve()
+            resolve(lastModified)
           })
         })
       } finally {
@@ -241,6 +242,7 @@ async function downloadZip(url: string, target: string, progressOffset = 0, bar?
     },
   )
   fs.renameSync(partial, target)
+  return result
 }
 
 async function downloadFile(
