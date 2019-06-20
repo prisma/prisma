@@ -264,7 +264,7 @@ model Author {
   name String?
   posts Post[]
   blog Blog
-}         
+}
 
 model Post {
   id Int @id
@@ -274,7 +274,7 @@ model Post {
 }`
 
   const nikoAfter = `datasource pg {
-  
+
 }
 model Blog {
   id Int @id
@@ -290,7 +290,7 @@ model Author {
   posts Post[]
   blog Blog
   comments Comment[]
-}         
+}
 
 model Post {
   id Int @id
@@ -350,7 +350,7 @@ model User {
   firstName String
   lastName String
 }
-  
+
   `
 
   const after = `datasource db {
@@ -369,7 +369,7 @@ model User {
   lastName String
   fullName String?
 }
-  
+
   `
 
   const diff = printDatamodelDiff(before, after)
