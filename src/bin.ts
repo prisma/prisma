@@ -28,6 +28,7 @@ const photon = {
 
 const predefinedGenerators: Dictionary<GeneratorDefinitionWithPackage> = {
   photon: photon,
+  photonjs: photon,
   javascript: photon,
   typescript: photon,
 }

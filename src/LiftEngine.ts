@@ -75,9 +75,9 @@ export class LiftEngine {
         debugStderr(data.toString())
       })
 
-      // child.stdin!.on('error', err => {
-      //   debugStderr(err)
-      // })
+      child.stdin!.on('error', err => {
+        debugStderr(err)
+      })
 
       const out = byline(child.stdout)
       out.on('data', line => {
