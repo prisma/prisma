@@ -2,19 +2,24 @@ import Photon from '@generated/photon'
 
 console.clear()
 async function main() {
-  const photon = new Photon({
+  const photon = new Photon(/*{
     autoConnect: false,
     debug: {
       library: false,
     },
-  })
+  }*/)
 
-  const users = await photon.users.create({
+  const testData = await photon.users.create({
     data: {
-      name: 'asd'
-    }
+      username: 'harshit',
+      posts: {
+        create: {
+          data: 'test',
+        },
+      },
+    },
   })
-  console.log(users)
+  console.log(testData)
 
   // const x = await photon.users.update({
   //   where: {
@@ -35,4 +40,4 @@ async function main() {
   //   .author()
 }
 
-main().catch(e => console.error(e.message))
+main().catch(e => console.error(e))

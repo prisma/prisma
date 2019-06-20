@@ -90,9 +90,13 @@ class PhotonFetcher {
       this.hooks.beforeRequest({query, path, rootField, typeName, document})
     }
     await this.engine.start()
-    const result = await this.engine.request(query, typeName)
-    debug(result)
-    return this.unpack(result, path, rootField)
+    try {
+      const result = await this.engine.request(query, typeName)
+      debug(result)
+      return this.unpack(result, path, rootField)
+    } catch (e) {
+      throw new Error(\`Error in Photon\${path}: \\n\` + e.message)
+    }
   }
   protected unpack(result: any, path: string[], rootField?: string) {
     const getPath: string[] = []
