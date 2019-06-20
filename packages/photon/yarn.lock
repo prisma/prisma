@@ -305,7 +305,7 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@prisma/cli@0.0.17", "@prisma/cli@^0.0.17":
+"@prisma/cli@0.0.17":
   version "0.0.17"
   resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.17.tgz#440a5d43c35aecbd6ca2f71dfff059bcbf162619"
   integrity sha512-co6YCKyccZF3H4i76Z5RejRA+2xR3Nf+MLdH3xMgm8eATnhanYm+NMiKhhlAdAexQ64HTLcM7RSb4rBNjN2i0A==
@@ -336,14 +336,27 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/lift@^0.0.97":
-  version "0.0.97"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.97.tgz#30175f47e4dff4da389ff8b53382fe1211847f01"
-  integrity sha512-zvgCMLVPCCZRWVP5sXU9PS1/DB6R/Fa3P1VuFGvug7K4lxY2/PfSlCZdAYkx0SEjldW7+k+5UjPoEdD+Eymkrg==
+"@prisma/fetch-engine@^0.0.22":
+  version "0.0.22"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.22.tgz#9153c7d59a75d1e4f876364c183c0a0ed517b356"
+  integrity sha512-bum4qiDBhwSbIbXxqCQZ+UmFrFJzubLdIZ4QXb/jhhpeJT2j7an04ivZLi2V5BJpyf2GHbRrFdoFEWvNjdyR7w==
   dependencies:
-    "@prisma/cli" "^0.0.17"
+    chalk "^2.4.2"
+    death "^1.1.0"
+    find-cache-dir "^3.0.0"
+    hasha "^5.0.0"
+    make-dir "^3.0.0"
+    node-fetch "^2.5.0"
+    p-retry "^4.1.0"
+    progress "^2.0.3"
+
+"@prisma/lift@^0.0.107":
+  version "0.0.107"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.107.tgz#8b15056cb30c163c1e99193fe2a37a7acc090a98"
+  integrity sha512-ey12lEIgGsluH0ZMFSxqSsRdzFVNUNLyu2aO0sH7+cphkT9JCx5UrCc+Z+oq6lT3cbItoymCT8285UfSmev4zQ==
+  dependencies:
     "@prisma/fetch-engine" "^0.0.21"
-    "@prisma/studio-server" "^0.0.31"
+    "@prisma/studio-server" "^0.0.34"
     arg "^4.1.0"
     array-flat-polyfill "^1.0.1"
     cli-cursor "^3.0.0"
@@ -352,8 +365,11 @@
     debug "^4.1.1"
     del "^4.1.1"
     diff "^4.0.1"
+    execa "^1.0.0"
     fast-equals "^2.0.0"
+    fast-memoize "^2.5.1"
     get-port "^5.0.0"
+    get-stream "^5.1.0"
     git-user-email "^0.2.2"
     git-user-name "^2.0.0"
     globby "^9.2.0"
@@ -373,10 +389,10 @@
     strip-indent "^3.0.0"
     supports-hyperlinks "^1.0.1"
 
-"@prisma/studio-server@^0.0.31":
-  version "0.0.31"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.0.31.tgz#08f2794d771e1a074cf9d0294bcca119ed2a464e"
-  integrity sha512-E1ABYbifngLkBbxC2eEou7beoVnP0EKcSeHB+Xxv9dHPPGSAkev6H0vjQ7Y49tWpYvE/K8gIUpl22vmgwOgMmA==
+"@prisma/studio-server@^0.0.34":
+  version "0.0.34"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.0.34.tgz#54bd68bb731c1100dd842fd2efebf5ef49112e73"
+  integrity sha512-6EmmD80gc0mgAaqW71xmp2c+cGyVloGuPQakZ4PEXw3BVxCdYsIJR6sP/5kI14fLbXUagT6C7HE3V79PYVtaOA==
   dependencies:
     express "^4.17.1"
     express-ws "^4.0.0"
@@ -2474,6 +2490,11 @@ fast-levenshtein@~2.0.4:
   resolved "https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz#3d8a5c66883a16a30ca8643e851f19baa7797917"
   integrity sha1-PYpcZog6FqMMqGQ+hR8Zuqd5eRc=
 
+fast-memoize@^2.5.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/fast-memoize/-/fast-memoize-2.5.1.tgz#c3519241e80552ce395e1a32dcdde8d1fd680f5d"
+  integrity sha512-xdmw296PCL01tMOXx9mdJSmWY29jQgxyuZdq0rEHMu+Tpe1eOEtCycoG6chzlcrWsNgpZP7oL8RiQr7+G6Bl6g==
+
 fb-watchman@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/fb-watchman/-/fb-watchman-2.0.0.tgz#54e9abf7dfa2f26cd9b1636c588c1afc05de5d58"
@@ -2733,6 +2754,13 @@ get-stream@^4.0.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-4.1.0.tgz#c1b255575f3dc21d59bfc79cd3d2b46b1c3a54b5"
   integrity sha512-GMat4EJ5161kIy2HevLlr4luNjBgvmj413KaQA7jt4V8B4RDsfpHk7WQ9GVqfYyyx8OS/L66Kox+rJRNklLK7w==
+  dependencies:
+    pump "^3.0.0"
+
+get-stream@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-5.1.0.tgz#01203cdc92597f9b909067c3e656cc1f4d3c4dc9"
+  integrity sha512-EXr1FOzrzTfGeL0gQdeFEvOMm2mzMOglyiOXSTpPC+iAjAKftbr3jpCMWynogwYnM+eSj9sHGc6wjIcDvYiygw==
   dependencies:
     pump "^3.0.0"
 

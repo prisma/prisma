@@ -77,7 +77,7 @@ export async function downloadMigrationBinary(migrationBinary: string, version: 
     bar.update(0)
   }
 
-  const lastModified = await downloadFile(getMigrationEngineDownloadUrl(platform), migrationBinary, 0, 100)
+  const lastModified = await downloadZip(getMigrationEngineDownloadUrl(platform), migrationBinary, 0, bar)
   if (bar) {
     bar.update(1)
     bar.terminate()
@@ -155,7 +155,7 @@ export async function download(prismaBinPath: string, version: string, showProgr
     bar.update(0)
   }
 
-  const lastModified = await downloadFile(getPrismaDownloadUrl(platform), prismaBinPath, 0, 100, bar)
+  const lastModified = await downloadZip(getPrismaDownloadUrl(platform), prismaBinPath, 0, bar)
   if (bar) {
     bar.update(1)
     bar.terminate()
@@ -312,9 +312,9 @@ async function getPlatform() {
 }
 
 function getPrismaDownloadUrl(platform: string) {
-  return `https://s3-eu-west-1.amazonaws.com/prisma-native/alpha/latest/${platform}/prisma`
+  return `https://s3-eu-west-1.amazonaws.com/prisma-native/alpha/latest/${platform}/prisma.gz`
 }
 
 function getMigrationEngineDownloadUrl(platform: string) {
-  return `https://s3-eu-west-1.amazonaws.com/prisma-native/alpha/latest/${platform}/migration-engine`
+  return `https://s3-eu-west-1.amazonaws.com/prisma-native/alpha/latest/${platform}/migration-engine.gz`
 }
