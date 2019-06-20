@@ -312,10 +312,10 @@
   dependencies:
     arg "^4.1.0"
 
-"@prisma/engine-core@0.0.54":
-  version "0.0.54"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.54.tgz#f50357565d63c025972e47797b5930d580f181a5"
-  integrity sha512-aXXvu3tX/UbkTr2rRNsgP+vzUOJO3UY9+wt6lKThgEdtMwOBrdrQa2nMS488TugfFqNXp69tq5+LqG9BCOFPHA==
+"@prisma/engine-core@0.0.55":
+  version "0.0.55"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.55.tgz#e032f1895dd4abc23210d93e3c7de903d55ca80b"
+  integrity sha512-uv0Q/2J0vqRqpm401xFxy+3ZafsilVLZmqTOT86xDZL++5A/UVkm+M6TD1+Ha45LcLUnkXSBCl3YPVzxPEEeDA==
   dependencies:
     cross-fetch "^3.0.2"
     debug "^4.1.1"
