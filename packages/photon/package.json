@@ -33,7 +33,7 @@
     "scripts"
   ],
   "devDependencies": {
-    "@prisma/lift": "^0.0.97",
+    "@prisma/lift": "^0.0.107",
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
@@ -65,7 +65,7 @@
   "dependencies": {
     "@prisma/cli": "0.0.17",
     "@prisma/engine-core": "0.0.55",
-    "@prisma/fetch-engine": "^0.0.21",
+    "@prisma/fetch-engine": "^0.0.22",
     "chalk": "^2.4.2",
     "cpy": "7.3.0",
     "dotenv": "^8.0.0",
