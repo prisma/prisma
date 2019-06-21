@@ -25,7 +25,6 @@ import {
   wrapWithList,
 } from './utils/common'
 import { dedent } from './utils/dedent'
-import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
 import { omit } from './utils/omit'
