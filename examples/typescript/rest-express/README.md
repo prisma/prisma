@@ -1,6 +1,6 @@
 # REST API Example
 
-This example shows how to implement a **REST API with TypeScript** using [Express.JS](https://expressjs.com/de/) and Photon JS.
+This example shows how to implement a **REST API with TypeScript** using [Express.JS](https://expressjs.com/de/) and [Photon JS](https://photonjs.prisma.io/).
 
 ## How to use
 
