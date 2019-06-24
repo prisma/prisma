@@ -15,7 +15,7 @@ git clone git@github.com:prisma/photonjs.git
 Install Node dependencies:
 
 ```
-cd photonjs/examples/javscript/graphql-auth
+cd photonjs/examples/javascript/graphql-auth
 npm install
 ```
 
