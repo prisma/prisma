@@ -8,6 +8,10 @@ generator photon {
   provider = "photonjs"
 }
 
+generator nexus_prisma {
+  provider = "nexus-prisma"
+}
+
 model User {
   id    String  @default(cuid()) @id @unique
   email String  @unique

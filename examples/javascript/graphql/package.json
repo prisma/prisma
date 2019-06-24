@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "@prisma/nexus": "^0.0.1",
     "graphql-yoga": "^1.16.1"
   },
   "scripts": {
