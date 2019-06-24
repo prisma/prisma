@@ -1,5 +1,7 @@
 # GraphQL Server with Realtime Subscriptions Example
 
+**This example is currently in the works, it will be available soon!**
+
 This example shows how to implement **GraphQL server with realtime subscriptions** based on Prisma & [graphql-yoga](https://github.com/prisma/graphql-yoga).
 
 > To learn more about implementing GraphQL subscriptions with Prisma, visit [this](https://www.prisma.io/tutorials/build-a-realtime-graphql-server-with-subscriptions-ct11/) tutorial.

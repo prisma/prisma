@@ -1,5 +1,7 @@
 # GraphQL Server with Realtime Subscriptions Example
 
+**This example is currently in the works, it will be available soon!**
+
 This example shows how to implement **GraphQL server with realtime subscriptions** based on [Photon JS](https://photonjs.prisma.io/) & [graphql-yoga](https://github.com/prisma/graphql-yoga).
 
 ## How to use
