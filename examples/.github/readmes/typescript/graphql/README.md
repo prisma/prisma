@@ -3,7 +3,7 @@
 This example shows how to implement a **GraphQL server with TypeScript** based on [Photon JS](https://photonjs.prisma.io/), [graphql-yoga](https://github.com/prisma/graphql-yoga) and [GraphQL Nexus](https://graphql-nexus.com/).
 
 __INLINE(../_setup-1.md)__
-cd photonjs/examples/javascript/graphql
+cd photonjs/examples/typescript/graphql
 __INLINE(../_setup-2.md)__
 
 __INLINE(../_start-graphql-server.md)__
