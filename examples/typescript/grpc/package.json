@@ -15,7 +15,8 @@
     "signupUser": "ts-node ./client/signupUser.ts",
     "createDraft": "ts-node ./client/createDraft.ts",
     "publish": "ts-node ./client/publish.ts",
-    "deletePost": "ts-node ./client/deletePost.ts"
+    "deletePost": "ts-node ./client/deletePost.ts",
+    "postinstall": "prisma2 generate"
   },
   "devDependencies": {
     "prisma2": "^0.0.78",
