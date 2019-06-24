@@ -176,7 +176,7 @@ mutation {
 
 </Details>
 
-### 6. Changing the GraphQL schema
+### 7. Changing the GraphQL schema
 
 To make changes to the GraphQL schema, you need to manipulate the `Query` and `Mutation` types that are defined in [`index.ts`](./src/index.ts). 
 
