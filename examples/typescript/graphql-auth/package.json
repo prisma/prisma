@@ -8,7 +8,6 @@
   "dependencies": {
     "@prisma/nexus": "^0.0.1",
     "bcrypt": "3.0.6",
-    "graphql": "14.3.1",
     "graphql-shield": "5.3.8",
     "graphql-yoga": "1.17.4",
     "jsonwebtoken": "8.5.1",
