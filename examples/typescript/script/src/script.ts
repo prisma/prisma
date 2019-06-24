@@ -48,9 +48,6 @@ async function main() {
 }
 
 main()
-  .then(() => {
-    process.exit(0)
-  })
   .catch(e => console.error(e))
   .finally(async () => {
     await photon.disconnect()
