@@ -47,7 +47,7 @@ prisma2 generate
 ```
 
 
-### 4. Use the CLI app
+### 5. Use the CLI app
 
 ```
 npm run cli

@@ -6,7 +6,7 @@ __INLINE(../_setup-1.md)__
 cd photonjs/examples/typescript/cli-app
 __INLINE(../_setup-2.md)__
 
-### 4. Use the CLI app
+### 5. Use the CLI app
 
 ```
 npm run cli
