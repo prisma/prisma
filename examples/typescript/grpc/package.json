@@ -2,11 +2,8 @@
   "name": "typescript-grpc",
   "dependencies": {
     "@grpc/proto-loader": "0.5.1",
-    "@types/graphql": "14.2.1",
-    "@types/ws": "6.0.1",
     "chalk": "2.4.2",
     "grpc": "1.21.1",
-    "prisma-client-lib": "1.34.0",
     "protobufjs": "6.8.8"
   },
   "scripts": {
@@ -18,7 +15,8 @@
     "signupUser": "ts-node ./client/signupUser.ts",
     "createDraft": "ts-node ./client/createDraft.ts",
     "publish": "ts-node ./client/publish.ts",
-    "deletePost": "ts-node ./client/deletePost.ts"
+    "deletePost": "ts-node ./client/deletePost.ts",
+    "postinstall": "prisma2 generate"
   },
   "devDependencies": {
     "prisma2": "^0.0.78",
