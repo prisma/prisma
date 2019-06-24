@@ -1,6 +1,8 @@
-# REST API Example
+# Simple TODO-App Example (CLI)
 
-This example shows how to implement a **REST API** using [Express.JS](https://expressjs.com/de/) and Photon JS.
+**This example is currently in the works, it will be available soon!**
+
+This example shows how to implement a **TODO-app as a CLI tool** with TypeScript and [Photon JS](https://photonjs.prisma.io/).
 
 ## How to use
 
@@ -15,7 +17,7 @@ git clone git@github.com:prisma/photonjs.git
 Install Node dependencies:
 
 ```
-cd photonjs/examples/javascript/rest-express
+cd photonjs/examples/typescript/cli-app
 npm install
 ```
 
@@ -47,41 +49,29 @@ prisma2 generate
 ```
 
 
-### 5. Start the REST API server
+### 4. Use the CLI app
 
 ```
-npm run start
+npm run cli
 ```
 
-The server is now running on `http://localhost:3000`. You can send the API requests implemented in `index.js`, e.g. [`http://localhost:3000/feed`](http://localhost:3000/feed).
+#### Add a `Todo` item
 
-### 5. Using the REST API
+```
+npm run cli add Groceries
+```
 
-#### `GET`
+#### List all `Todo` items
 
-- `/post/:id`: Fetch a single post by its `id`
-- `/feed`: Fetch all _published_ posts
-- `/filterPosts?searchString={searchString}`: Filter posts by `title` or `content`
+```
+npm run cli list
+```
 
-#### `POST`
+#### Delete a `Todo` item
 
-- `/post`: Create a new post
-  - Body:
-    - `title: String` (required): The title of the post
-    - `content: String` (optional): The content of the post
-    - `authorEmail: String` (required): The email of the user that creates the post
-- `/user`: Create a new user
-  - Body:
-    - `email: String` (required): The email address of the user
-    - `name: String` (optional): The name of the user
-
-#### `PUT`
-
-- `/publish/:id`: Publish a post by its `id`
-
-#### `DELETE`
-  
-- `/post/:id`: Delete a post by its `id`
+```
+npm run cli delete Groceries
+```
 
 ## Next steps
 

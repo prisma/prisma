@@ -1,6 +1,8 @@
-# GraphQL Apollo Server Example
+# GraphQL Server with Realtime Subscriptions Example
 
-This example shows how to implement a **GraphQL server with TypeScript** based on Prisma, [apollo-server](https://www.apollographql.com/docs/apollo-server/) and [GraphQL Nexus](https://graphql-nexus.com/).
+**This example is currently in the works, it will be available soon!**
+
+This example shows how to implement **GraphQL server with realtime subscriptions** based on [Photon JS](https://photonjs.prisma.io/) & [graphql-yoga](https://github.com/prisma/graphql-yoga).
 
 ## How to use
 
@@ -15,7 +17,7 @@ git clone git@github.com:prisma/photonjs.git
 Install Node dependencies:
 
 ```
-cd prisma-examples/typescript/graphql-apollo-server
+cd photonjs/examples/typescript/graphql-subscriptions
 npm install
 ```
 
@@ -57,13 +59,13 @@ npm run start
 
 Navigate to [http://localhost:4000](http://localhost:4000) in your browser to explore the API of your GraphQL server in a [GraphQL Playground](https://github.com/prisma/graphql-playground).
 
-### 6. Using the GraphQL API
+### 5. Using the GraphQL API
 
 The schema that specifies the API operations of your GraphQL server is defined in [`./src/schema.graphql`](./src/schema.graphql). Below are a number of operations that you can send to the API using the GraphQL Playground.
 
 Feel free to adjust any operation by adding or removing fields. The GraphQL Playground helps you with its auto-completion and query validation features.
 
-#### Retrieve all published posts and their authors
+#### Retrieve all published posts
 
 ```graphql
 query {
@@ -72,29 +74,11 @@ query {
     title
     content
     published
-    author {
-      id
-      name
-      email
-    }
   }
 }
 ```
 
 <Details><Summary><strong>See more API operations</strong></Summary>
-
-#### Create a new user
-
-```graphql
-mutation {
-  signupUser(
-    name: "Sarah"
-    email: "sarah@prisma.io"
-  ) {
-    id
-  }
-}
-```
 
 #### Create a new draft
 
@@ -103,7 +87,6 @@ mutation {
   createDraft(
     title: "Join the Prisma Slack"
     content: "https://slack.prisma.io"
-    authorEmail: "alice@prisma.io"
   ) {
     id
     published
@@ -132,12 +115,7 @@ mutation {
     id
     title
     content
-    published 
-    author {
-      id
-      name
-      email
-    }
+    published
   }
 }
 ```
@@ -146,16 +124,11 @@ mutation {
 
 ```graphql
 {
-  post(id: "__POST_ID__") {
+  posts(id: "__POST_ID__") {
     id
     title
     content
     published
-    author {
-      id
-      name
-      email
-    }
   }
 }
 ```
@@ -176,11 +149,42 @@ mutation {
 
 </Details>
 
-### 6. Changing the GraphQL schema
+### 6. Testing GraphQL subscriptions in the Playground
 
-To make changes to the GraphQL schema, you need to manipulate the `Query` and `Mutation` types that are defined in [`index.ts`](./src/index.ts). 
+To test the `post` subscription, you need to send a subscription query in the Playground, e.g.:
 
-Note that the [`start`](./package.json#L6) script also starts a development server that automatically updates your schema every time you save a file. This way, the auto-generated [GraphQL schema](./src/generated/schema.graphql) updates whenever you make changes in to the `Query` or `Mutation` types inside your TypeScript code.
+```graphql
+subscription {
+  posts {
+    id
+    createdAt
+    title
+    content
+    published
+  }
+}
+```
+
+When hitting the _Play_-button, you won't see an immediate response. Instead there's a loading indicator in the response pane of the Playground:
+
+![](https://imgur.com/l4WObKG.png)
+
+Now, whenever a post is created (or updated), e.g. with this mutation (you can run it in another tab):
+
+```graphql
+mutation {
+  createDraft(
+    title: "Join the Prisma community on Slack"
+    content: "https://slack.prisma.io"
+  ) {
+    id
+  }
+}
+```
+
+You will see the results appear in the tab where the subscription is running:
+
+![](https://imgur.com/HRWDPsE.png)
 
 ## Next steps
 
