@@ -3,7 +3,8 @@
   "license": "MIT",
   "scripts": {
     "start": "ts-node-dev --no-notify --respawn --transpileOnly ./src",
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node prisma/seed.ts",
+    "postinstall": "prisma2 generate"
   },
   "dependencies": {
     "@prisma/nexus": "^0.0.1",

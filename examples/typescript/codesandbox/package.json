@@ -13,6 +13,7 @@
   },
   "scripts": {
     "start": "prisma2 generate && npm run seed && ts-node src/script.ts",
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node prisma/seed.ts",
+    "postinstall": "prisma2 generate"
   }
 }
