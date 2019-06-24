@@ -34,6 +34,7 @@
   "dependencies": {
     "@prisma/fetch-engine": "^0.0.21",
     "@prisma/studio-server": "^0.0.34",
+    "@types/execa": "^0.9.0",
     "arg": "^4.1.0",
     "array-flat-polyfill": "^1.0.1",
     "cli-cursor": "^3.0.0",
@@ -45,6 +46,7 @@
     "execa": "^1.0.0",
     "fast-equals": "^2.0.0",
     "fast-memoize": "^2.5.1",
+    "fs-extra": "^8.0.1",
     "get-port": "^5.0.0",
     "get-stream": "^5.1.0",
     "git-user-email": "^0.2.2",
