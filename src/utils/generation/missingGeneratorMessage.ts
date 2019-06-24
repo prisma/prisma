@@ -1,4 +1,4 @@
-import { highlightDatamodel } from '../cli/highlight/highlight'
+import { highlightDatamodel } from '../../cli/highlight/highlight'
 import chalk from 'chalk'
 
 export const missingGeneratorMessage = `\n${chalk.blue(

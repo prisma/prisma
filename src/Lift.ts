@@ -29,7 +29,7 @@ import { serializeFileMap } from './utils/serializeFileMap'
 import del from 'del'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { DevComponentRenderer } from './ink/DevComponentRenderer'
-import { getCompiledGenerators } from './utils/getCompiledGenerators'
+import { getCompiledGenerators } from './utils/generation/getCompiledGenerators'
 import getPort from 'get-port'
 const packageJson = require('../package.json')
 import debugLib from 'debug'
