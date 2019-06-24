@@ -1,6 +1,6 @@
 # Simple Node Script Example
 
-This example shows how to use [Photon JS](https://photonjs.prisma.io/) in a **simple Node script** to read and write data in a database.
+This example shows how to use [Photon JS](https://photonjs.prisma.io/) in a **simple Node.js script** to read and write data in a database.
 
 ## How to use
 
