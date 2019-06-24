@@ -47,7 +47,7 @@ prisma2 generate
 ```
 
 
-### 4. Start the GraphQL server
+### 5. Start the GraphQL server
 
 Launch your GraphQL server with this command:
 
