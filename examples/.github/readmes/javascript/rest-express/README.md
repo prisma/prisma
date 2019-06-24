@@ -1,6 +1,6 @@
 # REST API Example
 
-This example shows how to implement a **REST API** using [Express.JS](https://expressjs.com/de/) and Photon JS.
+This example shows how to implement a **REST API** using [Express.JS](https://expressjs.com/de/) and [Photon JS](https://photonjs.prisma.io/).
 
 __INLINE(../_setup-1.md)__
 cd photonjs/examples/javascript/rest-express

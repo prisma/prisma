@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "test": "yarn prettier-check && yarn build-readmes",
-    "build-readmes": "inline-markdown --input ../readmes --output ../../examples",
+    "build-readmes": "inline-markdown --input ../readmes --output ../../../examples",
     "prettier-check": "prettier-check --config .prettierrc \"../../{javascript,typescript}/*/{src,test,prisma}/**/*.{ts,js}\"",
     "prettier-fix": "prettier --config .prettierrc --write \"../../{javascript,typescript}/*/{src,test,prisma}/**/*.{ts,js}\""
   },
