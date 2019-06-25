@@ -20,12 +20,14 @@
     "@zeit/ncc": "^0.20.1",
     "husky": "^2.4.1",
     "jest": "^24.8.0",
+    "lint-staged": "^8.2.1",
     "make-dir": "^3.0.0",
     "mz": "2.7.0",
     "pkg-up": "3.1.0",
     "prettier": "^1.17.1",
     "ts-jest": "^24.0.2",
     "tslint": "^5.16.0",
+    "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.5.2"
   },
   "peerDependencies": {
@@ -72,7 +74,7 @@
   "scripts": {
     "install": "node download.js",
     "run": "node dist/bin.js",
-    "precommit": "yarn lint && yarn test",
+    "precommit": "lint-staged && jest",
     "lint": "prettier --write src/*.{ts,tsx,js,jsx,md,graphql} src/**/*.{ts,tsx,js,jsx,md,graphql} && tsc",
     "test": "jest",
     "build": "tsc -d && cp src/GeneratorWorker.js dist/GeneratorWorker.js",
@@ -84,9 +86,10 @@
     "dist",
     "download.js"
   ],
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn precommit"
-    }
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "tslint --project tsconfig.json -c tslint.json --fix",
+      "prettier --write"
+    ]
   }
 }
