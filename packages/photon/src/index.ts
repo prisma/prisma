@@ -1,3 +1,4 @@
+export { getRawDMMF } from './utils/getDMMF'
 export { generateClient, buildClient } from './generation/generateClient'
 export { PhotonGenerate } from './PhotonGenerate'
 export { getDMMF } from './utils/getDMMF'
