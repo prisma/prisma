@@ -4,6 +4,7 @@ import { LiftEngine } from '../../LiftEngine'
 import chalk from 'chalk'
 import fs from 'fs-extra'
 import { runGeneratorBinary } from './runGeneratorBinary'
+import { getRawDMMF } from '@prisma/photon'
 // import { generateInThread } from '../generateInThread'
 
 const didYouMeanMap = {
@@ -20,61 +21,77 @@ export async function getCompiledGenerators(
 ): Promise<CompiledGeneratorDefinition[]> {
   const engine = new LiftEngine({ projectDir: cwd })
   const config = await engine.getConfig({ datamodel })
+  const dmmf = await getRawDMMF(datamodel)
 
   const generators = config.generators
     .slice()
     .sort((a, b) => (a.provider === 'photonjs' ? -1 : b.provider === 'photonjs' ? 1 : a.name < b.name ? -1 : 1))
-
-  return config.generators.map((g, index) => {
-    const otherGenerators = generators.filter((g, i) => i !== index)
-    if (g.provider.startsWith('.') || g.provider.startsWith('/')) {
-      const binPath = path.resolve(cwd, g.provider)
-      if (!fs.pathExistsSync(binPath)) {
-        throw new Error(`Could not find generator binary ${chalk.bold(g.provider)}`)
+    .map(g => {
+      // this is needed so that the "otherGenerators" already include the resolved paths
+      const predefinedGenerator = definitions[g.provider]
+      if (!predefinedGenerator) {
+        return g
       }
-      if (!hasChmodX(binPath)) {
+      const output =
+        g.output ||
+        predefinedGenerator.definition.defaultOutput ||
+        `node_modules/@generated/${predefinedGenerator.packagePath}`
+
+      return { ...g, output: output ? path.resolve(process.cwd(), output) : null }
+    })
+
+  return generators.map((g, index) => {
+    const predefinedGenerator = definitions[g.provider]
+    const otherGenerators = generators.filter((g, i) => i !== index)
+    // Is this a known generator?
+    if (predefinedGenerator) {
+      return {
+        prettyName: predefinedGenerator.definition.prettyName,
+        generate: () =>
+          predefinedGenerator.definition.generate({
+            cwd,
+            dmmf,
+            datamodel,
+            dataSources: config.datasources,
+            generator: g,
+            otherGenerators,
+          }),
+      } as CompiledGeneratorDefinition
+    }
+
+    // If not, try to resolve a binary
+    const binPath = path.resolve(cwd, g.provider)
+    if (!fs.pathExistsSync(binPath)) {
+      const replacement = didYouMeanMap[g.provider]
+      if (replacement) {
+        const didYouMean = `\nDid you mean ${chalk.greenBright(replacement)}?`
         throw new Error(
-          `${chalk.bold(g.provider)} is not executable. Please run ${chalk.greenBright(`chmod +x ${g.provider}`)}`,
+          `Unknown generator provider ${g.provider} for generator ${g.name} defined in ${chalk.underline(
+            path.join(cwd, 'project.prisma'),
+          )}${didYouMean}`,
         )
       }
-      return {
-        prettyName: binPath,
-        generate: async () =>
-          (await runGeneratorBinary(binPath, {
-            cwd,
-            generator: {
-              ...g,
-              output: g.output ? path.resolve(process.cwd(), g.output) : undefined,
-            },
-            otherGenerators,
-          })).stdout,
-      }
+      throw new Error(`Could not find generator binary ${chalk.bold(g.provider)}`)
     }
 
-    const predefinedGenerator = definitions[g.provider]
-    if (!predefinedGenerator) {
-      const replacement = didYouMeanMap[g.provider]
-      const didYouMean = replacement ? `\nDid you mean ${chalk.greenBright(replacement)}?` : ''
+    if (!hasChmodX(binPath)) {
       throw new Error(
-        `Unknown generator provider ${g.provider} for generator ${g.name} defined in ${chalk.underline(
-          path.join(cwd, 'project.prisma'),
-        )}${didYouMean}`,
+        `${chalk.bold(g.provider)} is not executable. Please run ${chalk.greenBright(`chmod +x ${g.provider}`)}`,
       )
     }
-    const output =
-      g.output ||
-      predefinedGenerator.definition.defaultOutput ||
-      `node_modules/@generated/${predefinedGenerator.packagePath}`
 
     return {
-      prettyName: predefinedGenerator.definition.prettyName,
-      generate: () =>
-        predefinedGenerator.definition.generate({
+      prettyName: binPath,
+      generate: async () =>
+        (await runGeneratorBinary(binPath, {
           cwd,
-          generator: { ...g, output },
+          dmmf,
+          datamodel,
+          dataSources: config.datasources,
+          generator: g,
           otherGenerators,
-        }),
-    } as CompiledGeneratorDefinition
+        })).stdout,
+    }
   })
 }
 
