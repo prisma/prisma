@@ -4,12 +4,13 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "graphql-yoga": "^1.16.1",
-    "prisma-client-lib": "1.34.0"
+    "@prisma/nexus": "^0.0.1",
+    "graphql-yoga": "^1.16.1"
   },
   "scripts": {
     "start": "node src/index.js",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "postinstall": "prisma2 generate"
   },
   "devDependencies": {
     "prisma2": "^0.0.79"
