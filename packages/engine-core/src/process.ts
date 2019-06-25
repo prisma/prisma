@@ -2,7 +2,6 @@
 
 import { spawn, ChildProcess } from 'child_process'
 import Deferred from 'deferral'
-import through from 'through2'
 import Debug from 'debug'
 
 const debug = Debug('engine')
@@ -91,6 +90,7 @@ export default class Process {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: this._cwd,
       env: this._env,
+      detached: false,
     })
 
     this._process.stderr.on('data', chunk => (this._stdio += chunk.toString()))

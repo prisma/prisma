@@ -26,8 +26,11 @@ const processes: Process[] = []
 /**
  * Pass the signals through
  */
-process.once('SIGTERM', sig => processes.map(proc => proc.signal(sig)))
-process.once('SIGINT', sig => processes.map(proc => proc.signal(sig)))
+// process.on('beforeExit', () => {
+//   processes.map(proc => proc.signal('SIGTERM'))
+// })
+// process.once('SIGTERM', sig => processes.map(proc => proc.signal(sig)))
+// process.once('SIGINT', sig => processes.map(proc => proc.signal(sig)))
 
 /**
  * Node.js based wrapper to run the Prisma binary
