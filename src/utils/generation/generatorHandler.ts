@@ -7,4 +7,5 @@ export function generatorHandler(cb: (options: any) => any) {
     const options = JSON.parse(input)
     cb(options)
   })
+  process.stdin!.resume()
 }

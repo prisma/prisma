@@ -298,10 +298,17 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@prisma/cli@0.0.17", "@prisma/cli@^0.0.17":
+"@prisma/cli@0.0.17":
   version "0.0.17"
   resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.17.tgz#440a5d43c35aecbd6ca2f71dfff059bcbf162619"
   integrity sha512-co6YCKyccZF3H4i76Z5RejRA+2xR3Nf+MLdH3xMgm8eATnhanYm+NMiKhhlAdAexQ64HTLcM7RSb4rBNjN2i0A==
+  dependencies:
+    arg "^4.1.0"
+
+"@prisma/cli@^0.0.21":
+  version "0.0.21"
+  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.21.tgz#49a8db2f8d056ed6afda62a07a60622cdb1ba777"
+  integrity sha512-DrxqhFmC46XrZA++LKRaceYSlmSjNQxbev9RnjYZGhSzbO2srjKz4dvYApVH0q+y2hfcuwPu0FWTl/KdPxyrjw==
   dependencies:
     arg "^4.1.0"
 
@@ -329,10 +336,10 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/photon@0.0.118":
-  version "0.0.118"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.118.tgz#95564e4a5bca76811dececb4772f713d3a112aed"
-  integrity sha512-aCEVUA8S5OD5lomHpg0tWLgV9bpCCIyHvmK5ncTRw6vZMwoDjXeOwNk3vIr8aMhlZyG8Wi7qdWGtCx3cJey+XA==
+"@prisma/photon@0.0.121":
+  version "0.0.121"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.121.tgz#c95972f715bda1a6cb820525ac2c814944b117a5"
+  integrity sha512-PfqGEZWvVN0Wx5uDG1d6Di0zJUYzql5yhRVPJRYtbWssW+4XvQajsQTLsed9cpLvuhivF8Ya2Pmg4OV7Bw2q8A==
   dependencies:
     "@prisma/cli" "0.0.17"
     "@prisma/engine-core" "0.0.55"
