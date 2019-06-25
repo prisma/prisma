@@ -2,12 +2,11 @@
   "name": "script",
   "version": "1.0.0",
   "license": "MIT",
-  "dependencies": {
-    "prisma-client-lib": "1.34.0"
-  },
+  "dependencies": {},
   "scripts": {
     "start": "node src/script.js",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "postinstall": "prisma2 generate"
   },
   "devDependencies": {
     "prisma2": "^0.0.79"

@@ -5,12 +5,12 @@
     "bcrypt": "3.0.6",
     "graphql-shield": "5.3.8",
     "graphql-yoga": "1.17.4",
-    "jsonwebtoken": "8.5.1",
-    "prisma-client-lib": "1.34.0"
+    "jsonwebtoken": "8.5.1"
   },
   "scripts": {
     "start": "node src/index.js",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "postinstall": "prisma2 generate"
   },
   "devDependencies": {
     "prisma2": "^0.0.79"

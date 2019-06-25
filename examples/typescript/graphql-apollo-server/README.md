@@ -1,6 +1,6 @@
 # GraphQL Apollo Server Example
 
-This example shows how to implement a **GraphQL server with TypeScript** based on Prisma, [apollo-server](https://www.apollographql.com/docs/apollo-server/) and [GraphQL Nexus](https://graphql-nexus.com/).
+This example shows how to implement a **GraphQL server with TypeScript** based on  [Photon JS](https://photonjs.prisma.io/), [apollo-server](https://www.apollographql.com/docs/apollo-server/) and [GraphQL Nexus](https://graphql-nexus.com/).
 
 ## How to use
 
@@ -15,29 +15,39 @@ git clone git@github.com:prisma/photonjs.git
 Install Node dependencies:
 
 ```
-cd examples/typescript/graphql-apollo-server
+cd prisma-examples/typescript/graphql-apollo-server
 npm install
 ```
 
-### 2. Install the Prisma CLI
+### 2. Install the Prisma 2 CLI
 
-To run the example, you need the Prisma CLI. Please install it via NPM. 
+To run the example, you need the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md):
 
 ```
 npm install -g prisma2
 ```
 
-### 3. Set up database & deploy Prisma schema
+### 3. Set up database
+
+For this example, you'll use a simple [SQLite database](https://www.sqlite.org/index.html). To set up your database, run:
 
 ```
 prisma2 lift save --name 'init'
 prisma2 lift up
+```
+
+You can now use the [SQLite Browser](https://sqlitebrowser.org/) to view and edit your data in the `./prisma/dev.db` file that was created when you ran `prisma2 lift up`.
+
+### 4. Generate Photon (type-safe database client)
+
+Run the following command to generate [Photon JS](https://photonjs.prisma.io/):
+
+```
 prisma2 generate
 ```
 
 
-
-### 4. Start the GraphQL server
+### 5. Start the GraphQL server
 
 Launch your GraphQL server with this command:
 
@@ -47,7 +57,7 @@ npm run start
 
 Navigate to [http://localhost:4000](http://localhost:4000) in your browser to explore the API of your GraphQL server in a [GraphQL Playground](https://github.com/prisma/graphql-playground).
 
-### 5. Using the GraphQL API
+### 6. Using the GraphQL API
 
 The schema that specifies the API operations of your GraphQL server is defined in [`./src/schema.graphql`](./src/schema.graphql). Below are a number of operations that you can send to the API using the GraphQL Playground.
 
@@ -170,9 +180,10 @@ mutation {
 
 To make changes to the GraphQL schema, you need to manipulate the `Query` and `Mutation` types that are defined in [`index.ts`](./src/index.ts). 
 
-Note that the [`start`](./package.json#L6) script also starts a development server that automatically updates your schema every time you save a file. This way, the auto-generated [GraphQL schema](./src/generated/schema.graphql) updates whenever you make changes in to the `Query` or `Mutation` types inside your TypeScript code.
+Note that the [`start`](./package.json#L6) script also starts a development server that automatically updates your schema every time you save a file. This way, the auto-generated [GraphQL schema](./src/schema.graphql) updates whenever you make changes in to the `Query` or `Mutation` types inside your TypeScript code.
 
 ## Next steps
 
-- [Use Prisma with an existing database](https://github.com/prisma/prisma2-docs/blob/master/introspection.md)
-- [Explore the Photon API](https://github.com/prisma/prisma2-docs/blob/master/photon/api.md)
+- Read the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)
+- Check out the [Prisma 2 docs](https://github.com/prisma/prisma2-docs)
+- Share your feedback in the [`prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on the Prisma Slack
