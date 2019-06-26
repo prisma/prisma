@@ -1,5 +1,5 @@
-import { printDatamodelDiff } from '../printDatamodelDiff'
 import chalk from 'chalk'
+import { printDatamodelDiff } from '../printDatamodelDiff'
 
 chalk.level = 2
 
