@@ -1,6 +1,6 @@
 # REST API Example
 
-This example shows how to implement a **REST API with TypeScript** using [Express.JS](https://expressjs.com/de/) and Prisma.
+This example shows how to implement a **REST API with TypeScript** using [Express.JS](https://expressjs.com/de/) and [Photon JS](https://photonjs.prisma.io/).
 
 ## How to use
 
@@ -15,29 +15,39 @@ git clone git@github.com:prisma/photonjs.git
 Install Node dependencies:
 
 ```
-cd examples/typescript/rest-express
+cd photonjs/examples/typescript/rest-express
 npm install
 ```
 
-### 2. Install the Prisma CLI
+### 2. Install the Prisma 2 CLI
 
-To run the example, you need the Prisma CLI. Please install it via NPM. 
+To run the example, you need the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md):
 
 ```
 npm install -g prisma2
 ```
 
-### 3. Set up database & deploy Prisma schema
+### 3. Set up database
+
+For this example, you'll use a simple [SQLite database](https://www.sqlite.org/index.html). To set up your database, run:
 
 ```
 prisma2 lift save --name 'init'
 prisma2 lift up
+```
+
+You can now use the [SQLite Browser](https://sqlitebrowser.org/) to view and edit your data in the `./prisma/dev.db` file that was created when you ran `prisma2 lift up`.
+
+### 4. Generate Photon (type-safe database client)
+
+Run the following command to generate [Photon JS](https://photonjs.prisma.io/):
+
+```
 prisma2 generate
 ```
 
 
-
-### 4. Start the REST API server
+### 5. Start the REST API server
 
 ```
 npm run start
@@ -45,7 +55,7 @@ npm run start
 
 The server is now running on `http://localhost:3000`. You can send the API requests implemented in `index.js`, e.g. [`http://localhost:3000/feed`](http://localhost:3000/feed).
 
-### 5. Using the REST API
+### 6. Using the REST API
 
 #### `GET`
 
@@ -75,5 +85,6 @@ The server is now running on `http://localhost:3000`. You can send the API reque
 
 ## Next steps
 
-- [Use Prisma with an existing database](https://github.com/prisma/prisma2-docs/blob/master/introspection.md)
-- [Explore the Photon API](https://github.com/prisma/prisma2-docs/blob/master/photon/api.md)
+- Read the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)
+- Check out the [Prisma 2 docs](https://github.com/prisma/prisma2-docs)
+- Share your feedback in the [`prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on the Prisma Slack
