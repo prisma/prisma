@@ -76,7 +76,7 @@
     "run": "node dist/bin.js",
     "precommit": "lint-staged && jest",
     "lint": "prettier --write src/*.{ts,tsx,js,jsx,md,graphql} src/**/*.{ts,tsx,js,jsx,md,graphql} && tsc",
-    "test": "FORCE_COLOR=1 jest",
+    "test": "jest",
     "build": "tsc -d && cp src/GeneratorWorker.js dist/GeneratorWorker.js",
     "ncc": "ncc build dist/bin.js -o build",
     "build-cli": "yarn build && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js'",
