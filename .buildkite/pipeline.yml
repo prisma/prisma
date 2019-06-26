@@ -2,5 +2,5 @@ steps:
   - label: ':shell: Test'
     command: scripts/test.sh
     plugins:
-      - docker-compose#v3.7:
+      - docker-compose:
           run: app
