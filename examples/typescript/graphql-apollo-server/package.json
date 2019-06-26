@@ -11,9 +11,7 @@
     "nexus": "0.11.7"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.27",
     "@types/node": "10.14.9",
-    "prisma2": "^0.0.92",
     "ts-node-dev": "1.0.0-pre.40",
     "typescript": "3.5.2"
   }

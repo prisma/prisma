@@ -7,8 +7,5 @@
     "start": "node src/script.js",
     "seed": "node prisma/seed.js",
     "postinstall": "prisma2 generate"
-  },
-  "devDependencies": {
-    "prisma2": "^0.0.79"
   }
 }
