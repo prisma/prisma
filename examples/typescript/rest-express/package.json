@@ -15,8 +15,7 @@
   "devDependencies": {
     "@types/body-parser": "1.17.0",
     "@types/express": "4.17.0",
-    "prisma2": "^0.0.73",
-    "ts-node": "7.0.1",
+    "ts-node": "^8.3.0",
     "typescript": "3.5.2"
   }
 }
