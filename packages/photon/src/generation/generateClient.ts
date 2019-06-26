@@ -1,6 +1,6 @@
+import copy from '@apexearth/copy'
 import { LiftEngine } from '@prisma/lift'
 import fs from 'fs'
-import { promisify } from 'util'
 import makeDir from 'make-dir'
 import path from 'path'
 import {
@@ -11,10 +11,10 @@ import {
   ModuleKind,
   ScriptTarget,
 } from 'typescript'
+import { promisify } from 'util'
 import { Dictionary } from '../runtime/utils/common'
 import { getDMMF } from '../utils/getDMMF'
 import { TSClient } from './TSClient'
-import copy from '@apexearth/copy'
 
 const remove = promisify(fs.unlink)
 const writeFile = promisify(fs.writeFile)
