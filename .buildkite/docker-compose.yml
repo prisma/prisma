@@ -4,4 +4,4 @@ services:
     image: node:10
     volumes:
       - ../:/app
-    command: /app/scripts/test.sh
+    command: cd /app && scripts/test.sh
