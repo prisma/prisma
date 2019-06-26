@@ -1,8 +1,8 @@
+import { AuthPayload } from './AuthPayload'
+import { Mutation } from './Mutation'
+import { Post } from './Post'
 import { Query } from './Query'
 import { User } from './User'
-import { Post } from './Post'
-import { Mutation } from './Mutation'
-import { AuthPayload } from './AuthPayload'
 
 export const resolvers = {
   Query,
