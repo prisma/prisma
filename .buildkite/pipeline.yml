@@ -3,4 +3,5 @@ steps:
     command: scripts/test.sh
     plugins:
       - docker-compose:
+          config: .buildkite/docker-compose.yml
           run: app
