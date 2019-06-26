@@ -343,11 +343,6 @@ path-to-regexp@0.1.7:
   resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-0.1.7.tgz#df604178005f522f15eb4490e7247a1bfaa67f8c"
   integrity sha1-32BBeABfUi8V60SQ5yR6G/qmf4w=
 
-prisma2@^0.0.73:
-  version "0.0.73"
-  resolved "https://registry.yarnpkg.com/prisma2/-/prisma2-0.0.73.tgz#0e75a3df82f9f33fa3c20e96acb8e4215aa9c305"
-  integrity sha512-BPYN5NiWabHiXkIBlt6mH2qA0ANCRxZu4+QSmGjdxGQbdbQNc3mcVicItOlIrACs0pmfKnrcUuHfK2Lovmam7g==
-
 proxy-addr@~2.0.5:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/proxy-addr/-/proxy-addr-2.0.5.tgz#34cbd64a2d81f4b1fd21e76f9f06c8a45299ee34"

@@ -16,8 +16,5 @@
     "publish": "node ./client/publish.js",
     "deletePost": "node ./client/deletePost.js",
     "postinstall": "prisma2 generate"
-  },
-  "devDependencies": {
-    "prisma2": "^0.0.79"
   }
 }
