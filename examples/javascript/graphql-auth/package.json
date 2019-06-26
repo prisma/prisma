@@ -11,5 +11,8 @@
     "start": "node src/index.js",
     "seed": "node prisma/seed.js",
     "postinstall": "prisma2 generate"
+  },
+  "devDependencies": {
+    "ts-node": "^8.3.0"
   }
 }
