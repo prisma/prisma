@@ -1,4 +1,4 @@
-import { nexusPrismaMethod } from '@generated/nexus-prisma'
+import { nexusPrismaPlugin } from '@generated/nexus-prisma'
 import Photon from '@generated/photon'
 import { idArg, makeSchema, objectType, stringArg } from '@prisma/nexus'
 import { GraphQLServer } from 'graphql-yoga'
@@ -7,7 +7,7 @@ import { Context } from './types'
 
 const photon = new Photon()
 
-const nexusPrisma = nexusPrismaMethod({
+const nexusPrisma = nexusPrismaPlugin({
   photon: (ctx: Context) => ctx.photon,
 })
 
