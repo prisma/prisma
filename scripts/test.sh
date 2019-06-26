@@ -2,7 +2,7 @@
 
 set -ex
 
-cd /app
-
 yarn
+yarn link
+yarn link @prisma/lift
 yarn test
