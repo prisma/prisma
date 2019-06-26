@@ -1,0 +1,4 @@
+version: '3.7'
+services:
+  app:
+    image: node:10
