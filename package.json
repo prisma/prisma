@@ -80,7 +80,8 @@
     "build": "tsc -d && cp src/GeneratorWorker.js dist/GeneratorWorker.js",
     "ncc": "ncc build dist/bin.js -o build",
     "build-cli": "yarn build && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js'",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "yarn build",
+    "prepare": "yarn build && yarn link && yarn link @prisma/lift"
   },
   "files": [
     "dist",
