@@ -6,5 +6,3 @@ services:
       - ../:/app
     working_dir: /app
     command: /app/scripts/test.sh
-    environment:
-      - FORCE_COLOR=1
