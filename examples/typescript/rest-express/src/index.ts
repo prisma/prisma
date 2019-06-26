@@ -63,27 +63,26 @@ app.get('/feed', async (req, res) => {
   res.json(posts)
 })
 
-// TODO: Fix after https://github.com/prisma/photonjs/issues/37
-// app.get('/filterPosts', async (req, res) => {
-//   const { searchString } = req.query
-//   const draftPosts = await photon.posts.findMany({
-//     where: {
-//       OR: [
-//         {
-//           title: {
-//             contains: searchString,
-//           },
-//         },
-//         {
-//           content: {
-//             contains: searchString,
-//           },
-//         },
-//       ],
-//     },
-//   })
-//   res.json(draftPosts)
-// })
+app.get('/filterPosts', async (req, res) => {
+  const { searchString } = req.query
+  const draftPosts = await photon.posts.findMany({
+    where: {
+      OR: [
+        {
+          title: {
+            contains: searchString,
+          },
+        },
+        {
+          content: {
+            contains: searchString,
+          },
+        },
+      ],
+    },
+  })
+  res.json(draftPosts)
+})
 
 const server = app.listen(3000, () =>
   console.log('Server is running on http://localhost:3000'),
