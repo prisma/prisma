@@ -2,3 +2,6 @@ version: '3.7'
 services:
   app:
     image: node:10
+    volumes:
+      - ../:/app
+    command: /app/scripts/test.sh
