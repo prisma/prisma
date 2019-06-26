@@ -2,8 +2,8 @@ import chalk from 'chalk'
 const PROTO_PATH = __dirname + '/../service.proto'
 
 import Photon from '@generated/photon'
-import * as grpc from 'grpc'
 import * as protoLoader from '@grpc/proto-loader'
+import * as grpc from 'grpc'
 
 const photon = new Photon()
 
