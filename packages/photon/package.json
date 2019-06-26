@@ -63,14 +63,14 @@
     "@prisma/lift": "*"
   },
   "dependencies": {
+    "@apexearth/copy": "^1.4.1",
     "@prisma/cli": "0.0.17",
     "@prisma/engine-core": "0.0.55",
     "@prisma/fetch-engine": "^0.0.24",
     "chalk": "^2.4.2",
-    "cpy": "7.3.0",
+    "cpy": "^7.3.0",
     "dotenv": "^8.0.0",
     "flat-map-polyfill": "^0.3.8",
-    "fs-extra": "^8.0.1",
     "fs-monkey": "^0.3.3",
     "indent-string": "^4.0.0",
     "is-obj": "^2.0.0",

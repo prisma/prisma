@@ -1,5 +1,6 @@
 import { LiftEngine } from '@prisma/lift'
-import fs from 'fs-extra'
+import fs from 'fs'
+import { promisify } from 'util'
 import makeDir from 'make-dir'
 import path from 'path'
 import {
@@ -13,6 +14,11 @@ import {
 import { Dictionary } from '../runtime/utils/common'
 import { getDMMF } from '../utils/getDMMF'
 import { TSClient } from './TSClient'
+import copy from '@apexearth/copy'
+
+const remove = promisify(fs.unlink)
+const writeFile = promisify(fs.writeFile)
+const exists = promisify(fs.exists)
 
 interface BuildClientOptions {
   datamodel: string
@@ -146,12 +152,20 @@ export async function generateClient({
       const filePath = path.join(outputDir, fileName)
       // The deletion of the file is necessary, so VSCode
       // picks up the changes.
-      await fs.remove(filePath)
-      await fs.writeFile(filePath, file)
+      if (await exists(filePath)) {
+        await remove(filePath)
+      }
+      await writeFile(filePath, file)
     }),
   )
-  await fs.copy(path.join(__dirname, '../../runtime'), path.join(outputDir, '/runtime'))
-  await fs.writeFile(path.join(outputDir, '/runtime/index.d.ts'), backup)
+  const inputDir = path.join(__dirname, '../../runtime')
+  await copy({
+    from: inputDir,
+    to: path.join(outputDir, '/runtime'),
+    recursive: true,
+    parallelJobs: 20,
+  })
+  await writeFile(path.join(outputDir, '/runtime/index.d.ts'), backup)
 }
 
 // TODO: fix type
@@ -249,7 +263,7 @@ export declare type printDatasources = any
 function redirectToLib(fileName: string) {
   const file = path.basename(fileName)
   if (/^lib\.(.*?)\.d\.ts$/.test(file)) {
-    if (!fs.pathExistsSync(fileName)) {
+    if (!exists(fileName)) {
       const dir = path.dirname(fileName)
       return path.join(dir, 'lib', file)
     }
