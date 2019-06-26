@@ -91,5 +91,8 @@
       "tslint --project tsconfig.json -c tslint.json --fix",
       "prettier --write"
     ]
+  },
+  "resolutions": {
+    "**/@prisma/lift": "file:./dist/index.js"
   }
 }
