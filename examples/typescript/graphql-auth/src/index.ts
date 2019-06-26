@@ -1,11 +1,11 @@
+import { nexusPrismaMethod } from '@generated/nexus-prisma'
+import Photon from '@generated/photon'
+import { makeSchema } from '@prisma/nexus'
 import { GraphQLServer } from 'graphql-yoga'
 import { join } from 'path'
-import { makeSchema } from '@prisma/nexus'
 import { permissions } from './permissions'
 import * as allTypes from './resolvers'
-import Photon from '@generated/photon'
 import { Context } from './types'
-import { nexusPrismaMethod } from '@generated/nexus-prisma'
 
 const photon = new Photon({
   debug: true,
