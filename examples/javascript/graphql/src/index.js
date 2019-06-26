@@ -2,11 +2,11 @@ const { GraphQLServer } = require('graphql-yoga')
 const { join } = require('path')
 const { makeSchema, objectType, idArg, stringArg } = require('@prisma/nexus')
 const Photon = require('@generated/photon')
-const { nexusPrismaMethod } = require('@generated/nexus-prisma')
+const { nexusPrismaPlugin } = require('@generated/nexus-prisma')
 
 const photon = new Photon()
 
-const nexusPrisma = nexusPrismaMethod({
+const nexusPrisma = nexusPrismaPlugin({
   photon: ctx => ctx.photon,
 })
 
