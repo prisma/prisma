@@ -19,7 +19,7 @@
     "postinstall": "prisma2 generate"
   },
   "devDependencies": {
-    "ts-node": "8.0.2",
+    "ts-node": "^8.3.0",
     "typescript": "3.5.2"
   }
 }

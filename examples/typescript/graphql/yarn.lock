@@ -1339,7 +1339,7 @@ ts-node-dev@1.0.0-pre.40:
     ts-node "*"
     tsconfig "^7.0.0"
 
-ts-node@*:
+ts-node@*, ts-node@^8.3.0:
   version "8.3.0"
   resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-8.3.0.tgz#e4059618411371924a1fb5f3b125915f324efb57"
   integrity sha512-dyNS/RqyVTDcmNM4NIBAeDMpsAdaQ+ojdf0GOLqE6nwJOgzEkdRNzJywhDfwnuvB10oa6NLVG1rUJQCpRN7qoQ==

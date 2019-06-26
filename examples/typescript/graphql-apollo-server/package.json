@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@types/node": "10.14.9",
+    "ts-node": "^8.3.0",
     "ts-node-dev": "1.0.0-pre.40",
     "typescript": "3.5.2"
   }
