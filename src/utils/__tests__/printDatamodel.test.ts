@@ -1,4 +1,7 @@
 import { printDatamodelDiff } from '../printDatamodelDiff'
+import chalk from 'chalk'
+
+chalk.level = 2
 
 const datamodelA = `model Blog {
   id Int @id
