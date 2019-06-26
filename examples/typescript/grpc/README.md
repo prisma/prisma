@@ -46,6 +46,11 @@ Run the following command to generate [Photon JS](https://photonjs.prisma.io/):
 prisma2 generate
 ```
 
+Now you can seed your database using the `seed` script from `package.json`:
+
+```
+npm run seed
+```
 
 ### 5. Start the gRPC server
 
