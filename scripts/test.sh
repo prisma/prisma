@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -ex
+env
 
 cd prisma2
 yarn
