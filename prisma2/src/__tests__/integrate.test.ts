@@ -8,10 +8,9 @@ import { Client } from 'pg'
 import assert from 'assert'
 import pkgup from 'pkg-up'
 import del from 'del'
+import fs from 'fs'
 
 const host = process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
-
-console.log({ host })
 
 const db = new Client({
   connectionString: host,
@@ -59,6 +58,11 @@ async function runTest(t) {
 
   await generate(isdl)
   const photonPath = join(tmp, 'index.js')
+  const photonDeclarationPath = join(tmp, 'index.d.ts')
+
+  assert(fs.existsSync(photonDeclarationPath))
+  assert(fs.existsSync(photonPath))
+
   // clear the require cache
   delete require.cache[photonPath]
   const { default: Photon } = await import(photonPath)
