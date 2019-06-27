@@ -87,11 +87,3 @@ app.get('/filterPosts', async (req, res) => {
 const server = app.listen(3000, () =>
   console.log('Server is running on http://localhost:3000'),
 )
-
-async function cleanup() {
-  await photon.disconnect()
-  server.close()
-}
-
-process.on('SIGINT', cleanup)
-process.on('SIGTERM', cleanup)
