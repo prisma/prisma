@@ -260,8 +260,8 @@ Then add the new resolver to the `Mutation` object in [`./src/resolvers/Mutation
 ```diff
 const Mutation = {
   // ...
-+ updateUserName(parent, { id, newName }, context) {
-+   return context.prisma.updateUser({
++ updateUserName: async (parent, { id, newName }, context) => { 
++   return context.photon.users.update({
 +     where: {
 +       id
 +     },
