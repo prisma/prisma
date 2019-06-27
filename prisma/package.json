@@ -1,0 +1,56 @@
+{
+  "name": "prisma2",
+  "version": "0.0.97",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": "git@github.com:prisma/prisma.git",
+  "author": "Tim Suchanek <suchanek@prisma.io>",
+  "license": "Apache-2.0",
+  "private": false,
+  "files": [
+    "build",
+    "download-build",
+    "runtime/*.js",
+    "runtime/*.d.ts",
+    "runtime/utils",
+    "runtime/dist",
+    "nexus_prisma_ncc_build"
+  ],
+  "bin": {
+    "prisma2": "build/index.js"
+  },
+  "devDependencies": {
+    "@prisma/cli": "^0.0.21",
+    "@prisma/fetch-engine": "^0.0.24",
+    "@prisma/introspection": "0.0.34",
+    "@prisma/lift": "^0.0.114",
+    "@prisma/photon": "^0.0.123",
+    "@types/mocha": "^5.2.7",
+    "@zeit/ncc": "^0.18.5",
+    "jest": "24.8.0",
+    "mocha": "6.1.4",
+    "mz": "2.7.0",
+    "nexus-prisma": "0.0.1-beta.4",
+    "pkg-up": "3.1.0",
+    "prisma-test-utils": "^0.2.5",
+    "ts-jest": "24.0.2",
+    "ts-mocha": "6.0.0",
+    "typescript": "^3.5.1"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__te_/integrate.test.ts --timeout 10s",
+    "install": "node download-build/index.js",
+    "tsc": "tsc -d",
+    "ncc": "ncc build dist/bin.js -o build",
+    "ncc:download": "ncc build scripts/download.js -o download-build",
+    "build": "yarn tsc && yarn ncc:download && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
+    "prepublishOnly": "yarn build"
+  },
+  "dependencies": {},
+  "resolutions": {
+    "prisma-datamodel": "1.36.0-alpha.8",
+    "**/prisma-datamodel": "1.36.0-alpha.8",
+    "**/**/prisma-datamodel": "1.36.0-alpha.8",
+    "**/**/**/prisma-datamodel": "1.36.0-alpha.8"
+  }
+}

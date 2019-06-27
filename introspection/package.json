@@ -1,0 +1,60 @@
+{
+  "name": "@prisma/introspection",
+  "version": "0.0.34",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@prisma/cli": "^0.0.17",
+    "@prisma/lift": "^0.0.107",
+    "@types/dotenv": "^6.1.1",
+    "@types/figures": "^3.0.1",
+    "@types/fs-extra": "^7.0.0",
+    "@types/ink-spinner": "^2.0.1",
+    "@types/jest": "^24.0.13",
+    "@types/js-yaml": "^3.12.1",
+    "@types/json-stable-stringify": "^1.0.32",
+    "@types/jsonwebtoken": "^8.3.2",
+    "@types/mongodb": "^3.1.14",
+    "@types/mysql": "^2.15.5",
+    "@types/node": "^12.0.7",
+    "@types/pg": "^7.4.6",
+    "@types/string-width": "^4.0.1",
+    "jest": "^24.8.0",
+    "ts-jest": "^24.0.2",
+    "ts-node": "^8.2.0",
+    "typescript": "^3.5.1"
+  },
+  "peerDependencies": {
+    "@prisma/cli": "*",
+    "@prisma/lift": "*"
+  },
+  "dependencies": {
+    "ajv": "^6.10.0",
+    "chalk": "^2.4.2",
+    "dotenv": "^8.0.0",
+    "execa": "^1.0.0",
+    "figures": "^3.0.0",
+    "ink": "^2.2.0",
+    "ink-spinner": "^3.0.1",
+    "ink-text-input": "^3.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "ora": "^3.4.0",
+    "parse-github-url": "^1.0.2",
+    "prisma-datamodel": "1.36.0-alpha.10",
+    "prisma-db-introspection": "1.36.0-alpha.10",
+    "react": "^16.8.6",
+    "request": "^2.88.0",
+    "scuid": "^1.1.0",
+    "string-width": "^4.1.0",
+    "strip-ansi": "^5.2.0"
+  },
+  "scripts": {
+    "build": "tsc -d && chmod +x dist/bin.js",
+    "prepublishOnly": "yarn build",
+    "test": "jest"
+  },
+  "files": [
+    "dist"
+  ]
+}
