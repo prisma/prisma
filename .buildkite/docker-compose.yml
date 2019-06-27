@@ -7,7 +7,7 @@ services:
     working_dir: /app
     command: /app/scripts/test.sh
     environment:
-      - TEST_POSTGRES_URI="postgres://prisma:prisma@postgres:5432/prisma-dev"
+      - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/prisma-dev
   postgres:
     image: postgres:10.3
     restart: always
