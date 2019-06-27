@@ -3,11 +3,8 @@
 set -ex
 env
 
-diff -u <(git rev-list --first-parent topic) \
-             <(git rev-list --first-parent master) | \
-     sed -ne 's/^ //p' | head -1
-
 # Wait for Postgres
+export changedFiles=$(git diff-tree --no-commit-id --name-only -r $BUILDKITE_COMMIT)
 
 # Run prisma2 tests
 cd prisma2
