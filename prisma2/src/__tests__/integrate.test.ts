@@ -85,7 +85,7 @@ async function generate(isdl: ISDL) {
     {
       name: 'pg',
       connectorType: 'postgres',
-      url: `postgres://m@localhost:5432/prisma-dev?schema=public`,
+      url: `${host}?schema=public`,
       config: {},
     },
   ])
