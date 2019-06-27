@@ -39,13 +39,13 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__te_/integrate.test.ts --timeout 10s",
-    "install": "node download-build/index.js",
+    "install": "test -f scripts/download.js && node download-build/index.js",
     "tsc": "tsc -d",
     "ncc": "ncc build dist/bin.js -o build",
     "ncc:download": "ncc build scripts/download.js -o download-build",
     "build": "yarn tsc && yarn ncc:download && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
     "prepublishOnly": "yarn build",
-    "prepare": "yarn build"
+    "prepare": "yarn build && node download-build/index.js"
   },
   "dependencies": {},
   "resolutions": {
