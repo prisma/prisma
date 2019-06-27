@@ -4,7 +4,7 @@ set -ex
 env
 
 # Wait for Postgres
-sleep 15
+# sleep 15
 
 # Run prisma2 tests
 cd prisma2

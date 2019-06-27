@@ -47,7 +47,8 @@
     "request": "^2.88.0",
     "scuid": "^1.1.0",
     "string-width": "^4.1.0",
-    "strip-ansi": "^5.2.0"
+    "strip-ansi": "^5.2.0",
+    "tmp": "^0.1.0"
   },
   "scripts": {
     "build": "tsc -d && chmod +x dist/bin.js",
