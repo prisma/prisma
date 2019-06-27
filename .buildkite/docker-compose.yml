@@ -7,7 +7,7 @@ services:
     working_dir: /app
     command: /app/scripts/test.sh
     environment:
-      - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres/prisma-dev
+      - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres/
     depends_on:
       - postgres
   postgres:
