@@ -5,9 +5,9 @@ steps:
           config: .buildkite/docker-compose.yml
           run: app
   - wait
-  - label: ':gun: Trigger publish'
-    trigger: 'lift-publish'
-    async: true
-    build:
-      env:
-        PUBLISH_PRISMA2: 'false'
+  # - label: ':gun: Trigger publish'
+  #   trigger: 'lift-publish'
+  #   async: true
+  #   build:
+  #     env:
+  #       PUBLISH_PRISMA2: 'false'
