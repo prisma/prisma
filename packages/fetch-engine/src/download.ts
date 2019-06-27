@@ -4,21 +4,21 @@ import fs from 'fs'
 import zlib from 'zlib'
 import os from 'os'
 import makeDir from 'make-dir'
+import { promisify } from 'util'
 
 // Packages
 import onDeath from 'death'
 import fetch from 'node-fetch'
 import retry from 'p-retry'
 import path from 'path'
-import { getos } from './getos'
 import Progress from 'progress'
+import findCacheDir from 'find-cache-dir'
 
 // Utils
 import { getBar, info, warn } from './log'
 import plusxSync from './chmod'
-import findCacheDir from 'find-cache-dir'
 import { copy } from './copy'
-import { promisify } from 'util'
+import { getos } from './getos'
 
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
