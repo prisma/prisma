@@ -9,7 +9,6 @@ env
 # Run prisma2 tests
 cd prisma2
 yarn
-yarn prepare
 yarn test
 cd ../introspection
 yarn
