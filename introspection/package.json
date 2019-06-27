@@ -48,6 +48,7 @@
     "scuid": "^1.1.0",
     "string-width": "^4.1.0",
     "strip-ansi": "^5.2.0",
+    "tar": "^4.4.10",
     "tmp": "^0.1.0"
   },
   "scripts": {
