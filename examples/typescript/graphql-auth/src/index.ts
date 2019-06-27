@@ -1,4 +1,4 @@
-import { nexusPrismaMethod } from '@generated/nexus-prisma'
+import { nexusPrismaPlugin } from '@generated/nexus-prisma'
 import Photon from '@generated/photon'
 import { makeSchema } from '@prisma/nexus'
 import { GraphQLServer } from 'graphql-yoga'
@@ -11,7 +11,7 @@ const photon = new Photon({
   debug: true,
 })
 
-const nexusPrisma = nexusPrismaMethod({
+const nexusPrisma = nexusPrismaPlugin({
   photon: (ctx: Context) => ctx.photon,
 })
 

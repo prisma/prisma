@@ -2,7 +2,7 @@
 <p align="center"><a href="https://photonjs.prisma.io/"><img src="logo.svg" alt="Prisma" height="40px"></a></p>
 
 <!-- <p><h1 align="center">Photon JS</h1></p> -->
-<p><h3 align="center">Type-safe database client (ORM replacement) for TypeScript & Node.js</h3></p>
+<p><h3 align="center">Type-safe database client for TypeScript & Node.js (ORM replacement)</h3></p>
 
 <p align="center">
   <a href="#getting-started">Get started</a> • <a href="#features">Features</a> • <a href="#docs">Docs</a> • <a href="#api-examples">API</a> • <a href="#the-photon-js-workflow">Workflow</a> • <a href="#supported-databases">Supported databases</a> 

@@ -1,4 +1,4 @@
-import { nexusPrismaMethod } from '@generated/nexus-prisma'
+import { nexusPrismaPlugin } from '@generated/nexus-prisma'
 import Photon from '@generated/photon'
 import { makeSchema, objectType } from '@prisma/nexus'
 import { ApolloServer, gql } from 'apollo-server'
@@ -8,7 +8,7 @@ import { Context } from './types'
 
 const photon = new Photon()
 
-const nexusPrisma = nexusPrismaMethod({
+const nexusPrisma = nexusPrismaPlugin({
   photon: (ctx: Context) => ctx.photon,
 })
 

@@ -1,0 +1,6 @@
+steps:
+  - label: ':shell: Test'
+    plugins:
+      - docker-compose:
+          config: .buildkite/docker-compose.yml
+          run: app
