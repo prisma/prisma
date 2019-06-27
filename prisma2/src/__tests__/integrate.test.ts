@@ -60,8 +60,8 @@ async function runTest(t) {
   const photonPath = join(tmp, 'index.js')
   const photonDeclarationPath = join(tmp, 'index.d.ts')
 
-  assert(fs.existsSync(photonDeclarationPath))
   assert(fs.existsSync(photonPath))
+  assert(fs.existsSync(photonDeclarationPath))
 
   // clear the require cache
   delete require.cache[photonPath]

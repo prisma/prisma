@@ -3,8 +3,11 @@
 set -ex
 env
 
+diff -u <(git rev-list --first-parent topic) \
+             <(git rev-list --first-parent master) | \
+     sed -ne 's/^ //p' | head -1
+
 # Wait for Postgres
-# sleep 15
 
 # Run prisma2 tests
 cd prisma2
