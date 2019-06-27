@@ -190,16 +190,6 @@ const server = new ApolloServer({
   context: { photon },
 })
 
-server
-  .listen({ port: 4000 }, () =>
-    console.log(`🚀 Server ready at http://localhost:4000`),
-  )
-  .then(serverInfo => {
-    async function cleanup() {
-      serverInfo.server.close()
-      await photon.disconnect()
-    }
-
-    process.on('SIGINT', cleanup)
-    process.on('SIGTERM', cleanup)
-  })
+server.listen({ port: 4000 }, () =>
+  console.log(`🚀 Server ready at http://localhost:4000`),
+)

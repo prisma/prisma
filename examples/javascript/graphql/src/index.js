@@ -145,16 +145,5 @@ const server = new GraphQLServer({
   },
 })
 
-server
-  .start(() => console.log(`🚀 Server ready at http://localhost:4000`))
-  .then(httpServer => {
-    async function cleanup() {
-      httpServer.close()
-      await photon.disconnect()
-    }
-
-    process.on('SIGINT', cleanup)
-    process.on('SIGTERM', cleanup)
-  })
-
+server.start(() => console.log(`🚀 Server ready at http://localhost:4000`))
 module.exports = { User, Post }
