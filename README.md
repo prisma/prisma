@@ -16,7 +16,6 @@ It is part of the [Prisma 2](https://www.github.com/prisma/prisma2-docs) ecosyst
 
 > Note that Lift is currently running in Preview. The version available has severe [limitations](https://github.com/prisma/prisma2-docs/blob/master/limitations.md) that make it unsuitable for production workloads, including missing features, limited performance and stability issues. We will address all these limitations before issuing a stable release later this year.
 
-
 <p align="center">
   <!-- <a href="https://codesandbox.io/s/github/prisma-csb/prisma-client-demo-ts"><img src="https://svgur.com/i/CXj.svg" alt="CodeSandbox"></a> -->
   <a href="https://www.github.com/prisma/prisma2-docs/"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
@@ -62,7 +61,7 @@ Specify the connection details for your database as a _data source_ in your [Pri
 - Port: The port on which your database server is listening.
 - User & password: Credentials for your database server.
 
-Here is an example project file that connects to a local PostgreSQL database: 
+Here is an example project file that connects to a local PostgreSQL database:
 
 ```groovy
 // project.prisma
@@ -121,7 +120,7 @@ enum Role {
 
 <img src="https://i.imgur.com/XkRkwdE.png" width="355px">
 
-If you want to use Lift with an existing database, you can [introspect](https://github.com/prisma/prisma2-docs/blob/master/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md). This generates a declarative [data model](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) which provides the foundation for future migrations. 
+If you want to use Lift with an existing database, you can [introspect](https://github.com/prisma/prisma2-docs/blob/master/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md). This generates a declarative [data model](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) which provides the foundation for future migrations.
 
 #### Option B: Start from scratch (_greenfield_)
 
@@ -165,4 +164,3 @@ More databases that will be supported in the future are:
 - Neo4J
 - FaunaDB
 - ...
-
