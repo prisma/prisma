@@ -123,7 +123,7 @@ function tests() {
       },
     },
     {
-      todo: true,
+      // todo: true,
       before: `
         create table if not exists teams (
           id int primary key not null,
