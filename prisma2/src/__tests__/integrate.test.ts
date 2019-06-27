@@ -3,16 +3,16 @@ import { generateClient } from '@prisma/photon'
 import { isdlToDatamodel2 } from '@prisma/lift'
 import { ISDL } from 'prisma-datamodel'
 import { join, dirname } from 'path'
-import { writeFile } from 'mz/fs'
 import mkdir from 'make-dir'
 import { Client } from 'pg'
 import assert from 'assert'
 import pkgup from 'pkg-up'
-import exec from 'execa'
 import del from 'del'
 
+const host = process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
+
 const db = new Client({
-  connectionString: 'postgres://localhost:5432/prisma-dev',
+  connectionString: host,
 })
 
 const pkg = pkgup.sync() || __dirname
@@ -39,90 +39,21 @@ tests().map(t => {
     return
   }
 
-  it(
-    name,
-    // async () => {
-    //   await db.query(t.after)
-    //   await db.query(t.before)
-    //   const bin = join(process.cwd(), 'build', 'index.js')
-
-    //   // $ prisma introspect
-    //   const { stdout } = await exec(
-    //     bin,
-    //     [
-    //       'introspect',
-    //       '--pg-host',
-    //       'localhost',
-    //       '--pg-db',
-    //       'prisma-dev',
-    //       '--pg-user',
-    //       'm',
-    //       '--pg-schema',
-    //       'public',
-    //       '--pg-password',
-    //       '',
-    //       '--sdl',
-    //     ],
-    //     { cwd: tmp },
-    //   )
-
-    //   // write a prisma file
-    //   await writeFile(join(tmp, 'datamodel.prisma'), stdout)
-
-    //   // $ prisma generate
-    //   await exec(bin, ['generate'], { cwd: tmp })
-
-    //   const { Photon } = await import(join(tmp, 'node_modules', '@generated', 'photon', 'index.js'))
-    //   const client = new Photon()
-    //   try {
-    //     const result = await t.do(client)
-    //     await db.query(t.after)
-    //     assert.deepEqual(result, t.expect)
-    //   } catch (err) {
-    //     throw err
-    //   } finally {
-    //     await client.disconnect()
-    //   }
-    // },
-    async () => {
-      try {
-        await runTest(t)
-      } catch (err) {
-        throw err
-      } finally {
-        await db.query(t.after)
-      }
-    },
-  )
+  it(name, async () => {
+    try {
+      await runTest(t)
+    } catch (err) {
+      throw err
+    } finally {
+      await db.query(t.after)
+    }
+  })
 })
 
 async function runTest(t) {
   await db.query(t.after)
   await db.query(t.before)
   const isdl = await inspect(db, 'public')
-  // console.log(isdl)
-
-  // $ prisma introspect
-  // const bin = join(process.cwd(), 'build', 'index.js')
-  // const { stdout: datamodel } = await exec(
-  //   bin,
-  //   [
-  //     'introspect',
-  //     '--pg-host',
-  //     'localhost',
-  //     '--pg-db',
-  //     'prisma-dev',
-  //     '--pg-user',
-  //     'm',
-  //     '--pg-schema',
-  //     'public',
-  //     '--pg-password',
-  //     '',
-  //     '--sdl',
-  //   ],
-  //   { cwd: tmp },
-  // )
-  // console.log(datamodel)
 
   await generate(isdl)
   const photonPath = join(tmp, 'index.js')
