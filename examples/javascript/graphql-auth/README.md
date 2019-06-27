@@ -280,7 +280,7 @@ mutation {
   updateUserName(
     id: "__USER_ID__" 
     newName: "John")
-  ) {
+  {
     id
     name
   }
