@@ -38,7 +38,7 @@
     "typescript": "^3.5.1"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__te_/integrate.test.ts --timeout 10s",
+    "test": "./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
     "install": "test -f download-build/index.js && node download-build/index.js || echo \"\"",
     "tsc": "tsc -d",
     "ncc": "ncc build dist/bin.js -o build",
