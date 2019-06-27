@@ -39,7 +39,7 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__te_/integrate.test.ts --timeout 10s",
-    "install": "test -f scripts/download.js && node download-build/index.js",
+    "install": "test -f download-build/index.js && node download-build/index.js",
     "tsc": "tsc -d",
     "ncc": "ncc build dist/bin.js -o build",
     "ncc:download": "ncc build scripts/download.js -o download-build",
