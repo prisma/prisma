@@ -5,7 +5,6 @@ services:
     volumes:
       - ../:/app
     working_dir: /app
-    # command: ls
     command: /app/scripts/test.sh
     environment:
       - TEST_POSTGRES_URI="postgres://prisma:prisma@postgres:5432/prisma-dev"
