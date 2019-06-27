@@ -1,10 +1,10 @@
-import * as tar from 'tar'
-import * as tmp from 'tmp'
+import tar from 'tar'
+import tmp from 'tmp'
 import github from 'parse-github-url'
-import * as fs from 'fs'
+import fs from 'fs'
 import ora from 'ora'
 import request from 'request'
-import * as execa from 'execa'
+import execa from 'execa'
 import chalk from 'chalk'
 
 import { Template } from './templates'
@@ -15,9 +15,9 @@ export interface LoadOptions {
 
 export async function loadStarter(template: Template, output: string, options: LoadOptions): Promise<void> {
   const tar = getTemplateRepositoryTarInformation(template)
-  const tmp = await downloadRepository(tar)
+  const tmpDir = await downloadRepository(tar)
 
-  await extractStarterFromRepository(tmp, tar, output)
+  await extractStarterFromRepository(tmpDir, tar, output)
 
   if (options.installDependencies) {
     await installStarter(output)
