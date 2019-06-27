@@ -1,6 +1,6 @@
 {
   "name": "prisma2",
-  "version": "0.0.97",
+  "version": "0.0.99",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
@@ -23,8 +23,8 @@
     "@prisma/cli": "^0.0.21",
     "@prisma/fetch-engine": "^0.0.24",
     "@prisma/introspection": "0.0.34",
-    "@prisma/lift": "^0.0.114",
-    "@prisma/photon": "^0.0.123",
+    "@prisma/lift": "^0.0.120",
+    "@prisma/photon": "^0.0.126",
     "@types/mocha": "^5.2.7",
     "@zeit/ncc": "^0.18.5",
     "jest": "24.8.0",
@@ -33,9 +33,10 @@
     "nexus-prisma": "0.0.1-beta.4",
     "pkg-up": "3.1.0",
     "prisma-test-utils": "^0.2.5",
+    "tmp": "^0.1.0",
     "ts-jest": "24.0.2",
     "ts-mocha": "6.0.0",
-    "typescript": "^3.5.1"
+    "typescript": "3.5.2"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
