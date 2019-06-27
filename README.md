@@ -156,7 +156,7 @@ You can learn more about the Photon's API features on the [website](https://phot
 
 <img src="https://i.imgur.com/UcN3ENI.png" width="220px">
 
-Specify the connection details for your database as a _data source_ in your [Prisma project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md). The connection details might differ per database, but most commonly you'll probide the following:
+Specify the connection details for your database as a _data source_ in your [Prisma project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md). The connection details might differ per database, but most commonly you'll provide the following:
 
 - Host: The IP address or domain name of the machine where your database server is running.
 - Port: The port on which your database server is listening.
