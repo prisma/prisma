@@ -1,5 +1,6 @@
 import copy from '@apexearth/copy'
 import { LiftEngine } from '@prisma/lift'
+import chalk from 'chalk'
 import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
@@ -103,7 +104,8 @@ export async function buildClient({
   const program = createProgram([file.fileName], options, compilerHost)
   const result = program.emit()
   if (result.diagnostics.length > 0) {
-    console.error(result.diagnostics)
+    console.error(chalk.redBright('Errors during Photon generation:'))
+    console.error(result.diagnostics.map(d => d.messageText).join('\n'))
   }
 
   const normalizedFileMap = normalizeFileMap(fileMap)
@@ -263,9 +265,10 @@ export declare type printDatasources = any
 function redirectToLib(fileName: string) {
   const file = path.basename(fileName)
   if (/^lib\.(.*?)\.d\.ts$/.test(file)) {
-    if (!exists(fileName)) {
+    if (!fs.existsSync(fileName)) {
       const dir = path.dirname(fileName)
-      return path.join(dir, 'lib', file)
+      const newPath = path.join(dir, 'lib', file)
+      return newPath
     }
   }
 
