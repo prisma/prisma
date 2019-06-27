@@ -6,6 +6,7 @@ steps:
           run: app
   - label: ':gun: Trigger publish'
     trigger: 'lift-publish'
+    async: true
     build:
       env:
-        - PUBLISH_PRISMA2=false
+        PUBLISH_PRISMA2: 'false'
