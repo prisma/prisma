@@ -4,6 +4,7 @@ steps:
       - docker-compose:
           config: .buildkite/docker-compose.yml
           run: app
+  - wait
   - label: ':gun: Trigger publish'
     trigger: 'lift-publish'
     async: true
