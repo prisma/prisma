@@ -11,6 +11,8 @@ import del from 'del'
 
 const host = process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
 
+console.log({ host })
+
 const db = new Client({
   connectionString: host,
 })
