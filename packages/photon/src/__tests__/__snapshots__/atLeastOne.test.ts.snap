@@ -10,6 +10,8 @@ exports[`at least one validation valid query 1`] = `
     email
     status
     nicknames
+    permissions
+    favoriteTree
   }
 }"
 `;

@@ -863,7 +863,7 @@ export function selectionToFields(
 
 function getDefaultSelection(outputType: DMMF.OutputType) {
   return outputType.fields.reduce((acc, f) => {
-    if (f.outputType.kind === 'scalar') {
+    if (f.outputType.kind === 'scalar' || f.outputType.kind === 'enum') {
       acc[f.name] = true
     } else {
       // otherwise field is a relation. Only continue if it's an embedded type
