@@ -28,7 +28,7 @@ if [ $INTROSPECTION_CHANGED_COUNT -gt 0 ]; then
 fi
 
 if [ -z "$CLI_CHANGE" ] && [ -z "$PRISMA2_CHANGED" ] && [ -z "$INTROSPECTION_CHANGED" ]; then
-  echo "No change."
+  echo "No change in any of the packages."
   exit 0
 fi
 
