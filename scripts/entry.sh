@@ -7,12 +7,6 @@ if [[ $NO_PUBLISH ]]; then
   exit 0
 fi
 
-if [ $BULIDKITE_BRANCH != "master" ]; then
-  buildkite-agent pipeline upload .buildkite/test.yml
-  echo "Not building anything if it's not on master"
-  exit 0
-fi
-
 if [[ $BUILDKITE_COMMIT ]]; then
   export LAST_COMMIT=$BUILDKITE_COMMIT
 else
@@ -40,6 +34,12 @@ fi
 
 if [ -z "$CLI_CHANGE" ] && [ -z "$PRISMA2_CHANGED" ] && [ -z "$INTROSPECTION_CHANGED" ]; then
   echo "No change in any of the packages."
+  exit 0
+fi
+
+if [ $BULIDKITE_BRANCH != "master" ]; then
+  buildkite-agent pipeline upload .buildkite/test.yml
+  echo "Not building anything if it's not on master"
   exit 0
 fi
 
