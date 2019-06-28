@@ -58,7 +58,7 @@ if [ "$ENGINE_CORE_CHANGED" ] && [ -z "$FETCH_ENGINE_CHANGE" ]; then
 fi
 
 # last case: `fetch-engine`
-if [ "$FETCH_ENGINE_CHANGE" ]; then
+if [ "$FETCH_ENGINE_CHANGED" ]; then
   buildkite-agent pipeline upload .buildkite/publish-fetch-engine.yml
   exit 0
 fi
