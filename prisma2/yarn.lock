@@ -317,10 +317,10 @@
     chalk "^2.4.2"
     strip-indent "^3.0.0"
 
-"@prisma/engine-core@0.0.62":
-  version "0.0.62"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.62.tgz#cc60ad4e19720dc72db985f7f3deeb94c5d18b50"
-  integrity sha512-2Gv8SoVV+l+gu1Fxbm4coc1cIRdWCivb9lOGIM8RkI3KI+R9uFjxd4mCouj8UGlZERYdR82R1RfsDCjJA9+PBg==
+"@prisma/engine-core@0.0.63":
+  version "0.0.63"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.63.tgz#c43fa52fe0c4337b0e0423c36711e097cdb873d0"
+  integrity sha512-4Ea4MCqxAmOsoXL9clSSBfK9jBfhlzq8tfpnuvLizynAzklVNsAFasfhaJ8+m7I4RkNKCRveUwptN+RFp651LA==
   dependencies:
     cross-fetch "^3.0.2"
     debug "^4.1.1"
@@ -341,10 +341,10 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/fetch-engine@^0.0.29":
-  version "0.0.29"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.29.tgz#ce452befc6f67c18f530fbaf0e5a51506104114c"
-  integrity sha512-g+IDWblZWJHinrell102ikWgCaC7Py5De61wtVzC7nNWMaGDf1OZPp9GwrCfdxeHas3LJ5+9i5W2ojehVXUXdQ==
+"@prisma/fetch-engine@^0.0.32":
+  version "0.0.32"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.32.tgz#90b457aacae0fae30251b90ab146c512bbde91b6"
+  integrity sha512-BlnfBg5xA2O8SoZ8btuKMuEp5ndfwyrq6CIA6PxDH9cTXC4D0eV71fEmqFON09sX/MMRpV2+f6MwFBdGcIo1kA==
   dependencies:
     chalk "^2.4.2"
     death "^1.1.0"
@@ -429,15 +429,15 @@
   dependencies:
     tslib "^1.9.3"
 
-"@prisma/photon@^0.0.136":
-  version "0.0.136"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.136.tgz#5aa63b508a9592d01de5596bd69f175d40eb3e9b"
-  integrity sha512-gfwARpc8TYk/qEkT2TUDXcy2LWg53bS24GDVNllJGp2WxR5U07xiV2M2/mEe1BSQt+UYYoTPIrLLKzfyEhclIg==
+"@prisma/photon@^0.0.137":
+  version "0.0.137"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.137.tgz#f91ef8332e1e9a34e4138ef95db336d16a8a7abc"
+  integrity sha512-b6kOnSpU68tWGT37/aJA1FvZoEz7UuBd0zMTbEJ6EN5HS5U3n9X6wSPrUw+ExwX3SH8+QmP5Is1gFfcafAmibA==
   dependencies:
     "@apexearth/copy" "^1.4.1"
     "@prisma/cli" "0.0.23"
-    "@prisma/engine-core" "0.0.62"
-    "@prisma/fetch-engine" "^0.0.29"
+    "@prisma/engine-core" "0.0.63"
+    "@prisma/fetch-engine" "^0.0.32"
     chalk "^2.4.2"
     cpy "^7.3.0"
     dotenv "^8.0.0"
