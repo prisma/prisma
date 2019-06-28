@@ -39,7 +39,7 @@ if [ -z "$FETCH_ENGINE_CHANGED" ] && [ -z "$ENGINE_CORE_CHANGED" ] && [ -z "$PHO
   exit 0
 fi
 
-if [ $BULIDKITE_BRANCH != "master" ]; then
+if [ $BUILDKITE_BRANCH != "master" ]; then
   buildkite-agent pipeline upload .buildkite/test.yml
   echo "Not building anything if it's not on master"
   exit 0
