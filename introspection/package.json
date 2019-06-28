@@ -54,7 +54,8 @@
   "scripts": {
     "build": "tsc -d && chmod +x dist/bin.js",
     "prepublishOnly": "yarn build",
-    "test": "jest"
+    "test": "jest",
+    "update-deps": "yarn upgrade --latest --scope @prisma"
   },
   "files": [
     "dist"
