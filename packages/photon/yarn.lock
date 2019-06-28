@@ -322,10 +322,10 @@
   dependencies:
     arg "^4.1.0"
 
-"@prisma/engine-core@0.0.57":
-  version "0.0.57"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.57.tgz#5d5f75cf1a2d96a70fd0a71b3c710d72ab943911"
-  integrity sha512-Qtr2DTdggiujvjOkoh+cbN7VtloHhgoXOZe7AB9NJ3kHmNdK4EoZ5Y00BjcAxzvqia0k0qaDZnA6hyLdSnByyQ==
+"@prisma/engine-core@0.0.58":
+  version "0.0.58"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.58.tgz#54f3e93881d420cf8c3d6468e35d7f809f7ca018"
+  integrity sha512-F00SpPGsSmV0tAM53hzi4MErEkIDGanXqZh/Kmk9aBqYHyndaoA28aVvRqogWmxjMq2QvxtymFQ0YhGk+ENh/g==
   dependencies:
     cross-fetch "^3.0.2"
     debug "^4.1.1"
@@ -336,6 +336,20 @@
   version "0.0.24"
   resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.24.tgz#b227d36ae8ae16cbbd978e02fe5e82a6f715e7ff"
   integrity sha512-4/7sq17MQ2cwkBLrame69eqcPkrR4QaaRwBHN25TW2vo4QojzvYoH+I7RrfKn3PtVu0nMCpVddcoB6Gw5IruMg==
+  dependencies:
+    chalk "^2.4.2"
+    death "^1.1.0"
+    find-cache-dir "^3.0.0"
+    hasha "^5.0.0"
+    make-dir "^3.0.0"
+    node-fetch "^2.5.0"
+    p-retry "^4.1.0"
+    progress "^2.0.3"
+
+"@prisma/fetch-engine@^0.0.25":
+  version "0.0.25"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.25.tgz#1d4db6037377532314d8273b229136df58408174"
+  integrity sha512-NrMBR3LYLzpuPrWNGXQ7i6iDksDYJ1DnlTKh/6kIvG+auXXF2wrn+O0rIR51hEFikF5hbddynnPDtYZrHl3FQw==
   dependencies:
     chalk "^2.4.2"
     death "^1.1.0"
