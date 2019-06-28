@@ -5,7 +5,7 @@ steps:
           config: .buildkite/docker-compose.yml
           run: app
   - wait
-  - label: ':gun: Trigger publish'
+  - label: ':gun: publish @prisma/lift'
     trigger: 'lift-publish'
     build:
       env:
