@@ -53,6 +53,9 @@ export async function downloadMigrationBinary(migrationBinary: string, version: 
 
   // Print an empty line
   const platform = await getPlatform()
+  if (platform === 'linux-lambda') {
+    console.log({ platform })
+  }
   const cacheDir = await getCacheDir(platform)
   const cachedMigrationEnginePath = path.join(cacheDir, 'migration-engine')
   const cachedLastModifiedPath = path.join(cacheDir, 'lastModifiedMigrationEngine')
