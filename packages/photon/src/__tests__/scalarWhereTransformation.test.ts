@@ -96,6 +96,8 @@ describe('scalar where transformation', () => {
           email
           status
           nicknames
+          permissions
+          favoriteTree
         }
       }"
     `)
@@ -132,6 +134,8 @@ describe('scalar where transformation', () => {
           email
           status
           nicknames
+          permissions
+          favoriteTree
         }
       }"
     `)
