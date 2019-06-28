@@ -25,7 +25,6 @@ import {
   wrapWithList,
 } from './utils/common'
 import { dedent } from './utils/dedent'
-import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
 import { omit } from './utils/omit'
@@ -291,8 +290,7 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
       } else if (error.didYouMeanArg) {
         str += ` Did you mean \`${chalk.greenBright(error.didYouMeanArg)}\`?`
         if (!hasMissingItems) {
-
-        str += ` ${chalk.dim('Available args:')}\n` + stringifyInputType(error.originalType, true)
+          str += ` ${chalk.dim('Available args:')}\n` + stringifyInputType(error.originalType, true)
         }
       } else {
         if ((error.originalType as DMMF.InputType).fields.length === 0) {
@@ -351,9 +349,7 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
     }
 
     if (error.type === 'missingArg') {
-      return `Argument ${chalk.greenBright(error.missingName)} for ${chalk.bold(
-        `${path.join('.')}`,
-      )} is missing.`
+      return `Argument ${chalk.greenBright(error.missingName)} for ${chalk.bold(`${path.join('.')}`)} is missing.`
     }
 
     if (error.type === 'atLeastOne') {

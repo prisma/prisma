@@ -26,8 +26,11 @@ const processes: Process[] = []
 /**
  * Pass the signals through
  */
-process.once('SIGTERM', sig => processes.map(proc => proc.signal(sig)))
-process.once('SIGINT', sig => processes.map(proc => proc.signal(sig)))
+// process.on('beforeExit', () => {
+//   processes.map(proc => proc.signal('SIGTERM'))
+// })
+// process.once('SIGTERM', sig => processes.map(proc => proc.signal(sig)))
+// process.once('SIGINT', sig => processes.map(proc => proc.signal(sig)))
 
 /**
  * Node.js based wrapper to run the Prisma binary
@@ -88,8 +91,18 @@ export class NodeEngine extends Engine {
     })
 
     // proxy stdout and stderr
-    this.child.stderr(debugStream(debugLib('engine:stderr')))
-    this.child.stdout(debugStream(debugLib('engine:stdout')))
+    this.child.stderr(
+      debugStream(data => {
+        this.stderrLogs += data
+        debugLib('engine:stderr')(data)
+      }),
+    )
+    this.child.stdout(
+      debugStream(data => {
+        this.stdoutLogs += data
+        debugLib('engine:stdout')(data)
+      }),
+    )
 
     // start the process
     await this.child.start()
@@ -253,6 +266,10 @@ export class NodeEngine extends Engine {
         }
       })
       .catch(errors => {
+        if (errors.code && errors.code === 'ECONNRESET') {
+          const logs = this.stderrLogs || this.stdoutLogs
+          throw new Error(logs)
+        }
         if (!(errors instanceof PhotonError)) {
           return this.handleErrors({ errors, query })
         } else {

@@ -1,14 +1,14 @@
+import { nexusPrismaPlugin } from '@generated/nexus-prisma'
+import Photon from '@generated/photon'
+import { makeSchema, objectType } from '@prisma/nexus'
 import { ApolloServer, gql } from 'apollo-server'
 import { idArg, queryType, stringArg } from 'nexus'
-import { makeSchema, objectType } from '@prisma/nexus'
 import { join } from 'path'
-import { nexusPrismaMethod } from '@generated/nexus-prisma'
-import Photon from '@generated/photon'
 import { Context } from './types'
 
 const photon = new Photon()
 
-const nexusPrisma = nexusPrismaMethod({
+const nexusPrisma = nexusPrismaPlugin({
   photon: (ctx: Context) => ctx.photon,
 })
 
@@ -190,16 +190,6 @@ const server = new ApolloServer({
   context: { photon },
 })
 
-server
-  .listen({ port: 4000 }, () =>
-    console.log(`🚀 Server ready at http://localhost:4000`),
-  )
-  .then(serverInfo => {
-    async function cleanup() {
-      serverInfo.server.close()
-      await photon.disconnect()
-    }
-
-    process.on('SIGINT', cleanup)
-    process.on('SIGTERM', cleanup)
-  })
+server.listen({ port: 4000 }, () =>
+  console.log(`🚀 Server ready at http://localhost:4000`),
+)

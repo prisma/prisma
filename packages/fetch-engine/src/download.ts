@@ -4,21 +4,21 @@ import fs from 'fs'
 import zlib from 'zlib'
 import os from 'os'
 import makeDir from 'make-dir'
+import { promisify } from 'util'
 
 // Packages
 import onDeath from 'death'
 import fetch from 'node-fetch'
 import retry from 'p-retry'
 import path from 'path'
-import { getos } from './getos'
 import Progress from 'progress'
+import findCacheDir from 'find-cache-dir'
 
 // Utils
 import { getBar, info, warn } from './log'
 import plusxSync from './chmod'
-import findCacheDir from 'find-cache-dir'
 import { copy } from './copy'
-import { promisify } from 'util'
+import { getos } from './getos'
 
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
@@ -77,7 +77,7 @@ export async function downloadMigrationBinary(migrationBinary: string, version: 
     bar.update(0)
   }
 
-  const lastModified = await downloadFile(getMigrationEngineDownloadUrl(platform), migrationBinary, 0, 100)
+  const lastModified = await downloadZip(getMigrationEngineDownloadUrl(platform), migrationBinary, 0, bar)
   if (bar) {
     bar.update(1)
     bar.terminate()
@@ -155,7 +155,7 @@ export async function download(prismaBinPath: string, version: string, showProgr
     bar.update(0)
   }
 
-  const lastModified = await downloadFile(getPrismaDownloadUrl(platform), prismaBinPath, 0, 100, bar)
+  const lastModified = await downloadZip(getPrismaDownloadUrl(platform), prismaBinPath, 0, bar)
   if (bar) {
     bar.update(1)
     bar.terminate()
@@ -198,7 +198,7 @@ async function getRemoteLastModified(url: string): Promise<Date> {
 
 async function downloadZip(url: string, target: string, progressOffset = 0, bar?: Progress) {
   const partial = target + '.partial'
-  await retry(
+  const result = await retry(
     async () => {
       try {
         const resp = await fetch(url, { compress: false })
@@ -207,10 +207,11 @@ async function downloadZip(url: string, target: string, progressOffset = 0, bar?
           throw new Error(resp.statusText + ' ' + url)
         }
 
+        const lastModified = resp.headers.get('last-modified')!
         const size = resp.headers.get('content-length')
         const ws = fs.createWriteStream(partial)
 
-        await new Promise((resolve, reject) => {
+        return await new Promise((resolve, reject) => {
           let bytesRead = 0
 
           resp.body.on('error', reject).on('data', chunk => {
@@ -228,7 +229,7 @@ async function downloadZip(url: string, target: string, progressOffset = 0, bar?
           resp.body.pipe(gunzip).pipe(ws)
 
           ws.on('error', reject).on('close', () => {
-            resolve()
+            resolve(lastModified)
           })
         })
       } finally {
@@ -241,6 +242,7 @@ async function downloadZip(url: string, target: string, progressOffset = 0, bar?
     },
   )
   fs.renameSync(partial, target)
+  return result
 }
 
 async function downloadFile(
@@ -312,9 +314,9 @@ async function getPlatform() {
 }
 
 function getPrismaDownloadUrl(platform: string) {
-  return `https://s3-eu-west-1.amazonaws.com/prisma-native/alpha/latest/${platform}/prisma`
+  return `https://s3-eu-west-1.amazonaws.com/prisma-native/alpha/latest/${platform}/prisma.gz`
 }
 
 function getMigrationEngineDownloadUrl(platform: string) {
-  return `https://s3-eu-west-1.amazonaws.com/prisma-native/alpha/latest/${platform}/migration-engine`
+  return `https://s3-eu-west-1.amazonaws.com/prisma-native/alpha/latest/${platform}/migration-engine.gz`
 }
