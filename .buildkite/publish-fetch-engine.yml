@@ -1,4 +1,10 @@
 steps:
+  - label: ':coverage: Test'
+    plugins:
+      - docker-compose:
+          config: .buildkite/docker-compose.yml
+          run: app
+  - wait
   - label: ':flashlight: publish @prisma/engine-core & @prisma/photon'
     trigger: 'photon-publish'
     build:
