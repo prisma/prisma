@@ -307,7 +307,7 @@ async function getPlatform() {
   }
 
   if (platform === 'linux' && isMusl) {
-    return 'linux-musl'
+    return 'linux-lambda'
   }
 
   return 'linux-glibc'

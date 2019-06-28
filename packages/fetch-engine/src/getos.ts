@@ -31,6 +31,8 @@ export async function getos() {
 // libraries or not.
 //
 // For now, we can add these checks as needed.
+// lambda with node8 has   "AWS_EXECUTION_ENV": "AWS_Lambda_nodejs8.10",
+// now's build servers have "AWS_EXECUTION_ENV=AWS_ECS_FARGATE"
 function isAWSLambda(): boolean {
   return !!process.env['AWS_EXECUTION_ENV']
 }
