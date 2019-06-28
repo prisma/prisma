@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -ex
-env
 
 # Run prisma2 tests
 cd prisma2
