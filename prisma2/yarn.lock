@@ -355,6 +355,20 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
+"@prisma/fetch-engine@^0.0.31":
+  version "0.0.31"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.31.tgz#83b4f5e873a3fa8f0eae9320e8d181fedc00e054"
+  integrity sha512-bY4ivUyTDxqF6zKDTpObvvzRH1Dxd/Sc/FiJ81y216/3tkATUmfvJLW6HBv2G41KDENE7mrj6OfNQIOYZNmh1A==
+  dependencies:
+    chalk "^2.4.2"
+    death "^1.1.0"
+    find-cache-dir "^3.0.0"
+    hasha "^5.0.0"
+    make-dir "^3.0.0"
+    node-fetch "^2.5.0"
+    p-retry "^4.1.0"
+    progress "^2.0.3"
+
 "@prisma/introspection@0.0.36":
   version "0.0.36"
   resolved "https://registry.yarnpkg.com/@prisma/introspection/-/introspection-0.0.36.tgz#253da679a7cf6d06e0b891a232cd38ed6f002488"
