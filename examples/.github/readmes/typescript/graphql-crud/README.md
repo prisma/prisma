@@ -1,6 +1,6 @@
 # CRUD GraphQL API Example
 
-This example shows how to implement a **CRUD GraphQL API with TypeScript** based on [Photon JS](https://photonjs.prisma.io/), [graphql-yoga](https://github.com/prisma/graphql-yoga) and [GraphQL Nexus](https://graphql-nexus.com/).
+This example shows how to implement a **CRUD GraphQL API with TypeScript** based on [Photon JS](https://photonjs.prisma.io/), [graphql-yoga](https://github.com/prisma/graphql-yoga) and [GraphQL Nexus](https://nexus.js.org/).
 
 __INLINE(../_setup-1.md)__
 cd photonjs/examples/typescript/graphql-crud
