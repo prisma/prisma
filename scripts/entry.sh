@@ -7,11 +7,6 @@ if [[ $NO_PUBLISH ]]; then
   exit 0
 fi
 
-if [ $BULIDKITE_BRANCH != "master" ]; then
-  echo "Not building anything if it's not on master"
-  exit 0
-fi
-
 if [[ $BUILDKITE_COMMIT ]]; then
   export LAST_COMMIT=$BUILDKITE_COMMIT
 else
@@ -42,8 +37,11 @@ if [ -z "$FETCH_ENGINE_CHANGED" ] && [ -z "$ENGINE_CORE_CHANGED" ] && [ -z "$PHO
   exit 0
 fi
 
-# we need to execute the tests anyways
-buildkite-agent pipeline upload .buildkite/test.yml
+if [ $BULIDKITE_BRANCH != "master" ]; then
+  buildkite-agent pipeline upload .buildkite/test.yml
+  echo "Not building anything if it's not on master"
+  exit 0
+fi
 
 # the simplest case first: only change in `photon`
 if [ "$PHOTON_CHANGED" ] && [ -z "$ENGINE_CORE_CHANGE" ] && [ -z "$FETCH_ENGINE_CHANGED" ]; then
