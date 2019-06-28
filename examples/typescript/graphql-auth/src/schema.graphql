@@ -7,6 +7,9 @@ type AuthPayload {
   user: User!
 }
 
+"""DateTime"""
+scalar DateTime
+
 type Mutation {
   createDraft(content: String, title: String): Post!
   deletePost(id: ID): Post
