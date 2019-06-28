@@ -1,0 +1,26 @@
+steps:
+  - label: ':coverage: Test'
+    plugins:
+      - docker-compose:
+          config: .buildkite/docker-compose.yml
+          run: app
+  - wait
+  - label: ':flashlight: publish @prisma/engine-core & @prisma/photon'
+    trigger: 'photon-publish'
+    build:
+      env:
+        PUBLISH_FETCH_ENGINE: 'true'
+        PUBLISH_ENGINE_CORE: 'true'
+        PUBLISH_PHOTON: 'true'
+  - wait
+  - label: ':coverage: prisma2-cli-test'
+    trigger: 'prisma2-cli-test'
+    build:
+      env:
+        NO_PUBLISH: 'true'
+  - wait
+  - label: ':gun: publish prisma2'
+    trigger: 'prisma2-cli-publish'
+    build:
+      env:
+        PUBLISH_PRISMA2: 'true'

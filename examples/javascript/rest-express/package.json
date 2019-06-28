@@ -4,11 +4,14 @@
   "license": "MIT",
   "scripts": {
     "start": "node src/index.js",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "postinstall": "prisma2 generate"
   },
   "dependencies": {
     "body-parser": "1.19.0",
-    "express": "4.17.1",
-    "prisma-client-lib": "1.34.0"
+    "express": "4.17.1"
+  },
+  "devDependencies": {
+    "ts-node": "^8.3.0"
   }
 }

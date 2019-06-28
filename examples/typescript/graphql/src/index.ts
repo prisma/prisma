@@ -1,13 +1,13 @@
+import { nexusPrismaPlugin } from '@generated/nexus-prisma'
+import Photon from '@generated/photon'
+import { idArg, makeSchema, objectType, stringArg } from '@prisma/nexus'
 import { GraphQLServer } from 'graphql-yoga'
 import { join } from 'path'
-import { makeSchema, objectType, idArg, stringArg } from '@prisma/nexus'
-import Photon from '@generated/photon'
 import { Context } from './types'
-import { nexusPrismaMethod } from '@generated/nexus-prisma'
 
 const photon = new Photon()
 
-const nexusPrisma = nexusPrismaMethod({
+const nexusPrisma = nexusPrismaPlugin({
   photon: (ctx: Context) => ctx.photon,
 })
 
@@ -152,14 +152,4 @@ const server = new GraphQLServer({
   },
 })
 
-server
-  .start(() => console.log(`🚀 Server ready at http://localhost:4000`))
-  .then(httpServer => {
-    async function cleanup() {
-      httpServer.close()
-      await photon.disconnect()
-    }
-
-    process.on('SIGINT', cleanup)
-    process.on('SIGTERM', cleanup)
-  })
+server.start(() => console.log(`🚀 Server ready at http://localhost:4000`))

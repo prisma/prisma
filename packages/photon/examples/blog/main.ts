@@ -1,6 +1,5 @@
-import Photon from '@generated/photon'
+import Photon from './@generated/photon'
 
-console.clear()
 async function main() {
   const photon = new Photon({
     autoConnect: false,
@@ -9,30 +8,31 @@ async function main() {
     },
   })
 
-  const users = await photon.users.create({
-    data: {
-      name: 'asd'
-    }
-  })
-  console.log(users)
+  // process.addListener('SIG')
 
-  // const x = await photon.users.update({
-  //   where: {
-  //     id: 5,
-  //   },
+  // const prom = await photon.users.create({
   //   data: {
-
+  //     username: 'Bob',
   //   },
   // })
-
-  // console.log(x)
-  // const x = await photon.posts
-  //   .findOne({
-  //     where: {
-  //       id: 1,
-  //     },
-  //   })
-  //   .author()
+  const result = await photon.posts.create({
+    data: {
+      data: 'asd',
+      user: {
+        connect: {
+          id: '42ad4f8c-41f9-477b-9abe-a43d6df669f1',
+        },
+      },
+    },
+    select: {
+      id: true,
+      user: {
+        select: { username: true },
+      },
+    },
+  })
+  result.user.username
+  console.log(result)
 }
 
-main().catch(e => console.error(e.message))
+main().catch(e => console.error(e))

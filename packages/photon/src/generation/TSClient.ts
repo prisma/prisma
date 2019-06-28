@@ -90,9 +90,13 @@ class PhotonFetcher {
       this.hooks.beforeRequest({query, path, rootField, typeName, document})
     }
     await this.engine.start()
-    const result = await this.engine.request(query, typeName)
-    debug(result)
-    return this.unpack(result, path, rootField)
+    try {
+      const result = await this.engine.request(query, typeName)
+      debug(result)
+      return this.unpack(result, path, rootField)
+    } catch (e) {
+      throw new Error(\`Error in Photon\${path}: \\n\` + e.message)
+    }
   }
   protected unpack(result: any, path: string[], rootField?: string) {
     const getPath: string[] = []
@@ -142,7 +146,7 @@ export class TSClient {
 
 ${new PhotonClientClass(this.dmmf, this.datamodel, this.internalDatasources, this.cwd, this.browser)}
 
-${new Query(this.dmmf, 'query')}
+${/*new Query(this.dmmf, 'query')*/ ''}
 
 /**
  * Enums
@@ -287,18 +291,19 @@ export default class Photon {
   async disconnect() {
     await this.engine.stop()
   }
-  private _query?: QueryDelegate
-  get query(): QueryDelegate {
-    return this._query ? this._query: (this._query = QueryDelegate(this.dmmf, this.fetcher))
-  }
+  // won't be generated for now
+  // private _query?: QueryDelegate
+  // get query(): QueryDelegate {
+  //   return this._query ? this._query: (this._query = QueryDelegate(this.dmmf, this.fetcher))
+  // }
 ${indent(
   dmmf.mappings
     .filter(m => m.findMany)
     .map(
-      m => `private _${m.plural}?: ${m.model}Delegate
+      m => `
 get ${m.plural}(): ${m.model}Delegate {
   this.connect()
-  return this._${m.plural}? this._${m.plural} : (this._${m.plural} = ${m.model}Delegate(this.dmmf, this.fetcher))
+  return ${m.model}Delegate(this.dmmf, this.fetcher)
 }`,
     )
     .join('\n'),
@@ -655,8 +660,9 @@ ${indent(
   return ${name} as any // any needed until https://github.com/microsoft/TypeScript/issues/31335 is resolved
 }
 
-class ${name}Client<T> implements PromiseLike<T> {
+class ${name}Client<T> implements Promise<T> {
   private callsite: any
+  private requestPromise?: Promise<any>
   constructor(
     private readonly dmmf: DMMFClass,
     private readonly fetcher: PhotonFetcher,
@@ -682,7 +688,7 @@ ${indent(
     .filter(f => f.outputType.kind === 'object')
     .map(f => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
-      return `private _${f.name}?: ${getFieldTypeName(f)}Client<any>
+      return `
 ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
@@ -693,22 +699,20 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
       })} {
   const path = [...this.path, 'select', '${f.name}']
   const newArgs = deepSet(this.args, path, args || true)
-  return this._${f.name}
-    ? this._${f.name}
-    : (this._${f.name} = new ${getFieldTypeName(f)}Client<${getSelectReturnType({
+  return new ${getFieldTypeName(f)}Client<${getSelectReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
         hideCondition: false,
         isField: true,
         renderPromise: true,
-      })}>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path)) as any
+      })}>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path) as any
 }`
     })
     .join('\n'),
   2,
 )}
 
-  protected get document() {
+  private get document() {
     const { rootField } = this
     const document = makeDocument({
       dmmf: this.dmmf,
@@ -738,10 +742,13 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
    * @returns A Promise for the completion of which ever callback is executed.
    */
   then<TResult1 = T, TResult2 = never>(
-    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
-    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+    onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null,
+    onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
-    return this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}').then(onfulfilled, onrejected)
+    if (!this.requestPromise){
+      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}')
+    }
+    return this.requestPromise.then(onfulfilled, onrejected)
   }
 
   /**
@@ -750,9 +757,25 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
    * @returns A Promise for the completion of the callback.
    */
   catch<TResult = never>(
-    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
+    onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null,
   ): Promise<T | TResult> {
-    return this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}').catch(onrejected)
+    if (!this.requestPromise) {
+      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}')
+    }
+    return this.requestPromise.catch(onrejected)
+  }
+
+  /**
+   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+   * resolved value cannot be modified from the callback.
+   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+   * @returns A Promise for the completion of the callback.
+   */
+  finally(onfinally?: (() => void) | undefined | null): Promise<T> {
+    if (!this.requestPromise) {
+      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}')
+    }
+    return this.requestPromise.finally(onfinally)
   }
 }
     `
@@ -765,15 +788,16 @@ export class QueryDelegate {
     const name = this.outputType.name
     return `\
 interface ${name}Delegate {
-  <T extends ${name}Args>(args: Subset<T,${name}Args>): PromiseLike<${name}GetPayload<T>>
+  <T extends ${name}Args>(args: Subset<T,${name}Args>): Promise<${name}GetPayload<T>>
 }
 function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delegate {
   const ${name} = <T extends ${name}Args>(args: ${name}Args) => new ${name}Client<T>(dmmf, fetcher, args, [])
   return ${name}
 }
 
-class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements PromiseLike<U> {
+class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements Promise<U> {
   constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PhotonFetcher, private readonly args: ${name}Args, private readonly path: []) {}
+
   readonly [Symbol.toStringTag]: 'Promise'
 
   protected get document() {
@@ -797,8 +821,8 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
    * @returns A Promise for the completion of which ever callback is executed.
    */
   then<TResult1 = U, TResult2 = never>(
-    onfulfilled?: ((value: U) => TResult1 | PromiseLike<TResult1>) | undefined | null,
-    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+    onfulfilled?: ((value: U) => TResult1 | Promise<TResult1>) | undefined | null,
+    onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
     return this.fetcher.request<U>(this.document, this.path, undefined, '${name}').then(onfulfilled, onrejected)
   }
@@ -809,7 +833,7 @@ class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements 
    * @returns A Promise for the completion of the callback.
    */
   catch<TResult = never>(
-    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
+    onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null,
   ): Promise<U | TResult> {
     return this.fetcher.request<U>(this.document, this.path, undefined, '${name}').catch(onrejected)
   }

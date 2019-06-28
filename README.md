@@ -2,10 +2,10 @@
 <p align="center"><a href="https://photonjs.prisma.io/"><img src="logo.svg" alt="Prisma" height="40px"></a></p>
 
 <!-- <p><h1 align="center">Photon JS</h1></p> -->
-<p><h3 align="center">Type-safe database client (ORM replacement) for TypeScript & Node.js</h3></p>
+<p><h3 align="center">Type-safe database client for TypeScript & Node.js (ORM replacement)</h3></p>
 
 <p align="center">
-  <a href="#getting-started">Get started</a> • <a href="#features">Features</a> • <a href="#docs">Docs</a> • <a href="#api-examples">API</a> • <a href="#the-photon-js-workflow">Workflow</a> • <a href="#supported-databases">Supported databases</a> 
+  <a href="#getting-started">Get started</a> • <a href="#features">Features</a> • <a href="#docs">Docs</a> • <a href="#api-examples">API</a> • <a href="#the-photon-js-workflow">Workflow</a> • <a href="#supported-databases">Supported databases</a>
 </p>
 
 <!--
@@ -80,20 +80,20 @@ const photon = new Photon()
 async function main() {
   await photon.connect()
 
-  const userById = await prisma.users.findOne({ where: 1 })
-  const userByEmail = await prisma.users.findOne({ where: { email: "ada@prisma.io" }})
+  const userById = await photon.users.findOne({ where: 1 })
+  const userByEmail = await photon.users.findOne({ where: { email: "ada@prisma.io" }})
 
-  const userWithPosts = await prisma.users.findOne({
+  const userWithPosts = await photon.users.findOne({
     where: { email: "ada@prisma.io" },
     include: { posts: { first: 10 } },
   })
 
-  const newUser = await prisma.users.create({ data: {
+  const newUser = await photon.users.create({ data: {
     name: "Alice",
     email: "alice@prisma.io",
   }})
 
-  const newUser = await prisma.users.create({ data: {
+  const newUser = await photon.users.create({ data: {
     email: "alice@prisma.io",
     posts: {
       create: [
@@ -103,7 +103,7 @@ async function main() {
     }
   }})
 
-  const updatedUser = await prisma.users.update({
+  const updatedUser = await photon.users.update({
     where: { email: "alice@prisma.io" },
     data: { role: "ADMIN" },
   })
@@ -125,7 +125,7 @@ datasource ds {
 }
 
 generator photonjs {
-  provider = 'photonjs'
+  provider = "photonjs"
 }
 
 model User {
@@ -156,13 +156,13 @@ You can learn more about the Photon's API features on the [website](https://phot
 
 <img src="https://i.imgur.com/UcN3ENI.png" width="220px">
 
-Specify the connection details for your database as a _data source_ in your [Prisma project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md). The connection details might differ per database, but most commonly you'll probide the following:
+Specify the connection details for your database as a _data source_ in your [Prisma project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md). The connection details might differ per database, but most commonly you'll provide the following:
 
 - Host: The IP address or domain name of the machine where your database server is running.
 - Port: The port on which your database server is listening.
 - User & password: Credentials for your database server.
 
-Here is an example project file that connects to a local PostgreSQL database: 
+Here is an example project file that connects to a local PostgreSQL database:
 
 ```groovy
 // project.prisma
@@ -173,7 +173,7 @@ datasource postgres {
 }
 
 generator photonjs {
-  provider = 'photonjs'
+  provider = "photonjs"
 }
 ```
 
@@ -190,7 +190,7 @@ datasource postgres {
 }
 
 generator photonjs {
-  provider = 'photonjs'
+  provider = "photonjs"
 }
 
 model User {
@@ -224,7 +224,7 @@ Read below to learn how you obtain it for your project.
 
 <img src="https://i.imgur.com/XkRkwdE.png" width="355px">
 
-If you want to use Photon with an existing database, you can [introspect](https://github.com/prisma/prisma2-docs/blob/master/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md). This generates a [data model](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) which is the foundation for the generated Photon API. 
+If you want to use Photon with an existing database, you can [introspect](https://github.com/prisma/prisma2-docs/blob/master/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md). This generates a [data model](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) which is the foundation for the generated Photon API.
 
 #### Option B: Start from scratch (_greenfield_)
 

@@ -1,7 +1,7 @@
 const PROTO_PATH = __dirname + '/../service.proto'
 
-import * as grpc from 'grpc'
 import * as protoLoader from '@grpc/proto-loader'
+import * as grpc from 'grpc'
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
   longs: String,

@@ -92,6 +92,9 @@ export function getGraphQLType(value: any, potentialType?: string | DMMF.Enum | 
     return 'DateTime'
   }
   if (jsType === 'string') {
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
+      return 'UUID'
+    }
     const date = new Date(value)
     if (
       potentialType &&

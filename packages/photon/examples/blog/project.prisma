@@ -11,14 +11,13 @@ generator photon {
 }
 
 model User {
-  id    Int     @id
-  name  String
-  posts Post[]
+  id       String @id @default(uuid())
+  username String @unique
+  posts    Post[]
 }
 
 model Post {
-  id     Int      @id
-  title  String
-  tags   String[]
-  author User
+  id   String @id @default(uuid())
+  data String
+  user User
 }

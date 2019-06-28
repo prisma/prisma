@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "0.0.115",
+  "version": "0.0.129",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -13,7 +13,8 @@
     "install": "test -f scripts/download.js && node scripts/download.js || echo \"\"",
     "prepublishOnly": "yarn build",
     "build:browser": "webpack -c scripts/webpack.browser.config.js --verbose",
-    "lint": "tslint -c tslint.json 'src/**/*.ts' --fix"
+    "lint": "tslint -c tslint.json 'src/**/*.ts' --fix",
+    "update-deps": "yarn upgrade --latest --scope @prisma"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
@@ -33,7 +34,7 @@
     "scripts"
   ],
   "devDependencies": {
-    "@prisma/lift": "^0.0.97",
+    "@prisma/lift": "^0.0.125",
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
@@ -63,14 +64,14 @@
     "@prisma/lift": "*"
   },
   "dependencies": {
-    "@prisma/cli": "0.0.17",
-    "@prisma/engine-core": "0.0.54",
-    "@prisma/fetch-engine": "^0.0.21",
+    "@apexearth/copy": "^1.4.1",
+    "@prisma/cli": "0.0.21",
+    "@prisma/engine-core": "0.0.56",
+    "@prisma/fetch-engine": "^0.0.24",
     "chalk": "^2.4.2",
-    "cpy": "7.3.0",
+    "cpy": "^7.3.0",
     "dotenv": "^8.0.0",
     "flat-map-polyfill": "^0.3.8",
-    "fs-extra": "^8.0.1",
     "fs-monkey": "^0.3.3",
     "indent-string": "^4.0.0",
     "is-obj": "^2.0.0",
