@@ -46,19 +46,19 @@ if [ "$BUILDKITE_BRANCH" != "master" ]; then
 fi
 
 # the simplest case first: only change in `prisma2`
-if [ "$PRISMA2_CHANGED" ] && [ -z "$CLI_CHANGE" ] && [ -z "$INTROSPECTION_CHANGED" ]; then
+if [ "$PRISMA2_CHANGED" ] && [ -z "$CLI_CHANGED" ] && [ -z "$INTROSPECTION_CHANGED" ]; then
   buildkite-agent pipeline upload .buildkite/publish-prisma2.yml
   exit 0
 fi
 
 # next case: change in introspection, but not cli
-if [ "$INTROSPECTION_CHANGED" ] && [ -z "$CLI_CHANGE" ]; then
+if [ "$INTROSPECTION_CHANGED" ] && [ -z "$CLI_CHANGED" ]; then
   buildkite-agent pipeline upload .buildkite/publish-introspection.yml
   exit 0
 fi
 
 # last case: cli change
-if [ "$CLI_CHANGE" ]; then
+if [ "$CLI_CHANGED" ]; then
   buildkite-agent pipeline upload .buildkite/publish-cli.yml
   exit 0
 fi
