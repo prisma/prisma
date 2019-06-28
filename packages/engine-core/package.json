@@ -16,7 +16,8 @@
   "scripts": {
     "build": "rm -rf dist && tsc -d",
     "prepublishOnly": "yarn build",
-    "download": "node download.js"
+    "download": "node download.js",
+    "update-deps": "yarn upgrade --latest --scope @prisma"
   },
   "dependencies": {
     "cross-fetch": "^3.0.2",
