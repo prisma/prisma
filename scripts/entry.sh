@@ -39,7 +39,7 @@ if [ -z "$CLI_CHANGE" ] && [ -z "$PRISMA2_CHANGED" ] && [ -z "$INTROSPECTION_CHA
   exit 0
 fi
 
-if [ "$BULIDKITE_BRANCH" != "master" ]; then
+if [ "$BUILDKITE_BRANCH" != "master" ]; then
   buildkite-agent pipeline upload .buildkite/test.yml
   echo "Not building anything if it's not on master"
   exit 0
