@@ -8,6 +8,7 @@ if [[ $NO_PUBLISH ]]; then
 fi
 
 if [ $BULIDKITE_BRANCH != "master" ]; then
+  buildkite-agent pipeline upload .buildkite/test.yml
   echo "Not building anything if it's not on master"
   exit 0
 fi
@@ -41,9 +42,6 @@ if [ -z "$CLI_CHANGE" ] && [ -z "$PRISMA2_CHANGED" ] && [ -z "$INTROSPECTION_CHA
   echo "No change in any of the packages."
   exit 0
 fi
-
-# we need to execute the tests anyways
-buildkite-agent pipeline upload .buildkite/test.yml
 
 # the simplest case first: only change in `prisma2`
 if [ "$PRISMA2_CHANGED" ] && [ -z "$CLI_CHANGE" ] && [ -z "$INTROSPECTION_CHANGED" ]; then
