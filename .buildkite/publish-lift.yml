@@ -1,0 +1,25 @@
+steps:
+  - label: ':gun: Trigger publish'
+    trigger: 'lift-publish'
+    build:
+      env:
+        PUBLISH_PRISMA2: 'false'
+  - wait
+  - label: ':flashlight: bump @prisma/photon'
+    trigger: 'photon-publish'
+    build:
+      env:
+        BUMP_ONLY: 'true'
+        PUBLISH_PHOTON: 'true'
+  - wait
+  - label: ':coverage: prisma2-cli-test'
+    trigger: 'prisma2-cli-test'
+    build:
+      env:
+        NO_PUBLISH: 'true'
+  - wait
+  - label: ':gun: publish prisma2'
+    trigger: 'prisma2-cli-publish'
+    build:
+      env:
+        PUBLISH_PRISMA2: 'true'
