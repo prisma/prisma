@@ -200,6 +200,7 @@ async function getRemoteLastModified(url: string): Promise<Date> {
 }
 
 async function downloadZip(url: string, target: string, progressOffset = 0, bar?: Progress) {
+  // console.log('Downloading ', url)
   const partial = target + '.partial'
   const result = await retry(
     async () => {

@@ -10,6 +10,14 @@ export type GetOSResult = {
 }
 
 export async function getos() {
+  const isMusl = isAWSLambda()
+  if (isMusl) {
+    return {
+      platform: 'linux',
+      isMusl,
+    }
+  }
+
   const platform = os.platform()
   if (platform !== 'linux') {
     return {
@@ -18,11 +26,9 @@ export async function getos() {
     }
   }
 
-  const isMusl = isAWSLambda()
-
   return {
     platform: 'linux',
-    isMusl,
+    isMusl: false,
   }
 }
 
