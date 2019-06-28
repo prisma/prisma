@@ -1,0 +1,7 @@
+steps:
+  - label: ':gun: Trigger publish'
+    trigger: 'prisma2-cli-publish'
+    build:
+      env:
+        PUBLISH_INTROSPECTION: 'true'
+        PUBLISH_PRISMA2: 'true'
