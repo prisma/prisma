@@ -67,7 +67,7 @@ export const Mutation = mutationType({
             title,
             content,
             published: false,
-            // author: { connect: { id: userId } },
+            author: { connect: { id: userId } },
           },
         })
       },
