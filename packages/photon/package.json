@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "0.0.125",
+  "version": "0.0.126",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -13,7 +13,8 @@
     "install": "test -f scripts/download.js && node scripts/download.js || echo \"\"",
     "prepublishOnly": "yarn build",
     "build:browser": "webpack -c scripts/webpack.browser.config.js --verbose",
-    "lint": "tslint -c tslint.json 'src/**/*.ts' --fix"
+    "lint": "tslint -c tslint.json 'src/**/*.ts' --fix",
+    "update-deps": "yarn upgrade --latest --scope @prisma"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
