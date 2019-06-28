@@ -324,10 +324,10 @@
     chalk "^2.4.2"
     strip-indent "^3.0.0"
 
-"@prisma/engine-core@0.0.60":
-  version "0.0.60"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.60.tgz#e7e98103fa5dfa54ec9929363ebf88349aa5a940"
-  integrity sha512-oqCXq3TBj+Cwt4Z7sM4eZUG6lsp/+RLVtGFM3NrIzzGz7glFI2grcBAXAaHQzvLDOwDzfzXuOvwk3Yun+w9QKQ==
+"@prisma/engine-core@0.0.61":
+  version "0.0.61"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.61.tgz#213745091085b707b7e53ece9d7de6f80967caab"
+  integrity sha512-KUvGvP8tb4ZEMFzpBXFpJM1c1z/dZhK+qY6+5LSVS1oUpy7/UeuY4QF6+UBs9J0LJWE/kBg5tpnws1gUUloDIQ==
   dependencies:
     cross-fetch "^3.0.2"
     debug "^4.1.1"
@@ -348,10 +348,10 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/fetch-engine@^0.0.27":
-  version "0.0.27"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.27.tgz#5734cbf36e6a05fd24f0a0c47ccc85ddab82a540"
-  integrity sha512-z9/vqCF8okm1Amq+QLHpi+KfyLy0dhsi6s+f75+5kV5+lNWbBHkV4GkNlIHTFGZOKXwQ7Tqqoyd1bw0hxHIZBA==
+"@prisma/fetch-engine@^0.0.28":
+  version "0.0.28"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.28.tgz#5c72bac81a5e77b0124e9f36c8465de9242d0975"
+  integrity sha512-ftFSrRjL17M35YEDNgyxkxbsklD3FyUYGcgpDfXwlYnhCUopq3P0T4MyhdeTEtHIuyPFuutlMy6v9mxDTxkPsg==
   dependencies:
     chalk "^2.4.2"
     death "^1.1.0"
