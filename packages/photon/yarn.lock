@@ -324,10 +324,10 @@
     chalk "^2.4.2"
     strip-indent "^3.0.0"
 
-"@prisma/engine-core@0.0.59":
-  version "0.0.59"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.59.tgz#a67d74b148f99a17e8456b856a1e1dc62f857531"
-  integrity sha512-CHh2xrQGxy/smk2N2v0zhzj0Oi/CpuKxttyTTeNvMBVTR67i04JMtsEkxO1Fzh4QcgydaZ8t3KXY3fStThOt2A==
+"@prisma/engine-core@0.0.60":
+  version "0.0.60"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.60.tgz#e7e98103fa5dfa54ec9929363ebf88349aa5a940"
+  integrity sha512-oqCXq3TBj+Cwt4Z7sM4eZUG6lsp/+RLVtGFM3NrIzzGz7glFI2grcBAXAaHQzvLDOwDzfzXuOvwk3Yun+w9QKQ==
   dependencies:
     cross-fetch "^3.0.2"
     debug "^4.1.1"
@@ -348,10 +348,10 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/fetch-engine@^0.0.26":
-  version "0.0.26"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.26.tgz#4b48b5cb80f1e6f984aef946d29443cfd3ac5b63"
-  integrity sha512-kBXfiuQ1+retjwRl1qiafZ6FRp2C0NAipvOmrUukDuxkuvBPQNxtjmzt8E7mf3olGKgHMuLoOhGsnjzhOELToA==
+"@prisma/fetch-engine@^0.0.27":
+  version "0.0.27"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.27.tgz#5734cbf36e6a05fd24f0a0c47ccc85ddab82a540"
+  integrity sha512-z9/vqCF8okm1Amq+QLHpi+KfyLy0dhsi6s+f75+5kV5+lNWbBHkV4GkNlIHTFGZOKXwQ7Tqqoyd1bw0hxHIZBA==
   dependencies:
     chalk "^2.4.2"
     death "^1.1.0"
@@ -362,10 +362,10 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/lift@^0.0.125":
-  version "0.0.125"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.125.tgz#8f7b918c8dcfebd62afd037683443f8138462b16"
-  integrity sha512-2WjnY6tviwaKVrZ1TMJkTEGthJqg3opRXd43t7mXAzXRrcSBx23cE/xawPHEc52POrPz9Sl8poYXtbPoI1hT4A==
+"@prisma/lift@^0.0.126":
+  version "0.0.126"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.126.tgz#243e67a51996604402e43a82f36f2061f46a3493"
+  integrity sha512-Z5a3QpUMytcVGp9/XwM6Qf8yjBGmkgHezIED+sZhgOZoNrZ9DPKGj/MrmH+j0WAFmV7nAWqmSLnZ3MhKe3ankg==
   dependencies:
     "@prisma/fetch-engine" "^0.0.24"
     "@prisma/studio-server" "^0.0.34"
