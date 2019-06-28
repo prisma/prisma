@@ -84,8 +84,6 @@ async function inspect(client: Client, schema: string): Promise<ISDL> {
   return result.getNormalizedDatamodel()
 }
 
-// async function migrate() {}
-
 async function generate(isdl: ISDL) {
   const datamodel = await isdlToDatamodel2(isdl, [
     {
