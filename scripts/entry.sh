@@ -1,3 +1,5 @@
+#!/bin/bash
+
 set -ex
 
 if [[ $BUILDKITE_COMMIT ]]; then
