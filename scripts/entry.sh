@@ -2,6 +2,8 @@
 
 set -ex
 
+# NO_PUBLISH comes from a pipeline trigger and not from an ordinary push
+# in this case we only want to test
 if [[ $NO_PUBLISH ]]; then
   buildkite-agent pipeline upload .buildkite/test.yml
   exit 0
