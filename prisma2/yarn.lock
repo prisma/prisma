@@ -363,10 +363,10 @@
     string-width "^4.1.0"
     strip-ansi "^5.2.0"
 
-"@prisma/lift@^0.0.120":
-  version "0.0.120"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.120.tgz#73152aa8ac83f2f36eb38d9db49879ab293a1e9f"
-  integrity sha512-UrSwCdw2JaWhxfQr6q/HAnzjvdeIRAqcebT3Y3gdnWV0mvrKmCyOieU5NGeD2mPA8TS7Tyh2kkO2iWZsZIJdYA==
+"@prisma/lift@^0.0.124":
+  version "0.0.124"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.124.tgz#a88b0c8e899a069e1931c5ee83c0ed25282925d8"
+  integrity sha512-TMWcjOQNFFm72vAc004K+o23YsEbtcLGDYQQICNUuenKXCB5TnHL6WirKypU4trK135ONjUbpZG8KQDu1JZ7Fg==
   dependencies:
     "@prisma/fetch-engine" "^0.0.24"
     "@prisma/studio-server" "^0.0.34"
@@ -411,10 +411,10 @@
   dependencies:
     tslib "^1.9.3"
 
-"@prisma/photon@^0.0.126":
-  version "0.0.126"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.126.tgz#c914b0cdabe234e1fb2bbf23a4be7b60fcb79306"
-  integrity sha512-AmgTF05hjID+CDr3BnEPIcWzZBAhjNQgy3b0A2q508Onf7BTuPM31yfaWAG4HFvkaMcFCFXKZIeMf/P6ajAYXQ==
+"@prisma/photon@^0.0.127":
+  version "0.0.127"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.127.tgz#92dc4442ffa0736a91fcea2a1c4a4d864810df3c"
+  integrity sha512-qvpk2PvtfeY1n2DPZZidBUpWY10t1PYmwt8qgaIWpcTzOQfQJOHJId9mY+dqYD4JUtRTLOuX850GKRYEHbIZ5w==
   dependencies:
     "@apexearth/copy" "^1.4.1"
     "@prisma/cli" "0.0.21"
