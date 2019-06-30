@@ -1,1 +1,1 @@
-# prisma2-core
+# Prisma 2
