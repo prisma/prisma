@@ -2,6 +2,9 @@
 ### Do not make changes to this file directly
 
 
+"""DateTime"""
+scalar DateTime
+
 type Mutation {
   createDraft(authorEmail: String, content: String, title: String): Post!
   deleteOnePost(where: PostWhereUniqueInput!): Post
@@ -10,10 +13,13 @@ type Mutation {
 }
 
 type Post {
+  author: User
   content: String
+  createdAt: DateTime!
   id: ID!
   published: Boolean!
   title: String!
+  updatedAt: DateTime!
 }
 
 input PostCreateManyWithoutPostsInput {
