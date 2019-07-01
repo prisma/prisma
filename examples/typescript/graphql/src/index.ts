@@ -27,11 +27,12 @@ export const Post = objectType({
   name: 'Post',
   definition(t) {
     t.model.id()
+    t.model.createdAt()
+    t.model.updatedAt()
     t.model.title()
     t.model.content()
-    // t.model.createdAt()
-    // t.model.updatedAt()
     t.model.published()
+    t.model.author()
   },
 })
 
@@ -44,7 +45,7 @@ const Query = objectType({
 
     t.list.field('feed', {
       type: 'Post',
-      resolve: (parent, args, ctx) => {
+      resolve: (_, args, ctx) => {
         return ctx.photon.posts.findMany({
           where: { published: true },
         })
@@ -56,20 +57,12 @@ const Query = objectType({
       args: {
         searchString: stringArg({ nullable: true }),
       },
-      resolve: (parent, { searchString }, ctx) => {
+      resolve: (_, { searchString }, ctx) => {
         return ctx.photon.posts.findMany({
           where: {
             OR: [
-              {
-                title: {
-                  contains: searchString,
-                },
-              },
-              {
-                content: {
-                  contains: searchString,
-                },
-              },
+              { title: { contains: searchString } },
+              { content: { contains: searchString } },
             ],
           },
         })
@@ -91,7 +84,7 @@ const Mutation = objectType({
         content: stringArg({ nullable: true }),
         authorEmail: stringArg(),
       },
-      resolve: (parent, { title, content, authorEmail }, ctx) => {
+      resolve: (_, { title, content, authorEmail }, ctx) => {
         return ctx.photon.posts.create({
           data: {
             title,
@@ -111,7 +104,7 @@ const Mutation = objectType({
       args: {
         id: idArg(),
       },
-      resolve: (parent, { id }, ctx) => {
+      resolve: (_, { id }, ctx) => {
         return ctx.photon.posts.update({
           where: { id },
           data: { published: true },
@@ -144,12 +137,7 @@ const schema = makeSchema({
 
 const server = new GraphQLServer({
   schema,
-  context: request => {
-    return {
-      ...request,
-      photon,
-    }
-  },
+  context: { photon },
 })
 
 server.start(() => console.log(`🚀 Server ready at http://localhost:4000`))
