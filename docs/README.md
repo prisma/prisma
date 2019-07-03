@@ -1,0 +1,30 @@
+# Documentation
+
+- [Getting started](./getting-started.md)
+- [Tutorial](./tutorial.md)
+- [Prisma ecosystem](./prisma-ecosystem.md)
+- [Prisma schema file](./prisma-schema-file.md)
+- [Data sources](./data-sources.md)
+- [Data modeling](./data-modeling.md)
+- [Relations](./relations.md)
+- [Prisma 2 CLI](./prisma-2-cli.md)
+- [Development mode](./development-mode.md)
+- [Introspection](./introspection.md)
+- [Limitations](./limitations.md)
+- Core
+  - Connectors
+    - [MySQL](./core/connectors/mysql.md)
+    - [PostgreSQL](./core/connectors/postgres.md)
+    - [SQLite](./core/connectors/sqlite.md)
+    - [MongoDB](./core/connectors/mongo.md)
+  - Generators
+    - [Photon JS](./core/generators/photon-js.md)
+- Photon
+  - [API](./photon/api.md)
+  - [Use only Photon](./photon/use-only-photon.md)
+- Lift
+  - [Steps](./lift/steps.md)
+  - [Migration files](./lift/migration-files.md)
+  - [Use only Lift](./lift/use-only-lift.md)
+- [Supported databases](./supported-databases.md)
+- [Glossary](./glossary.md)
