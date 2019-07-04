@@ -99,6 +99,8 @@ hello-prisma2
     └── project.prisma
 ```
 
+> **Note**: If you were using **SQLite**, make sure that you deleted all files that were generated initially and only keep the `prisma/project.prisma` file!
+
 `project.prisma` is your [Prisma schema file](./prisma-schema-file.md). It generally contains three important elements for your project:
 
 - Data sources (here, that's your PostgreSQL database)
