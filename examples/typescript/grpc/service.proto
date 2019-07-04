@@ -53,6 +53,7 @@ message PostRequest {
 message SignupUserRequest {
   string name = 1;
   string email = 2;
+  string password = 3;
 }
 
 message CreateDraftRequest {
