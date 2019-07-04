@@ -48,6 +48,10 @@ prisma2 generate
 
 Now you can seed your database using the `seed` script from `package.json`:
 
+### 4. Seed the database data with this script
+
+Execute the script with this command: 
+
 ```
 npm run seed
 ```
