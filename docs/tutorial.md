@@ -2,7 +2,7 @@
 
 In this tutorial, you will get a holistic and practical introduction to the Prisma 2 ecosystem. This includes using [**Lift**](http://lift.prisma.io) for database migrations and [**Photon JS**](http://photonjs.prisma.io) for type-safe database access.
 
-> **Note**: If you encounter any problems with this tutorial or any parts of Prisma 2, please make sure to create an issue [here](https://github.com/prisma/prisma2/issues). You can also join the [`#prisma-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on Slack to share your feedback directly.
+> **Note**: If you encounter any problems with this tutorial or any parts of Prisma 2, **please make sure to create an issue [here](https://github.com/prisma/prisma2/issues)**! You can also join the [`#prisma-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on Slack to share your feedback directly.
 
 This tutorial will teach you how to:
 
