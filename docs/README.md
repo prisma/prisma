@@ -23,6 +23,7 @@
   - [API](./photon/api.md)
   - [Use only Photon](./photon/use-only-photon.md)
   - [Code generation & Node.js setup](./photon/codegen-and-node-setup.md)
+  - [Deployment](./photon/deployment.md)
 - Lift
   - [Steps](./lift/steps.md)
   - [Migration files](./lift/migration-files.md)
@@ -30,3 +31,4 @@
 - [Supported databases](./supported-databases.md)
 - [Prisma 2 feedback](./prisma2-feedback.md)
 - [Glossary](./glossary.md)
+
