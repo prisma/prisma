@@ -61,6 +61,6 @@ We are extremely eager to get your feedback! Please feel free to reach out to us
 <a href="mailto:schickling@prisma.io?subject=Prisma 2 Feedback for Johannes"><img width="75px" style="border-radius:50%;" src="https://pbs.twimg.com/profile_images/670932364491669504/N4-NLlZ0_400x400.jpg"></a>
 <a href="mailto:burk@prisma.io?subject=Prisma 2 Feedback for Nikolas"><img width="75px" style="border-radius:50%;" src="https://pbs.twimg.com/profile_images/938876572802650112/owTdBnzU_400x400.jpg"></a>
 <a href="mailto:mueller@prisma.io?subject=Prisma 2 Feedback for Matt"><img width="75px" style="border-radius:50%;" src="https://pbs.twimg.com/profile_images/1067441283558367232/X3T81W8I_400x400.jpg"></a>
-<a href="mailto:suchanek@prisma.io?subject=Prisma 2 Feedback for Tim"><img width="75px" style="border-radius:50%;" src="https://pbs.twimg.com/profile_images/1067441283558367232/X3T81W8I_400x400.jpg"></a>
+<a href="mailto:suchanek@prisma.io?subject=Prisma 2 Feedback for Tim"><img width="75px" style="border-radius:50%;" src="https://pbs.twimg.com/profile_images/1046724373472845824/RecM9fcC_400x400.jpg"></a>
 <a href="mailto:singh@prisma.io?subject=Prisma 2 Feedback for Divyendy"><img width="75px" style="border-radius:50%;" src="https://pbs.twimg.com/profile_images/1136464314083287040/nIocY54I_400x400.jpg"></a>
 <a href="mailto:panth@prisma.io?subject=Prisma 2 Feedback for Harshit"><img width="75px" style="border-radius:50%;" src="https://pbs.twimg.com/profile_images/1142528238566162432/HWghFOWd_400x400.jpg"></a>
