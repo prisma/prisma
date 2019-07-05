@@ -20,7 +20,7 @@ There are multiple ways how you can provide feedback! See below for a number of 
 
 We have created a dedicated Slack channel for the pioneers that are exploring Prisma 2: [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/). 
 
-This Slack channel is mainly used for quick and informal conversation and personal exchange. If you have product feedback, questions or run into bugs, please be sure to persist these on GitHub (more info in the sections below).
+This Slack channel is mainly used for quick and informal conversations. If you have product feedback, questions or run into bugs, please be sure to persist these on GitHub (more info in the sections below).
 
 We are trying to be as responsive as possible in that channel. Please join us, we'd love to see you there!
 
