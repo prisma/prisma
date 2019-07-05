@@ -8,6 +8,10 @@ Our primary goal with Prisma 2 is to **minimize breaking changes in the future**
 
 For that, a full rewrite of Prisma was necessary so that we can build upon a proper foundation to address the use cases and requirements that have been brought up by our community members over the past two years.
 
+## TLDR
+
+- Join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on Slack
+
 ## Your opinion matters – a lot!
 
 While Prisma 2 is running in Preview, you can still help us steer the high-level direction as well as figure out specifics of how Prisma should work! After we issue a stable release of Prisma 2 later this year, there will be a lot less leeway to incorporate major changes into Prisma 2. **Now is the right time to provide feedback!** 
@@ -24,9 +28,7 @@ We are trying to be as responsive as possible in that channel. Please join us, w
 
 ### Product feedback, feature requests and wild wishes on GitHub
 
-As mentioned above, while Prisma 2 is running in Preview, there is still time to share _your opinion_ of how Prisma 2 should work.
-
-Please make sure to persists any kind of product feedback, feature requests or wild wishes as a GitHub issue in the [`prisma2`](https://github.com/prisma/prisma2) repository!
+As mentioned above, while Prisma 2 is running in Preview, there is still time to share _your opinion_ of how Prisma 2 should work. Please make sure to persists any kind of product feedback, feature requests or wild wishes as a GitHub issue in the [`prisma2`](https://github.com/prisma/prisma2) repository!
 
 ### Reporting issues and asking questions on GitHub
 
