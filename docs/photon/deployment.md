@@ -16,7 +16,7 @@ generator photonjs {
 Note that `darwin` is the default `target`. Here's a list of supported platforms and their targets:
 
 |  **Platform** | **Target** | 
-| :---:  | :---: |
+| :---  | :--- |
 | Mac OS | `darwin` (default) |
 | Ubuntu, Centos, CodeSandbox	  | `linux-glibc` |
 | Alpine | `linux-musl` |
