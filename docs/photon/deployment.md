@@ -18,10 +18,10 @@ Note that `darwin` is the default `target`. Here's a list of supported platforms
 |  **Platform** | **Target** | 
 | :---  | :--- |
 | Mac OS | `darwin` (default) |
-| Ubuntu, Centos, CodeSandbox	  | `linux-glibc` |
+| Ubuntu <br /> Centos <br /> CodeSandbox	  | `linux-glibc` |
 | Alpine | `linux-musl` |
 | Windows  | `windows` |
-| Lambda Node 8, ZEIT Now | `linux-glibc-libssl1.0.1` |
+| Lambda Node 8 <br /> ZEIT Now | `linux-glibc-libssl1.0.1` |
 | Lambda Node 10  | `linux-glibc-libssl1.0.2` |
 | Heroku | _coming soon_ |
 | Cloudflare Workers | _coming soon_ |
