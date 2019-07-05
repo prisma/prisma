@@ -2,7 +2,7 @@
 
 Photon JS depends on a query engine that's running as a binary right next to your application. This binary needs to be executable in your production environment. 
 
-Therefore, when deploying your Photon-based application to production, you need to ensure that you're specifying the right [_compilation target_](./core/generators/photonjs.md#compilation-target-query-engine) for the binary.
+Therefore, when deploying your Photon-based application to production, you need to ensure that you're specifying the right [_compilation target_](../core/generators/photonjs.md#compilation-target-query-engine) for the binary.
 
 You can determine the compilation target of the binary by adding the `target` field to the `photonjs` generator block:
 
