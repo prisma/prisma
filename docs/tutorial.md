@@ -414,7 +414,7 @@ async function main() {
 }
 ```
 
-Instead of copying and pasting the code  above, try typing the operations and let yourself be guided by the autocompletion in your editor:
+Instead of copying and pasting the code above, try typing the operations and let yourself be guided by the autocompletion in your editor:
 
 ![](https://imgur.com/CnlgJg9.gif)
 
