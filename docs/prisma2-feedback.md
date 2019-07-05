@@ -20,7 +20,7 @@ There are multiple ways how you can provide feedback! See below for a number of 
 
 We have created a dedicated Slack channel for the pioneers that are exploring Prisma 2: [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/). 
 
-This Slack channel is mainly used for quick and informal conversations. If you have product feedback, questions or run into bugs, please be sure to persist these on GitHub (more info in the sections below).
+This Slack channel is mainly used for quick and informal conversations. If you have product feedback, questions or run into bugs, please be sure to persist these on GitHub (more info in the sections below). When you're asking a question on Slack, you can ideally already link to a corresponding GitHub issue so that this question can be answered in public.
 
 We are trying to be as responsive as possible in that channel. Please join us, we'd love to see you there!
 
@@ -30,6 +30,30 @@ As mentioned above, while Prisma 2 is running in Preview, there is still time to
 
 Please make sure to persists any kind of product feedback, feature requests or wild wishes as a GitHub issue in the [`prisma2`](https://github.com/prisma/prisma2) repository!
 
-### Reporting issuesn and asking questions on GitHub
+### Reporting issues and asking questions on GitHub
 
-### Content and documentation requests
+Whenever you're running into an issue with Prisma 2, it's likely that it's not your fault, but ours! 
+
+In any of the following scenarios, please make sure to create a GitHub issue to bring your problem to our attention:
+
+- You're running into an error.
+- You have a question about something.
+- You expected something to work differently.
+- You are suprised by a certain behaviour.
+- The documentation on something isn't clear.
+- You wish there was documentation on something.
+
+If your issue relates to either Photon or Lift specifically, you can open an issue directly in the respective repos:
+
+- [Open an issue for **Photon JS**](https://github.com/prisma/photonjs/issues/new)
+- [Open an issue for **Lift**](https://github.com/prisma/lift/issues/new)
+
+Otherwise, the default place for opening issues is the official `prisma2` repo (when in doubt, create the issue here):
+
+- [Open a general **Prisma 2** issue](https://github.com/prisma/prisma2/issues/new)
+
+Once you created a GitHub issue, feel free to post it in the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) Slack channel so that we can react quickly.
+
+## We are here for you
+
+We are extremely eager to get your feedback! Please feel free to reach out to us personally during the Preview period if you can't find an appropriate place for your specific feedback.
