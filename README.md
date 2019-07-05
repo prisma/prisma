@@ -41,6 +41,7 @@ Learn more about the `prisma2 init` flow [here](./docs/getting-started.md) or ge
 - Photon
   - [API](./docs/photon/api.md)
   - [Use only Photon](./docs/photon/use-only-photon.md)
+  - [Code generation & Node.js setup](./docs/codegen-and-node-setup.md)
 - Lift
   - [Steps](./docs/lift/steps.md)
   - [Migration files](./docs/lift/migration-files.md)
