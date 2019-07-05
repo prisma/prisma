@@ -12,9 +12,7 @@ For that, a full rewrite of Prisma was necessary so that we can build upon a pro
 
 ## Your opinion matters – a lot!
 
-While Prisma 2 is running in Preview, you can still help us steer the high-level direction as well as figure out specifics of how Prisma should work! After we issue a stable release of Prisma 2 later this year, there will be a lot less leeway to incorporate any changes into Prisma 2. 
-
-**Now is the right time to provide feedback!** 
+While Prisma 2 is running in Preview, you can still help us steer the high-level direction as well as figure out specifics of how Prisma should work! After we issue a stable release of Prisma 2 later this year, there will be a lot less leeway to incorporate major changes into Prisma 2. **Now is the right time to provide feedback!** 
 
 ## Giving feedback for Prisma 2
 
