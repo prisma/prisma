@@ -2,7 +2,7 @@
 
 ## TLDR
 
-Photon JS is generated into `node_modules/@generated` by default. While this approach has a number of [benefits](#), it is also unconventional and can be a source confusion for developers new to Photon JS.
+Photon JS is generated into `node_modules/@generated` by default. While this approach has a number of [benefits](#why-is-photon-js-generated-into-node_modulesgenerated-by-default), it is also unconventional and can be a source confusion for developers new to Photon JS.
 
 Using `node_modules/@generated` as the default `output` for Photon JS is still experimental. Please share your feedback and tell us whether you think this is a good idea or any other thoughts you have on this topic by joining the [dicussion on GitHub](https://github.com/prisma/prisma2/issues/83).
 
@@ -33,13 +33,13 @@ When running `prisma2 generate` for either of these schema files, the `photon` p
 node_modules/@generated/photon
 ```
 
-## Why is Photon JS generated into `node_modules/@generated` by default?
-
-### Photon JS should be viewed as an npm package
+## Photon JS should be viewed as an npm package
 
 Node.js libraries are typically installed as npm dependencies using `npm install`. The respective packages are then located inside the [`node_modules`](https://docs.npmjs.com/files/folders#node-modules) directory from where they can be easily imported into application code.
 
 Because Photon JS is a custom API for _your_ specific database setup, it can't follow that model. It needs to be generated locally instead of being installed from a central repository like npm. However, the mental model for Photon JS should still be that of an npm dependency.
+
+## Why is Photon JS generated into `node_modules/@generated` by default?
 
 ### Easy imports
 
@@ -60,3 +60,21 @@ const Photon = require('@generated/photon')
 Photon JS is based on a query engine that's running as a binary alongside your application. This binary is downloaded when `prisma2 generate` is invoked initially and stored in the `output` path (right next to the generated Photon API).
 
 By generating Photon JS into `node_modules`, the query engine is kept out of version control by default (since `node_modules` is typically ignored for version control). If it was not generated into `node_modules`, then developers would need to explicitly ignore it, e.g. for Git they'd need to add the `output` path to `.gitignore`.
+
+## Generating Photon JS in `postinstall` hook
+
+Generating Photon JS into `node_modules` has the potential problem that package managers like `npm` or `yarn` want to maintain the integrity of `node_modules`. They therefore remove any additional folders that are not specified by the respective `.lock` files on operations like `install`, `add`, etc.
+
+To work around this problem, you can add a `postinstall` script to your `package.json`. This gets invoked automatically after any time invocation of `npm install`:
+
+```json
+{
+  "scripts": {
+    "postinstall": "prisma2 generate"
+  }
+}
+```
+
+When collaborating on a project that uses Photon JS, this approach allows for conventional Node.js best practices where a team member can clone a Git repository and then run `npm install` to get their version of the Node dependencies inside their local `node_modules` directory.
+
+However, the downside of this approach is that when developers have _not_ configured a `postinstall` script for the generation of Photon JS and are not aware that they must generate Photon JS after cloning a repository, they will most likely run into errors and be confused.
