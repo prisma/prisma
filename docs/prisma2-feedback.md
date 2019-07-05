@@ -58,4 +58,4 @@ Once you created a GitHub issue, feel free to post it in the [`#prisma2-preview`
 
 We are extremely eager to get your feedback! Please feel free to reach out to us personally during the Preview period if you can't find an appropriate place for your specific feedback.
 
-<a href="mailto:burk@prisma.io?subject=Prisma 2 Feedback"><img style="width: 100px;" src="https://pbs.twimg.com/profile_images/938876572802650112/owTdBnzU_400x400.jpg"></a>
+<a href="mailto:burk@prisma.io?subject=Prisma 2 Feedback"><img style="width:100px;border-radius:50%;" src="https://pbs.twimg.com/profile_images/938876572802650112/owTdBnzU_400x400.jpg"></a>
