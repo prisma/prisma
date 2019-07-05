@@ -22,7 +22,7 @@
 - Photon
   - [API](./photon/api.md)
   - [Use only Photon](./photon/use-only-photon.md)
-  - [Code generation & Node.js setup](./codegen-and-node-setup.md)
+  - [Code generation & Node.js setup](./photon/codegen-and-node-setup.md)
 - Lift
   - [Steps](./lift/steps.md)
   - [Migration files](./lift/migration-files.md)
