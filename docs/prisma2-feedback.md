@@ -1,6 +1,6 @@
 # Prisma 2 feedback
 
-Prisma 2 is currently running in _Preview_ and has a number of [limitations](./limitations.md). It is not yet considered production-ready! There will a _General Availability_ release later this year where we issue a stable and production-ready release of Prisma 2.
+Prisma 2 is currently running in _Preview_ and has a number of [limitations](./limitations.md). It is not yet considered production-ready! There will a _General Availability_ release later this year where we issue a stable and production-ready version.
 
 ## Breaking changes
 
