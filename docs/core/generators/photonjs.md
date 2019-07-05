@@ -31,10 +31,9 @@ Note that `darwin` is the default `target`. Here's a list of supported platforms
 | Cloudflare Workers | _coming soon_ |
 | Google Cloud Functions | User's choice |
 
-
 Therefore, when deploying your Photon-based application to production, you need to ensure that you're specifying the right _compilation target_ for the binary.
 
-You can customize the compilation target by adjusting the 
+> **ATTENTION**: The `target` field on the `generator` block is not yet implemented. You can track the progress of the implementation [on GitHub](https://github.com/prisma/prisma2/issues/97). You can also check ou the [specification](https://github.com/prisma/specs/tree/master/binary-workflows) for more details.
 
 ## Example
 

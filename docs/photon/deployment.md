@@ -2,7 +2,7 @@
 
 Photon JS depends on a query engine that's running as a binary right next to your application. This binary needs to be executable in your production environment. 
 
-Therefore, when deploying your Photon-based application to production, you need to ensure that you're specifying the right [_compilation target_](../core/generators/photonjs.md#compilation-target-query-engine) for the binary.
+Therefore, when deploying your Photon-based application to production, you need to ensure that you're specifying the right [compilation target](../core/generators/photonjs.md#compilation-target-query-engine) for the binary.
 
 You can determine the compilation target of the binary by adding the `target` field to the `photonjs` generator block:
 
@@ -26,3 +26,5 @@ Note that `darwin` is the default `target`. Here's a list of supported platforms
 | Heroku | _coming soon_ |
 | Cloudflare Workers | _coming soon_ |
 | Google Cloud Functions | User's choice |
+
+> **ATTENTION**: The `target` field on the `generator` block is not yet implemented. You can track the progress of the implementation [on GitHub](https://github.com/prisma/prisma2/issues/97). You can also check ou the [specification](https://github.com/prisma/specs/tree/master/binary-workflows) for more details.
