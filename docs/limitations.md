@@ -9,4 +9,4 @@
     - `Int @id`
     - `String @default(uuid())`
     - `String @default(cuid())`
-- When [introspecting](./introspection.md) a database, Prisma only recognizes many-to-many relations that follow the Prisma conventions for [relation tables](https://github.com/prisma/prisma2-docs/blob/master/relations.md#mn).
+- When [introspecting](./introspection.md) a database, Prisma only recognizes many-to-many relations that follow the Prisma conventions for [relation tables](./relations.md#mn).
