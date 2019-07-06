@@ -1,6 +1,6 @@
 # Prisma 2
 
-This repository is used as a central point to collect information and issues around [Prisma 2](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/) while it's in Preview. It also contains the [documentation](./docs/docs).
+This repository is used as a central point to collect information and issues around [Prisma 2](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/) while it's in Preview. It also contains the [documentation](./docs).
 
 > Prisma 2 is currently in Preview! [Limitations](./docs/limitations.md) include missing features, limited performance and stability issues.
 
