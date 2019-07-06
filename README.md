@@ -10,29 +10,29 @@
 
 <hr />
 
-[Lift](https://lift.prisma.io/) is a powerful database schema migration tool. It uses a **declarative [data modelling](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md) syntax** to describe your database schema. Lift stores your entire **migration history** and easily lets you **revert and replay migrations**. When migrating your database with Lift, you can run provide **before- and after-hooks** to execute scripts, e.g. to populate the database with required values during a migration.
+[Lift](https://lift.prisma.io/) is a powerful database schema migration tool. It uses a **declarative [data modelling](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md) syntax** to describe your database schema. Lift stores your entire **migration history** and easily lets you **revert and replay migrations**. When migrating your database with Lift, you can run provide **before- and after-hooks** to execute scripts, e.g. to populate the database with required values during a migration.
 
-It is part of the [Prisma 2](https://www.github.com/prisma/prisma2-docs) ecosystem. Prisma 2 provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
+It is part of the [Prisma 2](https://www.github.com/prisma/prisma2) ecosystem. Prisma 2 provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
 
-> Note that Lift is currently running in Preview. The version available has severe [limitations](https://github.com/prisma/prisma2-docs/blob/master/limitations.md) that make it unsuitable for production workloads, including missing features, limited performance and stability issues. We will address all these limitations before issuing a stable release later this year.
+> Note that Lift is currently running in Preview. The version available has severe [limitations](https://github.com/prisma/prisma2/blob/master/docs/limitations.md) that make it unsuitable for production workloads, including missing features, limited performance and stability issues. We will address all these limitations before issuing a stable release later this year.
 
 <p align="center">
   <!-- <a href="https://codesandbox.io/s/github/prisma-csb/prisma-client-demo-ts"><img src="https://svgur.com/i/CXj.svg" alt="CodeSandbox"></a> -->
-  <a href="https://www.github.com/prisma/prisma2-docs/"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
+  <a href="https://www.github.com/prisma/prisma2/"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
 </p>
 
 ## Getting started
 
 The easiest way to get started with Lift is by installing the Prisma 2 CLI and running the interactive `init` command:
 
-```
+```sh
 npm install -g prisma2
 prisma2 init hello-prisma
 ```
 
 The interactive prompt will ask you to provide database credentials for your database. If you don't have a database yet, select **SQLite** and let the CLI set up a database file for you.
 
-Learn more about the `prisma2 init` flow [here](https://github.com/prisma/prisma2-docs/blob/master/getting-started.md).
+Learn more about the `prisma2 init` flow [here](https://github.com/prisma/prisma2/blob/master/docs/getting-started.md).
 
 ## Features
 
@@ -47,7 +47,7 @@ Learn more about the `prisma2 init` flow [here](https://github.com/prisma/prisma
 
 ## Docs
 
-You can find comprehensive documentation for Lift in the [Prisma 2 docs](https://github.com/prisma/prisma2-docs/).
+You can find comprehensive documentation for Lift in the [Prisma 2 docs](https://github.com/prisma/prisma2/).
 
 ## The Lift workflow
 
@@ -55,7 +55,7 @@ You can find comprehensive documentation for Lift in the [Prisma 2 docs](https:/
 
 <img src="https://i.imgur.com/UcN3ENI.png" width="220px">
 
-Specify the connection details for your database as a _data source_ in your [Prisma project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md). The connection details might differ per database, but most commonly you'll probide the following:
+Specify the connection details for your database as a _data source_ in your [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). The connection details might differ per database, but most commonly you'll probide the following:
 
 - Host: The IP address or domain name of the machine where your database server is running.
 - Port: The port on which your database server is listening.
@@ -64,7 +64,7 @@ Specify the connection details for your database as a _data source_ in your [Pri
 Here is an example project file that connects to a local PostgreSQL database:
 
 ```groovy
-// project.prisma
+// schema.prisma
 
 datasource postgres {
   url      = "postgresql://user:password@localhost:5432"
@@ -78,10 +78,10 @@ generator photonjs {
 
 ### 2. Define initial data model
 
-The [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Here is the project file from above extended with a sample data model:
+The [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Here is the project file from above extended with a sample data model:
 
 ```groovy
-// project.prisma
+// schema.prisma
 
 datasource postgres {
   url      = "postgresql://user:password@localhost:5432"
@@ -120,11 +120,11 @@ enum Role {
 
 <img src="https://i.imgur.com/XkRkwdE.png" width="355px">
 
-If you want to use Lift with an existing database, you can [introspect](https://github.com/prisma/prisma2-docs/blob/master/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md). This generates a declarative [data model](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) which provides the foundation for future migrations.
+If you want to use Lift with an existing database, you can [introspect](https://github.com/prisma/prisma2/blob/master/docs/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md). This generates a declarative [data model](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) which provides the foundation for future migrations.
 
 #### Option B: Start from scratch (_greenfield_)
 
-When starting from scratch, you can simply write your own [data model definition](https://github.com/prisma/prisma2-docs/blob/master/data-modeling.md#data-model-definition) inside your [project file](https://github.com/prisma/prisma2-docs/blob/master/prisma-project-file.md). You can then use the Lift CLI commands to migrate your database (Lift maps your data model definition to the schema of the underlying database).
+When starting from scratch, you can simply write your own [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) inside your [schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). You can then use the Lift CLI commands to migrate your database (Lift maps your data model definition to the schema of the underlying database).
 
 ### 3. Adjust the data model
 
@@ -164,4 +164,3 @@ More databases that will be supported in the future are:
 - Neo4J
 - FaunaDB
 - ...
-
