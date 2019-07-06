@@ -8,22 +8,22 @@ This example shows how to implement **GraphQL server with realtime subscriptions
 
 Clone the repository:
 
-```
+```sh
 git clone git@github.com:prisma/photonjs.git
 ```
 
 Install Node dependencies:
 
-```
+```sh
 cd photonjs/examples/typescript/graphql-subscriptions
 npm install
 ```
 
 ### 2. Install the Prisma 2 CLI
 
-To run the example, you need the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md):
+To run the example, you need the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md):
 
-```
+```sh
 npm install -g prisma2
 ```
 
@@ -31,7 +31,7 @@ npm install -g prisma2
 
 For this example, you'll use a simple [SQLite database](https://www.sqlite.org/index.html). To set up your database, run:
 
-```
+```sh
 prisma2 lift save --name 'init'
 prisma2 lift up
 ```
@@ -42,13 +42,13 @@ You can now use the [SQLite Browser](https://sqlitebrowser.org/) to view and edi
 
 Run the following command to generate [Photon JS](https://photonjs.prisma.io/):
 
-```
+```sh
 prisma2 generate
 ```
 
 Now you can seed your database using the `seed` script from `package.json`:
 
-```
+```sh
 npm run seed
 ```
 
@@ -56,7 +56,7 @@ npm run seed
 
 Launch your GraphQL server with this command:
 
-```
+```sh
 npm run start
 ```
 
@@ -170,7 +170,7 @@ subscription {
 
 When hitting the _Play_-button, you won't see an immediate response. Instead there's a loading indicator in the response pane of the Playground:
 
-![](https://imgur.com/l4WObKG.png)
+![Screenshot of the GraphQL Playground showing the loading indicator](https://imgur.com/l4WObKG.png)
 
 Now, whenever a post is created (or updated), e.g. with this mutation (you can run it in another tab):
 
@@ -187,10 +187,10 @@ mutation {
 
 You will see the results appear in the tab where the subscription is running:
 
-![](https://imgur.com/HRWDPsE.png)
+![Screenshot of the GraphQL Playground showing the result](https://imgur.com/HRWDPsE.png)
 
 ## Next steps
 
 - Read the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)
-- Check out the [Prisma 2 docs](https://github.com/prisma/prisma2-docs)
+- Check out the [Prisma 2 docs](https://github.com/prisma/prisma2)
 - Share your feedback in the [`prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on the Prisma Slack
