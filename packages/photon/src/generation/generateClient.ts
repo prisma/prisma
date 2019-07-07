@@ -277,14 +277,13 @@ function redirectToLib(fileName: string) {
 
 function addEsInteropRequire(code: string) {
   const interopCode = `module.exports = Photon; // needed to support const Photon = require('...') in js
-module.exports.default = Photon
-Object.defineProperty(module.exports, "__esModule", { value: true });`
-  const lines = code.split('\n')
-  const exportLineIndex = lines.findIndex(line => line.startsWith('exports.default'))
-
-  lines.splice(exportLineIndex, 0, interopCode)
+Object.defineProperty(module.exports, "__esModule", { value: true });
+for (var key in exports) {
+    module.exports[key] = exports[key];
+}`;
+  const lines = code.split('\n');
   // we now need to reexpose all exports as `exports` is dangling now
   // yes we go through a lot of trouble for our users
-  lines.push(`module.exports.dmmf = exports.dmmf`)
-  return lines.join('\n')
+  lines.push(interopCode);
+  return lines.join('\n');
 }
