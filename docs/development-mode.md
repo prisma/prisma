@@ -12,7 +12,7 @@ Depending on whether you're using [only Photon](./photon/use-only-photon.md) or 
 
 ## Starting development mode
 
-You can start the development mode by with the following command of the [Prisma 2 CLI](./prisma-2-cli.md):
+You can start the development mode by with the following command of the [Prisma 2 CLI](./prisma2-cli.md):
 
 ```
 prisma2 dev

@@ -165,7 +165,7 @@ This defines a model `User` with three fields:
 
 - The `id` field is of type `String` and annotated with two [attributes](./data-modeling.md#attributes):
   - `@id`: Indicates that this field is used as the _primary key_
-  - `@default(cuid()`: Sets a default value for the field by generating a [`cuid`](https://github.com/ericelliott/cuid)
+  - `@default(cuid())`: Sets a default value for the field by generating a [`cuid`](https://github.com/ericelliott/cuid)
 - The `name` field is of type `String?` (read: "optional string"). The `?` is a [type modifier](#type-modifiers) expressing that this field is _optional_.
 - The `email` field is of type `String`. It is annotated with the `@unique` attribute which means that there can never be two records in the database with the same value for that field. This will be enforced by Prisma.
 
@@ -208,7 +208,7 @@ Every schema migration with Lift follows a 3-step-process:
 1. **Save migration**: Run `prisma lift save` to create your [migration files](./migration-files.md) on the file system.
 1. **Run migration**: Run `prisma lift up` to perform the migration against your database.
 
-Step 1. is what you just did in the previous section, so now you need to use Lift to map the data model to your database schema.
+Step 1 is what you just did in the previous section, so now you need to use Lift to map the data model to your database schema.
 
 ### 5.1. Save the migration on the file system
 
@@ -304,6 +304,8 @@ This creates a `node_modules` directory in the root directory of your project:
         └── 20190703131441-init
 ```
 
+You can also add the `output` field to the `generator` block to specify the file path where Photon JS should be generated. Since you're not explicitly specifying the `output` here, it uses the default path which is the project's `node_modules` directory. Learn more about the specifics of generating Photon into `node_modules` [here](./photon/codegen-and-node-setup.md).
+
 Having Photon JS located inside `node_modules/@generated` enables you to import it in your code as follows:
 
 ```ts
@@ -318,7 +320,9 @@ const Photon = require('@generated/photon')
 
 ## 7. Set up simple TypeScript script
 
-To be able to use Photon in your code, you first need to set up a basic TypeScript app. To do so, run the following commands:
+### 7.1. Install dependencies
+
+Let's set up a basic TypeScript app next so that you can start using Photon in code. To do so, run the following commands:
 
 ```
 npm init -y
@@ -326,6 +330,8 @@ npm install --save-dev typescript ts-node
 touch tsconfig.json
 touch index.ts
 ```
+
+### 7.2. Add TypeScript configuration
 
 Then add the following contents into `tsconfig.json`:
 
@@ -339,6 +345,8 @@ Then add the following contents into `tsconfig.json`:
   }
 }
 ```
+
+### 7.3. Add a `start` script to `package.json`
 
 Finally, add a `start` script to your `package.json`:
 
@@ -365,7 +373,7 @@ Finally, add a `start` script to your `package.json`:
 
 That's it! Let's now explore how you can use Photon inside `index.ts` to read and write data in the database.
 
-### 7.1. Create a basic setup
+### 7.4. Create a basic setup
 
 Add the following code to `index.ts`:
 
@@ -390,7 +398,7 @@ main()
 
 Photon's operations are asynchronous, this is why we want to execute them in an `async` function (so that we can `await` the result of the operation). 
 
-### 7.2. Use Photon for basic reads and writes
+### 7.5. Use Photon for basic reads and writes
 
 Add the following operations inside the `main function:
 
@@ -425,3 +433,31 @@ You can now run the script with the following command:
 ```
 npm start
 ```
+
+## 8. Adding a `postinstall` script to (re-)generate Photon JS
+
+Because Photon JS is generated into `node_modules` which is typically populated by invoking `npm install`, you should make sure that Photon JS is also generated upon every invocation of `npm install`. You can do so by adding a `postinstall` script to your `package.json`:
+
+```diff
+{
+  "name": "local-postgres-test-2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node index.ts",
++   "postinstall": "prisma2 generate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+```
+
+When collaborating on a project that uses Photon JS, this approach allows for conventional Node.js best practices where a team member can clone a Git repository and then run `npm install` to get their version of the Node dependencies inside their local `node_modules` directory.

@@ -7,7 +7,7 @@
 - [Data sources](./data-sources.md)
 - [Data modeling](./data-modeling.md)
 - [Relations](./relations.md)
-- [Prisma 2 CLI](./prisma-2-cli.md)
+- [Prisma 2 CLI](./prisma2-cli.md)
 - [Development mode](./development-mode.md)
 - [Introspection](./introspection.md)
 - [Limitations](./limitations.md)
