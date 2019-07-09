@@ -88,7 +88,7 @@ async function generate(isdl: ISDL) {
   const datamodel = await isdlToDatamodel2(isdl, [
     {
       name: 'pg',
-      connectorType: 'postgres',
+      connectorType: 'postgresql',
       url: `${host}?schema=public`,
       config: {},
     },
