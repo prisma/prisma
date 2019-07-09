@@ -1,5 +1,5 @@
 import { Engine, PhotonError } from './Engine'
-import fetch from 'cross-fetch'
+import got from 'got'
 import Process from './process'
 import Deferred from 'deferral'
 import through from 'through2'
@@ -203,13 +203,11 @@ export class NodeEngine extends Engine {
       }
       try {
         await new Promise(r => setTimeout(r, 50)) // TODO: Try out lower intervals here, but we also don't want to spam it too much.
-        const response = await fetch(`http://localhost:${this.port}/status`, {
+        const response = await got(`http://localhost:${this.port}/status`, {
           timeout: 5000, // not official but node-fetch supports it
-        } as any)
-        if (response.ok) {
-          debug(`Ready after try number ${tries}`)
-          return
-        }
+        })
+        debug(`Ready after try number ${tries}`)
+        return
       } catch (e) {
         debug(e.message)
         if (tries >= 100) {
@@ -222,7 +220,10 @@ export class NodeEngine extends Engine {
   }
 
   async getDmmf(): Promise<any> {
-    return fetch(this.url + '/dmmf').then(res => res.json())
+    const result = await got.get(this.url + '/dmmf', {
+      json: true,
+    })
+    return result.body.data
   }
 
   async request<T>(query: string, typeName?: string): Promise<T> {
@@ -231,39 +232,23 @@ export class NodeEngine extends Engine {
     if (!this.child) {
       throw new Error(`Engine has already been stopped`)
     }
-    this.currentRequestPromise = fetch(this.url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ query, variables: {}, operationName: '' }),
-    })
-      .then(response => {
-        if (!response.ok) {
-          return response.text().then(body => {
-            const { status, statusText } = response
-            this.handleErrors({
-              errors: {
-                status,
-                statusText,
-                body,
-              },
-              query,
-            })
-          })
-        } else {
-          return response.json().then(result => {
-            const { data } = result
-            const errors = result.error || result.errors
-            if (errors) {
-              return this.handleErrors({
-                errors,
-                query,
-              })
-            }
-            return data
+    this.currentRequestPromise = got
+      .post(this.url, {
+        json: true,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: { query, variables: {}, operationName: '' },
+      })
+      .then(({ body }) => {
+        const errors = body.error || body.errors
+        if (errors) {
+          return this.handleErrors({
+            errors,
+            query,
           })
         }
+        return body.data
       })
       .catch(errors => {
         if (errors.code && errors.code === 'ECONNRESET') {
@@ -279,8 +264,17 @@ export class NodeEngine extends Engine {
     return this.currentRequestPromise
   }
 
+  private serializeErrors(errors: any) {
+    // make the happy case beautiful
+    if (Array.isArray(errors) && errors.length === 1 && errors[0].error && typeof errors[0].error === 'string') {
+      return errors[0].error
+    }
+
+    return JSON.stringify(errors, null, 2)
+  }
+
   handleErrors({ errors, query }: { errors?: any; query: string }) {
-    const stringified = errors ? JSON.stringify(errors, null, 2) : null
+    const stringified = errors ? this.serializeErrors(errors) : null
     const message = stringified.length > 0 ? stringified : `Error in photon.\$\{rootField || 'query'}`
     const isPanicked = this.stderrLogs.includes('panicked')
     if (isPanicked) {

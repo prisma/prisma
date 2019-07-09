@@ -1,4 +1,5 @@
 import { PhotonError } from './Engine'
+import fetch from 'cross-fetch'
 
 export type Fetcher = (input: {
   query: string
