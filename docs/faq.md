@@ -1,7 +1,5 @@
 # FAQ
 
-## Prisma 1
-
 ## Photon
 
 ### Can I still access my database directly (e.g. using raw SQL)?
@@ -55,3 +53,11 @@ Every migration can be extended with before/after hooks. You can simply put exec
 Lift is not yet production-ready, it has a number of severe [limitations](./limitations.md) that don't make it suitable for production uses. You can track the progress of the release process on [isprisma2ready.com](https://www.isprisma2ready.com). 
 
 While it shouldn't be used for critical applications yet, Photon is definitely in a usable state. You can help us accelerate the release process by using it and [sharing your feedback](./prisma2-feedback.md) with us.
+
+## Other
+
+### Since Prisma 2 is released, will Prisma 1 still be maintained?
+
+Yes, Prisma 1 will continue to be maintained. However, most Prisma engineering resources will go into the development of [Prisma 2](https://github.com/prisma/prisma2) (i.e. [Photon](https://photonjs.prisma.io/) and [Lift](https://lift.prisma.io/)). 
+
+There will be no new features developed for Prisma 1.
