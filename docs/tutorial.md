@@ -462,7 +462,7 @@ You can now run the script with the following command:
 npm start
 ```
 
-This creates a new `User` record in the database and 
+This first creates a new `User` record in the database and subsequently fetches all users to print them in the console.
 
 ## 8. Evolve your application in Prisma's development mode
 
