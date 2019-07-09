@@ -11,7 +11,7 @@ For that, a full rewrite of Prisma was necessary so that we can build upon a pro
 ## TLDR
 
 - Join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on Slack
-- Track the progress of Prisma 2 here: [`isprisma2ready.com`](https://www.isprisma2ready.com) (_coming soon_)
+- Track the progress of Prisma 2 here: [`isprisma2ready.com`](https://www.isprisma2ready.com)
 - Open issues in following repos:
   - General Prisma 2 questions and catch-all for problems and questions: [`prisma 2`](https://github.com/prisma/prisma2)
   - Problems/questions regarding Lift: [`lift`](https://github.com/prisma/lift)
