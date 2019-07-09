@@ -1,2 +1,3 @@
-export { ensureBinaries, ensureMigrationBinary } from './ensureBinaries'
+export { ensureQueryEngineBinary, ensureMigrationBinary } from './ensureBinaries'
 export { download } from './download'
+export { getLatestAlphaTag } from './getLatestAlphaTag'

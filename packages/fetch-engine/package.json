@@ -1,6 +1,6 @@
 {
   "name": "@prisma/fetch-engine",
-  "version": "0.0.32",
+  "version": "0.0.35",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -18,8 +18,9 @@
     "death": "^1.1.0",
     "find-cache-dir": "^3.0.0",
     "hasha": "^5.0.0",
+    "htmlparser2": "^3.10.1",
     "make-dir": "^3.0.0",
-    "node-fetch": "^2.5.0",
+    "node-fetch": "^2.6.0",
     "p-retry": "^4.1.0",
     "progress": "^2.0.3"
   },
