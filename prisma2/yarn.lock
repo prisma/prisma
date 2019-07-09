@@ -383,10 +383,10 @@
     tar "^4.4.10"
     tmp "^0.1.0"
 
-"@prisma/lift@^0.0.129":
-  version "0.0.129"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.129.tgz#9a360b6fb8d6627f27fa30b6980075c78b789e58"
-  integrity sha512-HQ4/p1owhETkwrwm+g3/I+jOzR36MWIq/C08hM1aYrhh0miEHCjNpyGRd0xXNwjDK0eerFIvIonDpg+ZTcvOmA==
+"@prisma/lift@^0.0.130":
+  version "0.0.130"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.130.tgz#4784c317f28a72d0035ffed828abeb0dba3cac7d"
+  integrity sha512-FWtiCkw3OONCMreintOCeU/SOSq2LKkNtQ8JW8caJBB3cQL3usA2YTlHqFAOGkbaEljKyimW0FlRozMMoY+D7w==
   dependencies:
     "@prisma/fetch-engine" "^0.0.24"
     "@prisma/studio-server" "^0.0.34"
@@ -431,10 +431,10 @@
   dependencies:
     tslib "^1.9.3"
 
-"@prisma/photon@^0.0.145":
-  version "0.0.145"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.145.tgz#45c7169321a5180d6c2cf4d4ee1c1a11fdd16411"
-  integrity sha512-CCMrB1IxUZ2aJf2MXHgR+s7RvON0qzW1iqHEUKmjTC52XeXmhmWQUvXP29tSj8YLcZrhzStFPfnIE8KOQqf1+Q==
+"@prisma/photon@^0.0.146":
+  version "0.0.146"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.146.tgz#8b8ca30a308f618abdbdb83717e7588efdc07901"
+  integrity sha512-G4X/WFfp5giuI7LyXLi69MNVIkOFg4o+JF0RiII44YMyv04rSiyvJgZ+vQ0SgE6LFQ/qaHVi6Ew9h87ZmjSY8Q==
   dependencies:
     "@apexearth/copy" "^1.4.1"
     "@prisma/cli" "0.0.24"
