@@ -21,13 +21,14 @@ const remove = promisify(fs.unlink)
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 
-interface BuildClientOptions {
+export interface GenerateClientOptions {
   datamodel: string
-  browser: boolean
+  browser?: boolean
   cwd?: string
   transpile?: boolean
   runtimePath?: string
   binaryPath?: string
+  outputDir: string
 }
 
 export async function buildClient({
@@ -37,7 +38,8 @@ export async function buildClient({
   runtimePath = './runtime',
   browser = false,
   binaryPath,
-}: BuildClientOptions): Promise<Dictionary<string>> {
+  outputDir,
+}: GenerateClientOptions): Promise<Dictionary<string>> {
   const fileMap = {}
 
   const dmmf = await getDMMF({ datamodel, cwd, prismaPath: binaryPath })
@@ -53,9 +55,11 @@ export async function buildClient({
     dmmf: JSON.stringify(dmmf.datamodel),
   })
 
+  const relativeCwd = path.relative(outputDir, cwd)
+
   const client = new TSClient({
     document: dmmf,
-    cwd,
+    cwd: relativeCwd || undefined, // it can be an empty string, then use undefined
     datamodel: datamodelWithoutDatasources.datamodel,
     runtimePath,
     browser,
@@ -124,16 +128,6 @@ function normalizeFileMap(fileMap: Dictionary<string>) {
   }, {})
 }
 
-export interface GenerateClientOptions {
-  datamodel: string
-  cwd?: string
-  outputDir: string
-  transpile?: boolean
-  runtimePath?: string
-  browser?: boolean
-  binaryPath?: string
-}
-
 export async function generateClient({
   datamodel,
   cwd,
@@ -147,7 +141,7 @@ export async function generateClient({
     cwd = path.dirname(cwd)
   }
   runtimePath = runtimePath || './runtime'
-  const files = await buildClient({ datamodel, cwd, transpile, runtimePath, browser, binaryPath })
+  const files = await buildClient({ datamodel, cwd, transpile, runtimePath, browser, binaryPath, outputDir })
   await makeDir(outputDir)
   await Promise.all(
     Object.entries(files).map(async ([fileName, file]) => {
@@ -278,12 +272,14 @@ function redirectToLib(fileName: string) {
 function addEsInteropRequire(code: string) {
   const interopCode = `module.exports = Photon; // needed to support const Photon = require('...') in js
 Object.defineProperty(module.exports, "__esModule", { value: true });
-for (var key in exports) {
+for (let key in exports) {
+  if (exports.hasOwnProperty(key)) {
     module.exports[key] = exports[key];
-}`;
-  const lines = code.split('\n');
+  }
+}`
+  const lines = code.split('\n')
   // we now need to reexpose all exports as `exports` is dangling now
   // yes we go through a lot of trouble for our users
-  lines.push(interopCode);
-  return lines.join('\n');
+  lines.push(interopCode)
+  return lines.join('\n')
 }
