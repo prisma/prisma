@@ -40,7 +40,7 @@ The PostgreSQL connector maps the [scalar types](../../data-modeling.md#scalar-t
 
 PostgreSQL offers also two styles of connection strings. See the [official documentation](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING) for details.
 
-- Key-value string: `host=localhost port=5432 dbname=mydb connect_timeout=10`
+- Key-value string: `host=localhost port=5432 database=mydb connect_timeout=10`
 - Connection URI:
   ```
   postgresql://
@@ -56,16 +56,16 @@ PostgreSQL offers also two styles of connection strings. See the [official docum
 The connection URI needs to follow the [official format](https://www.postgresql.org/docs/10/libpq-connect.html#id-1.7.3.8.3.6) for PostgreSQL connection strings:
 
 ```
-postgresql://[user[:password]@][netloc][:port][,...][/dbname][?param1=value1&...]
+postgresql://[user[:password]@][netloc][:port][,...][/database][?param1=value1&...]
 ```
 
 ### Configuration options
 
-- **Host**: The IP address/domain of your database server, e.g. `localhost`.
-- **Post**: The port on which your database server listens, e.g. `5432`.
-- **Database**: The name of the database target schema. 
-- **Schema**: The name of the target schema. 
-- **User**: The database user, e.g. `admin`.
-- **Password**: The password for the database user.
-- **SSL**: Whether or not your database server uses SSL.
-- **Connection limit**: The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database. Default: `1`.
+- `host`: The IP address/domain of your database server, e.g. `localhost`.
+- `port`: The port on which your database server listens, e.g. `5432`.
+- `database`: The name of the database with the target schema. 
+- `schema`: The name of the target schema. 
+- `user`: The database user, e.g. `admin`.
+- `password`: The password for the database user.
+- `ssl`: Whether or not your database server uses SSL.
+- `connection_limit`: The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database. Default: `1`.
