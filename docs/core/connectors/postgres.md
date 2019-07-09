@@ -68,3 +68,4 @@ postgresql://[user[:password]@][netloc][:port][,...][/dbname][?param1=value1&...
 - **User**: The database user, e.g. `admin`.
 - **Password**: The password for the database user.
 - **SSL**: Whether or not your database server uses SSL.
+- **Connection limit**: The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database. Default: `1`.
