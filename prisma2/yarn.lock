@@ -341,20 +341,6 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/fetch-engine@^0.0.32":
-  version "0.0.32"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.32.tgz#90b457aacae0fae30251b90ab146c512bbde91b6"
-  integrity sha512-BlnfBg5xA2O8SoZ8btuKMuEp5ndfwyrq6CIA6PxDH9cTXC4D0eV71fEmqFON09sX/MMRpV2+f6MwFBdGcIo1kA==
-  dependencies:
-    chalk "^2.4.2"
-    death "^1.1.0"
-    find-cache-dir "^3.0.0"
-    hasha "^5.0.0"
-    make-dir "^3.0.0"
-    node-fetch "^2.5.0"
-    p-retry "^4.1.0"
-    progress "^2.0.3"
-
 "@prisma/fetch-engine@^0.0.35":
   version "0.0.35"
   resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.35.tgz#a5131f2dbace39a359d48d9d4d9a52fc79e25001"
@@ -444,15 +430,15 @@
   dependencies:
     tslib "^1.9.3"
 
-"@prisma/photon@^0.0.137":
-  version "0.0.137"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.137.tgz#f91ef8332e1e9a34e4138ef95db336d16a8a7abc"
-  integrity sha512-b6kOnSpU68tWGT37/aJA1FvZoEz7UuBd0zMTbEJ6EN5HS5U3n9X6wSPrUw+ExwX3SH8+QmP5Is1gFfcafAmibA==
+"@prisma/photon@^0.0.140":
+  version "0.0.140"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.140.tgz#31cab028a1edff91576e7c98ae444214a3998949"
+  integrity sha512-mGINSC8tZryDvPfLnj+cnpVAfW7u6MQVD9guAUeEyI4M1Y9m+LZI8GyfyqEJYSirtqVzaBKbfm8N2EGqr315vQ==
   dependencies:
     "@apexearth/copy" "^1.4.1"
     "@prisma/cli" "0.0.23"
     "@prisma/engine-core" "0.0.63"
-    "@prisma/fetch-engine" "^0.0.32"
+    "@prisma/fetch-engine" "^0.0.35"
     chalk "^2.4.2"
     cpy "^7.3.0"
     dotenv "^8.0.0"
@@ -465,7 +451,7 @@
     make-dir "^3.0.0"
     node-fetch "^2.6.0"
     pluralize "^8.0.0"
-    set-value "^3.0.0"
+    set-value "^3.0.1"
     stacktrace-parser "0.1.6"
     strip-ansi "^5.2.0"
     strip-indent "^3.0.0"
@@ -5007,10 +4993,10 @@ set-value@^2.0.0:
     is-plain-object "^2.0.3"
     split-string "^3.0.1"
 
-set-value@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/set-value/-/set-value-3.0.0.tgz#bc021514f46effed8176fd5f0f67e9988531141f"
-  integrity sha512-tqkg9wJ2TOsxbzIMG5NMAmzjdbDTAD0in7XuUzmFpJE4Ipi2QFBfgC2Z1/gfxcAmWCPsuutiEJyDIMRsrjrMOQ==
+set-value@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/set-value/-/set-value-3.0.1.tgz#52c82af7653ba69eb1db92e81f5cdb32739b9e95"
+  integrity sha512-w6n3GUPYAWQj4ZyHWzD7K2FnFXHx9OTwJYbWg+6nXjG8sCLfs9DGv+KlqglKIIJx+ks7MlFuwFW2RBPb+8V+xg==
   dependencies:
     is-plain-object "^2.0.4"
 
