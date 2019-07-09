@@ -4,7 +4,6 @@ This is an extension of the [data modeling](./data-modeling.md) chapter that dis
 
 The examples on this page are based on this [schema file](./prisma-schema-file.md):
 
-
 ```groovy
 // schema.prisma
 
@@ -59,11 +58,10 @@ It has the following signature:
 @relation(\_ fields?: Identifier[], name?: String, onDelete?: CascadeEnum)
 ```
 
-
 - `fields` _(optional)_: List of [field](./data-modeling.md#fields) names to reference.
 - `name` _(optional)_: Defines the _name_ of the relationship. If this a m:m-relation, the name also determines the name of the relation table in the underlying database.
 - `onDelete` _(optional)_: Defines what to do when the referenced relation is deleted.
-  - `SET_NULL` (_default_): Set the field to `null`.
+  - `NONE` (_default_): Set the field to `null`.
   - `CASCADE`: Also delete this entry.
 
 ## 1:1
