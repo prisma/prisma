@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@prisma/cli": "^0.0.23",
-    "@prisma/lift": "^0.0.126",
+    "@prisma/lift": "^0.0.128",
     "@types/dotenv": "^6.1.1",
     "@types/figures": "^3.0.1",
     "@types/fs-extra": "^7.0.0",

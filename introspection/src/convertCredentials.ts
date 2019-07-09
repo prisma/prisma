@@ -99,7 +99,7 @@ function protocolToDatabaseType(protocol: string): DatabaseType {
 export function databaseTypeToConnectorType(databaseType: DatabaseType): ConnectorType {
   switch (databaseType) {
     case DatabaseType.postgres:
-      return 'postgres'
+      return 'postgresql'
     case DatabaseType.mysql:
       return 'mysql'
     case DatabaseType.sqlite:
