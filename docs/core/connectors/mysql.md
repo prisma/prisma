@@ -53,3 +53,4 @@ The Rust implementation for MySQL accepts connection strings, but it does not se
 - **User**: The database user, e.g. `admin`.
 - **Password**: The password for the database user.
 - **SSL**: Whether or not your database server uses SSL.
+- **Connection limit** (coming soon): The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database. Default: `1`.
