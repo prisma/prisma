@@ -8,22 +8,22 @@ This example shows how to implement a **GraphQL server with an email-password-ba
 
 Clone the repository:
 
-```
+```sh
 git clone git@github.com:prisma/photonjs.git
 ```
 
 Install Node dependencies:
 
-```
+```sh
 cd photonjs/examples/javascript/graphql-auth
 npm install
 ```
 
 ### 2. Install the Prisma 2 CLI
 
-To run the example, you need the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md):
+To run the example, you need the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md):
 
-```
+```sh
 npm install -g prisma2
 ```
 
@@ -31,7 +31,7 @@ npm install -g prisma2
 
 For this example, you'll use a simple [SQLite database](https://www.sqlite.org/index.html). To set up your database, run:
 
-```
+```sh
 prisma2 lift save --name 'init'
 prisma2 lift up
 ```
@@ -42,13 +42,13 @@ You can now use the [SQLite Browser](https://sqlitebrowser.org/) to view and edi
 
 Run the following command to generate [Photon JS](https://photonjs.prisma.io/):
 
-```
+```sh
 prisma2 generate
 ```
 
 Now you can seed your database using the `seed` script from `package.json`:
 
-```
+```sh
 npm run seed
 ```
 
@@ -56,7 +56,7 @@ npm run seed
 
 Launch your GraphQL server with this command:
 
-```
+```sh
 npm run start
 ```
 
@@ -132,7 +132,7 @@ With a real token, this looks similar to this:
 
 Inside the Playground, you can set HTTP headers in the bottom-left corner:
 
-![](https://imgur.com/ToRcCTj.png)
+![Screenshot of GraphQL Playground showing how to set HTTP headers](https://imgur.com/ToRcCTj.png)
 
 Once you've set the header, you can send the following query to check whether the token is valid:
 
@@ -179,7 +179,7 @@ mutation {
 
 #### Search for posts with a specific title or content
 
-You need to be logged in for this query to work, i.e. an authentication token that was retrieved through a `signup` or `login` mutation needs to be added to the `Authorization` header in the GraphQL Playground. 
+You need to be logged in for this query to work, i.e. an authentication token that was retrieved through a `signup` or `login` mutation needs to be added to the `Authorization` header in the GraphQL Playground.
 
 ```graphql
 {
@@ -187,7 +187,7 @@ You need to be logged in for this query to work, i.e. an authentication token th
     id
     title
     content
-    published 
+    published
     author {
       id
       name
@@ -199,7 +199,7 @@ You need to be logged in for this query to work, i.e. an authentication token th
 
 #### Retrieve a single post
 
-You need to be logged in for this query to work, i.e. an authentication token that was retrieved through a `signup` or `login` mutation needs to be added to the `Authorization` header in the GraphQL Playground. 
+You need to be logged in for this query to work, i.e. an authentication token that was retrieved through a `signup` or `login` mutation needs to be added to the `Authorization` header in the GraphQL Playground.
 
 ```graphql
 {
@@ -241,7 +241,7 @@ If you want to change the GraphQL API, you need to adjust the GraphQL schema in 
 
 <Details><Summary><strong>Adding an operation without updating the datamodel</strong></Summary>
 
-To add new operation that can be based on the current [datamodel](./prisma/datamodel.prisma), you first need to add the operation to the GraphQL schema's `Query` or `Mutation` type and then add the corresponding resolver function. 
+To add new operation that can be based on the current [datamodel](./prisma/datamodel.prisma), you first need to add the operation to the GraphQL schema's `Query` or `Mutation` type and then add the corresponding resolver function.
 
 For example, to add a new mutation that updates a user's name, you can extend the `Mutation` type as follows:
 
@@ -260,7 +260,7 @@ Then add the new resolver to the `Mutation` object in [`./src/resolvers/Mutation
 ```diff
 const Mutation = {
   // ...
-+ updateUserName: async (parent, { id, newName }, context) => { 
++ updateUserName: async (parent, { id, newName }, context) => {
 +   return context.photon.users.update({
 +     where: {
 +       id
@@ -278,7 +278,7 @@ You can now send the following mutation to your GraphQL API:
 ```graphql
 mutation {
   updateUserName(
-    id: "__USER_ID__" 
+    id: "__USER_ID__"
     newName: "John")
   {
     id
@@ -325,7 +325,7 @@ type Post {
 
 After having updated the datamodel, you need to deploy the changes:
 
-```
+```sh
 prisma deploy
 ```
 
@@ -378,7 +378,7 @@ Next, you need to implement the resolver for the new operation in [`./src/resolv
 
 ```diff
 const resolvers = {
-  // ... 
+  // ...
   Mutation: {
     // ...
 +   writeComment(parent, { postId, userId }, context) {
@@ -401,7 +401,7 @@ Finally, because `Comment` has a relation to `Post` and `User`, you need to upda
 
 ```diff
 const resolvers = {
-  // ... 
+  // ...
   User: {
     // ...
 +   comments: ({ id }, args, context) {
@@ -430,7 +430,7 @@ You can now send the following mutation to your GraphQL API. Note that this muta
 ```graphql
 mutation {
   writeComment(
-    postId: "__POST_ID__" 
+    postId: "__POST_ID__"
     text: "I like turtles 🐢"
   ) {
     id
@@ -444,7 +444,7 @@ mutation {
 ## Next steps
 
 - Read the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)
-- Check out the [Prisma 2 docs](https://github.com/prisma/prisma2-docs)
+- Check out the [Prisma 2 docs](https://github.com/prisma/prisma2)
 - Share your feedback in the [`prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on the Prisma Slack
 
 ## The idea behind the example

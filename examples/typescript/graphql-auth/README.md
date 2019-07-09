@@ -8,22 +8,22 @@ This example shows how to implement a **GraphQL server with an email-password-ba
 
 Clone the repository:
 
-```
+```sh
 git clone git@github.com:prisma/photonjs.git
 ```
 
 Install Node dependencies:
 
-```
+```sh
 cd photonjs/examples/typescript/graphql-auth
 npm install
 ```
 
 ### 2. Install the Prisma 2 CLI
 
-To run the example, you need the [Prisma 2 CLI](https://github.com/prisma/prisma2-docs/blob/master/prisma-2-cli.md):
+To run the example, you need the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md):
 
-```
+```sh
 npm install -g prisma2
 ```
 
@@ -31,7 +31,7 @@ npm install -g prisma2
 
 For this example, you'll use a simple [SQLite database](https://www.sqlite.org/index.html). To set up your database, run:
 
-```
+```sh
 prisma2 lift save --name 'init'
 prisma2 lift up
 ```
@@ -42,13 +42,13 @@ You can now use the [SQLite Browser](https://sqlitebrowser.org/) to view and edi
 
 Run the following command to generate [Photon JS](https://photonjs.prisma.io/):
 
-```
+```sh
 prisma2 generate
 ```
 
 Now you can seed your database using the `seed` script from `package.json`:
 
-```
+```sh
 npm run seed
 ```
 
@@ -56,7 +56,7 @@ npm run seed
 
 Launch your GraphQL server with this command:
 
-```
+```sh
 npm run start
 ```
 
@@ -132,7 +132,7 @@ With a real token, this looks similar to this:
 
 Inside the Playground, you can set HTTP headers in the bottom-left corner:
 
-![](https://imgur.com/ToRcCTj.png)
+![Screenshot of the GraphQL Playground showing the HTTP headers](https://imgur.com/ToRcCTj.png)
 
 Once you've set the header, you can send the following query to check whether the token is valid:
 
@@ -179,7 +179,7 @@ mutation {
 
 #### Search for posts with a specific title or content
 
-You need to be logged in for this query to work, i.e. an authentication token that was retrieved through a `signup` or `login` mutation needs to be added to the `Authorization` header in the GraphQL Playground. 
+You need to be logged in for this query to work, i.e. an authentication token that was retrieved through a `signup` or `login` mutation needs to be added to the `Authorization` header in the GraphQL Playground.
 
 ```graphql
 {
@@ -187,7 +187,7 @@ You need to be logged in for this query to work, i.e. an authentication token th
     id
     title
     content
-    published 
+    published
     author {
       id
       name
@@ -199,7 +199,7 @@ You need to be logged in for this query to work, i.e. an authentication token th
 
 #### Retrieve a single post
 
-You need to be logged in for this query to work, i.e. an authentication token that was retrieved through a `signup` or `login` mutation needs to be added to the `Authorization` header in the GraphQL Playground. 
+You need to be logged in for this query to work, i.e. an authentication token that was retrieved through a `signup` or `login` mutation needs to be added to the `Authorization` header in the GraphQL Playground.
 
 ```graphql
 {
@@ -237,12 +237,12 @@ mutation {
 
 ### 6. Changing the GraphQL schema
 
-To make changes to the GraphQL schema, you need to manipulate the [`Query`](./src/resolvers/Query.ts) and [`Mutation`](./src/resolvers/Mutation.ts) types. 
+To make changes to the GraphQL schema, you need to manipulate the [`Query`](./src/resolvers/Query.ts) and [`Mutation`](./src/resolvers/Mutation.ts) types.
 
 Note that the [`start`](./package.json#L6) script also starts a development server that automatically updates your schema every time you save a file. This way, the auto-generated [GraphQL schema](./src/generated/schema.graphql) updates whenever you make changes in to the `Query` or `Mutation` types inside your TypeScript code.
 
 ## Next steps
 
 - Read the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)
-- Check out the [Prisma 2 docs](https://github.com/prisma/prisma2-docs)
+- Check out the [Prisma 2 docs](https://github.com/prisma/prisma2)
 - Share your feedback in the [`prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on the Prisma Slack
