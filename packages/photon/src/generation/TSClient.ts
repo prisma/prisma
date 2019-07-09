@@ -1,10 +1,10 @@
 import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfilled in TypeScript
 import indent from 'indent-string'
+import path from 'path'
 import { DMMFClass } from '../runtime/dmmf'
 import { BaseField, DMMF } from '../runtime/dmmf-types'
 import { capitalize, GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
 import { InternalDatasource } from '../runtime/utils/printDatasources'
-import path from 'path'
 import {
   getDefaultName,
   getFieldArgName,
@@ -34,9 +34,6 @@ const commonCode = runtimePath => `import {
   Datasource,
   printDatasources
 } from '${runtimePath}'
-
-// @ts-ignore
-process.setMaxListeners(100)
 
 const debug = debugLib('photon')
 
