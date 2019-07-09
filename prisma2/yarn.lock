@@ -431,10 +431,10 @@
   dependencies:
     tslib "^1.9.3"
 
-"@prisma/photon@^0.0.143":
-  version "0.0.143"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.143.tgz#3f83b9cd318e585d52e42fec162fccd3696df894"
-  integrity sha512-+6EAIXPeTMtPCF1xMPjRNvvHCxYxYx4ddStazJkFD8oo9Pk6ABri/51Lqas9GUDLJLqPC5Mw0dFz91mJaOQrFw==
+"@prisma/photon@^0.0.144":
+  version "0.0.144"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.144.tgz#519ae77532b9c14b2235d6d6ff10b0859570a9e1"
+  integrity sha512-pETKbUQk/2KY/3SrOMxGC1MIXJjtx5a7hwRouitRyCzmLpXCSTsCPl2tq+CV4QRucoATWU9LOQPc0rhmdF5J0w==
   dependencies:
     "@apexearth/copy" "^1.4.1"
     "@prisma/cli" "0.0.23"
