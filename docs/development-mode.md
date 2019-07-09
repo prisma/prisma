@@ -34,7 +34,7 @@ This is **not** how migrations are performed in development mode! When running i
 
 1. **Adjust data model**: Change your [data model definition](./data-modeling.md#data-model-definition) to match your desired database schema. Then **save** the schema file.
 
-Because the development server is watching your schema file (which includes the data model definition) in the background, it notices that you've performed a change and updates your database schema for you. There are **no migration files** created for this schema update!
+Because the development server is watching your schema file (which includes the data model definition) in the background, it notices that you've performed a change and updates your database schema for you. There are **no migration files** created for this schema update! However, it does update Lift's `_Migrations` table in your database schema.
 
 The development mode lets you make quick changes to your data model as you develop your application without the need to persist these changes in a migration. Only once you're happy with your data model, you can [stop the development mode](#stopping-development-mode) and persist your migration using:
 
@@ -49,4 +49,3 @@ The development mode is _interactive_. Not only watches it your [schema file](./
 
 - `d`: Shows the current [data model](./data-modeling.md#data-model-definition) diff
 - `b`: Navigate back to previous screen
-
