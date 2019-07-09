@@ -1,5 +1,20 @@
 # FAQ
 
+- Photon
+  - [Can I still access my database directly (e.g. using raw SQL)?](#can-i-still-access-my-database-directly-eg-using-raw-sql)
+  - [Is Photon an ORM?](#is-photon-an-orm)
+  - [Will Photon support more databases (and other data sources) in the future?](#will-photon-support-more-databases-and-other-data-sources-in-the-future)
+  - [How can I see the generated queries that Photon sends to my database?](#how-can-i-see-the-generated-queries-that-photon-sends-to-my-database)
+  - [How do schema migrations work with Photon?](#how-do-schema-migrations-work-with-photon)
+  - [Is Photon production-ready? Should I start using it?](#is-photon-production-ready-should-i-start-using-it)
+- Lift
+  - [Am I locked-in when using Lift? Is it easy to migrate off it?](#am-i-locked-in-when-using-lift-is-it-easy-to-migrate-off-it)
+  - [How do I see details about how Lift migrates my database schema?](#how-do-i-see-details-about-how-lift-migrates-my-database-schema)
+  - [How can I extend a migration with custom functionality, e.g. running a script?](#how-can-i-extend-a-migration-with-custom-functionality-eg-running-a-script)
+  - [Is Lift production-ready? Should I start using it?](#is-lift-production-ready-should-i-start-using-it)
+- Other
+  - [Since Prisma 2 is released, will Prisma 1 still be maintained?](#since-prisma-2-is-released-will-prisma-1-still-be-maintained)
+
 ## Photon
 
 ### Can I still access my database directly (e.g. using raw SQL)?
