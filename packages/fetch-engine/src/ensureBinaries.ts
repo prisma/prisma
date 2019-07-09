@@ -6,17 +6,17 @@ import makeDir from 'make-dir'
 
 const exists = promisify(fs.exists)
 
-export async function ensureBinaries(resultPath?: string) {
+export async function ensureQueryEngineBinary(resultPath?: string, version?: string) {
   const runtimeDir = resultPath || (await getRuntimeDir())
   await makeDir(runtimeDir)
   const prisma = path.join(runtimeDir, 'prisma')
-  await download(prisma, '0.0.1')
+  await download(prisma, version)
 }
 
-export async function ensureMigrationBinary(resultPath: string) {
+export async function ensureMigrationBinary(resultPath: string, version?: string) {
   await makeDir(resultPath)
   const prisma = path.join(resultPath, 'migration-engine')
-  await downloadMigrationBinary(prisma, '0.0.1')
+  await downloadMigrationBinary(prisma, version)
 }
 
 async function getRuntimeDir() {

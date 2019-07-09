@@ -24,7 +24,14 @@ const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
 
-export async function downloadMigrationBinary(migrationBinary: string, version: string, showProgress = false) {
+// TODO: make channel configurable
+const channel = 'alpha'
+
+export async function downloadMigrationBinary(
+  migrationBinary: string,
+  version: string = 'latest',
+  showProgress = false,
+) {
   try {
     fs.writeFileSync(
       migrationBinary,
@@ -56,7 +63,7 @@ export async function downloadMigrationBinary(migrationBinary: string, version: 
   if (platform === 'linux-lambda') {
     console.log({ platform })
   }
-  const cacheDir = await getCacheDir(platform)
+  const cacheDir = await getCacheDir(channel, version, platform)
   const cachedMigrationEnginePath = path.join(cacheDir, 'migration-engine')
   const cachedLastModifiedPath = path.join(cacheDir, 'lastModifiedMigrationEngine')
 
@@ -66,7 +73,7 @@ export async function downloadMigrationBinary(migrationBinary: string, version: 
   ])
 
   if (cachedMigrationEngineExists && localLastModified) {
-    const remoteLastModified = await getRemoteLastModified(getMigrationEngineDownloadUrl(platform))
+    const remoteLastModified = await getRemoteLastModified(getMigrationEngineDownloadUrl(channel, version, platform))
     // If there is no new binary and we have it localy, copy it over
     if (localLastModified >= remoteLastModified) {
       // console.log(`Taking migration engine binary from local cache from ${localLastModified.toISOString()}`)
@@ -80,7 +87,12 @@ export async function downloadMigrationBinary(migrationBinary: string, version: 
     bar.update(0)
   }
 
-  const lastModified = await downloadZip(getMigrationEngineDownloadUrl(platform), migrationBinary, 0, bar)
+  const lastModified = await downloadZip(
+    getMigrationEngineDownloadUrl(channel, version, platform),
+    migrationBinary,
+    0,
+    bar,
+  )
   if (bar) {
     bar.update(1)
     bar.terminate()
@@ -105,7 +117,7 @@ export async function downloadMigrationBinary(migrationBinary: string, version: 
 /**
  * TODO: Check if binary already exists and if checksum is the same!
  */
-export async function download(prismaBinPath: string, version: string, showProgress = false) {
+export async function download(prismaBinPath: string, version: string = 'latest', showProgress = false) {
   try {
     fs.writeFileSync(
       prismaBinPath,
@@ -134,7 +146,8 @@ export async function download(prismaBinPath: string, version: string, showProgr
 
   // Print an empty line
   const platform = await getPlatform()
-  const cacheDir = await getCacheDir(platform)
+  const cacheDir = await getCacheDir(channel, version, platform)
+  console.log(`Downloading ${channel}/${version}/${platform}`)
   const cachedPrismaPath = path.join(cacheDir, 'prisma')
   const cachedLastModifiedPath = path.join(cacheDir, 'lastModified')
 
@@ -144,7 +157,7 @@ export async function download(prismaBinPath: string, version: string, showProgr
   ])
 
   if (cachedPrismaExists && localLastModified) {
-    const remoteLastModified = await getRemoteLastModified(getPrismaDownloadUrl(platform))
+    const remoteLastModified = await getRemoteLastModified(getPrismaDownloadUrl(channel, version, platform))
     // If there is no new binary and we have it localy, copy it over
     if (localLastModified >= remoteLastModified) {
       // console.log(`Taking binaries from local cache from ${localLastModified.toISOString()}`)
@@ -158,7 +171,7 @@ export async function download(prismaBinPath: string, version: string, showProgr
     bar.update(0)
   }
 
-  const lastModified = await downloadZip(getPrismaDownloadUrl(platform), prismaBinPath, 0, bar)
+  const lastModified = await downloadZip(getPrismaDownloadUrl(channel, version, platform), prismaBinPath, 0, bar)
   if (bar) {
     bar.update(1)
     bar.terminate()
@@ -294,13 +307,18 @@ async function downloadFile(
   )
 }
 
-async function getCacheDir(platform: string): Promise<string> {
+async function getRootCacheDir(platform: string): Promise<string> {
   if (platform === 'darwin' || platform.startsWith('linux')) {
-    const cacheDir = path.join(os.homedir(), '.cache/prisma')
-    await makeDir(cacheDir)
-    return cacheDir
+    return path.join(os.homedir(), '.cache/prisma')
   }
   return findCacheDir({ name: 'prisma' })
+}
+
+async function getCacheDir(channel: string, version: string, platform: string): Promise<string> {
+  const rootCacheDir = await getRootCacheDir(platform)
+  const cacheDir = path.join(rootCacheDir, channel, version, platform)
+  await makeDir(cacheDir)
+  return cacheDir
 }
 
 async function getPlatform() {
@@ -317,10 +335,10 @@ async function getPlatform() {
   return 'linux-glibc'
 }
 
-function getPrismaDownloadUrl(platform: string) {
-  return `https://s3-eu-west-1.amazonaws.com/prisma-native/alpha/latest/${platform}/prisma.gz`
+function getPrismaDownloadUrl(channel: string, version: string, platform: string) {
+  return `https://s3-eu-west-1.amazonaws.com/prisma-native/${channel}/${version}/${platform}/prisma.gz`
 }
 
-function getMigrationEngineDownloadUrl(platform: string) {
-  return `https://s3-eu-west-1.amazonaws.com/prisma-native/alpha/latest/${platform}/migration-engine.gz`
+function getMigrationEngineDownloadUrl(channel: string, version: string, platform: string) {
+  return `https://s3-eu-west-1.amazonaws.com/prisma-native/${channel}/${version}/${platform}/migration-engine.gz`
 }
