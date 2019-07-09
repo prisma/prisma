@@ -6,6 +6,7 @@ const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
 
 const datamodelFile = 'project.prisma'
+const schemaFile = 'schema.prisma'
 
 /**
  * Prefer the folder that has the project.prisma.
@@ -20,8 +21,10 @@ export async function getCwd(): Promise<string> {
     prismaDatamodelExists,
   ] = await Promise.all([
     exists(path.join(cwd, datamodelFile)),
+    exists(path.join(cwd, schemaFile)),
     exists(path.join(cwd, 'prisma/')),
     exists(path.join(cwd, 'prisma/', datamodelFile)),
+    exists(path.join(cwd, 'prisma/', schemaFile)),
   ])
 
   if (datamodelCwdExists) {
@@ -37,9 +40,11 @@ export async function getCwd(): Promise<string> {
 
 export async function getDatamodel(): Promise<string> {
   const cwd = await getCwd()
-  const datamodelPath = path.join(cwd, datamodelFile)
-  const datamodelExists = await exists(datamodelPath)
-  if (!datamodelExists) {
+  let datamodelPath = path.join(cwd, datamodelFile)
+  if (!(await exists(datamodelPath))) {
+    let datamodelPath = path.join(cwd, schemaFile)
+  }
+  if (!(await exists(datamodelPath))) {
     throw new Error(`Could not find ${datamodelPath}`)
   }
   return readFile(datamodelPath, 'utf-8')

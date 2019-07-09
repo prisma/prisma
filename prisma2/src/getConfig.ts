@@ -13,7 +13,10 @@ export async function getConfig(cwd: string) {
 }
 
 export async function getDatamodel(cwd: string): Promise<string> {
-  const datamodelPath = path.join(cwd, 'project.prisma')
+  let datamodelPath = path.join(cwd, 'project.prisma')
+  if (!(await exists(datamodelPath))) {
+    datamodelPath = path.join(cwd, 'schema.prisma')
+  }
   if (!(await exists(datamodelPath))) {
     throw new Error(`Could not find ${datamodelPath}`)
   }
