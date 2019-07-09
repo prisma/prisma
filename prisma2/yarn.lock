@@ -370,10 +370,10 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/introspection@0.0.36":
-  version "0.0.36"
-  resolved "https://registry.yarnpkg.com/@prisma/introspection/-/introspection-0.0.36.tgz#253da679a7cf6d06e0b891a232cd38ed6f002488"
-  integrity sha512-cSWIMh8qOLlucM5985WCCz+QGtlmbnsAvczwHSEd9jRQtHe87EbCgYdDQyJABwg3DT64csTZS5QNHhDpKBxjxg==
+"@prisma/introspection@0.0.37":
+  version "0.0.37"
+  resolved "https://registry.yarnpkg.com/@prisma/introspection/-/introspection-0.0.37.tgz#6071383931f9d5a9a5ccc6b5c222d3f1c5ab23eb"
+  integrity sha512-TrxlfoKPiTh6xnrMr4Vi1X9gi6t6g6VgkKMEj233qSk0Rlus/awrusBW1DM3B6wnT6hferIieVoIvZcKlfVMbg==
   dependencies:
     ajv "^6.10.0"
     chalk "^2.4.2"
