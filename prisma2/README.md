@@ -53,4 +53,3 @@ Undo migrations.
 ### `prisma2 convert`
 
 Convert the Prisma 1 service configuration to a Prisma 2 project file.
-
