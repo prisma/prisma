@@ -1,10 +1,10 @@
 import { CompiledGeneratorDefinition, Dictionary, GeneratorDefinitionWithPackage } from '@prisma/cli'
-import path from 'path'
-import { LiftEngine } from '../../LiftEngine'
+import { getRawDMMF } from '@prisma/photon'
 import chalk from 'chalk'
 import fs from 'fs-extra'
+import path from 'path'
+import { LiftEngine } from '../../LiftEngine'
 import { runGeneratorBinary } from './runGeneratorBinary'
-import { getRawDMMF } from '@prisma/photon'
 // import { generateInThread } from '../generateInThread'
 
 const didYouMeanMap = {
@@ -42,7 +42,7 @@ export async function getCompiledGenerators(
 
   return generators.map((g, index) => {
     const predefinedGenerator = definitions[g.provider]
-    const otherGenerators = generators.filter((g, i) => i !== index)
+    const otherGenerators = generators.filter((_, i) => i !== index)
     // Is this a known generator?
     if (predefinedGenerator) {
       return {
@@ -67,7 +67,7 @@ export async function getCompiledGenerators(
         const didYouMean = `\nDid you mean ${chalk.greenBright(replacement)}?`
         throw new Error(
           `Unknown generator provider ${g.provider} for generator ${g.name} defined in ${chalk.underline(
-            path.join(cwd, 'project.prisma'),
+            path.join(cwd, 'schema.prisma'),
           )}${didYouMean}`,
         )
       }
@@ -97,6 +97,7 @@ export async function getCompiledGenerators(
 
 function hasChmodX(file: string): boolean {
   const s = fs.statSync(file)
+  // tslint:disable-next-line
   const newMode = s.mode | 64 | 8 | 1
   return s.mode === newMode
 }
