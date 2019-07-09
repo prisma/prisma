@@ -2,13 +2,13 @@ import { GeneratorDefinition } from '@prisma/cli'
 
 export type DatamodelStep = CreateModelStep | CreateFieldStep
 
-export type CreateModelStep = {
+export interface CreateModelStep {
   stepType: 'CreateModel'
   name: string
   embedded: boolean
 }
 
-export type CreateFieldStep = {
+export interface CreateFieldStep {
   stepType: 'CreateField'
   model: string
   name: string
@@ -32,11 +32,11 @@ export enum FieldArity {
 
 export type FieldType = BaseFieldType | RelationFieldType
 
-export type BaseFieldType = {
+export interface BaseFieldType {
   Base: PrimitiveType
 }
 
-export type RelationFieldType = {
+export interface RelationFieldType {
   Relation: {
     to: string
     to_field: string | null
@@ -49,23 +49,23 @@ export namespace EngineArgs {
   /**
    * These RPCs need a sourceConfig, therefore a db connection to function
    */
-  export type ApplyMigration = {
+  export interface ApplyMigration {
     migrationId: string
     steps: DatamodelStep[]
     force: boolean
     sourceConfig: string
   }
-  export type InferMigrationSteps = {
+  export interface InferMigrationSteps {
     migrationId: string
     datamodel: string
     assumeToBeApplied: DatamodelStep[]
     sourceConfig: string
   }
-  export type MigrationProgress = {
+  export interface MigrationProgress {
     migrationId: string
     sourceConfig: string
   }
-  export type CalculateDatabaseSteps = {
+  export interface CalculateDatabaseSteps {
     assumeToBeApplied: DatamodelStep[]
     stepsToApply: DatamodelStep[]
     sourceConfig: string
@@ -73,26 +73,26 @@ export namespace EngineArgs {
   /**
    * These don't
    */
-  export type DmmfToDml = {
+  export interface DmmfToDml {
     dmmf: any // TODO type this
     config: any
   }
-  export type CalculateDatamodel = {
+  export interface CalculateDatamodel {
     steps: DatamodelStep[]
   }
-  export type GetConfig = {
+  export interface GetConfig {
     datamodel: string
   }
-  export type UnapplyMigration = {
+  export interface UnapplyMigration {
     sourceConfig: string
   }
-  export type ListMigrations = {
+  export interface ListMigrations {
     sourceConfig: string
   }
 }
 
 export namespace EngineResults {
-  export type InferMigrationSteps = {
+  export interface InferMigrationSteps {
     datamodelSteps: DatamodelStep[]
     databaseSteps: any[]
     warnings: any[]
@@ -108,7 +108,7 @@ export namespace EngineResults {
     RollbackSuccess = 'RollbackSuccess',
     RollbackFailure = 'RollbackFailure',
   }
-  export type MigrationProgress = {
+  export interface MigrationProgress {
     status: MigrationStatus
     steps: number
     applied: number
@@ -117,46 +117,49 @@ export namespace EngineResults {
     startedAt: string
     finishedAt: string
   }
-  export type ApplyMigration = {
+  export interface ApplyMigration {
     datamodelSteps: DatamodelStep[]
     databaseSteps: DatabaseStep[]
     warnings: any[]
     errors: any[]
     generalErrors: any[]
   }
-  export type UnapplyMigration = {
+  export interface UnapplyMigration {
     rolledBack: DatamodelStep[]
     active: DatamodelStep[]
     errors: any[]
   }
-  export type StoredMigration = {
+  export interface StoredMigration {
     id: string
     datamodelSteps: DatamodelStep[]
     databaseSteps: DatabaseStep[]
     status: MigrationStatus
     datamodel: string
   }
-  export type CalculateDatamodel = {
+  export interface CalculateDatamodel {
     datamodel: string
   }
   export type ListMigrations = StoredMigration[]
-  export type DmmfToDml = {
+  export interface DmmfToDml {
     datamodel: string
   }
 }
 
 export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgresql'
 
-export type ConfigMetaFormat = { datasources: DataSource[]; generators: GeneratorConfig[] }
+export interface ConfigMetaFormat {
+  datasources: DataSource[]
+  generators: GeneratorConfig[]
+}
 
-export type GeneratorConfig = {
+export interface GeneratorConfig {
   name: string
   output: string | null
   provider: string
   config: Dictionary<string>
 }
 
-export type DataSource = {
+export interface DataSource {
   name: string
   connectorType: ConnectorType
   url: string
@@ -167,7 +170,7 @@ export interface FileMap {
   [fileName: string]: string
 }
 
-export type LockFile = {
+export interface LockFile {
   localMigrations: string[]
   remoteMigrations: string[]
   localBranch?: string
@@ -175,7 +178,7 @@ export type LockFile = {
   // TODO: add the conflicts here
 }
 
-export type Dictionary<T> = {
+export interface Dictionary<T> {
   [key: string]: T
 }
 
@@ -195,19 +198,19 @@ export interface LocalMigrationWithDatabaseSteps extends LocalMigration {
   databaseSteps: DatabaseStep[]
 }
 
-export type RawSqlStep = {
+export interface RawSqlStep {
   RawSql: string
   raw: string
 }
 
-export type DropTableStep = {
+export interface DropTableStep {
   raw: string
   DropTable: {
     name: string
   }
 }
 
-export type RenameTableStep = {
+export interface RenameTableStep {
   raw: string
   RenameTable: {
     name: string
@@ -215,7 +218,7 @@ export type RenameTableStep = {
   }
 }
 
-export type CreateTableStep = {
+export interface CreateTableStep {
   raw: string
   CreateTable: {
     name: string
@@ -224,7 +227,7 @@ export type CreateTableStep = {
   }
 }
 
-export type CreateColumn = {
+export interface CreateColumn {
   raw: string
   name: string
   tpe: string
