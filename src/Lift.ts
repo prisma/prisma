@@ -1,412 +1,73 @@
-import { LiftEngine } from './LiftEngine'
-import fs from 'fs'
-import path from 'path'
-import { now, timestampToDate } from './utils/now'
-import { promisify } from 'util'
-import { FileMap, LockFile, Migration, EngineResults, LocalMigrationWithDatabaseSteps, LocalMigration } from './types'
-import { deserializeLockFile, initLockFile, serializeLockFile } from './utils/LockFile'
-import globby from 'globby'
-import { printDatabaseStepsOverview, highlightMigrationsSQL } from './utils/printDatabaseSteps'
-import { printMigrationReadme } from './utils/printMigrationReadme'
-import { printDatamodelDiff } from './utils/printDatamodelDiff'
-import chalk from 'chalk'
-import { highlightDatamodel } from './cli/highlight/highlight'
-import { groupBy } from './utils/groupBy'
-import stripAnsi from 'strip-ansi'
-import cliCursor from 'cli-cursor'
-import { formatms } from './utils/formartms'
-import { blue } from './cli/highlight/theme'
-import logUpdate from 'log-update'
-import { Readable } from 'stream'
-import { drawBox } from './utils/drawBox'
-import pMap from 'p-map'
 import { Dictionary, GeneratorDefinitionWithPackage } from '@prisma/cli'
 import 'array-flat-polyfill'
-import { isWatchMigrationName } from './utils/isWatchMigrationName'
+import chalk from 'chalk'
+import cliCursor from 'cli-cursor'
 import dashify from 'dashify'
-import makeDir = require('make-dir')
-import { serializeFileMap } from './utils/serializeFileMap'
 import del from 'del'
-import { simpleDebounce } from './utils/simpleDebounce'
-import { DevComponentRenderer } from './ink/DevComponentRenderer'
-import { getCompiledGenerators } from './utils/generation/getCompiledGenerators'
+import fs from 'fs'
 import getPort from 'get-port'
+import globby from 'globby'
+import logUpdate from 'log-update'
+import makeDir = require('make-dir')
+import pMap from 'p-map'
+import path from 'path'
+import { Readable } from 'stream'
+import stripAnsi from 'strip-ansi'
+import { promisify } from 'util'
+import { highlightDatamodel } from './cli/highlight/highlight'
+import { blue } from './cli/highlight/theme'
+import { DevComponentRenderer } from './ink/DevComponentRenderer'
+import { LiftEngine } from './LiftEngine'
+import { EngineResults, FileMap, LocalMigration, LocalMigrationWithDatabaseSteps, LockFile, Migration } from './types'
+import { drawBox } from './utils/drawBox'
+import { formatms } from './utils/formartms'
+import { getCompiledGenerators } from './utils/generation/getCompiledGenerators'
+import { groupBy } from './utils/groupBy'
+import { isWatchMigrationName } from './utils/isWatchMigrationName'
+import { deserializeLockFile, initLockFile, serializeLockFile } from './utils/LockFile'
+import { now, timestampToDate } from './utils/now'
+import { highlightMigrationsSQL, printDatabaseStepsOverview } from './utils/printDatabaseSteps'
+import { printDatamodelDiff } from './utils/printDatamodelDiff'
+import { printMigrationReadme } from './utils/printMigrationReadme'
+import { serializeFileMap } from './utils/serializeFileMap'
+import { simpleDebounce } from './utils/simpleDebounce'
 const packageJson = require('../package.json')
-import debugLib from 'debug'
-import plusX from './utils/plusX'
 import { spawn } from 'child_process'
+import debugLib from 'debug'
 import indent from 'indent-string'
+import plusX from './utils/plusX'
 const debug = debugLib('Lift')
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
 
-export type UpOptions = {
+export interface UpOptions {
   preview?: boolean
   n?: number
   short?: boolean
   verbose?: boolean
 }
-export type DownOptions = {
+export interface DownOptions {
   n?: number
 }
-export type WatchOptions = {
+export interface WatchOptions {
   preview?: boolean
   generatorDefinitions: Dictionary<GeneratorDefinitionWithPackage>
   clear?: boolean
 }
-type MigrationFileMapOptions = {
+interface MigrationFileMapOptions {
   migration: LocalMigrationWithDatabaseSteps
   lastMigration?: Migration
 }
 const brightGreen = chalk.rgb(127, 224, 152)
 
 export class Lift {
-  engine: LiftEngine
-  private datamodelBeforeWatch: string = ''
-  private studioServer?: any
-  private studioPort: number = 5555
-  constructor(protected projectDir: string) {
-    this.engine = new LiftEngine({ projectDir })
-  }
-
   get devMigrationsDir() {
     return path.join(this.projectDir, 'migrations/dev')
   }
+  public engine: LiftEngine
 
-  async getDatamodel(): Promise<string> {
-    const datamodelPath = path.resolve(this.projectDir, 'project.prisma')
-    if (!(await exists(datamodelPath))) {
-      throw new Error(`Could not find ${datamodelPath}`)
-    }
-    return readFile(datamodelPath, 'utf-8')
-  }
-
-  // TODO: optimize datapaths, where we have a datamodel already, use it
-  getSourceConfig(): Promise<string> {
-    return this.getDatamodel()
-  }
-
-  async recreateStudioServer(datamodel: string) {
-    try {
-      if (this.studioServer) {
-        this.studioServer.stop()
-        delete this.studioServer
-      }
-
-      const pathCandidates = [
-        // ncc go home
-        eval(`require('path').join(__dirname, '../node_modules/@prisma/photon/runtime/prisma')`), // for local dev
-        eval(`require('path').join(__dirname, '../runtime/prisma')`), // for production
-      ]
-
-      const pathsExist = await Promise.all(
-        pathCandidates.map(async candidate => ({ exists: await exists(candidate), path: candidate })),
-      )
-
-      const firstExistingPath = pathsExist.find(p => p.exists)
-
-      if (!firstExistingPath) {
-        throw new Error(`Could not find any binary path for Studio. Looked in ${pathCandidates.join(', ')}`)
-      }
-
-      const StudioServer = require('@prisma/studio-server').default
-
-      this.studioServer = new StudioServer({
-        port: this.studioPort,
-        debug: false,
-        datamodel,
-        binaryPath: firstExistingPath.path,
-      })
-
-      await this.studioServer.start()
-    } catch (e) {
-      debug(e)
-    }
-  }
-
-  public async getLockFile(): Promise<LockFile> {
-    const lockFilePath = path.resolve(this.projectDir, 'migrations', 'lift.lock')
-    if (await exists(lockFilePath)) {
-      const file = await readFile(lockFilePath, 'utf-8')
-      const lockFile = deserializeLockFile(file)
-      if (lockFile.remoteBranch) {
-        // TODO: Implement handling the conflict
-        throw new Error(
-          `There's a merge conflict in the ${chalk.bold(
-            'migrations/lift.lock',
-          )} file. Please execute ${chalk.greenBright('prisma lift fix')} to solve it`,
-        )
-      }
-      return lockFile
-    }
-
-    return initLockFile()
-  }
-
-  public async createMigration(migrationId: string): Promise<LocalMigrationWithDatabaseSteps | undefined> {
-    const { migrationsToApply, sourceConfig } = await this.getMigrationsToApply()
-
-    const assumeToBeApplied = migrationsToApply.flatMap(m => m.datamodelSteps)
-
-    const datamodel = await this.getDatamodel()
-    const { datamodelSteps, databaseSteps } = await this.engine.inferMigrationSteps({
-      sourceConfig,
-      datamodel,
-      migrationId,
-      assumeToBeApplied,
-    })
-
-    if (datamodelSteps.length === 0) {
-      return undefined
-    }
-
-    return {
-      id: migrationId,
-      datamodel,
-      datamodelSteps,
-      databaseSteps,
-    }
-  }
-
-  private getMigrationFileMap({ migration, lastMigration }: MigrationFileMapOptions): FileMap {
-    const { version } = packageJson
-    const { datamodelSteps, datamodel } = migration
-
-    return {
-      ['steps.json']: JSON.stringify({ version, steps: datamodelSteps }, null, 2),
-      ['datamodel.prisma']: datamodel,
-      ['README.md']: printMigrationReadme({
-        migrationId: migration.id,
-        lastMigrationId: lastMigration ? lastMigration.id : '',
-        datamodelA: lastMigration ? lastMigration.datamodel : '',
-        datamodelB: datamodel,
-        databaseSteps: migration.databaseSteps,
-      }),
-    }
-  }
-
-  private async persistWatchMigration(options: MigrationFileMapOptions) {
-    const fileMap = this.getMigrationFileMap(options)
-    await serializeFileMap(fileMap, path.join(this.devMigrationsDir, options.migration.id))
-  }
-
-  public getMigrationId(name?: string) {
-    const timestamp = now()
-    return timestamp + (name ? `-${dashify(name)}` : '')
-  }
-
-  public async save(
-    migration: LocalMigrationWithDatabaseSteps,
-    name?: string,
-    preview?: boolean,
-  ): Promise<{ files: FileMap; migrationId: string; newLockFile: string }> {
-    const migrationId = this.getMigrationId(name)
-    migration.id = migrationId
-    const lockFile = await this.getLockFile()
-    const { datamodel } = migration
-    const localMigrations = await this.getLocalMigrations()
-    const lastMigration = localMigrations.length > 0 ? localMigrations[localMigrations.length - 1] : undefined
-
-    // TODO better printing of params
-    const nameStr = name ? ` --name ${chalk.bold(name)}` : ''
-    const previewStr = preview ? ` --preview` : ''
-    console.log(`📼  lift save${nameStr}${previewStr}`)
-    if (lastMigration) {
-      const wording = preview ? `Potential datamodel changes:` : 'Local datamodel Changes:'
-      console.log(chalk.bold(`\n${wording}\n`))
-    } else {
-      console.log(brightGreen.bold('\nNew datamodel:\n'))
-    }
-    if (lastMigration) {
-      console.log(printDatamodelDiff(lastMigration.datamodel, datamodel))
-    } else {
-      console.log(highlightDatamodel(datamodel))
-    }
-
-    lockFile.localMigrations.push(migrationId)
-    const newLockFile = serializeLockFile(lockFile)
-
-    await del(this.devMigrationsDir)
-
-    return {
-      migrationId,
-      files: this.getMigrationFileMap({ migration, lastMigration }),
-      newLockFile,
-    }
-  }
-
-  private async getLocalMigrations(
-    migrationsDir = path.join(this.projectDir, 'migrations'),
-  ): Promise<LocalMigration[]> {
-    if (!(await exists(migrationsDir))) {
-      return []
-    }
-    const migrationSteps = await globby(
-      ['**/steps.json', '**/datamodel.prisma', '**/after.sh', '**/before.sh', '**/after.ts', '**/before.ts', '!dev'],
-      {
-        cwd: migrationsDir,
-      },
-    ).then(files =>
-      Promise.all(
-        files.map(async fileName => ({
-          fileName: fileName.split('/')[1],
-          migrationId: fileName.split('/')[0],
-          file: await readFile(path.join(migrationsDir, fileName), 'utf-8'),
-        })),
-      ),
-    )
-
-    migrationSteps.sort((a, b) => (a.migrationId < b.migrationId ? -1 : 1))
-
-    const groupedByMigration = groupBy(migrationSteps, step => step.migrationId)
-
-    return Object.entries(groupedByMigration).map(([migrationId, files]) => {
-      const stepsFile = files.find(f => f.fileName === 'steps.json')!
-      const datamodelFile = files.find(f => f.fileName === 'datamodel.prisma')!
-      const afterFile = files.find(f => f.fileName === 'after.sh' || f.fileName === 'after.ts')
-      const beforeFile = files.find(f => f.fileName === 'before.sh' || f.fileName === 'before.ts')
-      const stepsFileJson = JSON.parse(stepsFile.file)
-      if (Array.isArray(stepsFileJson)) {
-        throw new Error(
-          `We changed the steps.json format - please delete your migrations folder and run prisma lift create again`,
-        )
-      }
-      if (!stepsFileJson.steps) {
-        throw new Error(`${stepsFile.fileName} is expected to have a .steps property`)
-      }
-
-      return {
-        id: migrationId,
-        datamodelSteps: stepsFileJson.steps,
-        datamodel: datamodelFile.file,
-        afterFilePath: afterFile ? path.resolve(migrationsDir, migrationId, afterFile.fileName) : undefined,
-        beforeFilePath: beforeFile ? path.resolve(migrationsDir, migrationId, beforeFile.fileName) : undefined,
-      }
-    })
-  }
-
-  async getLocalWatchMigrations(): Promise<Migration[]> {
-    return this.getLocalMigrations(this.devMigrationsDir)
-  }
-
-  private async getDatabaseSteps(
-    localMigrations: Migration[],
-    fromIndex: number,
-    sourceConfig: string,
-  ): Promise<LocalMigrationWithDatabaseSteps[]> {
-    const migrationsWithDatabaseSteps = await pMap(
-      localMigrations,
-      async (migration, index) => {
-        if (index < fromIndex) {
-          return {
-            ...migration,
-            databaseSteps: [],
-          }
-        }
-        const stepsUntilNow = index > 0 ? localMigrations.slice(0, index).flatMap(m => m.datamodelSteps) : []
-        const input = {
-          assumeToBeApplied: stepsUntilNow,
-          stepsToApply: migration.datamodelSteps,
-          sourceConfig,
-        }
-        const { databaseSteps } = await this.engine.calculateDatabaseSteps(input)
-        return {
-          ...migration,
-          databaseSteps,
-        }
-      },
-      { concurrency: 1 },
-    )
-
-    return migrationsWithDatabaseSteps.slice(fromIndex)
-  }
-
-  public async watch(
-    options: WatchOptions = { preview: false, clear: true, generatorDefinitions: {} },
-  ): Promise<string> {
-    if (!options.clear) {
-      options.clear = true
-    }
-
-    const datamodel = await this.getDatamodel()
-
-    const generators = await getCompiledGenerators(this.projectDir, datamodel, options.generatorDefinitions)
-
-    this.studioPort = await getPort({ port: getPort.makeRange(5555, 5600) })
-
-    const relativeProjectPath = path.relative(process.cwd(), this.projectDir)
-    const relativeDatamodelPath = path.join(relativeProjectPath, 'project.prisma')
-
-    const renderer = new DevComponentRenderer({
-      port: this.studioPort,
-      initialState: {
-        studioPort: this.studioPort,
-        datamodelBefore: this.datamodelBeforeWatch,
-        datamodelAfter: datamodel,
-        generators: generators.map(gen => ({
-          name: gen.prettyName || 'Generator',
-          generatedIn: undefined,
-          generating: false,
-        })),
-        datamodelPath: path.join(this.projectDir, 'project.prisma'),
-        migrating: false,
-        migratedIn: undefined,
-        lastChanged: undefined,
-        relativeDatamodelPath,
-      },
-    })
-
-    // silent everyone else. this is not a democracy
-    console.log = (...args) => {
-      debug(...args)
-    }
-
-    this.recreateStudioServer(datamodel)
-
-    const { migrationsToApply } = await this.getMigrationsToApply()
-
-    if (migrationsToApply.length > 0) {
-      renderer.setState({ migrating: true }) // TODO: Show that this is actually applying real migrations, not just watch migrations
-      // TODO: Ask for permission if we actually want to do it?
-      // console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
-      await this.up({
-        short: true,
-      })
-      // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
-      options.clear = false
-      renderer.setState({ migrating: false })
-    }
-
-    const localMigrations = await this.getLocalMigrations()
-    const watchMigrations = await this.getLocalWatchMigrations()
-
-    let lastChanged: undefined | Date
-    if (watchMigrations.length > 0) {
-      const timestamp = watchMigrations[watchMigrations.length - 1].id.split('-')[1]
-      lastChanged = timestampToDate(timestamp)
-    } else if (localMigrations.length > 0) {
-      lastChanged = timestampToDate(localMigrations[localMigrations.length - 1].id.split('-')[0])
-    }
-    renderer.setState({ lastChanged })
-
-    if (localMigrations.length > 0) {
-      this.datamodelBeforeWatch = localMigrations[localMigrations.length - 1].datamodel
-    }
-
-    await makeDir(this.devMigrationsDir)
-
-    fs.watch(path.join(this.projectDir, 'project.prisma'), (eventType, filename) => {
-      if (eventType === 'change') {
-        this.watchUp(options, renderer)
-      }
-    })
-
-    this.watchUp(options, renderer)
-    return ''
-  }
-
-  watchUp = simpleDebounce(
+  public watchUp = simpleDebounce(
     async (
       { preview, generatorDefinitions, clear }: WatchOptions = { clear: true, generatorDefinitions: {} },
       renderer: DevComponentRenderer,
@@ -485,6 +146,250 @@ export class Lift {
       }
     },
   )
+  private datamodelBeforeWatch: string = ''
+  private studioServer?: any
+  private studioPort: number = 5555
+  constructor(protected projectDir: string) {
+    this.engine = new LiftEngine({ projectDir })
+  }
+
+  public async getDatamodelPath(): Promise<string> {
+    let datamodelPath = path.resolve(this.projectDir, 'project.prisma')
+    if (!(await exists(datamodelPath))) {
+      datamodelPath = path.resolve(this.projectDir, 'schema.prisma')
+    }
+    if (!(await exists(datamodelPath))) {
+      throw new Error(`Could not find ${datamodelPath}`)
+    }
+
+    return datamodelPath
+  }
+
+  public async getDatamodel(): Promise<string> {
+    return readFile(await this.getDatamodelPath(), 'utf-8')
+  }
+
+  // TODO: optimize datapaths, where we have a datamodel already, use it
+  public getSourceConfig(): Promise<string> {
+    return this.getDatamodel()
+  }
+
+  public async recreateStudioServer(datamodel: string) {
+    try {
+      if (this.studioServer) {
+        this.studioServer.stop()
+        delete this.studioServer
+      }
+
+      const pathCandidates = [
+        // ncc go home
+        // tslint:disable-next-line
+        eval(`require('path').join(__dirname, '../node_modules/@prisma/photon/runtime/prisma')`), // for local dev
+        // tslint:disable-next-line
+        eval(`require('path').join(__dirname, '../runtime/prisma')`), // for production
+      ]
+
+      const pathsExist = await Promise.all(
+        pathCandidates.map(async candidate => ({ exists: await exists(candidate), path: candidate })),
+      )
+
+      const firstExistingPath = pathsExist.find(p => p.exists)
+
+      if (!firstExistingPath) {
+        throw new Error(`Could not find any binary path for Studio. Looked in ${pathCandidates.join(', ')}`)
+      }
+
+      const StudioServer = require('@prisma/studio-server').default
+
+      this.studioServer = new StudioServer({
+        port: this.studioPort,
+        debug: false,
+        datamodel,
+        binaryPath: firstExistingPath.path,
+      })
+
+      await this.studioServer.start()
+    } catch (e) {
+      debug(e)
+    }
+  }
+
+  public async getLockFile(): Promise<LockFile> {
+    const lockFilePath = path.resolve(this.projectDir, 'migrations', 'lift.lock')
+    if (await exists(lockFilePath)) {
+      const file = await readFile(lockFilePath, 'utf-8')
+      const lockFile = deserializeLockFile(file)
+      if (lockFile.remoteBranch) {
+        // TODO: Implement handling the conflict
+        throw new Error(
+          `There's a merge conflict in the ${chalk.bold(
+            'migrations/lift.lock',
+          )} file. Please execute ${chalk.greenBright('prisma lift fix')} to solve it`,
+        )
+      }
+      return lockFile
+    }
+
+    return initLockFile()
+  }
+
+  public async createMigration(migrationId: string): Promise<LocalMigrationWithDatabaseSteps | undefined> {
+    const { migrationsToApply, sourceConfig } = await this.getMigrationsToApply()
+
+    const assumeToBeApplied = migrationsToApply.flatMap(m => m.datamodelSteps)
+
+    const datamodel = await this.getDatamodel()
+    const { datamodelSteps, databaseSteps } = await this.engine.inferMigrationSteps({
+      sourceConfig,
+      datamodel,
+      migrationId,
+      assumeToBeApplied,
+    })
+
+    if (datamodelSteps.length === 0) {
+      return undefined
+    }
+
+    return {
+      id: migrationId,
+      datamodel,
+      datamodelSteps,
+      databaseSteps,
+    }
+  }
+
+  public getMigrationId(name?: string) {
+    const timestamp = now()
+    return timestamp + (name ? `-${dashify(name)}` : '')
+  }
+
+  public async save(
+    migration: LocalMigrationWithDatabaseSteps,
+    name?: string,
+    preview?: boolean,
+  ): Promise<{ files: FileMap; migrationId: string; newLockFile: string }> {
+    const migrationId = this.getMigrationId(name)
+    migration.id = migrationId
+    const lockFile = await this.getLockFile()
+    const { datamodel } = migration
+    const localMigrations = await this.getLocalMigrations()
+    const lastMigration = localMigrations.length > 0 ? localMigrations[localMigrations.length - 1] : undefined
+
+    // TODO better printing of params
+    const nameStr = name ? ` --name ${chalk.bold(name)}` : ''
+    const previewStr = preview ? ` --preview` : ''
+    console.log(`📼  lift save${nameStr}${previewStr}`)
+    if (lastMigration) {
+      const wording = preview ? `Potential datamodel changes:` : 'Local datamodel Changes:'
+      console.log(chalk.bold(`\n${wording}\n`))
+    } else {
+      console.log(brightGreen.bold('\nNew datamodel:\n'))
+    }
+    if (lastMigration) {
+      console.log(printDatamodelDiff(lastMigration.datamodel, datamodel))
+    } else {
+      console.log(highlightDatamodel(datamodel))
+    }
+
+    lockFile.localMigrations.push(migrationId)
+    const newLockFile = serializeLockFile(lockFile)
+
+    await del(this.devMigrationsDir)
+
+    return {
+      migrationId,
+      files: this.getMigrationFileMap({ migration, lastMigration }),
+      newLockFile,
+    }
+  }
+
+  public async getLocalWatchMigrations(): Promise<Migration[]> {
+    return this.getLocalMigrations(this.devMigrationsDir)
+  }
+
+  public async watch(
+    options: WatchOptions = { preview: false, clear: true, generatorDefinitions: {} },
+  ): Promise<string> {
+    if (!options.clear) {
+      options.clear = true
+    }
+
+    const datamodel = await this.getDatamodel()
+
+    const generators = await getCompiledGenerators(this.projectDir, datamodel, options.generatorDefinitions)
+
+    this.studioPort = await getPort({ port: getPort.makeRange(5555, 5600) })
+
+    const datamodelPath = await this.getDatamodelPath()
+    const relativeDatamodelPath = path.relative(process.cwd(), datamodelPath)
+
+    const renderer = new DevComponentRenderer({
+      port: this.studioPort,
+      initialState: {
+        studioPort: this.studioPort,
+        datamodelBefore: this.datamodelBeforeWatch,
+        datamodelAfter: datamodel,
+        generators: generators.map(gen => ({
+          name: gen.prettyName || 'Generator',
+          generatedIn: undefined,
+          generating: false,
+        })),
+        datamodelPath,
+        migrating: false,
+        migratedIn: undefined,
+        lastChanged: undefined,
+        relativeDatamodelPath,
+      },
+    })
+
+    // silent everyone else. this is not a democracy
+    console.log = (...args) => {
+      debug(...args)
+    }
+
+    this.recreateStudioServer(datamodel)
+
+    const { migrationsToApply } = await this.getMigrationsToApply()
+
+    if (migrationsToApply.length > 0) {
+      renderer.setState({ migrating: true }) // TODO: Show that this is actually applying real migrations, not just watch migrations
+      // TODO: Ask for permission if we actually want to do it?
+      // console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
+      await this.up({
+        short: true,
+      })
+      // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
+      options.clear = false
+      renderer.setState({ migrating: false })
+    }
+
+    const localMigrations = await this.getLocalMigrations()
+    const watchMigrations = await this.getLocalWatchMigrations()
+
+    let lastChanged: undefined | Date
+    if (watchMigrations.length > 0) {
+      const timestamp = watchMigrations[watchMigrations.length - 1].id.split('-')[1]
+      lastChanged = timestampToDate(timestamp)
+    } else if (localMigrations.length > 0) {
+      lastChanged = timestampToDate(localMigrations[localMigrations.length - 1].id.split('-')[0])
+    }
+    renderer.setState({ lastChanged })
+
+    if (localMigrations.length > 0) {
+      this.datamodelBeforeWatch = localMigrations[localMigrations.length - 1].datamodel
+    }
+
+    await makeDir(this.devMigrationsDir)
+
+    fs.watch(await this.getDatamodelPath(), (eventType, filename) => {
+      if (eventType === 'change') {
+        this.watchUp(options, renderer)
+      }
+    })
+
+    this.watchUp(options, renderer)
+    return ''
+  }
 
   public async down({ n }: DownOptions): Promise<string> {
     await this.getLockFile()
@@ -557,59 +462,6 @@ export class Lift {
     return `🚀 Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
-  private async getMigrationsToApply(): Promise<{
-    localMigrations: LocalMigration[]
-    lastAppliedIndex: number
-    migrationsToApply: LocalMigration[]
-    sourceConfig: string
-    appliedRemoteMigrations: EngineResults.StoredMigration[]
-  }> {
-    const localMigrations = await this.getLocalMigrations()
-
-    const sourceConfig = await this.getSourceConfig()
-    const appliedRemoteMigrations = await this.engine.listAppliedMigrations({ sourceConfig })
-    const appliedRemoteMigrationsWithoutWatch = appliedRemoteMigrations.filter(m => !isWatchMigrationName(m.id))
-
-    if (appliedRemoteMigrationsWithoutWatch.length > localMigrations.length) {
-      const localMigrationIds = localMigrations.map(m => m.id)
-      const remoteMigrationIds = appliedRemoteMigrationsWithoutWatch.map(m => m.id)
-
-      throw new Error(
-        `There are more migrations in the database than locally. This must not happen. Local migration ids: ${localMigrationIds.join(
-          ', ',
-        )}. Remote migration ids: ${remoteMigrationIds.join(', ')}`,
-      )
-    }
-
-    let lastAppliedIndex = -1
-    const migrationsToApply = localMigrations.filter((localMigration, index) => {
-      const remoteMigration = appliedRemoteMigrationsWithoutWatch[index]
-      // if there is already a corresponding remote migration,
-      // we don't need to apply this migration
-
-      if (remoteMigration) {
-        if (localMigration.id !== remoteMigration.id && !isWatchMigrationName(remoteMigration.id)) {
-          throw new Error(
-            `Local and remote migrations are not in lockstep. We have migration ${localMigration.id} locally and ${remoteMigration.id} remotely at the same position in the history.`,
-          )
-        }
-        if (!isWatchMigrationName(remoteMigration.id)) {
-          lastAppliedIndex = index
-          return false
-        }
-      }
-      return true
-    })
-
-    return {
-      localMigrations,
-      lastAppliedIndex,
-      migrationsToApply,
-      appliedRemoteMigrations,
-      sourceConfig,
-    }
-  }
-
   public async up({ n, preview, short, verbose }: UpOptions = {}): Promise<string> {
     await this.getLockFile()
     const before = Date.now()
@@ -670,6 +522,7 @@ export class Lift {
       const totalSteps = result.databaseSteps.length
       let progress: EngineResults.MigrationProgress | undefined
       progressLoop: while (
+        // tslint:disable-next-line
         (progress = await this.engine.migrationProgess({
           migrationId: id,
           sourceConfig,
@@ -731,6 +584,163 @@ export class Lift {
       migrationsToApply.length > 1 ? 's' : ''
     } in ${formatms(Date.now() - before)}.\n`
   }
+
+  private getMigrationFileMap({ migration, lastMigration }: MigrationFileMapOptions): FileMap {
+    const { version } = packageJson
+    const { datamodelSteps, datamodel } = migration
+
+    return {
+      ['steps.json']: JSON.stringify({ version, steps: datamodelSteps }, null, 2),
+      ['datamodel.prisma']: datamodel,
+      ['README.md']: printMigrationReadme({
+        migrationId: migration.id,
+        lastMigrationId: lastMigration ? lastMigration.id : '',
+        datamodelA: lastMigration ? lastMigration.datamodel : '',
+        datamodelB: datamodel,
+        databaseSteps: migration.databaseSteps,
+      }),
+    }
+  }
+
+  private async persistWatchMigration(options: MigrationFileMapOptions) {
+    const fileMap = this.getMigrationFileMap(options)
+    await serializeFileMap(fileMap, path.join(this.devMigrationsDir, options.migration.id))
+  }
+
+  private async getLocalMigrations(
+    migrationsDir = path.join(this.projectDir, 'migrations'),
+  ): Promise<LocalMigration[]> {
+    if (!(await exists(migrationsDir))) {
+      return []
+    }
+    const migrationSteps = await globby(
+      ['**/steps.json', '**/datamodel.prisma', '**/after.sh', '**/before.sh', '**/after.ts', '**/before.ts', '!dev'],
+      {
+        cwd: migrationsDir,
+      },
+    ).then(files =>
+      Promise.all(
+        files.map(async fileName => ({
+          fileName: fileName.split('/')[1],
+          migrationId: fileName.split('/')[0],
+          file: await readFile(path.join(migrationsDir, fileName), 'utf-8'),
+        })),
+      ),
+    )
+
+    migrationSteps.sort((a, b) => (a.migrationId < b.migrationId ? -1 : 1))
+
+    const groupedByMigration = groupBy(migrationSteps, step => step.migrationId)
+
+    return Object.entries(groupedByMigration).map(([migrationId, files]) => {
+      const stepsFile = files.find(f => f.fileName === 'steps.json')!
+      const datamodelFile = files.find(f => f.fileName === 'datamodel.prisma')!
+      const afterFile = files.find(f => f.fileName === 'after.sh' || f.fileName === 'after.ts')
+      const beforeFile = files.find(f => f.fileName === 'before.sh' || f.fileName === 'before.ts')
+      const stepsFileJson = JSON.parse(stepsFile.file)
+      if (Array.isArray(stepsFileJson)) {
+        throw new Error(
+          `We changed the steps.json format - please delete your migrations folder and run prisma lift create again`,
+        )
+      }
+      if (!stepsFileJson.steps) {
+        throw new Error(`${stepsFile.fileName} is expected to have a .steps property`)
+      }
+
+      return {
+        id: migrationId,
+        datamodelSteps: stepsFileJson.steps,
+        datamodel: datamodelFile.file,
+        afterFilePath: afterFile ? path.resolve(migrationsDir, migrationId, afterFile.fileName) : undefined,
+        beforeFilePath: beforeFile ? path.resolve(migrationsDir, migrationId, beforeFile.fileName) : undefined,
+      }
+    })
+  }
+
+  private async getDatabaseSteps(
+    localMigrations: Migration[],
+    fromIndex: number,
+    sourceConfig: string,
+  ): Promise<LocalMigrationWithDatabaseSteps[]> {
+    const migrationsWithDatabaseSteps = await pMap(
+      localMigrations,
+      async (migration, index) => {
+        if (index < fromIndex) {
+          return {
+            ...migration,
+            databaseSteps: [],
+          }
+        }
+        const stepsUntilNow = index > 0 ? localMigrations.slice(0, index).flatMap(m => m.datamodelSteps) : []
+        const input = {
+          assumeToBeApplied: stepsUntilNow,
+          stepsToApply: migration.datamodelSteps,
+          sourceConfig,
+        }
+        const { databaseSteps } = await this.engine.calculateDatabaseSteps(input)
+        return {
+          ...migration,
+          databaseSteps,
+        }
+      },
+      { concurrency: 1 },
+    )
+
+    return migrationsWithDatabaseSteps.slice(fromIndex)
+  }
+
+  private async getMigrationsToApply(): Promise<{
+    localMigrations: LocalMigration[]
+    lastAppliedIndex: number
+    migrationsToApply: LocalMigration[]
+    sourceConfig: string
+    appliedRemoteMigrations: EngineResults.StoredMigration[]
+  }> {
+    const localMigrations = await this.getLocalMigrations()
+
+    const sourceConfig = await this.getSourceConfig()
+    const appliedRemoteMigrations = await this.engine.listAppliedMigrations({ sourceConfig })
+    const appliedRemoteMigrationsWithoutWatch = appliedRemoteMigrations.filter(m => !isWatchMigrationName(m.id))
+
+    if (appliedRemoteMigrationsWithoutWatch.length > localMigrations.length) {
+      const localMigrationIds = localMigrations.map(m => m.id)
+      const remoteMigrationIds = appliedRemoteMigrationsWithoutWatch.map(m => m.id)
+
+      throw new Error(
+        `There are more migrations in the database than locally. This must not happen. Local migration ids: ${localMigrationIds.join(
+          ', ',
+        )}. Remote migration ids: ${remoteMigrationIds.join(', ')}`,
+      )
+    }
+
+    let lastAppliedIndex = -1
+    const migrationsToApply = localMigrations.filter((localMigration, index) => {
+      const remoteMigration = appliedRemoteMigrationsWithoutWatch[index]
+      // if there is already a corresponding remote migration,
+      // we don't need to apply this migration
+
+      if (remoteMigration) {
+        if (localMigration.id !== remoteMigration.id && !isWatchMigrationName(remoteMigration.id)) {
+          throw new Error(
+            `Local and remote migrations are not in lockstep. We have migration ${localMigration.id} locally and ${remoteMigration.id} remotely at the same position in the history.`,
+          )
+        }
+        if (!isWatchMigrationName(remoteMigration.id)) {
+          lastAppliedIndex = index
+          return false
+        }
+      }
+      return true
+    })
+
+    return {
+      localMigrations,
+      lastAppliedIndex,
+      migrationsToApply,
+      appliedRemoteMigrations,
+      sourceConfig,
+    }
+  }
 }
 
 class ProgressRenderer {
@@ -745,12 +755,12 @@ class ProgressRenderer {
     this.silent = silent
   }
 
-  setMigrations(migrations: LocalMigrationWithDatabaseSteps[]) {
+  public setMigrations(migrations: LocalMigrationWithDatabaseSteps[]) {
     this.migrations = migrations
     this.render()
   }
 
-  setProgress(index: number, progressPercentage: number) {
+  public setProgress(index: number, progressPercentage: number) {
     const progress = Math.min(Math.floor(progressPercentage * this.statusWidth), this.statusWidth)
 
     this.currentIndex = index
@@ -758,7 +768,7 @@ class ProgressRenderer {
     this.render()
   }
 
-  showLogs(name, stream: Readable) {
+  public showLogs(name, stream: Readable) {
     this.logsName = name
     this.logsString = ''
     stream.on('data', data => {
@@ -767,7 +777,7 @@ class ProgressRenderer {
     })
   }
 
-  render() {
+  public render() {
     if (this.silent) {
       return
     }
@@ -797,7 +807,7 @@ class ProgressRenderer {
       .map((m, index) => {
         const maxLength = maxStepLength + maxMigrationLength
         const paddingLeft = maxLength - stripAnsi(m.line).length + 2
-        let newLine = m.line + ' '.repeat(paddingLeft) + '  '
+        const newLine = m.line + ' '.repeat(paddingLeft) + '  '
 
         if (this.currentIndex > index || (this.currentIndex === index && this.currentProgress === this.statusWidth)) {
           return newLine + 'Done 🚀' + m.scripts
@@ -848,7 +858,7 @@ class ProgressRenderer {
     logUpdate(str)
   }
 
-  async done() {
+  public async done() {
     cliCursor.show()
   }
 }
