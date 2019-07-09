@@ -26,7 +26,7 @@ Learn more about the `prisma2 init` flow [here](./docs/getting-started.md) or ge
 - [Data sources](./docs/data-sources.md)
 - [Data modeling](./docs/data-modeling.md)
 - [Relations](./docs/relations.md)
-- [Prisma 2 CLI](./docs/prisma-2-cli.md)
+- [Prisma 2 CLI](./docs/prisma2-cli.md)
 - [Development mode](./docs/development-mode.md)
 - [Introspection](./docs/introspection.md)
 - [Limitations](./docs/limitations.md)
