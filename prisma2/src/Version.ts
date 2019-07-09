@@ -7,6 +7,7 @@ export class Version implements Command {
   }
   private constructor() {}
   async parse(argv: string[]) {
-    return `${packageJson.name}@${packageJson.version}`
+    const version = (packageJson.prisma && packageJson.prisma.version) || 'latest'
+    return `${packageJson.name}@${packageJson.version}, binary version: ${version}`
   }
 }

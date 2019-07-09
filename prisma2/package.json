@@ -19,12 +19,15 @@
   "bin": {
     "prisma2": "build/index.js"
   },
+  "prisma": {
+    "version": "327a65626cf44076dc64c1fee1581191908f7d80"
+  },
   "devDependencies": {
     "@prisma/cli": "^0.0.23",
-    "@prisma/fetch-engine": "^0.0.31",
+    "@prisma/fetch-engine": "^0.0.35",
     "@prisma/introspection": "0.0.36",
-    "@prisma/lift": "^0.0.126",
-    "@prisma/photon": "^0.0.136",
+    "@prisma/lift": "^0.0.128",
+    "@prisma/photon": "^0.0.137",
     "@types/mocha": "^5.2.7",
     "@zeit/ncc": "^0.18.5",
     "jest": "24.8.0",
@@ -45,7 +48,7 @@
     "ncc": "ncc build dist/bin.js -o build",
     "ncc:download": "ncc build scripts/download.js -o download-build",
     "build": "yarn tsc && yarn ncc:download && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
-    "prepublishOnly": "yarn build",
+    "prepublishOnly": "node scripts/updateTag.js && yarn build",
     "prepare": "yarn build && node download-build/index.js",
     "update-deps": "yarn upgrade --latest --scope @prisma"
   },
