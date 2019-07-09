@@ -4,6 +4,7 @@ import { DMMFClass } from '../runtime/dmmf'
 import { BaseField, DMMF } from '../runtime/dmmf-types'
 import { capitalize, GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
 import { InternalDatasource } from '../runtime/utils/printDatasources'
+import path from 'path'
 import {
   getDefaultName,
   getFieldArgName,
@@ -128,6 +129,9 @@ export class TSClient {
   protected readonly internalDatasources: InternalDatasource[]
   constructor({ document, datamodel, runtimePath, browser = false, cwd, datasources }: TSClientOptions) {
     this.document = document
+    // if cwd === process.cwd(), it's an empty string ''
+    // which is a falsy value in javascript
+    // so it will be turned into `undefined` in that case
     this.cwd = cwd
     this.datamodel = datamodel
     this.runtimePath = runtimePath
@@ -268,7 +272,9 @@ export default class Photon {
     const engineConfig = internal.engine || {}
 
     this.engine = new Engine({
-      cwd: engineConfig.cwd || ${this.cwd ? JSON.stringify(this.cwd) : 'undefined'},
+      cwd: engineConfig.cwd || ${
+        this.cwd ? `require('path').resolve(__dirname, ${JSON.stringify(this.cwd)})` : 'undefined'
+      },
       debug: debugEngine,
       datamodel,
       prismaPath: engineConfig.binaryPath || undefined

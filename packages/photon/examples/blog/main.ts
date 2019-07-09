@@ -10,11 +10,8 @@ async function main() {
 
   // process.addListener('SIG')
 
-  // const prom = await photon.users.create({
-  //   data: {
-  //     username: 'Bob',
-  //   },
-  // })
+  const prom = await photon.users()
+  console.log(prom)
   // const result = await photon.posts.create({
   //   data: {
   //     data: 'asd',
@@ -33,26 +30,26 @@ async function main() {
   // })
   // result.user.username
   // console.log(result)
-  const postsByUser = await photon.users.findOne({
-    where: {
-      email: 'alice@prisma.io',
-    },
-    select: {
-      name: true,
-      email: true,
-      posts: {
-        // here I want only published posts
-        where: {
-          published: true,
-        },
-        select: {
-          title: true,
-          // just for checking query response correctness
-          published: true,
-        },
-      },
-    },
-  })
+  // const postsByUser = await photon.users.findOne({
+  //   where: {
+  //     email: 'alice@prisma.io',
+  //   },
+  //   select: {
+  //     name: true,
+  //     email: true,
+  //     posts: {
+  //       // here I want only published posts
+  //       where: {
+  //         published: true,
+  //       },
+  //       select: {
+  //         title: true,
+  //         // just for checking query response correctness
+  //         published: true,
+  //       },
+  //     },
+  //   },
+  // })
 }
 
 main().catch(e => console.error(e))
