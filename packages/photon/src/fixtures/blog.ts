@@ -1,4 +1,4 @@
-export const blog = `
+export const blog = /* GraphQL */ `
 datasource db {
   provider = "sqlite"
   url      = "file:db/migration_engine.db"
@@ -12,15 +12,19 @@ generator photon {
 }
 
 model User {
-  id Int @id
-  name String?
+  id    String  @default(cuid()) @id @unique
+  email String  @unique
+  name  String?
   posts Post[]
-}         
+}
 
 model Post {
-  id Int @id
-  title String
-  tags String[]
-  author User
+  id        String   @default(cuid()) @id @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  author    User?
 }
 `

@@ -421,7 +421,6 @@ export class Field {
   public toString() {
     let str = this.name
 
-    // TODO: Decide if we should do this
     if (this.error) {
       return str + ' # INVALID_FIELD'
     }
@@ -805,7 +804,10 @@ export function selectionToFields(
           )
         : undefined
       const isRelation = field.outputType.kind === 'object'
-      // use default selection for `include` again
+
+      // TODO: use default selection for `include` again
+
+      // check for empty select
       if (value && value.select) {
         const values = Object.values(value.select)
         if (values.length === 0) {
@@ -827,6 +829,8 @@ export function selectionToFields(
 
           return acc
         }
+
+        // check if there is at least one truthy value
         const truthyValues = values.filter(v => v)
         if (truthyValues.length === 0) {
           acc.push(
@@ -954,7 +958,6 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     })
   }
 
-  // TODO: this is not 100% accurate as there could be other types with isList fales are true
   // then the first
   if (!argInputType.isList) {
     const args = arg.inputType.map(t => {
