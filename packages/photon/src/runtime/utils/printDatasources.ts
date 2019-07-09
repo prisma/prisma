@@ -1,7 +1,7 @@
 import indent from 'indent-string'
 import { Dictionary } from './common'
 
-export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgres'
+export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgresql'
 
 export interface GeneratorConfig {
   name: string
