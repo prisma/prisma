@@ -47,10 +47,10 @@ The Rust implementation for MySQL accepts connection strings, but it does not se
 
 ### Configuration options
 
-- **Host**: The IP address/domain of your database server, e.g. `localhost`.
-- **Post**: The port on which your database server listens, e.g. `5432`.
-- **Database**: The name of the database. 
-- **User**: The database user, e.g. `admin`.
-- **Password**: The password for the database user.
-- **SSL**: Whether or not your database server uses SSL.
-- **Connection limit** (coming soon): The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database. Default: `1`.
+- `host`: The IP address/domain of your database server, e.g. `localhost`.
+- `port`: The port on which your database server listens, e.g. `5432`.
+- `database`: The name of the database. 
+- `user`: The database user, e.g. `admin`.
+- `password`: The password for the database user.
+- `ssl`: Whether or not your database server uses SSL.
+- `connection_limit` (coming soon): The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database. Default: `1`.
