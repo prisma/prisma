@@ -145,7 +145,7 @@ export namespace EngineResults {
   }
 }
 
-export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgres'
+export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgresql'
 
 export type ConfigMetaFormat = { datasources: DataSource[]; generators: GeneratorConfig[] }
 
