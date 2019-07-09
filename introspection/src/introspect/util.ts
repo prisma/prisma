@@ -136,12 +136,23 @@ export async function getDatabaseSchemas(connector: IConnector): Promise<string[
   }
 }
 
+function getSchemaPath(cwd: string): string | undefined {
+  if (existsSync(join(cwd, 'project.prisma'))) {
+    return join(cwd, 'project.prisma')
+  }
+  if (existsSync(join(cwd, 'schema.prisma'))) {
+    return join(cwd, 'schema.prisma')
+  }
+  return undefined
+}
+
 export async function getCredentialsFromExistingDatamodel(
   env: Env,
   lift: LiftEngine,
 ): Promise<undefined | DatabaseCredentials> {
-  if (existsSync(join(env.cwd, 'project.prisma'))) {
-    const datamodel = readFileSync(join(env.cwd, 'project.prisma'), 'utf-8')
+  const schemaPath = getSchemaPath(env.cwd)
+  if (schemaPath) {
+    const datamodel = readFileSync(schemaPath, 'utf-8')
     const { datasources } = await lift.getConfig({
       datamodel,
     })

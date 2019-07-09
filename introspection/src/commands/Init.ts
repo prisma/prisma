@@ -45,6 +45,13 @@ export class Init implements Command {
 Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
     }
 
+    if (existsSync(join(outputDir, 'schema.prisma'))) {
+      throw new Error(`Can't start ${chalk.bold('prisma2 init')} as ${chalk.redBright(
+        join(outputDir, 'schema.prisma'),
+      )} exists.
+Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
+    }
+
     if (existsSync(join(outputDir, 'project.prisma'))) {
       throw new Error(`Can't start ${chalk.bold('prisma2 init')} as ${chalk.redBright(
         join(outputDir, 'project.prisma'),
@@ -84,7 +91,7 @@ Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
       return
     }
     mkdirpSync(join(outputDir, 'prisma'))
-    writeFileSync(join(outputDir, 'prisma/project.prisma'), result.introspectionResult.sdl)
+    writeFileSync(join(outputDir, 'prisma/schema.prisma'), result.introspectionResult.sdl)
   }
 
   help() {
