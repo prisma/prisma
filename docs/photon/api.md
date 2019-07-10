@@ -115,6 +115,8 @@ const result = await photon.users.findOne({
 
 #### Include additionally via `include`
 
+> **Note**: `include` is not yet implemented! You can track the progress of this feature [here](https://github.com/prisma/photonjs/issues/15).
+
 Sometimes you want to directly include a relation when retrieving data from a database. To eagerly load and include the relations of a model in an API call right away, you can use `include`: 
 
 ```ts
