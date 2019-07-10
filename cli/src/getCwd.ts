@@ -42,7 +42,7 @@ export async function getDatamodel(): Promise<string> {
   const cwd = await getCwd()
   let datamodelPath = path.join(cwd, datamodelFile)
   if (!(await exists(datamodelPath))) {
-    let datamodelPath = path.join(cwd, schemaFile)
+    datamodelPath = path.join(cwd, schemaFile)
   }
   if (!(await exists(datamodelPath))) {
     throw new Error(`Could not find ${datamodelPath}`)
