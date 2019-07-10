@@ -6,7 +6,7 @@ This repository is used as a central point to collect information and issues aro
 
 ## What is Prisma 2?
 
-![](https://imgur.com/ITuL75W.png)
+![](https://i.imgur.com/daMnCOV.png)
 
 Prisma 2 consists of three standalone tools:
 
