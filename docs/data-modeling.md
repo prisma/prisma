@@ -42,8 +42,8 @@ model User {
 }
 
 embed Address {
-  street: String
-  zipCode: String
+  street  String
+  zipCode String
 }
 
 model Profile {
@@ -188,8 +188,8 @@ model User {
 }
 
 embed Address {
-  street: String
-  zipCode: String
+  street  String
+  zipCode String
 }
 ```
 
@@ -203,8 +203,8 @@ In the above example, the named embed `Address` is only used once. In this case,
 model User {
   id        Int      @id
   address   embed {
-    street: String
-    zipCode: String
+    street  String
+    zipCode String
   }?
 }
 ```
@@ -242,8 +242,8 @@ type Numeric = Float @pg.numeric(precision: 5, scale: 2)
                      @ms.decimal(precision: 5, scale: 2)
 
 model User {
-  id       Int      @id
-  weight   Numeric
+  id     Int     @id
+  weight Numeric
 }
 ```
 
@@ -422,8 +422,8 @@ Expand below to see the mappings per connector and generator.
 
 **Connectors**
 
-| Type     | PostgreSQL  | MySQL     | SQLite  | Mongo  | Raw JSON |
-| -------- | --------- | --------- | ------- | ------ | -------- |
+| Prisma Type | PostgreSQL  | MySQL     | SQLite  | Mongo  | Raw JSON |
+| ---------- | --------- | --------- | ------- | ------ | -------- |
 | `String`   | `text`      | `TEXT`      | `TEXT`    | `string` | `string`   |
 | `Boolean`  | `boolean`   | `BOOLEAN`   | _N/A_   | `bool`   | `boolean`  |
 | `Int`      | `integer`   | `INT`       | `INTEGER` | `int32`  | `number`   |
@@ -435,8 +435,8 @@ close.
 
 **Generators**
 
-| Type     | JS / TS | Go        |
-| -------- | ------- | --------- |
+| Prisma Type | JS / TS | Go        |
+| ---------- | ------- | --------- |
 | `String`   | `string`  | `string`    |
 | `Boolean`  | `boolean` | `bool`      |
 | `Int`      | `number`  | `int`       |
