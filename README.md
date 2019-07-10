@@ -4,6 +4,18 @@ This repository is used as a central point to collect information and issues aro
 
 > Prisma 2 is currently in Preview! [Limitations](./docs/limitations.md) include missing features, limited performance and stability issues.
 
+## What is Prisma 2?
+
+![](https://imgur.com/ITuL75W.png)
+
+Prisma 2 consists of three standalone tools:
+
+- **Photon**: A type-safe database client ("ORM replacement")
+- **Lift**: Declarative data modeling and migrations
+- **Studio**: Admin UI to support various database workflows.
+
+While each tool can be used standalone (in both _greenfield_ and _brownfield_ projects), they integrate nicely through common components like the [**Prisma schema**](./docs/prisma-schema-file.md) or the [Prisma 2 CLI](./docs/prisma2-cli.md).
+
 ## Getting started
 
 The easiest way to get started with [Photon](https://github.com/prisma/photonjs) and/or [Lift](https://github.com/prisma/lift) is by installing the Prisma 2 CLI and running the interactive `init` command:
