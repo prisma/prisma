@@ -63,4 +63,3 @@ Learn more about the `prisma2 init` flow [here](./docs/getting-started.md) or ge
 - [Prisma 2 feedback](./docs/prisma2-feedback.md)
 - [FAQ](./docs/faq.md)
 - [Glossary](./docs/glossary.md)
-
