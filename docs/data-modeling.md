@@ -405,7 +405,7 @@ The data types that these functions return will be defined by the data source co
 
 Prisma core provides the following scalar types:
 
-| Type     | Description           |
+| Prisma Type | Description           |
 | --- | --- |
 | `String`   | Variable length text  |
 | `Boolean`  | True or false value   |
