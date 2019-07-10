@@ -4,6 +4,8 @@ This repository is used as a central point to collect information and issues aro
 
 > Prisma 2 is currently in Preview! [Limitations](./docs/limitations.md) include missing features, limited performance and stability issues.
 
+![](https://imgur.com/Qp40lIT.png)
+
 ## Getting started
 
 The easiest way to get started with [Photon](https://github.com/prisma/photonjs) and/or [Lift](https://github.com/prisma/lift) is by installing the Prisma 2 CLI and running the interactive `init` command:
