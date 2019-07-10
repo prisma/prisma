@@ -143,7 +143,7 @@ prisma lift save --name "add-comment-model"
 
 <img src="https://i.imgur.com/L6a5Vqd.png" width="392px">
 
-Once you're happy with the changes, you can use the Prisma CLI to migrate you database (i.e. map the adjusted data model to your database). Lift's migration engine will generate the corresponding SQL statements and send them to the database for you.
+Once you're happy with the changes, you can use the Prisma CLI to migrate your database (i.e. map the adjusted data model to your database). Lift's migration engine will generate the corresponding SQL statements and send them to the database for you.
 
 ```bash
 prisma lift up
