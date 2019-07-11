@@ -37,7 +37,7 @@ You can deploy your "Photon JS"-based application to [ZEIT Now](https://zeit.co/
 
 When deploying to ZEIT Now, you must configure the following in your `now.json`:
 
-- `use`: ` @now/node@canary`
+- `use`: `@now/node@canary`
 - `maxLambdaSize`: `25mb`
 
 Here is an example `now.json`:
@@ -62,3 +62,5 @@ Here is an example `now.json`:
   ]
 }
 ```
+
+You can find an example for a ZEIT Now deployment [here]().
