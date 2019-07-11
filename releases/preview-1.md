@@ -17,7 +17,7 @@ npm install -g prisma2
 - Renamed `project.prisma` to `schema.prisma` ([learn more](https://github.com/prisma/prisma2/issues/36))
 - Renamed `postgres` data source provider to `postgresql` ([learn more](https://github.com/prisma/prisma2/issues/1))
 
-## Fixes and improvements per repo
+## Fixes and improvements per Prisma 2 repository
 
 ### `prisma2`
 
