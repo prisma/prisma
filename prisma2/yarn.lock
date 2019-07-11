@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@apexearth/copy@^1.4.1":
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/@apexearth/copy/-/copy-1.4.1.tgz#1044417c1e2cf19420747f3a7718788b2917adf2"
-  integrity sha512-OjC3wkc7nTtRjCuxxnqiZWJ2uHxqd+3F/sVqhpmoeQh1E/s11X3CoqdUlSWh6FQFWEPj8f6FdJOC8ehzTU7k0w==
+"@apexearth/copy@^1.4.2":
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/@apexearth/copy/-/copy-1.4.2.tgz#bba70750e74131c31f13afd28fc96be555ac5c3b"
+  integrity sha512-8hBA+UxD8OvhkW8QhwnnWPRJqHHm4rPtXmGl0Xsd5p5O3q5LGbik82hYJPNZES6jPxToZIR0JbkcmEkGkZd+zQ==
   dependencies:
     commander "^2.19.0"
     mkdirp "^0.5.1"
@@ -317,10 +317,10 @@
     chalk "^2.4.2"
     strip-indent "^3.0.0"
 
-"@prisma/engine-core@0.0.64":
-  version "0.0.64"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.64.tgz#46054df8f15fbdbf28e6edabe0f56c78631667a7"
-  integrity sha512-f4PyFVp4OnJHfdP/sJwfoqLH66tWSA5OXm+2foQ+rydayRO0OtmMI33M0slIGyh76GiyJEdWR0SEIO5hssE+2A==
+"@prisma/engine-core@0.0.66":
+  version "0.0.66"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.66.tgz#e30641f445575e7075901d1c10263138622b6404"
+  integrity sha512-M+ZLU6Uouj6R1aO44L2a066Twn+IMTcKeVpP0rj9eYhHpGoXIUX8usZqPfC+IpOkOJCgxtZ7Km3XhvPWcR3AJA==
   dependencies:
     cross-fetch "^3.0.2"
     debug "^4.1.1"
@@ -431,14 +431,14 @@
   dependencies:
     tslib "^1.9.3"
 
-"@prisma/photon@^0.0.147":
-  version "0.0.147"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.147.tgz#c89126e8676eae96dd056f5a0ccc9e66d134d012"
-  integrity sha512-iDwdTEeddDPcDJlIa68IR3hAmxIRV2k9rFobCmqjAOrvfsl5eVkOhv94ol7wSxD9Q49aelttfQdcJr1P+c2dGA==
+"@prisma/photon@^0.0.152":
+  version "0.0.152"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.0.152.tgz#8916eb75793b053ca95fdb60f5990dab5915e625"
+  integrity sha512-JDN4T4ngd9n5xeG/6h2mL46XuP6rCA7krGGc7ReMrmcd6ad9sf8hiudQoA4oGbiU4sytaF+yQ6QM9a4uP9Z8+g==
   dependencies:
-    "@apexearth/copy" "^1.4.1"
+    "@apexearth/copy" "^1.4.2"
     "@prisma/cli" "0.0.25"
-    "@prisma/engine-core" "0.0.64"
+    "@prisma/engine-core" "0.0.66"
     "@prisma/fetch-engine" "^0.0.35"
     chalk "^2.4.2"
     cpy "^7.3.0"
