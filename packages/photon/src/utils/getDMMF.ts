@@ -1,4 +1,3 @@
-import { NodeEngine } from '@prisma/engine-core/dist/NodeEngine'
 import Process from '@prisma/engine-core/dist/process'
 import path from 'path'
 import through from 'through2'

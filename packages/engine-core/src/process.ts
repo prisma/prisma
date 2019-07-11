@@ -3,6 +3,7 @@
 import { spawn, ChildProcess } from 'child_process'
 import Deferred from 'deferral'
 import Debug from 'debug'
+import fs from 'fs'
 
 const debug = Debug('engine')
 
@@ -48,6 +49,10 @@ export default class Process {
    * Set the working directory
    */
   cwd(dir: string) {
+    if (!fs.existsSync(dir)) {
+      throw new Error(`Cwd ${dir} does not exist`)
+    }
+    debug('setting cwd', dir)
     this._cwd = dir
   }
 
@@ -99,7 +104,10 @@ export default class Process {
     this._stdout && this._process.stdout.pipe(this._stdout)
 
     this._running = new Deferred()
-    this._process.once('error', () => this._running.reject(1))
+    this._process.once('error', e => {
+      debug(e)
+      this._running.reject(1)
+    })
     this._process.once('exit', code => {
       // for some reason signals cause code to be null... wierd
       this._running.resolve(typeof code === 'number' ? code : 1)
