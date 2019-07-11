@@ -8,7 +8,7 @@ This repository is used as a central point to collect information and issues aro
 
 ![](https://imgur.com/skyBm10.png)
 
-Prisma is a application data framework consisting of these tools:
+Prisma is an application data framework consisting of these tools:
 
 - **Photon**: A type-safe database client ("ORM replacement")
 - **Lift**: Declarative data modeling and migrations
