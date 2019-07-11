@@ -47,7 +47,7 @@ A data source connector connects Prisma to a [data source](#data-source).
 Prisma currently supports the following built-in connectors:
 
 - [`sqlite`](./core/connectors/sqlite.md): A connector for SQLite databases
-- [`postgres`](./core/connectors/postgres.md): A connector for PostgreSQL databases
+- [`postgresql`](./core/connectors/postgresql.md): A connector for PostgreSQL databases
 - [`mysql`](./core/connectors/mysql.md): A connector for MySQL databases
 - [`mongo`](./core/connectors/mongo.md): A connector for MongoDB databases (_coming soon_)
 

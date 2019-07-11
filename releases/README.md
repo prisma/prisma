@@ -1,17 +1,26 @@
 # Releases
 
+This page explains the release process for Prisma 2.
+
+## Release log
+
+- [`preview-1`](https://github.com/prisma/prisma/releases/tag/2.0.0-preview-1) (July 11, 2019)
+- `preview-2` (July 18, 2019) 
+
 ## Release channels
 
 There are two main release channels:
 
 - **Preview**: Weekly releases on Thursdays
-- **Alpha**: Rolling releases
+- **Alpha**: Rolling/continuous releases
 
 Unless you have specific requirements for the alpha channel, it is recommended to always use the latest Preview release.
 
 ### Preview
 
-Prisma 2 has a **weekly release cycle** where new Preview releases are issued **on Thursdays**. Preview releases are named `preview-1`, `preview-2`, `preview-3`, ...
+Prisma 2 has a **weekly release cycle** where new Preview releases are issued **on Thursdays**. 
+
+Preview releases are named `2.0.0-preview-1`, `2.0.0-preview-2`, `2.0.0-preview-3`, ... or you can reference them for short: `preview-1`, `preview-2`, `preview-3` ...
 
 You can install the latest Preview release via npm:
 
