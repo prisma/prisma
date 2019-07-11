@@ -12,7 +12,7 @@ Prisma 2 consists of three standalone tools:
 
 - **Photon**: A type-safe database client ("ORM replacement")
 - **Lift**: Declarative data modeling and migrations
-- **Studio**: Admin UI to support various database workflows.
+- **Studio**: Admin UI to support various database workflows
 
 While each tool can be used standalone (in both _greenfield_ and _brownfield_ projects), they integrate nicely through common components like the [**Prisma schema**](./docs/prisma-schema-file.md) or the [Prisma 2 CLI](./docs/prisma2-cli.md).
 
@@ -60,6 +60,6 @@ Learn more about the `prisma2 init` flow [here](./docs/getting-started.md) or ge
   - [Migration files](./docs/lift/migration-files.md)
   - [Use only Lift](./docs/lift/use-only-lift.md)
 - [Supported databases](./docs/supported-databases.md)
-- [Prisma 2 feedback](./docs/prisma2-feedback.md)
+- [How to provide feedback for Prisma 2?](./docs/prisma2-feedback.md)
 - [FAQ](./docs/faq.md)
 - [Glossary](./docs/glossary.md)

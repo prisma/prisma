@@ -29,7 +29,7 @@
   - [Migration files](./lift/migration-files.md)
   - [Use only Lift](./lift/use-only-lift.md)
 - [Supported databases](./supported-databases.md)
-- [Prisma 2 feedback](./prisma2-feedback.md)
+- [How to provide feedback for Prisma 2?](./prisma2-feedback.md)
 - [FAQ](./faq.md)
 - [Glossary](./glossary.md)
 
