@@ -10,3 +10,6 @@ cp node_modules/@prisma/lift/dist/GeneratorWorker.js build/GeneratorWorker.js
 cp -R node_modules/@prisma/studio-server/public/* build/public
 rm -rf build/public/static/js/*.map
 rm -rf build/public1/static/js/*.map
+rm -rf build/prisma
+rm -rf build/runtime/prisma
+cp src/capture-worker.js build/dist/capture-worker.js

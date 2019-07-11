@@ -1,4 +1,8 @@
 #!/usr/bin/env ts-node
+import * as Sentry from '@sentry/node'
+
+export { byline } from '@prisma/lift'
+export { Sentry }
 
 // do this before facebook's yoga
 import debugLib from 'debug'
@@ -22,6 +26,7 @@ import { Version } from './Version'
 import { predefinedGenerators } from './generators'
 import { Generate } from './Generate'
 import chalk from 'chalk'
+import { capture } from './capture'
 
 /**
  * Main function
@@ -35,6 +40,7 @@ async function main(): Promise<number> {
     console.error(env)
     return 1
   }
+
   // create a new CLI with our subcommands
   const cli = CLI.new({
     init: Init.new(env),
@@ -73,17 +79,20 @@ process.on('SIGINT', () => {
 /**
  * Run our program
  */
-main()
-  .then(code => {
-    if (code !== 0) {
-      process.exit(code)
-    }
-  })
-  .catch(err => {
-    if (debugLib.enabled('prisma')) {
-      console.error(chalk.redBright.bold('Error: ') + err.stack)
-    } else {
-      console.error(chalk.redBright.bold('Error: ') + err.message)
-    }
-    process.exit(1)
-  })
+if (require.main === module) {
+  main()
+    .then(code => {
+      if (code !== 0) {
+        process.exit(code)
+      }
+    })
+    .catch(err => {
+      capture(err)
+      if (debugLib.enabled('prisma')) {
+        console.error(chalk.redBright.bold('Error: ') + err.stack)
+      } else {
+        console.error(chalk.redBright.bold('Error: ') + err.message)
+      }
+      process.exit(1)
+    })
+}
