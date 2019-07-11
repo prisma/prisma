@@ -15,6 +15,6 @@ export function capture(e: any) {
 
     child.stdin!.write(JSON.stringify(json) + '\n')
   } catch (e) {
-    console.error(e)
+    // console.error(e)
   }
 }
