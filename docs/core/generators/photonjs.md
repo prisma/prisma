@@ -79,4 +79,3 @@ When generating Photon JS based on your [data model definition](./data-modeling.
 - `WhereInput`
 - `IDFilter`
 - `StringFilter`
-
