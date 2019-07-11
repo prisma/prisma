@@ -12,7 +12,11 @@ In order to run Prisma 2 with `now`, you need to use `@now/node@canary` and set 
 }
 ```
 
+## Deployment
+
 ```bash
 npm install -g now
 now
 ```
+
+## [Demo](https://now-test.timsuchanek.now.sh)
