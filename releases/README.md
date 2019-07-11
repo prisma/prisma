@@ -2,6 +2,11 @@
 
 This page explains the release process for Prisma 2.
 
+## Release log
+
+- [`preview-1`](./preview-1.md) (July 11, 2019)
+- `preview-2` (July 18, 2019) 
+
 ## Release channels
 
 There are two main release channels:
@@ -32,8 +37,3 @@ You can install the latest alpha release via npm:
 ```
 npm install -g prisma2@alpha
 ```
-
-## Release overview
-
-- [`preview-1`](./preview-1.md) (July 11, 2019)
-- `preview-2` (July 18, 2019) 
