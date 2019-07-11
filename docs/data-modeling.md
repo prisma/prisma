@@ -11,6 +11,7 @@
 - [Functions](#functions)
 - [Scalar types](#scalar-types)
 - [Relations](#relations)
+- [Reserved model names](#reserved-model-names)
 
 ## Data model definition
 
@@ -374,7 +375,7 @@ _Connector_ attributes let you use the native features of your data source. With
 Here is where you can find the documentation of connector attributes per data source connector:
 
 - [MySQL](./core/connectors/mysql.md)
-- [PostgreSQL](./core/connectors/postgres.md)
+- [PostgreSQL](./core/connectors/postgresql.md)
 - [SQLite](./core/connectors/sqlite.md)
 - [MongoDB](./core/connectors/mongo.md)
 
@@ -449,3 +450,17 @@ close.
 ## Relations
 
 Learn more about relations [here](./relations.md).
+
+## Reserved model names
+
+When generating Photon JS based on your [data model definition](./data-modeling.md#data-model-definition), there are a number of reserved names that you can't use for your models. Here is a list of the reserved names:
+
+- `String`
+- `Int`
+- `Float`
+- `Subscription`
+- `DateTime`
+- `WhereInput`
+- `IDFilter`
+- `StringFilter`
+

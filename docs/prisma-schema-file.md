@@ -73,7 +73,7 @@ A data source can be specified using a `datasource` block in the schema file.
 
 | Name | Required | Type | Description |
 | --- | --- | --- | --- |
-| `provider` | **Yes** | Enum (`postgres`, `mysql`, `sqlite`) | Describes which data source connector to use. |
+| `provider` | **Yes** | Enum (`postgresql`, `mysql`, `sqlite`) | Describes which data source connector to use. |
 | `url` | **Yes** | String (URL) | Connection URL including authentication info. Each data source connector documents the URL syntax. Most connectors use the syntax provided by the database. |
 | `enabled` | No | Boolean | Use environment variables to enable/disable a data source. **Default**: `true`. |
 
@@ -94,8 +94,8 @@ datasource mysql {
   url       = env("SQLITE_URL")
 }
 
-datasource postgres {
-  provider  = "postgres"
+datasource postgresql {
+  provider  = "postgresql"
   url       = env("SQLITE_URL")
 }
 
@@ -112,7 +112,7 @@ This is just a general convention, technically data sources can be named anythin
 
 ```groovy
 datasource pg {
-  provider = "postgres"
+  provider = "postgresql"
   url      = env("POSTGRES_URL")
   enabled  = true
 }
@@ -196,7 +196,7 @@ Environment variables can be provided using the `env` function:
 
 ```
 datasource pg {
-  provider = "postgres"
+  provider = "postgresql"
   url      = env("POSTGRES_URL")
 }
 ```

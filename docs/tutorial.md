@@ -113,18 +113,18 @@ Your Prisma schema file currently has the following contents:
 
 ```prisma
 datasource db {
-  provider = "postgres"
+  provider = "postgresql"
   url      = "postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA"
 }
 ```
 
 The uppercase letters are placeholders representing your database credentials. 
 
-For a PostgreSQL database hosted on Heroku, the [connection string](./core/connectors/postgres.md#connection-string) might look as follows:
+For a PostgreSQL database hosted on Heroku, the [connection string](./core/connectors/postgresql.md#connection-string) might look as follows:
 
 ```prisma
 datasource db {
-  provider = "postgres"
+  provider = "postgresql"
   url      = "postgresql://opnmyfngbknppm:XXX@ec2-46-137-91-216.eu-west-1.compute.amazonaws.com:5432/d50rgmkqi2ipus?schema=hello-prisma2"
 }
 ```
@@ -133,7 +133,7 @@ When running PostgreSQL locally, your user and password as well as the database 
 
 ```prisma
 datasource db {
-  provider = "postgres"
+  provider = "postgresql"
   url      = "postgresql://johndoe:johndoe@localhost:5432/johndoe?schema=hello-prisma2"
 }
 ```
@@ -267,7 +267,7 @@ To generate Photon, you first need to add a `generator` to your schema file. Go 
 
 ```diff
 datasource db {
-  provider = "postgres"
+  provider = "postgresql"
   url      = "postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA"
 }
 
@@ -576,4 +576,4 @@ prisma2 lift up
 
 ## 9. Explore Photon's relation API
 
-Coming soon.
+Coming soon. In the meantime, you can learn more about Photon's relations API [here](./relations.md#relations-in-the-generated-photon-api).
