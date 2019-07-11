@@ -31,7 +31,7 @@ Photon acts more as a _query builder_ returning plain objects with a focus on st
 
 ### Will Photon support more databases (and other data sources) in the future?
 
-Yes. Photon is based on Prisma's query engine that can connect to any data source that provides a proper connector implementation. There will be built-in connectors such as the current ones for [PostgreSQL](./core/connectors/postgres.md), [MySQL](./core/connectors/mysql.md) and [SQLite](./core/connectors/sqlite.md). 
+Yes. Photon is based on Prisma's query engine that can connect to any data source that provides a proper connector implementation. There will be built-in connectors such as the current ones for [PostgreSQL](./core/connectors/postgresql.md), [MySQL](./core/connectors/mysql.md) and [SQLite](./core/connectors/sqlite.md). 
 
 However, it's also possible to build your own connectors, more documentation on that topic will follow soon.
 

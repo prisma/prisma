@@ -374,7 +374,7 @@ _Connector_ attributes let you use the native features of your data source. With
 Here is where you can find the documentation of connector attributes per data source connector:
 
 - [MySQL](./core/connectors/mysql.md)
-- [PostgreSQL](./core/connectors/postgres.md)
+- [PostgreSQL](./core/connectors/postgresql.md)
 - [SQLite](./core/connectors/sqlite.md)
 - [MongoDB](./core/connectors/mongo.md)
 

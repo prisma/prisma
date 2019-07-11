@@ -45,7 +45,7 @@ Learn more about the `prisma2 init` flow [here](./docs/getting-started.md) or ge
 - Core
   - Connectors
     - [MySQL](./docs/core/connectors/mysql.md)
-    - [PostgreSQL](./docs/core/connectors/postgres.md)
+    - [PostgreSQL](./docs/core/connectors/postgresql.md)
     - [SQLite](./docs/core/connectors/sqlite.md)
     - [MongoDB](./docs/core/connectors/mongo.md)
   - Generators
