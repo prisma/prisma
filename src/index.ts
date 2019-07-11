@@ -10,5 +10,6 @@ export { Converter } from './cli/commands/Converter'
 export { isdlToDatamodel2 } from './utils/isdlToDatamodel2'
 export { missingGeneratorMessage } from './utils/generation/missingGeneratorMessage'
 export { getCompiledGenerators } from './utils/generation/getCompiledGenerators'
+export { default as byline } from './utils/byline'
 
 export * from './types'
