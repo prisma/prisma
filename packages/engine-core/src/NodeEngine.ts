@@ -85,6 +85,8 @@ export class NodeEngine extends Engine {
 
     this.port = await this.getFreePort()
 
+    debugLib('node-engine', process.env)
+
     // add the environment
     this.child.env({
       ...process.env,

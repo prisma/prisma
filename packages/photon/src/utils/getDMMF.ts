@@ -65,7 +65,7 @@ export async function getRawDMMF(
   let dmmf
   let error
   child.cwd(cwd)
-  child.env({ PRISMA_DML: datamodel, RUST_BACKTRACE: '1' })
+  child.env({ ...process.env, PRISMA_DML: datamodel, RUST_BACKTRACE: '1' })
   child.stdout(
     concat(d => {
       try {

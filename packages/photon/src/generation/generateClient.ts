@@ -45,7 +45,7 @@ export async function buildClient({
 
   const dmmf = await getDMMF({ datamodel, cwd, prismaPath: binaryPath })
   const liftEngine = new LiftEngine({
-    projectDir: cwd,
+    projectDir: cwd || process.cwd(),
   })
   const config = await liftEngine.getConfig({ datamodel })
   const datamodelWithoutDatasources = await liftEngine.convertDmmfToDml({
@@ -61,7 +61,7 @@ export async function buildClient({
     datamodel: datamodelWithoutDatasources.datamodel,
     runtimePath,
     browser,
-    datasources: resolveDatasources(config.datasources, cwd, outputDir),
+    datasources: resolveDatasources(config.datasources, cwd || process.cwd(), outputDir),
   })
   const generatedClient = String(client)
   const target = '@generated/photon/index.ts'
