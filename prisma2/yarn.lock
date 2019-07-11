@@ -497,7 +497,7 @@
     "@sentry/types" "5.5.0"
     tslib "^1.9.3"
 
-"@sentry/node@5.5.0":
+"@sentry/node@5":
   version "5.5.0"
   resolved "https://registry.yarnpkg.com/@sentry/node/-/node-5.5.0.tgz#70a627fc3957132e592278ece457f73ab5dd0ec3"
   integrity sha512-Qn60k7NqJhzpI7PnW/dOz2Y1ofD6kMKGEgLWAO5vcbNShyQj7m2JYFk0c7nFU9HDgertqkxQnvhvIGvT+QokaQ==
