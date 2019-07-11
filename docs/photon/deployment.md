@@ -63,4 +63,4 @@ Here is an example `now.json`:
 }
 ```
 
-You can find an example for a ZEIT Now deployment [here]().
+You can find an example for a ZEIT Now deployment [here](https://github.com/prisma/photonjs/tree/master/examples/javascript/now).
