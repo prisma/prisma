@@ -54,11 +54,12 @@ export class NodeEngine extends Engine {
   stderrLogs: string = ''
   stdoutLogs: string = ''
   currentRequestPromise?: Promise<any>
+  cwdPromise: Promise<string>
   static defaultPrismaPath = path.join(__dirname, '../prisma')
 
   constructor({ cwd, datamodel, prismaPath, ...args }: EngineConfig) {
     super()
-    this.cwd = cwd || process.cwd()
+    this.cwd = cwd
     this.debug = args.debug || false
     this.datamodel = datamodel
     this.prismaPath = prismaPath || NodeEngine.defaultPrismaPath
@@ -78,7 +79,9 @@ export class NodeEngine extends Engine {
     this.child = new Process(this.prismaPath)
 
     // set the working directory
-    this.child.cwd(this.cwd)
+    if (this.cwd) {
+      this.child.cwd(this.cwd)
+    }
 
     this.port = await this.getFreePort()
 

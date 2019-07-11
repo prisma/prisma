@@ -322,14 +322,20 @@ async function getCacheDir(channel: string, version: string, platform: string): 
 }
 
 async function getPlatform() {
-  const { platform, isMusl } = await getos()
+  const { platform, libssl } = await getos()
 
   if (platform === 'darwin') {
     return 'darwin'
   }
 
-  if (platform === 'linux' && isMusl) {
-    return 'linux-lambda'
+  if (platform === 'linux' && libssl) {
+    if (libssl === '1.0.2') {
+      return 'linux-lambda'
+    }
+
+    if (libssl === '1.0.1') {
+      return 'linux-zeit'
+    }
   }
 
   return 'linux-glibc'

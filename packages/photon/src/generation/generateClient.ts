@@ -15,6 +15,7 @@ import {
 import { promisify } from 'util'
 import { Dictionary } from '../runtime/utils/common'
 import { getDMMF } from '../utils/getDMMF'
+import { resolveDatasources } from '../utils/resolveDatasources'
 import { TSClient } from './TSClient'
 
 const remove = promisify(fs.unlink)
@@ -55,15 +56,12 @@ export async function buildClient({
     dmmf: JSON.stringify(dmmf.datamodel),
   })
 
-  const relativeCwd = path.relative(outputDir, cwd)
-
   const client = new TSClient({
     document: dmmf,
-    cwd: relativeCwd || undefined, // it can be an empty string, then use undefined
     datamodel: datamodelWithoutDatasources.datamodel,
     runtimePath,
     browser,
-    datasources: config.datasources,
+    datasources: resolveDatasources(config.datasources, cwd, outputDir),
   })
   const generatedClient = String(client)
   const target = '@generated/photon/index.ts'
@@ -86,6 +84,7 @@ export async function buildClient({
     declaration: true,
     strict: true,
     suppressOutputPathCheck: false,
+    esModuleInterop: true,
   }
   const file: any = { fileName: target, content: generatedClient }
 

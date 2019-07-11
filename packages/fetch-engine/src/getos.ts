@@ -1,45 +1,54 @@
-import fs from 'fs'
-import { promisify } from 'util'
 import os from 'os'
-
-const exists = promisify(fs.exists)
+import { exec } from 'child_process'
 
 export type GetOSResult = {
   platform: NodeJS.Platform
-  isMusl: boolean
+  libssl?: string
 }
 
-export async function getos() {
-  const isMusl = isAWSLambda()
-  if (isMusl) {
-    return {
-      platform: 'linux',
-      isMusl,
-    }
-  }
-
+export async function getos(): Promise<GetOSResult> {
   const platform = os.platform()
   if (platform !== 'linux') {
     return {
       platform,
-      isMusl: false,
     }
   }
 
   return {
     platform: 'linux',
-    isMusl: false,
+    libssl: await getLibSslVersion(),
   }
 }
 
-// There doesn't seem to be a reliable way to
-// check if the distro supports glibc's shared
-// libraries or not.
-//
-// For now, we can add these checks as needed.
-// lambda with node8 has   "AWS_EXECUTION_ENV": "AWS_Lambda_nodejs8.10",
-// now's build servers have "AWS_EXECUTION_ENV=AWS_ECS_FARGATE"
-//
-function isAWSLambda(): boolean {
-  return Boolean(process.env['AWS_EXECUTION_ENV'])
+export async function getLibSslVersion(): Promise<string | undefined> {
+  const [version, ls] = await Promise.all([
+    gracefulExec(`openssl version -v`),
+    gracefulExec(`ls -l /lib64 | grep ssl;
+    ls -l /usr/lib64 | grep ssl`),
+  ])
+
+  if (version) {
+    const match = /^OpenSSL\s(\d+\.\d+\.\d+)/.exec(version)
+    if (match) {
+      return match[1]
+    }
+  }
+
+  if (ls) {
+    const match = /libssl\.so\.(\d+\.\d+\.\d+)/.exec(ls)
+    if (match) {
+      return match[1]
+    }
+  }
+
+  return undefined
+}
+
+async function gracefulExec(cmd: string): Promise<string | undefined> {
+  try {
+    const result = await exec(cmd)
+    return String(result)
+  } catch (e) {
+    return undefined
+  }
 }

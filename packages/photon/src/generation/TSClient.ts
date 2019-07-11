@@ -1,10 +1,10 @@
 import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfilled in TypeScript
 import indent from 'indent-string'
-import path from 'path'
 import { DMMFClass } from '../runtime/dmmf'
 import { BaseField, DMMF } from '../runtime/dmmf-types'
 import { capitalize, GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
 import { InternalDatasource } from '../runtime/utils/printDatasources'
+import { serializeDatasources } from './serializeDatasources'
 import {
   getDefaultName,
   getFieldArgName,
@@ -34,6 +34,8 @@ const commonCode = runtimePath => `import {
   Datasource,
   printDatasources
 } from '${runtimePath}'
+
+import path from 'path'
 
 const debug = debugLib('photon')
 
@@ -110,7 +112,6 @@ class PhotonFetcher {
 interface TSClientOptions {
   document: DMMF.Document
   datamodel: string
-  cwd?: string
   runtimePath: string
   browser?: boolean
   datasources: InternalDatasource[]
@@ -119,17 +120,12 @@ interface TSClientOptions {
 export class TSClient {
   protected readonly dmmf: DMMFClass
   protected readonly document: DMMF.Document
-  protected readonly cwd: string
   protected readonly datamodel: string
   protected readonly runtimePath: string
   protected readonly browser: boolean
   protected readonly internalDatasources: InternalDatasource[]
-  constructor({ document, datamodel, runtimePath, browser = false, cwd, datasources }: TSClientOptions) {
+  constructor({ document, datamodel, runtimePath, browser = false, datasources }: TSClientOptions) {
     this.document = document
-    // if cwd === process.cwd(), it's an empty string ''
-    // which is a falsy value in javascript
-    // so it will be turned into `undefined` in that case
-    this.cwd = cwd
     this.datamodel = datamodel
     this.runtimePath = runtimePath
     this.browser = browser
@@ -145,7 +141,7 @@ export class TSClient {
  * Client
 **/
 
-${new PhotonClientClass(this.dmmf, this.datamodel, this.internalDatasources, this.cwd, this.browser)}
+${new PhotonClientClass(this.dmmf, this.datamodel, this.internalDatasources, this.browser)}
 
 ${/*new Query(this.dmmf, 'query')*/ ''}
 
@@ -208,7 +204,6 @@ class PhotonClientClass {
     protected readonly dmmf: DMMFClass,
     protected readonly datamodel: string,
     protected readonly internalDatasources: InternalDatasource[],
-    protected readonly cwd?: string,
     protected readonly browser?: boolean,
   ) {}
   public toString() {
@@ -259,7 +254,7 @@ export default class Photon {
 
     // datamodel = datamodel without datasources + printed datasources
     this.datamodel = ${JSON.stringify(this.datamodel)}
-    this.internalDatasources = ${JSON.stringify(this.internalDatasources)}
+    this.internalDatasources = ${serializeDatasources(this.internalDatasources)}
     const printedDatasources = printDatasources(options.datasources || {}, this.internalDatasources)
     const datamodel = printedDatasources + '\\n\\n' + this.datamodel
     debug('datamodel:')
@@ -269,9 +264,7 @@ export default class Photon {
     const engineConfig = internal.engine || {}
 
     this.engine = new Engine({
-      cwd: engineConfig.cwd || ${
-        this.cwd ? `require('path').resolve(__dirname, ${JSON.stringify(this.cwd)})` : 'undefined'
-      },
+      cwd: engineConfig.cwd,
       debug: debugEngine,
       datamodel,
       prismaPath: engineConfig.binaryPath || undefined

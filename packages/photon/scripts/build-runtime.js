@@ -67,7 +67,7 @@ async function saveToDisc(source, map, assets, outputDir) {
     `!${path.join(outputDir, 'schema-inferrer-bin')}`,
   ])
   await makeDir(outputDir)
-  assets['index.js'] = { source }
+  assets['index.js'] = { source: fixCode(source) }
   if (map) {
     assets['index.js.map'] = map
   }
@@ -92,4 +92,16 @@ async function saveToDisc(source, map, assets, outputDir) {
     }),
   )
   const after = Date.now()
+}
+
+function fixCode(code) {
+  return code
+    .split('\n')
+    .map(line => {
+      if (line.startsWith('NodeEngine.defaultPrismaPath = path.join(')) {
+        return `NodeEngine.defaultPrismaPath = path.join(__dirname + '/prisma');`
+      }
+      return line
+    })
+    .join('\n')
 }
