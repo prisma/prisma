@@ -60,6 +60,6 @@ Learn more about the `prisma2 init` flow [here](./docs/getting-started.md) or ge
   - [Migration files](./docs/lift/migration-files.md)
   - [Use only Lift](./docs/lift/use-only-lift.md)
 - [Supported databases](./docs/supported-databases.md)
-- [Prisma 2 feedback](./docs/prisma2-feedback.md)
+- [How to provide feedback for Prisma 2?](./docs/prisma2-feedback.md)
 - [FAQ](./docs/faq.md)
 - [Glossary](./docs/glossary.md)
