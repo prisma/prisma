@@ -60,6 +60,7 @@ export default class Process {
    * Set the working directory
    */
   env(env: NodeJS.ProcessEnv) {
+    debug('setting env', env)
     this._env = env || {}
   }
 
@@ -90,7 +91,9 @@ export default class Process {
       return
     }
 
-    debug('starting: %s %s cwd: %s env: %j', this.name, this.args, this._cwd, this._env)
+    debug('starting: %s %s cwd: %s', this.name, this.args, this._cwd)
+    debug('env:')
+    debug(this._env)
     this._process = spawn(this.name, this.args || [], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: this._cwd,

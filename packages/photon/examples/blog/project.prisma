@@ -1,6 +1,6 @@
 datasource db {
   provider = "sqlite"
-  url      = "file:db/migration_engine.db"
+  url      = env("SQLITE_PATH")
   default  = true
 }
 
