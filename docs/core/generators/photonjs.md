@@ -66,3 +66,17 @@ The Photon JS generator provides the following mapping from data model [scalar t
 | `Int`      | `number`  |
 | `Float`    | `number`  |
 | `Datetime` | `Date`    |
+
+## Reserved model names
+
+When generating Photon JS based on your [data model definition](./data-modeling.md#data-model-definition), there are a number of reserved names that you can't use for your models. Here is a list of the reserved names:
+
+- `String`
+- `Int`
+- `Float`
+- `Subscription`
+- `DateTime`
+- `WhereInput`
+- `IDFilter`
+- `StringFilter`
+

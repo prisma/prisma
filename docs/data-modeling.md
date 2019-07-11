@@ -11,6 +11,7 @@
 - [Functions](#functions)
 - [Scalar types](#scalar-types)
 - [Relations](#relations)
+- [Reserved model names](#reserved-model-names)
 
 ## Data model definition
 
@@ -449,3 +450,17 @@ close.
 ## Relations
 
 Learn more about relations [here](./relations.md).
+
+## Reserved model names
+
+When generating Photon JS based on your [data model definition](./data-modeling.md#data-model-definition), there are a number of reserved names that you can't use for your models. Here is a list of the reserved names:
+
+- `String`
+- `Int`
+- `Float`
+- `Subscription`
+- `DateTime`
+- `WhereInput`
+- `IDFilter`
+- `StringFilter`
+
