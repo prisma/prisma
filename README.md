@@ -4,11 +4,11 @@ This repository is used as a central point to collect information and issues aro
 
 > Prisma 2 is currently in Preview! [Limitations](./docs/limitations.md) include missing features, limited performance and stability issues.
 
-## What is Prisma 2?
+## What is Prisma?
 
 ![](https://imgur.com/skyBm10.png)
 
-Prisma 2 consists of three standalone tools:
+Prisma is a application data framework consisting of these tools:
 
 - **Photon**: A type-safe database client ("ORM replacement")
 - **Lift**: Declarative data modeling and migrations
