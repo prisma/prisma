@@ -52,12 +52,12 @@ In the interactive prompt, select the following:
 1. Select **TypeScript**
 1. Select **From scratch**
 
-This already downloads and installs some basic boilerplate for you. Since we're starting without boilerplate in the PostgreSQL tutorial, **delete everything except for the `project.prisma` file inside the `prisma` directory** to be in the same state as the PostgreSQL tutorial. Your folder structure should look as follows:
+This already downloads and installs some basic boilerplate for you. Since we're starting without boilerplate in the PostgreSQL tutorial, **delete everything except for the `schema.prisma` file inside the `prisma` directory** to be in the same state as the PostgreSQL tutorial. Your folder structure should look as follows:
 
 ```
 hello-prisma2
 └── prisma
-    └── project.prisma
+    └── schema.prisma
 ```
 
 </Details>
@@ -98,18 +98,16 @@ The `init` flow hasn't done anything but create the following directory structur
 ```
 hello-prisma2
 └── prisma
-    └── project.prisma
+    └── schema.prisma
 ```
 
-> **Note**: If you were using **SQLite**, make sure that you deleted all files that were generated initially and only keep the `prisma/project.prisma` file!
+> **Note**: If you were using **SQLite**, make sure that you deleted all files that were generated initially and only keep the `prisma/schema.prisma` file!
 
-`project.prisma` is your [Prisma schema file](./prisma-schema-file.md). It generally contains three important elements for your project:
+`schema.prisma` is your [Prisma schema file](./prisma-schema-file.md). It generally contains three important elements for your project:
 
 - Data sources (here, that's your PostgreSQL database)
 - Generators (you'll add this soon)
 - [Data model definition](./data-modeling.md#data-model-definition)  (you'll add this soon)
-
-> **Note**: The schema file is typically called `schema.prisma` (not `project.prisma`). In the future, the CLI will also output schema files that are named according to this convention. This has been reported as an issue [here](https://github.com/prisma/prisma2/issues/36) and will be fixed very soon. 
 
 Your Prisma schema file currently has the following contents:
 
@@ -233,7 +231,7 @@ hello-prisma2
     │   │   ├── datamodel.prisma
     │   │   └── steps.json
     │   └── lift.lock
-    └── project.prisma
+    └── schema.prisma
 ```
 
 Note that the `--name` option that was passed to `prisma2 lift save` determines the name of the generated migration directory. To ensure uniqueness and retain order, the name of a migration directory is always prefixed with a timestamp, so in this case the migration directory is called `20190703131441-init`.
@@ -265,7 +263,7 @@ That's it! You're now ready to access your database programmatically using Photo
 
 Photon JS is a type-safe database client for Node.js and TypeScript. It's generated from your [Prisma schema file](./prisma-schema-file.md) and provides an ergonomic data access API with CRUD and other operations for your [data model](./data-modeling.md#data-model-definition). You can learn more about Photon's generated API [here](./photon/api.md).
 
-To generate Photon, you first need to add a `generator` to your schema file. Go ahead and adjust your `project.prisma` to look as follows:
+To generate Photon, you first need to add a `generator` to your schema file. Go ahead and adjust your `schema.prisma` to look as follows:
 
 ```diff
 datasource db {
@@ -488,7 +486,7 @@ Here is what the terminal screen now looks like:
 
 ### 8.1. Add another model
 
-Let's now evolve the application while running the development mode. Add another model to your `project.prisma`:
+Let's now evolve the application while running the development mode. Add another model to your `schema.prisma`:
 
 ```prisma
 model Post {
