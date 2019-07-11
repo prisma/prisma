@@ -576,4 +576,4 @@ prisma2 lift up
 
 ## 9. Explore Photon's relation API
 
-Coming soon.
+Coming soon. In the meantime, you can learn more about Photon's relations API [here](./relations.md#relations-in-the-generated-photon-api).
