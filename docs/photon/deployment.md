@@ -28,3 +28,37 @@ Note that `darwin` is the default `target`. Here's a list of supported platforms
 | Google Cloud Functions | User's choice |
 
 > **ATTENTION**: The `target` field on the `generator` block is not yet implemented. You can track the progress of the implementation [on GitHub](https://github.com/prisma/prisma2/issues/97). You can also check ou the [specification](https://github.com/prisma/specs/tree/master/binary-workflows) for more details.
+
+## Hosting providers
+
+### ZEIT Now
+
+You can deploy your "Photon JS"-based application to [ZEIT Now](https://zeit.co/now). 
+
+When deploying to ZEIT Now, you must configure the following in your `now.json`:
+
+- `use`: ` @now/node@canary`
+- `maxLambdaSize`: `25mb`
+
+Here is an example `now.json`:
+
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.js",
+      "use": "@now/node@canary",
+      "config": {
+        "maxLambdaSize": "25mb"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "index.js"
+    }
+  ]
+}
+```
