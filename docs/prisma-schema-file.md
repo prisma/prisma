@@ -201,16 +201,6 @@ datasource pg {
 }
 ```
 
-When a [`generator`](#generators-optional) block is specified in the schema file, the generated code will reference the same environment variables. For example for Photon JS, the generated code could include:
-
-```
-childProcess.spawn('./query_engine', {
-  env: {
-    url: process.env.POSTGRES_URL,
-  },
-})
-```
-
 ### Switching data sources based on environments
 
 Sometimes it's helpful to target different environments based in the same schema file, for example:
