@@ -19,6 +19,8 @@ import { getBar, info, warn } from './log'
 import plusxSync from './chmod'
 import { copy } from './copy'
 import { getos } from './getos'
+import Debug from 'debug'
+const debug = Debug('download')
 
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
@@ -327,6 +329,8 @@ async function getPlatform() {
   if (platform === 'darwin') {
     return 'darwin'
   }
+
+  debug({ platform, libssl })
 
   if (platform === 'linux' && libssl) {
     if (libssl === '1.0.2') {

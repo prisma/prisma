@@ -1,5 +1,7 @@
 import os from 'os'
 import { exec } from 'child_process'
+import Debug from 'debug'
+const debug = Debug('getos')
 
 export type GetOSResult = {
   platform: NodeJS.Platform
@@ -27,6 +29,9 @@ export async function getLibSslVersion(): Promise<string | undefined> {
     ls -l /usr/lib64 | grep ssl`),
   ])
 
+  debug({ version })
+  debug({ ls })
+
   if (version) {
     const match = /^OpenSSL\s(\d+\.\d+\.\d+)/.exec(version)
     if (match) {
@@ -45,10 +50,14 @@ export async function getLibSslVersion(): Promise<string | undefined> {
 }
 
 async function gracefulExec(cmd: string): Promise<string | undefined> {
-  try {
-    const result = await exec(cmd)
-    return String(result)
-  } catch (e) {
-    return undefined
-  }
+  return new Promise(resolve => {
+    try {
+      exec(cmd, (err, stdout, stderr) => {
+        resolve(String(stdout))
+      })
+    } catch (e) {
+      resolve(undefined)
+      return undefined
+    }
+  })
 }
