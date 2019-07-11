@@ -28,6 +28,7 @@
     "@prisma/introspection": "0.0.39",
     "@prisma/lift": "^0.0.132",
     "@prisma/photon": "^0.0.154",
+    "@sentry/node": "5",
     "@types/mocha": "^5.2.7",
     "@zeit/ncc": "^0.18.5",
     "jest": "24.8.0",
@@ -54,9 +55,7 @@
     "prepare": "yarn build && node download-build/index.js",
     "update-deps": "yarn upgrade --latest --scope @prisma"
   },
-  "dependencies": {
-    "@sentry/node": "5.5.0"
-  },
+  "dependencies": {},
   "resolutions": {
     "prisma-datamodel": "1.36.0-alpha.8",
     "**/prisma-datamodel": "1.36.0-alpha.8",
