@@ -1,0 +1,11 @@
+{
+  "name": "prisma2-now",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "prisma2 generate"
+  },
+  "devDependencies": {
+    "prisma2": "0.0.129"
+  }
+}
