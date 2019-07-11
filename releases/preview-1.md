@@ -1,6 +1,8 @@
 # 2.0.0-preview-1
 
-Since the initial [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/), we've ironed out a number of bugs and added lots of improvements. Today, we are issuing the first official [Preview release](./README.md#preview) `2.0.0-preview-1` (short: `preview-1`).
+Since the initial [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/), we've ironed out a number of bugs and added lots of improvements to Photon and Lift. 
+
+Today, we are issuing the first official [Preview release](./README.md#preview) `2.0.0-preview-1` (short: `preview-1`).
 
 ## Install
 
