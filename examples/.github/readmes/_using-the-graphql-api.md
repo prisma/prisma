@@ -29,8 +29,10 @@ query {
 ```graphql
 mutation {
   signupUser(
-    name: "Sarah"
-    email: "sarah@prisma.io"
+    data: {
+      name: "Sarah"
+      email: "sarah@prisma.io"
+    }
   ) {
     id
   }
@@ -73,7 +75,7 @@ mutation {
     id
     title
     content
-    published 
+    published
     author {
       id
       name
@@ -107,7 +109,8 @@ mutation {
 
 ```graphql
 mutation {
-  deletePost(id: "__POST_ID__") {
+  deleteOnePost(where: {id: "__POST_ID__"})
+  {
     id
   }
 }
