@@ -67,7 +67,7 @@ async function main() {
     where: { id: 1 }
   })
   // result = { id: 1, name: "Alice", role: "USER" }
-  photon.close()
+  await photon.disconnect()
 }
 ```
 
