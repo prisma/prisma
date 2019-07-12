@@ -203,8 +203,8 @@ CREATE TABLE "hello-prisma2"."users" (
 Every schema migration with Lift follows a 3-step-process:
 
 1. **Adjust data model**: Change your [data model definition](../data-modeling.md#data-model-definition) to match your desired database schema.
-1. **Save migration**: Run `prisma lift save` to create your [migration files](./migration-files.md) on the file system.
-1. **Run migration**: Run `prisma lift up` to perform the migration against your database.
+1. **Save migration**: Run `prisma2 lift save` to create your [migration files](./migration-files.md) on the file system.
+1. **Run migration**: Run `prisma2 lift up` to perform the migration against your database.
 
 Step 1 is what you just did in the previous section, so now you need to use Lift to map the data model to your database schema.
 
