@@ -75,7 +75,7 @@ export async function getRawDMMF(
       }
     }),
   )
-  child.stderr(process.stderr)
+  // child.stderr()
   await child.run()
   if (error) {
     throw new Error(error)
