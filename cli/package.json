@@ -1,7 +1,0 @@
-{
-  "workspaces": [
-    "cli",
-    "introspection",
-    "prisma2"
-  ]
-}
