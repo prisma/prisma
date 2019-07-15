@@ -312,12 +312,14 @@
   dependencies:
     arg "^4.1.0"
 
-"@prisma/cli@^0.0.21":
-  version "0.0.21"
-  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.21.tgz#49a8db2f8d056ed6afda62a07a60622cdb1ba777"
-  integrity sha512-DrxqhFmC46XrZA++LKRaceYSlmSjNQxbev9RnjYZGhSzbO2srjKz4dvYApVH0q+y2hfcuwPu0FWTl/KdPxyrjw==
+"@prisma/cli@^0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.29.tgz#985b673aa1ad8b68618fe518e8829318b6431d12"
+  integrity sha512-QORr0eeviMEEYl4iTIhxdEI95Q3GDzG34KoK9wYP2NkA78X7LqkQ1dAQ0p3B37Sq5c4rY9VWwS3HYD/N+/2knQ==
   dependencies:
     arg "^4.1.0"
+    chalk "^2.4.2"
+    strip-indent "^3.0.0"
 
 "@prisma/engine-core@0.0.55":
   version "0.0.55"

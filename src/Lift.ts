@@ -516,6 +516,7 @@ export class Lift {
         steps: datamodelSteps,
         sourceConfig,
       })
+      await new Promise(r => setTimeout(r, 50))
       // needed for the ProgressRenderer
       // and for verbose printing
       migrationsWithDbSteps[i].databaseSteps = result.databaseSteps
