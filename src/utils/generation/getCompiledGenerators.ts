@@ -37,7 +37,7 @@ export async function getCompiledGenerators(
         predefinedGenerator.definition.defaultOutput ||
         `node_modules/@generated/${predefinedGenerator.packagePath}`
 
-      return { ...g, output: output ? path.resolve(process.cwd(), output) : null }
+      return { ...g, output: output ? path.resolve(cwd, output) : null }
     })
 
   return generators.map((g, index) => {
