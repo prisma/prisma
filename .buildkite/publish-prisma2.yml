@@ -1,0 +1,12 @@
+steps:
+  - label: ':coverage: Test'
+    plugins:
+      - docker-compose:
+          config: .buildkite/docker-compose.yml
+          run: app
+  - wait
+  - label: ':gun: publish prisma2'
+    trigger: 'prisma2-cli-publish'
+    build:
+      env:
+        PUBLISH_PRISMA2: 'true'
