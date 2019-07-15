@@ -63,16 +63,31 @@ test('getCompiledGenerators', async () => {
     generator.generate()
   }
 
-  expect(generators).toMatchInlineSnapshot(`
+  const sanitizedGenerators = generators.map(g => ({
+    ...g,
+    output: sanitizeOutput(g.output),
+  }))
+
+  expect(sanitizedGenerators).toMatchInlineSnapshot(`
     Array [
       Object {
         "generate": [Function],
+        "output": "@generated/photon",
         "prettyName": "Photon JS Client",
       },
       Object {
         "generate": [Function],
+        "output": "@generated/nexus-prisma",
         "prettyName": "Nexus Prisma",
       },
     ]
   `)
 })
+
+function sanitizeOutput(output?: string | null) {
+  if (!output) {
+    return output
+  }
+  const indexOfGenerated = output.indexOf('@generated')
+  return output.slice(indexOfGenerated)
+}

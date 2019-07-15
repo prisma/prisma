@@ -47,6 +47,7 @@ export async function getCompiledGenerators(
     if (predefinedGenerator) {
       return {
         prettyName: predefinedGenerator.definition.prettyName,
+        output: g.output,
         generate: () =>
           predefinedGenerator.definition.generate({
             cwd,
@@ -82,6 +83,7 @@ export async function getCompiledGenerators(
 
     return {
       prettyName: binPath,
+      output: g.output,
       generate: async () =>
         (await runGeneratorBinary(binPath, {
           cwd,
