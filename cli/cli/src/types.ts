@@ -45,5 +45,6 @@ export type GeneratorDefinitionWithPackage = {
 
 export type CompiledGeneratorDefinition = {
   prettyName?: string // used to print in prisma dev command
+  output?: string | null
   generate: () => Promise<string>
 }

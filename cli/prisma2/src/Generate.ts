@@ -1,17 +1,5 @@
-import {
-  Command,
-  Env,
-  format,
-  HelpError,
-  CompiledGeneratorDefinition,
-  Dictionary,
-  GeneratorDefinitionWithPackage,
-} from '@prisma/cli'
+import { Command, Env, format, HelpError, Dictionary, GeneratorDefinitionWithPackage } from '@prisma/cli'
 import chalk from 'chalk'
-import fs from 'fs'
-import path from 'path'
-import { performance } from 'perf_hooks'
-import { promisify } from 'util'
 import { missingGeneratorMessage, getCompiledGenerators } from '@prisma/lift'
 import { formatms } from './utils/formatms'
 import { getDatamodel } from './getConfig'
@@ -47,15 +35,12 @@ export class Generate implements Command {
     }
 
     for (const generator of generators) {
-      console.log(`Generating ${chalk.bold(generator.prettyName!)}`)
+      const toStr = generator.output ? chalk.dim(` to ${generator.output}`) : ''
+      console.log(`Generating ${chalk.bold(generator.prettyName!)}${toStr}`)
       const before = Date.now()
-      // try {
       await generator.generate()
       const after = Date.now()
       console.log(`Done in ${formatms(after - before)}`)
-      // } catch (e) {
-      //   console.error(e)
-      // }
     }
 
     return ''
