@@ -173,9 +173,7 @@ ${chalk.bold('Created 1 new file:')} Prisma DML datamodel (derived from existing
 
     // Get everything interactively
     if (!credentialsByFlag) {
-      const introspectionResult = await promptInteractively(introspect, 'introspect')
-
-      return introspectionResult
+      throw new Error(`Please either run this command in a folder with a ${chalk.greenBright('schema.prisma')} or provide credentials as cli flags.`)
     }
 
     // Get connector from flags
