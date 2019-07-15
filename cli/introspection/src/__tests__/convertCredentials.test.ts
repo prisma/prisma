@@ -7,9 +7,11 @@ const uris = [
   'postgresql://localhost/mydb',
   'postgresql://user@localhost',
   'postgresql://user:secret@localhost',
+  'postgresql://user:secret@localhost?sslmode=prefer',
   'postgresql://other@localhost/otherdb?schema=my_schema&connect_timeout=10&application_name=myapp',
   'mysql://user@localhost:3333',
   'mysql://user@localhost:3333/dbname',
+  'mysql://user@localhost:3333/dbname?sslmode=prefer',
   'mongodb://mongodb0.example.com:27017/admin',
   'mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017/admin',
 ]
