@@ -915,6 +915,10 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.S
   if (graphQLType === 'DateTime' && expectedType === 'String') {
     return true
   }
+  // UUID is a subset of string
+  if (graphQLType === 'UUID' && expectedType === 'String') {
+    return true
+  }
   if (graphQLType === 'String' && expectedType === 'ID') {
     return true
   }

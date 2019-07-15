@@ -10,8 +10,25 @@ async function main() {
 
   // process.addListener('SIG')
 
-  const prom = await photon.users()
-  console.log(prom)
+  // const prom = await photon.users()
+  // console.log(prom)
+
+  const result = await photon.posts.create({
+    data: {
+      title: '123e4567-e89b-12d3-a456-426655440000',
+      published: false,
+    },
+    select: {
+      author: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  })
+
+  console.log(result)
+
   // const result = await photon.posts.create({
   //   data: {
   //     data: 'asd',

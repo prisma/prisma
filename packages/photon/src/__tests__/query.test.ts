@@ -1,10 +1,16 @@
 import stripAnsi from 'strip-ansi'
-import { dmmfDocument } from '../fixtures/example-dmmf'
 import { DMMFClass } from '../runtime/dmmf'
 import { makeDocument } from '../runtime/query'
+import { getDMMF } from '../utils/getDMMF'
+import { blog } from '../fixtures/blog'
 
-describe.skip('validation', () => {
-  const dmmf = new DMMFClass(dmmfDocument)
+let dmmf
+beforeAll(async () => {
+  const dmmfDocument = await getDMMF({ datamodel: blog })
+  dmmf = new DMMFClass(dmmfDocument)
+})
+
+describe('validation', () => {
   test('unknown arg, field, incorrect arg type', () => {
     const ast = {
       skip: 200,
@@ -49,7 +55,7 @@ describe.skip('validation', () => {
       dmmf,
       select: ast,
       rootTypeName: 'query',
-      rootField: 'users',
+      rootField: 'findManyUser',
     })
     expect(String(document)).toMatchSnapshot()
     try {
@@ -65,7 +71,7 @@ describe.skip('validation', () => {
       dmmf,
       select: ast,
       rootTypeName: 'mutation',
-      rootField: 'createPost',
+      rootField: 'createOnePost',
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -74,31 +80,21 @@ describe.skip('validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-
-        Invalid \`photon.createPost()\` invocation:
+        Invalid \`photon.createOnePost()\` invocation:
 
         {
         + data: {
         +   id?: ID,
+        +   published: Boolean,
         +   title: String,
-        +   content: String,
-        +   author: {
-        +     create?: {
-        +       id?: ID,
-        +       name: String,
-        +       strings?: {
-        +         set?: String
-        +       }
-        +     },
-        +     connect?: {
-        +       id?: ID
-        +     }
-        +   }
+        +   content?: String,
+        +   author?: UserCreateOneWithoutAuthorInput
         + }
         }
 
-        Argument data for photon.data is missing. You can see in green what you need to add.
+        Argument data for data is missing.
 
+        Note: Lines with + are required
         "
       `)
     }
@@ -111,7 +107,7 @@ describe.skip('validation', () => {
       dmmf,
       select: ast,
       rootTypeName: 'mutation',
-      rootField: 'createPost',
+      rootField: 'createOnePost',
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -120,31 +116,21 @@ describe.skip('validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-
-        Invalid \`photon.createPost()\` invocation:
+        Invalid \`photon.createOnePost()\` invocation:
 
         {
         + data: {
         +   id?: ID,
+        +   published: Boolean,
         +   title: String,
-        +   content: String,
-        +   author: {
-        +     create?: {
-        +       id?: ID,
-        +       name: String,
-        +       strings?: {
-        +         set?: String
-        +       }
-        +     },
-        +     connect?: {
-        +       id?: ID
-        +     }
-        +   }
+        +   content?: String,
+        +   author?: UserCreateOneWithoutAuthorInput
         + }
         }
 
-        Argument data for photon.data is missing. You can see in green what you need to add.
+        Argument data for data is missing.
 
+        Note: Lines with + are required
         "
       `)
     }
@@ -164,7 +150,7 @@ describe.skip('validation', () => {
       dmmf,
       select: ast,
       rootTypeName: 'mutation',
-      rootField: 'createPost',
+      rootField: 'createOnePost',
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -172,27 +158,28 @@ describe.skip('validation', () => {
       document.validate(ast)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-                                "
+        "
+        Invalid \`photon.createOnePost()\` invocation:
 
-                                Invalid \`photon.createPost()\` invocation:
+        {
+          data: {
+            title: 'string',
+            author: {
+              connect: {
+                id: ''
+              }
+            },
+        +   published: Boolean,
+        ?   id?: ID,
+        ?   content?: String
+          }
+        }
 
-                                {
-                                  data: {
-                                    title: 'string',
-                                    author: {
-                                      connect: {
-                                        id: ''
-                                      }
-                                    },
-                                +   content: String,
-                                +   id?: ID
-                                  }
-                                }
+        Argument published for data.published is missing.
 
-                                Argument content for photon.data.content is missing. You can see in green what you need to add.
-
-                                "
-                        `)
+        Note: Lines with + are required, lines with ? are optional.
+        "
+      `)
     }
   })
 
@@ -207,7 +194,7 @@ describe.skip('validation', () => {
       dmmf,
       select: ast,
       rootTypeName: 'mutation',
-      rootField: 'createPost',
+      rootField: 'createOnePost',
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -216,34 +203,88 @@ describe.skip('validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-
-        Invalid \`photon.createPost()\` invocation:
+        Invalid \`photon.createOnePost()\` invocation:
 
         {
           data: {
             title: 'string',
-        +   content: String,
-        +   author: {
-        +     create?: {
-        +       id?: ID,
-        +       name: String,
-        +       strings?: {
-        +         set?: String
-        +       }
-        +     },
-        +     connect?: {
-        +       id?: ID
-        +     }
-        +   },
-        +   id?: ID
+        +   published: Boolean,
+        ?   id?: ID,
+        ?   content?: String,
+        ?   author?: {
+        ?     create?: UserCreateWithoutPostsInput,
+        ?     connect?: UserWhereUniqueInput
+        ?   }
           }
         }
 
-        Argument content for photon.data.content is missing. You can see in green what you need to add.
-        Argument author for photon.data.author is missing. You can see in green what you need to add.
+        Argument published for data.published is missing.
 
+        Note: Lines with + are required, lines with ? are optional.
         "
       `)
     }
+  })
+
+  test('Allow simple create mutation', () => {
+    const ast = {
+      data: {
+        title: 'Some title',
+        content: 'Some Content',
+        published: false,
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'mutation',
+      rootField: 'createOnePost',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    expect(() => document.validate(ast)).not.toThrow()
+  })
+
+  test('Allow uuid for string input', () => {
+    const ast = {
+      data: {
+        title: 'Some title',
+        content: '123e4567-e89b-12d3-a456-426655440000',
+        published: false,
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'mutation',
+      rootField: 'createOnePost',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    expect(() => document.validate(ast)).not.toThrow()
+  })
+
+  test('Allow deep query', () => {
+    const ast = {
+      select: {
+        author: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'query',
+      rootField: 'findManyPost',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    expect(() => document.validate(ast)).not.toThrow()
   })
 })

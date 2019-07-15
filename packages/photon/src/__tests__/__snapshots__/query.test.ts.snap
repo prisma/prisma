@@ -1,0 +1,143 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`validation Allow deep query 1`] = `
+"query {
+  findManyPost {
+    author {
+      id
+    }
+  }
+}"
+`;
+
+exports[`validation Allow simple create mutation 1`] = `
+"mutation {
+  createOnePost(data: {
+    title: \\"Some title\\"
+    content: \\"Some Content\\"
+    published: false
+  }) {
+    id
+    createdAt
+    updatedAt
+    published
+    title
+    content
+  }
+}"
+`;
+
+exports[`validation Allow uuid for string input 1`] = `
+"mutation {
+  createOnePost(data: {
+    title: \\"Some title\\"
+    content: \\"123e4567-e89b-12d3-a456-426655440000\\"
+    published: false
+  }) {
+    id
+    createdAt
+    updatedAt
+    published
+    title
+    content
+  }
+}"
+`;
+
+exports[`validation missing arg object 1`] = `
+"mutation {
+  createOnePost() {
+    id
+    createdAt
+    updatedAt
+    published
+    title
+    content
+  }
+}"
+`;
+
+exports[`validation missing arg object 3`] = `
+"mutation {
+  createOnePost() {
+    id
+    createdAt
+    updatedAt
+    published
+    title
+    content
+  }
+}"
+`;
+
+exports[`validation missing arg scalar && object 1`] = `
+"mutation {
+  createOnePost(data: {
+    title: \\"string\\"
+  }) {
+    id
+    createdAt
+    updatedAt
+    published
+    title
+    content
+  }
+}"
+`;
+
+exports[`validation missing arg scalar 1`] = `
+"mutation {
+  createOnePost(data: {
+    title: \\"string\\"
+    author: {
+      connect: {
+        id: \\"\\"
+      }
+    }
+  }) {
+    id
+    createdAt
+    updatedAt
+    published
+    title
+    content
+  }
+}"
+`;
+
+exports[`validation unknown arg, field, incorrect arg type 1`] = `
+"query {
+  findManyUser(
+    skip: 200
+    where: {
+      name_in: [\\"hans\\", \\"peter\\", \\"schmidt\\"]
+      AND: [
+        {
+          age_gt: 10123123123
+          this_is_completely_arbitrary: \\"veryLongNameGoIntoaNewLineNow@gmail.com\\"
+        },
+        {
+          age_gt: 10123123123
+          id_endsWith: \\"veryLongNameGoIntoaNewLineNow@gmail.com\\"
+          name_contains: \\"hans\\"
+          name_gt: 2131203912039123
+          name_in: [\\"hans\\"]
+          AND: [
+            {
+              age_gt: \\"10123123123\\"
+              id_endsWith: \\"veryLongNameGoIntoaNewLineNow@gmail.com\\"
+            }
+          ]
+        }
+      ]
+    }
+  ) {
+    id
+    name # INVALID_FIELD
+    name2 # INVALID_FIELD
+    posts(first: 200) {
+      id
+    }
+  }
+}"
+`;
