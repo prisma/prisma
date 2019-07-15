@@ -273,7 +273,7 @@ class DevComponent extends Component<Props, State> {
               <Color dim>
                 To save changes into a migration file, run{' '}
                 <Color bold dim green>
-                  prisma lift save
+                  prisma2 lift save
                 </Color>
               </Color>
             </Box>
