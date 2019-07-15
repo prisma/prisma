@@ -3,7 +3,7 @@ services:
   app:
     image: node:10
     volumes:
-      - ../:/app
+      - ../cli:/app
     working_dir: /app
     command: /app/scripts/test.sh
     environment:
