@@ -26,6 +26,10 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
     url.pathname = '/' + (credentials.database || credentials.schema || '')
   }
 
+  if (credentials.ssl) {
+    url.searchParams.set('sslmode', 'prefer')
+  }
+
   if (credentials.user) {
     url.username = credentials.user
   }
@@ -64,6 +68,7 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
     database: uri.pathname && uri.pathname.length > 1 ? uri.pathname.slice(1) : undefined,
     schema: uri.searchParams.get('schema') || undefined,
     uri: connectionString,
+    ssl: uri.searchParams.has('sslmode'),
   }
 }
 
