@@ -36,7 +36,7 @@ export class Init implements Command {
     }
 
     const outputDirName = args._[0]
-    const outputDir = outputDirName ? join(this.env.cwd, outputDirName) : this.env.cwd
+    const outputDir = outputDirName ? join(process.cwd(), outputDirName) : process.cwd()
 
     if (existsSync(join(outputDir, 'datamodel.prisma'))) {
       throw new Error(`Can't start ${chalk.bold('prisma2 init')} as ${chalk.redBright(
@@ -55,6 +55,27 @@ Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
     if (existsSync(join(outputDir, 'project.prisma'))) {
       throw new Error(`Can't start ${chalk.bold('prisma2 init')} as ${chalk.redBright(
         join(outputDir, 'project.prisma'),
+      )} exists.
+Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
+    }
+
+    if (existsSync(join(outputDir, 'prisma', 'datamodel.prisma'))) {
+      throw new Error(`Can't start ${chalk.bold('prisma2 init')} as ${chalk.redBright(
+        join(outputDir, 'prisma', 'datamodel.prisma'),
+      )} exists.
+Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
+    }
+
+    if (existsSync(join(outputDir, 'prisma', 'schema.prisma'))) {
+      throw new Error(`Can't start ${chalk.bold('prisma2 init')} as ${chalk.redBright(
+        join(outputDir, 'prisma', 'schema.prisma'),
+      )} exists.
+Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
+    }
+
+    if (existsSync(join(outputDir, 'prisma', 'project.prisma'))) {
+      throw new Error(`Can't start ${chalk.bold('prisma2 init')} as ${chalk.redBright(
+        join(outputDir, 'prisma', 'project.prisma'),
       )} exists.
 Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
     }
