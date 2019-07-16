@@ -691,15 +691,6 @@ export function transformDocument(document: Document): Document {
   return visit(document, {
     Arg: {
       enter(arg) {
-        // if (arg.key === 'Albums') {
-        //   console.log('Albums', arg)
-        // }
-        // if (arg.key === 'Tracks') {
-        //   console.log('Tracks', arg)
-        // }
-        // if (arg.key === 'some') {
-        //   console.log('some', arg)
-        // }
         const { argType, schemaArg } = arg
         if (!argType) {
           return undefined
