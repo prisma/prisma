@@ -87,9 +87,14 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
     }
 
     // lastIndexOf necessary if a type is called "WhereInput"
-    const index = type.name.lastIndexOf('WhereInput')
-    const modelName = type.name.slice(0, index)
-    const model = document.datamodel.models.find(m => m.name === modelName)!
+    let index = type.name.lastIndexOf('WhereInput')
+    let modelName = type.name.slice(0, index)
+    let model = document.datamodel.models.find(m => m.name === modelName)!
+    if (!model) {
+      index = type.name.lastIndexOf('ScalarWhereInput')
+      modelName = type.name.slice(0, index)
+      model = document.datamodel.models.find(m => m.name === modelName)!
+    }
     if (!model) {
       inputTypes.push(type)
       continue
