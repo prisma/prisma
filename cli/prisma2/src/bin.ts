@@ -27,6 +27,7 @@ import { predefinedGenerators } from './generators'
 import { Generate } from './Generate'
 import chalk from 'chalk'
 import { capture } from './capture'
+export {Photon} from '@prisma/studio-transports'
 
 /**
  * Main function
