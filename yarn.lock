@@ -373,25 +373,25 @@
     terminal-link "^1.3.0"
     wtfnode "0.8.0"
 
-"@prisma/studio-server@0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.5.0.tgz#51c95685922e2dc6a49b3b2091ce710a0b051d49"
-  integrity sha512-5di8evZhJsjhmsqU23yLqydQ9Idhj8ca/bDkZyRMb0i/53bY7jyH3ehQRQe4V6eULY432zTu5PJPJQkLsN3dAA==
+"@prisma/studio-server@0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.6.0.tgz#a1a3e203cdab64878f58e3b67a4eb38c43ee4baf"
+  integrity sha512-n6TuFwPDHklZhFhVOid7iLrYYBiomP6uII8sRcNS/TwBh2UGo2AFFtl0OeeYlR5H4BYin7JNPWqf1lIyRy1HtQ==
   dependencies:
-    "@prisma/studio" "^0.5.0"
-    "@prisma/studio-transports" "^0.5.0"
+    "@prisma/studio" "^0.6.0"
+    "@prisma/studio-transports" "^0.6.0"
     express "^4.17.1"
     express-ws "^4.0.0"
 
-"@prisma/studio-transports@^0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.5.0.tgz#57f95d2a0f192ec3c174a2eb9fa3a0b69275063c"
-  integrity sha512-MXF8iq2SOI8vRBehPLaXLFO3Gtw+fIQN3LDxhUdO94ZWKUsRzL/+zNrGxwiBDqx5oNwOEggzF+NPxAjhqXRH2g==
+"@prisma/studio-transports@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.6.0.tgz#76fe0ffe852f80d16ab300445c1f8a1b99e05461"
+  integrity sha512-qb2FgJLctwV0Sgiv27Gp8MJz1xjjyw64hi9rKwAVCMwWArKqb2UjnlQfY3JCh/SZIaP2asE5q7BqyBkGRoYDKQ==
 
-"@prisma/studio@^0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.5.0.tgz#04cd4a9359b683d1adcb8bd6b93c6eaa47ab0458"
-  integrity sha512-c+FU0xVEUfNm8ENCUvqT59+7DsXEjrAQ4Je0WBmC8zvcP/XkkKGY4HH2Z5n9/RzfQAXRuOb2ZEKWx8D2paaX7Q==
+"@prisma/studio@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.6.0.tgz#030ab49598d562da4b955b75abd184678e037871"
+  integrity sha512-vQGEtKoISvZdv5IrdcUiF9yMCcgAqKoVNIZzYN2EGgdCvWZji51r60zRx6D646NFv6zGmSgOMb6QcrQ7Kvwwbw==
 
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
