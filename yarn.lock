@@ -373,13 +373,25 @@
     terminal-link "^1.3.0"
     wtfnode "0.8.0"
 
-"@prisma/studio-server@^0.0.34":
-  version "0.0.34"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.0.34.tgz#54bd68bb731c1100dd842fd2efebf5ef49112e73"
-  integrity sha512-6EmmD80gc0mgAaqW71xmp2c+cGyVloGuPQakZ4PEXw3BVxCdYsIJR6sP/5kI14fLbXUagT6C7HE3V79PYVtaOA==
+"@prisma/studio-server@0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.4.0.tgz#9d4e7075b02c10e24560a942a8bb36c998e171d4"
+  integrity sha512-wIDCCNtrkoHzP2wlsP5LulqQwKdTydBkR6v104z1fpX6501miPCsztjIGbmxjiNtpxXhwOJDth5AA8296vCmSg==
   dependencies:
+    "@prisma/studio" "^0.4.0"
+    "@prisma/studio-transports" "^0.4.0"
     express "^4.17.1"
     express-ws "^4.0.0"
+
+"@prisma/studio-transports@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.4.0.tgz#72854ef475f4ce4d926970e02bef61f21d78fd1a"
+  integrity sha512-6Yv/0ZZFUvl3fTkNg8zUCI+1SOylEWHNadvpB0KEWW3h4RpGLekIwc/yDycsi1DQvMPivo1FXmKYZQSQciC1Jg==
+
+"@prisma/studio@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.4.0.tgz#65ea83afcae3f07a98223f247acee492dd062c94"
+  integrity sha512-Z4ytcP38ADWvOUo8wg2FhJqNv3oRVUgm4HKtoDFSBVvIv8q2xXqD9pU3h0qDOdrOnlVhici+svjc8UYvsCWgsw==
 
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
