@@ -83,8 +83,8 @@ export async function getCompiledGenerators(
             dmmf,
             datamodel,
             dataSources: config.datasources,
-            generator: g,
-            otherGenerators,
+            generator: g as any,
+            otherGenerators: otherGenerators as any,
           }),
       } as CompiledGeneratorDefinition
     }
