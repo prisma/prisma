@@ -365,13 +365,13 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/lift@^0.0.153":
-  version "0.0.153"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.153.tgz#1bdd15d7106629720f7840a9c38ebee47a780ec9"
-  integrity sha512-ceVrw3fMw5TNgooGodcDFn44fvzJKgdh+fhRKFBw08eWXpzMf6jFphrQpcy9fwS984EZ7BN2wEcTwaB4vX7j5g==
+"@prisma/lift@^0.0.155":
+  version "0.0.155"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.155.tgz#d54856f5c9fad3cd0b9a11c5fe08bbf71d608be9"
+  integrity sha512-0N29P0IG8AEf2sRKuzTOwD73rY6rL547Cby59IsWR7EMJzaA9cbIvdA8DJT7004oqjBgOZpU/cy0ezhpeQKyaw==
   dependencies:
     "@prisma/fetch-engine" "^0.0.24"
-    "@prisma/studio-server" "^0.17.0"
+    "@prisma/studio-server" "^0.19.0"
     "@types/execa" "^0.9.0"
     arg "^4.1.0"
     array-flat-polyfill "^1.0.1"
@@ -406,25 +406,25 @@
     strip-indent "^3.0.0"
     supports-hyperlinks "^1.0.1"
 
-"@prisma/studio-server@^0.17.0":
-  version "0.17.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.17.0.tgz#4e868a77e121bb5de10f7b48f9da9cb208ea7f59"
-  integrity sha512-nd+1pTvcEX9AsswuWqFKrukfP572ogKnR5bkflAbQ/hYBe1QYpJJwZy2WOOofnsO6UO4j7jc0Kmle4nCtLPe8w==
+"@prisma/studio-server@^0.19.0":
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.19.0.tgz#23845819ba9f728c72298c5fcfa7d434c80c426b"
+  integrity sha512-899CouTsROCjLQlR0na/ypV05TQgtC0Aowp7iivEABgk6d2b7OgJ9ezJ40Zvwv/3gTK/EtBADMmIkEyJO3dPSg==
   dependencies:
-    "@prisma/studio" "^0.17.0"
-    "@prisma/studio-transports" "^0.17.0"
+    "@prisma/studio" "^0.19.0"
+    "@prisma/studio-transports" "^0.19.0"
     express "^4.17.1"
     express-ws "^4.0.0"
 
-"@prisma/studio-transports@^0.17.0":
-  version "0.17.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.17.0.tgz#e152388e4585b9a9ec830ed482a94b4536da9b93"
-  integrity sha512-Oxqg8025A6S+qhhJWgqkcQAextTsKSz0/ZLi8BLg9gmLKnZqTWiHqmAjBM1xoAIZovUTwsUIUVvct/jpkconPA==
+"@prisma/studio-transports@^0.19.0":
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.19.0.tgz#5b2d2e0cae87af69567792f94ab44f31b82e5629"
+  integrity sha512-0z8ksoojudJVvS2MLy90WapC0f+DMmywSZi4tLoBxx8TdcQaUHMi5BCIhJTlljdhPaTv9mmQKXz22Bry+m7CUQ==
 
-"@prisma/studio@^0.17.0":
-  version "0.17.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.17.0.tgz#342622a23c4a400c750c181a2aa63655d0e33c49"
-  integrity sha512-yB/GErfpKQrv+I6AwW7QHGEmWayZe0QreMH0eNZVjMUQ/bq1qmPrbmPPkc4wPgk4mfFwLCF1vk0yq+M4Kex/cw==
+"@prisma/studio@^0.19.0":
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.19.0.tgz#3007e177ba1cfa42f715f46d6d05f47df7304fc9"
+  integrity sha512-VA4iEyZshiKtWjEkrUwsFm4BHYDSzH0gCO6JdydoX7yeJWEO4CmvfdFjZMsvCyYku2oQs5YT+XRmGc3H00l6rw==
 
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
