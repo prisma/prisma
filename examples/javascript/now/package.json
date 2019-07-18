@@ -6,6 +6,6 @@
     "postinstall": "prisma2 generate"
   },
   "devDependencies": {
-    "prisma2": "0.0.129"
+    "prisma2": "^2.0.0-alpha.36"
   }
 }
