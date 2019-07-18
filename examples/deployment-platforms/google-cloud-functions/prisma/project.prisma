@@ -1,7 +1,7 @@
 datasource db {
-    provider = "postgres"
-    // Like, postgres://user:password@localhost:5432/database/schema
-    url      = env("POSTGRES_URL")
+    provider = "postgresql"
+    // Like, postgresql://user:password@localhost:5432/database/schema
+    url      = env("POSTGRESQL_URL")
 }
 
 generator photon {

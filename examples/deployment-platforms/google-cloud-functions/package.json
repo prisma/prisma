@@ -5,12 +5,12 @@
   "license": "MIT",
   "scripts": {
     "start": "functions-framework --target=photonExample",
-    "deploy": "gcloud functions deploy photonExample --stage-bucket divu-serverless --trigger-http --runtime nodejs10",
+    "deploy": "sh deploy.sh",
     "logs": "gcloud functions logs read photonExample",
     "postinstall": "prisma2 generate"
   },
   "dependencies": {
-    "prisma2": "^2.0.0-preview-1"
+    "prisma2": "^2.0.0-alpha.26"
   },
   "devDependencies": {
     "@google-cloud/functions-framework": "^1.1.1"
