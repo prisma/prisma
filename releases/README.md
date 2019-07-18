@@ -5,7 +5,7 @@ This page explains the release process for Prisma 2.
 ## Release log
 
 - [`preview-1`](https://github.com/prisma/prisma2/releases/tag/2.0.0-preview-1) (July 11, 2019)
-- `preview-2` (July 18, 2019) 
+- [`preview-2`](https://github.com/prisma/prisma2/releases/tag/2.0.0-preview-2) (July 18, 2019) 
 
 ## Release channels
 
