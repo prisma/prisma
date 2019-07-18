@@ -895,6 +895,7 @@ export function selectionToFields(
             return acc
           }
 
+          // TODO: unify with select validation logic
           /**
            * Error handling for `include` statements
            */
@@ -930,8 +931,6 @@ export function selectionToFields(
               return acc
             }
           }
-
-          // TODO: unify with select validation logic
         } else if (value.select) {
           const values = Object.values(value.select)
           if (values.length === 0) {
