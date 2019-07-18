@@ -14,18 +14,18 @@ const knownPlatforms = [
 ]
 
 const generate: GeneratorFunction = async ({ generator, cwd }) => {
-  if (generator.pinnedPlatform) {
-    throw new Error(`pinnedPlatform is not implemented yet`)
-  }
-  // TODO more validation
-  if (generator.platforms.length === 0) {
-    throw new Error(`Please provide at least one platform in \`platforms\``)
-  }
-  for (const platform of generator.platforms) {
-    if (!knownPlatforms.includes(platform)) {
-      throw new Error(`Unknown platform ${platform}. Possible platforms: ${knownPlatforms.join(', ')}`)
-    }
-  }
+  // if (generator.pinnedPlatform) {
+  //   throw new Error(`pinnedPlatform is not implemented yet`)
+  // }
+  // // TODO more validation
+  // if (generator.platforms.length === 0) {
+  //   throw new Error(`Please provide at least one platform in \`platforms\``)
+  // }
+  // for (const platform of generator.platforms) {
+  //   if (!knownPlatforms.includes(platform)) {
+  //     throw new Error(`Unknown platform ${platform}. Possible platforms: ${knownPlatforms.join(', ')}`)
+  //   }
+  // }
   const datamodel = await getDatamodel(cwd)
   const output = generator.output || defaultOutput
   const transpile =
