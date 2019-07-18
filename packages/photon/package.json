@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "0.0.172",
+  "version": "0.0.173",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -37,7 +37,7 @@
     "scripts"
   ],
   "devDependencies": {
-    "@prisma/lift": "^0.0.151",
+    "@prisma/lift": "^0.0.152",
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
