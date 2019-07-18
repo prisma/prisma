@@ -62,6 +62,9 @@ export async function downloadMigrationBinary(
 
   // Print an empty line
   const platform = await getPlatform()
+  if (platform === 'linux-lambda') {
+    console.log({ platform })
+  }
   const cacheDir = await getCacheDir(channel, version, platform)
   const cachedMigrationEnginePath = path.join(cacheDir, 'migration-engine')
   const cachedLastModifiedPath = path.join(cacheDir, 'lastModifiedMigrationEngine')
@@ -331,15 +334,15 @@ async function getPlatform() {
 
   if (platform === 'linux' && libssl) {
     if (libssl === '1.0.2') {
-      return 'linux-glibc-libssl1.0.2'
+      return 'linux-lambda'
     }
 
     if (libssl === '1.0.1') {
-      return 'linux-glibc-libssl1.0.1'
+      return 'linux-zeit'
     }
   }
 
-  return 'linux-glibc-libssl1.1.0'
+  return 'linux-glibc'
 }
 
 function getPrismaDownloadUrl(channel: string, version: string, platform: string) {
