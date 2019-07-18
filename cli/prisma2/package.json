@@ -1,6 +1,6 @@
 {
   "name": "prisma2",
-  "version": "2.0.0-preview-1",
+  "version": "2.0.0-preview-2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma2-cli.git",
@@ -23,11 +23,11 @@
     "version": "4f33077038a490e4b2c1c260f109309e4a447181"
   },
   "devDependencies": {
-    "@prisma/cli": "^0.0.35",
-    "@prisma/fetch-engine": "^0.0.38",
+    "@prisma/cli": "^0.0.36",
+    "@prisma/fetch-engine": "^0.0.40",
     "@prisma/introspection": "0.0.43",
-    "@prisma/lift": "0.0.153",
-    "@prisma/photon": "^0.0.174",
+    "@prisma/lift": "0.0.160",
+    "@prisma/photon": "^0.0.183",
     "@sentry/node": "5",
     "@types/mocha": "^5.2.7",
     "@zeit/ncc": "^0.18.5",
