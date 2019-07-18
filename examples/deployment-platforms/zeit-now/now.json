@@ -15,5 +15,8 @@
       }
     }
   ],
-  "routes": [{ "src": "/", "dest": "www/index.html" }]
+  "routes": [{ "src": "/", "dest": "www/index.html" }],
+  "env": {
+    "POSTGRESQL_URL": "@postgresql_url"
+  }
 }
