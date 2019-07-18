@@ -11,7 +11,7 @@ async function main() {
     datamodel: blog,
     cwd: path.join(__dirname, './blog/'),
     outputDir: path.join(__dirname, './blog/@generated/photon'),
-    transpile: true,
+    transpile: false,
     runtimePath: '../../../../src/runtime',
   })
   const after = performance.now()

@@ -17,6 +17,10 @@ import {
   getType,
   isQueryAction,
   renderInitialClientArgs,
+  Projection,
+  getIncludeName,
+  // getExtractName,
+  getArgName,
 } from './utils'
 
 const tab = 2
@@ -60,20 +64,6 @@ export type MergeTruthyValues<R extends object, S extends object> = {
 
 export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never : key }[keyof T]
 
-type AtLeastOne<T, Keys extends keyof T = keyof T> =
-    Pick<T, Exclude<keyof T, Keys>>
-    & {
-        [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
-    }[Keys]
-
-type OnlyOne<T, Keys extends keyof T = keyof T> =
-    Pick<T, Exclude<keyof T, Keys>>
-    & {
-        [K in Keys]-?:
-            Required<Pick<T, K>>
-            & Partial<Record<Exclude<Keys, K>, undefined>>
-    }[Keys]
-
 /**
  * Subset
  * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
@@ -81,7 +71,6 @@ type OnlyOne<T, Keys extends keyof T = keyof T> =
 export type Subset<T, U> = { [key in keyof T]: key extends keyof U ? T[key] : never }
 
 class PhotonFetcher {
-  private url?: string
   constructor(private readonly engine: Engine, private readonly debug = false, private readonly hooks?: Hooks) {}
   async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string): Promise<T> {
     const query = String(document)
@@ -172,22 +161,8 @@ ${this.dmmf.inputTypes.map(inputType => new InputType(inputType)).join('\n')}
 
 export const dmmf: DMMF.Document = ${JSON.stringify(this.document)}
     `
-
-    // /**
-    //  * Output Types
-    //  */
-
-    // ${this.dmmf.outputTypes
-    //   .filter(o => !this.dmmf.modelMap[o.name])
-    //   .map(outputType => new OutputType(outputType, this.dmmf).toString())
-    //   .join('\n')}
   }
 }
-// export type Fetcher = (input: {
-//   query: string
-//   typeName?: string
-// }) => Promise<{ data?: any; error?: any; errors?: any }>
-// fetcher?: Fetcher
 
 class Datasources {
   constructor(protected readonly internalDatasources: InternalDatasource[]) {}
@@ -325,10 +300,14 @@ class QueryPayloadType {
               indent(
                 `: P extends '${f.name}'\n? ${this.wrapArray(
                   f,
-                  `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<Extract${getModelArgName(
+                  `${getPayloadName(
                     (f.outputType.type as DMMF.OutputType).name,
+                    Projection.select,
+                  )}<Extract${getModelArgName(
+                    (f.outputType.type as DMMF.OutputType).name,
+                    Projection.select,
                     f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
-                  )}Select<S[P]>>`,
+                  )}<S[P]>>`,
                 )}`,
                 8,
               ),
@@ -336,7 +315,7 @@ class QueryPayloadType {
             .join('\n')}`
 
     return `\
-type ${getPayloadName(name)}<S extends ${name}Args> = S extends ${name}Args
+type ${getPayloadName(name, Projection.select)}<S extends ${name}Args> = S extends ${name}Args
   ? {
       [P in keyof S] ${relationFieldConditions}
         : never
@@ -352,12 +331,12 @@ type ${getPayloadName(name)}<S extends ${name}Args> = S extends ${name}Args
 }
 
 /**
- * Generates the generic type to calculate a payload based on a select statement
+ * Generates the generic type to calculate a payload based on a include statement
  */
 class PayloadType {
-  constructor(protected readonly type: OutputType) {}
+  constructor(protected readonly type: OutputType, protected readonly projection: Projection) {}
   public toString() {
-    const { type } = this
+    const { type, projection } = this
     const { name } = type
 
     const relationFields = type.fields.filter(f => f.outputType.kind === 'object')
@@ -369,9 +348,10 @@ class PayloadType {
               indent(
                 `: P extends '${f.name}'\n? ${this.wrapArray(
                   f,
-                  `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<Extract${getFieldArgName(
+                  `${getPayloadName((f.outputType.type as DMMF.OutputType).name, projection)}<Extract${getFieldArgName(
                     f,
-                  )}Select<S[P]>>`,
+                    projection,
+                  )}<S[P]>>`,
                 )}`,
                 8,
               ),
@@ -379,12 +359,13 @@ class PayloadType {
             .join('\n')}`
 
     const hasScalarFields = type.fields.filter(f => f.outputType.kind !== 'object').length > 0
+    const projectionName = projection === Projection.select ? getSelectName(name) : getIncludeName(name)
     return `\
-type ${getPayloadName(name)}<S extends boolean | ${getSelectName(name)}> = S extends true
+type ${getPayloadName(name, projection)}<S extends boolean | ${projectionName}> = S extends true
   ? ${name}
-  : S extends ${getSelectName(name)}
+  : S extends ${projectionName}
   ? {
-      [P in CleanupNever<MergeTruthyValues<${getDefaultName(name)}, S>>]${
+      [P in CleanupNever<MergeTruthyValues<${projection === Projection.select ? '{}' : getDefaultName(name)}, S>>]${
       hasScalarFields
         ? `: P extends ${getScalarsName(name)}
         ? ${name}[P]`
@@ -411,15 +392,13 @@ class ModelDefault {
     const { model } = this
     return `\
 type ${getDefaultName(model.name)} = {
-${
-  /*indent(
+${indent(
   model.fields
     .filter(f => this.isDefault(f))
     .map(f => `${f.name}: true`)
     .join('\n'),
   tab,
-)*/ ''
-}
+)}
 }
 `
   }
@@ -443,7 +422,7 @@ export class Model {
   }
   protected get argsTypes() {
     const { mapping, model } = this
-    const argsTypes: ArgsType[] = []
+    const argsTypes: Stringifiable[] = []
     for (const action in DMMF.ModelAction) {
       const fieldName = mapping[action]
       if (!fieldName) {
@@ -453,47 +432,10 @@ export class Model {
       if (!field) {
         throw new Error(`Oops this must not happen. Could not find field ${fieldName} on either Query or Mutation`)
       }
-      argsTypes.push(
-        new ArgsType({
-          name: getModelArgName(model.name, action as DMMF.ModelAction),
-          fields: [
-            {
-              name: 'select',
-              inputType: [
-                {
-                  type: getSelectName(model.name),
-                  kind: 'object',
-                  isList: false,
-                  isRequired: false,
-                },
-              ],
-            },
-            ...field.args,
-          ],
-        }),
-      )
+      argsTypes.push(new ArgsType(field.args, model, action as DMMF.ModelAction))
     }
 
-    // if (this.appearsInToOneRelation) {
-    argsTypes.push(
-      new ArgsType({
-        name: `${model.name}Args`,
-        fields: [
-          {
-            name: 'select',
-            inputType: [
-              {
-                type: getSelectName(model.name),
-                isList: false,
-                isRequired: false,
-                kind: 'object',
-              },
-            ],
-          },
-        ],
-      }),
-    )
-    // }
+    argsTypes.push(new ArgsType([], model))
 
     return argsTypes
   }
@@ -533,7 +475,23 @@ ${
 export type ${getSelectName(model.name)} = {
 ${indent(
   outputType.fields
-    .map(f => `${f.name}?: boolean` + (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''))
+    .map(
+      f =>
+        `${f.name}?: boolean` + (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f, Projection.select)}` : ''),
+    )
+    .join('\n'),
+  tab,
+)}
+}
+
+export type ${getIncludeName(model.name)} = {
+${indent(
+  outputType.fields
+    .filter(f => f.outputType.kind === 'object')
+    .map(
+      f =>
+        `${f.name}?: boolean` + (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f, Projection.include)}` : ''),
+    )
     .join('\n'),
   tab,
 )}
@@ -541,11 +499,13 @@ ${indent(
 
 ${new ModelDefault(model, this.dmmf)}
 
-${new PayloadType(this.outputType!)}
+${new PayloadType(this.outputType!, Projection.select)}
+
+${new PayloadType(this.outputType!, Projection.include)}
 
 ${new ModelDelegate(this.outputType!, this.dmmf)}
 
-// InputTypes
+// Custom InputTypes
 ${this.argsTypes.map(String).join('\n')}
 `
   }
@@ -573,7 +533,7 @@ ${indent(
     .flatMap(({ name, mapping }) =>
       mapping
         .filter(([action, field]) => field)
-        .map(([action, field]) => `${field}?: ${getModelArgName(name, action as DMMF.ModelAction)}`),
+        .map(([action, field]) => `${field}?: ${getModelArgName(name, Projection.select, action as DMMF.ModelAction)}`),
     )
     .join('\n'),
   tab,
@@ -593,11 +553,13 @@ export class ModelDelegate {
     const mapping = this.dmmf.mappings.find(m => m.model === name)!
     const actions = Object.entries(mapping).filter(([key, value]) => key !== 'model' && key !== 'plural' && value)
 
+    const listConstraint = getModelArgName(name, /*projection*/ undefined, DMMF.ModelAction.findMany)
     // TODO: The following code needs to be split up and is a mess
     return `\
 export interface ${name}Delegate {
-  <T extends ${getModelArgName(name, DMMF.ModelAction.findMany)}>(args?: Subset<T, ${getModelArgName(
+  <T extends ${listConstraint}>(args?: Subset<T, ${getModelArgName(
       name,
+      undefined,
       DMMF.ModelAction.findMany,
     )}>): ${getSelectReturnType({
       name,
@@ -605,26 +567,29 @@ export interface ${name}Delegate {
       hideCondition: true,
       isField: false,
       renderPromise: true,
+      projection: Projection.select,
     })}
 ${indent(
   actions
     .map(
       ([actionName]: [any, any]) =>
-        `${actionName}<T extends ${getModelArgName(name, actionName)}>(
-  args${actionName === DMMF.ModelAction.findMany ? '?' : ''}: Subset<T, ${getModelArgName(name, actionName)}>
-): ${getSelectReturnType({ name, actionName })}`,
+        `${actionName}<T extends ${getModelArgName(name, /*projection*/ undefined, actionName)}>(
+  args${actionName === DMMF.ModelAction.findMany ? '?' : ''}: Subset<T, ${getModelArgName(name, undefined, actionName)}>
+): ${getSelectReturnType({ name, actionName, projection: Projection.select })}`,
     )
     .join('\n'),
   tab,
 )}
 }
 function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delegate {
-  const ${name} = <T extends ${getModelArgName(name, DMMF.ModelAction.findMany)}>(args: Subset<T, ${getModelArgName(
+  const ${name} = <T extends ${listConstraint}>(args: Subset<T, ${getModelArgName(
       name,
+      undefined,
       DMMF.ModelAction.findMany,
     )}>) => new ${name}Client<${getSelectReturnType({
       name,
       actionName: DMMF.ModelAction.findMany,
+      projection: Projection.select,
     })}>(dmmf, fetcher, 'query', '${mapping.findMany}', '${mapping.plural}', args, [])
 ${indent(
   actions
@@ -632,14 +597,16 @@ ${indent(
       ([actionName, fieldName]: [any, any]) =>
         `${name}.${actionName} = <T extends ${getModelArgName(
           name,
+          /*projection*/ undefined,
           actionName as DMMF.ModelAction,
-        )}>(args: Subset<T, ${getModelArgName(name, actionName as DMMF.ModelAction)}>) => ${
+        )}>(args: Subset<T, ${getModelArgName(name, Projection.select, actionName as DMMF.ModelAction)}>) => ${
           actionName !== 'findMany' ? `args.select ? ` : ''
         }new ${name}Client<${getSelectReturnType({
           name,
           actionName,
           hideCondition: false,
           isField: true,
+          projection: Projection.select,
         })}>(${renderInitialClientArgs(actionName, fieldName, mapping)})${
           actionName !== 'findMany'
             ? ` : new ${name}Client<${getType(name, actionName === 'findMany')}>(${renderInitialClientArgs(
@@ -665,7 +632,7 @@ class ${name}Client<T> implements Promise<T> {
     private readonly queryType: 'query' | 'mutation',
     private readonly rootField: string,
     private readonly clientMethod: string,
-    private readonly args: ${name}Args,
+    private readonly args: ${getArgName(name, false)},
     private readonly path: string[]
   ) {
     // @ts-ignore
@@ -692,6 +659,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
         isField: true,
         renderPromise: true,
         fieldName: f.name,
+        projection: Projection.select,
       })} {
   const path = [...this.path, 'select', '${f.name}']
   const newArgs = deepSet(this.args, path, args || true)
@@ -701,6 +669,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
         hideCondition: false,
         isField: true,
         renderPromise: true,
+        projection: Projection.select,
       })}>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path) as any
 }`
     })
@@ -784,14 +753,14 @@ export class QueryDelegate {
     const name = this.outputType.name
     return `\
 interface ${name}Delegate {
-  <T extends ${name}Args>(args: Subset<T,${name}Args>): Promise<${name}GetPayload<T>>
+  <T extends ${name}Args>(args: Subset<T,${name}Args>): Promise<${getPayloadName(name, Projection.select)}<T>>
 }
 function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delegate {
   const ${name} = <T extends ${name}Args>(args: ${name}Args) => new ${name}Client<T>(dmmf, fetcher, args, [])
   return ${name}
 }
 
-class ${name}Client<T extends ${name}Args, U = ${name}GetPayload<T>> implements Promise<U> {
+class ${name}Client<T extends ${name}Args, U = ${getPayloadName(name, Projection.select)}<T>> implements Promise<U> {
   constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PhotonFetcher, private readonly args: ${name}Args, private readonly path: []) {}
 
   readonly [Symbol.toStringTag]: 'Promise'
@@ -895,29 +864,146 @@ ${indent(type.fields.map(field => new OutputField({ ...field, ...field.outputTyp
   }
 }
 
+interface Stringifiable {
+  toString(): string
+}
+
 export class ArgsType {
-  constructor(protected readonly type: DMMF.InputType) {}
+  constructor(
+    protected readonly args: DMMF.SchemaArg[],
+    protected readonly model: DMMF.Model,
+    protected readonly action?: DMMF.ModelAction,
+  ) {}
   public toString() {
-    const { type } = this
-    const argsWithRequiredSelect = type.fields.map(a =>
-      a.name === 'select' ? { ...a, inputType: a.inputType.map(i => ({ ...i, isRequired: true })) } : a,
-    )
+    const { action, args } = this
+    const { name } = this.model
+
+    const bothArgsOptional: DMMF.SchemaArg[] = [
+      {
+        name: 'select',
+        inputType: [
+          {
+            type: getSelectName(name),
+            kind: 'object',
+            isList: false,
+            isRequired: false,
+          },
+        ],
+      },
+      {
+        name: 'include',
+        inputType: [
+          {
+            type: getIncludeName(name),
+            kind: 'object',
+            isList: false,
+            isRequired: false,
+          },
+        ],
+      },
+      ...args,
+    ]
+
+    const bothArgsRequired: DMMF.SchemaArg[] = [
+      {
+        name: 'select',
+        inputType: [
+          {
+            type: getSelectName(name),
+            kind: 'object',
+            isList: false,
+            isRequired: true,
+          },
+        ],
+      },
+      {
+        name: 'include',
+        inputType: [
+          {
+            type: getIncludeName(name),
+            kind: 'object',
+            isList: false,
+            isRequired: true,
+          },
+        ],
+      },
+      ...args,
+    ]
+
+    const selectArgs: DMMF.SchemaArg[] = [
+      {
+        name: 'select',
+        inputType: [
+          {
+            type: getSelectName(name),
+            kind: 'object',
+            isList: false,
+            isRequired: true,
+          },
+        ],
+      },
+      ...args,
+    ]
+
+    const includeArgs: DMMF.SchemaArg[] = [
+      {
+        name: 'include',
+        inputType: [
+          {
+            type: getIncludeName(name),
+            kind: 'object',
+            isList: false,
+            isRequired: true,
+          },
+        ],
+      },
+      ...args,
+    ]
+
     return `
-export type ${type.name} = {
-${indent(type.fields.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+/**
+ * ${name} ${action ? action : 'without action'}
+ */
+export type ${getModelArgName(name, undefined, action)} = {
+${indent(bothArgsOptional.map(arg => new InputField(arg).toString()).join('\n'), tab)}
 }
 
-export type ${type.name}WithSelect = {
-${indent(argsWithRequiredSelect.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+export type ${getModelArgName(name, undefined, action)}Required = {
+${indent(bothArgsRequired.map(arg => new InputField(arg).toString()).join('\n'), tab)}
 }
 
-type Extract${type.name}Select<S extends undefined | boolean | ${type.name}> = S extends undefined
+export type ${getModelArgName(name, Projection.select, action)} = {
+${indent(selectArgs.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+}
+
+export type ${getModelArgName(name, Projection.include, action)} = {
+${indent(includeArgs.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+}
+
+export type Extract${getModelArgName(
+      name,
+      Projection.select,
+      action,
+    )}<S extends undefined | boolean | ${getModelArgName(name, Projection.select, action)}> = S extends undefined
   ? false
   : S extends boolean
   ? S
-  : S extends ${type.name}WithSelect
+  : S extends ${getModelArgName(name, Projection.select, action)}
   ? S['select']
   : true
+
+export type Extract${getModelArgName(
+      name,
+      Projection.include,
+      action,
+    )}<S extends undefined | boolean | ${getModelArgName(name, Projection.include, action)}> = S extends undefined
+  ? false
+  : S extends boolean
+  ? S
+  : S extends ${getModelArgName(name, Projection.include, action)}
+  ? S['include']
+  : true
+
 `
   }
 }
