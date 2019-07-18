@@ -5,6 +5,8 @@ import fs from 'fs-extra'
 import path from 'path'
 import { LiftEngine } from '../../LiftEngine'
 import { runGeneratorBinary } from './runGeneratorBinary'
+import Debug from 'debug'
+const debug = Debug('getCompiledGenerators')
 // import { generateInThread } from '../generateInThread'
 
 const didYouMeanMap = {
@@ -15,19 +17,26 @@ const didYouMeanMap = {
 }
 
 async function resolveNodeModulesBase(cwd: string) {
-  if (fs.pathExists(path.resolve(cwd, 'node_modules'))) {
+  if (
+    path.relative(process.cwd(), cwd) === 'prisma/schema.prisma' &&
+    (await fs.pathExists(path.resolve(process.cwd(), 'package.json')))
+  ) {
+    return process.cwd()
+  }
+
+  if (await fs.pathExists(path.resolve(cwd, 'node_modules'))) {
     return cwd
   }
-  if (fs.pathExists(path.resolve(cwd, '../node_modules'))) {
+  if (await fs.pathExists(path.resolve(cwd, '../node_modules'))) {
     return path.join(cwd, '../')
   }
-  if (fs.pathExists(path.resolve(cwd, 'package.json'))) {
+  if (await fs.pathExists(path.resolve(cwd, 'package.json'))) {
     return cwd
   }
-  if (fs.pathExists(path.resolve(cwd, '../package.json'))) {
+  if (await fs.pathExists(path.resolve(cwd, '../package.json'))) {
     return path.join(cwd, '../')
   }
-  return ''
+  return cwd
 }
 
 export async function getCompiledGenerators(
@@ -54,6 +63,7 @@ export async function getCompiledGenerators(
         predefinedGenerator.definition.defaultOutput ||
         `node_modules/@generated/${predefinedGenerator.packagePath}`
 
+      debug({ g, cwd, nodeModulesBase })
       const resolvedCwd = g.output ? cwd : nodeModulesBase
 
       return { ...g, output: output ? path.resolve(resolvedCwd, output) : null }
