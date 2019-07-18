@@ -1,5 +1,7 @@
 #!/usr/bin/env ts-node
 import * as Sentry from '@sentry/node'
+import dotenv = require('dotenv')
+dotenv.config()
 
 export { byline } from '@prisma/lift'
 export { Sentry }
@@ -27,7 +29,7 @@ import { predefinedGenerators } from './generators'
 import { Generate } from './Generate'
 import chalk from 'chalk'
 import { capture } from './capture'
-export {Photon} from '@prisma/studio-transports'
+export { Photon } from '@prisma/studio-transports'
 
 /**
  * Main function
