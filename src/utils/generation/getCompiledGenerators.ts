@@ -14,6 +14,22 @@ const didYouMeanMap = {
   photon: 'photonjs',
 }
 
+async function resolveNodeModulesBase(cwd: string) {
+  if (fs.pathExists(path.resolve(cwd, 'node_modules'))) {
+    return cwd
+  }
+  if (fs.pathExists(path.resolve(cwd, '../node_modules'))) {
+    return path.join(cwd, '../')
+  }
+  if (fs.pathExists(path.resolve(cwd, 'package.json'))) {
+    return cwd
+  }
+  if (fs.pathExists(path.resolve(cwd, '../package.json'))) {
+    return path.join(cwd, '../')
+  }
+  return ''
+}
+
 export async function getCompiledGenerators(
   cwd: string,
   datamodel: string,
@@ -22,6 +38,7 @@ export async function getCompiledGenerators(
   const engine = new LiftEngine({ projectDir: cwd })
   const config = await engine.getConfig({ datamodel })
   const dmmf = await getRawDMMF(datamodel)
+  const nodeModulesBase = await resolveNodeModulesBase(cwd)
 
   const generators = config.generators
     .slice()
@@ -37,7 +54,7 @@ export async function getCompiledGenerators(
         predefinedGenerator.definition.defaultOutput ||
         `node_modules/@generated/${predefinedGenerator.packagePath}`
 
-      const resolvedCwd = g.output ? cwd : process.cwd()
+      const resolvedCwd = g.output ? cwd : nodeModulesBase
 
       return { ...g, output: output ? path.resolve(resolvedCwd, output) : null }
     })
