@@ -278,9 +278,9 @@ path-to-regexp@0.1.7:
   integrity sha1-32BBeABfUi8V60SQ5yR6G/qmf4w=
 
 prisma2@^2.0.0-alpha.26:
-  version "2.0.0-alpha.26"
-  resolved "https://registry.yarnpkg.com/prisma2/-/prisma2-2.0.0-alpha.26.tgz#54fff3dcc282ec3da01aec890704a8b60a89185b"
-  integrity sha512-jDjOBnWne+h8S+I00rEMlB4yVvyPXdhf6DmmgOvsoHhu+aHJDtxvuFRf9YFd8RHvpxA9FqMAHbDgoD6Q3+Q+Pg==
+  version "2.0.0-preview-1"
+  resolved "https://registry.yarnpkg.com/prisma2/-/prisma2-2.0.0-preview-1.tgz#2581a39909c4aa1ccdc99fc1ee8c6038d5937312"
+  integrity sha512-i5Li92JeplgvcvdOKIN/twoF3uDoGJgq23mmdaxGaD+dtZ203u5dhkaVHxmxQz2XrKfQ4dKSscLamFIw3Ev9Zg==
 
 proxy-addr@~2.0.5:
   version "2.0.5"
