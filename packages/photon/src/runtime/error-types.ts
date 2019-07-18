@@ -10,7 +10,13 @@ export interface FieldError {
   error: InvalidFieldError
 }
 
-export type InvalidFieldError = InvalidFieldNameError | InvalidFieldTypeError | EmptySelectError | NoTrueSelectError
+export type InvalidFieldError =
+  | InvalidFieldNameError
+  | InvalidFieldTypeError
+  | EmptySelectError
+  | NoTrueSelectError
+  | IncludeAndSelectError
+  | EmptyIncludeError
 
 export interface InvalidFieldTypeError {
   type: 'invalidFieldType'
@@ -24,6 +30,9 @@ export interface InvalidFieldNameError {
   modelName: string
   didYouMean?: string
   providedName: string
+  isInclude?: boolean
+  isIncludeScalar?: boolean
+  outputType: DMMF.OutputType
 }
 
 export interface EmptySelectError {
@@ -31,8 +40,18 @@ export interface EmptySelectError {
   field: DMMF.SchemaField
 }
 
+export interface EmptyIncludeError {
+  type: 'emptyInclude'
+  field: DMMF.SchemaField
+}
+
 export interface NoTrueSelectError {
   type: 'noTrueSelect'
+  field: DMMF.SchemaField
+}
+
+export interface IncludeAndSelectError {
+  type: 'includeAndSelect'
   field: DMMF.SchemaField
 }
 

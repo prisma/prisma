@@ -156,7 +156,7 @@ export function getSelectReturnType({
   const includeArgName = isField
     ? getArgName(name, isList, Projection.include)
     : getModelArgName(name, Projection.include, actionName as DMMF.ModelAction)
-  
+
   const requiredArgName = getModelArgName(name, undefined, actionName as DMMF.ModelAction) + 'Required'
   const requiredCheck = `T extends ${requiredArgName} ? 'Please either choose \`select\` or \`include\`' : `
 

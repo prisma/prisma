@@ -10,7 +10,7 @@ beforeAll(async () => {
   dmmf = new DMMFClass(dmmfDocument)
 })
 
-describe('validation', () => {
+describe('select validation', () => {
   test('unknown arg, field, incorrect arg type', () => {
     const ast = {
       skip: 200,
@@ -266,7 +266,7 @@ describe('validation', () => {
     expect(() => document.validate(ast)).not.toThrow()
   })
 
-  test('Allow deep query', () => {
+  test('Allow deep select query', () => {
     const ast = {
       select: {
         author: {

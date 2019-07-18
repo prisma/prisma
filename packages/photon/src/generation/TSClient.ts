@@ -6,9 +6,11 @@ import { capitalize, GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
 import { InternalDatasource } from '../runtime/utils/printDatasources'
 import { serializeDatasources } from './serializeDatasources'
 import {
+  getArgName,
   getDefaultName,
   getFieldArgName,
   getFieldTypeName,
+  getIncludeName,
   getModelArgName,
   getPayloadName,
   getScalarsName,
@@ -16,11 +18,9 @@ import {
   getSelectReturnType,
   getType,
   isQueryAction,
-  renderInitialClientArgs,
   Projection,
-  getIncludeName,
   // getExtractName,
-  getArgName,
+  renderInitialClientArgs,
 } from './utils'
 
 const tab = 2
@@ -39,7 +39,7 @@ const commonCode = runtimePath => `import {
   printDatasources
 } from '${runtimePath}'
 
-import path from 'path'
+import path = require('path')
 
 const debug = debugLib('photon')
 
@@ -72,7 +72,7 @@ export type Subset<T, U> = { [key in keyof T]: key extends keyof U ? T[key] : ne
 
 class PhotonFetcher {
   constructor(private readonly engine: Engine, private readonly debug = false, private readonly hooks?: Hooks) {}
-  async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string): Promise<T> {
+  async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string, isList?: boolean): Promise<T> {
     const query = String(document)
     debug(query)
     if (this.hooks && this.hooks.beforeRequest) {
@@ -82,18 +82,22 @@ class PhotonFetcher {
     try {
       const result = await this.engine.request(query, typeName)
       debug(result)
-      return this.unpack(result, path, rootField)
+      return this.unpack(result, path, rootField, isList)
     } catch (e) {
       throw new Error(\`Error in Photon\${path}: \\n\` + e.message)
     }
   }
-  protected unpack(result: any, path: string[], rootField?: string) {
+  protected unpack(data: any, path: string[], rootField?: string, isList?: boolean) {
     const getPath: string[] = []
     if (rootField) {
       getPath.push(rootField)
     }
-    getPath.push(...path.filter(p => p !== 'select'))
-    return deepGet(result, getPath)
+    getPath.push(...path.filter(p => p !== 'select' && p !== 'include'))
+    const result = deepGet(data, getPath) || null
+    if (result === null && isList) {
+      return []
+    }
+    return result
   }
 }
 `
@@ -633,7 +637,8 @@ class ${name}Client<T> implements Promise<T> {
     private readonly rootField: string,
     private readonly clientMethod: string,
     private readonly args: ${getArgName(name, false)},
-    private readonly path: string[]
+    private readonly path: string[],
+    private isList = false
   ) {
     // @ts-ignore
     if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
@@ -661,8 +666,10 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
         fieldName: f.name,
         projection: Projection.select,
       })} {
-  const path = [...this.path, 'select', '${f.name}']
+  const prefix = this.path.includes('select') ? 'select' : this.path.includes('include') ? 'include' : 'select'
+  const path = [...this.path, prefix, '${f.name}']
   const newArgs = deepSet(this.args, path, args || true)
+  this.isList = ${f.outputType.isList}
   return new ${getFieldTypeName(f)}Client<${getSelectReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
@@ -670,7 +677,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
         isField: true,
         renderPromise: true,
         projection: Projection.select,
-      })}>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path) as any
+      })}>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path, this.isList) as any
 }`
     })
     .join('\n'),
@@ -711,9 +718,9 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
     onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
     if (!this.requestPromise){
-      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}')
+      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}', this.isList)
     }
-    return this.requestPromise.then(onfulfilled, onrejected)
+    return this.requestPromise!.then(onfulfilled, onrejected)
   }
 
   /**
@@ -725,9 +732,9 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
     onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null,
   ): Promise<T | TResult> {
     if (!this.requestPromise) {
-      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}')
+      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}', this.isList)
     }
-    return this.requestPromise.catch(onrejected)
+    return this.requestPromise!.catch(onrejected)
   }
 
   /**
@@ -738,9 +745,9 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
    */
   finally(onfinally?: (() => void) | undefined | null): Promise<T> {
     if (!this.requestPromise) {
-      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}')
+      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}', this.isList)
     }
-    return this.requestPromise.finally(onfinally)
+    return this.requestPromise!.finally(onfinally)
   }
 }
     `
