@@ -481,7 +481,8 @@ ${indent(
   outputType.fields
     .map(
       f =>
-        `${f.name}?: boolean` + (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f, Projection.select)}` : ''),
+        `${f.name}?: boolean` +
+        (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f, Projection.select)}Optional` : ''),
     )
     .join('\n'),
   tab,
@@ -494,7 +495,8 @@ ${indent(
     .filter(f => f.outputType.kind === 'object')
     .map(
       f =>
-        `${f.name}?: boolean` + (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f, Projection.include)}` : ''),
+        `${f.name}?: boolean` +
+        (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f, Projection.include)}Optional` : ''),
     )
     .join('\n'),
   tab,
@@ -937,7 +939,7 @@ export class ArgsType {
       ...args,
     ]
 
-    const selectArgs: DMMF.SchemaArg[] = [
+    const selectArgsRequired: DMMF.SchemaArg[] = [
       {
         name: 'select',
         inputType: [
@@ -952,7 +954,22 @@ export class ArgsType {
       ...args,
     ]
 
-    const includeArgs: DMMF.SchemaArg[] = [
+    const selectArgsOptional: DMMF.SchemaArg[] = [
+      {
+        name: 'select',
+        inputType: [
+          {
+            type: getSelectName(name),
+            kind: 'object',
+            isList: false,
+            isRequired: false,
+          },
+        ],
+      },
+      ...args,
+    ]
+
+    const includeArgsRequired: DMMF.SchemaArg[] = [
       {
         name: 'include',
         inputType: [
@@ -961,6 +978,21 @@ export class ArgsType {
             kind: 'object',
             isList: false,
             isRequired: true,
+          },
+        ],
+      },
+      ...args,
+    ]
+
+    const includeArgsOptional: DMMF.SchemaArg[] = [
+      {
+        name: 'include',
+        inputType: [
+          {
+            type: getIncludeName(name),
+            kind: 'object',
+            isList: false,
+            isRequired: false,
           },
         ],
       },
@@ -980,18 +1012,30 @@ ${indent(bothArgsRequired.map(arg => new InputField(arg).toString()).join('\n'),
 }
 
 export type ${getModelArgName(name, Projection.select, action)} = {
-${indent(selectArgs.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+${indent(selectArgsRequired.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+}
+
+export type ${getModelArgName(name, Projection.select, action)}Optional = {
+${indent(selectArgsOptional.map(arg => new InputField(arg).toString()).join('\n'), tab)}
 }
 
 export type ${getModelArgName(name, Projection.include, action)} = {
-${indent(includeArgs.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+${indent(includeArgsRequired.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+}
+
+export type ${getModelArgName(name, Projection.include, action)}Optional = {
+${indent(includeArgsOptional.map(arg => new InputField(arg).toString()).join('\n'), tab)}
 }
 
 export type Extract${getModelArgName(
       name,
       Projection.select,
       action,
-    )}<S extends undefined | boolean | ${getModelArgName(name, Projection.select, action)}> = S extends undefined
+    )}<S extends undefined | boolean | ${getModelArgName(
+      name,
+      Projection.select,
+      action,
+    )}Optional> = S extends undefined
   ? false
   : S extends boolean
   ? S
@@ -1003,7 +1047,11 @@ export type Extract${getModelArgName(
       name,
       Projection.include,
       action,
-    )}<S extends undefined | boolean | ${getModelArgName(name, Projection.include, action)}> = S extends undefined
+    )}<S extends undefined | boolean | ${getModelArgName(
+      name,
+      Projection.include,
+      action,
+    )}Optional> = S extends undefined
   ? false
   : S extends boolean
   ? S

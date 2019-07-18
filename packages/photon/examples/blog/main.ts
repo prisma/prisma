@@ -32,11 +32,11 @@ async function main() {
       email: 'asd@asd.de',
     },
     include: {
-      id: true,
-      // mosts: false,
-      // posts: false,
+      posts: {
+        first: 10,
+      },
     },
-  } as any)
+  })
 
   console.log(result)
 

@@ -68,7 +68,7 @@
   },
   "dependencies": {
     "@apexearth/copy": "^1.4.2",
-    "@prisma/cli": "0.0.34",
+    "@prisma/cli": "0.0.35",
     "@prisma/engine-core": "0.0.67",
     "@prisma/fetch-engine": "^0.0.38",
     "chalk": "^2.4.2",
