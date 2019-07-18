@@ -285,10 +285,10 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^12.0.9"
 
-"@prisma/fetch-engine@^0.0.38":
-  version "0.0.38"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.38.tgz#09243d04d718bf449f89ff08edb4b7a2c7dbc93f"
-  integrity sha512-yZATPedJhdmo1ODJq1hEBSXflwMM3GPrX25CjER8+wXPWnNa+d5+msSvXNoQZOcQrb5EaInAoKoppSQDWoFjgg==
+"@prisma/fetch-engine@^0.0.39":
+  version "0.0.39"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.39.tgz#ffde730c2ab79bb1dfc17037f202e1f8d49f8fc2"
+  integrity sha512-ERIBmtrVwSFjwrlLv8ruWKth3NEKA9yYcq2plA3NDK/0Q56DUNIJuEBbeEiy1abo2TmmoXK0Bp31/mSTc6Pxtw==
   dependencies:
     chalk "^2.4.2"
     death "^1.1.0"
