@@ -1,0 +1,18 @@
+{
+  "name": "heroku",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "prisma2": "^2.0.0-preview-1"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "photon-placeholder": "^1.0.0"
+  },
+  "scripts": {
+    "dev": "heroku local web",
+    "deploy": "sh ./env.sh && git push heroku master",
+    "heroku-postbuild": "prisma2 generate"
+  }
+}
