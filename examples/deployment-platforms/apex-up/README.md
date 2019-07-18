@@ -1,4 +1,4 @@
-# Netlify
+# Apex Up
 
 ## Deployment
 
@@ -16,22 +16,24 @@ To know the platform identifiers, please refer to [this](https://github.com/pris
 
 Note that this setup will increase the bundle size as you would also bundle the local binary while creating the bundle for deployment platform. Please refer to the "Ignore Files from Bundle" section for more details of how that situation can be avoided. 
 
-This platform requires us to create the bundle of deployment manually as a `zip` file. To make deployment easy, we generate Photon outside of `node_modules` into a common folder (say `functions`) that can be zipped before deployment. With this requirement, the generate section of the Prisma schema file looks like 
+Post the deploy step, this platform prunes the "node_modules". Pruning is a process where `node_modules` are matched to the packages in `package.json` file. 
+
+Since we generate Photon in `node_modules` in `@generated/photon` and this is not available in `package.json`, it gets removed. As a workaround, we need to move Photon out of `node_modules` into a custom directory. With this requirement, the generate section of the Prisma schema file looks like 
 
 ```
 generator photon {
     provider       = "photonjs"
-    output         = "./functions/generated/photon"
+    output         = "./generated/photon"
 ```
 
 ## Environment
 
 Deploying to this platform requires setting up the production environment variables correctly. Please refer to the following section to find out how that can be done
 
-https://www.netlify.com/docs/continuous-deployment/#environment-variables
+https://up.docs.apex.sh/#configuration.environment_variables
 
-## Ignore files from bundling
+## Ignore Files from Bundle
 
 The development/deployment configuration for this platform causes extra binary to be packaged that is not required, please refer to this section of the platform docs to ignore the binary used while developing locally. 
 
-Since for Netlify, we are bundling manually, we can remove the local binary before creating the zip bundle for deployment. 
+https://up.docs.apex.sh/#configuration.ignoring_files

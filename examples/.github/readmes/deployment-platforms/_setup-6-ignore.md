@@ -1,0 +1,1 @@
+The development/deployment configuration for this platform causes extra binary to be packaged that is not required, please refer to this section of the platform docs to ignore the binary used while developing locally. 

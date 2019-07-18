@@ -1,14 +1,20 @@
-### Setup
+# ZEIT Now
 
-1. Install now: `curl -sfLS https://zeit.co/download.sh | sh`
-1. Development `now dev` (Note in `index.js`) the hack to get correct binary.
-   That is required because
+## Deployment
 
-- `prisma2 generate` doesn't support zeit right now i.e. we can't rely on `postinstall generate` hook. Zeit doesn't move `node_modules` but uses `package.json` as source of truth. This means that we need to print photon outside of `node_modules` and check it in right now.
+When deploying on this platform, the build is created on the server and hence the correct binary is available as `prisma2 generate` runs on the server. 
 
-1. Had to increase the lambdaSize to "25mb" but now detects this at build time which is awesome.
-1. Local development experience, 1st request is slow, rest are fast.
-1. Production deploy same as local deploy:
+Hence, we do not need to provide additional platform targeting options like `platforms` and `pinnedPlatform`. With no additional parameters necessary, the generate section of the Prisma schema file looks like 
 
-- https://express-photon.divyenduz1.now.sh/
-- Deployed using `now -e DEBUG=true -e BINARY_NAME=prisma-zeit`
+```
+generator photon {
+    provider = "photonjs"
+}
+```
+
+## Environment
+
+Deploying to this platform requires setting up the production environment variables correctly. Please refer to the following section to find out how that can be done
+
+Local Development: https://zeit.co/docs/v2/development/environment-variables
+Cloud Deployment: https://zeit.co/docs/v2/deployments/environment-variables-and-secrets

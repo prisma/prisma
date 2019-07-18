@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "express": "^4.17.1",
-    "start": "source .env && node app.js",
-    "deploy": "source .env && export PLATFORM=linux-glibc-libssl1.0.1 && up"
+    "start": "node app.js",
+    "deploy": "PLATFORM=linux-glibc-libssl1.0.1 up"
   }
 }
