@@ -26,7 +26,6 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
       throw new Error(`Unknown platform ${platform}. Possible platforms: ${knownPlatforms.join(', ')}`)
     }
   }
-  console.dir(generator, { depth: null })
   const datamodel = await getDatamodel(cwd)
   const output = generator.output || defaultOutput
   const transpile =

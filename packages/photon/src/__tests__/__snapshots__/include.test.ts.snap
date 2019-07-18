@@ -1,5 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`include validation allow deep include without another include 1`] = `
+"query {
+  findManyUser {
+    id
+    email
+    name
+    posts(first: 20) {
+      id
+      createdAt
+      updatedAt
+      published
+      title
+      content
+    }
+  }
+}"
+`;
+
 exports[`include validation allow include statement with only false properties 1`] = `
 "query {
   findManyPost {
