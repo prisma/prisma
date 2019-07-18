@@ -334,15 +334,15 @@ async function getPlatform() {
 
   if (platform === 'linux' && libssl) {
     if (libssl === '1.0.2') {
-      return 'linux-lambda'
+      return 'linux-glibc-libssl1.0.2'
     }
 
     if (libssl === '1.0.1') {
-      return 'linux-zeit'
+      return 'linux-glibc-libssl1.0.1'
     }
   }
 
-  return 'linux-glibc'
+  return 'linux-glibc-libssl1.1.0'
 }
 
 function getPrismaDownloadUrl(channel: string, version: string, platform: string) {
