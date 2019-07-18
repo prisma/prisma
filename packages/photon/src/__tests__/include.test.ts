@@ -88,6 +88,24 @@ describe('include validation', () => {
     expect(() => document.validate(ast)).not.toThrow()
   })
 
+  test('allow deep include without another include', () => {
+    const ast = {
+      include: {
+        posts: { first: 20 },
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    expect(() => document.validate(ast)).not.toThrow()
+  })
+
   test('handle scalar fields special', () => {
     const ast = {
       include: {
