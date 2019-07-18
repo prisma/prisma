@@ -20,7 +20,7 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "40cd420d18e51467019e30933214800690412198"
+    "version": "0a8ec69097cc52da46ce7a7148350bb59fcffcfa"
   },
   "devDependencies": {
     "@prisma/cli": "^0.0.35",
