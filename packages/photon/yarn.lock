@@ -335,20 +335,6 @@
     got "^9.6.0"
     through2 "3.0.1"
 
-"@prisma/fetch-engine@^0.0.24":
-  version "0.0.24"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.24.tgz#b227d36ae8ae16cbbd978e02fe5e82a6f715e7ff"
-  integrity sha512-4/7sq17MQ2cwkBLrame69eqcPkrR4QaaRwBHN25TW2vo4QojzvYoH+I7RrfKn3PtVu0nMCpVddcoB6Gw5IruMg==
-  dependencies:
-    chalk "^2.4.2"
-    death "^1.1.0"
-    find-cache-dir "^3.0.0"
-    hasha "^5.0.0"
-    make-dir "^3.0.0"
-    node-fetch "^2.5.0"
-    p-retry "^4.1.0"
-    progress "^2.0.3"
-
 "@prisma/fetch-engine@^0.0.40":
   version "0.0.40"
   resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.40.tgz#8c35767a2e8b771722f52a6059166457b1d1deec"
@@ -365,13 +351,13 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/lift@^0.0.155":
-  version "0.0.155"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.155.tgz#d54856f5c9fad3cd0b9a11c5fe08bbf71d608be9"
-  integrity sha512-0N29P0IG8AEf2sRKuzTOwD73rY6rL547Cby59IsWR7EMJzaA9cbIvdA8DJT7004oqjBgOZpU/cy0ezhpeQKyaw==
+"@prisma/lift@^0.0.159":
+  version "0.0.159"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.159.tgz#a94d65a831d4fa906a5f4d6e38e13d1f1fb69510"
+  integrity sha512-LGbIuo7kUQCTEZRJAQDUqRSHdEdcocp782ktvFauGHopxvOPxHdD3yT9ZKqZCrYnDWHzWh0/Xf6Aacqs/Wa5Og==
   dependencies:
-    "@prisma/fetch-engine" "^0.0.24"
-    "@prisma/studio-server" "^0.19.0"
+    "@prisma/fetch-engine" "^0.0.40"
+    "@prisma/studio-server" "^0.21.0"
     "@types/execa" "^0.9.0"
     arg "^4.1.0"
     array-flat-polyfill "^1.0.1"
@@ -406,25 +392,25 @@
     strip-indent "^3.0.0"
     supports-hyperlinks "^1.0.1"
 
-"@prisma/studio-server@^0.19.0":
-  version "0.19.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.19.0.tgz#23845819ba9f728c72298c5fcfa7d434c80c426b"
-  integrity sha512-899CouTsROCjLQlR0na/ypV05TQgtC0Aowp7iivEABgk6d2b7OgJ9ezJ40Zvwv/3gTK/EtBADMmIkEyJO3dPSg==
+"@prisma/studio-server@^0.21.0":
+  version "0.21.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.21.0.tgz#b1081d00c83ed5b3ff6458edd0eacc20dff716ec"
+  integrity sha512-ZFojghWgaF5jvyBZmhwjF0JpT/CJrRegHEtyO8SmTDw/ejkj1/IG5uh8zTye5S6HH54dIiyBSMEnKLibc/XsJw==
   dependencies:
-    "@prisma/studio" "^0.19.0"
-    "@prisma/studio-transports" "^0.19.0"
+    "@prisma/studio" "^0.21.0"
+    "@prisma/studio-transports" "^0.21.0"
     express "^4.17.1"
     express-ws "^4.0.0"
 
-"@prisma/studio-transports@^0.19.0":
-  version "0.19.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.19.0.tgz#5b2d2e0cae87af69567792f94ab44f31b82e5629"
-  integrity sha512-0z8ksoojudJVvS2MLy90WapC0f+DMmywSZi4tLoBxx8TdcQaUHMi5BCIhJTlljdhPaTv9mmQKXz22Bry+m7CUQ==
+"@prisma/studio-transports@^0.21.0":
+  version "0.21.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.21.0.tgz#0eb67db3e86f4052dd9271fd30ae27837acd5251"
+  integrity sha512-EM+B78zwmg2Qqbakrlpw029EHNITsXDx7KgaweNPFVGLhntdMdPPiqB7sB9hy7Ctr5lmfV2kJ7Qr0Ax1oXvCug==
 
-"@prisma/studio@^0.19.0":
-  version "0.19.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.19.0.tgz#3007e177ba1cfa42f715f46d6d05f47df7304fc9"
-  integrity sha512-VA4iEyZshiKtWjEkrUwsFm4BHYDSzH0gCO6JdydoX7yeJWEO4CmvfdFjZMsvCyYku2oQs5YT+XRmGc3H00l6rw==
+"@prisma/studio@^0.21.0":
+  version "0.21.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.21.0.tgz#7b40ecd78c1fc0b06e9c897e42d3f0c746e272c0"
+  integrity sha512-EpSnAn+xFSoHRCh510hgx3lsafTO05DZ6Ghbri8Q6qQ8kISfU6ARMbfwhaGnwAy54XDQBFHmmGyjjDfxgtxMlw==
 
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
@@ -4878,11 +4864,6 @@ node-fetch@2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.3.0.tgz#1a1d940bbfb916a1d3e0219f037e89e71f8c5fa5"
   integrity sha512-MOd8pV3fxENbryESLgVIeaGKrdl+uaYhCSSVkjeOb/31/njTpcis5aWfdqgNlHIrKOLRbMnfPINPOML2CIFeXA==
-
-node-fetch@^2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.5.0.tgz#8028c49fc1191bba56a07adc6e2a954644a48501"
-  integrity sha512-YuZKluhWGJwCcUu4RlZstdAxr8bFfOVHakc1mplwHkk8J+tqM1Y5yraYvIUpeX8aY7+crCwiELJq7Vl0o0LWXw==
 
 node-fetch@^2.6.0:
   version "2.6.0"
