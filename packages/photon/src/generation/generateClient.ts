@@ -21,6 +21,7 @@ import { TSClient } from './TSClient'
 const remove = promisify(fs.unlink)
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
+const copyFile = promisify(fs.copyFile)
 
 export interface GenerateClientOptions {
   datamodel: string
@@ -30,6 +31,9 @@ export interface GenerateClientOptions {
   runtimePath?: string
   binaryPath?: string
   outputDir: string
+  platforms?: string[]
+  pinnedPlatform?: string
+  version?: string
 }
 
 export async function buildClient({
@@ -41,6 +45,8 @@ export async function buildClient({
   binaryPath,
   outputDir,
 }: GenerateClientOptions): Promise<Dictionary<string>> {
+  // TODO: handle pinnedPlatform
+
   const fileMap = {}
 
   const dmmf = await getDMMF({ datamodel, cwd, prismaPath: binaryPath })
@@ -135,12 +141,27 @@ export async function generateClient({
   runtimePath,
   browser,
   binaryPath,
+  platforms,
+  pinnedPlatform,
+  version,
 }: GenerateClientOptions) {
+  const thePlatforms = platforms || ['native']
+  const theVersion = version || 'latest'
   if (cwd && cwd.endsWith('.yml')) {
     cwd = path.dirname(cwd)
   }
   runtimePath = runtimePath || './runtime'
-  const files = await buildClient({ datamodel, cwd, transpile, runtimePath, browser, binaryPath, outputDir })
+  const files = await buildClient({
+    datamodel,
+    cwd,
+    transpile,
+    runtimePath,
+    browser,
+    binaryPath,
+    outputDir,
+    platforms,
+    pinnedPlatform,
+  })
   await makeDir(outputDir)
   await Promise.all(
     Object.entries(files).map(async ([fileName, file]) => {
@@ -154,12 +175,30 @@ export async function generateClient({
     }),
   )
   const inputDir = path.join(__dirname, '../../runtime')
+  const nativeOnly = thePlatforms.length === 1 && thePlatforms[0] === 'native'
   await copy({
     from: inputDir,
     to: path.join(outputDir, '/runtime'),
     recursive: true,
     parallelJobs: 20,
+    overwrite: true,
+    // copyFile: async (from, to, cb) => {
+    //   if (from.endsWith('runtime/prisma') && to.endsWith('runtime/prisma') && !nativeOnly) {
+    //     cb()
+    //   } else {
+    //     fs.copyFile(from, to, cb)
+    //   }
+    // },
   })
+  // if (!nativeOnly) {
+  //   await downloadBinaries(theVersion, thePlatforms, __dirname)
+  // }
+
+  // for (const platform of thePlatforms) {
+  //   console.log('Copying', platform)
+  //   await copyFile(path.join(__dirname, platform), path.join(outputDir, '/runtime', platform))
+  // }
+
   await writeFile(path.join(outputDir, '/runtime/index.d.ts'), backup)
 }
 

@@ -4,7 +4,29 @@ import { getDatamodel } from './utils/getDatamodel'
 
 const defaultOutput = 'node_modules/@generated/photon'
 
+const knownPlatforms = [
+  'native',
+  'darwin',
+  'linux-glibc-libssl1.0.1',
+  'linux-glibc-libssl1.0.2',
+  'linux-glibc-libssl1.1.0',
+  'linux-musl-libssl1.1.0',
+]
+
 const generate: GeneratorFunction = async ({ generator, cwd }) => {
+  if (generator.pinnedPlatform) {
+    throw new Error(`pinnedPlatform is not implemented yet`)
+  }
+  // TODO more validation
+  if (generator.platforms.length === 0) {
+    throw new Error(`Please provide at least one platform in \`platforms\``)
+  }
+  for (const platform of generator.platforms) {
+    if (!knownPlatforms.includes(platform)) {
+      throw new Error(`Unknown platform ${platform}. Possible platforms: ${knownPlatforms.join(', ')}`)
+    }
+  }
+  console.dir(generator, { depth: null })
   const datamodel = await getDatamodel(cwd)
   const output = generator.output || defaultOutput
   const transpile =
