@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`include validation allow include statement with only false properties 1`] = `
+"query {
+  findManyPost {
+    id
+    createdAt
+    updatedAt
+    published
+    title
+    content
+    author {
+      id
+      email
+      name
+    }
+  }
+}"
+`;
+
+exports[`include validation catch unknown field name 1`] = `
+"query {
+  mauthor {
+    mauthor # INVALID_FIELD
+  }
+}"
+`;
+
+exports[`include validation deep include query 1`] = `
+"query {
+  findManyPost {
+    id
+    createdAt
+    updatedAt
+    published
+    title
+    content
+    author {
+      id
+      email
+      name
+      posts {
+        id
+        createdAt
+        updatedAt
+        published
+        title
+        content
+      }
+    }
+  }
+}"
+`;
+
+exports[`include validation dont allow empty include statements 1`] = `
+"query {
+  findManyPost {
+    include # INVALID_FIELD
+  }
+}"
+`;
+
+exports[`include validation handle scalar fields special 1`] = `
+"query {
+  id {
+    id # INVALID_FIELD
+  }
+}"
+`;

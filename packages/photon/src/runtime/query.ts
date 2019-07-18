@@ -25,6 +25,7 @@ import {
   wrapWithList,
 } from './utils/common'
 import { dedent } from './utils/dedent'
+import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
 import { omit } from './utils/omit'
@@ -52,9 +53,10 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
     const fieldErrors: FieldError[] = []
     const argErrors: ArgError[] = []
+    const prefix = select && select.select ? 'select' : select.include ? 'include' : undefined
 
     for (const child of invalidChildren) {
-      const errors = child.collectErrors()
+      const errors = child.collectErrors(prefix)
       fieldErrors.push(...errors.fieldErrors.map(e => ({ ...e, path: isTopLevelQuery ? e.path : e.path.slice(1) })))
       argErrors.push(...errors.argErrors.map(e => ({ ...e, path: isTopLevelQuery ? e.path : e.path.slice(1) })))
     }
@@ -68,21 +70,43 @@ ${indent(this.children.map(String).join('\n'), tab)}
       const path = this.normalizePath(fieldError.path, select).join('.')
       if (fieldError.error.type === 'invalidFieldName') {
         keyPaths.push(path)
+
+        const fieldType = fieldError.error.outputType
+        const { isInclude } = fieldError.error
+        fieldType.fields
+          .filter(field => (isInclude ? field.outputType.kind === 'object' : true))
+          .forEach(field => {
+            const splittedPath = path.split('.')
+            missingItems.push({
+              path: `${splittedPath.slice(0, splittedPath.length - 1).join('.')}.${field.name}`,
+              type: 'true',
+              isRequired: false,
+            })
+          })
+      } else if (fieldError.error.type === 'includeAndSelect') {
+        keyPaths.push('select')
+        keyPaths.push('include')
       } else {
         valuePaths.push(path)
       }
-      if (fieldError.error.type === 'emptySelect' || fieldError.error.type === 'noTrueSelect') {
+      if (
+        fieldError.error.type === 'emptySelect' ||
+        fieldError.error.type === 'noTrueSelect' ||
+        fieldError.error.type === 'emptyInclude'
+      ) {
         const selectPathArray = this.normalizePath(fieldError.path, select)
         const selectPath = selectPathArray.slice(0, selectPathArray.length - 1).join('.')
 
         const fieldType = fieldError.error.field.outputType.type as DMMF.OutputType
-        fieldType.fields.forEach(field => {
-          missingItems.push({
-            path: `${selectPath}.${field.name}`,
-            type: 'true',
-            isRequired: false,
+        fieldType.fields
+          .filter(field => (fieldError.error.type === 'emptyInclude' ? field.outputType.kind === 'object' : true))
+          .forEach(field => {
+            missingItems.push({
+              path: `${selectPath}.${field.name}`,
+              type: 'true',
+              isRequired: false,
+            })
           })
-        })
       }
     }
     // an arg error can either be an invalid key or invalid value
@@ -248,6 +272,11 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
         getOutputTypeName(error.field.outputType.type),
       )} must not be empty. Available options are listed in ${chalk.greenBright.dim('green')}.`
     }
+    if (error.type === 'emptyInclude') {
+      return `The ${chalk.redBright('`include`')} statement for type ${chalk.bold(
+        getOutputTypeName(error.field.outputType.type),
+      )} must not be empty. Available options are listed in ${chalk.greenBright.dim('green')}.`
+    }
     if (error.type === 'noTrueSelect') {
       return `The ${chalk.redBright('`select`')} statement for type ${chalk.bold(
         getOutputTypeName(error.field.outputType.type),
@@ -255,13 +284,31 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
         'green',
       )}.`
     }
+    if (error.type === 'includeAndSelect') {
+      // return `The ${chalk.redBright('`select`')} statement for type ${chalk.bold(
+      //   getOutputTypeName(error.field.outputType.type),
+      // )} needs ${chalk.bold('at least one truthy value')}. Available options are listed in ${chalk.greenBright.dim(
+      //   'green',
+      // )}.`
+      return `Please ${chalk.bold('either')} use ${chalk.greenBright('`include`')} or ${chalk.greenBright(
+        '`select`',
+      )}, but ${chalk.redBright('not both')} at the same time.`
+    }
     if (error.type === 'invalidFieldName') {
-      let str = `Unknown field ${chalk.redBright(`\`${error.providedName}\``)} on model ${chalk.bold.white(
+      const statement = error.isInclude ? 'include' : 'select'
+      const wording = error.isIncludeScalar ? 'Invalid scalar' : 'Unknown'
+      let str = `${wording} field ${chalk.redBright(`\`${error.providedName}\``)} for ${chalk.bold(
+        statement,
+      )} statement on model ${chalk.bold.white(
         error.modelName,
-      )}.`
+      )}. Available options are listed in ${chalk.greenBright.dim('green')}.`
 
       if (error.didYouMean) {
         str += ` Did you mean ${chalk.greenBright(`\`${error.didYouMean}\``)}?`
+      }
+
+      if (error.isIncludeScalar) {
+        str += `\nNote, that ${chalk.bold('include')} statements only accept relation fields.`
       }
 
       return str
@@ -385,7 +432,16 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
       if (!Array.isArray(pointer) && key === 0) {
         continue
       }
-      pointer = pointer[key]
+      if (key === 'select') {
+        // TODO: Remove this logic! It shouldn't be needed
+        if (!pointer[key]) {
+          pointer = pointer.include
+        } else {
+          pointer = pointer[key]
+        }
+      } else {
+        pointer = pointer[key]
+      }
       newPath.push(key)
     }
     return newPath
@@ -455,7 +511,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
     // get all errors from fields
     if (this.children) {
       for (const child of this.children) {
-        const errors = child.collectErrors()
+        const errors = child.collectErrors(prefix)
         // Field -> Field always goes through a 'select'
         fieldErrors.push(...errors.fieldErrors.map(e => ({ ...e, path: [this.name, prefix, ...e.path] })))
         argErrors.push(...errors.argErrors.map(e => ({ ...e, path: [this.name, prefix, ...e.path] })))
@@ -755,6 +811,7 @@ export function selectionToFields(
               modelName: outputType.name,
               providedName: name,
               didYouMean: getSuggestion(name, outputType.fields.map(f => f.name)),
+              outputType,
             },
           }),
         )
@@ -785,10 +842,10 @@ export function selectionToFields(
         name: field.name,
         fields: field.args,
       }
-      const argsWithoutSelect = typeof value === 'object' ? omit(value, 'select') : undefined
-      const args = argsWithoutSelect
+      const argsWithoutIncludeAndSelect = typeof value === 'object' ? omit(value, ['include', 'select']) : undefined
+      const args = argsWithoutIncludeAndSelect
         ? objectToArgs(
-            argsWithoutSelect,
+            argsWithoutIncludeAndSelect,
             transformedField,
             [],
             typeof field === 'string' ? undefined : (field.outputType.type as DMMF.OutputType),
@@ -799,53 +856,137 @@ export function selectionToFields(
       // TODO: use default selection for `include` again
 
       // check for empty select
-      if (value && value.select) {
-        const values = Object.values(value.select)
-        if (values.length === 0) {
+      if (value) {
+        if (value.select && value.include) {
           acc.push(
             new Field({
               name,
               children: [
                 new Field({
-                  name: 'select',
+                  name: 'include',
                   args: new Args(),
                   error: {
-                    type: 'emptySelect',
+                    type: 'includeAndSelect',
                     field,
                   },
                 }),
               ],
             }),
           )
+        } else if (value.include) {
+          const keys = Object.keys(value.include)
+          if (keys.length === 0) {
+            acc.push(
+              new Field({
+                name,
+                children: [
+                  new Field({
+                    name: 'include',
+                    args: new Args(),
+                    error: {
+                      type: 'emptyInclude',
+                      field,
+                    },
+                  }),
+                ],
+              }),
+            )
 
-          return acc
-        }
+            return acc
+          }
 
-        // check if there is at least one truthy value
-        const truthyValues = values.filter(v => v)
-        if (truthyValues.length === 0) {
-          acc.push(
-            new Field({
-              name,
-              children: [
-                new Field({
-                  name: 'select',
-                  args: new Args(),
-                  error: {
-                    type: 'noTrueSelect',
-                    field,
-                  },
-                }),
-              ],
-            }),
-          )
+          /**
+           * Error handling for `include` statements
+           */
+          if (field.outputType.kind === 'object') {
+            const fieldOutputType = field.outputType.type as DMMF.OutputType
+            const allowedKeys = fieldOutputType.fields.filter(f => f.outputType.kind === 'object').map(f => f.name)
+            const invalidKeys = keys.filter(key => !allowedKeys.includes(key))
+            if (invalidKeys.length > 0) {
+              acc.push(
+                ...invalidKeys.map(
+                  invalidKey =>
+                    new Field({
+                      name: invalidKey,
+                      children: [
+                        new Field({
+                          name: invalidKey,
+                          args: new Args(),
+                          error: {
+                            type: 'invalidFieldName',
+                            modelName: fieldOutputType.name,
+                            outputType: fieldOutputType,
+                            providedName: invalidKey,
+                            didYouMean: getSuggestion(invalidKey, allowedKeys) || undefined,
+                            isInclude: true,
+                            isIncludeScalar: fieldOutputType.fields.some(f => f.name === invalidKey),
+                          },
+                        }),
+                      ],
+                      // @ts-ignore
+                    }),
+                ),
+              )
+              return acc
+            }
+          }
 
-          return acc
+          // TODO: unify with select validation logic
+        } else if (value.select) {
+          const values = Object.values(value.select)
+          if (values.length === 0) {
+            acc.push(
+              new Field({
+                name,
+                children: [
+                  new Field({
+                    name: 'select',
+                    args: new Args(),
+                    error: {
+                      type: 'emptySelect',
+                      field,
+                    },
+                  }),
+                ],
+              }),
+            )
+
+            return acc
+          }
+
+          // check if there is at least one truthy value
+          const truthyValues = values.filter(v => v)
+          if (truthyValues.length === 0) {
+            acc.push(
+              new Field({
+                name,
+                children: [
+                  new Field({
+                    name: 'select',
+                    args: new Args(),
+                    error: {
+                      type: 'noTrueSelect',
+                      field,
+                    },
+                  }),
+                ],
+              }),
+            )
+
+            return acc
+          }
         }
       }
       // either use select or default selection, but not both at the same time
       const defaultSelection = isRelation ? getDefaultSelection(field.outputType.type as DMMF.OutputType) : null
-      const select = value && value.select ? value.select : defaultSelection
+      let select = defaultSelection
+      if (value) {
+        if (value.select) {
+          select = value.select
+        } else if (value.include) {
+          select = deepExtend(defaultSelection, value.include)
+        }
+      }
       const children =
         select !== false && isRelation ? selectionToFields(dmmf, select, field, [...path, name]) : undefined
       acc.push(new Field({ name, args, children }))

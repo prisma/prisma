@@ -13,40 +13,68 @@ async function main() {
   // const prom = await photon.users()
   // console.log(prom)
 
-  const result0 = await photon.posts.findMany({
-    // include: {
-    //   author: true
-    // },
-    // select: {
-    //   id: true
-    // }
-    // first: 5
-  })
+  // const result0 = await photon.posts.findMany({
+  //   include: {
+  //     author: {
+  //       include: {
+  //         // posts: true,
+  //       },
+  //     },
+  //   },
+  //   // select: {
+  //   //   id: true
+  //   // }
+  //   // first: 5
+  // })
 
-  const result = await photon.posts.create({
-    data: {
-      title: '123e4567-e89b-12d3-a456-426655440000',
-      published: false,
+  const result = await photon.users.findOne({
+    where: {
+      email: 'asd@asd.de',
     },
     include: {
-      author: true,
-    },
-
-    select: {
       id: true,
-      published: true 
-    }
-
-    // select: {
-    //   author: {
-    //     select: {
-    //       id: true,
-    //     },
-    //   },
-    // },
-  })
+      // mosts: false,
+      // posts: false,
+    },
+  } as any)
 
   console.log(result)
+
+  // const result = await photon.posts.create({
+  //   data: {
+  //     title: '123e4567-e89b-12d3-a456-426655440000',
+  //     published: false,
+  //     author: {
+  //       create: {
+  //         email: 'asd@asd.de',
+  //       },
+  //     },
+  //   },
+  //   include: {
+  //     author: true,
+  //   },
+
+  //   // select: {
+  //   //   id: true,
+  //   //   published: true,
+  //   // },
+
+  //   // select: {
+  //   //   author: {
+  //   //     select: {
+  //   //       id: true,
+  //   //     },
+  //   //   },
+  //   // },
+  // })
+  // .author()
+  // .posts({
+  //   include: {
+  //     author: true,
+  //   },
+  // })
+
+  // console.log(result)
 
   // const result = await photon.posts.create({
   //   data: {
