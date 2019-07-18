@@ -8,8 +8,6 @@ async function main() {
     },
   })
 
-  // process.addListener('SIG')
-
   // const prom = await photon.users()
   // console.log(prom)
 
