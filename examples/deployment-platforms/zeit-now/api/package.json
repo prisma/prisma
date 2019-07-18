@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "express": "^4.16.4",
+    "helmet": "^3.18.0",
+    "moment": "^2.24.0"
+  },
+  "engines": {
+    "node": "10.x"
+  },
+  "scripts": {
+    "deploy": "now -e DEBUG=true -e BINARY_NAME=prisma-zeit",
+    "postinstall": "prisma2 generate"
+  },
+  "devDependencies": {
+    "prisma2": "^2.0.0-preview-1"
+  }
+}

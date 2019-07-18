@@ -1,0 +1,19 @@
+service: p2-bins
+
+frameworkVersion: '=1.46.1'
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: eu-west-1
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-offline
+
+functions:
+  server:
+    handler: src/index.index
+    events:
+      - http: GET /
+    timeout: 60
