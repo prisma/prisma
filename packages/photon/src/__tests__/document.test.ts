@@ -81,6 +81,11 @@ test('document stringify', () => {
             didYouMean: 'name',
             providedName: 'name2',
             type: 'invalidFieldName',
+            outputType: {
+              fields: [],
+              isEmbedded: false,
+              name: 'User',
+            },
           },
         }),
         new Field({
