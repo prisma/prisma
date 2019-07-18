@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@prisma/fetch-engine": "^0.0.24",
-    "@prisma/studio-server": "^0.15.0",
+    "@prisma/studio-server": "^0.16.0",
     "@types/execa": "^0.9.0",
     "arg": "^4.1.0",
     "array-flat-polyfill": "^1.0.1",
