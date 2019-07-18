@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "name": "express-photon",
+  "builds": [
+    {
+      "src": "www/**/*",
+      "use": "@now/static"
+    },
+    {
+      "src": "api/**/*.js",
+      "use": "@now/node@canary",
+      "config": {
+        "includeFiles": [],
+        "maxLambdaSize": "25mb"
+      }
+    }
+  ],
+  "routes": [{ "src": "/", "dest": "www/index.html" }]
+}

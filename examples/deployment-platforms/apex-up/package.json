@@ -1,0 +1,17 @@
+{
+  "name": "up",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "prisma2": "^2.0.0-preview-1"
+  },
+  "scripts": {
+    "postinstall": "prisma2 generate"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "start": "source .env && node app.js",
+    "deploy": "source .env && export PLATFORM=linux-glibc-libssl1.0.1 && up"
+  }
+}

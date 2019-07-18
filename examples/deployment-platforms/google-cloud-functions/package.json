@@ -1,0 +1,18 @@
+{
+  "name": "gcp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "functions-framework --target=photonExample",
+    "deploy": "gcloud functions deploy photonExample --stage-bucket divu-serverless --trigger-http --runtime nodejs10",
+    "logs": "gcloud functions logs read photonExample",
+    "postinstall": "prisma2 generate"
+  },
+  "dependencies": {
+    "prisma2": "^2.0.0-preview-1"
+  },
+  "devDependencies": {
+    "@google-cloud/functions-framework": "^1.1.1"
+  }
+}
