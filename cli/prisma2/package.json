@@ -20,14 +20,14 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "30a33bde5b1d9f79e0a48491749528da76002e24"
+    "version": "40cd420d18e51467019e30933214800690412198"
   },
   "devDependencies": {
-    "@prisma/cli": "^0.0.33",
+    "@prisma/cli": "^0.0.35",
     "@prisma/fetch-engine": "^0.0.38",
-    "@prisma/introspection": "0.0.42",
-    "@prisma/lift": "0.0.149",
-    "@prisma/photon": "^0.0.169",
+    "@prisma/introspection": "0.0.43",
+    "@prisma/lift": "0.0.153",
+    "@prisma/photon": "^0.0.174",
     "@sentry/node": "5",
     "@types/mocha": "^5.2.7",
     "@zeit/ncc": "^0.18.5",
