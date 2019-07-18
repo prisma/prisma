@@ -5,11 +5,10 @@ datasource db {
 }
 
 generator photon {
-    provider       = "photonjs"
+    provider  = "photonjs"
     // Because pruning happens after post install, we need to move Photon out of node_modules
-    output         = "./generated/photon"
-    platforms      = ["native", "linux-glibc-libssl1.0.1"]
-    pinnedPlatform = env("PLATFORM")
+    output    = "./generated/photon"
+    platforms = ["native", "linux-glibc-libssl1.0.1"]
 }
 
 model User {

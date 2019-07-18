@@ -2,13 +2,12 @@
 
 ## Deployment
 
-When deploying on this platform, the build is created on the local development machine (unless you are using a CI) and hence we need to swap the binaries by using additional platform targeting options like `platforms` and `pinnedPlatform`. With these additional parameters, the generate section of the Prisma schema file looks like 
+When deploying on this platform, the build is created on the local development machine (unless you are using a CI) and hence we need to swap the binaries by using additional platform targeting options like `platforms`. With these additional parameters, the generate section of the Prisma schema file looks like 
 
 ```
 generator photon {
     provider       = "photonjs"
     platforms      = ["native", "linux-glibc-libssl1.0.1"]
-    pinnedPlatform = env("PLATFORM")
 }
 ```
 
