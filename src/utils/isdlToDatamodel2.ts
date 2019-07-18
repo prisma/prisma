@@ -9,8 +9,16 @@ export async function isdlToDatamodel2(isdl: ISDL, datasources: DataSource[], ge
 
   const result = await engine.convertDmmfToDml({
     dmmf: JSON.stringify(dmmf),
-    config: { datasources, generators },
+    config: { datasources, generators: generators.map(ensureNewFields) },
   })
 
   return result.datamodel
+}
+
+function ensureNewFields(generator) {
+  return {
+    platforms: [],
+    pinnedPlatform: null,
+    ...generator,
+  }
 }

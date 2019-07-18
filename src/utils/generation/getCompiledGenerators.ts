@@ -1,11 +1,11 @@
 import { CompiledGeneratorDefinition, Dictionary, GeneratorDefinitionWithPackage } from '@prisma/cli'
 import { getRawDMMF } from '@prisma/photon'
 import chalk from 'chalk'
+import Debug from 'debug'
 import fs from 'fs-extra'
 import path from 'path'
 import { LiftEngine } from '../../LiftEngine'
 import { runGeneratorBinary } from './runGeneratorBinary'
-import Debug from 'debug'
 const debug = Debug('getCompiledGenerators')
 // import { generateInThread } from '../generateInThread'
 
