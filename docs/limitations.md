@@ -7,6 +7,6 @@
 - No realtime API/subscriptions.
 - Models must have an `@id` attribute and it must take one of these forms:
     - `Int @id`
-    - `String @default(uuid())`
-    - `String @default(cuid())`
+    - `String @id @default(uuid())`
+    - `String @id @default(cuid())`
 - When [introspecting](./introspection.md) a database, Prisma only recognizes many-to-many relations that follow the Prisma conventions for [relation tables](https://github.com/prisma/prisma2-docs/blob/master/relations.md#mn).
