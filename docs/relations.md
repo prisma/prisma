@@ -55,10 +55,10 @@ The `@relation` attribute disambiguates relationships when needed.
 It has the following signature:
 
 ```groovy
-@relation(\_ fields?: Identifier[], name?: String, onDelete?: CascadeEnum)
+@relation(_name: String?, references: Identifier[]?, onDelete: OnDeleteEnum?)
 ```
 
-- `fields` _(optional)_: List of [field](./data-modeling.md#fields) names to reference.
+- `references` _(optional)_: List of [field](./data-modeling.md#fields) names to reference.
 - `name` _(optional)_: Defines the _name_ of the relationship. If this a m:m-relation, the name also determines the name of the relation table in the underlying database.
 - `onDelete` _(optional)_: Defines what to do when the referenced relation is deleted.
   - `NONE` (_default_): Set the field to `null`.
@@ -101,7 +101,7 @@ If you're introspecting an existing database and the foreign key does not follow
 ```groovy
 model User {
   id        Int        @id
-  customer  Profile?   @relation(id)
+  customer  Profile?   @relation(references: id)
 }
 
 model Profile {
