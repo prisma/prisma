@@ -18,7 +18,7 @@
     - [SQLite](./core/connectors/sqlite.md)
     - [MongoDB](./core/connectors/mongo.md)
   - Generators
-    - [Photon JS](./core/generators/photon-js.md)
+    - [Photon JS](./core/generators/photonjs.md)
 - Photon
   - [API](./photon/api.md)
   - [Use only Photon](./photon/use-only-photon.md)
@@ -32,4 +32,3 @@
 - [How to provide feedback for Prisma 2?](./prisma2-feedback.md)
 - [FAQ](./faq.md)
 - [Glossary](./glossary.md)
-
