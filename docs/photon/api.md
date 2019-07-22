@@ -150,6 +150,18 @@ Coming soon.
 
 For simplicity, we're assuming the `User` model from above as foundation for the generated code.
 
+### Constructor
+
+Creates a new `Photon` instance.
+
+#### Options
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `debug` | `boolean` | **No** | When set to `true`, the `Photon` instance prints additional logging output to the console when sending requests to Prisma's query engine. Default: `false`. |
+
+#### Examples
+
 ### `findOne`
 
 Returns a single object identified by a _unique_ value (e.g. `id` or `email`). You can use the `select` and `include` arguments to determine which fields should be included on the returned object.
