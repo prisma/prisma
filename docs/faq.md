@@ -7,6 +7,7 @@
   - [How can I see the generated queries that Photon sends to my database?](#how-can-i-see-the-generated-queries-that-photon-sends-to-my-database)
   - [How do schema migrations work with Photon?](#how-do-schema-migrations-work-with-photon)
   - [Is Photon production-ready? Should I start using it?](#is-photon-production-ready-should-i-start-using-it)
+  - [Does Photon support GraphQL schema delegation and GraphQL binding?](#does-photon-support-graphql-schema-delegation-and-graphql-binding)
 - Lift
   - [Am I locked-in when using Lift? Is it easy to migrate off it?](#am-i-locked-in-when-using-lift-is-it-easy-to-migrate-off-it)
   - [How do I see details about how Lift migrates my database schema?](#how-do-i-see-details-about-how-lift-migrates-my-database-schema)
@@ -46,6 +47,14 @@ Photon is not opinionated on how exactly you migrate your database schema. You c
 ### Is Photon production-ready? Should I start using it?
 
 Photon is not yet production-ready, it has a number of severe [limitations](./limitations.md) that don't make it suitable for production uses and heavy loads. You can track the progress of the release process on [isprisma2ready.com](https://www.isprisma2ready.com). While it shouldn't be used for critical applications yet, Photon is definitely in a usable state. You can help us accelerate the release process by using it and [sharing your feedback](./prisma2-feedback.md) with us.
+
+### Does Photon support GraphQL schema delegation and GraphQL binding?
+
+GraphQL [schema delegation](https://www.prisma.io/blog/graphql-schema-stitching-explained-schema-delegation-4c6caf468405/) connects two GraphQL schemas by passing the [`info`](https://www.prisma.io/blog/graphql-server-basics-demystifying-the-info-argument-in-graphql-resolvers-6f26249f613a/) object from a resolver of the first GraphQL schema to a resolver of the second GraphQL schema. Schema delegation also is the foundation for [GraphQL binding](https://github.com/graphql-binding/graphql-binding).
+
+Prisma 1 officially supports both schema delegation and GraphQL binding as it exposes a GraphQL CRUD API through the [Prisma server](https://www.prisma.io/docs/prisma-server/). This API can be used to as foundation for an application-layer GraphQL API created with GraphQL binding. 
+
+With Prisma 2, Prisma's query engine doesn't expose a [spec](https://graphql.github.io/graphql-spec/June2018/)-compliant GraphQL endpoint any more, so usage of schema delegation and GraphQL binding with Prisma 2 is not officially supported. 
 
 ## Lift
 
