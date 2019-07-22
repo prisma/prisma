@@ -158,9 +158,13 @@ Creates a new `Photon` instance.
 
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
-| `debug` | `boolean` | **No** | When set to `true`, the `Photon` instance prints additional logging output to the console when sending requests to Prisma's query engine. Default: `false`. |
+| `debug` | `boolean` | No | When set to `true`, the `Photon` instance prints additional logging output to the console when sending requests to Prisma's query engine. Default: `false`. |
 
 #### Examples
+
+```ts
+const Photon = new Photon({ debug: true })
+```
 
 ### `findOne`
 
