@@ -10,7 +10,7 @@ A composite model is a model that doesn't directly map to a structure (e.g. a _t
 - [Data source]()
 - [Data source client]()
 - [Data source connector](#data-source-connector)
-- [Prisma Definition Language (PDL)](#prisma-definition-language-pdl)
+- [Prisma Schema Language (PSL)](#prisma-schema-language-psl)
 - [Embed](#embed)
 - [Generator](#generator)
 - [Lift](#lift)
