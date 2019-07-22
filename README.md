@@ -61,5 +61,6 @@ Learn more about the `prisma2 init` flow [here](./docs/getting-started.md) or ge
   - [Use only Lift](./docs/lift/use-only-lift.md)
 - [Supported databases](./docs/supported-databases.md)
 - [How to provide feedback for Prisma 2?](./docs/prisma2-feedback.md)
+- [Release process](./docs/releases.md)
 - [FAQ](./docs/faq.md)
 - [Glossary](./docs/glossary.md)
