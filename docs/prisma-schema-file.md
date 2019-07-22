@@ -61,7 +61,7 @@ If the schema file is named differently, you can provide an explicit option to t
 
 ## Syntax
 
-The schema file is written in Prisma Schema Language (PSL). You can find a full reference for PSL in the [spec](https://github.com/prisma/rfcs/blob/0002-datamodel-2/text/0002-datamodel.md).
+The schema file is written in Prisma Schema Language (PSL). You can find a full reference for PSL in the [spec](https://github.com/prisma/specs/tree/master/prisma-schema).
 
 ## Building blocks
 
