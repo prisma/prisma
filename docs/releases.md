@@ -1,4 +1,4 @@
-# Releases
+# Release process
 
 This page explains the release process for Prisma 2.
 
