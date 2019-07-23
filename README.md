@@ -235,7 +235,7 @@ When starting from scratch, you can simply write your own [data model definition
 
 Generate your Photon database client using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md):
 
-``sh
+```sh
 prisma2 generate
 ```
 
