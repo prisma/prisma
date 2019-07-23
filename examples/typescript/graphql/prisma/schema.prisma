@@ -10,7 +10,6 @@ generator photon {
 
 generator nexus_prisma {
   provider = "nexus-prisma"
-  output   = "node_modules/@generated/nexus-prisma"
 }
 
 model User {
