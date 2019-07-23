@@ -42,7 +42,7 @@ export async function downloadMigrationBinary(
   } catch (err) {
     if (err.code === 'EACCES') {
       warn('Please try installing Prisma CLI again with the `--unsafe-perm` option.')
-      info('Example: `npm i -g --unsafe-perm prisma`')
+      info('Example: `npm i -g --unsafe-perm prisma2`')
 
       process.exit()
     }
@@ -128,7 +128,7 @@ export async function download(prismaBinPath: string, version: string = 'latest'
   } catch (err) {
     if (err.code === 'EACCES') {
       warn('Please try installing Prisma CLI again with the `--unsafe-perm` option.')
-      info('Example: `npm i -g --unsafe-perm prisma`')
+      info('Example: `npm i -g --unsafe-perm prisma2`')
 
       process.exit()
     }
