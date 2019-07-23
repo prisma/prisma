@@ -9,6 +9,7 @@ Photon is a type-safe database client auto-generated based on your [data model d
 - [Raw databases access](#raw-database-access)
 - [API Reference](#api-reference)
 - [Debugging](#debugging)
+- [Managing connections](#managing-connections)
 
 ## Overview
 
