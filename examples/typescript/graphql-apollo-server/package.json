@@ -8,6 +8,7 @@
   "dependencies": {
     "@prisma/nexus": "^0.0.1",
     "apollo-server": "2.6.3",
+    "graphql": "^14.4.2",
     "nexus": "0.11.7"
   },
   "devDependencies": {
