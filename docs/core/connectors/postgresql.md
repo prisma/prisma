@@ -64,8 +64,8 @@ postgresql://[user[:password]@][netloc][:port][,...][/database][?param1=value1&.
 - `host`: The IP address/domain of your database server, e.g. `localhost`.
 - `port`: The port on which your database server listens, e.g. `5432`.
 - `database`: The name of the database with the target schema. 
-- `schema`: The name of the target schema. Default: `public`.
+- `schema`: The name of the target schema. **Default**: `public`.
 - `user`: The database user, e.g. `admin`.
 - `password`: The password for the database user.
 - `ssl`: Whether or not your database server uses SSL.
-- `connection_limit`: The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database. Default: `1`.
+- `connection_limit`: The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database. **Default**: `1`.
