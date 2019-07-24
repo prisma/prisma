@@ -1065,6 +1065,10 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.S
   if (graphQLType === expectedType) {
     return true
   }
+
+  if (!inputType.isRequired && value === null) {
+    return true
+  }
   return false
 }
 
