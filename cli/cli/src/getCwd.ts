@@ -17,8 +17,10 @@ export async function getCwd(): Promise<string> {
   const cwd = process.cwd()
   const [
     datamodelCwdExists,
+    schemaCwdExists,
     prismaFolderExists,
     prismaDatamodelExists,
+    prismaSchemaExists
   ] = await Promise.all([
     exists(path.join(cwd, datamodelFile)),
     exists(path.join(cwd, schemaFile)),
@@ -27,11 +29,11 @@ export async function getCwd(): Promise<string> {
     exists(path.join(cwd, 'prisma/', schemaFile)),
   ])
 
-  if (datamodelCwdExists) {
+  if (datamodelCwdExists || schemaCwdExists) {
     return cwd
   }
 
-  if (prismaFolderExists || prismaDatamodelExists) {
+  if (prismaFolderExists || prismaDatamodelExists || prismaSchemaExists) {
     return path.join(cwd, 'prisma/')
   }
 
