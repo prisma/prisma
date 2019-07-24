@@ -202,7 +202,7 @@ model Employee {
 }
 ```
 
-This results in the following tables:
+This results in the following table:
 
 | **Employee** |      |
 | ----------- | ---- |
