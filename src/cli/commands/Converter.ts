@@ -60,7 +60,7 @@ export class Converter implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma convert
+      prisma2 convert
 
     ${chalk.bold('Options')}
 
@@ -68,6 +68,6 @@ export class Converter implements Command {
 
     ${chalk.bold('Examples')}
 
-      ${chalk.dim(`$`)} cat old-datamodel.prisma | prisma convert > new-datamodel.prisma
+      ${chalk.dim(`$`)} cat old-datamodel.prisma | prisma2 convert > new-datamodel.prisma
   `)
 }
