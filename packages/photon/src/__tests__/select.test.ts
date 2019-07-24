@@ -246,6 +246,26 @@ describe('select validation', () => {
     expect(() => document.validate(ast)).not.toThrow()
   })
 
+  test('Allow explicit null value', () => {
+    const ast = {
+      data: {
+        title: 'Some title',
+        content: null,
+        published: false,
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'mutation',
+      rootField: 'createOnePost',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    expect(() => document.validate(ast)).not.toThrow()
+  })
+
   test('Allow uuid for string input', () => {
     const ast = {
       data: {

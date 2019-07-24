@@ -10,6 +10,23 @@ exports[`select validation Allow deep select query 1`] = `
 }"
 `;
 
+exports[`select validation Allow explicit null value 1`] = `
+"mutation {
+  createOnePost(data: {
+    title: \\"Some title\\"
+    content: null
+    published: false
+  }) {
+    id
+    createdAt
+    updatedAt
+    published
+    title
+    content
+  }
+}"
+`;
+
 exports[`select validation Allow simple create mutation 1`] = `
 "mutation {
   createOnePost(data: {
