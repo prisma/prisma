@@ -351,10 +351,10 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/lift@^0.0.169":
-  version "0.0.169"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.169.tgz#12b662e0453a297f798ee6d638e9ae59de61710d"
-  integrity sha512-c3Uel2uMMLUe4fv3vwc+Ry35bqIo0t2mYSRbf80cMEa54zYoGgT8GnM5xSBVcdMWS+mI+h3+WhlCpd/61F2fDQ==
+"@prisma/lift@^0.0.170":
+  version "0.0.170"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.0.170.tgz#5a1200f7fe3f3159584462a8ea3213eeff77a47c"
+  integrity sha512-oVhgBfeIMJgD5AaseSpky2LiKm12UqBnzz4b6hgn1KXh/8w84ZffFb9GTJoSGstFROow9b+mUUXDRMrkK3IBGg==
   dependencies:
     "@prisma/fetch-engine" "^0.0.40"
     "@prisma/studio-server" "^0.29.0"
