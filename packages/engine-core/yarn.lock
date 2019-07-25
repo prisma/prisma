@@ -285,11 +285,12 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^12.0.9"
 
-"@prisma/fetch-engine@^0.0.40":
-  version "0.0.40"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.0.40.tgz#8c35767a2e8b771722f52a6059166457b1d1deec"
-  integrity sha512-R14CZgZ6Jlm57VgV8WMJIJ8I54G+iMGh8DAsPoD3CUPrptxb5Zydb67Q55AG1ePq5Ka4BDM8JS7adP5p2KC8SA==
+"@prisma/fetch-engine@^0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.1.3.tgz#6599a1e1c872d0a0c41eccd304d0803feee77e74"
+  integrity sha512-r7YMTlqSyrBxnG2oMwm7brBUJHHXsHd/NX99yiM5+Rxtd3GgdCXfX0Kb2sc1o5OYHOuJ9inRe0kt9R4zpGlJtA==
   dependencies:
+    "@prisma/get-platform" "^0.0.2"
     chalk "^2.4.2"
     death "^1.1.0"
     debug "^4.1.1"
@@ -298,8 +299,16 @@
     htmlparser2 "^3.10.1"
     make-dir "^3.0.0"
     node-fetch "^2.6.0"
+    p-map "^3.0.0"
     p-retry "^4.1.0"
     progress "^2.0.3"
+
+"@prisma/get-platform@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@prisma/get-platform/-/get-platform-0.0.2.tgz#06f252c84ea146c292b89d809a85e2d1a7b2a924"
+  integrity sha512-3+dCuVnKWnlV5Kc57K75i/GTTG/N27cHGBg+4lSg8GK2TaF1Em2/vA63/7DpIMScHjRyvZjoJ9G7B1oy/xndoQ==
+  dependencies:
+    debug "^4.1.1"
 
 "@sindresorhus/is@^0.14.0":
   version "0.14.0"
@@ -430,6 +439,14 @@ acorn@^6.0.1:
   version "6.1.1"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-6.1.1.tgz#7d25ae05bb8ad1f9b699108e1094ecd7884adc1f"
   integrity sha512-jPTiwtOxaHNaAPg/dmrJ/beuzLRnXtB0kQPQ8JpotKJgTB6rX6c8mlf315941pyjBSaPg8NHXS9fhP4u17DpGA==
+
+aggregate-error@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/aggregate-error/-/aggregate-error-3.0.0.tgz#5b5a3c95e9095f311c9ab16c19fb4f3527cd3f79"
+  integrity sha512-yKD9kEoJIR+2IFqhMwayIBgheLYbB3PS2OBhWae1L/ODTd/JF/30cW0bc9TqzRL3k4U41Dieu3BF4I29p8xesA==
+  dependencies:
+    clean-stack "^2.0.0"
+    indent-string "^3.2.0"
 
 ajv@^6.5.5:
   version "6.10.0"
@@ -761,6 +778,11 @@ class-utils@^0.3.5:
     define-property "^0.2.5"
     isobject "^3.0.0"
     static-extend "^0.1.1"
+
+clean-stack@^2.0.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/clean-stack/-/clean-stack-2.1.0.tgz#9e7fec7f3f8340a2ab4f127c80273085e8fbbdd0"
+  integrity sha512-uQWrpRm+iZZUCAp7ZZJQbd4Za9I3AjR/3YTjmcnAtkauaIm/T5CT6U8zVI6e60T6OANqBFAzuR9/HB3NzuZCRA==
 
 cliui@^4.0.0:
   version "4.1.0"
@@ -1577,6 +1599,11 @@ imurmurhash@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/imurmurhash/-/imurmurhash-0.1.4.tgz#9218b9b2b928a238b13dc4fb6b6d576f231453ea"
   integrity sha1-khi5srkoojixPcT7a21XbyMUU+o=
+
+indent-string@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/indent-string/-/indent-string-3.2.0.tgz#4a5fd6d27cc332f37e5419a504dbb837105c9289"
+  integrity sha1-Sl/W0nzDMvN+VBmlBNu4NxBckok=
 
 inflight@^1.0.4:
   version "1.0.6"
@@ -2864,6 +2891,13 @@ p-locate@^4.1.0:
   integrity sha512-R79ZZ/0wAxKGu3oYMlz8jy/kbhsNrS7SKZ7PxEHBgJ5+F2mtFW2fK2cOtBh1cHYkQsbzFV7I+EoRKe6Yt0oK7A==
   dependencies:
     p-limit "^2.2.0"
+
+p-map@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/p-map/-/p-map-3.0.0.tgz#d704d9af8a2ba684e2600d9a215983d4141a979d"
+  integrity sha512-d3qXVTF/s+W+CdJ5A29wywV2n8CQQYahlgz2bFiA+4eVNJbHJodPZ+/gXwPGh0bOqA+j8S+6+ckmvLGPk1QpxQ==
+  dependencies:
+    aggregate-error "^3.0.0"
 
 p-reduce@^1.0.0:
   version "1.0.0"

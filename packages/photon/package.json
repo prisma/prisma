@@ -10,7 +10,7 @@
     "test": "jest",
     "precommit": "lint-staged && jest",
     "ncc:runtime": "node scripts/build-runtime.js",
-    "install": "test -f scripts/download.js && node scripts/download.js || echo \"\"",
+    "install": "node scripts/download.js || echo \"\"",
     "prepublishOnly": "yarn build",
     "build:browser": "webpack -c scripts/webpack.browser.config.js --verbose",
     "lint": "tslint -c tslint.json 'src/**/*.ts' --fix",
@@ -37,7 +37,7 @@
     "scripts"
   ],
   "devDependencies": {
-    "@prisma/lift": "^0.0.170",
+    "@prisma/lift": "^0.0.172",
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
@@ -70,7 +70,7 @@
     "@apexearth/copy": "^1.4.2",
     "@prisma/cli": "0.0.38",
     "@prisma/engine-core": "0.0.69",
-    "@prisma/fetch-engine": "^0.0.40",
+    "@prisma/fetch-engine": "^0.1.3",
     "chalk": "^2.4.2",
     "cpy": "^7.3.0",
     "dotenv": "^8.0.0",

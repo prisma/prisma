@@ -1,6 +1,9 @@
 import copy from '@apexearth/copy'
+import { download } from '@prisma/fetch-engine'
+import { getPlatform, Platform } from '@prisma/get-platform'
 import { LiftEngine } from '@prisma/lift'
 import chalk from 'chalk'
+import Debug from 'debug'
 import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
@@ -17,6 +20,7 @@ import { Dictionary } from '../runtime/utils/common'
 import { getDMMF } from '../utils/getDMMF'
 import { resolveDatasources } from '../utils/resolveDatasources'
 import { TSClient } from './TSClient'
+const debug = Debug('generateClient')
 
 const remove = promisify(fs.unlink)
 const writeFile = promisify(fs.writeFile)
@@ -182,22 +186,32 @@ export async function generateClient({
     recursive: true,
     parallelJobs: 20,
     overwrite: true,
-    // copyFile: async (from, to, cb) => {
-    //   if (from.endsWith('runtime/prisma') && to.endsWith('runtime/prisma') && !nativeOnly) {
-    //     cb()
-    //   } else {
-    //     fs.copyFile(from, to, cb)
-    //   }
-    // },
   })
-  // if (!nativeOnly) {
-  //   await downloadBinaries(theVersion, thePlatforms, __dirname)
-  // }
 
-  // for (const platform of thePlatforms) {
-  //   console.log('Copying', platform)
-  //   await copyFile(path.join(__dirname, platform), path.join(outputDir, '/runtime', platform))
-  // }
+  if (!nativeOnly) {
+    // native is already downloaded during npm install
+    const platformsWithoutNative = thePlatforms.filter(p => p !== 'native')
+    if (platformsWithoutNative.length > 0) {
+      await download({
+        binaries: {
+          'query-engine': path.join(__dirname, '../../'),
+        },
+        platforms: platformsWithoutNative as Platform[],
+        showProgress: true,
+        version: theVersion,
+      })
+    }
+  }
+
+  const resolvedPlatforms = await Promise.all(thePlatforms.map(async p => (p === 'native' ? await getPlatform() : p)))
+
+  for (const platform of resolvedPlatforms) {
+    const binaryName = `query-engine-${platform}`
+    const source = path.join(__dirname, '../../', binaryName)
+    const target = path.join(outputDir, '/runtime', binaryName)
+    debug(`Copying ${source} to ${target}`)
+    await copyFile(source, target)
+  }
 
   await writeFile(path.join(outputDir, '/runtime/index.d.ts'), backup)
 }

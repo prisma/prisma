@@ -1,6 +1,7 @@
 import os from 'os'
 import { exec } from 'child_process'
 import Debug from 'debug'
+import { Platform } from './platforms'
 const debug = Debug('getos')
 
 export type GetOSResult = {
@@ -60,4 +61,26 @@ async function gracefulExec(cmd: string): Promise<string | undefined> {
       return undefined
     }
   })
+}
+
+export async function getPlatform(): Promise<Platform> {
+  const { platform, libssl } = await getos()
+
+  if (platform === 'darwin') {
+    return 'darwin'
+  }
+
+  debug({ platform, libssl })
+
+  if (platform === 'linux' && libssl) {
+    if (libssl === '1.0.2') {
+      return 'linux-glibc-libssl1.0.2'
+    }
+
+    if (libssl === '1.0.1') {
+      return 'linux-glibc-libssl1.0.1'
+    }
+  }
+
+  return 'linux-glibc-libssl1.1.0'
 }
