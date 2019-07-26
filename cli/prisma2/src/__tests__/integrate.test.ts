@@ -125,7 +125,6 @@ function tests() {
       },
     },
     {
-      // todo: true,
       before: `
         create table if not exists teams (
           id int primary key not null,
@@ -146,7 +145,6 @@ function tests() {
       },
     },
     {
-      todo: true,
       before: `
         create table if not exists users (
           id serial primary key not null,
@@ -171,7 +169,18 @@ function tests() {
         return client.users.findOne({ where: { id: 1 }, include: { posts: true } })
       },
       expect: {
-        name: 'b',
+        email: 'ada@prisma.io',
+        id: 1,
+        posts: [
+          {
+            id: 1,
+            title: 'A',
+          },
+          {
+            id: 2,
+            title: 'B',
+          },
+        ],
       },
     },
     {
