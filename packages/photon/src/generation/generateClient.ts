@@ -234,7 +234,7 @@ In case you want to fix this, you can provide ${chalk.greenBright(
         binaries: {
           'query-engine': path.join(__dirname, '../../'),
         },
-        platforms: platformsWithoutNative as Platform[],
+        platforms: platformsWithoutNative as any[],
         showProgress: true,
         version: theVersion,
       })
