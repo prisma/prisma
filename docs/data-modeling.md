@@ -17,7 +17,7 @@
 
 The data model definition (short: data model or datamodel) is part of your [schema file](./prisma-schema-file.md).
 
-It describes the shape of the data per data source. For example, when connecting to a _relational database_ as a data source, the data model definition is a declarative representation of the _database schema_ (tables, columns, indexes, ...). For a REST API, it describes the shapes of the _resources_ that can be retrieved and manipulated via the API.
+It describes the shape of the data per data source. For example, when connecting to a _relational database_ as a data source, the data model definition is a declarative representation of the _database schema_ (tables, columns, indexes, ...). For a _REST API_, it describes the shapes of the _resources_ that can be retrieved and manipulated via the API.
 
 ## Example
 
@@ -99,7 +99,7 @@ Technically, a model can be named anything that adheres to this regular expressi
 
 ### Model operations in the Photon API (CRUD)
 
-Every _model_ in the data model definition will result into a number of CRUD operations in the generated [Photon API](./photon/api.md):
+Every _model_ in the data model definition will result in a number of CRUD operations in the generated [Photon API](./photon/api.md):
 
 - `findMany`
 - `findOne`
@@ -176,7 +176,7 @@ Learn more about attributes [below](#attributes).
 
 Embeds are defined via the `embed` blocks in the datamodel and define structures that are _embedded_ in a [model](#models). For a relational database this is often called an _embedded type_, for document databases, an _embedded document_.
 
-Embeds are always included in the [default selection set](./photon/api.md#the-default-selection-set) of the [generated API Photon](./photon/api.md).
+Embeds are always included in the [default selection set](./photon/api.md#the-default-selection-set) of the [generated Photon API](./photon/api.md).
 
 ### Named embeds
 
