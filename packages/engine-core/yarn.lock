@@ -285,6 +285,15 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^12.0.9"
 
+"@prisma/cli@^0.0.38":
+  version "0.0.38"
+  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.38.tgz#2fd3d0310eb533025636e61b565ce459c9c69001"
+  integrity sha512-EdYJBrcpXzTf2CVRF03RxAVUATgEyLu7hhy1Yum4XJ0J2WNWZsl2fVaRBQJ8g1fcLgcgFrC266F8hC+kN/uscA==
+  dependencies:
+    arg "^4.1.0"
+    chalk "^2.4.2"
+    strip-indent "^3.0.0"
+
 "@prisma/fetch-engine@^0.1.3":
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.1.3.tgz#6599a1e1c872d0a0c41eccd304d0803feee77e74"
@@ -307,6 +316,13 @@
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/@prisma/get-platform/-/get-platform-0.0.2.tgz#06f252c84ea146c292b89d809a85e2d1a7b2a924"
   integrity sha512-3+dCuVnKWnlV5Kc57K75i/GTTG/N27cHGBg+4lSg8GK2TaF1Em2/vA63/7DpIMScHjRyvZjoJ9G7B1oy/xndoQ==
+  dependencies:
+    debug "^4.1.1"
+
+"@prisma/get-platform@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@prisma/get-platform/-/get-platform-0.0.3.tgz#4c2a24f58cbc2a21d853272551b3e792d134e033"
+  integrity sha512-Juwu8g0X7JUvvIJG2w639xUYBrI8Lz0GudaoUj9SSaCqeB4GCjIDZI5QjV02xEt2niuHoGf5K8UZvoP0FhzD5A==
   dependencies:
     debug "^4.1.1"
 
@@ -505,6 +521,11 @@ are-we-there-yet@~1.1.2:
   dependencies:
     delegates "^1.0.0"
     readable-stream "^2.0.6"
+
+arg@^4.1.0:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/arg/-/arg-4.1.1.tgz#485f8e7c390ce4c5f78257dbea80d4be11feda4c"
+  integrity sha512-SlmP3fEA88MBv0PypnXZ8ZfJhwmDeIE3SP71j37AiXQBXYosPV0x6uISAaHYSlSVhmHOVkomen0tbGk6Anlebw==
 
 arr-diff@^4.0.0:
   version "4.0.0"
@@ -2519,6 +2540,11 @@ mimic-response@^1.0.0, mimic-response@^1.0.1:
   resolved "https://registry.yarnpkg.com/mimic-response/-/mimic-response-1.0.1.tgz#4923538878eef42063cb8a3e3b0798781487ab1b"
   integrity sha512-j5EctnkH7amfV/q5Hgmoal1g2QHFJRraOtmx0JpIqkxhBhI/lJSl1nMpQ45hVarwNETOoWEimndZ4QK0RHxuxQ==
 
+min-indent@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/min-indent/-/min-indent-1.0.0.tgz#cfc45c37e9ec0d8f0a0ec3dd4ef7f7c3abe39256"
+  integrity sha1-z8RcN+nsDY8KDsPdTvf3w6vjklY=
+
 minimatch@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.4.tgz#5166e286457f03306064be5497e8dbb0c3d32083"
@@ -3576,6 +3602,13 @@ strip-eof@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/strip-eof/-/strip-eof-1.0.0.tgz#bb43ff5598a6eb05d89b59fcd129c983313606bf"
   integrity sha1-u0P/VZim6wXYm1n80SnJgzE2Br8=
+
+strip-indent@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/strip-indent/-/strip-indent-3.0.0.tgz#c32e1cee940b6b3432c771bc2c54bcce73cd3001"
+  integrity sha512-laJTa3Jb+VQpaC6DseHhF7dXVqHTfJPCRDaEbid/drOhgitgYku/letMUqOXFoWV0zIIUbjpdH2t+tYj4bQMRQ==
+  dependencies:
+    min-indent "^1.0.0"
 
 strip-json-comments@~2.0.1:
   version "2.0.1"

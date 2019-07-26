@@ -1,4 +1,6 @@
 import copy from '@apexearth/copy'
+import { GeneratorConfig } from '@prisma/cli'
+import { fixPlatforms, printGeneratorConfig } from '@prisma/engine-core'
 import { download } from '@prisma/fetch-engine'
 import { getPlatform, Platform } from '@prisma/get-platform'
 import { LiftEngine } from '@prisma/lift'
@@ -20,6 +22,7 @@ import { Dictionary } from '../runtime/utils/common'
 import { getDMMF } from '../utils/getDMMF'
 import { resolveDatasources } from '../utils/resolveDatasources'
 import { TSClient } from './TSClient'
+
 const debug = Debug('generateClient')
 
 const remove = promisify(fs.unlink)
@@ -38,6 +41,7 @@ export interface GenerateClientOptions {
   platforms?: string[]
   pinnedPlatform?: string
   version?: string
+  generator?: GeneratorConfig
 }
 
 export async function buildClient({
@@ -48,6 +52,7 @@ export async function buildClient({
   browser = false,
   binaryPath,
   outputDir,
+  generator,
 }: GenerateClientOptions): Promise<Dictionary<string>> {
   // TODO: handle pinnedPlatform
 
@@ -72,6 +77,7 @@ export async function buildClient({
     runtimePath,
     browser,
     datasources: resolveDatasources(config.datasources, cwd || process.cwd(), outputDir),
+    generator,
   })
   const generatedClient = String(client)
   const target = '@generated/photon/index.ts'
@@ -148,8 +154,39 @@ export async function generateClient({
   platforms,
   pinnedPlatform,
   version,
+  generator,
 }: GenerateClientOptions) {
   const thePlatforms = platforms || ['native']
+  const platform = await getPlatform()
+  const resolvedPlatforms = await Promise.all(thePlatforms.map(async p => (p === 'native' ? platform : p)))
+
+  if (!resolvedPlatforms.includes(platform)) {
+    if (generator) {
+      console.log(`${chalk.yellow('Warning:')} Your current platform \`${chalk.bold(
+        platform,
+      )}\` is not included in your generator's \`platforms\` configuration.
+To fix it, use this generator config in your ${chalk.bold('schema.prisma')}:
+${chalk.greenBright(
+  printGeneratorConfig({ ...generator, platforms: fixPlatforms(generator.platforms as Platform[], platform) }),
+)}
+${chalk.gray(
+  `Note, that by providing \`native\`, Photon automatically resolves \`${platform}\`.
+Read more about deploying Photon: ${chalk.underline(
+    'https://github.com/prisma/prisma2/blob/master/docs/core/generators/photonjs.md',
+  )}`,
+)}\n`)
+    } else {
+      console.log(
+        `${chalk.yellow('Warning')} The platforms ${JSON.stringify(
+          platforms,
+        )} don't include your local platform ${platform}, which you can also point to with \`native\`.
+In case you want to fix this, you can provide ${chalk.greenBright(
+          `platforms: ${JSON.stringify(['native', ...(platforms || [])])}`,
+        )} in the schema.prisma file.`,
+      )
+    }
+  }
+
   const theVersion = version || 'latest'
   if (cwd && cwd.endsWith('.yml')) {
     cwd = path.dirname(cwd)
@@ -165,6 +202,7 @@ export async function generateClient({
     outputDir,
     platforms,
     pinnedPlatform,
+    generator,
   })
   await makeDir(outputDir)
   await Promise.all(
@@ -203,10 +241,8 @@ export async function generateClient({
     }
   }
 
-  const resolvedPlatforms = await Promise.all(thePlatforms.map(async p => (p === 'native' ? await getPlatform() : p)))
-
-  for (const platform of resolvedPlatforms) {
-    const binaryName = `query-engine-${platform}`
+  for (const resolvedPlatform of resolvedPlatforms) {
+    const binaryName = `query-engine-${resolvedPlatform}`
     const source = path.join(__dirname, '../../', binaryName)
     const target = path.join(outputDir, '/runtime', binaryName)
     debug(`Copying ${source} to ${target}`)
@@ -235,6 +271,9 @@ export declare type DMMFClass = any
 
 export declare var deepGet: any
 export declare type deepGet = any
+
+export declare var chalk: any
+export declare type chalk = any
 
 export declare var deepSet: any
 export declare type deepSet = any

@@ -1,3 +1,4 @@
+import { GeneratorConfig } from '@prisma/cli'
 import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfilled in TypeScript
 import indent from 'indent-string'
 import { DMMFClass } from '../runtime/dmmf'
@@ -36,7 +37,8 @@ const commonCode = runtimePath => `import {
   transformDocument,
   InternalDatasource,
   Datasource,
-  printDatasources
+  printDatasources,
+  chalk
 } from '${runtimePath}'
 
 import path = require('path')
@@ -108,6 +110,7 @@ interface TSClientOptions {
   runtimePath: string
   browser?: boolean
   datasources: InternalDatasource[]
+  generator?: GeneratorConfig
 }
 
 export class TSClient {
@@ -117,12 +120,14 @@ export class TSClient {
   protected readonly runtimePath: string
   protected readonly browser: boolean
   protected readonly internalDatasources: InternalDatasource[]
-  constructor({ document, datamodel, runtimePath, browser = false, datasources }: TSClientOptions) {
+  protected readonly generator?: GeneratorConfig
+  constructor({ document, datamodel, runtimePath, browser = false, datasources, generator }: TSClientOptions) {
     this.document = document
     this.datamodel = datamodel
     this.runtimePath = runtimePath
     this.browser = browser
     this.internalDatasources = datasources
+    this.generator = generator
     // We make a deep clone here as otherwise we would serialize circular references
     // which we're building up in the DMMFClass
     this.dmmf = new DMMFClass(JSON.parse(JSON.stringify(document)))
@@ -134,7 +139,7 @@ export class TSClient {
  * Client
 **/
 
-${new PhotonClientClass(this.dmmf, this.datamodel, this.internalDatasources, this.browser)}
+${new PhotonClientClass(this.dmmf, this.datamodel, this.internalDatasources, this.browser, this.generator)}
 
 ${/*new Query(this.dmmf, 'query')*/ ''}
 
@@ -184,6 +189,7 @@ class PhotonClientClass {
     protected readonly datamodel: string,
     protected readonly internalDatasources: InternalDatasource[],
     protected readonly browser?: boolean,
+    protected readonly generator?: GeneratorConfig,
   ) {}
   public toString() {
     const { dmmf } = this
@@ -246,7 +252,8 @@ export default class Photon {
       cwd: engineConfig.cwd,
       debug: debugEngine,
       datamodel,
-      prismaPath: engineConfig.binaryPath || undefined
+      prismaPath: engineConfig.binaryPath || undefined,
+      generator: ${this.generator ? JSON.stringify(this.generator) : 'undefined'}
     })
 
     this.dmmf = new DMMFClass(dmmf)
@@ -261,6 +268,9 @@ export default class Photon {
       return this.connectionPromise
     }
     this.connectionPromise = this.engine.start()
+    this.connectionPromise!.catch(e => {
+      console.error(chalk.redBright.bold('Photon Error: ') + e.message)
+    })
     return this.connectionPromise!
   }
   async disconnect() {
