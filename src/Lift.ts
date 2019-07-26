@@ -1,4 +1,5 @@
 import { Dictionary, GeneratorDefinitionWithPackage } from '@prisma/cli'
+import { getPlatform } from '@prisma/get-platform'
 import 'array-flat-polyfill'
 import chalk from 'chalk'
 import cliCursor from 'cli-cursor'
@@ -31,7 +32,6 @@ import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import { printMigrationReadme } from './utils/printMigrationReadme'
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
-import { getPlatform } from '@prisma/get-platform'
 const packageJson = require('../package.json')
 import { spawn } from 'child_process'
 import debugLib from 'debug'
