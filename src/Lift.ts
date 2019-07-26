@@ -187,9 +187,9 @@ export class Lift {
       const pathCandidates = [
         // ncc go home
         // tslint:disable-next-line
-        eval(`require('path').join(__dirname, '../node_modules/@prisma/photon/runtime/query-engine-${platform}')`), // for local dev
+        eval(`require('path').join(__dirname, '../node_modules/@prisma/photon/query-engine-${platform}')`), // for local dev
         // tslint:disable-next-line
-        eval(`require('path').join(__dirname, '../runtime/query-engine-${platform}')`), // for production
+        eval(`require('path').join(__dirname, '../query-engine-${platform}')`), // for production
       ]
 
       const pathsExist = await Promise.all(
