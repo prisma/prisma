@@ -22,7 +22,7 @@ async function main() {
       output: '/',
       provider: 'photonjs',
       platforms,
-      pinnedPlatform: undefined,
+      pinnedPlatform: 'linux-glibc-libssl1.1.0',
     },
   })
   const after = performance.now()

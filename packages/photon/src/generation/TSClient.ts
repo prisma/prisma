@@ -256,7 +256,10 @@ export default class Photon {
       debug: debugEngine,
       datamodel,
       prismaPath: engineConfig.binaryPath || undefined,
-      generator: ${this.generator ? JSON.stringify(this.generator) : 'undefined'}
+      generator: ${this.generator ? JSON.stringify(this.generator) : 'undefined'},
+      platform: ${
+        this.generator && this.generator.pinnedPlatform ? JSON.stringify(this.generator.pinnedPlatform) : 'undefined'
+      } as any
     })
 
     this.dmmf = new DMMFClass(dmmf)

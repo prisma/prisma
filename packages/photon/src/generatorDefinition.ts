@@ -1,4 +1,5 @@
 import { GeneratorDefinition, GeneratorFunction } from '@prisma/cli'
+import chalk from 'chalk'
 import { generateClient } from './generation/generateClient'
 import { getDatamodel } from './utils/getDatamodel'
 
@@ -17,7 +18,9 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
   if (generator.platforms) {
     for (const platform of generator.platforms) {
       if (!knownPlatforms.includes(platform)) {
-        throw new Error(`Unknown platform ${platform}. Possible platforms: ${knownPlatforms.join(', ')}`)
+        throw new Error(
+          `Unknown platform ${platform}. Possible platforms: ${chalk.greenBright(knownPlatforms.join(', '))}`,
+        )
       }
     }
   }

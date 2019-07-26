@@ -28,7 +28,7 @@ async function main() {
 
   const result = await photon.users.findOne({
     where: {
-      // email: undefined,
+      email: undefined,
     },
     include: {
       posts: {
