@@ -156,7 +156,7 @@ export async function generateClient({
   version,
   generator,
 }: GenerateClientOptions) {
-  const thePlatforms = platforms || ['native']
+  const thePlatforms = platforms && platforms.length > 0 ? platforms : ['native']
   const platform = await getPlatform()
   const resolvedPlatforms = await Promise.all(thePlatforms.map(async p => (p === 'native' ? platform : p)))
 
