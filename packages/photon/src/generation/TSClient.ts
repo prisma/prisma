@@ -73,14 +73,19 @@ export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never :
 export type Subset<T, U> = { [key in keyof T]: key extends keyof U ? T[key] : never }
 
 class PhotonFetcher {
-  constructor(private readonly engine: Engine, private readonly debug = false, private readonly hooks?: Hooks) {}
+  constructor(
+    private readonly photon: Photon,
+    private readonly engine: Engine,
+    private readonly debug = false,
+    private readonly hooks?: Hooks
+  ) {}
   async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string, isList?: boolean): Promise<T> {
     const query = String(document)
     debug(query)
     if (this.hooks && this.hooks.beforeRequest) {
       this.hooks.beforeRequest({query, path, rootField, typeName, document})
     }
-    await this.engine.start()
+    await this.photon.connect()
     try {
       const result = await this.engine.request(query, typeName)
       debug(result)
@@ -199,7 +204,6 @@ ${new Datasources(this.internalDatasources)}
 
 export interface PhotonOptions {
   datasources?: Datasources
-  autoConnect?: boolean
 
   debug?: boolean | {
     engine?: boolean
@@ -226,11 +230,10 @@ export default class Photon {
   private fetcher: PhotonFetcher
   private readonly dmmf: DMMFClass
   private readonly engine: Engine
-  private readonly autoConnect: boolean
   private readonly internalDatasources: InternalDatasource[]
   private readonly datamodel: string
   private connectionPromise?: Promise<any>
-  constructor(options: PhotonOptions = {autoConnect: true}) {
+  constructor(options: PhotonOptions = {}) {
     const useDebug = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.library) : false
     if (useDebug) {
       debugLib.enable('photon')
@@ -257,20 +260,13 @@ export default class Photon {
     })
 
     this.dmmf = new DMMFClass(dmmf)
-    this.fetcher = new PhotonFetcher(this.engine, false, internal.hooks)
-    this.autoConnect = typeof options.autoConnect === 'boolean' ? options.autoConnect : true
-    if (this.autoConnect) {
-      this.connect()
-    }
+    this.fetcher = new PhotonFetcher(this, this.engine, false, internal.hooks)
   }
   connect(): Promise<void> {
     if (this.connectionPromise) {
       return this.connectionPromise
     }
     this.connectionPromise = this.engine.start()
-    this.connectionPromise!.catch(e => {
-      console.error(chalk.redBright.bold('Photon Error: ') + e.message)
-    })
     return this.connectionPromise!
   }
   async disconnect() {
@@ -287,7 +283,6 @@ ${indent(
     .map(
       m => `
 get ${m.plural}(): ${m.model}Delegate {
-  this.connect()
   return ${m.model}Delegate(this.dmmf, this.fetcher)
 }`,
     )

@@ -13,8 +13,8 @@ export class GeneratorConfigClass {
     const obj = JSON.parse(
       JSON.stringify({
         provider: config.provider,
-        platforms: config.platforms,
-        pinnedPlatform: config.pinnedPlatform,
+        platforms: config.platforms || undefined,
+        pinnedPlatform: config.pinnedPlatform || undefined,
       }),
     )
 
@@ -27,6 +27,17 @@ ${indent(printDatamodelObject(obj), 2)}
 export function printDatamodelObject(obj) {
   const maxLength = Object.keys(obj).reduce((max, curr) => Math.max(max, curr.length), 0)
   return Object.entries(obj)
-    .map(([key, value]) => `${key.padEnd(maxLength)} = ${JSON.stringify(value)}`)
+    .map(([key, value]) => `${key.padEnd(maxLength)} = ${niceStringify(value)}`)
     .join('\n')
+}
+
+function niceStringify(value) {
+  return JSON.parse(
+    JSON.stringify(value, (_, value) => {
+      if (Array.isArray(value)) {
+        return `[${value.map(element => JSON.stringify(element)).join(', ')}]`
+      }
+      return JSON.stringify(value)
+    }),
+  )
 }
