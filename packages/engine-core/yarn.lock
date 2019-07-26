@@ -285,10 +285,10 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^12.0.9"
 
-"@prisma/cli@^0.0.38":
-  version "0.0.38"
-  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.38.tgz#2fd3d0310eb533025636e61b565ce459c9c69001"
-  integrity sha512-EdYJBrcpXzTf2CVRF03RxAVUATgEyLu7hhy1Yum4XJ0J2WNWZsl2fVaRBQJ8g1fcLgcgFrC266F8hC+kN/uscA==
+"@prisma/cli@^0.0.42":
+  version "0.0.42"
+  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.42.tgz#69eba9cb8477068c5271eccbe644dba9038f4722"
+  integrity sha512-qQvN89ZTStIctYaBd5caebUbItmESdUXQ+HSI6QW8nmVfEXJtBKUpfQmG3TXBMucK9vrMEHNJK2EsYHifaijhg==
   dependencies:
     arg "^4.1.0"
     chalk "^2.4.2"
