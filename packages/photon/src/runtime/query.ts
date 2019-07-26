@@ -232,7 +232,11 @@ ${indent(this.children.map(String).join('\n'), tab)}
         if (missingArgsLegend.length === 0) {
           missingArgsLegend = '\n'
         }
-        missingArgsLegend += chalk.dim(`, lines with ${chalk.green('?')} are optional`)
+        if (hasRequiredMissingArgsErrors) {
+          missingArgsLegend += chalk.dim(`, lines with ${chalk.green('?')} are optional`)
+        } else {
+          missingArgsLegend += chalk.dim(`Note: Lines with ${chalk.green('?')} are optional`)
+        }
         missingArgsLegend += chalk.dim('.')
       }
 
@@ -1104,9 +1108,8 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
         if (typeof value !== 'object') {
           return getInvalidTypeArg(key, value, arg, t)
         } else {
-          const val = cleanObject(value)
           let error: AtMostOneError | AtLeastOneError | undefined
-          const keys = Object.keys(val || {})
+          const keys = Object.keys(value || {})
           const numKeys = keys.length
           if (numKeys === 0 && t.type.atLeastOne) {
             error = {
@@ -1125,7 +1128,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
           }
           return new Arg({
             key,
-            value: objectToArgs(val, t.type, arg.inputType),
+            value: objectToArgs(value, t.type, arg.inputType),
             isEnum: argInputType.kind === 'enum',
             error,
             argType: t.type,
@@ -1204,7 +1207,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   }
 
   const inputType = argInputType.type as DMMF.InputType
-  const hasAtLeastOneError = inputType.atLeastOne ? value.some(v => Object.keys(cleanObject(v)).length === 0) : false
+  const hasAtLeastOneError = inputType.atLeastOne ? value.some(v => Object.keys(v).length === 0) : false
   const err: AtLeastOneError | undefined = hasAtLeastOneError
     ? {
         inputType,
@@ -1295,7 +1298,7 @@ function objectToArgs(
   )
   // Also show optional neighbour args, if there is any arg missing
   if (
-    (entries.length === 0 && inputType.atLeastOne) ||
+    (Object.values(initialObj).length === 0 && inputType.atLeastOne) ||
     argsList.find(arg => arg.error && arg.error.type === 'missingArg')
   ) {
     const optionalMissingArgs = inputType.fields.filter(arg => !entries.some(([entry]) => entry === arg.name))
