@@ -315,7 +315,16 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@prisma/cli@0.0.38", "@prisma/cli@^0.0.38":
+"@prisma/cli@0.0.39":
+  version "0.0.39"
+  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.39.tgz#cc45fe1242e6f2395512246752f33ed4a84e86f4"
+  integrity sha512-86VoMr+w7TYFF25LzGrXQGVQiqtYSdI18LW8KTqP+2w4tuetL7d64RQdKhseUQaqbfgP7UrqiP7zac2pLn40/Q==
+  dependencies:
+    arg "^4.1.0"
+    chalk "^2.4.2"
+    strip-indent "^3.0.0"
+
+"@prisma/cli@^0.0.38":
   version "0.0.38"
   resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.38.tgz#2fd3d0310eb533025636e61b565ce459c9c69001"
   integrity sha512-EdYJBrcpXzTf2CVRF03RxAVUATgEyLu7hhy1Yum4XJ0J2WNWZsl2fVaRBQJ8g1fcLgcgFrC266F8hC+kN/uscA==
