@@ -31,6 +31,7 @@ import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import { printMigrationReadme } from './utils/printMigrationReadme'
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
+import { getPlatform } from '@prisma/get-platform'
 const packageJson = require('../package.json')
 import { spawn } from 'child_process'
 import debugLib from 'debug'
@@ -177,16 +178,18 @@ export class Lift {
   public async recreateStudioServer(datamodel: string) {
     try {
       if (this.studioServer) {
-        this.studioServer.stop()
-        delete this.studioServer
+        this.studioServer.restart({ datamodel })
+        return
       }
+
+      const platform = await getPlatform()
 
       const pathCandidates = [
         // ncc go home
         // tslint:disable-next-line
-        eval(`require('path').join(__dirname, '../node_modules/@prisma/photon/runtime/prisma')`), // for local dev
+        eval(`require('path').join(__dirname, '../node_modules/@prisma/photon/runtime/query-engine-${platform}')`), // for local dev
         // tslint:disable-next-line
-        eval(`require('path').join(__dirname, '../runtime/prisma')`), // for production
+        eval(`require('path').join(__dirname, '../runtime/query-engine-${platform}')`), // for production
       ]
 
       const pathsExist = await Promise.all(
