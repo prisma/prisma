@@ -99,7 +99,6 @@ async function generate(isdl: ISDL) {
     cwd: tmp,
     outputDir: tmp,
     transpile: true,
-    runtimePath: '../runtime',
   })
 }
 
