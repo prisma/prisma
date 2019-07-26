@@ -1,17 +1,34 @@
-import { Command, arg, isError, format, Env, HelpError } from '@prisma/cli'
+import { arg, Command, Env, format, HelpError, isError } from '@prisma/cli'
 import chalk from 'chalk'
+import { DatabaseType, DefaultParser, isdlToDmmfDatamodel } from 'prisma-datamodel'
 import { LiftEngine } from '../../LiftEngine'
-import { DefaultParser, DatabaseType, isdlToDmmfDatamodel } from 'prisma-datamodel'
 import { isdlToDatamodel2 } from '../../utils/isdlToDatamodel2'
 
 export class Converter implements Command {
-  static new(env: Env): Converter {
+  public static new(env: Env): Converter {
     return new Converter(env)
   }
+
+  // static help template
+  private static help = format(`
+    Convert a datamodel 1.1 to datamodel 2
+
+    ${chalk.bold('Usage')}
+
+      prisma2 convert
+
+    ${chalk.bold('Options')}
+
+      -h, --help       Displays this help message
+
+    ${chalk.bold('Examples')}
+
+      ${chalk.dim(`$`)} cat old-datamodel.prisma | prisma2 convert > new-datamodel.prisma
+  `)
   private constructor(private readonly env: Env) {}
 
   // parse arguments
-  async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[]): Promise<string | Error> {
     // parse the arguments according to the spec
     const args = arg(argv, {
       '--help': Boolean,
@@ -31,7 +48,7 @@ export class Converter implements Command {
     return isdlToDatamodel2(isdl, [])
   }
 
-  readStdin(): Promise<string> {
+  public readStdin(): Promise<string> {
     return new Promise(resolve => {
       let input = ''
 
@@ -47,27 +64,10 @@ export class Converter implements Command {
   }
 
   // help message
-  help(error?: string): string | HelpError {
+  public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Converter.help}`)
     }
     return Converter.help
   }
-
-  // static help template
-  private static help = format(`
-    Convert a datamodel 1.1 to datamodel 2
-
-    ${chalk.bold('Usage')}
-
-      prisma2 convert
-
-    ${chalk.bold('Options')}
-
-      -h, --help       Displays this help message
-
-    ${chalk.bold('Examples')}
-
-      ${chalk.dim(`$`)} cat old-datamodel.prisma | prisma2 convert > new-datamodel.prisma
-  `)
 }
