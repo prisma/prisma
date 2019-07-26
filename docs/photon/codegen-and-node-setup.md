@@ -8,7 +8,7 @@ Using `node_modules/@generated` as the default `output` for Photon JS is still e
 
 ## Overview
 
-`prisma2 generate` uses the [generators](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md#generators-optional) specified in the [Prisma schema file](../prisma-schema-file.md) and generates the respective packages on the respective output path(s).
+`prisma2 generate` uses the [generators](../prisma-schema-file.md#generators-optional) specified in the [Prisma schema file](../prisma-schema-file.md) and generates the respective packages on the respective output path(s).
 
 The default Photon JS generator can be specified as follows in your schema file:
 
