@@ -133,6 +133,7 @@ export class NodeEngine extends Engine {
 
   private async getPrismaPath() {
     const prismaPath = await this.resolvePrismaPath()
+    debug({ prismaPath })
     if (!fs.existsSync(prismaPath)) {
       let info = '.'
       if (this.generator) {
