@@ -78,6 +78,8 @@ generator photon {
 
 
 
+
+
 ## Example
 
 To invoke the generator, you need to add a [`generator`](../../prisma-schema-file.md#generators-optional) block to your schema file and specify the `photonjs` provider:

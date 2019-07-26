@@ -59,6 +59,8 @@ The default name for the schema file is `schema.prisma`. When your schema file i
 
 If the schema file is named differently, you can provide an explicit option to the command to point the CLI to the location of the schema file.
 
+> **Note**: The CLI option to specify the path to the schema file is not yet implemented. You can track the progress of this issue [here](https://github.com/prisma/prisma2/issues/225).
+
 ## Syntax
 
 The schema file is written in Prisma Schema Language (PSL). You can find a full reference for PSL in the [spec](https://github.com/prisma/specs/tree/master/prisma-schema).

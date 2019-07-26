@@ -26,7 +26,7 @@ Here is an example based on a local SQLite database located in the same director
 ```prisma
 // schema.prisma
 
-datasource mysql {
+datasource sqlite {
   url      = "file:data.db"
   provider = "sqlite"
 }

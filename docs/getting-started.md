@@ -36,7 +36,7 @@ Please provide the database connection details for your database server. If the 
 - Select an existing empty database/schema to get started from scratch
 - Create empty database/schema to get started from scratch
 
-> For MySQL and MongoDB servers, the you need to select a **database**. For PostreSQL, it's called a **schema**.
+> For MySQL and MongoDB servers, the you need to select a **database**. For PostgreSQL, it's called a **schema**.
 
 ### 3. Selecting Prisma tools (Photon/Lift)
 

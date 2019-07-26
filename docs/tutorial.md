@@ -18,7 +18,7 @@ We will start from scratch and use **TypeScript** with a **PostgreSQL** database
 > **Note**: If you don't want to set up a PostgreSQL database, you can still follow along by choosing SQLite in the beginning. One of Prisma's main benefits is that it lets you easily swap out the data sources your application connects to. So, while you can start with SQLite, mapping the same setup to PostgreSQL later on can be done by simply adjusting a few lines in your [Prisma schema file](./prisma-schema-file.md).
 
 
-### 1. Install the Prisma 2 CLI
+## 1. Install the Prisma 2 CLI
 
 The Prisma 2 CLI is available as the `prisma2` package on npm. Install it globally on your machine with the following command:
 
@@ -68,7 +68,7 @@ hello-prisma2
 
 ![](https://imgur.com/D57q94n.png)
 
-#### 2.3. Provide your database credentials
+### 2.3. Provide your database credentials
 
 1. Provide your database credentials:
     - **Host**: IP address or domain where your PostgreSQL server is running
@@ -82,7 +82,7 @@ hello-prisma2
 
 > **Note**: This screenshot shows the configuration of a database hosted on Heroku.
 
-#### 2.4. Create PostgreSQL schema
+### 2.4. Create PostgreSQL schema
 
 1. Enter the name of a **new schema**
 1. Select **Introspect**
@@ -536,7 +536,7 @@ You can explore the current content of your database using Prisma Studio. Open t
 
 ![](https://imgur.com/2WH0MrA.png)
 
-### 8.2. Add a relation
+### 8.3. Add a relation
 
 You already have two models in your [data model definition](./data-modeling.md#data-model-definition), let's now _connect_ these via a [relation](./relations.md):
 
@@ -563,7 +563,7 @@ model Post {
 
 Again, be sure to save the file to let Prisma update your database schema and regenerate the Photon API.
 
-### 8.3. Terminate development mode and migrate with Lift
+### 8.4. Terminate development mode and migrate with Lift
 
 Terminate the development mode by hitting <kbd>CTRL</kbd>+<kbd>C</kbd> two times.
 
