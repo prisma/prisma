@@ -13,3 +13,4 @@ src/utils/transformed-dmmf.json
 *-dmmf.json
 db
 failed-*.md
+prisma

@@ -1,0 +1,22 @@
+{
+  "name": "@prisma/get-platform",
+  "version": "0.0.2",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "author": "Tim Suchanek <suchanek@prisma.io>",
+  "devDependencies": {
+    "@types/node": "^12.0.0",
+    "typescript": "^3.5.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "yarn build"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "debug": "^4.1.1"
+  }
+}

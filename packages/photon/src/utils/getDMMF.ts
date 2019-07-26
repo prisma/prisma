@@ -1,4 +1,5 @@
 import Process from '@prisma/engine-core/dist/process'
+import { getPlatform } from '@prisma/get-platform'
 import path from 'path'
 import through from 'through2'
 import { DMMF, ExternalDMMF } from '../runtime/dmmf-types'
@@ -59,8 +60,10 @@ function checkBlacklist(sdl: DMMF.Datamodel) {
 export async function getRawDMMF(
   datamodel: string,
   cwd = process.cwd(),
-  prismaPath = path.join(__dirname, '../../runtime/prisma'), // improve the binary resolution
+  prismaPath?: string,
 ): Promise<ExternalDMMF.Document> {
+  prismaPath = prismaPath || path.join(__dirname, `../../query-engine-${await getPlatform()}`)
+
   const child = new Process(prismaPath, 'cli', '--dmmf')
   let dmmf
   let error

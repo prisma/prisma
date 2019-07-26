@@ -13,6 +13,7 @@ async function main() {
     outputDir: path.join(__dirname, './blog/@generated/photon'),
     transpile: false,
     runtimePath: '../../../../src/runtime',
+    platforms: ['native', 'linux-glibc-libssl1.0.2', 'linux-glibc-libssl1.1.0'],
   })
   const after = performance.now()
   console.log(`Generated Photon in ${(after - before).toFixed(3)}ms`)
