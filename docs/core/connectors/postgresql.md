@@ -17,7 +17,7 @@ datasource pg {
 
 The fields passed to the `datasource` block are:
 
-- `provider`: Specifies the `postgres` data source connector.
+- `provider`: Specifies the `postgresql` data source connector.
 - `url`: Specifies the [connection string](#connection-string) for the PostgreSQL database server. In this case, we're [using an environment variable](../../prisma-schema-file.md#using-environment-variables) to provide the connection string.
 
 Find more information on the `datasource` fields [here](../../prisma-schema-file.md#data-sources).
@@ -38,7 +38,7 @@ The PostgreSQL connector maps the [scalar types](../../data-modeling.md#scalar-t
 
 ### Connection string
 
-PostgreSQL offers also two styles of connection strings. See the [official documentation](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING) for details.
+PostgreSQL offers two styles of connection strings:
 
 - Key-value string: `host=localhost port=5432 database=mydb connect_timeout=10`
 - Connection URI:
@@ -52,6 +52,8 @@ PostgreSQL offers also two styles of connection strings. See the [official docum
   postgresql://other@localhost/otherdb?connect_timeout=10&application_name=myapp
   postgresql://host1:123,host2:456/somedb?target_session_attrs=any&application_name=myapp
   ```
+
+See the [official documentation](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING) for details.
 
 The connection URI needs to follow the [official format](https://www.postgresql.org/docs/10/libpq-connect.html#id-1.7.3.8.3.6) for PostgreSQL connection strings:
 
