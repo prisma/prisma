@@ -13,11 +13,11 @@ Photon JS depends on a query engine that's running as a binary right next to you
 ```prisma
 generator photonjs {
   provider = "photonjs"
-  target   = "darwin"
+  platforms = ["native"]
 }
 ```
 
-Note that `darwin` is the default `target`. Here's a list of supported platforms and their targets:
+Note that `["native"]` is the default value for `platforms`. Here's a list of supported platforms:
 
 |  **Platform** | **Target** | 
 | :---:  | :---: |
@@ -33,7 +33,7 @@ Note that `darwin` is the default `target`. Here's a list of supported platforms
 
 Therefore, when deploying your Photon-based application to production, you need to ensure that you're specifying the right _compilation target_ for the binary.
 
-> **ATTENTION**: The `target` field on the `generator` block is not yet implemented. You can track the progress of the implementation [on GitHub](https://github.com/prisma/prisma2/issues/97). You can also check ou the [specification](https://github.com/prisma/specs/tree/master/binary-workflows) for more details.
+You can read more about the `platforms` field in the [specification](https://github.com/prisma/specs/tree/master/binary-workflows)
 
 ## Example
 
