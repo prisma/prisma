@@ -29,6 +29,7 @@ import { predefinedGenerators } from './generators'
 import { Generate } from './Generate'
 import chalk from 'chalk'
 import { capture } from './capture'
+import { Docs } from './Docs'
 export { Photon } from '@prisma/studio-transports'
 
 /**
@@ -52,6 +53,7 @@ async function main(): Promise<number> {
         save: LiftSave.new(env),
         up: LiftUp.new(env),
         down: LiftDown.new(env),
+        docs: Docs.new('lift', 'https://github.com/prisma/prisma2/tree/master/docs'),
       },
       env,
     ),
