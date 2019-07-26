@@ -1,6 +1,6 @@
 {
   "name": "@prisma/engine-core",
-  "version": "0.0.69",
+  "version": "0.0.70",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,7 +20,9 @@
     "update-deps": "yarn upgrade --latest --scope @prisma"
   },
   "dependencies": {
-    "@prisma/get-platform": "^0.0.2",
+    "@prisma/cli": "^0.0.38",
+    "@prisma/get-platform": "^0.0.3",
+    "chalk": "^2.4.2",
     "cross-fetch": "^3.0.2",
     "debug": "^4.1.1",
     "deferral": "2.0.4",

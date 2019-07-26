@@ -34,6 +34,7 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
     transpile,
     platforms: generator.platforms,
     pinnedPlatform: generator.pinnedPlatform || undefined,
+    generator,
   })
   return ''
 }

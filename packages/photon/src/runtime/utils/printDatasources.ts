@@ -67,14 +67,15 @@ class InternalDataSourceClass {
     if (dataSource.config && typeof dataSource.config === 'object') {
       Object.assign(obj, dataSource.config)
     }
-    const maxLength = Object.keys(obj).reduce((max, curr) => Math.max(max, curr.length), 0)
     return `datasource ${dataSource.name} {
-${indent(
-  Object.entries(obj)
-    .map(([key, value]) => `${key.padEnd(maxLength)} = ${JSON.stringify(value)}`)
-    .join('\n'),
-  tab,
-)}
+${indent(printDatamodelObject(obj), tab)}
 }`
   }
+}
+
+export function printDatamodelObject(obj) {
+  const maxLength = Object.keys(obj).reduce((max, curr) => Math.max(max, curr.length), 0)
+  return Object.entries(obj)
+    .map(([key, value]) => `${key.padEnd(maxLength)} = ${JSON.stringify(value)}`)
+    .join('\n')
 }

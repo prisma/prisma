@@ -7,6 +7,11 @@ import debugLib from 'debug'
 import { getPlatform, Platform } from '@prisma/get-platform'
 import * as path from 'path'
 import * as net from 'net'
+import fs from 'fs'
+import chalk from 'chalk'
+import { GeneratorConfig } from '@prisma/cli'
+import { printGeneratorConfig } from './printGeneratorConfig'
+import { fixPlatforms, plusX } from './util'
 
 const debug = debugLib('engine')
 
@@ -17,6 +22,7 @@ interface EngineConfig {
   prismaPath?: string
   platform?: Platform
   fetcher?: (query: string) => Promise<{ data?: any; error?: any }>
+  generator?: GeneratorConfig
 }
 
 /**
@@ -59,14 +65,16 @@ export class NodeEngine extends Engine {
   cwdPromise: Promise<string>
   platformPromise: Promise<Platform>
   platform?: Platform
+  generator?: GeneratorConfig
 
-  constructor({ cwd, datamodel, prismaPath, platform, ...args }: EngineConfig) {
+  constructor({ cwd, datamodel, prismaPath, platform, generator, ...args }: EngineConfig) {
     super()
     this.cwd = cwd
     this.debug = args.debug || false
     this.datamodel = datamodel
     this.prismaPath = prismaPath
     this.platform = platform
+    this.generator = generator
     if (!platform) {
       this.getPlatform()
     }
@@ -85,12 +93,21 @@ export class NodeEngine extends Engine {
     return this.platformPromise
   }
 
-  async getPrismaPath() {
+  private async resolvePrismaPath() {
     if (this.prismaPath) {
       return this.prismaPath
     }
 
-    this.platform = this.platform || (await this.getPlatform())
+    const platform = await this.getPlatform()
+    if (this.platform && this.platform !== platform) {
+      console.log(`${chalk.yellow('Warning:')} You pinned the platform ${chalk.bold(
+        this.platform,
+      )}, but Photon detects ${chalk.bold(platform)}.
+This means you should very likely pin the platform ${chalk.greenBright(platform)} instead.
+${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
+    }
+
+    this.platform = this.platform || platform
 
     const fileName = eval(`path.basename(__filename)`)
     if (fileName === 'NodeEngine.js') {
@@ -98,6 +115,35 @@ export class NodeEngine extends Engine {
     } else {
       return path.join(__dirname, `query-engine-${this.platform}`)
     }
+  }
+
+  private async getPrismaPath() {
+    const prismaPath = await this.resolvePrismaPath()
+    if (!fs.existsSync(prismaPath)) {
+      let info = '.'
+      if (this.generator) {
+        const fixedGenerator = {
+          ...this.generator,
+          platforms: fixPlatforms(this.generator.platforms as Platform[], this.platform!),
+        }
+        info = `:\n${chalk.greenBright(printGeneratorConfig(fixedGenerator))}`
+      }
+
+      throw new Error(
+        `Photon binary for current platform ${chalk.bold(this.platform)} could not be found.
+Make sure to add it to your generator configuration in the schema.prisma file${info}
+${chalk.gray(
+  `Note, that by providing \`native\`, Photon automatically resolves \`${this.platform}\`.
+Read more about deploying Photon: ${chalk.underline(
+    'https://github.com/prisma/prisma2/blob/master/docs/core/generators/photonjs.md',
+  )}`,
+)}`,
+      )
+    }
+
+    plusX(prismaPath)
+
+    return prismaPath
   }
 
   /**
