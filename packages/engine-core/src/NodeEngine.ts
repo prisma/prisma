@@ -90,7 +90,8 @@ export class NodeEngine extends Engine {
         throw new Error(
           `Unknown ${chalk.red('pinnedPlatform')} ${chalk.redBright.bold(
             platform,
-          )}. Possible platforms: ${chalk.greenBright(knownPlatforms.join(', '))}`,
+          )}. Possible platforms: ${chalk.greenBright(knownPlatforms.join(', '))}.
+You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to take effect.`,
         )
       }
     } else {
@@ -156,6 +157,7 @@ export class NodeEngine extends Engine {
           await this.getPlatform(),
         )} could not be found.${pinnedStr}
 Make sure to adjust the generator configuration in the ${chalk.bold('schema.prisma')} file${info}
+Please run ${chalk.greenBright('prisma2 generate')} for your changes to take effect.
 ${chalk.gray(
   `Note, that by providing \`native\`, Photon automatically resolves \`${await this.getPlatform()}\`.
 Read more about deploying Photon: ${chalk.underline(
@@ -168,8 +170,8 @@ Read more about deploying Photon: ${chalk.underline(
     if (this.incorrectlyPinnedPlatform) {
       console.log(`${chalk.yellow('Warning:')} You pinned the platform ${chalk.bold(
         this.incorrectlyPinnedPlatform,
-      )}, but Photon detects ${chalk.bold(this.platform)}.
-This means you should very likely pin the platform ${chalk.greenBright(this.platform)} instead.
+      )}, but Photon detects ${chalk.bold(await this.getPlatform())}.
+This means you should very likely pin the platform ${chalk.greenBright(await this.getPlatform())} instead.
 ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     }
 
