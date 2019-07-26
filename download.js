@@ -1,2 +1,2 @@
-const { ensureMigrationBinary } = require('@prisma/fetch-engine')
-ensureMigrationBinary(__dirname)
+const { download } = require('@prisma/fetch-engine')
+download({ binaries: { 'migration-engine': __dirname } })
