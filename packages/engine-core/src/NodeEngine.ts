@@ -131,7 +131,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
       throw new Error(
         `Photon binary for current platform ${chalk.bold(this.platform)} could not be found.
-Make sure to add it to your generator configuration in the schema.prisma file${info}
+Make sure to add it to your generator configuration in the ${chalk.bold('schema.prisma')} file${info}
 ${chalk.gray(
   `Note, that by providing \`native\`, Photon automatically resolves \`${this.platform}\`.
 Read more about deploying Photon: ${chalk.underline(

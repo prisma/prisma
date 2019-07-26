@@ -2,11 +2,12 @@ import Photon from './@generated/photon'
 
 async function main() {
   const photon = new Photon({
-    autoConnect: false,
     debug: {
       library: false,
     },
   })
+
+  // await photon.connect()
 
   // const prom = await photon.users()
   // console.log(prom)
@@ -114,4 +115,6 @@ async function main() {
   // })
 }
 
-main().catch(e => console.error(e))
+main().catch(e => {
+  console.error(e)
+})
