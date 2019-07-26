@@ -351,10 +351,6 @@ Unless you want to employ a specific optimization, calling `photon.connect()` is
 
 **IMPORTANT**: It is recommended to always explicitly call `photon.disconnect()` in your code. Generally the `Photon` instance disconnects automatically. However, if your program terminates but still has an unhandled promise rejection, the port will keep the connection opento the data source open beyond the lifetime of your program!
 
-### Connection behaviours
+### Connection behaviour
 
-Photon can be configured to connect to the specified data source at various points in time after a new `Photon` instance was created. Precisely, there are three different connection behaviours:
-
-- **Autoconnect** (default): The `Photon` instance connects to the data source _right after_ it was created. This behaviour can be turned off by setting the `autoConnect` option of the `Photon` [constructor](#constructor) to `false`.
-- **Manual connect**: When the `autoConnect` option of the `Photon` [constructor](#constructor) was set to `false`, you can manually connect your `Photon` instance to the data source by calling `connect()` (e.g. `await photon.connect()`).
-- **Lazy connect**: When the `autoConnect` option of the `Photon` [constructor](#constructor) was set to `false` and `connect()` is never called, the `Photon` instance connects lazily when the first request is made to the API (`connect()` is called for you under the hood).
+The `Photon` instance connects lazily when the first request is made to the API (`connect()` is called for you under the hood). In case you want `connect()` to be called earlier, feel free to do that.
