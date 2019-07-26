@@ -208,24 +208,33 @@ Sometimes it's helpful to target different environments based in the same schema
 
 ```groovy
 datasource db {
-  enabled   = env("SQLITE_URL")
-  provider  = "sqlite"
-  url       = env("SQLITE_URL")
+  enabled  = env("SQLITE_URL")
+  provider = "sqlite"
+  url      = env("SQLITE_URL")
 }
 
 datasource db {
-  enabled   = env("POSTGRES_URL")
-  provider  = "postgresql"
-  url       = env("POSTGRES_URL")
+  enabled  = env("POSTGRES_URL")
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
 }
 
 model User {
-  id         Int    @id @db.int
+  id        Int    @id @db.int
   first_name String @unique
 }
 ```
 
-Depending on which environment variable is set (in this case `SQLITE_URL` or `POSTGRES_URL`), the respective data source will be used.
+Depending on which environment variable is set (in this case `SQLITE_URL` or `POSTGRES_URL`), the respective data source will be used. To set these variables you can either use a `.env`-file(Coming soon) or `export` the variables in your shell instance.
+
+Tip: To quickly switch between environments you can `source` a file with the `export` commands.
+
+```bash
+// dev_env
+export POSTGRES_URL=postgresql://test:test@localhost:5432/test?schema=public
+```
+
+`$ source ./dev_env`
 
 ## Writing comments
 
