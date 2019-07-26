@@ -24,7 +24,7 @@ Find more information on the `datasource` fields [here](../../prisma-schema-file
 
 ## Data model mapping
 
-The MySQL connector maps the [scalar types](../../data-modeling.md#scalar-types) from the [data model](../../data-modeling.md) as follows to native column types:
+The MySQL connector maps the [scalar types](../../data-modeling.md#scalar-types) from the [data model](../../data-modeling.md) to native column types as follows:
 
 | Data model  | MySQL  |
 | -------- | --------- | 
