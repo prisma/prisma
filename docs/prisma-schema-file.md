@@ -174,7 +174,7 @@ generator ts {
 generator ts {
   provider = "./path/to/custom/generator"
   platforms = ["native", "linux-glibc-libssl1.0.2"]
-  pinnedPlatform = env("PLATFORM") // On local, "native" and in production, "linux-glibc-libssl1.0.2"
+  pinnedPlatform = env("PLATFORM") // On local set to "native"; in production set to "linux-glibc-libssl1.0.2"
 }
 ```
 
