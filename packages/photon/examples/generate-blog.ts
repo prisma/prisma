@@ -7,13 +7,14 @@ import fs from 'fs'
 async function main() {
   const before = performance.now()
   const blog = fs.readFileSync(path.resolve(__dirname, './blog/project.prisma'), 'utf-8')
-  const platforms = ['linux-glibc-libssl1.0.2', 'linux-glibc-libssl1.1.0']
+  // const platforms = ['native', 'linux-glibc-libssl1.1.0']
+  const platforms = ['native']
   await generateClient({
     datamodel: blog,
     cwd: path.join(__dirname, './blog/'),
     outputDir: path.join(__dirname, './blog/@generated/photon'),
     transpile: false,
-    // runtimePath: '../../../../src/runtime',
+    runtimePath: '../../../../src/runtime',
     platforms,
     generator: {
       config: {},

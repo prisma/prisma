@@ -61,6 +61,30 @@ exports[`select validation Allow uuid for string input 1`] = `
 }"
 `;
 
+exports[`select validation Throw on empty where 1`] = `
+"query {
+  findManyPost(where: {
+
+  }) {
+    author {
+      id
+    }
+  }
+}"
+`;
+
+exports[`select validation allow where with all undefined 1`] = `
+"query {
+  findManyPost(where: {
+
+  }) {
+    author {
+      id
+    }
+  }
+}"
+`;
+
 exports[`select validation missing arg object 1`] = `
 "mutation {
   createOnePost() {

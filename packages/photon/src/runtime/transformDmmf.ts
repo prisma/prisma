@@ -11,7 +11,7 @@ export function transformDmmf(document: DMMF.Document): DMMF.Document {
       rootMutationType: doc.schema.rootMutationType,
       rootQueryType: doc.schema.rootQueryType,
       outputTypes: filterOutputTypes(doc.schema.outputTypes),
-      inputTypes: filterInputTypes(doc.schema.inputTypes),
+      inputTypes: makeWhereUniqueInputsRequired(filterInputTypes(doc.schema.inputTypes)),
     },
   }
 }
@@ -74,6 +74,15 @@ function transformOrderInputTypes(document: DMMF.Document): DMMF.Document {
       enums,
     },
   }
+}
+
+function makeWhereUniqueInputsRequired(inputTypes: DMMF.InputType[]): DMMF.InputType[] {
+  return inputTypes.map(inputType => {
+    if (inputType.name.endsWith('WhereUniqueInput')) {
+      inputType.atLeastOne = true
+    }
+    return inputType
+  })
 }
 
 function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
