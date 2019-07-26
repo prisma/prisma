@@ -9,7 +9,7 @@ To connect to a PostgreSQL database server, you need to configure a [`datasource
 ```groovy
 datasource pg {
   provider = "postgresql"
-  url      = env("POSTGRES_URL")
+  url      = env("POSTGRESQL_URL")
 }
 
 // ... the file should also contain a data model definition and (optionally) generators
