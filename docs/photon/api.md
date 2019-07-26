@@ -58,7 +58,7 @@ Your generated Photon API will expose the following CRUD operations for the `Use
 You can access each function via the respective model property on your generated `Photon` instance, e.g. `users` for the `User` model:
 
 ```ts
-import { Photon } from '@generated/photon'
+import Photon from '@generated/photon'
 
 const photon = new Photon()
 
