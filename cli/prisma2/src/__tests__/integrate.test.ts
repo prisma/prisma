@@ -145,6 +145,7 @@ function tests() {
       },
     },
     {
+      todo: false,
       before: `
         create table if not exists users (
           id serial primary key not null,
