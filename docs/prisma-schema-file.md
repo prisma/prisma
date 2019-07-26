@@ -134,7 +134,6 @@ datasource mongo {
 
 A generator configures what data source clients are generated and how they're generated. Language preferences and configuration will go in here.
 
-
 #### Fields
 
 | Name | Required | Type | Description |
