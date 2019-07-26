@@ -27,12 +27,15 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
     generator.config && typeof generator.config.transpile !== 'undefined'
       ? parseBoolean(generator.config.transpile)
       : true
+
+  const platforms = generator.platforms && generator.platforms.length > 0 ? generator.platforms : ['native']
+
   await generateClient({
     datamodel,
     cwd,
     outputDir: output,
     transpile,
-    platforms: generator.platforms,
+    platforms,
     pinnedPlatform: generator.pinnedPlatform || undefined,
     generator,
   })
