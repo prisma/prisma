@@ -9,8 +9,10 @@ The Prisma schema file (short: _schema file_, _Prisma schema_ or just _schema_) 
 
 Whenever a `prisma2` command is invoked, the CLI typically reads some information from the schema file, e.g.:
 
-- `prisma2 generate`: Reads _all_ above mentioned information from the datamodel to generated the right data source client code (e.g. Photon JS).
-- `prisma2 lift save`: Reads the data sources and data model definition to create a new [migration]().
+
+- `prisma2 generate`: Reads _all_ above mentioned information from the datamodel to generate the correct data source client code (e.g. Photon JS).
+- `prisma2 lift save`: Reads the data sources and data model definition to create a new [migration](). 
+
 
 You can also [use environment variables](#using-environment-variables) inside the schema file to provide configuration options when a CLI command is invoked.
 
@@ -68,6 +70,7 @@ If the schema file is named differently, you can provide an explicit option to t
 
 The schema file is written in Prisma Schema Language (PSL). You can find a full reference for PSL in the
 [spec](https://github.com/prisma/specs/tree/master/prisma-schema).
+
 
 ## Building blocks
 
@@ -192,7 +195,7 @@ There are several blocks you can use for _data modeling_ in your schema file:
 
 There also are _attributes_ and _functions_ you can use to enhance the functionality of your data model definition.
 
-Learn about the data modeling components in detail [here](./data-modeling.md)
+Learn about the data modeling components in detail [here](./data-modeling.md).
 
 ## Using environment variables
 
@@ -218,24 +221,33 @@ Sometimes it's helpful to target different environments based in the same schema
 
 ```groovy
 datasource db {
-  enabled   = env("SQLITE_URL")
-  provider  = "sqlite"
-  url       = env("SQLITE_URL")
+  enabled  = env("SQLITE_URL")
+  provider = "sqlite"
+  url      = env("SQLITE_URL")
 }
 
 datasource db {
-  enabled   = env("POSTGRES_URL")
-  provider  = "postgresql"
-  url       = env("POSTGRES_URL")
+  enabled  = env("POSTGRES_URL")
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
 }
 
 model User {
-  id         Int    @id @db.int
+  id        Int    @id @db.int
   first_name String @unique
 }
 ```
 
-Depending on which environment variable is set (in this case `SQLITE_URL` or `POSTGRES_URL`), the respective data source will be used.
+Depending on which environment variable is set (in this case `SQLITE_URL` or `POSTGRES_URL`), the respective data source will be used. To set these variables you can either use a `.env`-file(Coming soon) or `export` the variables in your shell instance.
+
+Tip: To quickly switch between environments you can `source` a file with the `export` commands.
+
+```bash
+// dev_env
+export POSTGRES_URL=postgresql://test:test@localhost:5432/test?schema=public
+```
+
+`$ source ./dev_env`
 
 ## Writing comments
 
@@ -281,7 +293,7 @@ This strictness serves two benefits:
 
 ### Formatting Rules
 
-#### Configuration blocks are align by their `=` sign
+#### Configuration blocks are aligned by their `=` sign
 
 ```groovy
 block _ {
@@ -291,7 +303,7 @@ block _ {
 }
 ```
 
-Formatting may be reset up by a newline:
+Formatting may be reset by a newline:
 
 ```groovy
 block _ {

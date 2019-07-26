@@ -55,7 +55,7 @@ Prisma currently supports the following built-in connectors:
 
 PSL is the name of the syntax used to write a [schema file](#prisma-schema-file).
 
-> Learn more about PSL in the [spec](https://github.com/prisma/specs/tree/master/prisma-schema).
+> Learn more about PSL in the [spec](https://github.com/prisma/specs/tree/master/prisma-schema-language).
 
 ### Embed
 

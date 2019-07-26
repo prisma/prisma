@@ -1,5 +1,6 @@
 node_modules
 migration-engine
+query-engine*
 yarn-error.log
 dist
 build
@@ -11,3 +12,5 @@ photogen_prisma_ncc_build
 examples
 prisma-test-utils_ncc
 tmp
+
+prisma
