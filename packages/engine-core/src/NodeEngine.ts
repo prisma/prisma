@@ -43,6 +43,15 @@ const processes: Process[] = []
 /**
  * Node.js based wrapper to run the Prisma binary
  */
+
+const knownPlatforms = [
+  'native',
+  'darwin',
+  'linux-glibc-libssl1.0.1',
+  'linux-glibc-libssl1.0.2',
+  'linux-glibc-libssl1.1.0',
+  'linux-musl-libssl1.1.0',
+]
 export class NodeEngine extends Engine {
   port?: number
   debug: boolean
@@ -66,6 +75,7 @@ export class NodeEngine extends Engine {
   platformPromise: Promise<Platform>
   platform?: Platform
   generator?: GeneratorConfig
+  incorrectlyPinnedPlatform?: string
 
   constructor({ cwd, datamodel, prismaPath, platform, generator, ...args }: EngineConfig) {
     super()
@@ -75,7 +85,15 @@ export class NodeEngine extends Engine {
     this.prismaPath = prismaPath
     this.platform = platform
     this.generator = generator
-    if (!platform) {
+    if (platform) {
+      if (!knownPlatforms.includes(platform)) {
+        throw new Error(
+          `Unknown ${chalk.red('pinnedPlatform')} ${chalk.redBright.bold(
+            platform,
+          )}. Possible platforms: ${chalk.greenBright(knownPlatforms.join(', '))}`,
+        )
+      }
+    } else {
       this.getPlatform()
     }
     if (this.debug) {
@@ -100,11 +118,7 @@ export class NodeEngine extends Engine {
 
     const platform = await this.getPlatform()
     if (this.platform && this.platform !== platform) {
-      console.log(`${chalk.yellow('Warning:')} You pinned the platform ${chalk.bold(
-        this.platform,
-      )}, but Photon detects ${chalk.bold(platform)}.
-This means you should very likely pin the platform ${chalk.greenBright(platform)} instead.
-${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
+      this.incorrectlyPinnedPlatform = this.platform
     }
 
     this.platform = this.platform || platform
@@ -126,19 +140,36 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           ...this.generator,
           platforms: fixPlatforms(this.generator.platforms as Platform[], this.platform!),
         }
+        if (this.generator.pinnedPlatform && this.incorrectlyPinnedPlatform) {
+          fixedGenerator.pinnedPlatform = await this.getPlatform()
+        }
         info = `:\n${chalk.greenBright(printGeneratorConfig(fixedGenerator))}`
       }
 
+      const pinnedStr = this.incorrectlyPinnedPlatform
+        ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.incorrectlyPinnedPlatform}`)}\n`
+        : ''
+
       throw new Error(
-        `Photon binary for current platform ${chalk.bold(this.platform)} could not be found.
-Make sure to add it to your generator configuration in the ${chalk.bold('schema.prisma')} file${info}
+        `Photon binary for current platform ${chalk.bold.greenBright(
+          await this.getPlatform(),
+        )} could not be found.${pinnedStr}
+Make sure to adjust the generator configuration in the ${chalk.bold('schema.prisma')} file${info}
 ${chalk.gray(
-  `Note, that by providing \`native\`, Photon automatically resolves \`${this.platform}\`.
+  `Note, that by providing \`native\`, Photon automatically resolves \`${await this.getPlatform()}\`.
 Read more about deploying Photon: ${chalk.underline(
     'https://github.com/prisma/prisma2/blob/master/docs/core/generators/photonjs.md',
   )}`,
 )}`,
       )
+    }
+
+    if (this.incorrectlyPinnedPlatform) {
+      console.log(`${chalk.yellow('Warning:')} You pinned the platform ${chalk.bold(
+        this.incorrectlyPinnedPlatform,
+      )}, but Photon detects ${chalk.bold(this.platform)}.
+This means you should very likely pin the platform ${chalk.greenBright(this.platform)} instead.
+${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     }
 
     plusX(prismaPath)
