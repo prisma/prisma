@@ -8,6 +8,7 @@ export function getBar(text): Progress {
     complete: '=',
     incomplete: ' ',
     total: 100,
+    head: '',
   })
 }
 

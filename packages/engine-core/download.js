@@ -1,2 +1,2 @@
-const { ensureQueryEngineBinary } = require('@prisma/fetch-engine')
-ensureQueryEngineBinary(__dirname)
+const { download } = require('@prisma/fetch-engine')
+download({ binaries: { 'query-engine': __dirname } })

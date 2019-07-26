@@ -10,7 +10,7 @@
     "test": "jest",
     "precommit": "lint-staged && jest",
     "ncc:runtime": "node scripts/build-runtime.js",
-    "install": "test -f scripts/download.js && node scripts/download.js || echo \"\"",
+    "install": "node scripts/download.js || echo \"\"",
     "prepublishOnly": "yarn build",
     "build:browser": "webpack -c scripts/webpack.browser.config.js --verbose",
     "lint": "tslint -c tslint.json 'src/**/*.ts' --fix",

@@ -4,6 +4,7 @@ import Process from './process'
 import Deferred from 'deferral'
 import through from 'through2'
 import debugLib from 'debug'
+import { getPlatform, Platform } from '@prisma/get-platform'
 import * as path from 'path'
 import * as net from 'net'
 
@@ -14,6 +15,7 @@ interface EngineConfig {
   datamodel: string
   debug?: boolean
   prismaPath?: string
+  platform?: Platform
   fetcher?: (query: string) => Promise<{ data?: any; error?: any }>
 }
 
@@ -48,23 +50,53 @@ export class NodeEngine extends Engine {
   datamodelJson?: string
   cwd: string
   datamodel: string
-  prismaPath: string
+  prismaPath?: string
   url: string
   starting?: Deferred<void>
   stderrLogs: string = ''
   stdoutLogs: string = ''
   currentRequestPromise?: Promise<any>
   cwdPromise: Promise<string>
-  static defaultPrismaPath = path.join(__dirname, '../prisma')
+  platformPromise: Promise<Platform>
+  platform?: Platform
 
-  constructor({ cwd, datamodel, prismaPath, ...args }: EngineConfig) {
+  constructor({ cwd, datamodel, prismaPath, platform, ...args }: EngineConfig) {
     super()
     this.cwd = cwd
     this.debug = args.debug || false
     this.datamodel = datamodel
-    this.prismaPath = prismaPath || NodeEngine.defaultPrismaPath
+    this.prismaPath = prismaPath
+    this.platform = platform
+    if (!platform) {
+      this.getPlatform()
+    }
     if (this.debug) {
       debugLib.enable('engine')
+    }
+  }
+
+  async getPlatform() {
+    if (this.platformPromise) {
+      return this.platformPromise
+    }
+
+    this.platformPromise = getPlatform()
+
+    return this.platformPromise
+  }
+
+  async getPrismaPath() {
+    if (this.prismaPath) {
+      return this.prismaPath
+    }
+
+    this.platform = this.platform || (await this.getPlatform())
+
+    const fileName = eval(`path.basename(__filename)`)
+    if (fileName === 'NodeEngine.js') {
+      return path.join(__dirname, `../query-engine-${this.platform}`)
+    } else {
+      return path.join(__dirname, `query-engine-${this.platform}`)
     }
   }
 
@@ -76,7 +108,7 @@ export class NodeEngine extends Engine {
       return this.starting.wait()
     }
     this.starting = new Deferred()
-    this.child = new Process(this.prismaPath)
+    this.child = new Process(await this.getPrismaPath())
 
     // set the working directory
     if (this.cwd) {

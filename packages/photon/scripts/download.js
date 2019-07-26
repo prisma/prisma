@@ -1,7 +1,11 @@
-const { ensureQueryEngineBinary } = require('@prisma/fetch-engine')
-const path = require('path')
-const debug = require('debug')('download')
+const { download } = require('@prisma/fetch-engine')
+
 // Until https://github.com/zeit/ncc/issues/390 is resolved we have to do this 🙈
-const runtimePath = eval(`path.join(__dirname, '../runtime')`)
-debug(`Downloading binaries to ${runtimePath}`)
-ensureQueryEngineBinary(runtimePath)
+const runtimePath = eval(`require('path').join(__dirname, '../')`)
+
+download({
+  binaries: {
+    'query-engine': runtimePath,
+  },
+  showProgress: true,
+})

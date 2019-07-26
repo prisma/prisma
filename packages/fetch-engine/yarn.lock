@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@prisma/get-platform@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@prisma/get-platform/-/get-platform-0.0.2.tgz#06f252c84ea146c292b89d809a85e2d1a7b2a924"
+  integrity sha512-3+dCuVnKWnlV5Kc57K75i/GTTG/N27cHGBg+4lSg8GK2TaF1Em2/vA63/7DpIMScHjRyvZjoJ9G7B1oy/xndoQ==
+  dependencies:
+    debug "^4.1.1"
+
 "@types/fs-extra@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-5.1.0.tgz#2a325ef97901504a3828718c390d34b8426a10a1"
@@ -33,6 +40,14 @@
   resolved "https://registry.yarnpkg.com/@types/retry/-/retry-0.12.0.tgz#2b35eccfcee7d38cd72ad99232fbd58bffb3c84d"
   integrity sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA==
 
+aggregate-error@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/aggregate-error/-/aggregate-error-3.0.0.tgz#5b5a3c95e9095f311c9ab16c19fb4f3527cd3f79"
+  integrity sha512-yKD9kEoJIR+2IFqhMwayIBgheLYbB3PS2OBhWae1L/ODTd/JF/30cW0bc9TqzRL3k4U41Dieu3BF4I29p8xesA==
+  dependencies:
+    clean-stack "^2.0.0"
+    indent-string "^3.2.0"
+
 ansi-styles@^3.2.1:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-3.2.1.tgz#41fbb20243e50b12be0f04b8dedbf07520ce841d"
@@ -61,6 +76,11 @@ chalk@^2.4.2:
     ansi-styles "^3.2.1"
     escape-string-regexp "^1.0.5"
     supports-color "^5.3.0"
+
+clean-stack@^2.0.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/clean-stack/-/clean-stack-2.1.0.tgz#9e7fec7f3f8340a2ab4f127c80273085e8fbbdd0"
+  integrity sha512-uQWrpRm+iZZUCAp7ZZJQbd4Za9I3AjR/3YTjmcnAtkauaIm/T5CT6U8zVI6e60T6OANqBFAzuR9/HB3NzuZCRA==
 
 color-convert@^1.9.0:
   version "1.9.3"
@@ -202,6 +222,11 @@ htmlparser2@^3.10.1:
     inherits "^2.0.1"
     readable-stream "^3.1.1"
 
+indent-string@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/indent-string/-/indent-string-3.2.0.tgz#4a5fd6d27cc332f37e5419a504dbb837105c9289"
+  integrity sha1-Sl/W0nzDMvN+VBmlBNu4NxBckok=
+
 inflight@^1.0.4:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/inflight/-/inflight-1.0.6.tgz#49bd6331d7d02d0c09bc910a1075ba8165b56df9"
@@ -299,6 +324,13 @@ p-locate@^3.0.0:
   integrity sha512-x+12w/To+4GFfgJhBEpiDcLozRJGegY+Ei7/z0tSLkMmxGZNybVMSfWj9aJn8Z5Fc7dBUNJOOVgPv2H7IwulSQ==
   dependencies:
     p-limit "^2.0.0"
+
+p-map@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/p-map/-/p-map-3.0.0.tgz#d704d9af8a2ba684e2600d9a215983d4141a979d"
+  integrity sha512-d3qXVTF/s+W+CdJ5A29wywV2n8CQQYahlgz2bFiA+4eVNJbHJodPZ+/gXwPGh0bOqA+j8S+6+ckmvLGPk1QpxQ==
+  dependencies:
+    aggregate-error "^3.0.0"
 
 p-retry@^4.1.0:
   version "4.1.0"
