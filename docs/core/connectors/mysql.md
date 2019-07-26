@@ -38,12 +38,14 @@ The MySQL connector maps the [scalar types](../../data-modeling.md#scalar-types)
 
 ### Connection string
 
-MySQL offers also two styles of connection strings. See the [official documentation](https://dev.mysql.com/doc/refman/8.0/en/connecting-using-uri-or-key-value-pairs.html) for details.
+MySQL offers two styles of connection strings:
 
 - Key-value string: `{user:'user', host:'localhost', schema:'world'}`
 - Connection URI: `mysql://user@localhost:3333`
 
-The Rust implementation for MySQL accepts connection strings, but it does not seem to follow the official [MySQL standard](https://dev.mysql.com/doc/refman/8.0/en/connecting-using-uri-or-key-value-pairs.html#connection-parameters). Basic connection strings should just work though. 
+See the [official documentation](https://dev.mysql.com/doc/refman/8.0/en/connecting-using-uri-or-key-value-pairs.html) for details.
+
+The Rust implementation for MySQL accepts connection strings, but it does not seem to follow the official [MySQL standard](https://dev.mysql.com/doc/refman/8.0/en/connecting-using-uri-or-key-value-pairs.html#connection-parameters). Basic connection strings should just work though for Prisma.
 
 ### Configuration options
 
