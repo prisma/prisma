@@ -349,7 +349,7 @@ Photon connects and disconnects from your data sources using the following two m
 
 Unless you want to employ a specific optimization, calling `photon.connect()` is not necessary thanks to the _autoconnect_ and _lazy connect_ behaviours (see below).
 
-**IMPORTANT**: It is recommended to always explicitly call `photon.disconnect()` in your code. Generally the `Photon` instance disconnects automatically. However, if your program terminates but still has an unhandled promise rejection, the port will keep the connection opento the data source open beyond the lifetime of your program!
+**IMPORTANT**: It is recommended to always explicitly call `photon.disconnect()` in your code. Generally the `Photon` instance disconnects automatically. However, if your program terminates but still has an unhandled promise rejection, the port will keep the connection to the data source open beyond the lifetime of your program!
 
 ### Connection behaviour
 
