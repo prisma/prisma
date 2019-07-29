@@ -64,6 +64,8 @@ It has the following signature:
   - `NONE` (_default_): Set the field to `null`.
   - `CASCADE`: Also delete this entry.
 
+> **Note**: Cascading deletes are not yet implemented. You can track the progress of this feature in this [GitHub issue](https://github.com/prisma/prisma2/issues/267).
+
 ## 1:1
 
 The return value on both sides is a nullable single value. Prisma prevents accidentally storing multiple records in the relation.
