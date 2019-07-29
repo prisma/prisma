@@ -100,17 +100,17 @@ datasource sqlite {
 
 datasource mysql {
   provider  = "mysql"
-  url       = env("SQLITE_URL")
+  url       = env("MYSQL_URL")
 }
 
 datasource postgresql {
   provider  = "postgresql"
-  url       = env("SQLITE_URL")
+  url       = env("POSTGRESQL_URL")
 }
 
 datasource mongo {
   provider  = "mongo"
-  url       = env("SQLITE_URL")
+  url       = env("MONGO_URL")
 }
 ```
 
@@ -123,7 +123,7 @@ different naming scheme.
 ```groovy
 datasource pg {
   provider = "postgresql"
-  url      = env("POSTGRES_URL")
+  url      = env("POSTGRESQL_URL")
   enabled  = true
 }
 
