@@ -32,7 +32,7 @@ export const defaultTemplate: (language: Language) => Template = (language = 'ty
   Here are the next steps to get you started:
     1. Run ${chalk.yellow(`prisma2 lift save --name init`)} to create a migration.
     2. Run ${chalk.yellow(`prisma2 lift up`)} to apply the migration.
-    3. Run ${chalk.yellow(`yarn seed`)} to seed the database.
+    3. Run ${chalk.yellow(`node prisma/seed.js`)} to seed the database.
     4. Run ${chalk.yellow(`yarn start`)} (Runs the default script)
     5. That's it !
     `,
@@ -55,7 +55,7 @@ export const availableTemplates: Template[] = [
   Here are the next steps to get you started:
     1. Run ${chalk.yellow(`prisma2 lift save --name init`)} to create a migration.
     2. Run ${chalk.yellow(`prisma2 lift up`)} to apply the migration.
-    3. Run ${chalk.yellow(`yarn seed`)} to seed the database.
+    3. Run ${chalk.yellow(`node prisma/seed.js`)} to seed the database.
     4. Run ${chalk.yellow(`yarn start`)} (Starts the GraphQL server)
     5. That's it !
     `,
@@ -75,7 +75,7 @@ Your template has been successfully set up!
 Here are the next steps to get you started:
   1. Run ${chalk.yellow(`prisma2 lift save --name init`)} to create a migration.
   2. Run ${chalk.yellow(`prisma2 lift up`)} to apply the migration.
-  3. Run ${chalk.yellow(`yarn seed`)} to seed the database.
+  3. Run ${chalk.yellow(`node prisma/seed.js`)} to seed the database.
   4. Run ${chalk.yellow(`yarn start`)} (Starts the REST with express server)
   5. That's it !
   `,
@@ -95,7 +95,7 @@ Your template has been successfully set up!
 Here are the next steps to get you started:
   1. Run ${chalk.yellow(`prisma2 lift save --name init`)} to create a migration.
   2. Run ${chalk.yellow(`prisma2 lift up`)} to apply the migration.
-  3. Run ${chalk.yellow(`yarn seed`)} to seed the database.
+  3. Run ${chalk.yellow(`node prisma/seed.js`)} to seed the database.
   4. Run ${chalk.yellow(`yarn start`)} (Starts the gRPC server)
   5. That's it !
   `,
@@ -115,7 +115,7 @@ Here are the next steps to get you started:
   Here are the next steps to get you started:
     1. Run ${chalk.yellow(`prisma2 lift save --name init`)} to create a migration.
     2. Run ${chalk.yellow(`prisma2 lift up`)} to apply the migration.
-    3. Run ${chalk.yellow(`yarn seed`)} to seed the database.
+    3. Run ${chalk.yellow(`node prisma/seed.js`)} to seed the database.
     4. Run ${chalk.yellow(`yarn start`)} (Starts the GraphQL server)
     5. That's it !
     `,
@@ -135,7 +135,7 @@ Your template has been successfully set up!
 Here are the next steps to get you started:
   1. Run ${chalk.yellow(`prisma2 lift save --name init`)} to create a migration.
   2. Run ${chalk.yellow(`prisma2 lift up`)} to apply the migration.
-  3. Run ${chalk.yellow(`yarn seed`)} to seed the database.
+  3. Run ${chalk.yellow(`node prisma/seed.js`)} to seed the database.
   4. Run ${chalk.yellow(`yarn start`)} (Starts the REST with express server)
   5. That's it !
   `,
@@ -155,7 +155,7 @@ Your template has been successfully set up!
 Here are the next steps to get you started:
   1. Run ${chalk.yellow(`prisma2 lift save --name init`)} to create a migration.
   2. Run ${chalk.yellow(`prisma2 lift up`)} to apply the migration.
-  3. Run ${chalk.yellow(`yarn seed`)} to seed the database.
+  3. Run ${chalk.yellow(`node prisma/seed.js`)} to seed the database.
   4. Run ${chalk.yellow(`yarn start`)} (Starts the gRPC server)
   5. That's it !
   `,
