@@ -4,7 +4,7 @@ The Photon JS generator can be used in a [Prisma schema file](../../prisma-schem
 
 ## Node.js requirements
 
-The generated data access code of the `photonjs` generator targets [ES2016](https://exploringjs.com/es2016-es2017/) & [Node.js 8.x +](https://nodejs.org/en/download/releases/). 
+The generated data access code of the `photonjs` generator targets [ES2016](https://exploringjs.com/es2016-es2017/) which means you need  [Node.js 8.x](https://nodejs.org/en/download/releases/) or newer to be able to use it.
 
 ## Specifying the right platform for Photon JS
 
@@ -74,11 +74,6 @@ generator photon {
     pinnedPlatform = env("PLATFORM")                  // Local: "native"; In production: "linux-glibc-libssl1.0.2"
 }
 ```
-
-
-
-
-
 
 ## Example
 
