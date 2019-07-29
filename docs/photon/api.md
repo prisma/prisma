@@ -340,17 +340,13 @@ const Photon = new Photon({ debug: true })
 
 ## Managing connections
 
-### Connecting and disconnecting a data source
-
 Photon connects and disconnects from your data sources using the following two methods:
 
 - `connect(): Promise<void>`
 - `disconnect(): Promise<void>`
 
-Unless you want to employ a specific optimization, calling `photon.connect()` is not necessary thanks to the _autoconnect_ and _lazy connect_ behaviours (see below).
+Unless you want to employ a specific optimization, calling `photon.connect()` is not necessary thanks to the _lazy connect_ behaviour: The `Photon` instance connects lazily when the first request is made to the API (`connect()` is called for you under the hood). 
+
+If you need the first request to respond instantly and can't wait for the lazy connection to be established, you can explicitly call `photon.connect()` to establish a connection to the data source.
 
 **IMPORTANT**: It is recommended to always explicitly call `photon.disconnect()` in your code. Generally the `Photon` instance disconnects automatically. However, if your program terminates but still has an unhandled promise rejection, the port will keep the connection to the data source open beyond the lifetime of your program!
-
-### Connection behaviour
-
-The `Photon` instance connects lazily when the first request is made to the API (`connect()` is called for you under the hood). In case you want `connect()` to be called earlier, feel free to do that.
