@@ -62,7 +62,6 @@ export class CLI implements Command {
           lift   Migrate your datamodel
     introspect   Get the datamodel of your database
       generate   Generate Photon
-          seed   Seed data into your database
 
     ${chalk.bold('Examples')}
 
