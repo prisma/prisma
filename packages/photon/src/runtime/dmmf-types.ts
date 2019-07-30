@@ -129,6 +129,7 @@ export namespace DMMF {
     name: string
     values: string[]
     dbName?: string | null
+    documentation?: string
   }
 
   export interface Datamodel {
