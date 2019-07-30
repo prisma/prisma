@@ -27,4 +27,9 @@ model Post {
   content   String?
   author    User?
 }
+
+enum Role {
+  USER
+  ADMIN
+}
 `
