@@ -637,7 +637,7 @@ ${indent(
   return ${name} as any // any needed until https://github.com/microsoft/TypeScript/issues/31335 is resolved
 }
 
-class ${name}Client<T> implements Promise<T> {
+export class ${name}Client<T> implements Promise<T> {
   private _callsite: any
   private _requestPromise?: Promise<any>
   constructor(
@@ -695,7 +695,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
 )}
 
   private get _document() {
-    const { rootField } = this
+    const { _rootField: rootField } = this
     const document = makeDocument({
       dmmf: this._dmmf,
       rootField,
