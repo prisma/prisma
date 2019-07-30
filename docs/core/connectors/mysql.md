@@ -45,8 +45,6 @@ MySQL offers two styles of connection strings:
 
 See the [official documentation](https://dev.mysql.com/doc/refman/8.0/en/connecting-using-uri-or-key-value-pairs.html) for details.
 
-The Rust implementation for MySQL accepts connection strings, but it does not seem to follow the official [MySQL standard](https://dev.mysql.com/doc/refman/8.0/en/connecting-using-uri-or-key-value-pairs.html#connection-parameters). Basic connection strings should just work though for Prisma.
-
 ### Configuration options
 
 - `host`: The IP address/domain of your database server, e.g. `localhost`.
