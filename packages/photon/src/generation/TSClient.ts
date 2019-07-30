@@ -638,24 +638,24 @@ ${indent(
 }
 
 class ${name}Client<T> implements Promise<T> {
-  private callsite: any
-  private requestPromise?: Promise<any>
+  private _callsite: any
+  private _requestPromise?: Promise<any>
   constructor(
-    private readonly dmmf: DMMFClass,
-    private readonly fetcher: PhotonFetcher,
-    private readonly queryType: 'query' | 'mutation',
-    private readonly rootField: string,
-    private readonly clientMethod: string,
-    private readonly args: ${getArgName(name, false)},
-    private readonly path: string[],
-    private isList = false
+    private readonly _dmmf: DMMFClass,
+    private readonly _fetcher: PhotonFetcher,
+    private readonly _queryType: 'query' | 'mutation',
+    private readonly _rootField: string,
+    private readonly _clientMethod: string,
+    private readonly _args: ${getArgName(name, false)},
+    private readonly _path: string[],
+    private _isList = false
   ) {
     // @ts-ignore
     if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
       const error = new Error()
       if (error && error.stack) {
         const stack = error.stack
-        this.callsite = stack
+        this._callsite = stack
       }
     }
   }
@@ -676,10 +676,10 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
         fieldName: f.name,
         projection: Projection.select,
       })} {
-  const prefix = this.path.includes('select') ? 'select' : this.path.includes('include') ? 'include' : 'select'
-  const path = [...this.path, prefix, '${f.name}']
-  const newArgs = deepSet(this.args, path, args || true)
-  this.isList = ${f.outputType.isList}
+  const prefix = this._path.includes('select') ? 'select' : this._path.includes('include') ? 'include' : 'select'
+  const path = [...this._path, prefix, '${f.name}']
+  const newArgs = deepSet(this._args, path, args || true)
+  this._isList = ${f.outputType.isList}
   return new ${getFieldTypeName(f)}Client<${getSelectReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
@@ -687,28 +687,28 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
         isField: true,
         renderPromise: true,
         projection: Projection.select,
-      })}>(this.dmmf, this.fetcher, this.queryType, this.rootField, this.clientMethod, newArgs, path, this.isList) as any
+      })}>(this._dmmf, this._fetcher, this._queryType, this._rootField, this._clientMethod, newArgs, path, this._isList) as any
 }`
     })
     .join('\n'),
   2,
 )}
 
-  private get document() {
+  private get _document() {
     const { rootField } = this
     const document = makeDocument({
-      dmmf: this.dmmf,
+      dmmf: this._dmmf,
       rootField,
-      rootTypeName: this.queryType,
-      select: this.args
+      rootTypeName: this._queryType,
+      select: this._args
     })
     try {
-      document.validate(this.args, false, this.clientMethod)
+      document.validate(this._args, false, this._clientMethod)
     } catch (e) {
       const x: any = e
       if (x.render) {
-        if (this.callsite) {
-          e.message = x.render(this.callsite)
+        if (this._callsite) {
+          e.message = x.render(this._callsite)
         }
       }
       throw e
@@ -727,10 +727,10 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
     onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
-    if (!this.requestPromise){
-      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}', this.isList)
+    if (!this._requestPromise){
+      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList)
     }
-    return this.requestPromise!.then(onfulfilled, onrejected)
+    return this._requestPromise!.then(onfulfilled, onrejected)
   }
 
   /**
@@ -741,10 +741,10 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
   catch<TResult = never>(
     onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null,
   ): Promise<T | TResult> {
-    if (!this.requestPromise) {
-      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}', this.isList)
+    if (!this._requestPromise) {
+      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList)
     }
-    return this.requestPromise!.catch(onrejected)
+    return this._requestPromise!.catch(onrejected)
   }
 
   /**
@@ -754,10 +754,10 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
    * @returns A Promise for the completion of the callback.
    */
   finally(onfinally?: (() => void) | undefined | null): Promise<T> {
-    if (!this.requestPromise) {
-      this.requestPromise = this.fetcher.request<T>(this.document, this.path, this.rootField, '${name}', this.isList)
+    if (!this._requestPromise) {
+      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList)
     }
-    return this.requestPromise!.finally(onfinally)
+    return this._requestPromise!.finally(onfinally)
   }
 }
     `
