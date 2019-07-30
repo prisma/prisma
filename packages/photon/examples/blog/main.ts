@@ -26,13 +26,10 @@ async function main() {
   //   // first: 5
   // })
 
-  const result = await photon.users.findOne({
+  const result = await photon.posts.deleteMany({
     where: {
-      email: undefined,
-    },
-    include: {
-      posts: {
-        first: 10,
+      id: {
+        in: ['d4082b42-b161-11e9-8754-6542abf52968'],
       },
     },
   })

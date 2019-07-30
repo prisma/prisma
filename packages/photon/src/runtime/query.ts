@@ -1046,23 +1046,42 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.S
   const { type } = inputType
   const expectedType = wrapWithList(stringifyGraphQLType(type), arg.inputType[0].isList)
   const graphQLType = getGraphQLType(value, type)
+
   // DateTime is a subset of string
   if (graphQLType === 'DateTime' && expectedType === 'String') {
     return true
   }
+  if (graphQLType === 'List<DateTime>' && expectedType === 'List<String>') {
+    return true
+  }
+
   // UUID is a subset of string
   if (graphQLType === 'UUID' && expectedType === 'String') {
     return true
   }
+  if (graphQLType === 'List<UUID>' && expectedType === 'List<String>') {
+    return true
+  }
+
   if (graphQLType === 'String' && expectedType === 'ID') {
     return true
   }
+  if (graphQLType === 'List<String>' && expectedType === 'List<ID>') {
+    return true
+  }
+
   // Int is a subset of Float
   if (graphQLType === 'Int' && expectedType === 'Float') {
     return true
   }
+  if (graphQLType === 'List<Int>' && expectedType === 'List<Float>') {
+    return true
+  }
   // Int is a subset of Long
   if (graphQLType === 'Int' && expectedType === 'Long') {
+    return true
+  }
+  if (graphQLType === 'List<Int>' && expectedType === 'List<Long>') {
     return true
   }
 
@@ -1108,8 +1127,9 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
         if (typeof value !== 'object') {
           return getInvalidTypeArg(key, value, arg, t)
         } else {
+          const val = cleanObject(value)
           let error: AtMostOneError | AtLeastOneError | undefined
-          const keys = Object.keys(value || {})
+          const keys = Object.keys(val || {})
           const numKeys = keys.length
           if (numKeys === 0 && t.type.atLeastOne) {
             error = {
@@ -1128,7 +1148,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
           }
           return new Arg({
             key,
-            value: objectToArgs(value, t.type, arg.inputType),
+            value: objectToArgs(val, t.type, arg.inputType),
             isEnum: argInputType.kind === 'enum',
             error,
             argType: t.type,
@@ -1207,7 +1227,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   }
 
   const inputType = argInputType.type as DMMF.InputType
-  const hasAtLeastOneError = inputType.atLeastOne ? value.some(v => Object.keys(v).length === 0) : false
+  const hasAtLeastOneError = inputType.atLeastOne ? value.some(v => Object.keys(cleanObject(v)).length === 0) : false
   const err: AtLeastOneError | undefined = hasAtLeastOneError
     ? {
         inputType,
@@ -1298,7 +1318,7 @@ function objectToArgs(
   )
   // Also show optional neighbour args, if there is any arg missing
   if (
-    (Object.values(initialObj).length === 0 && inputType.atLeastOne) ||
+    (entries.length === 0 && inputType.atLeastOne) ||
     argsList.find(arg => arg.error && arg.error.type === 'missingArg')
   ) {
     const optionalMissingArgs = inputType.fields.filter(arg => !entries.some(([entry]) => entry === arg.name))

@@ -1,5 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`select validation Accept empty where in findMany 1`] = `
+"query {
+  findManyPost(where: {
+
+  }) {
+    author {
+      id
+    }
+  }
+}"
+`;
+
 exports[`select validation Allow deep select query 1`] = `
 "query {
   findManyPost {
@@ -44,6 +56,20 @@ exports[`select validation Allow simple create mutation 1`] = `
 }"
 `;
 
+exports[`select validation Allow uuid array for string array 1`] = `
+"query {
+  findManyPost(where: {
+    id: {
+      in: [\\"d4082b42-b161-11e9-8754-6542abf52968\\"]
+    }
+  }) {
+    author {
+      id
+    }
+  }
+}"
+`;
+
 exports[`select validation Allow uuid for string input 1`] = `
 "mutation {
   createOnePost(data: {
@@ -61,19 +87,7 @@ exports[`select validation Allow uuid for string input 1`] = `
 }"
 `;
 
-exports[`select validation Throw on empty where 1`] = `
-"query {
-  findManyPost(where: {
-
-  }) {
-    author {
-      id
-    }
-  }
-}"
-`;
-
-exports[`select validation allow where with all undefined 1`] = `
+exports[`select validation allow where with all undefined in findMany 1`] = `
 "query {
   findManyPost(where: {
 
@@ -142,6 +156,30 @@ exports[`select validation missing arg scalar 1`] = `
     published
     title
     content
+  }
+}"
+`;
+
+exports[`select validation reject all undefined where for findOne 1`] = `
+"query {
+  findOnePost(where: {
+
+  }) {
+    author {
+      id
+    }
+  }
+}"
+`;
+
+exports[`select validation reject empty where for findOne 1`] = `
+"query {
+  findOnePost(where: {
+
+  }) {
+    author {
+      id
+    }
   }
 }"
 `;

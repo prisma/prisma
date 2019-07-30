@@ -11,7 +11,7 @@ generator photon {
 }
 
 model User {
-  id    String  @default(cuid()) @id @unique
+  id        String @id @default(uuid())
   email String  @unique
   name  String?
   posts Post[]

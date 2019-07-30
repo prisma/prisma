@@ -160,7 +160,7 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
       name: type.name,
       fields,
       isWhereType: true,
-      atLeastOne: true,
+      atLeastOne: false,
     }
     inputTypes.push(newType)
   }
@@ -189,7 +189,7 @@ function makeFilterType(type: string, isRequired: boolean, isScalar: boolean): D
   return {
     name: getFilterName(type, isRequired || !isScalar),
     fields: isScalar ? getScalarFilterArgs(type, isRequired) : getRelationFilterArgs(type),
-    atLeastOne: true,
+    atLeastOne: false,
   }
 }
 
