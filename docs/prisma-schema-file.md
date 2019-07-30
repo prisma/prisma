@@ -208,7 +208,7 @@ You can use environment variables to provide configuration options when a CLI co
 
 Environment variables can be provided using the `env` function:
 
-```
+```groovy
 datasource pg {
   provider = "postgresql"
   url      = env("POSTGRES_URL")
@@ -216,6 +216,17 @@ datasource pg {
 ```
 
 ### Switching data sources based on environments
+
+> This feature [is not implemented yet](https://github.com/prisma/prisma2/issues/265#issuecomment-515955670). As a workaround you can provide environment variables for both `url` and `provider` options.
+
+```groovy
+datasource db {
+  provider = env("PRISMA_PROVIDER")
+  url = env("PRISMA_URL")
+}
+```
+
+---
 
 Sometimes it's helpful to target different environments based in the same schema file, for example:
 
