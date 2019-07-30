@@ -80,7 +80,7 @@ const photon = new Photon()
 async function main() {
   await photon.connect()
 
-  const userById = await photon.users.findOne({ where: 1 })
+  const userById = await photon.users.findOne({ where: { id: 1 } })
   const userByEmail = await photon.users.findOne({ where: { email: "ada@prisma.io" }})
 
   const userWithPosts = await photon.users.findOne({
@@ -93,7 +93,7 @@ async function main() {
     email: "alice@prisma.io",
   }})
 
-  const newUser = await photon.users.create({ data: {
+  const newUserWithPosts = await photon.users.create({ data: {
     email: "alice@prisma.io",
     posts: {
       create: [
@@ -107,13 +107,12 @@ async function main() {
     where: { email: "alice@prisma.io" },
     data: { role: "ADMIN" },
   })
-
-  await photon.disconnect()
 }
 
 main().catch(e => {
   console.error(e)
-  photon.disconnect()
+}).finally(async () => {
+  await photon.disconnect()
 })
 ```
 
