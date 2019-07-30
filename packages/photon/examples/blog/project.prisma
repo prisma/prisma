@@ -18,7 +18,7 @@ model User {
 }
 
 model Post {
-  id        String   @default(cuid()) @id @unique
+  id        String @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   published Boolean
