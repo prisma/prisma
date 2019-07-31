@@ -116,6 +116,7 @@ interface TSClientOptions {
   browser?: boolean
   datasources: InternalDatasource[]
   generator?: GeneratorConfig
+  platforms?: string[]
 }
 
 export class TSClient {
@@ -126,19 +127,36 @@ export class TSClient {
   protected readonly browser: boolean
   protected readonly internalDatasources: InternalDatasource[]
   protected readonly generator?: GeneratorConfig
-  constructor({ document, datamodel, runtimePath, browser = false, datasources, generator }: TSClientOptions) {
+  protected readonly platforms?: string[]
+  constructor({
+    document,
+    datamodel,
+    runtimePath,
+    browser = false,
+    datasources,
+    generator,
+    platforms,
+  }: TSClientOptions) {
     this.document = document
     this.datamodel = datamodel
     this.runtimePath = runtimePath
     this.browser = browser
     this.internalDatasources = datasources
     this.generator = generator
+    this.platforms = platforms
     // We make a deep clone here as otherwise we would serialize circular references
     // which we're building up in the DMMFClass
     this.dmmf = new DMMFClass(JSON.parse(JSON.stringify(document)))
   }
   public toString() {
     return `${commonCode(this.runtimePath)}
+
+/**
+ * Build tool annotations
+ * In order to make \`ncc\` and \`node-file-trace\` happy.
+**/
+
+${this.platforms ? this.platforms.map(p => `path.join(__dirname, 'query-engine-${p}');`).join('\n') : ''}
 
 /**
  * Client

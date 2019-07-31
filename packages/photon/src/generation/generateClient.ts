@@ -53,6 +53,7 @@ export async function buildClient({
   binaryPath,
   outputDir,
   generator,
+  platforms,
 }: GenerateClientOptions): Promise<Dictionary<string>> {
   // TODO: handle pinnedPlatform
 
@@ -78,6 +79,7 @@ export async function buildClient({
     browser,
     datasources: resolveDatasources(config.datasources, cwd || process.cwd(), outputDir),
     generator,
+    platforms,
   })
   const generatedClient = String(client)
   const target = '@generated/photon/index.ts'
@@ -200,7 +202,7 @@ In case you want to fix this, you can provide ${chalk.greenBright(
     browser,
     binaryPath,
     outputDir,
-    platforms,
+    platforms: resolvedPlatforms,
     pinnedPlatform,
     generator,
   })

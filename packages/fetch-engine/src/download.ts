@@ -90,9 +90,6 @@ export async function download(options: DownloadOptions) {
             targetPath,
             progressCb: collectiveCallback ? collectiveCallback(sourcePath) : undefined,
           })
-          if (binaryName === 'query-engine') {
-            await copyFile(targetPath, path.resolve(targetDir, 'prisma'))
-          }
         }),
       )
     }),

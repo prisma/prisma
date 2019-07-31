@@ -12,8 +12,10 @@ import chalk from 'chalk'
 import { GeneratorConfig } from '@prisma/cli'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixPlatforms, plusX } from './util'
+import { promisify } from 'util'
 
 const debug = debugLib('engine')
+const exists = promisify(fs.exists)
 
 interface EngineConfig {
   cwd?: string
@@ -132,10 +134,33 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
     }
   }
 
+  // If we couldn't find the correct binary path, let's look for an alternative
+  // This is interesting for libssl 1.0.1 vs libssl 1.0.2 cases
+
+  private async resolveAlternativeBinaryPath(): Promise<string | null> {
+    const binariesExist = await Promise.all(
+      knownPlatforms.slice(1).map(async platform => {
+        const filePath = path.join(__dirname, `query-engine-${platform}`)
+        return {
+          exists: await exists(filePath),
+          platform,
+          filePath,
+        }
+      }),
+    )
+
+    const firstExistingPlatform = binariesExist.find(b => b.exists)
+    if (firstExistingPlatform) {
+      return firstExistingPlatform.filePath
+    }
+
+    return null
+  }
+
   private async getPrismaPath() {
     const prismaPath = await this.resolvePrismaPath()
     debug({ prismaPath })
-    if (!fs.existsSync(prismaPath)) {
+    if (!(await exists(prismaPath))) {
       let info = '.'
       if (this.generator) {
         const fixedGenerator = {
@@ -152,19 +177,34 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.incorrectlyPinnedPlatform}`)}\n`
         : ''
 
-      throw new Error(
-        `Photon binary for current platform ${chalk.bold.greenBright(
-          await this.getPlatform(),
-        )} could not be found.${pinnedStr}
-Make sure to adjust the generator configuration in the ${chalk.bold('schema.prisma')} file${info}
-Please run ${chalk.greenBright('prisma2 generate')} for your changes to take effect.
-${chalk.gray(
-  `Note, that by providing \`native\`, Photon automatically resolves \`${await this.getPlatform()}\`.
-Read more about deploying Photon: ${chalk.underline(
+      const alternativePath = await this.resolveAlternativeBinaryPath()
+
+      if (!alternativePath) {
+        throw new Error(
+          `Photon binary for current platform ${chalk.bold.greenBright(
+            await this.getPlatform(),
+          )} could not be found.${pinnedStr}
+  Make sure to adjust the generator configuration in the ${chalk.bold('schema.prisma')} file${info}
+  Please run ${chalk.greenBright('prisma2 generate')} for your changes to take effect.
+  ${chalk.gray(
+    `Note, that by providing \`native\`, Photon automatically resolves \`${await this.getPlatform()}\`.
+  Read more about deploying Photon: ${chalk.underline(
     'https://github.com/prisma/prisma2/blob/master/docs/core/generators/photonjs.md',
   )}`,
-)}`,
-      )
+  )}`,
+        )
+      } else {
+        console.error(`${chalk.yellow(
+          'warning',
+        )} Photon could not resolve the needed binary for the current platform ${chalk.greenBright(
+          await this.getPlatform(),
+        )}.
+Instead we found ${chalk.bold(
+          alternativePath,
+        )}, which we're trying for now. In case Photon runs, just ignore this message.`)
+        plusX(alternativePath)
+        return alternativePath
+      }
     }
 
     if (this.incorrectlyPinnedPlatform) {
