@@ -11,7 +11,7 @@ plugins:
 
 functions:
   server:
-    handler: src/index.index
+    handler: server.handler
     events:
       - http: GET /
     timeout: 60

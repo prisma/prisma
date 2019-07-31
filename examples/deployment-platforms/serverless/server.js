@@ -1,11 +1,12 @@
 //@ts-strict
 const Photon = require('@generated/photon')
 
-const photon = new Photon.default()
-module.exports.index = async (event, ctx, callback) => {
-  console.log({ time })
+const photon = new Photon()
+
+module.exports.handler = async event => {
   if (event.httpMethod === 'GET') {
     const users = await photon.users()
+    // const users = ['hi']
 
     return {
       statusCode: 200,
