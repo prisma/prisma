@@ -156,7 +156,7 @@ export class TSClient {
  * In order to make \`ncc\` and \`node-file-trace\` happy.
 **/
 
-${this.platforms ? this.platforms.map(p => `path.join(__dirname, 'query-engine-${p}');`).join('\n') : ''}
+${this.platforms ? this.platforms.map(p => `path.join(__dirname, 'runtime/query-engine-${p}');`).join('\n') : ''}
 
 /**
  * Client
