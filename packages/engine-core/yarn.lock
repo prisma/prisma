@@ -294,10 +294,10 @@
     chalk "^2.4.2"
     strip-indent "^3.0.0"
 
-"@prisma/fetch-engine@^0.1.4":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.1.4.tgz#db4c03179ca32182e886feff554f4f8b528b4a5b"
-  integrity sha512-tk9xP4rfbttSCiCGigCxiccqz3q8H0hUFY3v9yjS6bbwOUuAioPzBbgVUV1YlsgfrJlVHLGPY+k+KwD6d+zMSQ==
+"@prisma/fetch-engine@^0.1.5":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.1.5.tgz#c4d8c2ca7671a16d5121a26cc12fa7468a2ea643"
+  integrity sha512-OS1ag1gSDBwOmuhCgGSPbwFHg+pdNYs4IwhPcddeE+MxNfgaWIGNerTE7to4nWttETjQllAwcane9Ae5deEh8w==
   dependencies:
     "@prisma/get-platform" "^0.0.2"
     chalk "^2.4.2"
