@@ -149,6 +149,8 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
       }),
     )
 
+    debug({ binariesExist })
+
     const firstExistingPlatform = binariesExist.find(b => b.exists)
     if (firstExistingPlatform) {
       return firstExistingPlatform.filePath
