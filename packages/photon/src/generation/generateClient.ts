@@ -21,6 +21,7 @@ import { promisify } from 'util'
 import { Dictionary } from '../runtime/utils/common'
 import { getDMMF } from '../utils/getDMMF'
 import { resolveDatasources } from '../utils/resolveDatasources'
+import { extractSqliteSources } from './extractSqliteSources'
 import { TSClient } from './TSClient'
 
 const debug = Debug('generateClient')
@@ -71,6 +72,7 @@ export async function buildClient({
     runtimePath,
     browser,
     datasources: resolveDatasources(config.datasources, cwd || process.cwd(), outputDir),
+    sqliteDatasourceOverrides: extractSqliteSources(datamodel, cwd || process.cwd(), outputDir),
     generator,
     platforms,
   })

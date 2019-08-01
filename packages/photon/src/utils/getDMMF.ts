@@ -1,7 +1,6 @@
-import Process from '@prisma/engine-core/dist/process'
 import { getPlatform } from '@prisma/get-platform'
+import execa = require('execa')
 import path from 'path'
-import through from 'through2'
 import { DMMF, ExternalDMMF } from '../runtime/dmmf-types'
 import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
 import { transformDmmf } from '../runtime/transformDmmf'
@@ -63,40 +62,16 @@ export async function getRawDMMF(
   prismaPath?: string,
 ): Promise<ExternalDMMF.Document> {
   prismaPath = prismaPath || path.join(__dirname, `../../query-engine-${await getPlatform()}`)
+  const result = await execa(prismaPath, ['cli', '--dmmf'], {
+    cwd,
+    env: {
+      ...process.env,
+      PRISMA_DML: datamodel,
+      RUST_BACKTRACE: '1',
+    },
+  })
 
-  const child = new Process(prismaPath, 'cli', '--dmmf')
-  let dmmf
-  let error
-  child.cwd(cwd)
-  child.env({ ...process.env, PRISMA_DML: datamodel, RUST_BACKTRACE: '1' })
-  child.stdout(
-    concat(d => {
-      try {
-        dmmf = JSON.parse(d)
-      } catch (e) {
-        error = d
-      }
-    }),
-  )
-  // child.stderr()
-  await child.run()
-  if (error) {
-    throw new Error(error)
-  }
-  return dmmf
-}
-
-function concat(fn: (result: string) => void): NodeJS.WriteStream {
-  let buf = ''
-  function transform(chunk, enc, callback) {
-    buf += chunk.toString()
-    callback()
-  }
-  function flush(callback) {
-    fn(buf)
-    callback()
-  }
-  return through(transform, flush)
+  return JSON.parse(result.stdout)
 }
 
 export interface GetDmmfOptions {

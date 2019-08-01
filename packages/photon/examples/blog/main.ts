@@ -10,7 +10,7 @@ async function main() {
     },
   })
 
-  // await photon.connect()
+  await photon.connect()
 
   // const prom = await photon.users()
   // console.log(prom)

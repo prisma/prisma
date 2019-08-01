@@ -14,7 +14,7 @@ async function main() {
     cwd: path.join(__dirname, './blog/'),
     outputDir: path.join(__dirname, './blog/@generated/photon'),
     transpile: false,
-    // runtimePath: '../../../../src/runtime',
+    runtimePath: '../../../../src/runtime',
     platforms,
     generator: {
       config: {},

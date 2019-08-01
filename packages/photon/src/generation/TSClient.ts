@@ -5,6 +5,8 @@ import { DMMFClass } from '../runtime/dmmf'
 import { BaseField, DMMF } from '../runtime/dmmf-types'
 import { capitalize, GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
 import { InternalDatasource } from '../runtime/utils/printDatasources'
+import { DatasourceOverwrite } from './extractSqliteSources'
+import { serializeDatasources } from './serializeDatasources'
 import {
   getArgName,
   getDefaultName,
@@ -113,6 +115,7 @@ interface TSClientOptions {
   datasources: InternalDatasource[]
   generator?: GeneratorConfig
   platforms?: string[]
+  sqliteDatasourceOverrides?: DatasourceOverwrite[]
 }
 
 export class TSClient {
@@ -124,6 +127,7 @@ export class TSClient {
   protected readonly internalDatasources: InternalDatasource[]
   protected readonly generator?: GeneratorConfig
   protected readonly platforms?: string[]
+  protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[]
   constructor({
     document,
     datamodel,
@@ -132,6 +136,7 @@ export class TSClient {
     datasources,
     generator,
     platforms,
+    sqliteDatasourceOverrides,
   }: TSClientOptions) {
     this.document = document
     this.datamodel = datamodel
@@ -140,6 +145,7 @@ export class TSClient {
     this.internalDatasources = datasources
     this.generator = generator
     this.platforms = platforms
+    this.sqliteDatasourceOverrides = sqliteDatasourceOverrides
     // We make a deep clone here as otherwise we would serialize circular references
     // which we're building up in the DMMFClass
     this.dmmf = new DMMFClass(JSON.parse(JSON.stringify(document)))
@@ -158,7 +164,14 @@ ${this.platforms ? this.platforms.map(p => `path.join(__dirname, 'runtime/query-
  * Client
 **/
 
-${new PhotonClientClass(this.dmmf, this.datamodel, this.internalDatasources, this.browser, this.generator)}
+${new PhotonClientClass(
+  this.dmmf,
+  this.datamodel,
+  this.internalDatasources,
+  this.browser,
+  this.generator,
+  this.sqliteDatasourceOverrides,
+)}
 
 ${/*new Query(this.dmmf, 'query')*/ ''}
 
@@ -209,6 +222,7 @@ class PhotonClientClass {
     protected readonly internalDatasources: InternalDatasource[],
     protected readonly browser?: boolean,
     protected readonly generator?: GeneratorConfig,
+    protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[],
   ) {}
   public toString() {
     const { dmmf } = this
@@ -240,6 +254,18 @@ export type Hooks = {
   beforeRequest?: (options: {query: string, path: string[], rootField?: string, typeName?: string, document: any}) => any
 }
 
+function uniqueBy(arr, cb) {
+  var a = arr.concat();
+  for(var i=0; i<a.length; ++i) {
+      for(var j=i+1; j<a.length; ++j) {
+          if(cb(a[i]) === cb(a[j]))
+              a.splice(j--, 1)
+      }
+  }
+
+  return a
+}
+
 export default class Photon {
   private fetcher: PhotonFetcher
   private readonly dmmf: DMMFClass
@@ -255,7 +281,12 @@ export default class Photon {
 
     // datamodel = datamodel without datasources + printed datasources
     this.datamodel = ${JSON.stringify(this.datamodel)}
-    const datasources = Object.entries(options.datasources || {}).map(([name, url]) => ({ name, url: url! }))
+
+    const predefinedDatasources = ${
+      this.sqliteDatasourceOverrides ? serializeDatasources(this.sqliteDatasourceOverrides) : '[]'
+    }
+    const inputDatasources = Object.entries(options.datasources || {}).map(([name, url]) => ({ name, url: url! }))
+    const datasources = uniqueBy([...predefinedDatasources, ...inputDatasources], source => source.name)
 
     const internal = options.__internal || {}
     const engineConfig = internal.engine || {}
@@ -275,11 +306,14 @@ export default class Photon {
     this.dmmf = new DMMFClass(dmmf)
     this.fetcher = new PhotonFetcher(this, this.engine, false, internal.hooks)
   }
+  private async connectEngine(publicCall?: boolean) {
+    return this.engine.start()
+  }
   connect(): Promise<void> {
     if (this.connectionPromise) {
       return this.connectionPromise
     }
-    this.connectionPromise = this.engine.start()
+    this.connectionPromise = this.connectEngine(true)
     return this.connectionPromise!
   }
   async disconnect() {
