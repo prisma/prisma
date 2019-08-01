@@ -6,7 +6,17 @@ The query engine binary is downloaded when you run `prisma2 generate`, it is the
 
 **IMPORTANT**: To ensure the query engine binary is compatible with your production environment, you have to [specify the right platform for Photon JS](../core/generators/photonjs.md#specifying-the-right-platform-for-photon-js).
 
-## Hosting providers
+## Examples
+
+Here are a number of example projects demonstrating how to deploy Photon JS to various deploymenty providers:
+
+- [Google Cloud Functions](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/google-cloud-functions)
+- [Netlify](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/netlify)
+- [Serverless](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/serverless)
+- [Up](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/up)
+- [ZEIT Now](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/zeit-now)
+
+## Deployment providers
 
 ### ZEIT Now
 
