@@ -17,7 +17,12 @@ import { promisify } from 'util'
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
 
-interface EngineConfig {
+export interface DatasourceOverwrite {
+  name: string
+  url: string
+}
+
+export interface EngineConfig {
   cwd?: string
   datamodel: string
   debug?: boolean
@@ -25,6 +30,7 @@ interface EngineConfig {
   platform?: Platform
   fetcher?: (query: string) => Promise<{ data?: any; error?: any }>
   generator?: GeneratorConfig
+  datasources?: DatasourceOverwrite[]
 }
 
 /**
@@ -78,8 +84,9 @@ export class NodeEngine extends Engine {
   platform?: Platform
   generator?: GeneratorConfig
   incorrectlyPinnedPlatform?: string
+  datasources?: DatasourceOverwrite[]
 
-  constructor({ cwd, datamodel, prismaPath, platform, generator, ...args }: EngineConfig) {
+  constructor({ cwd, datamodel, prismaPath, platform, generator, datasources, ...args }: EngineConfig) {
     super()
     this.cwd = cwd
     this.debug = args.debug || false
@@ -87,6 +94,8 @@ export class NodeEngine extends Engine {
     this.prismaPath = prismaPath
     this.platform = platform
     this.generator = generator
+    this.datasources = datasources
+
     if (platform) {
       if (!knownPlatforms.includes(platform)) {
         throw new Error(
@@ -222,6 +231,14 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     return prismaPath
   }
 
+  printDatasources(): string {
+    if (this.datasources) {
+      return JSON.stringify(this.datasources)
+    }
+
+    return '[]'
+  }
+
   /**
    * Starts the engine, returns the url that it runs on
    */
@@ -241,12 +258,20 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
     debugLib('node-engine', process.env)
 
-    // add the environment
-    this.child.env({
-      ...process.env,
+    const env: any = {
       PRISMA_DML: this.datamodel,
       PORT: String(this.port),
       RUST_BACKTRACE: '1',
+    }
+
+    if (this.datasources) {
+      env.OVERWRITE_DATASOURCES = this.printDatasources()
+    }
+
+    // add the environment
+    this.child.env({
+      ...process.env,
+      ...env,
     })
 
     // proxy stdout and stderr
