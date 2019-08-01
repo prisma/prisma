@@ -1,3 +1,3 @@
-# p2-bins
+# Deployment platforms
 
-p2 binary in various environments - experiments
+Prisma 2 in several deployment environments.
