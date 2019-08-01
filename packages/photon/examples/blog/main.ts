@@ -5,6 +5,9 @@ async function main() {
     debug: {
       library: false,
     },
+    datasources: {
+      db: 'file:db/migration_engine3.db',
+    },
   })
 
   // await photon.connect()
@@ -12,7 +15,7 @@ async function main() {
   // const prom = await photon.users()
   // console.log(prom)
 
-  const result = await photon.order_Items()
+  const result = await photon.posts()
 
   console.log(result)
 }

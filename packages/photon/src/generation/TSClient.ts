@@ -5,7 +5,6 @@ import { DMMFClass } from '../runtime/dmmf'
 import { BaseField, DMMF } from '../runtime/dmmf-types'
 import { capitalize, GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
 import { InternalDatasource } from '../runtime/utils/printDatasources'
-import { serializeDatasources } from './serializeDatasources'
 import {
   getArgName,
   getDefaultName,
@@ -35,9 +34,6 @@ const commonCode = runtimePath => `import {
   Engine,
   debugLib,
   transformDocument,
-  InternalDatasource,
-  Datasource,
-  printDatasources,
   chalk
 } from '${runtimePath}'
 
@@ -201,7 +197,7 @@ class Datasources {
   public toString() {
     const sources = this.internalDatasources
     return `export type Datasources = {
-${indent(sources.map(s => `${s.name}?: Datasource`).join('\n'), 2)}
+${indent(sources.map(s => `${s.name}?: string`).join('\n'), 2)}
 }`
   }
 }
@@ -248,7 +244,6 @@ export default class Photon {
   private fetcher: PhotonFetcher
   private readonly dmmf: DMMFClass
   private readonly engine: Engine
-  private readonly internalDatasources: InternalDatasource[]
   private readonly datamodel: string
   private connectionPromise?: Promise<any>
   constructor(options: PhotonOptions = {}) {
@@ -260,11 +255,7 @@ export default class Photon {
 
     // datamodel = datamodel without datasources + printed datasources
     this.datamodel = ${JSON.stringify(this.datamodel)}
-    this.internalDatasources = ${serializeDatasources(this.internalDatasources)}
-    const printedDatasources = printDatasources(options.datasources || {}, this.internalDatasources)
-    const datamodel = printedDatasources + '\\n\\n' + this.datamodel
-    debug('datamodel:')
-    debug(datamodel)
+    const datasources = Object.entries(options.datasources || {}).map(([name, url]) => ({ name, url: url! }))
 
     const internal = options.__internal || {}
     const engineConfig = internal.engine || {}
@@ -272,8 +263,9 @@ export default class Photon {
     this.engine = new Engine({
       cwd: engineConfig.cwd,
       debug: debugEngine,
-      datamodel,
+      datamodel: this.datamodel,
       prismaPath: engineConfig.binaryPath || undefined,
+      datasources,
       generator: ${this.generator ? JSON.stringify(this.generator) : 'undefined'},
       platform: ${
         this.generator && this.generator.pinnedPlatform ? JSON.stringify(this.generator.pinnedPlatform) : 'undefined'

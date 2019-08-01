@@ -64,17 +64,10 @@ export async function buildClient({
     projectDir: cwd || process.cwd(),
   })
   const config = await liftEngine.getConfig({ datamodel })
-  const datamodelWithoutDatasources = await liftEngine.convertDmmfToDml({
-    config: {
-      datasources: [],
-      generators: [],
-    },
-    dmmf: JSON.stringify(dmmf.datamodel),
-  })
 
   const client = new TSClient({
     document: dmmf,
-    datamodel: datamodelWithoutDatasources.datamodel,
+    datamodel,
     runtimePath,
     browser,
     datasources: resolveDatasources(config.datasources, cwd || process.cwd(), outputDir),

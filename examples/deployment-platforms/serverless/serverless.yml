@@ -2,7 +2,7 @@ service: p2-bins
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10.x
   region: eu-west-1
 
 plugins:
