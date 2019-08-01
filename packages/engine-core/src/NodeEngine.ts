@@ -304,7 +304,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         // engineReady's error.
 
         if (this.lastError) {
-          reject(new PhotonError(this.lastError))
+          return reject(new PhotonError(this.lastError))
         }
 
         try {
