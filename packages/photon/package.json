@@ -74,6 +74,7 @@
     "chalk": "^2.4.2",
     "cpy": "^7.3.0",
     "dotenv": "^8.0.0",
+    "execa": "^2.0.3",
     "flat-map-polyfill": "^0.3.8",
     "fs-monkey": "^0.3.3",
     "indent-string": "^4.0.0",

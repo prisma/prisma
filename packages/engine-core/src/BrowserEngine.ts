@@ -1,4 +1,3 @@
-import { PhotonError } from './Engine'
 import fetch from 'cross-fetch'
 
 export type Fetcher = (input: {
@@ -47,11 +46,7 @@ export class BrowserEngine {
         }
       })
       .catch(errors => {
-        if (!(errors instanceof PhotonError)) {
-          return this.handleErrors({ errors, query })
-        } else {
-          throw errors
-        }
+        return this.handleErrors({ errors, query })
       })
   }
 
@@ -72,6 +67,6 @@ export class BrowserEngine {
   handleErrors({ errors, query }: { errors?: any; query: string }) {
     const stringified = errors ? JSON.stringify(errors, null, 2) : null
     const message = stringified.length > 0 ? stringified : `Error in prisma.\$\{rootField || 'query'}`
-    throw new PhotonError(message, query, errors)
+    throw new Error(message)
   }
 }

@@ -1,8 +1,5 @@
 import { Engine, PhotonError } from './Engine'
 import got from 'got'
-import Process from './process'
-import Deferred from 'deferral'
-import through from 'through2'
 import debugLib from 'debug'
 import { getPlatform, Platform } from '@prisma/get-platform'
 import * as path from 'path'
@@ -13,6 +10,9 @@ import { GeneratorConfig } from '@prisma/cli'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixPlatforms, plusX } from './util'
 import { promisify } from 'util'
+import EventEmitter from 'events'
+import { convertLog, Log } from './log'
+import execa = require('execa')
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -34,21 +34,6 @@ export interface EngineConfig {
 }
 
 /**
- * Global process list so node.js doesn't get all uptight
- * about "Possible EventEmitter memory leak detected. 11 SIGTERM listeners added"
- */
-const processes: Process[] = []
-
-/**
- * Pass the signals through
- */
-// process.on('beforeExit', () => {
-//   processes.map(proc => proc.signal('SIGTERM'))
-// })
-// process.once('SIGTERM', sig => processes.map(proc => proc.signal(sig)))
-// process.once('SIGINT', sig => processes.map(proc => proc.signal(sig)))
-
-/**
  * Node.js based wrapper to run the Prisma binary
  */
 
@@ -61,9 +46,10 @@ const knownPlatforms = [
   'linux-musl-libssl1.1.0',
 ]
 export class NodeEngine extends Engine {
+  private logEmitter: EventEmitter
   port?: number
   debug: boolean
-  child?: Process
+  child?: execa.ExecaChildProcess
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -75,7 +61,7 @@ export class NodeEngine extends Engine {
   datamodel: string
   prismaPath?: string
   url: string
-  starting?: Deferred<void>
+  ready: boolean = false
   stderrLogs: string = ''
   stdoutLogs: string = ''
   currentRequestPromise?: Promise<any>
@@ -85,6 +71,8 @@ export class NodeEngine extends Engine {
   generator?: GeneratorConfig
   incorrectlyPinnedPlatform?: string
   datasources?: DatasourceOverwrite[]
+  lastError?: Log
+  startPromise?: Promise<any>
 
   constructor({ cwd, datamodel, prismaPath, platform, generator, datasources, ...args }: EngineConfig) {
     super()
@@ -95,6 +83,13 @@ export class NodeEngine extends Engine {
     this.platform = platform
     this.generator = generator
     this.datasources = datasources
+    this.logEmitter = new EventEmitter()
+
+    this.logEmitter.on('log', log => {
+      if (log.level === 'error') {
+        this.lastError = log
+      }
+    })
 
     if (platform) {
       if (!knownPlatforms.includes(platform)) {
@@ -111,6 +106,10 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
     if (this.debug) {
       debugLib.enable('engine')
     }
+  }
+
+  on(event: 'log', listener: (log: Log) => any) {
+    this.logEmitter.on(event, listener)
   }
 
   async getPlatform() {
@@ -243,77 +242,85 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
    * Starts the engine, returns the url that it runs on
    */
   async start(): Promise<void> {
-    if (this.starting) {
-      return this.starting.wait()
+    if (!this.startPromise) {
+      this.startPromise = this.internalStart()
     }
-    this.starting = new Deferred()
-    this.child = new Process(await this.getPrismaPath())
+    return this.startPromise
+  }
 
-    // set the working directory
-    if (this.cwd) {
-      this.child.cwd(this.cwd)
-    }
+  private internalStart(): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        this.port = await this.getFreePort()
 
-    this.port = await this.getFreePort()
+        const env: any = {
+          ...process.env,
+          PRISMA_DML: this.datamodel,
+          PORT: String(this.port),
+          RUST_BACKTRACE: '1',
+        }
 
-    debugLib('node-engine', process.env)
+        debugLib('engine')(env)
 
-    const env: any = {
-      PRISMA_DML: this.datamodel,
-      PORT: String(this.port),
-      RUST_BACKTRACE: '1',
-    }
+        if (this.datasources) {
+          env.OVERWRITE_DATASOURCES = this.printDatasources()
+        }
 
-    if (this.datasources) {
-      env.OVERWRITE_DATASOURCES = this.printDatasources()
-    }
+        this.child = execa(await this.getPrismaPath(), {
+          env,
+        })
 
-    // add the environment
-    this.child.env({
-      ...process.env,
-      ...env,
+        this.child.stderr.on('data', data => {
+          const message = String(data)
+          this.stderrLogs += message
+          debugLib('engine:stderr')(message)
+        })
+
+        this.child.stdout.on('data', data => {
+          const message = String(data)
+          debugLib('engine:stdout')(message)
+          try {
+            const json = JSON.parse(message)
+            const log = convertLog(json)
+            this.logEmitter.emit('log', log)
+            // if (log.level === 'error') {
+            //   reject(new PhotonError(log))
+            // }
+          } catch (e) {
+            //
+          }
+        })
+
+        this.child.on('error', err => {
+          reject(err)
+        })
+
+        // wait for the engine to be ready
+        // TODO: we should fix this since it's not obvious what's happening
+        // here. We wait for the engine to try and connect, if it fails
+        // we'll try to kill the child. Often times the child is already
+        // dead and will also throw. We prefer that error over engineReady's
+        // error, so we take that first. If there wasn't an error, we'll use
+        // engineReady's error.
+
+        if (this.lastError) {
+          reject(new PhotonError(this.lastError))
+        }
+
+        try {
+          await this.engineReady()
+        } catch (err) {
+          await this.child.kill()
+          throw err
+        }
+
+        const url = `http://localhost:${this.port}`
+        this.url = url
+        resolve()
+      } catch (e) {
+        reject(e)
+      }
     })
-
-    // proxy stdout and stderr
-    this.child.stderr(
-      debugStream(data => {
-        this.stderrLogs += data
-        debugLib('engine:stderr')(data)
-      }),
-    )
-    this.child.stdout(
-      debugStream(data => {
-        this.stdoutLogs += data
-        debugLib('engine:stdout')(data)
-      }),
-    )
-
-    // start the process
-    await this.child.start()
-
-    // add process to processes list
-    processes.push(this.child)
-
-    // wait for the engine to be ready
-    // TODO: we should fix this since it's not obvious what's happening
-    // here. We wait for the engine to try and connect, if it fails
-    // we'll try to kill the child. Often times the child is already
-    // dead and will also throw. We prefer that error over engineReady's
-    // error, so we take that first. If there wasn't an error, we'll use
-    // engineReady's error.
-    try {
-      await this.engineReady()
-    } catch (err) {
-      await this.child.kill()
-      throw err
-    }
-
-    const url = `http://localhost:${this.port}`
-    this.url = url
-
-    // resolve starting to unlock other stakeholders
-    this.starting.resolve()
-    return
   }
 
   fail = async (e, why) => {
@@ -336,11 +343,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     if (this.child) {
       debug(`Stopping Prisma engine`)
       this.exiting = true
-      await this.child.kill()
+      await this.child.cancel()
       delete this.child
-      // cleanup processes array
-      const i = processes.indexOf(this.child)
-      if (~i) processes.splice(i, 1)
     }
   }
 
@@ -382,15 +386,19 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     while (true) {
       if (!this.child) {
         return
-      } else if (!(await this.child.running())) {
+      } else if (this.child.killed) {
         throw new Error('Engine has died')
       }
+      await new Promise(r => setTimeout(r, 50))
+      if (this.lastError) {
+        throw new PhotonError(this.lastError)
+      }
       try {
-        await new Promise(r => setTimeout(r, 50)) // TODO: Try out lower intervals here, but we also don't want to spam it too much.
-        const response = await got(`http://localhost:${this.port}/status`, {
+        await got(`http://localhost:${this.port}/status`, {
           timeout: 5000, // not official but node-fetch supports it
         })
         debug(`Ready after try number ${tries}`)
+        this.ready = true
         return
       } catch (e) {
         debug(e.message)
@@ -460,18 +468,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   handleErrors({ errors, query }: { errors?: any; query: string }) {
     const stringified = errors ? this.serializeErrors(errors) : null
     const message = stringified.length > 0 ? stringified : `Error in photon.\$\{rootField || 'query'}`
-    const isPanicked = this.stderrLogs.includes('panicked')
+    const isPanicked = this.stderrLogs.includes('panicked') || this.stdoutLogs.includes('panicked') // TODO better handling
     if (isPanicked) {
       this.stop()
     }
-    throw new PhotonError(message, query, errors, this.stderrLogs + this.stdoutLogs, isPanicked)
+    throw new Error(message)
   }
-}
-
-// simple utility function to turn debug into a writable stream
-function debugStream(debugFn: any): NodeJS.WritableStream {
-  return through(function(chunk, _enc, fn) {
-    debugFn(chunk.toString())
-    fn()
-  })
 }
