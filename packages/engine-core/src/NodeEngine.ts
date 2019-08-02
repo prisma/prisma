@@ -254,20 +254,22 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.port = await this.getFreePort()
 
         const env: any = {
-          ...process.env,
           PRISMA_DML: this.datamodel,
           PORT: String(this.port),
           RUST_BACKTRACE: '1',
         }
 
-        debugLib('engine')(env)
-
         if (this.datasources) {
           env.OVERWRITE_DATASOURCES = this.printDatasources()
         }
 
+        debugLib('engine')(env)
+
         this.child = execa(await this.getPrismaPath(), {
-          env,
+          env: {
+            ...process.env,
+            ...env,
+          },
         })
 
         this.child.stderr.on('data', data => {
