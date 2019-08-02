@@ -168,6 +168,7 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
     return null
   }
 
+  // get prisma path
   private async getPrismaPath() {
     const prismaPath = await this.resolvePrismaPath()
     if (!(await exists(prismaPath))) {
