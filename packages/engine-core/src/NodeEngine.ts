@@ -283,9 +283,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             const json = JSON.parse(message)
             const log = convertLog(json)
             this.logEmitter.emit('log', log)
-            // if (log.level === 'error') {
-            //   reject(new PhotonError(log))
-            // }
           } catch (e) {
             //
           }

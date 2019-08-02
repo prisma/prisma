@@ -1,7 +1,11 @@
 import { GeneratorDefinition, GeneratorFunction } from '@prisma/cli'
 import chalk from 'chalk'
+import fs from 'fs'
+import { promisify } from 'util'
 import { generateClient } from './generation/generateClient'
-import { getDatamodel } from './utils/getDatamodel'
+import { getDatamodelPath } from './utils/getDatamodel'
+
+const readFile = promisify(fs.readFile)
 
 const defaultOutput = 'node_modules/@generated/photon'
 
@@ -24,7 +28,8 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
       }
     }
   }
-  const datamodel = await getDatamodel(cwd)
+  const datamodelPath = await getDatamodelPath(cwd)
+  const datamodel = await readFile(datamodelPath, 'utf-8')
   const output = generator.output || defaultOutput
   const transpile =
     generator.config && typeof generator.config.transpile !== 'undefined'
@@ -35,6 +40,7 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
 
   await generateClient({
     datamodel,
+    datamodelPath,
     cwd,
     outputDir: output,
     transpile,

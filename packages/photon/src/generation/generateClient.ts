@@ -33,6 +33,7 @@ const copyFile = promisify(fs.copyFile)
 
 export interface GenerateClientOptions {
   datamodel: string
+  datamodelPath?: string
   browser?: boolean
   cwd?: string
   transpile?: boolean
@@ -47,6 +48,7 @@ export interface GenerateClientOptions {
 
 export async function buildClient({
   datamodel,
+  datamodelPath,
   cwd,
   transpile = false,
   runtimePath = './runtime',
@@ -60,7 +62,7 @@ export async function buildClient({
 
   const fileMap = {}
 
-  const dmmf = await getDMMF({ datamodel, cwd, prismaPath: binaryPath })
+  const dmmf = await getDMMF({ datamodel, datamodelPath, cwd, prismaPath: binaryPath })
   const liftEngine = new LiftEngine({
     projectDir: cwd || process.cwd(),
   })
@@ -142,6 +144,7 @@ function normalizeFileMap(fileMap: Dictionary<string>) {
 
 export async function generateClient({
   datamodel,
+  datamodelPath,
   cwd,
   outputDir,
   transpile,
@@ -200,6 +203,7 @@ In case you want to fix this, you can provide ${chalk.greenBright(
     platforms: resolvedPlatforms,
     pinnedPlatform,
     generator,
+    datamodelPath,
   })
   await makeDir(outputDir)
   await Promise.all(
