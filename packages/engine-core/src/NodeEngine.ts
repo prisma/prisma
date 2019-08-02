@@ -266,28 +266,31 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         debugLib('engine', env)
 
-        this.child = spawn(await this.getPrismaPath(), [], {
+        const prismaPath = await this.getPrismaPath()
+
+        this.child = spawn(prismaPath, [], {
           env: {
             ...process.env,
             ...env,
           },
+          stdio: ['pipe', 'pipe', 'ignore'],
         })
 
-        this.child.stdout &&
-          this.child.stdout.on('data', msg => {
-            const data = String(msg)
-            try {
-              const json = JSON.parse(data)
-              const log = convertLog(json)
-              this.logEmitter.emit('log', log)
-            } catch (e) {
-              debugLib('engine', e)
-              //
-            }
-          }),
-          this.child.on('error', err => {
-            reject(err)
-          })
+        this.child.stdout.on('data', msg => {
+          const data = String(msg)
+          try {
+            const json = JSON.parse(data)
+            const log = convertLog(json)
+            this.logEmitter.emit('log', log)
+          } catch (e) {
+            debugLib('engine', e)
+            //
+          }
+        })
+
+        this.child.on('error', err => {
+          reject(err)
+        })
 
         // wait for the engine to be ready
         // TODO: we should fix this since it's not obvious what's happening
