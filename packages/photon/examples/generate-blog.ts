@@ -6,10 +6,12 @@ import fs from 'fs'
 
 async function main() {
   const before = performance.now()
-  const blog = fs.readFileSync(path.resolve(__dirname, './blog/project.prisma'), 'utf-8')
+  const datamodelPath = path.resolve(__dirname, './blog/project.prisma')
+  const blog = fs.readFileSync(datamodelPath, 'utf-8')
   // const platforms = ['native', 'linux-glibc-libssl1.1.0']
   const platforms = ['native']
   await generateClient({
+    datamodelPath,
     datamodel: blog,
     cwd: path.join(__dirname, './blog/'),
     outputDir: path.join(__dirname, './blog/@generated/photon'),
