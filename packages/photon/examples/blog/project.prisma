@@ -10,9 +10,9 @@ generator photon {
   transpile = false
 }
 
-model User 
+model User {
   id    String  @id @default(uuid())
-  email String  @unique
+  email String
   name  String?
   posts Post[]
 }

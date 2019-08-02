@@ -12,6 +12,12 @@ export class PhotonError extends Error {
   }
 }
 
+export class PhotonQueryError extends Error {
+  constructor(message: string) {
+    super(message)
+  }
+}
+
 function serializeObject(obj) {
   return Object.entries(obj)
     .map(([key, value]) => `${key}=${JSON.parse(JSON.stringify(value))}`)

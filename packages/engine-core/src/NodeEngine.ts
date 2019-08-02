@@ -1,4 +1,4 @@
-import { Engine, PhotonError } from './Engine'
+import { Engine, PhotonError, PhotonQueryError } from './Engine'
 import got from 'got'
 import debugLib from 'debug'
 import { getPlatform, Platform } from '@prisma/get-platform'
@@ -12,7 +12,7 @@ import { fixPlatforms, plusX } from './util'
 import { promisify } from 'util'
 import EventEmitter from 'events'
 import { convertLog, Log } from './log'
-import execa = require('execa')
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -49,7 +49,7 @@ export class NodeEngine extends Engine {
   private logEmitter: EventEmitter
   port?: number
   debug: boolean
-  child?: execa.ExecaChildProcess
+  child?: ChildProcessWithoutNullStreams
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -89,6 +89,9 @@ export class NodeEngine extends Engine {
       if (log.level === 'error') {
         this.lastError = log
       }
+      if (this.debug) {
+        debugLib('engine:log')(log)
+      }
     })
 
     if (platform) {
@@ -104,7 +107,7 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
       this.getPlatform()
     }
     if (this.debug) {
-      debugLib.enable('engine')
+      debugLib.enable('*')
     }
   }
 
@@ -157,8 +160,6 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
       }),
     )
 
-    debug({ binariesExist })
-
     const firstExistingPlatform = binariesExist.find(b => b.exists)
     if (firstExistingPlatform) {
       return firstExistingPlatform.filePath
@@ -169,7 +170,6 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
 
   private async getPrismaPath() {
     const prismaPath = await this.resolvePrismaPath()
-    debug({ prismaPath })
     if (!(await exists(prismaPath))) {
       let info = '.'
       if (this.generator) {
@@ -263,36 +263,30 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           env.OVERWRITE_DATASOURCES = this.printDatasources()
         }
 
-        debugLib('engine')(env)
+        debugLib('engine', env)
 
-        this.child = execa(await this.getPrismaPath(), {
+        this.child = spawn(await this.getPrismaPath(), [], {
           env: {
             ...process.env,
             ...env,
           },
         })
 
-        this.child.stderr.on('data', data => {
-          const message = String(data)
-          this.stderrLogs += message
-          debugLib('engine:stderr')(message)
-        })
-
-        this.child.stdout.on('data', data => {
-          const message = String(data)
-          debugLib('engine:stdout')(message)
-          try {
-            const json = JSON.parse(message)
-            const log = convertLog(json)
-            this.logEmitter.emit('log', log)
-          } catch (e) {
-            //
-          }
-        })
-
-        this.child.on('error', err => {
-          reject(err)
-        })
+        this.child.stdout &&
+          this.child.stdout.on('data', msg => {
+            const data = String(msg)
+            try {
+              const json = JSON.parse(data)
+              const log = convertLog(json)
+              this.logEmitter.emit('log', log)
+            } catch (e) {
+              debugLib('engine', e)
+              //
+            }
+          }),
+          this.child.on('error', err => {
+            reject(err)
+          })
 
         // wait for the engine to be ready
         // TODO: we should fix this since it's not obvious what's happening
@@ -342,7 +336,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     if (this.child) {
       debug(`Stopping Prisma engine`)
       this.exiting = true
-      await this.child.cancel()
+      await this.child.kill()
       delete this.child
     }
   }
@@ -446,7 +440,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           const logs = this.stderrLogs || this.stdoutLogs
           throw new Error(logs)
         }
-        if (!(errors instanceof PhotonError)) {
+        if (!(errors instanceof PhotonQueryError)) {
           return this.handleErrors({ errors, query })
         } else {
           throw errors
@@ -471,6 +465,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     if (isPanicked) {
       this.stop()
     }
-    throw new Error(message)
+    throw new PhotonQueryError(message)
   }
 }
