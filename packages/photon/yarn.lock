@@ -324,10 +324,10 @@
     chalk "^2.4.2"
     strip-indent "^3.0.0"
 
-"@prisma/engine-core@0.0.78":
-  version "0.0.78"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.78.tgz#4765b85c4495f29c417421cb0e222d495d39c4e9"
-  integrity sha512-au2JwnsvoUEuJinXcS8rvDV9QmJCvCuTQxdHytHvra74nUGjiCVXbfxzwzkKL36okPxXl5KkTkkgWY5Z0m+oyw==
+"@prisma/engine-core@0.0.79":
+  version "0.0.79"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.79.tgz#98e20484325e977d9a022397a4c9854238246fe1"
+  integrity sha512-tBBKSb+VeXWhs1/iSZo8YG6j4NKJjWR21ADaMW7ydi2PbpqvxD3e4GfJX7Sy3y/BctgLbmArpkpffJmcaZ2XCQ==
   dependencies:
     "@prisma/cli" "^0.0.42"
     "@prisma/get-platform" "^0.0.3"
@@ -336,6 +336,7 @@
     debug "^4.1.1"
     execa "^2.0.3"
     got "^9.6.0"
+    through2 "^3.0.1"
 
 "@prisma/fetch-engine@^0.1.3":
   version "0.1.3"
@@ -6070,7 +6071,7 @@ read-pkg@^3.0.0:
     string_decoder "~1.1.1"
     util-deprecate "~1.0.1"
 
-readable-stream@^3.1.1:
+"readable-stream@2 || 3", readable-stream@^3.1.1:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-3.4.0.tgz#a51c26754658e0a3c21dbf59163bd45ba6f447fc"
   integrity sha512-jItXPLmrSR8jmTRmRWJXCnGJsfy85mB3Wd/uINMXA65yrnFo0cPClFIUWzo2najVNSl+mx7/4W8ttlLWJe99pQ==
@@ -6985,6 +6986,13 @@ through2@^2.0.0:
   dependencies:
     readable-stream "~2.3.6"
     xtend "~4.0.1"
+
+through2@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/through2/-/through2-3.0.1.tgz#39276e713c3302edf9e388dd9c812dd3b825bd5a"
+  integrity sha512-M96dvTalPT3YbYLaKaCuwu+j06D/8Jfib0o/PxbVt6Amhv3dUAtW6rTV1jPgJSBG83I/e04Y6xkVdVhSRhi0ww==
+  dependencies:
+    readable-stream "2 || 3"
 
 through@^2.3.6:
   version "2.3.8"
