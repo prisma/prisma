@@ -1,6 +1,6 @@
 # Generated Photon API (JavaScript/TypeScript)
 
-Photon is a type-safe database client auto-generated based on your [data model definition](../daa-modeling.md#data-model-definition) (which is a representation of your database schema). This page explains the generated API operations you have available when using Photon.
+Photon is a type-safe database client auto-generated based on your [data model definition](../data-modeling.md#data-model-definition) (which is a representation of your database schema). This page explains the generated API operations you have available when using Photon.
 
 - [Overview](#overview)
 - [CRUD](#crud)
