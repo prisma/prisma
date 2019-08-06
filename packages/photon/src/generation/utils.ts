@@ -159,6 +159,9 @@ export function getSelectReturnType({
 
   const requiredArgName = getModelArgName(name, undefined, actionName as DMMF.ModelAction) + 'Required'
   const requiredCheck = `T extends ${requiredArgName} ? 'Please either choose \`select\` or \`include\`' : `
+  if (actionName === 'deleteMany' || actionName === 'updateMany') {
+    return `Promise<BatchPayload>`
+  }
 
   /**
    * Important: We handle findMany or isList special, as we don't want chaining from there
