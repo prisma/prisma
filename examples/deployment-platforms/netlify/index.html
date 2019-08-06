@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <p class="js-users">Loading users...</p>
+    <script type="text/javascript">
+      function main() {
+        fetch('/.netlify/functions/index')
+          .then(function(response) {
+            return response.text()
+          })
+          .then(function(date) {
+            document.querySelector('.js-users').textContent = date
+          })
+          .catch(e => console.log(e))
+      }
+      main()
+    </script>
+  </body>
+</html>

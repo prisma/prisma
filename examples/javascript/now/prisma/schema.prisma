@@ -1,0 +1,121 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://prisma:localhost:3306/strapi"
+}
+
+generator photon {
+  provider = "photonjs"
+}
+
+model CoreStore {
+  id          Int     @id
+  environment String?
+  key         String?
+  tag         String?
+  type        String?
+  value       String?
+
+  @@map("core_store")
+}
+
+model Migration {
+  revision          Int       @id
+  applied           Int
+  databaseMigration String    @map("database_migration")
+  datamodel         String
+  datamodelSteps    String    @map("datamodel_steps")
+  errors            String
+  finishedAt        DateTime? @map("finished_at")
+  name              String
+  rolledBack        Int       @map("rolled_back")
+  startedAt         DateTime  @map("started_at")
+  status            String
+
+  @@map("_Migration")
+}
+
+model Post {
+  id        Int       @id
+  content   String?
+  createdAt DateTime? @map("created_at")
+  reads     Int
+  title     String
+  updatedAt DateTime? @map("updated_at")
+
+  @@map("posts")
+}
+
+model StrapiAdministrator {
+  id                 Int      @id
+  blocked            Boolean?
+  email              String
+  password           String
+  resetPasswordToken String?
+  username           String
+
+  @@map("strapi_administrator")
+}
+
+model UploadFile {
+  id        Int       @id
+  createdAt DateTime? @map("created_at")
+  ext       String?
+  hash      String
+  mime      String
+  name      String
+  provider  String
+  publicId  String?   @map("public_id")
+  sha256    String?
+  size      String
+  updatedAt DateTime? @map("updated_at")
+  url       String
+
+  @@map("upload_file")
+}
+
+model UploadFileMorph {
+  id           Int     @id
+  field        String?
+  relatedId    Int?    @map("related_id")
+  relatedType  String? @map("related_type")
+  uploadFileId Int?    @map("upload_file_id")
+
+  @@map("upload_file_morph")
+}
+
+model UsersPermissionsPermission {
+  id         Int     @id
+  action     String
+  controller String
+  enabled    Boolean
+  policy     String?
+  role       Int?
+  type       String
+
+  @@map("users-permissions_permission")
+}
+
+model UsersPermissionsRole {
+  id          Int     @id
+  description String?
+  name        String
+  type        String?
+
+  @@map("users-permissions_role")
+}
+
+model UsersPermissionsUser {
+  id                 Int       @id
+  blocked            Boolean?
+  confirmed          Boolean?
+  createdAt          DateTime? @map("created_at")
+  email              String
+  password           String?
+  provider           String?
+  resetPasswordToken String?
+  role               Int?
+  updatedAt          DateTime? @map("updated_at")
+  username           String
+
+  @@map("users-permissions_user")
+}

@@ -1,0 +1,6 @@
+{
+  "name": "photon-app",
+  "lambda": {
+    "memory": 512
+  }
+}
