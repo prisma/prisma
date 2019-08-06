@@ -31,10 +31,12 @@ function rustToPublicLogLevel(rustLevel: RustLogLevel): LogLevel {
 }
 
 export function convertLog(rustLog: RustLog): Log {
+  const { msg, level, application, ts, ...rest } = rustLog
   return {
-    message: rustLog.msg,
-    level: rustToPublicLogLevel(rustLog.level),
-    application: rustLog.application,
-    date: new Date(rustLog.ts),
+    message: msg,
+    level: rustToPublicLogLevel(level),
+    application: application,
+    date: new Date(ts),
+    ...rest,
   }
 }
