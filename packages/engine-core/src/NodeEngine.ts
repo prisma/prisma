@@ -64,7 +64,7 @@ export class NodeEngine extends Engine {
   ready: boolean = false
   stderrLogs: string = ''
   stdoutLogs: string = ''
-  currentRequestPromise?: Promise<any>
+  currentRequestPromise?: any
   cwdPromise: Promise<string>
   platformPromise: Promise<Platform>
   platform?: Platform
@@ -88,6 +88,9 @@ export class NodeEngine extends Engine {
     this.logEmitter.on('log', log => {
       if (log.level === 'error') {
         this.lastError = log
+        if (log.message === 'PANIC') {
+          this.handlePanic(log)
+        }
       }
       if (this.debug) {
         debugLib('engine:log')(log)
@@ -123,6 +126,13 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
     this.platformPromise = getPlatform()
 
     return this.platformPromise
+  }
+
+  private handlePanic(log: Log) {
+    this.child.kill()
+    if (this.currentRequestPromise) {
+      ;(this.currentRequestPromise as any).cancel()
+    }
   }
 
   private async resolvePrismaPath() {
@@ -421,14 +431,15 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     if (!this.child) {
       throw new Error(`Engine has already been stopped`)
     }
-    this.currentRequestPromise = got
-      .post(this.url, {
-        json: true,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: { query, variables: {}, operationName: '' },
-      })
+    this.currentRequestPromise = got.post(this.url, {
+      json: true,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: { query, variables: {}, operationName: '' },
+    })
+
+    return this.currentRequestPromise
       .then(({ body }) => {
         const errors = body.error || body.errors
         if (errors) {
@@ -439,18 +450,23 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         }
         return body.data
       })
-      .catch(errors => {
-        if (errors.code && errors.code === 'ECONNRESET') {
+      .catch(error => {
+        if (this.currentRequestPromise.isCanceled && this.lastError) {
+          throw new PhotonError(this.lastError)
+        }
+        if (error.code && error.code === 'ECONNRESET') {
+          if (this.lastError) {
+            throw new PhotonError(this.lastError)
+          }
           const logs = this.stderrLogs || this.stdoutLogs
           throw new Error(logs)
         }
-        if (!(errors instanceof PhotonQueryError)) {
-          return this.handleErrors({ errors, query })
+        if (!(error instanceof PhotonQueryError)) {
+          return this.handleErrors({ errors: error, query })
         } else {
-          throw errors
+          throw error
         }
       })
-    return this.currentRequestPromise
   }
 
   private serializeErrors(errors: any) {

@@ -36,7 +36,8 @@ const commonCode = runtimePath => `import {
   Engine,
   debugLib,
   transformDocument,
-  chalk
+  chalk,
+  printStack
 } from '${runtimePath}'
 
 import path = require('path')
@@ -77,19 +78,32 @@ class PhotonFetcher {
     private readonly debug = false,
     private readonly hooks?: Hooks
   ) {}
-  async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string, isList?: boolean): Promise<T> {
+  async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string, isList?: boolean, callsite?: string): Promise<T> {
     const query = String(document)
     debug(query)
     if (this.hooks && this.hooks.beforeRequest) {
-      this.hooks.beforeRequest({query, path, rootField, typeName, document})
+      this.hooks.beforeRequest({ query, path, rootField, typeName, document })
     }
-    await this.photon.connect()
     try {
+      await this.photon.connect()
       const result = await this.engine.request(query, typeName)
       debug(result)
       return this.unpack(result, path, rootField, isList)
     } catch (e) {
-      throw new Error(\`Error in Photon\${path}: \\n\` + e.message)
+      if (callsite) {
+        const { stack } = printStack({
+          callsite,
+          originalMethod: path.join('.'),
+          onUs: e.isPanic
+        })
+        throw new Error(stack + '\\n\\n' + e.message)
+      } else {
+        if (e.isPanic) {
+          throw e
+        } else {
+          throw new Error(\`Error in Photon\${path}: \\n\` + e.message)
+        }
+      }
     }
   }
   protected unpack(data: any, path: string[], rootField?: string, isList?: boolean) {
@@ -195,6 +209,14 @@ ${Object.values(this.dmmf.modelMap)
  */
 
 ${this.dmmf.inputTypes.map(inputType => new InputType(inputType)).join('\n')}
+
+/**
+ * Batch Payload for updateMany & deleteMany
+ */
+
+export type BatchPayload = {
+  count: number
+}
 
 /**
  * DMMF
@@ -488,7 +510,11 @@ export class Model {
       if (!field) {
         throw new Error(`Oops this must not happen. Could not find field ${fieldName} on either Query or Mutation`)
       }
-      argsTypes.push(new ArgsType(field.args, model, action as DMMF.ModelAction))
+      if (action === 'updateMany' || action === 'deleteMany') {
+        argsTypes.push(new MinimalArgsType(field.args, model, action as DMMF.ModelAction))
+      } else {
+        argsTypes.push(new ArgsType(field.args, model, action as DMMF.ModelAction))
+      }
     }
 
     argsTypes.push(new ArgsType([], model))
@@ -651,29 +677,34 @@ function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delega
     })}>(dmmf, fetcher, 'query', '${mapping.findMany}', '${mapping.plural}', args, [])
 ${indent(
   actions
-    .map(
-      ([actionName, fieldName]: [any, any]) =>
-        `${name}.${actionName} = <T extends ${getModelArgName(
-          name,
-          /*projection*/ undefined,
-          actionName as DMMF.ModelAction,
-        )}>(args: Subset<T, ${getModelArgName(name, Projection.select, actionName as DMMF.ModelAction)}>) => ${
-          actionName !== 'findMany' ? `args.select ? ` : ''
-        }new ${name}Client<${getSelectReturnType({
-          name,
-          actionName,
-          hideCondition: false,
-          isField: true,
-          projection: Projection.select,
-        })}>(${renderInitialClientArgs(actionName, fieldName, mapping)})${
-          actionName !== 'findMany'
-            ? ` : new ${name}Client<${getType(name, actionName === 'findMany')}>(${renderInitialClientArgs(
-                actionName,
-                fieldName,
-                mapping,
-              )})`
-            : ''
-        }`,
+    .map(([actionName, fieldName]: [any, any]) =>
+      actionName === 'deleteMany' || actionName === 'updateMany'
+        ? `${name}.${actionName} = (args: ${getModelArgName(
+            name,
+            undefined,
+            actionName,
+          )}) => new ${name}Client<Promise<BatchPayload>>(${renderInitialClientArgs(actionName, fieldName, mapping)})`
+        : `${name}.${actionName} = <T extends ${getModelArgName(
+            name,
+            /*projection*/ undefined,
+            actionName as DMMF.ModelAction,
+          )}>(args: Subset<T, ${getModelArgName(name, Projection.select, actionName as DMMF.ModelAction)}>) => ${
+            actionName !== 'findMany' ? `args.select ? ` : ''
+          }new ${name}Client<${getSelectReturnType({
+            name,
+            actionName,
+            hideCondition: false,
+            isField: true,
+            projection: Projection.select,
+          })}>(${renderInitialClientArgs(actionName, fieldName, mapping)})${
+            actionName !== 'findMany'
+              ? ` : new ${name}Client<${getType(name, actionName === 'findMany')}>(${renderInitialClientArgs(
+                  actionName,
+                  fieldName,
+                  mapping,
+                )})`
+              : ''
+          }`,
     )
     .join('\n'),
   tab,
@@ -690,7 +721,7 @@ export class ${name}Client<T> implements Promise<T> {
     private readonly _queryType: 'query' | 'mutation',
     private readonly _rootField: string,
     private readonly _clientMethod: string,
-    private readonly _args: ${getArgName(name, false)},
+    private readonly _args: any,
     private readonly _path: string[],
     private _isList = false
   ) {
@@ -772,7 +803,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
     onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
     if (!this._requestPromise){
-      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList)
+      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite)
     }
     return this._requestPromise!.then(onfulfilled, onrejected)
   }
@@ -786,7 +817,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
     onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null,
   ): Promise<T | TResult> {
     if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList)
+      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite)
     }
     return this._requestPromise!.catch(onrejected)
   }
@@ -799,7 +830,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
    */
   finally(onfinally?: (() => void) | undefined | null): Promise<T> {
     if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList)
+      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite)
     }
     return this._requestPromise!.finally(onfinally)
   }
@@ -928,6 +959,27 @@ ${indent(type.fields.map(field => new OutputField({ ...field, ...field.outputTyp
 
 interface Stringifiable {
   toString(): string
+}
+
+export class MinimalArgsType {
+  constructor(
+    protected readonly args: DMMF.SchemaArg[],
+    protected readonly model: DMMF.Model,
+    protected readonly action?: DMMF.ModelAction,
+  ) {}
+  public toString() {
+    const { action, args } = this
+    const { name } = this.model
+
+    return `
+/**
+ * ${name} ${action ? action : 'without action'}
+ */
+export type ${getModelArgName(name, undefined, action)} = {
+${indent(args.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+}
+`
+  }
 }
 
 export class ArgsType {

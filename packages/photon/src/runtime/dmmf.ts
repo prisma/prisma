@@ -20,8 +20,6 @@ export class DMMFClass implements DMMF.Document {
     this.enumMap = this.getEnumMap()
     this.queryType = this.getQueryType()
     this.mutationType = this.getMutationType()
-    this.schema.outputTypes.push(this.queryType) // create "virtual" query type
-    this.schema.outputTypes.push(this.mutationType) // create "virtual" mutation type
     this.modelMap = this.getModelMap()
     this.outputTypes = this.getOutputTypes()
 
