@@ -1,0 +1,19 @@
+service: p2-bins
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: eu-west-1
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-offline
+
+functions:
+  server:
+    handler: server.handler
+    events:
+      - http: GET /
+    timeout: 60
+    environment:
+      POSTGRESQL_URL: ${env:POSTGRESQL_URL}

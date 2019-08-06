@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "sourceMap": true,
+    "outDir": "dist",
+    // `strict` will be enabled once this is fixed: https://github.com/prisma/graphqlgen/issues/319 ...
+    // "strict": true,
+    // ... until then we include the options from `strict` that are not concerned by this bug
+    "strictFunctionTypes": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "lib": ["esnext", "dom"]
+  }
+}
