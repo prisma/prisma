@@ -1,0 +1,14 @@
+{
+  "name": "script",
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {},
+  "scripts": {
+    "start": "node src/script.js",
+    "seed": "node prisma/seed.js",
+    "postinstall": "prisma2 generate"
+  },
+  "devDependencies": {
+    "ts-node": "^8.3.0"
+  }
+}

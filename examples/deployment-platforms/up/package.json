@@ -1,0 +1,17 @@
+{
+  "name": "up",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "prisma2": "^2.0.0-preview-3.2"
+  },
+  "scripts": {
+    "postinstall": "prisma2 generate",
+    "start": "node app.js",
+    "deploy": "up"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
