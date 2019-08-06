@@ -11,25 +11,13 @@ generator photon {
 }
 
 model User {
-  id    String  @id @default(uuid())
-  email String
-  name  String?
-  posts Post[]
+  id       String @id @default(cuid())
+  username String @unique
+  posts    Post[]
 }
 
 model Post {
-  id         String   @id @default(uuid())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  randomDate DateTime
-  published  Boolean
-  title      String
-  content    String?
-  author     User?
-}
-
-/// Role num comment
-enum Role {
-  USER
-  ADMIN
+  id   String @id @default(cuid())
+  data String
+  user User?
 }
