@@ -1,4 +1,0 @@
-.env.development
-.env.production
-.env*
-.serverless
