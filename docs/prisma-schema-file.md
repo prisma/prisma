@@ -105,7 +105,7 @@ datasource postgresql {
   url       = env("POSTGRESQL_URL")
 }
 
-# Note: MongoDB is currently not supported with Prisma 2, but will be soon.
+// Note: MongoDB is currently not supported with Prisma 2, but will be soon.
 datasource mongo {
   provider  = "mongo"
   url       = env("MONGO_URL")
@@ -130,6 +130,7 @@ datasource mysql {
   url      = env("MYSQL_URL")
 }
 
+// Note: MongoDB is currently not supported with Prisma 2, but will be soon.
 datasource mongo {
   provider = "mongodb"
   url      = env("MONGO_URL")
