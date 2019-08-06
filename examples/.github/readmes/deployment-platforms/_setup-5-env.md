@@ -1,1 +1,0 @@
-Deploying to this platform requires setting up the production environment variables correctly. Please refer to the following section to find out how that can be done
