@@ -30,6 +30,7 @@ import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
 import { omit } from './utils/omit'
 import { MissingItem, printJsonWithErrors } from './utils/printJsonErrors'
+import { printStack } from './utils/printStack'
 import stringifyObject from './utils/stringifyObject'
 import { visit } from './visit'
 
@@ -138,80 +139,12 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
       return String(' '.repeat(wantedLetters - hasLetters) + n)
     }
-    let lastErrorHeight = 20
 
     const renderErrorStr = (callsite?: string) => {
-      let callsiteStr = ':'
-      let prevLines = '\n'
-      let afterLines = ''
-      let indentValue = 0
-      let functionName = `photon.${originalMethod || queryName}()`
-
-      // @ts-ignore
-      if (callsite && typeof window === 'undefined') {
-        const stack = stackTraceParser.parse(callsite)
-        // TODO: more resilient logic to check that it's not relative to cwd
-        const trace = stack.find(
-          t =>
-            t.file &&
-            !t.file.includes('@generated') &&
-            !t.methodName.includes('new ') &&
-            t.methodName.split('.').length < 4,
-        )
-        if (process.env.NODE_ENV !== 'production' && trace && trace.file && trace.lineNumber && trace.column) {
-          const fileName = trace.file
-          const lineNumber = trace.lineNumber
-          callsiteStr = callsite ? ` in ${chalk.underline(`${trace.file}:${trace.lineNumber}:${trace.column}`)}` : ''
-          const height = process.stdout.rows || 20
-          const start = Math.max(0, lineNumber - 5)
-          const neededHeight = lastErrorHeight + lineNumber - start
-          if (height > neededHeight) {
-            const fs = require('fs')
-            if (fs.existsSync(fileName)) {
-              const file = fs.readFileSync(fileName, 'utf-8')
-              const slicedFile = file
-                .split('\n')
-                .slice(start, lineNumber)
-                .join('\n')
-              const lines = dedent(slicedFile).split('\n')
-
-              const theLine = lines[lines.length - 1]
-              const photonRegex = /(=|return)+\s+(await)?\s*(.*\()/
-              const match = theLine.match(photonRegex)
-              if (match) {
-                functionName = `${match[3]})`
-              }
-              const slicePoint = theLine.indexOf('{')
-              const highlightedLines = highlightTS(
-                lines
-                  .map((l, i, all) =>
-                    i === all.length - 1 ? l.slice(0, slicePoint > -1 ? slicePoint : l.length - 1) : l,
-                  )
-                  .join('\n'),
-              ).split('\n')
-              prevLines =
-                '\n' +
-                highlightedLines
-                  .map((l, i) => chalk.grey(renderN(i + start + 1, lineNumber + start + 1) + ' ') + chalk.reset() + l)
-                  .join('\n')
-              afterLines = ')'
-              indentValue = String(lineNumber + start + 1).length + getIndent(theLine) + 1
-            }
-          }
-        }
-      }
-
-      function getIndent(line: string) {
-        let spaceCount = 0
-        for (let i = 0; i < line.length; i++) {
-          if (line.charAt(i) !== ' ') {
-            return spaceCount
-          }
-          spaceCount++
-        }
-
-        return spaceCount
-      }
+      const { stack, indent: indentValue, afterLines } = printStack({
+        callsite,
+        originalMethod: originalMethod || queryName,
+      })
 
       const hasRequiredMissingArgsErrors = argErrors.some(
         e => e.error.type === 'missingArg' && e.error.missingType[0].isRequired,
@@ -240,8 +173,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
         missingArgsLegend += chalk.dim('.')
       }
 
-      const errorStr = `\n${chalk.red(`Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`)}
-${chalk.dim(prevLines)}${chalk.reset()}${indent(
+      const errorStr = `${stack}${indent(
         printJsonWithErrors(
           isTopLevelQuery ? { [topLevelQueryName]: select } : select,
           keyPaths,
@@ -256,7 +188,6 @@ ${argErrors
   .map(e => this.printArgError(e, hasMissingArgsErrors))
   .join('\n')}
 ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
-      lastErrorHeight = errorStr.split('\n').length
       return errorStr
     }
 

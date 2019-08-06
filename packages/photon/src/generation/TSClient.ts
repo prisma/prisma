@@ -36,7 +36,8 @@ const commonCode = runtimePath => `import {
   Engine,
   debugLib,
   transformDocument,
-  chalk
+  chalk,
+  printStack
 } from '${runtimePath}'
 
 import path = require('path')
@@ -77,19 +78,32 @@ class PhotonFetcher {
     private readonly debug = false,
     private readonly hooks?: Hooks
   ) {}
-  async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string, isList?: boolean): Promise<T> {
+  async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string, isList?: boolean, callsite?: string): Promise<T> {
     const query = String(document)
     debug(query)
     if (this.hooks && this.hooks.beforeRequest) {
-      this.hooks.beforeRequest({query, path, rootField, typeName, document})
+      this.hooks.beforeRequest({ query, path, rootField, typeName, document })
     }
-    await this.photon.connect()
     try {
+      await this.photon.connect()
       const result = await this.engine.request(query, typeName)
       debug(result)
       return this.unpack(result, path, rootField, isList)
     } catch (e) {
-      throw new Error(\`Error in Photon\${path}: \\n\` + e.message)
+      if (callsite) {
+        const { stack } = printStack({
+          callsite,
+          originalMethod: path.join('.'),
+          onUs: e.isPanic
+        })
+        throw new Error(stack + '\\n\\n' + e.message)
+      } else {
+        if (e.isPanic) {
+          throw e
+        } else {
+          throw new Error(\`Error in Photon\${path}: \\n\` + e.message)
+        }
+      }
     }
   }
   protected unpack(data: any, path: string[], rootField?: string, isList?: boolean) {
@@ -789,7 +803,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
     onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
     if (!this._requestPromise){
-      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList)
+      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite)
     }
     return this._requestPromise!.then(onfulfilled, onrejected)
   }
@@ -803,7 +817,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
     onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null,
   ): Promise<T | TResult> {
     if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList)
+      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite)
     }
     return this._requestPromise!.catch(onrejected)
   }
@@ -816,7 +830,7 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
    */
   finally(onfinally?: (() => void) | undefined | null): Promise<T> {
     if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList)
+      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite)
     }
     return this._requestPromise!.finally(onfinally)
   }
