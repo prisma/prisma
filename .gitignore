@@ -1,7 +1,0 @@
-node_modules
-.DS_Store
-query-engine*
-
-*.db
-
-dist/
