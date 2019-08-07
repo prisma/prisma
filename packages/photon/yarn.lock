@@ -370,10 +370,10 @@
   dependencies:
     debug "^4.1.1"
 
-"@prisma/lift@^0.1.20":
-  version "0.1.20"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.1.20.tgz#63397b2a589cad68d02888ae009bb310e48c4e27"
-  integrity sha512-OO0QKkgQbG6rVhH0ADfU4sHw8xO3RtfELB6gHNb9iTtgR95kJn6OD3uq+t57LdJD6PZuKorsDzrtWcow5UcLaw==
+"@prisma/lift@^0.1.21":
+  version "0.1.21"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.1.21.tgz#86087ab0ba001cda54413ef39235278c5eb51e5a"
+  integrity sha512-f7jE9+TdW4oPoE/kCWlnBEGa0j+ArZpP/NwxVrDvn5WAFEsLXgwLMVivE9P6FtBFshIMhrKa/T74bJAciOjFbw==
   dependencies:
     "@prisma/fetch-engine" "^0.1.3"
     "@prisma/get-platform" "^0.0.3"
@@ -404,7 +404,7 @@
     log-update "^3.2.0"
     microjob "^0.5.2"
     p-map "^2.1.0"
-    prisma-datamodel "^1.36.0-alpha.8"
+    prisma-datamodel "^1.36.0-test.2"
     prompts "^2.1.0"
     react "^16.8.6"
     string-width "^4.1.0"
@@ -5871,7 +5871,7 @@ prettysize@^2.0.0:
   resolved "https://registry.yarnpkg.com/prettysize/-/prettysize-2.0.0.tgz#902c02480d865d9cc0813011c9feb4fa02ce6996"
   integrity sha512-VVtxR7sOh0VsG8o06Ttq5TrI1aiZKmC+ClSn4eBPaNf4SHr5lzbYW+kYGX3HocBL/MfpVrRfFZ9V3vCbLaiplg==
 
-prisma-datamodel@^1.36.0-alpha.8:
+prisma-datamodel@^1.36.0-test.2:
   version "1.36.0-test.2"
   resolved "https://registry.yarnpkg.com/prisma-datamodel/-/prisma-datamodel-1.36.0-test.2.tgz#06ba90cf7283cea22c4f419085e00e965d277c9e"
   integrity sha512-CxTIb9cuRKr1lHIuduFVGYaZpciY0rsgz28eauXs5qAWX11bkPz345wnF2TKZ6LarJ7J5DjVF5fP2DEDseZwvA==
