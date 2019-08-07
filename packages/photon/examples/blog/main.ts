@@ -5,7 +5,7 @@ async function main() {
 
   const testData = await photon.users.create({
     data: {
-      username: 'posts',
+      username: 'post3s',
       // posts: {
       //   create: {
       //     data: 'test',
@@ -13,6 +13,8 @@ async function main() {
       // },
     },
   })
+  console.log(testData)
+  photon.disconnect()
 }
 
 main().catch(e => {

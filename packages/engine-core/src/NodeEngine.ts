@@ -436,7 +436,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       headers: {
         'Content-Type': 'application/json',
       },
-      body: { query, variables: {}, operationName: '' },
+      body: { query, variables: {} },
     })
 
     return this.currentRequestPromise
