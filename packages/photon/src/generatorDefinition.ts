@@ -4,6 +4,7 @@ import fs from 'fs'
 import { promisify } from 'util'
 import { generateClient } from './generation/generateClient'
 import { getDatamodelPath } from './utils/getDatamodel'
+const pkg = require('../package.json')
 
 const readFile = promisify(fs.readFile)
 
@@ -38,6 +39,8 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
 
   const platforms = generator.platforms && generator.platforms.length > 0 ? generator.platforms : ['native']
 
+  const version = (pkg && pkg.prisma && pkg.prisma.version) || 'latest'
+
   await generateClient({
     datamodel,
     datamodelPath,
@@ -47,6 +50,7 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
     platforms,
     pinnedPlatform: generator.pinnedPlatform || undefined,
     generator,
+    version,
   })
   return ''
 }
