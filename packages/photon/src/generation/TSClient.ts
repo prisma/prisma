@@ -101,7 +101,7 @@ class PhotonFetcher {
         if (e.isPanic) {
           throw e
         } else {
-          throw new Error(\`Error in Photon\${path}: \\n\` + e.message)
+          throw new Error(\`Error in Photon\${path}: \\n\` + e.stack)
         }
       }
     }
