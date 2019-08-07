@@ -370,14 +370,14 @@
   dependencies:
     debug "^4.1.1"
 
-"@prisma/lift@^0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.1.21.tgz#86087ab0ba001cda54413ef39235278c5eb51e5a"
-  integrity sha512-f7jE9+TdW4oPoE/kCWlnBEGa0j+ArZpP/NwxVrDvn5WAFEsLXgwLMVivE9P6FtBFshIMhrKa/T74bJAciOjFbw==
+"@prisma/lift@^0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.1.22.tgz#68ceb90c6f45fdff6e2cacbc56bcb506b95e7298"
+  integrity sha512-W22AaHBQkFkYsMhaqjnxL5uwhDRcIxdVav5YF+qLjxh/bn1z7i0siRSQOENNDTRJVAJFyVphRdoSH0wKJzNV8Q==
   dependencies:
     "@prisma/fetch-engine" "^0.1.3"
     "@prisma/get-platform" "^0.0.3"
-    "@prisma/studio-server" "^0.45.0"
+    "@prisma/studio-server" "^0.54.0"
     "@types/execa" "^0.9.0"
     arg "^4.1.0"
     array-flat-polyfill "^1.0.1"
@@ -412,10 +412,10 @@
     strip-indent "^3.0.0"
     supports-hyperlinks "^1.0.1"
 
-"@prisma/studio-server@^0.45.0":
-  version "0.45.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.45.0.tgz#d638a4357d257c5a2c8ef67e1b185b7dd17a3693"
-  integrity sha512-hZaWLeGzDNJCdsDaviGeClSRGPc77/rB/8U8wkaJzhjTR2gAwEWUY7VCJ9TeOkJbor1+10YbBqbMdt/yg1XLYQ==
+"@prisma/studio-server@^0.54.0":
+  version "0.54.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.54.0.tgz#0338d15439473a8735b5b41fc67379f59965da57"
+  integrity sha512-qGjIGpU1g9BbnYqtYeiL0sLpf1IUTko3JgjkkwEktCxglKhKwxqLmBTTcr1Otj5L1RzoeB/f5OS7FH1sYhF9YQ==
   dependencies:
     "@prisma/studio" "^0.45.0"
     "@prisma/studio-transports" "^0.45.0"
