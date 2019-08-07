@@ -17,7 +17,7 @@ model User {
 }
 
 model Post {
-  id   String @id @default(cuid())
+  i2d  String @id @default(cuid())
   data String
   user User?
 }

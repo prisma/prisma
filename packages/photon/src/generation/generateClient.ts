@@ -57,6 +57,7 @@ export async function buildClient({
   outputDir,
   generator,
   platforms,
+  version,
 }: GenerateClientOptions): Promise<Dictionary<string>> {
   // TODO: handle pinnedPlatform
 
@@ -77,6 +78,7 @@ export async function buildClient({
     sqliteDatasourceOverrides: extractSqliteSources(datamodel, cwd || process.cwd(), outputDir),
     generator,
     platforms,
+    version,
   })
   const generatedClient = String(client)
   const target = '@generated/photon/index.ts'
@@ -204,6 +206,7 @@ In case you want to fix this, you can provide ${chalk.greenBright(
     pinnedPlatform,
     generator,
     datamodelPath,
+    version,
   })
   await makeDir(outputDir)
   await Promise.all(
