@@ -130,7 +130,7 @@ Once provided, the CLI will prompt you to select one of the existing **databases
 
 <Details><Summary>Database credentials for <strong>PostgreSQL</strong></Summary>
 <br />
-When using PostgreSQL, you need to provide the following information to connect your existing MySQL database server:
+When using PostgreSQL, you need to provide the following information to connect your existing PostgreSQL database server:
 
 - **Host**: The IP address/domain of your database server, e.g. `localhost`.
 - **Post**: The port on which your database server listens, e.g. `5432` (PostgreSQL) or `3306` (MySQL).
