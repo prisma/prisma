@@ -1,0 +1,92 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("SQLITE_PATH")
+}
+
+generator photon {
+  provider = "photonjs"
+}
+
+generator nexus_prisma {
+  provider = "nexus-prisma"
+}
+
+model User {
+  id       String  @default(cuid()) @id @unique
+  email    String? @unique
+  username String
+  password String
+}
+
+model Brewery {
+  id   String @default(cuid()) @id @unique
+  name String @unique
+}
+
+model BeerPrice {
+  id    String @default(cuid()) @id @unique
+  size  String
+  price Float
+}
+
+model BeerAvailability {
+  id          String    @default(cuid()) @id @unique
+  releaseDate DateTime
+  endDate     DateTime?
+}
+
+model Beer {
+  id           String           @default(cuid()) @id @unique
+  name         String
+  prices       BeerPrice[]
+  availability BeerAvailability
+}
+
+model Tap {
+  id        String   @default(cuid()) @id @unique
+  beers     Beer[]
+  startDate DateTime
+  endDate   DateTime
+}
+
+enum Role {
+  Server
+  Manager
+  Brewer
+}
+
+model Employee {
+  id      String   @default(cuid()) @id @unique
+  user    User
+  role    Role     @default(Server)
+  brewery Brewery?
+}
+
+model BreweryEvent {
+  id          String      @default(cuid()) @id @unique
+  brewery     Brewery
+  start       DateTime
+  end         DateTime
+  foodService FoodService
+  menu        Menu
+}
+
+model FoodService {
+  id      String   @default(cuid()) @id @unique
+  name    String
+  about   String?
+  cuisine String[]
+}
+
+model MenuItem {
+  id          String  @default(cuid()) @id @unique
+  name        String
+  description String?
+  price       Float
+}
+
+model Menu {
+  id          String      @default(cuid()) @id @unique
+  foodService FoodService
+  item        MenuItem[]
+}

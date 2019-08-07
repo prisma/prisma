@@ -27,7 +27,7 @@ import {
 
 const tab = 2
 
-const commonCode = runtimePath => `import {
+const commonCode = (runtimePath: string, version?: string) => `import {
   DMMF,
   DMMFClass,
   deepGet,
@@ -39,6 +39,10 @@ const commonCode = runtimePath => `import {
   chalk,
   printStack
 } from '${runtimePath}'
+
+/**
+ * Query Engine version: ${version || 'latest'}
+ */
 
 import path = require('path')
 
@@ -124,6 +128,7 @@ class PhotonFetcher {
 `
 
 interface TSClientOptions {
+  version?: string
   document: DMMF.Document
   datamodel: string
   runtimePath: string
@@ -144,6 +149,7 @@ export class TSClient {
   protected readonly generator?: GeneratorConfig
   protected readonly platforms?: string[]
   protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[]
+  protected readonly version?: string
   constructor({
     document,
     datamodel,
@@ -153,6 +159,7 @@ export class TSClient {
     generator,
     platforms,
     sqliteDatasourceOverrides,
+    version,
   }: TSClientOptions) {
     this.document = document
     this.datamodel = datamodel
@@ -167,7 +174,7 @@ export class TSClient {
     this.dmmf = new DMMFClass(JSON.parse(JSON.stringify(document)))
   }
   public toString() {
-    return `${commonCode(this.runtimePath)}
+    return `${commonCode(this.runtimePath, this.version)}
 
 /**
  * Build tool annotations
