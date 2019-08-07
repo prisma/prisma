@@ -24,10 +24,10 @@
   },
   "devDependencies": {
     "@prisma/cli": "^0.0.42",
-    "@prisma/fetch-engine": "^0.1.5",
+    "@prisma/fetch-engine": "^0.1.6",
     "@prisma/introspection": "0.0.47",
-    "@prisma/lift": "0.1.19",
-    "@prisma/photon": "^0.1.37",
+    "@prisma/lift": "0.1.21",
+    "@prisma/photon": "^0.1.44",
     "@sentry/node": "5",
     "@types/mocha": "^5.2.7",
     "@zeit/ncc": "^0.18.5",
@@ -49,6 +49,7 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
+    "test:debug": "./node_modules/.bin/mocha --inspect-brk src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
     "install": "test -f download-build/index.js && node download-build/index.js || echo \"\"",
     "tsc": "tsc -d && cp src/capture-worker.js dist/capture-worker.js",
     "ncc": "ncc build dist/bin.js -o build",
