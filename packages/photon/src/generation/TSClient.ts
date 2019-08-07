@@ -80,6 +80,7 @@ class PhotonFetcher {
   ) {}
   async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string, isList?: boolean, callsite?: string): Promise<T> {
     const query = String(document)
+    debug('Request:')
     debug(query)
     if (this.hooks && this.hooks.beforeRequest) {
       this.hooks.beforeRequest({ query, path, rootField, typeName, document })
@@ -87,6 +88,7 @@ class PhotonFetcher {
     try {
       await this.photon.connect()
       const result = await this.engine.request(query, typeName)
+      debug('Response:')
       debug(result)
       return this.unpack(result, path, rootField, isList)
     } catch (e) {
@@ -788,7 +790,6 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
       }
       throw e
     }
-    debug(String(document))
     return transformDocument(document)
   }
 

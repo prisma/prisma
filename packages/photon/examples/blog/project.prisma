@@ -12,7 +12,7 @@ generator photon {
 
 model User {
   id       String @id @default(cuid())
-  username String @unique
+  username String
   posts    Post[]
 }
 
