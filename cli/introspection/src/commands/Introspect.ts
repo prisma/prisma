@@ -1,13 +1,11 @@
 import { arg, Command, Env, format, isError } from '@prisma/cli'
-import { isdlToDatamodel2, LiftEngine } from '@prisma/lift'
-import { DataSource } from '@prisma/lift/dist/types'
+import { LiftEngine } from '@prisma/lift'
 import { Result } from 'arg'
 import chalk from 'chalk'
 import * as fs from 'fs'
 import ora from 'ora'
 import * as path from 'path'
 import { DatabaseType } from 'prisma-datamodel'
-import { credentialsToUri, databaseTypeToConnectorType } from '../convertCredentials'
 import {
   assertSchemaExists,
   ConnectorData,
@@ -19,7 +17,6 @@ import {
   sanitizeMongoUri,
   introspect,
 } from '../introspect/util'
-import { promptInteractively } from '../prompt'
 import { DatabaseCredentials, IntrospectionResult } from '../types'
 
 type Args = {
@@ -173,7 +170,11 @@ ${chalk.bold('Created 1 new file:')} Prisma DML datamodel (derived from existing
 
     // Get everything interactively
     if (!credentialsByFlag) {
-      throw new Error(`Please either run this command in a folder with a ${chalk.greenBright('schema.prisma')} or provide credentials as cli flags.`)
+      throw new Error(
+        `Please either run this command in a folder with a ${chalk.greenBright(
+          'schema.prisma',
+        )} or provide credentials as cli flags.`,
+      )
     }
 
     // Get connector from flags

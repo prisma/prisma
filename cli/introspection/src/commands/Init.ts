@@ -125,17 +125,3 @@ Initialize files for a new Prisma project
     )
   }
 }
-
-// async function run() {
-//   const env = await Env.load(process.env, process.cwd())
-//   if (isError(env)) {
-//     console.error(env)
-//     return 1
-//   }
-//   // create a new CLI with our subcommands
-//   const cli = Init.new(env)
-//   // parse the arguments
-//   const result = await cli.parse(process.argv.slice(2))
-// }
-
-// run()
