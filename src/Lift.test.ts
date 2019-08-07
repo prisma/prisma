@@ -1,11 +1,11 @@
-import { join, dirname } from 'path'
+import assert from 'assert'
+import del from 'del'
+import mkdir from 'make-dir'
 import { writeFile } from 'mz/fs'
+import { dirname, join } from 'path'
+import pkgup from 'pkg-up'
 import dedent from 'strip-indent'
 import { Lift } from './Lift'
-import mkdir from 'make-dir'
-import assert from 'assert'
-import pkgup from 'pkg-up'
-import del from 'del'
 
 describe('lift.create', () => {
   createTests().map(t => {
@@ -26,7 +26,7 @@ export default async function writeFiles(
     [name: string]: string
   },
 ): Promise<string> {
-  for (let name in files) {
+  for (const name in files) {
     const filepath = join(root, name)
     await mkdir(dirname(filepath))
     await writeFile(filepath, dedent(files[name]))
@@ -61,10 +61,10 @@ function createTests() {
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }
-        assert.ok(~result.migrationId.indexOf(`-setup`))
+        assert.ok(result.migrationId.includes('-setup'))
         assert.ok(result.newLockFile)
         assert.ok(result.files['steps.json'])
-        assert.ok(result.files['datamodel.prisma'])
+        assert.ok(result.files['schema.prisma'])
         assert.ok(result.files['README.md'])
       },
     },
@@ -91,10 +91,10 @@ function createTests() {
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }
-        assert.ok(~result.migrationId.indexOf(`-initial-setup`))
+        assert.ok(result.migrationId.includes(`-initial-setup`))
         assert.ok(result.newLockFile)
         assert.ok(result.files['steps.json'])
-        assert.ok(result.files['datamodel.prisma'])
+        assert.ok(result.files['schema.prisma'])
         assert.ok(result.files['README.md'])
       },
     },
@@ -121,10 +121,10 @@ function createTests() {
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }
-        assert.ok(~result.migrationId.indexOf(`-initial-setup`))
+        assert.ok(result.migrationId.includes(`-initial-setup`))
         assert.ok(result.newLockFile)
         assert.ok(result.files['steps.json'])
-        assert.ok(result.files['datamodel.prisma'])
+        assert.ok(result.files['schema.prisma'])
         assert.ok(result.files['README.md'])
       },
     },

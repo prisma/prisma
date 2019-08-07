@@ -1,3 +1,4 @@
 migrations
 failed*.md
 @generated
+out.json

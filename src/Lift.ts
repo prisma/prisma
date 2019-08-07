@@ -595,7 +595,7 @@ export class Lift {
 
     return {
       ['steps.json']: JSON.stringify({ version, steps: datamodelSteps }, null, 2),
-      ['datamodel.prisma']: datamodel,
+      ['schema.prisma']: datamodel,
       ['README.md']: printMigrationReadme({
         migrationId: migration.id,
         lastMigrationId: lastMigration ? lastMigration.id : '',
@@ -618,7 +618,16 @@ export class Lift {
       return []
     }
     const migrationSteps = await globby(
-      ['**/steps.json', '**/datamodel.prisma', '**/after.sh', '**/before.sh', '**/after.ts', '**/before.ts', '!dev'],
+      [
+        '**/steps.json',
+        '**/schema.prisma',
+        '**/datamodel.prisma',
+        '**/after.sh',
+        '**/before.sh',
+        '**/after.ts',
+        '**/before.ts',
+        '!dev',
+      ],
       {
         cwd: migrationsDir,
       },
@@ -638,7 +647,7 @@ export class Lift {
 
     return Object.entries(groupedByMigration).map(([migrationId, files]) => {
       const stepsFile = files.find(f => f.fileName === 'steps.json')!
-      const datamodelFile = files.find(f => f.fileName === 'datamodel.prisma')!
+      const datamodelFile = files.find(f => f.fileName === 'datamodel.prisma' || f.fileName === 'schema.prisma')!
       const afterFile = files.find(f => f.fileName === 'after.sh' || f.fileName === 'after.ts')
       const beforeFile = files.find(f => f.fileName === 'before.sh' || f.fileName === 'before.ts')
       const stepsFileJson = JSON.parse(stepsFile.file)
