@@ -4,7 +4,11 @@ import fs from 'fs'
 import { promisify } from 'util'
 import { generateClient } from './generation/generateClient'
 import { getDatamodelPath } from './utils/getDatamodel'
-const pkg = require('../package.json')
+// tslint:disable-next-line
+const pkg = eval(`require('../package.json')`)
+import Debug from 'debug'
+
+const debug = Debug('photon:generatorDefinition')
 
 const readFile = promisify(fs.readFile)
 
@@ -40,6 +44,7 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
   const platforms = generator.platforms && generator.platforms.length > 0 ? generator.platforms : ['native']
 
   const version = (pkg && pkg.prisma && pkg.prisma.version) || 'latest'
+  debug({ pkg, version })
 
   await generateClient({
     datamodel,
