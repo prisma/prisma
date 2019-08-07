@@ -4413,7 +4413,7 @@ prettysize@^2.0.0:
   resolved "https://registry.yarnpkg.com/prettysize/-/prettysize-2.0.0.tgz#902c02480d865d9cc0813011c9feb4fa02ce6996"
   integrity sha512-VVtxR7sOh0VsG8o06Ttq5TrI1aiZKmC+ClSn4eBPaNf4SHr5lzbYW+kYGX3HocBL/MfpVrRfFZ9V3vCbLaiplg==
 
-prisma-datamodel@^1.36.0-alpha.8:
+prisma-datamodel@^1.36.0-test.2:
   version "1.36.0-test.2"
   resolved "https://registry.yarnpkg.com/prisma-datamodel/-/prisma-datamodel-1.36.0-test.2.tgz#06ba90cf7283cea22c4f419085e00e965d277c9e"
   integrity sha512-CxTIb9cuRKr1lHIuduFVGYaZpciY0rsgz28eauXs5qAWX11bkPz345wnF2TKZ6LarJ7J5DjVF5fP2DEDseZwvA==
