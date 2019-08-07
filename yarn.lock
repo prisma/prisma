@@ -407,10 +407,10 @@
     terminal-link "^1.3.0"
     wtfnode "0.8.0"
 
-"@prisma/studio-server@^0.45.0":
-  version "0.45.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.45.0.tgz#d638a4357d257c5a2c8ef67e1b185b7dd17a3693"
-  integrity sha512-hZaWLeGzDNJCdsDaviGeClSRGPc77/rB/8U8wkaJzhjTR2gAwEWUY7VCJ9TeOkJbor1+10YbBqbMdt/yg1XLYQ==
+"@prisma/studio-server@^0.54.0":
+  version "0.54.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.54.0.tgz#0338d15439473a8735b5b41fc67379f59965da57"
+  integrity sha512-qGjIGpU1g9BbnYqtYeiL0sLpf1IUTko3JgjkkwEktCxglKhKwxqLmBTTcr1Otj5L1RzoeB/f5OS7FH1sYhF9YQ==
   dependencies:
     "@prisma/studio" "^0.45.0"
     "@prisma/studio-transports" "^0.45.0"
