@@ -8,7 +8,7 @@ export interface DatasourceOverwrite {
 // only extract sqlite sources that don't use env vars
 export function extractSqliteSources(datamodel: string, cwd: string, outputDir: string): DatasourceOverwrite[] {
   const overrides: DatasourceOverwrite[] = []
-  const lines = datamodel.split('\n')
+  const lines = datamodel.split('\n').filter(l => !l.trim().startsWith('//'))
   const lineRegex = /\s*url\s+=\s*"(file:[^\/].*)"/g
   const startRegex = /\s*datasource\s*(\w+)\s*{/g
 
