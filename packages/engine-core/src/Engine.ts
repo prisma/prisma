@@ -19,7 +19,10 @@ export class PhotonError extends Error {
 
 function serializeError(log) {
   let { application, level, message, ...rest } = log
-  return log.message + ' ' + serializeObject(rest)
+  if (application === 'datamodel') {
+    return chalk.red.bold('Schema ') + message
+  }
+  return chalk.red(log.message + ' ' + serializeObject(rest))
 }
 
 function serializePanic(log) {
