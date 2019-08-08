@@ -306,7 +306,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             this.logEmitter.emit('log', log)
           } catch (e) {
             debug(e, data)
-            //
           }
         })
 
