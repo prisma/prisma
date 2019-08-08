@@ -323,14 +323,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           reject(err)
         })
 
-        // wait for the engine to be ready
-        // TODO: we should fix this since it's not obvious what's happening
-        // here. We wait for the engine to try and connect, if it fails
-        // we'll try to kill the child. Often times the child is already
-        // dead and will also throw. We prefer that error over engineReady's
-        // error, so we take that first. If there wasn't an error, we'll use
-        // engineReady's error.
-
         if (this.lastError) {
           return reject(new PhotonError(this.lastError))
         }
