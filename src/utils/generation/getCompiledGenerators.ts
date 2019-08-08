@@ -17,13 +17,15 @@ const didYouMeanMap = {
 }
 
 async function resolveNodeModulesBase(cwd: string) {
+  if (await fs.pathExists(path.resolve(process.cwd(), 'prisma/schema.prisma'))) {
+    return process.cwd()
+  }
   if (
-    path.relative(process.cwd(), cwd) === 'prisma/schema.prisma' &&
+    path.relative(process.cwd(), cwd) === 'prisma' &&
     (await fs.pathExists(path.resolve(process.cwd(), 'package.json')))
   ) {
     return process.cwd()
   }
-
   if (await fs.pathExists(path.resolve(cwd, 'node_modules'))) {
     return cwd
   }
