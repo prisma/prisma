@@ -1,6 +1,6 @@
 datasource db {
-  provider = "sqlite"
-  url      = "file:db/migration_engine3.db"
+  provider = "postgres"
+  url      = env("POSTGRES_URL")
   default  = true
 }
 
