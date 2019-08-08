@@ -71,7 +71,7 @@ Once provided, the CLI will prompt you to select one of the existing **databases
 When using PostgreSQL, you need to provide the following information to connect your existing MySQL database server:
 
 - **Host**: The IP address/domain of your database server, e.g. `localhost`.
-- **Post**: The port on which your database server listens, e.g. `5432` (PostgreSQL) or `3306` (MySQL).
+- **Port**: The port on which your database server listens, e.g. `5432` (PostgreSQL) or `3306` (MySQL).
 - **Database**: The name of the database which contains the schema to introspect. 
 - **User**: The database user, e.g. `admin`.
 - **Password**: The password for the database user.
