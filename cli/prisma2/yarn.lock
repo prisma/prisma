@@ -407,14 +407,14 @@
     tar "^4.4.10"
     tmp "^0.1.0"
 
-"@prisma/lift@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.1.21.tgz#86087ab0ba001cda54413ef39235278c5eb51e5a"
-  integrity sha512-f7jE9+TdW4oPoE/kCWlnBEGa0j+ArZpP/NwxVrDvn5WAFEsLXgwLMVivE9P6FtBFshIMhrKa/T74bJAciOjFbw==
+"@prisma/lift@0.1.23":
+  version "0.1.23"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.1.23.tgz#06f19029b0e5a640bec71cbd49e9e93b8516e709"
+  integrity sha512-GUqwvXlHLjCR6wn3KrxTCfkjS0qwrkiici8rELg1semJ7rM8PNnoAQFB3OtNCsnlLo5AmyuE22Y2iCE7ya7VFA==
   dependencies:
     "@prisma/fetch-engine" "^0.1.3"
     "@prisma/get-platform" "^0.0.3"
-    "@prisma/studio-server" "^0.45.0"
+    "@prisma/studio-server" "^0.54.0"
     "@types/execa" "^0.9.0"
     arg "^4.1.0"
     array-flat-polyfill "^1.0.1"
@@ -456,10 +456,10 @@
   dependencies:
     tslib "^1.9.3"
 
-"@prisma/photon@^0.1.44":
-  version "0.1.44"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.1.44.tgz#aa4baf11413e7d4fe651ba837cb40e075af1725e"
-  integrity sha512-ydEj6SCfR0WSzWKk/M9VdijosYEI3GaR7RGOW5WYwzYhxx13CCjnbp+n86zMCAceTB77KcOI95i9ZZAsnaepKg==
+"@prisma/photon@^0.1.49":
+  version "0.1.49"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.1.49.tgz#fa5f694615bff177045754ec379e86c5476151eb"
+  integrity sha512-uYtl8VntJIR8rAxFgkehLfLjnRkJ97Yt6Qix2zF0BBBsm/B9mdWJcA+B4FG4+5Zt50FSO2nlTC/4VId7W5/Qag==
   dependencies:
     "@apexearth/copy" "^1.4.2"
     "@prisma/cli" "0.0.42"
@@ -485,10 +485,10 @@
     terminal-link "^1.3.0"
     wtfnode "0.8.0"
 
-"@prisma/studio-server@^0.45.0":
-  version "0.45.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.45.0.tgz#d638a4357d257c5a2c8ef67e1b185b7dd17a3693"
-  integrity sha512-hZaWLeGzDNJCdsDaviGeClSRGPc77/rB/8U8wkaJzhjTR2gAwEWUY7VCJ9TeOkJbor1+10YbBqbMdt/yg1XLYQ==
+"@prisma/studio-server@^0.54.0":
+  version "0.54.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.54.0.tgz#0338d15439473a8735b5b41fc67379f59965da57"
+  integrity sha512-qGjIGpU1g9BbnYqtYeiL0sLpf1IUTko3JgjkkwEktCxglKhKwxqLmBTTcr1Otj5L1RzoeB/f5OS7FH1sYhF9YQ==
   dependencies:
     "@prisma/studio" "^0.45.0"
     "@prisma/studio-transports" "^0.45.0"

@@ -4,8 +4,8 @@ import { isError } from 'util'
 import { promptInteractively } from '../prompt'
 import { introspect } from '../introspect/util'
 import chalk from 'chalk'
-import { writeFileSync, mkdirSync, existsSync } from 'fs'
-import { join } from 'path'
+import { writeFileSync, mkdirSync, existsSync, readdirSync } from 'fs'
+import { join, relative } from 'path'
 import { findTemplate } from '../templates'
 import { loadStarter } from '../loader'
 import { mkdirpSync } from 'fs-extra'
@@ -38,46 +38,24 @@ export class Init implements Command {
     const outputDirName = args._[0]
     const outputDir = outputDirName ? join(process.cwd(), outputDirName) : process.cwd()
 
-    if (existsSync(join(outputDir, 'datamodel.prisma'))) {
-      throw new Error(`Can't start ${chalk.bold('prisma2 init')} as ${chalk.redBright(
-        join(outputDir, 'datamodel.prisma'),
-      )} exists.
-Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
-    }
+    const existingFiles = readdirSync(outputDir)
 
-    if (existsSync(join(outputDir, 'schema.prisma'))) {
-      throw new Error(`Can't start ${chalk.bold('prisma2 init')} as ${chalk.redBright(
-        join(outputDir, 'schema.prisma'),
-      )} exists.
-Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
-    }
-
-    if (existsSync(join(outputDir, 'project.prisma'))) {
-      throw new Error(`Can't start ${chalk.bold('prisma2 init')} as ${chalk.redBright(
-        join(outputDir, 'project.prisma'),
-      )} exists.
-Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
-    }
-
-    if (existsSync(join(outputDir, 'prisma', 'datamodel.prisma'))) {
-      throw new Error(`Can't start ${chalk.bold('prisma2 init')} as ${chalk.redBright(
-        join(outputDir, 'prisma', 'datamodel.prisma'),
-      )} exists.
-Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
-    }
-
-    if (existsSync(join(outputDir, 'prisma', 'schema.prisma'))) {
-      throw new Error(`Can't start ${chalk.bold('prisma2 init')} as ${chalk.redBright(
-        join(outputDir, 'prisma', 'schema.prisma'),
-      )} exists.
-Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
-    }
-
-    if (existsSync(join(outputDir, 'prisma', 'project.prisma'))) {
-      throw new Error(`Can't start ${chalk.bold('prisma2 init')} as ${chalk.redBright(
-        join(outputDir, 'prisma', 'project.prisma'),
-      )} exists.
-Please run ${chalk.bold('prisma2 init')} in an empty directory.`)
+    if (existingFiles.length > 0) {
+      const relativeOutPath = './' + relative(process.cwd(), outputDir)
+      const s = existingFiles.length === 1 ? 's' : ''
+      const plural = existingFiles.length === 1 ? '' : 's'
+      const files =
+        existingFiles.length > 3
+          ? existingFiles
+              .slice(0, 3)
+              .map(f => chalk.bold(f))
+              .join(', ') + `and ${existingFiles.length - 3} more files `
+          : existingFiles.map(f => chalk.underline(f)).join(', ')
+      throw new Error(`Can't start ${chalk.bold(
+        'prisma2 init',
+      )} as the file${plural} ${files} exist${s} in ${chalk.underline(relativeOutPath)}
+Please either run ${chalk.greenBright('prisma2 init')} in an empty directory
+or provide a directory to initialize in: ${chalk.greenBright('prisma2 init sub-dir')}`)
     }
 
     if (outputDirName) {
