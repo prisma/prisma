@@ -269,7 +269,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           PRISMA_DML: this.datamodel,
           PORT: String(this.port),
           RUST_BACKTRACE: '1',
-          RUST_LOG: 'error',
+          RUST_LOG: 'info',
         }
 
         if (this.datasources) {
@@ -299,9 +299,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           const data = String(msg)
           try {
             const json = JSON.parse(data)
-            if (json.level === 'TRCE') {
-              return
-            }
             const log = convertLog(json)
             this.logEmitter.emit('log', log)
           } catch (e) {
