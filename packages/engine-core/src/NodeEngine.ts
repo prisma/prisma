@@ -13,6 +13,7 @@ import { promisify } from 'util'
 import EventEmitter from 'events'
 import { convertLog, Log } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
+import byline from './byline'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -268,13 +269,14 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           PRISMA_DML: this.datamodel,
           PORT: String(this.port),
           RUST_BACKTRACE: '1',
+          RUST_LOG: 'error',
         }
 
         if (this.datasources) {
           env.OVERWRITE_DATASOURCES = this.printDatasources()
         }
 
-        debugLib('engine', env)
+        debug(env)
 
         const prismaPath = await this.getPrismaPath()
 
@@ -283,18 +285,38 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             ...process.env,
             ...env,
           },
-          stdio: ['pipe', 'pipe', 'ignore'],
+          stdio: ['pipe', 'pipe', 'pipe'],
         })
 
-        this.child.stdout.on('data', msg => {
+        this.child.stderr.on('data', msg => {
+          const data = String(msg)
+          if (data.includes('\u001b[1;94m-->\u001b[0m')) {
+            this.stderrLogs += data
+          }
+        })
+
+        byline(this.child.stdout).on('data', msg => {
           const data = String(msg)
           try {
             const json = JSON.parse(data)
+            if (json.level === 'TRCE') {
+              return
+            }
             const log = convertLog(json)
             this.logEmitter.emit('log', log)
           } catch (e) {
-            debugLib('engine', e)
+            debug(e, data)
             //
+          }
+        })
+
+        this.child.on('exit', code => {
+          const message = this.stderrLogs ? this.stderrLogs : this.stdoutLogs
+          this.lastError = {
+            application: 'datamodel',
+            date: new Date(),
+            level: 'error',
+            message,
           }
         })
 
