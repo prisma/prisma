@@ -47,9 +47,3 @@ Apply any migrations that have not been applied yet.
 ### `prisma2 lift down`
 
 Undo migrations.
-
-## Upgrade from Prisma 1 to Prisma 2
-
-### `prisma2 convert`
-
-Convert the Prisma 1 service configuration to a Prisma 2 project file.
