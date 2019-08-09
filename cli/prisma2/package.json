@@ -1,6 +1,6 @@
 {
   "name": "prisma2",
-  "version": "2.0.0-preview-6",
+  "version": "2.0.0-preview-6.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma2-cli.git",
@@ -54,9 +54,9 @@
     "tsc": "tsc -d && cp src/capture-worker.js dist/capture-worker.js",
     "ncc": "ncc build dist/bin.js -o build",
     "ncc:download": "ncc build scripts/download.js -o download-build",
-    "build": "yarn tsc && yarn ncc:download && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
-    "prepublishOnly": "node scripts/updateTag.js && yarn build",
-    "prepare": "yarn build && node download-build/index.js",
+    "build": "yarn tsc && yarn ncc:download && rm -rf build && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
+    "prepublishOnly2": "node scripts/updateTag.js && yarn build",
+    "prepare2": "yarn build && node download-build/index.js",
     "update-deps": "yarn upgrade --latest --scope @prisma"
   },
   "dependencies": {},
