@@ -55,8 +55,8 @@
     "ncc": "ncc build dist/bin.js -o build",
     "ncc:download": "ncc build scripts/download.js -o download-build",
     "build": "yarn tsc && yarn ncc:download && rm -rf build && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
-    "prepublishOnly2": "node scripts/updateTag.js && yarn build",
-    "prepare2": "yarn build && node download-build/index.js",
+    "prepublishOnly": "node scripts/updateTag.js && yarn build",
+    "prepare": "yarn build && node download-build/index.js",
     "update-deps": "yarn upgrade --latest --scope @prisma"
   },
   "dependencies": {},
