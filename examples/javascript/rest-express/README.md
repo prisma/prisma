@@ -1,6 +1,6 @@
 # REST API Example
 
-This example shows how to implement a **REST API** using [Express.JS](https://expressjs.com/de/) and [Photon JS](https://photonjs.prisma.io/).
+This example shows how to implement a **REST API** using [Express.JS](https://expressjs.com/de/) and [Photon.js](https://photonjs.prisma.io/).
 
 ## How to use
 
@@ -40,7 +40,7 @@ You can now use the [SQLite Browser](https://sqlitebrowser.org/) to view and edi
 
 ### 4. Generate Photon (type-safe database client)
 
-Run the following command to generate [Photon JS](https://photonjs.prisma.io/):
+Run the following command to generate [Photon.js](https://photonjs.prisma.io/):
 
 ```sh
 prisma2 generate
