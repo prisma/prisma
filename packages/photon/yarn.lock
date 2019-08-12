@@ -379,10 +379,10 @@
   dependencies:
     debug "^4.1.1"
 
-"@prisma/lift@^0.1.28":
-  version "0.1.28"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.1.28.tgz#5c1fb2da9eae7ee01f67852abb8183a10e5d4c18"
-  integrity sha512-Uizfs6gHa5U90m2vxrUapIDcZLN/nQI26Yz85Rv99jJNdJIMxNCM+SrCNGJhZ6kFwpO6CngO7Z1qDhMNIiF11g==
+"@prisma/lift@^0.1.29":
+  version "0.1.29"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.1.29.tgz#0180a7d84eec421746f3f86b4585d8565a05b6a1"
+  integrity sha512-Ndla5jL2PDkpMXaynkDzNhrp3r6moox4YwORnu1yRfya8v0zk6JcrK/U9WblqvCoLDLApUxwocBjahPbcE8ncQ==
   dependencies:
     "@prisma/fetch-engine" "^0.1.3"
     "@prisma/get-platform" "^0.0.3"
