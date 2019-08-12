@@ -189,6 +189,8 @@ const user = await photon.users.findOne({
 
 Returns a list of objects. The list can be altered using _pagination_, _filtering_ and _ordering_ arguments. You can use the `select` and `include` arguments to determine which fields should be included on each object in the returned list.
 
+For more filtering examples, look [here](#filtering).
+
 #### Options
 
 | Name      | Type               | Required | Description                                                                                                 |
@@ -328,6 +330,105 @@ Deletes a batch of existing records in bulk and returns the number of deleted re
 const deletedUserCount = await photon.users.deleteMany({
   where: { name: 'Alice' },
 })
+```
+
+## Filtering
+
+`select` and `include` is for specifying what to retrieve from the Photon API call (think 'SELECT' statement from SQL), whereas the filtering API (`where`) is for filtering the arguments to the call (think 'WHERE' clause from SQL).  
+
+The following examples are based from this data model:
+```
+model User {
+  id     Int    @id
+  name   String
+  email  String
+  role   String
+  active Boolean
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+```
+
+<Details>
+<Summary>Using the `select` API on this data model</Summary>
+The `select` API is used to retrieve the `name` column of this `User` database.  
+
+```ts
+const result = await photon.users.findMany({
+  select: { name: "Alice" },
+})
+// result = {
+//   name: "Alice",
+// }
+```
+</Details>
+
+Filtering can be applied to this data model.  It is not the same as manipulating the selection set.  Based on the `User` model, Photon generates the `UserWhereInput` type, which holds the filtering properties.  
+
+```ts
+export declare type UserWhereInput = {
+    id?: number | IntFilter | null;
+    name?: string | StringFilter | null;
+    email?: string | StringFilter | null;
+    role?: Role | RoleFilter | null;
+    active?: boolean | BooleanFilter | null;
+    AND?: Enumerable<UserWhereInput>;
+    OR?: Enumerable<UserWhereInput>;
+    NOT?: Enumerable<UserWhereInput>;
+};
+```
+
+For example, to get the record for the user with the `id` 1, `where` is used in combination with the `id` `IntFilter`: 
+
+```ts
+const result = await photon.users.findMany({
+  where: { id: 1 },
+})
+// result = {
+//   id: 1,
+//   name: "Alice",
+//   email: "alice@prisma.io",
+//   role: "USER",
+//   active: true
+// }
+```
+> Note: As a recap, the `findMany` API returns a list of objects which can be filtered by any model property.
+
+To get the record for the user with the `name` Alice with a USER `role`, `where` is used in combination with the `name` `StringFilter` and the `role` `RoleFilter`: 
+
+```ts
+const result = await photon.users.findMany({
+  where: { 
+    name: "Alice",
+    role: "USER",
+  },
+})
+// result = {
+//   id: 1,
+//   name: "Alice",
+//   email: "alice@prisma.io",
+//   role: "USER",
+//   active: true
+// }
+```
+
+To apply one of the operator filters (AND, OR, NOT), filter for the record where the user with the `name` Alice has a non-active status. Here, `where` is used in combination with the `name` `StringFilter`, the `active` `BooleanFilter`, and the `NOT` operator: 
+
+```ts
+const result = await photon.users.findMany({
+  where: { 
+    name: "Alice",
+    NOT:{
+      active: true
+    } 
+  },
+})
+// result = {
+//
+// }
 ```
 
 ## Debugging
