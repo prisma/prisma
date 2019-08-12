@@ -1,14 +1,14 @@
-# Photon JS generator
+# Photon.js generator
 
-The Photon JS generator can be used in a [Prisma schema file](../../prisma-schema-file.md) to generate the Photon database client for Node.js and TypeScript. The API of the generated client is documented [here](../../photon/api.md).
+The Photon.js generator can be used in a [Prisma schema file](../../prisma-schema-file.md) to generate the Photon database client for Node.js and TypeScript. The API of the generated client is documented [here](../../photon/api.md).
 
 ## Node.js requirements
 
 The generated data access code of the `photonjs` generator targets [ES2016](https://exploringjs.com/es2016-es2017/) which means you need  [Node.js 8.x](https://nodejs.org/en/download/releases/) or newer to be able to use it.
 
-## Specifying the right platform for Photon JS
+## Specifying the right platform for Photon.js
 
-Photon JS depends on a _query engine_ that's running as a _binary_ on the same host as your application. When deploying your Photon-based application to production, you need to ensure that the binary used by Photon can run in your production environment, i.e. it needs to be compatible with the runtime of your deployment provider.
+Photon.js depends on a _query engine_ that's running as a _binary_ on the same host as your application. When deploying your Photon-based application to production, you need to ensure that the binary used by Photon can run in your production environment, i.e. it needs to be compatible with the runtime of your deployment provider.
 
 The query engine binary is downloaded when you run `prisma2 generate`, it is then stored alongside the generated Photon code inside `node_modules/@generated` (or the [custom `output` path](./codegen-and-node-setup.md) you specified). This section explains how you can determine which binary should be downloaded when `prisma2 generate` is executed to ensure compatibility at runtime.
 
@@ -65,7 +65,7 @@ In both cases, the Prisma CLI determines the current operating system where `pri
 
 ### Example
 
-This example shows the configuration of a Photon JS generator for local development (`native` can resolve to any other platform) and AWS Lambda (Node 10) as the production environment.
+This example shows the configuration of a Photon.js generator for local development (`native` can resolve to any other platform) and AWS Lambda (Node 10) as the production environment.
 
 ```prisma
 generator photon {
@@ -97,7 +97,7 @@ It will then store the generated Photon API in the specified `./generated/photon
 
 ## Mapping types from the data model
 
-The Photon JS generator provides the following mapping from data model [scalar types](../../data-modeling.md#scalar-types) to JavaScript/TypeScript types:
+The Photon.js generator provides the following mapping from data model [scalar types](../../data-modeling.md#scalar-types) to JavaScript/TypeScript types:
 
 | Type     | JS / TS | 
 | -------- | ------- |
@@ -109,7 +109,7 @@ The Photon JS generator provides the following mapping from data model [scalar t
 
 ## Reserved model names
 
-When generating Photon JS based on your [data model definition](./data-modeling.md#data-model-definition), there are a number of reserved names that you can't use for your models. Here is a list of the reserved names:
+When generating Photon.js based on your [data model definition](./data-modeling.md#data-model-definition), there are a number of reserved names that you can't use for your models. Here is a list of the reserved names:
 
 - `String`
 - `Int`
