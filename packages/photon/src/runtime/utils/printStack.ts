@@ -63,7 +63,7 @@ export const printStack = ({ callsite, originalMethod, onUs }: ErrorArgs): Print
           const lines = dedent(slicedFile).split('\n')
 
           const theLine = lines[lines.length - 1]
-          const photonRegex = /(=|return)+\s+(await)?\s*(.*\()/
+          const photonRegex = /(=|return)*\s+(await)?\s*(.*\()/
           const match = theLine.match(photonRegex)
           if (match) {
             functionName = `${match[3]})`
