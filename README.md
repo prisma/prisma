@@ -49,7 +49,7 @@ Learn more about the `prisma2 init` flow [here](./docs/getting-started.md) or ge
     - [SQLite](./docs/core/connectors/sqlite.md)
     - [MongoDB](./docs/core/connectors/mongo.md)
   - Generators
-    - [Photon JS](./docs/core/generators/photonjs.md)
+    - [Photon.js](./docs/core/generators/photonjs.md)
 - Photon
   - [API](./docs/photon/api.md)
   - [Use only Photon](./docs/photon/use-only-photon.md)

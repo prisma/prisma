@@ -18,7 +18,7 @@
     - [SQLite](./core/connectors/sqlite.md)
     - [MongoDB](./core/connectors/mongo.md)
   - Generators
-    - [Photon JS](./core/generators/photonjs.md)
+    - [Photon.js](./core/generators/photonjs.md)
 - Photon
   - [API](./photon/api.md)
   - [Use only Photon](./photon/use-only-photon.md)
