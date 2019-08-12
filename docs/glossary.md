@@ -69,7 +69,7 @@ Also sometimes referred to as:
 
 ### Generator
 
-A generator determines what kind of code should be generated from the [data model](#data-model-definition). For example, you can specify the _Photon JS generator_ to generate Photon JS as a type-safe database client based on the data model.
+A generator determines what kind of code should be generated from the [data model](#data-model-definition). For example, you can specify the _Photon.js generator_ to generate Photon.js as a type-safe database client based on the data model.
 
 You can include various generators in your [schema file](#prisma-schema-file). When running `prisma2 generate`, the Prisma CLI reads the specified generators from the Prisma schema and invokes each of them.
 
@@ -133,7 +133,7 @@ The [Prisma schema file](./prisma-schema-file.md) specifies the main parts of yo
 
 - [**Data sources**](#data-source): Specify the details of the data sources Prisma should connect to (e.g. a PostgreSQL database)
 - [**Data model definition**](#data-model-definition): Specifies the shape of the data per data source
-- [**Generators**](#generator): Specifies what data source clients should be generated (e.g. Photon JS)
+- [**Generators**](#generator): Specifies what data source clients should be generated (e.g. Photon.js)
 
 ### Scalar type
 
