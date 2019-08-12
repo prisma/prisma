@@ -1,6 +1,6 @@
 # The Prisma 2 tutorial
 
-In this tutorial, you will get a holistic and practical introduction to the Prisma 2 ecosystem. This includes using [**Lift**](http://lift.prisma.io) for database migrations and [**Photon JS**](http://photonjs.prisma.io) for type-safe database access.
+In this tutorial, you will get a holistic and practical introduction to the Prisma 2 ecosystem. This includes using [**Lift**](http://lift.prisma.io) for database migrations and [**Photon.js**](http://photonjs.prisma.io) for type-safe database access.
 
 > **Note**: If you encounter any problems with this tutorial or any parts of Prisma 2, **please make sure to create an issue [here](https://github.com/prisma/prisma2/issues)**! You can also join the [`#prisma-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on Slack to share your feedback directly.
 
@@ -9,7 +9,7 @@ This tutorial will teach you how to:
 1. Install the Prisma 2 CLI
 1. Use the `init` command to set up a new project
 1. Migrate your database schema using the `lift` subcommand
-1. Generate Photon JS, a type-safe database client for JavaScript and TypeScript
+1. Generate Photon.js, a type-safe database client for JavaScript and TypeScript
 1. Use the `dev` command for development
 1. Explore Photon's relation API
 
@@ -257,11 +257,11 @@ CREATE TABLE "hello-prisma2"."User" (
 );
 ```
 
-That's it! You're now ready to access your database programmatically using Photon JS.
+That's it! You're now ready to access your database programmatically using Photon.js.
 
-## 6. Generate Photon JS
+## 6. Generate Photon.js
 
-Photon JS is a type-safe database client for Node.js and TypeScript. It's generated from your [Prisma schema file](./prisma-schema-file.md) and provides an ergonomic data access API with CRUD and other operations for your [data model](./data-modeling.md#data-model-definition). You can learn more about Photon's generated API [here](./photon/api.md).
+Photon.js is a type-safe database client for Node.js and TypeScript. It's generated from your [Prisma schema file](./prisma-schema-file.md) and provides an ergonomic data access API with CRUD and other operations for your [data model](./data-modeling.md#data-model-definition). You can learn more about Photon's generated API [here](./photon/api.md).
 
 To generate Photon, you first need to add a `generator` to your schema file. Go ahead and adjust your `schema.prisma` to look as follows:
 
@@ -282,7 +282,7 @@ model User {
 }
 ```
 
-With the `generator` in place, run the following command to generate Photon JS:
+With the `generator` in place, run the following command to generate Photon.js:
 
 ```
 prisma2 generate
@@ -302,9 +302,9 @@ This creates a `node_modules` directory in the root directory of your project:
         └── 20190703131441-init
 ```
 
-You can also add the `output` field to the `generator` block to specify the file path where Photon JS should be generated. Since you're not explicitly specifying the `output` here, it uses the default path which is the project's `node_modules` directory. Learn more about the specifics of generating Photon into `node_modules` [here](./photon/codegen-and-node-setup.md).
+You can also add the `output` field to the `generator` block to specify the file path where Photon.js should be generated. Since you're not explicitly specifying the `output` here, it uses the default path which is the project's `node_modules` directory. Learn more about the specifics of generating Photon into `node_modules` [here](./photon/codegen-and-node-setup.md).
 
-Having Photon JS located inside `node_modules/@generated` enables you to import it in your code as follows:
+Having Photon.js located inside `node_modules/@generated` enables you to import it in your code as follows:
 
 ```ts
 import Photon from '@generated/photon'
@@ -369,9 +369,9 @@ Next, add a `start` script to your `package.json`:
 }
 ```
 
-### 7.4. Adding a `postinstall` script to (re-)generate Photon JS
+### 7.4. Adding a `postinstall` script to (re-)generate Photon.js
 
-Because Photon JS is generated into `node_modules` which is typically populated by invoking `npm install`, you should make sure that Photon JS is also generated upon every invocation of `npm install`. You can do so by adding a `postinstall` script to your `package.json`:
+Because Photon.js is generated into `node_modules` which is typically populated by invoking `npm install`, you should make sure that Photon.js is also generated upon every invocation of `npm install`. You can do so by adding a `postinstall` script to your `package.json`:
 
 ```diff
 {
@@ -395,7 +395,7 @@ Because Photon JS is generated into `node_modules` which is typically populated 
 }
 ```
 
-When collaborating on a project that uses Photon JS, this approach allows for conventional Node.js best practices where a team member can clone a Git repository and then run `npm install` to get their version of the Node dependencies inside their local `node_modules` directory.
+When collaborating on a project that uses Photon.js, this approach allows for conventional Node.js best practices where a team member can clone a Git repository and then run `npm install` to get their version of the Node dependencies inside their local `node_modules` directory.
 
 That's it! Let's now explore how you can use Photon inside `index.ts` to read and write data in the database.
 

@@ -15,7 +15,7 @@ For that, a full rewrite of Prisma was necessary so that we can build upon a pro
 - Open issues in following repos:
   - General Prisma 2 questions and catch-all for problems and questions: [`prisma 2`](https://github.com/prisma/prisma2)
   - Problems/questions regarding Lift: [`lift`](https://github.com/prisma/lift)
-  - Problems/questions regarding Photon JS: [`photonjs`](https://github.com/prisma/photonjs)
+  - Problems/questions regarding Photon.js: [`photonjs`](https://github.com/prisma/photonjs)
 
 ## Your opinion matters – a lot!
 
@@ -48,7 +48,7 @@ In any of the following scenarios, please make sure to create a GitHub issue to 
 
 If your issue relates to either Photon or Lift specifically, you can open an issue directly in the respective repos:
 
-- [Open an issue for **Photon JS**](https://github.com/prisma/photonjs/issues/new)
+- [Open an issue for **Photon.js**](https://github.com/prisma/photonjs/issues/new)
 - [Open an issue for **Lift**](https://github.com/prisma/lift/issues/new)
 
 Otherwise, the default place for opening issues is the official `prisma2` repo (when in doubt, create the issue here):
