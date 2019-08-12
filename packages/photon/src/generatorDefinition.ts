@@ -61,7 +61,7 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
 }
 
 export const generatorDefinition: GeneratorDefinition = {
-  prettyName: 'Photon JS Client',
+  prettyName: 'Photon.js Client',
   generate,
   defaultOutput,
 }
