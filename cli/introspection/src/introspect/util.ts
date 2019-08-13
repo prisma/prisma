@@ -1,5 +1,6 @@
 import { Env } from '@prisma/cli'
-import { DataSource, isdlToDatamodel2, LiftEngine } from '@prisma/lift'
+import { DataSource } from '@prisma/lift'
+import { isdlToDatamodel2, getConfig } from '@prisma/photon'
 import chalk from 'chalk'
 import { existsSync, readFileSync } from 'fs'
 import { MongoClient } from 'mongodb'
@@ -146,16 +147,11 @@ function getSchemaPath(cwd: string): string | undefined {
   return undefined
 }
 
-export async function getCredentialsFromExistingDatamodel(
-  env: Env,
-  lift: LiftEngine,
-): Promise<undefined | DatabaseCredentials> {
+export async function getCredentialsFromExistingDatamodel(env: Env): Promise<undefined | DatabaseCredentials> {
   const schemaPath = getSchemaPath(env.cwd)
   if (schemaPath) {
     const datamodel = readFileSync(schemaPath, 'utf-8')
-    const { datasources } = await lift.getConfig({
-      datamodel,
-    })
+    const { datasources } = await getConfig(datamodel)
     // For now just take the first data source
     if (datasources && datasources.length > 1) {
       console.error(
