@@ -22,7 +22,7 @@ You can now use the [SQLite Browser](https://sqlitebrowser.org/) to view and edi
 
 ### 4. Generate Photon (type-safe database client)
 
-Run the following command to generate [Photon JS](https://photonjs.prisma.io/):
+Run the following command to generate [Photon.js](https://photonjs.prisma.io/):
 
 ```sh
 prisma2 generate

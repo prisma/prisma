@@ -1,6 +1,6 @@
 # Simple TODO-App Example (CLI)
 
-This example shows how to implement a **TODO-app as a CLI tool** with Node.js and [Photon JS](https://photonjs.prisma.io/).
+This example shows how to implement a **TODO-app as a CLI tool** with Node.js and [Photon.js](https://photonjs.prisma.io/).
 
 __INLINE(../_setup-1.md)__
 cd photonjs/examples/javascript/cli-app

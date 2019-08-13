@@ -1,6 +1,6 @@
 # gRPC Server Example
 
-This example shows how to implement a **gRPC API with Node.js** and [Photon JS](https://photonjs.prisma.io/).
+This example shows how to implement a **gRPC API with Node.js** and [Photon.js](https://photonjs.prisma.io/).
 
 __INLINE(../_setup-1.md)__
 cd photonjs/examples/javascript/grpc

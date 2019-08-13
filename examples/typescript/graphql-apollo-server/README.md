@@ -1,6 +1,6 @@
 # GraphQL Apollo Server Example
 
-This example shows how to implement a **GraphQL server with TypeScript** based on  [Photon JS](https://photonjs.prisma.io/), [apollo-server](https://www.apollographql.com/docs/apollo-server/) and [GraphQL Nexus](https://nexus.js.org/).
+This example shows how to implement a **GraphQL server with TypeScript** based on  [Photon.js](https://photonjs.prisma.io/), [apollo-server](https://www.apollographql.com/docs/apollo-server/) and [GraphQL Nexus](https://nexus.js.org/).
 
 ## How to use
 
@@ -40,7 +40,7 @@ You can now use the [SQLite Browser](https://sqlitebrowser.org/) to view and edi
 
 ### 4. Generate Photon (type-safe database client)
 
-Run the following command to generate [Photon JS](https://photonjs.prisma.io/):
+Run the following command to generate [Photon.js](https://photonjs.prisma.io/):
 
 ```sh
 prisma2 generate
