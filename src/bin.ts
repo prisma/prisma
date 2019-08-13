@@ -10,14 +10,14 @@ process.on('unhandledRejection', (e, promise) => {
 /**
  * Dependencies
  */
-import { isError, HelpError, Env, Dictionary, GeneratorDefinitionWithPackage } from '@prisma/cli'
-import { LiftCommand } from './cli/commands/LiftCommand'
-import { LiftSave } from './cli/commands/LiftSave'
-import { LiftUp } from './cli/commands/LiftUp'
-import { LiftDown } from './cli/commands/LiftDown'
-import { LiftWatch } from './cli/commands/LiftWatch'
+import { Dictionary, Env, GeneratorDefinitionWithPackage, HelpError, isError } from '@prisma/cli'
 import { generatorDefinition as definition } from '@prisma/photon'
 import path from 'path'
+import { LiftCommand } from './cli/commands/LiftCommand'
+import { LiftDown } from './cli/commands/LiftDown'
+import { LiftSave } from './cli/commands/LiftSave'
+import { LiftUp } from './cli/commands/LiftUp'
+import { LiftWatch } from './cli/commands/LiftWatch'
 
 const photon = {
   definition,
@@ -25,7 +25,7 @@ const photon = {
 }
 
 const predefinedGenerators: Dictionary<GeneratorDefinitionWithPackage> = {
-  photon: photon,
+  photon,
   photonjs: photon,
   javascript: photon,
   typescript: photon,

@@ -589,6 +589,10 @@ export class Lift {
     } in ${formatms(Date.now() - before)}.\n`
   }
 
+  public stop() {
+    this.engine.stop()
+  }
+
   private getMigrationFileMap({ migration, lastMigration }: MigrationFileMapOptions): FileMap {
     const { version } = packageJson
     const { datamodelSteps, datamodel } = migration
@@ -753,10 +757,6 @@ export class Lift {
       appliedRemoteMigrations,
       sourceConfig,
     }
-  }
-
-  public stop() {
-    this.engine.stop()
   }
 }
 

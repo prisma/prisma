@@ -1,16 +1,53 @@
-import { Command, arg, isError, format, Env, HelpError } from '@prisma/cli'
+import { arg, Command, Env, format, HelpError, isError } from '@prisma/cli'
 import chalk from 'chalk'
 import fs from 'fs'
 import { Lift, UpOptions } from '../../Lift'
 
 export class LiftUp implements Command {
-  static new(env: Env): LiftUp {
+  public static new(env: Env): LiftUp {
     return new LiftUp(env)
   }
+
+  // static help template
+  private static help = format(`
+    Migrate your database up to a specific state.
+
+    ${chalk.bold('Usage')}
+
+      prisma migrate up [<inc|name|timestamp>]
+
+    ${chalk.bold('Arguments')}
+
+      [<inc>]   go up by an increment [default: latest]
+
+    ${chalk.bold('Options')}
+
+      --auto-approve   Skip interactive approval before migrating
+      -h, --help       Displays this help message
+      -p, --preview    Preview the migration changes
+
+    ${chalk.bold('Examples')}
+
+      Create a new migration, then migrate up
+      ${chalk.dim(`$`)} prisma migrate create --name "add unique to email"
+      ${chalk.dim(`$`)} prisma migrate up
+
+      Preview a migration without migrating
+      ${chalk.dim(`$`)} prisma migrate up --preview
+
+      Go up by one migration
+      ${chalk.dim(`$`)} prisma migrate up 1
+
+      Go up by to a migration by timestamp
+      ${chalk.dim(`$`)} prisma migrate up 20190605204907
+
+      Go up by to a migration by name
+      ${chalk.dim(`$`)} prisma migrate up "add first_name field"
+  `)
   private constructor(private readonly env: Env) {}
 
   // parse arguments
-  async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[]): Promise<string | Error> {
     // parse the arguments according to the spec
     const args = arg(argv, {
       '--help': Boolean,
@@ -52,47 +89,10 @@ export class LiftUp implements Command {
   }
 
   // help message
-  help(error?: string): string | HelpError {
+  public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftUp.help}`)
     }
     return LiftUp.help
   }
-
-  // static help template
-  private static help = format(`
-    Migrate your database up to a specific state.
-
-    ${chalk.bold('Usage')}
-
-      prisma migrate up [<inc|name|timestamp>]
-
-    ${chalk.bold('Arguments')}
-
-      [<inc>]   go up by an increment [default: latest]
-
-    ${chalk.bold('Options')}
-
-      --auto-approve   Skip interactive approval before migrating
-      -h, --help       Displays this help message
-      -p, --preview    Preview the migration changes
-
-    ${chalk.bold('Examples')}
-
-      Create a new migration, then migrate up
-      ${chalk.dim(`$`)} prisma migrate create --name "add unique to email"
-      ${chalk.dim(`$`)} prisma migrate up
-
-      Preview a migration without migrating
-      ${chalk.dim(`$`)} prisma migrate up --preview
-
-      Go up by one migration
-      ${chalk.dim(`$`)} prisma migrate up 1
-
-      Go up by to a migration by timestamp
-      ${chalk.dim(`$`)} prisma migrate up 20190605204907
-
-      Go up by to a migration by name
-      ${chalk.dim(`$`)} prisma migrate up "add first_name field"
-  `)
 }
