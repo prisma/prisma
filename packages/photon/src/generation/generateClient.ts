@@ -18,6 +18,7 @@ import {
   ScriptTarget,
 } from 'typescript'
 import { promisify } from 'util'
+import { knownPlatforms } from '../generatorDefinition'
 import { Dictionary } from '../runtime/utils/common'
 import { getDMMF } from '../utils/getDMMF'
 import { resolveDatasources } from '../utils/resolveDatasources'
@@ -58,9 +59,8 @@ export async function buildClient({
   generator,
   platforms,
   version,
+  pinnedPlatform,
 }: GenerateClientOptions): Promise<Dictionary<string>> {
-  // TODO: handle pinnedPlatform
-
   const fileMap = {}
 
   const dmmf = await getDMMF({ datamodel, datamodelPath, cwd, prismaPath: binaryPath })
@@ -79,6 +79,7 @@ export async function buildClient({
     generator,
     platforms,
     version,
+    pinnedPlatform,
   })
   const generatedClient = String(client)
   const target = '@generated/photon/index.ts'
@@ -160,9 +161,14 @@ export async function generateClient({
 }: GenerateClientOptions) {
   const thePlatforms = platforms && platforms.length > 0 ? platforms : ['native']
   const platform = await getPlatform()
-  const resolvedPlatforms = await Promise.all(thePlatforms.map(async p => (p === 'native' ? platform : p)))
+  const builtinPlatforms = thePlatforms
+    .filter(p => knownPlatforms.includes(p))
+    .map(p => (p === 'native' ? platform : p))
+  const customPlatforms = thePlatforms
+    .filter(p => !knownPlatforms.includes(p))
+    .map(p => (cwd ? path.resolve(cwd, p) : p))
 
-  if (!resolvedPlatforms.includes(platform)) {
+  if (customPlatforms.length === 0 && !builtinPlatforms.includes(platform)) {
     if (generator) {
       console.log(`${chalk.yellow('Warning:')} Your current platform \`${chalk.bold(
         platform,
@@ -202,7 +208,7 @@ In case you want to fix this, you can provide ${chalk.greenBright(
     browser,
     binaryPath,
     outputDir,
-    platforms: resolvedPlatforms,
+    platforms: [...builtinPlatforms, ...customPlatforms],
     pinnedPlatform,
     generator,
     datamodelPath,
@@ -245,7 +251,7 @@ In case you want to fix this, you can provide ${chalk.greenBright(
     }
   }
 
-  for (const resolvedPlatform of resolvedPlatforms) {
+  for (const resolvedPlatform of builtinPlatforms) {
     const binaryName = `query-engine-${resolvedPlatform}`
     const source = path.join(__dirname, '../../', binaryName)
     const target = path.join(outputDir, '/runtime', binaryName)
