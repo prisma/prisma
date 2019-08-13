@@ -1,7 +1,6 @@
 import chalk from 'chalk'
 import 'flat-map-polyfill'
 import indent from 'indent-string'
-import * as stackTraceParser from 'stacktrace-parser'
 import { /*dmmf, */ DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import {
@@ -12,7 +11,6 @@ import {
   InvalidArgError,
   InvalidFieldError,
 } from './error-types'
-import { highlightTS } from './highlight/highlight'
 import {
   getGraphQLType,
   getInputTypeName,
@@ -24,7 +22,6 @@ import {
   unionBy,
   wrapWithList,
 } from './utils/common'
-import { dedent } from './utils/dedent'
 import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
@@ -975,8 +972,13 @@ function getInvalidTypeArg(
 
 function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.SchemaArgInputType): boolean {
   const { type } = inputType
-  const expectedType = wrapWithList(stringifyGraphQLType(type), arg.inputType[0].isList)
+  const isList = arg.inputType[0].isList
+  const expectedType = wrapWithList(stringifyGraphQLType(type), isList)
   const graphQLType = getGraphQLType(value, type)
+
+  if (isList && graphQLType === 'List<>') {
+    return true
+  }
 
   // DateTime is a subset of string
   if (graphQLType === 'DateTime' && expectedType === 'String') {

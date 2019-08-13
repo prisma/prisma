@@ -651,4 +651,31 @@ describe('select validation', () => {
     expect(String(document)).toMatchSnapshot()
     expect(() => document.validate(ast)).not.toThrow()
   })
+
+  test('Allow empty input array', () => {
+    const ast = {
+      select: {
+        author: {
+          select: {
+            id: true,
+          },
+        },
+      },
+      where: {
+        id: {
+          in: [],
+        },
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'query',
+      rootField: 'findManyPost',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    expect(() => document.validate(ast)).not.toThrow()
+  })
 })
