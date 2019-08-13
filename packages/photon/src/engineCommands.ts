@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import execa = require('execa')
 import path from 'path'
 import { ExternalDMMF } from '../runtime/dmmf-types'
+import { ConfigMetaFormat } from './isdlToDatamodel2'
 
 export async function getRawDMMF(
   datamodel: string,
@@ -36,7 +37,7 @@ export async function getConfig(
   cwd = process.cwd(),
   prismaPath?: string,
   datamodelPath?: string,
-): Promise<ExternalDMMF.Document> {
+): Promise<ConfigMetaFormat> {
   prismaPath = prismaPath || path.join(__dirname, `../query-engine-${await getPlatform()}`)
   try {
     const result = await execa(prismaPath, ['cli', '--get_config', JSON.stringify({ datamodel }) + '\n'], {
