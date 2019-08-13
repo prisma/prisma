@@ -151,27 +151,25 @@ export class Lift {
   private studioServer?: any
   private studioPort: number = 5555
   constructor(protected projectDir: string) {
-    this.engine = new LiftEngine({ projectDir })
+    const schemaPath = this.getDatamodelPath()
+    this.engine = new LiftEngine({ projectDir, schemaPath })
   }
 
-  public async getDatamodelPath(): Promise<string> {
-    let datamodelPath = path.resolve(this.projectDir, 'project.prisma')
-    if (!(await exists(datamodelPath))) {
-      datamodelPath = path.resolve(this.projectDir, 'schema.prisma')
-    }
-    if (!(await exists(datamodelPath))) {
+  public getDatamodelPath(): string {
+    const datamodelPath = path.resolve(this.projectDir, 'schema.prisma')
+    if (!fs.existsSync(datamodelPath)) {
       throw new Error(`Could not find ${datamodelPath}`)
     }
 
     return datamodelPath
   }
 
-  public async getDatamodel(): Promise<string> {
-    return readFile(await this.getDatamodelPath(), 'utf-8')
+  public getDatamodel(): string {
+    return fs.readFileSync(this.getDatamodelPath(), 'utf-8')
   }
 
   // TODO: optimize datapaths, where we have a datamodel already, use it
-  public getSourceConfig(): Promise<string> {
+  public getSourceConfig(): string {
     return this.getDatamodel()
   }
 
@@ -346,9 +344,9 @@ export class Lift {
     })
 
     // silent everyone else. this is not a democracy
-    console.log = (...args) => {
-      debug(...args)
-    }
+    // console.log = (...args) => {
+    //   debug(...args)
+    // }
 
     this.recreateStudioServer(datamodel)
 
@@ -584,6 +582,8 @@ export class Lift {
       console.log('\n')
     }
 
+    // this.engine.
+
     return `\n🚀  Done with ${migrationsToApply.length} migration${
       migrationsToApply.length > 1 ? 's' : ''
     } in ${formatms(Date.now() - before)}.\n`
@@ -753,6 +753,10 @@ export class Lift {
       appliedRemoteMigrations,
       sourceConfig,
     }
+  }
+
+  public stop() {
+    this.engine.stop()
   }
 }
 

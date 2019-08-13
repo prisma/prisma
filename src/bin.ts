@@ -16,10 +16,8 @@ import { LiftSave } from './cli/commands/LiftSave'
 import { LiftUp } from './cli/commands/LiftUp'
 import { LiftDown } from './cli/commands/LiftDown'
 import { LiftWatch } from './cli/commands/LiftWatch'
-import { Converter } from '.'
 import { generatorDefinition as definition } from '@prisma/photon'
 import path from 'path'
-import fs from 'fs'
 
 const photon = {
   definition,
@@ -54,7 +52,6 @@ async function main(): Promise<number> {
       up: LiftUp.new(env),
       down: LiftDown.new(env),
       watch: LiftWatch.new(env, predefinedGenerators),
-      convert: Converter.new(env),
     },
     env,
   )

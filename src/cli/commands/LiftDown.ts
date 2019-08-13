@@ -41,15 +41,15 @@ export class LiftDown implements Command {
       }
     }
 
-    return lift.down(options)
+    const result = await lift.down(options)
+    lift.stop()
+    return result
   }
 
   // help message
   help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${LiftDown.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftDown.help}`)
     }
     return LiftDown.help
   }

@@ -1,5 +1,6 @@
 import { Command, arg, isError, format, Env, HelpError } from '@prisma/cli'
 import chalk from 'chalk'
+import fs from 'fs'
 import { Lift, UpOptions } from '../../Lift'
 
 export class LiftUp implements Command {
@@ -45,7 +46,9 @@ export class LiftUp implements Command {
       }
     }
 
-    return lift.up(options)
+    const result = await lift.up(options)
+    lift.stop()
+    return result
   }
 
   // help message
