@@ -22,6 +22,20 @@ exports[`select validation Allow deep select query 1`] = `
 }"
 `;
 
+exports[`select validation Allow empty input array 1`] = `
+"query {
+  findManyPost(where: {
+    id: {
+      in: []
+    }
+  }) {
+    author {
+      id
+    }
+  }
+}"
+`;
+
 exports[`select validation Allow explicit null value 1`] = `
 "mutation {
   createOnePost(data: {
