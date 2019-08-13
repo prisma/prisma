@@ -1,7 +1,7 @@
 <br />
 <p align="center"><a href="https://photonjs.prisma.io/"><img src="logo.svg" alt="Prisma" height="40px"></a></p>
 
-<!-- <p><h1 align="center">Photon JS</h1></p> -->
+<!-- <p><h1 align="center">Photon.js</h1></p> -->
 <p><h3 align="center">Type-safe database client for TypeScript & Node.js (ORM replacement)</h3></p>
 
 <p align="center">
@@ -18,11 +18,11 @@
 
 <hr>
 
-[Photon JS](https://photonjs.prisma.io/) is an **auto-generated database client** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or Knex.js
+[Photon.js](https://photonjs.prisma.io/) is an **auto-generated database client** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or Knex.js
 
 It is part of the [Prisma 2](https://www.github.com/prisma/prisma2) ecosystem. Prisma 2 provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
 
-> Note that Photon JS is currently running in Preview. The version available has severe [limitations](https://github.com/prisma/prisma2/blob/master/docs/limitations.md) that make it unsuitable for production workloads, including missing features, limited performance and stability issues. We will address all these limitations before issuing a stable release later this year.
+> Note that Photon.js is currently running in Preview. The version available has severe [limitations](https://github.com/prisma/prisma2/blob/master/docs/limitations.md) that make it unsuitable for production workloads, including missing features, limited performance and stability issues. We will address all these limitations before issuing a stable release later this year.
 
 <br />
 
@@ -149,7 +149,7 @@ Learn more about the data model in the [docs](https://github.com/prisma/prisma2/
 
 You can learn more about the Photon's API features on the [website](https://photonjs.prisma.io/) or in the [API reference](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md).
 
-## The Photon JS workflow
+## The Photon.js workflow
 
 ### 1. Configure data source
 
@@ -228,7 +228,7 @@ If you want to use Photon with an existing database, you can [introspect](https:
 
 When starting from scratch, you can simply write your own [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) inside your [schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). You can then use [Lift](https://github.com/prisma/lift) to migrate your database (Lift maps your data model definition to the schema of the underlying database).
 
-### 3. Generate Photon JS
+### 3. Generate Photon.js
 
 <img src="https://i.imgur.com/rdtKEYL.png" width="453px">
 
@@ -246,19 +246,19 @@ Photon is generated based on the [data model definition](https://github.com/pris
 - Relations and transactions
 - Raw database access
 
-Photon JS gets generated into your `node_modules` folder so you can import it directly from `'@generated/photon'`. There's no need to install any additional dependencies or database drivers.
+Photon.js gets generated into your `node_modules` folder so you can import it directly from `'@generated/photon'`. There's no need to install any additional dependencies or database drivers.
 
 ### 4. Build an app
 
-Similar to traditional ORMs, the Photon JS client can be used any of your Node.js or TypeScript application. For example to implement REST, GraphQL or gRPC APIs. You can find reference examples for these use cases in the [`examples`](./examples) directory.
+Similar to traditional ORMs, the Photon.js client can be used any of your Node.js or TypeScript application. For example to implement REST, GraphQL or gRPC APIs. You can find reference examples for these use cases in the [`examples`](./examples) directory.
 
-### 5. Evolve your database and Photon JS database client
+### 5. Evolve your database and Photon.js database client
 
 As you build your app, you'll likely migrate your database to implement new features. Depending on how you obtained your [initial data model](#2-define-initial-data-model) and whether or not you're using [Lift](https://github.com/prisma/lift), there might be two ways for evolving your application going forward.
 
 #### Option A: Without Lift
 
-If you're not using Lift, you need to re-introspect your database (to update the generated datamodel) and re-generate the Photon JS client after each schema migration:
+If you're not using Lift, you need to re-introspect your database (to update the generated datamodel) and re-generate the Photon.js client after each schema migration:
 
 ```sh
 prisma2 introspect
@@ -267,7 +267,7 @@ prisma2 generate
 
 #### Option B: With Lift
 
-When using Lift, you need to re-generate the Photon JS client immediately after you performed a schema migration:
+When using Lift, you need to re-generate the Photon.js client immediately after you performed a schema migration:
 
 ```sh
 # adjust data model definition in schema.prisma
@@ -278,7 +278,7 @@ prisma2 generate
 
 ## Supported databases
 
-Photon JS can be used with the following databases:
+Photon.js can be used with the following databases:
 
 - SQLite
 - MySQL
