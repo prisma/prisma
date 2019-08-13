@@ -1,5 +1,4 @@
 import { arg, Command, Env, format, isError } from '@prisma/cli'
-import { LiftEngine } from '@prisma/lift'
 import { Result } from 'arg'
 import chalk from 'chalk'
 import * as fs from 'fs'
@@ -54,19 +53,12 @@ type Args = {
   '--help': BooleanConstructor
 }
 
-type NewType = LiftEngine
-
 export class Introspect implements Command {
-  lift: NewType
   static new(env: Env): Introspect {
     return new Introspect(env)
   }
 
-  private constructor(private readonly env: Env) {
-    this.lift = new LiftEngine({
-      projectDir: env.cwd,
-    })
-  }
+  private constructor(private readonly env: Env) {}
 
   async parse(argv: string[]): Promise<any> {
     // parse the arguments according to the spec
@@ -165,8 +157,7 @@ ${chalk.bold('Created 1 new file:')} Prisma DML datamodel (derived from existing
   }
 
   async introspectDatabase(args: Result<Args>, sdl: boolean | undefined): Promise<IntrospectionResult> {
-    const credentialsByFlag =
-      this.getCredentialsByFlags(args) || (await getCredentialsFromExistingDatamodel(this.env, this.lift))
+    const credentialsByFlag = this.getCredentialsByFlags(args) || (await getCredentialsFromExistingDatamodel(this.env))
 
     // Get everything interactively
     if (!credentialsByFlag) {
