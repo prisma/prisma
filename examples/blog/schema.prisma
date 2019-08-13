@@ -1,6 +1,6 @@
 datasource my_db {
-  provider = "postgresql"
-  url      = ""
+  provider = "sqlite"
+  url      = "file:dev.db"
   default  = true
 }
 

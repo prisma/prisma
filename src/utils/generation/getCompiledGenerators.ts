@@ -46,8 +46,10 @@ export async function getCompiledGenerators(
   datamodel: string,
   definitions: Dictionary<GeneratorDefinitionWithPackage>,
 ): Promise<CompiledGeneratorDefinition[]> {
-  const engine = new LiftEngine({ projectDir: cwd })
-  const config = await engine.getConfig({ datamodel })
+  // const engine = new LiftEngine({ projectDir: cwd })
+  // const config = await engine.getConfig({ datamodel })
+  // TODO: Add getConfig from photon back in
+  const config: any = { generators: [] }
   const dmmf = await getRawDMMF(datamodel)
   const nodeModulesBase = await resolveNodeModulesBase(cwd)
 

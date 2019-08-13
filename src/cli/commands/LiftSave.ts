@@ -58,6 +58,8 @@ export class LiftSave implements Command {
     const lockFilePath = path.join(this.env.cwd, 'migrations', 'lift.lock')
     await writeFile(lockFilePath, newLockFile)
 
+    lift.stop()
+
     return `\nLift just created your migration ${printMigrationId(migrationId)} in\n\n${chalk.dim(
       printFiles(`migrations/${migrationId}`, files),
     )}\n\nRun ${chalk.greenBright('prisma2 lift up')} to apply the migration\n`
