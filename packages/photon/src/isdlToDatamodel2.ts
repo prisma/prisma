@@ -28,7 +28,7 @@ export async function isdlToDatamodel2(isdl: ISDL, datasources: DataSource[], ge
   const { dmmf } = await isdlToDmmfDatamodel(isdl)
 
   const result = await dmmfToDml({
-    dmmf: JSON.stringify(dmmf),
+    dmmf,
     config: { datasources, generators: generators.map(ensureNewFields) },
   })
 
