@@ -141,7 +141,7 @@ Field names are typically spelled in [camelCase](http://wiki.c2.com/?CamelCase) 
 Technically, a model can be named anything that adheres to this regular expression: 
 
 ```
-[A-Za-z_][A-Za-z0-9_]*
+[A-Za-z][A-Za-z0-9_]*
 ```
 
 ### Types
