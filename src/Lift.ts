@@ -487,12 +487,14 @@ export class Lift {
         lastAppliedIndex > -1 ? localMigrations[lastAppliedIndex] : undefined
       const lastUnappliedMigration: Migration = migrationsToApply.slice(-1)[0]
 
-      if (lastAppliedMigration) {
-        console.log(chalk.bold('Changes to be applied:'))
-        console.log(printDatamodelDiff(lastAppliedMigration.datamodel, lastUnappliedMigration.datamodel))
-      } else {
-        console.log(brightGreen.bold('Datamodel that will initialize the db:\n'))
-        console.log(highlightDatamodel(lastUnappliedMigration.datamodel))
+      if (lastUnappliedMigration.datamodel.length < 10000) {
+        if (lastAppliedMigration) {
+          console.log(chalk.bold('Changes to be applied:'))
+          console.log(printDatamodelDiff(lastAppliedMigration.datamodel, lastUnappliedMigration.datamodel))
+        } else {
+          console.log(brightGreen.bold('Datamodel that will initialize the db:\n'))
+          console.log(highlightDatamodel(lastUnappliedMigration.datamodel))
+        }
       }
     }
 
@@ -545,7 +547,7 @@ export class Lift {
           cliCursor.show()
           throw new Error(`Failed to roll back migration. ${JSON.stringify(progress)}`)
         }
-        await new Promise(r => setTimeout(r, 20))
+        await new Promise(r => setTimeout(r, 1000))
       }
 
       if (migrationToApply.afterFilePath) {
