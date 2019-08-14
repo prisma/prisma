@@ -43,6 +43,8 @@ export class LiftEngine {
   private schemaPath: string
   private listeners: { [key: string]: (result: any) => any } = {}
   private messages: string[] = []
+  private logs: any[] = []
+  private startedAt: number
   constructor({
     projectDir,
     binaryPath = eval(`require('path').join(__dirname, '../migration-engine')`), // ncc go home
@@ -56,11 +58,13 @@ export class LiftEngine {
       debugLib.enable('LiftEngine*')
     }
     this.debug = debug
-    this.init()
+    // this.init()
+    this.startedAt = Date.now()
   }
   public stop() {
-    fs.writeFileSync('kill', '')
     this.child!.kill()
+    const time = Date.now() - this.startedAt
+    fs.writeFileSync('histogram.json', JSON.stringify({ time, histogram: this.logs }, null, 2))
   }
   public applyMigration(args: EngineArgs.ApplyMigration): Promise<EngineResults.ApplyMigration> {
     return this.runCommand(this.getRPCPayload('applyMigration', args))
@@ -105,21 +109,22 @@ export class LiftEngine {
     try {
       result = JSON.parse(response)
     } catch (e) {
-      console.error(`Could not parse migration engine response: ${response}`)
+      console.error(`Could not parse migration engine response: ${response.slice(0, 200)}`)
     }
     if (result) {
       if (!result.id) {
-        throw new Error(`Response ${JSON.stringify(result)} doesn't have an id and I can't handle that (yet)`)
+        console.error(`Response ${JSON.stringify(result)} doesn't have an id and I can't handle that (yet)`)
       }
       if (!this.listeners[result.id]) {
-        throw new Error(`Got result for unknown id ${result.id}`)
+        console.error(`Got result for unknown id ${result.id}`)
       }
-      this.listeners[result.id](result)
-      delete this.listeners[result.id]
+      if (this.listeners[result.id]) {
+        this.listeners[result.id](result)
+        delete this.listeners[result.id]
+      }
     }
   }
   private init() {
-    console.log('init')
     const { PWD, ...rest } = process.env
     this.child = spawn(this.binaryPath, ['-d', this.schemaPath], {
       cwd: this.projectDir,
@@ -127,6 +132,7 @@ export class LiftEngine {
       env: {
         ...rest,
         SERVER_ROOT: this.projectDir,
+        RUST_LOG: 'info',
         RUST_BACKTRACE: '1',
       },
     })
@@ -138,57 +144,66 @@ export class LiftEngine {
     })
 
     this.child.on('exit', (code, signal) => {
-      if (code !== 0) {
-        // this.persistError(request, null, messages)
-        // TODO: get this.lastError
-        this.rejectAll(new Error(`${chalk.redBright(`Error in lift engine`)}`))
-      }
+      // if (code !== 0) {
+      //   // this.persistError(request, null, messages)
+      //   // TODO: get this.lastError
+      //   this.rejectAll(new Error(`${chalk.redBright(`Error in lift engine`)}`))
+      // }
     })
 
     this.child.stdin!.on('error', err => {
       debugStdin(err)
     })
 
-    this.child.stderr!.on('data', data => {
+    byline(this.child.stderr).on('data', data => {
       const msg = String(data)
-      this.messages.push(msg)
+      // this.messages.push(msg)
       debugStderr(msg)
+      try {
+        const json = JSON.parse(msg)
+        if (json.level === 'INFO' && json.msg.startsWith('histogram')) {
+          this.logs.push(json)
+        }
+      } catch (e) {
+        //
+      }
     })
 
-    const out = byline(this.child.stdout)
-    out.on('data', line => {
+    byline(this.child.stdout).on('data', line => {
       this.handleResponse(String(line))
     })
   }
   private runCommand(request: RPCPayload): Promise<any> {
+    this.init()
     return new Promise((resolve, reject) => {
-      this.registerCallback(request.id, response => {
-        if (response.result) {
-          resolve(response.result)
-        }
-        {
-          if (response.error) {
-            if (response.error.data && response.error.data.error && response.error.data.code) {
-              reject(new EngineError(response.error.data.error, response.error.data.code))
-            } else {
-              const text = this.persistError(request, response, this.messages)
-              reject(
-                new Error(
-                  `${chalk.redBright('Error in RPC')}\n Request: ${JSON.stringify(
-                    request,
-                    null,
-                    2,
-                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${response.error.message}\n\n${text}\n`,
-                ),
-              )
-            }
+      setTimeout(() => {
+        this.registerCallback(request.id, response => {
+          if (response.result) {
+            resolve(response.result)
           } else {
-            reject(new Error(`Got invalid RPC response without .result property: ${JSON.stringify(response)}`))
+            if (response.error) {
+              if (response.error.data && response.error.data.error && response.error.data.code) {
+                reject(new EngineError(response.error.data.error, response.error.data.code))
+              } else {
+                const text = this.persistError(request, response, this.messages)
+                reject(
+                  new Error(
+                    `${chalk.redBright('Error in RPC')}\n Request: ${JSON.stringify(
+                      request,
+                      null,
+                      2,
+                    )}\nResponse: ${JSON.stringify(response, null, 2)}\n${response.error.message}\n\n${text}\n`,
+                  ),
+                )
+              }
+            } else {
+              reject(new Error(`Got invalid RPC response without .result property: ${JSON.stringify(response)}`))
+            }
           }
-        }
-      })
-      debugRpc('SENDING RPC CALL', util.inspect(request, { depth: null }))
-      this.child!.stdin!.write(JSON.stringify(request) + '\n')
+        })
+        debugRpc('SENDING RPC CALL', util.inspect(request, { depth: null }))
+        this.child!.stdin!.write(JSON.stringify(request) + '\n')
+      }, 40)
     })
   }
   private persistError(request: any, response: any, messages: string[]): string {
