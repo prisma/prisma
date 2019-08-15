@@ -1,8 +1,9 @@
 import { Command, Env, format, HelpError, Dictionary, GeneratorDefinitionWithPackage } from '@prisma/cli'
 import chalk from 'chalk'
-import { missingGeneratorMessage, getCompiledGenerators } from '@prisma/lift'
+import { missingGeneratorMessage } from '@prisma/lift'
+import { getCompiledGenerators } from '@prisma/photon'
 import { formatms } from './utils/formatms'
-import { getDatamodel } from './getConfig'
+import { getDatamodel } from './getDatamodel'
 
 /**
  * $ prisma migrate new

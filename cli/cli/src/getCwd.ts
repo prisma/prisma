@@ -5,7 +5,6 @@ import path from 'path'
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
 
-const datamodelFile = 'project.prisma'
 const schemaFile = 'schema.prisma'
 
 /**
@@ -15,25 +14,17 @@ const schemaFile = 'schema.prisma'
  */
 export async function getCwd(): Promise<string> {
   const cwd = process.cwd()
-  const [
-    datamodelCwdExists,
-    schemaCwdExists,
-    prismaFolderExists,
-    prismaDatamodelExists,
-    prismaSchemaExists
-  ] = await Promise.all([
-    exists(path.join(cwd, datamodelFile)),
+  const [schemaCwdExists, prismaFolderExists, prismaSchemaExists] = await Promise.all([
     exists(path.join(cwd, schemaFile)),
     exists(path.join(cwd, 'prisma/')),
-    exists(path.join(cwd, 'prisma/', datamodelFile)),
     exists(path.join(cwd, 'prisma/', schemaFile)),
   ])
 
-  if (datamodelCwdExists || schemaCwdExists) {
+  if (schemaCwdExists) {
     return cwd
   }
 
-  if (prismaFolderExists || prismaDatamodelExists || prismaSchemaExists) {
+  if (prismaFolderExists || prismaSchemaExists) {
     return path.join(cwd, 'prisma/')
   }
 
@@ -42,10 +33,7 @@ export async function getCwd(): Promise<string> {
 
 export async function getDatamodel(): Promise<string> {
   const cwd = await getCwd()
-  let datamodelPath = path.join(cwd, datamodelFile)
-  if (!(await exists(datamodelPath))) {
-    datamodelPath = path.join(cwd, schemaFile)
-  }
+  const datamodelPath = path.join(cwd, schemaFile)
   if (!(await exists(datamodelPath))) {
     throw new Error(`Could not find ${datamodelPath}`)
   }
