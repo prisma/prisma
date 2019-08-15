@@ -3,7 +3,6 @@ import { GeneratorConfig } from '@prisma/cli'
 import { fixPlatforms, printGeneratorConfig } from '@prisma/engine-core'
 import { download } from '@prisma/fetch-engine'
 import { getPlatform, Platform } from '@prisma/get-platform'
-import { LiftEngine } from '@prisma/lift'
 import chalk from 'chalk'
 import Debug from 'debug'
 import fs from 'fs'
@@ -18,6 +17,7 @@ import {
   ScriptTarget,
 } from 'typescript'
 import { promisify } from 'util'
+import { getConfig } from '../engineCommands'
 import { knownPlatforms } from '../generatorDefinition'
 import { Dictionary } from '../runtime/utils/common'
 import { getDMMF } from '../utils/getDMMF'
@@ -64,10 +64,7 @@ export async function buildClient({
   const fileMap = {}
 
   const dmmf = await getDMMF({ datamodel, datamodelPath, cwd, prismaPath: binaryPath })
-  const liftEngine = new LiftEngine({
-    projectDir: cwd || process.cwd(),
-  })
-  const config = await liftEngine.getConfig({ datamodel })
+  const config = await getConfig(datamodel)
 
   const client = new TSClient({
     document: dmmf,

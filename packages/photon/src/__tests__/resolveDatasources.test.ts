@@ -1,5 +1,5 @@
-import { DataSource } from '@prisma/lift'
 import { serializeDatasources } from '../generation/serializeDatasources'
+import { DataSource } from '../types'
 import { absolutizeRelativePath, resolveDatasources } from '../utils/resolveDatasources'
 
 const cwd = '/Users/tim/project/prisma'
