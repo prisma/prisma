@@ -1,9 +1,16 @@
 import { getPlatform } from '@prisma/get-platform'
 import chalk from 'chalk'
-import execa = require('execa')
+import execa from 'execa'
 import path from 'path'
 import { ExternalDMMF } from '../runtime/dmmf-types'
 import { ConfigMetaFormat } from './isdlToDatamodel2'
+
+async function getPrismaPath(): Promise<string> {
+  // tslint:disable-next-line
+  const dir = eval('__dirname')
+  const relative = `../query-engine-${await getPlatform()}`
+  return path.join(dir, relative)
+}
 
 export async function getRawDMMF(
   datamodel: string,
@@ -11,7 +18,7 @@ export async function getRawDMMF(
   prismaPath?: string,
   datamodelPath?: string,
 ): Promise<ExternalDMMF.Document> {
-  prismaPath = prismaPath || path.join(__dirname, `../query-engine-${await getPlatform()}`)
+  prismaPath = prismaPath || (await getPrismaPath())
   try {
     const result = await execa(prismaPath, ['cli', '--dmmf'], {
       cwd,
@@ -38,7 +45,7 @@ export async function getConfig(
   prismaPath?: string,
   datamodelPath?: string,
 ): Promise<ConfigMetaFormat> {
-  prismaPath = prismaPath || path.join(__dirname, `../query-engine-${await getPlatform()}`)
+  prismaPath = prismaPath || (await getPrismaPath())
   try {
     const result = await execa(prismaPath, ['cli', '--get_config', JSON.stringify({ datamodel }) + '\n'], {
       cwd,
@@ -65,7 +72,7 @@ export interface WholeDmmf {
 }
 
 export async function dmmfToDml(input: WholeDmmf, prismaPath?: string): Promise<string> {
-  prismaPath = prismaPath || path.join(__dirname, `../query-engine-${await getPlatform()}`)
+  prismaPath = prismaPath || (await getPrismaPath())
   input = {
     config: input.config,
     dmmf: JSON.stringify(input.dmmf),
