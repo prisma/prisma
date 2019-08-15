@@ -1,6 +1,6 @@
 import Photon from '@generated/photon'
-import * as bodyParser from 'body-parser'
-import * as express from 'express'
+import bodyParser from 'body-parser'
+import express from 'express'
 
 const photon = new Photon()
 const app = express()
