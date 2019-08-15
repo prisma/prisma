@@ -138,9 +138,6 @@ export async function getDatabaseSchemas(connector: IConnector): Promise<string[
 }
 
 function getSchemaPath(cwd: string): string | undefined {
-  if (existsSync(join(cwd, 'project.prisma'))) {
-    return join(cwd, 'project.prisma')
-  }
   if (existsSync(join(cwd, 'schema.prisma'))) {
     return join(cwd, 'schema.prisma')
   }

@@ -1,6 +1,5 @@
 import { PostgresConnector } from 'prisma-db-introspection'
-import { generateClient } from '@prisma/photon'
-import { isdlToDatamodel2 } from '@prisma/lift'
+import { generateClient, isdlToDatamodel2 } from '@prisma/photon'
 import { ISDL } from 'prisma-datamodel'
 import { join, dirname } from 'path'
 import mkdir from 'make-dir'

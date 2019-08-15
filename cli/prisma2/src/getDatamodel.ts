@@ -1,16 +1,9 @@
 import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
-import { LiftEngine } from '@prisma/lift'
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
-
-export async function getConfig(cwd: string) {
-  const datamodel = await getDatamodel(cwd)
-  const engine = new LiftEngine({ projectDir: cwd })
-  return engine.getConfig({ datamodel })
-}
 
 export async function getDatamodel(cwd: string): Promise<string> {
   let datamodelPath = path.join(cwd, 'project.prisma')

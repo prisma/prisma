@@ -1,5 +1,4 @@
 import { Command, Env, arg, format } from '@prisma/cli'
-import { LiftEngine } from '@prisma/lift'
 import { isError } from 'util'
 import { promptInteractively } from '../prompt'
 import { introspect } from '../introspect/util'
@@ -12,16 +11,11 @@ import { mkdirpSync } from 'fs-extra'
 import { InitPromptResult } from '../types'
 
 export class Init implements Command {
-  lift: LiftEngine
   static new(env: Env): Init {
     return new Init(env)
   }
 
-  private constructor(private readonly env: Env) {
-    this.lift = new LiftEngine({
-      projectDir: env.cwd,
-    })
-  }
+  private constructor(private readonly env: Env) {}
 
   async parse(argv: string[]): Promise<any> {
     // parse the arguments according to the spec
