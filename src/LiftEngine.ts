@@ -43,8 +43,8 @@ export class LiftEngine {
   private schemaPath: string
   private listeners: { [key: string]: (result: any) => any } = {}
   private messages: string[] = []
-  private logs: any[] = []
-  private startedAt: number
+  private lastError?: any
+  private initPromise?: Promise<void>
   constructor({
     projectDir,
     binaryPath = eval(`require('path').join(__dirname, '../migration-engine')`), // ncc go home
@@ -58,13 +58,9 @@ export class LiftEngine {
       debugLib.enable('LiftEngine*')
     }
     this.debug = debug
-    // this.init()
-    this.startedAt = Date.now()
   }
   public stop() {
     this.child!.kill()
-    const time = Date.now() - this.startedAt
-    fs.writeFileSync('histogram.json', JSON.stringify({ time, histogram: this.logs }, null, 2))
   }
   public applyMigration(args: EngineArgs.ApplyMigration): Promise<EngineResults.ApplyMigration> {
     return this.runCommand(this.getRPCPayload('applyMigration', args))
@@ -124,86 +120,110 @@ export class LiftEngine {
       }
     }
   }
-  private init() {
-    const { PWD, ...rest } = process.env
-    this.child = spawn(this.binaryPath, ['-d', this.schemaPath], {
-      cwd: this.projectDir,
-      stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
-      env: {
-        ...rest,
-        SERVER_ROOT: this.projectDir,
-        RUST_LOG: 'info',
-        RUST_BACKTRACE: '1',
-      },
-    })
+  private init(): Promise<void> {
+    if (!this.initPromise) {
+      this.initPromise = this.internalInit()
+    }
 
-    this.child.on('error', err => {
-      console.error('[migration-engine] error: %s', err)
-      // reject(new Error(`${chalk.redBright('Error in lift engine:')} ${messages.join('')}`))
-      this.rejectAll(err)
-    })
-
-    this.child.on('exit', (code, signal) => {
-      // if (code !== 0) {
-      //   // this.persistError(request, null, messages)
-      //   // TODO: get this.lastError
-      //   this.rejectAll(new Error(`${chalk.redBright(`Error in lift engine`)}`))
-      // }
-    })
-
-    this.child.stdin!.on('error', err => {
-      debugStdin(err)
-    })
-
-    byline(this.child.stderr).on('data', data => {
-      const msg = String(data)
-      // this.messages.push(msg)
-      debugStderr(msg)
-      try {
-        const json = JSON.parse(msg)
-        if (json.level === 'INFO' && json.msg.startsWith('histogram')) {
-          this.logs.push(json)
-        }
-      } catch (e) {
-        //
-      }
-    })
-
-    byline(this.child.stdout).on('data', line => {
-      this.handleResponse(String(line))
-    })
+    return this.initPromise!
   }
-  private runCommand(request: RPCPayload): Promise<any> {
-    this.init()
+  private internalInit(): Promise<void> {
     return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        this.registerCallback(request.id, response => {
-          if (response.result) {
-            resolve(response.result)
-          } else {
-            if (response.error) {
-              if (response.error.data && response.error.data.error && response.error.data.code) {
-                reject(new EngineError(response.error.data.error, response.error.data.code))
-              } else {
-                const text = this.persistError(request, response, this.messages)
-                reject(
-                  new Error(
-                    `${chalk.redBright('Error in RPC')}\n Request: ${JSON.stringify(
-                      request,
-                      null,
-                      2,
-                    )}\nResponse: ${JSON.stringify(response, null, 2)}\n${response.error.message}\n\n${text}\n`,
-                  ),
-                )
-              }
+      try {
+        const { PWD, ...rest } = process.env
+        this.child = spawn(this.binaryPath, ['-d', this.schemaPath], {
+          cwd: this.projectDir,
+          stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
+          env: {
+            ...rest,
+            SERVER_ROOT: this.projectDir,
+            RUST_LOG: 'info',
+            RUST_BACKTRACE: '1',
+          },
+        })
+
+        this.child.on('error', err => {
+          console.error('[migration-engine] error: %s', err)
+          reject(err)
+          this.rejectAll(err)
+        })
+
+        this.child.on('exit', (code, signal) => {
+          if (code !== 0) {
+            const messages = this.messages.join('\n')
+            let errorMessage = chalk.red.bold('Error in migration engine: ') + messages
+            if (messages.includes('\u001b[1;94m-->\u001b[0m')) {
+              errorMessage = `${chalk.red.bold('Schema parsing ')}` + messages
             } else {
-              reject(new Error(`Got invalid RPC response without .result property: ${JSON.stringify(response)}`))
+              if (this.lastError && this.lastError.msg === 'PANIC') {
+                errorMessage = serializePanic(this.lastError)
+              }
             }
+            const err = new Error(errorMessage)
+            this.rejectAll(err)
+            reject(err)
           }
         })
-        debugRpc('SENDING RPC CALL', util.inspect(request, { depth: null }))
-        this.child!.stdin!.write(JSON.stringify(request) + '\n')
-      }, 40)
+
+        this.child.stdin!.on('error', err => {
+          debugStdin(err)
+        })
+
+        byline(this.child.stderr).on('data', data => {
+          const msg = String(data)
+          this.messages.push(msg)
+          debugStderr(msg)
+          try {
+            const json = JSON.parse(msg)
+            if (json.level === 'ERRO') {
+              this.lastError = json
+            }
+          } catch (e) {
+            //
+          }
+        })
+
+        byline(this.child.stdout).on('data', line => {
+          this.handleResponse(String(line))
+        })
+
+        setImmediate(() => {
+          resolve()
+        })
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+  private async runCommand(request: RPCPayload): Promise<any> {
+    await this.init()
+    return new Promise((resolve, reject) => {
+      this.registerCallback(request.id, response => {
+        if (response.result) {
+          resolve(response.result)
+        } else {
+          if (response.error) {
+            if (response.error.data && response.error.data.error && response.error.data.code) {
+              reject(new EngineError(response.error.data.error, response.error.data.code))
+            } else {
+              const text = this.persistError(request, response, this.messages)
+              reject(
+                new Error(
+                  `${chalk.redBright('Error in RPC')}\n Request: ${JSON.stringify(
+                    request,
+                    null,
+                    2,
+                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${response.error.message}\n\n${text}\n`,
+                ),
+              )
+            }
+          } else {
+            reject(new Error(`Got invalid RPC response without .result property: ${JSON.stringify(response)}`))
+          }
+        }
+      })
+      debugRpc('SENDING RPC CALL', util.inspect(request, { depth: null }))
+      this.child!.stdin!.write(JSON.stringify(request) + '\n')
     })
   }
   private persistError(request: any, response: any, messages: string[]): string {
@@ -250,4 +270,14 @@ Please put that file into a gist and post it in Slack.
       },
     }
   }
+}
+
+function serializePanic(log) {
+  return `${chalk.red.bold('Error in migration engine.\nReason: ')}${chalk.red(
+    `${log.reason} in ${chalk.underline(`${log.file}:${log.line}:${log.column}`)}`,
+  )}
+
+Please create an issue in the ${chalk.bold('lift')} repo with
+your \`schema.prisma\` and the prisma2 command you tried to use 🙏:
+${chalk.underline('https://github.com/prisma/lift/issues/new')}\n`
 }

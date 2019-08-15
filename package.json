@@ -50,7 +50,6 @@
     "execa": "^1.0.0",
     "fast-equals": "^2.0.0",
     "fast-memoize": "^2.5.1",
-    "fs-extra": "^8.0.1",
     "get-port": "^5.0.0",
     "get-stream": "^5.1.0",
     "git-user-email": "^0.2.2",
