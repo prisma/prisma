@@ -2,8 +2,8 @@ import { getPlatform } from '@prisma/get-platform'
 import chalk from 'chalk'
 import execa from 'execa'
 import path from 'path'
-import { ExternalDMMF } from './runtime/dmmf-types'
 import { ConfigMetaFormat } from './isdlToDatamodel2'
+import { ExternalDMMF } from './runtime/dmmf-types'
 
 async function getPrismaPath(): Promise<string> {
   // tslint:disable-next-line
