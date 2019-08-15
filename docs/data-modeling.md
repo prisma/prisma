@@ -112,7 +112,7 @@ Every _model_ in the data model definition will result in a number of CRUD opera
 
 The operations are accessible via a generated property on the Photon instance. By default the name of the property is the plural, lowercase form of the model name, e.g. `users` for a `User` model or `posts` for a `Post` model. 
 
-Here is an example illustrating the use of a `users` property from the [Photon JS API](./photon/api.md):
+Here is an example illustrating the use of a `users` property from the [Photon.js API](./photon/api.md):
 
 ```js
 const newUser = await photon.users.create({ data: {
@@ -121,7 +121,7 @@ const newUser = await photon.users.create({ data: {
 const allUsers = await photon.users.findMany()
 ```
 
-Note that for Photon JS the name of the `users` property is auto-generated using the [`pluralize`](https://github.com/blakeembrey/pluralize) package. 
+Note that for Photon.js the name of the `users` property is auto-generated using the [`pluralize`](https://github.com/blakeembrey/pluralize) package. 
 
 ## Fields
 
@@ -453,7 +453,7 @@ Learn more about relations [here](./relations.md).
 
 ## Reserved model names
 
-When generating Photon JS based on your [data model definition](./data-modeling.md#data-model-definition), there are a number of reserved names that you can't use for your models. Here is a list of the reserved names:
+When generating Photon.js based on your [data model definition](./data-modeling.md#data-model-definition), there are a number of reserved names that you can't use for your models. Here is a list of the reserved names:
 
 - `String`
 - `Int`
