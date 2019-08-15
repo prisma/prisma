@@ -1,14 +1,14 @@
 # Deployment
 
-Photon JS depends on a query engine that's running as a binary on the same host as your application. When deploying your Photon-based application to production, you need to ensure that the binary used by Photon can run in your production environment, i.e. it needs to be compatible with the runtime of your deployment provider.
+Photon.js depends on a query engine that's running as a binary on the same host as your application. When deploying your Photon-based application to production, you need to ensure that the binary used by Photon can run in your production environment, i.e. it needs to be compatible with the runtime of your deployment provider.
 
 The query engine binary is downloaded when you run `prisma2 generate`, it is then stored alongside the generated Photon code inside `node_modules/@generated` (or the [custom `output` path](./codegen-and-node-setup.md) you specified). 
 
-**IMPORTANT**: To ensure the query engine binary is compatible with your production environment, you have to [specify the right platform for Photon JS](../core/generators/photonjs.md#specifying-the-right-platform-for-photon-js).
+**IMPORTANT**: To ensure the query engine binary is compatible with your production environment, you have to [specify the right platform for Photon.js](../core/generators/photonjs.md#specifying-the-right-platform-for-photon-js).
 
 ## Examples
 
-Here are a number of example projects demonstrating how to deploy Photon JS to various deploymenty providers:
+Here are a number of example projects demonstrating how to deploy Photon.js to various deploymenty providers:
 
 - [Google Cloud Functions](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/google-cloud-functions)
 - [Netlify](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/netlify)
@@ -20,7 +20,7 @@ Here are a number of example projects demonstrating how to deploy Photon JS to v
 
 ### ZEIT Now
 
-You can deploy your "Photon JS"-based application to [ZEIT Now](https://zeit.co/now).
+You can deploy your "Photon.js"-based application to [ZEIT Now](https://zeit.co/now).
 
 When deploying to ZEIT Now, you must configure the following in your `now.json`:
 

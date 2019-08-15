@@ -4,18 +4,18 @@ The Prisma schema file (short: _schema file_, _Prisma schema_ or just _schema_) 
 
 - [**Data sources**](./data-sources.md): Specify the details of the data sources Prisma should connect to (e.g. a PostgreSQL database)
 - [**Data model definition**](./data-modeling.md): Specifies your application models (the shape of the data per data source)
-- [**Generators**](#generators-optional) (optional): Specifies what clients should be generated based on the data model (e.g. Photon JS)
+- [**Generators**](#generators-optional) (optional): Specifies what clients should be generated based on the data model (e.g. Photon.js)
 
 Whenever a `prisma2` command is invoked, the CLI typically reads some information from the schema file, e.g.:
 
-- `prisma2 generate`: Reads _all_ above mentioned information from the Prisma schema to generate the correct data source client code (e.g. Photon JS).
+- `prisma2 generate`: Reads _all_ above mentioned information from the Prisma schema to generate the correct data source client code (e.g. Photon.js).
 - `prisma2 lift save`: Reads the data sources and data model definition to create a new [migration](). 
 
 You can also [use environment variables](#using-environment-variables) inside the schema file to provide configuration options when a CLI command is invoked.
 
 ## Example
 
-Here is a simple example for a schema file that specifies a data source (SQLite), a generator (Photon JS) and a simple data model definition:
+Here is a simple example for a schema file that specifies a data source (SQLite), a generator (Photon.js) and a simple data model definition:
 
 ```groovy
 // schema.prisma
