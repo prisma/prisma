@@ -10,12 +10,9 @@ import { Lift } from './Lift'
 describe('lift.create', () => {
   createTests().map(t => {
     test(t.name, async () => {
-      console.log('testing', t.name)
       const pkg = dirname((await pkgup({ cwd: __dirname })) || __filename)
       const root = join(pkg, 'tmp', 'lift-' + Date.now())
-      console.log('writing files', t.name)
       await writeFiles(root, t.fs)
-      console.log('calling fn')
       await t.fn(root)
       await del(root)
     })
