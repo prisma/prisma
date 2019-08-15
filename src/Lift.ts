@@ -22,7 +22,7 @@ import { LiftEngine } from './LiftEngine'
 import { EngineResults, FileMap, LocalMigration, LocalMigrationWithDatabaseSteps, LockFile, Migration } from './types'
 import { drawBox } from './utils/drawBox'
 import { formatms } from './utils/formartms'
-import { getCompiledGenerators } from './utils/generation/getCompiledGenerators'
+import { getCompiledGenerators } from '@prisma/photon'
 import { groupBy } from './utils/groupBy'
 import { isWatchMigrationName } from './utils/isWatchMigrationName'
 import { deserializeLockFile, initLockFile, serializeLockFile } from './utils/LockFile'
@@ -344,9 +344,9 @@ export class Lift {
     })
 
     // silent everyone else. this is not a democracy
-    // console.log = (...args) => {
-    //   debug(...args)
-    // }
+    console.log = (...args) => {
+      debug(...args)
+    }
 
     this.recreateStudioServer(datamodel)
 
@@ -547,7 +547,7 @@ export class Lift {
           cliCursor.show()
           throw new Error(`Failed to roll back migration. ${JSON.stringify(progress)}`)
         }
-        await new Promise(r => setTimeout(r, 1000))
+        await new Promise(r => setTimeout(r, 1500))
       }
 
       if (migrationToApply.afterFilePath) {
@@ -583,8 +583,6 @@ export class Lift {
       console.log(highlightMigrationsSQL(migrationsWithDbSteps))
       console.log('\n')
     }
-
-    // this.engine.
 
     return `\n🚀  Done with ${migrationsToApply.length} migration${
       migrationsToApply.length > 1 ? 's' : ''

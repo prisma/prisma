@@ -65,6 +65,7 @@ export class LiftSave implements Command {
     const migration = await lift.createMigration('DUMMY_NAME')
 
     if (!migration) {
+      lift.stop()
       return `Everything up-to-date\n` // TODO: find better wording
     }
 
@@ -73,6 +74,7 @@ export class LiftSave implements Command {
     const { files, newLockFile, migrationId } = await lift.save(migration, name, preview)
 
     if (preview) {
+      lift.stop()
       return `\nRun ${chalk.greenBright('prisma lift save --name MIGRATION_NAME')} to create the migration\n`
     }
 
@@ -90,8 +92,12 @@ export class LiftSave implements Command {
 
   // get the name
   public async name(name?: string): Promise<string | undefined> {
-    if (name === '') { return undefined }
-    if (name) { return name }
+    if (name === '') {
+      return undefined
+    }
+    if (name) {
+      return name
+    }
     const response = await prompt({
       type: 'text',
       name: 'name',

@@ -10,9 +10,12 @@ import { Lift } from './Lift'
 describe('lift.create', () => {
   createTests().map(t => {
     test(t.name, async () => {
+      console.log('testing', t.name)
       const pkg = dirname((await pkgup({ cwd: __dirname })) || __filename)
       const root = join(pkg, 'tmp', 'lift-' + Date.now())
+      console.log('writing files', t.name)
       await writeFiles(root, t.fs)
+      console.log('calling fn')
       await t.fn(root)
       await del(root)
     })
@@ -41,7 +44,7 @@ function createTests() {
     {
       name: 'simple ok',
       fs: {
-        'project.prisma': `
+        'schema.prisma': `
           datasource my_db {
             provider = "sqlite"
             url = "file:./db/db_file.db"
@@ -71,7 +74,7 @@ function createTests() {
     {
       name: 'spaces ok',
       fs: {
-        'project.prisma': `
+        'schema.prisma': `
           datasource my_db {
             provider = "sqlite"
             url = "file:./db/db_file.db"
@@ -101,7 +104,7 @@ function createTests() {
     {
       name: 'dashes ok',
       fs: {
-        'project.prisma': `
+        'schema.prisma': `
           datasource my_db {
             provider = "sqlite"
             url = "file:./db/db_file.db"
