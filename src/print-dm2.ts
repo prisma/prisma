@@ -1,6 +1,6 @@
-import { LiftEngine } from './LiftEngine'
-import { DefaultParser, DatabaseType } from 'prisma-datamodel'
 import { isdlToDatamodel2 } from '@prisma/photon'
+import { DatabaseType, DefaultParser } from 'prisma-datamodel'
+import { LiftEngine } from './LiftEngine'
 
 const dm1 = `type User {
   id: UUID @id
