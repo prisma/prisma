@@ -1,3 +1,3 @@
 # @prisma/photon
 
-This package is being used by `prisma2`
+This package is being used by `prisma2`.
