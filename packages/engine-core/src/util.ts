@@ -9,7 +9,7 @@ export function plusX(file) {
   fs.chmodSync(file, base8)
 }
 
-export function fixPlatforms(platforms: Platform[], platform: Platform) {
+export function fixPlatforms(platforms: Array<Platform | string>, platform: Platform | string) {
   platforms = platforms || []
   if (!platforms.includes('native')) {
     return ['native', ...platforms]

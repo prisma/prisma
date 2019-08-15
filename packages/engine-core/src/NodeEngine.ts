@@ -28,7 +28,7 @@ export interface EngineConfig {
   datamodel: string
   debug?: boolean
   prismaPath?: string
-  platform?: Platform
+  platform?: Platform | string
   fetcher?: (query: string) => Promise<{ data?: any; error?: any }>
   generator?: GeneratorConfig
   datasources?: DatasourceOverwrite[]
@@ -68,7 +68,7 @@ export class NodeEngine extends Engine {
   currentRequestPromise?: any
   cwdPromise: Promise<string>
   platformPromise: Promise<Platform>
-  platform?: Platform
+  platform?: Platform | string
   generator?: GeneratorConfig
   incorrectlyPinnedPlatform?: string
   datasources?: DatasourceOverwrite[]

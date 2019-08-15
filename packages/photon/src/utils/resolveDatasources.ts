@@ -1,5 +1,5 @@
-import { DataSource } from '@prisma/lift'
 import path from 'path'
+import { DataSource } from '../types'
 
 export function resolveDatasources(datasources: DataSource[], cwd: string, outputDir: string): DataSource[] {
   return datasources.map(datasource => {
