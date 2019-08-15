@@ -37,7 +37,6 @@
     "scripts"
   ],
   "devDependencies": {
-    "@prisma/lift": "^0.1.30",
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
@@ -63,9 +62,6 @@
     "webpack": "5.0.0-alpha.14",
     "webpack-cli": "4.0.0-alpha-4"
   },
-  "peerDependencies": {
-    "@prisma/lift": "*"
-  },
   "dependencies": {
     "@apexearth/copy": "^1.4.2",
     "@prisma/cli": "0.0.46",
@@ -74,8 +70,9 @@
     "chalk": "^2.4.2",
     "cpy": "^7.3.0",
     "dotenv": "^8.0.0",
-    "execa": "^2.0.3",
+    "execa": "^2.0.4",
     "flat-map-polyfill": "^0.3.8",
+    "fs-extra": "^8.1.0",
     "fs-monkey": "^0.3.3",
     "indent-string": "^4.0.0",
     "is-obj": "^2.0.0",
@@ -84,6 +81,7 @@
     "make-dir": "^3.0.0",
     "node-fetch": "^2.6.0",
     "pluralize": "^8.0.0",
+    "prisma-datamodel": "^1.36.0-test.2",
     "set-value": "^3.0.1",
     "stacktrace-parser": "0.1.6",
     "strip-ansi": "^5.2.0",

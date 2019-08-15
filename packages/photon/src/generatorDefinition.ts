@@ -1,6 +1,7 @@
 import { GeneratorDefinition, GeneratorFunction } from '@prisma/cli'
 import chalk from 'chalk'
 import fs from 'fs'
+import path from 'path'
 import { promisify } from 'util'
 import { generateClient } from './generation/generateClient'
 import { getDatamodelPath } from './utils/getDatamodel'
@@ -11,10 +12,11 @@ import Debug from 'debug'
 const debug = Debug('photon:generatorDefinition')
 
 const readFile = promisify(fs.readFile)
+const exists = promisify(fs.exists)
 
 const defaultOutput = 'node_modules/@generated/photon'
 
-const knownPlatforms = [
+export const knownPlatforms = [
   'native',
   'darwin',
   'linux-glibc-libssl1.0.1',
@@ -27,9 +29,18 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
   if (generator.platforms) {
     for (const platform of generator.platforms) {
       if (!knownPlatforms.includes(platform)) {
-        throw new Error(
-          `Unknown platform ${platform}. Possible platforms: ${chalk.greenBright(knownPlatforms.join(', '))}`,
-        )
+        if (!(await exists(platform))) {
+          if (platform.startsWith('.') || platform.startsWith('/')) {
+            const customPlatform = path.resolve(cwd, platform)
+            if (!(await exists(customPlatform))) {
+              throw new Error(`Could not find custom binary at ${customPlatform}. Please check, if the file exists.`)
+            }
+          } else {
+            throw new Error(
+              `Unknown platform ${platform}. Possible platforms: ${chalk.greenBright(knownPlatforms.join(', '))}`,
+            )
+          }
+        }
       }
     }
   }

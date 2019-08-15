@@ -1,16 +1,17 @@
 import Photon from './@generated/photon'
 
 async function main() {
-  const photon = new Photon({ debug: true })
+  const photon = new Photon()
 
   const testData = await photon.users.create({
     data: {
+      id: 'asd',
       username: 'post3s',
-      // posts: {
-      //   create: {
-      //     data: 'test',
-      //   },
-      // },
+      posts: {
+        create: {
+          data: 'test',
+        },
+      },
     },
   })
   console.log(testData)

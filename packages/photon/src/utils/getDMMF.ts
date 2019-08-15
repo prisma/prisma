@@ -1,8 +1,5 @@
-import { getPlatform } from '@prisma/get-platform'
-import chalk from 'chalk'
-import execa = require('execa')
-import path from 'path'
-import { DMMF, ExternalDMMF } from '../runtime/dmmf-types'
+import { getRawDMMF } from '../engineCommands'
+import { DMMF } from '../runtime/dmmf-types'
 import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
 import { transformDmmf } from '../runtime/transformDmmf'
 
@@ -54,33 +51,6 @@ function checkBlacklist(sdl: DMMF.Datamodel) {
         throw new Error(`Field ${model.name}.${field.name} is a reserved name and not allowed in the datamodel`)
       }
     }
-  }
-}
-
-export async function getRawDMMF(
-  datamodel: string,
-  cwd = process.cwd(),
-  prismaPath?: string,
-  datamodelPath?: string,
-): Promise<ExternalDMMF.Document> {
-  prismaPath = prismaPath || path.join(__dirname, `../../query-engine-${await getPlatform()}`)
-  try {
-    const result = await execa(prismaPath, ['cli', '--dmmf'], {
-      cwd,
-      env: {
-        ...process.env,
-        PRISMA_DML: datamodel,
-        PRISMA_SDL_PATH: datamodelPath,
-        RUST_BACKTRACE: '1',
-      },
-    })
-
-    return JSON.parse(result.stdout)
-  } catch (e) {
-    if (e.stderr) {
-      throw new Error(chalk.redBright.bold('Schema parsing ') + e.stderr)
-    }
-    throw new Error(e)
   }
 }
 

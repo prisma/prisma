@@ -136,6 +136,7 @@ interface TSClientOptions {
   datasources: InternalDatasource[]
   generator?: GeneratorConfig
   platforms?: string[]
+  pinnedPlatform?: string
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
 }
 
@@ -160,6 +161,7 @@ export class TSClient {
     platforms,
     sqliteDatasourceOverrides,
     version,
+    pinnedPlatform,
   }: TSClientOptions) {
     this.document = document
     this.datamodel = datamodel
@@ -285,7 +287,7 @@ export type Hooks = {
   beforeRequest?: (options: {query: string, path: string[], rootField?: string, typeName?: string, document: any}) => any
 }
 
-function uniqueBy(arr, cb) {
+function uniqueBy(arr: any[], cb: any) {
   var a = arr.concat();
   for(var i=0; i<a.length; ++i) {
       for(var j=i+1; j<a.length; ++j) {
@@ -317,7 +319,7 @@ export default class Photon {
       this.sqliteDatasourceOverrides ? serializeDatasources(this.sqliteDatasourceOverrides) : '[]'
     }
     const inputDatasources = Object.entries(options.datasources || {}).map(([name, url]) => ({ name, url: url! }))
-    const datasources = uniqueBy([...predefinedDatasources, ...inputDatasources], source => source.name)
+    const datasources = uniqueBy([...predefinedDatasources, ...inputDatasources], (source: any) => source.name)
 
     const internal = options.__internal || {}
     const engineConfig = internal.engine || {}

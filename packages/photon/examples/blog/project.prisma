@@ -11,13 +11,13 @@ generator photon {
 }
 
 model User {
-  id       String @id @default(cuid())
+  id       String @id @default(uuid())
   username String
   posts    Post[]
 }
 
 model Post {
-  i2d  String @id @default(cuid())
+  i2d  String @id @default(uuid())
   data String
   user User?
 }

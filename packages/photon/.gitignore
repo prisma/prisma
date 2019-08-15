@@ -16,3 +16,4 @@ db
 failed-*.md
 prisma
 test.sh
+try-getConfig.ts
