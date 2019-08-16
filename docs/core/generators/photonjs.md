@@ -10,7 +10,7 @@ The generated data access code of the `photonjs` generator targets [ES2016](http
 
 Photon.js depends on a _query engine_ that's running as a _binary_ on the same host as your application. When deploying your Photon-based application to production, you need to ensure that the binary used by Photon can run in your production environment, i.e. it needs to be compatible with the runtime of your deployment provider.
 
-The query engine binary is downloaded when you run `prisma2 generate`, it is then stored alongside the generated Photon code inside `node_modules/@generated` (or the [custom `output` path](./codegen-and-node-setup.md) you specified). This section explains how you can determine which binary should be downloaded when `prisma2 generate` is executed to ensure compatibility at runtime.
+The query engine binary is downloaded when you run `prisma2 generate`, it is then stored alongside the generated Photon code inside `node_modules/@generated` (or the [custom `output` path](../../photon/codegen-and-node-setup.md) you specified). This section explains how you can determine which binary should be downloaded when `prisma2 generate` is executed to ensure compatibility at runtime.
 
 You can read more about this topic in the [specification](https://github.com/prisma/specs/blob/master/binaries/Readme.md).
 
