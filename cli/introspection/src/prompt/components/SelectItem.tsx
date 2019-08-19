@@ -3,8 +3,8 @@ import * as React from 'react'
 import { COLORS } from '../colors'
 import { BACK_SYMBOL } from './helpers'
 import { Spinner } from './Spinner'
-import { SpinnerState } from './types'
-import { useStdin } from './useStdin'
+import { SpinnerState } from '../types'
+import { useStdin } from '../useStdin'
 import figures = require('figures')
 
 interface Props {

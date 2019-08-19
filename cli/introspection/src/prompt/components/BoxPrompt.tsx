@@ -17,8 +17,8 @@ import {
 import { RadioButton } from './RadioButton'
 import { SelectIndicator, SelectItem } from './SelectItem'
 import { TextInput } from './TextInput'
-import { CheckboxElement, InputElement, PromptElement, RadioElement, SpinnerState } from './types'
-import { useStdin } from './useStdin'
+import { CheckboxElement, InputElement, PromptElement, RadioElement, SpinnerState } from '../types'
+import { useStdin } from '../useStdin'
 
 export interface OnSubmitParams {
   formValues?: Record<string, any>

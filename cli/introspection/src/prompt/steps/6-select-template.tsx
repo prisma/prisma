@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Prompt } from '../../prompt-lib/BoxPrompt'
+import { Prompt } from '../components/BoxPrompt'
 import { InitPromptResult } from '../../types'
 import { PromptProps, PromptState } from '../InteractivePrompt'
 import { ActionType } from '../reducer'
@@ -39,7 +39,7 @@ export function renderSelectTemplate(
             lift: state.lift,
             photon: state.photon,
             template: selectedTemplate,
-            databaseType: state.databaseType
+            databaseType: state.databaseType,
           },
         } as InitPromptResult)
       }}

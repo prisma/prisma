@@ -33,10 +33,12 @@
   "dependencies": {
     "ajv": "^6.10.0",
     "chalk": "^2.4.2",
+    "cli-truncate": "^2.0.0",
     "dotenv": "^8.0.0",
     "execa": "^1.0.0",
     "figures": "^3.0.0",
     "ink": "^2.2.0",
+    "ink-progress-bar": "^3.0.0",
     "ink-spinner": "^3.0.1",
     "ink-text-input": "^3.2.0",
     "jsonwebtoken": "^8.5.1",

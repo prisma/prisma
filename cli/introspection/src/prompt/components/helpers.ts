@@ -1,5 +1,5 @@
 import { Key } from 'readline'
-import { CheckboxElement, InputElement, PromptElement, RadioElement, SelectElement, SeparatorElement } from './types'
+import { CheckboxElement, InputElement, PromptElement, RadioElement, SelectElement, SeparatorElement } from '../types'
 
 export function isElementInput(obj: PromptElement): obj is InputElement {
   return obj && obj.type === 'text-input'
