@@ -65,7 +65,7 @@ export const Prompt: React.FC<Props> = props => {
     : props.elements
 
   useStdin(
-    (actionKey, text) => {
+    ({ actionKey, text }) => {
       setCursor(prevCursor => {
         if (actionKey === 'up') {
           return up(prevCursor, elementsWithBack)

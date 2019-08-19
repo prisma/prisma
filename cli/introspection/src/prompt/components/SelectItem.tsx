@@ -1,6 +1,5 @@
-import { Box, Color, ColorProps } from 'ink'
+import { Box, Color, Text } from 'ink'
 import * as React from 'react'
-import { COLORS } from '../colors'
 import { BACK_SYMBOL } from './helpers'
 import { Spinner } from './Spinner'
 import { SpinnerState } from '../types'
@@ -9,46 +8,29 @@ import figures = require('figures')
 
 interface Props {
   label: string
-  spinnerState: SpinnerState | undefined
+  spinnerState?: SpinnerState | undefined
   value?: any
   focus: boolean
   description?: string
   isBackButton?: boolean
   onSelect: (value?: any) => void
+  padding?: number
 }
 
-function renderSelectIndicator(spinnerState: SpinnerState | undefined, isBackButton: boolean) {
+export const SelectIndicator: React.FC<{
+  spinnerState?: SpinnerState | undefined
+  isBackButton?: boolean
+  color?: any
+}> = ({ isBackButton, spinnerState }) => {
   if (isBackButton) {
-    return BACK_SYMBOL
+    return <>{BACK_SYMBOL}</>
   }
 
   if (spinnerState && spinnerState.state === 'running') {
     return <Spinner />
   }
 
-  return figures.pointer
-}
-
-export const SelectIndicator: React.FC<{
-  spinnerState?: SpinnerState | undefined
-  isBackButton?: boolean
-  color?: ColorProps
-}> = props => (
-  <Box marginRight={1}>
-    <Color {...props.color}>{renderSelectIndicator(props.spinnerState, props.isBackButton!)}</Color>
-  </Box>
-)
-
-function renderDescription(props: Props) {
-  if (props.spinnerState && props.spinnerState.message) {
-    if (props.spinnerState.state === 'running' || props.spinnerState.state === 'succeeded') {
-      return <Color green>{props.spinnerState.message}</Color>
-    } else if (props.spinnerState.state === 'failed') {
-      return <Color red>{props.spinnerState.message}</Color>
-    }
-  } else {
-    return <Color dim>{props.description || ''}</Color>
-  }
+  return <>{figures.pointer}</>
 }
 
 SelectIndicator.defaultProps = {
@@ -56,17 +38,22 @@ SelectIndicator.defaultProps = {
   spinnerState: undefined,
 }
 
-export const SelectItem: React.FC<Props> = props => {
-  const indicator = (
-    <SelectIndicator
-      color={props.focus ? { [COLORS.selection]: true } : {}}
-      spinnerState={props.spinnerState}
-      isBackButton={props.isBackButton!}
-    />
-  )
+export const Description: React.FC<Props> = ({ spinnerState, description }) => {
+  if (spinnerState && spinnerState.message) {
+    if (spinnerState.state === 'running' || spinnerState.state === 'succeeded') {
+      return <Color green>{spinnerState.message}</Color>
+    } else if (spinnerState.state === 'failed') {
+      return <Color red>{spinnerState.message}</Color>
+    }
+  } else {
+    return <Color dim>{description || ''}</Color>
+  }
+  return null
+}
 
+export const SelectItem: React.FC<Props> = props => {
   useStdin(
-    async actionKey => {
+    async ({ actionKey }) => {
       if (props.focus && actionKey === 'submit') {
         await props.onSelect(props.value)
       }
@@ -74,13 +61,20 @@ export const SelectItem: React.FC<Props> = props => {
     [props.focus, props.value],
   )
 
+  const padding = props.padding || 20
+
+  const textColor = props.focus ? 'cyan' : 'visible'
   return (
     <Box>
-      {props.focus ? <Color keyword={COLORS.selection}>{indicator}</Color> : indicator}
-      <Box marginLeft={1}>
-        {props.focus ? <Color keyword={COLORS.selection}>{props.label.padEnd(20)}</Color> : props.label.padEnd(20)}
-      </Box>
-      {renderDescription(props)}
+      <Color {...{ [textColor]: true }}>
+        <Box width={14} marginRight={2}>
+          {props.focus ? <SelectIndicator spinnerState={props.spinnerState} isBackButton={props.isBackButton!} /> : ' '}{' '}
+          <Text {...{ bold: props.focus }}>{props.label.padEnd(padding)}</Text>
+        </Box>
+        <Color dim>
+          <Description {...props} />
+        </Color>
+      </Color>
     </Box>
   )
 }

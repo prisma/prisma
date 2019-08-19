@@ -3,15 +3,15 @@ import * as React from 'react'
 import { Key } from 'readline'
 import { action, ActionKey } from './components/helpers'
 
-export function useStdin(keyHandler: (key: ActionKey, text: string) => void, deps: any[] = []) {
+export function useStdin(keyHandler: ({ actionKey: ActionKey, text: string, key: Key }) => void, deps: any[] = []) {
   const { stdin, setRawMode } = React.useContext(StdinContext)
 
   let didCancel = false
 
   React.useEffect(() => {
-    function handler(str: string, key: Key) {
+    function handler(text: string, key: Key) {
       if (!didCancel) {
-        keyHandler(action(key), str)
+        keyHandler({ actionKey: action(key), text, key })
       }
     }
 
