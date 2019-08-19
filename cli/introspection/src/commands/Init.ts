@@ -38,6 +38,10 @@ export class Init implements Command {
     const outputDirName = args._[0]
     const outputDir = outputDirName ? join(process.cwd(), outputDirName) : process.cwd()
 
+    if (!existsSync(outputDir)) {
+      mkdirSync(outputDir)
+    }
+
     const existingFiles = readdirSync(outputDir)
 
     if (existingFiles.length > 0) {
