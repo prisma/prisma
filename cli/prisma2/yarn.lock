@@ -416,14 +416,14 @@
     tar "^4.4.10"
     tmp "^0.1.0"
 
-"@prisma/lift@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.2.0.tgz#c52f8d1250459b778afd623fe8883baa12cceb10"
-  integrity sha512-G7qUjsd0MRAGfxUW6++THNb/wQXfC0fsul07X9F+wBJY4YUuDlMflf+LV+oTesPtYQimsMmSHLZrA41ZJ6oA3w==
+"@prisma/lift@0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.2.2.tgz#20387343bb46f6ab6eacab4c7022d1471d3a0dbc"
+  integrity sha512-Uby7S4grJa6La/VocOZYGjJRJZV5/xfZMCbMnEKdTriYHCTgAJr5DSo42OMI19v+L1514mR9WWcId4zONQutjg==
   dependencies:
     "@prisma/fetch-engine" "^0.1.3"
     "@prisma/get-platform" "^0.0.3"
-    "@prisma/studio-server" "^0.57.0"
+    "@prisma/studio-server" "^0.61.0"
     "@types/execa" "^0.9.0"
     arg "^4.1.0"
     array-flat-polyfill "^1.0.1"
@@ -464,10 +464,10 @@
   dependencies:
     tslib "^1.9.3"
 
-"@prisma/photon@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.2.0.tgz#c2643541fbe67943a7c0e5101dc539539226347a"
-  integrity sha512-jv8LRbs8xuGwUwZHIwaNPGEB7laU05s+r1ygywXQhyIK1ny+ZAmEn4HTc9bRnu6ukz4M5IOyOw9UXdl47lNuXw==
+"@prisma/photon@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.2.3.tgz#ea5ec0365a26d686092b414225ab1f18bd9dea51"
+  integrity sha512-a+MQ8OqxYnzhpkUDyLyQUplG87YADJBIsSxU1MnqbtNp/iHLJ3FoECQ0mPW5LgA1bPaTlqalhHUa+wuEELH9fQ==
   dependencies:
     "@apexearth/copy" "^1.4.2"
     "@prisma/cli" "0.0.46"
@@ -495,27 +495,27 @@
     terminal-link "^1.3.0"
     wtfnode "0.8.0"
 
-"@prisma/studio-server@^0.57.0":
-  version "0.57.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.57.0.tgz#21591651cbcfedccfeabc3df00381b3847aafbf0"
-  integrity sha512-N/wcIs0bchg16/o9d4Vh1iumwIQ2O3hY4fdnRpdRSJCvLHWfuiR2rVq4AJFY7uaS6r2KrqcAYCgt7YLi+7TEDw==
+"@prisma/studio-server@^0.61.0":
+  version "0.61.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.61.0.tgz#a9cb207c13997044c583f18456d01581603f28cd"
+  integrity sha512-SFRXGRK2kze8Vq2S7C6zxq2KJHziE5adUiEYkoMw2qARD0M3nW4CRZ8booxgqc2kL0ahJMIwKhMuAZAqygP2ig==
   dependencies:
-    "@prisma/studio" "0.57.0"
-    "@prisma/studio-transports" "0.57.0"
+    "@prisma/studio" "0.61.0"
+    "@prisma/studio-transports" "0.61.0"
     express "^4.17.1"
     express-ws "^4.0.0"
 
-"@prisma/studio-transports@0.57.0":
-  version "0.57.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.57.0.tgz#dcc9a851605200ec459d3a863461727e395e065a"
-  integrity sha512-l/EKwCq5/9LSn47YzGT/RDGcTfFUHsAKADlyVQglbgy8aOP+BDy949yVST4TMccaXzhEWz0KOZvg8nO5djU+pg==
+"@prisma/studio-transports@0.61.0":
+  version "0.61.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.61.0.tgz#2bc55cac0874d24c0b33cad96ef2ae1670340278"
+  integrity sha512-1SuRHOzWHTvc7NcxJtddY5cLXqEqL9+KXnQscxXzJCDQhCMmFdwKPg1YNgdocuVjhSl2//DUIRjAVRhaS9LztQ==
   dependencies:
     strip-ansi "^5.2.0"
 
-"@prisma/studio@0.57.0":
-  version "0.57.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.57.0.tgz#f0cf6e845bc1a143d22343ae74fccfe4f5d9649f"
-  integrity sha512-7HApS6NknDSK/DZOVAujvz77ggGmUKqbODWwnonQQ6k3WKp+hJCnTcvh32zKmFyS/vDMAFlehYWXIuRCDKBisQ==
+"@prisma/studio@0.61.0":
+  version "0.61.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.61.0.tgz#0bb84d6abc87c08f55b5f91baa0f3a7564999f72"
+  integrity sha512-kGy1hv+fO3cSRemzLbeAPKMFZlQ7GRJYofLeo5jXodS5BU8EENIcso8Ekm4OTzZHOFl6t4mvgDJ0roLC8z06qA==
 
 "@sentry/core@5.5.0":
   version "5.5.0"
