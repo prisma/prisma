@@ -33,6 +33,6 @@ class Compy extends React.Component<any, { step: number; progress: number }> {
 
 export function renderInk() {
   return new Promise(resolve => {
-    render(<Step0StarterVsBlank />)
+    render(<Step0StarterVsBlank onSubmit={resolve} />)
   })
 }
