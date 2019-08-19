@@ -1,5 +1,5 @@
 import { DatabaseType } from 'prisma-datamodel'
-import { PromptElement, RadioElement } from '../prompt-lib/types'
+import { PromptElement, RadioElement } from './types'
 import { DatabaseCredentials, SchemaWithMetadata } from '../types'
 
 export const dbTypeToDbPort: Record<DatabaseType, string> = {

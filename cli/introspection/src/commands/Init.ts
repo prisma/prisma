@@ -9,6 +9,7 @@ import { findTemplate } from '../templates'
 import { loadStarter } from '../loader'
 import { mkdirpSync } from 'fs-extra'
 import { InitPromptResult } from '../types'
+import { renderInk } from '../prompt/inkTest'
 
 export class Init implements Command {
   static new(env: Env): Init {
@@ -31,26 +32,29 @@ export class Init implements Command {
 
     const outputDirName = args._[0]
     const outputDir = outputDirName ? join(process.cwd(), outputDirName) : process.cwd()
+    await renderInk()
+    return
 
-    const existingFiles = readdirSync(outputDir)
+    // TODO: Move logic to the right place
+    // const existingFiles = readdirSync(outputDir)
 
-    if (existingFiles.length > 0) {
-      const relativeOutPath = './' + relative(process.cwd(), outputDir)
-      const s = existingFiles.length === 1 ? 's' : ''
-      const plural = existingFiles.length === 1 ? '' : 's'
-      const files =
-        existingFiles.length > 3
-          ? existingFiles
-              .slice(0, 3)
-              .map(f => chalk.bold(f))
-              .join(', ') + `and ${existingFiles.length - 3} more files `
-          : existingFiles.map(f => chalk.underline(f)).join(', ')
-      throw new Error(`Can't start ${chalk.bold(
-        'prisma2 init',
-      )} as the file${plural} ${files} exist${s} in ${chalk.underline(relativeOutPath)}
-Please either run ${chalk.greenBright('prisma2 init')} in an empty directory
-or provide a directory to initialize in: ${chalk.greenBright('prisma2 init sub-dir')}`)
-    }
+    //     if (existingFiles.length > 0) {
+    //       const relativeOutPath = './' + relative(process.cwd(), outputDir)
+    //       const s = existingFiles.length === 1 ? 's' : ''
+    //       const plural = existingFiles.length === 1 ? '' : 's'
+    //       const files =
+    //         existingFiles.length > 3
+    //           ? existingFiles
+    //               .slice(0, 3)
+    //               .map(f => chalk.bold(f))
+    //               .join(', ') + `and ${existingFiles.length - 3} more files `
+    //           : existingFiles.map(f => chalk.underline(f)).join(', ')
+    //       throw new Error(`Can't start ${chalk.bold(
+    //         'prisma2 init',
+    //       )} as the file${plural} ${files} exist${s} in ${chalk.underline(relativeOutPath)}
+    // Please either run ${chalk.greenBright('prisma2 init')} in an empty directory
+    // or provide a directory to initialize in: ${chalk.greenBright('prisma2 init sub-dir')}`)
+    //     }
 
     if (outputDirName) {
       try {

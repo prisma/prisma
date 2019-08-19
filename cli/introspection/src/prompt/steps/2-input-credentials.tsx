@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { credentialsToUri, uriToCredentials } from '../../convertCredentials'
 import { getConnectedConnectorFromCredentials, getDatabaseSchemasWithMetadata } from '../../introspect/util'
-import { onFormChangedParams, OnSubmitParams, Prompt } from '../../prompt-lib/BoxPrompt'
+import { onFormChangedParams, OnSubmitParams, Prompt } from '../components/BoxPrompt'
 import { DatabaseCredentials } from '../../types'
 import { dbTypeTodbName, defaultCredentials, PromptState } from '../InteractivePrompt'
 import { ActionType } from '../reducer'

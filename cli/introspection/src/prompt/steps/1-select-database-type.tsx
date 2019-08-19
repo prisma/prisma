@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Prompt } from '../../prompt-lib/BoxPrompt'
+import { Prompt } from '../components/BoxPrompt'
 import { PromptState } from '../InteractivePrompt'
 import { ActionType } from '../reducer'
 import { formByStep, Step } from '../steps-definition'

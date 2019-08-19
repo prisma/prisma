@@ -1,7 +1,7 @@
 import { StdinContext } from 'ink'
 import * as React from 'react'
 import { Key } from 'readline'
-import { action, ActionKey } from './helpers'
+import { action, ActionKey } from './components/helpers'
 
 export function useStdin(keyHandler: (key: ActionKey, text: string) => void, deps: any[] = []) {
   const { stdin, setRawMode } = React.useContext(StdinContext)

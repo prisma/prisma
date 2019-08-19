@@ -1039,6 +1039,11 @@ bignumber.js@7.2.1:
   resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-7.2.1.tgz#80c048759d826800807c4bfd521e50edbba57a5f"
   integrity sha512-S4XzBk5sMB+Rcb/LNcpzXr57VRTxgAvaAEDAl1AwRx27j00hT84O6OkteE7u8UB3NuaaygCRrEpqox4uDOrbdQ==
 
+blacklist@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/blacklist/-/blacklist-1.1.4.tgz#b2dd09d6177625b2caa69835a37b28995fa9a2f2"
+  integrity sha1-st0J1hd2JbLKppg1o3somV+povI=
+
 bluebird@^3.5.1:
   version "3.5.5"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.5.tgz#a8d0afd73251effbbd5fe384a77d73003c17a71f"
@@ -2609,6 +2614,14 @@ ink-link@^1.0.0:
   dependencies:
     prop-types "^15.7.2"
     terminal-link "^1.2.0"
+
+ink-progress-bar@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/ink-progress-bar/-/ink-progress-bar-3.0.0.tgz#e1cb86955355054e194361b8cb80f57124a9b203"
+  integrity sha512-GzByB3uEofqjyWC3VmdhYpBq+kzszu5Nwt/NruTDWa7fbw1E6sx6U1n6Kcsfj9D3qwR17dtC5w9uFVMyRA5HZw==
+  dependencies:
+    blacklist "^1.1.4"
+    prop-types "^15.7.2"
 
 ink-spinner@^3.0.1:
   version "3.0.1"
