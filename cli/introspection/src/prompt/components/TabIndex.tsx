@@ -59,25 +59,30 @@ const contextState = new TabIndexContextClass()
 
 export const TabIndexContext = React.createContext(contextState)
 
-export function TabApp() {
+export function TabIndexProvider(props) {
   const [state, setState] = React.useState(contextState)
-  const [value0, setValue0] = React.useState('')
-  const [value1, setValue1] = React.useState('')
-  const [value2, setValue2] = React.useState('')
-  const [value3, setValue3] = React.useState(false)
 
   useStdin(({ key, actionKey, text }) => {
-    if (key.name === 'down') {
-      state.down()
-    } else if (key.name === 'up') {
+    if (key.name === 'up' || (key.name === 'tab' && key.shift)) {
       state.up()
+    } else if (key.name === 'down' || key.name === 'tab') {
+      state.down()
     } else {
       state.emitKeyPress(key, actionKey, text)
     }
   })
 
+  return <TabIndexContext.Provider value={state}>{props.children}</TabIndexContext.Provider>
+}
+
+export function TabApp() {
+  const [value0, setValue0] = React.useState('')
+  const [value1, setValue1] = React.useState('')
+  const [value2, setValue2] = React.useState('')
+  const [value3, setValue3] = React.useState(false)
+
   return (
-    <TabIndexContext.Provider value={state}>
+    <TabIndexProvider>
       <Box marginTop={1} flexDirection="column">
         <Color bold>This is a title</Color>
         <Color dim>Lorem ipsum dolor sit amet consectetur, adipisicing elit. </Color>
@@ -100,10 +105,6 @@ export function TabApp() {
           <Link href="asd" label="Back" tabIndex={6} kind="back" description="(Database options)" />
         </Box>
       </Box>
-    </TabIndexContext.Provider>
+    </TabIndexProvider>
   )
 }
-
-// CONTINUE
-// 1. add > to the other items
-// 2. add router implementation
