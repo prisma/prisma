@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React from 'react'
 import { Prompt } from '../components/BoxPrompt'
 import { ActionType } from '../reducer'
 import { formByStep, Step } from '../steps-definition'

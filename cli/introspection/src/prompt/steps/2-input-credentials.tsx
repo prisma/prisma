@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React from 'react'
 import { credentialsToUri, uriToCredentials } from '../../convertCredentials'
 import { getConnectedConnectorFromCredentials, getDatabaseSchemasWithMetadata } from '../../introspect/util'
 import { onFormChangedParams, OnSubmitParams, Prompt } from '../components/BoxPrompt'

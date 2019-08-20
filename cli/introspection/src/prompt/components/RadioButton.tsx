@@ -1,36 +1,50 @@
-import * as figures from 'figures'
+import figures from 'figures'
 import { Box, Color } from 'ink'
-import * as React from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import { COLORS } from '../colors'
 import { KeyPressed } from './BoxPrompt'
+import { TabIndexContext } from './TabIndex'
+import { Key } from 'readline'
 
 interface Props {
   label: string
   value: string
   description?: string
-  keyPressed: KeyPressed
   checked: boolean
-  focus: boolean
   onChange: (value: string) => void
+  tabIndex: number
 }
 
 export const RadioButton: React.FC<Props> = props => {
-  const symbol = props.checked ? figures.radioOn : figures.radioOff
-  const { label, checked, focus, onChange, value, keyPressed } = props
+  const { label, checked, onChange, value, tabIndex } = props
 
-  React.useEffect(() => {
-    if (focus && keyPressed.key === 'submit') {
-      onChange(value)
+  const [focussed, setFocussed] = useState(false)
+  const ctx = useContext(TabIndexContext)
+
+  useEffect(() => {
+    const args = {
+      tabIndex,
+      onFocus(focus: boolean) {
+        setFocussed(focus)
+      },
+      onKey(key: Key) {
+        if (key.name === 'space') {
+          onChange(value)
+        }
+      },
     }
-  }, [checked, focus, keyPressed.key])
+    ctx.register(args)
+    return () => {
+      ctx.unregister(args)
+    }
+  })
 
   return (
     <Box>
-      {checked || focus ? <Color keyword={COLORS.selection}>{symbol}</Color> : symbol}
-      <Box marginLeft={1}>
-        {checked || focus ? <Color keyword={COLORS.selection}>{label.padEnd(20)}</Color> : label.padEnd(20)}
-      </Box>
-      <Color dim>{props.description ? props.description.padEnd(20) : ''}</Color>
+      <Color keyword={focussed ? COLORS.selection : 'visible'}>
+        {checked ? figures.radioOn : figures.radioOff} {label.padEnd(20)}
+        <Color dim>{props.description ? props.description.padEnd(20) : ''}</Color>
+      </Color>
     </Box>
   )
 }

@@ -1,5 +1,5 @@
 import { StdinContext } from 'ink'
-import * as React from 'react'
+import React from 'react'
 import { Key } from 'readline'
 import { action, ActionKey } from './components/helpers'
 

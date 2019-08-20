@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import { Box, Color } from 'ink'
-import * as React from 'react'
+import React from 'react'
 import { credentialsToUri } from '../../convertCredentials'
 import { ConnectorData, minimalPrettyTime } from '../../introspect/util'
 import { OnSubmitParams, Prompt } from '../components/BoxPrompt'

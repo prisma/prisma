@@ -55,6 +55,7 @@ export type ActionKey =
   | 'down'
   | 'right'
   | 'left'
+  | 'deleteToStart'
 
 export function action(key: Key): ActionKey {
   if (key.ctrl) {
@@ -63,6 +64,7 @@ export function action(key: Key): ActionKey {
     if (key.name === 'd') return 'abort'
     if (key.name === 'e') return 'last'
     if (key.name === 'g') return 'reset'
+    if (key.name === 'u') return 'deleteToStart'
   }
 
   if (key.name === 'return') return 'submit'

@@ -44,3 +44,7 @@ main()
     console.error(err)
     process.exit(1)
   })
+
+process.on('unhandledRejection', e => {
+  console.error(e)
+})
