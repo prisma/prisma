@@ -1,8 +1,8 @@
 // Text input forked from ink-text-input
 import chalk from 'chalk'
 import { Color } from 'ink'
-import * as React from 'react'
-import { KeyPressed } from './BoxPrompt'
+import React, { useEffect, useState } from 'react'
+import { KeyPressed } from '../BoxPrompt'
 
 type Props = {
   value: string
@@ -16,12 +16,11 @@ type Props = {
   onSubmit?: (text: string) => void
 }
 
-// TODO: Debug why useStdin is rendered 5 times
 export const InkTextInput: React.FC<Props> = props => {
-  const [cursorOffset, setCursorOffset] = React.useState((props.value || '').length)
-  const [cursorWidth, setCursorWidth] = React.useState(0)
+  const [cursorOffset, setCursorOffset] = useState((props.value || '').length)
+  const [cursorWidth, setCursorWidth] = useState(0)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const { value: originalValue, focus, showCursor, mask, onChange, onSubmit, keyPressed } = props
 
     if (!keyPressed) {
@@ -55,7 +54,18 @@ export const InkTextInput: React.FC<Props> = props => {
     let value = originalValue
     let cursorWidth = 0
 
-    if (actionKey === 'left') {
+    if (actionKey === 'deleteToStart') {
+      value = value.substr(tmpCursorOffset, value.length)
+      tmpCursorOffset = 0
+    } else if (actionKey === 'first') {
+      if (showCursor && !mask) {
+        tmpCursorOffset = 0
+      }
+    } else if (actionKey === 'last') {
+      if (showCursor && !mask) {
+        tmpCursorOffset = value.length
+      }
+    } else if (actionKey === 'left') {
       if (showCursor && !mask) {
         tmpCursorOffset--
       }
@@ -100,16 +110,7 @@ export const InkTextInput: React.FC<Props> = props => {
   if (showCursor && !mask && focus) {
     renderedValue = value.length > 0 ? '' : chalk.inverse(' ')
 
-    let i = 0
-    for (const char of value) {
-      if (i >= cursorOffset - cursorActualWidth && i <= cursorOffset) {
-        renderedValue += chalk.inverse(char)
-      } else {
-        renderedValue += char
-      }
-
-      i++
-    }
+    renderedValue += invertString(value, cursorOffset, cursorActualWidth)
 
     if (value.length > 0 && cursorOffset === value.length) {
       renderedValue += chalk.inverse(' ')
@@ -121,10 +122,25 @@ export const InkTextInput: React.FC<Props> = props => {
   }
 
   return (
-    <Color dim={!hasValue && !!placeholder && !focus} cyan={focus}>
-      {placeholder ? (hasValue ? renderedValue : placeholder) : renderedValue}
+    <Color dim={!hasValue && !!placeholder} cyan={focus}>
+      {placeholder ? (hasValue ? renderedValue : invertString(placeholder, 0, 0)) : renderedValue}
     </Color>
   )
+}
+
+function invertString(str: string, from: number, width: number) {
+  let resultStr = ''
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charAt(i)
+    // if in interval, invert it
+    if (i >= from && i <= from + width) {
+      resultStr += chalk.inverse(char)
+    } else {
+      resultStr += char
+    }
+  }
+
+  return resultStr
 }
 
 InkTextInput.defaultProps = {

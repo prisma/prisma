@@ -1,8 +1,8 @@
 import { Box, Color, Text } from 'ink'
-import * as React from 'react'
+import React from 'react'
 import stripAnsi from 'strip-ansi'
 import { COLORS } from '../colors'
-import { Checkbox } from './Checkbox'
+import { Checkbox } from './inputs/Checkbox'
 import { Divider } from './Divider'
 import {
   ActionKey,
@@ -15,8 +15,7 @@ import {
   up,
 } from './helpers'
 import { RadioButton } from './RadioButton'
-import { SelectIndicator, SelectItem } from './SelectItem'
-import { TextInput } from './TextInput'
+import { TextInput } from './inputs/TextInput'
 import { CheckboxElement, InputElement, PromptElement, RadioElement, SpinnerState } from '../types'
 import { useStdin } from '../useStdin'
 
@@ -149,13 +148,11 @@ export const Prompt: React.FC<Props> = props => {
           if (isElementInput(e)) {
             return (
               <Box key={elemIndex} {...e.style}>
-                {hasFocus ? <SelectIndicator color={{ cyan: true }} /> : <Box marginLeft={1} marginRight={1} />}
                 <TextInput
                   {...e}
                   value={(props.formValues[e.identifier] && props.formValues[e.identifier].toString()) || ''}
-                  focus={hasFocus}
                   onChange={value => onInputChange(value, e)}
-                  keyPressed={lastKeyPressed}
+                  tabIndex={elemIndex}
                 />
               </Box>
             )
@@ -164,17 +161,11 @@ export const Prompt: React.FC<Props> = props => {
           if (isElementCheckbox(e)) {
             return (
               <Box key={elemIndex} {...e.style}>
-                {hasFocus ? (
-                  <SelectIndicator color={{ [COLORS.selection]: true }} />
-                ) : (
-                  <Box marginLeft={1} marginRight={1} />
-                )}
                 <Checkbox
                   {...e}
                   checked={props.formValues[e.identifier] || false}
                   onChange={value => onInputChange(value, e)}
-                  keyPressed={lastKeyPressed}
-                  focus={hasFocus}
+                  tabIndex={123}
                 />
               </Box>
             )
@@ -185,19 +176,13 @@ export const Prompt: React.FC<Props> = props => {
 
             return (
               <Box key={elemIndex} {...e.style}>
-                {hasFocus ? (
-                  <SelectIndicator color={{ [COLORS.selection]: true }} />
-                ) : (
-                  <Box marginLeft={1} marginRight={1} />
-                )}
                 <RadioButton
                   label={e.label}
                   value={e.value}
                   checked={checked}
-                  keyPressed={lastKeyPressed}
-                  focus={hasFocus}
                   description={e.description}
                   onChange={value => onInputChange(value, e)}
+                  tabIndex={54}
                 />
               </Box>
             )
@@ -212,38 +197,11 @@ export const Prompt: React.FC<Props> = props => {
           }
 
           if (isElementSelect(e)) {
-            return (
-              <Box key={elemIndex} {...e.style}>
-                <SelectItem
-                  {...e}
-                  focus={hasFocus}
-                  spinnerState={spinnersByCursor[elemIndex]}
-                  onSelect={async value => {
-                    const spinner = spinnersByCursor[elemIndex]
-
-                    if (!spinner || spinner.state !== 'running') {
-                      return submitPrompt(value, false, elemIndex)
-                    }
-                  }}
-                />
-              </Box>
-            )
+            return <Box key={elemIndex} {...e.style} />
           }
           return null
         })}
       </Box>
-      {props.withBackButton && (
-        <SelectItem
-          label={props.withBackButton.label}
-          description={props.withBackButton.description}
-          isBackButton
-          onSelect={() => {
-            submitPrompt(undefined, true, elementsWithBack.length - 1)
-          }}
-          focus={cursor === elementsWithBack.length - 1}
-          spinnerState={undefined}
-        />
-      )}
     </Box>
   )
 }

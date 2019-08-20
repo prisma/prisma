@@ -1,6 +1,6 @@
 import { Color } from 'ink'
 import InkSpinner from 'ink-spinner'
-import * as React from 'react'
+import React from 'react'
 import { COLORS } from '../colors'
 
 const InkSpinnerWithoutTypes = InkSpinner as any

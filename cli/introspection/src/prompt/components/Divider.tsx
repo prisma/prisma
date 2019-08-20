@@ -1,5 +1,5 @@
 import { Box, Color } from 'ink'
-import * as React from 'react'
+import React from 'react'
 import stringWidth from 'string-width'
 
 interface Props {

@@ -5,7 +5,7 @@
     "sourceMap": true,
     "outDir": "dist",
     "moduleResolution": "node",
-    "lib": ["es2017", "dom", "esnext.asynciterable"],
+    "lib": ["es2017", "dom", "esnext.asynciterable", "es2019.array"],
     "target": "es5",
     "rootDir": "src",
     "skipLibCheck": true,

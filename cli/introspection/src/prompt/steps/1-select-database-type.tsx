@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React from 'react'
 import { Prompt } from '../components/BoxPrompt'
 import { PromptState } from '../InteractivePrompt'
 import { ActionType } from '../reducer'

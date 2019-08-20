@@ -3,7 +3,8 @@ import React from 'react'
 import { Progress } from './components/Progress'
 import BorderBox from './components/BorderBox'
 import chalk from 'chalk'
-import Step0StarterVsBlank from './steps/Step0StarterVsBlank'
+// import Step0StarterVsBlank from './newInit/Step0StarterVsBlank'
+import { TabApp } from './components/TabIndex'
 
 class Compy extends React.Component<any, { step: number; progress: number }> {
   state = {
@@ -33,6 +34,6 @@ class Compy extends React.Component<any, { step: number; progress: number }> {
 
 export function renderInk() {
   return new Promise(resolve => {
-    render(<Step0StarterVsBlank onSubmit={resolve} />)
+    render(<TabApp />)
   })
 }
