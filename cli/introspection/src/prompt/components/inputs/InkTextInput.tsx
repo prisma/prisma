@@ -121,9 +121,11 @@ export const InkTextInput: React.FC<Props> = props => {
     renderedValue = mask.repeat(renderedValue.length)
   }
 
+  const renderedPlaceholder = focus && placeholder && !hasValue ? invertString(placeholder, 0, 0) : placeholder
+
   return (
     <Color dim={!hasValue && !!placeholder} cyan={focus}>
-      {placeholder ? (hasValue ? renderedValue : invertString(placeholder, 0, 0)) : renderedValue}
+      {placeholder ? (hasValue ? renderedValue : renderedPlaceholder) : renderedValue}
     </Color>
   )
 }
