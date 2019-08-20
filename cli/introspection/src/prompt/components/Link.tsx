@@ -4,6 +4,7 @@ import { BACK_SYMBOL } from './helpers'
 import figures = require('figures')
 import { TabIndexContext } from './TabIndex'
 import { Key } from 'readline'
+import { RouterContext } from './Router'
 
 export type LinkKind = 'back' | 'forward'
 
@@ -29,7 +30,8 @@ export const Link: React.FC<Props> = props => {
   const { tabIndex, kind, description } = props
 
   const [focussed, setFocussed] = useState(false)
-  const ctx = useContext(TabIndexContext)
+  const tabCtx = useContext(TabIndexContext)
+  const routerCtx = useContext(RouterContext)
 
   useEffect(() => {
     const args = {
@@ -38,15 +40,14 @@ export const Link: React.FC<Props> = props => {
         setFocussed(focus)
       },
       onKey(key: Key) {
-        // TODO: Add arrow left & arrow right
         if (key.name === 'return') {
-          // DO SOMETHING
+          routerCtx.setRoute(props.href)
         }
       },
     }
-    ctx.register(args)
+    tabCtx.register(args)
     return () => {
-      ctx.unregister(args)
+      tabCtx.unregister(args)
     }
   })
 
@@ -62,7 +63,7 @@ export const Link: React.FC<Props> = props => {
           <Color bold dim={!focussed && backOrForward}>
             {showSymbol ? getSymbol(kind) : ' '}
           </Color>{' '}
-          <Color {...{ bold: focussed }}>{props.label.padEnd(padding)}</Color>
+          <Color {...{ bold: focussed || backOrForward }}>{props.label.padEnd(padding)}</Color>
         </Box>
         <Color dim>{description || ''}</Color>
       </Color>

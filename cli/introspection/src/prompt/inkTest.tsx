@@ -1,39 +1,19 @@
-import { render, Color, Box, Text } from 'ink'
+import { render } from 'ink'
 import React from 'react'
-import { Progress } from './components/Progress'
-import BorderBox from './components/BorderBox'
-import chalk from 'chalk'
-// import Step0StarterVsBlank from './newInit/Step0StarterVsBlank'
-import { TabApp } from './components/TabIndex'
-
-class Compy extends React.Component<any, { step: number; progress: number }> {
-  state = {
-    step: 0,
-    progress: 0,
-  }
-  componentDidMount() {
-    setInterval(() => {
-      this.setState(({ step }) => {
-        step += 0.05
-
-        return {
-          step,
-          progress: Math.abs(Math.sin(step)),
-        }
-      })
-    }, 16)
-  }
-  render() {
-    return (
-      <BorderBox flexDirection="column" title={chalk.bold('Hello World ' + Math.round(this.state.progress * 100))}>
-        <Progress progress={this.state.progress} />
-      </BorderBox>
-    )
-  }
-}
+import { TabIndexProvider } from './components/TabIndex'
+import { Router, Route } from './components/Router'
+import { TabApp } from './screens/TabApp'
+import { TabApp2 } from './screens/TabApp2'
 
 export function renderInk() {
   return new Promise(resolve => {
-    render(<TabApp />)
+    render(
+      <TabIndexProvider>
+        <Router defaultRoute="home">
+          <Route path="home" component={<TabApp />} />
+          <Route path="asd" component={<TabApp2 />} />
+        </Router>
+      </TabIndexProvider>,
+    )
   })
 }

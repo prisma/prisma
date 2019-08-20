@@ -60,51 +60,15 @@ const contextState = new TabIndexContextClass()
 export const TabIndexContext = React.createContext(contextState)
 
 export function TabIndexProvider(props) {
-  const [state, setState] = React.useState(contextState)
-
   useStdin(({ key, actionKey, text }) => {
     if (key.name === 'up' || (key.name === 'tab' && key.shift)) {
-      state.up()
+      contextState.up()
     } else if (key.name === 'down' || key.name === 'tab') {
-      state.down()
+      contextState.down()
     } else {
-      state.emitKeyPress(key, actionKey, text)
+      contextState.emitKeyPress(key, actionKey, text)
     }
   })
 
-  return <TabIndexContext.Provider value={state}>{props.children}</TabIndexContext.Provider>
-}
-
-export function TabApp() {
-  const [value0, setValue0] = React.useState('')
-  const [value1, setValue1] = React.useState('')
-  const [value2, setValue2] = React.useState('')
-  const [value3, setValue3] = React.useState(false)
-
-  return (
-    <TabIndexProvider>
-      <Box marginTop={1} flexDirection="column">
-        <Color bold>This is a title</Color>
-        <Color dim>Lorem ipsum dolor sit amet consectetur, adipisicing elit. </Color>
-        <BorderBox title="Some Title" flexDirection="column" marginTop={1}>
-          <TextInput
-            label="some labe"
-            value={value0}
-            placeholder="this is a placeholder"
-            tabIndex={0}
-            onChange={setValue0}
-          />
-          <Color dim>{'  '}Some other text</Color>
-          <TextInput label="some lable" value={value1} tabIndex={1} onChange={setValue1} />
-          <TextInput label="lubel" value={value2} tabIndex={2} onChange={setValue2} />
-          <Checkbox checked={value3} onChange={setValue3} tabIndex={3} label="This is a checkbox" />
-          <Link href="asd" label="Hellooo" tabIndex={4} />
-        </BorderBox>
-        <Box marginTop={1} flexDirection="column">
-          <Link href="asd" label="Create" tabIndex={5} kind="forward" />
-          <Link href="asd" label="Back" tabIndex={6} kind="back" description="(Database options)" />
-        </Box>
-      </Box>
-    </TabIndexProvider>
-  )
+  return <TabIndexContext.Provider value={contextState}>{props.children}</TabIndexContext.Provider>
 }
