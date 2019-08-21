@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useState } from 'react'
 class RouterContextClass {
   private routes: { [key: string]: (active: boolean) => void } = {}
   private activeRoute?: string
+  public lastRoute?: string
   registerRoute(route: string, cb: (active: boolean) => void) {
     this.routes[route] = cb
     if (this.activeRoute && this.activeRoute === route) {
@@ -17,8 +18,8 @@ class RouterContextClass {
       if (this.activeRoute && this.routes[this.activeRoute]) {
         this.routes[this.activeRoute](false)
       }
+      this.lastRoute = this.activeRoute
       this.activeRoute = route
-      // CONTINUE: Find out why <Route>'s are being removed from the "DOM"
       if (this.routes[route]) {
         this.routes[route](true)
       }

@@ -4,7 +4,7 @@ import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
 
-const Step2DBSelection: React.FC = () => {
+const Step60DownloadExample: React.FC = () => {
   return (
     <Box flexDirection="column">
       <Box flexDirection="column" marginLeft={2}>
@@ -29,4 +29,4 @@ const Step2DBSelection: React.FC = () => {
   )
 }
 
-export default Step2DBSelection
+export default Step60DownloadExample

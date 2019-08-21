@@ -3,11 +3,11 @@ import { Color, Box } from 'ink'
 import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
-import { useFetch } from '../components/Fetcher'
+import { useExampleApi } from '../utils/useExampleApi'
 
 const Step0StarterVsBlank: React.FC = () => {
   // already cache the result for later screens
-  useFetch('https://raw.githubusercontent.com/prisma/prisma-examples/prisma2/api.json')
+  useExampleApi()
   return (
     <Box flexDirection="column">
       <Box flexDirection="column" marginLeft={2}>
@@ -15,8 +15,20 @@ const Step0StarterVsBlank: React.FC = () => {
         <Color dim>Starter kits provide ready-made setups for various use cases.</Color>
       </Box>
       <BorderBox flexDirection="column" title={chalk.bold('Languages for starter kits')} marginTop={1}>
-        <Link label="Javascript" href="starter-selection" description="GraphQL, REST, gRPC, ..." tabIndex={0} />
-        <Link label="TypeScript" href="starter-selection" description="GraphQL, REST, gRPC, ..." tabIndex={1} />
+        <Link
+          label="Javascript"
+          state={{ selectedLanguage: 'js' }}
+          href="starter-selection"
+          description="GraphQL, REST, gRPC, ..."
+          tabIndex={0}
+        />
+        <Link
+          label="TypeScript"
+          state={{ selectedLanguage: 'ts' }}
+          href="starter-selection"
+          description="GraphQL, REST, gRPC, ..."
+          tabIndex={1}
+        />
         <Box marginLeft={2}>
           <Color dim>Go (Coming soon)</Color>
         </Box>
@@ -29,6 +41,7 @@ const Step0StarterVsBlank: React.FC = () => {
           label="Blank Project"
           href="db-selection"
           description="Supports introspecting your existing DB"
+          state={{ selectedLanguage: 'blank' }}
           tabIndex={2}
         />
       </BorderBox>
