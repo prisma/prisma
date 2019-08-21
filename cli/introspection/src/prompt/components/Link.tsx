@@ -52,15 +52,14 @@ export const Link: React.FC<Props> = props => {
     }
   })
 
-  const padding = props.padding || 20
-
   const backOrForward = kind && (kind === 'back' || kind === 'forward')
+  const padding = backOrForward ? 0 : props.padding || 14
   const showSymbol = focussed || backOrForward
 
   return (
     <Box>
       <Color cyan={focussed}>
-        <Box width={14} marginRight={2}>
+        <Box marginRight={1}>
           <Color bold dim={!focussed && backOrForward}>
             {showSymbol ? getSymbol(kind) : ' '}
           </Color>{' '}

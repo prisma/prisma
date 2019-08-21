@@ -21,19 +21,29 @@ export default class BorderBox extends React.Component<any> {
   setRef = ref => {
     if (ref) {
       this.ref = ref
+      this.calculateBorder()
+    }
+  }
+  calculateBorder() {
+    if (this.ref) {
       const layout: Layout = this.ref.nodeRef.current.yogaNode.getComputedLayout()
       const width = this.props.width || layout.width
       const height = this.props.height || layout.height
 
-      const border = drawBox({
-        title: this.props.title,
-        width: width + 0,
-        height,
-        str: '',
-        drawExtension: this.props.extension,
-      })
-      this.setState({ border, height, width })
+      if (!this.state.border || width !== this.state.width || height !== this.state.height) {
+        const border = drawBox({
+          title: this.props.title,
+          width: width + 0,
+          height,
+          str: '',
+          drawExtension: this.props.extension,
+        })
+        this.setState({ border, height, width })
+      }
     }
+  }
+  componentDidUpdate() {
+    this.calculateBorder()
   }
   render() {
     const { props } = this
