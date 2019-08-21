@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react'
 
 class RouterContextClass {
-  routes: { [key: string]: (active: boolean) => void } = {}
-  activeRoute?: string
+  private routes: { [key: string]: (active: boolean) => void } = {}
+  private activeRoute?: string
   registerRoute(route: string, cb: (active: boolean) => void) {
     this.routes[route] = cb
     if (this.activeRoute && this.activeRoute === route) {
@@ -10,11 +10,6 @@ class RouterContextClass {
     }
   }
   unregisterRoute(route: string) {
-    console.log('unregistering', route)
-    console.log('unregistering', route)
-    console.log('unregistering', route)
-    console.log('unregistering', route)
-    console.log('unregistering', route)
     delete this.routes[route]
   }
   setRoute(route: string) {
@@ -24,9 +19,9 @@ class RouterContextClass {
       }
       this.activeRoute = route
       // CONTINUE: Find out why <Route>'s are being removed from the "DOM"
-      setTimeout(() => {
+      if (this.routes[route]) {
         this.routes[route](true)
-      })
+      }
     }
   }
   setDefaultRoute(route: string) {
@@ -71,7 +66,7 @@ export const Route: React.FC<RouteProps> = ({ component, path }) => {
     return () => {
       ctx.unregisterRoute(path)
     }
-  }, [path])
+  })
 
   return active ? <>{component}</> : null
 }

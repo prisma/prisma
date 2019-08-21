@@ -1,12 +1,7 @@
-import React, { useEffect, useContext, useState } from 'react'
-import { Box, Color } from 'ink'
+import React from 'react'
 import { Key } from 'readline'
 import { useStdin } from '../useStdin'
-import BorderBox from './BorderBox'
 import { ActionKey } from './helpers'
-import { TextInput } from './inputs/TextInput'
-import { Checkbox } from './inputs/Checkbox'
-import { Link } from './Link'
 
 interface TabIndexRegisterArgs {
   tabIndex: number

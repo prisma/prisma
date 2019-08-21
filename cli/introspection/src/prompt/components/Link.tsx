@@ -42,6 +42,7 @@ export const Link: React.FC<Props> = props => {
       onKey(key: Key) {
         if (key.name === 'return') {
           routerCtx.setRoute(props.href)
+          tabCtx.setActiveIndex(0)
         }
       },
     }
