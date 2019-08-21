@@ -66,7 +66,7 @@ export const Route: React.FC<RouteProps> = ({ component, path }) => {
     return () => {
       ctx.unregisterRoute(path)
     }
-  })
+  }, [path])
 
   return active ? <>{component}</> : null
 }

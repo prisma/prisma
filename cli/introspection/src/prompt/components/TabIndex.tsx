@@ -30,11 +30,15 @@ class TabIndexContextClass {
       this.components.splice(index, 1)
     }
   }
-  setActiveIndex = i => {
+  setActiveIndex = (i: number) => {
     if (this.activeIndex !== i) {
-      this.components[this.activeIndex].onFocus(false)
+      if (this.components[this.activeIndex]) {
+        this.components[this.activeIndex].onFocus(false)
+      }
       this.activeIndex = i
-      this.components[i].onFocus(true)
+      if (this.components[i]) {
+        this.components[i].onFocus(true)
+      }
     }
   }
   up() {
