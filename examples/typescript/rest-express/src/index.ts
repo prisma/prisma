@@ -23,7 +23,7 @@ app.post(`/post`, async (req, res) => {
       title,
       content,
       published: false,
-      // author: { connect: { email: authorEmail } }, // TODO: Fix after https://github.com/prisma/photonjs/issues/30
+      author: { connect: { email: authorEmail } },
     },
   })
   res.json(result)
