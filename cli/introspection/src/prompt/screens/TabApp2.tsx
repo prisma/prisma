@@ -13,6 +13,7 @@ export function TabApp2() {
 
   return (
     <Box marginTop={1} flexDirection="column">
+      <Link href="home" label="Let's go to TabApp1" tabIndex={0} />
       <Color bold>This is a title 2</Color>
       <Color dim>This is TabApp 2</Color>
       <BorderBox title="Some Title" flexDirection="column" marginTop={1}>
@@ -20,14 +21,13 @@ export function TabApp2() {
           label="some labe"
           value={value0}
           placeholder="this is a placeholder"
-          tabIndex={0}
+          tabIndex={7}
           onChange={setValue0}
         />
         <Color dim>{'  '}Some other text</Color>
-        <TextInput label="some lable" value={value1} tabIndex={1} onChange={setValue1} />
+        <TextInput label="some lable" value={value1} tabIndex={110} onChange={setValue1} />
         <TextInput label="lubel" value={value2} tabIndex={2} onChange={setValue2} />
         <Checkbox checked={value3} onChange={setValue3} tabIndex={3} label="This is a checkbox" />
-        <Link href="home" label="Hellooo" tabIndex={4} />
       </BorderBox>
       <Box marginTop={1} flexDirection="column">
         <Link href="home" label="Create" tabIndex={5} kind="forward" />
