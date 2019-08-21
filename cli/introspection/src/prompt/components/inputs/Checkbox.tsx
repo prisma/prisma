@@ -9,11 +9,15 @@ interface Props extends BoxProps {
   checked: boolean
   onChange: (value: boolean) => void
   tabIndex: number
+  description?: string
+  padding?: number
 }
 
 export const Checkbox: React.FC<Props> = props => {
   const symbol = props.checked ? figures.checkboxOn : figures.checkboxOff
-  const { label, checked, onChange, tabIndex, ...rest } = props
+  const { label, checked, onChange, tabIndex, description, ...rest } = props
+  let { padding } = props
+  padding = padding || 8
 
   const [focussed, setFocussed] = useState(false)
   const ctx = useContext(TabIndexContext)
@@ -40,7 +44,8 @@ export const Checkbox: React.FC<Props> = props => {
     <Box {...rest}>
       <Color cyan={focussed}>
         {focussed ? figures.pointer + ' ' : '  '}
-        {symbol} {label}
+        {symbol} {label.padEnd(padding)}
+        {description ? <Color dim>{description}</Color> : null}
       </Color>
     </Box>
   )

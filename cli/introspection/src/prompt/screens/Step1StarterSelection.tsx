@@ -3,10 +3,10 @@ import { Color, Box } from 'ink'
 import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
-import { useFetch } from '../components/Fetcher'
+import { useExampleApi } from '../utils/useExampleApi'
 
-const Step1Starter: React.FC = () => {
-  const examples = useFetch('https://raw.githubusercontent.com/prisma/prisma-examples/prisma2/api.json')
+const Step1StarterSelection: React.FC = () => {
+  const examples = useExampleApi()
   let padding =
     (examples &&
       examples.examples &&
@@ -22,11 +22,10 @@ const Step1Starter: React.FC = () => {
         <Color bold>Select the starter kit.</Color>
         <Color dim>You can connect the starter kit to your own database.</Color>
       </Box>
-      <BorderBox flexDiretion="column" title={chalk.bold('Available starter kits')} marginTop={1}>
+      <BorderBox flexDiretion="column" title={chalk.bold('Available starter kits')} marginTop={1} marginBottom={1}>
         <Box flexDirection="column">
           {examples &&
-            examples.examples &&
-            Object.entries(examples.examples.javascript).map(([name, example]: [any, any], index) => (
+            Object.values(examples.examples.javascript).map((example, index) => (
               <Link
                 key={example.name}
                 label={example.name}
@@ -34,6 +33,7 @@ const Step1Starter: React.FC = () => {
                 description={example.description}
                 tabIndex={index}
                 padding={padding}
+                state={{ selectedExample: example }}
               />
             ))}
         </Box>
@@ -43,4 +43,4 @@ const Step1Starter: React.FC = () => {
   )
 }
 
-export default Step1Starter
+export default Step1StarterSelection

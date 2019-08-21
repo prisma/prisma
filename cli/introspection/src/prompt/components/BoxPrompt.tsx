@@ -16,7 +16,7 @@ import {
 } from './helpers'
 import { RadioButton } from './RadioButton'
 import { TextInput } from './inputs/TextInput'
-import { CheckboxElement, InputElement, PromptElement, RadioElement, SpinnerState } from '../types'
+import { CheckboxElement, InputElement, PromptElement, RadioElement, SpinnerState } from '../old-types'
 import { useStdin } from '../useStdin'
 
 export interface OnSubmitParams {

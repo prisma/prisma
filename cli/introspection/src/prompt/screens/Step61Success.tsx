@@ -2,12 +2,8 @@ import React, { useEffect } from 'react'
 import { Color, Box } from 'ink'
 import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
-import { Link } from '../components/Link'
-import { useFetch } from '../components/Fetcher'
 
-const Step6Success: React.FC = () => {
-  // already cache the result for later screens
-  useFetch('https://raw.githubusercontent.com/prisma/prisma-examples/prisma2/api.json')
+const Step61Success: React.FC = () => {
   useEffect(() => {
     setTimeout(() => {
       process.exit()
@@ -15,9 +11,6 @@ const Step6Success: React.FC = () => {
   })
   return (
     <Box flexDirection="column">
-      <Box marginBottom={1}>
-        <Color dim>~/Desktop $</Color> prisma init PROJECT_NAME
-      </Box>
       <Box marginLeft={2} marginBottom={1}>
         <Color green>
           <Color bgKeyword="green" white>
@@ -73,4 +66,4 @@ const Step6Success: React.FC = () => {
   )
 }
 
-export default Step6Success
+export default Step61Success

@@ -1,9 +1,5 @@
 import fetch from 'node-fetch'
-import { useState, createContext, useCallback, useEffect } from 'react'
-
-export const ClientContext = createContext(null as any)
-
-ClientContext.displayName = 'ClientContext'
+import { useState, useEffect } from 'react'
 
 const resultCache: { [key: string]: any } = {}
 

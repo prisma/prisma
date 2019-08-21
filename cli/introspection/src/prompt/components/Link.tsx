@@ -5,6 +5,7 @@ import figures = require('figures')
 import { TabIndexContext } from './TabIndex'
 import { Key } from 'readline'
 import { RouterContext } from './Router'
+import { useInitState, InitState } from './InitState'
 
 export type LinkKind = 'back' | 'forward'
 
@@ -15,7 +16,8 @@ export interface Props {
   kind?: LinkKind
   padding?: number
   tabIndex: number
-  href: string
+  href?: string
+  state?: Partial<InitState>
 }
 
 function getSymbol(kind?: LinkKind) {
@@ -32,6 +34,11 @@ export const Link: React.FC<Props> = props => {
   const [focussed, setFocussed] = useState(false)
   const tabCtx = useContext(TabIndexContext)
   const routerCtx = useContext(RouterContext)
+  const initStore = useInitState()[1]
+
+  if (!props.href && props.kind !== 'back') {
+    throw new Error(`Links that don't have an "href" need to have kind="back"`)
+  }
 
   useEffect(() => {
     const args = {
@@ -41,8 +48,11 @@ export const Link: React.FC<Props> = props => {
       },
       onKey(key: Key) {
         if (key.name === 'return') {
-          routerCtx.setRoute(props.href)
+          routerCtx.setRoute(props.href || routerCtx.lastRoute!)
           tabCtx.setActiveIndex(0)
+          if (props.state) {
+            initStore.setState(props.state)
+          }
         }
       },
     }
