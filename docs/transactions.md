@@ -71,3 +71,5 @@ await prisma.transaction([write1, write2, write3])
 Instead of immediatly awaiting the result of each operation when it's performed, the operation itself is stored in a variable first which later is submitted to the database via a method called `transaction`. Photon will ensure that either all three `create`-operations or none of them succeed.
 
 The second use case of longer-running transactions where operations can depend on each other is a bit more involved. Photon would need to expose a _transaction API_ which enables developers to initiate and commit a transaction themselves while Photon takes care of ensuring the safety guarantees associated with transactions.
+
+If you'd like to see transactions supported in the future, [please join the discussion on GitHub](https://github.com/prisma/prisma/issues/4155).
