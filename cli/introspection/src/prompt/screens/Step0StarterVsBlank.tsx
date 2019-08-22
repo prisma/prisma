@@ -1,12 +1,22 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Color, Box } from 'ink'
 import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
 import { useExampleApi } from '../utils/useExampleApi'
+import { useInitState } from '../components/InitState'
 
-const Step0StarterVsBlank: React.FC = () => {
+type Props = {
+  outputDir: string
+}
+
+const Step0StarterVsBlank: React.FC<Props> = ({ outputDir }) => {
   // already cache the result for later screens
+  const { setState } = useInitState()[1]
+  useEffect(() => {
+    // setState({ outputDir })
+  })
+
   useExampleApi()
   return (
     <Box flexDirection="column">
