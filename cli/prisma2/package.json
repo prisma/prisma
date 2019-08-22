@@ -23,11 +23,11 @@
     "version": "33e5fc84b6bd61602f8d634beb558230ca3e3054"
   },
   "devDependencies": {
-    "@prisma/cli": "^0.0.46",
+    "@prisma/cli": "^0.0.48",
     "@prisma/fetch-engine": "^0.1.6",
-    "@prisma/introspection": "0.0.52",
-    "@prisma/lift": "0.2.2",
-    "@prisma/photon": "^0.2.3",
+    "@prisma/introspection": "0.0.53",
+    "@prisma/lift": "0.2.6",
+    "@prisma/photon": "^0.2.9",
     "@sentry/node": "5",
     "@types/mocha": "^5.2.7",
     "@zeit/ncc": "^0.18.5",
