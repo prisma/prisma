@@ -8,7 +8,10 @@ These guarantees are often summarized using the ACID acronym:
 
 - **Atomic**: Ensures that either _all_ or _none_ operations of the transactions succeed. The transaction is either _committed_ successfully or _aborted_ and _rolled back_.
 - **Consistent**: Ensures that the states of the database before and after the transaction are _valid_ (i.e. any existing invariants about the data are maintained).
-- **Isolated**:
+- **Isolated**: Ensures that concurrently running transactions have the same effect as if they were running in serial.
+- **Durability**: Ensures that after the transaction succeeded, any writes are being stored persistently.
+
+While there's a lot of of ambiguity and nuance to each of these properties (e.g. consistency could actually be considered an _application-level responsibility_ rather than a database property or isolation is typically guaranteed in terms of stronger and weaker _isolation levels_), overall they serve as a good high-level guideline for expectations developers have when thinking about database transactions. 
 
 > "Transactions are an abstraction layer that allows an application to pretend that certain concurrency problems and certain kinds of hardware and software faults don’t exist. A large class of errors is reduced down to a simple transaction abort, and the application just needs to try again." **[Designing Data-Intensive Applications](https://dataintensive.net/), [Martin Kleppmann](https://twitter.com/martinkl)** 
 
