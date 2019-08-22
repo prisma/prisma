@@ -5,7 +5,6 @@ async function main() {
 
   const testData = await photon.users.create({
     data: {
-      id: 'asd',
       username: 'post3s',
       posts: {
         create: {
