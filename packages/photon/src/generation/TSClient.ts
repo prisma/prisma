@@ -18,11 +18,11 @@ import {
   getSelectName,
   getSelectReturnType,
   getType,
-  isQueryAction,
-  Projection,
-  // getExtractName,
-  renderInitialClientArgs,
   indentAllButFirstLine,
+  isQueryAction,
+  // getExtractName,
+  Projection,
+  renderInitialClientArgs,
 } from './utils'
 
 const tab = 2
