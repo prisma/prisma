@@ -1,6 +1,7 @@
 import React from 'react'
 import useGlobalHook from '../utils/useGlobalHook'
 import { Example } from '../types'
+import { DatabaseCredentials } from '../../types'
 
 export type DBType = 'postgres' | 'sqlite' | 'mysql'
 export type Language = 'blank' | 'ts' | 'js'
@@ -12,11 +13,14 @@ export type InitState = {
   usePhoton: boolean
   useLift: boolean
   useDemoScript?: boolean
+  dbCredentials?: DatabaseCredentials
+  outputDir: string
 }
 
 const initialState: InitState = {
   usePhoton: true,
   useLift: true,
+  outputDir: process.cwd(),
 }
 
 const actions = {

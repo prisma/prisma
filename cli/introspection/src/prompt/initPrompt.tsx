@@ -13,15 +13,13 @@ import Step60ProcessBlank from './screens/Step60ProcessBlank'
 import Step4DemoScriptSelection from './screens/Step4DemoScriptSelection'
 import Step60DownloadExample from './screens/Step60DownloadExample'
 
-export async function initPrompt(outputDir?: string) {
-  // go crazy on handling the outputDir...
-
+export async function initPrompt(outputDir: string) {
   return new Promise(resolve => {
     render(
       <Box marginTop={1} flexDirection="column">
         <TabIndexProvider>
-          <Router defaultRoute="tool-selection">
-            <Route path="home" component={<Step0StarterVsBlank />} />
+          <Router defaultRoute="home">
+            <Route path="home" component={<Step0StarterVsBlank outputDir={outputDir} />} />
             <Route path="starter-selection" component={<Step1StarterSelection />} />
             <Route path="db-selection" component={<Step2DBSelection />} />
             <Route path="sqlite-file-selection" component={<Step2SqliteFileSelection />} />

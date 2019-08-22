@@ -3,8 +3,13 @@ import { Color, Box } from 'ink'
 import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
+import { useInitState } from '../components/InitState'
 
 const Step2DBSelection: React.FC = () => {
+  const [state] = useInitState()
+
+  const sqliteHref = state.selectedLanguage === 'blank' ? 'tool-selection' : 'download-example'
+
   return (
     <Box flexDirection="column">
       <Box flexDirection="column" marginLeft={2}>
@@ -12,13 +17,26 @@ const Step2DBSelection: React.FC = () => {
         <Color dim>Use SQLite if you don't have a database running yet.</Color>
       </Box>
       <BorderBox flexDirection="column" title={chalk.bold('Supported databases')} marginTop={1} marginBottom={1}>
-        <Link label="SQLite" href="success" description="Easiest to set up" tabIndex={0} />
-        <Link label="MySQL" href="mysql-blank" description="Requires running a MySQL database" tabIndex={1} />
+        <Link
+          label="SQLite"
+          href={sqliteHref}
+          description="Easiest to set up"
+          tabIndex={0}
+          state={{ selectedDb: 'sqlite' }}
+        />
+        <Link
+          label="MySQL"
+          href="mysql-blank"
+          description="Requires running a MySQL database"
+          tabIndex={1}
+          state={{ selectedDb: 'mysql' }}
+        />
         <Link
           label="PostgreSQL"
           href="postgres-blank"
           description="Requires running a PostgreSQL database"
           tabIndex={2}
+          state={{ selectedDb: 'postgres' }}
         />
         <Box marginLeft={2}>
           <Color dim>MongoDB {'      '} (Coming soon)</Color>
