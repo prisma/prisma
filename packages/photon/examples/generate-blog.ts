@@ -6,7 +6,7 @@ import fs from 'fs'
 
 async function main() {
   const before = performance.now()
-  const datamodelPath = path.resolve(__dirname, './blog/project.prisma')
+  const datamodelPath = path.resolve(__dirname, './blog/schema.prisma')
   const blog = fs.readFileSync(datamodelPath, 'utf-8')
   // const platforms = ['native', 'linux-glibc-libssl1.1.0']
   const platforms = ['native']
