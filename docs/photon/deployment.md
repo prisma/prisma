@@ -8,7 +8,7 @@ The query engine binary is downloaded when you run `prisma2 generate`, it is the
 
 ## Examples
 
-Here are a number of example projects demonstrating how to deploy Photon.js to various deploymenty providers:
+Here are a number of example projects demonstrating how to deploy Photon.js to various deployment providers:
 
 - [Google Cloud Functions](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/google-cloud-functions)
 - [Netlify](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/netlify)
