@@ -62,6 +62,9 @@ export async function getConfig(
     if (e.stderr) {
       throw new Error(chalk.redBright.bold('Get config ') + e.stderr)
     }
+    if (e.stdout) {
+      throw new Error(chalk.redBright.bold('Get config ') + e.stdout)
+    }
     throw new Error(e)
   }
 }

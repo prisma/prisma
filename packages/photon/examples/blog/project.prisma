@@ -1,6 +1,6 @@
 datasource db {
-  provider = "postgres"
-  url      = env("POSTGRES_URL")
+  provider = "sqlite"
+  url      = env("SQLITE_URL")
   default  = true
 }
 

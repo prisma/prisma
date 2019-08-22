@@ -1,5 +1,6 @@
 import { DMMFClass } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
+import indent from 'indent-string'
 
 export enum Projection {
   select = 'select',
@@ -207,4 +208,10 @@ export function isQueryAction(action: DMMF.ModelAction, operation: 'query' | 'mu
 
 export function capitalize(str: string) {
   return str[0].toUpperCase() + str.slice(1)
+}
+
+export function indentAllButFirstLine(str: string, indentation: number) {
+  const lines = str.split('\n')
+
+  return lines[0] + '\n' + indent(lines.slice(1).join('\n'), indentation)
 }

@@ -1,12 +1,19 @@
 import path from 'path'
-import { DataSource } from '../types'
+import { DataSource } from '../isdlToDatamodel2'
 
 export function resolveDatasources(datasources: DataSource[], cwd: string, outputDir: string): DataSource[] {
   return datasources.map(datasource => {
     if (datasource.connectorType === 'sqlite') {
-      return {
-        ...datasource,
-        url: absolutizeRelativePath(datasource.url, cwd, outputDir),
+      if (datasource.url.fromEnvVar === null) {
+        return {
+          ...datasource,
+          url: {
+            fromEnvVar: null,
+            value: absolutizeRelativePath(datasource.url.value, cwd, outputDir),
+          },
+        }
+      } else {
+        return datasource
       }
     }
     return datasource

@@ -20,8 +20,15 @@ export type Datasource =
 export interface InternalDatasource {
   name: string
   connectorType: ConnectorType
-  url: string
+  url: EnvValue
   config: any
+}
+
+// We could do import { EnvValue } from '../../isdlToDatamodel2'
+// but we don't want to pull that into the runtime build
+export interface EnvValue {
+  fromEnvVar: null | string
+  value: string
 }
 
 export function printDatasources(
@@ -37,7 +44,10 @@ export function printDatasources(
     if (typeof override === 'string') {
       return {
         ...internalDataSource,
-        url: override,
+        url: {
+          value: override,
+          fromEnvVar: null,
+        },
       }
     }
 
@@ -46,7 +56,10 @@ export function printDatasources(
     return {
       ...internalDataSource,
       ...rest,
-      url: override.url,
+      url: {
+        value: override.url,
+        fromEnvVar: null,
+      },
     }
   })
 
