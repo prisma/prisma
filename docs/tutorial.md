@@ -38,7 +38,7 @@ prisma2 init hello-prisma2
 
 This launches an interactive wizard to help you with your set up, follow the steps below.
 
-Note that the `init` flow for SQLite currently slightly differs from the one for PostgreSQL. Exapnd below if you want to use SQLite.
+Note that the `init` flow for SQLite currently slightly differs from the one for PostgreSQL. Expand below if you want to use SQLite.
 
 <Details><Summary>Expand if you want to use <b>SQLite</b>.</Summary>
 
