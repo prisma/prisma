@@ -7,7 +7,10 @@ Object {
       "config": Object {},
       "connectorType": "sqlite",
       "name": "sqlite",
-      "url": "file:my.db",
+      "url": Object {
+        "fromEnvVar": null,
+        "value": "file:my.db",
+      },
     },
   ],
   "datamodel": "
@@ -47,7 +50,10 @@ Object {
       "config": Object {},
       "connectorType": "sqlite",
       "name": "sqlite",
-      "url": "file:my.db",
+      "url": Object {
+        "fromEnvVar": null,
+        "value": "file:my.db",
+      },
     },
   ],
   "datamodel": "
