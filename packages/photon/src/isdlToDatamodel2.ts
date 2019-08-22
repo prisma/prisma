@@ -15,12 +15,18 @@ export interface GeneratorConfig {
   output: string | null
   provider: string
   config: Dictionary<string>
+  pinnedPlatform: null | EnvValue
+}
+
+export interface EnvValue {
+  fromEnvVar: null | string
+  value: string
 }
 
 export interface DataSource {
   name: string
   connectorType: ConnectorType
-  url: string
+  url: EnvValue
   config: {}
 }
 

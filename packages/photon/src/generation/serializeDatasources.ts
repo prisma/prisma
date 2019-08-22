@@ -1,3 +1,4 @@
+import { DataSource } from '../isdlToDatamodel2'
 import { DatasourceOverwrite } from './extractSqliteSources'
 
 // this is NOT printing datasources, but just serializing the data source
@@ -16,4 +17,11 @@ export function serializeDatasources(datasources: DatasourceOverwrite[]): string
       })
     })
     .join('\n')
+}
+
+export function datasourceToDatasourceOverwrite(datasource: DataSource): DatasourceOverwrite {
+  return {
+    name: datasource.name,
+    url: datasource.url.fromEnvVar ? `env("${datasource.url.fromEnvVar}")` : datasource.url.value,
+  }
 }

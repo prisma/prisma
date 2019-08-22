@@ -8,7 +8,6 @@ import { InternalDatasource } from '../runtime/utils/printDatasources'
 import { DatasourceOverwrite } from './extractSqliteSources'
 import { serializeDatasources } from './serializeDatasources'
 import {
-  getArgName,
   getDefaultName,
   getFieldArgName,
   getFieldTypeName,
@@ -23,6 +22,7 @@ import {
   Projection,
   // getExtractName,
   renderInitialClientArgs,
+  indentAllButFirstLine,
 } from './utils'
 
 const tab = 2
@@ -316,7 +316,9 @@ export default class Photon {
     this.datamodel = ${JSON.stringify(this.datamodel)}
 
     const predefinedDatasources = ${
-      this.sqliteDatasourceOverrides ? serializeDatasources(this.sqliteDatasourceOverrides) : '[]'
+      this.sqliteDatasourceOverrides
+        ? indentAllButFirstLine(serializeDatasources(this.sqliteDatasourceOverrides), 4)
+        : '[]'
     }
     const inputDatasources = Object.entries(options.datasources || {}).map(([name, url]) => ({ name, url: url! }))
     const datasources = uniqueBy([...predefinedDatasources, ...inputDatasources], (source: any) => source.name)

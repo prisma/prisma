@@ -1,5 +1,5 @@
-import { serializeDatasources } from '../generation/serializeDatasources'
-import { DataSource } from '../types'
+import { datasourceToDatasourceOverwrite, serializeDatasources } from '../generation/serializeDatasources'
+import { DataSource } from '../isdlToDatamodel2'
 import { absolutizeRelativePath, resolveDatasources } from '../utils/resolveDatasources'
 
 const cwd = '/Users/tim/project/prisma'
@@ -39,19 +39,28 @@ test('absolutizeRelativePath', () => {
 const datasources: DataSource[] = [
   {
     name: 'db',
-    url: 'file:db.db',
+    url: {
+      value: 'file:db.db',
+      fromEnvVar: null,
+    },
     connectorType: 'sqlite',
     config: {},
   },
   {
     name: 'db2',
-    url: 'file:./some-dir/db.db',
+    url: {
+      value: 'file:./some-dir/db.db',
+      fromEnvVar: null,
+    },
     connectorType: 'sqlite',
     config: {},
   },
   {
     name: 'db3',
-    url: 'mysql:localhost',
+    url: {
+      value: 'mysql:localhost',
+      fromEnvVar: null,
+    },
     connectorType: 'mysql',
     config: {},
   },
@@ -59,49 +68,53 @@ const datasources: DataSource[] = [
 
 test('resolveDatasources', () => {
   expect(resolveDatasources(datasources, cwd, outputDir)).toMatchInlineSnapshot(`
-            Array [
-              Object {
-                "config": Object {},
-                "connectorType": "sqlite",
-                "name": "db",
-                "url": "'file:' + path.resolve(__dirname, '../../../../prisma/db.db')",
-              },
-              Object {
-                "config": Object {},
-                "connectorType": "sqlite",
-                "name": "db2",
-                "url": "'file:' + path.resolve(__dirname, '../../../../prisma/some-dir/db.db')",
-              },
-              Object {
-                "config": Object {},
-                "connectorType": "mysql",
-                "name": "db3",
-                "url": "mysql:localhost",
-              },
-            ]
-      `)
+    Array [
+      Object {
+        "config": Object {},
+        "connectorType": "sqlite",
+        "name": "db",
+        "url": Object {
+          "fromEnvVar": null,
+          "value": "'file:' + path.resolve(__dirname, '../../../../prisma/db.db')",
+        },
+      },
+      Object {
+        "config": Object {},
+        "connectorType": "sqlite",
+        "name": "db2",
+        "url": Object {
+          "fromEnvVar": null,
+          "value": "'file:' + path.resolve(__dirname, '../../../../prisma/some-dir/db.db')",
+        },
+      },
+      Object {
+        "config": Object {},
+        "connectorType": "mysql",
+        "name": "db3",
+        "url": Object {
+          "fromEnvVar": null,
+          "value": "mysql:localhost",
+        },
+      },
+    ]
+  `)
 })
 
 test('serializeDatasources', () => {
-  expect(serializeDatasources(resolveDatasources(datasources, cwd, outputDir))).toMatchInlineSnapshot(`
+  expect(serializeDatasources(resolveDatasources(datasources, cwd, outputDir).map(datasourceToDatasourceOverwrite)))
+    .toMatchInlineSnapshot(`
     "[
       {
         \\"name\\": \\"db\\",
-        \\"url\\": 'file:' + path.resolve(__dirname, '../../../../prisma/db.db'),
-        \\"connectorType\\": \\"sqlite\\",
-        \\"config\\": {}
+        \\"url\\": 'file:' + path.resolve(__dirname, '../../../../prisma/db.db')
       },
       {
         \\"name\\": \\"db2\\",
-        \\"url\\": 'file:' + path.resolve(__dirname, '../../../../prisma/some-dir/db.db'),
-        \\"connectorType\\": \\"sqlite\\",
-        \\"config\\": {}
+        \\"url\\": 'file:' + path.resolve(__dirname, '../../../../prisma/some-dir/db.db')
       },
       {
         \\"name\\": \\"db3\\",
-        \\"url\\": \\"mysql:localhost\\",
-        \\"connectorType\\": \\"mysql\\",
-        \\"config\\": {}
+        \\"url\\": \\"mysql:localhost\\"
       }
     ]"
   `)
