@@ -89,7 +89,10 @@ async function generate(isdl: ISDL) {
     {
       name: 'pg',
       connectorType: 'postgresql',
-      url: `${host}?schema=public`,
+      url: {
+        value: `${host}?schema=public`,
+        fromEnvVar: null,
+      },
       config: {},
     },
   ])
