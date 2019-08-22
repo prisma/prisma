@@ -68,8 +68,26 @@ const write3 = photon.invoices.create()
 await prisma.transaction([write1, write2, write3])
 ```
 
-Instead of immediatly awaiting the result of each operation when it's performed, the operation itself is stored in a variable first which later is submitted to the database via a method called `transaction`. Photon will ensure that either all three `create`-operations or none of them succeed.
+Instead of immediately awaiting the result of each operation when it's performed, the operation itself is stored in a variable first which later is submitted to the database via a method called `transaction`. Photon will ensure that either all three `create`-operations or none of them succeed.
 
-The second use case of longer-running transactions where operations can depend on each other is a bit more involved. Photon would need to expose a _transaction API_ which enables developers to initiate and commit a transaction themselves while Photon takes care of ensuring the safety guarantees associated with transactions.
+The second use case of longer-running transactions where operations can depend on each other is a bit more involved. Photon would need to expose a _transaction API_ which enables developers to initiate and commit a transaction themselves while Photon takes care of ensuring the safety guarantees associated with transactions. It could look similar to this:
+
+```ts
+prisma.transaction(async tx => {
+  const user = await tx.users.create({
+    data: { email: "alice@prisma.io" }
+  })
+  const order = await tx.orders.create({
+    data: {
+      customer: {
+        connect: { id: user.id }
+      }
+    }
+  })
+  await tx.commit()
+})
+```
+
+In this case, the API provides a way to wrap a sequence of operations in a callback which gets executed as a transaction, therefore is guaranteed to either succeed or fail as a whole.
 
 If you'd like to see transactions supported in the future, [please join the discussion on GitHub](https://github.com/prisma/prisma/issues/4155).
