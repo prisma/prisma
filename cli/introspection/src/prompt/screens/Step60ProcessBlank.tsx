@@ -6,10 +6,12 @@ import path from 'path'
 import { sqliteSchemaOnly } from '../utils/templates'
 import { RouterContext } from '../components/Router'
 import { sync as makeDirSync } from 'make-dir'
+import { useExampleApi } from '../utils/useExampleApi'
 
 const Step60ProcessBlank: React.FC = () => {
-  const [state] = useInitState()
+  const [state, { setState }] = useInitState()
   const router = useContext(RouterContext)
+  const examples = useExampleApi()
   useEffect(() => {
     // perform actions to get blank project going...
     // state.blank??
@@ -18,7 +20,13 @@ const Step60ProcessBlank: React.FC = () => {
       fs.writeFileSync(path.join(state.outputDir, './prisma/schema.prisma'), sqliteSchemaOnly(state.usePhoton))
       router.setRoute('success')
     }
-  }, [state])
+    if (state.useDemoScript) {
+      if (examples) {
+        // if (state.selectedLanguage === '')
+        //  setState(examples.examples.)
+      }
+    }
+  }, [state, examples])
 
   return (
     <Box flexDirection="column">
