@@ -1,6 +1,5 @@
 import { Env } from '@prisma/cli'
-import { DataSource } from '@prisma/lift'
-import { isdlToDatamodel2, getConfig } from '@prisma/photon'
+import { isdlToDatamodel2, getConfig, DataSource } from '@prisma/photon'
 import chalk from 'chalk'
 import { existsSync, readFileSync } from 'fs'
 import { MongoClient } from 'mongodb'
@@ -81,7 +80,10 @@ export async function introspect({
       name: 'db',
       config: {},
       connectorType: databaseTypeToConnectorType(credentials.type),
-      url: credentialsToUri(credentials),
+      url: {
+        value: credentialsToUri(credentials),
+        fromEnvVar: null,
+      },
     },
   ]
 
@@ -158,7 +160,7 @@ export async function getCredentialsFromExistingDatamodel(env: Env): Promise<und
       )
     }
     if (datasources && datasources.length > 0) {
-      const uri = datasources[0].url
+      const uri = datasources[0].url.value
       return uriToCredentials(uri)
     }
   }
