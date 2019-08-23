@@ -4,7 +4,7 @@
 
 Photon.js is generated into `node_modules/@generated` by default. While this approach has a number of [benefits](#why-is-photon-js-generated-into-node_modulesgenerated-by-default), it is also unconventional and can be a source confusion for developers new to Photon.js.
 
-Using `node_modules/@generated` as the default `output` for Photon.js is still experimental. Please share your feedback and tell us whether you think this is a good idea or any other thoughts you have on this topic by joining the [dicussion on GitHub](https://github.com/prisma/photonjs/issues/88).
+Using `node_modules/@generated` as the default `output` for Photon.js is still experimental. Please share your feedback and tell us whether you think this is a good idea or any other thoughts you have on this topic by joining the [discussion on GitHub](https://github.com/prisma/photonjs/issues/88).
 
 ## Overview
 

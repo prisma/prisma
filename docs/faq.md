@@ -64,7 +64,7 @@ There's absolutely no lock-in with Lift. To stop using Lift, you can simply dele
 
 ### How do I see details about how Lift migrates my database schema?
 
-Each migration is represented via its own directory on your file system. The name of each directory contains a timestamp so that the order of all migrations in the project history can be maintained. Each of these migration directories contains detailled information about the respective migration, for example which steps are executed (and in what order) as well as a human-friendly markdown file that summarizes the most important information about the migration, such as the source and the target [data model definition](./data-modeling.md#data-model-definition) of the migration. This information can also be found in the        `migrations` table in your database/schema. 
+Each migration is represented via its own directory on your file system. The name of each directory contains a timestamp so that the order of all migrations in the project history can be maintained. Each of these migration directories contains detailed information about the respective migration, for example which steps are executed (and in what order) as well as a human-friendly markdown file that summarizes the most important information about the migration, such as the source and the target [data model definition](./data-modeling.md#data-model-definition) of the migration. This information can also be found in the        `migrations` table in your database/schema. 
 
 Also, the `lift` CLI constantly prints the migration statements and more information when you're running its commands.
 
@@ -76,7 +76,7 @@ Every migration can be extended with before/after hooks. You can simply put exec
 
 Lift is not yet production-ready, it has a number of severe [limitations](./limitations.md) that don't make it suitable for production uses. You can track the progress of the release process on [isprisma2ready.com](https://www.isprisma2ready.com). 
 
-While it shouldn't be used for critical applications yet, Photon is definitely in a usable state. You can help us accelerate the release process by using it and [sharing your feedback](./prisma2-feedback.md) with us.
+While it shouldn't be used for critical applications yet, Lift is definitely in a usable state. You can help us accelerate the release process by using it and [sharing your feedback](./prisma2-feedback.md) with us.
 
 ## Other
 
