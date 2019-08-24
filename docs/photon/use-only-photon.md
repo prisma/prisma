@@ -139,7 +139,7 @@ When using PostgreSQL, you need to provide the following information to connect 
 - **Password**: The password for the database user.
 - **SSL**: Whether or not your database server uses SSL.
 
-Once provided, the CLI will prompt you to select one of the existing **schemas** on your MySQL server for introspection.
+Once provided, the CLI will prompt you to select one of the existing **schemas** on your PostgreSQL server for introspection.
 
 </Details>
 
