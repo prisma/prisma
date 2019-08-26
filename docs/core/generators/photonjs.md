@@ -84,7 +84,7 @@ If a binary is not available for the platform you want to target, it is possible
 3. Switch to `alpha` branch (during the preview period, we are using the `alpha` branch)
 4. Change the directory to `prisma/server/prisma-rs`
 5. Run `cargo build --release`
-6. The binaries should be available the `prisma/server/prisma-rs/target/release` folder, the name of the query engine binary is `prisma` and the migration engine binary is `migration-engine`.
+6. The binaries should be available in the `prisma/server/prisma-rs/target/release` folder, the name of the query engine binary is `prisma` and the migration engine binary is `migration-engine`.
 
 ## Example
 
