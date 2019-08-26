@@ -144,6 +144,8 @@ Technically, a model can be named anything that adheres to this regular expressi
 [A-Za-z_][A-Za-z0-9_]*
 ```
 
+> **Note**: There's currently a [bug](https://github.com/prisma/prisma2/issues/259) that doesn't allow for field names prepended with an underscore. The current regular expression for valid field names therefore is: `[A-Za-z][A-Za-z0-9_]*`
+
 ### Types
 
 The type of a field determines its _structure_. A type falls in either of three categories:
@@ -463,4 +465,3 @@ When generating Photon.js based on your [data model definition](./data-modeling.
 - `WhereInput`
 - `IDFilter`
 - `StringFilter`
-
