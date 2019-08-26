@@ -536,6 +536,8 @@ You can explore the current content of your database using Prisma Studio. Open t
 
 ![](https://imgur.com/2WH0MrA.png)
 
+> **Note**: Please share your feedback about Prisma Studio in the [`studio`](https://github.com/prisma/studio) repository.
+
 ### 8.3. Add a relation
 
 You already have two models in your [data model definition](./data-modeling.md#data-model-definition), let's now _connect_ these via a [relation](./relations.md):
