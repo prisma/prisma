@@ -24,4 +24,6 @@ During the preview phase of Prisma 2 there are missing features, limited perform
 
 ## Out of scope functionality
 
+The following functionality is currently not part of Prisma and will not be added before GA:
+
 - Realtime API or subscriptions. (In the future (after GA), Prisma will have an events engine that might enable this feature, but there is no ETA for this yet.) TODO (spec) issue people can +1 and subscribe to
