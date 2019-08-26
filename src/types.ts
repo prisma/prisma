@@ -73,15 +73,8 @@ export namespace EngineArgs {
   /**
    * These don't
    */
-  export interface DmmfToDml {
-    dmmf: any // TODO type this
-    config: any
-  }
   export interface CalculateDatamodel {
     steps: DatamodelStep[]
-  }
-  export interface GetConfig {
-    datamodel: string
   }
   export interface UnapplyMigration {
     sourceConfig: string
@@ -140,30 +133,15 @@ export namespace EngineResults {
     datamodel: string
   }
   export type ListMigrations = StoredMigration[]
-  export interface DmmfToDml {
-    datamodel: string
-  }
 }
 
 export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgresql'
-
-export interface ConfigMetaFormat {
-  datasources: DataSource[]
-  generators: GeneratorConfig[]
-}
 
 export interface GeneratorConfig {
   name: string
   output: string | null
   provider: string
   config: Dictionary<string>
-}
-
-export interface DataSource {
-  name: string
-  connectorType: ConnectorType
-  url: string
-  config: {}
 }
 
 export interface FileMap {

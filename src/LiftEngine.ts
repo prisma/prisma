@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
 import debugLib from 'debug'
 import util from 'util'
-import { ConfigMetaFormat, EngineArgs, EngineResults } from './types'
+import { EngineArgs, EngineResults } from './types'
 import byline from './utils/byline'
 const debugRpc = debugLib('LiftEngine:rpc')
 const debugStderr = debugLib('LiftEngine:stderr')
@@ -81,12 +81,6 @@ export class LiftEngine {
   public async listAppliedMigrations(args: EngineArgs.ListMigrations): Promise<EngineResults.ListMigrations> {
     const migrations = await this.runCommand(this.getRPCPayload('listMigrations', args))
     return migrations.filter(m => m.status === 'MigrationSuccess')
-  }
-  public convertDmmfToDml(args: EngineArgs.DmmfToDml): Promise<EngineResults.DmmfToDml> {
-    return this.runCommand(this.getRPCPayload('convertDmmfToDml', args))
-  }
-  public getConfig(args: EngineArgs.GetConfig): Promise<ConfigMetaFormat> {
-    return this.runCommand(this.getRPCPayload('getConfig', args))
   }
   public migrationProgess(args: EngineArgs.MigrationProgress): Promise<EngineResults.MigrationProgress> {
     return this.runCommand(this.getRPCPayload('migrationProgress', args))
