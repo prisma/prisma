@@ -79,9 +79,7 @@ const Step61Success: React.FC = () => {
           <Color>Explore sample operations and evolve the project:</Color>
           <Color bold>EXAMPLE_SHORTLINK</Color>
         </Box>
-        {state.selectedLanguage === 'blank' && (
-          <Color>We're missing some better text when you chose the blank flow... Coming soon</Color>
-        )}
+        {state.useBlank && <Color>We're missing some better text when you chose the blank flow... Coming soon</Color>}
       </BorderBox>
     </Box>
   )

@@ -20,7 +20,7 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "6146c81a771bef78248317cef9e37fc00863dc08"
+    "version": "bb28e2b89ea1694a6f7fe42b598c9f20241d26ef"
   },
   "devDependencies": {
     "@prisma/cli": "^0.0.49",
@@ -55,7 +55,7 @@
     "ncc": "ncc build dist/bin.js -o build",
     "ncc:download": "ncc build scripts/download.js -o download-build",
     "build": "yarn tsc && yarn ncc:download && rm -rf build && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
-    "prepublishOnly": "node scripts/updateTag.js && yarn test && yarn build",
+    "prepublishOnly": "node scripts/updateTag.js && yarn install && yarn test && yarn build",
     "prepare": "yarn build && node download-build/index.js",
     "update-deps": "yarn upgrade --latest --scope @prisma"
   },

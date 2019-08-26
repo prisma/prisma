@@ -10,7 +10,7 @@ import { useInitState } from '../components/InitState'
 const Step22ToolSelection: React.FC = () => {
   const [state, { setState }] = useInitState()
 
-  const nextStep = state.usePhoton ? 'demo-script-selection' : 'process-blank'
+  const nextStep = state.usePhoton ? 'language-selection' : 'process-blank'
 
   return (
     <Box flexDirection="column">
