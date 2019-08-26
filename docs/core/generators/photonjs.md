@@ -4,13 +4,13 @@ The Photon.js generator can be used in a [Prisma schema file](../../prisma-schem
 
 ## Node.js requirements
 
-The generated data access code of the `photonjs` generator targets [ES2016](https://exploringjs.com/es2016-es2017/) which means you need  [Node.js 8.x](https://nodejs.org/en/download/releases/) or newer to be able to use it.
+The generated data access code of the `photonjs` generator targets [ES2016](https://exploringjs.com/es2016-es2017/) which means you need [Node.js 8.x](https://nodejs.org/en/download/releases/) or newer to be able to use it.
 
 ## Specifying the right platform for Photon.js
 
 Photon.js depends on a _query engine_ that's running as a _binary_ on the same host as your application. When deploying your Photon-based application to production, you need to ensure that the binary used by Photon can run in your production environment, i.e. it needs to be compatible with the runtime of your deployment provider.
 
-The query engine binary is downloaded when you run `prisma2 generate`, it is then stored alongside the generated Photon code inside `node_modules/@generated` (or the [custom `output` path](./codegen-and-node-setup.md) you specified). This section explains how you can determine which binary should be downloaded when `prisma2 generate` is executed to ensure compatibility at runtime.
+The query engine binary is downloaded when you run `prisma2 generate`, it is then stored alongside the generated Photon code inside `node_modules/@generated` (or the [custom `output` path](../../photon/codegen-and-node-setup.md) you specified). This section explains how you can determine which binary should be downloaded when `prisma2 generate` is executed to ensure compatibility at runtime.
 
 You can read more about this topic in the [specification](https://github.com/prisma/specs/blob/master/binaries/Readme.md).
 
@@ -22,10 +22,10 @@ A **platform** is a _managed environment_. This includes deployment providers su
 
 To determine the platform Photon is running on, you can provide two options to the `photonjs` generator:
 
-| Name             | Required | Description                                                                                                                                                           | Purpose                                                   |
-| ---------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `platforms`      | No       | An array of binaries that are required by the application. Either a _file path_ to a binary, a package name from the [available binaries](#available-binaries) or the special value `"native"`. **Default**: `["native"]`. | Declarative way to download the required binaries.        |
-| `pinnedPlatform` | Only if `platforms` contains a _file path_ to a binary | A string that points to the name of an object in the `platforms` field (typically an environment variable). Requires the `platforms` options to be a non-empty array. | Declarative way to define which binary to use at runtime. |
+| Name             | Required                                               | Description                                                                                                                                                                                                                | Purpose                                                   |
+| ---------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `platforms`      | No                                                     | An array of binaries that are required by the application. Either a _file path_ to a binary, a package name from the [available binaries](#available-binaries) or the special value `"native"`. **Default**: `["native"]`. | Declarative way to download the required binaries.        |
+| `pinnedPlatform` | Only if `platforms` contains a _file path_ to a binary | A string that points to the name of an object in the `platforms` field (typically an environment variable). Requires the `platforms` options to be a non-empty array.                                                      | Declarative way to define which binary to use at runtime. |
 
 ### Default: The `native` platform
 
@@ -70,10 +70,21 @@ This example shows the configuration of a Photon.js generator for local developm
 ```prisma
 generator photon {
     provider = "photonjs"
-    platforms = ["native", "linux-glibc-libssl1.0.2"] // For Lambda (Node 10) 
+    platforms = ["native", "linux-glibc-libssl1.0.2"] // For Lambda (Node 10)
     pinnedPlatform = env("PLATFORM")                  // Local: "native"; In production: "linux-glibc-libssl1.0.2"
 }
 ```
+
+## Compiling Custom Binary
+
+If a binary is not available for the platform you want to target, it is possible to compile the Prisma binaries on that platform manually. To compile a binary manually, please follow the following steps:
+
+1. Download the Rust toolchain: https://www.rust-lang.org/tools/install
+2. Clone https://github.com/prisma/prisma
+3. Switch to `alpha` branch (during the preview period, we are using the `alpha` branch)
+4. Change the directory to `prisma/server/prisma-rs`
+5. Run `cargo build --release`
+6. The binaries should be available in the `prisma/server/prisma-rs/target/release` folder, the name of the query engine binary is `prisma` and the migration engine binary is `migration-engine`.
 
 ## Example
 
@@ -99,8 +110,8 @@ It will then store the generated Photon API in the specified `./generated/photon
 
 The Photon.js generator provides the following mapping from data model [scalar types](../../data-modeling.md#scalar-types) to JavaScript/TypeScript types:
 
-| Type     | JS / TS | 
-| -------- | ------- |
+| Type       | JS / TS   |
+| ---------- | --------- |
 | `String`   | `string`  |
 | `Boolean`  | `boolean` |
 | `Int`      | `number`  |
