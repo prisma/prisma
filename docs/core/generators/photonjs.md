@@ -75,16 +75,16 @@ generator photon {
 }
 ```
 
-## Compiling Custom Binary
+## Manually compiling the query engine binary
 
-If a binary is not available for the platform you want to target, it is possible to compile the Prisma binaries on that platform manually. To compile a binary manually, please follow the following steps:
+If a binary is not available for the platform you want to target, it is possible to compile the Prisma binaries on that platform manually. To compile a binary manually, please follow these steps:
 
 1. Download the Rust toolchain: https://www.rust-lang.org/tools/install
-2. Clone https://github.com/prisma/prisma
-3. Switch to `alpha` branch (during the preview period, we are using the `alpha` branch)
-4. Change the directory to `prisma/server/prisma-rs`
-5. Run `cargo build --release`
-6. The binaries should be available in the `prisma/server/prisma-rs/target/release` folder, the name of the query engine binary is `prisma` and the migration engine binary is `migration-engine`.
+1. Clone https://github.com/prisma/prisma
+1. Switch to `alpha` branch (during the preview period, we are using the `alpha` branch)
+1. Change the directory to `prisma/server/prisma-rs`
+1. Run `cargo build --release`
+1. The binaries should be available in the `prisma/server/prisma-rs/target/release` folder, the name of the query engine binary is `prisma` and the migration engine binary is `migration-engine`.
 
 ## Example
 
