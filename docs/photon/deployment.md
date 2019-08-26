@@ -10,7 +10,7 @@ The query engine binary is downloaded when you run `prisma2 generate`, it is the
 
 ### Database connection handling
 
-Nuances around handling DB connections in Lambda are not new and most of those nuances also apply to Photon.
+Nuances around handling database connections in Lambda are not new and most of those nuances also apply to Photon.
 
 Lambda has the concept of [reusing a container](https://aws.amazon.com/blogs/compute/container-reuse-in-lambda/) which means that for subsequent invocations of
 the same function it may use an already existing container that has the allocated processes, memory, file system (`/tmp` is writable in Lambda), and even DB
@@ -33,7 +33,7 @@ are not directly related to Photon but any system that would require a DB connec
 <br />
 <sup>
 2. [`serverless-mysql`](https://github.com/jeremydaly/serverless-mysql) is a library that implements this idea.
-   </sup>
+</sup>
 
 ### Cold starts
 
