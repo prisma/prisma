@@ -68,3 +68,9 @@ We are extremely eager to get your feedback! Please feel free to reach out to us
 <a href="mailto:singh@prisma.io?subject=Prisma 2 Feedback for Divyendy"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/1136464314083287040/nIocY54I_400x400.jpg"></a>
 <a href="mailto:panth@prisma.io?subject=Prisma 2 Feedback for Harshit"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/1142528238566162432/HWghFOWd_400x400.jpg"></a>
 <a href="mailto:burk@prisma.io?subject=Prisma 2 Feedback for Nikolas"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/938876572802650112/owTdBnzU_400x400.jpg"></a>
+
+## Contributors
+
+A huge thanks to everyone who submitted PRs or openened issues in any of our Prisma 2 repositories. 
+
+<img width="75px" style="border-radius:50%;" src="https://avatars1.githubusercontent.com/u/36133712?s=400&v=4">
