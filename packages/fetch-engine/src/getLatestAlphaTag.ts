@@ -2,7 +2,6 @@ const htmlparser = require('htmlparser2')
 const fetch = require('node-fetch')
 
 export async function getLatestAlphaTag() {
-
   const objects = []
   let isTruncated: boolean = false
   let nextContinuationToken: string | undefined = undefined
@@ -19,7 +18,7 @@ export async function getLatestAlphaTag() {
 }
 
 function getUrl(nextContinuationToken?: string) {
-  let url = 'http://prisma-native.s3.amazonaws.com/?list-type=2&prefix=alpha'
+  let url = 'http://prisma-native.s3.amazonaws.com/?list-type=2&prefix=master'
 
   if (nextContinuationToken) {
     url += `&continuation-token=${encodeURIComponent(nextContinuationToken)}`
@@ -28,7 +27,9 @@ function getUrl(nextContinuationToken?: string) {
   return url
 }
 
-async function getObjects(xml): Promise<{objects: Array<any>, isTruncated: boolean, nextContinuationToken: string | null}> {
+async function getObjects(
+  xml,
+): Promise<{ objects: Array<any>; isTruncated: boolean; nextContinuationToken: string | null }> {
   return new Promise(resolve => {
     const parser = new htmlparser.Parser(
       new htmlparser.DomHandler((err, result) => {
@@ -38,20 +39,18 @@ async function getObjects(xml): Promise<{objects: Array<any>, isTruncated: boole
         }
         const isTruncated = getKey(bucketTag, 'istruncated')
         const nextContinuationToken = getKey(bucketTag, 'nextcontinuationtoken')
-        resolve(
-          {
-            objects: bucketTag.children
-              .filter(c => c.name === 'contents')
-              .map(child => {
-                return child.children.reduce((acc, curr) => {
-                  acc[curr.name] = curr.children[0].data
-                  return acc
-                }, {})
-              }),
-            isTruncated,
-            nextContinuationToken
-          }
-        )
+        resolve({
+          objects: bucketTag.children
+            .filter(c => c.name === 'contents')
+            .map(child => {
+              return child.children.reduce((acc, curr) => {
+                acc[curr.name] = curr.children[0].data
+                return acc
+              }, {})
+            }),
+          isTruncated,
+          nextContinuationToken,
+        })
       }),
     )
     parser.write(xml)
@@ -88,15 +87,17 @@ function getKey(parentTag, key) {
 
 function serializeTag(tag) {
   if (tag.children) {
-    return tag.children.map(c => {
-      if (typeof c.data !== 'undefined') {
-        return serializeData(c.data)
-      }
-      if (c.children) {
-        return serializeTag(c)
-      }
-      return null
-    }).join('')
+    return tag.children
+      .map(c => {
+        if (typeof c.data !== 'undefined') {
+          return serializeData(c.data)
+        }
+        if (c.children) {
+          return serializeTag(c)
+        }
+        return null
+      })
+      .join('')
   }
   return null
 }
