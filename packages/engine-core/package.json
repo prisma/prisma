@@ -1,12 +1,12 @@
 {
   "name": "@prisma/engine-core",
-  "version": "0.0.85",
+  "version": "0.0.86",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/fetch-engine": "^0.1.6",
+    "@prisma/fetch-engine": "^0.1.7",
     "@types/jest": "24.0.14",
     "@types/node": "^12.0.0",
     "jest": "24.8.0",
@@ -20,8 +20,8 @@
     "update-deps": "yarn upgrade --latest --scope @prisma"
   },
   "dependencies": {
-    "@prisma/cli": "^0.0.43",
-    "@prisma/get-platform": "^0.0.3",
+    "@prisma/cli": "^0.0.51",
+    "@prisma/get-platform": "^0.1.0",
     "chalk": "^2.4.2",
     "cross-fetch": "^3.0.4",
     "debug": "^4.1.1",
