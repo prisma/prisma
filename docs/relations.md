@@ -82,19 +82,18 @@ model Profile {
 }
 ```
 
-
 For 1:1 relationships, it doesn't matter on which side you store the foreign key. Prisma has a convention that the foreign key is added to the model which appears _first alphanumerically_ in your data model. In the example above, that's the `Profile` model.
 
-Under the hood, the models looks like this:
+Under the hood, the tables looks like this:
 
 | **User** |         |
-| --------- | ------- |
-| id        | integer |
+| -------- | ------- |
+| id       | integer |
 
 | **Profile** |         |
-| ------------- | ------- |
-| id            | integer |
-| user          | integer |
+| ----------- | ------- |
+| id          | integer |
+| user        | integer |
 
 You can use the `@relation` attribute to explicitly determine the side of the relation on which the foreign key should be stored. If you prefer storing it in the `User` table instead of the `Profile` table, you can use achieve this as follows:
 
@@ -109,6 +108,17 @@ model Profile {
   user User
 }
 ```
+
+Now, the tables are structured liks this:
+
+| **User** |         |
+| -------- | ------- |
+| id       | integer |
+| profile  | integer |
+
+| **Profile** |         |
+| ----------- | ------- |
+| id          | integer |
 
 You _may_ omit either `User.profile` or `Profile.user` and the relationship will remain intact. This makes either the back-relation or the forward-relation optional. If one side of the relation is missing, Prisma implies the field name based on the name of the model it is pointing to.
 
@@ -141,19 +151,20 @@ model Post {
   author     User
 }
 ```
+
 In this example, `Post.author` points to the primary key on `User`.
 
 Connectors for relational databases will implement this as two tables with a
 foreign key constraint on the `Post` table:
 
 | **User** |         |
-| ----------- | ------- |
-| id          | integer |
+| -------- | ------- |
+| id       | integer |
 
 | **Post** |         |
-| --------- | ------- |
-| id        | integer |
-| author    | integer |
+| -------- | ------- |
+| id       | integer |
+| author   | integer |
 
 You may omit `Post.author` and the relationship will remain intact. If one
 side of the relation is missing, Prisma implies the field name based on the name
@@ -179,12 +190,12 @@ model Post {
 
 This results in the following tables:
 
-| **User** |      |
-| ----------- | ---- |
-| first_name  | text |
-| last_name   | text |
+| **User**   |      |
+| ---------- | ---- |
+| first_name | text |
+| last_name  | text |
 
-| **Post**         |      |
+| **Post**          |      |
 | ----------------- | ---- |
 | id                | Int  |
 | author_first_name | text |
@@ -193,7 +204,6 @@ This results in the following tables:
 ## m:n
 
 The return value on both sides is a list that might be empty. This is an improvement over the standard implementation in relational databases that require the application developer to deal with implementation details such as an intermediate table / join table. In Prisma, each connector will implement this concept in the way that is most efficient on the given storage engine and expose an API that hides the implementation details.
-
 
 ```groovy
 model Post {
@@ -220,10 +230,10 @@ model Employee {
 
 This results in the following table:
 
-| **Employee** |      |
-| ----------- | ---- |
-| id  | integer |
-| reportsTo   | integer |
+| **Employee** |         |
+| ------------ | ------- |
+| id           | integer |
+| reportsTo    | integer |
 
 ## Relations in the generated Photon API
 
@@ -238,17 +248,15 @@ The [generated Photon API](./photon/api.md) comes with many helpful features for
 
 ```ts
 // Retrieve the posts of a user
-const postsByUser: Post[] = await photon
-  .users
-  .findOne({ where: { email: "ada@prisma.io" }})
+const postsByUser: Post[] = await photon.users
+  .findOne({ where: { email: 'ada@prisma.io' } })
   .posts()
 ```
 
 ```ts
 // Retrieve the categories of a post
-const categoriesOfPost: Category[] = await photon
-  .posts
-  .findOne({ where: { id: 1 }})
+const categoriesOfPost: Category[] = await photon.posts
+  .findOne({ where: { id: 1 } })
   .categories()
 ```
 
@@ -258,35 +266,37 @@ const categoriesOfPost: Category[] = await photon
 // The returned post objects will only have the  `id` and
 // `author` property which carries the respective user object
 const allPosts: Post[] = await photon.posts.findMany({
-  select: ['id', 'author']
+  select: ['id', 'author'],
 })
 ```
 
 ```ts
 // The returned posts objects will have all scalar fields of the `Post` model and additionally all the categories for each post
 const allPosts: Post[] = await photon.posts.findMany({
-  include: ["categories"]
+  include: ['categories'],
 })
 ```
 
 ### Relation filters
 
 ```ts
-// Retrieve all posts of a particular user 
+// Retrieve all posts of a particular user
 // that start with "Hello"
-const posts: Post[] = await photon.users.findOne({
-  where: { email: 'ada@prisma.io' },
-}).posts({
-  where: {
-    title: { startsWith: "Hello" }
-  }
-})
+const posts: Post[] = await photon.users
+  .findOne({
+    where: { email: 'ada@prisma.io' },
+  })
+  .posts({
+    where: {
+      title: { startsWith: 'Hello' },
+    },
+  })
 ```
 
 ### Nested writes
 
 ```ts
-// Create a new user with two posts in a 
+// Create a new user with two posts in a
 // single transaction
 const newUser: User = await photon.users.create({
   data: {
