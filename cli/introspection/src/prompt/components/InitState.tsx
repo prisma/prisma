@@ -4,12 +4,13 @@ import { Example } from '../types'
 import { DatabaseCredentials } from '../../types'
 
 export type DBType = 'postgres' | 'sqlite' | 'mysql'
-export type Language = 'blank' | 'ts' | 'js'
+export type Language = 'ts' | 'js'
 
 export type InitState = {
   selectedDb?: 'postgres' | 'sqlite' | 'mysql'
   selectedLanguage?: Language
   selectedExample?: Example
+  useBlank: boolean
   usePhoton: boolean
   useLift: boolean
   useDemoScript?: boolean
@@ -21,6 +22,7 @@ const initialState: InitState = {
   usePhoton: true,
   useLift: true,
   outputDir: process.cwd(),
+  useBlank: false,
 }
 
 const actions = {

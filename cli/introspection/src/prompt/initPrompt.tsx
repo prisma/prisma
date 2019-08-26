@@ -9,6 +9,7 @@ import Step61Success from './screens/Step61Success'
 import Step2SqliteFileSelection from './screens/Step2SqliteFileSelection'
 import Step21SqliteFilePath from './screens/Step21SqliteFilePath'
 import Step22ToolSelection from './screens/Step22ToolSelection'
+import Step3LanguageSelection from './screens/Step3LanguageSelection'
 import Step60ProcessBlank from './screens/Step60ProcessBlank'
 import Step4DemoScriptSelection from './screens/Step4DemoScriptSelection'
 import Step60DownloadExample from './screens/Step60DownloadExample'
@@ -25,6 +26,7 @@ export async function initPrompt(outputDir: string) {
             <Route path="sqlite-file-selection" component={<Step2SqliteFileSelection />} />
             <Route path="sqlite-file-path" component={<Step21SqliteFilePath />} />
             <Route path="tool-selection" component={<Step22ToolSelection />} />
+            <Route path="language-selection" component={<Step3LanguageSelection />} />
             <Route path="demo-script-selection" component={<Step4DemoScriptSelection />} />
             <Route path="process-blank" component={<Step60ProcessBlank />} />
             <Route path="download-example" component={<Step60DownloadExample />} />

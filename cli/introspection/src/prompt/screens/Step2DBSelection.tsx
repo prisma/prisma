@@ -8,7 +8,7 @@ import { useInitState } from '../components/InitState'
 const Step2DBSelection: React.FC = () => {
   const [state] = useInitState()
 
-  const sqliteHref = state.selectedLanguage === 'blank' ? 'tool-selection' : 'download-example'
+  const sqliteHref = state.useBlank ? 'tool-selection' : 'download-example'
 
   return (
     <Box flexDirection="column">

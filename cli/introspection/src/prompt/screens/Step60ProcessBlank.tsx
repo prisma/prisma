@@ -22,8 +22,7 @@ const Step60ProcessBlank: React.FC = () => {
     }
     if (state.useDemoScript) {
       if (examples) {
-        // if (state.selectedLanguage === '')
-        //  setState(examples.examples.)
+        // ...
       }
     }
   }, [state, examples])
