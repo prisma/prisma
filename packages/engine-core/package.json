@@ -1,12 +1,12 @@
 {
   "name": "@prisma/engine-core",
-  "version": "0.0.86",
+  "version": "0.0.87",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/fetch-engine": "^0.1.7",
+    "@prisma/fetch-engine": "^0.1.8",
     "@types/jest": "24.0.14",
     "@types/node": "^12.0.0",
     "jest": "24.8.0",
