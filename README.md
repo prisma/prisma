@@ -12,7 +12,7 @@ Prisma is an application data framework consisting of these tools:
 
 - [**Photon**](https://photonjs.prisma.io/): Type-safe and auto-generated database client ("ORM replacement")
 - [**Lift**](https://lift.prisma.io/): Declarative data modeling and migrations
-- [**Studio**]https://github.com/prisma/studio(): Admin UI to support various database workflows
+- [**Studio**](https://github.com/prisma/studio): Admin UI to support various database workflows
 
 While each tool can be used standalone (in both _greenfield_ and _brownfield_ projects), they integrate nicely through common components like the [**Prisma schema**](./docs/prisma-schema-file.md) or the [Prisma 2 CLI](./docs/prisma2-cli.md).
 
