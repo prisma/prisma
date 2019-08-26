@@ -457,13 +457,6 @@
     strip-indent "^3.0.0"
     supports-hyperlinks "^1.0.1"
 
-"@prisma/nexus@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@prisma/nexus/-/nexus-0.0.1.tgz#1b75b268f29714a8958e80d88d7141004a343650"
-  integrity sha512-eRAbVUOLPr0copaj7u7Q9w2hlPNHp77XuOMC+O7dmYiM/204Gl7Whp1SCmGq98hjb3NaJbNMJpq3lfJL4GTgqg==
-  dependencies:
-    tslib "^1.9.3"
-
 "@prisma/photon@^0.2.11":
   version "0.2.11"
   resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.2.11.tgz#16b094ae5a12666105002eacebdad02981d11225"
@@ -4142,12 +4135,20 @@ nested-error-stacks@^2.0.0, nested-error-stacks@^2.1.0:
   resolved "https://registry.yarnpkg.com/nested-error-stacks/-/nested-error-stacks-2.1.0.tgz#0fbdcf3e13fe4994781280524f8b96b0cdff9c61"
   integrity sha512-AO81vsIO1k1sM4Zrd6Hu7regmJN1NSiAja10gc4bX3F0wd+9rQmcuHQaHVQCYIEC8iFXnE+mavh23GOt7wBgug==
 
-nexus-prisma@0.0.1-beta.4:
-  version "0.0.1-beta.4"
-  resolved "https://registry.yarnpkg.com/nexus-prisma/-/nexus-prisma-0.0.1-beta.4.tgz#fe7d62447c830a111ad62c5b98d2ae09eed812b9"
-  integrity sha512-L9DfU9Q8ZrKoJfK00PWi6yuGWD8Q8sqGg1ybEPftloTbRdI4xFi90gtrJR0MRQoYKwz708VgdzTHNRypeYNZrQ==
+nexus-prisma@0.0.1-beta.6:
+  version "0.0.1-beta.6"
+  resolved "https://registry.yarnpkg.com/nexus-prisma/-/nexus-prisma-0.0.1-beta.6.tgz#1b553a5e0d1db40269c39ee3a1c1b1de83ee8c36"
+  integrity sha512-iGvJTOwt7w6QfczbnLbMq1+qPHGtzjhYn0jXhCWQj4avJjOVuIfR7IbzXYxRPosdev213pdJsUSNwUJHYLPs6w==
   dependencies:
-    "@prisma/nexus" "^0.0.1"
+    nexus "^0.12.0-beta.7"
+    pluralize "^8.0.0"
+
+nexus@^0.12.0-beta.7:
+  version "0.12.0-beta.7"
+  resolved "https://registry.yarnpkg.com/nexus/-/nexus-0.12.0-beta.7.tgz#0feaa39d03fc44e48cfaa51c394341001b041c77"
+  integrity sha512-jBUoTW4UIQP2jg6eD6AsPkuTMlMGoMwPtOEcJP7twP/eA3TZseF+s8Bos+iDQipU53ivqMr0dJ0IOB52jq1zlQ==
+  dependencies:
+    tslib "^1.9.3"
 
 nice-try@^1.0.4:
   version "1.0.5"
