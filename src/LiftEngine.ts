@@ -41,7 +41,7 @@ export class LiftEngine {
   private debug: boolean
   private child?: ChildProcess
   private schemaPath: string
-  private listeners: { [key: string]: (result: any) => any } = {}
+  private listeners: { [key: string]: (result: any, err?: any) => any } = {}
   private messages: string[] = []
   private lastError?: any
   private initPromise?: Promise<void>
@@ -87,11 +87,11 @@ export class LiftEngine {
   }
   private rejectAll(err: any) {
     Object.entries(this.listeners).map(([id, listener]) => {
-      listener(err)
+      listener(null, err)
       delete this.listeners[id]
     })
   }
-  private registerCallback(id: number, callback: (result: any) => any) {
+  private registerCallback(id: number, callback: (result: any, err?: Error) => any) {
     this.listeners[id] = callback
   }
   private handleResponse(response: any) {
@@ -192,7 +192,10 @@ export class LiftEngine {
   private async runCommand(request: RPCPayload): Promise<any> {
     await this.init()
     return new Promise((resolve, reject) => {
-      this.registerCallback(request.id, response => {
+      this.registerCallback(request.id, (response, err) => {
+        if (err) {
+          return reject(err)
+        }
         if (response.result) {
           resolve(response.result)
         } else {
