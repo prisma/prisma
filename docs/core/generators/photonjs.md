@@ -79,7 +79,7 @@ generator photon {
 
 If a binary is not available for the platform you want to target, it is possible to compile the Prisma binaries on that platform manually. To compile a binary manually, please follow the following steps:
 
-1. Download the rust toolchain: https://www.rust-lang.org/tools/install
+1. Download the Rust toolchain: https://www.rust-lang.org/tools/install
 2. Clone https://github.com/prisma/prisma
 3. Switch to `alpha` branch (during the preview period, we are using the `alpha` branch)
 4. Change the directory to `prisma/server/prisma-rs`
