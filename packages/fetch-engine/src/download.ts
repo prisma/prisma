@@ -22,7 +22,7 @@ const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const copyFile = promisify(fs.copyFile)
 
-const channel = 'alpha'
+const channel = 'master'
 export interface BinaryDownloadConfiguration {
   'query-engine'?: string
   'migration-engine'?: string
