@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@prisma/get-platform@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@prisma/get-platform/-/get-platform-0.0.2.tgz#06f252c84ea146c292b89d809a85e2d1a7b2a924"
-  integrity sha512-3+dCuVnKWnlV5Kc57K75i/GTTG/N27cHGBg+4lSg8GK2TaF1Em2/vA63/7DpIMScHjRyvZjoJ9G7B1oy/xndoQ==
+"@prisma/get-platform@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@prisma/get-platform/-/get-platform-0.1.0.tgz#59be0574a582c9ed9625dbe2eb386df07c9fdb33"
+  integrity sha512-LYV7jdTx3WdnXCY3BS4Q50c7dGnxbR2lpR5j4TWC0QjC3Is6TIqBg4hd6bTwtq2kqealkEg82WRO/lJiPmjPIg==
   dependencies:
     debug "^4.1.1"
 

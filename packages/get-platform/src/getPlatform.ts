@@ -1,12 +1,22 @@
 import os from 'os'
+import fs from 'fs'
+import { promisify } from 'util'
 import { exec } from 'child_process'
 import Debug from 'debug'
 import { Platform } from './platforms'
 const debug = Debug('getos')
 
+const readFile = promisify(fs.readFile)
+const exists = promisify(fs.exists)
+
 export type GetOSResult = {
   platform: NodeJS.Platform
   libssl?: string
+  distro?: {
+    dist: string
+    codename: string
+    release: string
+  }
 }
 
 export async function getos(): Promise<GetOSResult> {
@@ -20,7 +30,37 @@ export async function getos(): Promise<GetOSResult> {
   return {
     platform: 'linux',
     libssl: await getLibSslVersion(),
+    distro: await resolveUbuntu(),
   }
+}
+
+export async function resolveUbuntu(): Promise<null | {
+  dist: string
+  release: string
+  codename: string
+}> {
+  if (await exists('/etc/lsb-release')) {
+    const idRegex = /distrib_id=(.*)/i
+    const releaseRegex = /distrib_release=(.*)/i
+    const codenameRegex = /distrib_codename=(.*)/i
+
+    const file = await readFile('/etc/lsb-release', 'utf-8')
+
+    const idMatch = file.match(idRegex)
+    const id = (idMatch && idMatch[1]) || null
+
+    const codenameMatch = file.match(codenameRegex)
+    const codename = (codenameMatch && codenameMatch[1]) || null
+
+    const releaseMatch = file.match(releaseRegex)
+    const release = (releaseMatch && releaseMatch[1]) || null
+
+    if (id && codename && release && id.toLowerCase() === 'ubuntu') {
+      return { dist: id, release, codename }
+    }
+  }
+
+  return null
 }
 
 export async function getLibSslVersion(): Promise<string | undefined> {
@@ -64,7 +104,7 @@ async function gracefulExec(cmd: string): Promise<string | undefined> {
 }
 
 export async function getPlatform(): Promise<Platform> {
-  const { platform, libssl } = await getos()
+  const { platform, libssl, distro } = await getos()
 
   if (platform === 'darwin') {
     return 'darwin'
@@ -74,6 +114,9 @@ export async function getPlatform(): Promise<Platform> {
 
   if (platform === 'linux' && libssl) {
     if (libssl === '1.0.2') {
+      if (distro && distro.codename === 'xenial') {
+        return 'linux-glibc-libssl1.0.2-ubuntu1604'
+      }
       return 'linux-glibc-libssl1.0.2'
     }
 
