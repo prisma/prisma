@@ -61,10 +61,10 @@ async function getObjects(
 function findLatestAlphaTag(objects) {
   objects.sort((a, b) => {
     // sort  beta to the complete end
-    if (!a.key.startsWith('alpha') || a.key.startsWith('alpha/latest')) {
+    if (!a.key.startsWith('master') || a.key.startsWith('master/latest')) {
       return 1
     }
-    if (!b.key.startsWith('alpha') || b.key.startsWith('alpha/latest')) {
+    if (!b.key.startsWith('master') || b.key.startsWith('master/latest')) {
       return -1
     }
     // sort last modified descending
