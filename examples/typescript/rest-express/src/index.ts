@@ -23,14 +23,14 @@ app.post(`/post`, async (req, res) => {
       title,
       content,
       published: false,
-      // author: { connect: { email: authorEmail } }, // TODO: Fix after https://github.com/prisma/photonjs/issues/30
+      author: { connect: { email: authorEmail } },
     },
   })
   res.json(result)
 })
 
 app.put('/publish/:id', async (req, res) => {
-  const { id } = req.params
+  const { id } = req.params as { id: string }
   const post = await photon.posts.update({
     where: { id },
     data: { published: true },
@@ -39,7 +39,7 @@ app.put('/publish/:id', async (req, res) => {
 })
 
 app.delete(`/post/:id`, async (req, res) => {
-  const { id } = req.params
+  const { id } = req.params as { id: string }
   const post = await photon.posts.delete({
     where: {
       id,
@@ -49,7 +49,7 @@ app.delete(`/post/:id`, async (req, res) => {
 })
 
 app.get(`/post/:id`, async (req, res) => {
-  const { id } = req.params
+  const { id } = req.params as { id: string }
   const post = await photon.posts.findOne({
     where: {
       id,
