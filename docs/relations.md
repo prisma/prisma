@@ -96,6 +96,20 @@ Under the hood, the models looks like this:
 | id            | integer |
 | user          | integer |
 
+You can use the `@relation` attribute to explicitly determine the side of the relation on which the foreign key should be stored. If you prefer storing it in the `User` table instead of the `Profile` table, you can use achieve this as follows:
+
+```groovy
+model User {
+  id        Int      @id
+  profile   Profile? @relation(references: [id])
+}
+
+model Profile {
+  id   Int    @id
+  user User
+}
+```
+
 You _may_ omit either `User.profile` or `Profile.user` and the relationship will remain intact. This makes either the back-relation or the forward-relation optional. If one side of the relation is missing, Prisma implies the field name based on the name of the model it is pointing to.
 
 If you're introspecting an existing database and the foreign key does not follow the alphanumeric convention, then Prisma uses the [`@relation`](#the-relation-attribute) attribute to clarify.
