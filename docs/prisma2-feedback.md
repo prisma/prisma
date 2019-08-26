@@ -71,7 +71,4 @@ We are extremely eager to get your feedback! Please feel free to reach out to us
 
 ## Contributors
 
-A huge thanks to everyone who submitted PRs or openened issues in any of our Prisma 2 repositories. 
-
-<a href="https://github.com/iherger"><img width="75px" style="border-radius:50%;" src="https://avatars1.githubusercontent.com/u/36133712?s=400&v=4"></a>
-<a href="https://github.com/Andrew1325"><img width="75px" style="border-radius:50%;" src="https://avatars2.githubusercontent.com/u/38718635?s=400&v=4"></a>
+A huge thanks to everyone who submitted PRs or openened issues in any of our Prisma 2 repositories: [`iherger`](https://github.com/iherger), [`Andrew1325`](https://github.com/Andrew1325)
