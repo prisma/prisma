@@ -6,7 +6,7 @@ The query engine binary is downloaded when you run `prisma2 generate`, it is the
 
 **IMPORTANT**: To ensure the query engine binary is compatible with your production environment, you have to [specify the right platform for Photon.js](../core/generators/photonjs.md#specifying-the-right-platform-for-photon-js).
 
-## Photon in FaaS environment (like AWS Lambda)
+## Photon in FaaS environment (e.g. AWS Lambda, Netlify)
 
 ### Database connection handling
 
