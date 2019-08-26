@@ -35,7 +35,7 @@
     "jest": "24.8.0",
     "mocha": "6.1.4",
     "mz": "2.7.0",
-    "nexus-prisma": "0.0.1-beta.4",
+    "nexus-prisma": "0.0.1-beta.6",
     "open": "^6.4.0",
     "pkg-up": "3.1.0",
     "prisma-test-utils": "^0.2.5",
