@@ -10,9 +10,10 @@ Prisma 2 is currently in Preview! [Limitations](./docs/limitations.md) include m
 
 Prisma is an application data framework consisting of these tools:
 
-- **Photon**: A type-safe database client ("ORM replacement")
+- **Photon**: Type-safe and auto-generated database client ("ORM replacement")
 - **Lift**: Declarative data modeling and migrations
 - **Studio**: Admin UI to support various database workflows
+
 
 While each tool can be used standalone (in both _greenfield_ and _brownfield_ projects), they integrate nicely through common components like the [**Prisma schema**](./docs/prisma-schema-file.md) or the [Prisma 2 CLI](./docs/prisma2-cli.md).
 
