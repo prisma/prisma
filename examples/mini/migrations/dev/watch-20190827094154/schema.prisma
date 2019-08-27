@@ -1,0 +1,13 @@
+datasource db {
+  url = "file:dev.db"
+  provider = "sqlite"
+}
+
+generator proton {
+  provider = "photonjs"
+}
+
+model User {
+  id Int @id
+  name String
+}

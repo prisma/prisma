@@ -16,6 +16,7 @@ import path from 'path'
 import { LiftCommand } from './cli/commands/LiftCommand'
 import { LiftDown } from './cli/commands/LiftDown'
 import { LiftSave } from './cli/commands/LiftSave'
+import { LiftTmpPrepare } from './cli/commands/LiftTmpPrepare'
 import { LiftUp } from './cli/commands/LiftUp'
 import { LiftWatch } from './cli/commands/LiftWatch'
 
@@ -52,6 +53,7 @@ async function main(): Promise<number> {
       up: LiftUp.new(env),
       down: LiftDown.new(env),
       watch: LiftWatch.new(env, predefinedGenerators),
+      ['tmp-prepare']: LiftTmpPrepare.new(env, predefinedGenerators),
     },
     env,
   )

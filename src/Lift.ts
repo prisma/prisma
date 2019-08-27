@@ -68,12 +68,13 @@ export class Lift {
   }
   public engine: LiftEngine
 
+  // tslint:disable
   public watchUp = simpleDebounce(
     async (
       { preview, generatorDefinitions, clear }: WatchOptions = { clear: true, generatorDefinitions: {} },
-      renderer: DevComponentRenderer,
+      renderer?: DevComponentRenderer,
     ) => {
-      renderer.setState({ error: undefined })
+      renderer && renderer.setState({ error: undefined })
       const datamodel = await this.getDatamodel()
       try {
         const watchMigrationName = `watch-${now()}`
@@ -82,8 +83,8 @@ export class Lift {
 
         if (migration) {
           const before = Date.now()
-          renderer.setState({ lastChanged: new Date() })
-          renderer.setState({ migrating: true })
+          renderer && renderer.setState({ lastChanged: new Date() })
+          renderer && renderer.setState({ migrating: true })
           await this.engine.applyMigration({
             force: true,
             migrationId: migration.id,
@@ -95,15 +96,18 @@ export class Lift {
 
           await this.persistWatchMigration({ migration, lastMigration: lastWatchMigration })
           const after = Date.now()
-          renderer.setState({ migrating: false, migratedIn: after - before })
-          this.recreateStudioServer(datamodel)
+          renderer && renderer.setState({ migrating: false, migratedIn: after - before })
+          if (renderer) {
+            this.recreateStudioServer(datamodel)
+          }
         }
 
         if (datamodel !== this.datamodelBeforeWatch) {
-          renderer.setState({
-            datamodelBefore: this.datamodelBeforeWatch,
-            datamodelAfter: datamodel,
-          })
+          renderer &&
+            renderer.setState({
+              datamodelBefore: this.datamodelBeforeWatch,
+              datamodelAfter: datamodel,
+            })
         }
 
         const generators = await getCompiledGenerators(this.projectDir, datamodel, generatorDefinitions)
@@ -114,39 +118,45 @@ export class Lift {
           generating: false,
         }))
 
-        const addedGenerators = newGenerators.filter(g => !renderer.state.generators.some(gg => gg.name === g.name))
-        const removedGenerators = renderer.state.generators.filter(g => newGenerators.some(gg => gg.name === g.name))
+        const addedGenerators = newGenerators.filter(
+          g => renderer && !renderer.state.generators.some(gg => gg.name === g.name),
+        )
+        const removedGenerators =
+          (renderer && renderer.state.generators.filter(g => newGenerators.some(gg => gg.name === g.name))) || []
 
         if (
-          renderer.state.generators.length !== newGenerators.length ||
+          (renderer && renderer.state.generators.length !== newGenerators.length) ||
           addedGenerators.length > 0 ||
           removedGenerators.length > 0
         ) {
-          renderer.setState({ generators: newGenerators })
+          renderer && renderer.setState({ generators: newGenerators })
         }
 
         for (let i = 0; i < generators.length; i++) {
           const generator = generators[i]
           const before = Date.now()
-          renderer.setGeneratorState(i, {
-            generating: true,
-          })
+          renderer &&
+            renderer.setGeneratorState(i, {
+              generating: true,
+            })
           try {
             await generator.generate()
             const after = Date.now()
-            renderer.setGeneratorState(i, {
-              generating: false,
-              generatedIn: after - before,
-            })
+            renderer &&
+              renderer.setGeneratorState(i, {
+                generating: false,
+                generatedIn: after - before,
+              })
           } catch (error) {
-            renderer.setState({ error })
+            renderer && renderer.setState({ error })
           }
         }
       } catch (error) {
-        renderer.setState({ error })
+        renderer && renderer.setState({ error })
       }
     },
   )
+  // tsline:enable
   private datamodelBeforeWatch: string = ''
   private studioServer?: any
   private studioPort: number = 5555
