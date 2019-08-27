@@ -12,6 +12,7 @@ import execa from 'execa'
 import chalk from 'chalk'
 import { useExampleApi } from '../utils/useExampleApi'
 import { RouterContext } from '../components/Router'
+import makeDir from 'make-dir'
 
 const Step60DownloadExample: React.FC = () => {
   const [state] = useInitState()
@@ -35,6 +36,7 @@ const Step60DownloadExample: React.FC = () => {
 
   useEffect(() => {
     async function prepare() {
+      await makeDir(state.outputDir)
       const tarFile = await downloadRepo('prisma', 'prisma-examples', examples!.meta.branch)
       setActiveIndex(1)
       await extractExample(tarFile, selectedExample!.path, state.outputDir)
