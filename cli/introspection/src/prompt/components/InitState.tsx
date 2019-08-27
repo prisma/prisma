@@ -7,7 +7,7 @@ export type DBType = 'postgres' | 'sqlite' | 'mysql'
 export type Language = 'typescript' | 'javascript'
 
 export type InitState = {
-  selectedDb?: 'postgres' | 'sqlite' | 'mysql'
+  selectedDb?: DBType
   selectedLanguage?: Language
   selectedExample?: Example
   useBlank: boolean

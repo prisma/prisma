@@ -3,10 +3,11 @@ import { Color, Box } from 'ink'
 import { useInitState } from '../components/InitState'
 import fs from 'fs'
 import path from 'path'
-import { sqliteSchemaOnly } from '../utils/templates'
+import { printSchema } from '../utils/templates'
 import { RouterContext } from '../components/Router'
 import { sync as makeDirSync } from 'make-dir'
 import { useExampleApi } from '../utils/useExampleApi'
+import { DatabaseType } from 'prisma-datamodel'
 
 const Step60ProcessBlank: React.FC = () => {
   const [state, { setState }] = useInitState()
@@ -15,6 +16,15 @@ const Step60ProcessBlank: React.FC = () => {
   useEffect(() => {
     // perform actions to get blank project going...
     // state.blank??
+    if (!state.dbCredentials && state.selectedDb === 'sqlite') {
+      setState({
+        dbCredentials: {
+          type: DatabaseType.sqlite,
+          uri: 'file:dev.db',
+        },
+      })
+      return
+    }
     if (state.useDemoScript && state.selectedLanguage) {
       if (examples) {
         // TODO: Add more error handling if it can't be found
@@ -24,7 +34,10 @@ const Step60ProcessBlank: React.FC = () => {
       }
     } else if (state.selectedDb === 'sqlite' && !state.useDemoScript) {
       makeDirSync(path.join(state.outputDir, './prisma'))
-      fs.writeFileSync(path.join(state.outputDir, './prisma/schema.prisma'), sqliteSchemaOnly(state.usePhoton))
+      fs.writeFileSync(
+        path.join(state.outputDir, './prisma/schema.prisma'),
+        printSchema({ usePhoton: state.usePhoton, credentials: state.dbCredentials! }),
+      )
       router.setRoute('success')
     }
   }, [state, examples])

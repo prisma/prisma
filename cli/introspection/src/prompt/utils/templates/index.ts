@@ -1,7 +1,13 @@
-export const sqliteSchemaOnly = (usePhoton: boolean) => `datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
-}
+import { DatabaseCredentials } from '../../../types'
+import { credentialsToUri } from '../../../convertCredentials'
+
+export const printSchema = ({
+  usePhoton,
+  credentials,
+}: {
+  usePhoton: boolean
+  credentials: DatabaseCredentials
+}) => `${printCredentials(credentials)}
 ${
   usePhoton
     ? `
@@ -27,3 +33,16 @@ model Post {
   content   String?
   author    User?
 }`
+
+const printCredentials = (credentials: DatabaseCredentials) => `datasource db {
+  provider = "${prettyPrintType(credentials.type)}"
+  url      = "${credentials.uri || credentialsToUri(credentials)}"
+}`
+
+function prettyPrintType(type) {
+  if (type === 'postgres') {
+    return 'postgresql'
+  }
+
+  return type
+}

@@ -2,16 +2,26 @@ import React, { useEffect } from 'react'
 import { Color, Box } from 'ink'
 import BorderBox from '../components/BorderBox'
 import { Link } from '../components/Link'
-import { useInitState } from '../components/InitState'
+import { useInitState, InitState, DBType } from '../components/InitState'
 import { useExampleApi } from '../utils/useExampleApi'
 import { Example } from '../types'
+import { DatabaseCredentials } from '../../types'
+import { DatabaseType } from 'prisma-datamodel'
 
 const Step4DemoScriptSelection: React.FC = () => {
-  const [state] = useInitState()
+  const [state, { setState }] = useInitState()
   const examples = useExampleApi()
   let potentialExample
   if (examples && state.selectedLanguage) {
     potentialExample = examples.examples[state.selectedLanguage].script
+    if (state.selectedDb === 'sqlite') {
+      setState({
+        dbCredentials: {
+          type: DatabaseType.sqlite,
+          uri: 'file:dev.db',
+        },
+      })
+    }
   }
   return (
     <Box flexDirection="column">
