@@ -29,9 +29,7 @@ export class Init implements Command {
     const outputDirName = args._[0]
     const outputDir = outputDirName ? path.join(process.cwd(), outputDirName) : process.cwd()
 
-    if (!fs.existsSync(outputDir)) {
-      mkdirpSync(outputDir)
-    } else {
+    if (fs.existsSync(outputDir)) {
       const schemaExists = fs.existsSync(path.join(outputDir, 'schema.prisma'))
       const prismaSchemaExists = fs.existsSync(path.join(outputDir, 'prisma/schema.prisma'))
       if (schemaExists || prismaSchemaExists) {
