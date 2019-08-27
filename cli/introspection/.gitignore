@@ -5,3 +5,5 @@ failed-*.md
 test-introspection.ts
 dist
 node_modules
+test
+test2

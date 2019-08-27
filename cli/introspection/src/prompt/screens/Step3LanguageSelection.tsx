@@ -18,8 +18,8 @@ const Step3LanguageSelection: React.FC = () => {
         marginTop={1}
         marginBottom={1}
       >
-        <Link label="JavaScript" href="demo-script-selection" tabIndex={0} state={{ selectedLanguage: 'js' }} />
-        <Link label="TypeScript" href="demo-script-selection" tabIndex={1} state={{ selectedLanguage: 'ts' }} />
+        <Link label="JavaScript" href="demo-script-selection" tabIndex={0} state={{ selectedLanguage: 'javascript' }} />
+        <Link label="TypeScript" href="demo-script-selection" tabIndex={1} state={{ selectedLanguage: 'typescript' }} />
         <Box marginLeft={2}>
           <Color dim>Go (Coming soon)</Color>
         </Box>

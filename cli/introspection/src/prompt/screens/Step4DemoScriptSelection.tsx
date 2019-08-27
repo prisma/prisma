@@ -1,9 +1,18 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Color, Box } from 'ink'
 import BorderBox from '../components/BorderBox'
 import { Link } from '../components/Link'
+import { useInitState } from '../components/InitState'
+import { useExampleApi } from '../utils/useExampleApi'
+import { Example } from '../types'
 
 const Step4DemoScriptSelection: React.FC = () => {
+  const [state] = useInitState()
+  const examples = useExampleApi()
+  let potentialExample
+  if (examples && state.selectedLanguage) {
+    potentialExample = examples.examples[state.selectedLanguage].script
+  }
   return (
     <Box flexDirection="column">
       <Box flexDirection="column" marginLeft={2}>
@@ -14,9 +23,9 @@ const Step4DemoScriptSelection: React.FC = () => {
         <Link
           label="Demo script"
           description="Simple script with API examples"
-          href="process-blank"
+          href="download-example"
           tabIndex={0}
-          state={{ useDemoScript: true }}
+          state={{ useDemoScript: true, selectedExample: potentialExample }}
           padding={24}
         />
         <Link

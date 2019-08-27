@@ -48,11 +48,11 @@ export const Link: React.FC<Props> = props => {
       },
       onKey(key: Key) {
         if (key.name === 'return') {
-          routerCtx.setRoute(props.href || routerCtx.lastRoute!)
-          tabCtx.setActiveIndex(0)
           if (props.state) {
             initStore.setState(props.state)
           }
+          routerCtx.setRoute(props.href || routerCtx.lastRoute!)
+          tabCtx.setActiveIndex(0)
         }
       },
     }

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 
 const resultCache: { [key: string]: any } = {}
 
-export function useFetch(url: string) {
+export function useFetch(url: string, transform?: (data: any) => any) {
   const [state, setState] = useState(null as any)
 
   useEffect(() => {
@@ -13,8 +13,9 @@ export function useFetch(url: string) {
       fetch(url)
         .then(res => res.json())
         .then(res => {
-          resultCache[url] = res
-          setState(res)
+          const result = transform ? transform(res) : res
+          resultCache[url] = result
+          setState(result)
         })
     }
   }, [url])

@@ -7,3 +7,12 @@ export function printError(text) {
 export function printFix(text) {
   return chalk.bgWhite.black.bold(' FIX ') + ' ' + text
 }
+
+const beautifyMap = {
+  javascript: 'JavaScript',
+  typescript: 'TypeScript',
+}
+
+export function beautifyLanguage(language: string): string {
+  return beautifyMap[language] || language
+}

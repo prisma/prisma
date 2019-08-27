@@ -4,82 +4,71 @@ import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
 import { useInitState } from '../components/InitState'
 import path from 'path'
+import { InkLink } from '../components/InkLink'
 
 const Step61Success: React.FC = () => {
   useEffect(() => {
     setTimeout(() => {
-      process.exit()
+      process.exit(0)
     }, 5)
   })
   const [state] = useInitState()
-  const showDirectoryCreated = state.outputDir !== process.cwd()
-  const projectName = showDirectoryCreated ? path.relative(process.cwd(), state.outputDir) : '?'
+  const directoryCreated = state.outputDir !== process.cwd()
+  const dirName = directoryCreated ? path.relative(process.cwd(), state.outputDir) : null
   return (
     <Box flexDirection="column">
-      <Box marginLeft={2} marginBottom={1}>
+      <Box marginLeft={2} flexDirection="column">
+        {directoryCreated && (
+          <Color green>
+            <Color bgKeyword="green" white>
+              <Color bold> SUCCESS </Color>
+            </Color>{' '}
+            The <Color bold>{dirName}</Color> directory was created!
+          </Color>
+        )}
         <Color green>
           <Color bgKeyword="green" white>
             <Color bold> SUCCESS </Color>
           </Color>{' '}
-          Aw yeah, you're all set!
+          Prisma is connected to your database at <Color bold>./dev.db</Color>
         </Color>
       </Box>
-      {showDirectoryCreated ||
-        (state.selectedExample && (
-          <BorderBox flexDirection="column" title={chalk.bold('Info')}>
-            {showDirectoryCreated && (
-              <Box marginLeft={2} marginBottom={1} flexDirection="column">
-                <Color>
-                  The <Color bold>{projectName}</Color> directory was created. It contains your{' '}
-                </Color>
-                <Color>Prisma setup {state.selectedExample ? 'and the starter code for a EXAMPLE_NAME' : ''}</Color>
-              </Box>
-            )}
-            {state.selectedExample && (
-              <>
-                <Box marginLeft={2} marginBottom={1} flexDirection="column">
-                  <Color>Prisma is connected to your database at:</Color>
-                  <Color>
-                    <Color bold>DB_HOST</Color> as <Color bold>DB_USER</Color>
-                  </Color>
-                </Box>
-                <Box marginLeft={2} marginBottom={1} flexDirection="column">
-                  <Color>Your database has been seeded with the data in:</Color>
-                  <Color bold>PROJECT_NAME/PATH/TO/SEEDING/FILE</Color>
-                </Box>
-                <Box marginLeft={2} flexDirection="column">
-                  <Color>If you encounter any issues, please report them here:</Color>
-                  <Color bold>ISSUES_LINK</Color>
-                </Box>
-              </>
-            )}
-          </BorderBox>
-        ))}
       <BorderBox flexDirection="column" marginTop={1} marginBottom={1} title={chalk.bold('Next steps')}>
         <Box marginLeft={2} width={100} flexDirection="column">
-          {showDirectoryCreated && (
-            <>
-              <Color>Navigate into the project directory:</Color>
-              <Box marginBottom={1} flexDirection="column">
-                <Color bold>$ cd PROJECT_NAME</Color>
+          {directoryCreated && (
+            <Box marginBottom={1} flexDirection="column">
+              <Color dim>Navigate into the project directory:</Color>
+              <Box flexDirection="column">
+                <Color bold>$ cd {dirName}</Color>
               </Box>
-            </>
+            </Box>
           )}
-          <Color>Start Prisma's development mode to enable access to</Color>
-          <Color>
-            Prisma Studio and watch <Color bold>schema.prisma</Color> for changes:
-          </Color>
-          <Box marginBottom={1} flexDirection="column">
+          <Box flexDirection="column">
+            <Color dim>Start Prisma's development mode to enable access to</Color>
+            <Color dim>
+              Prisma Studio and watch <Color bold>schema.prisma</Color> for changes:
+            </Color>
             <Color bold>$ prisma dev</Color>
           </Box>
-          <Box marginBottom={1} flexDirection="column">
-            <Color>CUSTOM_INSTRUCTIONS_FOR_EXAMPLE</Color>
-            <Color>...</Color>
+          {state.selectedExample!.nextStepInstructions.map(instruction => (
+            <Box marginTop={1} flexDirection="column" key={instruction.description}>
+              <Color dim>{instruction.description}</Color>
+              {instruction.commands.map(command => (
+                <Color key={command} bold>
+                  $ {command}
+                </Color>
+              ))}
+            </Box>
+          ))}
+          <Box marginTop={1} flexDirection="column">
+            <Color dim>Learn more about Prisma 2:</Color>
+            <InkLink url="https://github.com/prisma/prisma2/" />
           </Box>
-          <Color>Explore sample operations and evolve the project:</Color>
-          <Color bold>EXAMPLE_SHORTLINK</Color>
+          <Box marginTop={1} flexDirection="column">
+            <Color dim>If you encounter any issues, please report them here:</Color>
+            <InkLink url={state.selectedExample!.issuesLink} />
+          </Box>
         </Box>
-        {state.useBlank && <Color>We're missing some better text when you chose the blank flow... Coming soon</Color>}
       </BorderBox>
     </Box>
   )
