@@ -6,6 +6,7 @@ export { LiftSave } from './cli/commands/LiftSave'
 export { LiftUp } from './cli/commands/LiftUp'
 export { LiftWatch } from './cli/commands/LiftWatch'
 export { LiftDown } from './cli/commands/LiftDown'
+export { LiftTmpPrepare } from './cli/commands/LiftTmpPrepare'
 export { missingGeneratorMessage } from './utils/generation/missingGeneratorMessage'
 export { default as byline } from './utils/byline'
 
