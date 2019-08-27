@@ -1,6 +1,7 @@
 export type ExampleApi = {
   meta: {
     version: string
+    branch: string
   }
   examples: { [language: string]: ExampleLanguageDefinition }
 }
@@ -14,12 +15,21 @@ export type ExampleInstruction = {
   commands: string[]
 }
 
+export type SetupCommand = {
+  command: string
+  description: string
+}
+
 export type Example = {
+  id: string
   name: string
+  url: string
+  path: string
+  language: string
   description: string
   pathToSeedingFile?: string
   issuesLink: string
   nextStepInstructions: ExampleInstruction[]
-  setupCommands: string[]
+  setupCommands: SetupCommand[]
   supportedDataSources: string[]
 }

@@ -15,15 +15,17 @@ const Step60ProcessBlank: React.FC = () => {
   useEffect(() => {
     // perform actions to get blank project going...
     // state.blank??
-    if (state.selectedDb === 'sqlite' && !state.useDemoScript) {
+    if (state.useDemoScript && state.selectedLanguage) {
+      if (examples) {
+        // TODO: Add more error handling if it can't be found
+        const example = examples.examples[state.selectedLanguage].script
+        setState({ selectedExample: example })
+        router.setRoute('download-example')
+      }
+    } else if (state.selectedDb === 'sqlite' && !state.useDemoScript) {
       makeDirSync(path.join(state.outputDir, './prisma'))
       fs.writeFileSync(path.join(state.outputDir, './prisma/schema.prisma'), sqliteSchemaOnly(state.usePhoton))
       router.setRoute('success')
-    }
-    if (state.useDemoScript) {
-      if (examples) {
-        // ...
-      }
     }
   }, [state, examples])
 

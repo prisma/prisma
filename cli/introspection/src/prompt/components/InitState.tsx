@@ -4,7 +4,7 @@ import { Example } from '../types'
 import { DatabaseCredentials } from '../../types'
 
 export type DBType = 'postgres' | 'sqlite' | 'mysql'
-export type Language = 'ts' | 'js'
+export type Language = 'typescript' | 'javascript'
 
 export type InitState = {
   selectedDb?: 'postgres' | 'sqlite' | 'mysql'
@@ -23,6 +23,7 @@ const initialState: InitState = {
   useLift: true,
   outputDir: process.cwd(),
   useBlank: false,
+  useDemoScript: false,
 }
 
 const actions = {

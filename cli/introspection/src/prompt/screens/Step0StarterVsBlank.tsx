@@ -11,9 +11,15 @@ type Props = {
 }
 
 const Step0StarterVsBlank: React.FC<Props> = ({ outputDir }) => {
-  // already cache the result for later screens
+  const [state, { setState }] = useInitState()
 
+  // already cache the result for later screens
   useExampleApi()
+
+  useEffect(() => {
+    setState({ outputDir })
+  }, [outputDir])
+
   return (
     <Box flexDirection="column">
       <Box flexDirection="column" marginLeft={2}>
@@ -25,13 +31,13 @@ const Step0StarterVsBlank: React.FC<Props> = ({ outputDir }) => {
           label="Blank project"
           href="db-selection"
           description="Supports introspecting your existing DB"
+          state={{ useBlank: true }}
           tabIndex={0}
         />
         <Link
-          label="TypeScript"
-          state={{ selectedLanguage: 'ts' }}
+          label="Starter Kit"
           href="starter-selection"
-          description="GraphQL, REST, gRPC, ..."
+          description="Sample setups for GraphQL, REST, gRPC, ..."
           tabIndex={1}
         />
       </BorderBox>
