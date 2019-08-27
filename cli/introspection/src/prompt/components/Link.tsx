@@ -51,8 +51,8 @@ export const Link: React.FC<Props> = props => {
           if (props.state) {
             initStore.setState(props.state)
           }
-          routerCtx.setRoute(props.href || routerCtx.lastRoute!)
           tabCtx.setActiveIndex(0)
+          routerCtx.setRoute(props.href || routerCtx.lastRoute!)
         }
       },
     }
