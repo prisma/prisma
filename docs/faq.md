@@ -85,3 +85,8 @@ While it shouldn't be used for critical applications yet, Lift is definitely in 
 Yes, Prisma 1 will continue to be maintained. However, most Prisma engineering resources will go into the development of [Prisma 2](https://github.com/prisma/prisma2) (i.e. [Photon](https://photonjs.prisma.io/) and [Lift](https://lift.prisma.io/)). 
 
 There will be no new features developed for Prisma 1.
+
+### Where can I get more information about the plans for Prisma 2?
+
+Check out the [`specs`]() repo which contains the technica specifications for future Prisma 2 features. Get involved by [creating issues](https://github.com/prisma/prisma2/issues) and [sharing feedback](./prisma2-feedback)!
+
