@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { Color, Box } from 'ink'
 import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
@@ -10,31 +10,37 @@ import { DatabaseType } from 'prisma-datamodel'
 import { Checkbox } from '../components/inputs/Checkbox'
 import { useConnector } from '../components/useConnector'
 import { ErrorBox } from '../components/ErrorBox'
+import { RouterContext } from '../components/Router'
+import Spinner from 'ink-spinner'
+const AnySpinner: any = Spinner
 
 // We can't use this screen yet, as we don't have SQLite introspection yet
 const Step1MySQLCredentials: React.FC = () => {
   const [state, { setDbCredentials }] = useInitState()
-  const { connect, error, connected, connector } = useConnector()
+  const { connect, error, connected, connector, connecting, getMetadata, selectedDatabaseMeta } = useConnector()
 
   const dbCredentials = state.dbCredentials!
   const [next, setNext] = useState('')
+  const router = useContext(RouterContext)
 
   useEffect(() => {
     async function runEffect() {
       if (connected) {
-        if (dbCredentials.database) {
+        if (dbCredentials.database && selectedDatabaseMeta) {
           // introspect this db
           // is there sth in there?
-          const meta = await connector!.connector.getMetadata(dbCredentials.database)
-          if (meta.countOfTables > 0) {
+          if (selectedDatabaseMeta.countOfTables > 0) {
             // introspect
-            setNext('introspection')
+            if (state.useStarterKit) {
+              router.setRoute('choose-database')
+            } else {
+              router.setRoute('introspection')
+            }
           } else {
-            // okay dokay - we go for normal language selection, then sample script yes no
-            setNext('oken doken')
+            router.setRoute('download-example')
           }
         } else {
-          // show the user which options she has
+          router.setRoute('choose-database')
         }
       }
     }
@@ -43,8 +49,7 @@ const Step1MySQLCredentials: React.FC = () => {
 
   return (
     <Box flexDirection="column">
-      {connected && 'OMG WE ARE CONNECTED'}
-      {next && 'next: ' + next}
+      {next}
       <Box flexDirection="column" marginLeft={2}>
         <Color bold>Connect to your MySQL database</Color>
         <Color dim>
@@ -82,7 +87,7 @@ const Step1MySQLCredentials: React.FC = () => {
         />
         <TextInput
           tabIndex={4}
-          label="Database (optional)"
+          label={`Database ${chalk.dim('(optional)')}`}
           value={dbCredentials.database || ''}
           onChange={database => setDbCredentials({ database })}
           placeholder=""
@@ -110,8 +115,14 @@ const Step1MySQLCredentials: React.FC = () => {
       </BorderBox>
 
       {error && <ErrorBox>{error}</ErrorBox>}
-      <Link label="Connect" onSelect={() => connect(state.dbCredentials!)} tabIndex={7} kind="forward" />
-      <Link label="Back" href="sqlite-file-selection" description="(Database options)" tabIndex={8} kind="back" />
+      {connecting ? (
+        <Box>
+          <AnySpinner /> Connecting
+        </Box>
+      ) : (
+        <Link label="Connect" onSelect={() => connect(state.dbCredentials!)} tabIndex={7} kind="forward" />
+      )}
+      <Link label="Back" description="(Database options)" tabIndex={8} kind="back" />
     </Box>
   )
 }

@@ -19,7 +19,9 @@ const Step61Success: React.FC = () => {
   const issuesLink =
     (state.selectedExample && state.selectedExample!.issuesLink) || 'https://github.com/prisma/prisma2/issues/new'
 
-  const connectionString = state.dbCredentials && (state.dbCredentials.uri || credentialsToUri(state.dbCredentials))
+  const connectionString =
+    state.dbCredentials &&
+    (state.dbCredentials.host || state.dbCredentials.uri || credentialsToUri(state.dbCredentials))
 
   return (
     <Box flexDirection="column">

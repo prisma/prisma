@@ -54,20 +54,20 @@ class TabIndexContextClass {
   }
 }
 
-const contextState = new TabIndexContextClass()
+export const tabIndexContextState = new TabIndexContextClass()
 
-export const TabIndexContext = React.createContext(contextState)
+export const TabIndexContext = React.createContext(tabIndexContextState)
 
 export function TabIndexProvider(props) {
   useStdin(({ key, actionKey, text }) => {
     if (key.name === 'up' || (key.name === 'tab' && key.shift)) {
-      contextState.up()
+      tabIndexContextState.up()
     } else if (key.name === 'down' || key.name === 'tab') {
-      contextState.down()
+      tabIndexContextState.down()
     } else {
-      contextState.emitKeyPress(key, actionKey, text)
+      tabIndexContextState.emitKeyPress(key, actionKey, text)
     }
   })
 
-  return <TabIndexContext.Provider value={contextState}>{props.children}</TabIndexContext.Provider>
+  return <TabIndexContext.Provider value={tabIndexContextState}>{props.children}</TabIndexContext.Provider>
 }

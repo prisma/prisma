@@ -1,6 +1,15 @@
 import React from 'react'
 import { Box, Color } from 'ink'
 
+export const SuccessBox: React.FC = props => (
+  <Color green>
+    <Color bgKeyword="green" white>
+      <Color bold> SUCCESS </Color>
+    </Color>{' '}
+    {props.children}
+  </Color>
+)
+
 export const ErrorBox: React.FC = props => (
   <Box>
     <Color bgRed white bold>

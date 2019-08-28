@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
+import { tabIndexContextState } from './TabIndex'
 
 class RouterContextClass {
   private routes: { [key: string]: (active: boolean) => void } = {}
@@ -21,6 +22,7 @@ class RouterContextClass {
       this.lastRoute = this.activeRoute
       this.activeRoute = route
       if (this.routes[route]) {
+        tabIndexContextState.setActiveIndex(0)
         this.routes[route](true)
       }
     }

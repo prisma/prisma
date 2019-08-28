@@ -13,11 +13,14 @@ type ConnectorState = {
   introspectionResult?: string
   schemas?: SchemaWithMetaData[]
   connected: boolean
+  connecting: boolean
+  selectedDatabaseMeta?: SchemaWithMetaData
 }
 
 const initialState: ConnectorState = {
   error: null,
   connected: false,
+  connecting: false,
 }
 
 export interface SchemaWithMetaData {
@@ -77,15 +80,24 @@ export function useConnector() {
     }
     if (!connector) {
       try {
+        setState({ connecting: true })
         const connectorAndDisconnect = await getConnectedConnectorFromCredentials(credentials)
-        // setConnector(connectorAndDisconnect)
         connector = connectorAndDisconnect
-        setState({ credentials, connected: true })
+        await getMetadata()
+
+        let meta
+        if (credentials.database) {
+          meta = await connector.connector.getMetadata(credentials.database)
+        }
+
+        setState({ credentials, connected: true, connecting: false, selectedDatabaseMeta: meta })
       } catch (error) {
-        setState({ error: prettifyError(error) })
+        setState({ error: prettifyError(error), connecting: false })
       }
     } else {
-      console.warn('We are already connected')
+      await connector.disconnect()
+      connector = null
+      await connect(credentials)
     }
   }
 
@@ -144,11 +156,14 @@ export function useConnector() {
   return {
     connect,
     disconnect,
-    error: state.error,
     connector,
-    connected: state.connected,
     introspect,
+    schemas: state.schemas,
     introspectionResult: state.introspectionResult,
+    connected: state.connected,
+    connecting: state.connecting,
+    error: state.error,
+    selectedDatabaseMeta: state.selectedDatabaseMeta, // TODO: just use ...state
     getMetadata,
   }
 }
@@ -161,7 +176,10 @@ export function useConnector() {
 
 function prettifyError(error: any): string {
   if (error instanceof Error) {
-    return error.stack || error.message
+    if (process.env.DEBUG === '*') {
+      return error.stack || error.message
+    }
+    return error.message
   }
 
   if (error && typeof error === 'object') {

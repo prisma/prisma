@@ -6,14 +6,27 @@ import { Link } from '../components/Link'
 import { InkLink } from '../components/InkLink'
 import { Checkbox } from '../components/inputs/Checkbox'
 import { useInitState } from '../components/InitState'
+import { useConnector } from '../components/useConnector'
+import Step61Success from './Step61Success'
 
 const Step22ToolSelection: React.FC = () => {
   const [state, { setState }] = useInitState()
+  const { introspectionResult } = useConnector()
 
   const nextStep = state.usePhoton ? 'language-selection' : 'process-blank'
 
   return (
     <Box flexDirection="column">
+      {introspectionResult && (
+        <Box marginBottom={1}>
+          <Color green>
+            <Color bgKeyword="green" white>
+              <Color bold> SUCCESS </Color>
+            </Color>{' '}
+            Introspection was successful.
+          </Color>
+        </Box>
+      )}
       <Box flexDirection="column" marginLeft={2}>
         <Color bold>Select the Prisma 2 tools you want to use.</Color>
         <Color dim>

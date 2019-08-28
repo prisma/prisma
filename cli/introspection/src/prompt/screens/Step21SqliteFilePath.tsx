@@ -19,7 +19,7 @@ const Step21SqliteFilePath: React.FC = () => {
         <TextInput tabIndex={0} label="File path" value={filePath} onChange={setFilePath} placeholder="./my.db" />
       </BorderBox>
       <Link label="Introspect" href="introspection" tabIndex={1} kind="forward" />
-      <Link label="Back" href="sqlite-file-selection" description="(Database options)" tabIndex={2} kind="back" />
+      <Link label="Back" description="(Database options)" tabIndex={2} kind="back" />
     </Box>
   )
 }

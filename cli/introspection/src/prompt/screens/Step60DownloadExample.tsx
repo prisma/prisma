@@ -16,19 +16,26 @@ import makeDir from 'make-dir'
 import { promisify } from 'util'
 import { DataSource } from '@prisma/photon'
 import { DatabaseCredentials } from '../../types'
-import { replaceDatasource } from '../utils/replaceDatasource'
+import { replaceDatasource, replaceGenerator } from '../utils/replaceDatasource'
 import { credentialsToUri } from '../../convertCredentials'
 import { DatabaseType } from 'prisma-datamodel'
 import { ConnectorType } from '@prisma/photon/dist/isdlToDatamodel2'
+import { useConnector } from '../components/useConnector'
+import { minimalScript } from '../utils/templates/script'
+import { ErrorBox } from '../components/ErrorBox'
+import { photonDefaultConfig } from '../utils/defaults'
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
+const exists = promisify(fs.exists)
 
 const Step60DownloadExample: React.FC = () => {
   const [state] = useInitState()
   const [activeIndex, setActiveIndex] = useState(0)
   const [logs, setLogs] = useState('')
+  const [commandError, setError] = useState('')
   const router = useContext(RouterContext)
+  const { introspectionResult } = useConnector()
   const examples = useExampleApi()
 
   const { selectedExample } = state
@@ -60,10 +67,32 @@ const Step60DownloadExample: React.FC = () => {
 
       // adjust datasource in schema
       const schemaPath = path.join(state.outputDir, 'prisma/schema.prisma')
-      const schema = await readFile(schemaPath, 'utf-8')
-      const datasource = credentialsToDataSource(state.dbCredentials!)
-      const replacedSchema = await replaceDatasource(schema, datasource)
-      await writeFile(schemaPath, replacedSchema)
+
+      async function getReplacementSchema() {
+        const schema = await readFile(schemaPath, 'utf-8')
+        const datasource = credentialsToDataSource(state.dbCredentials!)
+        return replaceDatasource(schema, datasource)
+      }
+
+      const newSchema = introspectionResult
+        ? await replaceGenerator(introspectionResult, photonDefaultConfig)
+        : await getReplacementSchema()
+
+      await writeFile(schemaPath, newSchema)
+
+      // replace example if it's based on introspection
+      // TODO: Use more sophisticated example as specified here https://prisma-specs.netlify.com/cli/init/introspection-results/
+      if (introspectionResult) {
+        const pathToScript =
+          state.selectedLanguage === 'javascript'
+            ? path.join(state.outputDir, 'script.js')
+            : path.join(state.outputDir, 'script.ts')
+
+        const newScript = minimalScript({ typescript: state.selectedLanguage === 'typescript' })
+        if (await exists(pathToScript)) {
+          await writeFile(pathToScript, newScript)
+        }
+      }
 
       setActiveIndex(2)
     }
@@ -77,7 +106,16 @@ const Step60DownloadExample: React.FC = () => {
       // TODO: Remove .slice(0, 1) as soon as tmp-prepare is implemented
       const step = selectedExample!.setupCommands.slice(0, 1)[activeIndex - 2]
       if (step) {
-        await execa.shell(step.command, { stdio: 'ignore', cwd: state.outputDir })
+        try {
+          await execa.shell(step.command, { cwd: state.outputDir })
+        } catch (e) {
+          const error = e.stderr || e.stdout || e.message
+          setError(commandError + '\n' + error)
+          await new Promise(r => {
+            setTimeout(r, 50)
+          })
+          process.exit(1)
+        }
         setActiveIndex(activeIndex + 1)
       } else {
         router.setRoute('success')
@@ -102,6 +140,12 @@ const Step60DownloadExample: React.FC = () => {
         )}
       </Box>
       <DownloadProgress steps={steps} activeIndex={activeIndex} />
+      {commandError && (
+        <Box flexDirection="column">
+          <ErrorBox>Error during command execution</ErrorBox>
+          {commandError}
+        </Box>
+      )}
       <Box>{logs}</Box>
     </Box>
   )
