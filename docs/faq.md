@@ -89,5 +89,5 @@ There will be no new features developed for Prisma 1.
 
 ### Where can I get more information about the plans for Prisma 2?
 
-Check out the [`specs`]() repo which contains the technica specifications for future Prisma 2 features. Get involved by [creating issues](https://github.com/prisma/prisma2/issues) and [sharing feedback](./prisma2-feedback)!
+Check out the [`specs`](https://github.com/prisma/specs) repo which contains the technica specifications for future Prisma 2 features. Get involved by [creating issues](https://github.com/prisma/prisma2/issues) and [sharing feedback](./prisma2-feedback)!
 
