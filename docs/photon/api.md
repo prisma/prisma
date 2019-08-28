@@ -88,7 +88,7 @@ For example, in the `findOne` API call from above, the selection set includes th
 
 ### The default selection set
 
-If the selection set is not manipulated (via `select` or `include`), a Photon API call returns the **default selection set** for a model. It includes all [_scalar_](./data-modeling.md#scalar-types) fields (including [enums](./data-modeling.md#enums)) and [_embed_](./data-modeling.md#embeds) fields of the model.
+If the selection set is not manipulated (via `select` or `include`), a Photon API call returns the **default selection set** for a model. It includes all [_scalar_](./data-modeling.md#scalar-types) fields (including [enums](./data-modeling.md#enums)) fields of the model.
 
 Considering the sample datamodel from above:
 

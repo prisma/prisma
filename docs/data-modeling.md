@@ -4,7 +4,6 @@
 - [Example](#example)
 - [Models](#models)
 - [Fields](#fields)
-- [Embeds](#embeds)
 - [Enums](#enums)
 - [Type definitions](#type-definitions)
 - [Attributes](#attributes)
@@ -39,12 +38,6 @@ model User {
   role      Role     @default(USER)
   posts     Post[]
   profile   Profile?
-  address   Address?
-}
-
-embed Address {
-  street  String
-  zipCode String
 }
 
 model Profile {
@@ -86,6 +79,8 @@ On a technical level, a model maps to the underlying structures of the data sour
 - In PostgreSQL, a model maps to a _table_
 - In MongoDB, a model maps to a _collection_
 - In REST, a model maps to a _resource_
+
+> **Note**: There is not data source connector for REST APIs yet. However, this will be enabled soon through an open connector interface.
 
 ### Naming models
 
@@ -148,11 +143,10 @@ Technically, a model can be named anything that adheres to this regular expressi
 
 ### Types
 
-The type of a field determines its _structure_. A type falls in either of three categories:
+The type of a field determines its _structure_. A type falls in either of two categories:
 
 - [Scalar type](#scalar-types) (includes [enums](#enums))
 - [Model](#models)
-- [Embed](#embeds)
 
 ### Type modifiers
 
@@ -173,46 +167,6 @@ The default value for a required list is an empty list. The default value for an
 ### Field attributes
 
 Learn more about attributes [below](#attributes).
-
-## Embeds
-
-Embeds are defined via the `embed` blocks in the datamodel and define structures that are _embedded_ in a [model](#models). For a relational database this is often called an _embedded type_, for document databases, an _embedded document_.
-
-Embeds are always included in the [default selection set](./photon/api.md#the-default-selection-set) of the [generated Photon API](./photon/api.md).
-
-### Named embeds
-
-The example [above](#example) defines only one `embed` (called `Address`) which is used exactly once on the `User` model:
-
-```groovy
-model User {
-  id        Int      @id
-  address   Address?
-}
-
-embed Address {
-  street  String
-  zipCode String
-}
-```
-
-Named embeds can be reused across multiple models.
-
-### Inline embeds
-
-In the above example, the named embed `Address` is only used once. In this case, it is possible to omit the name and define the `embed` block directly _inline_:
-
-```groovy
-model User {
-  id        Int      @id
-  address   embed {
-    street  String
-    zipCode String
-  }?
-}
-```
-
-Inline embeds can also be _nested_.
 
 ## Enums
 
@@ -252,7 +206,7 @@ model User {
 
 ## Attributes
 
-Attributes modify the behavior of a [field](#fields) or block ([model](#models), [embed](#embeds), ...). There are two ways to add attributes to your data model:
+Attributes modify the behavior of a [field](#fields) or block (e.g. [models](#models)). There are two ways to add attributes to your data model:
 
 - [Field attributes](#field-attributes) are prefixed with `@`.
 - [Block attributes](#block-attributes) are prefixed with `@@`.
@@ -319,7 +273,7 @@ model _ {
 }
 
 // A field with two attributes
-embed _ {
+models _ {
   myField String @attribute @attribute2
 }
 
@@ -342,12 +296,6 @@ model \_ { @@attribute0
 
 ---
 
-@@attribute3 }
-
-embed \_ { @@attribute0
-
----
-
 @@attribute1 @@attribute2("input") }
 ```
 
@@ -355,7 +303,7 @@ embed \_ { @@attribute0
 
 _Core_ attributes must be implemented by every [data source](./prisma-schema-file.md#data-sources) connector (with a _best-effort implementation_), this means they will be available in _any_ Prisma setup.
 
-They may be used in `model` and `embed` blocks as well as on `type` definitions. 
+They may be used in `model` blocks as well as on `type` definitions. 
 
 Here is a list of all available core **field** attributes:
 
