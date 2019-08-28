@@ -4,7 +4,7 @@ The term **telemetry** refers to the collection of certain usage data to help _i
 
 ## TLDR
 
-During the Preview period, upon an unexpected error you will be prompted whether you want to submit an error report (containing no personal or other senstive information) in order to help improve the quality of the Prisma 2 tools. In addition to answering _yes_ or _no_, you can save a default answer for future errors using the _always_ and _never_ options.
+During the Preview period, upon an unexpected error you will _always_ be prompted whether you want to submit an error report in order to help improve the quality of the Prisma 2 tools. Error reports are never sent without your explicit consent and never contain personal or other sensitive information. The _exclusive_ purpose of this data collection is to accelerate the development of Prisma 2 towards a General Availability release.
 
 ## What kind of data is being collected?
 
@@ -16,13 +16,12 @@ Here's a list of information that is contained in an error report:
 - Versions of Prisma tools
 - Project metadata
 
-_Project metadata_ refers to information about your Prisma schema, used CLI commands or usage of certain features in the Photon API. The Prisma schema itself is never submitted, but only meta information _about_ it, e.g. whether your schema contains enums or how many models are in the schema.
+_Project metadata_ includes your Prisma schema, used CLI commands or usage of certain features in the Photon API. Note that the connection details of any of your data sources will be obscured in the error report.
 
 Here's a list of information that is **never** containted in an error report:
 
 - User credentials (keys, secrets, passwords, ...)
 - Database connection details (IP, port, database name, ...)
-- Your Prisma schema
 
 ## Why is data collected?
 
@@ -35,11 +34,11 @@ During the Preview period, data is potentially collected upon:
 - a crash in the CLI
 - a crash or an unexpected error in Prisma Studio
 
-Before an error report is submitted, there will always be a prompt asking you to confirm or deny the submission of the error report! Error reports are never submitted without your explicit consent!
+Before an error report is submitted, there will _always_ be a prompt asking you to confirm or deny the submission of the error report! Error reports are never submitted without your explicit consent!
 
 ## How to opt-out of data collection?
 
-During the Preview period, you can opt-out of data collection by responding to the interactive prompt with _no_. To save this answer for future errors, you can also respond with _never_.
+During the Preview period, you can opt-out of data collection by responding to the interactive prompt with _no_.
 
 ## Telemetry after the General Availability release
 
