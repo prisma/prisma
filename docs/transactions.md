@@ -90,4 +90,4 @@ prisma.transaction(async tx => {
 
 In this case, the API provides a way to wrap a sequence of operations in a callback which gets executed as a transaction, therefore is guaranteed to either succeed or fail as a whole.
 
-If you'd like to see transactions supported in the future, [please join the discussion on GitHub](https://github.com/prisma/prisma/issues/4155).
+If you'd like to see transactions supported in the future, [please join the discussion on GitHub](https://github.com/prisma/prisma2/issues/312).
