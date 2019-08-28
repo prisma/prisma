@@ -16,7 +16,7 @@
 
 The data model definition (short: data model or datamodel) is part of your [schema file](./prisma-schema-file.md).
 
-It describes the shape of the data per data source. For example, when connecting to a _relational database_ as a data source, the data model definition is a declarative representation of the _database schema_ (tables, columns, indexes, ...). For a _REST API_, it describes the shapes of the _resources_ that can be retrieved and manipulated via the API.
+It describes the shape of the data per data source. For example, when connecting to a _relational database_ as a data source, the data model definition is a declarative representation of the _database schema_ (tables, columns, indexes, ...).
 
 ## Example
 
@@ -74,13 +74,13 @@ While this file mostly consists of the data model definition, it is a valid [sch
 
 Models represent the entities of your application domain. They are defined using `model` blocks in the data model.
 
-On a technical level, a model maps to the underlying structures of the data source, for example:
+On a technical level, a model maps to the underlying structures of the data source, e.g.:
 
 - In PostgreSQL, a model maps to a _table_
-- In MongoDB, a model maps to a _collection_
-- In REST, a model maps to a _resource_
+- In MySQL, a model maps to a _table_
+- In SQLite, a model maps to a _table_
 
-> **Note**: There is not data source connector for REST APIs yet. However, this will be enabled soon through an open connector interface.
+> **Note**: In the future there might be be connectors for non-relational databases and other data sources. For example, for MongoDB a model would map to a _collection_, for a REST API it would map ro a _resource_. 
 
 ### Naming models
 
