@@ -1,6 +1,6 @@
 import { DatabaseType } from 'prisma-datamodel'
 import { DatabaseMetadata } from 'prisma-db-introspection/dist/common/introspectionResult'
-import { ConnectorAndDisconnect } from '../introspect/util'
+import { ConnectorAndDisconnect } from '../introspectionConnector'
 import { DatabaseCredentials, IntrospectionResult } from '../types'
 import { PromptState } from './InteractivePrompt'
 

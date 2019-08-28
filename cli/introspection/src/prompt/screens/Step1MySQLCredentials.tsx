@@ -8,17 +8,45 @@ import { InkLink } from '../components/InkLink'
 import { useInitState } from '../components/InitState'
 import { DatabaseType } from 'prisma-datamodel'
 import { Checkbox } from '../components/inputs/Checkbox'
+import { useConnector } from '../components/useConnector'
+import { ErrorBox } from '../components/ErrorBox'
 
 // We can't use this screen yet, as we don't have SQLite introspection yet
 const Step1MySQLCredentials: React.FC = () => {
   const [state, { setDbCredentials }] = useInitState()
+  const { connect, error, connected, connector } = useConnector()
 
   const dbCredentials = state.dbCredentials!
+  const [next, setNext] = useState('')
+
+  useEffect(() => {
+    async function runEffect() {
+      if (connected) {
+        if (dbCredentials.database) {
+          // introspect this db
+          // is there sth in there?
+          const meta = await connector!.connector.getMetadata(dbCredentials.database)
+          if (meta.countOfTables > 0) {
+            // introspect
+            setNext('introspection')
+          } else {
+            // okay dokay - we go for normal language selection, then sample script yes no
+            setNext('oken doken')
+          }
+        } else {
+          // show the user which options she has
+        }
+      }
+    }
+    runEffect()
+  }, [connected])
 
   return (
     <Box flexDirection="column">
+      {connected && 'OMG WE ARE CONNECTED'}
+      {next && 'next: ' + next}
       <Box flexDirection="column" marginLeft={2}>
-        <Color bold>Connect to your MySQL database server</Color>
+        <Color bold>Connect to your MySQL database</Color>
         <Color dim>
           <InkLink url="https://pris.ly/docs/core/connectors/mysql.md" />
         </Color>
@@ -80,7 +108,9 @@ const Step1MySQLCredentials: React.FC = () => {
           placeholder="mysql://localhost:3306/admin"
         />
       </BorderBox>
-      <Link label="Introspect" href="introspection" tabIndex={7} kind="forward" />
+
+      {error && <ErrorBox>{error}</ErrorBox>}
+      <Link label="Connect" onSelect={() => connect(state.dbCredentials!)} tabIndex={7} kind="forward" />
       <Link label="Back" href="sqlite-file-selection" description="(Database options)" tabIndex={8} kind="back" />
     </Box>
   )

@@ -1,6 +1,6 @@
 import { render } from 'ink'
 import React from 'react'
-import { ConnectorData } from '../introspect/util'
+import { ConnectorData } from '../introspectionConnector'
 import { InitPromptResult, IntrospectionResult, PromptType } from '../types'
 import { InteractivePrompt } from './InteractivePrompt'
 

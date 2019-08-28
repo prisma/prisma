@@ -35,11 +35,19 @@ const actions = {
     if (Object.keys(dbCredentials).length === 1 && dbCredentials.type) {
       store.setState({ dbCredentials })
     } else if (dbCredentials.uri) {
-      const credentials = uriToCredentials(dbCredentials.uri)
-      store.setState({ dbCredentials: { uri: dbCredentials.uri, ...credentials } })
+      if (dbCredentials.uri.length < 7) {
+        store.setState({ dbCredentials: { uri: dbCredentials.uri } })
+      } else {
+        try {
+          const credentials = uriToCredentials(dbCredentials.uri)
+          store.setState({ dbCredentials: { uri: dbCredentials.uri, ...credentials } })
+        } catch (e) {
+          store.setState({ dbCredentials: { uri: dbCredentials.uri } })
+        }
+      }
     } else {
       const merged = { ...store.state.dbCredentials, ...dbCredentials }
-      const uri = credentialsToUri(merged)
+      const uri = !credentialsHaveValue(merged) ? '' : credentialsToUri(merged)
       store.setState({ dbCredentials: { ...merged, uri } })
     }
   },
@@ -53,3 +61,12 @@ export type InitStore = {
 export type UseInitState = () => [InitState, InitStore]
 
 export const useInitState: UseInitState = useGlobalHook(React, initialState, actions)
+
+function credentialsHaveValue(credentials: DatabaseCredentials): boolean {
+  return Object.entries(credentials).reduce((acc, [prop, value]) => {
+    if (prop === 'type' || prop === 'uri') {
+      return acc
+    }
+    return acc || (Boolean(value) ? String(value).trim().length > 0 : false)
+  }, false)
+}

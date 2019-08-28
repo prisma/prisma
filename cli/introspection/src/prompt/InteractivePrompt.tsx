@@ -1,6 +1,6 @@
 import { DatabaseType } from 'prisma-datamodel'
 import React from 'react'
-import { ConnectorData } from '../introspect/util'
+import { ConnectorData } from '../introspectionConnector'
 import {
   DatabaseCredentials,
   InitConfiguration,

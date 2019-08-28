@@ -1,5 +1,12 @@
 import { deepExtend } from './deepExtend'
 
+function setShallowState(newState) {
+  this.state = { ...this.state, ...newState }
+  this.listeners.forEach(listener => {
+    listener(this.state)
+  })
+}
+
 function setState(newState) {
   this.state = deepExtend({}, this.state, newState)
   this.listeners.forEach(listener => {
@@ -34,6 +41,7 @@ function associateActions(store, actions) {
 const useGlobalHook = (React, initialState, actions) => {
   const store: any = { state: initialState, listeners: [] }
   store.setState = setState.bind(store)
+  store.setShallowState = setShallowState.bind(store)
   store.actions = associateActions(store, actions)
   return useCustom.bind(store, React)
 }
