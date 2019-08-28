@@ -4,6 +4,8 @@ import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
 import { useInitState } from '../components/InitState'
+import { DatabaseType } from 'prisma-datamodel'
+import { sqliteDefault } from '../utils/defaults'
 
 const Step2DBSelection: React.FC = () => {
   const [state] = useInitState()
@@ -22,21 +24,21 @@ const Step2DBSelection: React.FC = () => {
           href={sqliteHref}
           description="Easiest to set up"
           tabIndex={0}
-          state={{ selectedDb: 'sqlite' }}
+          state={{ selectedDb: 'sqlite', dbCredentials: sqliteDefault }}
         />
         <Link
           label="MySQL"
-          href="mysql-blank"
+          href="mysql-credentials"
           description="Requires running a MySQL database"
           tabIndex={1}
-          state={{ selectedDb: 'mysql' }}
+          state={{ selectedDb: 'mysql', dbCredentials: { type: DatabaseType.mysql } }}
         />
         <Link
           label="PostgreSQL"
           href="postgres-blank"
           description="Requires running a PostgreSQL database"
           tabIndex={2}
-          state={{ selectedDb: 'postgres' }}
+          state={{ selectedDb: 'postgres', dbCredentials: { type: DatabaseType.postgres } }}
         />
         <Box marginLeft={2}>
           <Color dim>MongoDB {'      '} (Coming soon)</Color>

@@ -3,16 +3,17 @@ import React from 'react'
 import { TabIndexProvider } from './components/TabIndex'
 import { Router, Route } from './components/Router'
 import Step0StarterVsBlank from './screens/Step0StarterVsBlank'
-import Step2DBSelection from './screens/Step2DBSelection'
 import Step1StarterSelection from './screens/Step1StarterSelection'
-import Step61Success from './screens/Step61Success'
+import Step1MySQLCredentials from './screens/Step1MySQLCredentials'
+import Step2DBSelection from './screens/Step2DBSelection'
 import Step2SqliteFileSelection from './screens/Step2SqliteFileSelection'
 import Step21SqliteFilePath from './screens/Step21SqliteFilePath'
 import Step22ToolSelection from './screens/Step22ToolSelection'
 import Step3LanguageSelection from './screens/Step3LanguageSelection'
-import Step60ProcessBlank from './screens/Step60ProcessBlank'
 import Step4DemoScriptSelection from './screens/Step4DemoScriptSelection'
+import Step60ProcessBlank from './screens/Step60ProcessBlank'
 import Step60DownloadExample from './screens/Step60DownloadExample'
+import Step61Success from './screens/Step61Success'
 
 export async function initPrompt(outputDir: string) {
   return new Promise(resolve => {
@@ -22,6 +23,7 @@ export async function initPrompt(outputDir: string) {
           <Router defaultRoute="home">
             <Route path="home" component={<Step0StarterVsBlank outputDir={outputDir} />} />
             <Route path="starter-selection" component={<Step1StarterSelection />} />
+            <Route path="mysql-credentials" component={<Step1MySQLCredentials />} />
             <Route path="db-selection" component={<Step2DBSelection />} />
             <Route path="sqlite-file-selection" component={<Step2SqliteFileSelection />} />
             <Route path="sqlite-file-path" component={<Step21SqliteFilePath />} />

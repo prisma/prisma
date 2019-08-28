@@ -7,6 +7,7 @@ import { useExampleApi } from '../utils/useExampleApi'
 
 const Step1StarterSelection: React.FC = () => {
   const examples = useExampleApi()
+
   let padding =
     (examples &&
       examples.examples &&
@@ -14,7 +15,7 @@ const Step1StarterSelection: React.FC = () => {
         return Math.max(maxLength, example.name.length)
       }, 0)) ||
     0
-  padding += 2 // always add 2 on top
+  padding += 2 // always add 2 extra margin
 
   return (
     <Box flexDirection="column">

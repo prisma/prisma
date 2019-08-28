@@ -13,6 +13,16 @@ import chalk from 'chalk'
 import { useExampleApi } from '../utils/useExampleApi'
 import { RouterContext } from '../components/Router'
 import makeDir from 'make-dir'
+import { promisify } from 'util'
+import { DataSource } from '@prisma/photon'
+import { DatabaseCredentials } from '../../types'
+import { replaceDatasource } from '../utils/replaceDatasource'
+import { credentialsToUri } from '../../convertCredentials'
+import { DatabaseType } from 'prisma-datamodel'
+import { ConnectorType } from '@prisma/photon/dist/isdlToDatamodel2'
+
+const readFile = promisify(fs.readFile)
+const writeFile = promisify(fs.writeFile)
 
 const Step60DownloadExample: React.FC = () => {
   const [state] = useInitState()
@@ -27,25 +37,40 @@ const Step60DownloadExample: React.FC = () => {
     return <Box>No example selected</Box>
   }
 
-  const relativePath = path.relative(process.cwd(), state.outputDir) || '.'
+  const relativePath = path.relative(process.cwd(), state.outputDir) || './'
 
-  const builtInSteps = ['Downloading the starter kit from GitHub', `Extracting content to ${chalk.bold(relativePath)}`]
+  const thingToDownload = state.useDemoScript ? 'demo script' : 'starter kit'
+  const builtInSteps = [
+    `Downloading the ${thingToDownload} from GitHub`,
+    `Extracting content to ${chalk.bold(relativePath)}`,
+  ]
 
   // TODO: Remove .slice(0, 1) as soon as tmp-prepare is implemented
   const steps = [...builtInSteps, ...selectedExample.setupCommands.slice(0, 1).map(c => c.description)]
 
   useEffect(() => {
     async function prepare() {
+      if (!state.dbCredentials) {
+        throw new Error(`No db credentials - this must not happen`)
+      }
       await makeDir(state.outputDir)
       const tarFile = await downloadRepo('prisma', 'prisma-examples', examples!.meta.branch)
       setActiveIndex(1)
       await extractExample(tarFile, selectedExample!.path, state.outputDir)
+
+      // adjust datasource in schema
+      const schemaPath = path.join(state.outputDir, 'prisma/schema.prisma')
+      const schema = await readFile(schemaPath, 'utf-8')
+      const datasource = credentialsToDataSource(state.dbCredentials!)
+      const replacedSchema = await replaceDatasource(schema, datasource)
+      await writeFile(schemaPath, replacedSchema)
+
       setActiveIndex(2)
     }
     if (examples) {
       prepare()
     }
-  }, [examples])
+  }, [examples, state])
 
   useEffect(() => {
     async function doIt() {
@@ -84,7 +109,7 @@ const Step60DownloadExample: React.FC = () => {
 
 export default Step60DownloadExample
 
-async function downloadRepo(organization: string, repo: string, branch: string): Promise<string> {
+export async function downloadRepo(organization: string, repo: string, branch: string): Promise<string> {
   const downloadUrl = `https://api.github.com/repos/${organization}/${repo}/tarball/${branch}` // TODO: use master instead of prisma2
   const tmpFile = getTmpFile(`prisma-download-${organization}-${repo}-${branch}.tar.gz`)
   const response = await fetch(downloadUrl, {
@@ -101,11 +126,13 @@ async function downloadRepo(organization: string, repo: string, branch: string):
   return tmpFile
 }
 
-async function extractExample(tmpPath: string, examplePath: string, outputPath: string): Promise<void> {
+export async function extractExample(tmpPath: string, examplePath: string, outputPath: string): Promise<void> {
   await tar.extract({
     file: tmpPath,
     cwd: outputPath,
-    filter: filePath => RegExp(examplePath).test(filePath),
+    filter: filePath => {
+      return !filePath.includes('/.github/') && RegExp(examplePath).test(filePath)
+    },
     strip: examplePath.split('/').length - 1,
   })
 }
@@ -113,4 +140,29 @@ async function extractExample(tmpPath: string, examplePath: string, outputPath: 
 function getTmpFile(filename: string): string {
   const tmpDir = os.tmpdir()
   return path.join(tmpDir, filename)
+}
+
+function credentialsToDataSource(credentials: DatabaseCredentials): DataSource {
+  return {
+    name: 'db',
+    url: {
+      value: credentials.uri || credentialsToUri(credentials),
+      fromEnvVar: null,
+    },
+    config: {},
+    connectorType: databaseTypeToConnectorType(credentials.type),
+  }
+}
+
+function databaseTypeToConnectorType(databaseType: DatabaseType): ConnectorType {
+  switch (databaseType) {
+    case DatabaseType.sqlite:
+      return 'sqlite'
+    case DatabaseType.postgres:
+      return 'postgresql'
+    case DatabaseType.mysql:
+      return 'mysql'
+    case DatabaseType.mongo:
+      return 'mongo'
+  }
 }
