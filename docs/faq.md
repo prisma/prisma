@@ -15,6 +15,7 @@
   - [Is Lift production-ready? Should I start using it?](#is-lift-production-ready-should-i-start-using-it)
 - Other
   - [Since Prisma 2 is released, will Prisma 1 still be maintained?](#since-prisma-2-is-released-will-prisma-1-still-be-maintained)
+  - [Where can I get more information about the plans for Prisma 2?](#where-can-i-get-more-information-about-the-plans-for-prisma-2)
 
 ## Photon
 
