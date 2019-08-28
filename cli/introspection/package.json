@@ -22,6 +22,7 @@
     "@types/pg": "^7.4.6",
     "@types/string-width": "^4.0.1",
     "jest": "^24.8.0",
+    "prettier": "^1.18.2",
     "ts-jest": "^24.0.2",
     "ts-node": "^8.2.0",
     "typescript": "^3.5.1"

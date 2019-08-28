@@ -1,5 +1,7 @@
+import { deepExtend } from './deepExtend'
+
 function setState(newState) {
-  this.state = { ...this.state, ...newState }
+  this.state = deepExtend({}, this.state, newState)
   this.listeners.forEach(listener => {
     listener(this.state)
   })

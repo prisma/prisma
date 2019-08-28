@@ -36,7 +36,7 @@ const Step61Success: React.FC = () => {
           <Color bgKeyword="green" white>
             <Color bold> SUCCESS </Color>
           </Color>{' '}
-          Prisma is connected to your database at <Color bold>{connectionString}</Color>
+          Prisma is connected to your database at <Color bold>{connectionString || ''}</Color>
         </Color>
       </Box>
       <BorderBox flexDirection="column" marginTop={1} marginBottom={1} title={chalk.bold('Next steps')}>
@@ -59,7 +59,7 @@ const Step61Success: React.FC = () => {
           {state.selectedExample &&
             state.selectedExample!.nextStepInstructions.map(instruction => (
               <Box marginTop={1} flexDirection="column" key={instruction.description}>
-                <Color dim>{instruction.description}</Color>
+                <Color dim>{instruction.description || null}</Color>
                 {instruction.commands.map(command => (
                   <Color key={command} bold>
                     $ {command}

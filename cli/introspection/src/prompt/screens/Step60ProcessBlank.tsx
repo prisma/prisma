@@ -8,6 +8,7 @@ import { RouterContext } from '../components/Router'
 import { sync as makeDirSync } from 'make-dir'
 import { useExampleApi } from '../utils/useExampleApi'
 import { DatabaseType } from 'prisma-datamodel'
+import { sqliteDefault } from '../utils/defaults'
 
 const Step60ProcessBlank: React.FC = () => {
   const [state, { setState }] = useInitState()
@@ -18,10 +19,7 @@ const Step60ProcessBlank: React.FC = () => {
     // state.blank??
     if (!state.dbCredentials && state.selectedDb === 'sqlite') {
       setState({
-        dbCredentials: {
-          type: DatabaseType.sqlite,
-          uri: 'file:dev.db',
-        },
+        dbCredentials: sqliteDefault,
       })
       return
     }
