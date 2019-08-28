@@ -15,7 +15,7 @@ import {
   prettyTime,
   sanitizeMongoUri,
   introspect,
-} from '../introspect/util'
+} from '../introspectionConnector'
 import { DatabaseCredentials, IntrospectionResult } from '../types'
 
 type Args = {

@@ -1,8 +1,9 @@
 // Text input forked from ink-text-input
 import chalk from 'chalk'
-import { Color } from 'ink'
+import { Color, Box } from 'ink'
 import React, { useEffect, useState } from 'react'
-import { KeyPressed } from '../BoxPrompt'
+import { ActionKey } from '../helpers'
+import { Key } from 'readline'
 
 type Props = {
   value: string
@@ -14,6 +15,12 @@ type Props = {
   keyPressed: KeyPressed
   onChange: (text: string) => void
   onSubmit?: (text: string) => void
+}
+
+export type KeyPressed = {
+  key: ActionKey
+  str: string
+  originalKey: Key
 }
 
 export const InkTextInput: React.FC<Props> = props => {
@@ -42,17 +49,22 @@ export const InkTextInput: React.FC<Props> = props => {
       return
     }
 
-    if (actionKey === 'submit') {
-      if (onSubmit) {
-        onSubmit(originalValue)
-      }
-
-      return
-    }
-
     let tmpCursorOffset = cursorOffset
     let value = originalValue
     let cursorWidth = 0
+
+    // ux shortcut to take the placeholder value
+    if (originalValue === '' && placeholder && ['right', 'tab', 'return'].includes(keyPressed.originalKey.name!)) {
+      value = placeholder
+      tmpCursorOffset = value.length
+      setCursorOffset(tmpCursorOffset)
+      onChange(value)
+      return
+    }
+
+    if (keyPressed.originalKey.name === 'return') {
+      return
+    }
 
     if (actionKey === 'deleteToStart') {
       value = value.substr(tmpCursorOffset, value.length)

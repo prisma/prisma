@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Color, Box } from 'ink'
 import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
 import { useExampleApi } from '../utils/useExampleApi'
 import { useInitState } from '../components/InitState'
+import { useStdin } from '../useStdin'
 
 type Props = {
   outputDir: string
@@ -20,8 +21,18 @@ const Step0StarterVsBlank: React.FC<Props> = ({ outputDir }) => {
     setState({ outputDir })
   }, [outputDir])
 
+  const [pressed, setPressed] = useState('')
+
+  useStdin(
+    ({ key }) => {
+      setPressed(key.name)
+    },
+    [pressed],
+  )
+
   return (
     <Box flexDirection="column">
+      {pressed}
       <Box flexDirection="column" marginLeft={2}>
         <Color bold>Get started with a blank project or a starter kit.</Color>
         <Color dim>Starter kits provide ready-made setups for various use cases.</Color>

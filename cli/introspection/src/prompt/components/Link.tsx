@@ -18,6 +18,7 @@ export interface Props {
   tabIndex: number
   href?: string
   state?: Partial<InitState>
+  onSelect?: () => void
 }
 
 function getSymbol(kind?: LinkKind) {
@@ -36,7 +37,7 @@ export const Link: React.FC<Props> = props => {
   const routerCtx = useContext(RouterContext)
   const initStore = useInitState()[1]
 
-  if (!props.href && props.kind !== 'back') {
+  if (!props.href && !props.onSelect && props.kind !== 'back') {
     throw new Error(`Links that don't have an "href" need to have kind="back"`)
   }
 
@@ -51,8 +52,12 @@ export const Link: React.FC<Props> = props => {
           if (props.state) {
             initStore.setState(props.state)
           }
-          tabCtx.setActiveIndex(0)
-          routerCtx.setRoute(props.href || routerCtx.lastRoute!)
+          if (props.onSelect) {
+            props.onSelect()
+          } else {
+            tabCtx.setActiveIndex(0)
+            routerCtx.setRoute(props.href || routerCtx.lastRoute!)
+          }
         }
       },
     }

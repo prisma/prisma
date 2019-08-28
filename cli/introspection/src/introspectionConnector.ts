@@ -9,8 +9,8 @@ import { Client as PGClient } from 'pg'
 import { DatabaseType } from 'prisma-datamodel'
 import { Connectors, IConnector } from 'prisma-db-introspection'
 import { URL } from 'url'
-import { credentialsToUri, databaseTypeToConnectorType, uriToCredentials } from '../convertCredentials'
-import { DatabaseCredentials, IntrospectionResult, SchemaWithMetadata } from '../types'
+import { credentialsToUri, databaseTypeToConnectorType, uriToCredentials } from './convertCredentials'
+import { DatabaseCredentials, IntrospectionResult, SchemaWithMetadata } from './types'
 
 function replaceLocalDockerHost(credentials: DatabaseCredentials) {
   if (credentials.host) {

@@ -17,7 +17,7 @@ interface TextInputProps {
 
 export const TextInput: React.SFC<TextInputProps> = ({ value, onChange, label, placeholder, mask, tabIndex }) => {
   const [focussed, setFocussed] = useState(false)
-  const [keyPressed, setPressedKey] = useState<{ key: ActionKey; str: string } | null>(null)
+  const [keyPressed, setPressedKey] = useState<{ key: ActionKey; str: string; originalKey: Key } | null>(null)
   const ctx = useContext(TabIndexContext)
   useEffect(() => {
     const args = {
@@ -26,7 +26,7 @@ export const TextInput: React.SFC<TextInputProps> = ({ value, onChange, label, p
         setFocussed(focus)
       },
       onKey(key: Key, actionKey: ActionKey, text: string) {
-        setPressedKey({ key: actionKey, str: text })
+        setPressedKey({ key: actionKey, str: text, originalKey: key })
       },
     }
     ctx.register(args)
@@ -36,8 +36,8 @@ export const TextInput: React.SFC<TextInputProps> = ({ value, onChange, label, p
   })
 
   return (
-    <Box>
-      <Color cyan={focussed}>
+    <Color cyan={focussed}>
+      <Box textWrap="truncate-middle" marginRight={4}>
         <Color bold={focussed}>
           {focussed ? figures.pointer + ' ' : '  '}
           {label}
@@ -52,7 +52,7 @@ export const TextInput: React.SFC<TextInputProps> = ({ value, onChange, label, p
           focus={focussed}
           mask={mask}
         />
-      </Color>
-    </Box>
+      </Box>
+    </Color>
   )
 }

@@ -18,6 +18,7 @@ import { RadioButton } from './RadioButton'
 import { TextInput } from './inputs/TextInput'
 import { CheckboxElement, InputElement, PromptElement, RadioElement, SpinnerState } from '../old-types'
 import { useStdin } from '../useStdin'
+import { Key } from 'readline'
 
 export interface OnSubmitParams {
   formValues?: Record<string, any>
