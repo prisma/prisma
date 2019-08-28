@@ -40,7 +40,7 @@ enum Role {
 }
 ```
 
-> Note that here all [scalars](./data-modeling.md/#scalar-types) and [embeds](./data-modeling.md/#embeds) have been removed from the [example data model](./data-modeling.md/#example) so you can focus on the relations.
+> Note that here all [scalars](./data-modeling.md/#scalar-types) been removed from the [example data model](./data-modeling.md/#example) so you can focus on the relations.
 
 It contains the following relations:
 

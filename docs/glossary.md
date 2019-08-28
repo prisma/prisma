@@ -11,7 +11,6 @@ A composite model is a model that doesn't directly map to a structure (e.g. a _t
 - [Data source client]()
 - [Data source connector](#data-source-connector)
 - [Prisma Schema Language (PSL)](#prisma-schema-language-psl)
-- [Embed](#embed)
 - [Generator](#generator)
 - [Lift](#lift)
 - [Migration](#migration)
@@ -56,16 +55,6 @@ Prisma currently supports the following built-in connectors:
 PSL is the name of the syntax used to write a [schema file](#prisma-schema-file).
 
 > Learn more about PSL in the [spec](https://github.com/prisma/specs/tree/master/prisma-schema-language).
-
-### Embed
-
-Also sometimes referred to as:
-
-- Embedded type
-- Embedded model
-- Embedded structure
-
-[Embeds](./data-modeling.md#embeds) are defined via the `embed` blocks in the data model and define structures that are _embedded_ in a [model](#model). For a relational database this is often called an _embedded type_, for document databases, an _embedded document_.  
 
 ### Generator
 
