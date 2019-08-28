@@ -80,7 +80,7 @@ On a technical level, a model maps to the underlying structures of the data sour
 - In MySQL, a model maps to a _table_
 - In SQLite, a model maps to a _table_
 
-> **Note**: In the future there might be be connectors for non-relational databases and other data sources. For example, for MongoDB a model would map to a _collection_, for a REST API it would map ro a _resource_. 
+> **Note**: In the future there might be be connectors for non-relational databases and other data sources. For example, for MongoDB a model would map to a _collection_, for a REST API it would map to a _resource_. 
 
 ### Naming models
 
