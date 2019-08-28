@@ -55,7 +55,6 @@ export const Link: React.FC<Props> = props => {
           if (props.onSelect) {
             props.onSelect()
           } else {
-            tabCtx.setActiveIndex(0)
             routerCtx.setRoute(props.href || routerCtx.lastRoute!)
           }
         }

@@ -6,6 +6,8 @@ import { Link } from '../components/Link'
 import { useInitState } from '../components/InitState'
 
 const Step3LanguageSelection: React.FC = () => {
+  const [state] = useInitState()
+  const nextHref = state.useStarterKit ? 'starter-selection' : 'demo-script-selection'
   return (
     <Box flexDirection="column">
       <Box flexDirection="column" marginLeft={2}>
@@ -18,13 +20,13 @@ const Step3LanguageSelection: React.FC = () => {
         marginTop={1}
         marginBottom={1}
       >
-        <Link label="JavaScript" href="demo-script-selection" tabIndex={0} state={{ selectedLanguage: 'javascript' }} />
-        <Link label="TypeScript" href="demo-script-selection" tabIndex={1} state={{ selectedLanguage: 'typescript' }} />
+        <Link label="JavaScript" href={nextHref} tabIndex={0} state={{ selectedLanguage: 'javascript' }} />
+        <Link label="TypeScript" href={nextHref} tabIndex={1} state={{ selectedLanguage: 'typescript' }} />
         <Box marginLeft={2}>
           <Color dim>Go (Coming soon)</Color>
         </Box>
       </BorderBox>
-      <Link label="Back" href="home" description="(Tool selection)" tabIndex={3} kind="back" />
+      <Link label="Back" description="(Tool selection)" tabIndex={3} kind="back" />
     </Box>
   )
 }

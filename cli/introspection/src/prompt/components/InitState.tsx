@@ -12,6 +12,7 @@ export type InitState = {
   selectedLanguage?: Language
   selectedExample?: Example
   useBlank: boolean
+  useStarterKit: boolean
   usePhoton: boolean
   useLift: boolean
   useDemoScript?: boolean
@@ -21,6 +22,7 @@ export type InitState = {
 
 const initialState: InitState = {
   usePhoton: true,
+  useStarterKit: false,
   useLift: true,
   outputDir: process.cwd(),
   useBlank: false,

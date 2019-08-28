@@ -4,14 +4,23 @@ import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
 import { useExampleApi } from '../utils/useExampleApi'
+import { useInitState } from '../components/InitState'
 
 const Step1StarterSelection: React.FC = () => {
+  const [state] = useInitState()
+
   const examples = useExampleApi()
+
+  const language = state.selectedLanguage!
+
+  if (!language) {
+    throw new Error(`Can't display starter kit selection without a selected language`)
+  }
 
   let padding =
     (examples &&
       examples.examples &&
-      Object.values(examples.examples.javascript).reduce<number>((maxLength, example: any) => {
+      Object.values(examples.examples[language]).reduce<number>((maxLength, example: any) => {
         return Math.max(maxLength, example.name.length)
       }, 0)) ||
     0
@@ -26,7 +35,7 @@ const Step1StarterSelection: React.FC = () => {
       <BorderBox flexDiretion="column" title={chalk.bold('Available starter kits')} marginTop={1} marginBottom={1}>
         <Box flexDirection="column">
           {examples &&
-            Object.values(examples.examples.javascript).map((example, index) => (
+            Object.values(examples.examples[language]).map((example, index) => (
               <Link
                 key={example.name}
                 label={example.name}
@@ -39,7 +48,7 @@ const Step1StarterSelection: React.FC = () => {
             ))}
         </Box>
       </BorderBox>
-      <Link label="Back" href="home" description="(Project options)" tabIndex={100} kind="back" />
+      <Link label="Back" description="(Project options)" tabIndex={100} kind="back" />
     </Box>
   )
 }

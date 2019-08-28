@@ -29,7 +29,7 @@ const Step2SqliteFileSelection: React.FC = () => {
           padding={26}
         />
       </BorderBox>
-      <Link label="Back" href="db-selection" description="(Database selection)" tabIndex={2} kind="back" />
+      <Link label="Back" description="(Database selection)" tabIndex={2} kind="back" />
     </Box>
   )
 }

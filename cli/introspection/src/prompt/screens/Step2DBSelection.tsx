@@ -44,7 +44,7 @@ const Step2DBSelection: React.FC = () => {
           <Color dim>MongoDB {'      '} (Coming soon)</Color>
         </Box>
       </BorderBox>
-      <Link label="Back" href="home" description="(Project options)" tabIndex={3} kind="back" />
+      <Link label="Back" description="(Project options)" tabIndex={3} kind="back" />
     </Box>
   )
 }
