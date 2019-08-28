@@ -190,7 +190,6 @@ There are several blocks you can use for _data modeling_ in your schema file:
 - `model`
 - `enum`
 - `type`
-- `embed`
 
 There also are _attributes_ and _functions_ you can use to enhance the functionality of your data model definition.
 
@@ -370,23 +369,5 @@ block _ {
               @default
 
   first_name  LongNumeric  @default
-}
-```
-
-Inline embeds add their own nested formatting rules:
-
-```groovy
-model User {
-  id        String
-  name      String
-  customer  embed {
-    id         String
-    full_name  String
-    cards   embed {
-      type  Card
-    }[]
-  }?
-  age   Int
-  email String
 }
 ```
