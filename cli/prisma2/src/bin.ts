@@ -21,7 +21,7 @@ process.on('unhandledRejection', e => {
  * Dependencies
  */
 import { isError, HelpError, Env, getCwd } from '@prisma/cli'
-import { LiftCommand, LiftSave, LiftUp, LiftDown, LiftWatch } from '@prisma/lift'
+import { LiftCommand, LiftSave, LiftUp, LiftDown, LiftWatch, LiftTmpPrepare } from '@prisma/lift'
 import { Converter } from '@prisma/photon'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
@@ -58,6 +58,7 @@ async function main(): Promise<number> {
       },
       env,
     ),
+    'tmp-prepare': LiftTmpPrepare.new(env, predefinedGenerators),
     introspect: Introspect.new(env),
     convert: Converter.new(env),
     dev: LiftWatch.new(env, predefinedGenerators),

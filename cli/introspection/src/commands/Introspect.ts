@@ -1,9 +1,9 @@
 import { arg, Command, Env, format, isError } from '@prisma/cli'
 import { Result } from 'arg'
 import chalk from 'chalk'
-import * as fs from 'fs'
+import fs from 'fs'
 import ora from 'ora'
-import * as path from 'path'
+import path from 'path'
 import { DatabaseType } from 'prisma-datamodel'
 import {
   assertSchemaExists,
@@ -15,7 +15,7 @@ import {
   prettyTime,
   sanitizeMongoUri,
   introspect,
-} from '../introspect/util'
+} from '../introspectionConnector'
 import { DatabaseCredentials, IntrospectionResult } from '../types'
 
 type Args = {
@@ -315,9 +315,3 @@ Flags:
     )
   }
 }
-
-// async function run() {
-//   await Introspect.new().parse(process.argv.slice(2))
-// }
-
-// run()
