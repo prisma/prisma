@@ -53,7 +53,7 @@ const Step1PostgresCredentials: React.FC = () => {
       <Box flexDirection="column" marginLeft={2}>
         <Color bold>Connect to your PostgreSQL database</Color>
         <Color dim>
-          <InkLink url="https://pris.ly/docs/core/connectors/mysql.md" />
+          <InkLink url="https://pris.ly/d/postgres-connector" />
         </Color>
       </Box>
       <BorderBox flexDirection="column" title={chalk.bold('PostgreSQL database credentials')} marginTop={1}>
