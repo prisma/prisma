@@ -53,7 +53,7 @@ const Step1MySQLCredentials: React.FC = () => {
       <Box flexDirection="column" marginLeft={2}>
         <Color bold>Connect to your MySQL database</Color>
         <Color dim>
-          <InkLink url="https://pris.ly/docs/core/connectors/mysql.md" />
+          <InkLink url="https://pris.ly/d/mysql-connector" />
         </Color>
       </Box>
       <BorderBox flexDirection="column" title={chalk.bold('MySQL database credentials')} marginTop={1}>
