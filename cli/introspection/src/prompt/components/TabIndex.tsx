@@ -54,7 +54,9 @@ class TabIndexContextClass {
     this.setActiveIndex((this.activeIndex + 1) % componentsCount)
   }
   emitKeyPress(key: Key, actionKey: ActionKey, text: string) {
-    this.components[this.activeIndex].onKey(key, actionKey, text)
+    if (this.components[this.activeIndex]) {
+      this.components[this.activeIndex].onKey(key, actionKey, text)
+    }
   }
   lockNavigation(lock: boolean) {
     this.locked = lock
