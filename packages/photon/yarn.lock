@@ -347,10 +347,10 @@
     got "^9.6.0"
     through2 "^3.0.1"
 
-"@prisma/fetch-engine@^0.1.10":
-  version "0.1.10"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.1.10.tgz#fe5144f4d4b476fe0b17f01820c260645a8ecd2b"
-  integrity sha512-49VsbIVeaUA2iKFWXe0pRcWEGlWPDQvo5SimO4HKD0JqtfRc29yi62aqRs9kMhMMxLG+b4J3TGNU4bd5jCyF3w==
+"@prisma/fetch-engine@^0.1.11":
+  version "0.1.11"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.1.11.tgz#aa99f014d68ae356b9d581c43002531a928bd5b0"
+  integrity sha512-d+0SoSCevuKWX12JszhJIGSbtYGHLgKHWLKjolHtsq1KHCHFkTLatnRJHWAcnleZUfMH+dAl1gOCewcb70IeSg==
   dependencies:
     "@prisma/get-platform" "^0.1.0"
     chalk "^2.4.2"
