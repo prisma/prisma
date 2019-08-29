@@ -8,6 +8,7 @@ import { useInitState } from '../components/InitState'
 const Step3LanguageSelection: React.FC = () => {
   const [state] = useInitState()
   const nextHref = state.useStarterKit ? 'starter-selection' : 'demo-script-selection'
+  const backText = state.useStarterKit ? '(Project options)' : '(Tool selection)'
   return (
     <Box flexDirection="column">
       <Box flexDirection="column" marginLeft={2}>
@@ -26,7 +27,7 @@ const Step3LanguageSelection: React.FC = () => {
           <Color dim>Go (Coming soon)</Color>
         </Box>
       </BorderBox>
-      <Link label="Back" description="(Tool selection)" tabIndex={3} kind="back" />
+      <Link label="Back" description={backText} tabIndex={3} kind="back" />
     </Box>
   )
 }
