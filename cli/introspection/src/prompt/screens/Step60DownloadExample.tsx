@@ -21,7 +21,7 @@ import { credentialsToUri } from '../../convertCredentials'
 import { DatabaseType } from 'prisma-datamodel'
 import { ConnectorType } from '@prisma/photon/dist/isdlToDatamodel2'
 import { useConnector } from '../components/useConnector'
-import { minimalScript } from '../utils/templates/script'
+import { minimalScript, exampleScript } from '../utils/templates/script'
 import { ErrorBox } from '../components/ErrorBox'
 import { photonDefaultConfig } from '../utils/defaults'
 
@@ -81,14 +81,17 @@ const Step60DownloadExample: React.FC = () => {
       await writeFile(schemaPath, newSchema)
 
       // replace example if it's based on introspection
-      // TODO: Use more sophisticated example as specified here https://prisma-specs.netlify.com/cli/init/introspection-results/
       if (introspectionResult) {
         const pathToScript =
           state.selectedLanguage === 'javascript'
             ? path.join(state.outputDir, 'script.js')
             : path.join(state.outputDir, 'script.ts')
 
-        const newScript = minimalScript({ typescript: state.selectedLanguage === 'typescript' })
+        // TODO: Use more sophisticated example as specified here https://prisma-specs.netlify.com/cli/init/introspection-results/
+        const newScript = await exampleScript({
+          typescript: state.selectedLanguage === 'typescript',
+          datamodel: introspectionResult,
+        })
         if (await exists(pathToScript)) {
           await writeFile(pathToScript, newScript)
         }
