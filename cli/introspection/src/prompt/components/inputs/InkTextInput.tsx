@@ -41,6 +41,10 @@ export const InkTextInput: React.FC<Props> = props => {
       return
     }
 
+    if (actionKey === 'deleteForward') {
+      return
+    }
+
     if (focus === false) {
       return
     }
