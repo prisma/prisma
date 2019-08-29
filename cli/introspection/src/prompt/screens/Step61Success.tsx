@@ -25,7 +25,7 @@ const Step61Success: React.FC = () => {
 
   return (
     <Box flexDirection="column">
-      <Box marginLeft={2} flexDirection="column">
+      <Box marginLeft={2} flexDirection="column" textWrap="wrap">
         {directoryCreated && (
           <Color green>
             <Color bgKeyword="green" white>
@@ -35,10 +35,12 @@ const Step61Success: React.FC = () => {
           </Color>
         )}
         <Color green>
-          <Color bgKeyword="green" white>
-            <Color bold> SUCCESS </Color>
-          </Color>{' '}
-          Prisma is connected to your database at <Color bold>{connectionString || ''}</Color>
+          <Box textWrap="wrap">
+            <Color bgKeyword="green" white>
+              <Color bold> SUCCESS </Color>
+            </Color>{' '}
+            Prisma is connected to your database at <Color bold>{connectionString || ''}</Color>
+          </Box>
         </Color>
       </Box>
       <BorderBox flexDirection="column" marginTop={1} marginBottom={1} title={chalk.bold('Next steps')}>

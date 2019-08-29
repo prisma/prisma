@@ -13,9 +13,18 @@ interface TextInputProps {
   placeholder?: string
   mask?: string
   tabIndex: number
+  onSubmit?: () => void
 }
 
-export const TextInput: React.SFC<TextInputProps> = ({ value, onChange, label, placeholder, mask, tabIndex }) => {
+export const TextInput: React.SFC<TextInputProps> = ({
+  value,
+  onChange,
+  label,
+  placeholder,
+  mask,
+  tabIndex,
+  onSubmit,
+}) => {
   const [focussed, setFocussed] = useState(false)
   const [keyPressed, setPressedKey] = useState<{ key: ActionKey; str: string; originalKey: Key } | null>(null)
   const ctx = useContext(TabIndexContext)
@@ -26,7 +35,11 @@ export const TextInput: React.SFC<TextInputProps> = ({ value, onChange, label, p
         setFocussed(focus)
       },
       onKey(key: Key, actionKey: ActionKey, text: string) {
-        setPressedKey({ key: actionKey, str: text, originalKey: key })
+        if (onSubmit && key.name === 'return') {
+          onSubmit()
+        } else {
+          setPressedKey({ key: actionKey, str: text, originalKey: key })
+        }
       },
     }
     ctx.register(args)

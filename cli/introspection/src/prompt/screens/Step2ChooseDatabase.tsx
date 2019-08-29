@@ -30,23 +30,31 @@ const Step2ChooseDatabase: React.FC = () => {
           Connected to {db} database
           {dbCredentials.user && (
             <>
-              {' as '} <Color bold>{dbCredentials.user}</Color>
+              {'as '} <Color bold>{dbCredentials.user}</Color>
             </>
           )}
         </SuccessBox>
       </Box>
-      {selectedDatabaseMeta && selectedDatabaseMeta.countOfTables && (
+      {selectedDatabaseMeta && selectedDatabaseMeta.countOfTables > 0 ? (
         <Color bold>
-          The {db} {schemaWord} `{selectedDatabaseMeta.name}` is not empty. When using a starter kit, you must provide
-          an empty {schemaWord}. Create a new {db} {schemaWord} or use an empty one.
+          <Box flexDirection="column">
+            <Box>
+              The {db} {schemaWord} `{selectedDatabaseMeta.name}` is not empty.
+            </Box>
+            <Box>When using a starter kit, you must provide an empty {schemaWord}.</Box>
+            <Box>
+              Create a new {db} {schemaWord} or use an empty one.
+            </Box>
+          </Box>
         </Color>
+      ) : (
+        <Box flexDirection="column">
+          <Color bold>
+            Create a new {db} {schemaWord} or use an existing one
+          </Color>
+          <Color dim>A {db} database server can host multiple databases</Color>
+        </Box>
       )}
-      <Box flexDirection="column">
-        <Color bold>
-          Create a new {db} {schemaWord} or use an existing one
-        </Color>
-        <Color dim>A {db} database server can host multiple databases</Color>
-      </Box>
       <BorderBox flexDirection="column" title={chalk.bold('Database options')} marginTop={1} marginBottom={1}>
         <Link
           label="Create new MySQL database"

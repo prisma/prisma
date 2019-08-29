@@ -12,6 +12,7 @@ interface TabIndexRegisterArgs {
 class TabIndexContextClass {
   components: TabIndexRegisterArgs[] = []
   activeIndex = 0
+  locked: boolean = false
   register = (args: TabIndexRegisterArgs) => {
     const countBefore = this.components.length
     if (!this.components.includes(args)) {
@@ -31,6 +32,9 @@ class TabIndexContextClass {
     }
   }
   setActiveIndex = (i: number) => {
+    if (this.locked) {
+      return
+    }
     if (this.activeIndex !== i) {
       if (this.components[this.activeIndex]) {
         this.components[this.activeIndex].onFocus(false)
@@ -51,6 +55,9 @@ class TabIndexContextClass {
   }
   emitKeyPress(key: Key, actionKey: ActionKey, text: string) {
     this.components[this.activeIndex].onKey(key, actionKey, text)
+  }
+  lockNavigation(lock: boolean) {
+    this.locked = lock
   }
 }
 

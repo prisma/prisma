@@ -1,11 +1,12 @@
 import { DatabaseCredentials } from '../../types'
 import { IConnector } from 'prisma-db-introspection'
 import useGlobalHook from '../utils/useGlobalHook'
-import React from 'react'
+import React, { useContext } from 'react'
 import { ConnectorAndDisconnect, getConnectedConnectorFromCredentials } from '../../introspectionConnector'
 import { DatabaseType } from 'prisma-datamodel'
 import { DataSource, isdlToDatamodel2 } from '@prisma/photon'
 import { credentialsToUri, databaseTypeToConnectorType } from '../../convertCredentials'
+import { TabIndexContext } from './TabIndex'
 
 type ConnectorState = {
   error: string | null
@@ -60,6 +61,8 @@ let connector: ConnectorAndDisconnect | null = null
 export function useConnector() {
   const [state, { setState, setConnector }] = useGlobalConnectorState()
 
+  const tabContext = useContext(TabIndexContext)
+
   const validate = (credentials: DatabaseCredentials): string | null => {
     if (!credentials.host) {
       return 'Please provide a host'
@@ -80,6 +83,7 @@ export function useConnector() {
     }
     if (!connector) {
       try {
+        tabContext.lockNavigation(true)
         setState({ connecting: true })
         const connectorAndDisconnect = await getConnectedConnectorFromCredentials(credentials)
         connector = connectorAndDisconnect
@@ -90,9 +94,16 @@ export function useConnector() {
           meta = await connector.connector.getMetadata(credentials.database)
         }
 
-        setState({ credentials, connected: true, connecting: false, selectedDatabaseMeta: meta })
+        setState({
+          credentials,
+          connected: true,
+          connecting: false,
+          selectedDatabaseMeta: { ...meta, name: credentials.database },
+        })
+        tabContext.lockNavigation(false)
       } catch (error) {
         setState({ error: prettifyError(error), connecting: false })
+        tabContext.lockNavigation(false)
       }
     } else {
       await connector.disconnect()
