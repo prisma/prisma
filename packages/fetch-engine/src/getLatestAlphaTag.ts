@@ -59,6 +59,8 @@ async function getObjects(
 }
 
 function findLatestAlphaTag(objects) {
+  // look for the darwin build, as it always finishes last
+  objects = objects.filter(o => o.key.includes('darwin'))
   objects.sort((a, b) => {
     // sort  beta to the complete end
     if (!a.key.startsWith('master') || a.key.startsWith('master/latest')) {
