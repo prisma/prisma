@@ -74,7 +74,7 @@ const Step2ChooseDatabase: React.FC = () => {
           <Link
             label={`Use existing ${db} ${schemaWord}`}
             href="select-database"
-            description={`Found ${schemaCount} ${schemaWord}s`}
+            description={`Found ${schemaCount} ${schemaWord}${schemaCount === 1 ? '' : 's'}`}
             tabIndex={1}
             padding={30}
           />
