@@ -58,7 +58,7 @@ const Step61Success: React.FC = () => {
             <Color dim>
               Prisma Studio and watch <Color bold>schema.prisma</Color> for changes:
             </Color>
-            <Color bold>$ prisma dev</Color>
+            <Color bold>$ prisma2 dev</Color>
           </Box>
           {state.selectedExample &&
             state.selectedExample!.nextStepInstructions.map(instruction => (
