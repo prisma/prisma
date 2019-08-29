@@ -24,6 +24,9 @@ import { useConnector } from '../components/useConnector'
 import { minimalScript, exampleScript } from '../utils/templates/script'
 import { ErrorBox } from '../components/ErrorBox'
 import { photonDefaultConfig } from '../utils/defaults'
+import EmptyDirError from '../components/EmptyDirError'
+
+const readdir = promisify(fs.readdir)
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
@@ -36,6 +39,7 @@ const Step60DownloadExample: React.FC = () => {
   const [commandError, setError] = useState('')
   const router = useContext(RouterContext)
   const { introspectionResult } = useConnector()
+  const [showEmptyDirError, setShowEmptyDirError] = useState(false)
   const examples = useExampleApi()
 
   const { selectedExample } = state
@@ -58,6 +62,15 @@ const Step60DownloadExample: React.FC = () => {
 
   useEffect(() => {
     async function prepare() {
+      const files = await readdir(state.outputDir)
+      if (files.length > 0) {
+        setShowEmptyDirError(true)
+        setTimeout(() => {
+          process.exit(1)
+        })
+        return
+      }
+
       // adjust datasource in schema
       const schemaPath = path.join(state.outputDir, 'prisma/schema.prisma')
 
@@ -109,13 +122,13 @@ const Step60DownloadExample: React.FC = () => {
         process.exit(1)
       }
     }
-    if (examples) {
+    if (examples && activeIndex === 0) {
       prepare()
     }
   }, [examples, state])
 
   useEffect(() => {
-    async function doIt() {
+    async function runCommand() {
       const step = selectedExample!.setupCommands.slice(0, commandsSlice)[activeIndex - 2]
       if (step) {
         try {
@@ -134,31 +147,37 @@ const Step60DownloadExample: React.FC = () => {
       }
     }
     if (examples && activeIndex > 1) {
-      doIt() // because https://github.com/facebook/react/issues/14326#issuecomment-441680293
+      runCommand() // because https://github.com/facebook/react/issues/14326#issuecomment-441680293
     }
   }, [examples, activeIndex])
 
   return (
     <Box flexDirection="column">
-      <Box flexDirection="column" marginBottom={1}>
-        {state.useDemoScript ? (
-          <Color>
-            Preparing your demo script <Color bold>({beautifyLanguage(state.selectedLanguage!)})</Color> ...
-          </Color>
-        ) : (
-          <Color>
-            Preparing your starter kit: <Color bold>{selectedExample.name}</Color>
-          </Color>
-        )}
-      </Box>
-      <DownloadProgress steps={steps} activeIndex={activeIndex} />
-      {commandError && (
-        <Box flexDirection="column">
-          <ErrorBox>Error during command execution</ErrorBox>
-          {commandError}
-        </Box>
+      {showEmptyDirError ? (
+        <EmptyDirError />
+      ) : (
+        <>
+          <Box flexDirection="column" marginBottom={1}>
+            {state.useDemoScript ? (
+              <Color>
+                Preparing your demo script <Color bold>({beautifyLanguage(state.selectedLanguage!)})</Color> ...
+              </Color>
+            ) : (
+              <Color>
+                Preparing your starter kit: <Color bold>{selectedExample.name}</Color>
+              </Color>
+            )}
+          </Box>
+          <DownloadProgress steps={steps} activeIndex={activeIndex} />
+          {commandError && (
+            <Box flexDirection="column">
+              <ErrorBox>Error during command execution</ErrorBox>
+              {commandError}
+            </Box>
+          )}
+          <Box>{logs}</Box>
+        </>
       )}
-      <Box>{logs}</Box>
     </Box>
   )
 }
