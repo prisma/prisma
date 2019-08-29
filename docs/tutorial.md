@@ -1,6 +1,6 @@
 # The Prisma 2 tutorial
 
-> **ATTENTION**: This tutorial has not yet been updated to use the latest Preview release (`preview-9`). **To follow this tutorial, make sure to use any version published before `preview-9`, e.g. by running `npm install prisma2@2.0.0-preview-8`.** The tutorial will be updated very soon to use the latest version.
+> **ATTENTION**: This tutorial has not yet been updated to use the latest Preview release (`preview-9`). **To follow this tutorial, make sure to use any version published before `preview-9`, e.g. by running `npm install prisma2@2.0.0-preview-8`.** The tutorial will be updated very soon to use the latest version. Note 
 
 In this tutorial, you will get a holistic and practical introduction to the Prisma 2 ecosystem. This includes using [**Lift**](http://lift.prisma.io) for database migrations and [**Photon.js**](http://photonjs.prisma.io) for type-safe database access.
 
@@ -26,6 +26,8 @@ The Prisma 2 CLI is available as the `prisma2` package on npm. Install it global
 ```
 npm install -g prisma2@2.0.0-preview-8
 ```
+
+> **Note**: This tutorial has not yet been updated to use the latest Preview release (`preview-9`), this is why you're installing an older version here. 
 
 ## 2. Connect your database
 
