@@ -69,7 +69,11 @@ export function useConnector() {
     }
 
     if (credentials.type === DatabaseType.mysql && !credentials.user) {
-      return 'Pleaes provide a user'
+      return 'Please provide a user'
+    }
+
+    if (credentials.type === DatabaseType.postgres && !credentials.database) {
+      return 'Please provide a database'
     }
 
     return null
@@ -90,8 +94,9 @@ export function useConnector() {
         await getMetadata()
 
         let meta
-        if (credentials.database) {
-          meta = await connector.connector.getMetadata(credentials.database)
+        const schema = credentials.type === DatabaseType.postgres ? credentials.schema : credentials.database
+        if (schema) {
+          meta = await connector.connector.getMetadata(schema)
         }
 
         setState({

@@ -35,7 +35,7 @@ const Step2DBSelection: React.FC = () => {
         />
         <Link
           label="PostgreSQL"
-          href="postgres-blank"
+          href="postgres-credentials"
           description="Requires running a PostgreSQL database"
           tabIndex={2}
           state={{ selectedDb: 'postgres', dbCredentials: { type: DatabaseType.postgres } }}

@@ -15,9 +15,9 @@ import Spinner from 'ink-spinner'
 import DummySelectable from '../components/DummySelectable'
 const AnySpinner: any = Spinner
 
-const Step1MySQLCredentials: React.FC = () => {
+const Step1PostgresCredentials: React.FC = () => {
   const [state, { setDbCredentials }] = useInitState()
-  const { connect, error, connected, connector, connecting, getMetadata, selectedDatabaseMeta } = useConnector()
+  const { connect, error, connected, connecting, selectedDatabaseMeta } = useConnector()
 
   const dbCredentials = state.dbCredentials!
   const [next, setNext] = useState('')
@@ -26,7 +26,7 @@ const Step1MySQLCredentials: React.FC = () => {
   useEffect(() => {
     async function runEffect() {
       if (connected) {
-        if (dbCredentials.database && selectedDatabaseMeta) {
+        if (dbCredentials.schema && selectedDatabaseMeta) {
           // introspect this db
           // is there sth in there?
           if (selectedDatabaseMeta.countOfTables > 0) {
@@ -51,12 +51,12 @@ const Step1MySQLCredentials: React.FC = () => {
     <Box flexDirection="column">
       {next}
       <Box flexDirection="column" marginLeft={2}>
-        <Color bold>Connect to your MySQL database</Color>
+        <Color bold>Connect to your PostgreSQL database</Color>
         <Color dim>
           <InkLink url="https://pris.ly/docs/core/connectors/mysql.md" />
         </Color>
       </Box>
-      <BorderBox flexDirection="column" title={chalk.bold('MySQL database credentials')} marginTop={1}>
+      <BorderBox flexDirection="column" title={chalk.bold('PostgreSQL database credentials')} marginTop={1}>
         <TextInput
           tabIndex={0}
           label="Host"
@@ -69,7 +69,7 @@ const Step1MySQLCredentials: React.FC = () => {
           label="Port"
           value={String(dbCredentials.port || '')}
           onChange={port => setDbCredentials({ port: Number(port) })}
-          placeholder="3306"
+          placeholder="5432"
         />
         <TextInput
           tabIndex={2}
@@ -87,13 +87,20 @@ const Step1MySQLCredentials: React.FC = () => {
         />
         <TextInput
           tabIndex={4}
-          label={`Database ${chalk.dim('(optional)')}`}
+          label={`Database`}
           value={dbCredentials.database || ''}
           onChange={database => setDbCredentials({ database })}
+          placeholder="postgres"
+        />
+        <TextInput
+          tabIndex={5}
+          label={`Schema ${chalk.dim('(optional)')}`}
+          value={dbCredentials.schema || ''}
+          onChange={schema => setDbCredentials({ schema })}
           placeholder=""
         />
         <Checkbox
-          tabIndex={5}
+          tabIndex={6}
           checked={dbCredentials.ssl || false}
           label="Use SSL"
           onChange={ssl => setDbCredentials({ ssl })}
@@ -101,33 +108,33 @@ const Step1MySQLCredentials: React.FC = () => {
       </BorderBox>
       <BorderBox
         flexDirection="column"
-        title={chalk.bold('MySQL database credentials')}
+        title={chalk.bold('PostgreSQL database credentials')}
         extension={true}
         marginBottom={1}
       >
         <TextInput
-          tabIndex={6}
+          tabIndex={7}
           label="URL"
           value={dbCredentials.uri || ''}
           onChange={uri => setDbCredentials({ uri })}
-          placeholder="mysql://localhost:3306/admin"
+          placeholder="postgresql://localhost:5432/admin"
           onSubmit={() => connect(state.dbCredentials!)}
         />
       </BorderBox>
 
       {error && <ErrorBox>{error}</ErrorBox>}
       {connecting ? (
-        <DummySelectable tabIndex={7}>
+        <DummySelectable tabIndex={8}>
           <Box>
             <AnySpinner /> Connecting
           </Box>
         </DummySelectable>
       ) : (
-        <Link label="Connect" onSelect={() => connect(state.dbCredentials!)} tabIndex={7} kind="forward" />
+        <Link label="Connect" onSelect={() => connect(state.dbCredentials!)} tabIndex={8} kind="forward" />
       )}
-      <Link label="Back" description="(Database options)" tabIndex={8} kind="back" />
+      <Link label="Back" description="(Database options)" tabIndex={9} kind="back" />
     </Box>
   )
 }
 
-export default Step1MySQLCredentials
+export default Step1PostgresCredentials

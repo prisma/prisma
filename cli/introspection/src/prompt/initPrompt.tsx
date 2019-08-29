@@ -18,6 +18,7 @@ import Step41Introspection from './screens/Step41Introspection'
 import Step60ProcessBlank from './screens/Step60ProcessBlank'
 import Step60DownloadExample from './screens/Step60DownloadExample'
 import Step61Success from './screens/Step61Success'
+import Step1PostgresCredentials from './screens/Step1PostgresCredentials'
 
 export async function initPrompt(outputDir: string) {
   return new Promise(resolve => {
@@ -28,6 +29,7 @@ export async function initPrompt(outputDir: string) {
             <Route path="home" component={<Step0StarterVsBlank outputDir={outputDir} />} />
             <Route path="starter-selection" component={<Step1StarterSelection />} />
             <Route path="mysql-credentials" component={<Step1MySQLCredentials />} />
+            <Route path="postgres-credentials" component={<Step1PostgresCredentials />} />
             <Route path="db-selection" component={<Step2DBSelection />} />
             <Route path="sqlite-file-selection" component={<Step2SqliteFileSelection />} />
             <Route path="choose-database" component={<Step2ChooseDatabase />} />
