@@ -52,8 +52,9 @@ const Step60DownloadExample: React.FC = () => {
     `Extracting content to ${chalk.bold(relativePath)}`,
   ]
 
-  // TODO: Remove .slice(0, 1) as soon as tmp-prepare is implemented
-  const steps = [...builtInSteps, ...selectedExample.setupCommands.map(c => c.description)]
+  const commandsSlice = introspectionResult ? 1 : selectedExample.setupCommands.length
+
+  const steps = [...builtInSteps, ...selectedExample.setupCommands.slice(0, commandsSlice).map(c => c.description)]
 
   useEffect(() => {
     async function prepare() {
@@ -115,7 +116,7 @@ const Step60DownloadExample: React.FC = () => {
 
   useEffect(() => {
     async function doIt() {
-      const step = selectedExample!.setupCommands[activeIndex - 2]
+      const step = selectedExample!.setupCommands.slice(0, commandsSlice)[activeIndex - 2]
       if (step) {
         try {
           await execa.shell(replacePrisma2Command(step.command), { cwd: state.outputDir, preferLocal: true })
