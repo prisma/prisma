@@ -29,6 +29,7 @@
   - [Migration files](./lift/migration-files.md)
   - [Use only Lift](./lift/use-only-lift.md)
 - [Supported databases](./supported-databases.md)
+- [Telemetry](./telemetry.md)
 - [How to provide feedback for Prisma 2?](./prisma2-feedback.md)
 - [Release process](./releases.md)
 - [FAQ](./faq.md)
