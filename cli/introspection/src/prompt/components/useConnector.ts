@@ -107,7 +107,7 @@ export function useConnector() {
         })
         tabContext.lockNavigation(false)
       } catch (error) {
-        setState({ error: prettifyError(error), connecting: false })
+        setState({ error: prettifyConnectorError(error), connecting: false })
         tabContext.lockNavigation(false)
       }
     } else {
@@ -190,7 +190,7 @@ export function useConnector() {
  * ER_ACCESS_DENIED_ERROR
  */
 
-function prettifyError(error: any): string {
+export function prettifyConnectorError(error: any): string {
   if (error instanceof Error) {
     if (process.env.DEBUG === '*') {
       return error.stack || error.message
