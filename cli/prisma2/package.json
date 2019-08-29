@@ -1,6 +1,6 @@
 {
   "name": "prisma2",
-  "version": "2.0.0-preview-8",
+  "version": "2.0.0-preview-9",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma2-cli.git",
@@ -20,14 +20,14 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "7f41d7dc79ff7da2d927b91d23ff5bf2004b308f"
+    "version": "c1f6f69f4539f84181254759805d89eb6893d76d"
   },
   "devDependencies": {
-    "@prisma/cli": "^0.0.51",
-    "@prisma/fetch-engine": "^0.1.10",
-    "@prisma/introspection": "0.0.55",
-    "@prisma/lift": "0.2.18",
-    "@prisma/photon": "^0.2.20",
+    "@prisma/cli": "^0.0.65",
+    "@prisma/fetch-engine": "^0.1.11",
+    "@prisma/introspection": "0.0.67",
+    "@prisma/lift": "0.2.30",
+    "@prisma/photon": "^0.2.32",
     "@sentry/node": "5",
     "@types/mocha": "^5.2.7",
     "@zeit/ncc": "^0.18.5",
@@ -55,7 +55,7 @@
     "ncc": "ncc build dist/bin.js -o build",
     "ncc:download": "ncc build scripts/download.js -o download-build",
     "build": "yarn tsc && yarn ncc:download && rm -rf build && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
-    "prepublishOnly": "node scripts/updateTag.js && yarn install && yarn test && yarn build",
+    "prepublishOnly": "node scripts/updateTag.js && yarn ncc:download && yarn install && yarn test && yarn build",
     "prepare": "yarn build && node download-build/index.js",
     "update-deps": "yarn upgrade --latest --scope @prisma"
   },
