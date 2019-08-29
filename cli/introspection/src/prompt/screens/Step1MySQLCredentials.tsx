@@ -117,9 +117,9 @@ const Step1MySQLCredentials: React.FC = () => {
       {error && <ErrorBox>{error}</ErrorBox>}
       {connecting ? (
         <DummySelectable tabIndex={7}>
-          <Box>
+          <Color cyan>
             <AnySpinner /> Connecting
-          </Box>
+          </Color>
         </DummySelectable>
       ) : (
         <Link label="Connect" onSelect={() => connect(state.dbCredentials!)} tabIndex={7} kind="forward" />

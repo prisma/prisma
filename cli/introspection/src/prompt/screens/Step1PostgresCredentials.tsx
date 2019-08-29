@@ -124,9 +124,9 @@ const Step1PostgresCredentials: React.FC = () => {
       {error && <ErrorBox>{error}</ErrorBox>}
       {connecting ? (
         <DummySelectable tabIndex={8}>
-          <Box>
+          <Color cyan>
             <AnySpinner /> Connecting
-          </Box>
+          </Color>
         </DummySelectable>
       ) : (
         <Link label="Connect" onSelect={() => connect(state.dbCredentials!)} tabIndex={8} kind="forward" />

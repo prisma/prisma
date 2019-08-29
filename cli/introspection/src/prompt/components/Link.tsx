@@ -19,6 +19,7 @@ export interface Props {
   href?: string
   state?: Partial<InitState>
   onSelect?: () => void
+  backSteps?: number
 }
 
 function getSymbol(kind?: LinkKind) {
@@ -58,7 +59,7 @@ export const Link: React.FC<Props> = props => {
             if (props.href) {
               routerCtx.setRoute(props.href)
             } else {
-              routerCtx.back()
+              routerCtx.back(props.backSteps)
             }
           }
         }

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { Color, Box } from 'ink'
 import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
@@ -8,11 +8,13 @@ import { DatabaseType } from 'prisma-datamodel'
 import { useConnector } from '../components/useConnector'
 import { SuccessBox } from '../components/ErrorBox'
 import { prettyDb } from '../utils/print'
+import { RouterContext } from '../components/Router'
 
 const Step2ChooseDatabase: React.FC = () => {
   const [state] = useInitState()
 
-  const { schemas, selectedDatabaseMeta } = useConnector()
+  const router = useContext(RouterContext)
+  const { schemas, selectedDatabaseMeta, disconnect } = useConnector()
   if (!state.dbCredentials) {
     throw new Error('Missing credentials in choose db view')
   }
@@ -21,6 +23,12 @@ const Step2ChooseDatabase: React.FC = () => {
   const schemaWord = dbCredentials.type === DatabaseType.postgres ? 'schema' : 'database'
 
   const schemaCount = state.useStarterKit ? schemas!.filter(s => s.countOfTables === 0).length : schemas!.length
+  const href = dbCredentials.type === DatabaseType.postgres ? 'postgres-credentials' : 'mysql-credentials'
+
+  const goBack = async () => {
+    await disconnect()
+    router.setRoute(href)
+  }
 
   return (
     <Box flexDirection="column">
@@ -29,7 +37,7 @@ const Step2ChooseDatabase: React.FC = () => {
           Connected to {db} database
           {dbCredentials.user && (
             <>
-              {'as '} <Color bold>{dbCredentials.user}</Color>
+              {' as'} <Color bold>{dbCredentials.user}</Color>
             </>
           )}
         </SuccessBox>
@@ -72,7 +80,7 @@ const Step2ChooseDatabase: React.FC = () => {
           />
         )}
       </BorderBox>
-      <Link label="Back" description="(Database credentials)" tabIndex={3} kind="back" />
+      <Link onSelect={goBack} label="Back" description="(Database credentials)" tabIndex={3} kind="back" />
     </Box>
   )
 }

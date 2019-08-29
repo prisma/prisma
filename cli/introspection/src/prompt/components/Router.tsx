@@ -31,9 +31,11 @@ class RouterContextClass {
       }
     }
   }
-  back() {
-    if (this.stack.length > 1) {
-      this.stack.pop()
+  back(steps: number = 1) {
+    if (this.stack.length > steps) {
+      for (let i = 0; i < steps; i++) {
+        this.stack.pop()
+      }
       this.setRoute(this.stack[this.stack.length - 1])
     }
   }
