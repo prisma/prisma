@@ -25,7 +25,7 @@ const Step61Success: React.FC = () => {
 
   return (
     <Box flexDirection="column">
-      <Box marginLeft={2} flexDirection="column" textWrap="wrap">
+      <Box flexDirection="column" textWrap="wrap">
         {directoryCreated && (
           <Color green>
             <Color bgKeyword="green" white>

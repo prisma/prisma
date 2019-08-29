@@ -11,10 +11,7 @@ const AnySpinner = Spinner as any
 const Step41Introspection: React.FC = () => {
   const router = useContext(RouterContext)
   const [state] = useInitState()
-  const { connector, introspect } = useConnector()
-  const [tableCount, setTableCount] = useState(0)
-
-  const sqliteHref = state.useBlank ? 'tool-selection' : 'download-example'
+  const { connector, introspect, selectedDatabaseMeta } = useConnector()
 
   const { dbCredentials } = state
 
@@ -29,8 +26,6 @@ const Step41Introspection: React.FC = () => {
     async function run() {
       if (connector) {
         const db = dbCredentials!.type === DatabaseType.postgres ? dbCredentials!.schema : dbCredentials!.database
-        const result = await connector.connector.getMetadata(db!)
-        setTableCount(result.countOfTables)
         await introspect(db!)
         router.setRoute('tool-selection')
       } else {
@@ -44,7 +39,7 @@ const Step41Introspection: React.FC = () => {
     <Box flexDirection="column">
       <Box>
         <AnySpinner /> Introspecting {dbType} {schemaWord} <Color bold>{dbCredentials.schema || ''}</Color> with{' '}
-        <Color bold>{tableCount || 0}</Color> tables.
+        <Color bold>{selectedDatabaseMeta ? selectedDatabaseMeta.countOfTables : 0}</Color> tables.
       </Box>
     </Box>
   )
