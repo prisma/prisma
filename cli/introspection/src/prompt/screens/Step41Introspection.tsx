@@ -39,7 +39,7 @@ const Step41Introspection: React.FC = () => {
     <Box flexDirection="column">
       <Box>
         <AnySpinner /> Introspecting {dbType} {schemaWord} <Color bold>{dbCredentials.schema || ''}</Color> with{' '}
-        <Color bold>{selectedDatabaseMeta ? selectedDatabaseMeta.countOfTables : 0}</Color> tables.
+        <Color bold>{selectedDatabaseMeta ? selectedDatabaseMeta.countOfTables : 0} </Color> tables.
       </Box>
     </Box>
   )

@@ -57,14 +57,6 @@ const Step60DownloadExample: React.FC = () => {
 
   useEffect(() => {
     async function prepare() {
-      if (!state.dbCredentials) {
-        throw new Error(`No db credentials - this must not happen`)
-      }
-      await makeDir(state.outputDir)
-      const tarFile = await downloadRepo('prisma', 'prisma-examples', examples!.meta.branch)
-      setActiveIndex(1)
-      await extractExample(tarFile, selectedExample!.path, state.outputDir)
-
       // adjust datasource in schema
       const schemaPath = path.join(state.outputDir, 'prisma/schema.prisma')
 
@@ -74,30 +66,47 @@ const Step60DownloadExample: React.FC = () => {
         return replaceDatasource(schema, datasource)
       }
 
-      const newSchema = introspectionResult
-        ? await replaceGenerator(introspectionResult, photonDefaultConfig)
-        : await getReplacementSchema()
-
-      await writeFile(schemaPath, newSchema)
-
-      // replace example if it's based on introspection
-      if (introspectionResult) {
-        const pathToScript =
-          state.selectedLanguage === 'javascript'
-            ? path.join(state.outputDir, 'script.js')
-            : path.join(state.outputDir, 'script.ts')
-
-        // TODO: Use more sophisticated example as specified here https://prisma-specs.netlify.com/cli/init/introspection-results/
-        const newScript = await exampleScript({
-          typescript: state.selectedLanguage === 'typescript',
-          datamodel: introspectionResult,
-        })
-        if (await exists(pathToScript)) {
-          await writeFile(pathToScript, newScript)
+      try {
+        if (!state.dbCredentials) {
+          throw new Error(`No db credentials - this must not happen`)
         }
-      }
+        await makeDir(state.outputDir)
+        const tarFile = await downloadRepo('prisma', 'prisma-examples', examples!.meta.branch)
+        setActiveIndex(1)
+        await extractExample(tarFile, selectedExample!.path, state.outputDir)
 
-      setActiveIndex(2)
+        const newSchema = introspectionResult
+          ? await replaceGenerator(introspectionResult, photonDefaultConfig)
+          : await getReplacementSchema()
+
+        await writeFile(schemaPath, newSchema)
+
+        // replace example if it's based on introspection
+        if (introspectionResult) {
+          const pathToScript =
+            state.selectedLanguage === 'javascript'
+              ? path.join(state.outputDir, 'script.js')
+              : path.join(state.outputDir, 'script.ts')
+
+          // TODO: Use more sophisticated example as specified here https://prisma-specs.netlify.com/cli/init/introspection-results/
+          const newScript = await exampleScript({
+            typescript: state.selectedLanguage === 'typescript',
+            datamodel: introspectionResult,
+          })
+          if (await exists(pathToScript)) {
+            await writeFile(pathToScript, newScript)
+          }
+        }
+
+        setActiveIndex(2)
+      } catch (e) {
+        const error = e.stderr || e.stdout || e.message
+        setError(commandError + '\n' + error)
+        await new Promise(r => {
+          setTimeout(r)
+        })
+        process.exit(1)
+      }
     }
     if (examples) {
       prepare()
@@ -115,7 +124,7 @@ const Step60DownloadExample: React.FC = () => {
           const error = e.stderr || e.stdout || e.message
           setError(commandError + '\n' + error)
           await new Promise(r => {
-            setTimeout(r, 50)
+            setTimeout(r)
           })
           process.exit(1)
         }
