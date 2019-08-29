@@ -56,7 +56,10 @@ const Step61Success: React.FC = () => {
           <Box flexDirection="column">
             <Color dim>Start Prisma's development mode to enable access to</Color>
             <Color dim>
-              Prisma Studio and watch <Color bold>schema.prisma</Color> for changes:
+              Prisma Studio and watch <Color bold>schema.prisma</Color>{' '}
+              <Color reset dim>
+                for changes:
+              </Color>
             </Color>
             <Color bold>$ prisma2 dev</Color>
           </Box>
