@@ -38,11 +38,14 @@ const Step4SelectDatabase: React.FC = () => {
         </Color>
         {state.useStarterKit ? (
           <Color dim>
-            Found {emptySchemas.length} empty {schemaWord}s
+            Found {emptySchemas.length} empty {schemaWord}
+            {emptySchemas.length === 1 ? '' : 's'}
           </Color>
         ) : (
           <Color dim>
-            Found {emptySchemas.length} empty {schemaWord}s and {nonEmptySchemas.length} non-empty {db} {schemaWord}s
+            Found {emptySchemas.length} empty {schemaWord}
+            {emptySchemas.length === 1 ? '' : 's'} and {nonEmptySchemas.length} non-empty {db} {schemaWord}
+            {nonEmptySchemas.length === 1 ? '' : 's'}
           </Color>
         )}
       </Box>

@@ -35,7 +35,7 @@ const Step22ToolSelection: React.FC = () => {
       </Box>
       <BorderBox
         flexDirection="column"
-        title={chalk.bold('Prisma 2 tools') + chalk.dim(' (toggle with space)')}
+        title={chalk.bold('Prisma 2 tools') + chalk.dim(` (toggle with [space])`)}
         marginTop={1}
         marginBottom={1}
       >
