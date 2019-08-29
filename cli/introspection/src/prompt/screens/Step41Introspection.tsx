@@ -3,9 +3,10 @@ import { Box, Color } from 'ink'
 import { useInitState } from '../components/InitState'
 import Spinner from 'ink-spinner'
 import { DatabaseType } from 'prisma-datamodel'
-import { useConnector } from '../components/useConnector'
+import { useConnector, prettifyConnectorError } from '../components/useConnector'
 import { RouterContext } from '../components/Router'
 import { prettyDb } from '../utils/print'
+import { ErrorBox } from '../components/ErrorBox'
 const AnySpinner = Spinner as any
 
 const Step41Introspection: React.FC = () => {
@@ -22,12 +23,21 @@ const Step41Introspection: React.FC = () => {
   const dbType = prettyDb(dbCredentials.type)
   const schemaWord = dbCredentials.type === DatabaseType.mysql ? 'schema' : 'database'
 
+  const [errorText, setError] = useState('')
+
   useEffect(() => {
     async function run() {
       if (connector) {
         const db = dbCredentials!.type === DatabaseType.postgres ? dbCredentials!.schema : dbCredentials!.database
-        await introspect(db!)
-        router.setRoute('tool-selection')
+        try {
+          await introspect(db!)
+          router.setRoute('tool-selection')
+        } catch (e) {
+          setError(prettifyConnectorError(e))
+          setTimeout(() => {
+            process.exit(1)
+          })
+        }
       } else {
         throw new Error(`Connector instance not present. Can't introspect.`)
       }
@@ -41,6 +51,14 @@ const Step41Introspection: React.FC = () => {
         <AnySpinner /> Introspecting {dbType} {schemaWord} <Color bold>{dbCredentials.schema || ''}</Color> with{' '}
         <Color bold>{selectedDatabaseMeta ? selectedDatabaseMeta.countOfTables : 0} </Color> tables.
       </Box>
+      {errorText && (
+        <Box flexDirection="column">
+          <ErrorBox>
+            <Color bold>Introspection failed:</Color>
+          </ErrorBox>
+          <Color red>{errorText}</Color>
+        </Box>
+      )}
     </Box>
   )
 }
