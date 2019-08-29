@@ -12,6 +12,7 @@ import { useConnector } from '../components/useConnector'
 import { ErrorBox } from '../components/ErrorBox'
 import { RouterContext } from '../components/Router'
 import Spinner from 'ink-spinner'
+import DummySelectable from '../components/DummySelectable'
 const AnySpinner: any = Spinner
 
 // We can't use this screen yet, as we don't have SQLite introspection yet
@@ -111,14 +112,17 @@ const Step1MySQLCredentials: React.FC = () => {
           value={dbCredentials.uri || ''}
           onChange={uri => setDbCredentials({ uri })}
           placeholder="mysql://localhost:3306/admin"
+          onSubmit={() => connect(state.dbCredentials!)}
         />
       </BorderBox>
 
       {error && <ErrorBox>{error}</ErrorBox>}
       {connecting ? (
-        <Box>
-          <AnySpinner /> Connecting
-        </Box>
+        <DummySelectable tabIndex={7}>
+          <Box>
+            <AnySpinner /> Connecting
+          </Box>
+        </DummySelectable>
       ) : (
         <Link label="Connect" onSelect={() => connect(state.dbCredentials!)} tabIndex={7} kind="forward" />
       )}
