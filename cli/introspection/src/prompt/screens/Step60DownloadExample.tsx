@@ -53,7 +53,7 @@ const Step60DownloadExample: React.FC = () => {
   ]
 
   // TODO: Remove .slice(0, 1) as soon as tmp-prepare is implemented
-  const steps = [...builtInSteps, ...selectedExample.setupCommands.slice(0, 1).map(c => c.description)]
+  const steps = [...builtInSteps, ...selectedExample.setupCommands.map(c => c.description)]
 
   useEffect(() => {
     async function prepare() {
@@ -115,11 +115,10 @@ const Step60DownloadExample: React.FC = () => {
 
   useEffect(() => {
     async function doIt() {
-      // TODO: Remove .slice(0, 1) as soon as tmp-prepare is implemented
-      const step = selectedExample!.setupCommands.slice(0, 1)[activeIndex - 2]
+      const step = selectedExample!.setupCommands[activeIndex - 2]
       if (step) {
         try {
-          await execa.shell(step.command, { cwd: state.outputDir })
+          await execa.shell(replacePrisma2Command(step.command), { cwd: state.outputDir, preferLocal: true })
         } catch (e) {
           const error = e.stderr || e.stdout || e.message
           setError(commandError + '\n' + error)
@@ -221,4 +220,12 @@ function databaseTypeToConnectorType(databaseType: DatabaseType): ConnectorType 
     case DatabaseType.mongo:
       return 'mongo'
   }
+}
+
+export function replacePrisma2Command(command: string): string {
+  if (/^prisma2\s/.test(command)) {
+    return `${process.argv[0]} ${process.argv[1]} ${command.slice(8)}`
+  }
+
+  return command
 }
