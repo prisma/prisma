@@ -2,7 +2,6 @@ import figures from 'figures'
 import { Box, Color } from 'ink'
 import React, { useState, useContext, useEffect } from 'react'
 import { COLORS } from '../colors'
-import { KeyPressed } from './BoxPrompt'
 import { TabIndexContext } from './TabIndex'
 import { Key } from 'readline'
 

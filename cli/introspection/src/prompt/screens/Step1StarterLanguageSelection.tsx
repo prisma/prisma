@@ -24,8 +24,8 @@ const Step1StarterLanguageSelection: React.FC<Props> = ({ outputDir }) => {
         <Color bold>Select the language for your starter kit.</Color>
       </Box>
       <BorderBox flexDirection="column" title={chalk.bold('Starter kits are avaiable in the languages')} marginTop={1}>
-        <Link label="Javascript" state={{ selectedLanguage: 'js' }} href="starter-selection" tabIndex={0} />
-        <Link label="TypeScript" state={{ selectedLanguage: 'ts' }} href="starter-selection" tabIndex={1} />
+        <Link label="Javascript" state={{ selectedLanguage: 'javascript' }} href="starter-selection" tabIndex={0} />
+        <Link label="TypeScript" state={{ selectedLanguage: 'typescript' }} href="starter-selection" tabIndex={1} />
         <Box marginLeft={2}>
           <Color dim>Go (Coming soon)</Color>
         </Box>
