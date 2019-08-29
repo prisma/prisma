@@ -26,6 +26,7 @@ export function action(key: Key): ActionKey {
     if (key.name === 'e') return 'last'
     if (key.name === 'g') return 'reset'
     if (key.name === 'u') return 'deleteToStart'
+    if (key.name === 'w') return 'deleteToStart'
   }
 
   if (key.name === 'return') return 'submit'
