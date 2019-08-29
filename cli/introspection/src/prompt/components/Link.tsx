@@ -55,7 +55,11 @@ export const Link: React.FC<Props> = props => {
           if (props.onSelect) {
             props.onSelect()
           } else {
-            routerCtx.setRoute(props.href || routerCtx.lastRoute!)
+            if (props.href) {
+              routerCtx.setRoute(props.href)
+            } else {
+              routerCtx.back()
+            }
           }
         }
       },

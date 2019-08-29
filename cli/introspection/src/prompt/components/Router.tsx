@@ -4,7 +4,7 @@ import { tabIndexContextState } from './TabIndex'
 class RouterContextClass {
   private routes: { [key: string]: (active: boolean) => void } = {}
   private activeRoute?: string
-  public lastRoute?: string
+  private stack: string[] = []
   registerRoute(route: string, cb: (active: boolean) => void) {
     this.routes[route] = cb
     if (this.activeRoute && this.activeRoute === route) {
@@ -14,17 +14,27 @@ class RouterContextClass {
   unregisterRoute(route: string) {
     delete this.routes[route]
   }
-  setRoute(route: string) {
+  setRoute(route: string, replace?: boolean) {
     if (route !== this.activeRoute && this.routes[route]) {
       if (this.activeRoute && this.routes[this.activeRoute]) {
         this.routes[this.activeRoute](false)
       }
-      this.lastRoute = this.activeRoute
-      this.activeRoute = route
       if (this.routes[route]) {
+        if (!replace) {
+          if (this.stack[this.stack.length - 1] !== route) {
+            this.stack.push(route)
+          }
+        }
+        this.activeRoute = route
         tabIndexContextState.setActiveIndex(0)
         this.routes[route](true)
       }
+    }
+  }
+  back() {
+    if (this.stack.length > 1) {
+      this.stack.pop()
+      this.setRoute(this.stack[this.stack.length - 1])
     }
   }
   setDefaultRoute(route: string) {

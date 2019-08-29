@@ -28,6 +28,8 @@ const Step4SelectDatabase: React.FC = () => {
   const emptySchemas = schemas.filter(s => s.countOfTables === 0)
   const nonEmptySchemas = schemas.filter(s => s.countOfTables > 0)
 
+  const maxTableCountLength = String(nonEmptySchemas.reduce((acc, s) => Math.max(acc, s.countOfTables), 0)).length
+
   return (
     <Box flexDirection="column">
       <Box flexDirection="column" marginLeft={2}>
@@ -45,7 +47,11 @@ const Step4SelectDatabase: React.FC = () => {
         )}
       </Box>
       {emptySchemas.length > 0 && (
-        <BorderBox flexDirection="column" title={chalk.bold(`Empty ${schemaWord}s`)} marginTop={1}>
+        <BorderBox
+          flexDirection="column"
+          title={chalk.bold(`Empty ${schemaWord}s`) + (state.useBlank ? chalk.dim(' (Start new project)') : '')}
+          marginTop={1}
+        >
           {emptySchemas.map((schema, index) => (
             <Link
               label={schema.name}
@@ -58,7 +64,13 @@ const Step4SelectDatabase: React.FC = () => {
         </BorderBox>
       )}
       {!state.useStarterKit && nonEmptySchemas.length > 0 && (
-        <BorderBox flexDirection="column" title={chalk.bold(`Empty ${schemaWord}s`)} marginTop={1}>
+        <BorderBox
+          flexDirection="column"
+          title={
+            chalk.bold(`Non-empty ${schemaWord}s`) + (state.useBlank ? chalk.dim(' (Introspect existing schema)') : '')
+          }
+          marginTop={1}
+        >
           {nonEmptySchemas.map((schema, index) => (
             <Link
               label={schema.name}
@@ -66,7 +78,9 @@ const Step4SelectDatabase: React.FC = () => {
               href="introspection"
               tabIndex={index + emptySchemas.length}
               key={schema.name}
-              description={`${schema.countOfTables} tables, ${humanSize(schema.sizeInBytes)}`}
+              description={`${String(schema.countOfTables).padEnd(maxTableCountLength)} tables, ${humanSize(
+                schema.sizeInBytes,
+              )}`}
               padding={30}
             />
           ))}

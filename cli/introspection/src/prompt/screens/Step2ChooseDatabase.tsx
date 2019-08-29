@@ -56,7 +56,7 @@ const Step2ChooseDatabase: React.FC = () => {
       )}
       <BorderBox flexDirection="column" title={chalk.bold('Database options')} marginTop={1} marginBottom={1}>
         <Link
-          label="Create new MySQL database"
+          label={`Create new ${db} ${schemaWord}`}
           href="database-name"
           description="Start from scratch"
           tabIndex={0}
@@ -64,9 +64,9 @@ const Step2ChooseDatabase: React.FC = () => {
         />
         {schemaCount > 0 && (
           <Link
-            label="Use existing MySQL database"
+            label={`Use existing ${db} ${schemaWord}`}
             href="select-database"
-            description={`Found ${schemaCount} databases`}
+            description={`Found ${schemaCount} ${schemaWord}s`}
             tabIndex={1}
             padding={30}
           />
