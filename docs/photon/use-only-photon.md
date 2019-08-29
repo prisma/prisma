@@ -24,23 +24,20 @@ prisma init hello-world
 
 Then follow the interactive prompt:
 
+1. Select **Blank project**
 1. Select your database type
     - **SQLite**
     - **MySQL**
     - **PostgreSQL**
     - MongoDB (coming soon)
-2. Provide your database credentials ([more info](#database-credentials))
-3. Select the database (MySQL, MongoDB) or schema (PostgreSQL) to introspect
-4. Select **Only Photon**
-6. Select your programming language
+1. Provide your database credentials ([more info](#database-credentials))
+1. Select the database (MySQL) or schema (PostgreSQL) to introspect
+1. Select **Only Photon** (i.e. uncheck Lift using <kbd>SPACE</kbd>)
+1. Select your programming language
     - **JavaScript**
     - **TypeScript**
-    - **Go**
-7. Select a boilerplate to get started
-    - **From scratch**
-    - **GraphQL**
-    - **REST**
-    - **gRPC**
+    - Go (coming soon)
+1. Select a [**Demo script**](#demo-scripts) or start with **Just the Prisma schema**
 
 Once you're done with the interactive prompt, the CLI sets out for 3 major tasks:
 
@@ -149,5 +146,6 @@ When using MongoDB, you need to provide your [MongoDB connection string](https:/
 
 </Details>
 
+### Demo scripts
 
-
+When you're selecting the **Demo script** option, the Prisma 2 CLI will provide a simple, runnable Node.js/TypeScript that showcases usage of the Photon API and gives you a foundation for further exploration.
