@@ -1,5 +1,7 @@
 # The Prisma 2 tutorial
 
+> **ATTENTION**: This tutorial has not yet been updated to use the latest Preview release (`preview-9`). **To follow this tutorial, make sure to use any version published before `preview-9`, e.g. by running `npm install prisma2@2.0.0-preview-8`.** The tutorial will be updated very soon to use the latest version. Note 
+
 In this tutorial, you will get a holistic and practical introduction to the Prisma 2 ecosystem. This includes using [**Lift**](http://lift.prisma.io) for database migrations and [**Photon.js**](http://photonjs.prisma.io) for type-safe database access.
 
 > **Note**: If you encounter any problems with this tutorial or any parts of Prisma 2, **please make sure to [create an issue](https://github.com/prisma/prisma2/issues)**! You can also join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on Slack to share your feedback directly.
@@ -17,14 +19,15 @@ We will start from scratch and use **TypeScript** with a **PostgreSQL** database
 
 > **Note**: If you don't want to set up a PostgreSQL database, you can still follow along by choosing SQLite in the beginning. One of Prisma's main benefits is that it lets you easily swap out the data sources your application connects to. So, while you can start with SQLite, mapping the same setup to PostgreSQL later on can be done by simply adjusting a few lines in your [Prisma schema file](./prisma-schema-file.md).
 
-
 ## 1. Install the Prisma 2 CLI
 
 The Prisma 2 CLI is available as the `prisma2` package on npm. Install it globally on your machine with the following command:
 
 ```
-npm install -g prisma2
+npm install -g prisma2@2.0.0-preview-8
 ```
+
+> **Note**: This tutorial has not yet been updated to use the latest Preview release (`preview-9`), this is why you're installing an older version here. 
 
 ## 2. Connect your database
 
