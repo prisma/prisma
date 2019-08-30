@@ -21,7 +21,7 @@ import { credentialsToUri } from '../../convertCredentials'
 import { DatabaseType } from 'prisma-datamodel'
 import { ConnectorType } from '@prisma/photon/dist/isdlToDatamodel2'
 import { useConnector } from '../components/useConnector'
-import { minimalScript, exampleScript } from '../utils/templates/script'
+import { exampleScript } from '../utils/templates/script'
 import { ErrorBox } from '../components/ErrorBox'
 import { photonDefaultConfig } from '../utils/defaults'
 import EmptyDirError from '../components/EmptyDirError'
@@ -62,13 +62,15 @@ const Step60DownloadExample: React.FC = () => {
 
   useEffect(() => {
     async function prepare() {
-      const files = await readdir(state.outputDir)
-      if (files.length > 0) {
-        setShowEmptyDirError(true)
-        setTimeout(() => {
-          process.exit(1)
-        })
-        return
+      if (await exists(state.outputDir)) {
+        const files = await readdir(state.outputDir)
+        if (files.length > 0) {
+          setShowEmptyDirError(true)
+          setTimeout(() => {
+            process.exit(1)
+          })
+          return
+        }
       }
 
       // adjust datasource in schema
@@ -84,6 +86,7 @@ const Step60DownloadExample: React.FC = () => {
         if (!state.dbCredentials) {
           throw new Error(`No db credentials - this must not happen`)
         }
+
         await makeDir(state.outputDir)
         const tarFile = await downloadRepo('prisma', 'prisma-examples', examples!.meta.branch)
         setActiveIndex(1)

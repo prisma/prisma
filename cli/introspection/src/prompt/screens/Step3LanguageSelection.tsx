@@ -9,6 +9,7 @@ import { promisify } from 'util'
 import EmptyDirError from '../components/EmptyDirError'
 
 const readdir = promisify(fs.readdir)
+const exists = promisify(fs.exists)
 
 const Step3LanguageSelection: React.FC = () => {
   const [state] = useInitState()
@@ -20,12 +21,14 @@ const Step3LanguageSelection: React.FC = () => {
   useEffect(() => {
     async function runEffect() {
       if (state.useStarterKit) {
-        const files = await readdir(state.outputDir)
-        if (files.length > 0) {
-          setShowEmptyDirError(true)
-          setTimeout(() => {
-            process.exit(1)
-          })
+        if (await exists(state.outputDir)) {
+          const files = await readdir(state.outputDir)
+          if (files.length > 0) {
+            setShowEmptyDirError(true)
+            setTimeout(() => {
+              process.exit(1)
+            })
+          }
         }
       }
     }
