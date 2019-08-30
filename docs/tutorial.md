@@ -101,6 +101,10 @@ datasource db {
   provider = "postgresql"
   url      = "postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA"
 }
+
+generator photonjs {
+  provider = "photonjs"
+}
 ```
 
 The uppercase letters are placeholders representing your database credentials. 
@@ -130,7 +134,7 @@ Note that it's also possible to provision the `url` as an [environment variable]
 The [data model definition](./data-modeling.md#data-model-definition) inside the schema file has the following responsibilities:
 
 - It's a declarative description of your underlying database schema
-- It provides the foundation for the generated Photon API
+- It provides the foundation for the generated [Photon API](./photon/api)
 
 Its main building blocks are [models](./data-modeling.md#models) which map to _tables_ in the underlying PostgreSQL database. The [fields](./data-modeling.md#fields) of a model map to _columns_ of a table. 
 
