@@ -7,13 +7,23 @@ import { InkLink } from '../components/InkLink'
 import { Checkbox } from '../components/inputs/Checkbox'
 import { useInitState } from '../components/InitState'
 import { useConnector } from '../components/useConnector'
-import Step61Success from './Step61Success'
+import { RouterContext } from '../components/Router'
 
 const Step22ToolSelection: React.FC = () => {
   const [state, { setState }] = useInitState()
-  const { introspectionResult } = useConnector()
+  const { introspectionResult, disconnect } = useConnector()
 
   const nextStep = state.usePhoton ? 'language-selection' : 'process-blank'
+
+  const backLabel = state.useBlank ? '(Database credentials)' : '(Project options)'
+
+  const router = useContext(RouterContext)
+
+  const goBack = async () => {
+    await disconnect()
+    const backTo = state.selectedDb === 'mysql' ? 'mysql-credentials' : 'postgres-credentials'
+    router.backTo(backTo)
+  }
 
   return (
     <Box flexDirection="column">
@@ -58,7 +68,13 @@ const Step22ToolSelection: React.FC = () => {
         </Box>
       </BorderBox>
       <Link label="Confirm" href={nextStep} tabIndex={2} kind="forward" />
-      <Link label="Back" description="(Project options)" tabIndex={3} kind="back" />
+      <Link
+        label="Back"
+        onSelect={state.useBlank ? goBack : undefined}
+        description={backLabel}
+        tabIndex={3}
+        kind="back"
+      />
     </Box>
   )
 }
