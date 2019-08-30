@@ -20,6 +20,7 @@ export interface Props {
   state?: Partial<InitState>
   onSelect?: () => void
   backSteps?: number
+  backTo?: string // pop state as long as needed to go back to that state using lastIndexOf
 }
 
 function getSymbol(kind?: LinkKind) {
@@ -59,7 +60,11 @@ export const Link: React.FC<Props> = props => {
             if (props.href) {
               routerCtx.setRoute(props.href)
             } else {
-              routerCtx.back(props.backSteps)
+              if (props.backTo) {
+                routerCtx.backTo(props.backTo)
+              } else {
+                routerCtx.back(props.backSteps)
+              }
             }
           }
         }

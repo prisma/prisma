@@ -36,7 +36,14 @@ class RouterContextClass {
       for (let i = 0; i < steps; i++) {
         this.stack.pop()
       }
-      this.setRoute(this.stack[this.stack.length - 1])
+      this.setRoute(this.stack[this.stack.length - 1], true)
+    }
+  }
+  backTo(route: string) {
+    const index = this.stack.lastIndexOf(route)
+    if (index > -1) {
+      this.stack = this.stack.slice(0, index + 1)
+      this.setRoute(this.stack[this.stack.length - 1], true)
     }
   }
   setDefaultRoute(route: string) {
