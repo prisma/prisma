@@ -1,7 +1,5 @@
 # The Prisma 2 tutorial
 
-> **ATTENTION**: This tutorial has not yet been updated to use the latest Preview release (`preview-9`). **To follow this tutorial, make sure to use any version published before `preview-9`, e.g. by running `npm install prisma2@2.0.0-preview-8`.** The tutorial will be updated very soon to use the latest version. Note 
-
 In this tutorial, you will get a holistic and practical introduction to the Prisma 2 ecosystem. This includes using [**Lift**](http://lift.prisma.io) for database migrations and [**Photon.js**](http://photonjs.prisma.io) for type-safe database access.
 
 > **Note**: If you encounter any problems with this tutorial or any parts of Prisma 2, **please make sure to [create an issue](https://github.com/prisma/prisma2/issues)**! You can also join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on Slack to share your feedback directly.
@@ -10,28 +8,26 @@ This tutorial will teach you how to:
 
 1. Install the Prisma 2 CLI
 1. Use the `init` command to set up a new project
-1. Migrate your database schema using the `lift` subcommand
+1. Migrate your database schema using the `lift` subcommands
 1. Generate Photon.js, a type-safe database client for JavaScript and TypeScript
 1. Use the `dev` command for development
 1. Explore Photon's relation API
 
-We will start from scratch and use **TypeScript** with a **PostgreSQL** database in this tutorial. You can set up your PostgreSQL database [locally](https://www.robinwieruch.de/postgres-sql-macos-setup/) or using a hosting provider such as [Heroku](https://elements.heroku.com/addons/heroku-postgresql) or [Digital Ocean](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04). 
+We will start from scratch and use **TypeScript** with a **PostgreSQL** database in this tutorial. You can set up your PostgreSQL database [locally](https://www.robinwieruch.de/postgres-sql-macos-setup/) or using a hosting provider such as [Heroku](https://elements.heroku.com/addons/heroku-postgresql) or [Digital Ocean](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04). The PostgreSQL database used in this tutorial is hosted on Heroku.
 
-> **Note**: If you don't want to set up a PostgreSQL database, you can still follow along by choosing SQLite in the beginning. One of Prisma's main benefits is that it lets you easily swap out the data sources your application connects to. So, while you can start with SQLite, mapping the same setup to PostgreSQL later on can be done by simply adjusting a few lines in your [Prisma schema file](./prisma-schema-file.md).
+> **Note**: If you don't want to set up a PostgreSQL database, you can still follow along by choosing SQLite when running through the flow of the `prisma2 init` command. One of Prisma's main benefits is that it lets you easily swap out the data sources your application connects to. So, while you can start with SQLite, mapping the same setup to PostgreSQL later on can be done by simply adjusting a few lines in your [Prisma schema file](./prisma-schema-file.md).
 
 ## 1. Install the Prisma 2 CLI
 
 The Prisma 2 CLI is available as the `prisma2` package on npm. Install it globally on your machine with the following command:
 
 ```
-npm install -g prisma2@2.0.0-preview-8
+npm install -g prisma2
 ```
-
-> **Note**: This tutorial has not yet been updated to use the latest Preview release (`preview-9`), this is why you're installing an older version here. 
 
 ## 2. Connect your database
 
-### 2.1. Set up new project
+### 2.1. Launch the `prisma2 init` wizard
 
 The `init` command of the Prisma 2 CLI helps you set up a new project and connect to a database. Run it as follows:
 
@@ -41,58 +37,46 @@ prisma2 init hello-prisma2
 
 This launches an interactive wizard to help you with your set up, follow the steps below.
 
-Note that the `init` flow for SQLite currently slightly differs from the one for PostgreSQL. Expand below if you want to use SQLite.
+When prompted by the wizard, select the **Blank project** option. 
 
-<Details><Summary>Expand if you want to use <b>SQLite</b>.</Summary>
-
-<br />
-
-In the interactive prompt, select the following:
-
-1. Select **SQLite**
-1. Check both **Photon** and **Lift**
-1. Select **Create**
-1. Select **TypeScript**
-1. Select **From scratch**
-
-This already downloads and installs some basic boilerplate for you. Since we're starting without boilerplate in the PostgreSQL tutorial, **delete everything except for the `schema.prisma` file inside the `prisma` directory** to be in the same state as the PostgreSQL tutorial. Your folder structure should look as follows:
-
-```
-hello-prisma2
-└── prisma
-    └── schema.prisma
-```
-
-</Details>
+![](https://imgur.com/zLOFcCO.png)
 
 ### 2.2. Select your database type
 
+Next, the wizard prompts you to select a database.
+
 1. Select **PostgreSQL** (or use SQLite if you don't have a PostgreSQL database)
 
-![](https://imgur.com/D57q94n.png)
+![](https://imgur.com/Ktx0oB8.png)
 
 ### 2.3. Provide your database credentials
 
 1. Provide your database credentials:
     - **Host**: IP address or domain where your PostgreSQL server is running
-    - **Port**: Port on which your PostgreSQL server is listening
-    - **User** and **Password**: Credentials of a database user
-    - **Database**: Name of the PostgreSQL database you want to use
-    - **SSL**: Check the box if you PostgreSQL server uses SSL (likely yes if you're not running locally)
-1. Select **Connect**
+    - **Port**: Port on which your PostgreSQL server is listening, typically `5432`
+    - **User** and **Password**: Credentials of your database user
+    - **Database**: Name of the [PostgreSQL database](https://www.postgresql.org/docs/current/tutorial-createdb.html) you want to use
+    - **Schema** (optional): The name of the [PostgreSQL schema](https://www.postgresql.org/docs/current/ddl-schemas.html) you want to use (if you provide a schema name that doesn't exist, Prisma will create the schema for you; if not provided, you can select an existing schema in the next step)
+    - **SSL**: Check the box if you PostgreSQL server uses SSL (likely yes if you're not running locally); you can toggle it with <kbd>SPACE</kbd>
+1. Confirm with **Connect**
 
-![](https://imgur.com/hjRGh48.png)
+![](https://imgur.com/IOd3cDD.png)
 
-> **Note**: This screenshot shows the configuration of a database hosted on Heroku.
+This screenshot shows the configuration of a database hosted on Heroku. Note that we provide the name `hello-prisma2` for the **Schema** field. Since this schema doesn't exist yet in the provided `d8q8dvp22kfpo3` database, the Prisma 2 CLI will create a schema with that name. 
 
-### 2.4. Create PostgreSQL schema
+### 2.4. Select programming language for Photon
 
-1. Enter the name of a **new schema**
-1. Select **Introspect**
+Photon is a type-safe database client that currently supports JavaScript and TypeScript (this version is called Photon.js). You'll be using the TypeScript version in this tutorial.
 
-![](https://imgur.com/rNyNIZH.png)
+Hence, select **TypeScript** when prompted by the wizard.
 
-> **Note**: While the Prisma 2 CLI does offer [introspection](./introspection.md) as a feature when you're getting started with an already existing database ("brownfield"), the CLI doesn't actually introspect a schema here because we're starting from scratch. This has been reported as an issue [here](https://github.com/prisma/prisma2/issues/73) and will be fixed very soon.
+### 2.5. Select the demo script
+
+The wizard offers the option to start with a _demo script_. Selecting this option will get you started with a sample [data model definition](./data-modeling#data-model-definition) as well as an executable script which you can use to explore some Photon.js API calls. 
+
+For this tutorial, you want to build up a Prisma setup from scratch though. 
+
+Select **Just the Prisma schema** when prompted by the wizard.
 
 ## 3. Explore your Prisma schema file
 
@@ -104,12 +88,10 @@ hello-prisma2
     └── schema.prisma
 ```
 
-> **Note**: If you were using **SQLite**, make sure that you deleted all files that were generated initially and only keep the `prisma/schema.prisma` file!
-
 `schema.prisma` is your [Prisma schema file](./prisma-schema-file.md). It generally contains three important elements for your project:
 
 - Data sources (here, that's your PostgreSQL database)
-- Generators (you'll add this soon)
+- Generators (here, that's the generator for Photon.js)
 - [Data model definition](./data-modeling.md#data-model-definition)  (you'll add this soon)
 
 Your Prisma schema file currently has the following contents:
