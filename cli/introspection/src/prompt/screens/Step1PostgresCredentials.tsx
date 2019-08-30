@@ -62,6 +62,7 @@ const Step1PostgresCredentials: React.FC = () => {
           value={dbCredentials.host || ''}
           onChange={host => setDbCredentials({ host })}
           placeholder="localhost"
+          onSubmit={() => connect(state.dbCredentials!)}
         />
         <TextInput
           tabIndex={1}
@@ -69,6 +70,7 @@ const Step1PostgresCredentials: React.FC = () => {
           value={String(dbCredentials.port || '')}
           onChange={port => setDbCredentials({ port: Number(port) })}
           placeholder="5432"
+          onSubmit={() => connect(state.dbCredentials!)}
         />
         <TextInput
           tabIndex={2}
@@ -76,6 +78,7 @@ const Step1PostgresCredentials: React.FC = () => {
           value={dbCredentials.user || ''}
           onChange={user => setDbCredentials({ user })}
           placeholder="user"
+          onSubmit={() => connect(state.dbCredentials!)}
         />
         <TextInput
           tabIndex={3}
@@ -83,6 +86,7 @@ const Step1PostgresCredentials: React.FC = () => {
           value={dbCredentials.password || ''}
           onChange={password => setDbCredentials({ password })}
           placeholder=""
+          onSubmit={() => connect(state.dbCredentials!)}
         />
         <TextInput
           tabIndex={4}
@@ -90,6 +94,7 @@ const Step1PostgresCredentials: React.FC = () => {
           value={dbCredentials.database || ''}
           onChange={database => setDbCredentials({ database })}
           placeholder="postgres"
+          onSubmit={() => connect(state.dbCredentials!)}
         />
         <TextInput
           tabIndex={5}
@@ -97,6 +102,7 @@ const Step1PostgresCredentials: React.FC = () => {
           value={dbCredentials.schema || ''}
           onChange={schema => setDbCredentials({ schema })}
           placeholder=""
+          onSubmit={() => connect(state.dbCredentials!)}
         />
         <Checkbox
           tabIndex={6}
