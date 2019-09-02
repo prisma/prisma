@@ -57,7 +57,7 @@ const Step61Success: React.FC = () => {
             <Color dim>Start Prisma's development mode to enable access to</Color>
             <Color dim>
               Prisma Studio and watch <Color bold>schema.prisma</Color>{' '}
-              <Color reset dim>
+              <Color dim>
                 for changes:
               </Color>
             </Color>
