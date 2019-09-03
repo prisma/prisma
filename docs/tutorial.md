@@ -8,9 +8,8 @@ This tutorial will teach you how to:
 
 1. Install the Prisma 2 CLI
 1. Use the `init` command to set up a new project
-1. Migrate your database schema using the `lift` subcommands
-1. Generate Photon.js, a type-safe database client for JavaScript and TypeScript
 1. Use the `dev` command for development
+1. Migrate your database schema using the `lift` subcommands
 1. Explore Photon's relation API
 
 We will start from scratch and use **TypeScript** with a **PostgreSQL** database in this tutorial. You can set up your PostgreSQL database [locally](https://www.robinwieruch.de/postgres-sql-macos-setup/) or using a hosting provider such as [Heroku](https://elements.heroku.com/addons/heroku-postgresql) or [Digital Ocean](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04). The PostgreSQL database used in this tutorial is hosted on Heroku.
@@ -70,46 +69,87 @@ Photon is a type-safe database client that currently supports JavaScript and Typ
 
 Hence, select **TypeScript** when prompted by the wizard.
 
+![](https://imgur.com/iTNmLG9.png)
+
 ### 2.5. Select the demo script
 
 The wizard offers the option to start with a _demo script_. Selecting this option will get you started with a sample [data model definition](./data-modeling#data-model-definition) as well as an executable script which you can use to explore some Photon.js API calls. 
 
-For this tutorial, you want to build up a Prisma setup from scratch though. 
+Select **Demo script** when prompted by the wizard.
 
-Select **Just the Prisma schema** when prompted by the wizard.
+![](https://imgur.com/PmnkqV6.png)
 
-## 3. Explore your Prisma schema file
+### 2.6. Explore next steps
 
-The `init` flow hasn't done anything but create the following directory structure:
+Once you selected the **Demo script** option, the wizard will terminate its work and prepare your project:
+
+![](https://imgur.com/OSslXH5.png)
+
+It also prints a success message and next steps for you to take:
+
+![](https://imgur.com/xK3c2HH.png)
+
+Hold back a second before running the commands that are printed in the terminal!
+
+## 3. Explore your project setup
+
+The `prisma2 init`-wizard created the following directory structure:
 
 ```
 hello-prisma2
-└── prisma
-    └── schema.prisma
+├── node_modules
+│   └── @generated
+│       └── photon
+├── package.json
+├── prisma
+│   ├── migrations
+│   │   └── dev
+│   │       └── watch-20190903103132
+│   │           ├── README.md
+│   │           ├── schema.prisma
+│   │           └── steps.json
+│   └── schema.prisma
+├── script.ts
+└── tsconfig.json
 ```
 
-`schema.prisma` is your [Prisma schema file](./prisma-schema-file.md). It generally contains three important elements for your project:
+Let's go through the created files.
 
-- Data sources (here, that's your PostgreSQL database)
-- Generators (here, that's the generator for Photon.js)
-- [Data model definition](./data-modeling.md#data-model-definition)  (you'll add this soon)
+### 3.1. Understand the Prisma schema file
 
-Your Prisma schema file currently has the following contents:
+At the core of each project that uses Photon and/or Lift, there is the [Prisma schema file](./prisma-schema-file.md) (typically called `prisma.schema`). Here's what your Prisma schema currently looks like:
 
 ```prisma
+generator photon {
+  provider = "photonjs"
+}
+
 datasource db {
   provider = "postgresql"
   url      = "postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA"
 }
 
-generator photonjs {
-  provider = "photonjs"
+model User {
+  id    String  @default(cuid()) @id
+  email String  @unique
+  name  String?
+  posts Post[]
+}
+
+model Post {
+  id        String   @default(cuid()) @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  author    User?
 }
 ```
 
-The uppercase letters are placeholders representing your database credentials. 
+The uppercase letters in the `datasource` configuration are placeholders representing your database credentials. 
 
-For a PostgreSQL database hosted on Heroku, the [connection string](./core/connectors/postgresql.md#connection-string) might look as follows:
+For a PostgreSQL database hosted on Heroku, the [connection string](./core/connectors/postgresql.md#connection-string) might look similar to this:
 
 ```prisma
 datasource db {
@@ -129,63 +169,61 @@ datasource db {
 
 Note that it's also possible to provision the `url` as an [environment variable](./prisma-schema-file.md#using-environment-variables).
 
-## 4. Add a data model definition
+Depending on where your PostgreSQL database is hosted or if you're using SQLite, the `datasource` configuration will look different in your schema file.
+
+The Prisma schema contains three important elements of your project:
+
+- Data sources (here, that's your PostgreSQL database)
+- Generators (here, that's the generator for Photon.js)
+- [Data model definition](./data-modeling.md#data-model-definition) (the `Post` and `User` models)
+
+## 4. Understand the data model definition
 
 The [data model definition](./data-modeling.md#data-model-definition) inside the schema file has the following responsibilities:
 
-- It's a declarative description of your underlying database schema
+- It's a _declarative_ description of your underlying database schema
 - It provides the foundation for the generated [Photon API](./photon/api)
 
-Its main building blocks are [models](./data-modeling.md#models) which map to _tables_ in the underlying PostgreSQL database. The [fields](./data-modeling.md#fields) of a model map to _columns_ of a table. 
+Its main building blocks are [models](./data-modeling.md#models) which map to _tables_ in the underlying PostgreSQL database. The [fields](./data-modeling.md#fields) of a model map to _columns_ of a table.
 
-Let's go ahead and define a simple `User` model, add the following to your schema file:
+Consider the sample `User` model in your schema file:
 
 ```prisma
 model User {
-  id    String  @id @default(cuid())
-  name  String?
+  id    String  @default(cuid()) @id
   email String  @unique
+  name  String?
+  posts Post[]
 }
 ```
 
-This defines a model `User` with three fields:
+This defines a model `User` with four fields:
 
 - The `id` field is of type `String` and annotated with two [attributes](./data-modeling.md#attributes):
   - `@id`: Indicates that this field is used as the _primary key_
   - `@default(cuid())`: Sets a default value for the field by generating a [`cuid`](https://github.com/ericelliott/cuid)
-- The `name` field is of type `String?` (read: "optional string"). The `?` is a [type modifier](#type-modifiers) expressing that this field is _optional_.
 - The `email` field is of type `String`. It is annotated with the `@unique` attribute which means that there can never be two records in the database with the same value for that field. This will be enforced by Prisma.
+- The `name` field is of type `String?` (read: "optional string"). The `?` is a [type modifier](#type-modifiers) expressing that this field is _optional_.
+- The `posts` field is of type `Post[]` and denotes a [relation](./relations) to the `Post` model. The `[]` is expressing that this field is a _list_ (i.e. a user can have _many_ posts).
 
-When migrating your database based on this data model, Lift will map model and field names to table and column names. If you want to change the naming in the underlying database, you can use the `@@map` block attribute to specify a different table name, and the `@map` field attribute to specify a different column name. Expand below for an example.
-
-<Details><Summary>Expand to see an example of <code>@@map</code> and <code>@map</code>.</Summary>
-
-<br />
-
-With the following model definition, the table in the underlying database will be called `users` and the column that maps to the `name` field is called `username`:
+Also take a quick look at the `Post` model:
 
 ```prisma
-model User {
-  id    String  @id @default(cuid())
-  name  String? @map("username")
-  email String  @unique
-
-  @@map("users")
+model Post {
+  id        String   @default(cuid()) @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  author    User?
 }
 ```
 
-Here is what the SQL statement looks like that's generated by Lift when the migration is performed:
+Most of this should look familiar from what you just learned about the `User` model, but there are a few new things:
 
-```sql
-CREATE TABLE "hello-prisma2"."users" (
-    "id" text NOT NULL,
-    "username" text,
-    "email" text NOT NULL DEFAULT ''::text,
-    PRIMARY KEY ("id")
-);
-```
-
-</Details>
+- The `createdAt` field is of type `DateTime`. The `@default(now())` attribute it's annotated with means that the field will get initialized with the current timestamp representing the time the record is being created.
+- The `updatedAt` field is annotated with the `@updatedAt` attribute. Prisma will update this field with the current timestamp whenever any field of the model gets updated.
 
 ## 5. Migrate your database using Lift
 
@@ -248,6 +286,39 @@ CREATE TABLE "hello-prisma2"."User" (
 
 That's it! You're now ready to access your database programmatically using Photon.js.
 
+### 5.3. [Optional] Create a custom mapping from database to Prisma schema
+
+When migrating your database based on this data model, Lift will map model and field names to table and column names. If you want to change the naming in the underlying database, you can use the `@@map` block attribute to specify a different table name, and the `@map` field attribute to specify a different column name. Expand below for an example.
+
+<Details><Summary>Expand to see an example of <code>@@map</code> and <code>@map</code>.</Summary>
+
+<br />
+
+With the following model definition, the table in the underlying database will be called `users` and the column that maps to the `name` field is called `username`:
+
+```prisma
+model User {
+  id    String  @id @default(cuid())
+  name  String? @map("username")
+  email String  @unique
+
+  @@map("users")
+}
+```
+
+Here is what the SQL statement looks like that's generated by Lift when the migration is performed:
+
+```sql
+CREATE TABLE "hello-prisma2"."users" (
+    "id" text NOT NULL,
+    "username" text,
+    "email" text NOT NULL DEFAULT ''::text,
+    PRIMARY KEY ("id")
+);
+```
+
+</Details>
+
 ## 6. Generate Photon.js
 
 Photon.js is a type-safe database client for Node.js and TypeScript. It's generated from your [Prisma schema file](./prisma-schema-file.md) and provides an ergonomic data access API with CRUD and other operations for your [data model](./data-modeling.md#data-model-definition). You can learn more about Photon's generated API [here](./photon/api.md).
@@ -303,59 +374,6 @@ or
 
 ```js
 const Photon = require('@generated/photon')
-```
-
-## 7. Set up simple TypeScript script
-
-### 7.1. Install dependencies
-
-Let's set up a basic TypeScript app next so that you can start using Photon in code. To do so, run the following commands:
-
-```
-npm init -y
-npm install --save-dev typescript ts-node
-touch tsconfig.json
-touch index.ts
-```
-
-### 7.2. Add TypeScript configuration
-
-Then add the following contents into `tsconfig.json`:
-
-```json
-{
-  "compilerOptions": {
-    "sourceMap": true,
-    "outDir": "dist",
-    "lib": ["esnext", "dom"],
-    "strict": true
-  }
-}
-```
-
-### 7.3. Add a `start` script to `package.json`
-
-Next, add a `start` script to your `package.json`:
-
-```diff
-{
-  "name": "local-postgres-test-2",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "dependencies": {},
-  "devDependencies": {
-    "ts-node": "^8.3.0",
-    "typescript": "^3.5.2"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-+   "start": "ts-node index.ts"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
-}
 ```
 
 ### 7.4. Adding a `postinstall` script to (re-)generate Photon.js
