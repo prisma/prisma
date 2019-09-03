@@ -177,7 +177,7 @@ The Prisma schema contains three important elements of your project:
 - Generators (here, that's the generator for Photon.js)
 - [Data model definition](./data-modeling.md#data-model-definition) (the `Post` and `User` models)
 
-## 4. Understand the data model definition
+### 3.2. Understand the data model definition
 
 The [data model definition](./data-modeling.md#data-model-definition) inside the schema file has the following responsibilities:
 
@@ -224,6 +224,323 @@ Most of this should look familiar from what you just learned about the `User` mo
 
 - The `createdAt` field is of type `DateTime`. The `@default(now())` attribute it's annotated with means that the field will get initialized with the current timestamp representing the time the record is being created.
 - The `updatedAt` field is annotated with the `@updatedAt` attribute. Prisma will update this field with the current timestamp whenever any field of the model gets updated.
+
+### 3.3. Understand the TypeScript setup
+
+The project also contains a number of additional files required for a typical for your Node.js/TypeScript setup:
+
+- `package.json`: Defines your project's Node.js dependencies.
+- `tsconfig.json`: Specifies your TypeScript configuration. Note that Photon.js currently requires the `esModuleInterop` property to be set to `true`.
+- `node_modules/@generated/photon`: Contains the generated Photon.js code. 
+- `index.ts`: Contains the actual "application code", which in this case is a simple script demonstrating some Photon.js API calls.
+
+Having Photon.js located inside `node_modules/@generated` enables you to import it in your code as follows:
+
+```ts
+import Photon from '@generated/photon'
+```
+
+Because Photon.js is generated into `node_modules` which is typically populated by invoking `npm install`, you should make sure that Photon.js is also generated upon every invocation of `npm install`. That's the reason why `prisma2 generate` (the command that generates Photon.js based on the Prisma schema) is added as a `postinstall` hook in `package.json`:
+
+```json
+{
+  "name": "script",
+  "license": "MIT",
+  "devDependencies": {
+    "ts-node": "8.3.0",
+    "typescript": "3.6.2",
+    "prisma2": "2.0.0-preview-9.1"
+  },
+  "scripts": {
+    "start": "ts-node ./script.ts",
+    "postinstall": "prisma2 generate"
+  }
+}
+```
+
+When collaborating on a project that uses Photon.js, this approach allows for conventional Node.js best practices where a team member can clone a Git repository and then run `npm install` to get their version of the Node dependencies inside their local `node_modules` directory.
+
+### 3.4. Understand the `migrations` folder
+
+To keep a migration history, Prisma by default uses a folder called `migrations`. There are two ways how the `migrations` folder gets populated:
+
+- Whenever the data model in _development mode_, a new migration is generated into `migrations/dev`.
+- Whenever a data model change is to be persisted using Lift, it gets its own directory.
+
+Don't worry, you'll learn more about both approaches in the next sections. Note that there already is a first migration called `watch-TIMESTAMP` (where `TIMESTAMP` is a placeholder, the real name looks something like `watch-20190903103132`) in the `dev` folder. This is because Prisma already prepared the project for you to be able to run the demo script immediately, that is it migrated the database to match your data model definition (i.e. there's already a `Post` and a `User` table present in the database). You can validate this by exploring the database schema in a database GUI (like [Postico](https://eggerapps.at/postico/) or [TablePlus](https://tableplus.com/)):
+
+![](https://imgur.com/Y3U6Csg.png)
+
+Note that migrations in the `migrations/dev` folder are considered "throw away" migrations. If you want to evolve your database schema in a way that the migration is persisted in Lift's _migration history_, you need to perform a migration using the `lift` subcommands: `prisma2 lift save` and `prisma2 lift up`.
+
+## 4. Run the demo script
+
+Now, let's finally consider the _Next steps_ again that had been printed to the console after the `init` wizard terminated:
+
+![](https://imgur.com/xK3c2HH.png)
+
+The instructions say to navigate into the project directory, start Prisma's development mode and finally execute the demo script. You'll skip the `prisma2 dev` command for now though and just run the `index.ts` script. Before doing so, let's quickly take a look at its contents:
+
+```ts
+import Photon from '@generated/photon'
+
+const photon = new Photon()
+
+// A `main` function so that we can use async/await
+async function main() {
+  // Seed the database with users and posts
+  const user1 = await photon.users.create({
+    data: {
+      email: 'alice@prisma.io',
+      name: 'Alice',
+      posts: {
+        create: {
+          title: 'Watch the talks from Prisma Day 2019',
+          content: 'https://www.prisma.io/blog/z11sg6ipb3i1/',
+          published: true,
+        },
+      },
+    },
+    include: {
+      posts: true,
+    },
+  })
+  const user2 = await photon.users.create({
+    data: {
+      email: 'bob@prisma.io',
+      name: 'Bob',
+      posts: {
+        create: [
+          {
+            title: 'Subscribe to GraphQL Weekly for community news',
+            content: 'https://graphqlweekly.com/',
+            published: true,
+          },
+          {
+            title: 'Follow Prisma on Twitter',
+            content: 'https://twitter.com/prisma/',
+            published: false,
+          },
+        ],
+      },
+    },
+    include: {
+      posts: true,
+    },
+  })
+  console.log(`Created users: ${user1.name} (${user1.posts.length} post) and (${user2.posts.length} posts) `)
+
+  // Retrieve all published posts
+  const allPosts = await photon.posts.findMany({
+    where: { published: true },
+  })
+  console.log(`Retrieved all published posts: `, allPosts)
+
+  // Create a new post (written by an already existing user with email alice@prisma.io)
+  const newPost = await photon.posts.create({
+    data: {
+      title: 'Join the Prisma Slack community',
+      content: 'http://slack.prisma.io',
+      published: false,
+      author: {
+        connect: {
+          email: 'alice@prisma.io',
+        },
+      },
+    },
+  })
+  console.log(`Created a new post: `, newPost)
+
+  // Publish the new post
+  const updatedPost = await photon.posts.update({
+    where: {
+      id: newPost.id,
+    },
+    data: {
+      published: true,
+    },
+  })
+  console.log(`Published the newly created post: `, updatedPost)
+
+  // Retrieve all posts by user with email alice@prisma.io
+  const postsByUser = await photon.users
+    .findOne({
+      where: {
+        email: 'alice@prisma.io',
+      },
+    })
+    .posts()
+  console.log(`Retrieved all posts from a specific user: `, postsByUser)
+}
+
+main()
+  .catch(e => console.error(e))
+  .finally(async () => {
+    await photon.disconnect()
+  })
+```
+
+Here's a quick rundown of what's happening in the code:
+
+1. Create two users named _Alice_ and _Bob_ using `photon.users.create(...)`
+  1. _Alice_ has one post titled _Watch the talks from Prisma Day 2019_
+  1. _Bob_ has two posts titled _Subscribe to GraphQL Weekly for community news_ and _Follow Prisma on Twitter_
+1. Retrieve all _published_ posts using `photon.posts.findMany(...)`
+1. Create a new post titled _Join the Prisma Slack community_ connected to the user _Alice_ by her email address
+1. Publish _Alice_'s newly created post using `photon.posts.update(...)`
+1. Retrieve all posts by _Alice_ using `photon.users.findOne(...).posts()`
+
+Notive that the result of each of these operations is printed to the console using `console.log`.
+
+Go ahead and run the code:
+
+```
+cd hello-prisma2
+npm start
+```
+
+This leads to the following terminal output confirming that all operations ran succesfully:
+
+![](https://imgur.com/O5vX9iP.png)
+
+If you're using a database GUI, you can also validate that all records have been created there.
+
+## 5. Evolve your application in Prisma's development mode
+
+Prisma 2 features a [development mode](./development-mode.md) that allows for faster iterations during development. It can be invoked using the `prisma2 dev` command. When running in development mode, the Prisma 2 CLI watches your [schema file](./prisma-schema-file.md). Whenever you then save a change to the schema file, the Prisma CLI takes care of:
+
+- (re)generating Photon
+- updating your database schema
+- creating a Prisma Studio endpoint for you
+
+In essence, running `prisma2 dev` is a shortcut to immediately apply changes to your project that you'd otherwise have to perform through these commands:
+
+- `prisma2 generate` to generate Photon
+- `prisma lift save` and `prisma2 lift up` to apply a migration
+
+Once you're happy with the changes you made to your data model to develop a certain feature, you can exit the development mode and actually persist your migration. Learn more [here](./development-mode.md#migrations-in-development-mode).
+
+Go ahead now and launch the development mode with this command:
+
+```
+prisma2 dev
+```
+
+> **Note**: You can stop the development mode by hitting <kbd>CTRL</kbd>+<kbd>C</kbd> two times.
+
+Here is what the terminal screen now looks like:
+
+![](https://imgur.com/FxmFgbu.png)
+
+### 5.1. Explore your data in Prisma Studio
+
+You can explore the current content of your database using Prisma Studio. Open the endpoint that's shown in your terminal (in most cases this will be [`http://localhost:5555/`](http://localhost:5555/)):
+
+> **Note**: Please share any feedback you have about Prisma Studio in the [`studio`](https://github.com/prisma/studio) repository.
+
+### 5.2. Add another model
+
+Let's now evolve the application while running the development mode. You'll be adding a new model called `Category` to your schema. `Category` will be connected to `Post` via a many-to-many relationship. Adjust the data model of your Prisma schema as follows:
+
+```diff
+model User {
+  id    String  @default(cuid()) @id
+  email String  @unique
+  name  String?
+  posts Post[]
+}
+
+model Post {
+  id         String     @default(cuid()) @id
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  published  Boolean
+  title      String
+  content    String?
+  author     User?
++  categories Category[]
+}
+
++ model Category {
++   id    String @id @default(cuid())
++   name  String
++   posts Post[]
++ }
+```
+
+
+
+Be sure to **save the file**. You can then observe your terminal window to see Prisma's activity:
+
+- It added a `Post` table to your database schema
+- It regenerated the Photon API to add CRUD operations for the new `Post` model
+
+To validate that this worked, you can update the code inside your `main` function in `index.ts` as follows:
+
+```ts
+async function main() {
+
+  // Open connection to database
+  await photon.connect()
+
+  const newPost = await photon.posts.create({
+    data: { title: 'Hello Prisma 2' }
+  })
+  console.log(newPost)
+
+  const allPosts = await photon.posts.findMany()
+  console.log(allPosts)
+
+  // Close connection to database
+  await photon.disconnect()
+}
+```
+
+Execute the updated script:
+
+```
+npm run start
+```
+
+This now creates a new `Post` record in the database. 
+
+### 8.3. Add a relation
+
+You already have two models in your [data model definition](./data-modeling.md#data-model-definition), let's now _connect_ these via a [relation](./relations.md):
+
+- One post should have at most one author
+- One author should have zero or more posts
+
+To reflect these requirements, adjust your data model as follows:
+
+```diff
+model User {
+  id    String  @id @default(cuid())
+  name  String?
+  email String  @unique
++ posts Post[]
+}
+
+model Post {
+  id        String  @id @default(cuid())
+  title     String
+  published Boolean @default(true)
++ author    User?
+}
+```
+
+Again, be sure to save the file to let Prisma update your database schema and regenerate the Photon API.
+
+### 8.4. Terminate development mode and migrate with Lift
+
+Terminate the development mode by hitting <kbd>CTRL</kbd>+<kbd>C</kbd> two times.
+
+You've introduced two changes to your data model that are already reflected in the database and in your Photon API thanks to `prisma dev`. To persists your migration in Lift's migration history, you need to run through the familiar process of migrating your database with Lift:
+
+```
+prisma2 lift save --name 'add-post'
+prisma2 lift up
+```
 
 ## 5. Migrate your database using Lift
 
@@ -376,86 +693,7 @@ or
 const Photon = require('@generated/photon')
 ```
 
-### 7.4. Adding a `postinstall` script to (re-)generate Photon.js
 
-Because Photon.js is generated into `node_modules` which is typically populated by invoking `npm install`, you should make sure that Photon.js is also generated upon every invocation of `npm install`. You can do so by adding a `postinstall` script to your `package.json`:
-
-```diff
-{
-  "name": "local-postgres-test-2",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "dependencies": {},
-  "devDependencies": {
-    "ts-node": "^8.3.0",
-    "typescript": "^3.5.2"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node index.ts",
-+   "postinstall": "prisma2 generate"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
-}
-```
-
-When collaborating on a project that uses Photon.js, this approach allows for conventional Node.js best practices where a team member can clone a Git repository and then run `npm install` to get their version of the Node dependencies inside their local `node_modules` directory.
-
-That's it! Let's now explore how you can use Photon inside `index.ts` to read and write data in the database.
-
-### 7.5. Create a basic setup
-
-Add the following code to `index.ts`:
-
-```ts
-import Photon from '@generated/photon'
-
-const photon = new Photon()
-
-async function main() {
-
-  // Open connection to database
-  await photon.connect()
-
-  // You'll write your Photon code here
-
-    // Close connection to database
-  await photon.disconnect()
-}
-
-main()
-```
-
-Photon's operations are asynchronous, this is why we want to execute them in an `async` function (so that we can `await` the result of the operation). 
-
-### 7.6. Use Photon for basic reads and writes
-
-Add the following operations inside the `main function:
-
-```ts
-async function main() {
-
-  // Open connection to database
-  await photon.connect()
-
-  const newUser = await photon.users.create({
-    data: {
-      name: 'Alice',
-      email: 'alice@prisma.io'
-    }
-  })
-  console.log(newUser)
-
-  const allUsers = await photon.users.findMany()
-  console.log(allUsers)
-
-  // Close connection to database
-  await photon.disconnect()
-}
-```
 
 Instead of copying and pasting the code above, try typing the operations and let yourself be guided by the autocompletion in your editor:
 
@@ -468,120 +706,6 @@ npm start
 ```
 
 This first creates a new `User` record in the database and subsequently fetches all users to print them in the console.
-
-## 8. Evolve your application in Prisma's development mode
-
-Prisma 2 features a [development mode](./development-mode.md) that allows for faster iterations during development. When running in development mode, the Prisma 2 CLI watches your [schema file](./prisma-schema-file.md). Whenever you then save a change to the schema file, the Prisma CLI takes care of:
-
-- (re)generating Photon
-- updating your database schema
-- creating a Prisma Studio endpoint for you
-
-Note that your database schema gets updated "on the fly" without persisting a migration folder on the file system. Once you're happy with the changes you made to your data model to develop a certain feature, you can exit the development mode and actually persist your migration. Learn more [here](./development-mode.md#migrations-in-development-mode).
-
-Launch the development mode with this command:
-
-```
-prisma2 dev
-```
-
-> **Note**: You can stop the development mode by hitting <kbd>CTRL</kbd>+<kbd>C</kbd> two times.
-
-Here is what the terminal screen now looks like:
-
-![](https://imgur.com/aX3Qxpd.png)
-
-### 8.1. Add another model
-
-Let's now evolve the application while running the development mode. Add another model to your `schema.prisma`:
-
-```prisma
-model Post {
-  id        String  @id @default(cuid())
-  title     String
-  published Boolean @default(false)
-}
-```
-
-Be sure to **save the file**. You can then observe your terminal window to see Prisma's activity:
-
-- It added a `Post` table to your database schema
-- It regenerated the Photon API to add CRUD operations for the new `Post` model
-
-To validate that this worked, you can update the code inside your `main` function in `index.ts` as follows:
-
-```ts
-async function main() {
-
-  // Open connection to database
-  await photon.connect()
-
-  const newPost = await photon.posts.create({
-    data: { title: 'Hello Prisma 2' }
-  })
-  console.log(newPost)
-
-  const allPosts = await photon.posts.findMany()
-  console.log(allPosts)
-
-  // Close connection to database
-  await photon.disconnect()
-}
-```
-
-Execute the updated script:
-
-```
-npm run start
-```
-
-This now creates a new `Post` record in the database. 
-
-### 8.2. Explore your data in Prisma Studio
-
-You can explore the current content of your database using Prisma Studio. Open the endpoint that's shown in your terminal where `prisma dev` is running (in most cases this will be [`http://localhost:5555/`](http://localhost:5555/)).
-
-![](https://imgur.com/2WH0MrA.png)
-
-> **Note**: Please share your feedback about Prisma Studio in the [`studio`](https://github.com/prisma/studio) repository.
-
-### 8.3. Add a relation
-
-You already have two models in your [data model definition](./data-modeling.md#data-model-definition), let's now _connect_ these via a [relation](./relations.md):
-
-- One post should have at most one author
-- One author should have zero or more posts
-
-To reflect these requirements, adjust your data model as follows:
-
-```diff
-model User {
-  id    String  @id @default(cuid())
-  name  String?
-  email String  @unique
-+ posts Post[]
-}
-
-model Post {
-  id        String  @id @default(cuid())
-  title     String
-  published Boolean @default(true)
-+ author    User?
-}
-```
-
-Again, be sure to save the file to let Prisma update your database schema and regenerate the Photon API.
-
-### 8.4. Terminate development mode and migrate with Lift
-
-Terminate the development mode by hitting <kbd>CTRL</kbd>+<kbd>C</kbd> two times.
-
-You've introduced two changes to your data model that are already reflected in the database and in your Photon API thanks to `prisma dev`. To persists your migration in Lift's migration history, you need to run through the familiar process of migrating your database with Lift:
-
-```
-prisma2 lift save --name 'add-post'
-prisma2 lift up
-```
 
 ## 9. Explore Photon's relation API
 
