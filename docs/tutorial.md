@@ -468,81 +468,35 @@ model Post {
 + }
 ```
 
-
-
 Be sure to **save the file**. You can then observe your terminal window to see Prisma's activity:
 
-- It added a `Post` table to your database schema
-- It regenerated the Photon API to add CRUD operations for the new `Post` model
+- It added a `Category` table to your database schema. It also added a _relation table_ called `_CategoryToPost` to the database schema to represent the many-to-many relation.
+- It regenerated the Photon API to add CRUD operations for the new `Category` model
 
-To validate that this worked, you can update the code inside your `main` function in `index.ts` as follows:
+Since the Photon API has been updated, you can now update the code in `script.ts` to create new categories and connect them to existing (or new) posts. As an example, this code snippet would create a new category called "prisma" and connect it to two existing posts:
 
 ```ts
-async function main() {
-
-  // Open connection to database
-  await photon.connect()
-
-  const newPost = await photon.posts.create({
-    data: { title: 'Hello Prisma 2' }
-  })
-  console.log(newPost)
-
-  const allPosts = await photon.posts.findMany()
-  console.log(allPosts)
-
-  // Close connection to database
-  await photon.disconnect()
-}
+const category = await photon.categories.create({
+  data: { 
+    name: "prisma",
+    posts: {
+      connect: [{
+        id: "__POST_ID_1__"
+      }, {
+        id: "__POST_ID_2__"
+      }]
+    }
+  },
+})
 ```
 
-Execute the updated script:
+Note that you need to replace the `__POST_ID_1__` and `__POST_ID_2__` placeholders with actual ID values of the posts you created earlier (you can find these IDs e.g. in Prisma Studio or using a database GUI).
 
-```
-npm run start
-```
-
-This now creates a new `Post` record in the database. 
-
-### 8.3. Add a relation
-
-You already have two models in your [data model definition](./data-modeling.md#data-model-definition), let's now _connect_ these via a [relation](./relations.md):
-
-- One post should have at most one author
-- One author should have zero or more posts
-
-To reflect these requirements, adjust your data model as follows:
-
-```diff
-model User {
-  id    String  @id @default(cuid())
-  name  String?
-  email String  @unique
-+ posts Post[]
-}
-
-model Post {
-  id        String  @id @default(cuid())
-  title     String
-  published Boolean @default(true)
-+ author    User?
-}
-```
-
-Again, be sure to save the file to let Prisma update your database schema and regenerate the Photon API.
-
-### 8.4. Terminate development mode and migrate with Lift
+### 5.3. Terminate development mode and migrate with Lift
 
 Terminate the development mode by hitting <kbd>CTRL</kbd>+<kbd>C</kbd> two times.
 
-You've introduced two changes to your data model that are already reflected in the database and in your Photon API thanks to `prisma dev`. To persists your migration in Lift's migration history, you need to run through the familiar process of migrating your database with Lift:
-
-```
-prisma2 lift save --name 'add-post'
-prisma2 lift up
-```
-
-## 5. Migrate your database using Lift
+You've introduced two changes to your data model that are already reflected in the database and in your Photon API thanks to `prisma2 dev`. To persists your migration in Lift's migration history, you need to run through the process of migrating your database with Lift.
 
 Every schema migration with Lift follows a 3-step-process:
 
@@ -550,9 +504,9 @@ Every schema migration with Lift follows a 3-step-process:
 1. **Save migration**: Run `prisma2 lift save` to create your [migration files](./lift/migration-files.md) on the file system.
 1. **Run migration**: Run `prisma2 lift up` to perform the migration against your database.
 
-Step 1 is what you just did in the previous section, so now you need to use Lift to map the data model to your database schema.
+## 6. Migrate the database with Lift
 
-### 5.1. Save the migration on the file system
+### 6.1. Save the migration on the file system
 
 With Lift, every database migration gets persisted on your file system, represented by a number of [files](./lift/migration-files.md). This lets developers keep a migration history of their database and understand how their project evolves over time. It also enables rolling back and "replaying" migrations.
 
@@ -561,10 +515,10 @@ With Lift, every database migration gets persisted on your file system, represen
 Run the following command to save your migrations files:
 
 ```
-prisma2 lift save --name 'init'
+prisma2 lift save --name 'add-category'
 ```
 
-This creates a new folder called `migrations`, including your first set of migration files:
+This creates a new folder called inside the `migrations` directory:
 
 ```
 hello-prisma2
@@ -578,7 +532,7 @@ hello-prisma2
     └── schema.prisma
 ```
 
-Note that the `--name` option that was passed to `prisma2 lift save` determines the name of the generated migration directory. To ensure uniqueness and retain order, the name of a migration directory is always prefixed with a timestamp, so in this case the migration directory is called `20190703131441-init`.
+Note that the `--name` option that was passed to `prisma2 lift save` determines the name of the generated migration directory. To ensure uniqueness and retain order, the name of a migration directory is always prefixed with a timestamp, so in this case the migration directory is called `20190703131441-add-category`.
 
 Feel free to explore the contents of each file to get a better understanding of their use.
 
