@@ -410,27 +410,27 @@
     terminal-link "^1.3.0"
     wtfnode "0.8.0"
 
-"@prisma/studio-server@^0.71.0":
-  version "0.71.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.71.0.tgz#13e307410ee6d8f08a5d360d64ea2a446d7afceb"
-  integrity sha512-34U+o0r73754LvM7jO2mb2OpAHxI4L6AJAJLBvB/8ycCye/gygmn4xdExmzDnwO0rlRtHLOcUYZh4oJmqSibtw==
+"@prisma/studio-server@^0.74.0":
+  version "0.74.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.74.0.tgz#52863ad2befc041515a1d44034209887b0e10b47"
+  integrity sha512-7K0HHy5V6hs/+jbpEUSuINj5NRUoPb7gSr/21CQRUwQr5tvjONKt85TSKlYfIrjQCCUcJ1QuZW4qO7OB3Ao4Kw==
   dependencies:
-    "@prisma/studio" "0.71.0"
-    "@prisma/studio-transports" "0.71.0"
+    "@prisma/studio" "0.74.0"
+    "@prisma/studio-transports" "0.74.0"
     express "^4.17.1"
     express-ws "^4.0.0"
 
-"@prisma/studio-transports@0.71.0":
-  version "0.71.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.71.0.tgz#72213a50f4b1ebd86d9a21f04ce60caaf0215888"
-  integrity sha512-224V+sqvulLk+F+4zWqN9c4gjqyQ6OCEuXOlemK7lKXdUI8gPYBZqD6vRGNhZEgcOG5IiSTW0GBXjt3/OzeK/A==
+"@prisma/studio-transports@0.74.0":
+  version "0.74.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.74.0.tgz#c51be4f34c93987ffeec68ac6100f0f39e8a027f"
+  integrity sha512-ZeLqnXz8d/UqAcifYT1e1NJvcW8p9u7uRls9Azcr9+3/BOMeeoSZZYRBRuSTaHLd7qQMgV31sYq5JMUi5+/6pQ==
   dependencies:
     strip-ansi "^5.2.0"
 
-"@prisma/studio@0.71.0":
-  version "0.71.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.71.0.tgz#737eccba8e8dbceb7c6fd62a3b6e2c0cbc013207"
-  integrity sha512-xVVPmIk+qV0IMdmdrOiksC33Ljpk61Ls/AP3rHpJyWSgIvyFgplv7g6u8b3URNk0lvO71ieJeM3x+gONshzXag==
+"@prisma/studio@0.74.0":
+  version "0.74.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.74.0.tgz#8a06a4f9c28926b6970dc38d230f5df4a1fe3a11"
+  integrity sha512-jCBKXk+Jk3J2XZdBdJYfWWkbfsBWSlgcwJdgaTaJxPr0iBC131oFmj73RAmhiTCtfRVjzVSBHQnrXlR3nWzn1Q==
 
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
