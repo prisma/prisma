@@ -177,6 +177,8 @@ The Prisma schema contains three important elements of your project:
 - Generators (here, that's the generator for Photon.js)
 - [Data model definition](./data-modeling.md#data-model-definition) (the `Post` and `User` models)
 
+You can also add the `output` field to the `generator` block to specify the file path where Photon.js should be generated. Since you're not explicitly specifying the `output` here, it uses the default path which is the project's `node_modules` directory. Learn more about the specifics of generating Photon into `node_modules` [here](./photon/codegen-and-node-setup.md).
+
 ### 3.2. Understand the data model definition
 
 The [data model definition](./data-modeling.md#data-model-definition) inside the schema file has the following responsibilities:
@@ -418,7 +420,7 @@ In essence, running `prisma2 dev` is a shortcut to immediately apply changes to 
 - `prisma2 generate` to generate Photon
 - `prisma lift save` and `prisma2 lift up` to apply a migration
 
-Once you're happy with the changes you made to your data model to develop a certain feature, you can exit the development mode and actually persist your migration. Learn more [here](./development-mode.md#migrations-in-development-mode).
+Once you're happy with the changes you made to your data model to develop a certain feature, you can exit the development mode and actually persist your migration using Lift. Learn more [here](./development-mode.md#migrations-in-development-mode).
 
 Go ahead now and launch the development mode with this command:
 
@@ -440,7 +442,7 @@ You can explore the current content of your database using Prisma Studio. Open t
 
 ### 5.2. Add another model
 
-Let's now evolve the application while running the development mode. You'll be adding a new model called `Category` to your schema. `Category` will be connected to `Post` via a many-to-many relationship. Adjust the data model of your Prisma schema as follows:
+Let's now evolve the application while running in development mode. You'll be adding a new model called `Category` to your schema. `Category` will be connected to `Post` via a [many-to-many](./relations#mn) relationship. Adjust the data model of your Prisma schema as follows:
 
 ```diff
 model User {
@@ -468,10 +470,10 @@ model Post {
 + }
 ```
 
-Be sure to **save the file**. You can then observe your terminal window to see Prisma's activity:
+Be sure to **save the file**. As you save it, you can observe your terminal window to see Prisma's activity:
 
-- It added a `Category` table to your database schema. It also added a _relation table_ called `_CategoryToPost` to the database schema to represent the many-to-many relation.
-- It regenerated the Photon API to add CRUD operations for the new `Category` model
+- It added a `Category` table to your database schema. It also added a _relation table_ called `_CategoryToPost` to the database schema to represent the many-to-many relation. Note that the shape of the relation table will be configurable in the future, learn more in the [spec](https://github.com/prisma/specs/tree/master/schema#explicit-many-to-many-mn-relationships).
+- It regenerated the Photon API to add CRUD operations for the new `Category` model.
 
 Since the Photon API has been updated, you can now update the code in `script.ts` to create new categories and connect them to existing (or new) posts. As an example, this code snippet would create a new category called "prisma" and connect it to two existing posts:
 
@@ -492,11 +494,13 @@ const category = await photon.categories.create({
 
 Note that you need to replace the `__POST_ID_1__` and `__POST_ID_2__` placeholders with actual ID values of the posts you created earlier (you can find these IDs e.g. in Prisma Studio or using a database GUI).
 
-### 5.3. Terminate development mode and migrate with Lift
+### 5.3. Terminate development mode
 
 Terminate the development mode by hitting <kbd>CTRL</kbd>+<kbd>C</kbd> two times.
 
-You've introduced two changes to your data model that are already reflected in the database and in your Photon API thanks to `prisma2 dev`. To persists your migration in Lift's migration history, you need to run through the process of migrating your database with Lift.
+## 6. Migrate the database with Lift
+
+You've introduced changes to your data model that are already reflected in the database and in your Photon API thanks to `prisma2 dev`. To persists your migration in Lift's migration history, you need to run through the process of migrating your database with Lift.
 
 Every schema migration with Lift follows a 3-step-process:
 
@@ -504,11 +508,9 @@ Every schema migration with Lift follows a 3-step-process:
 1. **Save migration**: Run `prisma2 lift save` to create your [migration files](./lift/migration-files.md) on the file system.
 1. **Run migration**: Run `prisma2 lift up` to perform the migration against your database.
 
-## 6. Migrate the database with Lift
-
 ### 6.1. Save the migration on the file system
 
-With Lift, every database migration gets persisted on your file system, represented by a number of [files](./lift/migration-files.md). This lets developers keep a migration history of their database and understand how their project evolves over time. It also enables rolling back and "replaying" migrations.
+With Lift, every database migration gets persisted on your file system, represented by a number of [files](./lift/migration-files.md). This lets you keep a migration history of you database schema and understand how their project evolves over time. It also enables rolling back and "replaying" migrations easily.
 
 > **Note**: Lift also creates a table called `_Migration` in your database that additionally stores the details of every migration.
 
@@ -518,18 +520,27 @@ Run the following command to save your migrations files:
 prisma2 lift save --name 'add-category'
 ```
 
-This creates a new folder called inside the `migrations` directory:
+This deletes the "throw-away" migration files in the `migrations/dev` directory and creates a new directory inside `migrations` called `TIMESTAMP-add-category`:
 
 ```
 hello-prisma2
-└── prisma
-    ├── migrations
-    │   ├── 20190703131441-init
-    │   │   ├── README.md
-    │   │   ├── datamodel.prisma
-    │   │   └── steps.json
-    │   └── lift.lock
-    └── schema.prisma
+├── README.md
+├── node_modules
+│   ├── @generated
+│   │   └── photon
+├── package-lock.json
+├── package.json
+├── prisma
+│   ├── migrations
+│   │   ├── 20190904103007-add-category
+│   │   │   ├── README.md
+│   │   │   ├── schema.prisma
+│   │   │   └── steps.json
+│   │   └── lift.lock
+│   └── schema.prisma
+├── script.ts
+├── tsconfig.json
+└── yarn.lock
 ```
 
 Note that the `--name` option that was passed to `prisma2 lift save` determines the name of the generated migration directory. To ensure uniqueness and retain order, the name of a migration directory is always prefixed with a timestamp, so in this case the migration directory is called `20190703131441-add-category`.
@@ -544,22 +555,11 @@ Once the migration files are created, you can run the migration with the followi
 prisma2 lift up
 ```
 
-This maps your data model to the underlying database schema (i.e. it _migrates your database_). In this case it created the following table:
-
-```sql
-CREATE TABLE "hello-prisma2"."User" (
-    "id" text NOT NULL,
-    "name" text,
-    "email" text NOT NULL DEFAULT ''::text,
-    PRIMARY KEY ("id")
-);
-```
-
-That's it! You're now ready to access your database programmatically using Photon.js.
+This maps your data model to the underlying database schema (i.e. it _migrates your database_). 
 
 ### 5.3. [Optional] Create a custom mapping from database to Prisma schema
 
-When migrating your database based on this data model, Lift will map model and field names to table and column names. If you want to change the naming in the underlying database, you can use the `@@map` block attribute to specify a different table name, and the `@map` field attribute to specify a different column name. Expand below for an example.
+When migrating your database with Lift, it will typically map model and field names to table and column names. If you want to change the naming in the underlying database, you can use the `@@map` block attribute to specify a different table name, and the `@map` field attribute to specify a different column name. Expand below for an example.
 
 <Details><Summary>Expand to see an example of <code>@@map</code> and <code>@map</code>.</Summary>
 
@@ -589,78 +589,3 @@ CREATE TABLE "hello-prisma2"."users" (
 ```
 
 </Details>
-
-## 6. Generate Photon.js
-
-Photon.js is a type-safe database client for Node.js and TypeScript. It's generated from your [Prisma schema file](./prisma-schema-file.md) and provides an ergonomic data access API with CRUD and other operations for your [data model](./data-modeling.md#data-model-definition). You can learn more about Photon's generated API [here](./photon/api.md).
-
-To generate Photon, you first need to add a `generator` to your schema file. Go ahead and adjust your `schema.prisma` to look as follows:
-
-```diff
-datasource db {
-  provider = "postgresql"
-  url      = "postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA"
-}
-
-+ generator photonjs {
-+   provider = "photonjs"
-+ }
-
-model User {
-  id    String  @id @default(cuid())
-  name  String?
-  email String  @unique
-}
-```
-
-With the `generator` in place, run the following command to generate Photon.js:
-
-```
-prisma2 generate
-```
-
-This creates a `node_modules` directory in the root directory of your project:
-
-```
-├── node_modules
-│   └── @generated
-│       └── photon
-│           └── runtime
-│               ├── dist
-│               └── utils
-└── prisma
-    └── migrations
-        └── 20190703131441-init
-```
-
-You can also add the `output` field to the `generator` block to specify the file path where Photon.js should be generated. Since you're not explicitly specifying the `output` here, it uses the default path which is the project's `node_modules` directory. Learn more about the specifics of generating Photon into `node_modules` [here](./photon/codegen-and-node-setup.md).
-
-Having Photon.js located inside `node_modules/@generated` enables you to import it in your code as follows:
-
-```ts
-import Photon from '@generated/photon'
-```
-
-or
-
-```js
-const Photon = require('@generated/photon')
-```
-
-
-
-Instead of copying and pasting the code above, try typing the operations and let yourself be guided by the autocompletion in your editor:
-
-![](https://imgur.com/CnlgJg9.gif)
-
-You can now run the script with the following command:
-
-```
-npm start
-```
-
-This first creates a new `User` record in the database and subsequently fetches all users to print them in the console.
-
-## 9. Explore Photon's relation API
-
-Coming soon. In the meantime, you can learn more about Photon's relations API [here](./relations.md#relations-in-the-generated-photon-api).
