@@ -42,13 +42,13 @@ When prompted by the wizard, select the **Blank project** option.
 
 ### 2.2. Select your database type
 
-Next, the wizard prompts you to select a database.
-
-1. Select **PostgreSQL** (or use SQLite if you don't have a PostgreSQL database)
+Next, the wizard prompts you to select a database. Select **PostgreSQL** (or use SQLite if you don't have a PostgreSQL database running anywhere).
 
 ![](https://imgur.com/Ktx0oB8.png)
 
 ### 2.3. Provide your database credentials
+
+Note that you can skip this part if you've selected SQLite before.
 
 1. Provide your database credentials:
     - **Host**: IP address or domain where your PostgreSQL server is running
@@ -73,7 +73,7 @@ Hence, select **TypeScript** when prompted by the wizard.
 
 ### 2.5. Select the demo script
 
-The wizard offers the option to start with a _demo script_. Selecting this option will get you started with a sample [data model definition](./data-modeling#data-model-definition) as well as an executable script which you can use to explore some Photon.js API calls. 
+The wizard offers the option to start with a _demo script_. Selecting this option will get you started with a sample [data model definition](./data-modeling.md#data-model-definition) as well as an executable script which you can use to explore some Photon.js API calls. 
 
 Select **Demo script** when prompted by the wizard.
 
@@ -175,7 +175,7 @@ The Prisma schema contains three important elements of your project:
 
 - Data sources (here, that's your PostgreSQL database)
 - Generators (here, that's the generator for Photon.js)
-- [Data model definition](./data-modeling.md#data-model-definition) (the `Post` and `User` models)
+- [Data model definition](./data-modeling.md#data-model-definition) (here, that's the `Post` and `User` models)
 
 You can also add the `output` field to the `generator` block to specify the file path where Photon.js should be generated. Since you're not explicitly specifying the `output` here, it uses the default path which is the project's `node_modules` directory. Learn more about the specifics of generating Photon into `node_modules` [here](./photon/codegen-and-node-setup.md).
 
@@ -184,7 +184,7 @@ You can also add the `output` field to the `generator` block to specify the file
 The [data model definition](./data-modeling.md#data-model-definition) inside the schema file has the following responsibilities:
 
 - It's a _declarative_ description of your underlying database schema
-- It provides the foundation for the generated [Photon API](./photon/api)
+- It provides the foundation for the generated [Photon API](./photon/api.md)
 
 Its main building blocks are [models](./data-modeling.md#models) which map to _tables_ in the underlying PostgreSQL database. The [fields](./data-modeling.md#fields) of a model map to _columns_ of a table.
 
@@ -206,7 +206,7 @@ This defines a model `User` with four fields:
   - `@default(cuid())`: Sets a default value for the field by generating a [`cuid`](https://github.com/ericelliott/cuid)
 - The `email` field is of type `String`. It is annotated with the `@unique` attribute which means that there can never be two records in the database with the same value for that field. This will be enforced by Prisma.
 - The `name` field is of type `String?` (read: "optional string"). The `?` is a [type modifier](#type-modifiers) expressing that this field is _optional_.
-- The `posts` field is of type `Post[]` and denotes a [relation](./relations) to the `Post` model. The `[]` is expressing that this field is a _list_ (i.e. a user can have _many_ posts).
+- The `posts` field is of type `Post[]` and denotes a [relation](./relations.md) to the `Post` model. The `[]` is expressing that this field is a _list_ (i.e. a user can have _many_ posts).
 
 Also take a quick look at the `Post` model:
 
@@ -385,8 +385,8 @@ main()
 Here's a quick rundown of what's happening in the code:
 
 1. Create two users named _Alice_ and _Bob_ using `photon.users.create(...)`
-  1. _Alice_ has one post titled _Watch the talks from Prisma Day 2019_
-  1. _Bob_ has two posts titled _Subscribe to GraphQL Weekly for community news_ and _Follow Prisma on Twitter_
+    - _Alice_ has one post titled _Watch the talks from Prisma Day 2019_
+    - _Bob_ has two posts titled _Subscribe to GraphQL Weekly for community news_ and _Follow Prisma on Twitter_
 1. Retrieve all _published_ posts using `photon.posts.findMany(...)`
 1. Create a new post titled _Join the Prisma Slack community_ connected to the user _Alice_ by her email address
 1. Publish _Alice_'s newly created post using `photon.posts.update(...)`
@@ -438,11 +438,13 @@ Here is what the terminal screen now looks like:
 
 You can explore the current content of your database using Prisma Studio. Open the endpoint that's shown in your terminal (in most cases this will be [`http://localhost:5555/`](http://localhost:5555/)):
 
+![](https://imgur.com/4h9nk7i.png)
+
 > **Note**: Please share any feedback you have about Prisma Studio in the [`studio`](https://github.com/prisma/studio) repository.
 
 ### 5.2. Add another model
 
-Let's now evolve the application while running in development mode. You'll be adding a new model called `Category` to your schema. `Category` will be connected to `Post` via a [many-to-many](./relations#mn) relationship. Adjust the data model of your Prisma schema as follows:
+Let's now evolve the application while running in development mode. You'll be adding a new model called `Category` to your schema. `Category` will be connected to `Post` via a [many-to-many](./relations.md#mn) relationship. Adjust the data model of your Prisma schema as follows:
 
 ```diff
 model User {
@@ -589,3 +591,13 @@ CREATE TABLE "hello-prisma2"."users" (
 ```
 
 </Details>
+
+## 6. Next steps
+
+Congratulations for working through your first Prisma tutorial 🚀 Here are a few pointers on what to do next:
+
+- Explore some Prisma 2 example projects, e.g. for [REST](https://github.com/prisma/prisma-examples/tree/prisma2/typescript/rest-express), [GraphQL](https://github.com/prisma/prisma-examples/tree/prisma2/typescript/graphql) or [gRPC](https://github.com/prisma/prisma-examples/tree/prisma2/typescript/grpc) APIs.
+- Join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on the [Prisma Slack](https://slack.prisma.io)
+- [Share any feedback you might have](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md) on Prisma 2
+- 🌟 Leave a GitHub star on this repo
+- [Follow Prisma on Twitter](https://twitter.com/prisma) to stay in the loop for updates
