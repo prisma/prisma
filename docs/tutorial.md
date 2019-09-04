@@ -591,3 +591,13 @@ CREATE TABLE "hello-prisma2"."users" (
 ```
 
 </Details>
+
+## 6. Next steps
+
+Congratulations for working through your first Prisma tutorial 🚀 Here a few pointers what to do next:
+
+- Explore some Prisma 2 example projects, e.g. for [REST](https://github.com/prisma/prisma-examples/tree/prisma2/typescript/rest-express), [GraphQL](https://github.com/prisma/prisma-examples/tree/prisma2/typescript/graphql) or [gRPC](https://github.com/prisma/prisma-examples/tree/prisma2/typescript/grpc) APIs.
+- Join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on the [Prisma Slack](https://slack.prisma.io)
+- [Share any feedback you might have](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md) on Prisma 2
+- 🌟 Leave a GitHub star on this repo
+- [Follow Prisma on Twitter](https://twitter.com/prisma) to stay in the loop for updates
