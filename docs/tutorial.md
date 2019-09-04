@@ -42,13 +42,13 @@ When prompted by the wizard, select the **Blank project** option.
 
 ### 2.2. Select your database type
 
-Next, the wizard prompts you to select a database.
-
-1. Select **PostgreSQL** (or use SQLite if you don't have a PostgreSQL database)
+Next, the wizard prompts you to select a database. Select **PostgreSQL** (or use SQLite if you don't have a PostgreSQL database running anywhere).
 
 ![](https://imgur.com/Ktx0oB8.png)
 
 ### 2.3. Provide your database credentials
+
+Note that you can skip this part if you've selected SQLite before.
 
 1. Provide your database credentials:
     - **Host**: IP address or domain where your PostgreSQL server is running
@@ -175,7 +175,7 @@ The Prisma schema contains three important elements of your project:
 
 - Data sources (here, that's your PostgreSQL database)
 - Generators (here, that's the generator for Photon.js)
-- [Data model definition](./data-modeling.md#data-model-definition) (the `Post` and `User` models)
+- [Data model definition](./data-modeling.md#data-model-definition) (here, that's the `Post` and `User` models)
 
 You can also add the `output` field to the `generator` block to specify the file path where Photon.js should be generated. Since you're not explicitly specifying the `output` here, it uses the default path which is the project's `node_modules` directory. Learn more about the specifics of generating Photon into `node_modules` [here](./photon/codegen-and-node-setup.md).
 
@@ -385,8 +385,8 @@ main()
 Here's a quick rundown of what's happening in the code:
 
 1. Create two users named _Alice_ and _Bob_ using `photon.users.create(...)`
-  1. _Alice_ has one post titled _Watch the talks from Prisma Day 2019_
-  1. _Bob_ has two posts titled _Subscribe to GraphQL Weekly for community news_ and _Follow Prisma on Twitter_
+    - _Alice_ has one post titled _Watch the talks from Prisma Day 2019_
+    - _Bob_ has two posts titled _Subscribe to GraphQL Weekly for community news_ and _Follow Prisma on Twitter_
 1. Retrieve all _published_ posts using `photon.posts.findMany(...)`
 1. Create a new post titled _Join the Prisma Slack community_ connected to the user _Alice_ by her email address
 1. Publish _Alice_'s newly created post using `photon.posts.update(...)`
