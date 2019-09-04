@@ -65,7 +65,7 @@ This screenshot shows the configuration of a database hosted on Heroku. Note tha
 
 ### 2.4. Select programming language for Photon
 
-Photon is a type-safe database client that currently supports JavaScript and TypeScript (this variant is called Photon.js). You'll be using the TypeScript version in this tutorial.
+Photon is a type-safe database client that currently supports JavaScript and TypeScript (this variant is called Photon.js). You'll be using the TypeScript variant in this tutorial.
 
 Hence, select **TypeScript** when prompted by the wizard.
 
