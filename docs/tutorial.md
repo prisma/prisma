@@ -438,6 +438,8 @@ Here is what the terminal screen now looks like:
 
 You can explore the current content of your database using Prisma Studio. Open the endpoint that's shown in your terminal (in most cases this will be [`http://localhost:5555/`](http://localhost:5555/)):
 
+![](https://imgur.com/4h9nk7i.png)
+
 > **Note**: Please share any feedback you have about Prisma Studio in the [`studio`](https://github.com/prisma/studio) repository.
 
 ### 5.2. Add another model
