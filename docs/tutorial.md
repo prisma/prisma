@@ -8,9 +8,9 @@ This tutorial will teach you how to:
 
 1. Install the Prisma 2 CLI
 1. Use the `init` command to set up a new project
+1. Understand the essential parts of a Prisma project setup
 1. Use the `dev` command for development
 1. Migrate your database schema using the `lift` subcommands
-1. Explore Photon's relation API
 
 We will start from scratch and use **TypeScript** with a **PostgreSQL** database in this tutorial. You can set up your PostgreSQL database [locally](https://www.robinwieruch.de/postgres-sql-macos-setup/) or using a hosting provider such as [Heroku](https://elements.heroku.com/addons/heroku-postgresql) or [Digital Ocean](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04). The PostgreSQL database used in this tutorial is hosted on Heroku.
 
