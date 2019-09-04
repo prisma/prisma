@@ -35,11 +35,11 @@ Note that both, **MySQL** and **PostgreSQL** options, required you to run a data
 
 ### Database credentials
 
-After having selected **MySQL** or **PostgreSQL** in the database selection, you need to provide the database connection details and user credentials for your database server. Check out the [MySQL](./core/connectors/mysql) and [PostgreSQL](./core/connectors/postgresql) connector docs to learn about the connection string format and the required info.
+After having selected **MySQL** or **PostgreSQL** in the database selection, you need to provide the database connection details and user credentials for your database server. Check out the [MySQL](./core/connectors/mysql.md) and [PostgreSQL](./core/connectors/postgresql.md) connector docs to learn about the connection string format and the required info.
 
 ### Selecting Prisma tools (Photon/Lift)
 
-If you start with an existing database and the Prisma 2 CLI performed introspection against it to generate the [Prisma schema](./prisma-schema), you will be asked to select which Prisma tools you want to use:
+If you start with an existing database and the Prisma 2 CLI performed introspection against it to generate the [Prisma schema](./prisma-schema.md), you will be asked to select which Prisma tools you want to use:
 
 - Use Photon and Lift
 - [Use only Photon](./photon/use-only-photon.md) (for database access (ORM))

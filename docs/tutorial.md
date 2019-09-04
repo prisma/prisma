@@ -73,7 +73,7 @@ Hence, select **TypeScript** when prompted by the wizard.
 
 ### 2.5. Select the demo script
 
-The wizard offers the option to start with a _demo script_. Selecting this option will get you started with a sample [data model definition](./data-modeling#data-model-definition) as well as an executable script which you can use to explore some Photon.js API calls. 
+The wizard offers the option to start with a _demo script_. Selecting this option will get you started with a sample [data model definition](./data-modeling.md#data-model-definition) as well as an executable script which you can use to explore some Photon.js API calls. 
 
 Select **Demo script** when prompted by the wizard.
 
@@ -184,7 +184,7 @@ You can also add the `output` field to the `generator` block to specify the file
 The [data model definition](./data-modeling.md#data-model-definition) inside the schema file has the following responsibilities:
 
 - It's a _declarative_ description of your underlying database schema
-- It provides the foundation for the generated [Photon API](./photon/api)
+- It provides the foundation for the generated [Photon API](./photon/api.md)
 
 Its main building blocks are [models](./data-modeling.md#models) which map to _tables_ in the underlying PostgreSQL database. The [fields](./data-modeling.md#fields) of a model map to _columns_ of a table.
 
@@ -206,7 +206,7 @@ This defines a model `User` with four fields:
   - `@default(cuid())`: Sets a default value for the field by generating a [`cuid`](https://github.com/ericelliott/cuid)
 - The `email` field is of type `String`. It is annotated with the `@unique` attribute which means that there can never be two records in the database with the same value for that field. This will be enforced by Prisma.
 - The `name` field is of type `String?` (read: "optional string"). The `?` is a [type modifier](#type-modifiers) expressing that this field is _optional_.
-- The `posts` field is of type `Post[]` and denotes a [relation](./relations) to the `Post` model. The `[]` is expressing that this field is a _list_ (i.e. a user can have _many_ posts).
+- The `posts` field is of type `Post[]` and denotes a [relation](./relations.md) to the `Post` model. The `[]` is expressing that this field is a _list_ (i.e. a user can have _many_ posts).
 
 Also take a quick look at the `Post` model:
 
@@ -444,7 +444,7 @@ You can explore the current content of your database using Prisma Studio. Open t
 
 ### 5.2. Add another model
 
-Let's now evolve the application while running in development mode. You'll be adding a new model called `Category` to your schema. `Category` will be connected to `Post` via a [many-to-many](./relations#mn) relationship. Adjust the data model of your Prisma schema as follows:
+Let's now evolve the application while running in development mode. You'll be adding a new model called `Category` to your schema. `Category` will be connected to `Post` via a [many-to-many](./relations.md#mn) relationship. Adjust the data model of your Prisma schema as follows:
 
 ```diff
 model User {
