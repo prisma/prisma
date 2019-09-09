@@ -322,3 +322,14 @@ const updatedPost: Post = await photon.posts.update({
   },
 })
 ```
+
+```ts
+await photon.posts.update({
+  data: {
+    author: { disconnect: true }
+  },
+  where: {
+    id: "ck0c7jl4t0001jpcbfxft600e"
+  }
+})
+```
