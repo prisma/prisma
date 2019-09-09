@@ -6,7 +6,7 @@ This repository is used as a central point to collect information and issues aro
 
 ## What is Prisma?
 
-![](https://imgur.com/skyBm10.png)
+![](https://i.imgur.com/FmaRakd.png)
 
 Prisma is an application data framework consisting of these tools:
 
