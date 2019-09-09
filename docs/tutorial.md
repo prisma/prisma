@@ -234,7 +234,7 @@ The project also contains a number of additional files required for a typical fo
 - `package.json`: Defines your project's Node.js dependencies.
 - `tsconfig.json`: Specifies your TypeScript configuration. Note that Photon.js currently requires the `esModuleInterop` property to be set to `true`.
 - `node_modules/@generated/photon`: Contains the generated Photon.js code. 
-- `index.ts`: Contains the actual "application code", which in this case is a simple script demonstrating some Photon.js API calls.
+- `script.ts`: Contains the actual "application code", which in this case is a simple script demonstrating some Photon.js API calls.
 
 Having Photon.js located inside `node_modules/@generated` enables you to import it in your code as follows:
 
@@ -281,7 +281,7 @@ Now, let's finally consider the _Next steps_ again that had been printed to the 
 
 ![](https://imgur.com/xK3c2HH.png)
 
-The instructions say to navigate into the project directory, start Prisma's development mode and finally execute the demo script. You'll skip the `prisma2 dev` command for now though and just run the `index.ts` script. Before doing so, let's quickly take a look at its contents:
+The instructions say to navigate into the project directory, start Prisma's development mode and finally execute the demo script. You'll skip the `prisma2 dev` command for now though and just run the `script.ts` script. Before doing so, let's quickly take a look at its contents:
 
 ```ts
 import Photon from '@generated/photon'
@@ -494,7 +494,11 @@ const category = await photon.categories.create({
 })
 ```
 
-Note that you need to replace the `__POST_ID_1__` and `__POST_ID_2__` placeholders with actual ID values of the posts you created earlier (you can find these IDs e.g. in Prisma Studio or using a database GUI).
+If you want to try out this code snippet, here are a few things to consider:
+
+- You need to replace the `__POST_ID_1__` and `__POST_ID_2__` placeholders with actual ID values of the posts you created earlier (you can find these IDs e.g. in Prisma Studio or using a database GUI).
+- You need to remove the current code from the script (e.g. by commenting it out), otherwise it will try to re-create `User` records with the same email address which will fail.
+- You can invoke the script using `npm start`.
 
 ### 5.3. Terminate development mode
 
