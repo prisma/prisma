@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "0.2.47",
+  "version": "0.2.48",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
