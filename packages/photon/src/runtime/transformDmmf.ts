@@ -85,6 +85,13 @@ function makeWhereUniqueInputsRequired(inputTypes: DMMF.InputType[]): DMMF.Input
   })
 }
 
+function getFieldType(field: DMMF.Field): string {
+  if (field.default && field.default.name === 'uuid') {
+    return 'UUID'
+  }
+  return field.type
+}
+
 function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
   const types = document.schema.inputTypes
   const inputTypes: DMMF.InputType[] = []
@@ -118,9 +125,9 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
       // also filter out object non-lists, as we don't need to transform them
       .filter(f => (f.kind === 'object' ? f.isList : !f.isList))
       .map(f => {
-        if (!filterTypes[getFilterName(f.type, f.isRequired || f.kind === 'object')]) {
-          filterTypes[getFilterName(f.type, f.isRequired || f.kind === 'object')] = makeFilterType(
-            f.type,
+        if (!filterTypes[getFilterName(getFieldType(f), f.isRequired || f.kind === 'object')]) {
+          filterTypes[getFilterName(getFieldType(f), f.isRequired || f.kind === 'object')] = makeFilterType(
+            getFieldType(f),
             f.isRequired,
             f.kind !== 'object',
           )
@@ -132,11 +139,11 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
             isList: f.isList,
             isRequired: false,
             kind: f.kind,
-            type: f.type,
+            type: getFieldType(f),
           })
         }
         typeList.push({
-          type: getFilterName(f.type, f.isRequired || f.kind === 'object'),
+          type: getFilterName(getFieldType(f), f.isRequired || f.kind === 'object'),
           isList: false,
           isRequired: false,
           kind: 'object',

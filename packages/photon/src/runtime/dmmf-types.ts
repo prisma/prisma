@@ -162,7 +162,14 @@ export namespace DMMF {
     relationOnDelete?: string
     relationName?: string
     documentation?: string
+    default?: FieldDefault
     [key: string]: any // safe net for additional new props
+  }
+
+  export interface FieldDefault {
+    name: string
+    returnType: string
+    args: any[]
   }
 
   export interface Schema {

@@ -13,7 +13,7 @@ generator photon {
 
 /// User model comment
 model User {
-  id    String  @default(cuid()) @id @unique
+  id    String  @default(uuid()) @id @unique
   email String  @unique
   /// name comment
   name  String?

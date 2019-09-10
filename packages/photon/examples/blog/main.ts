@@ -6,7 +6,7 @@ async function main() {
   const testData = await photon.users.findMany({
     where: {
       id: {
-        notIn: '2c8207f9-2a12-4226-99d0-bdc3521a36cc',
+        notIn: '2c82072a12-4226-99d0-bdc3521a36cc',
       },
     },
   })
