@@ -8,8 +8,8 @@
   "license": "Apache-2.0",
   "private": false,
   "devDependencies": {
-    "@prisma/cli": "^0.0.49",
-    "@prisma/photon": "^0.2.14",
+    "@prisma/cli": "^0.0.69",
+    "@prisma/photon": "^0.2.44",
     "@types/charm": "^1.0.1",
     "@types/debug": "^4.1.4",
     "@types/diff": "^4.0.2",
@@ -35,8 +35,8 @@
     "@prisma/photon": "*"
   },
   "dependencies": {
-    "@prisma/fetch-engine": "^0.1.6",
-    "@prisma/get-platform": "^0.0.3",
+    "@prisma/fetch-engine": "^0.1.13",
+    "@prisma/get-platform": "^0.1.1",
     "@prisma/studio-server": "^0.80.0",
     "@types/execa": "^0.9.0",
     "arg": "^4.1.0",
