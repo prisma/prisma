@@ -191,13 +191,14 @@ export class Lift {
       }
 
       const platform = await getPlatform()
+      const extension = platform === 'windows' ? '.exe' : '' 
 
       const pathCandidates = [
         // ncc go home
         // tslint:disable-next-line
-        eval(`require('path').join(__dirname, '../node_modules/@prisma/photon/query-engine-${platform}')`), // for local dev
+        eval(`require('path').join(__dirname, '../node_modules/@prisma/photon/query-engine-${platform}${extension}')`), // for local dev
         // tslint:disable-next-line
-        eval(`require('path').join(__dirname, '../query-engine-${platform}')`), // for production
+        eval(`require('path').join(__dirname, '../query-engine-${platform}${extension}')`), // for production
       ]
 
       const pathsExist = await Promise.all(
