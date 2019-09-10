@@ -50,7 +50,7 @@
   "scripts": {
     "test": "./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
     "test:debug": "./node_modules/.bin/mocha --inspect-brk src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
-    "install": "test -f download-build/index.js && node download-build/index.js || echo \"\"",
+    "install": "node download-build/index.js || echo \"\"",
     "tsc": "tsc -d && cp src/capture-worker.js dist/capture-worker.js",
     "ncc": "ncc build dist/bin.js -o build",
     "ncc:download": "ncc build scripts/download.js -o download-build",
