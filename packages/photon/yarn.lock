@@ -333,13 +333,13 @@
     chalk "^2.4.2"
     strip-indent "^3.0.0"
 
-"@prisma/engine-core@0.0.89":
-  version "0.0.89"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.89.tgz#7e1fa7973ae5027d68903e10ad5425005174c473"
-  integrity sha512-zXpTRe8zySFNKhttV94ZakgijwRrlnL+vYTagc1+CtV64bhTk35qbdsIc7pVt8k6ovtKGDLzFbnx8vOB/UEB7Q==
+"@prisma/engine-core@0.0.90":
+  version "0.0.90"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.90.tgz#19a9677bdd36934c1fceeecae4e1543fc4d20edc"
+  integrity sha512-TBJXYlzg9AtEdRf//E97/rC9mn7bMbMly1hCucVJDmqeDdmBUVYRVUVSfW9kAbyJeuyNRDag9AH4zmjcJgP3Bg==
   dependencies:
     "@prisma/cli" "^0.0.51"
-    "@prisma/get-platform" "^0.1.0"
+    "@prisma/get-platform" "^0.1.1"
     chalk "^2.4.2"
     cross-fetch "^3.0.4"
     debug "^4.1.1"
@@ -347,12 +347,12 @@
     got "^9.6.0"
     through2 "^3.0.1"
 
-"@prisma/fetch-engine@^0.1.11":
-  version "0.1.11"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.1.11.tgz#aa99f014d68ae356b9d581c43002531a928bd5b0"
-  integrity sha512-d+0SoSCevuKWX12JszhJIGSbtYGHLgKHWLKjolHtsq1KHCHFkTLatnRJHWAcnleZUfMH+dAl1gOCewcb70IeSg==
+"@prisma/fetch-engine@^0.1.13":
+  version "0.1.13"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.1.13.tgz#89322860188da8d63c9d5fb9ab8bb83634deeac9"
+  integrity sha512-fttaebtuIckdf7evwlkarpWBLnfgkV3KuCD2xY02bQZd14Nt0e9CaHmSa0arN7mwFD4ZRAe/tWOGNfJMXgTm9g==
   dependencies:
-    "@prisma/get-platform" "^0.1.0"
+    "@prisma/get-platform" "^0.1.1"
     chalk "^2.4.2"
     death "^1.1.0"
     debug "^4.1.1"
@@ -365,10 +365,10 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/get-platform@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@prisma/get-platform/-/get-platform-0.1.0.tgz#59be0574a582c9ed9625dbe2eb386df07c9fdb33"
-  integrity sha512-LYV7jdTx3WdnXCY3BS4Q50c7dGnxbR2lpR5j4TWC0QjC3Is6TIqBg4hd6bTwtq2kqealkEg82WRO/lJiPmjPIg==
+"@prisma/get-platform@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@prisma/get-platform/-/get-platform-0.1.1.tgz#093472840bbd14abc6bfb2b2224383119b5f0f5d"
+  integrity sha512-9fvV56qh6TEA7HOs33QOwThGcX+HyFzeVsP1EDH9LJvCzLz4XXe3VdTEQ8KN+HqXMLjLCkaCCxOhf0jeHocUpQ==
   dependencies:
     debug "^4.1.1"
 
