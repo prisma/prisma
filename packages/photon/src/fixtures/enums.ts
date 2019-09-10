@@ -25,6 +25,11 @@ export const enums = /* GraphQL */ `
     updatedAt DateTime @updatedAt
   }
 
+  model Test {
+    id String @id @default(uuid())
+    name String
+  }
+
   model Location {
     id Int @id
     city String
