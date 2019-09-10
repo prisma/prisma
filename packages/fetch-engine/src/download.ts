@@ -102,10 +102,11 @@ export async function download(options: DownloadOptions) {
 }
 
 function getBinaryName(binaryName, platform) {
+  const extension = platform === 'windows' ? '.exe' : ''
   if (binaryName === 'migration-engine') {
-    return 'migration-engine'
+    return 'migration-engine' + extension
   }
-  return `${binaryName}-${platform}`
+  return `${binaryName}-${platform}${extension}`
 }
 
 async function downloadBinary({

@@ -5,3 +5,4 @@ export type Platform =
   | 'linux-glibc-libssl1.0.2'
   | 'linux-glibc-libssl1.0.2-ubuntu1604'
   | 'linux-glibc-libssl1.1.0'
+  | 'windows'

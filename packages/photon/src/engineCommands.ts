@@ -8,7 +8,9 @@ import { ExternalDMMF } from './runtime/dmmf-types'
 async function getPrismaPath(): Promise<string> {
   // tslint:disable-next-line
   const dir = eval('__dirname')
-  const relative = `../query-engine-${await getPlatform()}`
+  const platform = await getPlatform()
+  const extension = (platform === 'windows') ? '.exe' : ''
+  const relative = `../query-engine-${platform}${extension}`
   return path.join(dir, relative)
 }
 
@@ -65,7 +67,7 @@ export async function getConfig(
     if (e.stdout) {
       throw new Error(chalk.redBright.bold('Get config ') + e.stdout)
     }
-    throw new Error(e)
+    throw new Error(chalk.redBright.bold('Get config ') + e)
   }
 }
 
