@@ -9,6 +9,7 @@ const debugStderr = debugLib('LiftEngine:stderr')
 const debugStdin = debugLib('LiftEngine:stdin')
 import fs from 'fs'
 import { now } from './utils/now'
+import { getPlatform } from '@prisma/get-platform';
 
 export interface LiftEngineOptions {
   projectDir: string
@@ -122,10 +123,12 @@ export class LiftEngine {
     return this.initPromise!
   }
   private internalInit(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         const { PWD, ...rest } = process.env
-        this.child = spawn(this.binaryPath, ['-d', this.schemaPath], {
+        const platform = await getPlatform()
+        const extension = platform === 'windows' ? '.exe' : '' 
+        this.child = spawn(this.binaryPath + extension, ['-d', this.schemaPath], {
           cwd: this.projectDir,
           stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
           env: {
