@@ -718,6 +718,10 @@ function getFilterArgName(arg: string, filter: string) {
     return arg
   }
 
+  if (filter === 'notIn') {
+    return `${arg}_not_in`
+  }
+
   return `${arg}_${filter}`
 }
 
