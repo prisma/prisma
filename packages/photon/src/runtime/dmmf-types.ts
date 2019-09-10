@@ -142,6 +142,7 @@ export namespace DMMF {
     isEmbedded: boolean
     dbName: string | null
     fields: Field[]
+    documentation?: string
     [key: string]: any // safe net for additional new props
   }
 
@@ -160,6 +161,7 @@ export namespace DMMF {
     relationToFields?: any[]
     relationOnDelete?: string
     relationName?: string
+    documentation?: string
     [key: string]: any // safe net for additional new props
   }
 
