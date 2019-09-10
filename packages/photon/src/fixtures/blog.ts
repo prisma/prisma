@@ -11,9 +11,11 @@ generator photon {
   transpile = false
 }
 
+/// User model comment
 model User {
   id    String  @default(cuid()) @id @unique
   email String  @unique
+  /// name comment
   name  String?
   posts Post[]
 }
