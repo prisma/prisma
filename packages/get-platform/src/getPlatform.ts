@@ -106,11 +106,15 @@ async function gracefulExec(cmd: string): Promise<string | undefined> {
 export async function getPlatform(): Promise<Platform> {
   const { platform, libssl, distro } = await getos()
 
+  debug({ platform, libssl })
+
   if (platform === 'darwin') {
     return 'darwin'
   }
 
-  debug({ platform, libssl })
+  if (platform === 'win32') {
+    return 'windows'
+  }
 
   if (platform === 'linux' && libssl) {
     if (libssl === '1.0.2') {

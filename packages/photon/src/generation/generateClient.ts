@@ -249,7 +249,8 @@ In case you want to fix this, you can provide ${chalk.greenBright(
   }
 
   for (const resolvedPlatform of builtinPlatforms) {
-    const binaryName = `query-engine-${resolvedPlatform}`
+    const extension = platform === 'windows' ? '.exe' : '' 
+    const binaryName = `query-engine-${resolvedPlatform}${extension}`
     const source = path.join(__dirname, '../../', binaryName)
     const target = path.join(outputDir, '/runtime', binaryName)
     debug(`Copying ${source} to ${target}`)
