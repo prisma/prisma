@@ -394,27 +394,29 @@
     terminal-link "^1.3.0"
     wtfnode "0.8.0"
 
-"@prisma/studio-server@^0.80.0":
-  version "0.80.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.80.0.tgz#b2eaf405707df3bfbbe68e112b57cbd6ee35b25d"
-  integrity sha512-VDhdweIrRn6BaP/h0baPJHZhh06koLkBDBCkUQepYfr57Nzc/QuJrMUz0EZOJNEpjQzz72LTZBR9TRKWNGqhgw==
+"@prisma/studio-server@^0.84.0":
+  version "0.84.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.84.0.tgz#221314e83bd4fb1f9b1386b9d431b91e450049b9"
+  integrity sha512-cgjZIgVLVBtEOMFd6U7Um4CDKL1Ji7prdbV4D0iHe6xQvxVP//etBGwe3dQ79IivVACGvnfkCIyZ8rics6a3bw==
   dependencies:
-    "@prisma/studio" "0.80.0"
-    "@prisma/studio-transports" "0.80.0"
+    "@prisma/studio" "0.84.0"
+    "@prisma/studio-transports" "0.84.0"
     express "^4.17.1"
     express-ws "^4.0.0"
 
-"@prisma/studio-transports@0.80.0":
-  version "0.80.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.80.0.tgz#2b56a04b27c08fe35aac7bda670715a8686a3732"
-  integrity sha512-zDPE2Hk0h9VpRLFrZ36mH5dmj2MgFs3LgxiXDelPueJ2K4n4b9kSQX5ge/Rvex5gYvdXiwdvwfEryIeb9+Xd+Q==
+"@prisma/studio-transports@0.84.0":
+  version "0.84.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.84.0.tgz#c6edf542e610c666e9290069b5de91d2579667f1"
+  integrity sha512-4kZHQRtYDL7RMvWdxHqHDWwUGgUs6LLfsuNIin69leRLUI4mK8QUxrZ1RL2i0v7EYJFhOZV42VXG/LZKp0qR8w==
   dependencies:
     strip-ansi "^5.2.0"
 
-"@prisma/studio@0.80.0":
-  version "0.80.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.80.0.tgz#8808a82bc9df325b8a763ab1f103c73187923d6c"
-  integrity sha512-sfYrf0F4Kk2AiXO9hH7NSF09ryvdWNscsU39qlLFrBTH1CxFW7RSAEiEq/MC9musqCmfHGx34z0KjNI380RimA==
+"@prisma/studio@0.84.0":
+  version "0.84.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.84.0.tgz#fc162f70ab923489250ef2e59fe2722983d77b51"
+  integrity sha512-5BtrgJqq+FpVVgIAvQ6Z2q9Q3cUfr72lpvJgd0Go04Bg1zYbFn4bdoJAE8G2c+BmlDrcQzCAegmoD29b7tqBGg==
+  dependencies:
+    "@shopify/react-shortcuts" "^3.0.5"
 
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
@@ -422,6 +424,13 @@
   integrity sha512-MI4Xx6LHs4Webyvi6EbspgyAb4D2Q2VtnCQ1blOJcoLS6mVa8lNN2rkIy1CVxfTUpoyIbCTkXES1rLXztFD1lg==
   dependencies:
     any-observable "^0.3.0"
+
+"@shopify/react-shortcuts@^3.0.5":
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/@shopify/react-shortcuts/-/react-shortcuts-3.0.6.tgz#5bbb12ef7fdbbc61059895cd1427de5ef402c378"
+  integrity sha512-3R8MZYY51elVwCbsrySkrUyKHCagxKnkfw8cPUHkMklrIQF9fBr4wNYVDeUcpGbUcd30duwPjaICufwimOMjkg==
+  dependencies:
+    tslib "^1.9.3"
 
 "@sindresorhus/is@^0.14.0":
   version "0.14.0"
@@ -5489,7 +5498,7 @@ ts-jest@^24.0.2:
     semver "^5.5"
     yargs-parser "10.x"
 
-tslib@^1.8.0, tslib@^1.8.1, tslib@^1.9.0:
+tslib@^1.8.0, tslib@^1.8.1, tslib@^1.9.0, tslib@^1.9.3:
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.10.0.tgz#c3c19f95973fb0a62973fb09d90d961ee43e5c8a"
   integrity sha512-qOebF53frne81cf0S9B41ByenJ3/IuH8yJKngAX35CmiZySA0khhkovshKK+jGCaMnVomla7gVlIcc3EvKPbTQ==
