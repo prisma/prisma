@@ -21,8 +21,8 @@ export function mergeBy<T>(arr1: T[], arr2: T[], cb: (element: T) => string) {
   return result
 }
 
-const groupBy = <T>(arr: T[], cb: (element: T) => string): {[key: string]: T[]} =>  {
-  return arr.reduce<{[key: string]: T[]}>((acc, curr) => {
+const groupBy = <T>(arr: T[], cb: (element: T) => string): { [key: string]: T[] } => {
+  return arr.reduce<{ [key: string]: T[] }>((acc, curr) => {
     const key = cb(curr)
     if (!acc[key]) {
       acc[key] = []
