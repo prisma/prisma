@@ -394,27 +394,27 @@
     terminal-link "^1.3.0"
     wtfnode "0.8.0"
 
-"@prisma/studio-server@^0.86.0":
-  version "0.86.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.86.0.tgz#b11d7b403272152d25f471bad87685268b88c591"
-  integrity sha512-yQDH30+vDhdUmwFcno1jOhJBmp0mROhi79XAYTfryA6mXP//0MDpQCNgfpBrxdMD2addtgY8j8j5cAxSakqaxQ==
+"@prisma/studio-server@^0.90.0":
+  version "0.90.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.90.0.tgz#d16d4906919faf0784298add935beeb11efbfbe0"
+  integrity sha512-CSfDyec3qjDvW08/rA5oGAkNvvZmv6TJXzrVSPzlAZ4MBydyACRqFamRP2lI3LWRAlQ1qmNcOIxlm0p3byrVJw==
   dependencies:
-    "@prisma/studio" "0.86.0"
-    "@prisma/studio-transports" "0.86.0"
+    "@prisma/studio" "0.90.0"
+    "@prisma/studio-transports" "0.90.0"
     express "^4.17.1"
     express-ws "^4.0.0"
 
-"@prisma/studio-transports@0.86.0":
-  version "0.86.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.86.0.tgz#11dd3fd089e8bc809d01184c64fc03e68fd46c66"
-  integrity sha512-/f73G8TqX1jSHgHNeZoYPxhrU/KZ2xOdnb+iLTHvf8mlZUcetUmAqOQqp9WMNdrf+JsXAC/gqFpCHGTdLXPrqQ==
+"@prisma/studio-transports@0.90.0":
+  version "0.90.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.90.0.tgz#2abc2558de8d14fd7ca79c0ffb8828bcf60818f5"
+  integrity sha512-ZNJQ1sibFTOSSOQYCZVBYtFDQcIw8RQZN8jhDqmOhI/kLGRkvKREBra0doE/b4Ud+2m4zd2/ljHzuODExbbKSg==
   dependencies:
     strip-ansi "^5.2.0"
 
-"@prisma/studio@0.86.0":
-  version "0.86.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.86.0.tgz#492f81b1b943c649fde5d3b5c3f1c2aa41150530"
-  integrity sha512-mcmh/APzGeLvTIwYO87sSuzugD7MTw2xPkeBudYhGD/em7LtO4WUy6ZRwyddfUd2Jpax9B6TQAaS9r0+JZQVBA==
+"@prisma/studio@0.90.0":
+  version "0.90.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.90.0.tgz#91f2348fffb5b9a6f06944009d1c4fb23156a36e"
+  integrity sha512-/1UAybL0SYlNpGUmMP4xV6MDmJX6IeV2XGrWRWuSTb9A8fd1Jz++ugSazg1SnB5BcevBDgURVSWDmqbyeNG8MQ==
   dependencies:
     "@shopify/react-shortcuts" "^3.0.5"
 
