@@ -179,17 +179,6 @@ enum Color {
 }
 ```
 
-You can map the values of an enum to the respective values in the data source:
-
-```
-enum Color {
-  Red  = "RED"
-  Teal = "TEAL"
-}
-```
-
-Prisma currently only supports string enum value types.
-
 ## Type definitions
 
 Type definitions use the `type` keyword. They can be used to consolidate various type specifications into a single type:
