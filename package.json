@@ -1,6 +1,6 @@
 {
   "name": "@prisma/lift",
-  "version": "0.2.47",
+  "version": "0.2.48",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
