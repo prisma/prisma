@@ -37,7 +37,8 @@ const commonCode = (runtimePath: string, version?: string) => `import {
   debugLib,
   transformDocument,
   chalk,
-  printStack
+  printStack,
+  mergeBy
 } from '${runtimePath}'
 
 /**
@@ -160,8 +161,6 @@ export class TSClient {
     generator,
     platforms,
     sqliteDatasourceOverrides,
-    version,
-    pinnedPlatform,
   }: TSClientOptions) {
     this.document = document
     this.datamodel = datamodel
@@ -287,18 +286,6 @@ export type Hooks = {
   beforeRequest?: (options: {query: string, path: string[], rootField?: string, typeName?: string, document: any}) => any
 }
 
-function uniqueBy(arr: any[], cb: any) {
-  var a = arr.concat();
-  for(var i=0; i<a.length; ++i) {
-      for(var j=i+1; j<a.length; ++j) {
-          if(cb(a[i]) === cb(a[j]))
-              a.splice(j--, 1)
-      }
-  }
-
-  return a
-}
-
 export default class Photon {
   private fetcher: PhotonFetcher
   private readonly dmmf: DMMFClass
@@ -321,7 +308,8 @@ export default class Photon {
         : '[]'
     }
     const inputDatasources = Object.entries(options.datasources || {}).map(([name, url]) => ({ name, url: url! }))
-    const datasources = uniqueBy([...predefinedDatasources, ...inputDatasources], (source: any) => source.name)
+
+    const datasources = mergeBy(predefinedDatasources, inputDatasources, (source: any) => source.name)
 
     const internal = options.__internal || {}
     const engineConfig = internal.engine || {}
