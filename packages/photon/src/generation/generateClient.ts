@@ -249,7 +249,7 @@ In case you want to fix this, you can provide ${chalk.greenBright(
   }
 
   for (const resolvedPlatform of builtinPlatforms) {
-    const extension = platform === 'windows' ? '.exe' : '' 
+    const extension = platform === 'windows' ? '.exe' : ''
     const binaryName = `query-engine-${resolvedPlatform}${extension}`
     const source = path.join(__dirname, '../../', binaryName)
     const target = path.join(outputDir, '/runtime', binaryName)
