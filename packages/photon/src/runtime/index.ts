@@ -7,3 +7,4 @@ export { default as debugLib } from 'debug'
 export { InternalDatasource, Datasource, printDatasources } from './utils/printDatasources'
 export { default as chalk } from 'chalk'
 export { printStack } from './utils/printStack'
+export { mergeBy } from './mergeBy';

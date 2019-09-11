@@ -309,6 +309,9 @@ export declare type printDatasources = any
 
 export declare var printStack: any
 export declare type printStack = any
+
+export declare var mergeBy: any
+export declare type mergeBy = any
 `
 
 // const indexDTS = `export { DMMF } from './dmmf-types'

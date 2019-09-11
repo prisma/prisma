@@ -1,15 +1,14 @@
 import Photon from './@generated/photon'
+import path from 'path'
 
 async function main() {
-  const photon = new Photon()
-
-  const testData = await photon.users.findMany({
-    where: {
-      id: {
-        notIn: '2c82072a12-4226-99d0-bdc3521a36cc',
-      },
-    },
+  const photon = new Photon({
+    datasources: {
+      db: `file:${path.join(__dirname, 'dev2.db')}`
+    }
   })
+
+  const testData = await photon.users.findMany()
   console.log(testData)
   photon.disconnect()
 }
