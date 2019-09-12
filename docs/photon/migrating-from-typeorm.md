@@ -1,6 +1,6 @@
 # Tutorial: Migrating from TypeORM to Photon.js
 
-[TypeORM](https://typeorm.io/) and [Photon.js](https://photonjs.prisma.io/) both act as abstraction layers between your application and your database, but each works differently under the hood and provides different types of abstractions. While migrating an ORM to Photon.js may be an investment, the Prisma engine allows you to write more explicit, clear, and performant code in the long run.  In this tutorial, we will compare both approaches for working with databases and walk through how to migrate from a TypeORM project to a Photon.js one.
+[TypeORM](https://typeorm.io/) and [Photon.js](https://photonjs.prisma.io/) both act as abstraction layers between your application and your database, but each works differently under the hood and provides different types of abstractions. In this tutorial, we will compare both approaches for working with databases and walk through how to migrate from a TypeORM project to a Photon.js one.
 
 > **Note**: If you encounter any problems with this tutorial or any parts of Prisma 2, this is how you can get help: **create an issue on [GitHub](https://github.com/prisma/prisma2/issues)** or join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on [Slack](https://slack.prisma.io/) to share your feedback directly. We also have a community forum on [Spectrum](https://spectrum.chat/prisma).
 
