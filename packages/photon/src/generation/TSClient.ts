@@ -23,6 +23,7 @@ import {
   // getExtractName,
   Projection,
   renderInitialClientArgs,
+  getRelativePathResolveStatement,
 } from './utils'
 
 const tab = 2
@@ -139,6 +140,8 @@ interface TSClientOptions {
   platforms?: string[]
   pinnedPlatform?: string
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
+  cwd?: string
+  outputDir: string
 }
 
 export class TSClient {
@@ -147,11 +150,13 @@ export class TSClient {
   protected readonly datamodel: string
   protected readonly runtimePath: string
   protected readonly browser: boolean
+  protected readonly outputDir: string
   protected readonly internalDatasources: InternalDatasource[]
   protected readonly generator?: GeneratorConfig
   protected readonly platforms?: string[]
   protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[]
   protected readonly version?: string
+  protected readonly cwd?: string
   constructor({
     document,
     datamodel,
@@ -161,6 +166,8 @@ export class TSClient {
     generator,
     platforms,
     sqliteDatasourceOverrides,
+    cwd,
+    outputDir,
   }: TSClientOptions) {
     this.document = document
     this.datamodel = datamodel
@@ -173,6 +180,8 @@ export class TSClient {
     // We make a deep clone here as otherwise we would serialize circular references
     // which we're building up in the DMMFClass
     this.dmmf = new DMMFClass(JSON.parse(JSON.stringify(document)))
+    this.cwd = cwd
+    this.outputDir = outputDir
   }
   public toString() {
     return `${commonCode(this.runtimePath, this.version)}
@@ -192,9 +201,11 @@ ${new PhotonClientClass(
   this.dmmf,
   this.datamodel,
   this.internalDatasources,
+  this.outputDir,
   this.browser,
   this.generator,
   this.sqliteDatasourceOverrides,
+  this.cwd,
 )}
 
 ${/*new Query(this.dmmf, 'query')*/ ''}
@@ -252,9 +263,11 @@ class PhotonClientClass {
     protected readonly dmmf: DMMFClass,
     protected readonly datamodel: string,
     protected readonly internalDatasources: InternalDatasource[],
+    protected readonly outputDir: string,
     protected readonly browser?: boolean,
     protected readonly generator?: GeneratorConfig,
     protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[],
+    protected readonly cwd?: string,
   ) {}
   public toString() {
     const { dmmf } = this
@@ -315,7 +328,7 @@ export default class Photon {
     const engineConfig = internal.engine || {}
 
     this.engine = new Engine({
-      cwd: engineConfig.cwd,
+      cwd: engineConfig.cwd || ${getRelativePathResolveStatement(this.outputDir, this.cwd)},
       debug: debugEngine,
       datamodel: this.datamodel,
       prismaPath: engineConfig.binaryPath || undefined,
