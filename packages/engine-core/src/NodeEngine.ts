@@ -77,7 +77,7 @@ export class NodeEngine extends Engine {
 
   constructor({ cwd, datamodel, prismaPath, platform, generator, datasources, ...args }: EngineConfig) {
     super()
-    this.cwd = cwd
+    this.cwd = this.resolveCwd(cwd)
     this.debug = args.debug || false
     this.datamodel = datamodel
     this.prismaPath = prismaPath
@@ -113,6 +113,14 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
     if (this.debug) {
       debugLib.enable('*')
     }
+  }
+
+  private resolveCwd(cwd?: string): string {
+    if (cwd && fs.existsSync(cwd) && fs.lstatSync(cwd).isDirectory()) {
+      return cwd
+    }
+
+    return process.cwd()
   }
 
   on(event: 'log', listener: (log: Log) => any) {
@@ -277,6 +285,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         }
 
         debug(env)
+        debug({ cwd: this.cwd })
 
         const prismaPath = await this.getPrismaPath()
 
@@ -285,6 +294,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             ...process.env,
             ...env,
           },
+          cwd: this.cwd,
           stdio: ['pipe', 'pipe', 'pipe'],
         })
 

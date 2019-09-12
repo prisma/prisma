@@ -77,6 +77,8 @@ export async function buildClient({
     platforms,
     version,
     pinnedPlatform,
+    cwd,
+    outputDir
   })
   const generatedClient = String(client)
   const target = '@generated/photon/index.ts'

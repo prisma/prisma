@@ -1,6 +1,7 @@
 import indent from 'indent-string'
 import { DMMFClass } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
+import path from 'path'
 
 export enum Projection {
   select = 'select',
@@ -214,4 +215,11 @@ export function indentAllButFirstLine(str: string, indentation: number) {
   const lines = str.split('\n')
 
   return lines[0] + '\n' + indent(lines.slice(1).join('\n'), indentation)
+}
+
+export function getRelativePathResolveStatement(outputDir: string, cwd?: string) {
+  if (!cwd) {
+    return 'undefined'
+  }
+  return `path.resolve(__dirname, ${JSON.stringify(path.relative(outputDir, cwd))})`
 }
