@@ -244,6 +244,7 @@ export namespace DMMF {
     upsert?: string | null
     delete?: string | null
     deleteMany?: string | null
+    aggregate?: string | null
   }
 
   export enum ModelAction {
