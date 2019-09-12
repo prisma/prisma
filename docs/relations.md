@@ -171,36 +171,6 @@ side of the relation is missing, Prisma implies the field name based on the name
 of the model it is pointing to. If you omitted `User.posts`, Prisma would add
 an implicit `User.post` field, making the relation `1:1` instead of `1:n`.
 
-You may also map to composite primary keys:
-
-```groovy
-model User {
-  first_name  String  @id
-  last_name   String
-  blogs       Blog[]
-
-  @@id([ first_name, last_name ])
-}
-
-model Post {
-  id         Int @id
-  author     Writer
-}
-```
-
-This results in the following tables:
-
-| **User**   |      |
-| ---------- | ---- |
-| first_name | text |
-| last_name  | text |
-
-| **Post**          |      |
-| ----------------- | ---- |
-| id                | Int  |
-| author_first_name | text |
-| author_last_name  | text |
-
 ## m:n
 
 The return value on both sides is a list that might be empty. This is an improvement over the standard implementation in relational databases that require the application developer to deal with implementation details such as an intermediate table / join table. In Prisma, each connector will implement this concept in the way that is most efficient on the given storage engine and expose an API that hides the implementation details.
