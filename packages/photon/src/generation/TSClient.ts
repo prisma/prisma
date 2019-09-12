@@ -14,16 +14,16 @@ import {
   getIncludeName,
   getModelArgName,
   getPayloadName,
+  getRelativePathResolveStatement,
   getScalarsName,
   getSelectName,
   getSelectReturnType,
   getType,
   indentAllButFirstLine,
-  isQueryAction,
   // getExtractName,
+  isQueryAction,
   Projection,
   renderInitialClientArgs,
-  getRelativePathResolveStatement,
 } from './utils'
 
 const tab = 2

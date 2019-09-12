@@ -1,7 +1,7 @@
 import indent from 'indent-string'
+import path from 'path'
 import { DMMFClass } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
-import path from 'path'
 
 export enum Projection {
   select = 'select',
