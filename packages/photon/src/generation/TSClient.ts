@@ -649,7 +649,9 @@ export class ModelDelegate {
   public toString() {
     const { fields, name } = this.outputType
     const mapping = this.dmmf.mappings.find(m => m.model === name)!
-    const actions = Object.entries(mapping).filter(([key, value]) => key !== 'model' && key !== 'plural' && value)
+    const actions = Object.entries(mapping).filter(
+      ([key, value]) => key !== 'model' && key !== 'plural' && key !== 'aggregate' && value,
+    )
 
     const listConstraint = getModelArgName(name, /*projection*/ undefined, DMMF.ModelAction.findMany)
     // TODO: The following code needs to be split up and is a mess
@@ -678,6 +680,7 @@ ${indent(
     .join('\n'),
   tab,
 )}
+  count(): Promise<number>
 }
 function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delegate {
   const ${name} = <T extends ${listConstraint}>(args: Subset<T, ${getModelArgName(
@@ -723,6 +726,9 @@ ${indent(
     .join('\n'),
   tab,
 )}
+  ${name}.count = () => new ${name}Client<number>(dmmf, fetcher, 'query', '${mapping.aggregate!}', '${
+      mapping.plural
+    }.count', {}, ['count'])
   return ${name} as any // any needed until https://github.com/microsoft/TypeScript/issues/31335 is resolved
 }
 

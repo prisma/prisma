@@ -78,5 +78,6 @@ function getMappings(mappings: ExternalDMMF.Mapping[]): DMMF.Mapping[] {
     deleteMany: mapping.deleteMany,
     updateMany: mapping.updateMany,
     upsert: mapping.upsertOne || mapping.upsertSingle || mapping.upsert,
+    aggregate: mapping.aggregate,
   }))
 }
