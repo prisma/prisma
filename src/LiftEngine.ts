@@ -9,7 +9,7 @@ const debugStderr = debugLib('LiftEngine:stderr')
 const debugStdin = debugLib('LiftEngine:stdin')
 import fs from 'fs'
 import { now } from './utils/now'
-import { getPlatform } from '@prisma/get-platform';
+import { getPlatform } from '@prisma/get-platform'
 
 export interface LiftEngineOptions {
   projectDir: string
@@ -127,7 +127,7 @@ export class LiftEngine {
       try {
         const { PWD, ...rest } = process.env
         const platform = await getPlatform()
-        const extension = platform === 'windows' ? '.exe' : '' 
+        const extension = platform === 'windows' ? '.exe' : ''
         this.child = spawn(this.binaryPath + extension, ['-d', this.schemaPath], {
           cwd: this.projectDir,
           stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
@@ -146,8 +146,8 @@ export class LiftEngine {
         })
 
         this.child.on('exit', (code, signal) => {
-          if (code !== 0) {
-            const messages = this.messages.join('\n')
+          const messages = this.messages.join('\n')
+          if (code !== 0 || messages.includes('panicked at')) {
             let errorMessage = chalk.red.bold('Error in migration engine: ') + messages
             if (messages.includes('\u001b[1;94m-->\u001b[0m')) {
               errorMessage = `${chalk.red.bold('Schema parsing ')}` + messages
@@ -222,7 +222,7 @@ export class LiftEngine {
           }
         }
       })
-      debugRpc('SENDING RPC CALL', util.inspect(request, { depth: null }))
+      debugRpc('SENDING RPC CALL', JSON.stringify(request))
       this.child!.stdin!.write(JSON.stringify(request) + '\n')
     })
   }

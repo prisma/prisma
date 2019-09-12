@@ -191,7 +191,7 @@ export class Lift {
       }
 
       const platform = await getPlatform()
-      const extension = platform === 'windows' ? '.exe' : '' 
+      const extension = platform === 'windows' ? '.exe' : ''
 
       const pathCandidates = [
         // ncc go home
