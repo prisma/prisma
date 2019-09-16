@@ -5,7 +5,6 @@ During the preview phase of Prisma 2 there are missing features, limited perform
 ## Functionality limitations
 
 - `Embed` types are not implemented yet ([Issue](https://github.com/prisma/lift/issues/43)) 
-- Prisma does not yet work on Windows and is tested on Mac and Linux only. ([Track our progress on supporting Windows](https://github.com/prisma/prisma2/issues/4))
 - Models must have an `@id` attribute and it must take one of these forms:
     - `Int @id`
     - `String @id @default(uuid())`
