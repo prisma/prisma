@@ -36,7 +36,7 @@ const Step1MySQLCredentials: React.FC = () => {
               router.setRoute('introspection')
             }
           } else {
-            router.setRoute(state.useStarterKit ? 'download-example' : 'language-selection')
+            router.setRoute('create-or-select-db')
           }
         } else {
           router.setRoute('choose-database')

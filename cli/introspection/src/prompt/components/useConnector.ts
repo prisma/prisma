@@ -16,12 +16,14 @@ type ConnectorState = {
   connected: boolean
   connecting: boolean
   selectedDatabaseMeta?: SchemaWithMetaData
+  dbDoesntExist: boolean
 }
 
 const initialState: ConnectorState = {
   error: null,
   connected: false,
   connecting: false,
+  dbDoesntExist: false,
 }
 
 export interface SchemaWithMetaData {
@@ -107,8 +109,17 @@ export function useConnector() {
         })
         tabContext.lockNavigation(false)
       } catch (error) {
-        setState({ error: prettifyConnectorError(error), connecting: false })
-        tabContext.lockNavigation(false)
+        if (error.message.includes('Unknown database') && (credentials.database || credentials.schema)) {
+          const credentialsCopy = {
+            ...credentials,
+            database: undefined,
+            schema: undefined,
+          }
+          return connect(credentialsCopy)
+        } else {
+          setState({ error: prettifyConnectorError(error), connecting: false })
+          tabContext.lockNavigation(false)
+        }
       }
     } else {
       await connector.disconnect()

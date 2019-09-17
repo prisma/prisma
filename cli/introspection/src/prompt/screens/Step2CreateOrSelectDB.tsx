@@ -20,7 +20,7 @@ const Step2CreateOrSelectDB: React.FC = () => {
   const [creatingDb, setCreatingDb] = useState(false)
 
   const router = useContext(RouterContext)
-  const { schemas, disconnect } = useConnector()
+  const { schemas, disconnect, connector, connect } = useConnector()
   if (!state.dbCredentials) {
     throw new Error('Missing credentials in choose db view')
   }
@@ -41,6 +41,9 @@ const Step2CreateOrSelectDB: React.FC = () => {
     try {
       setCreatingDb(true)
       await createDatabase(dbCredentials.uri!)
+      if (!connector) {
+        await connect(dbCredentials)
+      }
       setCreatingDb(false)
       router.setRoute(state.useStarterKit ? 'download-example' : 'language-selection')
     } catch (e) {
