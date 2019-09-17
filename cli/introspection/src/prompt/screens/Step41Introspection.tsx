@@ -6,7 +6,7 @@ import { DatabaseType } from 'prisma-datamodel'
 import { useConnector, prettifyConnectorError } from '../components/useConnector'
 import { RouterContext } from '../components/Router'
 import { prettyDb } from '../utils/print'
-import { ErrorBox } from '../components/ErrorBox'
+import { ErrorBox } from '@prisma/ink-components'
 const AnySpinner = Spinner as any
 
 const Step41Introspection: React.FC = () => {

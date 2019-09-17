@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { Color, Box } from 'ink'
-import BorderBox from '../components/BorderBox'
+import { BorderBox } from '@prisma/ink-components'
 import { Link } from '../components/Link'
 import { useInitState } from '../components/InitState'
 import { useExampleApi } from '../utils/useExampleApi'

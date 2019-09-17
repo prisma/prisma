@@ -1,5 +1,5 @@
 import { ExampleApi } from '../types'
-import { useFetch } from '../components/useFetch'
+import { useFetch } from './useFetch'
 
 export function useExampleApi(): null | ExampleApi {
   // augment the data with `id` and `language`, so that it can be used easier later

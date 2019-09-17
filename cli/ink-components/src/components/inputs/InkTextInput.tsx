@@ -2,7 +2,7 @@
 import chalk from 'chalk'
 import { Color, Box } from 'ink'
 import React, { useEffect, useState } from 'react'
-import { ActionKey } from '../helpers'
+import { ActionKey } from '../../helpers'
 import { Key } from 'readline'
 
 type Props = {
@@ -28,7 +28,15 @@ export const InkTextInput: React.FC<Props> = props => {
   const [cursorWidth, setCursorWidth] = useState(0)
 
   useEffect(() => {
-    const { value: originalValue, focus, showCursor, mask, onChange, onSubmit, keyPressed } = props
+    const {
+      value: originalValue,
+      focus,
+      showCursor,
+      mask,
+      onChange,
+      onSubmit,
+      keyPressed,
+    } = props
 
     if (!keyPressed) {
       return
@@ -49,7 +57,12 @@ export const InkTextInput: React.FC<Props> = props => {
       return
     }
 
-    if (actionKey === 'up' || actionKey === 'down' || actionKey === 'abort' || actionKey === 'next') {
+    if (
+      actionKey === 'up' ||
+      actionKey === 'down' ||
+      actionKey === 'abort' ||
+      actionKey === 'next'
+    ) {
       return
     }
 
@@ -58,7 +71,11 @@ export const InkTextInput: React.FC<Props> = props => {
     let cursorWidth = 0
 
     // ux shortcut to take the placeholder value
-    if (originalValue === '' && placeholder && ['right', 'tab', 'return'].includes(keyPressed.originalKey.name!)) {
+    if (
+      originalValue === '' &&
+      placeholder &&
+      ['right', 'tab', 'return'].includes(keyPressed.originalKey.name!)
+    ) {
       value = placeholder
       tmpCursorOffset = value.length
       setCursorOffset(tmpCursorOffset)
@@ -90,10 +107,15 @@ export const InkTextInput: React.FC<Props> = props => {
         tmpCursorOffset++
       }
     } else if (actionKey === 'delete') {
-      value = value.substr(0, tmpCursorOffset - 1) + value.substr(tmpCursorOffset, value.length)
+      value =
+        value.substr(0, tmpCursorOffset - 1) +
+        value.substr(tmpCursorOffset, value.length)
       tmpCursorOffset--
     } else {
-      value = value.substr(0, tmpCursorOffset) + str + value.substr(tmpCursorOffset, value.length)
+      value =
+        value.substr(0, tmpCursorOffset) +
+        str +
+        value.substr(tmpCursorOffset, value.length)
       tmpCursorOffset += str.length
 
       if (str.length > 1) {
@@ -117,7 +139,14 @@ export const InkTextInput: React.FC<Props> = props => {
     }
   }, [props.keyPressed])
 
-  const { value, placeholder, showCursor, focus, mask, highlightPastedText } = props
+  const {
+    value,
+    placeholder,
+    showCursor,
+    focus,
+    mask,
+    highlightPastedText,
+  } = props
   const hasValue = value.length > 0
   let renderedValue = value
   const cursorActualWidth = highlightPastedText ? cursorWidth : 0
@@ -137,11 +166,18 @@ export const InkTextInput: React.FC<Props> = props => {
     renderedValue = mask.repeat(renderedValue.length)
   }
 
-  const renderedPlaceholder = focus && placeholder && !hasValue ? invertString(placeholder, 0, 0) : placeholder
+  const renderedPlaceholder =
+    focus && placeholder && !hasValue
+      ? invertString(placeholder, 0, 0)
+      : placeholder
 
   return (
     <Color dim={!hasValue && !!placeholder} cyan={focus}>
-      {placeholder ? (hasValue ? renderedValue : renderedPlaceholder) : renderedValue}
+      {placeholder
+        ? hasValue
+          ? renderedValue
+          : renderedPlaceholder
+        : renderedValue}
     </Color>
   )
 }

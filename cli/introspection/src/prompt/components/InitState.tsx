@@ -42,7 +42,9 @@ const actions = {
       } else {
         try {
           const credentials = uriToCredentials(dbCredentials.uri)
-          store.setState({ dbCredentials: { uri: dbCredentials.uri, ...credentials } })
+          store.setState({
+            dbCredentials: { uri: dbCredentials.uri, ...credentials },
+          })
         } catch (e) {
           store.setState({ dbCredentials: { uri: dbCredentials.uri } })
         }
