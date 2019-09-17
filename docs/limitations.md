@@ -12,6 +12,7 @@ During the preview phase of Prisma 2 there are missing features, limited perform
     TODO What is our plan on that?
 - When [introspecting](./introspection.md) a database, Prisma only recognizes many-to-many relations that follow the Prisma conventions for [relation tables](https://github.com/prisma/prisma2/blob/master/docs/relations.md#mn). TODO What is our plan on that?
 - Some edge cases for complex nested mutations don't work properly. TODO What edge cases? Issues? Plan?
+- Non-interactive TTYs (like Git Bash on Windows) are currently not supported by Prisma2 CLI ([Tracking issues](https://github.com/prisma/prisma2/issues/554))
 
 ## Stability limitations
 
