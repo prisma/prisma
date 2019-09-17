@@ -22,7 +22,11 @@ const Step2ChooseDatabase: React.FC = () => {
   const db = prettyDb(dbCredentials.type)
   const schemaWord = dbCredentials.type === DatabaseType.postgres ? 'schema' : 'database'
 
-  const schemaCount = state.useStarterKit ? schemas!.filter(s => s.countOfTables === 0).length : schemas!.length
+  const schemaCount = schemas
+    ? state.useStarterKit
+      ? schemas.filter(s => s.countOfTables === 0).length
+      : schemas.length
+    : 0
   const href = dbCredentials.type === DatabaseType.postgres ? 'postgres-credentials' : 'mysql-credentials'
 
   const goBack = async () => {
