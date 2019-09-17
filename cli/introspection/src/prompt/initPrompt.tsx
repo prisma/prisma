@@ -19,6 +19,7 @@ import Step41Introspection from './screens/Step41Introspection'
 import Step60ProcessBlank from './screens/Step60ProcessBlank'
 import Step60DownloadExample from './screens/Step60DownloadExample'
 import Step61Success from './screens/Step61Success'
+import Step2CreateOrSelectDB from './screens/Step2CreateOrSelectDB'
 
 export async function initPrompt(outputDir: string) {
   return new Promise(resolve => {
@@ -35,6 +36,7 @@ export async function initPrompt(outputDir: string) {
             <Route path="choose-database" component={<Step2ChooseDatabase />} />
             <Route path="sqlite-file-path" component={<Step21SqliteFilePath />} />
             <Route path="tool-selection" component={<Step22ToolSelection />} />
+            <Route path="create-or-select-db" component={<Step2CreateOrSelectDB />} />
             <Route path="language-selection" component={<Step3LanguageSelection />} />
             <Route path="demo-script-selection" component={<Step4DemoScriptSelection />} />
             <Route path="select-database" component={<Step4SelectDatabase />} />

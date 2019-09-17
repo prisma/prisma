@@ -10,8 +10,8 @@ import { Checkbox } from '../components/inputs/Checkbox'
 import { useConnector } from '../components/useConnector'
 import { ErrorBox } from '../components/ErrorBox'
 import { RouterContext } from '../components/Router'
-import Spinner from 'ink-spinner'
 import DummySelectable from '../components/DummySelectable'
+import Spinner from 'ink-spinner'
 const AnySpinner: any = Spinner
 
 const Step1PostgresCredentials: React.FC = () => {
@@ -36,7 +36,7 @@ const Step1PostgresCredentials: React.FC = () => {
               router.setRoute('introspection')
             }
           } else {
-            router.setRoute(state.useStarterKit ? 'download-example' : 'language-selection')
+            router.setRoute('create-or-select-db')
           }
         } else {
           router.setRoute('choose-database')
