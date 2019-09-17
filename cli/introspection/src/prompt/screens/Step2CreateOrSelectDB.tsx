@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react'
 import { Box, Color } from 'ink'
-import BorderBox from '../components/BorderBox'
+import { BorderBox, ErrorBox, FixBox, DummySelectable } from '@prisma/ink-components'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
 import { useInitState } from '../components/InitState'
@@ -9,8 +9,6 @@ import { useConnector } from '../components/useConnector'
 import { prettyDb } from '../utils/print'
 import { RouterContext } from '../components/Router'
 import { createDatabase } from '@prisma/lift'
-import { ErrorBox, FixBox } from '../components/ErrorBox'
-import DummySelectable from '../components/DummySelectable'
 import Spinner from 'ink-spinner'
 const AnySpinner: any = Spinner
 

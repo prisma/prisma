@@ -32,6 +32,7 @@
     "@prisma/lift": "*"
   },
   "dependencies": {
+    "@prisma/ink-components": "^0.0.1",
     "ajv": "^6.10.0",
     "chalk": "^2.4.2",
     "cli-truncate": "^2.0.0",

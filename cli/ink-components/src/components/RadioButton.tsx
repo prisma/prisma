@@ -1,7 +1,6 @@
 import figures from 'figures'
 import { Box, Color } from 'ink'
 import React, { useState, useContext, useEffect } from 'react'
-import { COLORS } from '../colors'
 import { TabIndexContext } from './TabIndex'
 import { Key } from 'readline'
 
@@ -40,9 +39,11 @@ export const RadioButton: React.FC<Props> = props => {
 
   return (
     <Box>
-      <Color keyword={focussed ? COLORS.selection : 'visible'}>
+      <Color keyword={focussed ? 'cyan' : 'visible'}>
         {checked ? figures.radioOn : figures.radioOff} {label.padEnd(20)}
-        <Color dim>{props.description ? props.description.padEnd(20) : ''}</Color>
+        <Color dim>
+          {props.description ? props.description.padEnd(20) : ''}
+        </Color>
       </Color>
     </Box>
   )

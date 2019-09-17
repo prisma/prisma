@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "strictNullChecks": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "moduleResolution": "node",
+    "lib": ["es2017", "dom", "esnext.asynciterable", "es2019.array"],
+    "target": "es5",
+    "rootDir": "src",
+    "skipLibCheck": true,
+    "downlevelIteration": true,
+    "resolveJsonModule": true,
+    "jsx": "react",
+    "esModuleInterop": true
+  },
+  "exclude": ["node_modules", "dist", "examples", "test", "test2"]
+}

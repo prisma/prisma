@@ -1,12 +1,11 @@
 import React, { useContext } from 'react'
 import { Color, Box } from 'ink'
-import BorderBox from '../components/BorderBox'
+import { BorderBox, SuccessBox } from '@prisma/ink-components'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
 import { useInitState } from '../components/InitState'
 import { DatabaseType } from 'prisma-datamodel'
 import { useConnector } from '../components/useConnector'
-import { SuccessBox } from '../components/ErrorBox'
 import { prettyDb } from '../utils/print'
 import { RouterContext } from '../components/Router'
 

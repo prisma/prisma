@@ -22,7 +22,7 @@ import { DatabaseType } from 'prisma-datamodel'
 import { ConnectorType } from '@prisma/photon/dist/isdlToDatamodel2'
 import { useConnector } from '../components/useConnector'
 import { exampleScript } from '../utils/templates/script'
-import { ErrorBox } from '../components/ErrorBox'
+import { ErrorBox } from '@prisma/ink-components'
 import { photonDefaultConfig } from '../utils/defaults'
 import EmptyDirError from '../components/EmptyDirError'
 

@@ -1,6 +1,6 @@
 import { render, Box } from 'ink'
 import React from 'react'
-import { TabIndexProvider } from './components/TabIndex'
+import { TabIndexProvider } from '@prisma/ink-components'
 import { Router, Route } from './components/Router'
 import Step0StarterVsBlank from './screens/Step0StarterVsBlank'
 import Step1StarterSelection from './screens/Step1StarterSelection'

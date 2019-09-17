@@ -6,7 +6,7 @@ import { ConnectorAndDisconnect, getConnectedConnectorFromCredentials } from '..
 import { DatabaseType } from 'prisma-datamodel'
 import { DataSource, isdlToDatamodel2 } from '@prisma/photon'
 import { credentialsToUri, databaseTypeToConnectorType } from '../../convertCredentials'
-import { TabIndexContext } from './TabIndex'
+import { TabIndexContext } from '@prisma/ink-components'
 
 type ConnectorState = {
   error: string | null

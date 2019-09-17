@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { Color, Box } from 'ink'
-import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
-import { TextInput } from '../components/inputs/TextInput'
-import { InkLink } from '../components/InkLink'
 import { useInitState } from '../components/InitState'
-import { Checkbox } from '../components/inputs/Checkbox'
 import { useConnector } from '../components/useConnector'
-import { ErrorBox } from '../components/ErrorBox'
 import { RouterContext } from '../components/Router'
+
+import { TextInput, InkLink, BorderBox, ErrorBox, Checkbox, DummySelectable } from '@prisma/ink-components'
+
 import Spinner from 'ink-spinner'
-import DummySelectable from '../components/DummySelectable'
 const AnySpinner: any = Spinner
 
 const Step1MySQLCredentials: React.FC = () => {

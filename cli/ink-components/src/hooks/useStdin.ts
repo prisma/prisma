@@ -1,9 +1,12 @@
 import { StdinContext } from 'ink'
 import React from 'react'
 import { Key } from 'readline'
-import { action, ActionKey } from './components/helpers'
+import { action, ActionKey } from '../helpers'
 
-export function useStdin(keyHandler: ({ actionKey: ActionKey, text: string, key: Key }) => void, deps: any[] = []) {
+export function useStdin(
+  keyHandler: ({ actionKey: ActionKey, text: string, key: Key }) => void,
+  deps: any[] = [],
+) {
   const { stdin, setRawMode } = React.useContext(StdinContext)
 
   let didCancel = false
