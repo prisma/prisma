@@ -2,12 +2,12 @@
 
 - Photon
   - [Can I still access my database directly (e.g. using raw SQL)?](#can-i-still-access-my-database-directly-eg-using-raw-sql)
-  - [Is Photon.js an ORM?](#is-photon-an-orm)
-  - [Will Photon.js support more databases (and other data sources) in the future?](#will-photon-support-more-databases-and-other-data-sources-in-the-future)
-  - [How can I see the generated queries that Photon.js sends to my database?](#how-can-i-see-the-generated-queries-that-photon-sends-to-my-database)
+  - [Is Photon.js an ORM?](#is-photonjs-an-orm)
+  - [Will Photon.js support more databases (and other data sources) in the future?](#will-photonjs-support-more-databases-and-other-data-sources-in-the-future)
+  - [How can I see the generated queries that Photon.js sends to my database?](#how-can-i-see-the-generated-queries-that-photonjs-sends-to-my-database)
   - [How do schema migrations work with Photon?](#how-do-schema-migrations-work-with-photon)
-  - [Is Photon.js production-ready? Should I start using it?](#is-photon-production-ready-should-i-start-using-it)
-  - [Does Photon.js support GraphQL schema delegation and GraphQL binding?](#does-photon-support-graphql-schema-delegation-and-graphql-binding)
+  - [Is Photon.js production-ready? Should I start using it?](#is-photonjs-production-ready-should-i-start-using-it)
+  - [Does Photon.js support GraphQL schema delegation and GraphQL binding?](#does-photonjs-support-graphql-schema-delegation-and-graphql-binding)
 - Lift
   - [Am I locked-in when using Lift? Is it easy to migrate off it?](#am-i-locked-in-when-using-lift-is-it-easy-to-migrate-off-it)
   - [How do I see details about how Lift migrates my database schema?](#how-do-i-see-details-about-how-lift-migrates-my-database-schema)
