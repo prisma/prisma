@@ -17,8 +17,7 @@ the same function it may use an already existing container that has the allocate
 connection still available.
 
 Any piece of code [outside the handler](https://docs.aws.amazon.com/lambda/latest/dg/programming-model-v2.html) remains initialized. This is a great place for
-`Photon` to call "connect" or at least call `Photon` constructor so that subsequent invocations can share a connection. There are some implications though they
-are not directly related to Photon but any system that would require a DB connection from Lambda:
+`Photon` to call "connect" or at least call `Photon` constructor so that subsequent invocations can share a connection. There are some implications though that are not directly related to Photon but any system that would require a DB connection from Lambda:
 
 | Implication               | Description                                                                                                                                                                                                                                                                                                                           | Potential Solution                                                                                                                                               |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
