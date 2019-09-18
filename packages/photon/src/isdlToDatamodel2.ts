@@ -27,7 +27,7 @@ export interface DataSource {
   name: string
   connectorType: ConnectorType
   url: EnvValue
-  config: {}
+  config: { [key: string]: string }
 }
 
 export async function isdlToDatamodel2(isdl: ISDL, datasources: DataSource[], generators: GeneratorConfig[] = []) {
