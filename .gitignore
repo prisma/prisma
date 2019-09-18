@@ -8,3 +8,4 @@ build
 tmp/
 failed-*.md
 *.db
+.env*

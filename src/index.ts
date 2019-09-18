@@ -9,5 +9,6 @@ export { LiftDown } from './cli/commands/LiftDown'
 export { LiftTmpPrepare } from './cli/commands/LiftTmpPrepare'
 export { missingGeneratorMessage } from './utils/generation/missingGeneratorMessage'
 export { default as byline } from './utils/byline'
+export { canConnectToDatabase, createDatabase } from './liftEngineCommands'
 
 export * from './types'

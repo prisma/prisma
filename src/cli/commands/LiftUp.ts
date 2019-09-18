@@ -2,6 +2,7 @@ import { arg, Command, Env, format, HelpError, isError } from '@prisma/cli'
 import chalk from 'chalk'
 import fs from 'fs'
 import { Lift, UpOptions } from '../../Lift'
+import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
 
 export class LiftUp implements Command {
   public static new(env: Env): LiftUp {
@@ -22,9 +23,10 @@ export class LiftUp implements Command {
 
     ${chalk.bold('Options')}
 
-      --auto-approve   Skip interactive approval before migrating
-      -h, --help       Displays this help message
-      -p, --preview    Preview the migration changes
+      --auto-approve    Skip interactive approval before migrating
+      -h, --help        Displays this help message
+      -p, --preview     Preview the migration changes
+      -c, --create-db   Create the database in case it doesn't exist
 
     ${chalk.bold('Examples')}
 
@@ -54,8 +56,10 @@ export class LiftUp implements Command {
       '-h': '--help',
       '--preview': Boolean,
       '-p': '--preview',
-      '-v': '--verbose',
       '--verbose': Boolean,
+      '-v': '--verbose',
+      '--create-db': Boolean,
+      '-c': '--create-db',
     })
 
     if (isError(args)) {
@@ -72,8 +76,8 @@ export class LiftUp implements Command {
     }
 
     if (args._.length > 0) {
-      const arg = args._[0]
-      const maybeNumber = parseInt(arg)
+      const thisArg = args._[0]
+      const maybeNumber = parseInt(thisArg, 10)
 
       // in this case it's a migration id
       if (isNaN(maybeNumber) || typeof maybeNumber !== 'number') {
@@ -82,6 +86,8 @@ export class LiftUp implements Command {
         options.n = maybeNumber
       }
     }
+
+    await ensureDatabaseExists('apply', args['--create-db'])
 
     const result = await lift.up(options)
     lift.stop()

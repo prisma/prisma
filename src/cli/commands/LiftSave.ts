@@ -5,6 +5,8 @@ import path from 'path'
 import prompt from 'prompts'
 import { promisify } from 'util'
 import { Lift } from '../../Lift'
+import { canConnectToDatabase } from '../../liftEngineCommands'
+import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
 import { printFiles } from '../../utils/printFiles'
 import { printMigrationId } from '../../utils/printMigrationId'
 import { serializeFileMap } from '../../utils/serializeFileMap'
@@ -29,8 +31,9 @@ export class LiftSave implements Command {
 
     ${chalk.bold('Options')}
 
-      -h, --help     Displays this help message
-      -n, --name     Name the migration
+      -h, --help       Displays this help message
+      -n, --name       Name the migration
+      -c, --create-db  Create the database in case it doesn't exist
 
     ${chalk.bold('Examples')}
 
@@ -53,6 +56,8 @@ export class LiftSave implements Command {
       '-n': '--name',
       '--preview': Boolean,
       '-p': '--preview',
+      '--create-db': Boolean,
+      '-c': '--create-db',
     })
     if (isError(args)) {
       return this.help(args.message)
@@ -60,6 +65,8 @@ export class LiftSave implements Command {
       return this.help()
     }
     const preview = args['--preview'] || false
+    await ensureDatabaseExists('create', args['--create-db'])
+
     const lift = new Lift(this.env.cwd)
 
     const migration = await lift.createMigration('DUMMY_NAME')

@@ -7,9 +7,9 @@ import byline from './utils/byline'
 const debugRpc = debugLib('LiftEngine:rpc')
 const debugStderr = debugLib('LiftEngine:stderr')
 const debugStdin = debugLib('LiftEngine:stdin')
+import { getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import { now } from './utils/now'
-import { getPlatform } from '@prisma/get-platform'
 
 export interface LiftEngineOptions {
   projectDir: string
@@ -44,6 +44,7 @@ export class LiftEngine {
   private schemaPath: string
   private listeners: { [key: string]: (result: any, err?: any) => any } = {}
   private messages: string[] = []
+  private lastRequest?: any
   private lastError?: any
   private initPromise?: Promise<void>
   constructor({
@@ -151,10 +152,12 @@ export class LiftEngine {
             let errorMessage = chalk.red.bold('Error in migration engine: ') + messages
             if (messages.includes('\u001b[1;94m-->\u001b[0m')) {
               errorMessage = `${chalk.red.bold('Schema parsing ')}` + messages
-            } else {
-              if (this.lastError && this.lastError.msg === 'PANIC') {
-                errorMessage = serializePanic(this.lastError)
-              }
+            } else if (this.lastError && this.lastError.msg === 'PANIC') {
+              errorMessage = serializePanic(this.lastError)
+              this.persistError(this.lastRequest, errorMessage)
+            } else if (messages.includes('panicked at')) {
+              const text = this.persistError(this.lastRequest, errorMessage)
+              console.error(text)
             }
             const err = new Error(errorMessage)
             this.rejectAll(err)
@@ -206,7 +209,7 @@ export class LiftEngine {
             if (response.error.data && response.error.data.error && response.error.data.code) {
               reject(new EngineError(response.error.data.error, response.error.data.code))
             } else {
-              const text = this.persistError(request, response, this.messages)
+              const text = this.persistError(request, this.messages.join('\n'))
               reject(
                 new Error(
                   `${chalk.redBright('Error in RPC')}\n Request: ${JSON.stringify(
@@ -224,14 +227,15 @@ export class LiftEngine {
       })
       debugRpc('SENDING RPC CALL', JSON.stringify(request))
       this.child!.stdin!.write(JSON.stringify(request) + '\n')
+      this.lastRequest = request
     })
   }
-  private persistError(request: any, response: any, messages: string[]): string {
+  private persistError(request: any, message: string): string {
     const filename = `failed-${request.method}-${now()}.md`
     fs.writeFileSync(
       filename,
       `# Failed ${request.method} at ${new Date().toISOString()}
-## RPC Input One Line
+## RPC One-Liner
 \`\`\`json
 ${JSON.stringify(request)}
 \`\`\`
@@ -241,15 +245,9 @@ ${JSON.stringify(request)}
 ${JSON.stringify(request, null, 2)}
 \`\`\`
 
-
-## RPC Response
-\`\`\`
-${JSON.stringify(response, null, 2)}
-\`\`\`
-
 ## Stack Trace
 \`\`\`bash
-${messages.join('')}
+${message}
 \`\`\`
 `,
     )
