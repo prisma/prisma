@@ -32,7 +32,7 @@ are not directly related to Photon but any system that would require a DB connec
 </sup>
 <br />
 <sup>
-2. [`serverless-mysql`](https://github.com/jeremydaly/serverless-mysql) is a library that implements this idea.
+2. <a href="https://github.com/jeremydaly/serverless-mysql"><code>serverless-mysql</code></a> is a library that implements this idea.
 </sup>
 
 ### Cold starts
