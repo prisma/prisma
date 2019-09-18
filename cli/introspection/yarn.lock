@@ -2658,10 +2658,10 @@ ink-spinner@^3.0.1:
     cli-spinners "^1.0.0"
     prop-types "^15.5.10"
 
-ink-text-input@^3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/ink-text-input/-/ink-text-input-3.2.0.tgz#7c5d89324eedf7073a1ad22c883038a3dfb517cf"
-  integrity sha512-ppfLo5o2h+RJDF0F6H52k/N7nb8SeKkT8ilmsTKV/klhbqu13fA9d8zwJjd+LYDN2tMaFfulSpdykbnxBls22w==
+ink-text-input@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/ink-text-input/-/ink-text-input-3.2.1.tgz#099dd54f693053a340fb76cff051b5e3e775dd94"
+  integrity sha512-gU5Q3+xq0koDsTEkW0U6k3nNXjN4r9g/b6goo/jHlK2g4R5M6d22KnLEO6yFDYHQO1D27aTdSUk4HH+Nz8lQKg==
   dependencies:
     prop-types "^15.5.10"
 
@@ -2669,6 +2669,30 @@ ink@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/ink/-/ink-2.2.0.tgz#8231cbaf03799634cb333ec4e461f50e25e93fc0"
   integrity sha512-BQl7jpmLxPqFGjdQdgXQS0+mAyn1BHkEW1YXur3dahNNwLB6MWsfAZ1GWVdj+Mbpmj+u33KaFOosw3067t3d9g==
+  dependencies:
+    "@types/react" "^16.8.6"
+    arrify "^1.0.1"
+    auto-bind "^2.0.0"
+    chalk "^2.4.1"
+    cli-cursor "^2.1.0"
+    cli-truncate "^1.1.0"
+    is-ci "^2.0.0"
+    lodash.throttle "^4.1.1"
+    log-update "^3.0.0"
+    prop-types "^15.6.2"
+    react-reconciler "^0.20.0"
+    scheduler "^0.13.2"
+    signal-exit "^3.0.2"
+    slice-ansi "^1.0.0"
+    string-length "^2.0.0"
+    widest-line "^2.0.0"
+    wrap-ansi "^5.0.0"
+    yoga-layout-prebuilt "^1.9.3"
+
+ink@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/ink/-/ink-2.3.0.tgz#222136be17bb72fc742e19090483e7e0e7dc3690"
+  integrity sha512-931rgXHAS3hM++8ygWPOBeHOFwTzHh3pDAVZtiBVOUH6tVvJijym43ODUy22ySo2NwYUFeR/Zj3xuWzBEKMiHw==
   dependencies:
     "@types/react" "^16.8.6"
     arrify "^1.0.1"
@@ -4802,6 +4826,15 @@ react@^16.8.6:
     object-assign "^4.1.1"
     prop-types "^15.6.2"
     scheduler "^0.13.6"
+
+react@^16.9.0:
+  version "16.9.0"
+  resolved "https://registry.yarnpkg.com/react/-/react-16.9.0.tgz#40ba2f9af13bc1a38d75dbf2f4359a5185c4f7aa"
+  integrity sha512-+7LQnFBwkiw+BobzOF6N//BdoNw0ouwmSJTEm9cglOOmsg/TMiFHZLe2sEoN5M7LgJTj9oHH0gxklfnQe66S1w==
+  dependencies:
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
+    prop-types "^15.6.2"
 
 read-pkg-up@^4.0.0:
   version "4.0.0"
