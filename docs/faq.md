@@ -8,6 +8,7 @@
   - [How do schema migrations work with Photon.js?](#how-do-schema-migrations-work-with-photonjs)
   - [Is Photon.js production-ready? Should I start using it?](#is-photonjs-production-ready-should-i-start-using-it)
   - [Does Photon.js support GraphQL schema delegation and GraphQL binding?](#does-photonjs-support-graphql-schema-delegation-and-graphql-binding)
+  - [How does Photon.js handle connection pooling?](#how-does-photonjs-handle-connection-pooling)
 - Lift
   - [Am I locked-in when using Lift? Is it easy to migrate off it?](#am-i-locked-in-when-using-lift-is-it-easy-to-migrate-off-it)
   - [How do I see details about how Lift migrates my database schema?](#how-do-i-see-details-about-how-lift-migrates-my-database-schema)
