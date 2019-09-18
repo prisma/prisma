@@ -56,7 +56,7 @@ Note that you can skip this part if you've selected SQLite before.
     - **User** and **Password**: Credentials of your database user
     - **Database**: Name of the [PostgreSQL database](https://www.postgresql.org/docs/current/tutorial-createdb.html) you want to use
     - **Schema** (optional): The name of the [PostgreSQL schema](https://www.postgresql.org/docs/current/ddl-schemas.html) you want to use (if you provide a schema name that doesn't exist, Prisma will create the schema for you; if not provided, you can select an existing schema in the next step)
-    - **SSL**: Check the box if you PostgreSQL server uses SSL (likely yes if you're not running locally); you can toggle it with <kbd>SPACE</kbd>
+    - **SSL**: Check the box if your PostgreSQL server uses SSL (likely yes if you're not running locally); you can toggle it with <kbd>SPACE</kbd>
 1. Confirm with **Connect**
 
 ![](https://imgur.com/IOd3cDD.png)
@@ -392,7 +392,7 @@ Here's a quick rundown of what's happening in the code:
 1. Publish _Alice_'s newly created post using `photon.posts.update(...)`
 1. Retrieve all posts by _Alice_ using `photon.users.findOne(...).posts()`
 
-Notive that the result of each of these operations is printed to the console using `console.log`.
+Notice that the result of each of these operations is printed to the console using `console.log`.
 
 Go ahead and run the code:
 
@@ -401,7 +401,7 @@ cd hello-prisma2
 npm start
 ```
 
-This leads to the following terminal output confirming that all operations ran succesfully:
+This leads to the following terminal output confirming that all operations ran successfully:
 
 ![](https://imgur.com/O5vX9iP.png)
 
