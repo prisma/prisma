@@ -5,7 +5,7 @@
   - [Is Photon.js an ORM?](#is-photonjs-an-orm)
   - [Will Photon.js support more databases (and other data sources) in the future?](#will-photonjs-support-more-databases-and-other-data-sources-in-the-future)
   - [How can I see the generated queries that Photon.js sends to my database?](#how-can-i-see-the-generated-queries-that-photonjs-sends-to-my-database)
-  - [How do schema migrations work with Photon?](#how-do-schema-migrations-work-with-photon)
+  - [How do schema migrations work with Photon.js?](#how-do-schema-migrations-work-with-photonjs)
   - [Is Photon.js production-ready? Should I start using it?](#is-photonjs-production-ready-should-i-start-using-it)
   - [Does Photon.js support GraphQL schema delegation and GraphQL binding?](#does-photonjs-support-graphql-schema-delegation-and-graphql-binding)
 - Lift
