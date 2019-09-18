@@ -1,6 +1,7 @@
 import { arg, Command, Env, format, HelpError, isError } from '@prisma/cli'
 import chalk from 'chalk'
-import { DownOptions, Lift, UpOptions } from '../../Lift'
+import { DownOptions, Lift } from '../../Lift'
+import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
 
 export class LiftDown implements Command {
   public static new(env: Env): LiftDown {
@@ -63,8 +64,8 @@ export class LiftDown implements Command {
 
     // TODO add go down by name and timestamp
     if (args._.length > 0) {
-      const arg = args._[0]
-      const maybeNumber = parseInt(arg)
+      const thisArg = args._[0]
+      const maybeNumber = parseInt(thisArg, 10)
 
       // in this case it's a migration id
       if (isNaN(maybeNumber) || typeof maybeNumber !== 'number') {
@@ -73,6 +74,8 @@ export class LiftDown implements Command {
         options.n = maybeNumber
       }
     }
+
+    await ensureDatabaseExists('unapply')
 
     const result = await lift.down(options)
     lift.stop()

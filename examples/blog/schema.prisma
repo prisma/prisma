@@ -1,7 +1,6 @@
 datasource my_db {
   provider = "sqlite"
-  url      = "file:dev.db"
-  default  = true
+  url      = "file:dev5.db"
 }
 
 generator photon {

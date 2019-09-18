@@ -1,6 +1,6 @@
 {
   "name": "@prisma/lift",
-  "version": "0.2.51",
+  "version": "0.2.54",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
@@ -37,8 +37,10 @@
   "dependencies": {
     "@prisma/fetch-engine": "^0.1.13",
     "@prisma/get-platform": "^0.1.1",
+    "@prisma/ink-components": "^0.0.1",
     "@prisma/studio-server": "^0.92.0",
     "@types/execa": "^0.9.0",
+    "ansi-escapes": "^4.2.1",
     "arg": "^4.1.0",
     "array-flat-polyfill": "^1.0.1",
     "cli-cursor": "^3.0.0",

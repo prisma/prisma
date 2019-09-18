@@ -1,43 +1,15 @@
-import { Command, arg, format, Env, HelpError, GeneratorDefinitionWithPackage, Dictionary } from '@prisma/cli'
+import { arg, Command, Dictionary, Env, format, GeneratorDefinitionWithPackage, HelpError } from '@prisma/cli'
 import chalk from 'chalk'
 import { Lift } from '../../Lift'
+import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
 import { occupyPath } from '../../utils/occupyPath'
 
 /**
  * $ prisma migrate new
  */
 export class LiftWatch implements Command {
-  static new(env: Env, generators: Dictionary<GeneratorDefinitionWithPackage>): LiftWatch {
+  public static new(env: Env, generators: Dictionary<GeneratorDefinitionWithPackage>): LiftWatch {
     return new LiftWatch(env, generators)
-  }
-  private constructor(
-    private readonly env: Env,
-    private readonly generators: Dictionary<GeneratorDefinitionWithPackage>,
-  ) {}
-
-  // parse arguments
-  async parse(argv: string[]): Promise<string | Error> {
-    const args = arg(argv, {
-      '--preview': Boolean,
-      '-p': '--preview',
-    })
-    const preview = args['--preview'] || false
-
-    await occupyPath(this.env.cwd)
-
-    const lift = new Lift(this.env.cwd)
-    return lift.watch({
-      preview,
-      generatorDefinitions: this.generators,
-    })
-  }
-
-  // help message
-  help(error?: string): string | HelpError {
-    if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftWatch.help}`)
-    }
-    return LiftWatch.help
   }
 
   // static help template
@@ -47,5 +19,42 @@ export class LiftWatch implements Command {
     ${chalk.bold('Usage')}
 
       prisma dev
+
+    ${chalk.bold('Options')}
+
+      -c, --create-db   Create the database in case it doesn't exist
   `)
+  private constructor(
+    private readonly env: Env,
+    private readonly generators: Dictionary<GeneratorDefinitionWithPackage>,
+  ) {}
+
+  // parse arguments
+  public async parse(argv: string[]): Promise<string | Error> {
+    const args = arg(argv, {
+      '--preview': Boolean,
+      '-p': '--preview',
+      '--create-db': Boolean,
+      '-c': '--create-db',
+    })
+    const preview = args['--preview'] || false
+
+    await occupyPath(this.env.cwd)
+
+    await ensureDatabaseExists('dev', args['--create-db'])
+
+    const lift = new Lift(this.env.cwd)
+    return lift.watch({
+      preview,
+      generatorDefinitions: this.generators,
+    })
+  }
+
+  // help message
+  public help(error?: string): string | HelpError {
+    if (error) {
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftWatch.help}`)
+    }
+    return LiftWatch.help
+  }
 }
