@@ -8,8 +8,8 @@
   "license": "Apache-2.0",
   "private": false,
   "devDependencies": {
-    "@prisma/cli": "^0.0.69",
-    "@prisma/photon": "^0.2.44",
+    "@prisma/cli": "^0.0.70",
+    "@prisma/photon": "^0.2.61",
     "@types/charm": "^1.0.1",
     "@types/debug": "^4.1.4",
     "@types/diff": "^4.0.2",
