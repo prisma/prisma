@@ -299,7 +299,7 @@ export type Hooks = {
   beforeRequest?: (options: {query: string, path: string[], rootField?: string, typeName?: string, document: any}) => any
 }
 
-export default class Photon {
+export class Photon {
   private fetcher: PhotonFetcher
   private readonly dmmf: DMMFClass
   private readonly engine: Engine

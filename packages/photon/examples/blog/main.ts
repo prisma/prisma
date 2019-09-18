@@ -1,4 +1,4 @@
-import Photon from './@generated/photon'
+import { Photon } from './@generated/photon'
 
 async function main() {
   const photon = new Photon()
