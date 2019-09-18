@@ -128,12 +128,7 @@ export async function buildClient({
     console.error(result.diagnostics.map(d => d.messageText).join('\n'))
   }
 
-  const normalizedFileMap = normalizeFileMap(fileMap)
-  if (normalizedFileMap['index.js']) {
-    // add module.exports = Photon for javascript usage
-    normalizedFileMap['index.js'] = addEsInteropRequire(normalizedFileMap['index.js'])
-  }
-  return normalizedFileMap
+  return normalizeFileMap(fileMap)
 }
 
 function normalizeFileMap(fileMap: Dictionary<string>) {
@@ -374,19 +369,4 @@ function redirectToLib(fileName: string) {
   }
 
   return fileName
-}
-
-function addEsInteropRequire(code: string) {
-  const interopCode = `module.exports = Photon; // needed to support const Photon = require('...') in js
-Object.defineProperty(module.exports, "__esModule", { value: true });
-for (let key in exports) {
-  if (exports.hasOwnProperty(key)) {
-    module.exports[key] = exports[key];
-  }
-}`
-  const lines = code.split('\n')
-  // we now need to reexpose all exports as `exports` is dangling now
-  // yes we go through a lot of trouble for our users
-  lines.push(interopCode)
-  return lines.join('\n')
 }
