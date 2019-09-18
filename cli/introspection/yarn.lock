@@ -378,15 +378,17 @@
     strip-indent "^3.0.0"
     terminal-link "^2.0.0"
 
-"@prisma/lift@^0.2.53":
-  version "0.2.53"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.2.53.tgz#2ef331250feeee598bca0f923551962f8f66bc45"
-  integrity sha512-kUFYRfUY9wVyA6zovUgfEDdvBqyUkyovsefY80KEWsORiyVjElUkbOSSlM0M4m4fVBeY0YhtEigZerSVs/247w==
+"@prisma/lift@^0.2.55":
+  version "0.2.55"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.2.55.tgz#1bcae66a2f3dea2f78fbd9a89d60845a24cd9af9"
+  integrity sha512-yCNZI6qfBbNTMk5o85jPfmA3OxUZT0iaTYs4IQIz7BzLeOxE5UHrgxavGdPEAMLydUqhruM60duqlcfSOo4oMA==
   dependencies:
     "@prisma/fetch-engine" "^0.1.13"
     "@prisma/get-platform" "^0.1.1"
+    "@prisma/ink-components" "^0.0.1"
     "@prisma/studio-server" "^0.92.0"
     "@types/execa" "^0.9.0"
+    ansi-escapes "^4.2.1"
     arg "^4.1.0"
     array-flat-polyfill "^1.0.1"
     cli-cursor "^3.0.0"
@@ -419,10 +421,10 @@
     strip-indent "^3.0.0"
     supports-hyperlinks "^1.0.1"
 
-"@prisma/photon@^0.2.60":
-  version "0.2.60"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.2.60.tgz#512f99571d115ac7884d073897861e31053c9f57"
-  integrity sha512-zjm3goBresFNet9GUSgfg4JRgkRP1g1bU3E34aX42FxjTfk/fbt3wXW6F6DQ0gKznB7cgSxspyPWT5HTen9evg==
+"@prisma/photon@^0.2.61":
+  version "0.2.61"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.2.61.tgz#4eba7382373168ef80f939fcbe131a4f85462f13"
+  integrity sha512-aT5p7C3kbt4FuMR12j2gKBtjmEGznEaodRiq3ADKx3wD8VjHZ6xt7Pb/Rqdc4CcijDbR9RB67G7fHEvuIzgGxw==
   dependencies:
     "@apexearth/copy" "^1.4.2"
     "@prisma/cli" "0.0.70"
