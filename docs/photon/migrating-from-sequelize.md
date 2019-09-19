@@ -265,7 +265,7 @@ This is the default path but can be [customized](https://github.com/prisma/prism
 Now you can import Photon.js in your project.  Create a main application file, `index.ts`, inside the `src` directory and import the `Photon` constructor: 
 
 ```ts
-import Photon from '@generated/photon'
+import { Photon } from '@generated/photon'
 ```
 
 ## 5. Setting up a connection
@@ -290,7 +290,7 @@ sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
 To achieve this in your Photon.js project, in your `index.ts` file, import `Photon` and create a new instance of it like this:
 
 ```ts
-import Photon from '@generated/photon'
+import { Photon } from '@generated/photon'
 
 const photon = new Photon()
 ```
@@ -475,7 +475,7 @@ So to implement the same route and endpoint in your Photon.js project, go to you
 ```ts
 import * as express from 'express'
 import * as bodyParser from 'body-parser'
-import Photon from '@generated/photon'
+import { Photon } from '@generated/photon'
 
 const app = express()
 app.use(bodyParser.json())

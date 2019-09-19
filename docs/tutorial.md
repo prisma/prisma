@@ -239,7 +239,7 @@ The project also contains a number of additional files required for a typical fo
 Having Photon.js located inside `node_modules/@generated` enables you to import it in your code as follows:
 
 ```ts
-import Photon from '@generated/photon'
+import { Photon } from '@generated/photon'
 ```
 
 Because Photon.js is generated into `node_modules` which is typically populated by invoking `npm install`, you should make sure that Photon.js is also generated upon every invocation of `npm install`. That's the reason why `prisma2 generate` (the command that generates Photon.js based on the Prisma schema) is added as a `postinstall` hook in `package.json`:
@@ -284,7 +284,7 @@ Now, let's finally consider the _Next steps_ again that had been printed to the 
 The instructions say to navigate into the project directory, start Prisma's development mode and finally execute the demo script. You'll skip the `prisma2 dev` command for now though and just run the `script.ts` script. Before doing so, let's quickly take a look at its contents:
 
 ```ts
-import Photon from '@generated/photon'
+import { Photon } from '@generated/photon'
 
 const photon = new Photon()
 
