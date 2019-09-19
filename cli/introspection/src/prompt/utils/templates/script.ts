@@ -26,7 +26,7 @@ main()
   })`
 
 const getImportStatement = es6 =>
-  es6 ? `import Photon from '@generated/photon'` : `const Photon = require('@generated/photon')`
+  es6 ? `import { Photon } from '@generated/photon'` : `const { Photon } = require('@generated/photon')`
 
 export const exampleScript = async ({ typescript, datamodel }: { typescript: boolean; datamodel: string }) => {
   const dmmf = await getDMMF({ datamodel })
