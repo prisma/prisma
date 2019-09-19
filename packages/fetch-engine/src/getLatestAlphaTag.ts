@@ -1,5 +1,6 @@
 const htmlparser = require('htmlparser2')
 const fetch = require('node-fetch')
+const { getProxyAgent } = require('./getProxyAgent')
 
 export async function getLatestAlphaTag() {
   const objects = []
@@ -7,7 +8,8 @@ export async function getLatestAlphaTag() {
   let nextContinuationToken: string | undefined = undefined
 
   do {
-    const xml = await fetch(getUrl(nextContinuationToken)).then(res => res.text())
+    const url = getUrl(nextContinuationToken)
+    const xml = await fetch(url, { agent: getProxyAgent(url) }).then(res => res.text())
     const result = await getObjects(xml)
     isTruncated = result.isTruncated
     nextContinuationToken = result.nextContinuationToken

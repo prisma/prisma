@@ -1,15 +1,15 @@
 import zlib from 'zlib'
 import retry from 'p-retry'
-import Progress from 'progress'
 import fetch from 'node-fetch'
 import fs from 'fs'
+import { getProxyAgent } from './getProxyAgent'
 
 export async function downloadZip(url: string, target: string, progressCb?: (progress: number) => any) {
   const partial = target + '.partial'
   const result = await retry(
     async () => {
       try {
-        const resp = await fetch(url, { compress: false })
+        const resp = await fetch(url, { compress: false, agent: getProxyAgent(url) })
 
         if (resp.status !== 200) {
           throw new Error(resp.statusText + ' ' + url)

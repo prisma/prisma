@@ -21,6 +21,8 @@
     "find-cache-dir": "^3.0.0",
     "hasha": "^5.0.0",
     "htmlparser2": "^3.10.1",
+    "http-proxy-agent": "^2.1.0",
+    "https-proxy-agent": "^2.2.2",
     "make-dir": "^3.0.0",
     "node-fetch": "^2.6.0",
     "p-map": "^3.0.0",

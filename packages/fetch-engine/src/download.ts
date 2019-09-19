@@ -20,7 +20,6 @@ import { getCacheDir, getLocalLastModified, getRemoteLastModified, getDownloadUr
 const debug = Debug('download')
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
-const copyFile = promisify(fs.copyFile)
 
 const channel = 'master'
 export interface BinaryDownloadConfiguration {
