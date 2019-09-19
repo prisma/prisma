@@ -358,6 +358,26 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
+"@prisma/fetch-engine@^0.1.14":
+  version "0.1.14"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.1.14.tgz#7d3167921437dc33da525f13308ef85af6e3d9c8"
+  integrity sha512-BzgOkbIxzQju4N3z9V1o85YY6u8cd1SzKiTU/d0p+RjZKdWtJ8JZm7bBrPSzn+Ey3AH0bWrdDmyKGiK2xkLqjA==
+  dependencies:
+    "@prisma/get-platform" "^0.1.1"
+    chalk "^2.4.2"
+    death "^1.1.0"
+    debug "^4.1.1"
+    find-cache-dir "^3.0.0"
+    hasha "^5.0.0"
+    htmlparser2 "^3.10.1"
+    http-proxy-agent "^2.1.0"
+    https-proxy-agent "^2.2.2"
+    make-dir "^3.0.0"
+    node-fetch "^2.6.0"
+    p-map "^3.0.0"
+    p-retry "^4.1.0"
+    progress "^2.0.3"
+
 "@prisma/get-platform@^0.1.1":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@prisma/get-platform/-/get-platform-0.1.1.tgz#093472840bbd14abc6bfb2b2224383119b5f0f5d"
@@ -687,6 +707,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/node-fetch@^2.5.1":
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.5.1.tgz#9e4daffa983eb098d25c2cb410c949678f3aee78"
+  integrity sha512-nYsC20tHanaNa4coFvCDcuIvtdvu8YkQz0XQOoBHL1X1y1QxeNe73dg1PaLGqsJNWiVwK0bjn5Jf+ZQpE6acJg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/node@*", "@types/node@^12.0.7":
   version "12.0.8"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.8.tgz#551466be11b2adc3f3d47156758f610bd9f6b1d8"
@@ -788,7 +815,7 @@ acorn@^6.0.1:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-6.1.1.tgz#7d25ae05bb8ad1f9b699108e1094ecd7884adc1f"
   integrity sha512-jPTiwtOxaHNaAPg/dmrJ/beuzLRnXtB0kQPQ8JpotKJgTB6rX6c8mlf315941pyjBSaPg8NHXS9fhP4u17DpGA==
 
-agent-base@4, agent-base@^4.1.0:
+agent-base@4, agent-base@^4.1.0, agent-base@^4.3.0:
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/agent-base/-/agent-base-4.3.0.tgz#8165f01c436009bccad0b1d122f05ed770efc6ee"
   integrity sha512-salcGninV0nPrwpGNn4VTXBb1SOuXQBiqbrNXoeizJsHrsL6ERFM2Ne3JUSBWRE6aeNJI2ROP/WEEIDUiDe3cg==
@@ -2569,6 +2596,14 @@ https-proxy-agent@^2.2.1:
   integrity sha512-HPCTS1LW51bcyMYbxUIOO4HEOlQ1/1qRaFWcyxvwaqUS9TY88aoEuHUY33kuAh1YhVVaDQhLZsnPd+XNARWZlQ==
   dependencies:
     agent-base "^4.1.0"
+    debug "^3.1.0"
+
+https-proxy-agent@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/https-proxy-agent/-/https-proxy-agent-2.2.2.tgz#271ea8e90f836ac9f119daccd39c19ff7dfb0793"
+  integrity sha512-c8Ndjc9Bkpfx/vCJueCPy0jlP4ccCCSNDp8xwCZzPjKJUm+B+u9WX2x98Qx4n1PiMNTWo3D7KK5ifNV/yJyRzg==
+  dependencies:
+    agent-base "^4.3.0"
     debug "^3.1.0"
 
 iconv-lite@0.4.24, iconv-lite@^0.4.4, iconv-lite@~0.4.13:

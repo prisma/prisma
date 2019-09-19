@@ -15,6 +15,7 @@ import { RouterContext } from '../components/Router'
 import makeDir from 'make-dir'
 import { promisify } from 'util'
 import { DataSource } from '@prisma/photon'
+import { getProxyAgent } from '@prisma/fetch-engine'
 import { DatabaseCredentials } from '../../types'
 import { replaceDatasource, replaceGenerator } from '../utils/replaceDatasource'
 import { credentialsToUri } from '../../convertCredentials'
@@ -191,6 +192,7 @@ export async function downloadRepo(organization: string, repo: string, branch: s
   const downloadUrl = `https://api.github.com/repos/${organization}/${repo}/tarball/${branch}` // TODO: use master instead of prisma2
   const tmpFile = getTmpFile(`prisma-download-${organization}-${repo}-${branch}.tar.gz`)
   const response = await fetch(downloadUrl, {
+    agent: getProxyAgent(downloadUrl),
     headers: {
       'User-Agent': 'prisma/prisma-init',
     },
