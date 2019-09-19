@@ -5,6 +5,7 @@ import findCacheDir from 'find-cache-dir'
 import fs from 'fs'
 import { promisify } from 'util'
 import path from 'path'
+import { getProxyAgent } from './getProxyAgent'
 
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
@@ -24,6 +25,7 @@ export async function getLocalLastModified(filePath: string): Promise<Date | nul
 export async function getRemoteLastModified(url: string): Promise<Date> {
   const response = await fetch(url, {
     method: 'HEAD',
+    agent: getProxyAgent(url),
   })
   return new Date(response.headers.get('last-modified'))
 }
@@ -53,7 +55,7 @@ function rewriteKind(kind: BinaryKind) {
 }
 
 export function getDownloadUrl(channel: string, version: string, platform: string, binaryName: BinaryKind) {
-  const extension = platform === 'windows' ? '.exe.gz' : '.gz' 
+  const extension = platform === 'windows' ? '.exe.gz' : '.gz'
   return `https://s3-eu-west-1.amazonaws.com/prisma-native/${channel}/${version}/${platform}/${rewriteKind(
     binaryName,
   )}${extension}`
