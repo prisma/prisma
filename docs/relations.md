@@ -210,60 +210,61 @@ This results in the following table:
 The [generated Photon API](./photon/api.md) comes with many helpful features for relations (find examples below):
 
 - Fluent API to traverse relations on the returned object
-- Eagerly load relations via `select` or `include`
+- Nested creates, updates and connects (also referred to as _nested writes_) with transactional guarantees
+- Nested reads (eager loading) via `select` and include
 - Relation filters (a filter on a related object, i.e. a JOIN is performed before the filter is applied)
-- Nested creates, updates and connects (also referred to as _nested writes_)
 
 ### Fluent API
 
+The fluent API lets you _fluently_ traverse the relations of your models via function calls. Note that the last the model of the _last_ function call determines what is being returned from the entire request.  
+
+This request returns all posts by a specific user:
+
 ```ts
-// Retrieve the posts of a user
 const postsByUser: Post[] = await photon.users
   .findOne({ where: { email: 'ada@prisma.io' } })
   .posts()
 ```
 
+This request returns all categories by a specific post:
+
 ```ts
-// Retrieve the categories of a post
 const categoriesOfPost: Category[] = await photon.posts
   .findOne({ where: { id: 1 } })
   .categories()
 ```
 
-### Eager loading
-
-```ts
-// The returned post objects will only have the  `id` and
-// `author` property which carries the respective user object
-const allPosts: Post[] = await photon.posts.findMany({
-  select: ['id', 'author'],
-})
-```
-
-```ts
-// The returned posts objects will have all scalar fields of the `Post` model and additionally all the categories for each post
-const allPosts: Post[] = await photon.posts.findMany({
-  include: ['categories'],
-})
-```
-
-### Relation filters
-
-```ts
-// Retrieve all posts of a particular user
-// that start with "Hello"
-const posts: Post[] = await photon.users
-  .findOne({
-    where: { email: 'ada@prisma.io' },
-  })
-  .posts({
-    where: {
-      title: { startsWith: 'Hello' },
-    },
-  })
-```
-
 ### Nested writes
+
+Nested writes provide a powerful API to write relational data to your database. They further provide _transactional guarantees_ to create, update or delete data accross multiple tables in a single Photon.js API call.
+
+Nested writes are available for relation fields of a model when using the `create` or `update` function. The following nested write operations are available per function:
+
+- On to-one relation fields (e.g. `profile` on `User`)
+  - `create`
+    - `create`
+    - `connect`
+  - `update`
+    - `create`
+    - `connect`
+    - `update`
+    - `upsert`
+- On to-many relation fields (e.g. `posts` on `User`)
+  - `create`
+    - `create`
+    - `connect`
+  - `update`
+    - `create`
+    - `connect`
+    - `set`
+    - `disconnect`
+    - `delete`
+    - `update`
+    - `updateMany`
+    - `deleteMany`
+    - `upsert`
+
+Note that nested writes can be arbitrarily deeply nested.
 
 ```ts
 // Create a new user with two posts in a
@@ -302,4 +303,39 @@ await photon.posts.update({
     id: "ck0c7jl4t0001jpcbfxft600e"
   }
 })
+```
+
+
+### Eager loading
+
+```ts
+// The returned post objects will only have the  `id` and
+// `author` property which carries the respective user object
+const allPosts: Post[] = await photon.posts.findMany({
+  select: ['id', 'author'],
+})
+```
+
+```ts
+// The returned posts objects will have all scalar fields of the `Post` model and additionally all the categories for each post
+const allPosts: Post[] = await photon.posts.findMany({
+  include: ['categories'],
+})
+```
+
+
+### Relation filters
+
+```ts
+// Retrieve all posts of a particular user
+// that start with "Hello"
+const posts: Post[] = await photon.users
+  .findOne({
+    where: { email: 'ada@prisma.io' },
+  })
+  .posts({
+    where: {
+      title: { startsWith: 'Hello' },
+    },
+  })
 ```
