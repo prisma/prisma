@@ -308,7 +308,7 @@ const post: Post = await photon.posts.update({
 })
 ```
 
-For the following example, assume there's another model called `Comment` related to `User` and `Post` as follows:
+For the next example, assume there's another model called `Comment` related to `User` and `Post` as follows:
 
 ```prisma
 model User {
