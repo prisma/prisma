@@ -211,12 +211,12 @@ The [generated Photon API](./photon/api.md) comes with many helpful features for
 
 - Fluent API to traverse relations on the returned object
 - Nested creates, updates and connects (also referred to as _nested writes_) with transactional guarantees
-- Nested reads (eager loading) via `select` and include
+- Nested reads (eager loading) via `select` and `include`
 - Relation filters (a filter on a related object, i.e. a JOIN is performed before the filter is applied)
 
 ### Fluent API
 
-The fluent API lets you _fluently_ traverse the relations of your models via function calls. Note that the last the model of the _last_ function call determines what is being returned from the entire request.  
+The fluent API lets you _fluently_ traverse the relations of your models via function calls. Note that the last the model of the _last_ function call determines what is being returned from the entire request.
 
 This request returns all posts by a specific user:
 
@@ -234,9 +234,9 @@ const categoriesOfPost: Category[] = await photon.posts
   .categories()
 ```
 
-### Nested writes
+### Nested writes (transactions)
 
-Nested writes provide a powerful API to write relational data to your database. They further provide _transactional guarantees_ to create, update or delete data accross multiple tables in a single Photon.js API call.
+Nested writes provide a powerful API to write relational data to your database. They further provide _transactional guarantees_ to create, update or delete data accross multiple tables in a single Photon.js API call. The level of nesting of a nested writes can be arbitrarily deep.
 
 Nested writes are available for relation fields of a model when using the model's `create` or `update` function. The following nested write operations are available per function:
 
@@ -266,7 +266,7 @@ Nested writes are available for relation fields of a model when using the model'
     - `deleteMany`: Update an existing user by deleting one or more of their existing posts
     - `upsert`: Update an existing user by updating one or more of their existing posts or by creating one or more new posts
 
-Note that nested writes can be arbitrarily deeply nested.
+Here are some examples of nested writes:
 
 ```ts
 // Create a new user with two posts in a
@@ -297,36 +297,139 @@ const updatedPost: Post = await photon.posts.update({
 ```
 
 ```ts
-await photon.posts.update({
+// Remove the author from an existing post in a single transaction
+const post: Post = await photon.posts.update({
   data: {
-    author: { disconnect: true }
+    author: { disconnect: true },
   },
   where: {
-    id: "ck0c7jl4t0001jpcbfxft600e"
+    id: 'ck0c7jl4t0001jpcbfxft600e',
+  },
+})
+```
+
+For the following example, assume there's another model called `Comment` related to `User` and `Post` as follows:
+
+```prisma
+model User {
+  id       String    @default(cuid()) @id
+  posts    Post[]
+  comments Comment[]
+  // ...
+}
+
+model Post {
+  id         String     @default(cuid()) @id
+  author     User?
+  comments   Comment[]
+  // ...
+}
+
+model Comment {
+  id        String @default(cuid()) @id
+  text      String
+  writtenBy User
+  post      Post
+  // ...
+}
+
+// ...
+```
+
+Because there are circular relations between `User`, `Post` and `Comment`, you can nest your write operations arbitrarily deep:
+
+```ts
+// Create a new post, connect to an existing user and create new,
+// comments, users and posts in deeply nested operations
+const post = await photon.posts.create({
+  data: {
+    author: {
+      connect: {
+        email: 'alice@prisma.io',
+      },
+    },
+    comments: {
+      create: {
+        text: 'I am Sarah and I like your post, Alice!',
+        writtenBy: {
+          create: {
+            email: 'sarah@prisma.io',
+            name: 'Sarah',
+            posts: {
+              create: {
+                title: 'Sarah\'s first blog post',
+                comments: {
+                  create: {
+                    text: 'Hi Sarah, I am Bob. I like your blog post.',
+                    writtenBy: {
+                      create: {
+                        email: 'bob@prisma.io',
+                        name: 'Bob',
+                        posts: {
+                          create: {
+                            title: 'I am Bob and this is the first post on my blog',
+                          }
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   }
 })
 ```
 
+### Nested reads (eager loading)
 
-### Eager loading
+You can eagerly load relations on a model via `select` and `inlcude` (learn more about the difference [here](./photon/api.md#manipulating-the-selection-set)). The nesting of eagerly loaded relations can be arbitrarily deep.
 
 ```ts
 // The returned post objects will only have the  `id` and
 // `author` property which carries the respective user object
-const allPosts: Post[] = await photon.posts.findMany({
-  select: ['id', 'author'],
+const allPosts = await photon.posts.findMany({
+  select: {
+    id: true,
+    author: true
+  },
 })
 ```
 
 ```ts
-// The returned posts objects will have all scalar fields of the `Post` model and additionally all the categories for each post
-const allPosts: Post[] = await photon.posts.findMany({
-  include: ['categories'],
+// The returned posts objects will have all scalar fields of the `Post` model 
+// and additionally all the categories for each post
+const allPosts = await photon.posts.findMany({
+  include: {
+    categories: true
+  },
 })
 ```
 
+```ts
+// The returned objects will have all scalar fields of the `User` model 
+// and additionally all the posts with their authors with their posts
+await photon.users.findMany({
+  include: {
+    posts: {
+      include: {
+        author: {
+          include: {
+            posts: true
+          }
+        }
+      }
+    }
+  }
+})
+```
 
 ### Relation filters
+
+A relation filter is a filter operation that's applied to a related object of a model. In SQL terms, this means a JOIN is performed before the filter is applied.
 
 ```ts
 // Retrieve all posts of a particular user
