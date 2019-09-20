@@ -238,26 +238,28 @@ const categoriesOfPost: Category[] = await photon.posts
 
 Nested writes provide a powerful API to write relational data to your database. They further provide _transactional guarantees_ to create, update or delete data accross multiple tables in a single Photon.js API call.
 
-Nested writes are available for relation fields of a model when using the `create` or `update` function. The following nested write operations are available per function:
+Nested writes are available for relation fields of a model when using the model's `create` or `update` function. The following nested write operations are available per function:
 
-- On to-one relation fields (e.g. `profile` on `User`)
+- On to-one relation fields (e.g. `profile` on `User` in the sample data model above)
   - `create`
-    - `create`
-    - `connect`
+    - `create`: Create a new user and a new profile
+    - `connect`: Create a new user and connect it to an existing profile
   - `update`
-    - `create`
-    - `connect`
-    - `update`
-    - `upsert`
-- On to-many relation fields (e.g. `posts` on `User`)
+    - `create`: Update an existing user by creating a new profile
+    - `connect`: Update an an existing user by connecting it to an existing profile
+    - `update`: Update an existing user by updating their existing profile
+    - `upsert`: Update an existing user by updating their existing profile or by creating a new profile
+    - `delete` (only if relation is optional): Update an existing user by deleting their existing profile
+    - `disconnect` (only if relation is optional): Update an existing user by removing the connection to their existing profile
+- On to-many relation fields (e.g. `posts` on `User` in the sample data model above)
   - `create`
-    - `create`
-    - `connect`
+    - `create`: Create a new user and one or more new posts
+    - `connect`: Create a new user and connect it to one or more existing posts
   - `update`
-    - `create`
-    - `connect`
-    - `set`
-    - `disconnect`
+    - `create`: Update an existing user by creating one or more new posts
+    - `connect`: Update an existing user by connecting it to one or more existing posts
+    - `set`: Update an existing user by replacing their existing posts with one or more existing posts
+    - `disconnect`: Update an existing 
     - `delete`
     - `update`
     - `updateMany`
