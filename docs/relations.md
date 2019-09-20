@@ -259,12 +259,12 @@ Nested writes are available for relation fields of a model when using the model'
     - `create`: Update an existing user by creating one or more new posts
     - `connect`: Update an existing user by connecting it to one or more existing posts
     - `set`: Update an existing user by replacing their existing posts with one or more existing posts
-    - `disconnect`: Update an existing 
-    - `delete`
-    - `update`
-    - `updateMany`
-    - `deleteMany`
-    - `upsert`
+    - `disconnect`: Update an existing by removing the connection(s) to one or more of their existing posts
+    - `update`: Update an existing user by updating one or more of their existing posts
+    - `delete`: Update an existing user by deleting one or more of their existing posts
+    - `updateMany`: Update an existing user by updating one or more of their existing posts
+    - `deleteMany`: Update an existing user by deleting one or more of their existing posts
+    - `upsert`: Update an existing user by updating one or more of their existing posts or by creating one or more new posts
 
 Note that nested writes can be arbitrarily deeply nested.
 
