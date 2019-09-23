@@ -43,11 +43,11 @@ does not work, containers are recycled regardless.
 
 Here are a number of example projects demonstrating how to deploy Photon.js to various deployment providers:
 
-- [Google Cloud Functions](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/google-cloud-functions)
-- [Netlify](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/netlify)
-- [Serverless](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/serverless)
-- [Up](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/up)
-- [ZEIT Now](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/zeit-now)
+- [Google Cloud Functions](https://github.com/prisma/prisma-examples/tree/prisma2/deployment-platforms/google-cloud-functions)
+- [Netlify](https://github.com/prisma/prisma-examples/tree/prisma2/deployment-platforms/netlify)
+- [Serverless](https://github.com/prisma/prisma-examples/tree/prisma2/deployment-platforms/serverless)
+- [Up](https://github.com/prisma/prisma-examples/tree/prisma2/deployment-platforms/up)
+- [ZEIT Now](https://github.com/prisma/prisma-examples/tree/prisma2/deployment-platforms/zeit-now)
 
 ## Deployment providers
 
