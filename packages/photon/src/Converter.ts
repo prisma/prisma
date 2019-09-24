@@ -1,11 +1,11 @@
-import { arg, Command, Env, format, HelpError, isError } from '@prisma/cli'
+import { arg, Command, format, HelpError, isError } from '@prisma/cli'
 import chalk from 'chalk'
-import { DatabaseType, DefaultParser, isdlToDmmfDatamodel } from 'prisma-datamodel'
+import { DatabaseType, DefaultParser } from 'prisma-datamodel'
 import { isdlToDatamodel2 } from './isdlToDatamodel2'
 
 export class Converter implements Command {
-  public static new(env: Env): Converter {
-    return new Converter(env)
+  public static new(): Converter {
+    return new Converter()
   }
 
   // static help template
@@ -24,7 +24,7 @@ export class Converter implements Command {
 
       ${chalk.dim(`$`)} cat old-datamodel.prisma | prisma2 convert > new-datamodel.prisma
   `)
-  private constructor(private readonly env: Env) {}
+  private constructor() {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {

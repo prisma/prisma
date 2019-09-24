@@ -40,10 +40,10 @@ async function resolveNodeModulesBase(cwd: string) {
 }
 
 export async function getCompiledGenerators(
-  cwd: string,
   datamodel: string,
   definitions: Dictionary<GeneratorDefinitionWithPackage>,
 ): Promise<CompiledGeneratorDefinition[]> {
+  const cwd = process.cwd()
   const config = await getConfig(datamodel)
   const dmmf = await getRawDMMF(datamodel)
   const nodeModulesBase = await resolveNodeModulesBase(cwd)
@@ -62,7 +62,6 @@ export async function getCompiledGenerators(
         predefinedGenerator.definition.defaultOutput ||
         `node_modules/@generated/${predefinedGenerator.packagePath}`
 
-      debug({ g, cwd, nodeModulesBase })
       const resolvedCwd = g.output ? cwd : nodeModulesBase
 
       return { ...g, output: output ? path.resolve(resolvedCwd, output) : null }

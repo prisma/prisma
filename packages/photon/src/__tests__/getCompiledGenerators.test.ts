@@ -30,7 +30,7 @@ model Post {
 }`
 
 test('getCompiledGenerators', async () => {
-  const generators = await getCompiledGenerators(process.cwd(), datamodel, {
+  const generators = await getCompiledGenerators(datamodel, {
     photonjs: {
       packagePath: '@prisma/photon',
       definition: {
