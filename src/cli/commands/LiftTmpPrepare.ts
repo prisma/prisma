@@ -1,4 +1,4 @@
-import { arg, Command, Dictionary, Env, format, GeneratorDefinitionWithPackage, HelpError } from '@prisma/cli'
+import { arg, Command, Dictionary, format, GeneratorDefinitionWithPackage, HelpError } from '@prisma/cli'
 import chalk from 'chalk'
 import { Lift } from '../../Lift'
 import { occupyPath } from '../../utils/occupyPath'
@@ -7,8 +7,8 @@ import { occupyPath } from '../../utils/occupyPath'
  * $ prisma migrate new
  */
 export class LiftTmpPrepare implements Command {
-  public static new(env: Env, generators: Dictionary<GeneratorDefinitionWithPackage>): LiftTmpPrepare {
-    return new LiftTmpPrepare(env, generators)
+  public static new(generators: Dictionary<GeneratorDefinitionWithPackage>): LiftTmpPrepare {
+    return new LiftTmpPrepare(generators)
   }
 
   // static help template
@@ -19,16 +19,13 @@ export class LiftTmpPrepare implements Command {
 
       prisma dev
   `)
-  private constructor(
-    private readonly env: Env,
-    private readonly generators: Dictionary<GeneratorDefinitionWithPackage>,
-  ) {}
+  private constructor(private readonly generators: Dictionary<GeneratorDefinitionWithPackage>) {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
-    await occupyPath(this.env.cwd)
+    await occupyPath(process.cwd())
 
-    const lift = new Lift(this.env.cwd)
+    const lift = new Lift()
     await lift.watchUp({
       generatorDefinitions: this.generators,
     })

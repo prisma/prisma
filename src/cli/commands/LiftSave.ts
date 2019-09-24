@@ -1,4 +1,4 @@
-import { arg, Command, Env, format, HelpError, isError } from '@prisma/cli'
+import { arg, Command, format, getSchema, getSchemaDir, HelpError, isError } from '@prisma/cli'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
@@ -17,8 +17,8 @@ const writeFile = promisify(fs.writeFile)
  * $ prisma migrate new
  */
 export class LiftSave implements Command {
-  public static new(env: Env): LiftSave {
-    return new LiftSave(env)
+  public static new(): LiftSave {
+    return new LiftSave()
   }
 
   // static help template
@@ -44,7 +44,7 @@ export class LiftSave implements Command {
       ${chalk.dim(`$`)} prisma migrate save --name "add unique to email"
 
   `)
-  private constructor(private readonly env: Env) {}
+  private constructor() {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
@@ -67,7 +67,7 @@ export class LiftSave implements Command {
     const preview = args['--preview'] || false
     await ensureDatabaseExists('create', args['--create-db'])
 
-    const lift = new Lift(this.env.cwd)
+    const lift = new Lift()
 
     const migration = await lift.createMigration('DUMMY_NAME')
 
@@ -85,9 +85,12 @@ export class LiftSave implements Command {
       return `\nRun ${chalk.greenBright('prisma lift save --name MIGRATION_NAME')} to create the migration\n`
     }
 
-    const migrationsDir = path.join(this.env.cwd, 'migrations', migrationId)
+    await getSchema() // just to leverage on its error handling
+    const schemaDir = (await getSchemaDir())! // TODO: Probably getSchemaDir() should return Promise<string> instead of Promise<string | null>
+
+    const migrationsDir = path.join(schemaDir, 'migrations', migrationId)
     await serializeFileMap(files, migrationsDir)
-    const lockFilePath = path.join(this.env.cwd, 'migrations', 'lift.lock')
+    const lockFilePath = path.join(schemaDir, 'migrations', 'lift.lock')
     await writeFile(lockFilePath, newLockFile)
 
     lift.stop()

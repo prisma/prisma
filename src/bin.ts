@@ -10,7 +10,7 @@ process.on('unhandledRejection', (e, promise) => {
 /**
  * Dependencies
  */
-import { Dictionary, Env, GeneratorDefinitionWithPackage, HelpError, isError } from '@prisma/cli'
+import { Dictionary, GeneratorDefinitionWithPackage, HelpError, isError } from '@prisma/cli'
 import { generatorDefinition as definition } from '@prisma/photon'
 import path from 'path'
 import { LiftCommand } from './cli/commands/LiftCommand'
@@ -39,24 +39,14 @@ const predefinedGenerators: Dictionary<GeneratorDefinitionWithPackage> = {
  * Main function
  */
 async function main(): Promise<number> {
-  // load the environment
-  const env = await Env.load(process.env, path.join(process.cwd()))
-  if (isError(env)) {
-    console.error(env)
-    return 1
-  }
-
   // create a new CLI with our subcommands
-  const cli = LiftCommand.new(
-    {
-      save: LiftSave.new(env),
-      up: LiftUp.new(env),
-      down: LiftDown.new(env),
-      watch: LiftWatch.new(env, predefinedGenerators),
-      ['tmp-prepare']: LiftTmpPrepare.new(env, predefinedGenerators),
-    },
-    env,
-  )
+  const cli = LiftCommand.new({
+    save: LiftSave.new(),
+    up: LiftUp.new(),
+    down: LiftDown.new(),
+    watch: LiftWatch.new(predefinedGenerators),
+    ['tmp-prepare']: LiftTmpPrepare.new(predefinedGenerators),
+  })
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))
   if (result instanceof HelpError) {
