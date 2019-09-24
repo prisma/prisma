@@ -68,7 +68,7 @@ export function getSchemaPathSync(): string | null {
 }
 
 /**
- * Small helper that returns the directory which contains the `schema.prisma` file
+ * Sync version of the small helper that returns the directory which contains the `schema.prisma` file
  */
 export function getSchemaDirSync(): string | null {
   const schemaPath = getSchemaPathSync()
