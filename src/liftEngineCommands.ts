@@ -1,4 +1,4 @@
-import { getCwd } from '@prisma/cli'
+import { getSchemaDir } from '@prisma/cli'
 import { getPlatform } from '@prisma/get-platform'
 import execa from 'execa'
 import fs from 'fs'
@@ -132,7 +132,11 @@ async function doesSqliteDbExist(connectionString: string): Promise<boolean> {
     filePath = filePath.slice(5)
   }
 
-  const cwd = await getCwd()
+  const cwd = await getSchemaDir()
+
+  if (!cwd) {
+    throw new Error(`Could not find schema.prisma in ${process.cwd()}`)
+  }
 
   const absoluteTarget = path.resolve(cwd, filePath)
 

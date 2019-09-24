@@ -1,4 +1,4 @@
-import { getDatamodel } from '@prisma/cli'
+import { getSchema } from '@prisma/cli'
 import { BorderBox, DummySelectable, TabIndexProvider } from '@prisma/ink-components'
 import { getConfig } from '@prisma/photon'
 import ansiEscapes from 'ansi-escapes'
@@ -15,7 +15,7 @@ const AnySpinner: any = Spinner
 export type LiftAction = 'create' | 'apply' | 'unapply' | 'dev'
 
 export async function ensureDatabaseExists(action: LiftAction, forceCreate: boolean = false) {
-  const datamodel = await getDatamodel()
+  const datamodel = await getSchema()
   const config = await getConfig(datamodel)
   const activeDatasource =
     config.datasources.length === 1

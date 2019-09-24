@@ -1,4 +1,4 @@
-import { arg, Command, Commands, Env, format, HelpError, isError, unknownCommand } from '@prisma/cli'
+import { arg, Command, Commands, format, HelpError, isError, unknownCommand } from '@prisma/cli'
 import chalk from 'chalk'
 import { getNextFreePort } from '../../utils/occupyPath'
 import { gamboge } from '../highlight/theme'
@@ -7,8 +7,8 @@ import { gamboge } from '../highlight/theme'
  * Migrate command
  */
 export class LiftCommand implements Command {
-  public static new(cmds: Commands, env: Env): LiftCommand {
-    return new LiftCommand(cmds, env)
+  public static new(cmds: Commands): LiftCommand {
+    return new LiftCommand(cmds)
   }
 
   // static help template
@@ -47,7 +47,7 @@ export class LiftCommand implements Command {
       Get more help on a lift up
       ${chalk.dim(`$`)} prisma2 lift up -h
   `)
-  private constructor(private readonly cmds: Commands, private readonly env: Env) {}
+  private constructor(private readonly cmds: Commands) {}
 
   public async parse(argv: string[]): Promise<string | Error> {
     // parse the arguments according to the spec
@@ -65,7 +65,7 @@ export class LiftCommand implements Command {
     // check if we have that subcommand
     const cmd = this.cmds[args._[0]]
     if (cmd) {
-      const nextFreePort = await getNextFreePort(this.env.cwd)
+      const nextFreePort = await getNextFreePort(process.cwd())
       if (typeof nextFreePort !== 'number') {
         const command = `prisma2 lift ${argv.join(' ')}`
         throw new Error(`Cannot run ${chalk.bold(command)} because there is a ${chalk.bold(

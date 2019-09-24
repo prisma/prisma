@@ -1,4 +1,4 @@
-import { arg, Command, Dictionary, Env, format, GeneratorDefinitionWithPackage, HelpError } from '@prisma/cli'
+import { arg, Command, Dictionary, format, GeneratorDefinitionWithPackage, HelpError } from '@prisma/cli'
 import chalk from 'chalk'
 import { Lift } from '../../Lift'
 import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
@@ -8,8 +8,8 @@ import { occupyPath } from '../../utils/occupyPath'
  * $ prisma migrate new
  */
 export class LiftWatch implements Command {
-  public static new(env: Env, generators: Dictionary<GeneratorDefinitionWithPackage>): LiftWatch {
-    return new LiftWatch(env, generators)
+  public static new(generators: Dictionary<GeneratorDefinitionWithPackage>): LiftWatch {
+    return new LiftWatch(generators)
   }
 
   // static help template
@@ -24,10 +24,7 @@ export class LiftWatch implements Command {
 
       -c, --create-db   Create the database in case it doesn't exist
   `)
-  private constructor(
-    private readonly env: Env,
-    private readonly generators: Dictionary<GeneratorDefinitionWithPackage>,
-  ) {}
+  private constructor(private readonly generators: Dictionary<GeneratorDefinitionWithPackage>) {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
@@ -39,11 +36,11 @@ export class LiftWatch implements Command {
     })
     const preview = args['--preview'] || false
 
-    await occupyPath(this.env.cwd)
+    await occupyPath(process.cwd())
 
     await ensureDatabaseExists('dev', args['--create-db'])
 
-    const lift = new Lift(this.env.cwd)
+    const lift = new Lift()
     return lift.watch({
       preview,
       generatorDefinitions: this.generators,

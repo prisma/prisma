@@ -1,12 +1,12 @@
-import { arg, Command, Env, format, HelpError, isError } from '@prisma/cli'
+import { arg, Command, format, HelpError, isError } from '@prisma/cli'
 import chalk from 'chalk'
 import fs from 'fs'
 import { Lift, UpOptions } from '../../Lift'
 import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
 
 export class LiftUp implements Command {
-  public static new(env: Env): LiftUp {
-    return new LiftUp(env)
+  public static new(): LiftUp {
+    return new LiftUp()
   }
 
   // static help template
@@ -46,7 +46,7 @@ export class LiftUp implements Command {
       Go up by to a migration by name
       ${chalk.dim(`$`)} prisma migrate up "add first_name field"
   `)
-  private constructor(private readonly env: Env) {}
+  private constructor() {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
@@ -68,7 +68,7 @@ export class LiftUp implements Command {
       return this.help()
     }
 
-    const lift = new Lift(this.env.cwd)
+    const lift = new Lift()
 
     const options: UpOptions = {
       preview: args['--preview'],

@@ -1,4 +1,4 @@
-import { Dictionary, GeneratorDefinitionWithPackage } from '@prisma/cli'
+import { Dictionary, GeneratorDefinitionWithPackage, getSchemaDirSync, getSchemaPathSync } from '@prisma/cli'
 import { getPlatform } from '@prisma/get-platform'
 import { getCompiledGenerators } from '@prisma/photon'
 import 'array-flat-polyfill'
@@ -110,7 +110,7 @@ export class Lift {
             })
         }
 
-        const generators = await getCompiledGenerators(this.projectDir, datamodel, generatorDefinitions)
+        const generators = await getCompiledGenerators(datamodel, generatorDefinitions)
 
         const newGenerators = generators.map(gen => ({
           name: gen.prettyName || 'Generator',
@@ -160,18 +160,38 @@ export class Lift {
   private datamodelBeforeWatch: string = ''
   private studioServer?: any
   private studioPort: number = 5555
-  constructor(protected projectDir: string) {
+  private projectDir: string
+  constructor(projectDir?: string) {
+    this.projectDir = projectDir || this.getSchemaDir()
     const schemaPath = this.getDatamodelPath()
-    this.engine = new LiftEngine({ projectDir, schemaPath })
+    this.engine = new LiftEngine({ projectDir: this.projectDir, schemaPath })
+  }
+
+  public getSchemaDir(): string {
+    const schemaPath = getSchemaDirSync()
+    if (!schemaPath) {
+      throw new Error(`Could not find schema.prisma`)
+    }
+
+    return schemaPath
   }
 
   public getDatamodelPath(): string {
-    const datamodelPath = path.resolve(this.projectDir, 'schema.prisma')
-    if (!fs.existsSync(datamodelPath)) {
-      throw new Error(`Could not find ${datamodelPath}`)
+    const { projectDir } = this
+    if (projectDir) {
+      if (fs.existsSync(path.join(projectDir, 'schema.prisma'))) {
+        return path.join(projectDir, 'schema.prisma')
+      }
+      if (fs.existsSync(path.join(projectDir, 'prisma/schema.prisma'))) {
+        return path.join(projectDir, 'prisma/schema.prisma')
+      }
+    }
+    const schemaPath = getSchemaPathSync()
+    if (!schemaPath) {
+      throw new Error(`Could not find schema.prisma in ${projectDir}`)
     }
 
-    return datamodelPath
+    return schemaPath
   }
 
   public getDatamodel(): string {
@@ -328,7 +348,7 @@ export class Lift {
 
     const datamodel = await this.getDatamodel()
 
-    const generators = await getCompiledGenerators(this.projectDir, datamodel, options.generatorDefinitions)
+    const generators = await getCompiledGenerators(datamodel, options.generatorDefinitions)
 
     this.studioPort = await getPort({ port: getPort.makeRange(5555, 5600) })
 
