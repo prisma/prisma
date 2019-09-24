@@ -42,7 +42,8 @@ const Step60ProcessBlank: React.FC = () => {
           setState({ selectedExample: example })
           router.setRoute('download-example')
         }
-      } else if (state.selectedDb === 'sqlite' && !state.useDemoScript) {
+        // if just the schema is being selected
+      } else if (!state.useDemoScript) {
         makeDirSync(path.join(state.outputDir, './prisma'))
         fs.writeFileSync(
           path.join(state.outputDir, './prisma/schema.prisma'),
