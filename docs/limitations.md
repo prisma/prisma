@@ -16,7 +16,7 @@ During the preview phase of Prisma 2 there are missing features, limited perform
 
 ## Stability limitations
 
-- Limited auto-complete in Typescript projects due to a compiler bug ([tracking issue](https://github.com/microsoft/TypeScript/issues/30507) over at `TypeScript`, and the [PR we raised that fixes that](https://github.com/microsoft/TypeScript/pull/32100) and waits to get merged)
+- Limited auto-complete in TypeScript projects due to a compiler bug ([tracking issue](https://github.com/microsoft/TypeScript/issues/30507) over at `TypeScript`, and the [PR we raised that fixes that](https://github.com/microsoft/TypeScript/pull/32100) and waits to get merged)
 
 ## Performance limitations
 
