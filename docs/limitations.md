@@ -1,6 +1,6 @@
 # Current limitations
 
-During the preview phase of Prisma 2 there are missing features, limited performance and stability issues you should be aware of:
+During the Preview period of Prisma 2 there are missing features, limited performance and stability issues you should be aware of:
 
 ## Functionality limitations
 
