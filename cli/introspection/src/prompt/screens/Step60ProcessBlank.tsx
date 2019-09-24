@@ -16,6 +16,7 @@ const Step60ProcessBlank: React.FC = () => {
   const router = useContext(RouterContext)
   const examples = useExampleApi()
   const { introspectionResult } = useConnector()
+
   useEffect(() => {
     async function run() {
       // perform actions to get blank project going...

@@ -310,10 +310,10 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@prisma/cli@0.0.70", "@prisma/cli@^0.0.70":
-  version "0.0.70"
-  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.70.tgz#c2f0ae6ca993e464343234a1adadbc845bbc1958"
-  integrity sha512-vCp8LdlmGYSYD3ii7R1lrSC6uandlHuryxhR0k7JygqART0LWV6Cvjn0A9YZ7iFPcc4SBBGKIpV/qMRHazP7bA==
+"@prisma/cli@0.0.73", "@prisma/cli@^0.0.73":
+  version "0.0.73"
+  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.73.tgz#1e3f003f22b2c6e65468c2356460fae08283a110"
+  integrity sha512-0IaZTSHd+hvFwE42Q0d72q+ym9Z18B7taFWiKwehUeMyle8ubsK4gDCKntGWKFOF6DfCX1JRI5zgfApDuKZvXQ==
   dependencies:
     arg "^4.1.0"
     chalk "^2.4.2"
@@ -328,10 +328,10 @@
     chalk "^2.4.2"
     strip-indent "^3.0.0"
 
-"@prisma/engine-core@0.0.91":
-  version "0.0.91"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.91.tgz#9562e0c1fdbed6b8a809ead102e94e088f9fb30c"
-  integrity sha512-lwbm0DuDln8xGxfeENxHCDOoZcFILOqnw4AmvPjmTr7XAeqjqUrc23HqG2GRpbHr1KHiwCXsRXIVfGwQy/PdIQ==
+"@prisma/engine-core@0.0.92":
+  version "0.0.92"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.92.tgz#b801a58165b02879ed223bdd8b4d97095764366c"
+  integrity sha512-7dX1v9fZPkPEBW/FovbqJpw849F0GvOQAKHtm0LcIhg5r5Ij7doeuVSjFgJMRrxc4qTfp6wczhufQ4mdg1anuA==
   dependencies:
     "@prisma/cli" "^0.0.69"
     "@prisma/get-platform" "^0.1.1"
@@ -367,43 +367,59 @@
   dependencies:
     debug "^4.1.1"
 
-"@prisma/introspection@0.0.71":
-  version "0.0.71"
-  resolved "https://registry.yarnpkg.com/@prisma/introspection/-/introspection-0.0.71.tgz#549dc6fbc6b0432dc2991cf023d3b6a8a2982b82"
-  integrity sha512-B9AmUwOKg6A7DYNdHcDlmFoiHXbtpP7MxavF0tRu2AUjFRgbsXhlDfIeXLvCCQe/FVBt+HEMQG9nvUS8WhdshQ==
+"@prisma/ink-components@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@prisma/ink-components/-/ink-components-0.0.1.tgz#b8fd25bf154dec8e96913e568133f97693901f44"
+  integrity sha512-v/5tmmOgECGzlt4jxTPDK8Cbv4Xff/Df8kAn/X9Dd4a3staK5WLii4mvQ/EUI3GPl4Et9v1MR+GyEwNFzWhhqA==
   dependencies:
+    chalk "^2.4.2"
+    cli-truncate "^2.0.0"
+    figures "^3.0.0"
+    ink-spinner "^3.0.1"
+    string-width "^4.1.0"
+    strip-indent "^3.0.0"
+    terminal-link "^2.0.0"
+
+"@prisma/introspection@0.0.73":
+  version "0.0.73"
+  resolved "https://registry.yarnpkg.com/@prisma/introspection/-/introspection-0.0.73.tgz#c9dcd56294a16c9dc0316e2a0e3219509bba7771"
+  integrity sha512-a00Si4yOoZnGMtDCPYotmLy2EQYcVxu5FWfobCSef+NmxZPyN9br69NozTtEG7+66Fd8DDSInpb00Ljl02PWIA==
+  dependencies:
+    "@prisma/ink-components" "^0.0.1"
     ajv "^6.10.0"
     chalk "^2.4.2"
     cli-truncate "^2.0.0"
     dotenv "^8.0.0"
     execa "^1.0.0"
     figures "^3.0.0"
-    ink "^2.2.0"
+    ink "^2.3.0"
     ink-progress-bar "^3.0.0"
     ink-spinner "^3.0.1"
-    ink-text-input "^3.2.0"
+    ink-text-input "^3.2.1"
     jsonwebtoken "^8.5.1"
     node-fetch "^2.6.0"
     ora "^3.4.0"
     parse-github-url "^1.0.2"
     prisma-datamodel "^1.36.0-test.2"
     prisma-db-introspection "^1.36.0-test.2"
-    react "^16.8.6"
+    react "^16.9.0"
     scuid "^1.1.0"
     string-width "^4.1.0"
     strip-ansi "^5.2.0"
     tar "^4.4.10"
-    terminal-link "^1.3.0"
+    terminal-link "^2.0.0"
 
-"@prisma/lift@0.2.51":
-  version "0.2.51"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.2.51.tgz#e248f1c9aa13b2533b09facbf266c8ca5ffb7933"
-  integrity sha512-wMW74fc0J/TLbGK/XuobKHoga48bAYF9cVL6nfG4w6sPWGiwoidriaGPVVGOTMfTI1fL3pmiwIBBjvxW5Z11Yg==
+"@prisma/lift@0.2.58":
+  version "0.2.58"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.2.58.tgz#72e13b1e8a983a36f23373cc656a0c30df79b5cf"
+  integrity sha512-LvjCD2I6EFYMTSWNDEnHzV1i5mb7wzgdc8zpxbAM8bB5o6FLyhE2pyciuHp1cL9NpCuIYpEfH7VRsbXICKm4FA==
   dependencies:
     "@prisma/fetch-engine" "^0.1.13"
     "@prisma/get-platform" "^0.1.1"
+    "@prisma/ink-components" "^0.0.1"
     "@prisma/studio-server" "^0.92.0"
     "@types/execa" "^0.9.0"
+    ansi-escapes "^4.2.1"
     arg "^4.1.0"
     array-flat-polyfill "^1.0.1"
     cli-cursor "^3.0.0"
@@ -436,14 +452,14 @@
     strip-indent "^3.0.0"
     supports-hyperlinks "^1.0.1"
 
-"@prisma/photon@^0.2.58":
-  version "0.2.58"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.2.58.tgz#97de252233b8238dbecf8fffdfb22e5826ceb295"
-  integrity sha512-0b2WnabENn3rBaiF3KnpiRhLMslKXTF95tMPMn6JdJNuVjHTP5etRr406cPYopo/ywalohMBTfrWrsTak80y6A==
+"@prisma/photon@^0.2.65":
+  version "0.2.65"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.2.65.tgz#d7e4015fc692b903c7ccbb767e5c29d599e2709b"
+  integrity sha512-g9W1NWr6o1/sAgbV0G4o3GeHzRQQ8uLiQ3DoMY/ybIZGyLmq2G7ncXrT7aL7YVAd1GIW/qxTUG2vyq7UK2rjqA==
   dependencies:
     "@apexearth/copy" "^1.4.2"
-    "@prisma/cli" "0.0.70"
-    "@prisma/engine-core" "0.0.91"
+    "@prisma/cli" "0.0.73"
+    "@prisma/engine-core" "0.0.92"
     "@prisma/fetch-engine" "^0.1.13"
     chalk "^2.4.2"
     cpy "^7.3.0"
@@ -836,6 +852,13 @@ ansi-escapes@^3.0.0, ansi-escapes@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/ansi-escapes/-/ansi-escapes-3.2.0.tgz#8780b98ff9dbf5638152d1f1fe5c1d7b4442976b"
   integrity sha512-cBhpre4ma+U0T1oM5fXg7Dy1Jw7zzwv7lt/GoCpr+hDQJoYnKVPLL4dCvSEFMmQurOQvSrwT7SL/DAlhBI97RQ==
+
+ansi-escapes@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/ansi-escapes/-/ansi-escapes-4.2.1.tgz#4dccdb846c3eee10f6d64dea66273eab90c37228"
+  integrity sha512-Cg3ymMAdN10wOk/VYfLV7KCQyv7EDirJ64500sU7n9UlmioEtDuU5Gd+hj73hXSU/ex7tHJSssmyftDdkMLO8Q==
+  dependencies:
+    type-fest "^0.5.2"
 
 ansi-regex@^2.0.0:
   version "2.1.1"
@@ -2514,6 +2537,11 @@ has-flag@^3.0.0:
   resolved "https://registry.yarnpkg.com/has-flag/-/has-flag-3.0.0.tgz#b5d454dc2199ae225699f3467e5a07f3b955bafd"
   integrity sha1-tdRU3CGZriJWmfNGfloH87lVuv0=
 
+has-flag@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/has-flag/-/has-flag-4.0.0.tgz#944771fd9c81c81265c4d6941860da06bb59479b"
+  integrity sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==
+
 has-symbols@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/has-symbols/-/has-symbols-1.0.0.tgz#ba1a8f1af2a0fc39650f5c850367704122063b44"
@@ -2755,14 +2783,14 @@ ink-spinner@^3.0.1:
     cli-spinners "^1.0.0"
     prop-types "^15.5.10"
 
-ink-text-input@^3.2.0:
+ink-text-input@^3.2.1:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/ink-text-input/-/ink-text-input-3.2.1.tgz#099dd54f693053a340fb76cff051b5e3e775dd94"
   integrity sha512-gU5Q3+xq0koDsTEkW0U6k3nNXjN4r9g/b6goo/jHlK2g4R5M6d22KnLEO6yFDYHQO1D27aTdSUk4HH+Nz8lQKg==
   dependencies:
     prop-types "^15.5.10"
 
-ink@^2.2.0:
+ink@^2.2.0, ink@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/ink/-/ink-2.3.0.tgz#222136be17bb72fc742e19090483e7e0e7dc3690"
   integrity sha512-931rgXHAS3hM++8ygWPOBeHOFwTzHh3pDAVZtiBVOUH6tVvJijym43ODUy22ySo2NwYUFeR/Zj3xuWzBEKMiHw==
@@ -4982,7 +5010,7 @@ react-reconciler@^0.20.0:
     prop-types "^15.6.2"
     scheduler "^0.13.6"
 
-react@^16.8.6:
+react@^16.8.6, react@^16.9.0:
   version "16.9.0"
   resolved "https://registry.yarnpkg.com/react/-/react-16.9.0.tgz#40ba2f9af13bc1a38d75dbf2f4359a5185c4f7aa"
   integrity sha512-+7LQnFBwkiw+BobzOF6N//BdoNw0ouwmSJTEm9cglOOmsg/TMiFHZLe2sEoN5M7LgJTj9oHH0gxklfnQe66S1w==
@@ -5680,6 +5708,13 @@ supports-color@^6.1.0:
   dependencies:
     has-flag "^3.0.0"
 
+supports-color@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-7.0.0.tgz#f2392c50ab35bb3cae7beebf24d254a19f880c06"
+  integrity sha512-WRt32iTpYEZWYOpcetGm0NPeSvaebccx7hhS/5M6sAiqnhedtFCHFxkjzZlJvFNCPowiKSFGiZk5USQDFy83vQ==
+  dependencies:
+    has-flag "^4.0.0"
+
 supports-hyperlinks@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/supports-hyperlinks/-/supports-hyperlinks-1.0.1.tgz#71daedf36cc1060ac5100c351bb3da48c29c0ef7"
@@ -5687,6 +5722,14 @@ supports-hyperlinks@^1.0.1:
   dependencies:
     has-flag "^2.0.0"
     supports-color "^5.0.0"
+
+supports-hyperlinks@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/supports-hyperlinks/-/supports-hyperlinks-2.0.0.tgz#b1b94a159e9df00b0a554b2d5f0e0a89690334b0"
+  integrity sha512-bFhn0MQ8qefLyJ3K7PpHiPUTuTVPWw6RXfaMeV6xgJLXtBbszyboz1bvGTVv4R0YpQm2DqlXXn0fFHhxUHVE5w==
+  dependencies:
+    has-flag "^4.0.0"
+    supports-color "^7.0.0"
 
 symbol-tree@^3.2.2:
   version "3.2.4"
@@ -5713,6 +5756,14 @@ terminal-link@^1.2.0, terminal-link@^1.3.0:
   dependencies:
     ansi-escapes "^3.2.0"
     supports-hyperlinks "^1.0.1"
+
+terminal-link@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/terminal-link/-/terminal-link-2.0.0.tgz#daa5d9893d57d3a09f981e1a45be37daba3f0ce6"
+  integrity sha512-rdBAY35jUvVapqCuhehjenLbYY73cVgRQ6podD6u9EDBomBBHjCOtmq2InPgPpTysOIOsQ5PdBzwSC/sKjv6ew==
+  dependencies:
+    ansi-escapes "^4.2.1"
+    supports-hyperlinks "^2.0.0"
 
 test-exclude@^5.2.3:
   version "5.2.3"
@@ -5912,6 +5963,11 @@ type-fest@^0.3.0:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-0.3.1.tgz#63d00d204e059474fe5e1b7c011112bbd1dc29e1"
   integrity sha512-cUGJnCdr4STbePCgqNFbpVNCepa+kAVohJs1sLhxzdH+gnEoOd8VhbYa7pD3zZYGiURWM2xzEII3fQcRizDkYQ==
+
+type-fest@^0.5.2:
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-0.5.2.tgz#d6ef42a0356c6cd45f49485c3b6281fc148e48a2"
+  integrity sha512-DWkS49EQKVX//Tbupb9TFa19c7+MK1XmzkrZUR8TAktmE/DizXoaoJV6TZ/tSIPXipqNiRI6CyAe7x69Jb6RSw==
 
 type-is@~1.6.17, type-is@~1.6.18:
   version "1.6.18"
