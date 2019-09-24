@@ -27,4 +27,4 @@ During the preview phase of Prisma 2 there are missing features, limited perform
 The following functionality is currently not part of Prisma and will most probably not be added before GA:
 
 - Realtime API or subscriptions (In the future (after GA), Prisma will have an events engine that might enable this feature, but there is no ETA for this yet) ([tracking issue](https://github.com/prisma/prisma2/issues/298))
-- Go client (Photon Go) ([tracking issue](https://github.com/prisma/prisma2/issues/571))
+- Go client ("Photon Go") ([tracking issue](https://github.com/prisma/prisma2/issues/571))
