@@ -1,6 +1,5 @@
-import { Command, Env, arg, format } from '@prisma/cli'
+import { Command, arg, format } from '@prisma/cli'
 import { isError } from 'util'
-import { mkdirpSync } from 'fs-extra'
 import { initPrompt } from '../prompt/initPrompt'
 import fs from 'fs'
 import path from 'path'
@@ -8,11 +7,11 @@ import chalk from 'chalk'
 import { printError, printFix } from '../prompt/utils/print'
 
 export class Init implements Command {
-  static new(env: Env): Init {
-    return new Init(env)
+  static new(): Init {
+    return new Init()
   }
 
-  private constructor(private readonly env: Env) {}
+  private constructor() {}
 
   async parse(argv: string[]): Promise<any> {
     // parse the arguments according to the spec
