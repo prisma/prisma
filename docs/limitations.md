@@ -16,7 +16,7 @@ During the preview phase of Prisma 2 there are missing features, limited perform
 
 ## Stability limitations
 
-- Limited auto-complete in Typescript projects due to a compiler bug. ([tracking issue](https://github.com/microsoft/TypeScript/issues/30507) over at `TypeScript`, and the [PR we raised that fixes that](https://github.com/microsoft/TypeScript/pull/32100) and waits to get merged.)
+- Limited auto-complete in Typescript projects due to a compiler bug ([tracking issue](https://github.com/microsoft/TypeScript/issues/30507) over at `TypeScript`, and the [PR we raised that fixes that](https://github.com/microsoft/TypeScript/pull/32100) and waits to get merged)
 
 ## Performance limitations
 
@@ -24,7 +24,7 @@ During the preview phase of Prisma 2 there are missing features, limited perform
 
 ## Out of scope functionality
 
-The following functionality is currently not part of Prisma and will not be added before GA:
+The following functionality is currently not part of Prisma and will most probably not be added before GA:
 
-- Realtime API or subscriptions. (In the future (after GA), Prisma will have an events engine that might enable this feature, but there is no ETA for this yet.) ([tracking issue](https://github.com/prisma/prisma2/issues/298))
+- Realtime API or subscriptions (In the future (after GA), Prisma will have an events engine that might enable this feature, but there is no ETA for this yet) ([tracking issue](https://github.com/prisma/prisma2/issues/298))
 - Go client (Photon Go) ([tracking issue](https://github.com/prisma/prisma2/issues/571))
