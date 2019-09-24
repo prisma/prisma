@@ -20,7 +20,7 @@ process.on('unhandledRejection', e => {
 /**
  * Dependencies
  */
-import { isError, HelpError, Env, getCwd } from '@prisma/cli'
+import { isError, HelpError } from '@prisma/cli'
 import { LiftCommand, LiftSave, LiftUp, LiftDown, LiftWatch, LiftTmpPrepare } from '@prisma/lift'
 import { Converter } from '@prisma/photon'
 import { CLI } from './CLI'
@@ -39,30 +39,21 @@ export { Photon } from '@prisma/studio-transports'
 async function main(): Promise<number> {
   // react shut up
   process.env.NODE_ENV = 'production'
-  // load the environment
-  const env = await Env.load(process.env, await getCwd())
-  if (isError(env)) {
-    console.error(env)
-    return 1
-  }
 
   // create a new CLI with our subcommands
   const cli = CLI.new({
-    init: Init.new(env),
-    lift: LiftCommand.new(
-      {
-        save: LiftSave.new(env),
-        up: LiftUp.new(env),
-        down: LiftDown.new(env),
-        docs: Docs.new('lift', 'https://github.com/prisma/prisma2/tree/master/docs'),
-      },
-      env,
-    ),
-    'tmp-prepare': LiftTmpPrepare.new(env, predefinedGenerators),
-    introspect: Introspect.new(env),
-    convert: Converter.new(env),
-    dev: LiftWatch.new(env, predefinedGenerators),
-    generate: Generate.new(env, predefinedGenerators),
+    init: Init.new(),
+    lift: LiftCommand.new({
+      save: LiftSave.new(),
+      up: LiftUp.new(),
+      down: LiftDown.new(),
+      docs: Docs.new('lift', 'https://github.com/prisma/prisma2/tree/master/docs'),
+    }),
+    'tmp-prepare': LiftTmpPrepare.new(predefinedGenerators),
+    introspect: Introspect.new(),
+    convert: Converter.new(),
+    dev: LiftWatch.new(predefinedGenerators),
+    generate: Generate.new(predefinedGenerators),
     version: Version.new(),
   })
   // parse the arguments

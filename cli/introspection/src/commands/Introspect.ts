@@ -1,4 +1,4 @@
-import { arg, Command, Env, format, isError } from '@prisma/cli'
+import { arg, Command, format, isError, getSchemaDir } from '@prisma/cli'
 import { Result } from 'arg'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -54,11 +54,11 @@ type Args = {
 }
 
 export class Introspect implements Command {
-  static new(env: Env): Introspect {
-    return new Introspect(env)
+  static new(): Introspect {
+    return new Introspect()
   }
 
-  private constructor(private readonly env: Env) {}
+  private constructor() {}
 
   async parse(argv: string[]): Promise<any> {
     // parse the arguments according to the spec
@@ -118,7 +118,7 @@ export class Introspect implements Command {
          * Write the result to the filesystem
          */
 
-        const fileName = this.writeDatamodel(newDatamodelSdl)
+        const fileName = await this.writeDatamodel(newDatamodelSdl)
 
         console.log(`\nCreated datamodel definition based on ${numTables} database tables`)
         const andDatamodelText = referenceDatamodelExists ? ' and the existing datamodel' : ''
@@ -138,23 +138,16 @@ ${chalk.bold('Created 1 new file:')} Prisma DML datamodel (derived from existing
     process.exit(0)
   }
 
-  getExistingDatamodel(): string | undefined {
-    const datamodelPath = path.join(this.env.cwd, 'schema.prisma')
-    if (!fs.existsSync(datamodelPath)) {
-      return undefined
-    }
-    return fs.readFileSync(datamodelPath, 'utf-8')
-  }
-
-  writeDatamodel(renderedSdl: string): string {
+  async writeDatamodel(renderedSdl: string): Promise<string> {
     const fileName = `datamodel-${Math.round(new Date().getTime() / 1000)}.prisma`
-    const fullFileName = path.join(this.env.cwd, fileName)
+    const schemaDir = (await getSchemaDir()) || process.cwd()
+    const fullFileName = path.join(schemaDir, fileName)
     fs.writeFileSync(fullFileName, renderedSdl)
     return fileName
   }
 
   async introspectDatabase(args: Result<Args>, sdl: boolean | undefined): Promise<IntrospectionResult> {
-    const credentialsByFlag = this.getCredentialsByFlags(args) || (await getCredentialsFromExistingDatamodel(this.env))
+    const credentialsByFlag = this.getCredentialsByFlags(args) || (await getCredentialsFromExistingDatamodel())
 
     // Get everything interactively
     if (!credentialsByFlag) {

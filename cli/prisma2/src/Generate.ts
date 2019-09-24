@@ -1,16 +1,15 @@
-import { Command, Env, format, HelpError, Dictionary, GeneratorDefinitionWithPackage } from '@prisma/cli'
+import { Command, format, HelpError, Dictionary, GeneratorDefinitionWithPackage, getSchema } from '@prisma/cli'
 import chalk from 'chalk'
 import { missingGeneratorMessage } from '@prisma/lift'
 import { getCompiledGenerators } from '@prisma/photon'
 import { formatms } from './utils/formatms'
-import { getDatamodel } from './getDatamodel'
 
 /**
  * $ prisma migrate new
  */
 export class Generate implements Command {
-  public static new(env: Env, generators: Dictionary<GeneratorDefinitionWithPackage>): Generate {
-    return new Generate(env, generators)
+  public static new(generators: Dictionary<GeneratorDefinitionWithPackage>): Generate {
+    return new Generate(generators)
   }
 
   // static help template
@@ -22,15 +21,12 @@ export class Generate implements Command {
       prisma2 generate 
 
   `)
-  private constructor(
-    private readonly env: Env,
-    private readonly generators: Dictionary<GeneratorDefinitionWithPackage>,
-  ) {}
+  private constructor(private readonly generators: Dictionary<GeneratorDefinitionWithPackage>) {}
 
   // parse arguments
   public async parse(argv: string[], minimalOutput = false): Promise<string | Error> {
-    const datamodel = await getDatamodel(this.env.cwd)
-    const generators = await getCompiledGenerators(this.env.cwd, datamodel, this.generators)
+    const datamodel = await getSchema()
+    const generators = await getCompiledGenerators(datamodel, this.generators)
     if (generators.length === 0) {
       console.log(missingGeneratorMessage)
     }

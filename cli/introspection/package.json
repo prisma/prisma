@@ -1,13 +1,13 @@
 {
   "name": "@prisma/introspection",
-  "version": "0.0.52",
+  "version": "0.0.75",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@prisma/cli": "^0.0.70",
-    "@prisma/lift": "^0.2.55",
-    "@prisma/photon": "^0.2.61",
+    "@prisma/cli": "^0.1.0",
+    "@prisma/lift": "^0.2.66",
+    "@prisma/photon": "^0.2.73",
     "@types/dotenv": "^6.1.1",
     "@types/figures": "^3.0.1",
     "@types/fs-extra": "^7.0.0",

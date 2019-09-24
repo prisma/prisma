@@ -1,7 +1,6 @@
 import chalk from 'chalk'
-import { Command, Env, format, HelpError } from '@prisma/cli'
+import { Command, format, HelpError } from '@prisma/cli'
 import open from 'open'
-import terminalLink from 'terminal-link'
 import { link } from './link'
 
 /**

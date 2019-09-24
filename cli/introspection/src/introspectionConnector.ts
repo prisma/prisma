@@ -1,10 +1,9 @@
-import { Env } from '@prisma/cli'
+import { getSchemaPath } from '@prisma/cli'
 import { isdlToDatamodel2, getConfig, DataSource } from '@prisma/photon'
 import chalk from 'chalk'
-import { existsSync, readFileSync } from 'fs'
+import { readFileSync } from 'fs'
 import { MongoClient } from 'mongodb'
 import { Connection, createConnection } from 'mysql'
-import { join } from 'path'
 import { Client as PGClient } from 'pg'
 import { DatabaseType } from 'prisma-datamodel'
 import { Connectors, IConnector } from 'prisma-db-introspection'
@@ -139,15 +138,8 @@ export async function getDatabaseSchemas(connector: IConnector): Promise<string[
   }
 }
 
-function getSchemaPath(cwd: string): string | undefined {
-  if (existsSync(join(cwd, 'schema.prisma'))) {
-    return join(cwd, 'schema.prisma')
-  }
-  return undefined
-}
-
-export async function getCredentialsFromExistingDatamodel(env: Env): Promise<undefined | DatabaseCredentials> {
-  const schemaPath = getSchemaPath(env.cwd)
+export async function getCredentialsFromExistingDatamodel(): Promise<undefined | DatabaseCredentials> {
+  const schemaPath = await getSchemaPath()
   if (schemaPath) {
     const datamodel = readFileSync(schemaPath, 'utf-8')
     const { datasources } = await getConfig(datamodel)
