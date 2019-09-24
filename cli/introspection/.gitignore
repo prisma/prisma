@@ -1,5 +1,8 @@
 src/debug-connection.ts
-*.md
 *.prisma
 failed-*.md
 test-introspection.ts
+dist
+node_modules
+test
+test2

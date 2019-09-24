@@ -58,7 +58,7 @@ Your generated Photon API will expose the following CRUD operations for the `Use
 You can access each function via the respective model property on your generated `Photon` instance, e.g. `users` for the `User` model:
 
 ```ts
-import Photon from '@generated/photon'
+import { Photon } from '@generated/photon'
 
 const photon = new Photon()
 
@@ -88,7 +88,7 @@ For example, in the `findOne` API call from above, the selection set includes th
 
 ### The default selection set
 
-If the selection set is not manipulated (via `select` or `include`), a Photon API call returns the **default selection set** for a model. It includes all [_scalar_](./data-modeling.md#scalar-types) fields (including [enums](./data-modeling.md#enums)) and [_embed_](./data-modeling.md#embeds) fields of the model.
+If the selection set is not manipulated (via `select` or `include`), a Photon API call returns the **default selection set** for a model. It includes all [_scalar_](./data-modeling.md#scalar-types) fields (including [enums](./data-modeling.md#enums)) fields of the model.
 
 Considering the sample datamodel from above:
 
@@ -163,7 +163,7 @@ Creates a new `Photon` instance.
 #### Examples
 
 ```ts
-const Photon = new Photon({ debug: true })
+const photon = new Photon({ debug: true })
 ```
 
 ### `findOne`
@@ -335,7 +335,7 @@ const deletedUserCount = await photon.users.deleteMany({
 You can view the generated database queries that Photon sends to your database by setting the `debug` option to `true` when instantianting `Photon`:
 
 ```ts
-const Photon = new Photon({ debug: true })
+const photon = new Photon({ debug: true })
 ```
 
 ## Managing connections

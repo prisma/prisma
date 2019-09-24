@@ -14,7 +14,11 @@ const schemaFile = 'schema.prisma'
  */
 export async function getCwd(): Promise<string> {
   const cwd = process.cwd()
-  const [schemaCwdExists, prismaFolderExists, prismaSchemaExists] = await Promise.all([
+  const [
+    schemaCwdExists,
+    prismaFolderExists,
+    prismaSchemaExists,
+  ] = await Promise.all([
     exists(path.join(cwd, schemaFile)),
     exists(path.join(cwd, 'prisma/')),
     exists(path.join(cwd, 'prisma/', schemaFile)),
@@ -32,10 +36,15 @@ export async function getCwd(): Promise<string> {
 }
 
 export async function getDatamodel(): Promise<string> {
-  const cwd = await getCwd()
-  const datamodelPath = path.join(cwd, schemaFile)
+  let datamodelPath = path.join(process.cwd(), schemaFile)
+
+  if (!(await exists(datamodelPath))) {
+    datamodelPath = path.join(process.cwd(), `prisma/${schemaFile}`)
+  }
+
   if (!(await exists(datamodelPath))) {
     throw new Error(`Could not find ${datamodelPath}`)
   }
+
   return readFile(datamodelPath, 'utf-8')
 }

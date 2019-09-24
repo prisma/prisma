@@ -17,8 +17,7 @@ the same function it may use an already existing container that has the allocate
 connection still available.
 
 Any piece of code [outside the handler](https://docs.aws.amazon.com/lambda/latest/dg/programming-model-v2.html) remains initialized. This is a great place for
-`Photon` to call "connect" or at least call `Photon` constructor so that subsequent invocations can share a connection. There are some implications though they
-are not directly related to Photon but any system that would require a DB connection from Lambda:
+`Photon` to call "connect" or at least call `Photon` constructor so that subsequent invocations can share a connection. There are some implications though that are not directly related to Photon but any system that would require a DB connection from Lambda:
 
 | Implication               | Description                                                                                                                                                                                                                                                                                                                           | Potential Solution                                                                                                                                               |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -32,7 +31,7 @@ are not directly related to Photon but any system that would require a DB connec
 </sup>
 <br />
 <sup>
-2. [`serverless-mysql`](https://github.com/jeremydaly/serverless-mysql) is a library that implements this idea.
+2. <a href="https://github.com/jeremydaly/serverless-mysql"><code>serverless-mysql</code></a> is a library that implements this idea.
 </sup>
 
 ### Cold starts
@@ -44,11 +43,11 @@ does not work, containers are recycled regardless.
 
 Here are a number of example projects demonstrating how to deploy Photon.js to various deployment providers:
 
-- [Google Cloud Functions](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/google-cloud-functions)
-- [Netlify](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/netlify)
-- [Serverless](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/serverless)
-- [Up](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/up)
-- [ZEIT Now](https://github.com/prisma/photonjs/tree/master/examples/deployment-platforms/zeit-now)
+- [Google Cloud Functions](https://github.com/prisma/prisma-examples/tree/prisma2/deployment-platforms/google-cloud-functions)
+- [Netlify](https://github.com/prisma/prisma-examples/tree/prisma2/deployment-platforms/netlify)
+- [Serverless](https://github.com/prisma/prisma-examples/tree/prisma2/deployment-platforms/serverless)
+- [Up](https://github.com/prisma/prisma-examples/tree/prisma2/deployment-platforms/up)
+- [ZEIT Now](https://github.com/prisma/prisma-examples/tree/prisma2/deployment-platforms/zeit-now)
 
 ## Deployment providers
 

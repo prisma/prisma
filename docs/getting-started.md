@@ -7,66 +7,55 @@ npm install -g prisma2
 prisma2 init hello-prisma
 ```
 
-> Lift and Photon are currently in Preview! [Limitations](https://github.com/prisma/prisma2/blob/master/docs/limitations.md) include missing features, limited performance and stability issues.
+> **Note**: Lift and Photon are currently in Preview! [Limitations](https://github.com/prisma/prisma2/blob/master/docs/limitations.md) include missing features, limited performance and stability issues.
 
-## The `prisma init` flow
+## The `prisma2 init` flow
 
-### 1. Database selection 
+When running `prisma2 init`, the Prisma 2 CLI launches an **interactive wizard** that helps you get started with Photon and/or Lift.
 
-The first step asks you which kind of database you want to use with Photon/Lift. Currently, the following databases are supported:
+The following sections explain a few screens you might encounter as you run through the `prisma2 init` flow. Because the flow and the order of the screens vary depending on your selections, the screens below might not follow the order in which you encounter them. 
+
+### Blank project vs Starter kits
+
+At first, the wizard prompts you to select either of two options:
+
+- **Blank project**: Blank projects can be used when you want to start a new project from scratch. This option also supports introspecting an existing database.
+- **Starter kit**: Starter kits provide runnable examples for various use cases, they're based on the example projects in the [`prisma-examples`](https://github.com/prisma/prisma-examples/tree/prisma2) repository. The wizard will help you connect a starter kit to your own database. Note that starter kits can only be used in _empty directories_ and with _empty databases_. If you don't have a database running, you can select **SQLite**.
+
+### Database selection
+
+Later, the wizard asks you which kind of database you want to use with Photon/Lift. Currently, the following databases are supported:
 
 - **SQLite**
 - **MySQL**
 - **PostgreSQL**
 - MongoDB (coming soon)
 
-> When choosing **SQLite**, you can either point the Prisma CLI to an existing SQLite database file or let it create a new database file for you. With **all other options**, you'll need to provide the database connection details and credentials in the next step. 
+Note that both, **MySQL** and **PostgreSQL** options, required you to run a database that you can connect to in the next step. If you don't have a database running, choose **SQLite** for an easy setup and let the wizard create a new SQLite database file for you.
 
-### 2. Database credentials
+### Database credentials
 
-#### For SQLite
+After having selected **MySQL** or **PostgreSQL** in the database selection, you need to provide the database connection details and user credentials for your database server. Check out the [MySQL](./core/connectors/mysql.md) and [PostgreSQL](./core/connectors/postgresql.md) connector docs to learn about the connection string format and the required info.
 
-Let the Prisma CLI create a new SQLite database file for you or select an existing one to introspect.
+### Selecting Prisma tools (Photon/Lift)
 
-#### For all other options
-
-Please provide the database connection details for your database server. If the Prisma CLI can successfully connect to your database server, it prompts you with the following options:
-
-- Select an existing, non-empty database/schema to introspect
-- Select an existing empty database/schema to get started from scratch
-- Create empty database/schema to get started from scratch
-
-> For MySQL and MongoDB servers, the you need to select a **database**. For PostgreSQL, it's called a **schema**.
-
-### 3. Selecting Prisma tools (Photon/Lift)
-
-At this point, you have three options to use the Prisma tools with your successfully connected database:
+If you start with an existing database and the Prisma 2 CLI performed introspection against it to generate the [Prisma schema](./prisma-schema.md), you will be asked to select which Prisma tools you want to use:
 
 - Use Photon and Lift
 - [Use only Photon](./photon/use-only-photon.md) (for database access (ORM))
 - [Use only Lift](./lift/use-only-lift.md) (for database migrations)
 
-> If you select **only Photon** or **only Lift**, it will still be possible to add the other tool to your project later.
+> **Note**: If you select **only Photon** or **only Lift**, it will still be possible to add the other tool to your project later.
 
-### 4. Language selection (only Photon)
+### Language selection
 
-If your previous selection included Photon, you're now prompted for the language in which you want to access your database. Currently Photon is available in the following languages:
+If you're starting with a new database or are using a starter kit, you're prompted for the language in which you want to access your database. Currently Photon is available in the following languages:
 
 - **JavaScript**
 - **TypeScript**
 - Go (coming soon)
 
-### 5. Boilerplate selection (only Photon)
-
-Finally, you can decide how your initial project setup should look like:
-
-- **From scratch**: Sets up a greenfield project demonstrating usage of Photon in a simple script
-- **GraphQL boilerplate**: Sets up a GraphQL server example based on Photon
-- **REST boilerplate**: Sets up a REST API example based on Photon
-- **gRPC boilerplate**: Sets up a gRPC server example based on Photon
-
 ## Installing the Prisma CLI
-
 
 ### NPM
 

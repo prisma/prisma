@@ -1,6 +1,6 @@
 {
   "name": "prisma2",
-  "version": "2.0.0-preview-8",
+  "version": "2.0.0-preview-12",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma2-cli.git",
@@ -20,14 +20,14 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "6146c81a771bef78248317cef9e37fc00863dc08"
+    "version": "2292f8d0c3bd11fe9cca7c6df4a10061bf58fd18"
   },
   "devDependencies": {
-    "@prisma/cli": "^0.0.49",
-    "@prisma/fetch-engine": "^0.1.6",
-    "@prisma/introspection": "0.0.54",
-    "@prisma/lift": "0.2.7",
-    "@prisma/photon": "^0.2.11",
+    "@prisma/cli": "^0.0.73",
+    "@prisma/fetch-engine": "^0.1.13",
+    "@prisma/introspection": "0.0.73",
+    "@prisma/lift": "0.2.58",
+    "@prisma/photon": "^0.2.65",
     "@sentry/node": "5",
     "@types/mocha": "^5.2.7",
     "@zeit/ncc": "^0.18.5",
@@ -50,12 +50,12 @@
   "scripts": {
     "test": "./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
     "test:debug": "./node_modules/.bin/mocha --inspect-brk src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
-    "install": "test -f download-build/index.js && node download-build/index.js || echo \"\"",
+    "install": "node download-build/index.js || echo \"\"",
     "tsc": "tsc -d && cp src/capture-worker.js dist/capture-worker.js",
     "ncc": "ncc build dist/bin.js -o build",
     "ncc:download": "ncc build scripts/download.js -o download-build",
     "build": "yarn tsc && yarn ncc:download && rm -rf build && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
-    "prepublishOnly": "node scripts/updateTag.js && yarn test && yarn build",
+    "prepublishOnly": "node scripts/updateTag.js && yarn ncc:download && yarn install && yarn test && yarn build",
     "prepare": "yarn build && node download-build/index.js",
     "update-deps": "yarn upgrade --latest --scope @prisma"
   },

@@ -46,13 +46,13 @@ Because Photon.js is a custom API for _your_ specific database setup, it can't f
 By generating Photon.js into `node_modules/@generated`, you can easily import it into your code:
 
 ```js
-import Photon from '@generated/photon'
+import { Photon } from '@generated/photon'
 ```
 
 or
 
 ```js
-const Photon = require('@generated/photon')
+const { Photon } = require('@generated/photon')
 ```
 
 ### Keeping the query engine binary out of version control by default
