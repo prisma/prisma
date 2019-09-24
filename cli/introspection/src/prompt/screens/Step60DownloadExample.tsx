@@ -247,7 +247,7 @@ function databaseTypeToConnectorType(databaseType: DatabaseType): ConnectorType 
 
 export function replacePrisma2Command(command: string): string {
   if (/^prisma2\s/.test(command)) {
-    return `${process.argv[0]} ${process.argv[1]} ${command.slice(8)}`
+    return `"${process.argv[0]}" "${process.argv[1]}" ${command.slice(8)}`
   }
 
   return command
