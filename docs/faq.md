@@ -58,9 +58,9 @@ Prisma 1 officially supports both schema delegation and GraphQL binding as it ex
 
 With Prisma 2, Prisma's query engine doesn't expose a [spec](https://graphql.github.io/graphql-spec/June2018/)-compliant GraphQL endpoint any more, so usage of schema delegation and GraphQL binding with Prisma 2 is not officially supported. To build GraphQL servers with Prisma 2, be sure to check out [GraphQL Nexus](https://nexus.js.org/) and its [`nexus-prisma`](https://nexus.js.org/docs/database-access-with-prisma-v2) integration. GraphQL Nexus provides a code-first and type-safe way to build GraphQL servers in a scalable way. 
 
-### How does Photon.js handle connection pooling?
+### How to handle connection pooling for Photon.js in serverless environments?
 
-Photon.js currently [doesn't support connection pooling](https://github.com/prisma/photonjs/issues/228). If you're intested in learning how to manage database connections in serverless environments, check out the [docs](./photon/deployment.md).
+The query engine that's powering the Photon.js API is maintaing a database connection pool. In serverless environments (or when running your application in containers, e.g. using Kubernetes), this connection pool might loose its effectiveness due to the infrastructure it's being deployed on. You can read more about this topic in the [docs](./photon/deployment.md).
 
 As of now, the recommended workaround is to use a tool like [PgBouncer](https://pgbouncer.github.io/faq.html). We are further exploring some options, such as [enabling a "DB proxy server"](https://github.com/prisma/prisma2/issues/370) (e.g. using a specific generator that generates a Docker image to host Photon's query engine) that manages the connection pool for you (similar to the the Prisma 1 architecture).
 
