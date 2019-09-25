@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { tabIndexContextState } from './TabIndex'
+import { tabIndexContextState } from '@prisma/ink-components'
 
 class RouterContextClass {
   private routes: { [key: string]: (active: boolean) => void } = {}

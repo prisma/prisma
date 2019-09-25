@@ -1,6 +1,6 @@
 {
-  "name": "@prisma/cli",
-  "version": "0.1.3",
+  "name": "@prisma/ink-components",
+  "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
@@ -8,9 +8,13 @@
   "license": "Apache-2.0",
   "private": false,
   "dependencies": {
-    "arg": "^4.1.0",
     "chalk": "^2.4.2",
-    "strip-indent": "^3.0.0"
+    "cli-truncate": "^2.0.0",
+    "figures": "^3.0.0",
+    "ink-spinner": "^3.0.1",
+    "string-width": "^4.1.0",
+    "strip-indent": "^3.0.0",
+    "terminal-link": "^2.0.0"
   },
   "scripts": {
     "build": "tsc -d",
@@ -21,6 +25,12 @@
   ],
   "devDependencies": {
     "@types/node": "^12.0.10",
+    "ink": "^2.3.0",
+    "react": "^16.9.0",
     "typescript": "^3.5.1"
+  },
+  "peerDependencies": {
+    "ink": ">= 2.3.0",
+    "react": ">= 16.9.0"
   }
 }

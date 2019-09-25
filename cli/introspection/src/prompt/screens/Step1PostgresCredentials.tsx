@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { Color, Box } from 'ink'
-import BorderBox from '../components/BorderBox'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
-import { TextInput } from '../components/inputs/TextInput'
-import { InkLink } from '../components/InkLink'
 import { useInitState } from '../components/InitState'
-import { Checkbox } from '../components/inputs/Checkbox'
 import { useConnector } from '../components/useConnector'
-import { ErrorBox } from '../components/ErrorBox'
 import { RouterContext } from '../components/Router'
+
+import { TextInput, InkLink, Checkbox, ErrorBox, DummySelectable, BorderBox } from '@prisma/ink-components'
+
 import Spinner from 'ink-spinner'
-import DummySelectable from '../components/DummySelectable'
 const AnySpinner: any = Spinner
 
 const Step1PostgresCredentials: React.FC = () => {
@@ -36,7 +33,7 @@ const Step1PostgresCredentials: React.FC = () => {
               router.setRoute('introspection')
             }
           } else {
-            router.setRoute(state.useStarterKit ? 'download-example' : 'language-selection')
+            router.setRoute('create-or-select-db')
           }
         } else {
           router.setRoute('choose-database')

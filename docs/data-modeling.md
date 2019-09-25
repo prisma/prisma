@@ -179,31 +179,6 @@ enum Color {
 }
 ```
 
-You can map the values of an enum to the respective values in the data source:
-
-```
-enum Color {
-  Red  = "RED"
-  Teal = "TEAL"
-}
-```
-
-Prisma currently only supports string enum value types.
-
-## Type definitions
-
-Type definitions use the `type` keyword. They can be used to consolidate various type specifications into a single type:
-
-```
-type Numeric = Float @pg.numeric(precision: 5, scale: 2)
-                     @ms.decimal(precision: 5, scale: 2)
-
-model User {
-  id     Int     @id
-  weight Numeric
-}
-```
-
 ## Attributes
 
 Attributes modify the behavior of a [field](#fields) or block (e.g. [models](#models)). There are two ways to add attributes to your data model:

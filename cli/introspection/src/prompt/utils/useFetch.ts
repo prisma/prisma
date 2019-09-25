@@ -1,5 +1,6 @@
 import fetch from 'node-fetch'
 import { useState, useEffect } from 'react'
+import { getProxyAgent } from '@prisma/fetch-engine'
 
 const resultCache: { [key: string]: any } = {}
 
@@ -10,7 +11,9 @@ export function useFetch(url: string, transform?: (data: any) => any) {
     if (resultCache[url]) {
       setState(resultCache[url])
     } else {
-      fetch(url)
+      fetch(url, {
+        agent: getProxyAgent(url),
+      })
         .then(res => res.json())
         .then(res => {
           const result = transform ? transform(res) : res

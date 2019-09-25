@@ -1,5 +1,5 @@
 import React from 'react'
-import { ErrorBox, FixBox } from './ErrorBox'
+import { ErrorBox, FixBox } from '@prisma/ink-components'
 import { Color, Box } from 'ink'
 
 const EmptyDirError: React.FC = () => (

@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import { Color, Box } from 'ink'
-import BorderBox from '../components/BorderBox'
+import { BorderBox, TextInput } from '@prisma/ink-components'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
-import { TextInput } from '../components/inputs/TextInput'
 
 // We can't use this screen yet, as we don't have SQLite introspection yet
 const Step21SqliteFilePath: React.FC = () => {

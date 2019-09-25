@@ -7,7 +7,6 @@ import { printSchema } from '../utils/templates'
 import { RouterContext } from '../components/Router'
 import { sync as makeDirSync } from 'make-dir'
 import { useExampleApi } from '../utils/useExampleApi'
-import { DatabaseType } from 'prisma-datamodel'
 import { sqliteDefault, photonDefaultConfig } from '../utils/defaults'
 import { useConnector } from '../components/useConnector'
 import { replaceGenerator } from '../utils/replaceDatasource'
@@ -17,6 +16,7 @@ const Step60ProcessBlank: React.FC = () => {
   const router = useContext(RouterContext)
   const examples = useExampleApi()
   const { introspectionResult } = useConnector()
+
   useEffect(() => {
     async function run() {
       // perform actions to get blank project going...
@@ -43,7 +43,8 @@ const Step60ProcessBlank: React.FC = () => {
           setState({ selectedExample: example })
           router.setRoute('download-example')
         }
-      } else if (state.selectedDb === 'sqlite' && !state.useDemoScript) {
+        // if just the schema is being selected
+      } else if (!state.useDemoScript) {
         makeDirSync(path.join(state.outputDir, './prisma'))
         fs.writeFileSync(
           path.join(state.outputDir, './prisma/schema.prisma'),
@@ -58,9 +59,7 @@ const Step60ProcessBlank: React.FC = () => {
   return (
     <Box flexDirection="column">
       <Box flexDirection="column" marginLeft={2}>
-        <Color bold>Processsing the blank stuff...</Color>
-        <Color dim>Please wait a few minutes</Color>
-        {JSON.stringify(state)}
+        <Color bold>Processing the blank project</Color>
       </Box>
     </Box>
   )

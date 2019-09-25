@@ -1,12 +1,11 @@
 import React, { useContext } from 'react'
 import { Color, Box } from 'ink'
-import BorderBox from '../components/BorderBox'
+import { BorderBox, SuccessBox } from '@prisma/ink-components'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
 import { useInitState } from '../components/InitState'
 import { DatabaseType } from 'prisma-datamodel'
 import { useConnector } from '../components/useConnector'
-import { SuccessBox } from '../components/ErrorBox'
 import { prettyDb } from '../utils/print'
 import { RouterContext } from '../components/Router'
 
@@ -22,7 +21,11 @@ const Step2ChooseDatabase: React.FC = () => {
   const db = prettyDb(dbCredentials.type)
   const schemaWord = dbCredentials.type === DatabaseType.postgres ? 'schema' : 'database'
 
-  const schemaCount = state.useStarterKit ? schemas!.filter(s => s.countOfTables === 0).length : schemas!.length
+  const schemaCount = schemas
+    ? state.useStarterKit
+      ? schemas.filter(s => s.countOfTables === 0).length
+      : schemas.length
+    : 0
   const href = dbCredentials.type === DatabaseType.postgres ? 'postgres-credentials' : 'mysql-credentials'
 
   const goBack = async () => {

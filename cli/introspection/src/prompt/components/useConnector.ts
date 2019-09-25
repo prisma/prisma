@@ -6,7 +6,7 @@ import { ConnectorAndDisconnect, getConnectedConnectorFromCredentials } from '..
 import { DatabaseType } from 'prisma-datamodel'
 import { DataSource, isdlToDatamodel2 } from '@prisma/photon'
 import { credentialsToUri, databaseTypeToConnectorType } from '../../convertCredentials'
-import { TabIndexContext } from './TabIndex'
+import { TabIndexContext } from '@prisma/ink-components'
 
 type ConnectorState = {
   error: string | null
@@ -16,12 +16,14 @@ type ConnectorState = {
   connected: boolean
   connecting: boolean
   selectedDatabaseMeta?: SchemaWithMetaData
+  dbDoesntExist: boolean
 }
 
 const initialState: ConnectorState = {
   error: null,
   connected: false,
   connecting: false,
+  dbDoesntExist: false,
 }
 
 export interface SchemaWithMetaData {
@@ -97,6 +99,7 @@ export function useConnector() {
         const schema = credentials.type === DatabaseType.postgres ? credentials.schema : credentials.database
         if (schema) {
           meta = await connector.connector.getMetadata(schema)
+          meta.countOfTables = Number(meta.countOfTables)
         }
 
         setState({
@@ -107,8 +110,17 @@ export function useConnector() {
         })
         tabContext.lockNavigation(false)
       } catch (error) {
-        setState({ error: prettifyConnectorError(error), connecting: false })
-        tabContext.lockNavigation(false)
+        if (error.message.includes('Unknown database') && (credentials.database || credentials.schema)) {
+          const credentialsCopy = {
+            ...credentials,
+            database: undefined,
+            schema: undefined,
+          }
+          return connect(credentialsCopy)
+        } else {
+          setState({ error: prettifyConnectorError(error), connecting: false })
+          tabContext.lockNavigation(false)
+        }
       }
     } else {
       await connector.disconnect()
@@ -163,7 +175,11 @@ export function useConnector() {
 
     const schemas = await connector.connector.listSchemas()
     const schemasWithMetadata = await Promise.all(
-      schemas.map(async name => ({ name, ...(await connector!.connector.getMetadata(name)) })),
+      schemas.map(async name => {
+        const meta = await connector!.connector.getMetadata(name)
+        meta.countOfTables = Number(meta.countOfTables)
+        return { name, ...meta }
+      }),
     )
 
     setState({ schemas: schemasWithMetadata })

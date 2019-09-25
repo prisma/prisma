@@ -1,7 +1,7 @@
 import React from 'react'
 import { Key } from 'readline'
-import { useStdin } from '../useStdin'
-import { ActionKey } from './helpers'
+import { useStdin } from '../hooks/useStdin'
+import { ActionKey } from '../helpers'
 
 interface TabIndexRegisterArgs {
   tabIndex: number
@@ -47,7 +47,9 @@ class TabIndexContextClass {
   }
   up() {
     const componentsCount = this.components.length
-    this.setActiveIndex((this.activeIndex - 1 + componentsCount) % componentsCount)
+    this.setActiveIndex(
+      (this.activeIndex - 1 + componentsCount) % componentsCount,
+    )
   }
   down() {
     const componentsCount = this.components.length
@@ -78,5 +80,9 @@ export function TabIndexProvider(props) {
     }
   })
 
-  return <TabIndexContext.Provider value={tabIndexContextState}>{props.children}</TabIndexContext.Provider>
+  return (
+    <TabIndexContext.Provider value={tabIndexContextState}>
+      {props.children}
+    </TabIndexContext.Provider>
+  )
 }

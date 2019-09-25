@@ -56,7 +56,7 @@ Note that you can skip this part if you've selected SQLite before.
     - **User** and **Password**: Credentials of your database user
     - **Database**: Name of the [PostgreSQL database](https://www.postgresql.org/docs/current/tutorial-createdb.html) you want to use
     - **Schema** (optional): The name of the [PostgreSQL schema](https://www.postgresql.org/docs/current/ddl-schemas.html) you want to use (if you provide a schema name that doesn't exist, Prisma will create the schema for you; if not provided, you can select an existing schema in the next step)
-    - **SSL**: Check the box if you PostgreSQL server uses SSL (likely yes if you're not running locally); you can toggle it with <kbd>SPACE</kbd>
+    - **SSL**: Check the box if your PostgreSQL server uses SSL (likely yes if you're not running locally); you can toggle it with <kbd>SPACE</kbd>
 1. Confirm with **Connect**
 
 ![](https://imgur.com/IOd3cDD.png)
@@ -234,12 +234,12 @@ The project also contains a number of additional files required for a typical fo
 - `package.json`: Defines your project's Node.js dependencies.
 - `tsconfig.json`: Specifies your TypeScript configuration. Note that Photon.js currently requires the `esModuleInterop` property to be set to `true`.
 - `node_modules/@generated/photon`: Contains the generated Photon.js code. 
-- `index.ts`: Contains the actual "application code", which in this case is a simple script demonstrating some Photon.js API calls.
+- `script.ts`: Contains the actual "application code", which in this case is a simple script demonstrating some Photon.js API calls.
 
 Having Photon.js located inside `node_modules/@generated` enables you to import it in your code as follows:
 
 ```ts
-import Photon from '@generated/photon'
+import { Photon } from '@generated/photon'
 ```
 
 Because Photon.js is generated into `node_modules` which is typically populated by invoking `npm install`, you should make sure that Photon.js is also generated upon every invocation of `npm install`. That's the reason why `prisma2 generate` (the command that generates Photon.js based on the Prisma schema) is added as a `postinstall` hook in `package.json`:
@@ -281,10 +281,10 @@ Now, let's finally consider the _Next steps_ again that had been printed to the 
 
 ![](https://imgur.com/xK3c2HH.png)
 
-The instructions say to navigate into the project directory, start Prisma's development mode and finally execute the demo script. You'll skip the `prisma2 dev` command for now though and just run the `index.ts` script. Before doing so, let's quickly take a look at its contents:
+The instructions say to navigate into the project directory, start Prisma's development mode and finally execute the demo script. You'll skip the `prisma2 dev` command for now though and just run the `script.ts` script. Before doing so, let's quickly take a look at its contents:
 
 ```ts
-import Photon from '@generated/photon'
+import { Photon } from '@generated/photon'
 
 const photon = new Photon()
 
@@ -392,7 +392,7 @@ Here's a quick rundown of what's happening in the code:
 1. Publish _Alice_'s newly created post using `photon.posts.update(...)`
 1. Retrieve all posts by _Alice_ using `photon.users.findOne(...).posts()`
 
-Notive that the result of each of these operations is printed to the console using `console.log`.
+Notice that the result of each of these operations is printed to the console using `console.log`.
 
 Go ahead and run the code:
 
@@ -401,7 +401,7 @@ cd hello-prisma2
 npm start
 ```
 
-This leads to the following terminal output confirming that all operations ran succesfully:
+This leads to the following terminal output confirming that all operations ran successfully:
 
 ![](https://imgur.com/O5vX9iP.png)
 
@@ -494,7 +494,11 @@ const category = await photon.categories.create({
 })
 ```
 
-Note that you need to replace the `__POST_ID_1__` and `__POST_ID_2__` placeholders with actual ID values of the posts you created earlier (you can find these IDs e.g. in Prisma Studio or using a database GUI).
+If you want to try out this code snippet, here are a few things to consider:
+
+- You need to replace the `__POST_ID_1__` and `__POST_ID_2__` placeholders with actual ID values of the posts you created earlier (you can find these IDs e.g. in Prisma Studio or using a database GUI).
+- You need to remove the current code from the script (e.g. by commenting it out), otherwise it will try to re-create `User` records with the same email address which will fail.
+- You can invoke the script using `npm start`.
 
 ### 5.3. Terminate development mode
 

@@ -64,7 +64,7 @@ async function runTest(t) {
 
   // clear the require cache
   delete require.cache[photonPath]
-  const { default: Photon } = await import(photonPath)
+  const { Photon } = await import(photonPath)
   const client = new Photon()
   await client.connect()
   try {

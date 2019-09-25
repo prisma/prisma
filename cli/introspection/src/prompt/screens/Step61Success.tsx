@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react'
 import { Color, Box } from 'ink'
-import BorderBox from '../components/BorderBox'
+import { BorderBox, InkLink } from '@prisma/ink-components'
 import chalk from 'chalk'
 import { useInitState } from '../components/InitState'
 import path from 'path'
-import { InkLink } from '../components/InkLink'
 import { credentialsToUri } from '../../convertCredentials'
 
 const Step61Success: React.FC = () => {
@@ -55,11 +54,8 @@ const Step61Success: React.FC = () => {
           )}
           <Box flexDirection="column">
             <Color dim>Start Prisma's development mode to enable access to</Color>
-            <Color dim>
-              Prisma Studio and watch <Color bold>schema.prisma</Color>{' '}
-              <Color dim>
-                for changes:
-              </Color>
+            <Color dim reset>
+              Prisma Studio and watch <Color bold>schema.prisma</Color> <Color dim>for changes:</Color>
             </Color>
             <Color bold>$ prisma2 dev</Color>
           </Box>

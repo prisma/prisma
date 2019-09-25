@@ -1,17 +1,20 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { Color, Box } from 'ink'
-import BorderBox from '../components/BorderBox'
+import { BorderBox, TextInput, ErrorBox, FixBox, DummySelectable } from '@prisma/ink-components'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
-import { TextInput } from '../components/inputs/TextInput'
 import { useInitState } from '../components/InitState'
 import { prettyDb } from '../utils/print'
 import { DatabaseType } from 'prisma-datamodel'
 import { RouterContext } from '../components/Router'
+import { createDatabase } from '@prisma/lift'
+import Spinner from 'ink-spinner'
+const AnySpinner: any = Spinner
 
 // We can't use this screen yet, as we don't have SQLite introspection yet
 const Step4DatabaseName: React.FC = () => {
   const [state, { setDbCredentials }] = useInitState()
+  const [creatingDb, setCreatingDb] = useState(false)
 
   if (!state.dbCredentials) {
     throw new Error('Missing credentials in database name view')
@@ -19,15 +22,9 @@ const Step4DatabaseName: React.FC = () => {
   const { dbCredentials } = state
   const db = prettyDb(dbCredentials.type)
   const schemaWord = dbCredentials.type === DatabaseType.postgres ? 'schema' : 'database'
-  const href = state.useStarterKit ? 'download-example' : 'language-selection'
+  const dbName = dbCredentials[schemaWord]!
 
   const router = useContext(RouterContext)
-
-  const next = () => {
-    if (!error) {
-      router.setRoute(href)
-    }
-  }
 
   const [error, setError] = useState<null | string>(null)
 
@@ -40,6 +37,18 @@ const Step4DatabaseName: React.FC = () => {
       setError(null)
     }
   }, [dbCredentials])
+
+  const onCreate = async () => {
+    try {
+      setCreatingDb(true)
+      await createDatabase(dbCredentials.uri!)
+      setCreatingDb(false)
+      router.setRoute(state.useStarterKit ? 'download-example' : 'language-selection')
+    } catch (e) {
+      setCreatingDb(false)
+      setError(e.message || JSON.stringify(e))
+    }
+  }
 
   return (
     <Box flexDirection="column">
@@ -56,10 +65,24 @@ const Step4DatabaseName: React.FC = () => {
           value={state.dbCredentials[schemaWord] || ''}
           onChange={value => setDbCredentials({ [schemaWord]: value })}
           placeholder="my_db"
-          onSubmit={next}
+          onSubmit={onCreate}
         />
       </BorderBox>
-      {!error && <Link label="Create" href={href} tabIndex={1} kind="forward" />}
+      {creatingDb ? (
+        <DummySelectable tabIndex={0}>
+          <Color cyan>
+            <AnySpinner /> Creating {schemaWord} `{dbName}`
+          </Color>
+        </DummySelectable>
+      ) : (
+        <Link label={`Create`} tabIndex={1} onSelect={onCreate} />
+      )}
+      {error && error.length > 0 && (
+        <Box flexDirection="column" marginBottom={1}>
+          <ErrorBox>{error}</ErrorBox>
+          <FixBox>Make sure you have the correct rights to create the database.</FixBox>
+        </Box>
+      )}
       <Link label="Back" description="(Database options)" tabIndex={2} kind="back" />
     </Box>
   )

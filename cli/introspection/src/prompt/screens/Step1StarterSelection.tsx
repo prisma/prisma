@@ -1,6 +1,6 @@
 import React from 'react'
 import { Color, Box } from 'ink'
-import BorderBox from '../components/BorderBox'
+import { BorderBox } from '@prisma/ink-components'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
 import { useExampleApi } from '../utils/useExampleApi'

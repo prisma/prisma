@@ -3,7 +3,7 @@ import React, { useState, useContext, useEffect } from 'react'
 import { InkTextInput } from './InkTextInput'
 import { TabIndexContext } from '../TabIndex'
 import { Key } from 'readline'
-import { ActionKey } from '../helpers'
+import { ActionKey } from '../../helpers'
 import figures = require('figures')
 
 interface TextInputProps {
@@ -26,7 +26,11 @@ export const TextInput: React.SFC<TextInputProps> = ({
   onSubmit,
 }) => {
   const [focussed, setFocussed] = useState(false)
-  const [keyPressed, setPressedKey] = useState<{ key: ActionKey; str: string; originalKey: Key } | null>(null)
+  const [keyPressed, setPressedKey] = useState<{
+    key: ActionKey
+    str: string
+    originalKey: Key
+  } | null>(null)
   const ctx = useContext(TabIndexContext)
   useEffect(() => {
     const args = {

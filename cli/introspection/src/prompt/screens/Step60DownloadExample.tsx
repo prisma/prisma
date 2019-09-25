@@ -15,6 +15,7 @@ import { RouterContext } from '../components/Router'
 import makeDir from 'make-dir'
 import { promisify } from 'util'
 import { DataSource } from '@prisma/photon'
+import { getProxyAgent } from '@prisma/fetch-engine'
 import { DatabaseCredentials } from '../../types'
 import { replaceDatasource, replaceGenerator } from '../utils/replaceDatasource'
 import { credentialsToUri } from '../../convertCredentials'
@@ -22,7 +23,7 @@ import { DatabaseType } from 'prisma-datamodel'
 import { ConnectorType } from '@prisma/photon/dist/isdlToDatamodel2'
 import { useConnector } from '../components/useConnector'
 import { exampleScript } from '../utils/templates/script'
-import { ErrorBox } from '../components/ErrorBox'
+import { ErrorBox } from '@prisma/ink-components'
 import { photonDefaultConfig } from '../utils/defaults'
 import EmptyDirError from '../components/EmptyDirError'
 
@@ -191,6 +192,7 @@ export async function downloadRepo(organization: string, repo: string, branch: s
   const downloadUrl = `https://api.github.com/repos/${organization}/${repo}/tarball/${branch}` // TODO: use master instead of prisma2
   const tmpFile = getTmpFile(`prisma-download-${organization}-${repo}-${branch}.tar.gz`)
   const response = await fetch(downloadUrl, {
+    agent: getProxyAgent(downloadUrl),
     headers: {
       'User-Agent': 'prisma/prisma-init',
     },
@@ -247,7 +249,7 @@ function databaseTypeToConnectorType(databaseType: DatabaseType): ConnectorType 
 
 export function replacePrisma2Command(command: string): string {
   if (/^prisma2\s/.test(command)) {
-    return `${process.argv[0]} ${process.argv[1]} ${command.slice(8)}`
+    return `"${process.argv[0]}" "${process.argv[1]}" ${command.slice(8)}`
   }
 
   return command
