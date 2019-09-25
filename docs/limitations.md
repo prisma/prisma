@@ -4,7 +4,7 @@ During the Preview period of Prisma 2 there are missing features, limited perfor
 
 ## Functionality limitations
 
-- `Embed` types are not implemented yet ([tracking issue](https://github.com/prisma/lift/issues/43))
+- Embedded types are not implemented yet ([tracking issue](https://github.com/prisma/lift/issues/43))
 - Many other types are not fully implemented yet
 - Models must have an `@id` attribute and it must take one of these forms:
     - `Int @id`
