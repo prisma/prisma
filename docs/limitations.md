@@ -11,7 +11,7 @@ During the Preview period of Prisma 2 there are missing features, limited perfor
     - `String @id @default(uuid())`
     - `String @id @default(cuid())`  
 - When [introspecting](./introspection.md) a database, Prisma for now only recognizes many-to-many relations that follow the Prisma conventions for [relation tables](https://github.com/prisma/prisma2/blob/master/docs/relations.md#mn).
-- Some edge cases for complex nested mutations don't work properly yet.
+- Some edge cases for complex nested writes don't work properly yet.
 - Non-interactive terminals (like Git Bash on Windows) are currently not supported by Prisma2 CLI ([tracking issues](https://github.com/prisma/prisma2/issues/554))
 
 ## Stability limitations
