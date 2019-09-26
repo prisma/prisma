@@ -5,7 +5,7 @@ During the Preview period of Prisma 2 there are missing features, limited perfor
 ## Functionality limitations
 
 - Embedded types are not implemented yet ([tracking issue](https://github.com/prisma/lift/issues/43))
-- Many other types are not fully implemented yet
+- Many other types are not fully implemented yet (e.g. `citext` or `varchar(n)` for PostgreSQL)
 - Models must have an `@id` attribute and it must take one of these forms:
     - `Int @id`
     - `String @id @default(uuid())`
@@ -28,3 +28,4 @@ The following functionality is currently not part of Prisma and will most probab
 
 - Realtime API or subscriptions (In the future (after GA), Prisma will have an events engine that might enable this feature, but there is no ETA for this yet) ([tracking issue](https://github.com/prisma/prisma2/issues/298))
 - Go client ("Photon Go") ([tracking issue](https://github.com/prisma/prisma2/issues/571))
+- Using Prisma tools (e.g. Photon or Lift) in combination with a Prisma server/cluster ([tracking issue](https://github.com/prisma/prisma2/issues/370))
