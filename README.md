@@ -4,11 +4,11 @@ This repository is used as a central point to collect information and issues aro
 
 💡 Prisma 2 is currently in Preview! [Limitations](./docs/limitations.md) include missing features, limited performance and stability issues. You can track the progress of Prisma 2 on [**`isprisma2ready.com`**](https://www.isprisma2ready.com).
 
-## What is Prisma?
+## What is the Prisma Framework?
 
 ![](https://i.imgur.com/FmaRakd.png)
 
-Prisma is an application data framework consisting of these tools:
+The Prisma Framework is an application data framework that consists of these tools:
 
 - [**Photon**](https://photonjs.prisma.io/): Type-safe and auto-generated database client ("ORM replacement")
 - [**Lift**](https://lift.prisma.io/): Declarative data modeling and migrations
