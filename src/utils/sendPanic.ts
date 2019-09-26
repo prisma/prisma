@@ -1,5 +1,6 @@
 import { getPlatform } from '@prisma/get-platform'
 import AdmZip from 'adm-zip'
+import crypto from 'crypto'
 import Debug from 'debug'
 import fs from 'fs'
 import globby from 'globby'
@@ -36,7 +37,7 @@ export async function sendPanic(error: LiftPanic, cliVersion: string, binaryVers
 
     await makeErrorReportCompleted(signedUrl)
   } catch (e) {
-    throw e
+    debug(e)
   }
 }
 
@@ -44,6 +45,9 @@ async function uploadZip(zip: Buffer, url: string) {
   return fetch(url, {
     method: 'PUT',
     agent: getProxyAgent(url),
+    headers: {
+      'Content-Length': zip.byteLength,
+    },
     body: zip,
   })
 }
@@ -52,20 +56,27 @@ async function makeErrorZip(error: LiftPanic): Promise<Buffer> {
   const schema = fs.readFileSync(error.schemaPath, 'utf-8')
   const maskedSchema = maskSchema(schema)
   const zip = new AdmZip()
-  zip.addFile('schema.prisma', Buffer.alloc(maskedSchema.length), maskedSchema)
+  zip.addFile('schema.prisma', Buffer.alloc(maskedSchema.length, maskedSchema))
 
   const schemaDir = path.dirname(error.schemaPath)
 
   if (fs.existsSync(schemaDir)) {
-    const filePaths = await globby('*', {
+    const filePaths = await globby('migrations/**/*', {
       cwd: schemaDir,
     })
+
     for (const filePath of filePaths) {
-      zip.addLocalFile(path.join(schemaDir, filePath))
+      let file = fs.readFileSync(path.join(schemaDir, filePath), 'utf-8')
+      if (filePath.endsWith('schema.prisma')) {
+        file = maskSchema(file)
+      }
+      zip.addFile(filePath, Buffer.alloc(file.length, file))
     }
   }
 
-  return zip.toBuffer()
+  return new Promise(resolve => {
+    zip.toBuffer(resolve)
+  })
 }
 
 export interface CreateErrorReportInput {
@@ -134,4 +145,8 @@ async function request(query: string, variables: any): Promise<any> {
       }
       return res.data
     })
+}
+
+function getRandomString() {
+  return crypto.randomBytes(20).toString('hex')
 }
