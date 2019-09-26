@@ -1,6 +1,7 @@
 #!/usr/bin/env ts-node
 import * as Sentry from '@sentry/node'
 import dotenv = require('dotenv')
+const packageJson = require('../package.json')
 dotenv.config()
 
 export { byline } from '@prisma/lift'
@@ -21,7 +22,7 @@ process.on('unhandledRejection', e => {
  * Dependencies
  */
 import { isError, HelpError } from '@prisma/cli'
-import { LiftCommand, LiftSave, LiftUp, LiftDown, LiftWatch, LiftTmpPrepare } from '@prisma/lift'
+import { LiftCommand, LiftSave, LiftUp, LiftDown, LiftWatch, LiftTmpPrepare, handlePanic } from '@prisma/lift'
 import { Converter } from '@prisma/photon'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
@@ -29,7 +30,7 @@ import { Version } from './Version'
 import { predefinedGenerators } from './generators'
 import { Generate } from './Generate'
 import chalk from 'chalk'
-import { capture } from './capture'
+// import { capture } from './capture'
 import { Docs } from './Docs'
 export { Photon } from '@prisma/studio-transports'
 
@@ -85,12 +86,15 @@ if (require.main === module) {
       }
     })
     .catch(err => {
-      capture(err)
-      if (debugLib.enabled('prisma')) {
-        console.error(chalk.redBright.bold('Error: ') + err.stack)
+      if (err.rustStack) {
+        handlePanic(err, packageJson.name, packageJson.version)
       } else {
-        console.error(chalk.redBright.bold('Error: ') + err.message)
+        if (debugLib.enabled('prisma')) {
+          console.error(chalk.redBright.bold('Error: ') + err.stack)
+        } else {
+          console.error(chalk.redBright.bold('Error: ') + err.message)
+        }
+        process.exit(1)
       }
-      process.exit(1)
     })
 }
