@@ -2,13 +2,13 @@
 
 process.on('uncaughtException', e => {
   if (e instanceof LiftPanic) {
-    handlePanic(e)
+    handlePanic(e, 'TEST', 'TEST')
   }
   console.log(e)
 })
 process.on('unhandledRejection', (e, promise) => {
   if (e instanceof LiftPanic) {
-    handlePanic(e)
+    handlePanic(e, 'TEST', 'TEST')
   }
   console.log(String(e), String(promise))
 })
@@ -81,7 +81,7 @@ main()
   })
   .catch(err => {
     if (err.rustStack) {
-      handlePanic(err)
+      handlePanic(err, 'TEST', 'TEST')
     } else {
       // console.error(err)
       // process.exit(1)
