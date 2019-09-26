@@ -1,7 +1,7 @@
 import { Engine, PhotonError, PhotonQueryError } from './Engine'
 import got from 'got'
 import debugLib from 'debug'
-import { getPlatform, Platform } from '@prisma/get-platform'
+import { getPlatform, Platform, mayBeCompatible } from '@prisma/get-platform'
 import * as path from 'path'
 import * as net from 'net'
 import fs from 'fs'
@@ -38,14 +38,15 @@ export interface EngineConfig {
  * Node.js based wrapper to run the Prisma binary
  */
 
-const knownPlatforms = [
+const knownPlatforms: Platform[] = [
   'native',
   'darwin',
   'windows',
   'linux-glibc-libssl1.0.1',
   'linux-glibc-libssl1.0.2',
+  'linux-glibc-libssl1.0.2-ubuntu1604',
   'linux-glibc-libssl1.1.0',
-  'linux-musl-libssl1.1.0',
+  'windows',
 ]
 
 export class NodeEngine extends Engine {
@@ -101,7 +102,7 @@ export class NodeEngine extends Engine {
     })
 
     if (platform) {
-      if (!knownPlatforms.includes(platform)) {
+      if (!knownPlatforms.includes(platform as Platform)) {
         throw new Error(
           `Unknown ${chalk.red('pinnedPlatform')} ${chalk.redBright.bold(
             platform,
@@ -179,9 +180,10 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
   // If we couldn't find the correct binary path, let's look for an alternative
   // This is interesting for libssl 1.0.1 vs libssl 1.0.2 cases
 
-  private async resolveAlternativeBinaryPath(): Promise<string | null> {
+  private async resolveAlternativeBinaryPath(platform: Platform): Promise<string | null> {
+    const compatiblePlatforms = knownPlatforms.slice(1).filter(p => mayBeCompatible(p, platform))
     const binariesExist = await Promise.all(
-      knownPlatforms.slice(1).map(async platform => {
+      compatiblePlatforms.map(async platform => {
         const filePath = this.getQueryEnginePath(platform)
         return {
           exists: await exists(filePath),
@@ -202,6 +204,7 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
   // get prisma path
   private async getPrismaPath() {
     const prismaPath = await this.resolvePrismaPath()
+    const platform = await this.getPlatform()
     if (!(await exists(prismaPath))) {
       let info = '.'
       if (this.generator) {
@@ -210,7 +213,7 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
           platforms: fixPlatforms(this.generator.platforms as Platform[], this.platform!),
         }
         if (this.generator.pinnedPlatform && this.incorrectlyPinnedPlatform) {
-          fixedGenerator.pinnedPlatform = await this.getPlatform()
+          fixedGenerator.pinnedPlatform = platform
         }
         info = `:\n${chalk.greenBright(printGeneratorConfig(fixedGenerator))}`
       }
@@ -219,17 +222,15 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.incorrectlyPinnedPlatform}`)}\n`
         : ''
 
-      const alternativePath = await this.resolveAlternativeBinaryPath()
+      const alternativePath = await this.resolveAlternativeBinaryPath(platform)
 
       if (!alternativePath) {
         throw new Error(
-          `Photon binary for current platform ${chalk.bold.greenBright(
-            await this.getPlatform(),
-          )} could not be found.${pinnedStr}
+          `Photon binary for current platform ${chalk.bold.greenBright(platform)} could not be found.${pinnedStr}
   Make sure to adjust the generator configuration in the ${chalk.bold('schema.prisma')} file${info}
   Please run ${chalk.greenBright('prisma2 generate')} for your changes to take effect.
   ${chalk.gray(
-    `Note, that by providing \`native\`, Photon automatically resolves \`${await this.getPlatform()}\`.
+    `Note, that by providing \`native\`, Photon automatically resolves \`${platform}\`.
   Read more about deploying Photon: ${chalk.underline(
     'https://github.com/prisma/prisma2/blob/master/docs/core/generators/photonjs.md',
   )}`,
@@ -238,9 +239,7 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
       } else {
         console.error(`${chalk.yellow(
           'warning',
-        )} Photon could not resolve the needed binary for the current platform ${chalk.greenBright(
-          await this.getPlatform(),
-        )}.
+        )} Photon could not resolve the needed binary for the current platform ${chalk.greenBright(platform)}.
 Instead we found ${chalk.bold(
           alternativePath,
         )}, which we're trying for now. In case Photon runs, just ignore this message.`)
@@ -329,12 +328,22 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         })
 
         this.child.on('exit', code => {
-          const message = this.stderrLogs ? this.stderrLogs : this.stdoutLogs
-          this.lastError = {
-            application: 'datamodel',
-            date: new Date(),
-            level: 'error',
-            message,
+          // const message = this.stderrLogs ? this.stderrLogs : this.stdoutLogs
+          if (code === 126) {
+            this.lastError = {
+              application: 'exit',
+              date: new Date(),
+              level: 'error',
+              message: `Couldn't start query engine as it's not executable on this operating system.
+You very likely have the wrong defined in the schema.prisma file.`,
+            }
+          } else {
+            this.lastError = {
+              application: 'exit',
+              date: new Date(),
+              level: 'error',
+              message: (this.stderrLogs || '') + (this.stdoutLogs || '') + code,
+            }
           }
         })
 
