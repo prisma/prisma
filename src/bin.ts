@@ -1,9 +1,15 @@
 #!/usr/bin/env ts-node
 
 process.on('uncaughtException', e => {
+  if (e instanceof LiftPanic) {
+    handlePanic(e)
+  }
   console.log(e)
 })
 process.on('unhandledRejection', (e, promise) => {
+  if (e instanceof LiftPanic) {
+    handlePanic(e)
+  }
   console.log(String(e), String(promise))
 })
 
@@ -12,14 +18,14 @@ process.on('unhandledRejection', (e, promise) => {
  */
 import { Dictionary, GeneratorDefinitionWithPackage, HelpError, isError } from '@prisma/cli'
 import { generatorDefinition as definition } from '@prisma/photon'
-import path from 'path'
 import { LiftCommand } from './cli/commands/LiftCommand'
 import { LiftDown } from './cli/commands/LiftDown'
 import { LiftSave } from './cli/commands/LiftSave'
 import { LiftTmpPrepare } from './cli/commands/LiftTmpPrepare'
 import { LiftUp } from './cli/commands/LiftUp'
 import { LiftWatch } from './cli/commands/LiftWatch'
-
+import { LiftPanic } from './LiftEngine'
+import { handlePanic } from './utils/handlePanic'
 const photon = {
   definition,
   packagePath: '@prisma/photon',
@@ -44,7 +50,7 @@ async function main(): Promise<number> {
     save: LiftSave.new(),
     up: LiftUp.new(),
     down: LiftDown.new(),
-    watch: LiftWatch.new(predefinedGenerators),
+    dev: LiftWatch.new(predefinedGenerators),
     ['tmp-prepare']: LiftTmpPrepare.new(predefinedGenerators),
   })
   // parse the arguments
@@ -74,6 +80,10 @@ main()
     }
   })
   .catch(err => {
-    console.error(err)
-    process.exit(1)
+    if (err.rustStack) {
+      handlePanic(err)
+    } else {
+      // console.error(err)
+      // process.exit(1)
+    }
   })

@@ -1,7 +1,6 @@
 import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
 import debugLib from 'debug'
-import util from 'util'
 import { EngineArgs, EngineResults } from './types'
 import byline from './utils/byline'
 const debugRpc = debugLib('LiftEngine:rpc')
@@ -30,6 +29,18 @@ export class EngineError extends Error {
   constructor(message: string, code: number) {
     super(message)
     this.code = code
+  }
+}
+
+export class LiftPanic extends Error {
+  public request: any
+  public rustStack: string
+  public schemaPath: string
+  constructor(message: string, rustStack: string, request: any, schemaPath: string) {
+    super(message)
+    this.rustStack = rustStack
+    this.request = request
+    this.schemaPath = schemaPath
   }
 }
 
@@ -148,18 +159,18 @@ export class LiftEngine {
 
         this.child.on('exit', (code, signal) => {
           const messages = this.messages.join('\n')
+          let err: any
           if (code !== 0 || messages.includes('panicked at')) {
             let errorMessage = chalk.red.bold('Error in migration engine: ') + messages
             if (messages.includes('\u001b[1;94m-->\u001b[0m')) {
               errorMessage = `${chalk.red.bold('Schema parsing ')}` + messages
             } else if (this.lastError && this.lastError.msg === 'PANIC') {
               errorMessage = serializePanic(this.lastError)
-              this.persistError(this.lastRequest, errorMessage)
+              err = new LiftPanic(errorMessage, messages, this.lastRequest, this.schemaPath)
             } else if (messages.includes('panicked at')) {
-              const text = this.persistError(this.lastRequest, errorMessage)
-              console.error(text)
+              err = new LiftPanic(errorMessage, messages, this.lastRequest, this.schemaPath)
             }
-            const err = new Error(errorMessage)
+            err = err || new Error(errorMessage)
             this.rejectAll(err)
             reject(err)
           }

@@ -1,6 +1,6 @@
 {
   "name": "@prisma/lift",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
@@ -40,6 +40,7 @@
     "@prisma/ink-components": "^0.0.1",
     "@prisma/studio-server": "^0.101.0",
     "@types/execa": "^0.9.0",
+    "adm-zip": "^0.4.13",
     "ansi-escapes": "^4.2.1",
     "arg": "^4.1.0",
     "array-flat-polyfill": "^1.0.1",
@@ -56,7 +57,7 @@
     "get-stream": "^5.1.0",
     "git-user-email": "^0.2.2",
     "git-user-name": "^2.0.0",
-    "globby": "^9.2.0",
+    "globby": "^10.0.1",
     "indent-string": "^4.0.0",
     "ink": "^2.2.0",
     "ink-link": "^1.0.0",
@@ -92,7 +93,8 @@
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
       "tslint --project tsconfig.json -c tslint.json --fix",
-      "prettier --write"
+      "prettier --write",
+      "git add"
     ]
   }
 }

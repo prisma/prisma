@@ -5,12 +5,12 @@ import ansiEscapes from 'ansi-escapes'
 import chalk from 'chalk'
 import { Box, Color, Instance, render } from 'ink'
 import Spinner from 'ink-spinner'
+const AnySpinner: any = Spinner
 import React, { useState } from 'react'
 import { createDatabase } from '..'
 import { canConnectToDatabase } from '../liftEngineCommands'
 import { Link } from './Link'
 import { DatabaseCredentials, uriToCredentials } from './uriToCredentials'
-const AnySpinner: any = Spinner
 
 export type LiftAction = 'create' | 'apply' | 'unapply' | 'dev'
 
