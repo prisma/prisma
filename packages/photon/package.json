@@ -19,7 +19,8 @@
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
       "tslint --project tsconfig.json -c tslint.json --fix",
-      "prettier --write"
+      "prettier --write",
+      "git add"
     ]
   },
   "prisma": {
