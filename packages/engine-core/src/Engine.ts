@@ -22,6 +22,9 @@ function serializeError(log) {
   if (application === 'datamodel') {
     return chalk.red.bold('Schema ') + message
   }
+  if (application === 'exit') {
+    return chalk.red.bold('Engine exited ') + message
+  }
   return chalk.red(log.message + ' ' + serializeObject(rest))
 }
 
