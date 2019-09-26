@@ -16,7 +16,7 @@ import { LiftPanic } from '../LiftEngine'
 import { Link } from './Link'
 import { sendPanic } from './sendPanic'
 
-export async function handlePanic(error: LiftPanic): Promise<boolean> {
+export async function handlePanic(error: LiftPanic, cliVersion: string, binaryVersion: string): Promise<boolean> {
   return new Promise(resolve => {
     let app: Instance | undefined
 
@@ -25,26 +25,26 @@ export async function handlePanic(error: LiftPanic): Promise<boolean> {
         app.unmount()
         app.waitUntilExit()
       }
-      // .write as console.log introduces an unwanted linebreak here
-      // process.stdout.write(ansiEscapes.eraseLines(11)) // height of the dialog
+      process.exit(0)
       resolve()
     }
 
     app = render(
       <TabIndexProvider>
-        <PanicDialog error={error} onDone={onDone} />
+        <PanicDialog error={error} onDone={onDone} cliVersion={cliVersion} binaryVersion={binaryVersion} />
       </TabIndexProvider>,
     )
   })
 }
 
 interface DialogProps {
-  // onSubmit: (allowed: boolean) => void
   error: LiftPanic
+  cliVersion: string
+  binaryVersion: string
   onDone: () => void
 }
 
-const PanicDialog: React.FC<DialogProps> = ({ error, onDone }) => {
+const PanicDialog: React.FC<DialogProps> = ({ error, onDone, cliVersion, binaryVersion }) => {
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
   const tabIndexContext = useContext(TabIndexContext)
@@ -56,7 +56,7 @@ const PanicDialog: React.FC<DialogProps> = ({ error, onDone }) => {
     }
     setSending(true)
     tabIndexContext.lockNavigation(true)
-    await sendPanic(error, 'cli version', 'binary version')
+    await sendPanic(error, cliVersion, binaryVersion)
     setDone(true)
     onDone()
   }
