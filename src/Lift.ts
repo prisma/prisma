@@ -678,7 +678,7 @@ export class Lift {
 
     migrationSteps.sort((a, b) => (a.migrationId < b.migrationId ? -1 : 1))
 
-    const groupedByMigration = groupBy(migrationSteps, step => step.migrationId)
+    const groupedByMigration = groupBy<any>(migrationSteps, step => step.migrationId) // todo fix types
 
     return Object.entries(groupedByMigration).map(([migrationId, files]) => {
       const stepsFile = files.find(f => f.fileName === 'steps.json')!
