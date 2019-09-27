@@ -57,9 +57,9 @@ const Step60DownloadExample: React.FC = () => {
     `Extracting content to ${chalk.bold(relativePath)}`,
   ]
 
-  const commandsSlice = introspectionResult ? 1 : selectedExample.setupCommands.length
+  const commandsSlice = introspectionResult ? 1 : selectedExample.setupCommands.length - 1
 
-  const steps = [...builtInSteps, ...selectedExample.setupCommands.slice(0, commandsSlice).map(c => c.description)]
+  const steps = [...builtInSteps, ...selectedExample.setupCommands.slice(0, 1).map(c => c.description)]
 
   useEffect(() => {
     async function prepare() {
@@ -89,6 +89,8 @@ const Step60DownloadExample: React.FC = () => {
         }
 
         await makeDir(state.outputDir)
+        process.chdir(state.outputDir) // important for npm install
+
         const tarFile = await downloadRepo('prisma', 'prisma-examples', examples!.meta.branch)
         setActiveIndex(1)
         await extractExample(tarFile, selectedExample!.path, state.outputDir)
@@ -136,7 +138,8 @@ const Step60DownloadExample: React.FC = () => {
       const step = selectedExample!.setupCommands.slice(0, commandsSlice)[activeIndex - 2]
       if (step) {
         try {
-          await execa.shell(replacePrisma2Command(step.command), { cwd: state.outputDir, preferLocal: true })
+          const command = replacePrisma2Command(step.command)
+          await execa.shell(command, { cwd: state.outputDir, preferLocal: true })
         } catch (e) {
           const error = e.stderr || e.stdout || e.message
           setError(commandError + '\n' + error)
@@ -248,6 +251,9 @@ function databaseTypeToConnectorType(databaseType: DatabaseType): ConnectorType 
 }
 
 export function replacePrisma2Command(command: string): string {
+  if (command === 'npm install') {
+    return 'yarn install'
+  }
   if (/^prisma2\s/.test(command)) {
     return `"${process.argv[0]}" "${process.argv[1]}" ${command.slice(8)}`
   }
