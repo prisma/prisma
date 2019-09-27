@@ -23,6 +23,7 @@ export const knownPlatforms = [
   'linux-glibc-libssl1.0.2',
   'linux-glibc-libssl1.1.0',
   'linux-musl-libssl1.1.0',
+  'windows',
 ]
 
 const generate: GeneratorFunction = async ({ generator, cwd }) => {
