@@ -40,6 +40,7 @@ or provide a project name, e.g.: ${chalk.bold('prisma2 init hello-world')}`),
         )
         process.exit(1)
       }
+      process.chdir(outputDir) // important for npm install
     }
 
     await initPrompt(outputDir)
