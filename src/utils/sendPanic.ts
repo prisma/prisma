@@ -30,6 +30,7 @@ export async function sendPanic(error: LiftPanic, cliVersion: string, binaryVers
       platform: await getPlatform(),
       liftRequest: JSON.stringify(error.request),
       schemaFile: maskedSchema,
+      fingerprint: getFid() || undefined,
     })
 
     const zip = await makeErrorZip(error)
@@ -66,7 +67,7 @@ async function makeErrorZip(error: LiftPanic): Promise<Buffer> {
     })
 
     for (const filePath of filePaths) {
-      let file = fs.readFileSync(path.join(schemaDir, filePath), 'utf-8')
+      let file = fs.readFileSync(path.resolve(schemaDir, filePath), 'utf-8')
       if (filePath.endsWith('schema.prisma')) {
         file = maskSchema(file)
       }
@@ -91,6 +92,7 @@ export interface CreateErrorReportInput {
   platform: string
   rustStackTrace: string
   schemaFile?: string
+  fingerprint?: string
 }
 
 export enum ErrorArea {
@@ -147,6 +149,27 @@ async function request(query: string, variables: any): Promise<any> {
     })
 }
 
-function getRandomString() {
-  return crypto.randomBytes(20).toString('hex')
+function getMac(): string | null {
+  const interfaces = os.networkInterfaces()
+  return Object.keys(interfaces).reduce<null | string>((acc, key) => {
+    if (acc) {
+      return acc
+    }
+    const i = interfaces[key]
+    const mac = i.find(a => a.mac !== '00:00:00:00:00:00')
+    return mac ? mac.mac : null
+  }, null)
+}
+
+export function getFid() {
+  const mac = getMac()
+  const fidSecret = 'AhTheeR7Pee0haebui1viemoe'
+  if (mac) {
+    return crypto
+      .createHmac('sha256', fidSecret)
+      .update(mac)
+      .digest('hex')
+  }
+
+  return null
 }

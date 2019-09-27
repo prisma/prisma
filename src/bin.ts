@@ -1,15 +1,9 @@
 #!/usr/bin/env ts-node
 
 process.on('uncaughtException', e => {
-  if (e instanceof LiftPanic) {
-    handlePanic(e, 'TEST', 'TEST')
-  }
   console.log(e)
 })
 process.on('unhandledRejection', (e, promise) => {
-  if (e instanceof LiftPanic) {
-    handlePanic(e, 'TEST', 'TEST')
-  }
   console.log(String(e), String(promise))
 })
 
