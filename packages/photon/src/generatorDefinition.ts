@@ -45,6 +45,7 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
     }
   }
   const datamodelPath = await getDatamodelPath(cwd)
+  const datamodelDir = path.dirname(datamodelPath)
   const datamodel = await readFile(datamodelPath, 'utf-8')
   const output = generator.output || defaultOutput
   const transpile =
@@ -60,7 +61,7 @@ const generate: GeneratorFunction = async ({ generator, cwd }) => {
   await generateClient({
     datamodel,
     datamodelPath,
-    cwd,
+    cwd: datamodelDir,
     outputDir: output,
     transpile,
     platforms,
