@@ -16,4 +16,4 @@ rm -rf build/public/static/js/*.map
 rm -rf build/public1/static/js/*.map
 rm -rf build/prisma
 rm -rf build/runtime/prisma
-cp src/capture-worker.js build/capture-worker.js
+cp src/capture-worker.js build/dist/capture-worker.js
