@@ -311,52 +311,6 @@ export declare var mergeBy: any
 export declare type mergeBy = any
 `
 
-// const indexDTS = `export { DMMF } from './dmmf-types'
-// export { DMMFClass } from './dmmf'
-// export { deepGet, deepSet } from './utils/deep-set'
-// export { InternalDatasource, Datasource, printDatasources } from './utils/printDatasources';
-// export { makeDocument, transformDocument } from './query'
-
-// export declare var Engine: any
-// export declare type Engine = any
-
-// export declare var debugLib: debug.Debug & { debug: debug.Debug; default: debug.Debug };
-
-// declare namespace debug {
-//   interface Debug {
-//     (namespace: string): Debugger;
-//     coerce: (val: any) => any;
-//     disable: () => string;
-//     enable: (namespaces: string) => void;
-//     enabled: (namespaces: string) => boolean;
-//     log: (...args: any[]) => any;
-
-//     names: RegExp[];
-//     skips: RegExp[];
-
-//     formatters: Formatters;
-//   }
-
-//   type IDebug = Debug;
-
-//   interface Formatters {
-//     [formatter: string]: (v: any) => string;
-//   }
-
-//   type IDebugger = Debugger;
-
-//   interface Debugger {
-//     (formatter: any, ...args: any[]): void;
-
-//     enabled: boolean;
-//     log: (...args: any[]) => any;
-//     namespace: string;
-//     destroy: () => boolean;
-//     extend: (namespace: string, delimiter?: string) => Debugger;
-//   }
-// }
-// `
-
 // This is needed because ncc rewrite some paths
 function redirectToLib(fileName: string) {
   const file = path.basename(fileName)
