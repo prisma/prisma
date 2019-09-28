@@ -418,7 +418,7 @@ Prisma 2 features a [development mode](./development-mode.md) that allows for fa
 In essence, running `prisma2 dev` is a shortcut to immediately apply changes to your project that you'd otherwise have to perform through these commands:
 
 - `prisma2 generate` to generate Photon
-- `prisma lift save` and `prisma2 lift up` to apply a migration
+- `prisma2 lift save` and `prisma2 lift up` to apply a migration
 
 Once you're happy with the changes you made to your data model to develop a certain feature, you can exit the development mode and actually persist your migration using Lift. Learn more [here](./development-mode.md#migrations-in-development-mode).
 
