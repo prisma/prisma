@@ -427,29 +427,29 @@
     terminal-link "^1.3.0"
     wtfnode "0.8.0"
 
-"@prisma/studio-server@^0.102.0":
-  version "0.102.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.102.0.tgz#f9731ba2a2892ca64021694b98fb729350bfab1e"
-  integrity sha512-h546y4WCsvftjS4nuLfuiqhHXm3FjwF6L+NNRzBN00RoTylqqjAY1bqaptl0+2h8pNI0e+JSvapFIj+HZsHMjA==
+"@prisma/studio-server@0.103":
+  version "0.103.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.103.0.tgz#46dfa074a3b3c5d241b95cabff87cac556a2a4be"
+  integrity sha512-sSxL5+8bfxfMeddcua0xWaEhLEska0srRNvo+0tqQmldqMumy4bMWTg64VGLj6DI1kcEpO1k+MKbYqUxY6lV/Q==
   dependencies:
-    "@prisma/studio" "0.102.0"
-    "@prisma/studio-transports" "0.102.0"
+    "@prisma/studio" "0.103.0"
+    "@prisma/studio-transports" "0.103.0"
     "@sentry/node" "^5.6.2"
     express "^4.17.1"
     express-ws "^4.0.0"
 
-"@prisma/studio-transports@0.102.0":
-  version "0.102.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.102.0.tgz#d51b79b02ad5291b2bdaf53870af5a86382f2f4f"
-  integrity sha512-IQzxZF0cejQpMFUG074rpG8B67oVqY9ZX4rox9NYWVqqRr3J6Go/jit7Ah7MkzoX0GDCy4HJjRBJTZ1Ig9qIjQ==
+"@prisma/studio-transports@0.103.0":
+  version "0.103.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.103.0.tgz#475090d636a86b0c1898c53e46907069263f0913"
+  integrity sha512-QF+PdF8+Ned1iNABtruPX53p03OO2kP26nFR0f4tyYBwkEtot28DukFbw+Ifi7hPDw80Ie/uG9NdfEYiau+sLA==
   dependencies:
     "@sentry/node" "^5.6.2"
     strip-ansi "^5.2.0"
 
-"@prisma/studio@0.102.0":
-  version "0.102.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.102.0.tgz#e41f91949af5183f8711c656b7d84a4dffaf813a"
-  integrity sha512-mHPip6ug+DGi3pWEDMJcXo+KZLY21S0fKZERauSSjbqY5Me5Gstv3ha00z/hP0BIDjsTRNpZeGSELl/qrdFSuA==
+"@prisma/studio@0.103.0":
+  version "0.103.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.103.0.tgz#a0173da47c40d7a3677b9cb15d986dc321408052"
+  integrity sha512-YP3N8CCwywXGJsyGCBbTUg2+fYeHqNkoLtvk9vf6+rNczyrLJW3p6T6v2HBKIvgFn24Rn8K6g5Bh7Nvj0lrDVw==
 
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
