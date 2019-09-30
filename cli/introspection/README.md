@@ -1,3 +1,3 @@
 # @prisma/introspection
 
-Includes the Prisma 2 introspection CLI command.
+Includes the Prisma 2 `init` and `introspection` cli command.
