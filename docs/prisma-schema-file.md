@@ -293,7 +293,7 @@ model Customer {}
 Following the lead of [gofmt](https://golang.org/cmd/gofmt/) and [prettier](https://github.com/prettier/prettier), PDL syntax ships with a formatter for
 `.prisma` files.
 
-Like `gofmt` and unlike `prettier`, there are no options for configurability here. **There is exactly one way to format a prisma file**.
+Like `gofmt` and unlike `prettier`, there are no options for configuration here. **There is exactly one way to format a prisma file**.
 
 This strictness serves two benefits:
 

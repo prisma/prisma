@@ -109,7 +109,7 @@ model Profile {
 }
 ```
 
-Now, the tables are structured liks this:
+Now, the tables are structured like this:
 
 | **User** |         |
 | -------- | ------- |
@@ -236,7 +236,7 @@ const categoriesOfPost: Category[] = await photon.posts
 
 ### Nested writes (transactions)
 
-Nested writes provide a powerful API to write relational data to your database. They further provide _transactional guarantees_ to create, update or delete data accross multiple tables in a single Photon.js API call. The level of nesting of a nested writes can be arbitrarily deep.
+Nested writes provide a powerful API to write relational data to your database. They further provide _transactional guarantees_ to create, update or delete data across multiple tables in a single Photon.js API call. The level of nesting of a nested writes can be arbitrarily deep.
 
 Nested writes are available for relation fields of a model when using the model's `create` or `update` function. The following nested write operations are available per function:
 
@@ -386,7 +386,7 @@ const post = await photon.posts.create({
 
 ### Nested reads (eager loading)
 
-You can eagerly load relations on a model via `select` and `inlcude` (learn more about the difference [here](./photon/api.md#manipulating-the-selection-set)). The nesting of eagerly loaded relations can be arbitrarily deep.
+You can eagerly load relations on a model via `select` and `include` (learn more about the difference [here](./photon/api.md#manipulating-the-selection-set)). The nesting of eagerly loaded relations can be arbitrarily deep.
 
 ```ts
 // The returned post objects will only have the  `id` and

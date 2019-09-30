@@ -1,6 +1,6 @@
 # Migration steps
 
-> You can find the implementation of the migration steps [here](https://github.com/prisma/prisma/blob/alpha/server/prisma-rs/migration-engine/connectors/migration-connector/tests/steps_tests.rs) and learn more about their behaviour in the tests [here](https://github.com/prisma/prisma/blob/alpha/server/prisma-rs/migration-engine/connectors/migration-connector/tests/steps_tests.rs).
+> You can find the implementation of the migration steps [here](https://github.com/prisma/prisma/blob/alpha/server/prisma-rs/migration-engine/connectors/migration-connector/tests/steps_tests.rs) and learn more about their behavior in the tests [here](https://github.com/prisma/prisma/blob/alpha/server/prisma-rs/migration-engine/connectors/migration-connector/tests/steps_tests.rs).
 
 ## Step types
 
