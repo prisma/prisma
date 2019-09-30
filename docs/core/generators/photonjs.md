@@ -38,7 +38,7 @@ generator photon {
 }
 ```
 
-has the **same behaviour** as:
+has the **same behavior** as:
 
 ```prisma
 generator photon {

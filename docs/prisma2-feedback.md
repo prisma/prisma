@@ -42,11 +42,11 @@ In any of the following scenarios, please make sure to create a GitHub issue to 
 - You're running into an error.
 - You have a question about something.
 - You expected something to work differently.
-- You are suprised by a certain behaviour.
+- You are surprised by a certain behavior.
 - The documentation on something isn't clear.
 - You wish there was documentation on something.
 
-If your issue relates to either Photon or Lift specifically, you can open an issue directly in the respective repos:
+If your issue relates to either Photon or Lift specifically, you can open an issue directly in the respective repositories:
 
 - [Open an issue for **Photon.js**](https://github.com/prisma/photonjs/issues/new)
 - [Open an issue for **Lift**](https://github.com/prisma/lift/issues/new)
@@ -71,4 +71,4 @@ We are extremely eager to get your feedback! Please feel free to reach out to us
 
 ## Contributors
 
-A huge thanks to everyone who submitted PRs or openened issues in any of our Prisma 2 repositories: [`iherger`](https://github.com/iherger), [`Andrew1325`](https://github.com/Andrew1325)
+A huge thanks to everyone who submitted PRs or opened issues in any of our Prisma 2 repositories: [`iherger`](https://github.com/iherger), [`Andrew1325`](https://github.com/Andrew1325)
