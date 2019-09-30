@@ -63,30 +63,34 @@ const PanicDialog: React.FC<DialogProps> = ({ error, onDone, cliVersion, binaryV
 
   return (
     <Box flexDirection="column">
-      {done ? (
-        <Color bold>We successfully received the error report. Thanks a lot for your help! 🙏</Color>
-      ) : (
-        <>
-          <ErrorBox>Oops, an unexpected error occured!</ErrorBox>
-          <Color bold>Please help us improve Prisma 2 by submitting an error report.</Color>
-          <Color bold>Error reports never contain personal or other sensitive information.</Color>
-          <Color dim>
-            Learn more: <InkLink url="https://pris.ly/d/telemetry.md" />
-          </Color>
-          <BorderBox flexDirection="column" title={chalk.bold('Submit error report')} marginTop={1}>
-            {sending ? (
-              <DummySelectable tabIndex={0}>
-                <Color cyan>
-                  <AnySpinner /> Submitting error report
-                </Color>
-              </DummySelectable>
-            ) : (
-              <Link label="Yes" description={`Send error report once`} tabIndex={0} onSelect={() => onSubmit(true)} />
-            )}
-            <Link label="No" description={`Don't send error report`} tabIndex={1} onSelect={() => onSubmit(false)} />
-          </BorderBox>
-        </>
-      )}
+      <ErrorBox>Oops, an unexpected error occured!</ErrorBox>
+      <Color red>{error.message}</Color>
+      <Box marginTop={1}>
+        {done ? (
+          <Color bold>We successfully received the error report. Thanks a lot for your help! 🙏</Color>
+        ) : (
+          <>
+            <Color bold>Please help us improve Prisma 2 by submitting an error report.</Color>
+            <Color bold>Error reports never contain personal or other sensitive information.</Color>
+            <Color dim>
+              Learn more: <InkLink url="https://pris.ly/d/telemetry.md" />
+            </Color>
+            <BorderBox flexDirection="column" title={chalk.bold('Submit error report')} marginTop={1}>
+              {sending ? (
+                <DummySelectable tabIndex={0}>
+                  <Color cyan>
+                    <AnySpinner /> Submitting error report
+                  </Color>
+                </DummySelectable>
+              ) : (
+                <Link label="Yes" description={`Send error report once`} tabIndex={0} onSelect={() => onSubmit(true)} />
+              )}
+              <Link label="No" description={`Don't send error report`} tabIndex={1} onSelect={() => onSubmit(false)} />
+            </BorderBox>
+            <Color bold>Thank you for helping us making Prisma 2 more stable! 🙏</Color>
+          </>
+        )}
+      </Box>
     </Box>
   )
 }
