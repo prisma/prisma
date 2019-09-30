@@ -3,12 +3,15 @@ import { getPlatform } from '@prisma/get-platform'
 import { getCompiledGenerators } from '@prisma/photon'
 import 'array-flat-polyfill'
 import chalk from 'chalk'
+import { spawn } from 'child_process'
 import cliCursor from 'cli-cursor'
 import dashify from 'dashify'
+import debugLib from 'debug'
 import del from 'del'
 import fs from 'fs'
 import getPort from 'get-port'
 import globby from 'globby'
+import indent from 'indent-string'
 import logUpdate from 'log-update'
 import makeDir = require('make-dir')
 import pMap from 'p-map'
@@ -27,17 +30,14 @@ import { groupBy } from './utils/groupBy'
 import { isWatchMigrationName } from './utils/isWatchMigrationName'
 import { deserializeLockFile, initLockFile, serializeLockFile } from './utils/LockFile'
 import { now, timestampToDate } from './utils/now'
+import plusX from './utils/plusX'
 import { highlightMigrationsSQL, printDatabaseStepsOverview } from './utils/printDatabaseSteps'
 import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import { printMigrationReadme } from './utils/printMigrationReadme'
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
-const packageJson = require('../package.json')
-import { spawn } from 'child_process'
-import debugLib from 'debug'
-import indent from 'indent-string'
-import plusX from './utils/plusX'
 const debug = debugLib('Lift')
+// const packageJson = require('../package.json')
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
@@ -231,13 +231,23 @@ export class Lift {
         throw new Error(`Could not find any binary path for Studio. Looked in ${pathCandidates.join(', ')}`)
       }
 
-      const StudioServer = require('@prisma/studio-server').default
+      // const StudioServer = require('@prisma/studio-server').default
+      const StudioServer = (await import('@prisma/studio-server')).default
+
+      let photonWorkerPath: string | undefined = undefined
+      try {
+        const studioTransport = require.resolve('@prisma/studio-transports')
+        photonWorkerPath = path.join(path.dirname(studioTransport), 'photon-worker.js')
+      } catch (e) {
+        //
+      }
 
       this.studioServer = new StudioServer({
         port: this.studioPort,
         debug: false,
         datamodel,
         binaryPath: firstExistingPath.path,
+        photonWorkerPath,
       })
 
       await this.studioServer.start()
@@ -625,11 +635,11 @@ export class Lift {
   }
 
   private getMigrationFileMap({ migration, lastMigration }: MigrationFileMapOptions): FileMap {
-    const { version } = packageJson
+    // const { version } = packageJson
     const { datamodelSteps, datamodel } = migration
 
     return {
-      ['steps.json']: JSON.stringify({ version, steps: datamodelSteps }, null, 2),
+      ['steps.json']: JSON.stringify({ version: '0.3.14-fixed', steps: datamodelSteps }, null, 2),
       ['schema.prisma']: datamodel,
       ['README.md']: printMigrationReadme({
         migrationId: migration.id,
