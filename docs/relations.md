@@ -234,6 +234,18 @@ const categoriesOfPost: Category[] = await photon.posts
   .categories()
 ```
 
+While the Fluent API allows you to write chainable queries, sometimes you may want to address specific models where you already know specific fields (i.e., get all posts of a specific author).
+
+You can also rewrite the query like this:
+```ts
+const postsByUser: Post[] = await photon.posts
+  .findMany({where: { 
+    author: { id: author.id } } 
+  })
+```
+
+Note that, if you query a relationship, you must specify the fields (`id`) you want to search for.
+
 ### Nested writes (transactions)
 
 Nested writes provide a powerful API to write relational data to your database. They further provide _transactional guarantees_ to create, update or delete data accross multiple tables in a single Photon.js API call. The level of nesting of a nested writes can be arbitrarily deep.
