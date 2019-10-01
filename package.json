@@ -38,7 +38,7 @@
     "@prisma/fetch-engine": "^0.1.14",
     "@prisma/get-platform": "^0.1.1",
     "@prisma/ink-components": "^0.0.1",
-    "@prisma/studio-server": "0.103",
+    "@prisma/studio-server": "0.104.0",
     "@types/execa": "^0.9.0",
     "adm-zip": "^0.4.13",
     "ansi-escapes": "^4.2.1",
