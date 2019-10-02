@@ -1,8 +1,8 @@
-# Prisma 2
+# Prisma Framework
 
-This repository is used as a central point to collect information and issues around [Prisma 2](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/) while it's in Preview. It also contains the [documentation](./docs) and the [code of the Prisma 2 CLI](./cli).
+This repository is used as a central point to collect information and issues around the **Prisma Framework** (formerly called [Prisma 2](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)) while it's in Preview. It also contains the [documentation](./docs) and the [code of the Prisma 2 CLI](./cli).
 
-💡 Prisma 2 is currently in Preview! [Limitations](./docs/limitations.md) include missing features, limited performance and stability issues. You can track the progress of Prisma 2 on [**`isprisma2ready.com`**](https://www.isprisma2ready.com).
+💡 The Prisma Framework is currently in Preview! [Limitations](./docs/limitations.md) include missing features, limited performance and stability issues. You can track the progress of Prisma 2 on [**`isprisma2ready.com`**](https://www.isprisma2ready.com).
 
 ## What is the Prisma Framework?
 
