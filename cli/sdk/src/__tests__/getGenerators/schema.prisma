@@ -1,0 +1,9 @@
+generator gen {
+  provider  = "predefined-generator"
+  platforms = ["darwin"]
+}
+
+model User {
+  id   Int    @id
+  name String
+}
