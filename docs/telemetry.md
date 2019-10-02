@@ -8,7 +8,7 @@ During the Preview period, upon an unexpected error you will _always_ be prompte
 
 ## What kind of data is being collected?
 
-The _exclusive_ purpose of telemetry is to improve the quality of the Prisma 2 tools: Photon, Lift, and Studio. Therefore, the only data that is being tracked relates to the actual _usage_ of these tools and not to any personal or other senstive information!
+The _exclusive_ purpose of telemetry is to improve the quality of the Prisma 2 tools: Photon, Lift, and Studio. Therefore, the only data that is being tracked relates to the actual _usage_ of these tools and not to any personal or other sensitive information!
 
 Here's a list of information that is contained in an error report:
 
@@ -18,7 +18,7 @@ Here's a list of information that is contained in an error report:
 
 _Project metadata_ includes your Prisma schema, used CLI commands or usage of certain features in the Photon API. Note that the connection details of any of your data sources will be obscured in the error report.
 
-Here's a list of information that is **never** containted in an error report:
+Here's a list of information that is **never** contained in an error report:
 
 - User credentials (keys, secrets, passwords, ...)
 - Database connection details (IP, port, database name, ...)
