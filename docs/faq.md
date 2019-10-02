@@ -28,7 +28,7 @@ In the meanwhile, you can use Photon.js alongside other lightweight query builde
 
 ### Is Photon.js an ORM?
 
-ORMs are typically object-oriented mapping layers that map classes to tables. A record is represented as an object that not only carries data but also implements various behaviours for storage, retrieval,
+ORMs are typically object-oriented mapping layers that map classes to tables. A record is represented as an object that not only carries data but also implements various behaviors for storage, retrieval,
 serialization and deserialization of its own data, sometimes it also implements business/domain logic.
 Photon.js acts more as a _query builder_ returning plain objects with a focus on structural typing rather than rich object behavior.
 
@@ -40,7 +40,7 @@ However, it's also possible to build your own connectors, more documentation on 
 
 ### How can I see the generated queries that Photon.js sends to my database?
 
-There will be rich query analytics for Photon.js soon. For now you can set the `debug` option to `true` when instanting your `Photon` instance. Learn more in the [docs](./photon/api.md#debugging).
+There will be rich query analytics for Photon.js soon. For now you can set the `debug` option to `true` when instantiating your `Photon` instance. Learn more in the [docs](./photon/api.md#debugging).
 
 ### How do schema migrations work with Photon?
 
@@ -60,7 +60,7 @@ With Prisma 2, Prisma's query engine doesn't expose a [spec](https://graphql.git
 
 ### How to handle connection pooling for Photon.js in serverless environments?
 
-The query engine that's powering the Photon.js API is maintaing a database connection pool. In serverless environments (or when running your application in containers, e.g. using Kubernetes), this connection pool might loose its effectiveness due to the infrastructure it's being deployed on. You can read more about this topic in the [docs](./photon/deployment.md).
+The query engine that's powering the Photon.js API is maintaining a database connection pool. In serverless environments (or when running your application in containers, e.g. using Kubernetes), this connection pool might loose its effectiveness due to the infrastructure it's being deployed on. You can read more about this topic in the [docs](./photon/deployment.md).
 
 As of now, the recommended workaround is to use a tool like [PgBouncer](https://pgbouncer.github.io/faq.html). We are further exploring some options, such as [enabling a "DB proxy server"](https://github.com/prisma/prisma2/issues/370) (e.g. using a specific generator that generates a Docker image to host Photon's query engine) that manages the connection pool for you (similar to the the Prisma 1 architecture).
 
