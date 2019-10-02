@@ -59,7 +59,7 @@ const Step60DownloadExample: React.FC = () => {
 
   const commandsSlice = introspectionResult ? 1 : selectedExample.setupCommands.length - 1
 
-  const steps = [...builtInSteps, ...selectedExample.setupCommands.slice(0, 1).map(c => c.description)]
+  const steps = [...builtInSteps, ...selectedExample.setupCommands.map(c => c.description)]
 
   useEffect(() => {
     async function prepare() {
@@ -89,7 +89,6 @@ const Step60DownloadExample: React.FC = () => {
         }
 
         await makeDir(state.outputDir)
-        process.chdir(state.outputDir) // important for npm install
 
         const tarFile = await downloadRepo('prisma', 'prisma-examples', examples!.meta.branch)
         setActiveIndex(1)
@@ -108,7 +107,8 @@ const Step60DownloadExample: React.FC = () => {
               ? path.join(state.outputDir, 'script.js')
               : path.join(state.outputDir, 'script.ts')
 
-          // TODO: Use more sophisticated example as specified here https://prisma-specs.netlify.com/cli/init/introspection-results/
+          // TODO: Use more sophisticated example as specified here
+          //https://prisma-specs.netlify.com/cli/init/introspection-results/
           const newScript = await exampleScript({
             typescript: state.selectedLanguage === 'typescript',
             datamodel: introspectionResult,
@@ -138,8 +138,15 @@ const Step60DownloadExample: React.FC = () => {
       const step = selectedExample!.setupCommands.slice(0, commandsSlice)[activeIndex - 2]
       if (step) {
         try {
-          const command = replacePrisma2Command(step.command)
-          await execa.shell(command, { cwd: state.outputDir, preferLocal: true })
+          const command = await replaceCommand(step.command)
+          await execa.shell(command, {
+            cwd: state.outputDir,
+            preferLocal: true,
+            env: {
+              ...process.env,
+              NODE_ENV: '',
+            },
+          })
         } catch (e) {
           const error = e.stderr || e.stdout || e.message
           setError(commandError + '\n' + error)
@@ -250,8 +257,8 @@ function databaseTypeToConnectorType(databaseType: DatabaseType): ConnectorType 
   }
 }
 
-export function replacePrisma2Command(command: string): string {
-  if (command === 'npm install') {
+export async function replaceCommand(command: string): Promise<string> {
+  if (command === 'npm install' && (await isYarnInstalled())) {
     return 'yarn install'
   }
   if (/^prisma2\s/.test(command)) {
@@ -259,4 +266,13 @@ export function replacePrisma2Command(command: string): string {
   }
 
   return command
+}
+
+async function isYarnInstalled(): Promise<boolean> {
+  try {
+    await execa.shell(`yarn --version`, { stdio: `ignore` })
+    return true
+  } catch (err) {
+    return false
+  }
 }

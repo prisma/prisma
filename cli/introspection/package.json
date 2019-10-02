@@ -1,9 +1,10 @@
 {
   "name": "@prisma/introspection",
-  "version": "0.0.77",
+  "version": "0.0.81",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
+  "repository": "git@github.com:prisma/prisma2.git",
   "devDependencies": {
     "@prisma/cli": "^0.1.8",
     "@prisma/lift": "^0.3.9",

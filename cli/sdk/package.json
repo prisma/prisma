@@ -1,0 +1,49 @@
+{
+  "name": "@prisma/sdk",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": "git@github.com:prisma/prisma2.git",
+  "author": "Tim Suchanek <suchanek@prisma.io>",
+  "license": "Apache-2.0",
+  "private": false,
+  "scripts": {
+    "build": "tsc -d",
+    "prepublishOnly": "yarn build",
+    "postinstall": "node scripts/download.js",
+    "test": "jest"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/jest": "^24.0.18",
+    "@types/node": "^12.7.9",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.1.0",
+    "typescript": "^3.6.3"
+  },
+  "dependencies": {
+    "@prisma/cli": "^0.1.10",
+    "@prisma/fetch-engine": "^0.1.14",
+    "@prisma/get-platform": "^0.1.2",
+    "chalk": "^2.4.2",
+    "execa": "^2.0.4",
+    "prisma-datamodel": "1.36.0-test.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,css,json,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.ts": [
+      "eslint --fix",
+      "git add"
+    ]
+  }
+}

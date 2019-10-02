@@ -10,6 +10,7 @@ import { Init } from './commands/Init'
  * Main function
  */
 async function main(): Promise<number> {
+  process.env.NODE_ENV = 'production'
   // create a new CLI with our subcommands
   const cli = Init.new()
   // parse the arguments
