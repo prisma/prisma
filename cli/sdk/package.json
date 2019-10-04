@@ -26,6 +26,7 @@
   "dependencies": {
     "@prisma/cli": "^0.1.10",
     "@prisma/fetch-engine": "^0.1.14",
+    "@prisma/generator-helper": "^0.0.0",
     "@prisma/get-platform": "^0.1.2",
     "chalk": "^2.4.2",
     "execa": "^2.0.4",
