@@ -1,0 +1,41 @@
+{
+  "name": "@prisma/generator-helper",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "repository": "git@github.com:prisma/prisma2.git",
+  "author": "Tim Suchanek <suchanek@prisma.io>",
+  "dependencies": {
+    "debug": "^4.1.1"
+  },
+  "scripts": {
+    "build": "tsc -d",
+    "prepublishOnly": "yarn build",
+    "test": "jest"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,css,json,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.ts": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.18",
+    "@types/node": "^12.7.11",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.1.0",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.3"
+  }
+}
