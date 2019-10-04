@@ -939,7 +939,7 @@ export class InputField {
     if (fieldInputType.isList) {
       fieldType = `Enumerable<${fieldType}>`
     }
-    const nullableStr = !fieldInputType.isRequired && !fieldInputType.isList ? ' | null' : ''
+    const nullableStr = !fieldInputType.isRequired ? ' | null' : ''
     return `${field.name}${optionalStr}: ${fieldType}${nullableStr}`
   }
 }
