@@ -3,7 +3,7 @@ import chalk from 'chalk'
 import execa from 'execa'
 import path from 'path'
 import { ConfigMetaFormat } from './isdlToDatamodel2'
-import { DMMF } from './dmmf-types'
+import { DMMF } from '@prisma/generator-helper'
 
 async function getPrismaPath(): Promise<string> {
   // tslint:disable-next-line
@@ -49,15 +49,19 @@ export async function getConfig(
 ): Promise<ConfigMetaFormat> {
   prismaPath = prismaPath || (await getPrismaPath())
   try {
-    const result = await execa(prismaPath, ['cli', '--get_config', JSON.stringify({ datamodel }) + '\n'], {
-      cwd,
-      env: {
-        ...process.env,
-        PRISMA_DML: datamodel,
-        PRISMA_SDL_PATH: datamodelPath,
-        RUST_BACKTRACE: '1',
+    const result = await execa(
+      prismaPath,
+      ['cli', '--get_config', JSON.stringify({ datamodel }) + '\n'],
+      {
+        cwd,
+        env: {
+          ...process.env,
+          PRISMA_DML: datamodel,
+          PRISMA_SDL_PATH: datamodelPath,
+          RUST_BACKTRACE: '1',
+        },
       },
-    })
+    )
 
     return JSON.parse(result.stdout)
   } catch (e) {
@@ -76,19 +80,26 @@ export interface WholeDmmf {
   config: ConfigMetaFormat
 }
 
-export async function dmmfToDml(input: WholeDmmf, prismaPath?: string): Promise<string> {
+export async function dmmfToDml(
+  input: WholeDmmf,
+  prismaPath?: string,
+): Promise<string> {
   prismaPath = prismaPath || (await getPrismaPath())
   const transformed = {
     config: input.config,
     dmmf: JSON.stringify(input.dmmf),
   }
   try {
-    const result = await execa(prismaPath, ['cli', '--dmmf_to_dml', JSON.stringify(transformed)], {
-      env: {
-        ...process.env,
-        RUST_BACKTRACE: '1',
+    const result = await execa(
+      prismaPath,
+      ['cli', '--dmmf_to_dml', JSON.stringify(transformed)],
+      {
+        env: {
+          ...process.env,
+          RUST_BACKTRACE: '1',
+        },
       },
-    })
+    )
 
     return result.stdout
   } catch (e) {
