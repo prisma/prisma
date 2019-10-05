@@ -7,26 +7,59 @@ let globalMessageId = 1
 export class GeneratorProcess {
   child: ChildProcessByStdio<any, any, any>
   listeners: { [key: string]: (result: any, err?: Error) => void } = {}
+  private exitCode: number | null = null
+  private stderrLogs: string = ''
+  private initPromise?: Promise<void>
+  private initialized: boolean = false
   constructor(private executablePath: string) {
     this.child = spawn(executablePath, {
       stdio: ['pipe', 'inherit', 'pipe'],
     })
 
-    byline(this.child.stderr).on('data', line => {
-      const response = String(line)
-      let data
-      try {
-        data = JSON.parse(response)
-      } catch (e) {
-        throw new Error(
-          `Got invalid response from generator at ${
-            this.executablePath
-          }:\n${response}\n${e.stack || e.message}`,
-        )
-      }
-      if (data) {
-        this.handleResponse(data)
-      }
+    this.child.on('exit', code => {
+      this.exitCode = code
+    })
+  }
+  async init() {
+    if (!this.initPromise) {
+      this.initPromise = this.initSingleton()
+    }
+    return this.initPromise!
+  }
+  initSingleton(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      byline(this.child.stderr).on('data', line => {
+        const response = String(line)
+        this.stderrLogs += response + '\n'
+        let data
+        try {
+          data = JSON.parse(response)
+        } catch (e) {
+          if (!this.exitCode && this.initialized) {
+            throw new Error(
+              `Got invalid response from generator at ${
+                this.executablePath
+              }:\n${response}\n${e.stack || e.message}`,
+            )
+          }
+        }
+        if (data) {
+          this.handleResponse(data)
+        }
+      })
+      // wait 200ms for the binary to fail
+      setTimeout(() => {
+        if (this.exitCode && this.exitCode > 0) {
+          reject(
+            new Error(
+              `Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`,
+            ),
+          )
+        } else {
+          this.initialized = true
+          resolve()
+        }
+      }, 200)
     })
   }
   private handleResponse(data: any) {

@@ -23,7 +23,7 @@ export async function getGenerators(
   schemaPath: string,
   generatorAliases?: { [alias: string]: string },
   version?: string,
-  printDownloadProgess?: boolean,
+  printDownloadProgress?: boolean,
 ): Promise<Generator[]> {
   if (!fs.existsSync(schemaPath)) {
     throw new Error(`${schemaPath} does not exist`)
@@ -89,7 +89,10 @@ export async function getGenerators(
     const binaryPaths = await download({
       binaries: binariesConfig,
       binaryTargets: binaryTargets as any[],
-      showProgress: printDownloadProgess,
+      showProgress:
+        typeof printDownloadProgress === 'boolean'
+          ? printDownloadProgress
+          : true,
       version,
     })
 
