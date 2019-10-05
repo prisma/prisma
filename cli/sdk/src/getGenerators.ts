@@ -1,7 +1,16 @@
 import fs from 'fs'
 import { getConfig, getDMMF } from './engineCommands'
-import { Dictionary } from './keyBy'
-import { EnvValue } from './isdlToDatamodel2'
+import pMap from 'p-map'
+import {
+  GeneratorOptions,
+  GeneratorProcess,
+  GeneratorManifest,
+  BinaryPaths,
+} from '@prisma/generator-helper'
+import { download } from '@prisma/fetch-engine'
+import { unique } from './unique'
+import { pick } from './pick'
+import path from 'path'
 
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -13,6 +22,8 @@ import { EnvValue } from './isdlToDatamodel2'
 export async function getGenerators(
   schemaPath: string,
   generatorAliases?: { [alias: string]: string },
+  version?: string,
+  printDownloadProgess?: boolean,
 ): Promise<Generator[]> {
   if (!fs.existsSync(schemaPath)) {
     throw new Error(`${schemaPath} does not exist`)
@@ -21,56 +32,108 @@ export async function getGenerators(
   const schema = fs.readFileSync(schemaPath, 'utf-8')
   const dmmf = await getDMMF(schema)
   const config = await getConfig(schema)
-  return await Promise.all(
-    config.generators.map(async generator => {
-      let generatorPath = generator.provider
-      if (generatorAliases && generatorAliases[generator.provider]) {
-        generatorPath = generatorAliases[generator.provider]
-        if (!fs.existsSync(generatorPath)) {
-          throw new Error(
-            `Could not find generator executable ${
-              generatorAliases[generator.provider]
-            } for generator ${generator.provider}`,
-          )
+
+  const runningGenerators: Generator[] = []
+  try {
+    // 1. Get all generators
+    const generators = await pMap(
+      config.generators,
+      async (generator, index) => {
+        let generatorPath = generator.provider
+        if (generatorAliases && generatorAliases[generator.provider]) {
+          generatorPath = generatorAliases[generator.provider]
+          if (!fs.existsSync(generatorPath)) {
+            throw new Error(
+              `Could not find generator executable ${
+                generatorAliases[generator.provider]
+              } for generator ${generator.provider}`,
+            )
+          }
         }
+
+        const options: GeneratorOptions = {
+          datamodel: schema,
+          datasources: config.datasources,
+          generator,
+          dmmf,
+          otherGenerators: skipIndex(config.generators, index),
+          schemaPath,
+        }
+
+        const generatorInstance = new Generator(generatorPath, options)
+
+        await generatorInstance.init()
+
+        runningGenerators.push(generatorInstance)
+
+        return generatorInstance
+      },
+      {
+        stopOnError: false, // needed so we can first make sure all generators are created properly, then cleaned up properly
+      },
+    )
+
+    // 2. Download all binaries and binary targets needed
+    const binaries = generators.flatMap(g =>
+      g.manifest ? g.manifest.requiresEngines || [] : [],
+    )
+    const binaryTargets = unique(
+      config.generators.flatMap(g => g.binaryTargets || []),
+    )
+
+    const binariesConfig = binaries.reduce((acc, curr) => {
+      acc[curr] = path.join(__dirname, '../')
+      return acc
+    }, {})
+
+    const binaryPaths = await download({
+      binaries: binariesConfig,
+      binaryTargets: binaryTargets as any[],
+      showProgress: printDownloadProgess,
+      version,
+    })
+
+    for (const generator of generators) {
+      if (generator.manifest && generator.manifest.requiresEngines) {
+        const generatorBinaryPaths = pick(
+          binaryPaths,
+          generator.manifest.requiresEngines,
+        )
+        generator.setBinaryPaths(generatorBinaryPaths)
       }
+    }
 
-      const options = {} // CONTINUE: Make sure that we get the options as defined in the spec
-      // The types for the options should live in the helper package
-      // So probably next implement the helper package
-
-      const generatorInstance = new Generator(
-        generator.name,
-        generator.output,
-        generator.provider,
-        generator.config,
-        generatorPath,
-        options,
-      )
-
-      await generatorInstance.init()
-
-      return generatorInstance
-    }),
-  )
+    return generators
+  } catch (e) {
+    // make sure all generators that are already running are being stopped
+    runningGenerators.forEach(g => g.stop())
+    throw e
+  }
 }
 
 class Generator {
+  private generatorProcess: GeneratorProcess
+  public manifest: GeneratorManifest | null = null
   constructor(
-    public name: string,
-    public output: string | null,
-    public provider: string,
-    public config: Dictionary<string>,
-    private generatorPath: string,
+    private executablePath: string,
     private options: GeneratorOptions,
-  ) {}
-  async init() {
-    // CONTINUE: Spawn the process
+  ) {
+    this.generatorProcess = new GeneratorProcess(this.executablePath)
   }
-  stop() {}
+  async init() {
+    this.manifest = await this.generatorProcess.getManifest()
+  }
+  stop() {
+    this.generatorProcess.stop()
+  }
   generate(): Promise<void> {
-    return Promise.resolve()
+    return this.generatorProcess.generate(this.options)
+  }
+  setBinaryPaths(binaryPaths: BinaryPaths) {
+    this.options.binaryPaths = binaryPaths
   }
 }
 
-interface GeneratorOptions {}
+export function skipIndex<T = any>(arr: T[], index: number): T[] {
+  return [...arr.slice(0, index), ...arr.slice(index + 1)]
+}

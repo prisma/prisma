@@ -186,9 +186,9 @@ export type GeneratorOptions = {
 }
 
 export type EngineType =
-  | 'query-engine'
-  | 'migration-engine'
-  | 'introspection-engine'
+  | 'queryEngine'
+  | 'migrationEngine'
+  | 'introspectionEngine'
 
 export type GeneratorManifest = {
   prettyName?: string

@@ -1,6 +1,6 @@
 import { IComment, IGQLField, ISDL, isTypeIdentifier } from 'prisma-datamodel'
-import { DMMF } from './dmmf-types'
-import { DataSource, Dictionary } from './isdlToDatamodel2'
+import { DMMF, DataSource } from '@prisma/generator-helper'
+import { Dictionary } from './isdlToDatamodel2'
 import { keyBy } from './keyBy'
 
 export namespace DMMF2 {
@@ -54,7 +54,10 @@ export namespace DMMF2 {
   }
 }
 
-function getKind(field: IGQLField, enumMap: Dictionary<DMMF.Enum>): DMMF.FieldKind | undefined {
+function getKind(
+  field: IGQLField,
+  enumMap: Dictionary<DMMF.Enum>,
+): DMMF.FieldKind | undefined {
   if (typeof field.type === 'string') {
     if (isTypeIdentifier(field.type)) {
       return 'scalar'
@@ -161,7 +164,10 @@ export function isdlToDmmfDatamodel(
               isList: field.isList,
               isRequired: field.isRequired,
               isUnique: field.isUnique,
-              relationName: field.relationName === '' ? undefined : field.relationName || undefined,
+              relationName:
+                field.relationName === ''
+                  ? undefined
+                  : field.relationName || undefined,
               type: mapIdType(getType(field)),
               default: defaultValue,
               isUpdatedAt: field.isUpdatedAt,

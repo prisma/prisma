@@ -25,11 +25,12 @@
   },
   "dependencies": {
     "@prisma/cli": "^0.1.10",
-    "@prisma/fetch-engine": "^0.1.14",
-    "@prisma/generator-helper": "^0.0.0",
+    "@prisma/fetch-engine": "^0.3.0",
+    "@prisma/generator-helper": "^0.0.1",
     "@prisma/get-platform": "^0.1.2",
     "chalk": "^2.4.2",
     "execa": "^2.0.4",
+    "p-map": "^3.0.0",
     "prisma-datamodel": "1.36.0-test.2"
   },
   "husky": {
