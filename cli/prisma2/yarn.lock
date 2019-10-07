@@ -419,10 +419,10 @@
     tar "^4.4.10"
     terminal-link "^2.0.0"
 
-"@prisma/lift@0.3.21":
-  version "0.3.21"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.3.21.tgz#ba46c13a730c5d71ac373f0ff36dd464e841341d"
-  integrity sha512-Q0UPbkgtyQvVf+8I+LcSoINEqYRsJJqEKD8fYP9U7GFyNbIhRl9xlznkAAHqTjsNsu3NufugIITpZS1jbhj+3g==
+"@prisma/lift@0.3.24":
+  version "0.3.24"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.3.24.tgz#e581313486d4c9daa388999c43a60925703577ed"
+  integrity sha512-9DvGjDxRiO4BfA5col3oySipKD4eEqOE1cCScbO/DLXZOu+/pNgu0MbWddip8G/0nivX4F03y1sjK7kd7SoXhA==
   dependencies:
     "@prisma/fetch-engine" "^0.1.14"
     "@prisma/get-platform" "^0.1.1"
@@ -454,7 +454,7 @@
     keypress "^0.2.1"
     log-update "^3.2.0"
     microjob "^0.5.2"
-    p-map "^2.1.0"
+    p-map "^3.0.0"
     prisma-datamodel "^1.36.0-test.2"
     prompts "^2.1.0"
     react "^16.8.6"
@@ -4533,7 +4533,7 @@ p-locate@^4.1.0:
   dependencies:
     p-limit "^2.2.0"
 
-p-map@^2.0.0, p-map@^2.1.0:
+p-map@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/p-map/-/p-map-2.1.0.tgz#310928feef9c9ecc65b68b17693018a665cea175"
   integrity sha512-y3b8Kpd8OAN444hxfBbFfj1FY/RjtTd8tzYwhUqNYXx0fXx2iX4maP4Qr6qhIKbQXI02wTLAda4fYUbDagTUFw==
