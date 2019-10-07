@@ -75,7 +75,7 @@ export class LiftDown implements Command {
       }
     }
 
-    await ensureDatabaseExists('unapply')
+    await ensureDatabaseExists('unapply', true)
 
     const result = await lift.down(options)
     lift.stop()

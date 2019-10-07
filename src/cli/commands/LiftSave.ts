@@ -65,7 +65,7 @@ export class LiftSave implements Command {
       return this.help()
     }
     const preview = args['--preview'] || false
-    await ensureDatabaseExists('create', args['--create-db'])
+    await ensureDatabaseExists('create', true, args['--create-db'])
 
     const lift = new Lift()
 

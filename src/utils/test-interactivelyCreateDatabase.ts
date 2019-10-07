@@ -1,7 +1,7 @@
 import { askToCreateDb, interactivelyCreateDatabase } from './ensureDatabaseExists'
 
 async function main() {
-  const result = await interactivelyCreateDatabase('', 'unapply')
+  const result = await interactivelyCreateDatabase('', 'unapply', true)
 
   console.log(result)
 }

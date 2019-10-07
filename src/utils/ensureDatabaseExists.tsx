@@ -14,7 +14,7 @@ import { DatabaseCredentials, uriToCredentials } from './uriToCredentials'
 
 export type LiftAction = 'create' | 'apply' | 'unapply' | 'dev'
 
-export async function ensureDatabaseExists(action: LiftAction, forceCreate: boolean = false) {
+export async function ensureDatabaseExists(action: LiftAction, killInk: boolean, forceCreate: boolean = false) {
   const datamodel = await getSchema()
   const config = await getConfig(datamodel)
   const activeDatasource =
@@ -34,25 +34,34 @@ export async function ensureDatabaseExists(action: LiftAction, forceCreate: bool
   if (forceCreate) {
     await createDatabase(activeDatasource.url.value)
   } else {
-    await interactivelyCreateDatabase(activeDatasource.url.value, action)
+    await interactivelyCreateDatabase(activeDatasource.url.value, action, killInk)
   }
 }
 
-export async function interactivelyCreateDatabase(connectionString: string, action: LiftAction): Promise<void> {
-  await askToCreateDb(connectionString, action)
+export async function interactivelyCreateDatabase(
+  connectionString: string,
+  action: LiftAction,
+  killInk: boolean,
+): Promise<void> {
+  await askToCreateDb(connectionString, action, killInk)
 }
 
-export async function askToCreateDb(connectionString: string, action: LiftAction): Promise<void> {
+export async function askToCreateDb(connectionString: string, action: LiftAction, killInk: boolean): Promise<void> {
   return new Promise(resolve => {
     let app: Instance | undefined
 
-    const onDone = () => {
+    const onDone = async () => {
       if (app) {
         // Seems like this is not necessary anymore
-        // app.unmount()
-        // app.waitUntilExit()
+        if (killInk) {
+          app.unmount()
+          await app.waitUntilExit()
+        }
       }
       // .write as console.log introduces an unwanted linebreak here
+      await new Promise(r => {
+        setTimeout(r, 50)
+      })
       process.stdout.write(ansiEscapes.eraseLines(11)) // height of the dialog
       resolve()
     }
