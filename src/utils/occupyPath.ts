@@ -1,6 +1,8 @@
-import net from 'net'
 import chalk from 'chalk'
+import net from 'net'
+import pMap from 'p-map'
 
+const ports = Array.from({ length: 20 }, (v, k) => k + 8430)
 const portList = [
   10405, // Prenzlauer Berg
   10119, // Mitte
@@ -16,6 +18,7 @@ const portList = [
   8427,
   8428,
   8429,
+  ...ports,
 ]
 
 const isPortFree = (port: number) =>
@@ -31,6 +34,7 @@ const isPortFree = (port: number) =>
 
 const fetchPath = (port: number): Promise<string | null> =>
   new Promise(resolve => {
+    let resolved = false
     const client = new net.Socket()
 
     client.connect(port)
@@ -43,14 +47,22 @@ const fetchPath = (port: number): Promise<string | null> =>
       try {
         const result = JSON.parse(data.toString())
         if (result && result.prismaProjectPath) {
+          resolved = true
           resolve(result.prismaProjectPath)
         }
       } catch (e) {
+        resolved = true
         resolve(null)
       } finally {
         client.destroy()
       }
     })
+
+    setTimeout(() => {
+      if (!resolved) {
+        resolve(null)
+      }
+    }, 3000)
   })
 
 function startServer(projectPath: string, port: number): () => void {
@@ -69,7 +81,9 @@ function startServer(projectPath: string, port: number): () => void {
 // checks if dev command is running in projectPath
 // and returns next free port if not the case
 export async function getNextFreePort(projectPath: string): Promise<number | undefined> {
-  const portOccupancy = await Promise.all(portList.map(async port => ({ port, free: await isPortFree(port) })))
+  const portOccupancy = await pMap(portList, async port => ({ port, free: await isPortFree(port) }), {
+    concurrency: 15,
+  })
   const usedPorts = portOccupancy.filter(o => !o.free)
   const nextFreePort = portOccupancy.find(p => p.free)
 

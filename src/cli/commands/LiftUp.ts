@@ -87,7 +87,7 @@ export class LiftUp implements Command {
       }
     }
 
-    await ensureDatabaseExists('apply', args['--create-db'])
+    await ensureDatabaseExists('apply', true, args['--create-db'])
 
     const result = await lift.up(options)
     lift.stop()

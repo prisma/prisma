@@ -38,7 +38,7 @@ export class LiftWatch implements Command {
 
     await occupyPath(process.cwd())
 
-    await ensureDatabaseExists('dev', args['--create-db'])
+    await ensureDatabaseExists('dev', false, args['--create-db'] || process.platform === 'win32')
 
     const lift = new Lift()
     return lift.watch({
