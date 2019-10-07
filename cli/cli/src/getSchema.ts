@@ -41,7 +41,7 @@ export async function getSchema(): Promise<string> {
   const schemaPath = await getSchemaPath()
 
   if (!schemaPath) {
-    throw new Error(`Could not find ${schemaPath}`)
+    throw new Error(`Could not find schema.prisma`)
   }
 
   return readFile(schemaPath, 'utf-8')
