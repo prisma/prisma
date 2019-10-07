@@ -31,6 +31,7 @@
     "@prisma/get-platform": "^0.1.2",
     "chalk": "^2.4.2",
     "execa": "^2.0.4",
+    "flat-map-polyfill": "^0.3.8",
     "p-map": "^3.0.0",
     "prisma-datamodel": "1.36.0-test.2"
   },

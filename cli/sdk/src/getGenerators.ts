@@ -11,6 +11,7 @@ import { download } from '@prisma/fetch-engine'
 import { unique } from './unique'
 import { pick } from './pick'
 import path from 'path'
+import 'flat-map-polyfill'
 
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -119,7 +120,7 @@ class Generator {
   public manifest: GeneratorManifest | null = null
   constructor(
     private executablePath: string,
-    private options: GeneratorOptions,
+    public options: GeneratorOptions,
   ) {
     this.generatorProcess = new GeneratorProcess(this.executablePath)
   }
