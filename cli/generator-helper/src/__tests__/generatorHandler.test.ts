@@ -29,6 +29,12 @@ const stubOptions: GeneratorOptions = {
 }
 
 describe('generatorHandler', () => {
+  test('not executable', async () => {
+    const generator = new GeneratorProcess(
+      path.join(__dirname, 'not-executable'),
+    )
+    expect(generator.init()).rejects.toThrow('lacks the right chmod')
+  })
   test('parsing error', async () => {
     const generator = new GeneratorProcess(
       path.join(__dirname, 'invalid-executable'),
@@ -68,8 +74,8 @@ describe('generatorHandler', () => {
       path.join(__dirname, 'failing-executable'),
     )
     await generator.init()
-    expect(generator.getManifest()).rejects.toMatchInlineSnapshot()
-    expect(generator.generate(stubOptions)).rejects.toMatchInlineSnapshot()
+    expect(generator.getManifest()).rejects.toThrow()
+    expect(generator.generate(stubOptions)).rejects.toThrow()
     generator.stop()
   })
 })
