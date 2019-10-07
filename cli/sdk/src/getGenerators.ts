@@ -124,6 +124,7 @@ class Generator {
     this.generatorProcess = new GeneratorProcess(this.executablePath)
   }
   async init() {
+    await this.generatorProcess.init()
     this.manifest = await this.generatorProcess.getManifest()
   }
   stop() {
