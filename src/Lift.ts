@@ -74,6 +74,7 @@ export class Lift {
       { preview, generatorDefinitions, clear }: WatchOptions = { clear: true, generatorDefinitions: {} },
       renderer?: DevComponentRenderer,
     ) => {
+      debug('Running watchUp')
       renderer && renderer.setState({ error: undefined })
       const datamodel = await this.getDatamodel()
       try {

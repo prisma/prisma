@@ -48,8 +48,9 @@ export async function askToCreateDb(connectionString: string, action: LiftAction
 
     const onDone = () => {
       if (app) {
-        app.unmount()
-        app.waitUntilExit()
+        // Seems like this is not necessary anymore
+        // app.unmount()
+        // app.waitUntilExit()
       }
       // .write as console.log introduces an unwanted linebreak here
       process.stdout.write(ansiEscapes.eraseLines(11)) // height of the dialog

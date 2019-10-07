@@ -1,7 +1,9 @@
 import { arg, Command, Dictionary, format, GeneratorDefinitionWithPackage, HelpError } from '@prisma/cli'
 import chalk from 'chalk'
+import Debug from 'debug'
 import { Lift } from '../../Lift'
 import { occupyPath } from '../../utils/occupyPath'
+const debug = Debug('tmp-prepare')
 
 /**
  * $ prisma migrate new
@@ -23,9 +25,12 @@ export class LiftTmpPrepare implements Command {
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
+    debug('running tmp-prepare')
     await occupyPath(process.cwd())
+    debug('occupied path')
 
     const lift = new Lift()
+    debug('initialized lift')
     await lift.watchUp({
       generatorDefinitions: this.generators,
     })
