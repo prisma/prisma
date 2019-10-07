@@ -20,7 +20,7 @@ Here is a simple example for a schema file that specifies a data source (SQLite)
 ```groovy
 // schema.prisma
 
-datasource mysql {
+datasource sqlite {
   url      = "file:data.db"
   provider = "sqlite"
 }
