@@ -26,6 +26,9 @@ import { exampleScript } from '../utils/templates/script'
 import { ErrorBox } from '@prisma/ink-components'
 import { photonDefaultConfig } from '../utils/defaults'
 import EmptyDirError from '../components/EmptyDirError'
+import Debug from 'debug'
+const debug = Debug('download-example')
+const debugEnabled = Debug.enabled('download-example')
 
 const readdir = promisify(fs.readdir)
 
@@ -57,9 +60,9 @@ const Step60DownloadExample: React.FC = () => {
     `Extracting content to ${chalk.bold(relativePath)}`,
   ]
 
-  const commandsSlice = introspectionResult ? 1 : selectedExample.setupCommands.length - 1
+  const commandsSlice = introspectionResult ? 1 : selectedExample.setupCommands.length
 
-  const steps = [...builtInSteps, ...selectedExample.setupCommands.slice(0, 1).map(c => c.description)]
+  const steps = [...builtInSteps, ...selectedExample.setupCommands.map(c => c.description)]
 
   useEffect(() => {
     async function prepare() {
@@ -139,7 +142,12 @@ const Step60DownloadExample: React.FC = () => {
       if (step) {
         try {
           const command = replacePrisma2Command(step.command)
-          await execa.shell(command, { cwd: state.outputDir, preferLocal: true })
+          debug(`Executing ${command}`)
+          await execa.shell(command, {
+            cwd: state.outputDir,
+            preferLocal: true,
+            stdio: !debugEnabled ? undefined : ['inherit', 'inherit', 'inherit'],
+          })
         } catch (e) {
           const error = e.stderr || e.stdout || e.message
           setError(commandError + '\n' + error)
@@ -150,7 +158,12 @@ const Step60DownloadExample: React.FC = () => {
         }
         setActiveIndex(activeIndex + 1)
       } else {
-        router.setRoute('success')
+        if (debugEnabled) {
+          debug('Done')
+          process.exit(0)
+        } else {
+          router.setRoute('success')
+        }
       }
     }
     if (examples && activeIndex > 1) {
@@ -158,7 +171,9 @@ const Step60DownloadExample: React.FC = () => {
     }
   }, [examples, activeIndex])
 
-  return (
+  return debugEnabled ? (
+    <Box>Debugging</Box>
+  ) : (
     <Box flexDirection="column">
       {showEmptyDirError ? (
         <EmptyDirError />
