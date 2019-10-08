@@ -36,30 +36,30 @@ The following environment variables can be provided:
 
 #### `prisma2 init`
 
-Sets up Prisma (i.e. Photon and/or Lift) via an interactive wizard.
+Sets up Prisma (i.e., Photon and/or Lift) via an interactive wizard. You can specify your database connection and/or create a new database to work with. For a list with currently supported database engines, see the [Lift documentation](./lift/use-only-lift.md).
 
 #### `prisma2 dev`
 
-Starts Prisma [development mode](./development-mode.md).
+Starts Prisma [development mode](./development-mode.md). This opens a web application to interact with your database and defined models. Note that `Prisma Studio` relies on your `prisma.schema` file (and hence the automatically generated Photon client) to provide a fully featured user-interface with CRUD (create / read / update / delete) functionality.
 
 #### `prisma2 generate`
 
-Invokes the generators specified in the Prisma schema file.
+Invokes all generators defined in the `prisma.schema` file. For example, this creates the Photon client to interact with the underlying database. Read more about Photon and its capabilities [here](./photon/use-only-photon.md).
 
 #### `prisma2 introspect`
 
-Introspects the database and generates a data model from it.
+Introspects the database and generates a data model from it. Basically, it analyzes your (already existing) database and automatically creates the `prisma.schema` file for you. This is useful, if you already have an existing application and want to start using Lift.
 
 ### Lift (migrations)
 
 #### `prisma2 lift save`
 
-Creates a new migration folder based on current data model changes. 
+Creates a new migration based on changes on your data model. In this context it automatically documents all changes (i.e., a `git diff`). All changes are only applied **locally** and are **not** applied to the database.
 
 #### `prisma2 lift up`
 
-Apply any migrations that have not been applied yet.
+Runs all migrations that have not been applied to the database yet. This command effectively "replays" all local changes to the database.
 
 #### `prisma2 lift down`
 
-Undo migrations.
+This command reverts a database migration. In turn, it creates a "compensation" migration that undoes previous changes.
