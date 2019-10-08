@@ -2,10 +2,12 @@ import { getDMMF, getConfig, dmmfToDml } from '../engineCommands'
 
 describe('getDMMF', () => {
   test('simple model', async () => {
-    const dmmf = await getDMMF(`model A {
+    const dmmf = await getDMMF({
+      datamodel: `model A {
     id Int @id
     name String
-  }`)
+  }`,
+    })
 
     expect(dmmf.datamodel).toMatchInlineSnapshot(`
       Object {
@@ -53,16 +55,19 @@ describe('getDMMF', () => {
 
 describe('getConfig', () => {
   test('empty config', async () => {
-    const config = await getConfig(`model A {
+    const config = await getConfig({
+      datamodel: `model A {
       id Int @id
       name String
-    }`)
+    }`,
+    })
 
     expect(config).toMatchSnapshot()
   })
 
   test('with generator and datasource', async () => {
-    const config = await getConfig(`
+    const config = await getConfig({
+      datamodel: `
     datasource db {
       url = "file:dev.db"
       provider = "sqlite"
@@ -76,7 +81,8 @@ describe('getConfig', () => {
     model A {
       id Int @id
       name String
-    }`)
+    }`,
+    })
 
     expect(config).toMatchSnapshot()
   })
@@ -99,8 +105,8 @@ describe('dmmfToDml', () => {
       id Int @id
       name String
     }`
-    const dmmf = await getDMMF(datamodel)
-    const config = await getConfig(datamodel)
+    const dmmf = await getDMMF({ datamodel })
+    const config = await getConfig({ datamodel })
 
     const printedDatamodel = await dmmfToDml({
       dmmf: dmmf.datamodel,

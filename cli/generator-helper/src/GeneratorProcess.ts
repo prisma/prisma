@@ -7,6 +7,16 @@ import chalk from 'chalk'
 
 let globalMessageId = 1
 
+export class GeneratorError extends Error {
+  public code: number
+  public data?: any
+  constructor(message: string, code: number, data?: any) {
+    super(message)
+    this.code = code
+    this.data = data
+  }
+}
+
 export class GeneratorProcess {
   child?: ChildProcessByStdio<any, any, any>
   listeners: { [key: string]: (result: any, err?: Error) => void } = {}
@@ -100,7 +110,12 @@ export class GeneratorProcess {
       }
       if (this.listeners[data.id]) {
         if (data.error) {
-          this.listeners[data.id](null, data.error)
+          const error = new GeneratorError(
+            data.error.message,
+            data.error.code,
+            data.error.data,
+          )
+          this.listeners[data.id](null, error)
         } else {
           this.listeners[data.id](data.result)
         }

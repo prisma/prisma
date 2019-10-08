@@ -184,6 +184,7 @@ export type GeneratorOptions = {
   datasources: DataSource[]
   datamodel: string
   binaryPaths?: BinaryPaths
+  version: string // version hash
 }
 
 export type EngineType =

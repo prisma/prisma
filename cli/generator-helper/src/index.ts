@@ -1,3 +1,3 @@
-export { GeneratorProcess } from './GeneratorProcess'
+export { GeneratorProcess, GeneratorError } from './GeneratorProcess'
 export { generatorHandler } from './generatorHandler'
 export * from './types'

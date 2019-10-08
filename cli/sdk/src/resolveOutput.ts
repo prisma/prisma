@@ -36,7 +36,7 @@ export type ResolveOutputOptions = {
 export async function resolveOutput(options: ResolveOutputOptions) {
   const defaultOutput = stripRelativePath(options.defaultOutput)
   if (defaultOutput.startsWith('node_modules')) {
-    const nodeModulesBase = await resolveNodeModulesBase(options.defaultOutput)
+    const nodeModulesBase = await resolveNodeModulesBase(options.baseDir)
     return path.resolve(nodeModulesBase, defaultOutput)
   }
 

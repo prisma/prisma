@@ -26,6 +26,7 @@ const stubOptions: GeneratorOptions = {
   },
   otherGenerators: [],
   schemaPath: '',
+  version: 'latest',
 }
 
 describe('generatorHandler', () => {
@@ -35,7 +36,6 @@ describe('generatorHandler', () => {
         path.join(__dirname, 'not-executable'),
       )
     }).toThrow('is not executable')
-    // expect(generator.init()).rejects.toThrow('is not executable')
   })
   test('parsing error', async () => {
     const generator = new GeneratorProcess(
