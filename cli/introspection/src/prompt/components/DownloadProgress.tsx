@@ -7,13 +7,24 @@ const AnySpinner = Spinner as any
 export interface Props {
   steps: string[]
   activeIndex: number
+  hideSpinner?: boolean
 }
 
-const DownloadProgress: React.FC<Props> = ({ steps, activeIndex }) => (
+const DownloadProgress: React.FC<Props> = ({ steps, activeIndex, hideSpinner }) => (
   <Box flexDirection="column">
     {steps.map((step, index) => (
       <Color dim={index > activeIndex} green={index < activeIndex} key={step}>
-        {index < activeIndex ? '✔' : index === activeIndex ? <AnySpinner type="dots" /> : `${index + 1}`}
+        {index < activeIndex ? (
+          '✔'
+        ) : index === activeIndex ? (
+          hideSpinner ? (
+            '...'
+          ) : (
+            <AnySpinner type="dots" />
+          )
+        ) : (
+          `${index + 1}`
+        )}
         {'  '}
         {step}
         {' ...'}
