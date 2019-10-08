@@ -18,7 +18,13 @@ While each tool can be used standalone (in both [_greenfield_ and _brownfield_ p
 
 ## Getting started
 
-The easiest way to get started with [Photon](https://github.com/prisma/photonjs) and/or [Lift](https://github.com/prisma/lift) is by installing the Prisma 2 CLI and running the interactive `init` command:
+The easiest way to get started with [Photon](https://github.com/prisma/photonjs) and/or [Lift](https://github.com/prisma/lift) is by using the `init` command of the `prisma2` CLI via [npx](https://github.com/npm/npx):
+
+```
+npx prisma2 init hello-prisma
+```
+
+Alternatively, you can install the `prisma2` CLI globally and run the `init` command then:
 
 ```
 npm install -g prisma2
