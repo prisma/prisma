@@ -1,6 +1,6 @@
 {
   "name": "@prisma/sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma2.git",
@@ -14,11 +14,12 @@
     "test": "jest"
   },
   "files": [
-    "dist"
+    "dist",
+    "scripts"
   ],
   "devDependencies": {
     "@types/jest": "^24.0.18",
-    "@types/node": "^12.7.9",
+    "@types/node": "^12.7.11",
     "jest": "^24.9.0",
     "ts-jest": "^24.1.0",
     "ts-node": "^8.4.1",
@@ -27,10 +28,10 @@
   "dependencies": {
     "@prisma/cli": "^0.1.10",
     "@prisma/fetch-engine": "^0.3.0",
-    "@prisma/generator-helper": "^0.0.2",
+    "@prisma/generator-helper": "^0.0.4",
     "@prisma/get-platform": "^0.1.2",
     "chalk": "^2.4.2",
-    "execa": "^2.0.4",
+    "execa": "^2.0.5",
     "flat-map-polyfill": "^0.3.8",
     "p-map": "^3.0.0",
     "prisma-datamodel": "1.36.0-test.2"
