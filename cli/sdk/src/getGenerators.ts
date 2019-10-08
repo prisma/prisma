@@ -16,6 +16,8 @@ import { unique } from './unique'
 import { pick } from './pick'
 import { Generator } from './Generator'
 import { resolveOutput } from './resolveOutput'
+import { getPlatform } from '@prisma/get-platform'
+import { printGeneratorConfig, fixPlatforms } from '@prisma/engine-core'
 
 export type GetGeneratorOptions = {
   schemaPath: string
@@ -44,8 +46,11 @@ export async function getGenerators({
   }
 
   const schema = fs.readFileSync(schemaPath, 'utf-8')
-  const dmmf = await getDMMF(schema)
-  const config = await getConfig(schema)
+  const dmmf = await getDMMF({ datamodel: schema, datamodelPath: schemaPath })
+  const config = await getConfig({
+    datamodel: schema,
+    datamodelPath: schemaPath,
+  })
 
   validateGenerators(config.generators)
 
@@ -100,6 +105,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           dmmf,
           otherGenerators: skipIndex(config.generators, index),
           schemaPath,
+          version: version || 'latest',
         }
 
         // we set the options here a bit later after instantiating the Generator,
@@ -119,9 +125,13 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     const binaries = generators.flatMap(g =>
       g.manifest ? g.manifest.requiresEngines || [] : [],
     )
-    const binaryTargets = unique(
+    let binaryTargets = unique(
       config.generators.flatMap(g => g.binaryTargets || []),
     )
+
+    if (binaryTargets.length === 0) {
+      binaryTargets = [await getPlatform()]
+    }
 
     const binariesConfig: BinaryDownloadConfiguration = binaries.reduce(
       (acc, curr) => {
@@ -141,7 +151,11 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
       version: version || 'latest',
     }
 
-    const binaryPaths = await download(downloadParams)
+    const binaryPathsWithEngineType = await download(downloadParams)
+    const binaryPaths = mapKeys(
+      binaryPathsWithEngineType,
+      binaryTypeToEngineType,
+    )
 
     for (const generator of generators) {
       if (generator.manifest && generator.manifest.requiresEngines) {
@@ -189,11 +203,19 @@ export const knownBinaryTargets = [
   'windows',
 ]
 
-function validateGenerators(generators: GeneratorConfig[]) {
+async function validateGenerators(generators: GeneratorConfig[]) {
+  const platform = await getPlatform()
+
   for (const generator of generators) {
     if (generator.config.platforms) {
       throw new Error(
         `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
+      )
+    }
+    if (generator.config.pinnedPlatform) {
+      throw new Error(
+        `The \`pinnedPlatform\` field on the generator definition is deprecated.
+Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary target.`,
       )
     }
     if (generator.binaryTargets) {
@@ -204,6 +226,49 @@ function validateGenerators(generators: GeneratorConfig[]) {
               binaryTarget,
             )} in generator ${chalk.bold(generator.name)}.
 Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
+          )
+        }
+      }
+
+      const binaryTargets =
+        generator.binaryTargets && generator.binaryTargets.length > 0
+          ? generator.binaryTargets
+          : ['native']
+
+      const resolvedBinaryTargets = binaryTargets.map(p =>
+        p === 'native' ? platform : p,
+      )
+
+      if (!resolvedBinaryTargets.includes(platform)) {
+        if (generator) {
+          console.log(`${chalk.yellow(
+            'Warning:',
+          )} Your current platform \`${chalk.bold(
+            platform,
+          )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
+            generator.binaryTargets,
+          )}.
+    To fix it, use this generator config in your ${chalk.bold('schema.prisma')}:
+    ${chalk.greenBright(
+      printGeneratorConfig({
+        ...generator,
+        binaryTargets: fixPlatforms(generator.binaryTargets as any[], platform),
+      }),
+    )}
+    ${chalk.gray(
+      `Note, that by providing \`native\`, Photon automatically resolves \`${platform}\`.
+    Read more about deploying Photon: ${chalk.underline(
+      'https://github.com/prisma/prisma2/blob/master/docs/core/generators/photonjs.md',
+    )}`,
+    )}\n`)
+        } else {
+          console.log(
+            `${chalk.yellow('Warning')} The binaryTargets ${JSON.stringify(
+              binaryTargets,
+            )} don't include your local platform ${platform}, which you can also point to with \`native\`.
+    In case you want to fix this, you can provide ${chalk.greenBright(
+      `binaryTargets: ${JSON.stringify(['native', ...(binaryTargets || [])])}`,
+    )} in the schema.prisma file.`,
           )
         }
       }
@@ -226,5 +291,31 @@ function engineTypeToBinaryType(
     return 'query-engine'
   }
 
-  throw new Error(`Could not convert binary type ${engineType}`)
+  throw new Error(`Could not convert engine type ${engineType}`)
+}
+
+function binaryTypeToEngineType(binaryType: string): string {
+  if (binaryType === 'introspection-engine') {
+    return 'introspectionEngine'
+  }
+
+  if (binaryType === 'migration-engine') {
+    return 'migrationEngine'
+  }
+
+  if (binaryType === 'query-engine') {
+    return 'queryEngine'
+  }
+
+  throw new Error(`Could not convert binary type ${binaryType}`)
+}
+
+function mapKeys<T extends object>(
+  obj: T,
+  mapper: (key: keyof T) => string,
+): any {
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    acc[mapper(key as keyof T)] = value
+    return acc
+  }, {})
 }

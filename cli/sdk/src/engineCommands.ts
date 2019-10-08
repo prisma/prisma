@@ -14,12 +14,19 @@ async function getPrismaPath(): Promise<string> {
   return path.join(dir, relative)
 }
 
-export async function getDMMF(
-  datamodel: string,
+export type GetDMMFOptions = {
+  datamodel: string
+  cwd?: string
+  prismaPath?: string
+  datamodelPath?: string
+}
+
+export async function getDMMF({
+  datamodel,
   cwd = process.cwd(),
-  prismaPath?: string,
-  datamodelPath?: string,
-): Promise<DMMF.Document> {
+  prismaPath,
+  datamodelPath,
+}: GetDMMFOptions): Promise<DMMF.Document> {
   prismaPath = prismaPath || (await getPrismaPath())
   try {
     const result = await execa(prismaPath, ['cli', '--dmmf'], {
@@ -41,12 +48,12 @@ export async function getDMMF(
   }
 }
 
-export async function getConfig(
-  datamodel: string,
+export async function getConfig({
+  datamodel,
   cwd = process.cwd(),
-  prismaPath?: string,
-  datamodelPath?: string,
-): Promise<ConfigMetaFormat> {
+  prismaPath,
+  datamodelPath,
+}: GetDMMFOptions): Promise<ConfigMetaFormat> {
   prismaPath = prismaPath || (await getPrismaPath())
   try {
     const result = await execa(
