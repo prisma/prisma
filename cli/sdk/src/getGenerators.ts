@@ -1,7 +1,11 @@
 import fs from 'fs'
 import pMap from 'p-map'
 import path from 'path'
-import { GeneratorOptions } from '@prisma/generator-helper'
+import {
+  GeneratorOptions,
+  GeneratorConfig,
+  EngineType,
+} from '@prisma/generator-helper'
 import 'flat-map-polyfill'
 
 import { getConfig, getDMMF } from './engineCommands'
@@ -9,6 +13,8 @@ import { download } from '@prisma/fetch-engine'
 import { unique } from './unique'
 import { pick } from './pick'
 import { Generator } from './Generator'
+import chalk from 'chalk'
+import { BinaryDownloadConfiguration } from '@prisma/fetch-engine/dist/download'
 
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -30,6 +36,8 @@ export async function getGenerators(
   const schema = fs.readFileSync(schemaPath, 'utf-8')
   const dmmf = await getDMMF(schema)
   const config = await getConfig(schema)
+
+  validateGenerators(config.generators)
 
   const runningGenerators: Generator[] = []
   try {
@@ -79,20 +87,25 @@ export async function getGenerators(
       config.generators.flatMap(g => g.binaryTargets || []),
     )
 
-    const binariesConfig = binaries.reduce((acc, curr) => {
-      acc[curr] = path.join(__dirname, '../')
-      return acc
-    }, {})
+    const binariesConfig: BinaryDownloadConfiguration = binaries.reduce(
+      (acc, curr) => {
+        acc[engineTypeToBinaryType(curr)] = path.join(__dirname, '../')
+        return acc
+      },
+      {},
+    )
 
-    const binaryPaths = await download({
+    const downloadParams = {
       binaries: binariesConfig,
       binaryTargets: binaryTargets as any[],
       showProgress:
         typeof printDownloadProgress === 'boolean'
           ? printDownloadProgress
           : true,
-      version,
-    })
+      version: version || 'latest',
+    }
+
+    const binaryPaths = await download(downloadParams)
 
     for (const generator of generators) {
       if (generator.manifest && generator.manifest.requiresEngines) {
@@ -113,9 +126,7 @@ export async function getGenerators(
 }
 
 /**
- * Makes sure that all generator have the binaries they deserve and returns a
- * `Generator` class per generator defined in the schema.prisma file.
- * In other words, this is basically a generator factory function.
+ * Shortcut for getGenerators, if there is only one generator defined. Useful for testing
  * @param schemaPath path to schema.prisma
  * @param generatorAliases Aliases like `photonjs` -> `node_modules/photonjs/gen.js`
  * @param version Version of the binary, commit hash of https://github.com/prisma/prisma-engine/commits/master
@@ -138,4 +149,54 @@ export async function getGenerator(
 
 export function skipIndex<T = any>(arr: T[], index: number): T[] {
   return [...arr.slice(0, index), ...arr.slice(index + 1)]
+}
+
+export const knownBinaryTargets = [
+  'native',
+  'darwin',
+  'linux-glibc-libssl1.0.1',
+  'linux-glibc-libssl1.0.2',
+  'linux-glibc-libssl1.1.0',
+  'linux-musl-libssl1.1.0',
+  'windows',
+]
+
+function validateGenerators(generators: GeneratorConfig[]) {
+  for (const generator of generators) {
+    if (generator.config.platforms) {
+      throw new Error(
+        `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
+      )
+    }
+    if (generator.binaryTargets) {
+      for (const binaryTarget of generator.binaryTargets) {
+        if (!knownBinaryTargets.includes(binaryTarget)) {
+          throw new Error(
+            `Unknown binary target ${chalk.red(
+              binaryTarget,
+            )} in generator ${chalk.bold(generator.name)}.
+Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
+          )
+        }
+      }
+    }
+  }
+}
+
+function engineTypeToBinaryType(
+  engineType: EngineType,
+): keyof BinaryDownloadConfiguration {
+  if (engineType === 'introspectionEngine') {
+    return 'introspection-engine' as any // TODO: Remove as any as soon as type added to @prisma/fetch-engine
+  }
+
+  if (engineType === 'migrationEngine') {
+    return 'migration-engine'
+  }
+
+  if (engineType === 'queryEngine') {
+    return 'query-engine'
+  }
+
+  throw new Error(`Could not convert binary type ${engineType}`)
 }
