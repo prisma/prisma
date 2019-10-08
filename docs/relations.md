@@ -246,6 +246,17 @@ const postsByUser: Post[] = await photon.posts
 
 Note that, if you query a relationship, you must specify the fields (`id`) you want to search for.
 
+Due to the fact, that photon acts as a Query Builder, you can "reuse" specific parts over and over again if you have to query the same instances. Consider the following example:
+
+```ts
+// note the missing await here!
+const currentUserBuilder = photon.users.findOne({ where: { id: currentUserId } });
+
+// now you have a query builder that you can reuse and append onto this!
+const postsOfUser = await currentUserBuilder.posts();
+const profileOfUser = await currentUserBuilder.profile();
+```
+
 ### Nested writes (transactions)
 
 Nested writes provide a powerful API to write relational data to your database. They further provide _transactional guarantees_ to create, update or delete data across multiple tables in a single Photon.js API call. The level of nesting of a nested writes can be arbitrarily deep.
