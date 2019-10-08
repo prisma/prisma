@@ -553,7 +553,7 @@ Note that the `--name` option that was passed to `prisma2 lift save` determines 
 
 Feel free to explore the contents of each file to get a better understanding of their use.
 
-### 5.2. Perform the database migration
+### 6.2. Perform the database migration
 
 Once the migration files are created, you can run the migration with the following command:
 
@@ -563,7 +563,7 @@ prisma2 lift up
 
 This maps your data model to the underlying database schema (i.e. it _migrates your database_). 
 
-### 5.3. [Optional] Create a custom mapping from database to Prisma schema
+### 6.3. [Optional] Create a custom mapping from database to Prisma schema
 
 When migrating your database with Lift, it will typically map model and field names to table and column names. If you want to change the naming in the underlying database, you can use the `@@map` block attribute to specify a different table name, and the `@map` field attribute to specify a different column name. Expand below for an example.
 
@@ -596,7 +596,7 @@ CREATE TABLE "hello-prisma2"."users" (
 
 </Details>
 
-## 6. Next steps
+## 7. Next steps
 
 Congratulations for working through your first Prisma tutorial 🚀 Here are a few pointers on what to do next:
 

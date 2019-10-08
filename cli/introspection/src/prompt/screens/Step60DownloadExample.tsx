@@ -26,6 +26,9 @@ import { exampleScript } from '../utils/templates/script'
 import { ErrorBox } from '@prisma/ink-components'
 import { photonDefaultConfig } from '../utils/defaults'
 import EmptyDirError from '../components/EmptyDirError'
+import Debug from 'debug'
+const debug = Debug('download-example')
+const debugEnabled = Debug.enabled('download-example')
 
 const readdir = promisify(fs.readdir)
 
@@ -57,9 +60,14 @@ const Step60DownloadExample: React.FC = () => {
     `Extracting content to ${chalk.bold(relativePath)}`,
   ]
 
-  const commandsSlice = introspectionResult ? 1 : selectedExample.setupCommands.length - 1
+  const commandsSlice = introspectionResult
+    ? 1
+    : selectedExample.setupCommands.length
 
-  const steps = [...builtInSteps, ...selectedExample.setupCommands.map(c => c.description)]
+  const steps = [
+    ...builtInSteps,
+    ...selectedExample.setupCommands.map(c => c.description),
+  ]
 
   useEffect(() => {
     async function prepare() {
@@ -90,7 +98,11 @@ const Step60DownloadExample: React.FC = () => {
 
         await makeDir(state.outputDir)
 
-        const tarFile = await downloadRepo('prisma', 'prisma-examples', examples!.meta.branch)
+        const tarFile = await downloadRepo(
+          'prisma',
+          'prisma-examples',
+          examples!.meta.branch,
+        )
         setActiveIndex(1)
         await extractExample(tarFile, selectedExample!.path, state.outputDir)
 
@@ -135,7 +147,9 @@ const Step60DownloadExample: React.FC = () => {
 
   useEffect(() => {
     async function runCommand() {
-      const step = selectedExample!.setupCommands.slice(0, commandsSlice)[activeIndex - 2]
+      const step = selectedExample!.setupCommands.slice(0, commandsSlice)[
+        activeIndex - 2
+      ]
       if (step) {
         try {
           const command = await replaceCommand(step.command)
@@ -146,6 +160,9 @@ const Step60DownloadExample: React.FC = () => {
               ...process.env,
               NODE_ENV: '',
             },
+            stdio: !debugEnabled
+              ? undefined
+              : ['inherit', 'inherit', 'inherit'],
           })
         } catch (e) {
           const error = e.stderr || e.stdout || e.message
@@ -157,7 +174,12 @@ const Step60DownloadExample: React.FC = () => {
         }
         setActiveIndex(activeIndex + 1)
       } else {
-        router.setRoute('success')
+        if (debugEnabled) {
+          debug('Done')
+          process.exit(0)
+        } else {
+          router.setRoute('success')
+        }
       }
     }
     if (examples && activeIndex > 1) {
@@ -165,7 +187,9 @@ const Step60DownloadExample: React.FC = () => {
     }
   }, [examples, activeIndex])
 
-  return (
+  return debugEnabled ? (
+    <Box>Debugging</Box>
+  ) : (
     <Box flexDirection="column">
       {showEmptyDirError ? (
         <EmptyDirError />
@@ -174,11 +198,16 @@ const Step60DownloadExample: React.FC = () => {
           <Box flexDirection="column" marginBottom={1}>
             {state.useDemoScript ? (
               <Color>
-                Preparing your demo script <Color bold>({beautifyLanguage(state.selectedLanguage!)})</Color> ...
+                Preparing your demo script{' '}
+                <Color bold>
+                  ({beautifyLanguage(state.selectedLanguage!)})
+                </Color>{' '}
+                ...
               </Color>
             ) : (
               <Color>
-                Preparing your starter kit: <Color bold>{selectedExample.name}</Color>
+                Preparing your starter kit:{' '}
+                <Color bold>{selectedExample.name}</Color>
               </Color>
             )}
           </Box>
@@ -198,9 +227,15 @@ const Step60DownloadExample: React.FC = () => {
 
 export default Step60DownloadExample
 
-export async function downloadRepo(organization: string, repo: string, branch: string): Promise<string> {
+export async function downloadRepo(
+  organization: string,
+  repo: string,
+  branch: string,
+): Promise<string> {
   const downloadUrl = `https://api.github.com/repos/${organization}/${repo}/tarball/${branch}` // TODO: use master instead of prisma2
-  const tmpFile = getTmpFile(`prisma-download-${organization}-${repo}-${branch}.tar.gz`)
+  const tmpFile = getTmpFile(
+    `prisma-download-${organization}-${repo}-${branch}.tar.gz`,
+  )
   const response = await fetch(downloadUrl, {
     agent: getProxyAgent(downloadUrl),
     headers: {
@@ -216,12 +251,18 @@ export async function downloadRepo(organization: string, repo: string, branch: s
   return tmpFile
 }
 
-export async function extractExample(tmpPath: string, examplePath: string, outputPath: string): Promise<void> {
+export async function extractExample(
+  tmpPath: string,
+  examplePath: string,
+  outputPath: string,
+): Promise<void> {
   await tar.extract({
     file: tmpPath,
     cwd: outputPath,
     filter: filePath => {
-      return !filePath.includes('/.github/') && RegExp(examplePath).test(filePath)
+      return (
+        !filePath.includes('/.github/') && RegExp(examplePath).test(filePath)
+      )
     },
     strip: examplePath.split('/').length - 1,
   })
@@ -244,7 +285,9 @@ function credentialsToDataSource(credentials: DatabaseCredentials): DataSource {
   }
 }
 
-function databaseTypeToConnectorType(databaseType: DatabaseType): ConnectorType {
+function databaseTypeToConnectorType(
+  databaseType: DatabaseType,
+): ConnectorType {
   switch (databaseType) {
     case DatabaseType.sqlite:
       return 'sqlite'
