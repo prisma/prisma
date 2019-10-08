@@ -2,7 +2,6 @@
 
 - [Getting started](./getting-started.md)
 - [Tutorial](./tutorial.md)
-- [Prisma ecosystem](./prisma-ecosystem.md)
 - [Prisma schema file](./prisma-schema-file.md)
 - [Data sources](./data-sources.md)
 - [Data modeling](./data-modeling.md)
