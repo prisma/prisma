@@ -1,5 +1,5 @@
 import path from 'path'
-import { getGenerators } from '../../getGenerators'
+import { getGenerators, getGenerator } from '../../getGenerators'
 import { pick } from '../../pick'
 
 describe('getGenerators', () => {
@@ -34,6 +34,68 @@ describe('getGenerators', () => {
 
     expect(
       pick(generators[0].options, [
+        'generator',
+        'datamodel',
+        'datasources',
+        'otherGenerators',
+      ]),
+    ).toMatchInlineSnapshot(`
+      Object {
+        "datamodel": "generator gen {
+        provider  = \\"predefined-generator\\"
+        platforms = [\\"darwin\\"]
+      }
+
+      model User {
+        id   Int    @id
+        name String
+      }",
+        "datasources": Array [],
+        "generator": Object {
+          "binaryTargets": Array [],
+          "config": Object {
+            "platforms": "(array)",
+          },
+          "name": "gen",
+          "output": null,
+          "provider": "predefined-generator",
+        },
+        "otherGenerators": Array [],
+      }
+    `)
+  })
+})
+
+describe('getGenerator', () => {
+  test('minimal', async () => {
+    const aliases = {
+      'predefined-generator': path.join(__dirname, 'generator'),
+    }
+
+    const generator = await getGenerator(
+      path.join(__dirname, 'schema.prisma'),
+      aliases,
+    )
+
+    expect(generator.manifest).toMatchInlineSnapshot(`
+      Object {
+        "defaultOutput": "default-output",
+        "denylist": Array [
+          "SomeForbiddenType",
+        ],
+        "prettyName": "This is a pretty pretty name",
+        "requiresEngines": Array [
+          "queryEngine",
+          "migrationEngine",
+        ],
+        "requiresGenerators": Array [
+          "photonjs",
+        ],
+      }
+    `)
+
+    expect(
+      pick(generator.options, [
         'generator',
         'datamodel',
         'datasources',
