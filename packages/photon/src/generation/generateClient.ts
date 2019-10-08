@@ -1,8 +1,5 @@
 import copy from '@apexearth/copy'
-import { GeneratorConfig } from '@prisma/cli'
-import { fixPlatforms, printGeneratorConfig } from '@prisma/engine-core'
-import { download } from '@prisma/fetch-engine'
-import { getPlatform, Platform } from '@prisma/get-platform'
+import { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import Debug from 'debug'
 import fs from 'fs'
@@ -17,10 +14,8 @@ import {
   ScriptTarget,
 } from 'typescript'
 import { promisify } from 'util'
-import { getConfig } from '../engineCommands'
-import { knownPlatforms } from '../generatorDefinition'
 import { Dictionary } from '../runtime/utils/common'
-import { getDMMF } from '../utils/getDMMF'
+import { getPhotonDMMF } from '../utils/getDMMF'
 import { resolveDatasources } from '../utils/resolveDatasources'
 import { extractSqliteSources } from './extractSqliteSources'
 import { TSClient } from './TSClient'
@@ -36,50 +31,48 @@ export interface GenerateClientOptions {
   datamodel: string
   datamodelPath?: string
   browser?: boolean
-  cwd?: string
+  schemaDir?: string
   transpile?: boolean
   runtimePath?: string
-  binaryPath?: string
   outputDir: string
-  platforms?: string[]
-  pinnedPlatform?: string
   version?: string
   generator?: GeneratorConfig
+  dmmf: DMMF.Document
+  datasources: DataSource[]
+  binaryPaths: BinaryPaths
 }
 
 export async function buildClient({
   datamodel,
-  datamodelPath,
-  cwd,
+  schemaDir = process.cwd(),
   transpile = false,
   runtimePath = './runtime',
   browser = false,
-  binaryPath,
+  binaryPaths,
   outputDir,
   generator,
-  platforms,
   version,
-  pinnedPlatform,
+  dmmf,
+  datasources,
 }: GenerateClientOptions): Promise<Dictionary<string>> {
   const fileMap = {}
 
-  const dmmf = await getDMMF({ datamodel, datamodelPath, cwd, prismaPath: binaryPath })
-  const config = await getConfig(datamodel)
+  const document = getPhotonDMMF(dmmf)
 
   const client = new TSClient({
-    document: dmmf,
+    document,
     datamodel,
     runtimePath,
     browser,
-    datasources: resolveDatasources(config.datasources, cwd || process.cwd(), outputDir),
-    sqliteDatasourceOverrides: extractSqliteSources(datamodel, cwd || process.cwd(), outputDir),
+    datasources: resolveDatasources(datasources, schemaDir, outputDir),
+    sqliteDatasourceOverrides: extractSqliteSources(datamodel, schemaDir, outputDir),
     generator,
-    platforms,
+    platforms: Object.keys(binaryPaths.queryEngine!),
     version,
-    pinnedPlatform,
-    cwd,
+    schemaDir,
     outputDir,
   })
+
   const generatedClient = String(client)
   const target = '@generated/photon/index.ts'
 
@@ -142,71 +135,31 @@ function normalizeFileMap(fileMap: Dictionary<string>) {
 export async function generateClient({
   datamodel,
   datamodelPath,
-  cwd,
+  schemaDir = datamodelPath ? path.dirname(datamodelPath) : process.cwd(),
   outputDir,
   transpile,
   runtimePath,
   browser,
-  binaryPath,
-  platforms,
-  pinnedPlatform,
-  version,
+  version = 'latest',
   generator,
+  dmmf,
+  datasources,
+  binaryPaths,
 }: GenerateClientOptions) {
-  const thePlatforms = platforms && platforms.length > 0 ? platforms : ['native']
-  const platform = await getPlatform()
-  const builtinPlatforms = thePlatforms
-    .filter(p => knownPlatforms.includes(p))
-    .map(p => (p === 'native' ? platform : p))
-  const customPlatforms = thePlatforms
-    .filter(p => !knownPlatforms.includes(p))
-    .map(p => (cwd ? path.resolve(cwd, p) : p))
-
-  if (customPlatforms.length === 0 && !builtinPlatforms.includes(platform)) {
-    if (generator) {
-      console.log(`${chalk.yellow('Warning:')} Your current platform \`${chalk.bold(
-        platform,
-      )}\` is not included in your generator's \`platforms\` configuration.
-To fix it, use this generator config in your ${chalk.bold('schema.prisma')}:
-${chalk.greenBright(
-  printGeneratorConfig({ ...generator, platforms: fixPlatforms(generator.platforms as Platform[], platform) }),
-)}
-${chalk.gray(
-  `Note, that by providing \`native\`, Photon automatically resolves \`${platform}\`.
-Read more about deploying Photon: ${chalk.underline(
-    'https://github.com/prisma/prisma2/blob/master/docs/core/generators/photonjs.md',
-  )}`,
-)}\n`)
-    } else {
-      console.log(
-        `${chalk.yellow('Warning')} The platforms ${JSON.stringify(
-          platforms,
-        )} don't include your local platform ${platform}, which you can also point to with \`native\`.
-In case you want to fix this, you can provide ${chalk.greenBright(
-          `platforms: ${JSON.stringify(['native', ...(platforms || [])])}`,
-        )} in the schema.prisma file.`,
-      )
-    }
-  }
-
-  const theVersion = version || 'latest'
-  if (cwd && cwd.endsWith('.yml')) {
-    cwd = path.dirname(cwd)
-  }
   runtimePath = runtimePath || './runtime'
   const files = await buildClient({
     datamodel,
-    cwd,
+    schemaDir,
     transpile,
     runtimePath,
     browser,
-    binaryPath,
     outputDir,
-    platforms: [...builtinPlatforms, ...customPlatforms],
-    pinnedPlatform,
     generator,
     datamodelPath,
     version,
+    dmmf,
+    datasources,
+    binaryPaths,
   })
   await makeDir(outputDir)
   await Promise.all(
@@ -221,7 +174,7 @@ In case you want to fix this, you can provide ${chalk.greenBright(
     }),
   )
   const inputDir = path.join(__dirname, '../../runtime')
-  const nativeOnly = thePlatforms.length === 1 && thePlatforms[0] === 'native'
+
   await copy({
     from: inputDir,
     to: path.join(outputDir, '/runtime'),
@@ -230,35 +183,19 @@ In case you want to fix this, you can provide ${chalk.greenBright(
     overwrite: true,
   })
 
-  if (!nativeOnly) {
-    // native is already downloaded during npm install
-    const platformsWithoutNative = thePlatforms.filter(p => p !== 'native')
-    if (platformsWithoutNative.length > 0) {
-      await download({
-        binaries: {
-          'query-engine': path.join(__dirname, '../../'),
-        },
-        platforms: platformsWithoutNative as any[],
-        showProgress: true,
-        version: theVersion,
-      })
-    }
+  if (!binaryPaths.queryEngine) {
+    throw new Error(`Photon.js needs \`queryEngine\` in the \`binaryPaths\` object.`)
   }
 
-  for (const resolvedPlatform of builtinPlatforms) {
-    const extension = platform === 'windows' ? '.exe' : ''
-    const binaryName = `query-engine-${resolvedPlatform}${extension}`
-    const source = path.join(__dirname, '../../', binaryName)
-    const target = path.join(outputDir, '/runtime', binaryName)
-    debug(`Copying ${source} to ${target}`)
-    await copyFile(source, target)
+  for (const filePath of Object.values(binaryPaths.queryEngine)) {
+    const fileName = path.basename(filePath)
+    const target = path.join(outputDir, 'runtime', fileName)
+    debug(`Copying ${filePath} to ${target}`)
+    await copyFile(filePath, target)
   }
 
   await writeFile(path.join(outputDir, '/runtime/index.d.ts'), backup)
 }
-
-// TODO: fix type
-// export { Engine } from './dist/Engine'
 
 const backup = `export { DMMF } from './dmmf-types'
 // export { DMMFClass } from './dmmf'

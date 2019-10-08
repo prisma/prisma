@@ -11,5 +11,15 @@
     "rootDir": "src",
     "declaration": true
   },
-  "exclude": ["archive", "dist", "build", "cli", "examples", "runtime", "browser-runtime", "generator"]
+  "exclude": [
+    "archive",
+    "dist",
+    "build",
+    "cli",
+    "examples",
+    "runtime",
+    "browser-runtime",
+    "generator",
+    "src/__tests__/generation/node_modules"
+  ]
 }
