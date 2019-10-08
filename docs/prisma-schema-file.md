@@ -197,7 +197,7 @@ Learn about the data modeling components in detail [here](./data-modeling.md).
 
 ## Using environment variables
 
-You can use environment variables to provide configuration options when a CLI command is invoked. This is helpful e.g. to:
+You can use environment variables to provide configuration options when a CLI command is invoked. This is helpful e.g., to:
 
 - Keep secrets out of the schema file
 - Improve portability of the schema file
@@ -213,6 +213,8 @@ datasource pg {
 }
 ```
 
+> Unfortunately, you cannot use string concat operations to build your url for now.
+ 
 ### Switching data sources based on environments
 
 > This feature [is not implemented yet](https://github.com/prisma/prisma2/issues/265#issuecomment-515955670). As a workaround you can provide environment variables for both `url` and `provider` options.
@@ -220,7 +222,7 @@ datasource pg {
 ```groovy
 datasource db {
   provider = env("PRISMA_PROVIDER")
-  url = env("PRISMA_URL")
+  url      = env("PRISMA_URL")
 }
 ```
 
@@ -242,7 +244,7 @@ datasource db {
 }
 
 model User {
-  id        Int    @id @db.int
+  id         Int    @id @db.int
   first_name String @unique
 }
 ```
