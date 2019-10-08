@@ -194,7 +194,10 @@ export type EngineType =
 export type GeneratorManifest = {
   prettyName?: string
   defaultOutput?: string
-  denylist?: string[]
+  denylists?: {
+    models?: string[]
+    fields?: string[]
+  }
   requiresGenerators?: string[]
   requiresEngines?: EngineType[]
 }

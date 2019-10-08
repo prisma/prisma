@@ -52,9 +52,11 @@ describe('generatorHandler', () => {
     expect(manifest).toMatchInlineSnapshot(`
       Object {
         "defaultOutput": "default-output",
-        "denylist": Array [
-          "SomeForbiddenType",
-        ],
+        "denylists": Object {
+          "models": Array [
+            "SomeForbiddenModel",
+          ],
+        },
         "prettyName": "This is a pretty pretty name",
         "requiresEngines": Array [
           "introspection-engine",
