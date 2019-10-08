@@ -315,10 +315,10 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/generator-helper@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-0.0.2.tgz#fc603795e479491a69eee65a084e6854684e3738"
-  integrity sha512-WKf5RA41HJE9JnQ2dEUgnLVUo2EXRUIFagC28DwRGiuxDznEBcuay3e7ujq1RnGJgdujp477RTaQCeSY4L/+KA==
+"@prisma/generator-helper@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-0.0.4.tgz#8210fcadaf4bb149bfd848f43d2b39e1cf1c92d6"
+  integrity sha512-I3HvcZdMKpjH9hJ7hIrNpTGa3xXn3LsHiGiLHorgmlaX5TiKiw/xgY4q6NRY9nVS3LTvEYkQJl8MEm+q2G4P4A==
   dependencies:
     chalk "^2.4.2"
     debug "^4.1.1"
@@ -414,10 +414,15 @@
   resolved "https://registry.yarnpkg.com/@types/methods/-/methods-1.1.0.tgz#fa0c8c81992257903f724651ec2500ec427dc32d"
   integrity sha512-ROomEm+QHlUmcQoDr3CBo3GRm0w4PVoFYjVT9YcfyBha/Per4deb1IpvHU7KTK7YBZCIvOYbSADoEyDnFgaWLA==
 
-"@types/node@*", "@types/node@^12.7.9":
+"@types/node@*":
   version "12.7.9"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.7.9.tgz#da0210f91096aa67138cf5afd04c4d629f8a406a"
   integrity sha512-P57oKTJ/vYivL2BCfxCC5tQjlS8qW31pbOL6qt99Yrjm95YdHgNZwjrTTjMBh+C2/y6PXIX4oz253+jUzxKKfQ==
+
+"@types/node@^12.7.11":
+  version "12.7.11"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.7.11.tgz#be879b52031cfb5d295b047f5462d8ef1a716446"
+  integrity sha512-Otxmr2rrZLKRYIybtdG/sgeO+tHY20GxeDjcGmUnmmlCWyEnv2a2x1ZXBo3BTec4OiTXMQCiazB8NMBf0iRlFw==
 
 "@types/retry@^0.12.0":
   version "0.12.0"
@@ -1236,10 +1241,10 @@ execa@^1.0.0:
     signal-exit "^3.0.0"
     strip-eof "^1.0.0"
 
-execa@^2.0.4:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/execa/-/execa-2.0.4.tgz#2f5cc589c81db316628627004ea4e37b93391d8e"
-  integrity sha512-VcQfhuGD51vQUQtKIq2fjGDLDbL6N1DTQVpYzxZ7LPIXw3HqTuIz6uxRmpV1qf8i31LHf2kjiaGI+GdHwRgbnQ==
+execa@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/execa/-/execa-2.0.5.tgz#5be3e2ea7e61bd038da5a0e11dc6ab2097357f2f"
+  integrity sha512-SwmwZZyJjflcqLSgllk4EQlMLst2p9muyzwNugKGFlpAz6rZ7M+s2nBR97GAq4Vzjwx2y9rcMcmqzojwN+xwNA==
   dependencies:
     cross-spawn "^6.0.5"
     get-stream "^5.0.0"
