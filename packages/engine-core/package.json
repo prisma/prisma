@@ -1,6 +1,6 @@
 {
   "name": "@prisma/engine-core",
-  "version": "0.0.96",
+  "version": "0.0.97",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@prisma/cli": "^0.1.6",
+    "@prisma/generator-helper": "^0.0.5",
     "@prisma/get-platform": "^0.1.2",
     "chalk": "^2.4.2",
     "cross-fetch": "^3.0.4",

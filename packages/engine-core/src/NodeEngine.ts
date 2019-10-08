@@ -2,11 +2,11 @@ import { Engine, PhotonError, PhotonQueryError } from './Engine'
 import got from 'got'
 import debugLib from 'debug'
 import { getPlatform, Platform, mayBeCompatible } from '@prisma/get-platform'
-import * as path from 'path'
-import * as net from 'net'
+import path from 'path'
+import net from 'net'
 import fs from 'fs'
 import chalk from 'chalk'
-import { GeneratorConfig } from '@prisma/cli'
+import { GeneratorConfig } from '@prisma/generator-helper'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixPlatforms, plusX } from './util'
 import { promisify } from 'util'
@@ -28,7 +28,6 @@ export interface EngineConfig {
   datamodel: string
   debug?: boolean
   prismaPath?: string
-  platform?: Platform | string
   fetcher?: (query: string) => Promise<{ data?: any; error?: any }>
   generator?: GeneratorConfig
   datasources?: DatasourceOverwrite[]
@@ -78,13 +77,13 @@ export class NodeEngine extends Engine {
   lastError?: Log
   startPromise?: Promise<any>
 
-  constructor({ cwd, datamodel, prismaPath, platform, generator, datasources, ...args }: EngineConfig) {
+  constructor({ cwd, datamodel, prismaPath, generator, datasources, ...args }: EngineConfig) {
     super()
     this.cwd = this.resolveCwd(cwd)
     this.debug = args.debug || false
     this.datamodel = datamodel
     this.prismaPath = prismaPath
-    this.platform = platform
+    this.platform = process.env.PRISMA_QUERY_ENGINE_BINARY
     this.generator = generator
     this.datasources = datasources
     this.logEmitter = new EventEmitter()
@@ -101,12 +100,14 @@ export class NodeEngine extends Engine {
       }
     })
 
-    if (platform) {
-      if (!knownPlatforms.includes(platform as Platform)) {
+    if (this.platform) {
+      if (!knownPlatforms.includes(this.platform as Platform) && !fs.existsSync(this.platform)) {
         throw new Error(
-          `Unknown ${chalk.red('pinnedPlatform')} ${chalk.redBright.bold(
-            platform,
-          )}. Possible platforms: ${chalk.greenBright(knownPlatforms.join(', '))}.
+          `Unknown ${chalk.red('PRISMA_QUERY_ENGINE_BINARY')} ${chalk.redBright.bold(
+            this.platform,
+          )}. Possible binaryTargets: ${chalk.greenBright(
+            knownPlatforms.join(', '),
+          )} or a path to the query engine binary.
 You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to take effect.`,
         )
       }
@@ -210,10 +211,7 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
       if (this.generator) {
         const fixedGenerator = {
           ...this.generator,
-          platforms: fixPlatforms(this.generator.platforms as Platform[], this.platform!),
-        }
-        if (this.generator.pinnedPlatform && this.incorrectlyPinnedPlatform) {
-          fixedGenerator.pinnedPlatform = platform
+          binaryTargets: fixPlatforms(this.generator.binaryTargets as Platform[], this.platform!),
         }
         info = `:\n${chalk.greenBright(printGeneratorConfig(fixedGenerator))}`
       }

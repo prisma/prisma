@@ -336,6 +336,14 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
+"@prisma/generator-helper@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-0.0.5.tgz#82ea21789cddce10a918be0079308532236c9d8a"
+  integrity sha512-2vhhqprWgB/xBDKqdU0A9lAONnyHZ8uJLJPwa94mqsD9qSyygSToAo+z5uBjCtPNO/Vlvc0hk1uoVKDfBnNN9g==
+  dependencies:
+    chalk "^2.4.2"
+    debug "^4.1.1"
+
 "@prisma/get-platform@^0.1.1", "@prisma/get-platform@^0.1.2":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@prisma/get-platform/-/get-platform-0.1.2.tgz#65061e38ae312f65a9522532a02b0b8706dc164e"

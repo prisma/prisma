@@ -1,5 +1,5 @@
 import indent from 'indent-string'
-import { GeneratorConfig } from '@prisma/cli'
+import { GeneratorConfig } from '@prisma/generator-helper'
 
 export function printGeneratorConfig(config: GeneratorConfig): string {
   return String(new GeneratorConfigClass(config))
@@ -13,8 +13,7 @@ export class GeneratorConfigClass {
     const obj = JSON.parse(
       JSON.stringify({
         provider: config.provider,
-        platforms: config.platforms || undefined,
-        pinnedPlatform: config.pinnedPlatform || undefined,
+        binaryTargets: config.binaryTargets || undefined,
       }),
     )
 

@@ -1,7 +1,7 @@
 export { getRawDMMF } from './engineCommands'
 export { generateClient, buildClient } from './generation/generateClient'
 export { getDMMF } from './utils/getDMMF'
-export { generatorDefinition } from './generatorDefinition'
+// export { generatorDefinition } from './generatorDefinition'
 export { isdlToDatamodel2, DataSource } from './isdlToDatamodel2'
 export { getConfig, dmmfToDml } from './engineCommands'
 export { getCompiledGenerators } from './getCompiledGenerators'

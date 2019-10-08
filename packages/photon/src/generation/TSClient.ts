@@ -1,4 +1,4 @@
-import { GeneratorConfig } from '@prisma/cli'
+import { GeneratorConfig } from '@prisma/generator-helper'
 import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfilled in TypeScript
 import indent from 'indent-string'
 import { DMMFClass } from '../runtime/dmmf'
@@ -138,9 +138,8 @@ interface TSClientOptions {
   datasources: InternalDatasource[]
   generator?: GeneratorConfig
   platforms?: string[]
-  pinnedPlatform?: string
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
-  cwd?: string
+  schemaDir?: string
   outputDir: string
 }
 
@@ -156,7 +155,7 @@ export class TSClient {
   protected readonly platforms?: string[]
   protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[]
   protected readonly version?: string
-  protected readonly cwd?: string
+  protected readonly schemaDir?: string
   constructor({
     document,
     datamodel,
@@ -166,7 +165,7 @@ export class TSClient {
     generator,
     platforms,
     sqliteDatasourceOverrides,
-    cwd,
+    schemaDir,
     outputDir,
   }: TSClientOptions) {
     this.document = document
@@ -180,7 +179,7 @@ export class TSClient {
     // We make a deep clone here as otherwise we would serialize circular references
     // which we're building up in the DMMFClass
     this.dmmf = new DMMFClass(JSON.parse(JSON.stringify(document)))
-    this.cwd = cwd
+    this.schemaDir = schemaDir
     this.outputDir = outputDir
   }
   public toString() {
@@ -205,7 +204,7 @@ ${new PhotonClientClass(
   this.browser,
   this.generator,
   this.sqliteDatasourceOverrides,
-  this.cwd,
+  this.schemaDir,
 )}
 
 ${/*new Query(this.dmmf, 'query')*/ ''}
@@ -334,9 +333,6 @@ export class Photon {
       prismaPath: engineConfig.binaryPath || undefined,
       datasources,
       generator: ${this.generator ? JSON.stringify(this.generator) : 'undefined'},
-      platform: ${
-        this.generator && this.generator.pinnedPlatform ? JSON.stringify(this.generator.pinnedPlatform) : 'undefined'
-      } as any
     })
 
     this.dmmf = new DMMFClass(dmmf)

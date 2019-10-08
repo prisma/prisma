@@ -6,14 +6,13 @@
   "license": "Apache-2.0",
   "scripts": {
     "tsc": "tsc -d",
-    "build": "yarn lint && yarn tsc && yarn ncc:runtime",
+    "build": "yarn tsc && yarn ncc:runtime",
     "test": "jest",
     "precommit": "lint-staged && jest",
     "ncc:runtime": "node scripts/build-runtime.js",
     "install": "node scripts/download.js || echo \"\"",
     "prepublishOnly": "yarn build",
     "build:browser": "webpack -c scripts/webpack.browser.config.js --verbose",
-    "lint": "tslint -c tslint.json 'src/**/*.ts' --fix",
     "update-deps": "yarn upgrade --latest --scope @prisma"
   },
   "lint-staged": {
@@ -42,7 +41,7 @@
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
     "@types/js-levenshtein": "^1.1.0",
-    "@types/node": "^12.0.4",
+    "@types/node": "^12.7.11",
     "@types/node-fetch": "^2.3.4",
     "@zeit/ncc": "^0.20.4",
     "benchmark": "^2.1.4",
