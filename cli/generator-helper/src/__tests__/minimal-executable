@@ -15,7 +15,7 @@ generatorHandler({
     console.log('Logging in onManifest should be fine')
     return {
       defaultOutput: 'default-output',
-      denylist: ['SomeForbiddenType'],
+      denylists: { models: ['SomeForbiddenModel'] },
       prettyName: 'This is a pretty pretty name',
       requiresEngines: ['introspection-engine', 'query-engine'],
       requiresGenerators: ['photonjs'],
