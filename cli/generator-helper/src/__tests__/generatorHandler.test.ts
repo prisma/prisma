@@ -30,10 +30,12 @@ const stubOptions: GeneratorOptions = {
 
 describe('generatorHandler', () => {
   test('not executable', async () => {
-    const generator = new GeneratorProcess(
-      path.join(__dirname, 'not-executable'),
-    )
-    expect(generator.init()).rejects.toThrow('lacks the right chmod')
+    expect(() => {
+      const generator = new GeneratorProcess(
+        path.join(__dirname, 'not-executable'),
+      )
+    }).toThrow('is not executable')
+    // expect(generator.init()).rejects.toThrow('is not executable')
   })
   test('parsing error', async () => {
     const generator = new GeneratorProcess(

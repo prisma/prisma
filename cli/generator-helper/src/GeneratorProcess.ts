@@ -2,6 +2,7 @@ import { ChildProcessByStdio, spawn } from 'child_process'
 import byline from './byline'
 import { GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
 import fs from 'fs'
+import path from 'path'
 import chalk from 'chalk'
 
 let globalMessageId = 1
@@ -16,6 +17,16 @@ export class GeneratorProcess {
   constructor(private executablePath: string) {
     if (!fs.existsSync(executablePath)) {
       throw new Error(`Can't find executable ${executablePath}`)
+    }
+
+    if (!hasChmodX(executablePath)) {
+      throw new Error(
+        `${chalk.bold(
+          executablePath,
+        )} is not executable. Please run ${chalk.greenBright(
+          `chmod +x ${path.relative(process.cwd(), executablePath)}`,
+        )}`,
+      )
     }
   }
   async init() {
@@ -158,4 +169,11 @@ export class GeneratorProcess {
       })
     })
   }
+}
+
+function hasChmodX(file: string): boolean {
+  const s = fs.statSync(file)
+  // tslint:disable-next-line
+  const newMode = s.mode | 64 | 8 | 1
+  return s.mode === newMode
 }
