@@ -8,10 +8,10 @@ describe('getGenerators', () => {
       'predefined-generator': path.join(__dirname, 'generator'),
     }
 
-    const generators = await getGenerators(
-      path.join(__dirname, 'valid-minimal-schema.prisma'),
+    const generators = await getGenerators({
+      schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),
       aliases,
-    )
+    })
 
     expect(generators.map(g => g.manifest)).toMatchInlineSnapshot(`
       Array [
@@ -33,7 +33,7 @@ describe('getGenerators', () => {
     `)
 
     expect(
-      pick(generators[0].options, [
+      pick(generators[0].options!, [
         'generator',
         'datamodel',
         'datasources',
@@ -71,10 +71,10 @@ describe('getGenerators', () => {
     }
 
     expect(
-      getGenerators(
-        path.join(__dirname, 'invalid-platforms-schema.prisma'),
+      getGenerators({
+        schemaPath: path.join(__dirname, 'invalid-platforms-schema.prisma'),
         aliases,
-      ),
+      }),
     ).rejects.toThrow('deprecated')
   })
 
@@ -84,10 +84,10 @@ describe('getGenerators', () => {
     }
 
     expect(
-      getGenerators(
-        path.join(__dirname, 'invalid-binary-target-schema.prisma'),
+      getGenerators({
+        schemaPath: path.join(__dirname, 'invalid-binary-target-schema.prisma'),
         aliases,
-      ),
+      }),
     ).rejects.toThrow('Unknown')
   })
 })

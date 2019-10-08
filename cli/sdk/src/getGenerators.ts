@@ -7,28 +7,38 @@ import {
   EngineType,
 } from '@prisma/generator-helper'
 import 'flat-map-polyfill'
+import chalk from 'chalk'
+import { BinaryDownloadConfiguration } from '@prisma/fetch-engine/dist/download'
 
 import { getConfig, getDMMF } from './engineCommands'
 import { download } from '@prisma/fetch-engine'
 import { unique } from './unique'
 import { pick } from './pick'
 import { Generator } from './Generator'
-import chalk from 'chalk'
-import { BinaryDownloadConfiguration } from '@prisma/fetch-engine/dist/download'
+import { resolveOutput } from './resolveOutput'
+
+export type GetGeneratorOptions = {
+  schemaPath: string
+  aliases?: { [alias: string]: string }
+  version?: string
+  printDownloadProgress?: boolean
+  baseDir?: string // useful in tests to resolve the base dir from which `output` is resolved
+}
 
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
  * `Generator` class per generator defined in the schema.prisma file.
  * In other words, this is basically a generator factory function.
  * @param schemaPath Path to schema.prisma
- * @param generatorAliases Aliases like `photonjs` -> `node_modules/photonjs/gen.js`
+ * @param aliases Aliases like `photonjs` -> `node_modules/photonjs/gen.js`
  */
-export async function getGenerators(
-  schemaPath: string,
-  generatorAliases?: { [alias: string]: string },
-  version?: string,
-  printDownloadProgress?: boolean,
-): Promise<Generator[]> {
+export async function getGenerators({
+  schemaPath,
+  aliases,
+  version,
+  printDownloadProgress,
+  baseDir = path.dirname(schemaPath),
+}: GetGeneratorOptions): Promise<Generator[]> {
   if (!fs.existsSync(schemaPath)) {
     throw new Error(`${schemaPath} does not exist`)
   }
@@ -46,15 +56,41 @@ export async function getGenerators(
       config.generators,
       async (generator, index) => {
         let generatorPath = generator.provider
-        if (generatorAliases && generatorAliases[generator.provider]) {
-          generatorPath = generatorAliases[generator.provider]
+        if (aliases && aliases[generator.provider]) {
+          generatorPath = aliases[generator.provider]
           if (!fs.existsSync(generatorPath)) {
             throw new Error(
               `Could not find generator executable ${
-                generatorAliases[generator.provider]
+                aliases[generator.provider]
               } for generator ${generator.provider}`,
             )
           }
+        }
+
+        const generatorInstance = new Generator(generatorPath)
+
+        await generatorInstance.init()
+
+        // resolve output path
+        if (generator.output) {
+          generator.output = path.resolve(baseDir, generator.output)
+        } else {
+          if (
+            !generatorInstance.manifest ||
+            !generatorInstance.manifest.defaultOutput
+          ) {
+            throw new Error(
+              `Can't resolve output dir for generator ${chalk.bold(
+                generator.name,
+              )} with provider ${chalk.bold(generator.provider)}.
+The generator needs to either define the \`defaultOutput\` path in the manifest or you need to define \`output\` in the schema.prisma file.`,
+            )
+          }
+
+          generator.output = await resolveOutput({
+            defaultOutput: generatorInstance.manifest.defaultOutput,
+            baseDir,
+          })
         }
 
         const options: GeneratorOptions = {
@@ -66,9 +102,9 @@ export async function getGenerators(
           schemaPath,
         }
 
-        const generatorInstance = new Generator(generatorPath, options)
-
-        await generatorInstance.init()
+        // we set the options here a bit later after instantiating the Generator,
+        // as we need the generator manifest to resolve the `output` dir
+        generatorInstance.setOptions(options)
 
         runningGenerators.push(generatorInstance)
 
@@ -126,24 +162,16 @@ export async function getGenerators(
 }
 
 /**
- * Shortcut for getGenerators, if there is only one generator defined. Useful for testing
+ * Shortcut for getGenerators, if there is only one generator defined. Useful for testing.
  * @param schemaPath path to schema.prisma
- * @param generatorAliases Aliases like `photonjs` -> `node_modules/photonjs/gen.js`
+ * @param aliases Aliases like `photonjs` -> `node_modules/photonjs/gen.js`
  * @param version Version of the binary, commit hash of https://github.com/prisma/prisma-engine/commits/master
  * @param printDownloadProgress `boolean` to print download progress or not
  */
 export async function getGenerator(
-  schemaPath: string,
-  generatorAliases?: { [alias: string]: string },
-  version?: string,
-  printDownloadProgress?: boolean,
+  options: GetGeneratorOptions,
 ): Promise<Generator> {
-  const generators = await getGenerators(
-    schemaPath,
-    generatorAliases,
-    version,
-    printDownloadProgress,
-  )
+  const generators = await getGenerators(options)
   return generators[0]
 }
 
