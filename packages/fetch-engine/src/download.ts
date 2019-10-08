@@ -29,7 +29,7 @@ export interface BinaryDownloadConfiguration {
 
 export interface DownloadOptions {
   binaries: BinaryDownloadConfiguration
-  platforms?: Platform[]
+  binaryTargets?: Platform[]
   showProgress?: boolean
   progressCb?: (progress: number) => any
   version?: string
@@ -44,19 +44,25 @@ interface DownloadBinaryOptions {
   progressCb?: (progress: number) => any
 }
 
-export async function download(options: DownloadOptions) {
+export type BinaryPaths = {
+  migrationEngine?: { [binaryTarget: string]: string } // key: target, value: path
+  queryEngine?: { [binaryTarget: string]: string }
+  introspectionEngine?: { [binaryTarget: string]: string }
+}
+
+export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const mergedOptions = {
-    platforms: [await getPlatform()],
+    binaryTargets: [await getPlatform()],
     version: 'latest',
     ...options,
   }
-  const plural = mergedOptions.platforms.length > 1 ? 'ies' : 'y'
+  const plural = mergedOptions.binaryTargets.length > 1 ? 'ies' : 'y'
   const bar = options.showProgress
-    ? getBar(`Downloading ${mergedOptions.platforms.map(p => chalk.bold(p)).join(' and ')} binar${plural}`)
+    ? getBar(`Downloading ${mergedOptions.binaryTargets.map(p => chalk.bold(p)).join(' and ')} binar${plural}`)
     : undefined
   const progressMap: { [key: string]: number } = {}
   // Object.values is faster than Object.keys
-  const numDownloads = Object.values(mergedOptions.binaries).length * Object.values(mergedOptions.platforms).length
+  const numDownloads = Object.values(mergedOptions.binaries).length * Object.values(mergedOptions.binaryTargets).length
   const collectiveCallback =
     options.progressCb || options.showProgress
       ? (sourcePath: string) => progress => {
@@ -75,12 +81,20 @@ export async function download(options: DownloadOptions) {
         }
       : undefined
 
+  const binaryPaths: BinaryPaths = Object.keys(options.binaries).reduce((acc, curr) => {
+    acc[curr] = {}
+    return acc
+  }, {})
+
   await Promise.all(
     Object.entries(options.binaries).map(([binaryName, targetDir]) => {
       return Promise.all(
-        mergedOptions.platforms.map(async platform => {
+        mergedOptions.binaryTargets.map(async platform => {
           const sourcePath = getDownloadUrl(channel, mergedOptions.version, platform, binaryName as BinaryKind)
           const targetPath = path.resolve(targetDir, getBinaryName(binaryName, platform))
+
+          binaryPaths[binaryName][platform] = targetPath
+
           await downloadBinary({
             sourcePath,
             binaryName: binaryName as BinaryKind,
@@ -98,6 +112,8 @@ export async function download(options: DownloadOptions) {
     bar.update(1)
     bar.terminate()
   }
+
+  return binaryPaths
 }
 
 function getBinaryName(binaryName, platform) {

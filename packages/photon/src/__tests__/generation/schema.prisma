@@ -1,0 +1,8 @@
+generator photon {
+  provider = "photonjs"
+}
+
+model User {
+  id   Int    @id
+  name String
+}

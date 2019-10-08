@@ -315,7 +315,7 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@prisma/cli@0.1.10":
+"@prisma/cli@0.1.10", "@prisma/cli@^0.1.10":
   version "0.1.10"
   resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.1.10.tgz#0dcc76a8d670333e2ed0e0552c280149b646ab6d"
   integrity sha512-12BRLNEZcQ5OrNERuDhVUS98pCSx5JZ/fQLO0wcrmo9uZxoNug9eY1Em7HuHTDJhqOBHnrQ0gpJOFcGJ6FUrGQ==
@@ -347,10 +347,10 @@
     got "^9.6.0"
     through2 "^3.0.1"
 
-"@prisma/fetch-engine@^0.1.14":
-  version "0.1.14"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.1.14.tgz#7d3167921437dc33da525f13308ef85af6e3d9c8"
-  integrity sha512-BzgOkbIxzQju4N3z9V1o85YY6u8cd1SzKiTU/d0p+RjZKdWtJ8JZm7bBrPSzn+Ey3AH0bWrdDmyKGiK2xkLqjA==
+"@prisma/fetch-engine@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.3.0.tgz#cb75a465c0eb87e4b8a33f24384427b54dd7a860"
+  integrity sha512-ryo/pQ3ugHxYDplstEfbq0BgaxccKYGRGaB/wUQYwbJjFDYC4kY4TS1U7U7mQTsUsD1uC/hLht7KzS6jJlpsEg==
   dependencies:
     "@prisma/get-platform" "^0.1.1"
     chalk "^2.4.2"
@@ -367,6 +367,14 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
+"@prisma/generator-helper@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-0.0.4.tgz#8210fcadaf4bb149bfd848f43d2b39e1cf1c92d6"
+  integrity sha512-I3HvcZdMKpjH9hJ7hIrNpTGa3xXn3LsHiGiLHorgmlaX5TiKiw/xgY4q6NRY9nVS3LTvEYkQJl8MEm+q2G4P4A==
+  dependencies:
+    chalk "^2.4.2"
+    debug "^4.1.1"
+
 "@prisma/get-platform@^0.1.1":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@prisma/get-platform/-/get-platform-0.1.1.tgz#093472840bbd14abc6bfb2b2224383119b5f0f5d"
@@ -380,6 +388,21 @@
   integrity sha512-BZhXkLNdpU33t21CQ7louRxKHrmQ8XEdV9RyP+aocvWdrdiTiRYHaR2t8k8hjgeUSIC++6v4tozsyfb+CEMKlA==
   dependencies:
     debug "^4.1.1"
+
+"@prisma/sdk@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@prisma/sdk/-/sdk-0.0.3.tgz#3ddb0947891de46f5caa970fe309549953eaefa2"
+  integrity sha512-Bb+QqMnjTCVph1xgFBv9jL5OO3qlRkqQepeXuD7JRHWbsFAgvQOx1Gkb1cDezk3+u1ao81D6ceXTPCP9RsLsAQ==
+  dependencies:
+    "@prisma/cli" "^0.1.10"
+    "@prisma/fetch-engine" "^0.3.0"
+    "@prisma/generator-helper" "^0.0.4"
+    "@prisma/get-platform" "^0.1.2"
+    chalk "^2.4.2"
+    execa "^2.0.5"
+    flat-map-polyfill "^0.3.8"
+    p-map "^3.0.0"
+    prisma-datamodel "1.36.0-test.2"
 
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
@@ -2276,6 +2299,21 @@ execa@^2.0.3, execa@^2.0.4:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/execa/-/execa-2.0.4.tgz#2f5cc589c81db316628627004ea4e37b93391d8e"
   integrity sha512-VcQfhuGD51vQUQtKIq2fjGDLDbL6N1DTQVpYzxZ7LPIXw3HqTuIz6uxRmpV1qf8i31LHf2kjiaGI+GdHwRgbnQ==
+  dependencies:
+    cross-spawn "^6.0.5"
+    get-stream "^5.0.0"
+    is-stream "^2.0.0"
+    merge-stream "^2.0.0"
+    npm-run-path "^3.0.0"
+    onetime "^5.1.0"
+    p-finally "^2.0.0"
+    signal-exit "^3.0.2"
+    strip-final-newline "^2.0.0"
+
+execa@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/execa/-/execa-2.0.5.tgz#5be3e2ea7e61bd038da5a0e11dc6ab2097357f2f"
+  integrity sha512-SwmwZZyJjflcqLSgllk4EQlMLst2p9muyzwNugKGFlpAz6rZ7M+s2nBR97GAq4Vzjwx2y9rcMcmqzojwN+xwNA==
   dependencies:
     cross-spawn "^6.0.5"
     get-stream "^5.0.0"
@@ -5438,7 +5476,7 @@ prettysize@^2.0.0:
   resolved "https://registry.yarnpkg.com/prettysize/-/prettysize-2.0.0.tgz#902c02480d865d9cc0813011c9feb4fa02ce6996"
   integrity sha512-VVtxR7sOh0VsG8o06Ttq5TrI1aiZKmC+ClSn4eBPaNf4SHr5lzbYW+kYGX3HocBL/MfpVrRfFZ9V3vCbLaiplg==
 
-prisma-datamodel@^1.36.0-test.2:
+prisma-datamodel@1.36.0-test.2, prisma-datamodel@^1.36.0-test.2:
   version "1.36.0-test.2"
   resolved "https://registry.yarnpkg.com/prisma-datamodel/-/prisma-datamodel-1.36.0-test.2.tgz#06ba90cf7283cea22c4f419085e00e965d277c9e"
   integrity sha512-CxTIb9cuRKr1lHIuduFVGYaZpciY0rsgz28eauXs5qAWX11bkPz345wnF2TKZ6LarJ7J5DjVF5fP2DEDseZwvA==
