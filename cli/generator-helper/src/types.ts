@@ -21,6 +21,7 @@ export namespace DMMF {
     isEmbedded: boolean
     dbName: string | null
     fields: Field[]
+    idFields: string[]
   }
 
   export type FieldKind = 'scalar' | 'object' | 'enum'

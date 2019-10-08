@@ -3,57 +3,6 @@ import { DMMF, DataSource } from '@prisma/generator-helper'
 import { Dictionary } from './isdlToDatamodel2'
 import { keyBy } from './keyBy'
 
-export namespace DMMF2 {
-  export interface Datamodel {
-    models: Model[]
-    enums: Enum[]
-  }
-
-  export interface Enum {
-    name: string
-    values: string[]
-    dbName?: string | null
-  }
-
-  export interface DataSource {
-    type: string
-    url: string
-    name: string
-  }
-
-  export interface Model {
-    name: string
-    isEmbedded: boolean
-    dbName: string | null
-    fields: Field[]
-    [key: string]: any // safe net for additional new props
-  }
-
-  export type FieldKind = 'scalar' | 'object' | 'enum'
-
-  export interface Field {
-    kind: FieldKind
-    name: string
-    isRequired: boolean
-    isList: boolean
-    isUnique: boolean
-    isId: boolean
-    type: string
-    dbName: string | null
-    isGenerated: boolean
-    relationToFields?: any[]
-    relationOnDelete?: string
-    relationName?: string
-    isUpdatedAt: boolean
-    default?: {
-      name: string
-      returnType: string
-      args: any[]
-    }
-    [key: string]: any // safe net for additional new props
-  }
-}
-
 function getKind(
   field: IGQLField,
   enumMap: Dictionary<DMMF.Enum>,
@@ -126,6 +75,8 @@ export function isdlToDmmfDatamodel(
         isEmbedded: type.isEmbedded,
         dbName: type.databaseName,
         documentation: convertComments(type.comments),
+        idFields: [], // TODO: Get this from introspection.
+        // Probably won't happen as we move to Rust
         fields: type.fields
           .filter(f => f.type !== 'Json' && getKind(f, enumMap))
           .map(field => {

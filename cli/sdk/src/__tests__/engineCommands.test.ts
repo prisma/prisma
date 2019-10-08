@@ -7,6 +7,46 @@ describe('getDMMF', () => {
     name String
   }`)
 
+    expect(dmmf.datamodel).toMatchInlineSnapshot(`
+      Object {
+        "enums": Array [],
+        "models": Array [
+          Object {
+            "dbName": null,
+            "fields": Array [
+              Object {
+                "dbName": null,
+                "isGenerated": false,
+                "isId": true,
+                "isList": false,
+                "isRequired": true,
+                "isUnique": false,
+                "isUpdatedAt": false,
+                "kind": "scalar",
+                "name": "id",
+                "type": "Int",
+              },
+              Object {
+                "dbName": null,
+                "isGenerated": false,
+                "isId": false,
+                "isList": false,
+                "isRequired": true,
+                "isUnique": false,
+                "isUpdatedAt": false,
+                "kind": "scalar",
+                "name": "name",
+                "type": "String",
+              },
+            ],
+            "idFields": Array [],
+            "isEmbedded": false,
+            "isGenerated": false,
+            "name": "A",
+          },
+        ],
+      }
+    `)
     expect(dmmf).toMatchSnapshot()
   })
 })

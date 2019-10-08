@@ -1,17 +1,14 @@
 import fs from 'fs'
-import { getConfig, getDMMF } from './engineCommands'
 import pMap from 'p-map'
-import {
-  GeneratorOptions,
-  GeneratorProcess,
-  GeneratorManifest,
-  BinaryPaths,
-} from '@prisma/generator-helper'
+import path from 'path'
+import { GeneratorOptions } from '@prisma/generator-helper'
+import 'flat-map-polyfill'
+
+import { getConfig, getDMMF } from './engineCommands'
 import { download } from '@prisma/fetch-engine'
 import { unique } from './unique'
 import { pick } from './pick'
-import path from 'path'
-import 'flat-map-polyfill'
+import { Generator } from './Generator'
 
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -115,28 +112,28 @@ export async function getGenerators(
   }
 }
 
-class Generator {
-  private generatorProcess: GeneratorProcess
-  public manifest: GeneratorManifest | null = null
-  constructor(
-    private executablePath: string,
-    public options: GeneratorOptions,
-  ) {
-    this.generatorProcess = new GeneratorProcess(this.executablePath)
-  }
-  async init() {
-    await this.generatorProcess.init()
-    this.manifest = await this.generatorProcess.getManifest()
-  }
-  stop() {
-    this.generatorProcess.stop()
-  }
-  generate(): Promise<void> {
-    return this.generatorProcess.generate(this.options)
-  }
-  setBinaryPaths(binaryPaths: BinaryPaths) {
-    this.options.binaryPaths = binaryPaths
-  }
+/**
+ * Makes sure that all generator have the binaries they deserve and returns a
+ * `Generator` class per generator defined in the schema.prisma file.
+ * In other words, this is basically a generator factory function.
+ * @param schemaPath path to schema.prisma
+ * @param generatorAliases Aliases like `photonjs` -> `node_modules/photonjs/gen.js`
+ * @param version Version of the binary, commit hash of https://github.com/prisma/prisma-engine/commits/master
+ * @param printDownloadProgress `boolean` to print download progress or not
+ */
+export async function getGenerator(
+  schemaPath: string,
+  generatorAliases?: { [alias: string]: string },
+  version?: string,
+  printDownloadProgress?: boolean,
+): Promise<Generator> {
+  const generators = await getGenerators(
+    schemaPath,
+    generatorAliases,
+    version,
+    printDownloadProgress,
+  )
+  return generators[0]
 }
 
 export function skipIndex<T = any>(arr: T[], index: number): T[] {

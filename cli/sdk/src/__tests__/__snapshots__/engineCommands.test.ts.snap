@@ -34,7 +34,7 @@ Object {
 }
 `;
 
-exports[`getDMMF simple model 1`] = `
+exports[`getDMMF simple model 2`] = `
 Object {
   "datamodel": Object {
     "enums": Array [],
@@ -67,6 +67,7 @@ Object {
             "type": "String",
           },
         ],
+        "idFields": Array [],
         "isEmbedded": false,
         "isGenerated": false,
         "name": "A",
