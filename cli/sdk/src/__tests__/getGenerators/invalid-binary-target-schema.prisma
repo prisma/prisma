@@ -1,0 +1,9 @@
+generator gen {
+  provider      = "predefined-generator"
+  binaryTargets = ["marvin"]
+}
+
+model User {
+  id   Int    @id
+  name String
+}

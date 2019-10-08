@@ -1,6 +1,6 @@
 import { ISDL } from 'prisma-datamodel'
 import { dmmfToDml } from './engineCommands'
-import { isdlToDmmfDatamodel } from './isdlToDmmf'
+import { isdlToDmmfDatamodel } from './isdlToDmmfDatamodel'
 import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 
 export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgresql'

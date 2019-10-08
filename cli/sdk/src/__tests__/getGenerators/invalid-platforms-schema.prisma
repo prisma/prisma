@@ -1,6 +1,7 @@
 generator gen {
   provider  = "predefined-generator"
   platforms = ["darwin"]
+  // platforms is deprecated
 }
 
 model User {

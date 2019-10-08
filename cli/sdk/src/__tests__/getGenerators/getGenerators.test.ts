@@ -9,7 +9,7 @@ describe('getGenerators', () => {
     }
 
     const generators = await getGenerators(
-      path.join(__dirname, 'schema.prisma'),
+      path.join(__dirname, 'valid-minimal-schema.prisma'),
       aliases,
     )
 
@@ -42,8 +42,8 @@ describe('getGenerators', () => {
     ).toMatchInlineSnapshot(`
       Object {
         "datamodel": "generator gen {
-        provider  = \\"predefined-generator\\"
-        platforms = [\\"darwin\\"]
+        provider      = \\"predefined-generator\\"
+        binaryTargets = [\\"darwin\\"]
       }
 
       model User {
@@ -52,10 +52,10 @@ describe('getGenerators', () => {
       }",
         "datasources": Array [],
         "generator": Object {
-          "binaryTargets": Array [],
-          "config": Object {
-            "platforms": "(array)",
-          },
+          "binaryTargets": Array [
+            "darwin",
+          ],
+          "config": Object {},
           "name": "gen",
           "output": null,
           "provider": "predefined-generator",
@@ -64,66 +64,30 @@ describe('getGenerators', () => {
       }
     `)
   })
-})
 
-describe('getGenerator', () => {
-  test('minimal', async () => {
+  test('fail on platforms', async () => {
     const aliases = {
       'predefined-generator': path.join(__dirname, 'generator'),
     }
 
-    const generator = await getGenerator(
-      path.join(__dirname, 'schema.prisma'),
-      aliases,
-    )
+    expect(
+      getGenerators(
+        path.join(__dirname, 'invalid-platforms-schema.prisma'),
+        aliases,
+      ),
+    ).rejects.toThrow('deprecated')
+  })
 
-    expect(generator.manifest).toMatchInlineSnapshot(`
-      Object {
-        "defaultOutput": "default-output",
-        "denylist": Array [
-          "SomeForbiddenType",
-        ],
-        "prettyName": "This is a pretty pretty name",
-        "requiresEngines": Array [
-          "queryEngine",
-          "migrationEngine",
-        ],
-        "requiresGenerators": Array [
-          "photonjs",
-        ],
-      }
-    `)
+  test('fail on invalid binaryTarget', async () => {
+    const aliases = {
+      'predefined-generator': path.join(__dirname, 'generator'),
+    }
 
     expect(
-      pick(generator.options, [
-        'generator',
-        'datamodel',
-        'datasources',
-        'otherGenerators',
-      ]),
-    ).toMatchInlineSnapshot(`
-      Object {
-        "datamodel": "generator gen {
-        provider  = \\"predefined-generator\\"
-        platforms = [\\"darwin\\"]
-      }
-
-      model User {
-        id   Int    @id
-        name String
-      }",
-        "datasources": Array [],
-        "generator": Object {
-          "binaryTargets": Array [],
-          "config": Object {
-            "platforms": "(array)",
-          },
-          "name": "gen",
-          "output": null,
-          "provider": "predefined-generator",
-        },
-        "otherGenerators": Array [],
-      }
-    `)
+      getGenerators(
+        path.join(__dirname, 'invalid-binary-target-schema.prisma'),
+        aliases,
+      ),
+    ).rejects.toThrow('Unknown')
   })
 })
