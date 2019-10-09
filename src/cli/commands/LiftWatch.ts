@@ -8,8 +8,8 @@ import { occupyPath } from '../../utils/occupyPath'
  * $ prisma migrate new
  */
 export class LiftWatch implements Command {
-  public static new(generators: Dictionary<GeneratorDefinitionWithPackage>): LiftWatch {
-    return new LiftWatch(generators)
+  public static new(providerAliases: Dictionary<string>): LiftWatch {
+    return new LiftWatch(providerAliases)
   }
 
   // static help template
@@ -24,7 +24,7 @@ export class LiftWatch implements Command {
 
       -c, --create-db   Create the database in case it doesn't exist
   `)
-  private constructor(private readonly generators: Dictionary<GeneratorDefinitionWithPackage>) {}
+  private constructor(private readonly providerAliases: Dictionary<string>) {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
@@ -43,7 +43,7 @@ export class LiftWatch implements Command {
     const lift = new Lift()
     return lift.watch({
       preview,
-      generatorDefinitions: this.generators,
+      providerAliases: this.providerAliases,
     })
   }
 
