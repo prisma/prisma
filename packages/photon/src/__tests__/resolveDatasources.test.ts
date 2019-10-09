@@ -1,5 +1,5 @@
+import { DataSource } from '@prisma/generator-helper'
 import { datasourceToDatasourceOverwrite, serializeDatasources } from '../generation/serializeDatasources'
-import { DataSource } from '../isdlToDatamodel2'
 import { absolutizeRelativePath, resolveDatasources } from '../utils/resolveDatasources'
 
 const cwd = '/Users/tim/project/prisma'

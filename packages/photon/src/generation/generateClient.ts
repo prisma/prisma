@@ -14,6 +14,7 @@ import {
   ScriptTarget,
 } from 'typescript'
 import { promisify } from 'util'
+import { DMMF as PhotonDMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
 import { getPhotonDMMF } from '../utils/getDMMF'
 import { resolveDatasources } from '../utils/resolveDatasources'
@@ -42,6 +43,11 @@ export interface GenerateClientOptions {
   binaryPaths: BinaryPaths
 }
 
+export interface BuildClientResult {
+  fileMap: Dictionary<string>
+  photonDmmf: PhotonDMMF.Document
+}
+
 export async function buildClient({
   datamodel,
   schemaDir = process.cwd(),
@@ -54,7 +60,7 @@ export async function buildClient({
   version,
   dmmf,
   datasources,
-}: GenerateClientOptions): Promise<Dictionary<string>> {
+}: GenerateClientOptions): Promise<BuildClientResult> {
   const fileMap = {}
 
   const document = getPhotonDMMF(dmmf)
@@ -78,7 +84,10 @@ export async function buildClient({
 
   if (!transpile) {
     fileMap[target] = generatedClient
-    return normalizeFileMap(fileMap)
+    return {
+      fileMap: normalizeFileMap(fileMap),
+      photonDmmf: document,
+    }
   }
 
   /**
@@ -117,11 +126,14 @@ export async function buildClient({
   const program = createProgram([file.fileName], options, compilerHost)
   const result = program.emit()
   if (result.diagnostics.length > 0) {
-    console.error(chalk.redBright('Errors during Photon generation:'))
-    console.error(result.diagnostics.map(d => d.messageText).join('\n'))
+    console.log(chalk.redBright('Errors during Photon generation:'))
+    console.log(result.diagnostics.map(d => d.messageText).join('\n'))
   }
 
-  return normalizeFileMap(fileMap)
+  return {
+    fileMap: normalizeFileMap(fileMap),
+    photonDmmf: document,
+  }
 }
 
 function normalizeFileMap(fileMap: Dictionary<string>) {
@@ -145,9 +157,9 @@ export async function generateClient({
   dmmf,
   datasources,
   binaryPaths,
-}: GenerateClientOptions) {
+}: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   runtimePath = runtimePath || './runtime'
-  const files = await buildClient({
+  const { photonDmmf, fileMap } = await buildClient({
     datamodel,
     schemaDir,
     transpile,
@@ -161,9 +173,14 @@ export async function generateClient({
     datasources,
     binaryPaths,
   })
+
+  if (generator && generator.config && generator.config.inMemory) {
+    return { photonDmmf, fileMap }
+  }
+
   await makeDir(outputDir)
   await Promise.all(
-    Object.entries(files).map(async ([fileName, file]) => {
+    Object.entries(fileMap).map(async ([fileName, file]) => {
       const filePath = path.join(outputDir, fileName)
       // The deletion of the file is necessary, so VSCode
       // picks up the changes.
@@ -254,7 +271,10 @@ function redirectToLib(fileName: string) {
   if (/^lib\.(.*?)\.d\.ts$/.test(file)) {
     if (!fs.existsSync(fileName)) {
       const dir = path.dirname(fileName)
-      const newPath = path.join(dir, 'lib', file)
+      let newPath = path.join(dir, 'lib', file)
+      if (!fs.existsSync(newPath)) {
+        newPath = path.join(dir, 'typescript/lib', file)
+      }
       return newPath
     }
   }

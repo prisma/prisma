@@ -20,6 +20,7 @@
     "runtime",
     "browser-runtime",
     "generator",
-    "src/__tests__/generation/node_modules"
+    "src/__tests__/generation/node_modules",
+    "generator-build"
   ]
 }
