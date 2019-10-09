@@ -1,2 +1,0 @@
-#!/usr/bin/env node
-console.log("Please wait until the 'prisma queryEngine' download completes!")

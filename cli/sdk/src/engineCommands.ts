@@ -28,8 +28,9 @@ export async function getDMMF({
   datamodelPath,
 }: GetDMMFOptions): Promise<DMMF.Document> {
   prismaPath = prismaPath || (await getPrismaPath())
+  let result
   try {
-    const result = await execa(prismaPath, ['cli', '--dmmf'], {
+    result = await execa(prismaPath, ['cli', '--dmmf'], {
       cwd,
       env: {
         ...process.env,
@@ -43,6 +44,11 @@ export async function getDMMF({
   } catch (e) {
     if (e.stderr) {
       throw new Error(chalk.redBright.bold('Schema parsing ') + e.stderr)
+    }
+    if (e.message.includes('in JSON at position')) {
+      throw new Error(
+        `Problem while parsing the migration engine response at ${prismaPath}. ${result.stdout}\n${e.stack}`,
+      )
     }
     throw new Error(e)
   }
