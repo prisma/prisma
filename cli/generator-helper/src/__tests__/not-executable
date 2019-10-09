@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+// let's provoke this to fail
+require('ms-node/register') // ms-node doesn't exist
+
+const { generatorHandler } = require('../generatorHandler')
+
+generatorHandler({
+  async onGenerate() {
+    await new Promise(r => {
+      setTimeout(r, 100)
+    })
+  },
+})

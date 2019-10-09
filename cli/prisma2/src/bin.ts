@@ -23,16 +23,19 @@ process.on('unhandledRejection', e => {
  */
 import { isError, HelpError } from '@prisma/cli'
 import { LiftCommand, LiftSave, LiftUp, LiftDown, LiftWatch, LiftTmpPrepare, handlePanic } from '@prisma/lift'
-import { Converter } from '@prisma/photon'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
 import { Version } from './Version'
-import { predefinedGenerators } from './generators'
 import { Generate } from './Generate'
 import chalk from 'chalk'
 // import { capture } from './capture'
 import { Docs } from './Docs'
+import { Converter } from './Converter'
 export { Photon } from '@prisma/studio-transports'
+
+const aliases = {
+  photonjs: eval(`require('path').join(__dirname, './photon-generator/index.js')`), // all evals are here for ncc
+}
 
 /**
  * Main function
@@ -50,11 +53,11 @@ async function main(): Promise<number> {
       down: LiftDown.new(),
       docs: Docs.new('lift', 'https://github.com/prisma/prisma2/tree/master/docs'),
     }),
-    'tmp-prepare': LiftTmpPrepare.new(predefinedGenerators),
+    'tmp-prepare': LiftTmpPrepare.new(aliases),
     introspect: Introspect.new(),
     convert: Converter.new(),
-    dev: LiftWatch.new(predefinedGenerators),
-    generate: Generate.new(predefinedGenerators),
+    dev: LiftWatch.new(aliases),
+    generate: Generate.new(aliases),
     version: Version.new(),
   })
   // parse the arguments

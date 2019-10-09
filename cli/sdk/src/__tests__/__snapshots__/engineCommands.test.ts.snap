@@ -1,0 +1,740 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getConfig empty config 1`] = `
+Object {
+  "datasources": Array [],
+  "generators": Array [],
+}
+`;
+
+exports[`getConfig with generator and datasource 1`] = `
+Object {
+  "datasources": Array [
+    Object {
+      "config": Object {},
+      "connectorType": "sqlite",
+      "name": "db",
+      "url": Object {
+        "fromEnvVar": null,
+        "value": "file:dev.db",
+      },
+    },
+  ],
+  "generators": Array [
+    Object {
+      "binaryTargets": Array [
+        "native",
+      ],
+      "config": Object {},
+      "name": "gen",
+      "output": null,
+      "provider": "fancy-provider",
+    },
+  ],
+}
+`;
+
+exports[`getDMMF simple model 2`] = `
+Object {
+  "datamodel": Object {
+    "enums": Array [],
+    "models": Array [
+      Object {
+        "dbName": null,
+        "fields": Array [
+          Object {
+            "dbName": null,
+            "isGenerated": false,
+            "isId": true,
+            "isList": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "id",
+            "type": "Int",
+          },
+          Object {
+            "dbName": null,
+            "isGenerated": false,
+            "isId": false,
+            "isList": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "name",
+            "type": "String",
+          },
+        ],
+        "idFields": Array [],
+        "isEmbedded": false,
+        "isGenerated": false,
+        "name": "A",
+      },
+    ],
+  },
+  "mappings": Array [
+    Object {
+      "aggregate": "aggregateA",
+      "createOne": "createOneA",
+      "deleteMany": "deleteManyA",
+      "deleteOne": "deleteOneA",
+      "findMany": "findManyA",
+      "findOne": "findOneA",
+      "model": "A",
+      "updateMany": "updateManyA",
+      "updateOne": "updateOneA",
+      "upsertOne": "upsertOneA",
+    },
+  ],
+  "schema": Object {
+    "enums": Array [
+      Object {
+        "name": "AOrderByInput",
+        "values": Array [
+          "id_ASC",
+          "id_DESC",
+          "name_ASC",
+          "name_DESC",
+        ],
+      },
+    ],
+    "inputTypes": Array [
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isRequired": false,
+              "kind": "object",
+              "type": "AWhereInput",
+            },
+            "name": "AND",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isRequired": false,
+              "kind": "object",
+              "type": "AWhereInput",
+            },
+            "name": "OR",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isRequired": false,
+              "kind": "object",
+              "type": "AWhereInput",
+            },
+            "name": "NOT",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_not",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_not_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_lt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_lte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_gt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_gte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name_not",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name_not_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name_lt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name_lte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name_gt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name_gte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name_contains",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name_not_contains",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name_starts_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name_not_starts_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name_ends_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name_not_ends_with",
+          },
+        ],
+        "name": "AWhereInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+        ],
+        "name": "AWhereUniqueInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name",
+          },
+        ],
+        "name": "ACreateInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name",
+          },
+        ],
+        "name": "AUpdateInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "name",
+          },
+        ],
+        "name": "AUpdateManyMutationInput",
+      },
+    ],
+    "outputTypes": Array [
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "name",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+          },
+        ],
+        "name": "A",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "count",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "AggregateA",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "AWhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "AOrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "String",
+                },
+                "name": "after",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "String",
+                },
+                "name": "before",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "first",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "last",
+              },
+            ],
+            "name": "findManyA",
+            "outputType": Object {
+              "isList": true,
+              "isRequired": false,
+              "kind": "object",
+              "type": "A",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "aggregateA",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "AggregateA",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "AWhereUniqueInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "findOneA",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "A",
+            },
+          },
+        ],
+        "name": "Query",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "count",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "BatchPayload",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "ACreateInput",
+                },
+                "name": "data",
+              },
+            ],
+            "name": "createOneA",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "A",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "AWhereUniqueInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "deleteOneA",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "A",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "AUpdateInput",
+                },
+                "name": "data",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "AWhereUniqueInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "updateOneA",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "A",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "AWhereUniqueInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "ACreateInput",
+                },
+                "name": "create",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "AUpdateInput",
+                },
+                "name": "update",
+              },
+            ],
+            "name": "upsertOneA",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "A",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "AUpdateManyMutationInput",
+                },
+                "name": "data",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "AWhereInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "updateManyA",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "BatchPayload",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "AWhereInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "deleteManyA",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "BatchPayload",
+            },
+          },
+        ],
+        "name": "Mutation",
+      },
+    ],
+    "rootMutationType": "Mutation",
+    "rootQueryType": "Query",
+  },
+}
+`;

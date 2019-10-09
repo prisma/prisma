@@ -60,9 +60,14 @@ const Step60DownloadExample: React.FC = () => {
     `Extracting content to ${chalk.bold(relativePath)}`,
   ]
 
-  const commandsSlice = introspectionResult ? 1 : selectedExample.setupCommands.length
+  const commandsSlice = introspectionResult
+    ? 1
+    : selectedExample.setupCommands.length
 
-  const steps = [...builtInSteps, ...selectedExample.setupCommands.map(c => c.description)]
+  const steps = [
+    ...builtInSteps,
+    ...selectedExample.setupCommands.map(c => c.description),
+  ]
 
   useEffect(() => {
     async function prepare() {
@@ -92,9 +97,12 @@ const Step60DownloadExample: React.FC = () => {
         }
 
         await makeDir(state.outputDir)
-        process.chdir(state.outputDir) // important for npm install
 
-        const tarFile = await downloadRepo('prisma', 'prisma-examples', examples!.meta.branch)
+        const tarFile = await downloadRepo(
+          'prisma',
+          'prisma-examples',
+          examples!.meta.branch,
+        )
         setActiveIndex(1)
         await extractExample(tarFile, selectedExample!.path, state.outputDir)
 
@@ -111,7 +119,8 @@ const Step60DownloadExample: React.FC = () => {
               ? path.join(state.outputDir, 'script.js')
               : path.join(state.outputDir, 'script.ts')
 
-          // TODO: Use more sophisticated example as specified here https://prisma-specs.netlify.com/cli/init/introspection-results/
+          // TODO: Use more sophisticated example as specified here
+          //https://prisma-specs.netlify.com/cli/init/introspection-results/
           const newScript = await exampleScript({
             typescript: state.selectedLanguage === 'typescript',
             datamodel: introspectionResult,
@@ -138,15 +147,22 @@ const Step60DownloadExample: React.FC = () => {
 
   useEffect(() => {
     async function runCommand() {
-      const step = selectedExample!.setupCommands.slice(0, commandsSlice)[activeIndex - 2]
+      const step = selectedExample!.setupCommands.slice(0, commandsSlice)[
+        activeIndex - 2
+      ]
       if (step) {
         try {
-          const command = replacePrisma2Command(step.command)
-          debug(`Executing ${command}`)
+          const command = await replaceCommand(step.command)
           await execa.shell(command, {
             cwd: state.outputDir,
             preferLocal: true,
-            stdio: !debugEnabled ? undefined : ['inherit', 'inherit', 'inherit'],
+            env: {
+              ...process.env,
+              NODE_ENV: '',
+            },
+            stdio: !debugEnabled
+              ? undefined
+              : ['inherit', 'inherit', 'inherit'],
           })
         } catch (e) {
           const error = e.stderr || e.stdout || e.message
@@ -182,11 +198,16 @@ const Step60DownloadExample: React.FC = () => {
           <Box flexDirection="column" marginBottom={1}>
             {state.useDemoScript ? (
               <Color>
-                Preparing your demo script <Color bold>({beautifyLanguage(state.selectedLanguage!)})</Color> ...
+                Preparing your demo script{' '}
+                <Color bold>
+                  ({beautifyLanguage(state.selectedLanguage!)})
+                </Color>{' '}
+                ...
               </Color>
             ) : (
               <Color>
-                Preparing your starter kit: <Color bold>{selectedExample.name}</Color>
+                Preparing your starter kit:{' '}
+                <Color bold>{selectedExample.name}</Color>
               </Color>
             )}
           </Box>
@@ -206,9 +227,15 @@ const Step60DownloadExample: React.FC = () => {
 
 export default Step60DownloadExample
 
-export async function downloadRepo(organization: string, repo: string, branch: string): Promise<string> {
+export async function downloadRepo(
+  organization: string,
+  repo: string,
+  branch: string,
+): Promise<string> {
   const downloadUrl = `https://api.github.com/repos/${organization}/${repo}/tarball/${branch}` // TODO: use master instead of prisma2
-  const tmpFile = getTmpFile(`prisma-download-${organization}-${repo}-${branch}.tar.gz`)
+  const tmpFile = getTmpFile(
+    `prisma-download-${organization}-${repo}-${branch}.tar.gz`,
+  )
   const response = await fetch(downloadUrl, {
     agent: getProxyAgent(downloadUrl),
     headers: {
@@ -224,12 +251,18 @@ export async function downloadRepo(organization: string, repo: string, branch: s
   return tmpFile
 }
 
-export async function extractExample(tmpPath: string, examplePath: string, outputPath: string): Promise<void> {
+export async function extractExample(
+  tmpPath: string,
+  examplePath: string,
+  outputPath: string,
+): Promise<void> {
   await tar.extract({
     file: tmpPath,
     cwd: outputPath,
     filter: filePath => {
-      return !filePath.includes('/.github/') && RegExp(examplePath).test(filePath)
+      return (
+        !filePath.includes('/.github/') && RegExp(examplePath).test(filePath)
+      )
     },
     strip: examplePath.split('/').length - 1,
   })
@@ -252,7 +285,9 @@ function credentialsToDataSource(credentials: DatabaseCredentials): DataSource {
   }
 }
 
-function databaseTypeToConnectorType(databaseType: DatabaseType): ConnectorType {
+function databaseTypeToConnectorType(
+  databaseType: DatabaseType,
+): ConnectorType {
   switch (databaseType) {
     case DatabaseType.sqlite:
       return 'sqlite'
@@ -265,8 +300,8 @@ function databaseTypeToConnectorType(databaseType: DatabaseType): ConnectorType 
   }
 }
 
-export function replacePrisma2Command(command: string): string {
-  if (command === 'npm install') {
+export async function replaceCommand(command: string): Promise<string> {
+  if (command === 'npm install' && (await isYarnInstalled())) {
     return 'yarn install'
   }
   if (/^prisma2\s/.test(command)) {
@@ -274,4 +309,13 @@ export function replacePrisma2Command(command: string): string {
   }
 
   return command
+}
+
+async function isYarnInstalled(): Promise<boolean> {
+  try {
+    await execa.shell(`yarn --version`, { stdio: `ignore` })
+    return true
+  } catch (err) {
+    return false
+  }
 }
