@@ -21,10 +21,11 @@ import { printGeneratorConfig, fixPlatforms } from '@prisma/engine-core'
 
 export type GetGeneratorOptions = {
   schemaPath: string
-  aliases?: { [alias: string]: string }
+  providerAliases?: { [alias: string]: string }
   version?: string
   printDownloadProgress?: boolean
   baseDir?: string // useful in tests to resolve the base dir from which `output` is resolved
+  overrideGenerators?: GeneratorConfig[]
 }
 
 /**
@@ -36,10 +37,11 @@ export type GetGeneratorOptions = {
  */
 export async function getGenerators({
   schemaPath,
-  aliases,
+  providerAliases: aliases,
   version,
   printDownloadProgress,
   baseDir = path.dirname(schemaPath),
+  overrideGenerators,
 }: GetGeneratorOptions): Promise<Generator[]> {
   if (!fs.existsSync(schemaPath)) {
     throw new Error(`${schemaPath} does not exist`)
@@ -52,13 +54,15 @@ export async function getGenerators({
     datamodelPath: schemaPath,
   })
 
-  validateGenerators(config.generators)
+  const generatorConfigs = overrideGenerators || config.generators
+
+  await validateGenerators(generatorConfigs)
 
   const runningGenerators: Generator[] = []
   try {
     // 1. Get all generators
     const generators = await pMap(
-      config.generators,
+      generatorConfigs,
       async (generator, index) => {
         let generatorPath = generator.provider
         if (aliases && aliases[generator.provider]) {
@@ -103,7 +107,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           datasources: config.datasources,
           generator,
           dmmf,
-          otherGenerators: skipIndex(config.generators, index),
+          otherGenerators: skipIndex(generatorConfigs, index),
           schemaPath,
           version: version || 'latest',
         }
@@ -126,7 +130,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
       g.manifest ? g.manifest.requiresEngines || [] : [],
     )
     let binaryTargets = unique(
-      config.generators.flatMap(g => g.binaryTargets || []),
+      generatorConfigs.flatMap(g => g.binaryTargets || []),
     )
 
     if (binaryTargets.length === 0) {

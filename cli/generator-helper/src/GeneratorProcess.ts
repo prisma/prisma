@@ -76,13 +76,7 @@ export class GeneratorProcess {
         try {
           data = JSON.parse(response)
         } catch (e) {
-          if (!this.exitCode && this.initialized) {
-            throw new Error(
-              `Got invalid response from generator at ${
-                this.executablePath
-              }:\n${response}\n${e.stack || e.message}`,
-            )
-          }
+          console.error(response)
         }
         if (data) {
           this.handleResponse(data)
@@ -163,7 +157,7 @@ export class GeneratorProcess {
       })
     })
   }
-  generate(options: GeneratorOptions): Promise<void> {
+  generate(options: GeneratorOptions): Promise<any> {
     return new Promise((resolve, reject) => {
       const messageId = this.getMessageId()
 
@@ -171,9 +165,7 @@ export class GeneratorProcess {
         if (error) {
           return reject(error)
         }
-        if (result) {
-          resolve()
-        }
+        resolve(result)
       })
 
       this.sendMessage({

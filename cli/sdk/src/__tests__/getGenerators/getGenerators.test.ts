@@ -1,6 +1,7 @@
 import path from 'path'
 import { getGenerators, getGenerator } from '../../getGenerators'
 import { pick } from '../../pick'
+import { omit } from '../../omit'
 
 describe('getGenerators', () => {
   test('basic', async () => {
@@ -10,7 +11,7 @@ describe('getGenerators', () => {
 
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),
-      aliases,
+      providerAliases: aliases,
     })
 
     expect(generators.map(g => g.manifest)).toMatchInlineSnapshot(`
@@ -34,7 +35,6 @@ describe('getGenerators', () => {
 
     expect(
       pick(generators[0].options!, [
-        'generator',
         'datamodel',
         'datasources',
         'otherGenerators',
@@ -51,16 +51,19 @@ describe('getGenerators', () => {
         name String
       }",
         "datasources": Array [],
-        "generator": Object {
-          "binaryTargets": Array [
-            "darwin",
-          ],
-          "config": Object {},
-          "name": "gen",
-          "output": null,
-          "provider": "predefined-generator",
-        },
         "otherGenerators": Array [],
+      }
+    `)
+
+    expect(omit(generators[0].options!.generator, ['output']))
+      .toMatchInlineSnapshot(`
+      Object {
+        "binaryTargets": Array [
+          "darwin",
+        ],
+        "config": Object {},
+        "name": "gen",
+        "provider": "predefined-generator",
       }
     `)
   })
@@ -73,7 +76,7 @@ describe('getGenerators', () => {
     expect(
       getGenerators({
         schemaPath: path.join(__dirname, 'invalid-platforms-schema.prisma'),
-        aliases,
+        providerAliases: aliases,
       }),
     ).rejects.toThrow('deprecated')
   })
@@ -86,7 +89,7 @@ describe('getGenerators', () => {
     expect(
       getGenerators({
         schemaPath: path.join(__dirname, 'invalid-binary-target-schema.prisma'),
-        aliases,
+        providerAliases: aliases,
       }),
     ).rejects.toThrow('Unknown')
   })

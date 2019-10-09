@@ -2,19 +2,20 @@ import { GeneratorOptions, GeneratorManifest, JsonRPC } from './types'
 import byline from './byline'
 
 export interface Handler {
-  onGenerate(options: GeneratorOptions): Promise<void>
+  onGenerate(options: GeneratorOptions): Promise<any>
   onManifest?(): GeneratorManifest
 }
 
 export function generatorHandler(handler: Handler) {
   byline(process.stdin).on('data', async line => {
     const json = JSON.parse(String(line))
+
     if (json.method === 'generate' && json.params) {
       try {
-        await handler.onGenerate(json.params)
+        const result = await handler.onGenerate(json.params)
         respond({
           jsonrpc: '2.0',
-          result: {},
+          result: result,
           id: json.id,
         })
       } catch (e) {
@@ -29,6 +30,7 @@ export function generatorHandler(handler: Handler) {
         })
       }
     }
+
     if (json.method === 'getManifest') {
       if (handler.onManifest) {
         try {
