@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "lib": ["esnext", "esnext.asynciterable"],
+    "module": "commonjs",
+    "target": "es2016",
+    "strict": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true
+  },
+  "exclude": ["dist", "build", "download-build"]
+}

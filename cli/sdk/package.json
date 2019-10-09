@@ -1,0 +1,63 @@
+{
+  "name": "@prisma/sdk",
+  "version": "0.0.5",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": "git@github.com:prisma/prisma2.git",
+  "author": "Tim Suchanek <suchanek@prisma.io>",
+  "license": "Apache-2.0",
+  "private": false,
+  "scripts": {
+    "build": "tsc -d",
+    "prepublishOnly": "yarn build && yarn test",
+    "postinstall": "yarn download",
+    "download": "node scripts/download.js",
+    "test": "jest"
+  },
+  "files": [
+    "dist",
+    "scripts"
+  ],
+  "devDependencies": {
+    "@types/jest": "^24.0.18",
+    "@types/node": "^12.7.11",
+    "@typescript-eslint/eslint-plugin": "^2.3.2",
+    "@typescript-eslint/parser": "^2.3.2",
+    "eslint": "^6.5.1",
+    "eslint-config-prettier": "^6.3.0",
+    "husky": "^3.0.8",
+    "jest": "^24.9.0",
+    "lint-staged": "^9.4.1",
+    "prettier": "^1.18.2",
+    "ts-jest": "^24.1.0",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.3"
+  },
+  "dependencies": {
+    "@prisma/cli": "^0.1.10",
+    "@prisma/engine-core": "^0.0.97",
+    "@prisma/fetch-engine": "^0.3.0",
+    "@prisma/generator-helper": "^0.0.8",
+    "@prisma/get-platform": "^0.1.2",
+    "chalk": "^2.4.2",
+    "execa": "^2.0.5",
+    "flat-map-polyfill": "^0.3.8",
+    "p-map": "^3.0.0",
+    "prisma-datamodel": "1.36.0-test.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,css,json,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "not-yet.ts": [
+      "eslint --fix",
+      "git add"
+    ]
+  }
+}
