@@ -1,4 +1,4 @@
-import { DataSource } from '../isdlToDatamodel2'
+import { DataSource } from '@prisma/generator-helper'
 import { DatasourceOverwrite } from './extractSqliteSources'
 
 // this is NOT printing datasources, but just serializing the data source

@@ -1,5 +1,5 @@
+import { DataSource } from '@prisma/generator-helper'
 import path from 'path'
-import { DataSource } from '../isdlToDatamodel2'
 
 export function resolveDatasources(datasources: DataSource[], cwd: string, outputDir: string): DataSource[] {
   return datasources.map(datasource => {

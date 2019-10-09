@@ -3,7 +3,6 @@
 import { generatorHandler } from '@prisma/generator-helper'
 import Debug from 'debug'
 import { generateClient } from './generation/generateClient'
-const debug = Debug('photonjs-generator')
 
 generatorHandler({
   onManifest() {
@@ -40,9 +39,7 @@ generatorHandler({
     }
   },
   async onGenerate(options) {
-    debug('generatin')
-    debug(options.generator)
-    await generateClient({
+    return generateClient({
       datamodel: options.datamodel,
       datamodelPath: options.schemaPath,
       binaryPaths: options.binaryPaths!,
@@ -51,6 +48,7 @@ generatorHandler({
       dmmf: options.dmmf,
       generator: options.generator,
       version: options.version,
+      transpile: true,
     })
   },
 })

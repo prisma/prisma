@@ -51,10 +51,11 @@ export type BinaryPaths = {
 }
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
-  const mergedOptions = {
+  const mergedOptions: DownloadOptions = {
     binaryTargets: [await getPlatform()],
     version: 'latest',
     ...options,
+    binaries: mapKeys(options.binaries, engineTypeToBinaryType), // just necessary to support both camelCase and hyphen-case
   }
   const plural = mergedOptions.binaryTargets.length > 1 ? 'ies' : 'y'
   const bar = options.showProgress
@@ -197,4 +198,27 @@ async function downloadBinary({
     debug({ sourcePath, targetPath }, e)
     // let this fail silently - the CI system may have reached the file size limit
   }
+}
+
+function engineTypeToBinaryType(engineType: string): string {
+  if (engineType === 'introspectionEngine') {
+    return 'introspection-engine' as any // TODO: Remove as any as soon as type added to @prisma/fetch-engine
+  }
+
+  if (engineType === 'migrationEngine') {
+    return 'migration-engine'
+  }
+
+  if (engineType === 'queryEngine') {
+    return 'query-engine'
+  }
+
+  return engineType
+}
+
+function mapKeys<T extends object>(obj: T, mapper: (key: keyof T) => string): any {
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    acc[mapper(key as keyof T)] = value
+    return acc
+  }, {})
 }

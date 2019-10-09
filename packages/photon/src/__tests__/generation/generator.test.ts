@@ -7,61 +7,62 @@ describe('generator', () => {
   test('minimal', async () => {
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'schema.prisma'),
-      aliases: {
+      providerAliases: {
         photonjs: path.join(__dirname, '../../generator.ts'),
       },
       baseDir: __dirname,
+      printDownloadProgress: false,
     })
 
     expect(generator.manifest).toMatchInlineSnapshot(`
-                        Object {
-                          "defaultOutput": "node_modules/@generated/photon",
-                          "denylists": Object {
-                            "fields": Array [
-                              "AND",
-                              "OR",
-                              "NOT",
-                            ],
-                            "models": Array [
-                              "Enumerable",
-                              "MergeTruthyValues",
-                              "CleanupNever",
-                              "AtLeastOne",
-                              "OnlyOne",
-                              "StringFilter",
-                              "IDFilter",
-                              "FloatFilter",
-                              "IntFilter",
-                              "BooleanFilter",
-                              "DateTimeFilter",
-                              "NullableStringFilter",
-                              "NullableIDFilter",
-                              "NullableFloatFilter",
-                              "NullableIntFilter",
-                              "NullableBooleanFilter",
-                              "NullableDateTimeFilter",
-                              "PhotonFetcher",
-                              "Photon",
-                              "Engine",
-                              "PhotonOptions",
-                            ],
-                          },
-                          "prettyName": "Photon.js",
-                          "requiresEngines": Array [
-                            "queryEngine",
-                            "migrationEngine",
-                          ],
-                        }
-                `)
+                                          Object {
+                                            "defaultOutput": "node_modules/@generated/photon",
+                                            "denylists": Object {
+                                              "fields": Array [
+                                                "AND",
+                                                "OR",
+                                                "NOT",
+                                              ],
+                                              "models": Array [
+                                                "Enumerable",
+                                                "MergeTruthyValues",
+                                                "CleanupNever",
+                                                "AtLeastOne",
+                                                "OnlyOne",
+                                                "StringFilter",
+                                                "IDFilter",
+                                                "FloatFilter",
+                                                "IntFilter",
+                                                "BooleanFilter",
+                                                "DateTimeFilter",
+                                                "NullableStringFilter",
+                                                "NullableIDFilter",
+                                                "NullableFloatFilter",
+                                                "NullableIntFilter",
+                                                "NullableBooleanFilter",
+                                                "NullableDateTimeFilter",
+                                                "PhotonFetcher",
+                                                "Photon",
+                                                "Engine",
+                                                "PhotonOptions",
+                                              ],
+                                            },
+                                            "prettyName": "Photon.js",
+                                            "requiresEngines": Array [
+                                              "queryEngine",
+                                              "migrationEngine",
+                                            ],
+                                          }
+                            `)
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
-            Object {
-              "binaryTargets": Array [],
-              "config": Object {},
-              "name": "photon",
-              "provider": "photonjs",
-            }
-        `)
+                              Object {
+                                "binaryTargets": Array [],
+                                "config": Object {},
+                                "name": "photon",
+                                "provider": "photonjs",
+                              }
+                    `)
 
     expect(path.relative(__dirname, generator.options!.generator.output!)).toMatchInlineSnapshot(
       `"node_modules/@generated/photon"`,
@@ -72,10 +73,49 @@ describe('generator', () => {
     expect(fs.existsSync(photonDir)).toBe(true)
     expect(fs.readdirSync(photonDir)).toMatchInlineSnapshot(`
       Array [
+        "index.d.ts",
+        "index.js",
         "index.ts",
         "runtime",
       ]
     `)
+    generator.stop()
+  })
+
+  test('inMemory', async () => {
+    const generator = await getGenerator({
+      schemaPath: path.join(__dirname, 'schema.prisma'),
+      providerAliases: {
+        photonjs: path.join(__dirname, '../../generator.ts'),
+      },
+      baseDir: __dirname,
+      overrideGenerators: [
+        {
+          binaryTargets: [],
+          config: {
+            inMemory: 'true',
+          },
+          name: 'photon',
+          provider: 'photonjs',
+          output: null,
+        },
+      ],
+    })
+
+    const result = await generator.generate()
+    expect(Object.keys(result.fileMap)).toMatchInlineSnapshot(`
+      Array [
+        "index.js",
+        "index.d.ts",
+      ]
+    `)
+    expect(Object.keys(result.photonDmmf)).toMatchInlineSnapshot(`
+            Array [
+              "datamodel",
+              "mappings",
+              "schema",
+            ]
+        `)
     generator.stop()
   })
 })

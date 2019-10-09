@@ -17,3 +17,4 @@ failed-*.md
 prisma
 test.sh
 try-getConfig.ts
+generator-build
