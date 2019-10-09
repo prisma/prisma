@@ -2,19 +2,19 @@
 
 This repository is used as a central point to collect information and issues around the **Prisma Framework** (formerly called [Prisma 2](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)) while it's in Preview. It also contains the [documentation](./docs) and the [code of the Prisma 2 CLI](./cli).
 
-💡 The Prisma Framework is currently in Preview! [Limitations](./docs/limitations.md) include missing features, limited performance and stability issues. You can track the progress of Prisma 2 on [**`isprisma2ready.com`**](https://www.isprisma2ready.com).
+💡 The Prisma Framework is currently in Preview! [Limitations](./docs/limitations.md) include missing features, limited performance and stability issues. You can track the progress of the Prisma Framework on [**`isprisma2ready.com`**](https://www.isprisma2ready.com).
 
 ## What is the Prisma Framework?
 
 ![](https://i.imgur.com/FmaRakd.png)
 
-The Prisma Framework is an application data framework that consists of these tools:
+The Prisma Framework (formerly called [Prisma 2](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)) is an application data framework that consists of these tools:
 
 - [**Photon**](https://photonjs.prisma.io/): Type-safe and auto-generated database client ("ORM replacement")
 - [**Lift**](https://lift.prisma.io/): Declarative data modeling and migrations
 - [**Studio**](https://github.com/prisma/studio): Admin UI to support various database workflows
 
-While each tool can be used standalone (in both [_greenfield_ and _brownfield_ projects](https://en.wikipedia.org/wiki/Brownfield_(software_development))), they integrate nicely through common components like the [**Prisma schema**](./docs/prisma-schema-file.md) or the [Prisma 2 CLI](./docs/prisma2-cli.md).
+While each tool can be used standalone (in both [_greenfield_ and _brownfield_ projects](https://en.wikipedia.org/wiki/Brownfield_(software_development))), they integrate nicely through common components like the [**Prisma schema**](./docs/prisma-schema-file.md) or the [Prisma Framework CLI](./docs/prisma2-cli.md).
 
 ## Getting started
 
