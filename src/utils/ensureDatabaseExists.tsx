@@ -1,6 +1,6 @@
 import { getSchema } from '@prisma/cli'
 import { BorderBox, DummySelectable, TabIndexProvider } from '@prisma/ink-components'
-import { getConfig } from '@prisma/photon'
+import { getConfig } from '@prisma/sdk'
 import ansiEscapes from 'ansi-escapes'
 import chalk from 'chalk'
 import { Box, Color, Instance, render } from 'ink'
@@ -16,7 +16,7 @@ export type LiftAction = 'create' | 'apply' | 'unapply' | 'dev'
 
 export async function ensureDatabaseExists(action: LiftAction, killInk: boolean, forceCreate: boolean = false) {
   const datamodel = await getSchema()
-  const config = await getConfig(datamodel)
+  const config = await getConfig({ datamodel })
   const activeDatasource =
     config.datasources.length === 1
       ? config.datasources[0]

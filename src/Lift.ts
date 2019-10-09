@@ -1,6 +1,6 @@
 import { Dictionary, GeneratorDefinitionWithPackage, getSchemaDirSync, getSchemaPathSync } from '@prisma/cli'
 import { getPlatform } from '@prisma/get-platform'
-import { getCompiledGenerators } from '@prisma/photon'
+import { getGenerators } from '@prisma/sdk'
 import 'array-flat-polyfill'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
@@ -37,7 +37,7 @@ import { printMigrationReadme } from './utils/printMigrationReadme'
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
 const debug = debugLib('Lift')
-// const packageJson = require('../package.json')
+const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
@@ -53,7 +53,7 @@ export interface DownOptions {
 }
 export interface WatchOptions {
   preview?: boolean
-  generatorDefinitions: Dictionary<GeneratorDefinitionWithPackage>
+  providerAliases: Dictionary<string>
   clear?: boolean
 }
 interface MigrationFileMapOptions {
@@ -71,7 +71,7 @@ export class Lift {
   // tslint:disable
   public watchUp = simpleDebounce(
     async (
-      { preview, generatorDefinitions, clear }: WatchOptions = { clear: true, generatorDefinitions: {} },
+      { preview, providerAliases, clear }: WatchOptions = { clear: true, providerAliases: {} },
       renderer?: DevComponentRenderer,
     ) => {
       debug('Running watchUp')
@@ -111,10 +111,15 @@ export class Lift {
             })
         }
 
-        const generators = await getCompiledGenerators(datamodel, generatorDefinitions)
+        const generators = await getGenerators({
+          schemaPath: await this.getDatamodelPath(),
+          providerAliases,
+          printDownloadProgress: false,
+          version: packageJson.prisma.version,
+        })
 
         const newGenerators = generators.map(gen => ({
-          name: gen.prettyName || 'Generator',
+          name: (gen.manifest ? gen.manifest.prettyName : gen.options!.generator.provider) || 'Generator',
           generatedIn: undefined,
           generating: false,
         }))
@@ -142,6 +147,7 @@ export class Lift {
             })
           try {
             await generator.generate()
+            generator.stop()
             const after = Date.now()
             renderer &&
               renderer.setGeneratorState(i, {
@@ -350,16 +356,19 @@ export class Lift {
     return this.getLocalMigrations(this.devMigrationsDir)
   }
 
-  public async watch(
-    options: WatchOptions = { preview: false, clear: true, generatorDefinitions: {} },
-  ): Promise<string> {
+  public async watch(options: WatchOptions = { preview: false, clear: true, providerAliases: {} }): Promise<string> {
     if (!options.clear) {
       options.clear = true
     }
 
     const datamodel = await this.getDatamodel()
 
-    const generators = await getCompiledGenerators(datamodel, options.generatorDefinitions)
+    const generators = await getGenerators({
+      schemaPath: await this.getDatamodelPath(),
+      providerAliases: options.providerAliases,
+      printDownloadProgress: false,
+      version: packageJson.prisma.version,
+    })
 
     this.studioPort = await getPort({ port: getPort.makeRange(5555, 5600) })
 
@@ -373,7 +382,7 @@ export class Lift {
         datamodelBefore: this.datamodelBeforeWatch,
         datamodelAfter: datamodel,
         generators: generators.map(gen => ({
-          name: gen.prettyName || 'Generator',
+          name: (gen.manifest ? gen.manifest.prettyName : gen.options!.generator.provider) || 'Generator',
           generatedIn: undefined,
           generating: false,
         })),

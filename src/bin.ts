@@ -11,25 +11,16 @@ process.on('unhandledRejection', (e, promise) => {
  * Dependencies
  */
 import { Dictionary, GeneratorDefinitionWithPackage, HelpError, isError } from '@prisma/cli'
-import { generatorDefinition as definition } from '@prisma/photon'
 import { LiftCommand } from './cli/commands/LiftCommand'
 import { LiftDown } from './cli/commands/LiftDown'
 import { LiftSave } from './cli/commands/LiftSave'
 import { LiftTmpPrepare } from './cli/commands/LiftTmpPrepare'
 import { LiftUp } from './cli/commands/LiftUp'
 import { LiftWatch } from './cli/commands/LiftWatch'
-import { LiftPanic } from './LiftEngine'
 import { handlePanic } from './utils/handlePanic'
-const photon = {
-  definition,
-  packagePath: '@prisma/photon',
-}
 
-const predefinedGenerators: Dictionary<GeneratorDefinitionWithPackage> = {
-  photon,
-  photonjs: photon,
-  javascript: photon,
-  typescript: photon,
+const providerAliases = {
+  photonjs: require.resolve('@prisma/photon/generator-build'),
 }
 
 // const access = fs.createWriteStream('out.log')
@@ -44,8 +35,8 @@ async function main(): Promise<number> {
     save: LiftSave.new(),
     up: LiftUp.new(),
     down: LiftDown.new(),
-    dev: LiftWatch.new(predefinedGenerators),
-    ['tmp-prepare']: LiftTmpPrepare.new(predefinedGenerators),
+    dev: LiftWatch.new(providerAliases),
+    ['tmp-prepare']: LiftTmpPrepare.new(providerAliases),
   })
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))

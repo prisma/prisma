@@ -1,4 +1,4 @@
-import { arg, Command, Dictionary, format, GeneratorDefinitionWithPackage, HelpError } from '@prisma/cli'
+import { Command, Dictionary, format, GeneratorDefinitionWithPackage, HelpError } from '@prisma/cli'
 import chalk from 'chalk'
 import Debug from 'debug'
 import { Lift } from '../../Lift'
@@ -9,8 +9,8 @@ const debug = Debug('tmp-prepare')
  * $ prisma migrate new
  */
 export class LiftTmpPrepare implements Command {
-  public static new(generators: Dictionary<GeneratorDefinitionWithPackage>): LiftTmpPrepare {
-    return new LiftTmpPrepare(generators)
+  public static new(providerAliases: Dictionary<string>): LiftTmpPrepare {
+    return new LiftTmpPrepare(providerAliases)
   }
 
   // static help template
@@ -21,7 +21,7 @@ export class LiftTmpPrepare implements Command {
 
       prisma dev
   `)
-  private constructor(private readonly generators: Dictionary<GeneratorDefinitionWithPackage>) {}
+  private constructor(private readonly providerAliases: Dictionary<string>) {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
@@ -32,7 +32,7 @@ export class LiftTmpPrepare implements Command {
     const lift = new Lift()
     debug('initialized lift')
     await lift.watchUp({
-      generatorDefinitions: this.generators,
+      providerAliases: this.providerAliases,
     })
 
     lift.stop()
