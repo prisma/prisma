@@ -190,7 +190,7 @@ export async function generateClient({
       await writeFile(filePath, file)
     }),
   )
-  const inputDir = path.join(__dirname, '../../runtime')
+  const inputDir = eval(`require('path').join(__dirname, '../runtime')`) // tslint:disable-line
 
   await copy({
     from: inputDir,

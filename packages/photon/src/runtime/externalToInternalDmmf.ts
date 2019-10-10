@@ -1,6 +1,7 @@
+import { DMMF as ExternalDMMF } from '@prisma/generator-helper'
 import pluralize from 'pluralize'
-import { DMMF, ExternalDMMF } from './dmmf-types'
-import { capitalize, keyBy, lowerCase } from './utils/common'
+import { DMMF } from './dmmf-types'
+import { lowerCase } from './utils/common'
 
 function transformFieldKind(model: ExternalDMMF.Model): DMMF.Model {
   return {

@@ -35,7 +35,7 @@ generatorHandler({
         fields: ['AND', 'OR', 'NOT'],
       },
       prettyName: 'Photon.js',
-      requiresEngines: ['queryEngine', 'migrationEngine'],
+      requiresEngines: ['queryEngine'],
     }
   },
   async onGenerate(options) {
