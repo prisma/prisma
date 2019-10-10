@@ -3,6 +3,8 @@ import fs from 'fs'
 import path from 'path'
 import { omit } from '../../omit'
 
+jest.setTimeout(10000)
+
 describe('generator', () => {
   test('minimal', async () => {
     const generator = await getGenerator({
