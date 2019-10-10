@@ -1,5 +1,6 @@
 import { getSchemaPath } from '@prisma/cli'
-import { isdlToDatamodel2, getConfig, DataSource } from '@prisma/photon'
+import { isdlToDatamodel2, getConfig } from '@prisma/sdk'
+import { DataSource } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import { readFileSync } from 'fs'
 import { MongoClient } from 'mongodb'
@@ -142,7 +143,7 @@ export async function getCredentialsFromExistingDatamodel(): Promise<undefined |
   const schemaPath = await getSchemaPath()
   if (schemaPath) {
     const datamodel = readFileSync(schemaPath, 'utf-8')
-    const { datasources } = await getConfig(datamodel)
+    const { datasources } = await getConfig({ datamodel })
     // For now just take the first data source
     if (datasources && datasources.length > 1) {
       console.error(

@@ -1,5 +1,5 @@
 import { replaceDatasource } from '../prompt/utils/replaceDatasource'
-import { DataSource } from '@prisma/photon'
+import { DataSource } from '@prisma/generator-helper'
 
 const schema = `datasource db {
   provider = "sqlite"

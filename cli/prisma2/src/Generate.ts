@@ -35,8 +35,11 @@ export class Generate implements Command {
   // parse arguments
   public async parse(argv: string[], minimalOutput = false): Promise<string | Error> {
     const datamodelPath = await getSchemaPath()
+    if (!datamodelPath) {
+      throw new Error(`Can't find prisma.schema`) // TODO: Add this into a central place in getSchemaPath() as an arg
+    }
     const generators = await getGenerators({
-      schemaPath: datamodelPath!,
+      schemaPath: datamodelPath,
       providerAliases: this.aliases,
       printDownloadProgress: true,
       version: pkg.prisma.version,

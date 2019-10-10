@@ -1,4 +1,4 @@
-import { DMMF } from '@prisma/photon/dist/runtime/dmmf-types'
+import { DMMF } from '@prisma/photon'
 
 const modelOrder = ['User', 'Player', 'Customer', 'Product', 'Order', 'Article', 'Post', 'Message']
 

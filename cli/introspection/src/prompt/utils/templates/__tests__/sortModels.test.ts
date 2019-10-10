@@ -1,5 +1,5 @@
 import { sortModels } from '../sortModels'
-import { DMMF } from '@prisma/photon/dist/runtime/dmmf-types'
+import { DMMF } from '@prisma/photon'
 
 test('sortModels', () => {
   const models: DMMF.Model[] = [
@@ -8,24 +8,28 @@ test('sortModels', () => {
       fields: [],
       isEmbedded: false,
       dbName: null,
+      idFields: [],
     },
     {
       name: 'Bike',
       fields: [],
       isEmbedded: false,
       dbName: null,
+      idFields: [],
     },
     {
       name: 'Post',
       fields: [],
       isEmbedded: false,
       dbName: null,
+      idFields: [],
     },
     {
       name: 'User',
       fields: [],
       isEmbedded: false,
       dbName: null,
+      idFields: [],
     },
   ]
 

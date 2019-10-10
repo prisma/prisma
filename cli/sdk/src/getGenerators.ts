@@ -43,6 +43,12 @@ export async function getGenerators({
   baseDir = path.dirname(schemaPath),
   overrideGenerators,
 }: GetGeneratorOptions): Promise<Generator[]> {
+  if (!schemaPath) {
+    throw new Error(
+      `schemaPath for getGenerators got invalid value ${schemaPath}`,
+    )
+  }
+
   if (!fs.existsSync(schemaPath)) {
     throw new Error(`${schemaPath} does not exist`)
   }

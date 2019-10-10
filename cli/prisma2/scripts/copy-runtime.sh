@@ -4,7 +4,7 @@ mkdir -p runtime
 mkdir -p nexus_prisma_ncc_build
 mkdir -p prisma-test-utils_ncc
 mkdir -p build/photon-generator
-cp -R node_modules/@prisma/photon/runtime/* runtime
+cp -R node_modules/@prisma/photon/runtime/* build/runtime
 cp -R node_modules/@prisma/photon/generator-build/* build/photon-generator
 
 rm -rf runtime/prisma
@@ -14,8 +14,6 @@ cp node_modules/@prisma/studio-transports/build/photon-worker.js build/photon-wo
 rm -rf build/public
 mkdir build/public
 cp -R node_modules/@prisma/studio/build/* build/public
-rm -rf build/public/static/js/*.map
-rm -rf build/public1/static/js/*.map
 rm -rf build/prisma
 rm -rf build/runtime/prisma
 cp src/capture-worker.js build/dist/capture-worker.js
