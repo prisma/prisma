@@ -1,4 +1,4 @@
-import { Dictionary, GeneratorDefinitionWithPackage, getSchemaDirSync, getSchemaPathSync } from '@prisma/cli'
+import { Dictionary, getSchemaDirSync, getSchemaPath, getSchemaPathSync } from '@prisma/cli'
 import { getPlatform } from '@prisma/get-platform'
 import { getGenerators } from '@prisma/sdk'
 import 'array-flat-polyfill'
@@ -99,7 +99,7 @@ export class Lift {
           const after = Date.now()
           renderer && renderer.setState({ migrating: false, migratedIn: after - before })
           if (renderer) {
-            this.recreateStudioServer(datamodel)
+            this.recreateStudioServer(datamodel, providerAliases)
           }
         }
 
@@ -210,7 +210,7 @@ export class Lift {
     return this.getDatamodel()
   }
 
-  public async recreateStudioServer(datamodel: string) {
+  public async recreateStudioServer(datamodel: string, providerAliases: { [key: string]: string }) {
     try {
       if (this.studioServer) {
         this.studioServer.restart({ datamodel })
@@ -252,9 +252,13 @@ export class Lift {
       this.studioServer = new StudioServer({
         port: this.studioPort,
         debug: false,
-        datamodel,
         binaryPath: firstExistingPath.path,
         photonWorkerPath,
+        photonGenerator: {
+          version: packageJson.prisma.version,
+          providerAliases: providerAliases,
+        },
+        schemaPath: this.getDatamodelPath(),
       })
 
       await this.studioServer.start()
@@ -399,7 +403,7 @@ export class Lift {
       debug(...args)
     }
 
-    this.recreateStudioServer(datamodel)
+    this.recreateStudioServer(datamodel, options.providerAliases)
 
     const { migrationsToApply } = await this.getMigrationsToApply()
 

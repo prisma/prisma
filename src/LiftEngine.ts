@@ -60,7 +60,8 @@ export class LiftEngine {
   private initPromise?: Promise<void>
   constructor({
     projectDir,
-    binaryPath = eval(`require('path').join(__dirname, '../migration-engine')`), // ncc go home
+    binaryPath = process.env.PRISMA_MIGRATION_ENGINE_BINARY ||
+      eval(`require('path').join(__dirname, '../migration-engine')`), // ncc go home
     debug = false,
     schemaPath,
   }: LiftEngineOptions) {
