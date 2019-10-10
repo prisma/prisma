@@ -1,5 +1,6 @@
 import { PostgresConnector } from 'prisma-db-introspection'
-import { generateClient, isdlToDatamodel2 } from '@prisma/photon'
+// Continue: Make this work
+import { getGenerator, isdlToDatamodel2 } from '@prisma/sdk'
 import { ISDL } from 'prisma-datamodel'
 import { join, dirname } from 'path'
 import mkdir from 'make-dir'
@@ -8,6 +9,7 @@ import assert from 'assert'
 import pkgup from 'pkg-up'
 import del from 'del'
 import fs from 'fs'
+import path from 'path'
 
 const host = process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
 
@@ -85,23 +87,54 @@ async function inspect(client: Client, schema: string): Promise<ISDL> {
 }
 
 async function generate(isdl: ISDL) {
-  const datamodel = await isdlToDatamodel2(isdl, [
-    {
-      name: 'pg',
-      connectorType: 'postgresql',
-      url: {
-        value: `${host}?schema=public`,
-        fromEnvVar: null,
+  const datamodel = await isdlToDatamodel2(
+    isdl,
+    [
+      {
+        name: 'pg',
+        connectorType: 'postgresql',
+        url: {
+          value: `${host}?schema=public`,
+          fromEnvVar: null,
+        },
+        config: {},
       },
-      config: {},
+    ],
+    [
+      {
+        binaryTargets: [],
+        config: {},
+        name: 'photon',
+        output: tmp,
+        provider: 'photonjs',
+      },
+    ],
+  )
+
+  const schemaPath = path.join(tmp, 'prisma.schema')
+  fs.writeFileSync(schemaPath, datamodel)
+
+  const photonjsPath = require.resolve('@prisma/photon/generator-build')
+
+  const generator = await getGenerator({
+    schemaPath,
+    printDownloadProgress: false,
+    providerAliases: {
+      photonjs: photonjsPath,
     },
-  ])
-  await generateClient({
-    datamodel: datamodel,
-    cwd: tmp,
-    outputDir: tmp,
-    transpile: true,
+    baseDir: tmp,
   })
+
+  await generator.generate()
+
+  generator.stop()
+
+  // await generateClient({
+  //   datamodel: datamodel,
+  //   cwd: tmp,
+  //   outputDir: tmp,
+  //   transpile: true,
+  // })
 }
 
 function tests() {

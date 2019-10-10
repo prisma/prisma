@@ -1,4 +1,4 @@
-import { getDMMF } from '@prisma/photon'
+import { getDMMF } from '@prisma/photon/dist/utils/getDMMF'
 import { sortModels } from './sortModels'
 import { capitalize } from '@prisma/photon/dist/runtime/utils/common'
 
