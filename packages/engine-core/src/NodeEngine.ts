@@ -170,7 +170,7 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
 
     this.platform = this.platform || platform
 
-    const fileName = eval(`path.basename(__filename)`)
+    const fileName = eval(`require('path').basename(__filename)`)
     if (fileName === 'NodeEngine.js') {
       return this.getQueryEnginePath(this.platform, path.resolve(__dirname, `..`))
     } else {

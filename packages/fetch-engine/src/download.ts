@@ -4,7 +4,6 @@ import { promisify } from 'util'
 import chalk from 'chalk'
 
 // Packages
-import onDeath from 'death'
 import path from 'path'
 import Debug from 'debug'
 import makeDir from 'make-dir'
@@ -59,7 +58,11 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   }
   const plural = mergedOptions.binaryTargets.length > 1 ? 'ies' : 'y'
   const bar = options.showProgress
-    ? getBar(`Downloading ${mergedOptions.binaryTargets.map(p => chalk.bold(p)).join(' and ')} binar${plural}`)
+    ? getBar(
+        `Downloading ${mergedOptions.binaryTargets
+          .map(p => chalk.bold(p))
+          .join(' and ')} binar${plural} for\n  ${Object.keys(mergedOptions.binaries).join(' and ')}`,
+      )
     : undefined
   const progressMap: { [key: string]: number } = {}
   // Object.values is faster than Object.keys
@@ -151,15 +154,15 @@ async function downloadBinary({
     throw err
   }
 
-  onDeath(() => {
-    fs.writeFileSync(
-      targetPath,
-      '#!/usr/bin/env node\n' +
-        `console.log("The \'prisma ${binaryName}\' download did not complete successfully.")\n` +
-        'console.log("Please run \'npm i -g prisma2\' to reinstall!")\n',
-    )
-    process.exit()
-  })
+  // onDeath(() => {
+  //   fs.writeFileSync(
+  //     targetPath,
+  //     '#!/usr/bin/env node\n' +
+  //       `console.log("The \'prisma ${binaryName}\' download did not complete successfully.")\n` +
+  //       'console.log("Please run \'npm i -g prisma2\' to reinstall!")\n',
+  //   )
+  //   process.exit()
+  // })
 
   // Print an empty line
   const cacheDir = await getCacheDir(channel, version, platform)
