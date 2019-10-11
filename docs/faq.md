@@ -44,7 +44,7 @@ There will be rich query analytics for Photon.js soon. For now you can set the `
 
 ### How do schema migrations work with Photon?
 
-Photon.js is not opinionated on how exactly you migrate your database schema. You can keep your existing migration system and simply re-introspect your database schema after each migration to update Photon. Learn more in the [docs](./photon/use-only-photon.md). You can also always use [Lift](https://lift.prisma.io) to perform your migrations based on Prisma's declarative [data model definition](./data-modeling.md).
+Photon.js is not opinionated on how exactly you migrate your database schema. You can keep your existing migration system and re-introspect your database schema after each migration to update Photon. Learn more in the [docs](./photon/use-only-photon.md). You can also always use [Lift](https://lift.prisma.io) to perform your migrations based on Prisma's declarative [data model definition](./data-modeling.md).
 
 ### Is Photon.js production-ready? Should I start using it?
 
@@ -70,7 +70,7 @@ Also note that there some cloud offerings start to have solutions for connection
 
 ### Am I locked-in when using Lift? Is it easy to migrate off it?
 
-There's absolutely no lock-in with Lift. To stop using Lift, you can simply delete your [Prisma schema file](./prisma-schema-file.md), all existing migration folders on your file system and the `migrations` table in your database/schema.
+There's absolutely no lock-in with Lift. To stop using Lift, you can delete your [Prisma schema file](./prisma-schema-file.md), all existing migration folders on your file system and the `migrations` table in your database/schema.
 
 ### How do I see details about how Lift migrates my database schema?
 
@@ -80,7 +80,7 @@ Also, the `lift` CLI constantly prints the migration statements and more informa
 
 ### How can I extend a migration with custom functionality, e.g. running a script?
 
-Every migration can be extended with before/after hooks. You can simply put executable scripts into a migration folder that are named `before` and/or `after` (or `before.{sh,js}` and/or `after.{sh,js}`) and they will be picked up automatically by Lift when you're running `prisma2 lift up`.
+Every migration can be extended with before/after hooks. You can put executable scripts into a migration folder that are named `before` and/or `after` (or `before.{sh,js}` and/or `after.{sh,js}`) and they will be picked up automatically by Lift when you're running `prisma2 lift up`.
 
 ### Is Lift production-ready? Should I start using it?
 

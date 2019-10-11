@@ -148,4 +148,4 @@ When using MongoDB, you need to provide your [MongoDB connection string](https:/
 
 ### Demo scripts
 
-When you're selecting the **Demo script** option, the Prisma 2 CLI will provide a simple, runnable Node.js/TypeScript that showcases usage of the Photon API and gives you a foundation for further exploration.
+When you're selecting the **Demo script** option, the Prisma 2 CLI will provide a runnable Node.js/TypeScript script that showcases usage of the Photon API and gives you a foundation for further exploration.
