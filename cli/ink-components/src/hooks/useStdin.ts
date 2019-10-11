@@ -1,13 +1,16 @@
-import { StdinContext } from 'ink'
+import { useStdin as inkUseStdin } from 'ink'
 import React from 'react'
-import { Key } from 'readline'
-import { action, ActionKey } from '../helpers'
+import { Key, emitKeypressEvents } from 'readline'
+import { action } from '../helpers'
+import Debug from 'debug'
 
 export function useStdin(
   keyHandler: ({ actionKey: ActionKey, text: string, key: Key }) => void,
   deps: any[] = [],
 ) {
-  const { stdin, setRawMode } = React.useContext(StdinContext)
+  const { stdin, setRawMode } = inkUseStdin()
+
+  emitKeypressEvents(stdin)
 
   let didCancel = false
 
@@ -22,7 +25,7 @@ export function useStdin(
     stdin.on('keypress', handler)
 
     return () => {
-      didCancel = true
+      // didCancel = true
       stdin.removeListener('keypress', handler)
       setRawMode!(false)
     }

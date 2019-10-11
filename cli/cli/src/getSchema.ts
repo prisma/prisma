@@ -83,7 +83,7 @@ export function getSchemaSync(): string {
   const schemaPath = getSchemaPathSync()
 
   if (!schemaPath) {
-    throw new Error(`Could not find ${schemaPath}`)
+    throw new Error(`Could not find ${schemaPath || 'schema.prisma'}`)
   }
 
   return fs.readFileSync(schemaPath, 'utf-8')
