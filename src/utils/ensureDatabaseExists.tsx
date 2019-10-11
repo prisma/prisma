@@ -1,12 +1,13 @@
 import { getSchema } from '@prisma/cli'
 import { BorderBox, DummySelectable, TabIndexProvider } from '@prisma/ink-components'
-import { getConfig } from '@prisma/sdk'
+// import { TabIndexProvider, TabIndexContext } from '../ink/TabIndex'
+// import { getConfig } from '@prisma/sdk'
 import ansiEscapes from 'ansi-escapes'
 import chalk from 'chalk'
-import { Box, Color, Instance, render } from 'ink'
+import { Box, Color, Instance, render, useStdin } from 'ink'
 import Spinner from 'ink-spinner'
 const AnySpinner: any = Spinner
-import React, { useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { createDatabase } from '..'
 import { canConnectToDatabase } from '../liftEngineCommands'
 import { Link } from './Link'
@@ -16,7 +17,13 @@ export type LiftAction = 'create' | 'apply' | 'unapply' | 'dev'
 
 export async function ensureDatabaseExists(action: LiftAction, killInk: boolean, forceCreate: boolean = false) {
   const datamodel = await getSchema()
-  const config = await getConfig({ datamodel })
+  // const config = await getConfig({ datamodel })
+  const config: any = {
+    generators: [{ name: 'photon', provider: 'photonjs', output: '@generated/photon', binaryTargets: [], config: {} }],
+    datasources: [
+      { name: 'my_db', connectorType: 'sqlite', url: { fromEnvVar: null, value: 'file:dev7.db' }, config: {} },
+    ],
+  }
   const activeDatasource =
     config.datasources.length === 1
       ? config.datasources[0]
@@ -34,34 +41,24 @@ export async function ensureDatabaseExists(action: LiftAction, killInk: boolean,
   if (forceCreate) {
     await createDatabase(activeDatasource.url.value)
   } else {
-    await interactivelyCreateDatabase(activeDatasource.url.value, action, killInk)
+    await interactivelyCreateDatabase(activeDatasource.url.value, action)
   }
 }
 
-export async function interactivelyCreateDatabase(
-  connectionString: string,
-  action: LiftAction,
-  killInk: boolean,
-): Promise<void> {
-  await askToCreateDb(connectionString, action, killInk)
+export async function interactivelyCreateDatabase(connectionString: string, action: LiftAction): Promise<void> {
+  await askToCreateDb(connectionString, action)
 }
 
-export async function askToCreateDb(connectionString: string, action: LiftAction, killInk: boolean): Promise<void> {
+export async function askToCreateDb(connectionString: string, action: LiftAction): Promise<void> {
   return new Promise(resolve => {
     let app: Instance | undefined
 
-    const onDone = async () => {
+    const onDone = () => {
       if (app) {
-        // Seems like this is not necessary anymore
-        if (killInk) {
-          app.unmount()
-          await app.waitUntilExit()
-        }
+        app.unmount()
+        app.waitUntilExit()
       }
       // .write as console.log introduces an unwanted linebreak here
-      await new Promise(r => {
-        setTimeout(r, 50)
-      })
       process.stdout.write(ansiEscapes.eraseLines(11)) // height of the dialog
       resolve()
     }
@@ -104,6 +101,16 @@ const CreateDatabaseDialog: React.FC<DialogProps> = ({ connectionString, action,
       : credentials.type
 
   const schemaWord = 'database'
+
+  // let one = 1
+  // useEffect(() =>  {
+  //   setInterval(() => {
+  //     one = one === 1 ? 0 : 1
+  //     TabIndex.setActiveIndex(one ? 0 : 1)
+  //   }, 1000)
+  // })
+
+  // TabIndex.lockNavigation(false)
 
   return (
     <Box flexDirection="column">

@@ -55,7 +55,6 @@ const PanicDialog: React.FC<DialogProps> = ({ error, onDone, cliVersion, binaryV
       process.exit(1)
     }
     setSending(true)
-    tabIndexContext.lockNavigation(true)
     await sendPanic(error, cliVersion, binaryVersion)
     setDone(true)
     onDone()
