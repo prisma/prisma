@@ -2,6 +2,8 @@ import React from 'react'
 import { Key } from 'readline'
 import { useStdin } from '../hooks/useStdin'
 import { ActionKey } from '../helpers'
+import Debug from 'debug'
+const debug = Debug('TabIndex')
 
 interface TabIndexRegisterArgs {
   tabIndex: number

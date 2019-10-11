@@ -331,10 +331,10 @@
     got "^9.6.0"
     through2 "^3.0.1"
 
-"@prisma/fetch-engine@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.3.1.tgz#5b31fd0ce2811f95c41b231f4cb4b25e7f5c56c8"
-  integrity sha512-8YP55DCnBnMGDjcp30NPesZWm29N2p7gyTsGkOB6i1zV5NPRf+wSsw9wDmrqNajynn6HkUEyvW/UK8wPpCkDEA==
+"@prisma/fetch-engine@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.3.2.tgz#f561c9f37e2626bc9087eae98b0221c5049c8db3"
+  integrity sha512-dZLOkZ/xmpN2dPIiWFtu/memQZ3P865p3AT6XkcGkkmAaWBDoFZQAq++khi2afCVFnX5K37quMp3fkhkC4BlAQ==
   dependencies:
     "@prisma/get-platform" "^0.1.1"
     chalk "^2.4.2"
@@ -351,18 +351,18 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/generator-helper@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-0.0.5.tgz#82ea21789cddce10a918be0079308532236c9d8a"
-  integrity sha512-2vhhqprWgB/xBDKqdU0A9lAONnyHZ8uJLJPwa94mqsD9qSyygSToAo+z5uBjCtPNO/Vlvc0hk1uoVKDfBnNN9g==
+"@prisma/generator-helper@^0.0.11":
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-0.0.11.tgz#a6fcd227a74e08cdbd33a7d64f11634285c179d0"
+  integrity sha512-yZV819+aKmD4bUwrq/faiqfeZ9UiySGOcp5MHA3Y2F+TAn4unxHZBGQE2foPQ1wbOqqdnYYnlg0qMbiRmnmFLQ==
   dependencies:
     chalk "^2.4.2"
     debug "^4.1.1"
 
-"@prisma/generator-helper@^0.0.8":
-  version "0.0.8"
-  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-0.0.8.tgz#7a049984972e106ac2a93d813fa11de848f10b19"
-  integrity sha512-bB20roC+Eq8KGd9n1zoN20hCc3PiijU3G2QQqts2vA+eCmn3ApxvTjZWezDnNqhvSncj8ISbPLQRJVpyLTMyxw==
+"@prisma/generator-helper@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-0.0.5.tgz#82ea21789cddce10a918be0079308532236c9d8a"
+  integrity sha512-2vhhqprWgB/xBDKqdU0A9lAONnyHZ8uJLJPwa94mqsD9qSyygSToAo+z5uBjCtPNO/Vlvc0hk1uoVKDfBnNN9g==
   dependencies:
     chalk "^2.4.2"
     debug "^4.1.1"

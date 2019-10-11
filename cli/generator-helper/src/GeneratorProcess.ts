@@ -28,16 +28,6 @@ export class GeneratorProcess {
     if (!fs.existsSync(executablePath)) {
       throw new Error(`Can't find executable ${executablePath}`)
     }
-
-    if (!hasChmodX(executablePath)) {
-      throw new Error(
-        `${chalk.bold(
-          executablePath,
-        )} is not executable. Please run ${chalk.greenBright(
-          `chmod +x ${path.relative(process.cwd(), executablePath)}`,
-        )}`,
-      )
-    }
   }
   async init() {
     if (!this.initPromise) {
@@ -47,7 +37,7 @@ export class GeneratorProcess {
   }
   initSingleton(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.child = spawn(this.executablePath, {
+      this.child = spawn(process.execPath, [this.executablePath], {
         stdio: ['pipe', 'inherit', 'pipe'],
       })
 
