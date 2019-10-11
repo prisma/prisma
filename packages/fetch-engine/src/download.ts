@@ -61,7 +61,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     ? getBar(
         `Downloading ${mergedOptions.binaryTargets
           .map(p => chalk.bold(p))
-          .join(' and ')} binar${plural} for\n  ${Object.keys(mergedOptions.binaries).join(' and ')}`,
+          .join(' and ')} binar${plural} for ${Object.keys(mergedOptions.binaries).join(' and ')}`,
       )
     : undefined
   const progressMap: { [key: string]: number } = {}
