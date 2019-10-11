@@ -72,7 +72,19 @@ While this file mostly consists of the data model definition, it is a valid [sch
 
 ## Models
 
-Models represent the entities of your application domain. They are defined using `model` blocks in the data model.
+Models represent the entities of your application domain. They are defined using `model` blocks in the data model. In the [example](#example) data model above, `User`, `Profile`, `Post` and `Category` are models. Here's the `User` model again for reference:
+
+```
+model User {
+  id        Int      @id
+  createdAt DateTime @default(now())
+  email     String   @unique
+  name      String?
+  role      Role     @default(USER)
+  posts     Post[]
+  profile   Profile?
+}
+```
 
 On a technical level, a model maps to the underlying structures of the data source, e.g.:
 
