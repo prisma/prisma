@@ -1,7 +1,7 @@
 import { getSchema } from '@prisma/cli'
 import { BorderBox, DummySelectable, TabIndexProvider } from '@prisma/ink-components'
 // import { TabIndexProvider, TabIndexContext } from '../ink/TabIndex'
-// import { getConfig } from '@prisma/sdk'
+import { getConfig } from '@prisma/sdk'
 import ansiEscapes from 'ansi-escapes'
 import chalk from 'chalk'
 import { Box, Color, Instance, render, useStdin } from 'ink'
@@ -17,13 +17,7 @@ export type LiftAction = 'create' | 'apply' | 'unapply' | 'dev'
 
 export async function ensureDatabaseExists(action: LiftAction, killInk: boolean, forceCreate: boolean = false) {
   const datamodel = await getSchema()
-  // const config = await getConfig({ datamodel })
-  const config: any = {
-    generators: [{ name: 'photon', provider: 'photonjs', output: '@generated/photon', binaryTargets: [], config: {} }],
-    datasources: [
-      { name: 'my_db', connectorType: 'sqlite', url: { fromEnvVar: null, value: 'file:dev7.db' }, config: {} },
-    ],
-  }
+  const config = await getConfig({ datamodel })
   const activeDatasource =
     config.datasources.length === 1
       ? config.datasources[0]
