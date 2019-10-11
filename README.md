@@ -4,6 +4,8 @@ This repository is used as a central point to collect information and issues aro
 
 💡 The Prisma Framework is currently in Preview! [Limitations](./docs/limitations.md) include missing features, limited performance and stability issues. You can track the progress of the Prisma Framework on [**`isprisma2ready.com`**](https://www.isprisma2ready.com).
 
+You can find a number of ready-to-run Prisma Framework examples [here](https://github.com/prisma/prisma-examples/tree/prisma2). The example projects include use cases such as building GraphQL, REST or gRPC APIs (with Node.js or TypeScript) using the Prisma Frameowrk.
+
 ## What is the Prisma Framework?
 
 ![](https://i.imgur.com/FmaRakd.png)
