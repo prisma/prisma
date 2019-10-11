@@ -47,3 +47,4 @@ Apply any migrations that have not been applied yet.
 ### `prisma2 lift down`
 
 Undo migrations.
+
