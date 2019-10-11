@@ -35,7 +35,7 @@ node_modules/@generated/photon
 
 ## Photon.js should be viewed as an npm package
 
-Node.js libraries are typically installed as npm dependencies using `npm install`. The respective packages are then located inside the [`node_modules`](https://docs.npmjs.com/files/folders#node-modules) directory from where they can be easily imported into application code.
+Node.js libraries are typically installed as npm dependencies using `npm install`. The respective packages are then located inside the [`node_modules`](https://docs.npmjs.com/files/folders#node-modules) directory from where they can be imported into application code.
 
 Because Photon.js is a custom API for _your_ specific database setup, it can't follow that model. It needs to be generated locally instead of being installed from a central repository like npm. However, the mental model for Photon.js should still be that of an Node module.
 
@@ -43,7 +43,7 @@ Because Photon.js is a custom API for _your_ specific database setup, it can't f
 
 ### Easy imports
 
-By generating Photon.js into `node_modules/@generated`, you can easily import it into your code:
+By generating Photon.js into `node_modules/@generated`, you can import it into your code:
 
 ```js
 import { Photon } from '@generated/photon'

@@ -228,7 +228,7 @@ import { Photon } from '@generated/photon'
 
 ## 4. Setting up a connection
 
-In TypeORM, there are several ways to create a connection. The most simple and common way is to use `createConnection` and `createConnections` functions: 
+In TypeORM, there are several ways to create a connection. The most common way is to use `createConnection` and `createConnections` functions: 
 
 [index.ts](https://github.com/infoverload/migration_typeorm_photon/blob/typeorm/src/index.ts)
 ```ts

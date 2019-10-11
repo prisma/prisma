@@ -27,7 +27,7 @@ The following environment variables can be provided:
 - `HTTP_PROXY` or `http_proxy`: Proxy URL for http traffic, for example `http://localhost:8080`
 - `HTTPS_PROXY` or `https_proxy`: Proxy URL for https traffic, for example `https://localhost:8080`
 
-> To get a simple local proxy, you can also use the [`proxy`](https://www.npmjs.com/package/proxy) module:
+> To get a local proxy, you can also use the [`proxy`](https://www.npmjs.com/package/proxy) module:
 
 
 ## Commands

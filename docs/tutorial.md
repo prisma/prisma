@@ -14,7 +14,7 @@ This tutorial will teach you how to:
 
 We will start from scratch and use **TypeScript** with a **PostgreSQL** database in this tutorial. You can set up your PostgreSQL database [locally](https://www.robinwieruch.de/postgres-sql-macos-setup/) or using a hosting provider such as [Heroku](https://elements.heroku.com/addons/heroku-postgresql) or [Digital Ocean](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04). The PostgreSQL database used in this tutorial is hosted on Heroku.
 
-> **Note**: If you don't want to set up a PostgreSQL database, you can still follow along by choosing SQLite when running through the flow of the `prisma2 init` command. One of Prisma's main benefits is that it lets you easily swap out the data sources your application connects to. So, while you can start with SQLite, mapping the same setup to PostgreSQL later on can be done by simply adjusting a few lines in your [Prisma schema file](./prisma-schema-file.md).
+> **Note**: If you don't want to set up a PostgreSQL database, you can still follow along by choosing SQLite when running through the flow of the `prisma2 init` command. One of Prisma's main benefits is that it lets you swap out the data sources your application connects to. So, while you can start with SQLite, mapping the same setup to PostgreSQL later on can be done by adjusting a few lines in your [Prisma schema file](./prisma-schema-file.md).
 
 ## 1. Install the Prisma 2 CLI
 
@@ -234,7 +234,7 @@ The project also contains a number of additional files required for a typical fo
 - `package.json`: Defines your project's Node.js dependencies.
 - `tsconfig.json`: Specifies your TypeScript configuration. Note that Photon.js currently requires the `esModuleInterop` property to be set to `true`.
 - `node_modules/@generated/photon`: Contains the generated Photon.js code. 
-- `script.ts`: Contains the actual "application code", which in this case is a simple script demonstrating some Photon.js API calls.
+- `script.ts`: Contains the actual "application code", which in this case is a script demonstrating some Photon.js API calls.
 
 Having Photon.js located inside `node_modules/@generated` enables you to import it in your code as follows:
 
@@ -281,7 +281,7 @@ Now, let's finally consider the _Next steps_ again that had been printed to the 
 
 ![](https://imgur.com/xK3c2HH.png)
 
-The instructions say to navigate into the project directory, start Prisma's development mode and finally execute the demo script. You'll skip the `prisma2 dev` command for now though and just run the `script.ts` script. Before doing so, let's quickly take a look at its contents:
+The instructions say to navigate into the project directory, start Prisma's development mode and finally execute the demo script. You'll skip the `prisma2 dev` command for now though and run the `script.ts` script. Before doing so, let's quickly take a look at its contents:
 
 ```ts
 import { Photon } from '@generated/photon'
@@ -516,7 +516,7 @@ Every schema migration with Lift follows a 3-step-process:
 
 ### 6.1. Save the migration on the file system
 
-With Lift, every database migration gets persisted on your file system, represented by a number of [files](./lift/migration-files.md). This lets you keep a migration history of you database schema and understand how their project evolves over time. It also enables rolling back and "replaying" migrations easily.
+With Lift, every database migration gets persisted on your file system, represented by a number of [files](./lift/migration-files.md). This lets you keep a migration history of you database schema and understand how their project evolves over time. It also enables rolling back and "replaying" migrations.
 
 > **Note**: Lift also creates a table called `_Migration` in your database that additionally stores the details of every migration.
 
