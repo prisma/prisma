@@ -496,31 +496,31 @@
     p-map "^3.0.0"
     prisma-datamodel "1.36.0-test.2"
 
-"@prisma/studio-server@0.116.0":
-  version "0.116.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.116.0.tgz#7dff6e726ea542e3868fc0a5e5c27f56d014ad78"
-  integrity sha512-0TyfMWFXqjx2lb/+v/MoEz4rFGjV60lWQGkZvg5DFXzBPaILAnb174+mexbYqhb/tlwDTYjHWJEq+wOhuULMhg==
+"@prisma/studio-server@0.117.0":
+  version "0.117.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.117.0.tgz#a6b555c4fc64a0b69df66eaa8424c7605173b382"
+  integrity sha512-U30iMH/5JivYjh9bRUizCBk7+bkEXniXsRJj7HEC/EhRfq7PQfaoS2oa53V+k7pCwErcRmzDdUMCQ+ZKGdHh6g==
   dependencies:
     "@prisma/generator-helper" "0.0.8"
     "@prisma/sdk" latest
-    "@prisma/studio" "0.116.0"
-    "@prisma/studio-transports" "0.116.0"
+    "@prisma/studio" "0.117.0"
+    "@prisma/studio-transports" "0.117.0"
     "@sentry/node" "^5.6.2"
     express "^4.17.1"
     express-ws "^4.0.0"
 
-"@prisma/studio-transports@0.116.0":
-  version "0.116.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.116.0.tgz#e35544f173d7875d493fea32120133161ab0011e"
-  integrity sha512-b4fPEpYAkMN6UAOhtzc3OF3MkbU1XFvTJjLMTiv9rsvo1PZWn4BSNfBux0CW86lESfCFh5wsgUNq87kuPYtbqg==
+"@prisma/studio-transports@0.117.0":
+  version "0.117.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.117.0.tgz#59b36f10868988adc7fec00efb2b7880b48b941a"
+  integrity sha512-6wbpKfMGZ+KAuCLMPd2H7WLWrNZYll63nhqpuuq3expA2bdPVOEdO6mDoJo6XiK4e0fD3wo2FfjlDHNKanl5pQ==
   dependencies:
     "@sentry/node" "^5.6.2"
     strip-ansi "^5.2.0"
 
-"@prisma/studio@0.116.0":
-  version "0.116.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.116.0.tgz#77e566ec7a6d3d0b7eb4001f481fc8a151fc12d7"
-  integrity sha512-MsvtTQ2Wx00O9IbzpUywLK6FlqLU9GxjZKLO6kIbGgqrnYVsSyrXqWe1lS8QS0CwDESSQQleVG0xtAt3I0PK9g==
+"@prisma/studio@0.117.0":
+  version "0.117.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.117.0.tgz#2f2edcf8ab21ea3c17f54d947fb4389d63c0b18d"
+  integrity sha512-QhWpwTniWTEKk3503LGu0ez7TlPT7jpixhOyQa51ZUxp2OAWNKXIJi7Elq4Yr/PuTtjEukbDcxc0LM3FK+glbA==
 
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
