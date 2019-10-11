@@ -38,24 +38,28 @@ test('sortModels', () => {
       Object {
         "dbName": null,
         "fields": Array [],
+        "idFields": Array [],
         "isEmbedded": false,
         "name": "User",
       },
       Object {
         "dbName": null,
         "fields": Array [],
+        "idFields": Array [],
         "isEmbedded": false,
         "name": "Post",
       },
       Object {
         "dbName": null,
         "fields": Array [],
+        "idFields": Array [],
         "isEmbedded": false,
         "name": "Bike",
       },
       Object {
         "dbName": null,
         "fields": Array [],
+        "idFields": Array [],
         "isEmbedded": false,
         "name": "Car",
       },
