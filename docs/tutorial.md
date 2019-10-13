@@ -234,7 +234,7 @@ The project also contains a number of additional files required for a typical fo
 - `package.json`: Defines your project's Node.js dependencies.
 - `tsconfig.json`: Specifies your TypeScript configuration. Note that Photon.js currently requires the `esModuleInterop` property to be set to `true`.
 - `node_modules/@generated/photon`: Contains the generated Photon.js code. 
-- `script.ts`: Contains the actual "application code", which in this case is a script demonstrating some Photon.js API calls.
+- `script.ts`: Contains the actual "application code", which in this case is a sample script demonstrating some Photon.js API calls.
 
 Having Photon.js located inside `node_modules/@generated` enables you to import it in your code as follows:
 

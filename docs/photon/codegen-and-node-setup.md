@@ -41,7 +41,7 @@ Because Photon.js is a custom API for _your_ specific database setup, it can't f
 
 ## Why is Photon.js generated into `node_modules/@generated` by default?
 
-### One-line imports
+### Importing Photon.js
 
 By generating Photon.js into `node_modules/@generated`, you can import it into your code:
 
