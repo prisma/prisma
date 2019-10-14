@@ -37,9 +37,13 @@ export class GeneratorProcess {
   }
   initSingleton(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.child = spawn(process.execPath, [this.executablePath], {
-        stdio: ['pipe', 'inherit', 'pipe'],
-      })
+      this.child = spawn(
+        process.execPath,
+        ['--max-old-space-size=8096', this.executablePath],
+        {
+          stdio: ['pipe', 'inherit', 'pipe'],
+        },
+      )
 
       this.child.on('exit', code => {
         this.exitCode = code
