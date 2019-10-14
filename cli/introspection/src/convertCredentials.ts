@@ -88,6 +88,7 @@ function databaseTypeToProtocol(databaseType: DatabaseType): string {
 function protocolToDatabaseType(protocol: string): DatabaseType {
   switch (protocol) {
     case 'postgresql:':
+    case 'postgres:':
       return DatabaseType.postgres
     case 'mongodb:':
       return DatabaseType.mongo
