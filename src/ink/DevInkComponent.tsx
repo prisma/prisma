@@ -1,17 +1,17 @@
-import React, { Component } from 'react'
-import { Color, Box, StdoutContext, StdinContext } from 'ink'
-import Link from 'ink-link'
-import supportsHyperlinks from 'supports-hyperlinks'
 import cliCursor from 'cli-cursor'
-import Spinner from 'ink-spinner'
+import memoize from 'fast-memoize'
+import { Box, Color, StdinContext, StdoutContext } from 'ink'
+import Link from 'ink-link'
+import React, { Component } from 'react'
+import stripAnsi from 'strip-ansi'
+import supportsHyperlinks from 'supports-hyperlinks'
 import { formatms } from '../utils/formartms'
-import { printDatamodelDiff } from '../utils/printDatamodelDiff'
 import { missingGeneratorMessage } from '../utils/generation/missingGeneratorMessage'
 import { renderDate } from '../utils/now'
-import stripAnsi from 'strip-ansi'
-import memoize from 'fast-memoize'
+import { printDatamodelDiff } from '../utils/printDatamodelDiff'
+import { Spinner } from './Spinner'
 
-export type GeneratorInfo = {
+export interface GeneratorInfo {
   name: string
   generatedIn: number | undefined
   generating: boolean
@@ -36,7 +36,7 @@ export interface Props extends DevComponentProps {
   setRawMode: ((mode: boolean) => void) | undefined
 }
 
-export type State = {
+export interface State {
   showDiff: boolean
   diffScroll: number
 }
@@ -50,8 +50,8 @@ const BACKSPACE = '\x08'
 const DELETE = '\x7F'
 
 class DevComponent extends Component<Props, State> {
-  resizeInterval: any
-  state = {
+  public resizeInterval: any
+  public state = {
     showDiff: false,
     diffScroll: 0,
   }
@@ -64,12 +64,12 @@ class DevComponent extends Component<Props, State> {
   get diff(): { diff: string; rowCount: number } {
     return this.getDiff()
   }
-  getDiff = memoize(() => {
+  public getDiff = memoize(() => {
     const { datamodelBefore, datamodelAfter } = this.props
     const diff = printDatamodelDiff(datamodelBefore, datamodelAfter)
     return { diff, rowCount: stripAnsi(diff).split('\n').length }
   })
-  componentDidMount() {
+  public componentDidMount() {
     cliCursor.hide()
     process.stdout.on('resize', () => {
       this.forceUpdate()
@@ -116,14 +116,14 @@ class DevComponent extends Component<Props, State> {
     }
   }
 
-  componentWillUnmount() {
+  public componentWillUnmount() {
     cliCursor.show()
     if (this.props.setRawMode) {
       this.props.setRawMode(false)
     }
   }
 
-  trimmedDiff() {
+  public trimmedDiff() {
     return this.diff.diff
     // const { diff, rowCount } = this.diff
     // const { diffScroll } = this.state
@@ -137,7 +137,7 @@ class DevComponent extends Component<Props, State> {
     // return lines.slice(0, rowCount + diffScroll).join('\n')
   }
 
-  render() {
+  public render() {
     const { generators } = this.props
     const smallScreen = this.height <= 16
     const paddingTop = smallScreen ? 1 : 2
