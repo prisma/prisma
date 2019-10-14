@@ -32,6 +32,7 @@ export interface DownloadOptions {
   showProgress?: boolean
   progressCb?: (progress: number) => any
   version?: string
+  skipDownload?: boolean
 }
 
 interface DownloadBinaryOptions {
@@ -50,11 +51,12 @@ export type BinaryPaths = {
 }
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
+  const platform = await getPlatform()
   const mergedOptions: DownloadOptions = {
-    binaryTargets: [await getPlatform()],
+    binaryTargets: [platform],
     version: 'latest',
     ...options,
-    binaries: mapKeys(options.binaries, engineTypeToBinaryType), // just necessary to support both camelCase and hyphen-case
+    binaries: mapKeys(options.binaries, key => engineTypeToBinaryType(key, platform)), // just necessary to support both camelCase and hyphen-case
   }
   const plural = mergedOptions.binaryTargets.length > 1 ? 'ies' : 'y'
   const bar = options.showProgress
@@ -99,14 +101,16 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
           binaryPaths[binaryName][platform] = targetPath
 
-          await downloadBinary({
-            sourcePath,
-            binaryName: binaryName as BinaryKind,
-            platform,
-            version: mergedOptions.version,
-            targetPath,
-            progressCb: collectiveCallback ? collectiveCallback(sourcePath) : undefined,
-          })
+          if (!options.skipDownload) {
+            await downloadBinary({
+              sourcePath,
+              binaryName: binaryName as BinaryKind,
+              platform,
+              version: mergedOptions.version,
+              targetPath,
+              progressCb: collectiveCallback ? collectiveCallback(sourcePath) : undefined,
+            })
+          }
         }),
       )
     }),
@@ -154,16 +158,6 @@ async function downloadBinary({
     throw err
   }
 
-  // onDeath(() => {
-  //   fs.writeFileSync(
-  //     targetPath,
-  //     '#!/usr/bin/env node\n' +
-  //       `console.log("The \'prisma ${binaryName}\' download did not complete successfully.")\n` +
-  //       'console.log("Please run \'npm i -g prisma2\' to reinstall!")\n',
-  //   )
-  //   process.exit()
-  // })
-
   // Print an empty line
   const cacheDir = await getCacheDir(channel, version, platform)
   const cachedTargetPath = path.join(cacheDir, binaryName)
@@ -203,7 +197,7 @@ async function downloadBinary({
   }
 }
 
-function engineTypeToBinaryType(engineType: string): string {
+function engineTypeToBinaryType(engineType: string, platform: string): string {
   if (engineType === 'introspectionEngine') {
     return 'introspection-engine' as any // TODO: Remove as any as soon as type added to @prisma/fetch-engine
   }
@@ -214,6 +208,10 @@ function engineTypeToBinaryType(engineType: string): string {
 
   if (engineType === 'queryEngine') {
     return 'query-engine'
+  }
+
+  if (engineType === 'native') {
+    return platform
   }
 
   return engineType

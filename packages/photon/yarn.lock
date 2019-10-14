@@ -316,7 +316,7 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@prisma/cli@0.1.11", "@prisma/cli@^0.1.10", "@prisma/cli@^0.1.6":
+"@prisma/cli@0.1.11", "@prisma/cli@^0.1.11", "@prisma/cli@^0.1.6":
   version "0.1.11"
   resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.1.11.tgz#0a812596088cb710432d76aeb18afd6c118eccac"
   integrity sha512-9HgpQgsVnaldYl38cl43rC1wkcHXvnmGff5lvG4t1GeppJFVwikY/kRNPgj0oiudkyUlcsxEjLyH8cK6JcNIVg==
@@ -340,10 +340,10 @@
     got "^9.6.0"
     through2 "^3.0.1"
 
-"@prisma/fetch-engine@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.3.2.tgz#f561c9f37e2626bc9087eae98b0221c5049c8db3"
-  integrity sha512-dZLOkZ/xmpN2dPIiWFtu/memQZ3P865p3AT6XkcGkkmAaWBDoFZQAq++khi2afCVFnX5K37quMp3fkhkC4BlAQ==
+"@prisma/fetch-engine@^0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@prisma/fetch-engine/-/fetch-engine-0.3.3.tgz#fa5cba20702b194a53096523775a8dac1d00b408"
+  integrity sha512-rghdSlS730uNNpblOrknQfHKFlzh6RjyTdzOKeUprMuRiD3/Sm3AFgbmc0ldgB7ErhU4UyTD4msvpffGfEbmIQ==
   dependencies:
     "@prisma/get-platform" "^0.1.1"
     chalk "^2.4.2"
@@ -383,14 +383,14 @@
   dependencies:
     debug "^4.1.1"
 
-"@prisma/sdk@^0.0.10":
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/@prisma/sdk/-/sdk-0.0.10.tgz#b59304bfbd3f9abecabf795125c5c2da7ab92894"
-  integrity sha512-AhOtuzkl7ncdff99dyeaxxEtiYgjONb/N6BiOkYIn+XAp79639ApxC9tRnbcYPAXT9MXJDFUxD3E0peVW9hvhA==
+"@prisma/sdk@^0.0.12":
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/@prisma/sdk/-/sdk-0.0.12.tgz#e354b330ed2f4b0d10549c37b7da4027f178306a"
+  integrity sha512-H90XSRAMyrsAA3mKjnb9dFnR/zuge7CmYIs4uIPIiYoGxphneucLN23YWLBGJgm+Pb0HdwVR/3K9A1PcYi/fKQ==
   dependencies:
-    "@prisma/cli" "^0.1.10"
+    "@prisma/cli" "^0.1.11"
     "@prisma/engine-core" "^0.0.98"
-    "@prisma/fetch-engine" "^0.3.2"
+    "@prisma/fetch-engine" "^0.3.3"
     "@prisma/generator-helper" "^0.0.11"
     "@prisma/get-platform" "^0.1.2"
     chalk "^2.4.2"
