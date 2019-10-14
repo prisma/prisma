@@ -13,7 +13,7 @@ import { getProxyAgent } from './getProxyAgent'
 import { maskSchema } from './maskSchema'
 const debug = Debug('sendPanic')
 
-export async function sendPanic(error: LiftPanic, cliVersion: string, binaryVersion: string) {
+export async function sendPanic(error: LiftPanic, cliVersion: string, binaryVersion: string): Promise<number | void> {
   try {
     const schema = fs.readFileSync(error.schemaPath, 'utf-8')
     const maskedSchema = maskSchema(schema)
@@ -36,7 +36,8 @@ export async function sendPanic(error: LiftPanic, cliVersion: string, binaryVers
     const zip = await makeErrorZip(error)
     await uploadZip(zip, signedUrl)
 
-    await makeErrorReportCompleted(signedUrl)
+    const id = await makeErrorReportCompleted(signedUrl)
+    return id
   } catch (e) {
     debug(e)
   }
@@ -105,7 +106,7 @@ export enum ErrorKind {
   RUST_PANIC = 'RUST_PANIC',
 }
 
-export async function createErrorReport(data: CreateErrorReportInput) {
+export async function createErrorReport(data: CreateErrorReportInput): Promise<string> {
   const result = await request(
     `mutation ($data: CreateErrorReportInput!) {
     createErrorReport(data: $data)
@@ -115,7 +116,7 @@ export async function createErrorReport(data: CreateErrorReportInput) {
   return result.createErrorReport
 }
 
-export async function makeErrorReportCompleted(signedUrl: string) {
+export async function makeErrorReportCompleted(signedUrl: string): Promise<number> {
   const result = await request(
     `mutation ($signedUrl: String!) {
   markErrorReportCompleted(signedUrl: $signedUrl)
