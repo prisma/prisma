@@ -1,6 +1,6 @@
 # Getting started
 
-The easiest way to get started with Photon and/or Lift is by installing the Prisma CLI and running the interactive `init` command:
+The quickest way to get started with Photon and/or Lift is by installing the Prisma CLI and running the interactive `init` command:
 
 ```
 npm install -g prisma2
@@ -31,7 +31,7 @@ Later, the wizard asks you which kind of database you want to use with Photon/Li
 - **PostgreSQL**
 - MongoDB (coming soon)
 
-Note that both, **MySQL** and **PostgreSQL** options, required you to run a database that you can connect to in the next step. If you don't have a database running, choose **SQLite** for an easy setup and let the wizard create a new SQLite database file for you.
+Note that both, **MySQL** and **PostgreSQL** options, required you to run a database that you can connect to in the next step. If you don't have a database running, choose **SQLite** and let the wizard create a new SQLite database file for you.
 
 ### Database credentials
 
