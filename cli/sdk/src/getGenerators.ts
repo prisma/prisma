@@ -8,7 +8,10 @@ import {
 } from '@prisma/generator-helper'
 import 'flat-map-polyfill'
 import chalk from 'chalk'
-import { BinaryDownloadConfiguration } from '@prisma/fetch-engine/dist/download'
+import {
+  BinaryDownloadConfiguration,
+  DownloadOptions,
+} from '@prisma/fetch-engine/dist/download'
 
 import { getConfig, getDMMF } from './engineCommands'
 import { download } from '@prisma/fetch-engine'
@@ -26,6 +29,7 @@ export type GetGeneratorOptions = {
   printDownloadProgress?: boolean
   baseDir?: string // useful in tests to resolve the base dir from which `output` is resolved
   overrideGenerators?: GeneratorConfig[]
+  skipDownload?: boolean
 }
 
 /**
@@ -42,6 +46,7 @@ export async function getGenerators({
   printDownloadProgress,
   baseDir = path.dirname(schemaPath),
   overrideGenerators,
+  skipDownload,
 }: GetGeneratorOptions): Promise<Generator[]> {
   if (!schemaPath) {
     throw new Error(
@@ -135,12 +140,14 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     const binaries = generators.flatMap(g =>
       g.manifest ? g.manifest.requiresEngines || [] : [],
     )
+    const platform = await getPlatform()
+
     let binaryTargets = unique(
       generatorConfigs.flatMap(g => g.binaryTargets || []),
-    )
+    ).map(t => (t === 'native' ? platform : t))
 
     if (binaryTargets.length === 0) {
-      binaryTargets = [await getPlatform()]
+      binaryTargets = [platform]
     }
 
     const binariesConfig: BinaryDownloadConfiguration = binaries.reduce(
@@ -151,7 +158,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
       {},
     )
 
-    const downloadParams = {
+    const downloadParams: DownloadOptions = {
       binaries: binariesConfig,
       binaryTargets: binaryTargets as any[],
       showProgress:
@@ -159,6 +166,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           ? printDownloadProgress
           : true,
       version: version || 'latest',
+      skipDownload,
     }
 
     const binaryPathsWithEngineType = await download(downloadParams)
