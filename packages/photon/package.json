@@ -7,7 +7,7 @@
   "scripts": {
     "tsc": "tsc -d",
     "build": "yarn tsc && yarn ncc:runtime && yarn ncc:generator",
-    "test": "jest",
+    "test": "yarn tsc && jest",
     "precommit": "lint-staged && jest",
     "ncc:runtime": "node scripts/build-runtime.js",
     "ncc:generator": "rm -rf generator-build && ncc build dist/generator.js -o generator-build && sed -i.bak 's/env ts-node/env node --max-old-space-size=2048/g' 'generator-build/index.js' && rm -f generator-build/index.js.bak && chmod +x generator-build/index.js",
