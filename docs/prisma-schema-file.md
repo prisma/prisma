@@ -1,6 +1,6 @@
 # Prisma schema file
 
-The Prisma schema file (short: _schema file_, _Prisma schema_ or just _schema_) is the main configuration file for your Prisma setup. It is typically called `schema.prisma` and consists of the following parts:
+The Prisma schema file (short: _schema file_, _Prisma schema_ or _schema_) is the main configuration file for your Prisma setup. It is typically called `schema.prisma` and consists of the following parts:
 
 - [**Data sources**](./data-sources.md): Specify the details of the data sources Prisma should connect to (e.g. a PostgreSQL database)
 - [**Data model definition**](./data-modeling.md): Specifies your application models (the shape of the data per data source)
@@ -15,7 +15,7 @@ You can also [use environment variables](#using-environment-variables) inside th
 
 ## Example
 
-Here is a simple example for a schema file that specifies a data source (SQLite), a generator (Photon.js) and a simple data model definition:
+Here is an example for a schema file that specifies a data source (SQLite), a generator (Photon.js) and a data model definition:
 
 ```groovy
 // schema.prisma
@@ -112,7 +112,7 @@ datasource mongo {
 }
 ```
 
-This is just a general convention, technically data sources can be named anything. Lowercase spelling is typically preferred. There might be special
+This is a general convention, technically data sources can be named anything. Lowercase spelling is typically preferred. There might be special
 circumstances, such as [switching data sources based on environments](#switching-data-sources-based-on-environments), when it can make sense to apply a
 different naming scheme.
 
