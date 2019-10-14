@@ -15,6 +15,7 @@
     "@prisma/generator-helper": "^0.0.8",
     "@prisma/photon": "^0.2.100",
     "@prisma/sdk": "^0.0.6",
+    "@prisma/studio-transports": "^0.121.0",
     "@types/charm": "^1.0.1",
     "@types/debug": "^4.1.4",
     "@types/diff": "^4.0.2",
