@@ -1,10 +1,10 @@
 import { createPatch } from 'diff'
-import getUserName from 'git-user-name'
 import getEmail from 'git-user-email'
+import getUserName from 'git-user-name'
 import { DatabaseStep } from '../types'
 import { printDetailedDatabaseSteps } from './printDatabaseSteps'
 
-export type MigrationReadmeInput = {
+export interface MigrationReadmeInput {
   migrationId: string
   lastMigrationId: string
   datamodelA: string
@@ -32,7 +32,7 @@ export function printMigrationReadme({
 # Migration \`${migrationId}\`
 
 This migration has been generated${byStr} at ${new Date().toLocaleString('en-US')}.
-You can check out the [state of the datamodel](./datamodel.prisma) after the migration.
+You can check out the [state of the schema](./schema.prisma) after the migration.
 
 ## Database Steps
 

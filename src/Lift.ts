@@ -29,6 +29,7 @@ import { formatms } from './utils/formartms'
 import { groupBy } from './utils/groupBy'
 import { isWatchMigrationName } from './utils/isWatchMigrationName'
 import { deserializeLockFile, initLockFile, serializeLockFile } from './utils/LockFile'
+import { maskSchema } from './utils/maskSchema'
 import { now, timestampToDate } from './utils/now'
 import plusX from './utils/plusX'
 import { highlightMigrationsSQL, printDatabaseStepsOverview } from './utils/printDatabaseSteps'
@@ -657,7 +658,7 @@ export class Lift {
 
     return {
       ['steps.json']: JSON.stringify({ version: '0.3.14-fixed', steps: datamodelSteps }, null, 2),
-      ['schema.prisma']: datamodel,
+      ['schema.prisma']: maskSchema(datamodel),
       ['README.md']: printMigrationReadme({
         migrationId: migration.id,
         lastMigrationId: lastMigration ? lastMigration.id : '',

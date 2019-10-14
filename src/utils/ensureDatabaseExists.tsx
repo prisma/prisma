@@ -28,6 +28,8 @@ export async function ensureDatabaseExists(action: LiftAction, killInk: boolean,
   }
 
   const { status } = await canConnectToDatabase(activeDatasource.url.value)
+  // TODO: Handle when the db credentials are completely invalid
+  // Wait for Tom to add handling for SSL case
   if (status === 'Ok') {
     return
   }
