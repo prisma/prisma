@@ -439,7 +439,7 @@ class PayloadType {
                   `${getPayloadName((f.outputType.type as DMMF.OutputType).name, projection)}<Extract${getFieldArgName(
                     f,
                     projection,
-                  )}<S[P]>>`,
+                  )}<S[P]>>${!f.outputType.isRequired ? ' | null' : ''}`,
                 )}`,
                 8,
               ),
