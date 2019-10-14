@@ -433,6 +433,9 @@ export class Lift {
 
     if (localMigrations.length > 0) {
       this.datamodelBeforeWatch = localMigrations[localMigrations.length - 1].datamodel
+      renderer.setState({
+        datamodelBefore: this.datamodelBeforeWatch,
+      })
     }
 
     await makeDir(this.devMigrationsDir)

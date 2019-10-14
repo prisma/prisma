@@ -64,11 +64,11 @@ class DevComponent extends Component<Props, State> {
   get diff(): { diff: string; rowCount: number } {
     return this.getDiff()
   }
-  public getDiff = memoize(() => {
+  public getDiff = () => {
     const { datamodelBefore, datamodelAfter } = this.props
     const diff = printDatamodelDiff(datamodelBefore, datamodelAfter)
     return { diff, rowCount: stripAnsi(diff).split('\n').length }
-  })
+  }
   public componentDidMount() {
     cliCursor.hide()
     process.stdout.on('resize', () => {
@@ -149,7 +149,7 @@ class DevComponent extends Component<Props, State> {
           <Box flexDirection="column">
             <Box>
               <Color>
-                Changes in datamodel since last <Color bold>prisma lift save</Color>
+                Changes in datamodel since last <Color bold>prisma2 lift save</Color>
               </Color>
             </Box>
             <Box marginTop={1} marginLeft={2}>
@@ -269,14 +269,16 @@ class DevComponent extends Component<Props, State> {
                 {this.props.migratedIn ? <> in {formatms(this.props.migratedIn)}</> : null}
               </Color>
             )}
-            <Box marginLeft={2}>
-              <Color dim>
-                To save changes into a migration file, run{' '}
-                <Color bold dim green>
-                  prisma2 lift save
+            {this.diff.diff.trim() !== '' && (
+              <Box marginLeft={2}>
+                <Color dim>
+                  To save changes into a migration file, run{' '}
+                  <Color bold dim green>
+                    prisma2 lift save
+                  </Color>
                 </Color>
-              </Color>
-            </Box>
+              </Box>
+            )}
           </Box>
         </Box>
         <Box flexDirection="column" marginLeft={2} marginTop={0}>
