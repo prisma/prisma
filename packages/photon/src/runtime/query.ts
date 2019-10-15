@@ -127,16 +127,6 @@ ${indent(this.children.map(String).join('\n'), tab)}
       }
     }
 
-    function renderN(n: number, max: number): string {
-      const wantedLetters = String(max).length
-      const hasLetters = String(n).length
-      if (hasLetters >= wantedLetters) {
-        return String(n)
-      }
-
-      return String(' '.repeat(wantedLetters - hasLetters) + n)
-    }
-
     const renderErrorStr = (callsite?: string) => {
       const { stack, indent: indentValue, afterLines } = printStack({
         callsite,
@@ -645,19 +635,21 @@ export function transformDocument(document: Document): Document {
           return new Arg({ ...ar, value })
         } else if (ar.value instanceof Args) {
           if (ar.schemaArg && !ar.schemaArg.isRelationFilter) {
-            return ar.value.args.map(
-              a =>
-                new Arg({
-                  key: getFilterArgName(ar.key, a.key),
-                  value: a.value,
-                  /**
-                   * This is an ugly hack. It assumes, that deeploy somewhere must be a valid inputType for
-                   * this argument
-                   */
-                  argType: deepGet(ar, ['value', 'args', '0', 'argType']),
-                  schemaArg: ar.schemaArg,
-                }),
-            )
+            return ar.value.args.map(a => {
+              if (ar.key === 'posts_some') {
+                debugger
+              }
+              return new Arg({
+                key: getFilterArgName(ar.key, a.key),
+                value: a.value,
+                /**
+                 * This is an ugly hack. It assumes, that deep somewhere must be a valid inputType for
+                 * this argument
+                 */
+                argType: deepGet(ar, ['value', 'args', '0', 'argType']),
+                schemaArg: a.schemaArg,
+              })
+            })
           }
         }
         return [ar]
@@ -718,11 +710,14 @@ function getFilterArgName(arg: string, filter: string) {
     return arg
   }
 
-  if (filter === 'notIn') {
-    return `${arg}_not_in`
-  }
+  return `${arg}_${convertToSnakeCase(filter)}`
+}
 
-  return `${arg}_${filter}`
+function convertToSnakeCase(str: string): string {
+  return str
+    .split(/(?=[A-Z])/)
+    .join('_')
+    .toLowerCase()
 }
 
 export function selectionToFields(

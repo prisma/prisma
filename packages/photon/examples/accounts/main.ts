@@ -5,14 +5,15 @@ async function main() {
   const returnType = await photon.accountConfigurations({
     select: {
       id: true,
-      username: true,
+      username2: true,
       data: {
         select: {
           accountId: true,
         },
       },
     },
-  })
+    
+  } as any)
   console.log(returnType)
 }
 

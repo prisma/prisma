@@ -30,6 +30,7 @@ async function main() {
     ...config,
     outputDir: path.join(projectDir, '@generated/photon'),
     schemaDir: path.dirname(schemaPath),
+    runtimePath: '../../../../src/runtime',
   })
 
   const after = performance.now()

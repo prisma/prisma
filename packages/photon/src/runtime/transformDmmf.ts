@@ -266,6 +266,7 @@ function getScalarArgs(
 function getScalarArg(name: string, type: string[], isList, kind: DMMF.FieldKind = 'scalar'): DMMF.SchemaArg {
   return {
     name,
+    isRelationFilter: kind === 'object',
     inputType: type.map(t => ({
       isList,
       isRequired: false,
