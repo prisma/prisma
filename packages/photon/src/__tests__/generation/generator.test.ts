@@ -14,6 +14,7 @@ describe('generator', () => {
       },
       baseDir: __dirname,
       printDownloadProgress: false,
+      skipDownload: true,
     })
 
     expect(generator.manifest).toMatchInlineSnapshot(`
@@ -100,6 +101,7 @@ describe('generator', () => {
           output: null,
         },
       ],
+      skipDownload: true,
     })
 
     const result = await generator.generate()
