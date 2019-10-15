@@ -10,7 +10,7 @@ async function main() {
     throw new Error(`Path ${projectDir} does not exist`)
   }
 
-  const time = await generateInFolder({ projectDir, useLocalRuntime: true, transpile: true })
+  const time = await generateInFolder({ projectDir, useLocalRuntime: true, transpile: false })
 
   console.log(`Generated Photon in ${time.toFixed(3)}ms`)
 }

@@ -225,14 +225,15 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
       if (!alternativePath) {
         throw new Error(
           `Photon binary for current platform ${chalk.bold.greenBright(platform)} could not be found.${pinnedStr}
-  Make sure to adjust the generator configuration in the ${chalk.bold('schema.prisma')} file${info}
-  Please run ${chalk.greenBright('prisma2 generate')} for your changes to take effect.
-  ${chalk.gray(
-    `Note, that by providing \`native\`, Photon automatically resolves \`${platform}\`.
-  Read more about deploying Photon: ${chalk.underline(
+Photon looked in ${chalk.underline(alternativePath)} but couldn't find it.
+Make sure to adjust the generator configuration in the ${chalk.bold('schema.prisma')} file${info}
+Please run ${chalk.greenBright('prisma2 generate')} for your changes to take effect.
+${chalk.gray(
+  `Note, that by providing \`native\`, Photon automatically resolves \`${platform}\`.
+Read more about deploying Photon: ${chalk.underline(
     'https://github.com/prisma/prisma2/blob/master/docs/core/generators/photonjs.md',
   )}`,
-  )}`,
+)}`,
         )
       } else {
         console.error(`${chalk.yellow(

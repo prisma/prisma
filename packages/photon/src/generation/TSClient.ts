@@ -120,7 +120,10 @@ class PhotonFetcher {
       getPath.push(rootField)
     }
     getPath.push(...path.filter(p => p !== 'select' && p !== 'include'))
-    const result = deepGet(data, getPath) || null
+    let result = deepGet(data, getPath)
+    if (typeof result === 'undefined') {
+      result = null
+    }
     if (result === null && isList) {
       return []
     }

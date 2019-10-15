@@ -3,31 +3,8 @@ import { Photon } from './@generated/photon'
 async function main() {
   const photon = new Photon()
 
-  const bars = await photon.users.findMany({
-    where: {
-      posts: {
-        some: {
-          author: {
-            AND: {
-              id: '5',
-              posts: {
-                some: {
-                  author: {
-                    posts: {
-                      some: {
-                        title: '5',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  })
-  console.log(bars)
+  const count = await photon.users.count()
+  console.log(count)
   photon.disconnect()
 }
 
