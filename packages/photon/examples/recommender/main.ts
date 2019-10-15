@@ -5,21 +5,12 @@ async function main() {
 
   const bars = await photon.users.findMany({
     where: {
-      posts: {
+      likedArticles: {
         some: {
-          author: {
-            AND: {
-              id: '5',
-              posts: {
-                some: {
-                  author: {
-                    posts: {
-                      some: {
-                        title: '5',
-                      },
-                    },
-                  },
-                },
+          likedBy: {
+            some: {
+              AND: {
+                asd,
               },
             },
           },
