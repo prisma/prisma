@@ -39,7 +39,7 @@
     "generator-build"
   ],
   "devDependencies": {
-    "@prisma/sdk": "^0.0.17",
+    "@prisma/sdk": "^0.0.20",
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
