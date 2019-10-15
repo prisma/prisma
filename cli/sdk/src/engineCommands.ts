@@ -19,6 +19,7 @@ export type GetDMMFOptions = {
   cwd?: string
   prismaPath?: string
   datamodelPath?: string
+  skipRetry?: boolean
 }
 
 export async function getDMMF({
@@ -26,6 +27,7 @@ export async function getDMMF({
   cwd = process.cwd(),
   prismaPath,
   datamodelPath,
+  skipRetry,
 }: GetDMMFOptions): Promise<DMMF.Document> {
   prismaPath = prismaPath || (await getPrismaPath())
   let result
@@ -42,12 +44,25 @@ export async function getDMMF({
 
     return JSON.parse(result.stdout)
   } catch (e) {
+    // If this unlikely event happens, try it at least once more
+    if (e.message.includes('Command failed with exit code 26 (ETXTBSY)')) {
+      await new Promise(resolve => {
+        process.nextTick(resolve)
+      })
+      return getDMMF({
+        datamodel,
+        cwd,
+        prismaPath,
+        datamodelPath,
+        skipRetry: true,
+      })
+    }
     if (e.stderr) {
       throw new Error(chalk.redBright.bold('Schema parsing ') + e.stderr)
     }
     if (e.message.includes('in JSON at position')) {
       throw new Error(
-        `Problem while parsing the migration engine response at ${prismaPath}. ${result.stdout}\n${e.stack}`,
+        `Problem while parsing the query engine response at ${prismaPath}. ${result.stdout}\n${e.stack}`,
       )
     }
     throw new Error(e)

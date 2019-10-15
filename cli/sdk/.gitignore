@@ -1,3 +1,5 @@
 node_modules
 query-engine*
 src/download-test
+test-dmmf.ts
+dmmf.json
