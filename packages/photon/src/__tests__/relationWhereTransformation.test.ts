@@ -6,7 +6,7 @@ chalk.enabled = false
 
 describe('relation where transformation', () => {
   let dmmf
-  beforeEach(async () => {
+  beforeAll(async () => {
     dmmf = new DMMFClass(await getDMMF({ datamodel: chinook }))
   })
 
