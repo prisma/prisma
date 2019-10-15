@@ -1,3 +1,4 @@
+import { getPlatform } from '@prisma/get-platform'
 import { getConfig, getDMMF } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
@@ -30,10 +31,12 @@ export async function generateInFolder({
 
   const outputDir = path.join(projectDir, '@generated/photon')
 
+  const platform = await getPlatform()
+
   await generateClient({
     binaryPaths: {
       queryEngine: {
-        darwin: path.join(__dirname, '../../query-engine-darwin'),
+        [platform]: path.join(__dirname, `../../query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`),
       },
     },
     datamodel,
