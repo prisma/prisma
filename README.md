@@ -57,7 +57,6 @@ Learn more about the `prisma2 init` flow [here](https://github.com/prisma/prisma
   - Transactional nested writes and batching API
   - Relation filters (filter on JOINed tables)
   - Powerful methods for filtering, sorting and (cursor) pagination
-- [Data mapper](https://en.wikipedia.org/wiki/Data_mapper_pattern) ORM pattern
 - Declarative data modelling and migrations with [Lift](https://github.com/prisma/lift)
 - Connection pooling
 - Works with existing databases using schema introspection
