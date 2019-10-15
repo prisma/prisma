@@ -22,12 +22,12 @@
     "version": "f8e6f742d28e0e2672a005c34996b9a040c99ea9"
   },
   "devDependencies": {
-    "@prisma/cli": "^0.1.11",
+    "@prisma/cli": "^0.1.12",
     "@prisma/fetch-engine": "^0.3.4",
     "@prisma/generator-helper": "^0.0.13",
-    "@prisma/introspection": "0.0.84",
-    "@prisma/lift": "0.3.42",
-    "@prisma/photon": "^0.2.113",
+    "@prisma/introspection": "0.0.87",
+    "@prisma/lift": "0.3.43",
+    "@prisma/photon": "^0.2.114",
     "@prisma/sdk": "^0.0.20",
     "@prisma/studio-transports": "^0.124.0",
     "@sentry/node": "5",
