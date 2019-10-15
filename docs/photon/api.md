@@ -8,6 +8,7 @@ Photon is a type-safe database client auto-generated based on your [data model d
 - [Relations](#relations)
 - [Raw databases access](#raw-database-access)
 - [API Reference](#api-reference)
+- [Filtering](#filtering)
 - [Debugging](#debugging)
 - [Managing connections](#managing-connections)
 
@@ -334,9 +335,10 @@ const deletedUserCount = await photon.users.deleteMany({
 
 ## Filtering
 
-`select` and `include` is for specifying what to retrieve from the Photon API call (think 'SELECT' statement from SQL), whereas the filtering API (`where`) is for filtering the arguments to the call (think 'WHERE' clause from SQL).  
+The Photon.js API offers filtering options for constraining the items that are returned from API calls that return lists via the `where` argument.
 
-The following examples are based from this data model:
+The following examples are based on this data model:
+
 ```
 model User {
   id     Int    @id
@@ -351,20 +353,6 @@ enum Role {
   ADMIN
 }
 ```
-
-<Details>
-<Summary>Using the `select` API on this data model</Summary>
-The `select` API is used to retrieve the `name` column of this `User` database.  
-
-```ts
-const result = await photon.users.findMany({
-  select: { name: "Alice" },
-})
-// result = {
-//   name: "Alice",
-// }
-```
-</Details>
 
 Filtering can be applied to this data model.  It is not the same as manipulating the selection set.  Based on the `User` model, Photon generates the `UserWhereInput` type, which holds the filtering properties.  
 
@@ -387,14 +375,15 @@ For example, to get the record for the user with the `id` 1, `where` is used in 
 const result = await photon.users.findMany({
   where: { id: 1 },
 })
-// result = {
+// result = [{
 //   id: 1,
 //   name: "Alice",
 //   email: "alice@prisma.io",
 //   role: "USER",
 //   active: true
-// }
+// }]
 ```
+
 > Note: As a recap, the `findMany` API returns a list of objects which can be filtered by any model property.
 
 To get the record for the user with the `name` Alice with a USER `role`, `where` is used in combination with the `name` `StringFilter` and the `role` `RoleFilter`: 
@@ -406,13 +395,13 @@ const result = await photon.users.findMany({
     role: "USER",
   },
 })
-// result = {
+// result = [{
 //   id: 1,
 //   name: "Alice",
 //   email: "alice@prisma.io",
 //   role: "USER",
 //   active: true
-// }
+// }]
 ```
 
 To apply one of the operator filters (AND, OR, NOT), filter for the record where the user with the `name` Alice has a non-active status. Here, `where` is used in combination with the `name` `StringFilter`, the `active` `BooleanFilter`, and the `NOT` operator: 
