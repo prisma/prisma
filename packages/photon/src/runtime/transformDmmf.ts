@@ -235,10 +235,7 @@ function getBaseFilters(type: string, isRequired: boolean): DMMF.SchemaArg[] {
   const nullArray = isRequired ? [] : ['null']
   return [
     ...getScalarArgs(['equals'], [type, ...nullArray]),
-    ...getScalarArgs(
-      ['not'],
-      [type, ...nullArray, filterName],
-    ) /*, ...getScalarArgs(['AND', 'NOT', 'OR'], [filterName])*/,
+    ...getScalarArgs(['not'], [type, ...nullArray, filterName]),
   ]
 }
 
