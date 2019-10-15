@@ -73,13 +73,12 @@ describe('generator', () => {
     const photonDir = path.join(__dirname, 'node_modules/@generated/photon')
     expect(fs.existsSync(photonDir)).toBe(true)
     expect(fs.readdirSync(photonDir)).toMatchInlineSnapshot(`
-            Array [
-              "index.d.ts",
-              "index.js",
-              "index.ts",
-              "runtime",
-            ]
-        `)
+      Array [
+        "index.d.ts",
+        "index.js",
+        "runtime",
+      ]
+    `)
     generator.stop()
   })
 
