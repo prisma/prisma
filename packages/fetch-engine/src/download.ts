@@ -163,15 +163,19 @@ async function downloadBinary({
   const cachedTargetPath = path.join(cacheDir, binaryName)
   const cachedLastModifiedPath = path.join(cacheDir, 'lastModified-' + binaryName)
 
-  const [cachedPrismaExists, localLastModified] = await Promise.all([
+  const [cachedPrismaExists, localLastModified, targetExists] = await Promise.all([
     exists(cachedTargetPath),
     getLocalLastModified(cachedLastModifiedPath),
+    exists(targetPath),
   ])
+
+  debug({ cachedPrismaExists, targetExists, cachedTargetPath, targetPath })
 
   if (cachedPrismaExists && localLastModified) {
     const remoteLastModified = await getRemoteLastModified(sourcePath)
     // If there is no new binary and we have it localy, copy it over
     if (localLastModified >= remoteLastModified) {
+      debug(`Taking cache`)
       await copy(cachedTargetPath, targetPath)
       return
     }
@@ -181,6 +185,7 @@ async function downloadBinary({
     progressCb(0)
   }
 
+  debug(`Actually downloading zip`)
   const lastModified = await downloadZip(sourcePath, targetPath, progressCb)
   if (progressCb) {
     progressCb(1)

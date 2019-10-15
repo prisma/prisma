@@ -383,10 +383,10 @@
   dependencies:
     debug "^4.1.1"
 
-"@prisma/sdk@^0.0.17":
-  version "0.0.17"
-  resolved "https://registry.yarnpkg.com/@prisma/sdk/-/sdk-0.0.17.tgz#f941f1c44b96a6d8044480b1f796adaa36457649"
-  integrity sha512-mf+nyglv3CdD1H/vjGcanGQGnbxs0VQ+iSSS2TXmbeY4+tjMUN1ukpSPXiApadb0+MKgVfQa6dGS1/6i8R0K/A==
+"@prisma/sdk@^0.0.20":
+  version "0.0.20"
+  resolved "https://registry.yarnpkg.com/@prisma/sdk/-/sdk-0.0.20.tgz#bde5467a062055b8ccabe02ab84a25ac790a702c"
+  integrity sha512-rVtOMX76dK1C4D5btE/H9/Q1LRTUf2AUWLOqjX4NDqGQ0//M7yGCOAo+/ORjaNFOoRmHxSiQ8NLqJvkRZOXcFg==
   dependencies:
     "@prisma/cli" "^0.1.11"
     "@prisma/engine-core" "^0.0.98"
