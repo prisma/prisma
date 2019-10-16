@@ -636,9 +636,6 @@ export function transformDocument(document: Document): Document {
         } else if (ar.value instanceof Args) {
           if (ar.schemaArg && !ar.schemaArg.isRelationFilter) {
             return ar.value.args.map(a => {
-              if (ar.key === 'posts_some') {
-                debugger
-              }
               return new Arg({
                 key: getFilterArgName(ar.key, a.key),
                 value: a.value,
@@ -1273,4 +1270,62 @@ function objectToArgs(
     )
   }
   return new Args(argsList)
+}
+
+export interface UnpackOptions {
+  dmmf: DMMFClass
+  document: Document
+  path: string[]
+  data: any
+}
+
+export interface GetOutputTypeOptions {
+  dmmf: DMMFClass
+  document: Document
+  path: string[]
+}
+
+export function unpack({ dmmf, document, path, data }: UnpackOptions) {
+  //
+}
+
+export function getOutputType({ dmmf, document, path }: GetOutputTypeOptions): DMMF.OutputType {
+  if (path.length === 0) {
+    throw new Error(`Path for getting outputType must have more than zero elements.`)
+  }
+  const rootField = document.children[0].name
+  if (path[0] !== rootField) {
+    throw new Error(`First element of path must be ${rootField}`)
+  }
+
+  // remove first element
+  path.shift()
+
+  const rootOutputType =
+    dmmf.queryType.fields.find(f => f.name === rootField) || dmmf.mutationType.fields.find(f => f.name === rootField)
+
+  if (!rootOutputType) {
+    throw new Error(`Can't find output type for path ${JSON.stringify(path)}`)
+  }
+
+  let outputType = rootOutputType!.outputType
+
+  while (path.length > 0) {
+    const fieldName = path.shift()
+
+    if (typeof outputType.type !== 'object') {
+      throw new Error(`Invalid type of field ${fieldName}`)
+    }
+
+    const nextOutputType = outputType.type as DMMF.OutputType
+
+    const field = nextOutputType.fields.find(f => f.name === fieldName)
+    if (!field) {
+      throw new Error(`Could not find field ${fieldName} on output type ${outputType.type}`)
+    }
+
+    outputType = field.outputType
+  }
+
+  return outputType.type as DMMF.OutputType
 }
