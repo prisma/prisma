@@ -40,7 +40,6 @@ The interactive prompt will ask you to provide database credentials for your dat
 
 - [Getting started](./docs/getting-started.md)
 - [Tutorial](./docs/tutorial.md)
-- [Prisma ecosystem](./docs/prisma-ecosystem.md)
 - [Prisma schema file](./docs/prisma-schema-file.md)
 - [Data sources](./docs/data-sources.md)
 - [Data modeling](./docs/data-modeling.md)
