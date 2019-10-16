@@ -84,6 +84,7 @@
   },
   "scripts": {
     "install": "node download.js",
+    "download": "node download.js",
     "run": "node dist/bin.js",
     "precommit": "lint-staged && jest",
     "lint": "prettier --write src/*.{ts,tsx,js,jsx,md,graphql} src/**/*.{ts,tsx,js,jsx,md,graphql} && tsc",

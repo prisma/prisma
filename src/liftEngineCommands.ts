@@ -21,6 +21,7 @@ export type ConnectionStatus =
   | 'DatabaseDoesNotExist'
   | 'DatabaseAccessDenied'
   | 'AuthenticationFailed'
+  | 'TlsError'
   | 'Ok'
   | 'UndefinedError'
 
@@ -87,6 +88,12 @@ export async function canConnectToDatabase(
       return {
         message: extractMessage(e.stderr),
         status: 'AuthenticationFailed',
+      }
+    }
+    if (e.code === 6) {
+      return {
+        message: extractMessage(e.stderr),
+        status: 'TlsError',
       }
     }
     if (e.stderr) {
