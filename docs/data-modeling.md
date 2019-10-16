@@ -5,7 +5,6 @@
 - [Models](#models)
 - [Fields](#fields)
 - [Enums](#enums)
-- [Type definitions](#type-definitions)
 - [Attributes](#attributes)
 - [Functions](#functions)
 - [Scalar types](#scalar-types)
