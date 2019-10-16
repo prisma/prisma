@@ -4,7 +4,8 @@ This repository is used as a central point to collect information and issues aro
 
 💡 The Prisma Framework is currently in Preview! [Limitations](./docs/limitations.md) include missing features, limited performance and stability issues. You can track the progress of the Prisma Framework on [**`isprisma2ready.com`**](https://www.isprisma2ready.com).
 
-You can find a number of ready-to-run Prisma Framework examples [here](https://github.com/prisma/prisma-examples/tree/prisma2). The example projects include use cases such as building GraphQL, REST or gRPC APIs (with Node.js or TypeScript) using the Prisma Frameowrk.
+To get started, you can explore a number of ready-to-run [examples]](https://github.com/prisma/prisma-examples/tree/prisma2) or follow the holistic [tutorial](./docs/tutorial.md).
+. The example projects include use cases such as building GraphQL, REST or gRPC APIs (with Node.js or TypeScript) using the Prisma Framework.
 
 ## What is the Prisma Framework?
 
@@ -34,8 +35,6 @@ prisma2 init hello-prisma
 ```
 
 The interactive prompt will ask you to provide database credentials for your database. If you don't have a database yet, select **SQLite** and let the CLI set up a database file for you.
-
-Learn more about the `prisma2 init` flow [here](./docs/getting-started.md) or get started with a holistic [tutorial](./docs/tutorial.md).
 
 ## Contents
 
