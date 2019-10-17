@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { CompilerOptions, createCompilerHost, createProgram, ModuleKind, ScriptTarget } from 'typescript'
+import * as ts from 'typescript'
 import { generateInFolder } from '../../utils/generateInFolder'
 
 jest.setTimeout(30000)
@@ -12,7 +13,8 @@ describe('valid types', () => {
 
     test(`can compile ${testName} example`, async () => {
       await generateInFolder({ projectDir: dir, useLocalRuntime: false, transpile: true })
-      expect(() => compileFile(path.join(dir, 'index.ts'))).not.toThrow()
+      const filePath = path.join(dir, 'index.ts')
+      expect(() => compileFile(filePath)).not.toThrow()
     })
   }
 })
@@ -29,19 +31,19 @@ function compileFile(filePath: string): void {
     lib: ['lib.esnext.d.ts', 'lib.dom.d.ts'],
     declaration: true,
     strict: true,
-    suppressOutputPathCheck: false,
     esModuleInterop: true,
+    noEmitOnError: true,
+    skipLibCheck: true,
   }
 
   const compilerHost = createCompilerHost(options)
-  compilerHost.writeFile = () => {
-    //
-  } // don't emit any files
+  compilerHost.writeFile = (fileName, file) => {}
 
   const program = createProgram([filePath], options, compilerHost)
   const result = program.emit()
 
   if (result.diagnostics.length > 0) {
-    throw new Error('Compilation Error\n' + JSON.stringify(result.diagnostics))
+    const formatted = ts.formatDiagnostics(result.diagnostics, compilerHost)
+    throw new Error('Compilation Error\n' + formatted)
   }
 }

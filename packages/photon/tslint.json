@@ -13,6 +13,11 @@
   },
   "rulesDirectory": [],
   "linterOptions": {
-    "exclude": ["src/fixtures", "src/__tests__", "src/__tests__/generation/node_modules"]
+    "exclude": [
+      "src/fixtures",
+      "src/__tests__",
+      "src/__tests__/generation/node_modules",
+      "src/__tests__/types/types.test.ts"
+    ]
   }
 }
