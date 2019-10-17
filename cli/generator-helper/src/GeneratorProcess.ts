@@ -2,7 +2,7 @@ import { ChildProcessByStdio, spawn } from 'child_process'
 import byline from './byline'
 import { GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
 import fs from 'fs'
-import path from 'path'
+import { isBinaryFile } from 'isbinaryfile'
 import chalk from 'chalk'
 
 let globalMessageId = 1
@@ -36,10 +36,11 @@ export class GeneratorProcess {
     return this.initPromise!
   }
   initSingleton(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      const isBinary = await isBinaryFile(this.executablePath)
       this.child = spawn(
-        process.execPath,
-        ['--max-old-space-size=8096', this.executablePath],
+        isBinary ? this.executablePath : process.execPath,
+        isBinary ? [] : ['--max-old-space-size=8096', this.executablePath],
         {
           stdio: ['pipe', 'inherit', 'pipe'],
         },

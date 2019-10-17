@@ -8,7 +8,7 @@ import { isdlToDatamodel2 } from '@prisma/sdk'
 import { DataSource } from '@prisma/generator-helper'
 import { credentialsToUri, databaseTypeToConnectorType } from '../../convertCredentials'
 import { TabIndexContext } from '@prisma/ink-components'
-import { canConnectToDatabase } from '@prisma/lift'
+// import { canConnectToDatabase } from '@prisma/lift'
 
 type ConnectorState = {
   error: string | null
@@ -94,12 +94,12 @@ export function useConnector() {
         tabContext.lockNavigation(true)
         setState({ connecting: true })
 
-        const canRustConnect = await canConnectToDatabase(credentials.uri!)
+        // const canRustConnect = await canConnectToDatabase(credentials.uri!)
 
-        if (canRustConnect.status === 'TlsError') {
-          const delimiter = credentials.uri!.includes('?') ? '&' : '?'
-          credentials.uri += delimiter + 'sslaccept=accept_invalid_certs'
-        }
+        // if (canRustConnect.status === 'TlsError') {
+        //   const delimiter = credentials.uri!.includes('?') ? '&' : '?'
+        //   credentials.uri += delimiter + 'sslaccept=accept_invalid_certs'
+        // }
 
         const connectorAndDisconnect = await getConnectedConnectorFromCredentials(credentials)
         connector = connectorAndDisconnect
