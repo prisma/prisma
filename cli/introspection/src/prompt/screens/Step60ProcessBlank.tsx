@@ -42,9 +42,11 @@ const Step60ProcessBlank: React.FC = () => {
           const example = examples.examples[state.selectedLanguage].script
           setState({ selectedExample: example })
           router.setRoute('download-example')
+          return
         }
         // if just the schema is being selected
-      } else if (!state.useDemoScript) {
+      }
+      if (!state.useDemoScript) {
         makeDirSync(path.join(state.outputDir, './prisma'))
         fs.writeFileSync(
           path.join(state.outputDir, './prisma/schema.prisma'),

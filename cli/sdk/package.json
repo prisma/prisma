@@ -1,6 +1,6 @@
 {
   "name": "@prisma/sdk",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma2.git",
@@ -34,10 +34,10 @@
     "typescript": "^3.6.3"
   },
   "dependencies": {
-    "@prisma/cli": "^0.1.11",
+    "@prisma/cli": "^0.1.12",
     "@prisma/engine-core": "^0.0.98",
     "@prisma/fetch-engine": "^0.3.4",
-    "@prisma/generator-helper": "^0.0.13",
+    "@prisma/generator-helper": "^0.0.14",
     "@prisma/get-platform": "^0.1.2",
     "chalk": "^2.4.2",
     "execa": "^2.0.5",

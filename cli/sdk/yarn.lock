@@ -307,10 +307,10 @@
     "@nodelib/fs.scandir" "2.1.3"
     fastq "^1.6.0"
 
-"@prisma/cli@^0.1.11":
-  version "0.1.11"
-  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.1.11.tgz#0a812596088cb710432d76aeb18afd6c118eccac"
-  integrity sha512-9HgpQgsVnaldYl38cl43rC1wkcHXvnmGff5lvG4t1GeppJFVwikY/kRNPgj0oiudkyUlcsxEjLyH8cK6JcNIVg==
+"@prisma/cli@^0.1.12":
+  version "0.1.12"
+  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.1.12.tgz#0cdc93cca16f897056e55f8aaf88390de0fdaaa6"
+  integrity sha512-qkfNge7QWT4c1dVPGPK3CI9IWrYEK8sJ6eALiSCt7kUYnnOdJkbRbjQzfcSkvoE+PqFlVPZjwo0x1dTg7vRgHw==
   dependencies:
     arg "^4.1.0"
     chalk "^2.4.2"
@@ -360,13 +360,14 @@
     p-retry "^4.1.0"
     progress "^2.0.3"
 
-"@prisma/generator-helper@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-0.0.13.tgz#215b90863df52ec6cac86be2b83fbbd798256e65"
-  integrity sha512-3E9pcCXLE+oPAk1w+e2Fm/hkcJzCAgLS0/QEPSXlgUsAYHZnUh/1lseLaMAtFBWbznyaeR/QI+U7yxyXpREeSQ==
+"@prisma/generator-helper@^0.0.14":
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-0.0.14.tgz#3248427eb28d607daf05e5ca216b1fcc75922fcd"
+  integrity sha512-nIVmbT6sKMCtK1xs80P5Qp25KmQg0N+/4C8Z2NGRJviqOitD49DZPfbRh1bT4PMSyuSUwnzoSlkwoXmLNy6kuw==
   dependencies:
     chalk "^2.4.2"
     debug "^4.1.1"
+    isbinaryfile "^4.0.2"
 
 "@prisma/generator-helper@^0.0.5":
   version "0.0.5"
@@ -2572,6 +2573,11 @@ isarray@1.0.0, isarray@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/isarray/-/isarray-1.0.0.tgz#bb935d48582cba168c06834957a54a3e07124f11"
   integrity sha1-u5NdSFgsuhaMBoNJV6VKPgcSTxE=
+
+isbinaryfile@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/isbinaryfile/-/isbinaryfile-4.0.2.tgz#bfc45642da645681c610cca831022e30af426488"
+  integrity sha512-C3FSxJdNrEr2F4z6uFtNzECDM5hXk+46fxaa+cwBe5/XrWSmzdG8DDgyjfX6/NRdBB21q2JXuRAzPCUs+fclnQ==
 
 isexe@^2.0.0:
   version "2.0.0"
