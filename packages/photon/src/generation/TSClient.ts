@@ -39,7 +39,8 @@ const commonCode = (runtimePath: string, version?: string) => `import {
   transformDocument,
   chalk,
   printStack,
-  mergeBy
+  mergeBy,
+  unpack
 } from '${runtimePath}'
 
 /**
@@ -96,7 +97,7 @@ class PhotonFetcher {
       const result = await this.engine.request(query, typeName)
       debug('Response:')
       debug(result)
-      return this.unpack(result, path, rootField, isList)
+      return this.unpack(document, result, path, rootField, isList)
     } catch (e) {
       if (callsite) {
         const { stack } = printStack({
@@ -114,20 +115,13 @@ class PhotonFetcher {
       }
     }
   }
-  protected unpack(data: any, path: string[], rootField?: string, isList?: boolean) {
+  protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean) {
     const getPath: string[] = []
     if (rootField) {
       getPath.push(rootField)
     }
     getPath.push(...path.filter(p => p !== 'select' && p !== 'include'))
-    let result = deepGet(data, getPath)
-    if (typeof result === 'undefined') {
-      result = null
-    }
-    if (result === null && isList) {
-      return []
-    }
-    return result
+    return unpack({ document, path: getPath, data })
   }
 }
 `

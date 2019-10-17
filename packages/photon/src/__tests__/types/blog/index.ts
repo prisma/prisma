@@ -37,8 +37,8 @@ async function main() {
 
   const result2: {
     id: string
-    createdAt: string
-    updatedAt: string
+    createdAt: Date
+    updatedAt: Date
     published: boolean
     title: string
     content: string | null

@@ -46,6 +46,7 @@ export async function generateInFolder({
     schemaDir: path.dirname(schemaPath),
     runtimePath: useLocalRuntime ? path.relative(outputDir, path.join(__dirname, '../runtime')) : undefined,
     transpile,
+    testMode: true,
   })
 
   const after = performance.now()

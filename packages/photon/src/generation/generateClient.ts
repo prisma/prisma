@@ -41,6 +41,7 @@ export interface GenerateClientOptions {
   dmmf: DMMF.Document
   datasources: DataSource[]
   binaryPaths: BinaryPaths
+  testMode?: boolean
 }
 
 export interface BuildClientResult {
@@ -157,6 +158,7 @@ export async function generateClient({
   dmmf,
   datasources,
   binaryPaths,
+  testMode,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   runtimePath = runtimePath || './runtime'
   const { photonDmmf, fileMap } = await buildClient({
@@ -190,7 +192,9 @@ export async function generateClient({
       await writeFile(filePath, file)
     }),
   )
-  const inputDir = eval(`require('path').join(__dirname, '../runtime')`) // tslint:disable-line
+  const inputDir = testMode
+    ? eval(`require('path').join(__dirname, '../../runtime')`)
+    : eval(`require('path').join(__dirname, '../runtime')`) // tslint:disable-line
 
   await copy({
     from: inputDir,
@@ -263,6 +267,9 @@ export declare type printStack = any
 
 export declare var mergeBy: any
 export declare type mergeBy = any
+
+export declare var unpack: any
+export declare type unpack = any
 `
 
 // This is needed because ncc rewrite some paths

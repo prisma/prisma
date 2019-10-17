@@ -374,6 +374,7 @@ class PhotonError extends Error {}
 
 export interface FieldArgs {
   name: string
+  schemaField?: DMMF.SchemaField // optional as we want to even build up invalid queries to collect all errors
   args?: Args
   children?: Field[]
   error?: InvalidFieldError
@@ -386,11 +387,13 @@ export class Field {
   public readonly error?: InvalidFieldError
   public readonly hasInvalidChild: boolean
   public readonly hasInvalidArg: boolean
-  constructor({ name, args, children, error }: FieldArgs) {
+  public readonly schemaField?: DMMF.SchemaField
+  constructor({ name, args, children, error, schemaField }: FieldArgs) {
     this.name = name
     this.args = args
     this.children = children
     this.error = error
+    this.schemaField = schemaField
     this.hasInvalidChild = children
       ? children.some(child => Boolean(child.error || child.hasInvalidArg || child.hasInvalidChild))
       : false
@@ -916,7 +919,7 @@ export function selectionToFields(
       }
       const children =
         select !== false && isRelation ? selectionToFields(dmmf, select, field, [...path, name]) : undefined
-      acc.push(new Field({ name, args, children }))
+      acc.push(new Field({ name, args, children, schemaField: field }))
 
       return acc
     },
@@ -1273,59 +1276,90 @@ function objectToArgs(
 }
 
 export interface UnpackOptions {
-  dmmf: DMMFClass
   document: Document
   path: string[]
   data: any
 }
 
-export interface GetOutputTypeOptions {
-  dmmf: DMMFClass
-  document: Document
-  path: string[]
+/**
+ * Unpacks the result of a data object and maps DateTime fields to instances of `Date` inplace
+ * @param options: UnpackOptions
+ */
+export function unpack({ document, path, data }: UnpackOptions): any {
+  let result = deepGet(data, path)
+
+  if (result === 'undefined') {
+    return null
+  }
+
+  if (typeof result !== 'object') {
+    return result
+  }
+
+  const field = getField(document, path)
+
+  return mapDates({ field, data: result })
 }
 
-export function unpack({ dmmf, document, path, data }: UnpackOptions) {
-  //
+export interface MapDatesOptions {
+  field: Field
+  data: any
 }
 
-export function getOutputType({ dmmf, document, path }: GetOutputTypeOptions): DMMF.OutputType {
-  if (path.length === 0) {
-    throw new Error(`Path for getting outputType must have more than zero elements.`)
-  }
-  const rootField = document.children[0].name
-  if (path[0] !== rootField) {
-    throw new Error(`First element of path must be ${rootField}`)
+export function mapDates({ field, data }: MapDatesOptions): any {
+  if (!data || typeof data !== 'object' || !field.children || !field.schemaField) {
+    return data
   }
 
-  // remove first element
-  path.shift()
-
-  const rootOutputType =
-    dmmf.queryType.fields.find(f => f.name === rootField) || dmmf.mutationType.fields.find(f => f.name === rootField)
-
-  if (!rootOutputType) {
-    throw new Error(`Can't find output type for path ${JSON.stringify(path)}`)
-  }
-
-  let outputType = rootOutputType!.outputType
-
-  while (path.length > 0) {
-    const fieldName = path.shift()
-
-    if (typeof outputType.type !== 'object') {
-      throw new Error(`Invalid type of field ${fieldName}`)
+  for (const child of field.children) {
+    if (child.schemaField && child.schemaField.outputType.type === 'DateTime') {
+      if (Array.isArray(data)) {
+        for (const entry of data) {
+          // in the very unlikely case, that a field is not there in the result, ignore it
+          if (typeof entry[child.name] !== 'undefined') {
+            entry[child.name] = entry[child.name] ? new Date(entry[child.name]) : entry[child.name]
+          }
+        }
+      } else {
+        // same here, ignore it if it's undefined
+        if (typeof data[child.name] !== 'undefined') {
+          data[child.name] = data[child.name] ? new Date(data[child.name]) : data[child.name]
+        }
+      }
     }
 
-    const nextOutputType = outputType.type as DMMF.OutputType
-
-    const field = nextOutputType.fields.find(f => f.name === fieldName)
-    if (!field) {
-      throw new Error(`Could not find field ${fieldName} on output type ${outputType.type}`)
+    if (child.schemaField && child.schemaField.outputType.kind === 'object') {
+      if (Array.isArray(data)) {
+        data.forEach(entry => mapDates({ field: child, data: entry[child.name] }))
+      } else {
+        mapDates({ field: child, data: data[child.name] })
+      }
     }
-
-    outputType = field.outputType
   }
 
-  return outputType.type as DMMF.OutputType
+  return data
+}
+
+export function getField(document: Document, path: string[]): Field {
+  const todo = path.slice() // let's create a copy to not fiddle with the input argument
+  const firstElement = todo.shift()
+  let pointer = document.children.find(c => c.name === firstElement)
+
+  if (!pointer) {
+    throw new Error(`Could not find field ${firstElement} in document ${document}`)
+  }
+
+  while (todo.length > 0) {
+    const key = todo.shift()
+    if (!pointer!.children) {
+      throw new Error(`Can't get children for field ${pointer} with child ${key}`)
+    }
+    const child = pointer!.children.find(c => c.name === key)
+    if (!child) {
+      throw new Error(`Can't find child ${key} of field ${pointer}`)
+    }
+    pointer = child!
+  }
+
+  return pointer!
 }
