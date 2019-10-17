@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "0.2.115",
+  "version": "0.2.116",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -39,7 +39,7 @@
     "generator-build"
   ],
   "devDependencies": {
-    "@prisma/sdk": "^0.0.20",
+    "@prisma/sdk": "^0.0.21",
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^7.0.0",
     "@types/jest": "^24.0.13",
@@ -73,7 +73,7 @@
     "@prisma/cli": "0.1.12",
     "@prisma/engine-core": "0.0.98",
     "@prisma/fetch-engine": "^0.3.4",
-    "@prisma/generator-helper": "^0.0.13",
+    "@prisma/generator-helper": "^0.0.14",
     "chalk": "^2.4.2",
     "cpy": "^7.3.0",
     "dotenv": "^8.0.0",
