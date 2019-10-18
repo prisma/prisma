@@ -311,11 +311,7 @@ export class Lift {
       datamodel,
       datamodelSteps,
       databaseSteps,
-      warnings: [
-        {
-          description: 'You are about to drop the table `Post`, which is not empty (2 rows).',
-        },
-      ],
+      warnings,
     }
   }
 
@@ -789,12 +785,7 @@ export class Lift {
         return {
           ...migration,
           databaseSteps,
-          // warnings,
-          warnings: [
-            {
-              description: 'You are about to drop the table `Post`, which is not empty (2 rows).',
-            },
-          ],
+          warnings,
         }
       },
       { concurrency: 1 },
