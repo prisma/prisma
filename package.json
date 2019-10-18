@@ -1,6 +1,6 @@
 {
   "name": "@prisma/lift",
-  "version": "0.3.52",
+  "version": "0.3.53",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
@@ -97,7 +97,8 @@
   },
   "files": [
     "dist",
-    "download.js"
+    "download.js",
+    "scripts/download.js"
   ],
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
