@@ -16,7 +16,7 @@ On a high-level, the biggest differences between Prisma 1 and the Prisma Framewo
 Based on these differences, the high-level steps to upgrade a project from using Prisma 1 are as follows:
 
 1. Install the Prisma Framework CLI
-1. Use the Prisma Framework CLI to [introspect]() your database schema and generate the corresponding Prisma schema
+1. Use the Prisma Framework CLI to convert your Prisma 1 datamodel to the Prisma schema
 1. Adjust your application code, specifically replace the API calls from the Prisma client with those of Photon.js
 
 Note that the steps will look somewhat different if you're ...: 
@@ -34,11 +34,64 @@ The Prisma Framework CLI is currently available as the [`prisma2`](https://www.n
 npm install -g prisma2
 ```
 
-## 2. Introspect your database to generate a Prisma schema
+## 2. Convert the Prisma 1 datamodel to a Prisma schema
 
-The [Prisma schema]() is the foundation for any project that used the Prisma Framework. Think of the Prisma schema as the combination of the Prisma 1 data model and `prisma.yml` configuration file.
+The [Prisma schema]() is the foundation for any project that uses the Prisma Framework. Think of the Prisma schema as the combination of the Prisma 1 data model and `prisma.yml` configuration file.
 
-While many elements of the Prisma schema are similar to the data model, the syntax has changed quite a bit now. In general, there are three ways of obtaining a Prisma schema based on an existing Prisma 1 project:
+There are three ways of obtaining a Prisma schema based on an existing Prisma 1 project:
 
+- Writing the Prisma schema by hand
+- Using the `prisma2 convert` command
+- Using introspection against the existing database
 
+Note that [introspection is not yet available](https://github.com/prisma/prisma2/issues/781), so for the purpose of this upgrade guide you'll use the `prisma2 convert` command which converts a Prisma 1 data model to a Prisma schema file. Note that the resulting Prisma schema will not contain any data source and generator definitions yet, these must be added manually.
 
+Assuming your Prisma 1 datamodel is called `datamodel.prisma`, you can use the following command to create a Prisma schema file called `schema.prisma`:
+
+```bash
+cat datamodel.prisma | prisma2 convert > schema.prisma
+```
+
+Consider the [example datamodel](https://github.com/prisma/prisma-examples/blob/master/typescript/rest-express/prisma/datamodel.prisma):
+
+```graphql
+type User {
+  id: ID! @id
+  email: String! @unique
+  name: String
+  posts: [Post!]!
+}
+
+type Post {
+  id: ID! @id
+  createdAt: DateTime! @createdAt
+  updatedAt: DateTime! @updatedAt
+  published: Boolean! @default(value: false)
+  title: String!
+  content: String
+  author: User!
+}
+```
+
+This Prisma 1 datamodel will be converted into the following Prisma schema:
+
+```prisma
+model User {
+  id    String  @default(cuid()) @id @unique
+  email String  @unique
+  name  String?
+  posts Post[]
+}
+
+model Post {
+  id        String   @default(cuid()) @id @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  author    User
+}
+```
+
+**Note**: The `@unique` attributes are [redundant](https://github.com/prisma/prisma2/issues/786) as uniquess is already implied by the `@id` attribute. 
