@@ -158,8 +158,16 @@ ${chalk.bold('Created 1 new file:')} Prisma DML datamodel (derived from existing
       )
     }
 
-    // Get connector from flags
-    if (!credentialsByFlag.schema) {
+    let schema: string | undefined
+    if (credentialsByFlag.type === DatabaseType.mysql) {
+      schema = credentialsByFlag.database
+    }
+
+    if (credentialsByFlag.type === DatabaseType.postgres) {
+      schema = credentialsByFlag.schema
+    }
+
+    if (!schema) {
       console.log(`Please provide a database name`)
       return process.exit(1)
     }
@@ -168,14 +176,14 @@ ${chalk.bold('Created 1 new file:')} Prisma DML datamodel (derived from existing
 
     const schemas = await getDatabaseSchemas(connector)
 
-    assertSchemaExists(credentialsByFlag.schema, credentialsByFlag.type, schemas)
+    assertSchemaExists(schema, credentialsByFlag.type, schemas)
 
     const introspectionResult = await this.introspectWithSpinner(
       {
         connector,
         disconnect,
         databaseType: credentialsByFlag.type,
-        databaseName: credentialsByFlag.schema,
+        databaseName: schema,
         credentials: credentialsByFlag,
       },
       sdl,
