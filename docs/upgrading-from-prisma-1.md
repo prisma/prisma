@@ -94,4 +94,4 @@ model Post {
 }
 ```
 
-**Note**: The `@unique` attributes are [redundant](https://github.com/prisma/prisma2/issues/786) as uniquess is already implied by the `@id` attribute. 
+**Note**: The `@unique` attributes on the `id` fields are [redundant](https://github.com/prisma/prisma2/issues/786) as uniqueness is already implied by the `@id` attribute. 
