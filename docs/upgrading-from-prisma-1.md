@@ -96,7 +96,7 @@ model Post {
 }
 ```
 
-**Note**: The `@unique` attributes on the `id` fields are [redundant](https://github.com/prisma/prisma2/issues/786) as uniqueness is already implied by the `@id` attribute. 
+**Note**: The `@unique` attributes on the `id` fields are [redundant](https://github.com/prisma/prisma2/issues/786) as uniqueness is already implied by the `@id` attribute. It also contains another bug where it [doesn't convert `@default` attributes](https://github.com/prisma/prisma2/issues/790), so you need to manually add the `@default(true)` to the `published` field in the Prisma schema.
 
 ### 2.2. Add the datasource
 
@@ -143,7 +143,7 @@ Based on these connection details, you need to add the following `datasource` to
 ```diff
 + datasource postgresql {
 +   provider = "postgresql"
-+   url =      "postgresql://janedoe:janedoe@localhost:5432/mydb?schema=public
++   url =      "postgresql://janedoe:janedoe@localhost:5432/mydb?schema=public"
 + }
 
 model User {
@@ -157,7 +157,7 @@ model Post {
   id        String   @default(cuid()) @id
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  published Boolean
+  published Boolean  @default(true)
   title     String
   content   String?
   author    User
@@ -179,7 +179,7 @@ With the Prisma Framework, this information is now also contained inside the Pri
 ```prisma
 datasource postgresql {
   provider = "postgresql"
-  url =      "postgresql://janedoe:janedoe@localhost:5432/mydb?schema=public
+  url =      "postgresql://janedoe:janedoe@localhost:5432/mydb?schema=public"
 }
 
 + generator photonjs {
@@ -197,7 +197,7 @@ model Post {
   id        String   @default(cuid()) @id
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  published Boolean
+  published Boolean  @default(true)
   title     String
   content   String?
   author    User
@@ -205,3 +205,217 @@ model Post {
 ```
 
 Note that the code for Photon.js [by default gets generated into `node_modules/@generated`](https://github.com/prisma/prisma2/blob/master/docs/photon/codegen-and-node-setup.md) but can be customized via an `output` field on the `generator` block.
+
+## 3. Adjust the application to use Photon.js
+
+The first thing you need to do in order to be able use Photon.js in your application code is to generate it. Similar to Prisma 1, the generators in your Prisma schema file can be invoked by running the `generate` CLI command:
+
+```
+prisma2 generate
+```
+
+To make the migration complete, you have to change your application code and replace the usage of the Prisma client with the new Photon.js.
+
+The application code in our example is located in a single file and looks as follows:
+
+```ts
+import * as express from 'express'
+import * as bodyParser from 'body-parser'
+import { prisma } from './generated/prisma-client'
+
+const app = express()
+
+app.use(bodyParser.json())
+
+app.post(`/user`, async (req, res) => {
+  const result = await prisma.createUser({
+    ...req.body,
+  })
+  res.json(result)
+})
+
+app.post(`/post`, async (req, res) => {
+  const { title, content, authorEmail } = req.body
+  const result = await prisma.createPost({
+    title: title,
+    content: content,
+    author: { connect: { email: authorEmail } },
+  })
+  res.json(result)
+})
+
+app.put('/publish/:id', async (req, res) => {
+  const { id } = req.params
+  const post = await prisma.updatePost({
+    where: { id },
+    data: { published: true },
+  })
+  res.json(post)
+})
+
+app.delete(`/post/:id`, async (req, res) => {
+  const { id } = req.params
+  const post = await prisma.deletePost({ id })
+  res.json(post)
+})
+
+app.get(`/post/:id`, async (req, res) => {
+  const { id } = req.params
+  const post = await prisma.post({ id })
+  res.json(post)
+})
+
+app.get('/feed', async (req, res) => {
+  const posts = await prisma.posts({ where: { published: true } })
+  res.json(posts)
+})
+
+app.get('/filterPosts', async (req, res) => {
+  const { searchString } = req.query
+  const draftPosts = await prisma.posts({
+    where: {
+      OR: [
+        {
+          title_contains: searchString,
+        },
+        {
+          content_contains: searchString,
+        },
+      ],
+    },
+  })
+  res.json(draftPosts)
+})
+
+app.listen(3000, () =>
+  console.log('Server is running on http://localhost:3000'),
+)
+```
+
+Consider each occurence of the Prisma client instance `prisma` and replacing with the respective usage of Photon.js.
+
+### 3.1. Adjusting the import
+
+Since Photon.js is generated into `node_modules/@generated/photon`, it is imported as follows:
+
+```ts
+import { Photon } from '@generated/photon'
+```
+
+Note that this only imports the `Photon` constructor, so you also need to instantiate a Photon.js instance:
+
+```ts
+const photon = new Photon()
+```
+
+### 3.2. Adjusting the `/user` route (`POST`)
+
+With the Photon.js API, the `/user` route for `POST` requests has to be changed to:
+
+```ts
+app.post(`/user`, async (req, res) => {
+  const result = await photon.users.create({
+    data: {
+      ...req.body,
+    },
+  })
+  res.json(result)
+})
+```
+
+### 3.3. Adjusting the `/post` route (`POST`)
+
+With the Photon.js API, the `/post` route for `POST` requests has to be changed to:
+
+```ts
+app.post(`/post`, async (req, res) => {
+  const { title, content, authorEmail } = req.body
+  const result = await photon.posts.create({
+    data: {
+      title: title,
+      content: content,
+      author: { connect: { email: authorEmail } },
+    },
+  })
+  res.json(result)
+})
+```
+
+### 3.4. Adjusting the `/publish/:id` route (`PUT`)
+
+With the Photon.js API, the `/publish/:id` route for `PUT` requests has to be changed to:
+
+```ts
+app.put('/publish/:id', async (req, res) => {
+  const { id } = req.params
+  const post = await photon.posts.update({
+    where: { id },
+    data: { published: true },
+  })
+  res.json(post)
+})
+```
+
+### 3.5. Adjusting the `/post/:id` route (`DELETE`)
+
+With the Photon.js API, the `//post/:id` route for `DELETE` requests has to be changed to:
+
+```ts
+app.delete(`/post/:id`, async (req, res) => {
+  const { id } = req.params
+  const post = await photon.posts.delete({ 
+    where: { id }
+   })
+  res.json(post)
+})
+```
+
+### 3.6. Adjusting the `/post/:id` route (`GET`)
+
+With the Photon.js API, the `/post/:id` route for `GET` requests has to be changed to:
+
+```ts
+app.get(`/post/:id`, async (req, res) => {
+  const { id } = req.params
+  const post = await photon.posts.findOne({ 
+    where: { id }
+   })
+  res.json(post)
+})
+```
+
+### 3.7. Adjusting the `/feed` route (`GET`)
+
+With the Photon.js API, the `/feed` route for `GET` requests has to be changed to:
+
+```ts
+app.get('/feed', async (req, res) => {
+  const posts = await photon.posts.findMany({ where: { published: true } })
+  res.json(posts)
+})
+```
+
+### 3.8. Adjusting the `/filterPosts` route (`GET`)
+
+With the Photon.js API, the `/user` route for `POST` requests has to be changed to:
+
+```ts
+app.get('/filterPosts', async (req, res) => {
+  const { searchString } = req.query
+  const filteredPosts = await photon.posts.findMany({
+    where: {
+      OR: [
+        {
+          title: { contains: searchString }
+        },
+        {
+          content: { contains: searchString }
+        },
+      ],
+    },
+  })
+  res.json(filteredPosts)
+})
+```
+
+
