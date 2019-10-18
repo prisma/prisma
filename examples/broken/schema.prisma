@@ -1,6 +1,6 @@
 datasource my_db {
   provider = "sqlite"
-  url      = "file:dev7.db"
+  url      = "file:dev5.db"
 }
 
 generator photon {
@@ -11,4 +11,9 @@ generator photon {
 model Blog {
   id          Int @id
   viewCount20 Int
+}
+
+model Post {
+  id        Int     @id
+  another23 String?
 }
