@@ -418,4 +418,14 @@ app.get('/filterPosts', async (req, res) => {
 })
 ```
 
+## 4. Performing database migrations with Lift
 
+Going forward, you won't perform schema migrations using the `prisma deploy` command any more. Instead, you can use [Lift](). Every schema migration with Lift follows a 3-step-process:
+
+1. Adjust the data model inside your Prisma schema to reflect the desired change (e.g. adding a new model)
+1. Run `prisma2 lift save` to save the migration on your file system (this doesn't touch the dataabse yet)
+1. Run `prisma2 lift up` to actually perform the migration against your database
+
+## Summary
+
+In this upgrade guide, you learned how to upgrade an ExpressJS-based REST API from Prisma 1 to the Prisma Framework that uses Photon.js and Lift. In the future, we'll cover more fine-grained upgrade scenarios, based on more complicated database schemas as well as for projects that are using GraphQL Nexus and `nexus-prisma`.
