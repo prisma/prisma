@@ -46,6 +46,8 @@ There are three ways of obtaining a Prisma schema based on an existing Prisma 1 
 
 Note that [introspection is not yet available](https://github.com/prisma/prisma2/issues/781), so for the purpose of this upgrade guide you'll use the `prisma2 convert` command which converts a Prisma 1 data model to a Prisma schema file. Note that the resulting Prisma schema will not contain any data source and generator definitions yet, these must be added manually.
 
+### 2.1. Convert the datamodel
+
 Assuming your Prisma 1 datamodel is called `datamodel.prisma`, you can use the following command to create a Prisma schema file called `schema.prisma`:
 
 ```bash
@@ -95,3 +97,111 @@ model Post {
 ```
 
 **Note**: The `@unique` attributes on the `id` fields are [redundant](https://github.com/prisma/prisma2/issues/786) as uniqueness is already implied by the `@id` attribute. 
+
+### 2.2. Add the datasource
+
+In Prisma 1, the database connection is specified on the Docker image that's used to deploy the Prisma server. The Prisma server then exposes an HTTP endpoint that proxies all database requests from actual application code. That HTTP endpoint is specified in your `prisma.yml`.
+
+With the Prisma Framework, the HTTP layer isn't exposed any more and the database client (Photon.js) is configured to run requests "directly" against the database (that is, requests are proxied by its query engine, but there isn't an extra server any more).
+
+So, as a next step you'll need to tell the Prisma Framework where your database is located. You can do so by adding a `datasource` block to your Prisma schema, here is what it looks like (using placeholder values):
+
+```prisma
+datasource db {
+  provider = "DB_PROVIDER"
+  url      = "DB_CONNECTION_STRING"
+}
+```
+
+You'll now need to replace the placeholder `DB_PROVIDER` and `DB_CONNECTION_STRING` with the actual connection details of your database.
+
+For the `provider` field, you need to add either of three values:
+
+- `mysql` for a MySQL database
+- `postgresql` for a PostgreSQL database
+- `sqlite` for a SQLite database
+
+The `url` field then defines the _connection string_ of the database. Assume the database configuration in your Docker Compose file that you used to deploy your Prisma server looks as follows:
+
+```yml
+databases:
+  default:
+    connector: postgres
+    host: host.docker.internal
+    database: mydb
+    schema: public
+    user: janedoe
+    password: janedoe
+    ssl: false
+    rawAccess: true
+    port: '5432'
+    migrations: true
+```
+
+Based on these connection details, you need to add the following `datasource` to the `schema.prisma` file that was created when you invoked `prisma2 convert`:
+
+```diff
++ datasource postgresql {
++   provider = "postgresql"
++   url =      "postgresql://janedoe:janedoe@localhost:5432/mydb?schema=public
++ }
+
+model User {
+  id    String  @default(cuid()) @id
+  email String  @unique
+  name  String?
+  posts Post[]
+}
+
+model Post {
+  id        String   @default(cuid()) @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  author    User
+}
+```
+
+### 2.3. Add the generator
+
+With Prisma 1, you specified which language variant of the Prisma client you wanted to use based in your `prisma.yml`, e.g.:
+
+```yml
+generate:
+  - generator: typescript-client
+    output: ../src/generated/prisma-client/
+```
+
+With the Prisma Framework, this information is now also contained inside the Prisma schema via a `generator` block. Add it to your your Prisma schema like so:
+
+```prisma
+datasource postgresql {
+  provider = "postgresql"
+  url =      "postgresql://janedoe:janedoe@localhost:5432/mydb?schema=public
+}
+
++ generator photonjs {
++   provider = "photonjs"
++ }
+
+model User {
+  id    String  @default(cuid()) @id
+  email String  @unique
+  name  String?
+  posts Post[]
+}
+
+model Post {
+  id        String   @default(cuid()) @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  author    User
+}
+```
+
+Note that the code for Photon.js [by default gets generated into `node_modules/@generated`](https://github.com/prisma/prisma2/blob/master/docs/photon/codegen-and-node-setup.md) but can be customized via an `output` field on the `generator` block.
