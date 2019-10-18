@@ -60,6 +60,7 @@ export class LiftUp implements Command {
       '-v': '--verbose',
       '--create-db': Boolean,
       '-c': '--create-db',
+      '--auto-approve': Boolean,
     })
 
     if (isError(args)) {
@@ -73,6 +74,7 @@ export class LiftUp implements Command {
     const options: UpOptions = {
       preview: args['--preview'],
       verbose: args['--verbose'],
+      autoApprove: args['--auto-approve'],
     }
 
     if (args._.length > 0) {

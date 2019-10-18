@@ -1,6 +1,6 @@
 {
   "name": "@prisma/lift",
-  "version": "0.3.46",
+  "version": "0.3.48",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
@@ -83,8 +83,8 @@
     "supports-hyperlinks": "^1.0.1"
   },
   "scripts": {
-    "install": "node download.js",
-    "download": "node download.js",
+    "install": "node scripts/download.js",
+    "download": "node scripts/download.js",
     "run": "node dist/bin.js",
     "precommit": "lint-staged && jest",
     "lint": "prettier --write src/*.{ts,tsx,js,jsx,md,graphql} src/**/*.{ts,tsx,js,jsx,md,graphql} && tsc",

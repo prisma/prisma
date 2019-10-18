@@ -34,6 +34,7 @@ export class LiftSave implements Command {
       -h, --help       Displays this help message
       -n, --name       Name the migration
       -c, --create-db  Create the database in case it doesn't exist
+      -p, --preview    Get a preview of which migration would be created next
 
     ${chalk.bold('Examples')}
 
@@ -79,6 +80,14 @@ export class LiftSave implements Command {
     const name = preview ? args['--name'] : await this.name(args['--name'])
 
     const { files, newLockFile, migrationId } = await lift.save(migration, name, preview)
+
+    if (migration.warnings && migration.warnings.length > 0) {
+      console.log(chalk.bold(`\n\n⚠️  There might be data loss when applying the migration:\n`))
+      for (const warning of migration.warnings) {
+        console.log(chalk(`  • ${warning.description}`))
+      }
+      console.log()
+    }
 
     if (preview) {
       lift.stop()

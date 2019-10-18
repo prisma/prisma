@@ -113,10 +113,15 @@ export namespace EngineResults {
   export interface ApplyMigration {
     datamodelSteps: DatamodelStep[]
     databaseSteps: DatabaseStep[]
-    warnings: any[]
+    warnings: Warning[]
     errors: any[]
     generalErrors: any[]
   }
+
+  export interface Warning {
+    description: string
+  }
+
   export interface UnapplyMigration {
     rolledBack: DatamodelStep[]
     active: DatamodelStep[]
@@ -174,6 +179,7 @@ export interface Migration {
 
 export interface LocalMigrationWithDatabaseSteps extends LocalMigration {
   databaseSteps: DatabaseStep[]
+  warnings: EngineResults.Warning[]
 }
 
 export interface RawSqlStep {

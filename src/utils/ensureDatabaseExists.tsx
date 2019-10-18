@@ -4,14 +4,16 @@ import { BorderBox, DummySelectable, TabIndexProvider } from '@prisma/ink-compon
 import { getConfig } from '@prisma/sdk'
 import ansiEscapes from 'ansi-escapes'
 import chalk from 'chalk'
-import { Box, Color, Instance, render, useStdin } from 'ink'
+import { Box, Color, Instance, render } from 'ink'
 import Spinner from 'ink-spinner'
 const AnySpinner: any = Spinner
+import Debug from 'debug'
 import React, { useContext, useEffect, useState } from 'react'
 import { createDatabase } from '..'
 import { canConnectToDatabase } from '../liftEngineCommands'
 import { Link } from './Link'
 import { DatabaseCredentials, uriToCredentials } from './uriToCredentials'
+const debug = Debug('ensureDatabaseExists')
 
 export type LiftAction = 'create' | 'apply' | 'unapply' | 'dev'
 
@@ -27,12 +29,30 @@ export async function ensureDatabaseExists(action: LiftAction, killInk: boolean,
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
-  const { status } = await canConnectToDatabase(activeDatasource.url.value)
-  // TODO: Handle when the db credentials are completely invalid
-  // Wait for Tom to add handling for SSL case
+  const { status, message } = await canConnectToDatabase(activeDatasource.url.value)
+  debug({ status, message })
   if (status === 'Ok') {
     return
   }
+
+  // ignore for now
+  if (status === 'TlsError') {
+    return
+  }
+
+  if (status === 'AuthenticationFailed') {
+    throw new Error(`The authentication to the database failed. Please make sure the user and password are correct.`)
+  }
+
+  if (status === 'DatabaseAccessDenied') {
+    throw new Error(`Access to the database denied. Please make sure you have proper rights.`)
+  }
+
+  if (status === 'UndefinedError') {
+    throw new Error(`Could not connect to database: ${message}`)
+  }
+
+  // last case: status === 'DatabaseDoesNotExist'
 
   if (forceCreate) {
     await createDatabase(activeDatasource.url.value)

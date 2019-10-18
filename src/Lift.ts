@@ -16,6 +16,7 @@ import logUpdate from 'log-update'
 import makeDir = require('make-dir')
 import pMap from 'p-map'
 import path from 'path'
+import { prompt } from 'prompts'
 import { Readable } from 'stream'
 import stripAnsi from 'strip-ansi'
 import { promisify } from 'util'
@@ -48,6 +49,7 @@ export interface UpOptions {
   n?: number
   short?: boolean
   verbose?: boolean
+  autoApprove?: boolean
 }
 export interface DownOptions {
   n?: number
@@ -293,7 +295,7 @@ export class Lift {
     const assumeToBeApplied = migrationsToApply.flatMap(m => m.datamodelSteps)
 
     const datamodel = await this.getDatamodel()
-    const { datamodelSteps, databaseSteps } = await this.engine.inferMigrationSteps({
+    const { datamodelSteps, databaseSteps, warnings } = await this.engine.inferMigrationSteps({
       sourceConfig,
       datamodel,
       migrationId,
@@ -309,6 +311,11 @@ export class Lift {
       datamodel,
       datamodelSteps,
       databaseSteps,
+      warnings: [
+        {
+          description: 'You are about to drop the table `Post`, which is not empty (2 rows).',
+        },
+      ],
     }
   }
 
@@ -522,7 +529,7 @@ export class Lift {
     return `🚀 Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
-  public async up({ n, preview, short, verbose }: UpOptions = {}): Promise<string> {
+  public async up({ n, preview, short, verbose, autoApprove }: UpOptions = {}): Promise<string> {
     await this.getLockFile()
     const before = Date.now()
 
@@ -548,7 +555,7 @@ export class Lift {
 
       if (lastUnappliedMigration.datamodel.length < 10000) {
         if (lastAppliedMigration) {
-          console.log(chalk.bold('Changes to be applied:'))
+          console.log(chalk.bold('Changes to be applied:') + '\n')
           console.log(printDatamodelDiff(lastAppliedMigration.datamodel, lastUnappliedMigration.datamodel))
         } else {
           console.log(brightGreen.bold('Datamodel that will initialize the db:\n'))
@@ -557,8 +564,32 @@ export class Lift {
       }
     }
 
+    console.log(`\nChecking the datasource for potential data loss...`)
     const firstMigrationToApplyIndex = localMigrations.indexOf(migrationsToApply[0])
     const migrationsWithDbSteps = await this.getDatabaseSteps(localMigrations, firstMigrationToApplyIndex, sourceConfig)
+
+    const warnings = migrationsWithDbSteps.flatMap(m => m.warnings)
+
+    if (warnings.length > 0) {
+      console.log(chalk.bold(`\n\n⚠️  There will be data loss:\n`))
+      for (const warning of warnings) {
+        console.log(chalk(`  • ${warning.description}`))
+      }
+      console.log() // empty line before prompt
+      if (!autoApprove) {
+        const response = await prompt({
+          type: 'confirm',
+          name: 'value',
+          message: `Are you sure you want to apply this change?`,
+        })
+
+        if (!response.value) {
+          process.exit()
+        }
+      } else {
+        console.log(`As ${chalk.bold('--auto-approve')} is provided, the destructive changes are accepted.\n`)
+      }
+    }
 
     const progressRenderer = new ProgressRenderer(migrationsWithDbSteps, short || false)
 
@@ -573,7 +604,7 @@ export class Lift {
       const migrationToApply = migrationsToApply[i]
       const { id, datamodelSteps } = migrationToApply
       const result = await this.engine.applyMigration({
-        force: false,
+        force: true,
         migrationId: id,
         steps: datamodelSteps,
         sourceConfig,
@@ -745,6 +776,7 @@ export class Lift {
           return {
             ...migration,
             databaseSteps: [],
+            warnings: [],
           }
         }
         const stepsUntilNow = index > 0 ? localMigrations.slice(0, index).flatMap(m => m.datamodelSteps) : []
@@ -753,10 +785,16 @@ export class Lift {
           stepsToApply: migration.datamodelSteps,
           sourceConfig,
         }
-        const { databaseSteps } = await this.engine.calculateDatabaseSteps(input)
+        const { databaseSteps, warnings } = await this.engine.calculateDatabaseSteps(input)
         return {
           ...migration,
           databaseSteps,
+          // warnings,
+          warnings: [
+            {
+              description: 'You are about to drop the table `Post`, which is not empty (2 rows).',
+            },
+          ],
         }
       },
       { concurrency: 1 },

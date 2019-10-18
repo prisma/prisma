@@ -111,7 +111,7 @@ export async function createDatabase(
   cwd = process.cwd(),
   migrationEnginePath?: string,
 ): Promise<void> {
-  const dbExists = await canConnectToDatabase(connectionString, cwd, migrationEnginePath)
+  const dbExists = await canConnectToDatabase(ignoreSsl(connectionString), cwd, migrationEnginePath)
   if (dbExists.status === 'Ok') {
     return
   }
@@ -124,6 +124,11 @@ export async function createDatabase(
       RUST_LOG: 'info',
     },
   })
+}
+
+function ignoreSsl(connectionString: string): string {
+  const delimiter = connectionString!.includes('?') ? '&' : '?'
+  return connectionString + delimiter + 'sslaccept=accept_invalid_certs'
 }
 
 // extracts messages from strings like `[2019-09-17T08:03:11Z ERROR migration_engine] Database \'strapi2\' does not exist.\n`
