@@ -78,7 +78,7 @@ export class Lift {
   // tslint:disable
   public watchUp = simpleDebounce(
     async (
-      { preview, providerAliases, clear, onWarnings }: WatchOptions = { clear: true, providerAliases: {} },
+      { preview, providerAliases, clear, onWarnings, autoApprove }: WatchOptions = { clear: true, providerAliases: {} },
       renderer?: DevComponentRenderer,
     ) => {
       debug('Running watchUp')
@@ -89,7 +89,7 @@ export class Lift {
         const migration = await this.createMigration(watchMigrationName)
         const existingWatchMigrations = await this.getLocalWatchMigrations()
 
-        if (migration && migration.warnings && onWarnings) {
+        if (migration && migration.warnings && onWarnings && !autoApprove) {
           // if (migration?.warnings && onWarnings) { As soon as ts-node uses TS 3.7
           const ok = await onWarnings(migration.warnings)
           if (!ok) {
@@ -420,6 +420,10 @@ export class Lift {
       debug(...args)
     }
 
+    console.error = (...args) => {
+      debug(...args)
+    }
+
     this.recreateStudioServer(datamodel, options.providerAliases)
 
     const { migrationsToApply } = await this.getMigrationsToApply()
@@ -430,6 +434,7 @@ export class Lift {
       // console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
       await this.up({
         short: true,
+        autoApprove: options.autoApprove,
         onWarnings: async warnings => renderer.promptForWarnings(warnings),
       })
       // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
@@ -582,7 +587,7 @@ export class Lift {
 
     const warnings = migrationsWithDbSteps.flatMap(m => m.warnings)
 
-    if (onWarnings && typeof onWarnings === 'function') {
+    if (onWarnings && typeof onWarnings === 'function' && !autoApprove) {
       const ok = await onWarnings(warnings)
       if (!ok) {
         await exit()
