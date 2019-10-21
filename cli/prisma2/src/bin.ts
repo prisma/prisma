@@ -18,6 +18,10 @@ process.on('unhandledRejection', e => {
   debug(e)
 })
 
+// warnings: no tanks
+// hides ExperimentalWarning: The fs.promises API is experimental
+process.env.NODE_NO_WARNINGS = '1'
+
 /**
  * Dependencies
  */
