@@ -1,5 +1,4 @@
-import { Dictionary, getSchemaDirSync, getSchemaPath, getSchemaPathSync } from '@prisma/cli'
-import { getPlatform } from '@prisma/get-platform'
+import { Dictionary, getSchemaDirSync } from '@prisma/cli'
 import { getGenerators } from '@prisma/sdk'
 import 'array-flat-polyfill'
 import chalk from 'chalk'
@@ -24,10 +23,12 @@ import { highlightDatamodel } from './cli/highlight/highlight'
 import { blue } from './cli/highlight/theme'
 import { DevComponentRenderer } from './ink/DevComponentRenderer'
 import { LiftEngine } from './LiftEngine'
+import { Studio } from './Studio'
 import { EngineResults, FileMap, LocalMigration, LocalMigrationWithDatabaseSteps, LockFile, Migration } from './types'
 import { drawBox } from './utils/drawBox'
 import { exit } from './utils/exit'
 import { formatms } from './utils/formartms'
+import { getDatamodelPath } from './utils/getDatamodelPath'
 import { groupBy } from './utils/groupBy'
 import { isWatchMigrationName } from './utils/isWatchMigrationName'
 import { deserializeLockFile, initLockFile, serializeLockFile } from './utils/LockFile'
@@ -114,7 +115,7 @@ export class Lift {
           const after = Date.now()
           renderer && renderer.setState({ migrating: false, migratedIn: after - before })
           if (renderer) {
-            this.recreateStudioServer(datamodel, providerAliases)
+            this.recreateStudioServer(providerAliases)
           }
         }
 
@@ -127,7 +128,7 @@ export class Lift {
         }
 
         const generators = await getGenerators({
-          schemaPath: await this.getDatamodelPath(),
+          schemaPath: getDatamodelPath(this.projectDir),
           providerAliases,
           printDownloadProgress: false,
           version: packageJson.prisma.version,
@@ -180,12 +181,12 @@ export class Lift {
   )
   // tsline:enable
   private datamodelBeforeWatch: string = ''
-  private studioServer?: any
+  private studioServer?: Studio
   private studioPort: number = 5555
   private projectDir: string
   constructor(projectDir?: string) {
     this.projectDir = projectDir || this.getSchemaDir()
-    const schemaPath = this.getDatamodelPath()
+    const schemaPath = getDatamodelPath(this.projectDir)
     this.engine = new LiftEngine({ projectDir: this.projectDir, schemaPath })
   }
 
@@ -198,26 +199,8 @@ export class Lift {
     return schemaPath
   }
 
-  public getDatamodelPath(): string {
-    const { projectDir } = this
-    if (projectDir) {
-      if (fs.existsSync(path.join(projectDir, 'schema.prisma'))) {
-        return path.join(projectDir, 'schema.prisma')
-      }
-      if (fs.existsSync(path.join(projectDir, 'prisma/schema.prisma'))) {
-        return path.join(projectDir, 'prisma/schema.prisma')
-      }
-    }
-    const schemaPath = getSchemaPathSync()
-    if (!schemaPath) {
-      throw new Error(`Could not find schema.prisma in ${projectDir}`)
-    }
-
-    return schemaPath
-  }
-
   public getDatamodel(): string {
-    return fs.readFileSync(this.getDatamodelPath(), 'utf-8')
+    return fs.readFileSync(getDatamodelPath(this.projectDir), 'utf-8')
   }
 
   // TODO: optimize datapaths, where we have a datamodel already, use it
@@ -225,58 +208,14 @@ export class Lift {
     return this.getDatamodel()
   }
 
-  public async recreateStudioServer(datamodel: string, providerAliases: { [key: string]: string }) {
+  public async recreateStudioServer(providerAliases: { [key: string]: string }) {
     try {
       if (this.studioServer) {
-        this.studioServer.restart({ datamodel })
         return
       }
 
-      const platform = await getPlatform()
-      const extension = platform === 'windows' ? '.exe' : ''
-
-      const pathCandidates = [
-        // ncc go home
-        // tslint:disable-next-line
-        eval(`require('path').join(__dirname, '../node_modules/@prisma/photon/query-engine-${platform}${extension}')`), // for local dev
-        // tslint:disable-next-line
-        eval(`require('path').join(__dirname, '../query-engine-${platform}${extension}')`), // for production
-      ]
-
-      const pathsExist = await Promise.all(
-        pathCandidates.map(async candidate => ({ exists: await exists(candidate), path: candidate })),
-      )
-
-      const firstExistingPath = pathsExist.find(p => p.exists)
-
-      if (!firstExistingPath) {
-        throw new Error(`Could not find any binary path for Studio. Looked in ${pathCandidates.join(', ')}`)
-      }
-
-      // const StudioServer = require('@prisma/studio-server').default
-      const StudioServer = (await import('@prisma/studio-server')).default
-
-      let photonWorkerPath: string | undefined = undefined
-      try {
-        const studioTransport = require.resolve('@prisma/studio-transports')
-        photonWorkerPath = path.join(path.dirname(studioTransport), 'photon-worker.js')
-      } catch (e) {
-        //
-      }
-
-      this.studioServer = new StudioServer({
-        port: this.studioPort,
-        debug: false,
-        binaryPath: firstExistingPath.path,
-        photonWorkerPath,
-        photonGenerator: {
-          version: packageJson.prisma.version,
-          providerAliases: providerAliases,
-        },
-        schemaPath: this.getDatamodelPath(),
-      })
-
-      await this.studioServer.start()
+      this.studioServer = new Studio({ projectDir: this.projectDir, port: this.studioPort })
+      await this.studioServer.start(providerAliases)
     } catch (e) {
       debug(e)
     }
@@ -384,7 +323,7 @@ export class Lift {
     const datamodel = await this.getDatamodel()
 
     const generators = await getGenerators({
-      schemaPath: await this.getDatamodelPath(),
+      schemaPath: getDatamodelPath(this.projectDir),
       providerAliases: options.providerAliases,
       printDownloadProgress: false,
       version: packageJson.prisma.version,
@@ -392,7 +331,7 @@ export class Lift {
 
     this.studioPort = await getPort({ port: getPort.makeRange(5555, 5600) })
 
-    const datamodelPath = await this.getDatamodelPath()
+    const datamodelPath = getDatamodelPath(this.projectDir)
     const relativeDatamodelPath = path.relative(process.cwd(), datamodelPath)
 
     // From here on, we render the dev ui
@@ -424,7 +363,7 @@ export class Lift {
       debug(...args)
     }
 
-    this.recreateStudioServer(datamodel, options.providerAliases)
+    this.recreateStudioServer(options.providerAliases)
 
     const { migrationsToApply } = await this.getMigrationsToApply()
 
@@ -465,7 +404,7 @@ export class Lift {
 
     await makeDir(this.devMigrationsDir)
 
-    fs.watch(await this.getDatamodelPath(), (eventType, filename) => {
+    fs.watch(getDatamodelPath(this.projectDir), (eventType, filename) => {
       if (eventType === 'change') {
         this.watchUp(options, renderer)
       }

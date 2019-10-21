@@ -19,6 +19,7 @@ import { LiftSave } from './cli/commands/LiftSave'
 import { LiftTmpPrepare } from './cli/commands/LiftTmpPrepare'
 import { LiftUp } from './cli/commands/LiftUp'
 import { LiftWatch } from './cli/commands/LiftWatch'
+import { StudioCommand } from './cli/commands/StudioCommand'
 import { handlePanic } from './utils/handlePanic'
 
 const providerAliases = {
@@ -39,6 +40,7 @@ async function main(): Promise<number> {
     down: LiftDown.new(),
     dev: LiftWatch.new(providerAliases),
     ['tmp-prepare']: LiftTmpPrepare.new(providerAliases),
+    studio: StudioCommand.new(providerAliases),
   })
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))
