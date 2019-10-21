@@ -7,6 +7,8 @@ process.on('unhandledRejection', (e, promise) => {
   console.log(String(e), String(promise))
 })
 
+process.env.NODE_NO_WARNINGS = '1'
+
 /**
  * Dependencies
  */

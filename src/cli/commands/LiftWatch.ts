@@ -23,6 +23,7 @@ export class LiftWatch implements Command {
     ${chalk.bold('Options')}
 
       -c, --create-db   Create the database in case it doesn't exist
+      --auto-approve    Skip interactive approval before migrating
   `)
   private constructor(private readonly providerAliases: Dictionary<string>) {}
 
@@ -33,6 +34,7 @@ export class LiftWatch implements Command {
       '-p': '--preview',
       '--create-db': Boolean,
       '-c': '--create-db',
+      '--auto-approve': Boolean,
     })
     const preview = args['--preview'] || false
 
@@ -44,6 +46,7 @@ export class LiftWatch implements Command {
     return lift.watch({
       preview,
       providerAliases: this.providerAliases,
+      autoApprove: args['--auto-approve'],
     })
   }
 
