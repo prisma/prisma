@@ -1,39 +1,57 @@
+import { Instance, render } from 'ink'
 import React from 'react'
-import { render, Instance } from 'ink'
-import { DevInkComponent, DevComponentProps, GeneratorInfo } from './DevInkComponent'
+import { EngineResults } from '../types'
+import { exit } from '../utils/exit'
+import { DevComponentProps, DevInkComponent, GeneratorInfo } from './DevInkComponent'
 
-export type DevComponentOptions = {
+export interface DevComponentOptions {
   port: number
   initialState: DevComponentProps
 }
 
 export class DevComponentRenderer {
-  state: DevComponentProps
-  app?: Instance
-  count: number = 0
-  lastNewState?: any
+  public state: DevComponentProps
+  public app?: Instance
+  public count: number = 0
+  public lastNewState?: any
+  private warningsPromptCallback?: (ok: boolean) => void
   constructor(options: DevComponentOptions) {
     this.state = options.initialState
     this.app = this.render()
     process.on('SIGINT', () => {
-      this.app && this.app.unmount()
+      if (this.app) {
+        this.app.unmount()
+      }
     })
   }
   // setState for nested array
-  setGeneratorState(index: number, gen: Partial<GeneratorInfo>) {
+  public setGeneratorState(index: number, gen: Partial<GeneratorInfo>) {
     this.state.generators[index] = { ...this.state.generators[index], ...gen }
     this.render()
   }
-  setState(state: Partial<DevComponentProps>) {
+  public setState(state: Partial<DevComponentProps>) {
     this.lastNewState = state
     this.state = { ...this.state, ...state }
     this.render()
   }
-  render() {
+  public promptForWarnings(warnings: EngineResults.Warning[]): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      this.warningsPromptCallback = async ok => {
+        if (!ok) {
+          await exit()
+        } else {
+          this.setState({ warnings: [] })
+          resolve(ok)
+        }
+      }
+      this.setState({ warnings })
+    })
+  }
+  public render() {
     if (!this.app) {
-      return render(<DevInkComponent {...this.state} />)
+      return render(<DevInkComponent {...this.state} onSubmitWarningsPrompt={this.warningsPromptCallback} />)
     }
-    this.app.rerender(<DevInkComponent {...this.state} />)
+    this.app.rerender(<DevInkComponent {...this.state} onSubmitWarningsPrompt={this.warningsPromptCallback} />)
 
     return this.app
   }

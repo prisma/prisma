@@ -26,6 +26,7 @@ import { DevComponentRenderer } from './ink/DevComponentRenderer'
 import { LiftEngine } from './LiftEngine'
 import { EngineResults, FileMap, LocalMigration, LocalMigrationWithDatabaseSteps, LockFile, Migration } from './types'
 import { drawBox } from './utils/drawBox'
+import { exit } from './utils/exit'
 import { formatms } from './utils/formartms'
 import { groupBy } from './utils/groupBy'
 import { isWatchMigrationName } from './utils/isWatchMigrationName'
@@ -50,6 +51,7 @@ export interface UpOptions {
   short?: boolean
   verbose?: boolean
   autoApprove?: boolean
+  onWarnings?: (warnings: EngineResults.Warning[]) => Promise<boolean>
 }
 export interface DownOptions {
   n?: number
@@ -58,6 +60,8 @@ export interface WatchOptions {
   preview?: boolean
   providerAliases: Dictionary<string>
   clear?: boolean
+  autoApprove?: boolean
+  onWarnings?: (warnings: EngineResults.Warning[]) => Promise<boolean>
 }
 interface MigrationFileMapOptions {
   migration: LocalMigrationWithDatabaseSteps
@@ -74,7 +78,7 @@ export class Lift {
   // tslint:disable
   public watchUp = simpleDebounce(
     async (
-      { preview, providerAliases, clear }: WatchOptions = { clear: true, providerAliases: {} },
+      { preview, providerAliases, clear, onWarnings }: WatchOptions = { clear: true, providerAliases: {} },
       renderer?: DevComponentRenderer,
     ) => {
       debug('Running watchUp')
@@ -84,6 +88,14 @@ export class Lift {
         const watchMigrationName = `watch-${now()}`
         const migration = await this.createMigration(watchMigrationName)
         const existingWatchMigrations = await this.getLocalWatchMigrations()
+
+        if (migration && migration.warnings && onWarnings) {
+          // if (migration?.warnings && onWarnings) { As soon as ts-node uses TS 3.7
+          const ok = await onWarnings(migration.warnings)
+          if (!ok) {
+            await exit()
+          }
+        }
 
         if (migration) {
           const before = Date.now()
@@ -383,6 +395,7 @@ export class Lift {
     const datamodelPath = await this.getDatamodelPath()
     const relativeDatamodelPath = path.relative(process.cwd(), datamodelPath)
 
+    // From here on, we render the dev ui
     const renderer = new DevComponentRenderer({
       port: this.studioPort,
       initialState: {
@@ -402,7 +415,7 @@ export class Lift {
       },
     })
 
-    // silent everyone else. this is not a democracy
+    // silent everyone else. this is not a democracy 👹
     console.log = (...args) => {
       debug(...args)
     }
@@ -417,11 +430,14 @@ export class Lift {
       // console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
       await this.up({
         short: true,
+        onWarnings: async warnings => renderer.promptForWarnings(warnings),
       })
       // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
       options.clear = false
       renderer.setState({ migrating: false })
     }
+
+    options.onWarnings = warnings => renderer.promptForWarnings(warnings)
 
     const localMigrations = await this.getLocalMigrations()
     const watchMigrations = await this.getLocalWatchMigrations()
@@ -525,7 +541,7 @@ export class Lift {
     return `🚀 Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
-  public async up({ n, preview, short, verbose, autoApprove }: UpOptions = {}): Promise<string> {
+  public async up({ n, preview, short, verbose, autoApprove, onWarnings }: UpOptions = {}): Promise<string> {
     await this.getLockFile()
     const before = Date.now()
 
@@ -566,13 +582,20 @@ export class Lift {
 
     const warnings = migrationsWithDbSteps.flatMap(m => m.warnings)
 
+    if (onWarnings && typeof onWarnings === 'function') {
+      const ok = await onWarnings(warnings)
+      if (!ok) {
+        await exit()
+      }
+    }
+
     if (warnings.length > 0) {
       console.log(chalk.bold(`\n\n⚠️  There will be data loss:\n`))
       for (const warning of warnings) {
-        console.log(chalk(`  • ${warning.description}`))
+        console.log(`  • ${warning.description}`)
       }
       console.log() // empty line before prompt
-      if (!autoApprove) {
+      if (!autoApprove && !onWarnings) {
         const response = await prompt({
           type: 'confirm',
           name: 'value',
@@ -580,7 +603,7 @@ export class Lift {
         })
 
         if (!response.value) {
-          process.exit()
+          await exit()
         }
       } else {
         console.log(`As ${chalk.bold('--auto-approve')} is provided, the destructive changes are accepted.\n`)

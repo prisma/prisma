@@ -13,6 +13,7 @@ import {
 import chalk from 'chalk'
 import React, { useContext, useState } from 'react'
 import { LiftPanic } from '../LiftEngine'
+import { exit } from './exit'
 import { Link } from './Link'
 import { sendPanic } from './sendPanic'
 
@@ -20,13 +21,12 @@ export async function handlePanic(error: LiftPanic, cliVersion: string, binaryVe
   return new Promise(resolve => {
     let app: Instance | undefined
 
-    const onDone = () => {
+    const onDone = async () => {
       if (app) {
         app.unmount()
         app.waitUntilExit()
       }
-      process.exit(0)
-      resolve()
+      await exit()
     }
 
     app = render(

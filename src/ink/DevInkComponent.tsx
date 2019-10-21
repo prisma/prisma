@@ -1,15 +1,16 @@
 import cliCursor from 'cli-cursor'
-import memoize from 'fast-memoize'
 import { Box, Color, StdinContext, StdoutContext } from 'ink'
 import Link from 'ink-link'
 import React, { Component } from 'react'
 import stripAnsi from 'strip-ansi'
 import supportsHyperlinks from 'supports-hyperlinks'
+import { EngineResults } from '../types'
 import { formatms } from '../utils/formartms'
 import { missingGeneratorMessage } from '../utils/generation/missingGeneratorMessage'
 import { renderDate } from '../utils/now'
 import { printDatamodelDiff } from '../utils/printDatamodelDiff'
 import { Spinner } from './Spinner'
+import { WarningsPrompt } from './WarningsPrompt'
 
 export interface GeneratorInfo {
   name: string
@@ -28,6 +29,8 @@ export interface DevComponentProps {
   datamodelPath: string
   studioPort: number
   relativeDatamodelPath: string
+  warnings?: EngineResults.Warning[]
+  onSubmitWarningsPrompt?: (ok: boolean) => void
 }
 
 export interface Props extends DevComponentProps {
@@ -39,6 +42,7 @@ export interface Props extends DevComponentProps {
 export interface State {
   showDiff: boolean
   diffScroll: number
+  error?: Error
 }
 // const ARROW_UP = '\u001B[A'
 // const ARROW_DOWN = '\u001B[B'
@@ -50,11 +54,6 @@ const BACKSPACE = '\x08'
 const DELETE = '\x7F'
 
 class DevComponent extends Component<Props, State> {
-  public resizeInterval: any
-  public state = {
-    showDiff: false,
-    diffScroll: 0,
-  }
   get width() {
     return (this.props.stdout.columns || 64) - 4
   }
@@ -63,6 +62,15 @@ class DevComponent extends Component<Props, State> {
   }
   get diff(): { diff: string; rowCount: number } {
     return this.getDiff()
+  }
+  public static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+  public resizeInterval: any
+  public state: State = {
+    showDiff: false,
+    diffScroll: 0,
+    error: undefined,
   }
   public getDiff = () => {
     const { datamodelBefore, datamodelAfter } = this.props
@@ -138,7 +146,18 @@ class DevComponent extends Component<Props, State> {
   }
 
   public render() {
-    const { generators } = this.props
+    if (this.state.error) {
+      return (
+        <Box flexDirection="column">
+          <Color bold red>
+            Unexpected Error in dev command
+          </Color>
+          <Color red>{this.state.error.stack || this.state.error.message}</Color>
+        </Box>
+      )
+    }
+
+    const { generators, warnings, onSubmitWarningsPrompt } = this.props
     const smallScreen = this.height <= 16
     const paddingTop = smallScreen ? 1 : 2
     if (this.state.showDiff) {
@@ -207,61 +226,16 @@ class DevComponent extends Component<Props, State> {
             ) : (
               <Color dim>No changes yet</Color>
             )}
-            <Box marginTop={paddingTop} flexDirection="column">
-              <Color bold>Generator</Color>
-              {!smallScreen && <Color dim>{'─'.repeat(this.width)}</Color>}
-            </Box>
           </Box>
-          <Box marginTop={0} marginLeft={0}>
-            {generators.length === 0 ? (
-              <Box height={missingGeneratorMessage.split('\n').length} marginLeft={4}>
-                {missingGeneratorMessage}
-              </Box>
-            ) : (
-              <>
-                <Box flexDirection="column">
-                  {generators.map(gen =>
-                    gen.generating ? (
-                      <Color yellow key={gen.name}>
-                        <Spinner type="dots10" /> {gen.name}
-                      </Color>
-                    ) : (
-                      <Color green key={gen.name}>
-                        ✓ {gen.name}
-                      </Color>
-                    ),
-                  )}
-                </Box>
-                <Box flexDirection="column" marginLeft={4}>
-                  {generators.map(gen =>
-                    gen.generating ? (
-                      <Color dim key={gen.name}>
-                        Generating...
-                      </Color>
-                    ) : gen.generatedIn ? (
-                      <Color dim key={gen.name}>
-                        generated in {formatms(gen.generatedIn)}
-                      </Color>
-                    ) : (
-                      <Color dim key={gen.name}>
-                        not yet generated
-                      </Color>
-                    ),
-                  )}
-                </Box>
-              </>
-            )}
-          </Box>
-          <Box marginLeft={2} flexDirection="column">
-            <Box marginTop={paddingTop} flexDirection="column">
-              <Color bold>Migrations</Color>
-              {!smallScreen && <Color dim>{'─'.repeat(this.width)}</Color>}
-            </Box>
+          <Box marginLeft={2} marginTop={paddingTop} flexDirection="column">
+            <Color bold>Migrations</Color>
+            {!smallScreen && <Color dim>{'─'.repeat(this.width)}</Color>}
           </Box>
           <Box marginTop={0} flexDirection="column">
             {this.props.migrating ? (
               <Color yellow>
-                <Spinner type="dots10" /> Migrating the database...
+                <Spinner type="dots10" />{' '}
+                {warnings && warnings.length > 0 ? 'Waiting for confirmation...' : 'Migrating the database...'}
               </Color>
             ) : (
               <Color green>
@@ -280,25 +254,82 @@ class DevComponent extends Component<Props, State> {
               </Box>
             )}
           </Box>
+          <Box marginLeft={2} marginTop={paddingTop} flexDirection="column">
+            <Color bold>Generators</Color>
+            {!smallScreen && <Color dim>{'─'.repeat(this.width)}</Color>}
+          </Box>
+          <Box marginTop={0}>
+            {generators.length === 0 ? (
+              <Box height={missingGeneratorMessage.split('\n').length} marginLeft={4}>
+                {missingGeneratorMessage}
+              </Box>
+            ) : (
+              <>
+                <Box flexDirection="column">
+                  {generators.map(gen =>
+                    gen.generating ? (
+                      <Color yellow key={gen.name}>
+                        <Spinner type="dots10" /> {gen.name}
+                      </Color>
+                    ) : gen.generatedIn ? (
+                      <Color green key={gen.name}>
+                        ✓ {gen.name}
+                      </Color>
+                    ) : (
+                      <Color key={gen.name}>
+                        {'  '}
+                        {gen.name}
+                      </Color>
+                    ),
+                  )}
+                </Box>
+                <Box flexDirection="column" marginLeft={4}>
+                  {generators.map(gen =>
+                    gen.generating ? (
+                      <Color dim key={gen.name}>
+                        Generating...
+                      </Color>
+                    ) : gen.generatedIn ? (
+                      <Color dim key={gen.name}>
+                        Generated in {formatms(gen.generatedIn)}
+                      </Color>
+                    ) : (
+                      <Color dim key={gen.name}>
+                        Waiting for migrations...
+                      </Color>
+                    ),
+                  )}
+                </Box>
+              </>
+            )}
+          </Box>
         </Box>
         <Box flexDirection="column" marginLeft={2} marginTop={0}>
-          <Box marginTop={1} width={this.width} justifyContent="space-between">
-            <Box>
-              <Color bold>Studio endpoint: </Color>
-              {supportsHyperlinks.stdout ? (
-                <Link url={'http://localhost:' + this.props.studioPort}>http://localhost:{this.props.studioPort}/</Link>
-              ) : (
-                <Color underline>http://localhost:{this.props.studioPort}/</Color>
-              )}
-            </Box>
-          </Box>
-          <Color dim>{'─'.repeat(this.width)}</Color>
-          <Box>
-            <Box>
-              <Color bold>d: </Color>
-              <Color dim>diff</Color>
-            </Box>
-          </Box>
+          {warnings && warnings.length > 0 && onSubmitWarningsPrompt ? (
+            <WarningsPrompt warnings={warnings} onSubmitWarningsPrompt={onSubmitWarningsPrompt} />
+          ) : (
+            <>
+              <Box marginTop={1} width={this.width} justifyContent="space-between">
+                <Box>
+                  <Color bold>Studio endpoint: </Color>
+                  {supportsHyperlinks.stdout ? (
+                    <Link url={'http://localhost:' + this.props.studioPort}>
+                      http://localhost:{this.props.studioPort}/
+                    </Link>
+                  ) : (
+                    <Color underline>http://localhost:{this.props.studioPort}/</Color>
+                  )}
+                </Box>
+              </Box>
+              <Color dim>{'─'.repeat(this.width)}</Color>
+              <Box>
+                <Box>
+                  <Color bold>d: </Color>
+                  <Color dim>diff</Color>
+                </Box>
+              </Box>
+            </>
+          )}
         </Box>
       </Box>
     )
