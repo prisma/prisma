@@ -176,7 +176,7 @@ generate:
 
 With the Prisma Framework, this information is now also contained inside the Prisma schema via a `generator` block. Add it to your your Prisma schema like so:
 
-```prisma
+```diff
 datasource postgresql {
   provider = "postgresql"
   url =      "postgresql://janedoe:janedoe@localhost:5432/mydb?schema=public"
