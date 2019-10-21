@@ -5,18 +5,24 @@ import path from 'path'
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
 
+function getContextualCwd() {
+  // For https://github.com/prisma/photonjs/issues/261
+  // When prisma2 generate is run from within node_modules, npm scripts provide that path as the process.cwd() path
+  // However, it also provides the init cwd in this environment variable: https://docs.npmjs.com/cli/run-script
+  return process.env.INIT_CWD || process.cwd()
+}
+
 /**
  * Async
  */
 
 export async function getSchemaPath(): Promise<string | null> {
-  let schemaPath = path.join(process.cwd(), 'schema.prisma')
-
+  let schemaPath = path.join(getContextualCwd(), 'schema.prisma')
   if (await exists(schemaPath)) {
     return schemaPath
   }
 
-  schemaPath = path.join(process.cwd(), `prisma/schema.prisma`)
+  schemaPath = path.join(getContextualCwd(), `prisma/schema.prisma`)
 
   if (await exists(schemaPath)) {
     return schemaPath
@@ -52,13 +58,13 @@ export async function getSchema(): Promise<string> {
  */
 
 export function getSchemaPathSync(): string | null {
-  let schemaPath = path.join(process.cwd(), 'schema.prisma')
+  let schemaPath = path.join(getContextualCwd(), 'schema.prisma')
 
   if (fs.existsSync(schemaPath)) {
     return schemaPath
   }
 
-  schemaPath = path.join(process.cwd(), `prisma/schema.prisma`)
+  schemaPath = path.join(getContextualCwd(), `prisma/schema.prisma`)
 
   if (fs.existsSync(schemaPath)) {
     return schemaPath
