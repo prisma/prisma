@@ -96,7 +96,7 @@ model Post {
 }
 ```
 
-**Note**: The `@unique` attributes on the `id` fields are [redundant](https://github.com/prisma/prisma2/issues/786) as uniqueness is already implied by the `@id` attribute. It also contains another bug where it [doesn't convert `@default` attributes](https://github.com/prisma/prisma2/issues/790), so you need to manually add the `@default(true)` to the `published` field in the Prisma schema.
+> **Note**: The `@unique` attributes on the `id` fields are [redundant](https://github.com/prisma/prisma2/issues/786) as uniqueness is already implied by the `@id` attribute. It also contains another bug where it [doesn't convert `@default` attributes](https://github.com/prisma/prisma2/issues/790), so you need to manually add the `@default(true)` to the `published` field in the Prisma schema.
 
 ### 2.2. Add the datasource
 
@@ -176,7 +176,7 @@ generate:
 
 With the Prisma Framework, this information is now also contained inside the Prisma schema via a `generator` block. Add it to your your Prisma schema like so:
 
-```prisma
+```diff
 datasource postgresql {
   provider = "postgresql"
   url =      "postgresql://janedoe:janedoe@localhost:5432/mydb?schema=public"
