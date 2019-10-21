@@ -459,15 +459,15 @@
     tar "^4.4.10"
     terminal-link "^2.0.0"
 
-"@prisma/lift@0.3.54":
-  version "0.3.54"
-  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.3.54.tgz#a7a08975e81e397a21b71cdffe212a07a2cc4556"
-  integrity sha512-z6BoDzbBzLTbG1xClL0X9tNkwQqs+0JR+wSCcsB3wODQoJhRWz4UX5M1h1y57B5Kqp6XVbYnFbinK+GoisQWFg==
+"@prisma/lift@0.3.60":
+  version "0.3.60"
+  resolved "https://registry.yarnpkg.com/@prisma/lift/-/lift-0.3.60.tgz#306de42169c6de7d53de5304efd87c885b11f1ff"
+  integrity sha512-HdwO/EDzdHbu+xQb+YX8w60yKkp/KmdO13oHOZltYggmZmYSuhsfraqF51G7fS6vimQJqBaRRFQBqsq7NhvUsQ==
   dependencies:
     "@prisma/fetch-engine" "^0.3.2"
     "@prisma/get-platform" "^0.1.1"
     "@prisma/ink-components" "^0.0.7"
-    "@prisma/studio-server" "0.129.0"
+    "@prisma/studio-server" "0.131.0"
     "@types/execa" "^0.9.0"
     adm-zip "^0.4.13"
     ansi-escapes "^4.2.1"
@@ -488,7 +488,7 @@
     git-user-name "^2.0.0"
     globby "9.2"
     indent-string "^4.0.0"
-    ink "^2.2.0"
+    ink "^2.5.0"
     ink-link "^1.0.0"
     ink-spinner "^3.0.1"
     keypress "^0.2.1"
@@ -497,6 +497,7 @@
     p-map "^3.0.0"
     prisma-datamodel "^1.36.0-test.2"
     prompts "^2.1.0"
+    ps-tree "^1.2.0"
     react "^16.8.6"
     string-width "^4.1.0"
     strip-ansi "^5.2.0"
@@ -551,18 +552,26 @@
     p-map "^3.0.0"
     prisma-datamodel "1.36.0-test.2"
 
-"@prisma/studio-server@0.129.0":
-  version "0.129.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.129.0.tgz#934fca601110888db231fdf190586b038bf2ff1d"
-  integrity sha512-8gUX1o9Qcb1e0T6PaD+C5l7SXipwu32dltTAGEZGfwLhJQwjHKf/t887Shn2zTVeauW8s4Q1YFY7RkocwU49Lg==
+"@prisma/studio-server@0.131.0":
+  version "0.131.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.131.0.tgz#313fb7e29533cba4d8a645961e6803633a5c0c3e"
+  integrity sha512-4Tm2r75qGPeZekBPSfxLSmm4IXabxDDFyCpK9GOsJORLb/8NMgd76dY2nLy3bDfDrMmtuJ9/UiCfbrpiS2C40A==
   dependencies:
-    "@prisma/studio" "0.129.0"
-    "@prisma/studio-transports" "0.129.0"
+    "@prisma/studio" "0.131.0"
+    "@prisma/studio-transports" "0.131.0"
     "@sentry/node" "^5.6.2"
     express "^4.17.1"
     express-ws "^4.0.0"
 
-"@prisma/studio-transports@0.129.0", "@prisma/studio-transports@^0.129.0":
+"@prisma/studio-transports@0.131.0":
+  version "0.131.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.131.0.tgz#e48a3cf330fbe162be8023b3e1349e80716025a4"
+  integrity sha512-dDvvTu2v4EdJUE6k2s5NLo+3lS2HrMCMzcgG2nTAZOlsIgaY/V5gHcNlAI4JR9Z+qTlJ9zzHRbr50pzL7A4jXw==
+  dependencies:
+    "@sentry/node" "^5.6.2"
+    strip-ansi "^5.2.0"
+
+"@prisma/studio-transports@^0.129.0":
   version "0.129.0"
   resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.129.0.tgz#665f6098ff0a85c16ae6db3324219fbe65548977"
   integrity sha512-cgiL6uJq/QxIrSBfz0qNfOiyyCi0ZNN6zPSxFGG3nOHYTdRzhVJaBD+bSIxgmshIN1STC17xOR9lBd3bk4J7JA==
@@ -570,10 +579,10 @@
     "@sentry/node" "^5.6.2"
     strip-ansi "^5.2.0"
 
-"@prisma/studio@0.129.0":
-  version "0.129.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.129.0.tgz#b4f1587a110f9c98b937f61b77f821930627a9c0"
-  integrity sha512-fbSOVPJrVNEbrAHh4//VYRSEiatWOr2LawBsM/7D+cis6sty/NJf2t6yve/9ebarOMm5ecxjuyusEBJrJxk/hw==
+"@prisma/studio@0.131.0":
+  version "0.131.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.131.0.tgz#0ee71cdd9ce39a21760eb4d52e64b518dba5f7a5"
+  integrity sha512-5H6nL4Quvkqw0bAQ3KRYSTPujL3adofsnyDHaBbtZhUnYrPgrL7udur1c+5oWFTEfH1ft0kvkwmw2TOJqc66fw==
 
 "@sentry/core@5.6.2":
   version "5.6.2"
@@ -1863,6 +1872,11 @@ duplexer3@^0.1.4:
   resolved "https://registry.yarnpkg.com/duplexer3/-/duplexer3-0.1.4.tgz#ee01dd1cac0ed3cbc7fdbea37dc0a8f1ce002ce2"
   integrity sha1-7gHdHKwO08vH/b6jfcCo8c4ALOI=
 
+duplexer@~0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/duplexer/-/duplexer-0.1.1.tgz#ace6ff808c1ce66b57d1ebf97977acb02334cfc1"
+  integrity sha1-rOb/gIwc5mtX0ev5eXessCM0z8E=
+
 ecc-jsbn@~0.1.1:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/ecc-jsbn/-/ecc-jsbn-0.1.2.tgz#3a83a904e54353287874c564b7549386849a98c9"
@@ -2012,6 +2026,19 @@ etag@~1.8.1:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/etag/-/etag-1.8.1.tgz#41ae2eeb65efa62268aebfea83ac7d79299b0887"
   integrity sha1-Qa4u62XvpiJorr/qg6x9eSmbCIc=
+
+event-stream@=3.3.4:
+  version "3.3.4"
+  resolved "https://registry.yarnpkg.com/event-stream/-/event-stream-3.3.4.tgz#4ab4c9a0f5a54db9338b4c34d86bfce8f4b35571"
+  integrity sha1-SrTJoPWlTbkzi0w02Gv86PSzVXE=
+  dependencies:
+    duplexer "~0.1.1"
+    from "~0"
+    map-stream "~0.1.0"
+    pause-stream "0.0.11"
+    split "0.3"
+    stream-combiner "~0.0.4"
+    through "~2.3.1"
 
 exec-sh@^0.3.2:
   version "0.3.2"
@@ -2322,6 +2349,11 @@ fresh@0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
   integrity sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=
+
+from@~0:
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/from/-/from-0.1.7.tgz#83c60afc58b9c56997007ed1a768b3ab303a44fe"
+  integrity sha1-g8YK/Fi5xWmXAH7Rp2izqzA6RP4=
 
 fs-exists-sync@^0.1.0:
   version "0.1.0"
@@ -2855,7 +2887,7 @@ ink-text-input@^3.2.1:
   dependencies:
     prop-types "^15.5.10"
 
-ink@^2.2.0, ink@^2.5.0:
+ink@^2.5.0:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/ink/-/ink-2.5.0.tgz#66cf988b65ca06d14f00f385eb531fde29f95819"
   integrity sha512-HUkVglJ11cXK+W1a5cKNoOCxLkDi5hbDMAWSFDcwF2kpNd0eoX+2/cpaTP9BTFaQ8RJk7O59NxKMmyPXkmxo7w==
@@ -3945,6 +3977,11 @@ map-cache@^0.2.2:
   resolved "https://registry.yarnpkg.com/map-cache/-/map-cache-0.2.2.tgz#c32abd0bd6525d9b051645bb4f26ac5dc98a0dbf"
   integrity sha1-wyq9C9ZSXZsFFkW7TyasXcmKDb8=
 
+map-stream@~0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/map-stream/-/map-stream-0.1.0.tgz#e56aa94c4c8055a16404a0674b78f215f7c8e194"
+  integrity sha1-5WqpTEyAVaFkBKBnS3jyFffI4ZQ=
+
 map-visit@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/map-visit/-/map-visit-1.0.0.tgz#ecdca8f13144e660f1b5bd41f12f3479d98dfb8f"
@@ -4710,6 +4747,13 @@ path-type@^3.0.0:
   dependencies:
     pify "^3.0.0"
 
+pause-stream@0.0.11:
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/pause-stream/-/pause-stream-0.0.11.tgz#fe5a34b0cbce12b5aa6a2b403ee2e73b602f1445"
+  integrity sha1-/lo0sMvOErWqaitAPuLnO2AvFEU=
+  dependencies:
+    through "~2.3"
+
 performance-now@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
@@ -4997,6 +5041,13 @@ proxy-addr@~2.0.5:
   dependencies:
     forwarded "~0.1.2"
     ipaddr.js "1.9.0"
+
+ps-tree@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/ps-tree/-/ps-tree-1.2.0.tgz#5e7425b89508736cdd4f2224d028f7bb3f722ebd"
+  integrity sha512-0VnamPPYHl4uaU/nSFeZZpR21QAWRz+sRv4iW9+v/GS/J5U5iZB5BNN6J0RMoOvdx2gWM2+ZFMIm58q24e4UYA==
+  dependencies:
+    event-stream "=3.3.4"
 
 psl@^1.1.24, psl@^1.1.28:
   version "1.4.0"
@@ -5581,6 +5632,13 @@ split-string@^3.0.1, split-string@^3.0.2:
   dependencies:
     extend-shallow "^3.0.0"
 
+split@0.3:
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/split/-/split-0.3.3.tgz#cd0eea5e63a211dfff7eb0f091c4133e2d0dd28f"
+  integrity sha1-zQ7qXmOiEd//frDwkcQTPi0N0o8=
+  dependencies:
+    through "2"
+
 split@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/split/-/split-1.0.1.tgz#605bd9be303aa59fb35f9229fbea0ddec9ea07d9"
@@ -5642,6 +5700,13 @@ stealthy-require@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/stealthy-require/-/stealthy-require-1.1.1.tgz#35b09875b4ff49f26a777e509b3090a3226bf24b"
   integrity sha1-NbCYdbT/SfJqd35QmzCQoyJr8ks=
+
+stream-combiner@~0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/stream-combiner/-/stream-combiner-0.0.4.tgz#4d5e433c185261dde623ca3f44c586bcf5c4ad14"
+  integrity sha1-TV5DPBhSYd3mI8o/RMWGvPXErRQ=
+  dependencies:
+    duplexer "~0.1.1"
 
 string-length@^2.0.0:
   version "2.0.0"
@@ -5878,7 +5943,7 @@ through2@^3.0.1:
   dependencies:
     readable-stream "2 || 3"
 
-through@2:
+through@2, through@~2.3, through@~2.3.1:
   version "2.3.8"
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=
