@@ -26,7 +26,7 @@
     "@prisma/fetch-engine": "^0.3.4",
     "@prisma/generator-helper": "^0.0.14",
     "@prisma/introspection": "0.0.90",
-    "@prisma/lift": "0.3.49",
+    "@prisma/lift": "0.3.60",
     "@prisma/photon": "^0.2.117",
     "@prisma/sdk": "^0.0.21",
     "@prisma/studio-transports": "^0.126.0",
