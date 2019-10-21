@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "0.2.121",
+  "version": "0.2.122",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -70,7 +70,7 @@
   },
   "dependencies": {
     "@apexearth/copy": "^1.4.2",
-    "@prisma/cli": "0.1.14",
+    "@prisma/cli": "0.1.15",
     "@prisma/engine-core": "0.0.98",
     "@prisma/fetch-engine": "^0.3.4",
     "@prisma/generator-helper": "^0.0.14",
