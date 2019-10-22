@@ -117,7 +117,7 @@ Let's go through the created files.
 
 ### 3.1. Understand the Prisma schema file
 
-At the core of each project that uses Photon and/or Lift, there is the [Prisma schema file](./prisma-schema-file.md) (typically called `prisma.schema`). Here's what your Prisma schema currently looks like:
+At the core of each project that uses Photon and/or Lift, there is the [Prisma schema file](./prisma-schema-file.md) (typically called `schema.prisma`). Here's what your Prisma schema currently looks like:
 
 ```prisma
 generator photon {
