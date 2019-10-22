@@ -43,7 +43,7 @@ async function main() {
     title: string
     content: string | null
     author: User | null
-  } = await photon.posts.findOne({
+  } | null = await photon.posts.findOne({
     where: {
       id: '',
     },

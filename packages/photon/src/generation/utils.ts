@@ -118,8 +118,8 @@ export function getFieldTypeName(field: DMMF.SchemaField) {
   return field.outputType.type.name
 }
 
-export function getType(name: string, isList: boolean) {
-  return name + (isList ? '[]' : '')
+export function getType(name: string, isList: boolean, isOptional?: boolean) {
+  return name + (isList ? '[]' : '') + (isOptional ? ' | null' : '')
 }
 
 export function getFieldType(field: DMMF.SchemaField) {
@@ -178,7 +178,7 @@ export function getSelectReturnType({
         name,
         projection,
         actionName,
-      )}<T>>${listClose}${promiseClose}`
+      )}<T>${actionName === 'findOne' ? ' | null' : ''}>${listClose}${promiseClose}`
 
     return `${requiredCheck}T extends ${selectArgName}
 ? ${renderType(Projection.select)} : T extends ${includeArgName}
@@ -188,15 +188,17 @@ export function getSelectReturnType({
   const selectType = `${renderPromise ? 'Promise<' : ''}${getPayloadName(
     name,
     Projection.select,
-  )}<Extract${selectArgName}<T>>${renderPromise ? '>' : ''}`
+  )}<Extract${selectArgName}<T>${renderPromise ? '>' : ''}${actionName === 'findOne' ? ' | null' : ''}>`
 
   const includeType = `${renderPromise ? 'Promise<' : ''}${getPayloadName(
     name,
     Projection.include,
-  )}<Extract${includeArgName}<T>>${renderPromise ? '>' : ''}`
+  )}<Extract${includeArgName}<T>${renderPromise ? '>' : ''}${actionName === 'findOne' ? ' | null' : ''}>`
 
   return `${requiredCheck}T extends ${selectArgName} ? ${selectType}
-: T extends ${includeArgName} ? ${includeType} : ${name}Client<${getType(name, isList)}>`
+: T extends ${includeArgName} ? ${includeType} : ${name}Client<${getType(name, isList)}${
+    actionName === 'findOne' ? ' | null' : ''
+  }>`
 }
 
 export function isQueryAction(action: DMMF.ModelAction, operation: 'query' | 'mutation'): boolean {
