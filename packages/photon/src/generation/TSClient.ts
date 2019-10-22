@@ -99,6 +99,10 @@ class PhotonFetcher {
       debug(result)
       return this.unpack(document, result, path, rootField, isList)
     } catch (e) {
+      // HACK: This will be removed as soon as the query engine doesn't throw anymore
+      if (e.message.includes('Record does not exist') && rootField && rootField.startsWith('findOne')) {
+        return null as any
+      }
       if (callsite) {
         const { stack } = printStack({
           callsite,
@@ -708,11 +712,8 @@ ${indent(
             projection: Projection.select,
           })}>(${renderInitialClientArgs(actionName, fieldName, mapping)})${
             actionName !== 'findMany'
-              ? ` : new ${name}Client<${getType(name, actionName === 'findMany')}>(${renderInitialClientArgs(
-                  actionName,
-                  fieldName,
-                  mapping,
-                )})`
+              ? ` : new ${name}Client<${(getType(name, actionName === 'findMany'),
+                actionName === 'findOne')}>(${renderInitialClientArgs(actionName, fieldName, mapping)})`
               : ''
           }`,
     )
