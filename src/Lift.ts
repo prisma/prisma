@@ -90,7 +90,7 @@ export class Lift {
         const migration = await this.createMigration(watchMigrationName)
         const existingWatchMigrations = await this.getLocalWatchMigrations()
 
-        if (migration && migration.warnings && onWarnings && !autoApprove) {
+        if (migration && migration.warnings && migration.warnings.length > 0 && onWarnings && !autoApprove) {
           // if (migration?.warnings && onWarnings) { As soon as ts-node uses TS 3.7
           const ok = await onWarnings(migration.warnings)
           if (!ok) {
@@ -99,6 +99,7 @@ export class Lift {
         }
 
         if (migration) {
+          debug('There is a migration we are going to apply now')
           const before = Date.now()
           renderer && renderer.setState({ lastChanged: new Date() })
           renderer && renderer.setState({ migrating: true })
@@ -108,6 +109,7 @@ export class Lift {
             steps: migration.datamodelSteps,
             sourceConfig: datamodel,
           })
+          debug(`Applied migration`)
           const lastWatchMigration =
             existingWatchMigrations.length > 0 ? existingWatchMigrations[existingWatchMigrations.length - 1] : undefined
 
@@ -117,6 +119,8 @@ export class Lift {
           if (renderer) {
             this.recreateStudioServer(providerAliases)
           }
+        } else {
+          debug(`No migration to apply`)
         }
 
         if (datamodel !== this.datamodelBeforeWatch) {
@@ -162,6 +166,7 @@ export class Lift {
               generating: true,
             })
           try {
+            debug(`Generating ${generator.manifest!.prettyName}`)
             await generator.generate()
             generator.stop()
             const after = Date.now()
@@ -254,6 +259,13 @@ export class Lift {
     })
 
     if (datamodelSteps.length === 0) {
+      debug(`No datamodelSteps`)
+      debug(`No datamodelSteps`)
+      debug(`No datamodelSteps`)
+      debug(`No datamodelSteps`)
+      debug(`No datamodelSteps`)
+      debug(`No datamodelSteps`)
+      debug({ datamodelSteps, databaseSteps, warnings })
       return undefined
     }
 
@@ -359,9 +371,9 @@ export class Lift {
       debug(...args)
     }
 
-    console.error = (...args) => {
-      debug(...args)
-    }
+    // console.error = (...args) => {
+    //   debug(...args)
+    // }
 
     this.recreateStudioServer(options.providerAliases)
 
@@ -526,14 +538,13 @@ export class Lift {
 
     const warnings = migrationsWithDbSteps.flatMap(m => m.warnings)
 
-    if (onWarnings && typeof onWarnings === 'function' && !autoApprove) {
-      const ok = await onWarnings(warnings)
-      if (!ok) {
-        await exit()
+    if (warnings.length > 0 && !autoApprove) {
+      if (onWarnings && typeof onWarnings === 'function' && !autoApprove) {
+        const ok = await onWarnings(warnings)
+        if (!ok) {
+          await exit()
+        }
       }
-    }
-
-    if (warnings.length > 0) {
       console.log(chalk.bold(`\n\n⚠️  There will be data loss:\n`))
       for (const warning of warnings) {
         console.log(`  • ${warning.description}`)

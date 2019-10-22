@@ -2,6 +2,8 @@ import { Command, Dictionary, format, GeneratorDefinitionWithPackage, HelpError 
 import chalk from 'chalk'
 import Debug from 'debug'
 import { Lift } from '../../Lift'
+import { createDatabase } from '../../liftEngineCommands'
+import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
 import { occupyPath } from '../../utils/occupyPath'
 const debug = Debug('tmp-prepare')
 
@@ -31,8 +33,16 @@ export class LiftTmpPrepare implements Command {
 
     const lift = new Lift()
     debug('initialized lift')
+    await ensureDatabaseExists('dev', false, true)
+
+    await lift.up({
+      short: true,
+      autoApprove: true,
+    })
+
     await lift.watchUp({
       providerAliases: this.providerAliases,
+      autoApprove: true,
     })
 
     lift.stop()
