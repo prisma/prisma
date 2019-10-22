@@ -4,7 +4,7 @@ import { tabIndexContextState } from '@prisma/ink-components'
 class RouterContextClass {
   private routes: { [key: string]: (active: boolean) => void } = {}
   private activeRoute?: string
-  private stack: string[] = []
+  stack: string[] = []
   registerRoute(route: string, cb: (active: boolean) => void) {
     this.routes[route] = cb
     if (this.activeRoute && this.activeRoute === route) {

@@ -26,7 +26,16 @@ process.env.NODE_NO_WARNINGS = '1'
  * Dependencies
  */
 import { isError, HelpError } from '@prisma/cli'
-import { LiftCommand, LiftSave, LiftUp, LiftDown, LiftWatch, LiftTmpPrepare, handlePanic } from '@prisma/lift'
+import {
+  LiftCommand,
+  LiftSave,
+  LiftUp,
+  LiftDown,
+  LiftWatch,
+  LiftTmpPrepare,
+  StudioCommand,
+  handlePanic,
+} from '@prisma/lift'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
 import { Version } from './Version'
@@ -61,6 +70,7 @@ async function main(): Promise<number> {
     introspect: Introspect.new(),
     convert: Converter.new(),
     dev: LiftWatch.new(aliases),
+    studio: StudioCommand.new(aliases),
     generate: Generate.new(aliases),
     version: Version.new(),
   })
