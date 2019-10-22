@@ -116,7 +116,7 @@ The Photon.js generator provides the following mapping from data model [scalar t
 | `Boolean`  | `boolean` |
 | `Int`      | `number`  |
 | `Float`    | `number`  |
-| `DateTime` | `string`    |
+| `DateTime` | `Date`    |
 
 ## Reserved model names
 
