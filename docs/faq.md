@@ -12,7 +12,6 @@
 - Lift
   - [Am I locked-in when using Lift? Is it easy to migrate off it?](#am-i-locked-in-when-using-lift-is-it-easy-to-migrate-off-it)
   - [How do I see details about how Lift migrates my database schema?](#how-do-i-see-details-about-how-lift-migrates-my-database-schema)
-  - [How can I extend a migration with custom functionality, e.g. running a script?](#how-can-i-extend-a-migration-with-custom-functionality-eg-running-a-script)
   - [Is Lift production-ready? Should I start using it?](#is-lift-production-ready-should-i-start-using-it)
 - Other
   - [Since Prisma 2 is released, will Prisma 1 still be maintained?](#since-prisma-2-is-released-will-prisma-1-still-be-maintained)
@@ -77,10 +76,6 @@ There's absolutely no lock-in with Lift. To stop using Lift, you can delete your
 Each migration is represented via its own directory on your file system. The name of each directory contains a timestamp so that the order of all migrations in the project history can be maintained. Each of these migration directories contains detailed information about the respective migration, for example which steps are executed (and in what order) as well as a human-friendly markdown file that summarizes the most important information about the migration, such as the source and the target [data model definition](./data-modeling.md#data-model-definition) of the migration. This information can also be found in the        `migrations` table in your database/schema. 
 
 Also, the `lift` CLI constantly prints the migration statements and more information when you're running its commands.
-
-### How can I extend a migration with custom functionality, e.g. running a script?
-
-Every migration can be extended with before/after hooks. You can put executable scripts into a migration folder that are named `before` and/or `after` (or `before.{sh,js}` and/or `after.{sh,js}`) and they will be picked up automatically by Lift when you're running `prisma2 lift up`.
 
 ### Is Lift production-ready? Should I start using it?
 
