@@ -1,9 +1,15 @@
 # Introspection
 
+When working with an existing database, the first step towards using the Prisma Framework is to obtain a [Prisma schema](./prisma-schema-file.md) that matches your database schema (or a subset of your database schema). You can create this schema file manually and write out all the required [models](./data-modeling.md#models) by hand, or use Prisma's _introspection_ feature to automatically generate your Prisma schema. 
+
 Prisma lets you introspect your database to derive a data model definition from the current database schema. Introspection is available via two CLI commands:
 
 - `prisma init`: Interactive wizard that helps you connect to a database and introspect it. Typically used when starting to use Prisma with an existing database.
 - `prisma introspect`: Assumes Prisma is already connected to your database and (re)introspects it for you. Typically used in [Photon-only](./photon/use-only-photon.md) projects where migrations are performed not via Lift, so the data model needs to be updated manually after each database schema change.
+
+## Introspecting only a subset of your database schema
+
+This is not yet supported by Prisma. However, you can achieve this by creating a new database user that only has access to the tables thar you'd like to see represented in your Prisma schema and then perform the introspection using that user. The introspection will then only include the tables the new user has access to.
 
 ## Conventions
 
