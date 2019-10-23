@@ -25,15 +25,9 @@
     "@prisma/cli": "^0.1.17",
     "@prisma/fetch-engine": "^0.3.4",
     "@prisma/generator-helper": "^0.0.14",
-<<<<<<< HEAD
     "@prisma/introspection": "0.0.94",
     "@prisma/lift": "0.3.65",
     "@prisma/photon": "^0.2.133",
-=======
-    "@prisma/introspection": "0.0.91",
-    "@prisma/lift": "0.3.60",
-    "@prisma/photon": "^0.2.120",
->>>>>>> f5978133be7ecb60b4e13df8171ca8c5016cb070
     "@prisma/sdk": "^0.0.21",
     "@prisma/studio-transports": "^0.135.0",
     "@sentry/node": "5",
