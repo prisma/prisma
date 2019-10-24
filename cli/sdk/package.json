@@ -43,7 +43,8 @@
     "execa": "^2.0.5",
     "flat-map-polyfill": "^0.3.8",
     "p-map": "^3.0.0",
-    "prisma-datamodel": "1.36.0-test.2"
+    "prisma-datamodel": "1.36.0-test.2",
+    "temp-write": "^4.0.0"
   },
   "husky": {
     "hooks": {
