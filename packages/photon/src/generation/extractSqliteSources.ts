@@ -9,8 +9,8 @@ export interface DatasourceOverwrite {
 export function extractSqliteSources(datamodel: string, cwd: string, outputDir: string): DatasourceOverwrite[] {
   const overrides: DatasourceOverwrite[] = []
   const lines = datamodel.split('\n').filter(l => !l.trim().startsWith('//'))
-  const lineRegex = /\s*url\s+=\s*"(file:[^\/].*)"/g
-  const startRegex = /\s*datasource\s*(\w+)\s*{/g
+  const lineRegex = /\s*url\s+=\s*"(file:[^\/].*)"/
+  const startRegex = /\s*datasource\s*(\w+)\s*{/
 
   lines.forEach((line, index) => {
     const match = lineRegex.exec(line)
