@@ -919,6 +919,7 @@ export function selectionToFields(
       }
       const children =
         select !== false && isRelation ? selectionToFields(dmmf, select, field, [...path, name]) : undefined
+
       acc.push(new Field({ name, args, children, schemaField: field }))
 
       return acc
@@ -1286,7 +1287,7 @@ export interface UnpackOptions {
  * @param options: UnpackOptions
  */
 export function unpack({ document, path, data }: UnpackOptions): any {
-  let result = deepGet(data, path)
+  const result = deepGet(data, path)
 
   if (result === 'undefined') {
     return null

@@ -48,6 +48,7 @@ function visitField(field: Field, visitor: Visitor): Field {
     args: newArgs,
     children,
     error: field.error,
+    schemaField: field.schemaField,
   })
 }
 
