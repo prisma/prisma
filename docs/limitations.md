@@ -14,10 +14,6 @@ During the Preview period of Prisma 2 there are missing features, limited perfor
 - Some edge cases for complex nested writes don't work properly yet.
 - Non-interactive terminals (like Git Bash on Windows) are currently not supported by Prisma2 CLI ([tracking issues](https://github.com/prisma/prisma2/issues/554))
 
-## Stability limitations
-
-- Limited auto-complete in TypeScript projects due to a compiler bug ([tracking issue](https://github.com/microsoft/TypeScript/issues/30507) over at `TypeScript`, and the [PR we raised that fixes that](https://github.com/microsoft/TypeScript/pull/32100) and waits to get merged)
-
 ## Performance limitations
 
 - Prisma currently processes only 1 request at a time, there is no parallelism during the early preview period. ([This will be fixed before GA, follow along in this issue](https://github.com/prisma/prisma2/issues/420))
