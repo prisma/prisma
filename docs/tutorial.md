@@ -498,7 +498,7 @@ If you want to try out this code snippet, here are a few things to consider:
 
 - You need to replace the `__POST_ID_1__` and `__POST_ID_2__` placeholders with actual ID values of the posts you created earlier (you can find these IDs e.g. in Prisma Studio or using a database GUI).
 - You need to remove the current code from the script (e.g. by commenting it out), otherwise it will try to re-create `User` records with the same email address which will fail.
-- You can invoke the script using `npm start`.
+- You can invoke the script using `npm run dev`.
 
 ### 5.3. Terminate development mode
 
