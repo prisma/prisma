@@ -1,6 +1,4 @@
-import chalk from 'chalk'
 import { Arg, Args, Document, Field } from './query'
-import { stringifyInputType } from './utils/common'
 
 interface Visitor {
   Arg: {
