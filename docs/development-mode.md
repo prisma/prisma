@@ -27,8 +27,8 @@ You can stop the development mode by hitting <kbd>CTRL</kbd>+<kbd>C</kbd> two ti
 Typically, when you're using Lift for database migrations, a migration is performed as a 3-step process:
 
 1. **Adjust data model**: Change your [data model definition](./data-modeling.md#data-model-definition) to match your desired database schema.
-1. **Save migration**: Run `prisma lift save` to create your [migration files](./migration-files.md) on the file system.
-1. **Run migration**: Run `prisma lift up` to perform the migration against your database.
+1. **Save migration**: Run `prisma2 lift save` to create your [migration files](./migration-files.md) on the file system.
+1. **Run migration**: Run `prisma2 lift up` to perform the migration against your database.
 
 This is **not** how migrations are performed in development mode! When running in development mode, there is only one step:
 
