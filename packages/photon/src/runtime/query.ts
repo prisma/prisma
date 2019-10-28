@@ -491,6 +491,10 @@ function stringify(obj, _?: any, tabbing?: string | number, isEnum?: boolean) {
     return null
   }
 
+  if (obj === null) {
+    return 'null'
+  }
+
   if (isEnum && typeof obj === 'string') {
     return obj
   }
@@ -536,6 +540,7 @@ export class Arg {
     if (typeof value === 'undefined') {
       return undefined
     }
+
     if (value instanceof Args) {
       return `${key}: {
 ${indent(value.toString(), 2)}
@@ -600,7 +605,7 @@ ${indent(value.toString(), 2)}
   }
 }
 
-export type ArgValue = string | boolean | number | undefined | Args | string[] | boolean[] | number[] | Args[]
+export type ArgValue = string | boolean | number | undefined | Args | string[] | boolean[] | number[] | Args[] | null
 
 export interface DocumentInput {
   dmmf: DMMFClass
@@ -681,7 +686,7 @@ export function transformDocument(document: Document): Document {
           }
 
           if (argType.isWhereType && schemaArg) {
-            let value
+            let value = arg.value
             if (isArgsArray(arg.value)) {
               value = arg.value.map(val => transformWhereArgs(val))
             } else if (arg.value instanceof Args) {
@@ -1079,9 +1084,10 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
               providedKeys: keys,
             }
           }
+
           return new Arg({
             key,
-            value: objectToArgs(val, t.type, arg.inputType),
+            value: val === null ? null : objectToArgs(val, t.type, arg.inputType),
             isEnum: argInputType.kind === 'enum',
             error,
             argType: t.type,
