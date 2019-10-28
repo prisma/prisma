@@ -4,10 +4,8 @@ async function main() {
   const photon = new Photon()
 
   const before = Date.now()
-  const post = await photon.posts.findOne({
-    where: {
-      id: 'asd',
-    },
+  const post = await photon.posts.findMany({
+    where: {},
     include: {
       author: true,
     },
@@ -20,7 +18,3 @@ async function main() {
 main().catch(e => {
   console.error(e)
 })
-
-const x = {
-  where: e => (e.email.endsWith('@gmail.com'), e.name.startsWith('Bob')),
-}
