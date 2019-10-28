@@ -168,12 +168,6 @@ The type of a field can be modified by appending either of two modifiers:
 
 In the main example above, the field `name` on the `User` model is _optional_ and the `posts` field is a _list_.
 
-Lists can also be optional and will give the list a third state (which is `null`):
-
-- `Blog[]`: Empty list or non-empty list (default: `[]`)
-- `Blog[]?`: `null`, empty list or non-empty list (default: `null`)
-
-The default value for a required list is an empty list. The default value for an optional list is `null`.
 
 ### Field attributes
 
