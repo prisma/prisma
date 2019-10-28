@@ -398,7 +398,7 @@ Go ahead and run the code:
 
 ```
 cd hello-prisma2
-npm start
+npm run dev
 ```
 
 This leads to the following terminal output confirming that all operations ran successfully:
