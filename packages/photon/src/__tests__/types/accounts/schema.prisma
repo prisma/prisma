@@ -1,0 +1,58 @@
+generator photon {
+  provider = "photonjs"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+type CUID = String @id @default(cuid())
+
+
+model UserTest {
+  id                  CUID
+  role                UserRole            @default(USER)
+  username            String              @unique
+  globalConfiguration GlobalConfiguration
+}
+
+model GlobalConfiguration {
+  id       CUID
+  user     User
+  accounts Account[]
+
+}
+
+model AccountData {
+  id     CUID
+  config AccountConfiguration
+}
+
+model RandomModel {
+  id CUID
+}
+
+model User {
+  id   CUID
+  name String
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model Account {
+  id     CUID
+  acc    String
+  config AccountConfiguration
+
+}
+
+model AccountConfiguration {
+  id     CUID
+  config String
+  data   AccountData?  @relation(onDelete: CASCADE)
+  list   RandomModel[] @relation(onDelete: CASCADE)
+}
