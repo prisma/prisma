@@ -69,5 +69,21 @@ postgresql://[user[:password]@][netloc][:port][,...][/database][?param1=value1&.
 - `schema`: The name of the target schema. **Default**: `public`.
 - `user`: The database user, e.g. `admin`.
 - `password`: The password for the database user.
-- `ssl`: Whether or not your database server uses SSL.
 - `connection_limit`: The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database. **Default**: `1`.
+
+See the next section to learn how you can configure an SSL connection.
+
+### Configuring an SSL connection
+
+You can add various parameters to the connection string if your database server uses SSL. Here's an overview of the possible parameters:
+
+- `sslmode=(disable|prefer|require)`: 
+  - `prefer` (default): Prefer TLS if possible, accept plain text connections. 
+  - `disable`: Do not use TLS.
+  - `require`: Require TLS or fail if not possible.
+- `sslcert=<PATH>`: Path the the server certificate, for Google Cloud this likely is `server-ca.pem`.
+- `sslidentity=<PATH>`: Path to the PKCS12 certificate database created from client cert and key.
+- `sslpassword=<PASSWORD>`: The PKCS12 password.
+- `sslaccept=(strict|accept_invalid_certs)`: 
+  - `strict` (default): Any missing value in the certificate will lead to an error. For Google Cloud, especially if the database doesn't have a domain name, the certificate might miss the domain/IP address, causing an error when connecting.
+  - `accept_invalid_certs`: Bypass this check. Be aware of the security consequences of this setting.
