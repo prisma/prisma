@@ -40,7 +40,6 @@ export interface EngineConfig {
 const knownPlatforms: Platform[] = [
   'native',
   'darwin',
-  'windows',
   'linux-glibc-libssl1.0.1',
   'linux-glibc-libssl1.0.2',
   'linux-glibc-libssl1.0.2-ubuntu1604',
@@ -89,14 +88,14 @@ export class NodeEngine extends Engine {
     this.logEmitter = new EventEmitter()
 
     this.logEmitter.on('log', log => {
+      if (this.debug) {
+        debugLib('engine:log')(log)
+      }
       if (log.level === 'error') {
         this.lastError = log
         if (log.message === 'PANIC') {
           this.handlePanic(log)
         }
-      }
-      if (this.debug) {
-        debugLib('engine:log')(log)
       }
     })
 
@@ -310,6 +309,15 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         this.child.stderr.on('data', msg => {
           const data = String(msg)
+          debug('stderr', data)
+          if (data.includes('\u001b[1;94m-->\u001b[0m')) {
+            this.stderrLogs += data
+          }
+        })
+
+        this.child.stdout.on('data', msg => {
+          const data = String(msg)
+          debug('stdout all', data)
           if (data.includes('\u001b[1;94m-->\u001b[0m')) {
             this.stderrLogs += data
           }
@@ -318,11 +326,12 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         byline(this.child.stdout).on('data', msg => {
           const data = String(msg)
           try {
+            // debug('stdout line', data)
             const json = JSON.parse(data)
             const log = convertLog(json)
             this.logEmitter.emit('log', log)
           } catch (e) {
-            debug(e, data)
+            // debug(e, data)
           }
         })
 
@@ -494,7 +503,7 @@ You very likely have the wrong defined in the schema.prisma file.`,
         if (this.currentRequestPromise.isCanceled && this.lastError) {
           throw new PhotonError(this.lastError)
         }
-        if (error.code && error.code === 'ECONNRESET') {
+        if ((error.code && error.code === 'ECONNRESET') || error.code === 'ECONNREFUSED') {
           if (this.lastError) {
             throw new PhotonError(this.lastError)
           }
