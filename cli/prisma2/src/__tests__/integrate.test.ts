@@ -111,7 +111,7 @@ async function generate(isdl: ISDL) {
     ],
   )
 
-  const schemaPath = path.join(tmp, 'prisma.schema')
+  const schemaPath = path.join(tmp, 'schema.prisma')
   fs.writeFileSync(schemaPath, datamodel)
 
   const photonjsPath = require.resolve('@prisma/photon/generator-build')

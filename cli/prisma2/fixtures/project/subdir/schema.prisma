@@ -1,0 +1,14 @@
+datasource my_db {
+  provider = "sqlite"
+  url      = "file:dev7.db"
+}
+
+generator photon {
+  provider = "photonjs"
+  output   = "@generated/photon"
+}
+
+model Blog {
+  id        Int @id
+  viewCount Int
+}
