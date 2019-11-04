@@ -1,21 +1,41 @@
-type RustLogLevel = 'CRIT' | 'ERRO' | 'WARN' | 'INFO' | 'DEBG' | 'TRCE'
+export type LogLevel = 'INFO' | 'TRACE' | 'DEBUG' | 'WARN' | 'ERROR'
 
-export type LogLevel = 'critical' | 'error' | 'warning' | 'info' | 'debug' | 'trace'
-
-const logLevelMap = {
-  CRIT: 'critical',
-  ERRO: 'error',
-  WARN: 'warning',
-  INFO: 'info',
-  DEBG: 'debug',
-  TRCE: 'trace',
+// export interface RustLog {
+//   msg: string
+//   level: LogLevel
+//   ts: string
+//   application: string
+// }
+export interface RawRustLog {
+  timestamp: string
+  level: LogLevel
+  target: string
+  fields: LogFields
 }
 
 export interface RustLog {
-  msg: string
-  level: RustLogLevel
-  ts: string
-  application: string
+  timestamp: Date
+  level: LogLevel
+  target: string
+  fields: LogFields
+}
+
+export type LogFields = PanicLogFields | InfoLogFields | { [key: string]: any }
+
+export interface PanicLogFields {
+  message: 'PANIC'
+  reason: string
+  file: string
+  line: string
+  column: number
+}
+
+export interface InfoLogFields {
+  message: string
+  'log.target': string
+  'log.module_path': string
+  'log.file': string
+  'log.line': number
 }
 
 export interface Log {
@@ -26,17 +46,9 @@ export interface Log {
   [key: string]: string | Date
 }
 
-function rustToPublicLogLevel(rustLevel: RustLogLevel): LogLevel {
-  return logLevelMap[rustLevel] as LogLevel
-}
-
-export function convertLog(rustLog: RustLog): Log {
-  const { msg, level, application, ts, ...rest } = rustLog
+export function convertLog(rustLog: RawRustLog): RustLog {
   return {
-    message: msg,
-    level: rustToPublicLogLevel(level),
-    application: application,
-    date: new Date(ts),
-    ...rest,
+    ...rustLog,
+    timestamp: new Date(rustLog.timestamp),
   }
 }

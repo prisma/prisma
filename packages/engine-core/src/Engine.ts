@@ -1,9 +1,9 @@
-import { Log } from './log'
+import { RustLog, PanicLogFields } from './log'
 import chalk from 'chalk'
 
 export class PhotonError extends Error {
-  constructor(log: Log) {
-    const isPanic = log.message === 'PANIC'
+  constructor(log: RustLog) {
+    const isPanic = log.fields.message === 'PANIC'
     const message = isPanic ? serializePanic(log) : serializeError(log)
     super(message)
     Object.defineProperty(this, 'log', {
@@ -28,9 +28,10 @@ function serializeError(log) {
   return chalk.red(log.message + ' ' + serializeObject(rest))
 }
 
-function serializePanic(log) {
+function serializePanic(log: RustLog) {
+  const fields: PanicLogFields = log.fields as PanicLogFields
   return `${chalk.red.bold('Reason: ')}${chalk.red(
-    `${log.reason} in ${chalk.underline(`${log.file}:${log.line}:${log.column}`)}`,
+    `${fields.reason} in ${chalk.underline(`${fields.file}:${fields.line}:${fields.column}`)}`,
   )}
 
 Please create an issue in the ${chalk.bold('photonjs')} repo with
