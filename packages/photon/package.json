@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "0.2.141",
+  "version": "0.2.142",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -8,6 +8,7 @@
     "tsc": "tsc -d",
     "build": "yarn tsc && yarn ncc:runtime && yarn ncc:generator",
     "test": "yarn build && jest",
+    "download": "node scripts/download.js",
     "precommit": "lint-staged && jest",
     "ncc:runtime": "node scripts/build-runtime.js",
     "ncc:generator": "rm -rf generator-build && ncc build dist/generator.js -o generator-build && sed -i.bak 's/env ts-node/env node --max-old-space-size=2048/g' 'generator-build/index.js' && rm -f generator-build/index.js.bak && chmod +x generator-build/index.js",
@@ -71,7 +72,7 @@
   "dependencies": {
     "@apexearth/copy": "^1.4.2",
     "@prisma/cli": "0.1.20",
-    "@prisma/engine-core": "0.0.98",
+    "@prisma/engine-core": "0.0.99",
     "@prisma/fetch-engine": "^0.3.4",
     "@prisma/generator-helper": "^0.0.14",
     "chalk": "^2.4.2",

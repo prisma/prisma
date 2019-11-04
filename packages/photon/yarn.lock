@@ -343,7 +343,22 @@
     chalk "^2.4.2"
     strip-indent "^3.0.0"
 
-"@prisma/engine-core@0.0.98", "@prisma/engine-core@^0.0.98":
+"@prisma/engine-core@0.0.99":
+  version "0.0.99"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.99.tgz#036d51fb9d6e799948a633e6980c2b1a33bf67fb"
+  integrity sha512-fQWRKTleEqG5vR5Grn7jDrAqVDbUkss8LxH/CLFSPHV99EYHJZ+xxuy41ulTGSSyBSB1KJA3Eeb8l/5fZj27uA==
+  dependencies:
+    "@prisma/cli" "^0.1.6"
+    "@prisma/generator-helper" "^0.0.5"
+    "@prisma/get-platform" "^0.1.2"
+    chalk "^2.4.2"
+    cross-fetch "^3.0.4"
+    debug "^4.1.1"
+    execa "^2.0.3"
+    got "^9.6.0"
+    through2 "^3.0.1"
+
+"@prisma/engine-core@^0.0.98":
   version "0.0.98"
   resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.98.tgz#811735633a64fd901b4dc8102f89d32f38eca8ae"
   integrity sha512-UhGXL1uOydm/ilS6rQ/dXSIRqmq6ZD8RJ0TOeYrmhbpdAF0Ef18EG6nFBL7hO2z+DKa2bSC9WNq7vnPmLXcL1g==
