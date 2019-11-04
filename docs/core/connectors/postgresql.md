@@ -85,5 +85,5 @@ You can add various parameters to the connection string if your database server 
 - `sslidentity=<PATH>`: Path to the PKCS12 certificate database created from client cert and key.
 - `sslpassword=<PASSWORD>`: The PKCS12 password.
 - `sslaccept=(strict|accept_invalid_certs)`: 
-  - `strict`: Any missing value in the certificate will lead to an error. For Google Cloud, especially if the database doesn't have a domain name, the certificate might miss the domain/IP address, causing an error when connecting.
+  - `strict` (default): Any missing value in the certificate will lead to an error. For Google Cloud, especially if the database doesn't have a domain name, the certificate might miss the domain/IP address, causing an error when connecting.
   - `accept_invalid_certs`: Bypass this check. Be aware of the security consequences of this setting.
