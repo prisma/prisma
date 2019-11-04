@@ -455,21 +455,21 @@
     p-map "^3.0.0"
     prisma-datamodel "1.36.0-test.2"
 
-"@prisma/studio-server@0.138.0":
-  version "0.138.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.138.0.tgz#01dd0ea31a167dcffef83df87e6ae9a64953b2ea"
-  integrity sha512-lQjmX3EBahG8uVf+QZtZF+tTPYghdvWLaI9Y4ZnB0d58MuUm95+fLC1GuHcIwjpOLg2wCOFyqqWSdykgpKc7dg==
+"@prisma/studio-server@0.141.0":
+  version "0.141.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-server/-/studio-server-0.141.0.tgz#b9acfd23653179939f0061f74c618f2172d52e2b"
+  integrity sha512-7kPOsGEKfJIPy+dWkywUayl8Af9Hpzny1KdFceKjNdiblSvdB98Yn6clGPhZW9gVPIdbXO/4CHpKdUF5GDUlVA==
   dependencies:
-    "@prisma/studio" "0.138.0"
-    "@prisma/studio-transports" "0.138.0"
+    "@prisma/studio" "0.141.0"
+    "@prisma/studio-transports" "0.141.0"
     "@sentry/node" "^5.6.2"
     express "^4.17.1"
     express-ws "^4.0.0"
 
-"@prisma/studio-transports@0.138.0":
-  version "0.138.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.138.0.tgz#0a72cc035c4f1d07d2a373a620c09c66b59f2d2a"
-  integrity sha512-8gesAtEYUA9+R+nBypcT6N9q+5dtDdZ/WeAcLw3xNffyG4zJ2wTp7FRFpgsif4yg3d18J53QTWjH8ig9DG8cWA==
+"@prisma/studio-transports@0.141.0":
+  version "0.141.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio-transports/-/studio-transports-0.141.0.tgz#e3ad744fca11894f7ba5c8e12b6195aed6512bc8"
+  integrity sha512-VM4sqXPgJSs2Y5Jxcl1K6vjdeY9y2p9GYeoDs50Rq9hyzLU3HR60B8Ooe3qVIEeJld24Um9SpKxsOnlgfCqfxw==
   dependencies:
     "@sentry/node" "^5.6.2"
     strip-ansi "^5.2.0"
@@ -482,10 +482,10 @@
     "@sentry/node" "^5.6.2"
     strip-ansi "^5.2.0"
 
-"@prisma/studio@0.138.0":
-  version "0.138.0"
-  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.138.0.tgz#8f2f0abdf30cec8eba449c9105cdd4e436b4e400"
-  integrity sha512-T7UbKdkznHMNmO5dHJd9aIs/vnRiUSvuuVSwEO5EotRfszNAY9syeETNNL7WBlB/WqJT2I0zgHON4bDxlWYwMA==
+"@prisma/studio@0.141.0":
+  version "0.141.0"
+  resolved "https://registry.yarnpkg.com/@prisma/studio/-/studio-0.141.0.tgz#f74e6541e34059b12ce613fabac3c9fb458b22e6"
+  integrity sha512-M45WnsrMAwuC20oQYhXQTmNu98A4EWCi/buFYL1GnxPWbpK4jUY4h6iWFi8tpDXB3MyXQWeq8EQVSnxi1Ug8jg==
 
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
