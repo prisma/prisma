@@ -11,7 +11,7 @@ import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixPlatforms, plusX } from './util'
 import { promisify } from 'util'
 import EventEmitter from 'events'
-import { convertLog, Log } from './log'
+import { convertLog, Log, RustLog } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
 
@@ -73,7 +73,7 @@ export class NodeEngine extends Engine {
   generator?: GeneratorConfig
   incorrectlyPinnedPlatform?: string
   datasources?: DatasourceOverwrite[]
-  lastError?: Log
+  lastError?: RustLog
   startPromise?: Promise<any>
 
   constructor({ cwd, datamodel, prismaPath, generator, datasources, ...args }: EngineConfig) {
@@ -87,13 +87,13 @@ export class NodeEngine extends Engine {
     this.datasources = datasources
     this.logEmitter = new EventEmitter()
 
-    this.logEmitter.on('log', log => {
+    this.logEmitter.on('log', (log: RustLog) => {
       if (this.debug) {
         debugLib('engine:log')(log)
       }
-      if (log.level === 'error') {
+      if (log.level === 'ERROR') {
         this.lastError = log
-        if (log.message === 'PANIC') {
+        if (log.fields.message === 'PANIC') {
           this.handlePanic(log)
         }
       }
@@ -150,7 +150,7 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
     return queryEnginePath
   }
 
-  private handlePanic(log: Log) {
+  private handlePanic(log: RustLog) {
     this.child.kill()
     if (this.currentRequestPromise) {
       ;(this.currentRequestPromise as any).cancel()
@@ -315,14 +315,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           }
         })
 
-        this.child.stdout.on('data', msg => {
-          const data = String(msg)
-          debug('stdout all', data)
-          if (data.includes('\u001b[1;94m-->\u001b[0m')) {
-            this.stderrLogs += data
-          }
-        })
-
         byline(this.child.stdout).on('data', msg => {
           const data = String(msg)
           try {
@@ -339,18 +331,22 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           // const message = this.stderrLogs ? this.stderrLogs : this.stdoutLogs
           if (code === 126) {
             this.lastError = {
-              application: 'exit',
-              date: new Date(),
-              level: 'error',
-              message: `Couldn't start query engine as it's not executable on this operating system.
-You very likely have the wrong defined in the schema.prisma file.`,
+              timestamp: new Date(),
+              target: 'exit',
+              level: 'ERROR',
+              fields: {
+                message: `Couldn't start query engine as it's not executable on this operating system.
+You very likely have the wrong "binaryTarget" defined in the schema.prisma file.`,
+              },
             }
           } else {
             this.lastError = {
-              application: 'exit',
-              date: new Date(),
-              level: 'error',
-              message: (this.stderrLogs || '') + (this.stdoutLogs || '') + code,
+              target: 'exit',
+              timestamp: new Date(),
+              level: 'ERROR',
+              fields: {
+                message: (this.stderrLogs || '') + (this.stdoutLogs || '') + code,
+              },
             }
           }
         })

@@ -343,10 +343,10 @@
     chalk "^2.4.2"
     strip-indent "^3.0.0"
 
-"@prisma/engine-core@0.0.99":
-  version "0.0.99"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-0.0.99.tgz#036d51fb9d6e799948a633e6980c2b1a33bf67fb"
-  integrity sha512-fQWRKTleEqG5vR5Grn7jDrAqVDbUkss8LxH/CLFSPHV99EYHJZ+xxuy41ulTGSSyBSB1KJA3Eeb8l/5fZj27uA==
+"@prisma/engine-core@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-2.0.0.tgz#2adc670fdb5c445118c3bdc90f0d93cfacd0cc8d"
+  integrity sha512-uyq5G5aVdS+BCSoRfm6e2e28/qZyfizT+8UpTQ+6WrlWi3aZIckf23XCgWEwUWWfzH/CaSwskX+lXIFuUR69Iw==
   dependencies:
     "@prisma/cli" "^0.1.6"
     "@prisma/generator-helper" "^0.0.5"
