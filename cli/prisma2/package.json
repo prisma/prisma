@@ -22,14 +22,14 @@
     "version": "20b6dc13949cccccfef5be07c0be7a3d7c858abe"
   },
   "devDependencies": {
-    "@prisma/cli": "^0.1.17",
+    "@prisma/cli": "^0.1.19",
     "@prisma/fetch-engine": "^0.3.4",
     "@prisma/generator-helper": "^0.0.14",
-    "@prisma/introspection": "0.0.94",
-    "@prisma/lift": "0.3.65",
-    "@prisma/photon": "^0.2.133",
+    "@prisma/introspection": "0.0.95",
+    "@prisma/lift": "0.3.68",
+    "@prisma/photon": "^0.2.140",
     "@prisma/sdk": "^0.0.21",
-    "@prisma/studio-transports": "^0.135.0",
+    "@prisma/studio-transports": "^0.139.0",
     "@sentry/node": "5",
     "@types/debug": "^4.1.5",
     "@types/mocha": "^5.2.7",
@@ -50,7 +50,7 @@
     "typescript": "3.5.2"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
+    "test": "./fixtures/test.sh && ./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
     "test:debug": "./node_modules/.bin/mocha --inspect-brk src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
     "install": "node download-build/index.js || echo \"\"",
     "download": "node scripts/updateTag.js && node download-build/index.js || echo \"\"",

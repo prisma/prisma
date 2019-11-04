@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "postinstall": "cd subdir && ../../../build/index.js generate"
+  }
+}

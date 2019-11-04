@@ -5,24 +5,33 @@ import path from 'path'
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
 
-function getContextualCwd() {
-  // For https://github.com/prisma/photonjs/issues/261
-  // When prisma2 generate is run from within node_modules, npm scripts provide that path as the process.cwd() path
-  // However, it also provides the init cwd in this environment variable: https://docs.npmjs.com/cli/run-script
-  return process.env.INIT_CWD || process.cwd()
-}
-
 /**
  * Async
  */
 
 export async function getSchemaPath(): Promise<string | null> {
-  let schemaPath = path.join(getContextualCwd(), 'schema.prisma')
+  // first try the normal cwd
+  const schemaPath = await getRelativeSchemaPath(process.cwd())
+
+  if (schemaPath) {
+    return schemaPath
+  }
+
+  // in case no schema can't be found there, try the npm-based INIT_CWD
+  if (process.env.INIT_CWD) {
+    return getRelativeSchemaPath(process.env.INIT_CWD)
+  }
+
+  return null
+}
+
+async function getRelativeSchemaPath(cwd: string): Promise<string | null> {
+  let schemaPath = path.join(cwd, 'schema.prisma')
   if (await exists(schemaPath)) {
     return schemaPath
   }
 
-  schemaPath = path.join(getContextualCwd(), `prisma/schema.prisma`)
+  schemaPath = path.join(cwd, `prisma/schema.prisma`)
 
   if (await exists(schemaPath)) {
     return schemaPath
@@ -58,13 +67,29 @@ export async function getSchema(): Promise<string> {
  */
 
 export function getSchemaPathSync(): string | null {
-  let schemaPath = path.join(getContextualCwd(), 'schema.prisma')
+  // first try intuitive schema path
+  const schemaPath = getRelativeSchemaPathSync(process.cwd())
+
+  if (schemaPath) {
+    return schemaPath
+  }
+
+  // in case the normal schema path doesn't exist, try the npm base dir
+  if (process.env.INIT_CWD) {
+    return getRelativeSchemaPathSync(process.env.INIT_CWD)
+  }
+
+  return null
+}
+
+function getRelativeSchemaPathSync(cwd: string): string | null {
+  let schemaPath = path.join(cwd, 'schema.prisma')
 
   if (fs.existsSync(schemaPath)) {
     return schemaPath
   }
 
-  schemaPath = path.join(getContextualCwd(), `prisma/schema.prisma`)
+  schemaPath = path.join(cwd, `prisma/schema.prisma`)
 
   if (fs.existsSync(schemaPath)) {
     return schemaPath
