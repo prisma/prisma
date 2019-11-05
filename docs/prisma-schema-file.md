@@ -249,7 +249,7 @@ model User {
 }
 ```
 
-Depending on which environment variable is set (in this case `SQLITE_URL` or `POSTGRES_URL`), the respective data source will be used. To set these variables you can either use a `.env`-file(Coming soon) or `export` the variables in your shell instance.
+Depending on which environment variable is set (in this case `SQLITE_URL` or `POSTGRES_URL`), the respective data source will be used. To set these variables you can either use a `.env`-file or `export` the variables in your shell instance.
 
 Tip: To quickly switch between environments you can `source` a file with the `export` commands.
 
