@@ -1,7 +1,7 @@
 steps:
   - label: ':coverage: test-lift'
     plugins:
-      - docker-compose:
+      - docker-compose#v3.0.3:
           config: .buildkite/docker-compose.yml
           run: app
   - wait
