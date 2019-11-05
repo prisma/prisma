@@ -229,7 +229,7 @@ Most of this should look familiar from what you just learned about the `User` mo
 
 ### 3.3. Understand the TypeScript setup
 
-The project also contains a number of additional files required for a typical for your Node.js/TypeScript setup:
+The project also contains a number of additional files required for a typical Node.js/TypeScript setup:
 
 - `package.json`: Defines your project's Node.js dependencies.
 - `tsconfig.json`: Specifies your TypeScript configuration. Note that Photon.js currently requires the `esModuleInterop` property to be set to `true`.
