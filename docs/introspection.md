@@ -4,8 +4,8 @@ When working with an existing database, the first step towards using the Prisma 
 
 Prisma lets you introspect your database to derive a data model definition from the current database schema. Introspection is available via two CLI commands:
 
-- `prisma init`: Interactive wizard that helps you connect to a database and introspect it. Typically used when starting to use Prisma with an existing database.
-- `prisma introspect`: Assumes Prisma is already connected to your database and (re)introspects it for you. Typically used in [Photon-only](./photon/use-only-photon.md) projects where migrations are performed not via Lift, so the data model needs to be updated manually after each database schema change.
+- `prisma2 init`: Interactive wizard that helps you connect to a database and introspect it. Typically used when starting to use Prisma with an existing database.
+- `prisma2 introspect`: Assumes Prisma is already connected to your database and (re)introspects it for you. Typically used in [Photon-only](./photon/use-only-photon.md) projects where migrations are performed not via Lift, so the data model needs to be updated manually after each database schema change.
 
 ## Introspecting only a subset of your database schema
 
