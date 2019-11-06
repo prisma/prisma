@@ -1,4 +1,4 @@
-# The Prisma 2 tutorial
+# The Prisma Framework tutorial
 
 In this tutorial, you will get a holistic and practical introduction to the Prisma 2 ecosystem. This includes using [**Lift**](http://lift.prisma.io) for database migrations and [**Photon.js**](http://photonjs.prisma.io) for type-safe database access.
 
