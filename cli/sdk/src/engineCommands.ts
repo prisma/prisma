@@ -5,6 +5,10 @@ import path from 'path'
 import { ConfigMetaFormat } from './isdlToDatamodel2'
 import { DMMF } from '@prisma/generator-helper'
 import tmpWrite from 'temp-write'
+import fs from 'fs'
+import { promisify } from 'util'
+
+const unlink = promisify(fs.unlink)
 
 async function getPrismaPath(): Promise<string> {
   // tslint:disable-next-line
@@ -115,18 +119,17 @@ export async function dmmfToDml(
 ): Promise<string> {
   prismaPath = prismaPath || (await getPrismaPath())
 
-  const filePath = tmpWrite.sync(JSON.stringify(input))
+  const filePath = await tmpWrite(JSON.stringify(input))
   try {
-    const result = await execa(
-      prismaPath,
-      ['cli', '--dmmf_file_to_dml', filePath],
-      {
-        env: {
-          ...process.env,
-          RUST_BACKTRACE: '1',
-        },
+    const args = ['cli', '--dmmf_to_dml', filePath]
+    const result = await execa(prismaPath, args, {
+      env: {
+        ...process.env,
+        RUST_BACKTRACE: '1',
       },
-    )
+    })
+
+    await unlink(filePath)
 
     return result.stdout
   } catch (e) {
