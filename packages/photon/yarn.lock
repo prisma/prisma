@@ -417,10 +417,10 @@
   dependencies:
     debug "^4.1.1"
 
-"@prisma/sdk@^0.0.21":
-  version "0.0.21"
-  resolved "https://registry.yarnpkg.com/@prisma/sdk/-/sdk-0.0.21.tgz#f4f61eaa1fd32019f417797cb9403336f0b9a2aa"
-  integrity sha512-nueJ5DLZkood2DgkjPcQPG+Cq4mCRgKkDf49Ljmvb7EY7/5rffL3yB+2XrEOH5AX+iEWB7j4sBFRL6OViYik4g==
+"@prisma/sdk@^0.0.23":
+  version "0.0.23"
+  resolved "https://registry.yarnpkg.com/@prisma/sdk/-/sdk-0.0.23.tgz#1a38cae94f907e266577c6078e8ef6a443cf979f"
+  integrity sha512-LiH8I7Fc9egEbVeBBP0VwtslgYhdmIBu6t8T9qajD+H4N+m45/it0nKbxIcxSPWl5o0IwakHHXyt+2cyjxaOEQ==
   dependencies:
     "@prisma/cli" "^0.1.12"
     "@prisma/engine-core" "^0.0.98"
@@ -432,6 +432,7 @@
     flat-map-polyfill "^0.3.8"
     p-map "^3.0.0"
     prisma-datamodel "1.36.0-test.2"
+    temp-write "^4.0.0"
 
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
@@ -6388,6 +6389,22 @@ tar@^4:
     mkdirp "^0.5.0"
     safe-buffer "^5.1.2"
     yallist "^3.0.3"
+
+temp-dir@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/temp-dir/-/temp-dir-1.0.0.tgz#0a7c0ea26d3a39afa7e0ebea9c1fc0bc4daa011d"
+  integrity sha1-CnwOom06Oa+n4OvqnB/AvE2qAR0=
+
+temp-write@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/temp-write/-/temp-write-4.0.0.tgz#cd2e0825fc826ae72d201dc26eef3bf7e6fc9320"
+  integrity sha512-HIeWmj77uOOHb0QX7siN3OtwV3CTntquin6TNVg6SHOqCP3hYKmox90eeFOGaY1MqJ9WYDDjkyZrW6qS5AWpbw==
+  dependencies:
+    graceful-fs "^4.1.15"
+    is-stream "^2.0.0"
+    make-dir "^3.0.0"
+    temp-dir "^1.0.0"
+    uuid "^3.3.2"
 
 term-size@^1.2.0:
   version "1.2.0"
