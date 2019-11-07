@@ -25,7 +25,7 @@ export interface DatasourceOverwrite {
 
 export interface EngineConfig {
   cwd?: string
-  datamodel: string
+  datamodelPath: string
   debug?: boolean
   prismaPath?: string
   fetcher?: (query: string) => Promise<{ data?: any; error?: any }>
@@ -60,7 +60,7 @@ export class NodeEngine extends Engine {
   managementApiEnabled: boolean = false
   datamodelJson?: string
   cwd: string
-  datamodel: string
+  datamodelPath: string
   prismaPath?: string
   url: string
   ready: boolean = false
@@ -76,11 +76,11 @@ export class NodeEngine extends Engine {
   lastError?: RustLog
   startPromise?: Promise<any>
 
-  constructor({ cwd, datamodel, prismaPath, generator, datasources, ...args }: EngineConfig) {
+  constructor({ cwd, datamodelPath, prismaPath, generator, datasources, ...args }: EngineConfig) {
     super()
     this.cwd = this.resolveCwd(cwd)
     this.debug = args.debug || false
-    this.datamodel = datamodel
+    this.datamodelPath = datamodelPath
     this.prismaPath = prismaPath
     this.platform = process.env.PRISMA_QUERY_ENGINE_BINARY
     this.generator = generator
@@ -283,7 +283,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.port = await this.getFreePort()
 
         const env: any = {
-          PRISMA_DML: this.datamodel,
+          PRISMA_DML_PATH: this.datamodelPath,
           PORT: String(this.port),
           RUST_BACKTRACE: '1',
           RUST_LOG: 'info',
