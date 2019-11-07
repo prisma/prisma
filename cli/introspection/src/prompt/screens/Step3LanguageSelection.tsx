@@ -7,8 +7,8 @@ import { useInitState } from '../components/InitState'
 import fs from 'fs'
 import { promisify } from 'util'
 import EmptyDirError from '../components/EmptyDirError'
+import { isDirEmpty } from '../utils/isDirEmpty'
 
-const readdir = promisify(fs.readdir)
 const exists = promisify(fs.exists)
 
 const Step3LanguageSelection: React.FC = () => {
@@ -22,8 +22,8 @@ const Step3LanguageSelection: React.FC = () => {
     async function runEffect() {
       if (state.useStarterKit) {
         if (await exists(state.outputDir)) {
-          const files = await readdir(state.outputDir)
-          if (files.length > 0) {
+          const isEmpty = await isDirEmpty(state.outputDir)
+          if (!isEmpty) {
             setShowEmptyDirError(true)
             setTimeout(() => {
               process.exit(1)

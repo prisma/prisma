@@ -26,10 +26,9 @@ import { ErrorBox } from '@prisma/ink-components'
 import { photonDefaultConfig } from '../utils/defaults'
 import EmptyDirError from '../components/EmptyDirError'
 import Debug from 'debug'
+import { isDirEmpty } from '../utils/isDirEmpty'
 const debug = Debug('download-example')
 const debugEnabled = Debug.enabled('download-example')
-
-const readdir = promisify(fs.readdir)
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
@@ -66,8 +65,8 @@ const Step60DownloadExample: React.FC = () => {
   useEffect(() => {
     async function prepare() {
       if (await exists(state.outputDir)) {
-        const files = await readdir(state.outputDir)
-        if (files.length > 0) {
+        const isEmpty = await isDirEmpty(state.outputDir)
+        if (!isEmpty) {
           setShowEmptyDirError(true)
           setTimeout(() => {
             process.exit(1)
@@ -280,9 +279,11 @@ export async function replaceCommand(command: string): Promise<string> {
 
 async function isYarnInstalled(): Promise<boolean> {
   try {
-    await execa.shell(`yarn --version`, { stdio: `ignore` })
+    const result = await execa.shell(`yarn --version`, { stdio: `ignore` })
+    debug('result', result)
     return true
   } catch (err) {
+    debug('failed', err)
     return false
   }
 }
