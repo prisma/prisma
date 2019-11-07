@@ -1,6 +1,6 @@
 {
   "name": "@prisma/sdk",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma2.git",
@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc -d",
     "prepublishOnly": "yarn build && yarn test",
-    "postinstall": "yarn download",
+    "postinstall": "node scripts/download.js",
     "download": "node scripts/download.js",
     "test": "jest"
   },

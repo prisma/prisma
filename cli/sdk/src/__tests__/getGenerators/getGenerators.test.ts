@@ -3,6 +3,8 @@ import { getGenerators, getGenerator } from '../../getGenerators'
 import { pick } from '../../pick'
 import { omit } from '../../omit'
 
+jest.setTimeout(10000)
+
 describe('getGenerators', () => {
   test('basic', async () => {
     const aliases = {
