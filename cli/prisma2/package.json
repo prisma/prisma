@@ -27,7 +27,7 @@
     "@prisma/generator-helper": "^0.0.14",
     "@prisma/introspection": "0.0.99",
     "@prisma/lift": "0.3.74",
-    "@prisma/photon": "^0.2.148",
+    "@prisma/photon": "^0.2.149",
     "@prisma/sdk": "^0.0.23",
     "@prisma/studio-transports": "^0.144.0",
     "@sentry/node": "5",
