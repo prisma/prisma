@@ -47,6 +47,7 @@ export async function generateInFolder({
     runtimePath: useLocalRuntime ? path.relative(outputDir, path.join(__dirname, '../runtime')) : undefined,
     transpile,
     testMode: true,
+    datamodelPath: schemaPath,
   })
 
   const after = performance.now()

@@ -48,6 +48,7 @@ const commonCode = (runtimePath: string, version?: string) => `import {
  */
 
 import path = require('path')
+import fs = require('fs')
 
 const debug = debugLib('photon')
 
@@ -133,7 +134,6 @@ class PhotonFetcher {
 interface TSClientOptions {
   version?: string
   document: DMMF.Document
-  datamodel: string
   runtimePath: string
   browser?: boolean
   datasources: InternalDatasource[]
@@ -147,7 +147,6 @@ interface TSClientOptions {
 export class TSClient {
   protected readonly dmmf: DMMFClass
   protected readonly document: DMMF.Document
-  protected readonly datamodel: string
   protected readonly runtimePath: string
   protected readonly browser: boolean
   protected readonly outputDir: string
@@ -159,7 +158,6 @@ export class TSClient {
   protected readonly schemaDir?: string
   constructor({
     document,
-    datamodel,
     runtimePath,
     browser = false,
     datasources,
@@ -170,7 +168,6 @@ export class TSClient {
     outputDir,
   }: TSClientOptions) {
     this.document = document
-    this.datamodel = datamodel
     this.runtimePath = runtimePath
     this.browser = browser
     this.internalDatasources = datasources
@@ -199,7 +196,6 @@ ${this.platforms ? this.platforms.map(p => `path.join(__dirname, 'runtime/query-
 
 ${new PhotonClientClass(
   this.dmmf,
-  this.datamodel,
   this.internalDatasources,
   this.outputDir,
   this.browser,
@@ -261,7 +257,6 @@ ${indent(sources.map(s => `${s.name}?: string`).join('\n'), 2)}
 class PhotonClientClass {
   constructor(
     protected readonly dmmf: DMMFClass,
-    protected readonly datamodel: string,
     protected readonly internalDatasources: InternalDatasource[],
     protected readonly outputDir: string,
     protected readonly browser?: boolean,
@@ -303,7 +298,6 @@ export class Photon {
   private fetcher: PhotonFetcher
   private readonly dmmf: DMMFClass
   private readonly engine: Engine
-  private readonly datamodel: string
   private connectionPromise?: Promise<any>
   constructor(options: PhotonOptions = {}) {
     const useDebug = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.library) : false
@@ -313,7 +307,6 @@ export class Photon {
     const debugEngine = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.engine) : false
 
     // datamodel = datamodel without datasources + printed datasources
-    this.datamodel = ${JSON.stringify(this.datamodel)}
 
     const predefinedDatasources = ${
       this.sqliteDatasourceOverrides
@@ -330,7 +323,7 @@ export class Photon {
     this.engine = new Engine({
       cwd: engineConfig.cwd || ${getRelativePathResolveStatement(this.outputDir, this.cwd)},
       debug: debugEngine,
-      datamodel: this.datamodel,
+      datamodelPath: path.resolve(__dirname, 'schema.prisma'),
       prismaPath: engineConfig.binaryPath || undefined,
       datasources,
       generator: ${this.generator ? JSON.stringify(this.generator) : 'undefined'},

@@ -30,7 +30,7 @@ const copyFile = promisify(fs.copyFile)
 
 export interface GenerateClientOptions {
   datamodel: string
-  datamodelPath?: string
+  datamodelPath: string
   browser?: boolean
   schemaDir?: string
   transpile?: boolean
@@ -68,7 +68,6 @@ export async function buildClient({
 
   const client = new TSClient({
     document,
-    datamodel,
     runtimePath,
     browser,
     datasources: resolveDatasources(datasources, schemaDir, outputDir),
@@ -163,13 +162,13 @@ export async function generateClient({
   runtimePath = runtimePath || './runtime'
   const { photonDmmf, fileMap } = await buildClient({
     datamodel,
+    datamodelPath,
     schemaDir,
     transpile,
     runtimePath,
     browser,
     outputDir,
     generator,
-    datamodelPath,
     version,
     dmmf,
     datasources,
@@ -193,7 +192,7 @@ export async function generateClient({
     }),
   )
   const inputDir = testMode
-    ? eval(`require('path').join(__dirname, '../../runtime')`)
+    ? eval(`require('path').join(__dirname, '../../runtime')`) // tslint:disable-line
     : eval(`require('path').join(__dirname, '../runtime')`) // tslint:disable-line
 
   await copy({
@@ -215,7 +214,9 @@ export async function generateClient({
     await copyFile(filePath, target)
   }
 
-  await writeFile(path.join(outputDir, '/runtime/index.d.ts'), backup)
+  await copyFile(datamodelPath, path.join(outputDir, 'schema.prisma'))
+
+  await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)
 }
 
 const backup = `export { DMMF } from './dmmf-types'

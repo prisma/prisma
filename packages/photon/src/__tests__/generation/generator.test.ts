@@ -78,6 +78,7 @@ describe('generator', () => {
         "index.d.ts",
         "index.js",
         "runtime",
+        "schema.prisma",
       ]
     `)
     generator.stop()
