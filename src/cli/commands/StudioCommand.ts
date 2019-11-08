@@ -1,5 +1,6 @@
 import { arg, Command, Dictionary, format, HelpError, isError } from '@prisma/cli'
 import chalk from 'chalk'
+import open from 'open'
 
 import { Studio } from '../../Studio'
 
@@ -52,11 +53,17 @@ export class StudioCommand implements Command {
       return this.help()
     }
 
+    const port = args['--port'] || 5555
+
     const studio = new Studio({
-      port: args['--port'],
+      port,
     })
 
-    return await studio.start(this.providerAliases)
+    const msg = await studio.start(this.providerAliases)
+
+    await open(`http://localhost:${port}`)
+
+    return msg
   }
 
   // help message
