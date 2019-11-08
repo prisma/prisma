@@ -71,7 +71,7 @@ async function runTest(t) {
   await photon.connect()
   try {
     const result = await t.do(photon)
-    // await db.query(t.after)
+    await db.query(t.after)
     assert.deepEqual(result, t.expect)
   } catch (err) {
     throw err
