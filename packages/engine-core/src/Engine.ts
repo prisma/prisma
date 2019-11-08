@@ -47,7 +47,7 @@ export class PhotonQueryError extends Error {
 
 function serializeObject(obj) {
   return Object.entries(obj)
-    .map(([key, value]) => `${key}=${JSON.parse(JSON.stringify(value))}`)
+    .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
     .join(' ')
 }
 
