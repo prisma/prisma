@@ -152,273 +152,273 @@ function tests() {
         name: 'b',
       },
     },
-    {
-      before: `
-        create table if not exists teams (
-          id int primary key not null,
-          name text not null unique,
-          email text not null unique
-        );
-        insert into teams (id, name, email) values (1, 'a', 'a@a');
-        insert into teams (id, name, email) values (2, 'b', 'b@b');
-      `,
-      after: `
-        drop table if exists teams cascade;
-      `,
-      do: async client => {
-        return client.teams.findOne({ where: { id: 2 }, select: { name: true } })
-      },
-      expect: {
-        name: 'b',
-      },
-    },
-    {
-      todo: false,
-      before: `
-        create table if not exists users (
-          id serial primary key not null,
-          email text not null unique
-        );
-        create table if not exists posts (
-          id serial primary key not null,
-          user_id int not null references users (id) on update cascade,
-          title text not null
-        );
-        insert into users ("email") values ('ada@prisma.io');
-        insert into users ("email") values ('ema@prisma.io');
-        insert into posts ("user_id", "title") values (1, 'A');
-        insert into posts ("user_id", "title") values (1, 'B');
-        insert into posts ("user_id", "title") values (2, 'C');
-      `,
-      after: `
-        drop table if exists posts cascade;
-        drop table if exists users cascade;
-      `,
-      do: async client => {
-        return client.users.findOne({ where: { id: 1 }, include: { posts: true } })
-      },
-      expect: {
-        email: 'ada@prisma.io',
-        id: 1,
-        posts: [
-          {
-            id: 1,
-            title: 'A',
-          },
-          {
-            id: 2,
-            title: 'B',
-          },
-        ],
-      },
-    },
-    {
-      before: `
-        create table if not exists teams (
-          id serial primary key not null,
-          name text not null unique
-        );
-      `,
-      after: `
-        drop table if exists teams cascade;
-      `,
-      do: async client => {
-        return client.teams.create({ data: { name: 'c' } })
-      },
-      expect: {
-        id: 1,
-        name: 'c',
-      },
-    },
-    {
-      before: `
-        create table if not exists teams (
-          id serial primary key not null,
-          name text not null unique
-        );
-        insert into teams ("name") values ('c');
-      `,
-      after: `
-        drop table if exists teams cascade;
-      `,
-      do: async client => {
-        return client.teams.update({
-          where: { name: 'c' },
-          data: { name: 'd' },
-        })
-      },
-      expect: {
-        id: 1,
-        name: 'd',
-      },
-    },
-    {
-      before: `
-        create table if not exists users (
-          id serial primary key not null,
-          email text not null unique
-        );
-        insert into users ("email") values ('ada@prisma.io');
-      `,
-      after: `
-        drop table if exists users cascade;
-      `,
-      do: async client => {
-        return client.users.findOne({ where: { email: 'ada@prisma.io' } })
-      },
-      expect: {
-        id: 1,
-        email: 'ada@prisma.io',
-      },
-    },
-    {
-      before: `
-        create table if not exists users (
-          id serial primary key not null,
-          email text not null unique
-        );
-        insert into users ("email") values ('ada@prisma.io');
-      `,
-      after: `
-        drop table if exists users cascade;
-      `,
-      do: async client => {
-        return client.users({ where: { email: 'ada@prisma.io' } })
-      },
-      expect: [
-        {
-          id: 1,
-          email: 'ada@prisma.io',
-        },
-      ],
-    },
+    // {
+    //   before: `
+    //     create table if not exists teams (
+    //       id int primary key not null,
+    //       name text not null unique,
+    //       email text not null unique
+    //     );
+    //     insert into teams (id, name, email) values (1, 'a', 'a@a');
+    //     insert into teams (id, name, email) values (2, 'b', 'b@b');
+    //   `,
+    //   after: `
+    //     drop table if exists teams cascade;
+    //   `,
+    //   do: async client => {
+    //     return client.teams.findOne({ where: { id: 2 }, select: { name: true } })
+    //   },
+    //   expect: {
+    //     name: 'b',
+    //   },
+    // },
+    // {
+    //   todo: false,
+    //   before: `
+    //     create table if not exists users (
+    //       id serial primary key not null,
+    //       email text not null unique
+    //     );
+    //     create table if not exists posts (
+    //       id serial primary key not null,
+    //       user_id int not null references users (id) on update cascade,
+    //       title text not null
+    //     );
+    //     insert into users ("email") values ('ada@prisma.io');
+    //     insert into users ("email") values ('ema@prisma.io');
+    //     insert into posts ("user_id", "title") values (1, 'A');
+    //     insert into posts ("user_id", "title") values (1, 'B');
+    //     insert into posts ("user_id", "title") values (2, 'C');
+    //   `,
+    //   after: `
+    //     drop table if exists posts cascade;
+    //     drop table if exists users cascade;
+    //   `,
+    //   do: async client => {
+    //     return client.users.findOne({ where: { id: 1 }, include: { posts: true } })
+    //   },
+    //   expect: {
+    //     email: 'ada@prisma.io',
+    //     id: 1,
+    //     posts: [
+    //       {
+    //         id: 1,
+    //         title: 'A',
+    //       },
+    //       {
+    //         id: 2,
+    //         title: 'B',
+    //       },
+    //     ],
+    //   },
+    // },
+    // {
+    //   before: `
+    //     create table if not exists teams (
+    //       id serial primary key not null,
+    //       name text not null unique
+    //     );
+    //   `,
+    //   after: `
+    //     drop table if exists teams cascade;
+    //   `,
+    //   do: async client => {
+    //     return client.teams.create({ data: { name: 'c' } })
+    //   },
+    //   expect: {
+    //     id: 1,
+    //     name: 'c',
+    //   },
+    // },
+    // {
+    //   before: `
+    //     create table if not exists teams (
+    //       id serial primary key not null,
+    //       name text not null unique
+    //     );
+    //     insert into teams ("name") values ('c');
+    //   `,
+    //   after: `
+    //     drop table if exists teams cascade;
+    //   `,
+    //   do: async client => {
+    //     return client.teams.update({
+    //       where: { name: 'c' },
+    //       data: { name: 'd' },
+    //     })
+    //   },
+    //   expect: {
+    //     id: 1,
+    //     name: 'd',
+    //   },
+    // },
+    // {
+    //   before: `
+    //     create table if not exists users (
+    //       id serial primary key not null,
+    //       email text not null unique
+    //     );
+    //     insert into users ("email") values ('ada@prisma.io');
+    //   `,
+    //   after: `
+    //     drop table if exists users cascade;
+    //   `,
+    //   do: async client => {
+    //     return client.users.findOne({ where: { email: 'ada@prisma.io' } })
+    //   },
+    //   expect: {
+    //     id: 1,
+    //     email: 'ada@prisma.io',
+    //   },
+    // },
+    // {
+    //   before: `
+    //     create table if not exists users (
+    //       id serial primary key not null,
+    //       email text not null unique
+    //     );
+    //     insert into users ("email") values ('ada@prisma.io');
+    //   `,
+    //   after: `
+    //     drop table if exists users cascade;
+    //   `,
+    //   do: async client => {
+    //     return client.users({ where: { email: 'ada@prisma.io' } })
+    //   },
+    //   expect: [
+    //     {
+    //       id: 1,
+    //       email: 'ada@prisma.io',
+    //     },
+    //   ],
+    // },
 
-    {
-      before: `
-        create table if not exists users (
-          id serial primary key not null,
-          email text not null unique
-        );
-        insert into users ("email") values ('ada@prisma.io');
-        insert into users ("email") values ('ema@prisma.io');
-      `,
-      after: `
-        drop table if exists users cascade;
-      `,
-      do: async client => {
-        return client.users()
-      },
-      expect: [
-        {
-          id: 1,
-          email: 'ada@prisma.io',
-        },
-        {
-          id: 2,
-          email: 'ema@prisma.io',
-        },
-      ],
-    },
-    {
-      before: `
-        create table if not exists users (
-          id serial primary key not null,
-          email text not null unique
-        );
-        create table if not exists posts (
-          id serial primary key not null,
-          user_id int not null references users (id) on update cascade,
-          title text not null
-        );
-        insert into users ("email") values ('ada@prisma.io');
-        insert into users ("email") values ('ema@prisma.io');
-        insert into posts ("user_id", "title") values (1, 'A');
-        insert into posts ("user_id", "title") values (1, 'B');
-        insert into posts ("user_id", "title") values (2, 'C');
-      `,
-      after: `
-        drop table if exists posts cascade;
-        drop table if exists users cascade;
-      `,
-      do: async client => {
-        return client.users.findOne({ where: { email: 'ada@prisma.io' } }).posts()
-      },
-      expect: [
-        {
-          id: 1,
-          title: 'A',
-        },
-        {
-          id: 2,
-          title: 'B',
-        },
-      ],
-    },
-    {
-      before: `
-        create table if not exists posts (
-          id serial primary key not null,
-          title text not null,
-          published boolean not null default false
-        );
-        insert into posts ("title", "published") values ('A', true);
-        insert into posts ("title", "published") values ('B', false);
-        insert into posts ("title", "published") values ('C', true);
-      `,
-      after: `
-        drop table if exists posts cascade;
-      `,
-      do: async client => {
-        return client.posts.findMany({
-          where: {
-            title: { contains: 'A' },
-            published: true,
-          },
-        })
-      },
-      expect: [
-        {
-          id: 1,
-          published: true,
-          title: 'A',
-        },
-      ],
-    },
-    {
-      before: `
-        create table if not exists posts (
-          id serial primary key not null,
-          title text not null,
-          published boolean not null default false
-        );
-        insert into posts ("title", "published") values ('A', true);
-        insert into posts ("title", "published") values ('B', false);
-        insert into posts ("title", "published") values ('C', true);
-      `,
-      after: `
-        drop table if exists posts cascade;
-      `,
-      do: async client => {
-        return client.posts.findMany({
-          where: {
-            OR: [{ title: { contains: 'A' } }, { title: { contains: 'C' } }],
-            published: true,
-          },
-        })
-      },
-      expect: [
-        {
-          id: 1,
-          published: true,
-          title: 'A',
-        },
-        {
-          id: 3,
-          published: true,
-          title: 'C',
-        },
-      ],
-    },
+    // {
+    //   before: `
+    //     create table if not exists users (
+    //       id serial primary key not null,
+    //       email text not null unique
+    //     );
+    //     insert into users ("email") values ('ada@prisma.io');
+    //     insert into users ("email") values ('ema@prisma.io');
+    //   `,
+    //   after: `
+    //     drop table if exists users cascade;
+    //   `,
+    //   do: async client => {
+    //     return client.users()
+    //   },
+    //   expect: [
+    //     {
+    //       id: 1,
+    //       email: 'ada@prisma.io',
+    //     },
+    //     {
+    //       id: 2,
+    //       email: 'ema@prisma.io',
+    //     },
+    //   ],
+    // },
+    // {
+    //   before: `
+    //     create table if not exists users (
+    //       id serial primary key not null,
+    //       email text not null unique
+    //     );
+    //     create table if not exists posts (
+    //       id serial primary key not null,
+    //       user_id int not null references users (id) on update cascade,
+    //       title text not null
+    //     );
+    //     insert into users ("email") values ('ada@prisma.io');
+    //     insert into users ("email") values ('ema@prisma.io');
+    //     insert into posts ("user_id", "title") values (1, 'A');
+    //     insert into posts ("user_id", "title") values (1, 'B');
+    //     insert into posts ("user_id", "title") values (2, 'C');
+    //   `,
+    //   after: `
+    //     drop table if exists posts cascade;
+    //     drop table if exists users cascade;
+    //   `,
+    //   do: async client => {
+    //     return client.users.findOne({ where: { email: 'ada@prisma.io' } }).posts()
+    //   },
+    //   expect: [
+    //     {
+    //       id: 1,
+    //       title: 'A',
+    //     },
+    //     {
+    //       id: 2,
+    //       title: 'B',
+    //     },
+    //   ],
+    // },
+    // {
+    //   before: `
+    //     create table if not exists posts (
+    //       id serial primary key not null,
+    //       title text not null,
+    //       published boolean not null default false
+    //     );
+    //     insert into posts ("title", "published") values ('A', true);
+    //     insert into posts ("title", "published") values ('B', false);
+    //     insert into posts ("title", "published") values ('C', true);
+    //   `,
+    //   after: `
+    //     drop table if exists posts cascade;
+    //   `,
+    //   do: async client => {
+    //     return client.posts.findMany({
+    //       where: {
+    //         title: { contains: 'A' },
+    //         published: true,
+    //       },
+    //     })
+    //   },
+    //   expect: [
+    //     {
+    //       id: 1,
+    //       published: true,
+    //       title: 'A',
+    //     },
+    //   ],
+    // },
+    // {
+    //   before: `
+    //     create table if not exists posts (
+    //       id serial primary key not null,
+    //       title text not null,
+    //       published boolean not null default false
+    //     );
+    //     insert into posts ("title", "published") values ('A', true);
+    //     insert into posts ("title", "published") values ('B', false);
+    //     insert into posts ("title", "published") values ('C', true);
+    //   `,
+    //   after: `
+    //     drop table if exists posts cascade;
+    //   `,
+    //   do: async client => {
+    //     return client.posts.findMany({
+    //       where: {
+    //         OR: [{ title: { contains: 'A' } }, { title: { contains: 'C' } }],
+    //         published: true,
+    //       },
+    //     })
+    //   },
+    //   expect: [
+    //     {
+    //       id: 1,
+    //       published: true,
+    //       title: 'A',
+    //     },
+    //     {
+    //       id: 3,
+    //       published: true,
+    //       title: 'C',
+    //     },
+    //   ],
+    // },
   ]
 }
 
