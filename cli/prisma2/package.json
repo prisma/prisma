@@ -1,6 +1,6 @@
 {
   "name": "prisma2",
-  "version": "2.0.0-alpha.285",
+  "version": "2.0.0-preview016",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma2-cli.git",
@@ -19,7 +19,7 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "2b9a9b57af7e3404cccfd305c1f2d71e71a49f3a"
+    "version": "377e2db71bae5da19d0090558c8819ff57dfdfc6"
   },
   "devDependencies": {
     "@prisma/cli": "^0.1.21",
@@ -27,7 +27,7 @@
     "@prisma/generator-helper": "^0.0.14",
     "@prisma/introspection": "0.0.99",
     "@prisma/lift": "0.3.74",
-    "@prisma/photon": "^0.2.149",
+    "@prisma/photon": "^0.2.152",
     "@prisma/sdk": "^0.0.23",
     "@prisma/studio-transports": "^0.144.0",
     "@sentry/node": "5",

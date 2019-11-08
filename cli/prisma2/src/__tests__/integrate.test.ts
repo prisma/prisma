@@ -67,16 +67,16 @@ async function runTest(t) {
   // clear the require cache
   delete require.cache[photonPath]
   const { Photon } = await import(photonPath)
-  const client = new Photon()
-  await client.connect()
+  const photon = new Photon()
+  await photon.connect()
   try {
-    const result = await t.do(client)
-    await db.query(t.after)
+    const result = await t.do(photon)
+    // await db.query(t.after)
     assert.deepEqual(result, t.expect)
   } catch (err) {
     throw err
   } finally {
-    await client.disconnect()
+    await photon.disconnect()
   }
 }
 
@@ -128,13 +128,6 @@ async function generate(isdl: ISDL) {
   await generator.generate()
 
   generator.stop()
-
-  // await generateClient({
-  //   datamodel: datamodel,
-  //   cwd: tmp,
-  //   outputDir: tmp,
-  //   transpile: true,
-  // })
 }
 
 function tests() {

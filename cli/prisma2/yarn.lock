@@ -327,10 +327,10 @@
     chalk "^2.4.2"
     strip-indent "^3.0.0"
 
-"@prisma/engine-core@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-2.0.0.tgz#2adc670fdb5c445118c3bdc90f0d93cfacd0cc8d"
-  integrity sha512-uyq5G5aVdS+BCSoRfm6e2e28/qZyfizT+8UpTQ+6WrlWi3aZIckf23XCgWEwUWWfzH/CaSwskX+lXIFuUR69Iw==
+"@prisma/engine-core@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@prisma/engine-core/-/engine-core-2.0.1.tgz#e181fcbb8c3f375c740c75c7f16ab3bf5f9d36ad"
+  integrity sha512-S7dURC3YYh0OleGhly1PCkPlyefRky9mamngmu21zVtOh9eu9kgWno1QlJ69iKnm02UUC9PRGxvUx+3tbZxIaA==
   dependencies:
     "@prisma/cli" "^0.1.6"
     "@prisma/generator-helper" "^0.0.5"
@@ -490,14 +490,14 @@
     strip-indent "^3.0.0"
     supports-hyperlinks "^1.0.1"
 
-"@prisma/photon@^0.2.149":
-  version "0.2.149"
-  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.2.149.tgz#134cc50febb4630ff9ff8ff4354a1ae8685878f0"
-  integrity sha512-k2Qi86PytBgncz4CbJTRZCxqv9iCypvj9FxoNdg0N9zdAV8R32ZC6+DAQrPPiYoXaczq5s71+DmbTwRF299tWQ==
+"@prisma/photon@^0.2.152":
+  version "0.2.152"
+  resolved "https://registry.yarnpkg.com/@prisma/photon/-/photon-0.2.152.tgz#75adcf32c2a5e6fb61b99d2624bf6628c7b3c938"
+  integrity sha512-Dg5GcXIFeriKHRCEUbeEdEJd9c2kjCifIjOeJeCdOOvz0hiAgVZ2BKqNUkiO9xTr/Gt6a6z7Z/PVFf7lneySFw==
   dependencies:
     "@apexearth/copy" "^1.4.2"
     "@prisma/cli" "0.1.21"
-    "@prisma/engine-core" "2.0.0"
+    "@prisma/engine-core" "2.0.1"
     "@prisma/fetch-engine" "^0.3.4"
     "@prisma/generator-helper" "^0.0.14"
     chalk "^2.4.2"

@@ -7,6 +7,8 @@ import { DMMF } from '@prisma/generator-helper'
 import tmpWrite from 'temp-write'
 import fs from 'fs'
 import { promisify } from 'util'
+import Debug from 'debug'
+const debug = Debug('engineCommands')
 
 const unlink = promisify(fs.unlink)
 
@@ -122,6 +124,7 @@ export async function dmmfToDml(
   const filePath = await tmpWrite(JSON.stringify(input))
   try {
     const args = ['cli', '--dmmf_to_dml', filePath]
+    debug(args)
     const result = await execa(prismaPath, args, {
       env: {
         ...process.env,
