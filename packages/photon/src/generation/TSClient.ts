@@ -270,18 +270,29 @@ class PhotonClientClass {
     return `
 ${new Datasources(this.internalDatasources)}
 
+export type LogLevel = 'INFO' | 'WARN' | 'QUERY' 
+
+export type LogOption = LogLevel | {
+  level: LogLevel
+  /**
+   * @default 'stdout'
+   */
+  emit?: 'event' | 'stdout'
+}
+
 export interface PhotonOptions {
   datasources?: Datasources
 
-  debug?: boolean | {
-    engine?: boolean
-    library?: boolean
-  }
+  /**
+   * @default false
+   */
+  log?: boolean | LogOption[]
 
   /**
    * You probably don't want to use this. \`__internal\` is used by internal tooling.
    */
   __internal?: {
+    debug?: boolean
     hooks?: Hooks
     engine?: {
       cwd?: string

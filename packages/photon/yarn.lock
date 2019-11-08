@@ -316,10 +316,10 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@prisma/cli@0.1.22":
-  version "0.1.22"
-  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.1.22.tgz#de2af67d825b10d065845a5af35c0c80e39ee5f4"
-  integrity sha512-/Gz5DBjFjoVnKxRb3u+fbMNVXi4NqN7O/MEhvv9eiXDXqTxqDwLJaEBm/Bm7BvcfDMXaomsDfAuGWyK5YmsKmw==
+"@prisma/cli@0.1.23":
+  version "0.1.23"
+  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.1.23.tgz#2737bda43e8aca774c1b66a2370604c7952a95ab"
+  integrity sha512-phfLh1yOZiXPWlzUsu9W6H9aes9UEoe4xu2NLetru/JXh422Bv78YFk0KdQl6LWt+1OF1ZJah3YvZ+JC9d1QQg==
   dependencies:
     arg "^4.1.0"
     chalk "^2.4.2"
@@ -417,10 +417,10 @@
   dependencies:
     debug "^4.1.1"
 
-"@prisma/sdk@^0.0.23":
-  version "0.0.23"
-  resolved "https://registry.yarnpkg.com/@prisma/sdk/-/sdk-0.0.23.tgz#1a38cae94f907e266577c6078e8ef6a443cf979f"
-  integrity sha512-LiH8I7Fc9egEbVeBBP0VwtslgYhdmIBu6t8T9qajD+H4N+m45/it0nKbxIcxSPWl5o0IwakHHXyt+2cyjxaOEQ==
+"@prisma/sdk@^0.0.26":
+  version "0.0.26"
+  resolved "https://registry.yarnpkg.com/@prisma/sdk/-/sdk-0.0.26.tgz#dfcc8f18fd2f9ecb3aa0d6d4dd016de74e36a971"
+  integrity sha512-gRuzk9d/3XG7ilqZSLMIzlmk6qnUTpG2L5I1kXyKZ7ZojawAfh0u0Xn0TDoy1JZ5N4yCBBxAeY4+XQDLCG2ooQ==
   dependencies:
     "@prisma/cli" "^0.1.12"
     "@prisma/engine-core" "^0.0.98"

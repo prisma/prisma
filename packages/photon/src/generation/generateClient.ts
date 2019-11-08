@@ -214,7 +214,10 @@ export async function generateClient({
     await copyFile(filePath, target)
   }
 
-  await copyFile(datamodelPath, path.join(outputDir, 'schema.prisma'))
+  const datamodelTargetPath = path.join(outputDir, 'schema.prisma')
+  if (datamodelPath !== datamodelTargetPath) {
+    await copyFile(datamodelPath, datamodelTargetPath)
+  }
 
   await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)
 }

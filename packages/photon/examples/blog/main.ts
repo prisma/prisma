@@ -2,9 +2,7 @@ import { Photon } from './@generated/photon'
 
 async function main() {
   const photon = new Photon({
-    debug: {
-      // library: true,
-    },
+    debug: true,
   })
 
   const before = Date.now()
