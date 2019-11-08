@@ -39,12 +39,13 @@ export async function getDMMF({
   prismaPath = prismaPath || (await getPrismaPath())
   let result
   try {
+    debug('getDMMF', { datamodel })
     result = await execa(prismaPath, ['cli', '--dmmf'], {
       cwd,
       env: {
         ...process.env,
         PRISMA_DML: datamodel,
-        PRISMA_SDL_PATH: datamodelPath,
+        // PRISMA_SDL_PATH: datamodelPath,
         RUST_BACKTRACE: '1',
       },
     })
