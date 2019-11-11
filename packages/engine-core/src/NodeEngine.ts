@@ -287,6 +287,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           PORT: String(this.port),
           RUST_BACKTRACE: '1',
           RUST_LOG: 'info',
+          LOG_QUERIES: 'true'
         }
 
         if (this.datasources) {
@@ -318,8 +319,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         byline(this.child.stdout).on('data', msg => {
           const data = String(msg)
           try {
-            // debug('stdout line', data)
             const json = JSON.parse(data)
+            // debug(json)
             const log = convertLog(json)
             this.logEmitter.emit('log', log)
           } catch (e) {
