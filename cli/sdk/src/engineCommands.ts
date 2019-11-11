@@ -40,12 +40,22 @@ export async function getDMMF({
   let result
   try {
     debug('getDMMF', { datamodel })
+
+    let prismaDmlPath: string
+    try {
+      prismaDmlPath = await tmpWrite(datamodel)
+    } catch (err) {
+      throw new Error(
+        chalk.redBright.bold('Get DMMF ') +
+          'unable to write temp data model path',
+      )
+    }
+
     result = await execa(prismaPath, ['cli', '--dmmf'], {
       cwd,
       env: {
         ...process.env,
-        PRISMA_DML: datamodel,
-        // PRISMA_SDL_PATH: datamodelPath,
+        PRISMA_DML_PATH: prismaDmlPath,
         RUST_BACKTRACE: '1',
       },
     })
@@ -84,16 +94,27 @@ export async function getConfig({
   datamodelPath,
 }: GetDMMFOptions): Promise<ConfigMetaFormat> {
   prismaPath = prismaPath || (await getPrismaPath())
+
+  let tempDataModelPath: string
+  try {
+    tempDataModelPath = await tmpWrite(datamodel)
+  } catch (err) {
+    throw new Error(
+      chalk.redBright.bold('Get config ') +
+        'unable to write temp data model path',
+    )
+  }
+
   try {
     const result = await execa(
       prismaPath,
-      ['cli', '--get_config', JSON.stringify({ datamodel }) + '\n'],
+      ['cli', '--get_config', tempDataModelPath],
       {
         cwd,
         env: {
           ...process.env,
           PRISMA_DML: datamodel,
-          PRISMA_SDL_PATH: datamodelPath,
+          PRISMA_DML_PATH: tempDataModelPath,
           RUST_BACKTRACE: '1',
         },
       },
