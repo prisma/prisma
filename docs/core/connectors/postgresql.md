@@ -69,7 +69,7 @@ postgresql://[user[:password]@][netloc][:port][,...][/database][?param1=value1&.
 - `schema`: The name of the target schema. **Default**: `public`.
 - `user`: The database user, e.g. `admin`.
 - `password`: The password for the database user.
-- `connection_limit`: The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database. **Default**: `1`.
+- `connection_limit`: The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database. The **default value** is calculated according to this formula: `num_physical_cpus * 2 + 1`.
 
 See the next section to learn how you can configure an SSL connection.
 
