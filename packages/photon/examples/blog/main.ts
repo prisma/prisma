@@ -1,17 +1,12 @@
 import { Photon } from './@generated/photon'
 
 async function main() {
-  const photon = new Photon({
-    debug: true,
-  })
+  const photon = new Photon()
 
   const before = Date.now()
-  const post = await photon.posts.findMany({
+  const post = await photon.posts.findOne({
     where: {
-      author: null,
-    },
-    include: {
-      author: true,
+      id: 'asdasd'
     },
   })
   console.log(post)
