@@ -49,8 +49,6 @@ export class Generate implements Command {
       console.log(missingGeneratorMessage)
     }
 
-    // CONTINUE HERE
-
     for (const generator of generators) {
       const toStr = generator.options!.generator.output! ? chalk.dim(` to ${generator.options!.generator.output}`) : ''
       const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
