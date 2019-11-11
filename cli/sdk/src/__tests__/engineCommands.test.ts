@@ -1,4 +1,6 @@
 import { getDMMF, getConfig, dmmfToDml } from '../engineCommands'
+import fs from 'fs'
+import path from 'path'
 
 describe('getDMMF', () => {
   test('simple model', async () => {
@@ -50,6 +52,16 @@ describe('getDMMF', () => {
       }
     `)
     expect(dmmf).toMatchSnapshot()
+  })
+
+  test('big schema', async () => {
+    const file = fs.readFileSync(
+      path.join(__dirname, '../../fixtures/bigschema.prisma'),
+      'utf-8',
+    )
+    const dmmf = await getDMMF({ datamodel: file })
+    const str = JSON.stringify(dmmf)
+    expect(str.length).toMatchInlineSnapshot(`44517572`)
   })
 })
 

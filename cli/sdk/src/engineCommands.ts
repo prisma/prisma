@@ -12,6 +12,8 @@ const debug = Debug('engineCommands')
 
 const unlink = promisify(fs.unlink)
 
+const MAX_BUFFER = 1000 * 1000 * 1000
+
 async function getPrismaPath(): Promise<string> {
   // tslint:disable-next-line
   const dir = eval('__dirname')
@@ -58,6 +60,7 @@ export async function getDMMF({
         PRISMA_DML_PATH: prismaDmlPath,
         RUST_BACKTRACE: '1',
       },
+      maxBuffer: MAX_BUFFER,
     })
 
     return JSON.parse(result.stdout)
@@ -113,10 +116,10 @@ export async function getConfig({
         cwd,
         env: {
           ...process.env,
-          PRISMA_DML: datamodel,
           PRISMA_DML_PATH: tempDataModelPath,
           RUST_BACKTRACE: '1',
         },
+        maxBuffer: MAX_BUFFER,
       },
     )
 
@@ -152,6 +155,7 @@ export async function dmmfToDml(
         ...process.env,
         RUST_BACKTRACE: '1',
       },
+      maxBuffer: MAX_BUFFER,
     })
 
     await unlink(filePath)
