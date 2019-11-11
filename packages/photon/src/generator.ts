@@ -4,6 +4,8 @@ import { generatorHandler } from '@prisma/generator-helper'
 import Debug from 'debug'
 import { generateClient } from './generation/generateClient'
 
+// As specced in https://github.com/prisma/specs/tree/master/generators
+
 generatorHandler({
   onManifest() {
     return {
