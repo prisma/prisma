@@ -6,7 +6,6 @@ import { spawn } from 'child_process'
 import cliCursor from 'cli-cursor'
 import dashify from 'dashify'
 import debugLib from 'debug'
-import del from 'del'
 import fs from 'fs'
 import getPort from 'get-port'
 import globby from 'globby'
@@ -16,6 +15,7 @@ import makeDir = require('make-dir')
 import pMap from 'p-map'
 import path from 'path'
 import { prompt } from 'prompts'
+import rimraf from 'rimraf'
 import { Readable } from 'stream'
 import stripAnsi from 'strip-ansi'
 import { promisify } from 'util'
@@ -43,6 +43,7 @@ import { simpleDebounce } from './utils/simpleDebounce'
 const debug = debugLib('Lift')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
+const del = promisify(rimraf)
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
 
