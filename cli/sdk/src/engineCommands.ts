@@ -41,11 +41,9 @@ export async function getDMMF({
   prismaPath = prismaPath || (await getPrismaPath())
   let result
   try {
-    debug('getDMMF', { datamodel })
-
-    let prismaDmlPath: string
+    let tempDataModelPath: string
     try {
-      prismaDmlPath = await tmpWrite(datamodel)
+      tempDataModelPath = await tmpWrite(datamodel)
     } catch (err) {
       throw new Error(
         chalk.redBright.bold('Get DMMF ') +
@@ -57,11 +55,13 @@ export async function getDMMF({
       cwd,
       env: {
         ...process.env,
-        PRISMA_DML_PATH: prismaDmlPath,
+        PRISMA_DML_PATH: tempDataModelPath,
         RUST_BACKTRACE: '1',
       },
       maxBuffer: MAX_BUFFER,
     })
+
+    await unlink(tempDataModelPath)
 
     return JSON.parse(result.stdout)
   } catch (e) {
@@ -122,6 +122,8 @@ export async function getConfig({
         maxBuffer: MAX_BUFFER,
       },
     )
+
+    await unlink(tempDataModelPath)
 
     return JSON.parse(result.stdout)
   } catch (e) {
