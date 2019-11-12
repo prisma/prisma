@@ -7,7 +7,7 @@
   "scripts": {
     "tsc": "tsc -d",
     "build": "yarn tsc && yarn ncc:runtime && yarn ncc:generator",
-    "test": "yarn build && jest",
+    "test": "jest",
     "download": "node scripts/download.js",
     "precommit": "lint-staged && jest",
     "ncc:runtime": "node scripts/build-runtime.js",

@@ -1,0 +1,57 @@
+datasource dbLocal {
+  provider = "sqlite"
+  url      = "file:dev.db"
+  // default  = true
+  enabled  = true
+}
+
+generator photon {
+  provider = "photonjs"
+}
+
+generator nexus_prisma {
+  provider = "nexus-prisma"
+}
+
+model User {
+  id       String  @id @default(cuid()) @unique
+  email    String
+  name     String
+  password String
+  image    String?
+
+  listings Listing[]
+}
+
+model Listing {
+  id          String   @id @default(cuid()) @unique
+  slug        String
+  description String
+  location    String
+  price       Int
+  images      String[]
+
+  seller    User
+  status    ListingStatus    @default(ACTIVE)
+  condition ListingCondition
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiredAt DateTime?
+  soldAt    DateTime?
+  deletedAt DateTime?
+}
+
+enum ListingStatus {
+  ACTIVE
+  EXPIRED
+  SOLD
+  DELETED
+}
+
+enum ListingCondition {
+  NEW
+  AS_NEW
+  USED
+  BROKEN
+}

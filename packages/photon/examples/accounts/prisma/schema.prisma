@@ -1,0 +1,22 @@
+generator photon {
+  provider = "photonjs"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+type CUID = String @id @default(cuid())
+
+model AccountConfiguration {
+  id       CUID
+  username String       @unique
+  test     Int?
+  data     AccountData?
+}
+
+model AccountData {
+  accountId CUID
+  acc       AccountConfiguration?
+}
