@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import { chinook } from '../fixtures/chinook'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { getDMMF } from '../utils/getDMMF'
-chalk.enabled = false
+chalk.level = 0
 
 describe('relation where transformation', () => {
   let dmmf
@@ -45,7 +45,8 @@ describe('relation where transformation', () => {
       rootField: 'findManyArtist',
     })
 
-    expect(() => document.validate(select, false, 'users')).toThrowErrorMatchingInlineSnapshot(`
+    expect(() => document.validate(select, false, 'users'))
+      .toThrowErrorMatchingInlineSnapshot(`
 "
 Invalid \`photon.users()\` invocation:
 
@@ -126,7 +127,8 @@ type PlaylistTrackWhereInput {
       rootTypeName: 'query',
       rootField: 'findManyArtist',
     })
-    expect(() => document.validate(select, false, 'users')).toThrowErrorMatchingInlineSnapshot(`
+    expect(() => document.validate(select, false, 'users'))
+      .toThrowErrorMatchingInlineSnapshot(`
 "
 Invalid \`photon.users()\` invocation:
 
@@ -204,7 +206,8 @@ type PlaylistTrackWhereInput {
       rootTypeName: 'query',
       rootField: 'findManyArtist',
     })
-    expect(() => document.validate(select, false, 'artists')).toThrowErrorMatchingInlineSnapshot(`
+    expect(() => document.validate(select, false, 'artists'))
+      .toThrowErrorMatchingInlineSnapshot(`
 "
 Invalid \`photon.artists()\` invocation:
 
