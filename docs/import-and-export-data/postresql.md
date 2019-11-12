@@ -53,7 +53,7 @@ postgresql://opnmyfngbknppm:XXX@ec2-46-137-91-216.eu-west-1.compute.amazonaws.co
 You can use the following `pg_dump` command:
 
 ```
-pg_dump --host ec2-46-137-91-216.eu-west-1.compute.amazonaws.com --port 5432 --user opnmyfngbknppm d50rgmkqi2ipus > heroku_backup.sql
+pg_dump --host ec2-46-137-91-216.eu-west-1.compute.amazonaws.com --port 5432 --user opnmyfngbknppm d50rgmkqi2ipus > backup.sql
 ```
 
 Note that **this command will trigger a prompt where you need to specify the password** for the provided user.
@@ -91,6 +91,12 @@ You need to replace the `DB_NAME` and `INPUT_FILE` placeholders with the respect
 
 - your **database name** (a database with hat name must be created beforehand!)
 - the name of the target **input file** (likely ends on `.sql`)
+
+For example:
+
+```
+psql mydb < mydb.sql
+```
 
 To create the database `DB_NAME` beforehand, you can use the [`template0`](https://www.postgresql.org/docs/9.5/manage-ag-templatedbs.html) (which creates a plain user database that doesn't contain any site-local additions):
 
