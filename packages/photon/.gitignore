@@ -14,7 +14,7 @@ src/utils/transformed-dmmf.json
 *-dmmf-raw.json
 db
 failed-*.md
-prisma
+query-engine*
 test.sh
 try-getConfig.ts
 generator-build
