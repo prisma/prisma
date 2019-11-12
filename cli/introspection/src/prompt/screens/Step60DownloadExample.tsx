@@ -140,7 +140,7 @@ const Step60DownloadExample: React.FC = () => {
       if (step) {
         try {
           const command = await replaceCommand(step.command)
-          await execa.shell(command, {
+          await execa.command(command, {
             cwd: state.outputDir,
             preferLocal: true,
             env: {
@@ -148,6 +148,7 @@ const Step60DownloadExample: React.FC = () => {
               NODE_ENV: '',
             },
             stdio: !debugEnabled ? undefined : ['inherit', 'inherit', 'inherit'],
+            shell: true,
           })
         } catch (e) {
           const error = e.stderr || e.stdout || e.message
@@ -279,7 +280,7 @@ export async function replaceCommand(command: string): Promise<string> {
 
 async function isYarnInstalled(): Promise<boolean> {
   try {
-    const result = await execa.shell(`yarn --version`, { stdio: `ignore` })
+    const result = await execa.command(`yarn --version`, { stdio: `ignore` })
     debug('result', result)
     return true
   } catch (err) {
