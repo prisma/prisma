@@ -20,3 +20,4 @@ try-getConfig.ts
 generator-build
 @generated
 getConfig.sh
+migrations
