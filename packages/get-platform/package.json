@@ -10,7 +10,7 @@
     "typescript": "^3.5.3"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -d",
     "prepublishOnly": "yarn build"
   },
   "files": [

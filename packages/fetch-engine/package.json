@@ -29,7 +29,7 @@
     "progress": "^2.0.3"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -d",
     "prepublishOnly": "yarn build"
   },
   "files": [
