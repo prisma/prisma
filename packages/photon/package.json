@@ -48,6 +48,7 @@
     "@types/node": "^12.7.11",
     "@types/node-fetch": "^2.3.4",
     "@zeit/ncc": "^0.20.4",
+    "arg": "^4.1.1",
     "benchmark": "^2.1.4",
     "declaration-bundler-webpack-plugin": "^1.0.3",
     "del": "^4.1.1",
