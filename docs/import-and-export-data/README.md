@@ -1,4 +1,4 @@
-# Importing and export data
+# Importing and exporting data
 
 As the Prisma Framework currently doesn't provide a way to import and export data from/into a database, the documents in this folder describe **native import/export flows** for the databases that are supported by Prisma:
 
