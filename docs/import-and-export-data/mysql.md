@@ -45,7 +45,7 @@ To authenticate against the MySQL database server, you can use the following arg
 | `--user` (short: `-u`) | - | The name of the database user. | 
 | `--password` (short: `-p`) | - | Trigger password prompt. | 
 
-For example, if you want to export data from a PostgerSQL database that has the following [connection string](../core/connectors/mysql):
+For example, if you want to export data from a MySQL database that has the following [connection string](../core/connectors/mysql.md):
 
 ```
 mysql://opnmyfngbknppm:XXX@ec2-46-137-91-216.eu-west-1.compute.amazonaws.com:5432/d50rgmkqi2ipus
