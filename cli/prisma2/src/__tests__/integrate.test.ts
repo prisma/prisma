@@ -7,9 +7,11 @@ import mkdir from 'make-dir'
 import { Client } from 'pg'
 import assert from 'assert'
 import pkgup from 'pkg-up'
-import del from 'del'
+import { promisify } from 'util'
+import rimraf from 'rimraf'
 import fs from 'fs'
 import path from 'path'
+const del = promisify(rimraf)
 
 const host = process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
 
