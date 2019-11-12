@@ -44,7 +44,7 @@ To authenticate against the PostgreSQL database server, you can use the followin
 | --- | --- | --- | --- |
 | `--username` (short: `-U`) | _your current operating system user name_ | `PGUSER` | The name of the database user. | 
 
-For example, if you want to export data from a PostgerSQL database that has the following [connection string](../core/connectors/postgresql):
+For example, if you want to export data from a PostgerSQL database that has the following [connection string](../core/connectors/postgresql.md):
 
 ```
 postgresql://opnmyfngbknppm:XXX@ec2-46-137-91-216.eu-west-1.compute.amazonaws.com:5432/d50rgmkqi2ipus
