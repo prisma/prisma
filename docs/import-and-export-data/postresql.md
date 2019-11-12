@@ -1,14 +1,10 @@
 # Importing and exporting data with PostgreSQL
 
-This document describes how you can export data from and import data into a PostgreSQL database. 
+This document describes how you can export data from and import data into a PostgreSQL database. You can learn more about this topic in the official [PostgreSQL docs](https://www.postgresql.org/docs/9.1/backup-dump.html).
 
-## Data export
+## Data export with SQL Dump
 
-### SQL Dump
-
-#### Overview
-
-[SQL Dump](https://www.postgresql.org/docs/9.1/backup-dump.html) is a native PostgreSQL utility you can use to export data from your PostgrSQL database. To see all the options for this command, run `pg_dump --help`.
+[SQL Dump](https://www.postgresql.org/docs/9.1/backup-dump.html) is a native PostgreSQL utility you can use to export data from your PostgreSQL database. To see all the options for this command, run `pg_dump --help`.
 
 From the PostgreSQL docs: 
 
@@ -26,7 +22,7 @@ You need to replace the `DB_NAME` and `OUTPUT_FILE` placeholders with the respec
 - your **database name**
 - the name of the desired **output file** (should end on `.sql`)
 
-For example, to export data from a local PostgreSQL server from a database called `mydb`, you can use the following command:
+For example, to export data from a local PostgreSQL server from a database called `mydb` into a file called `mydb.sql`, you can use the following command:
 
 ```
 pg_dump mydb > mydb.sql
@@ -83,5 +79,22 @@ Here's an overview of a few command line options you can use in these scenarios:
 | `--table` (short: `-t`) | _includes all tables by default_ | Explicitly specify the names of the tables to be dumped. | 
 | `--exclude-table` (short: `-T`) | - | Exclude specific tables from the dump. | 
 
+## Importing data from SQL files
 
-## Data import
+After having used SQL Dump to export your PostgreSQL database as a SQL file, you can restore the state of the database by feeding the SQL file into [`psql`](https://www.postgresql.org/docs/9.3/app-psql.html):
+
+```
+psql DB_NAME < INPUT_FILE
+```
+
+You need to replace the `DB_NAME` and `INPUT_FILE` placeholders with the respective values for: 
+
+- your **database name** (a database with hat name must be created beforehand!)
+- the name of the target **input file** (likely ends on `.sql`)
+
+To create the database `DB_NAME` beforehand, you can use the [`template0`](https://www.postgresql.org/docs/9.5/manage-ag-templatedbs.html) (which creates a plain user database that doesn't contain any site-local additions):
+
+```sql
+CREATE DATABASE dbname TEMPLATE template0;
+```
+
