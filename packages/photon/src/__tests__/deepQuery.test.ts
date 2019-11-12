@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import { recommender } from '../fixtures/recommender'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { getDMMF } from '../utils/getDMMF'
-chalk.enabled = false
+chalk.level = 0
 
 let dmmf
 describe('minimal where transformation', () => {

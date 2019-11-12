@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import { blog } from '../fixtures/blog'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { getDMMF } from '../utils/getDMMF'
-chalk.enabled = false
+chalk.level = 0
 
 describe('optional to one relation', () => {
   let dmmf

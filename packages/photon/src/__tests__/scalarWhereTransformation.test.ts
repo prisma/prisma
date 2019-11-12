@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import { enums } from '../fixtures/enums'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { getDMMF } from '../utils/getDMMF'
-chalk.enabled = false
+chalk.level = 0
 
 describe('scalar where transformation', () => {
   let dmmf
@@ -262,7 +262,8 @@ describe('scalar where transformation', () => {
                   }"
             `)
 
-    expect(() => document.validate(select, false, 'tests')).toThrowErrorMatchingInlineSnapshot(`
+    expect(() => document.validate(select, false, 'tests'))
+      .toThrowErrorMatchingInlineSnapshot(`
 "
 Invalid \`photon.tests()\` invocation:
 

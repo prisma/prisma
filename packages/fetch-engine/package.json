@@ -1,31 +1,29 @@
 {
   "name": "@prisma/fetch-engine",
-  "version": "0.3.4",
+  "version": "0.3.6",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@types/fs-extra": "^5.1.0",
-    "@types/node": "^12.0.0",
-    "@types/node-fetch": "^2.3.3",
+    "@types/fs-extra": "8.0.1",
+    "@types/node": "^12.12.7",
+    "@types/node-fetch": "^2.5.3",
     "@types/progress": "^2.0.3",
     "ncc": "^0.3.6",
-    "typescript": "^3.5.0-dev.20190512"
+    "typescript": "^3.7.2"
   },
   "dependencies": {
-    "@prisma/get-platform": "^0.1.1",
-    "chalk": "^2.4.2",
-    "death": "^1.1.0",
+    "@prisma/get-platform": "0.1.4",
+    "chalk": "^3.0.0",
     "debug": "^4.1.1",
-    "find-cache-dir": "^3.0.0",
-    "htmlparser2": "^3.10.1",
+    "find-cache-dir": "^3.1.0",
+    "htmlparser2": "^4.0.0",
     "http-proxy-agent": "^2.1.0",
-    "https-proxy-agent": "^2.2.2",
+    "https-proxy-agent": "^3.0.1",
     "make-dir": "^3.0.0",
     "node-fetch": "^2.6.0",
-    "p-map": "^3.0.0",
-    "p-retry": "^4.1.0",
+    "p-retry": "^4.2.0",
     "progress": "^2.0.3"
   },
   "scripts": {
