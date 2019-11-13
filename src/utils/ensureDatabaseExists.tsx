@@ -80,11 +80,37 @@ export async function askToCreateDb(connectionString: string, action: LiftAction
     }
 
     app = render(
-      <TabIndexProvider>
-        <CreateDatabaseDialog connectionString={connectionString} action={action} onDone={onDone} />
-      </TabIndexProvider>,
+      <App>
+        <TabIndexProvider>
+          <CreateDatabaseDialog connectionString={connectionString} action={action} onDone={onDone} />
+        </TabIndexProvider>
+      </App>,
     )
   })
+}
+
+type AppState = {
+  error?: Error
+}
+
+export class App extends React.Component<any, AppState> {
+  state: AppState = {}
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <Box flexDirection="column">
+          <Color red bold>
+            Error in Create Database Dialog
+          </Color>
+          <Color>{this.state.error.stack || this.state.error.message}</Color>
+        </Box>
+      )
+    }
+    return this.props.children
+  }
 }
 
 interface DialogProps {

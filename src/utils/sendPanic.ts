@@ -48,7 +48,7 @@ async function uploadZip(zip: Buffer, url: string) {
     method: 'PUT',
     agent: getProxyAgent(url),
     headers: {
-      'Content-Length': zip.byteLength,
+      'Content-Length': String(zip.byteLength),
     },
     body: zip,
   })
