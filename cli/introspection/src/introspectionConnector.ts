@@ -126,7 +126,7 @@ export async function getConnectedConnectorFromCredentials(
       throw new Error('sqlite not supported yet')
   }
 
-  const connector = Connectors.create(credentials.type, client!)
+  const connector = Connectors.create(credentials.type, client! as any)
 
   return { connector, disconnect: disconnect! }
 }

@@ -2,7 +2,7 @@
 
 This repository is used as a central point to collect information and issues around the **Prisma Framework** (formerly called [Prisma 2](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)) while it's in Preview. It also contains the [documentation](./docs) and the [code of the Prisma 2 CLI](./cli).
 
-💡 The Prisma Framework is currently in Preview! [Limitations](./docs/limitations.md) include missing features, limited performance and stability issues. You can track the progress of the Prisma Framework on [**`isprisma2ready.com`**](https://www.isprisma2ready.com).
+💡 The Prisma Framework is currently in Preview! [Limitations](./docs/limitations.md) include missing features and limited performance issues. You can track the progress of the Prisma Framework on [**`isprisma2ready.com`**](https://www.isprisma2ready.com).
 
 To get started, you can explore a number of ready-to-run [examples](https://github.com/prisma/prisma-examples/tree/prisma2) or follow the holistic [tutorial](./docs/tutorial.md). The example projects include use cases such as building GraphQL, REST or gRPC APIs (with Node.js or TypeScript) using the Prisma Framework.
 
@@ -70,3 +70,6 @@ The interactive prompt will ask you to provide database credentials for your dat
 - [Release process](./docs/releases.md)
 - [FAQ](./docs/faq.md)
 - [Glossary](./docs/glossary.md)
+
+## Contributing
+Read more about how to contribute to Prisma Framework [here](https://github.com/prisma/prisma2/blob/master/CONTRIBUTING.md)

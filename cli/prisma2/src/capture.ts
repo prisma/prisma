@@ -1,4 +1,4 @@
-import serializeError from 'serialize-error'
+import { serializeError } from 'serialize-error'
 import { spawn } from 'child_process'
 import path from 'path'
 import stripAnsi from 'strip-ansi'

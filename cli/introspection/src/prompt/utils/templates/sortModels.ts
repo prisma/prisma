@@ -1,4 +1,4 @@
-import { DMMF } from '@prisma/photon'
+import { DMMF } from '@prisma/generator-helper'
 
 const modelOrder = ['User', 'Player', 'Customer', 'Product', 'Order', 'Article', 'Post', 'Message']
 

@@ -1,6 +1,10 @@
-import { getDMMF } from '@prisma/photon/dist/utils/getDMMF'
+import { getDMMF } from '@prisma/sdk'
 import { sortModels } from './sortModels'
-import { capitalize } from '@prisma/photon/dist/runtime/utils/common'
+import pluralize from 'pluralize'
+
+function capitalize(str: string): string {
+  return str[0].toUpperCase() + str.slice(1)
+}
 
 export const minimalScript = ({ typescript }: { typescript: boolean }) => `/**
 * 
@@ -42,7 +46,7 @@ export const exampleScript = async ({ typescript, datamodel }: { typescript: boo
     throw new Error(`Could not find mapping for model ${theModel.name}`)
   }
 
-  const { plural } = mapping
+  const plural = pluralize(mapping.model)
 
   return `/**
   * 

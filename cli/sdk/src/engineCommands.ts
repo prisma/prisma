@@ -12,6 +12,8 @@ const debug = Debug('engineCommands')
 
 const unlink = promisify(fs.unlink)
 
+const MAX_BUFFER = 1000 * 1000 * 1000
+
 async function getPrismaPath(): Promise<string> {
   // tslint:disable-next-line
   const dir = eval('__dirname')
@@ -39,16 +41,27 @@ export async function getDMMF({
   prismaPath = prismaPath || (await getPrismaPath())
   let result
   try {
-    debug('getDMMF', { datamodel })
+    let tempDataModelPath: string
+    try {
+      tempDataModelPath = await tmpWrite(datamodel)
+    } catch (err) {
+      throw new Error(
+        chalk.redBright.bold('Get DMMF ') +
+          'unable to write temp data model path',
+      )
+    }
+
     result = await execa(prismaPath, ['cli', '--dmmf'], {
       cwd,
       env: {
         ...process.env,
-        PRISMA_DML: datamodel,
-        // PRISMA_SDL_PATH: datamodelPath,
+        PRISMA_DML_PATH: tempDataModelPath,
         RUST_BACKTRACE: '1',
       },
+      maxBuffer: MAX_BUFFER,
     })
+
+    await unlink(tempDataModelPath)
 
     return JSON.parse(result.stdout)
   } catch (e) {
@@ -84,20 +97,33 @@ export async function getConfig({
   datamodelPath,
 }: GetDMMFOptions): Promise<ConfigMetaFormat> {
   prismaPath = prismaPath || (await getPrismaPath())
+
+  let tempDataModelPath: string
+  try {
+    tempDataModelPath = await tmpWrite(datamodel)
+  } catch (err) {
+    throw new Error(
+      chalk.redBright.bold('Get config ') +
+        'unable to write temp data model path',
+    )
+  }
+
   try {
     const result = await execa(
       prismaPath,
-      ['cli', '--get_config', JSON.stringify({ datamodel }) + '\n'],
+      ['cli', '--get_config', tempDataModelPath],
       {
         cwd,
         env: {
           ...process.env,
-          PRISMA_DML: datamodel,
-          PRISMA_SDL_PATH: datamodelPath,
+          PRISMA_DML_PATH: tempDataModelPath,
           RUST_BACKTRACE: '1',
         },
+        maxBuffer: MAX_BUFFER,
       },
     )
+
+    await unlink(tempDataModelPath)
 
     return JSON.parse(result.stdout)
   } catch (e) {
@@ -131,6 +157,7 @@ export async function dmmfToDml(
         ...process.env,
         RUST_BACKTRACE: '1',
       },
+      maxBuffer: MAX_BUFFER,
     })
 
     await unlink(filePath)
