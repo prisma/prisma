@@ -291,3 +291,6 @@ More databases that will be supported in the future are:
 - Neo4J
 - FaunaDB
 - ...
+
+## Contributing
+Read more about how to contribute to Photon [here](https://github.com/prisma/photonjs/blob/master/CONTRIBUTING.md)
