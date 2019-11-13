@@ -41,6 +41,7 @@
     "open": "^7.0.0",
     "pkg-up": "3.1.0",
     "prisma-test-utils": "^0.2.5",
+    "resolve-pkg": "^2.0.0",
     "rimraf": "^3.0.0",
     "serialize-error": "^5.0.0",
     "strip-ansi": "^6.0.0",
