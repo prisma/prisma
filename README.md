@@ -165,3 +165,6 @@ More databases that will be supported in the future are:
 - FaunaDB
 - ...
 
+
+## Contributing
+Read more about how to contribute to Lift [here](https://github.com/prisma/lift/blob/master/CONTRIBUTING.md)
