@@ -7,7 +7,7 @@ npm install -g prisma2
 prisma2 init hello-prisma
 ```
 
-> **Note**: Lift and Photon are currently in Preview! [Limitations](https://github.com/prisma/prisma2/blob/master/docs/limitations.md) include missing features, limited performance and stability issues.
+> **Note**: Lift and Photon are currently in Preview! [Limitations](https://github.com/prisma/prisma2/blob/master/docs/limitations.md) include missing features and limited performance issues.
 
 ## The `prisma2 init` flow
 

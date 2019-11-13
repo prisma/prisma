@@ -1,24 +1,28 @@
-# Prisma 2 CLI
+# Prisma Framework CLI
 
 ## Installation
 
-The Prisma 2 CLI currently requires [Node 8](https://nodejs.org/en/download/releases/) (or higher).
+The Prisma Framework CLI currently requires [Node 8](https://nodejs.org/en/download/releases/) (or higher).
 
-### npm
+### Install with npm
 
 ```
 npm install -g prisma2
 ```
 
-### Yarn
+### Install with Yarn
 
 ```
 yarn global add prisma2
 ```
 
+### The `postinstall` hook
+
+When installing the Prisma Framework CLI, a [`postinstall`](https://github.com/prisma/prisma2/blob/master/cli/sdk/package.json#L13) hook is being executed. It downloads the Prisma Framework's query and migration [engine binaries](https://github.com/prisma/prisma-engine). The query engine contains the [Prisma schema](./prisma-schema-file.md) parser which is used by the `prisma2 init` and the `prism2 generate` commands. The migration engine is used by all `prisma2 lift` commands.
+
 ## Using a HTTP proxy for the CLI
 
-The Prisma 2 CLI supports [custom HTTP proxies](https://github.com/prisma/prisma2/issues/506). This is particularly relevant when being behind a corporate firewall.
+The Prisma Framework CLI supports [custom HTTP proxies](https://github.com/prisma/prisma2/issues/506). This is particularly relevant when being behind a corporate firewall.
 
 To activate the proxy, provide the environment variables `HTTP_PROXY` and/or `HTTPS_PROXY`. The behavior is very similar to how the [`npm` CLI handles this](https://docs.npmjs.com/misc/config#https-proxy).
 
