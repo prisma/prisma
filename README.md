@@ -70,3 +70,6 @@ The interactive prompt will ask you to provide database credentials for your dat
 - [Release process](./docs/releases.md)
 - [FAQ](./docs/faq.md)
 - [Glossary](./docs/glossary.md)
+
+## Contributing
+Read more about how to contribute to Prisma Framework [here](https://github.com/prisma/prisma2/blob/master/CONTRIBUTING.md)
