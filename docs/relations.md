@@ -222,7 +222,7 @@ model Category {
 
 Prisma will create one table per model, plus a relation table as follows:
 
-| **User** |         |
+| **Post** |         |
 | -------- | ------- |
 | id       | integer |
 
@@ -234,7 +234,37 @@ Prisma will create one table per model, plus a relation table as follows:
 | ------------------ | ------- |
 | id                 | integer |
 
-> **Note**: It is currently not possible to alter the name of the generated relation table but this will come soon. Learn more in the [spec](https://github.com/prisma/specs/blob/master/schema/Readme.md#explicit-many-to-many-mn-relationships).
+To change the name of the relation table, you use the `name` argument of the `@relation` attribute:
+
+```groovy
+model Post {
+  id         Int        @id
+  categories Category[] @relation(name: "MyRelationTable")
+}
+
+model Category {
+  id    Int    @id
+  posts Post[] @relation(name: "MyRelationTable")
+}
+```
+
+This results in the following table structure in the underlying database:
+
+| **Post** |         |
+| -------- | ------- |
+| id       | integer |
+
+| **Category** |         |
+| ------------ | ------- |
+| id           | integer |
+
+| **\_MyRelationTable** |         |
+| ------------------ | ------- |
+| id                 | integer |
+
+
+
+> **Note**: It is currently not possible to remove the prepending underscore of the relation table name but will be enabled soon. Learn more in the [spec](https://github.com/prisma/specs/blob/master/schema/Readme.md#explicit-many-to-many-mn-relationships).
 
 ## Self-relations
 
