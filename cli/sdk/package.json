@@ -39,10 +39,12 @@
     "@prisma/generator-helper": "^0.0.14",
     "@prisma/get-platform": "0.1.4",
     "chalk": "^3.0.0",
-    "execa": "3.3.0",
+    "execa": "^3.3.0",
     "flat-map-polyfill": "^0.3.8",
     "p-map": "^3.0.0",
     "prisma-datamodel": "1.34.10",
+    "prompts": "^2.3.0",
+    "resolve-pkg": "^2.0.0",
     "temp-write": "^4.0.0"
   },
   "husky": {
