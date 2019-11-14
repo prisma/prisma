@@ -9,7 +9,7 @@ import { generateClient } from './generation/generateClient'
 generatorHandler({
   onManifest() {
     return {
-      defaultOutput: 'node_modules/@generated/photon',
+      defaultOutput: '@prisma/photon',
       denylists: {
         models: [
           'Enumerable',

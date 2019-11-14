@@ -1,5 +1,10 @@
 import copy from '@apexearth/copy'
-import { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import {
+  BinaryPaths,
+  DataSource,
+  DMMF,
+  GeneratorConfig,
+} from '@prisma/generator-helper'
 import chalk from 'chalk'
 import Debug from 'debug'
 import fs from 'fs'
@@ -42,6 +47,7 @@ export interface GenerateClientOptions {
   datasources: DataSource[]
   binaryPaths: BinaryPaths
   testMode?: boolean
+  copyRuntime?: boolean
 }
 
 export interface BuildClientResult {
@@ -71,7 +77,11 @@ export async function buildClient({
     runtimePath,
     browser,
     datasources: resolveDatasources(datasources, schemaDir, outputDir),
-    sqliteDatasourceOverrides: extractSqliteSources(datamodel, schemaDir, outputDir),
+    sqliteDatasourceOverrides: extractSqliteSources(
+      datamodel,
+      schemaDir,
+      outputDir,
+    ),
     generator,
     platforms: Object.keys(binaryPaths.queryEngine!),
     version,
@@ -112,7 +122,9 @@ export async function buildClient({
   compilerHost.getSourceFile = fileName => {
     const newFileName = redirectToLib(fileName)
     if (fileName === file.fileName) {
-      file.sourceFile = file.sourceFile || createSourceFile(fileName, file.content, ScriptTarget.ES2015, true)
+      file.sourceFile =
+        file.sourceFile ||
+        createSourceFile(fileName, file.content, ScriptTarget.ES2015, true)
       return file.sourceFile
     }
     return (originalGetSourceFile as any).call(compilerHost, newFileName)
@@ -158,6 +170,7 @@ export async function generateClient({
   datasources,
   binaryPaths,
   testMode,
+  copyRuntime,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   runtimePath = runtimePath || './runtime'
   const { photonDmmf, fileMap } = await buildClient({
@@ -195,16 +208,20 @@ export async function generateClient({
     ? eval(`require('path').join(__dirname, '../../runtime')`) // tslint:disable-line
     : eval(`require('path').join(__dirname, '../runtime')`) // tslint:disable-line
 
-  await copy({
-    from: inputDir,
-    to: path.join(outputDir, '/runtime'),
-    recursive: true,
-    parallelJobs: 20,
-    overwrite: true,
-  })
+  if (copyRuntime) {
+    await copy({
+      from: inputDir,
+      to: path.join(outputDir, '/runtime'),
+      recursive: true,
+      parallelJobs: 20,
+      overwrite: true,
+    })
+  }
 
   if (!binaryPaths.queryEngine) {
-    throw new Error(`Photon.js needs \`queryEngine\` in the \`binaryPaths\` object.`)
+    throw new Error(
+      `Photon.js needs \`queryEngine\` in the \`binaryPaths\` object.`,
+    )
   }
 
   for (const filePath of Object.values(binaryPaths.queryEngine)) {
@@ -219,7 +236,9 @@ export async function generateClient({
     await copyFile(datamodelPath, datamodelTargetPath)
   }
 
-  await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)
+  if (copyRuntime) {
+    await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)
+  }
 }
 
 const backup = `export { DMMF } from './dmmf-types'
