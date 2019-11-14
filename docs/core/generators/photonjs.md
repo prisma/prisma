@@ -31,7 +31,7 @@ To determine the platform Photon is running on, you can provide two options to t
 
 When no [generator options](#generator-options) are passed to the `photonjs` generator in your [Prisma schema file](../prisma-schema-file.md), the Prisma CLI will download the binary for the operating system on which `prisma2 generate` was executed. The following two configurations are therefore equivalent, because `["native"]` is the default value for `platforms`:
 
-```prisma
+```groovy
 generator photon {
   provider = "photonjs"
   platforms = ["native"]
@@ -40,7 +40,7 @@ generator photon {
 
 has the **same behavior** as:
 
-```prisma
+```groovy
 generator photon {
   provider = "photonjs"
 }
@@ -67,7 +67,7 @@ In both cases, the Prisma CLI determines the current operating system where `pri
 
 This example shows the configuration of a Photon.js generator for local development (`native` can resolve to any other platform) and AWS Lambda (Node 10) as the production environment.
 
-```prisma
+```groovy
 generator photon {
     provider = "photonjs"
     platforms = ["native", "linux-glibc-libssl1.0.2"] // For Lambda (Node 10)
@@ -90,7 +90,7 @@ If a binary is not available for the platform you want to target, it is possible
 
 To invoke the generator, you need to add a [`generator`](../../prisma-schema-file.md#generators-optional) block to your schema file and specify the `photonjs` provider:
 
-```prisma
+```groovy
 generator js {
   provider = "photonjs"
 }

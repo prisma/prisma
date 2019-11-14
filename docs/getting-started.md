@@ -11,7 +11,7 @@ prisma2 init hello-prisma
 
 ## The `prisma2 init` flow
 
-When running `prisma2 init`, the Prisma 2 CLI launches an **interactive wizard** that helps you get started with Photon and/or Lift.
+When running `prisma2 init`, the Prisma Framework CLI launches an **interactive wizard** that helps you get started with Photon and/or Lift.
 
 The following sections explain a few screens you might encounter as you run through the `prisma2 init` flow. Because the flow and the order of the screens vary depending on your selections, the screens below might not follow the order in which you encounter them. 
 
@@ -39,7 +39,7 @@ After having selected **MySQL** or **PostgreSQL** in the database selection, you
 
 ### Selecting Prisma tools (Photon/Lift)
 
-If you start with an existing database and the Prisma 2 CLI performed introspection against it to generate the [Prisma schema](./prisma-schema.md), you will be asked to select which Prisma tools you want to use:
+If you start with an existing database and the Prisma Framework CLI performed introspection against it to generate the [Prisma schema](./prisma-schema.md), you will be asked to select which Prisma tools you want to use:
 
 - Use Photon and Lift
 - [Use only Photon](./photon/use-only-photon.md) (for database access (ORM))

@@ -48,6 +48,18 @@ It contains the following relations:
 - 1:n: `User` <-> `Post`
 - m:n: `Post` <-> `Category`
 
+## When are back-relation fields required?
+
+You can leave out back-relations in many cases. The Prisma Framework then interprets the relation in a specific way.
+
+- If you want a 1:1 relation, you must always specify both relation fields. The Prisma Framework guarantees that only one value can be stored for each side of the relation.
+- If you want an m:n relation, you must always specify both relation fields. The Prisma Framework will maintain a relation table to track all instances of the relation.
+- If you leave out a relation field, the relation will automatically be interpreted as a 1:n relation.
+  - If you leave out the back-relation field on a relation where the other end has a _non-list relation field_, this will be interpreted as a 1:n relation. This means that the missing back-relation field is implied to be a _list_.
+  - If you leave out the back-relation field on a relation where the other end has a _list relation field_, this will be interpreted as a 1:n relation. This means that the missing back-relation field is implied to be a _single value_ (i.e. not a _list_).
+
+> **Note**: This behaviour might change soon and relations might always be required to be explicit on both sides. Follow the [spec](https://github.com/prisma/specs/blob/remove/implicit/schema/Readme.md#relations) for more info.
+
 ## The `@relation` attribute
 
 The `@relation` attribute disambiguates relationships when needed.
@@ -68,7 +80,7 @@ It has the following signature:
 
 ## 1:1
 
-The return value on both sides is a nullable single value. Prisma prevents accidentally storing multiple records in the relation.
+To maintain a 1:1 relationship, you must always specify the relation fields on both ends of the relation. Prisma prevents accidentally storing multiple records in the relation.
 
 ```groovy
 model User {
@@ -120,8 +132,6 @@ Now, the tables are structured like this:
 | ----------- | ------- |
 | id          | integer |
 
-You _may_ omit either `User.profile` or `Profile.user` and the relationship will remain intact. This makes either the back-relation or the forward-relation optional. If one side of the relation is missing, Prisma implies the field name based on the name of the model it is pointing to.
-
 If you're introspecting an existing database and the foreign key does not follow the alphanumeric convention, then Prisma uses the [`@relation`](#the-relation-attribute) attribute to clarify.
 
 ```groovy
@@ -138,9 +148,10 @@ model Profile {
 
 ## 1:n
 
-The return value on one side is a optional single value, on the other side a list that might be empty.
+To specify a 1:n relation, you can omit either side of the relation. The following three relations are therefore equivalent:
 
 ```groovy
+// Specifying both relation fields
 model User {
   id        Int      @id
   posts     Post[]
@@ -152,10 +163,35 @@ model Post {
 }
 ```
 
-In this example, `Post.author` points to the primary key on `User`.
+```groovy
+// Leaving out the `posts` field
+model User {
+  id        Int      @id
+}
 
-Connectors for relational databases will implement this as two tables with a
-foreign key constraint on the `Post` table:
+model Post {
+  id         Int        @id
+  author     User
+}
+```
+
+```groovy
+// Leaving out the `author` field
+model User {
+  id        Int      @id
+  posts     Post[]
+}
+
+model Post {
+  id         Int        @id
+}
+```
+
+> **Note**: This behaviour might change soon and relations might always be required to be explicit on both sides. Follow the [spec](https://github.com/prisma/specs/blob/remove/implicit/schema/Readme.md#relations) for more info.
+
+In this example, `Post.author` always points to the primary key on `User`.
+
+Connectors for relational databases will implement this as two tables with a foreign key constraint on the `Post` table:
 
 | **User** |         |
 | -------- | ------- |
@@ -166,14 +202,11 @@ foreign key constraint on the `Post` table:
 | id       | integer |
 | author   | integer |
 
-You may omit `Post.author` and the relationship will remain intact. If one
-side of the relation is missing, Prisma implies the field name based on the name
-of the model it is pointing to. If you omitted `User.posts`, Prisma would add
-an implicit `User.post` field, making the relation `1:1` instead of `1:n`.
+You may omit `Post.author` and the relationship will remain intact. If one side of the relation is missing, Prisma implies the field name based on the name of the model it is pointing to. If you omitted `User.posts`, Prisma would add an implicit `User.post` field, making the relation `1:1` instead of `1:n`.
 
 ## m:n
 
-The return value on both sides is a list that might be empty. This is an improvement over the standard implementation in relational databases that require the application developer to deal with implementation details such as an intermediate table / join table. In Prisma, each connector will implement this concept in the way that is most efficient on the given storage engine and expose an API that hides the implementation details.
+The return value on both sides is a list that might be empty. This is an improvement over the standard implementation in relational databases that require the application developer to deal with implementation details such as an intermediate relation table. In Prisma, each connector will implement this concept in the way that is most efficient on the given storage engine and expose an API that hides the implementation details.
 
 ```groovy
 model Post {
@@ -187,23 +220,113 @@ model Category {
 }
 ```
 
-## Self-relations
+Prisma will create one table per model, plus a relation table as follows:
 
-Prisma supports self-referential relations:
+| **Post** |         |
+| -------- | ------- |
+| id       | integer |
+
+| **Category** |         |
+| ------------ | ------- |
+| id           | integer |
+
+| **\_CategoryToPost** |         |
+| ------------------ | ------- |
+| id                 | integer |
+
+To change the name of the relation table, you use the `name` argument of the `@relation` attribute:
 
 ```groovy
-model Employee {
-  id         Int       @id
-  reportsTo  Employee
+model Post {
+  id         Int        @id
+  categories Category[] @relation(name: "MyRelationTable")
+}
+
+model Category {
+  id    Int    @id
+  posts Post[] @relation(name: "MyRelationTable")
 }
 ```
 
-This results in the following table:
+This results in the following table structure in the underlying database:
 
-| **Employee** |         |
+| **Post** |         |
+| -------- | ------- |
+| id       | integer |
+
+| **Category** |         |
+| ------------ | ------- |
+| id           | integer |
+
+| **\_MyRelationTable** |         |
+| ------------------ | ------- |
+| id                 | integer |
+
+
+
+> **Note**: It is currently not possible to remove the prepending underscore of the relation table name but will be enabled soon. Learn more in the [spec](https://github.com/prisma/specs/blob/master/schema/Readme.md#explicit-many-to-many-mn-relationships).
+
+## Self-relations
+
+Prisma supports _self-referential relations_ (short: _self relations_). A self relation is a relation where the model references itself instead of another model, for example:
+
+```groovy
+model User {
+  id         Int   @id
+  reportsTo  User
+}
+```
+
+This is interpreted as a 1:1 relation and results in the following table:
+
+| **User** |         |
 | ------------ | ------- |
 | id           | integer |
 | reportsTo    | integer |
+
+For a 1:n relation, you need to make the self-relation field a list:
+
+```groovy
+model User {
+  id         Int     @id
+  reportsTo  User[]
+}
+```
+
+If you want to add a back-relation field, you need to add the `@relation` attribute to both relation fields to disambiguate:
+
+```groovy
+model User {
+  id           String  @default(cuid()) @id
+  email        String? @unique
+  reportsTo    User[]  @relation(name: "reportsTo")
+  reportedToBy User    @relation(name: "reportsTo")
+}
+```
+
+Consequently, the `@relation` attribute is also required for m:n relations:
+
+```groovy
+model User {
+  id           String  @default(cuid()) @id
+  email        String? @unique
+  reportsTo    User[]  @relation(name: "reportsTo")
+  reportedToBy User[]  @relation(name: "reportsTo")
+}
+```
+
+If your model should have more than one self-relation, you need to explicitly add all relation fields and annotate them with the `@relation` attribute
+
+```groovy
+model User {
+  id           String  @default(cuid()) @id
+  email        String? @unique
+  reportsTo    User[]  @relation(name: "reportsTo")
+  reportedToBy User[]  @relation(name: "reportsTo")
+  created      User    @relation(name: "created")
+  createdBy    User    @relation(name: "created")
+}
+```
 
 ## Relations in the generated Photon API
 
@@ -237,11 +360,13 @@ const categoriesOfPost: Category[] = await photon.posts
 While the Fluent API allows you to write chainable queries, sometimes you may want to address specific models where you already know specific fields (i.e., get all posts of a specific author).
 
 You can also rewrite the query like this:
+
 ```ts
-const postsByUser: Post[] = await photon.posts
-  .findMany({where: { 
-    author: { id: author.id } } 
-  })
+const postsByUser: Post[] = await photon.posts.findMany({
+  where: {
+    author: { id: author.id },
+  },
+})
 ```
 
 Note that, if you query a relationship, you must specify the fields (`id`) you want to search for.
@@ -322,7 +447,7 @@ const post: Post = await photon.posts.update({
 
 For the next example, assume there's another model called `Comment` related to `User` and `Post` as follows:
 
-```prisma
+```groovy
 model User {
   id       String    @default(cuid()) @id
   posts    Post[]
@@ -369,7 +494,7 @@ const post = await photon.posts.create({
             name: 'Sarah',
             posts: {
               create: {
-                title: 'Sarah\'s first blog post',
+                title: "Sarah's first blog post",
                 comments: {
                   create: {
                     text: 'Hi Sarah, I am Bob. I like your blog post.',
@@ -379,8 +504,9 @@ const post = await photon.posts.create({
                         name: 'Bob',
                         posts: {
                           create: {
-                            title: 'I am Bob and this is the first post on my blog',
-                          }
+                            title:
+                              'I am Bob and this is the first post on my blog',
+                          },
                         },
                       },
                     },
@@ -392,7 +518,7 @@ const post = await photon.posts.create({
         },
       },
     },
-  }
+  },
 })
 ```
 
@@ -406,23 +532,23 @@ You can eagerly load relations on a model via `select` and `include` (learn more
 const allPosts = await photon.posts.findMany({
   select: {
     id: true,
-    author: true
+    author: true,
   },
 })
 ```
 
 ```ts
-// The returned posts objects will have all scalar fields of the `Post` model 
+// The returned posts objects will have all scalar fields of the `Post` model
 // and additionally all the categories for each post
 const allPosts = await photon.posts.findMany({
   include: {
-    categories: true
+    categories: true,
   },
 })
 ```
 
 ```ts
-// The returned objects will have all scalar fields of the `User` model 
+// The returned objects will have all scalar fields of the `User` model
 // and additionally all the posts with their authors with their posts
 await photon.users.findMany({
   include: {
@@ -430,12 +556,12 @@ await photon.users.findMany({
       include: {
         author: {
           include: {
-            posts: true
-          }
-        }
-      }
-    }
-  }
+            posts: true,
+          },
+        },
+      },
+    },
+  },
 })
 ```
 

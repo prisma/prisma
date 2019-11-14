@@ -21,7 +21,7 @@ It describes the shape of the data per data source. For example, when connecting
 
 Here is an example based on a local SQLite database located in the same directory of the schema file (called `data.db`):
 
-```prisma
+```groovy
 // schema.prisma
 
 datasource sqlite {
@@ -91,13 +91,13 @@ On a technical level, a model maps to the underlying structures of the data sour
 - In MySQL, a model maps to a _table_
 - In SQLite, a model maps to a _table_
 
-> **Note**: In the future there might be connectors for non-relational databases and other data sources. For example, for MongoDB a model would map to a _collection_, for a REST API it would map to a _resource_. 
+> **Note**: In the future there might be connectors for non-relational databases and other data sources. For example, for MongoDB a model would map to a _collection_, for a REST API it would map to a _resource_.
 
 ### Naming models
 
 Models are typically spelled in [PascalCase](http://wiki.c2.com/?PascalCase) and use the _singular_ form (e.g. `User` instead of `Users`).
 
-Technically, a model can be named anything that adheres to this regular expression: 
+Technically, a model can be named anything that adheres to this regular expression:
 
 ```
 [A-Za-z_][A-Za-z0-9_]*
@@ -116,18 +116,20 @@ Every _model_ in the data model definition will result in a number of CRUD opera
 - `updateMany`
 - `deleteMany`
 
-The operations are accessible via a generated property on the Photon instance. By default the name of the property is the plural, lowercase form of the model name, e.g. `users` for a `User` model or `posts` for a `Post` model. 
+The operations are accessible via a generated property on the Photon instance. By default the name of the property is the plural, lowercase form of the model name, e.g. `users` for a `User` model or `posts` for a `Post` model.
 
 Here is an example illustrating the use of a `users` property from the [Photon.js API](./photon/api.md):
 
 ```js
-const newUser = await photon.users.create({ data: {
-  name: "Alice"
-}})
+const newUser = await photon.users.create({
+  data: {
+    name: 'Alice',
+  },
+})
 const allUsers = await photon.users.findMany()
 ```
 
-Note that for Photon.js the name of the `users` property is auto-generated using the [`pluralize`](https://github.com/blakeembrey/pluralize) package. 
+Note that for Photon.js the name of the `users` property is auto-generated using the [`pluralize`](https://github.com/blakeembrey/pluralize) package.
 
 ## Fields
 
@@ -144,7 +146,7 @@ You can see examples of fields on the sample models [above](#examples).
 
 Field names are typically spelled in [camelCase](http://wiki.c2.com/?CamelCase) starting with a lowercase letter.
 
-Technically, a model can be named anything that adheres to this regular expression: 
+Technically, a model can be named anything that adheres to this regular expression:
 
 ```
 [A-Za-z_][A-Za-z0-9_]*
@@ -163,11 +165,10 @@ The type of a field determines its _structure_. A type falls in either of two ca
 
 The type of a field can be modified by appending either of two modifiers:
 
-- `[]`: Make a field a **list** 
+- `[]`: Make a field a **list**
 - `?`: Make a field **optional**
 
 In the main example above, the field `name` on the `User` model is _optional_ and the `posts` field is a _list_.
-
 
 ### Field attributes
 
@@ -283,7 +284,7 @@ model \_ { @@attribute0
 
 _Core_ attributes must be implemented by every [data source](./prisma-schema-file.md#data-sources) connector (with a _best-effort implementation_), this means they will be available in _any_ Prisma setup.
 
-They may be used in `model` blocks as well as on `type` definitions. 
+They may be used in `model` blocks as well as on `type` definitions.
 
 Here is a list of all available core **field** attributes:
 
@@ -300,7 +301,7 @@ Here is a list of all available core **block** attributes:
 
 ### Connector attributes
 
-_Connector_ attributes let you use the native features of your data source. With a PostgreSQL database, you can use it for example to X. 
+_Connector_ attributes let you use the native features of your data source. With a PostgreSQL database, you can use it for example to X.
 
 Here is where you can find the documentation of connector attributes per data source connector:
 
@@ -337,14 +338,14 @@ The data types that these functions return will be defined by the data source co
 Prisma core provides the following scalar types:
 
 | Prisma Type | Description           |
-| --- | --- |
-| `String`   | Variable length text  |
-| `Boolean`  | True or false value   |
-| `Int`      | Integer value         |
-| `Float`    | Floating point number |
-| `DateTime` | Timestamp             |
+| ----------- | --------------------- |
+| `String`    | Variable length text  |
+| `Boolean`   | True or false value   |
+| `Int`       | Integer value         |
+| `Float`     | Floating point number |
+| `DateTime`  | Timestamp             |
 
-The _data source connector_ determines what _native database type_ each of these types map to. Similarly, the _generator_ determines what _type in the target programming language_  each of these types map to.
+The _data source connector_ determines what _native database type_ each of these types map to. Similarly, the _generator_ determines what _type in the target programming language_ each of these types map to.
 
 Expand below to see the mappings per connector and generator.
 
@@ -353,27 +354,26 @@ Expand below to see the mappings per connector and generator.
 
 **Connectors**
 
-| Prisma Type | PostgreSQL  | MySQL     | SQLite  | Mongo  | Raw JSON |
-| ---------- | --------- | --------- | ------- | ------ | -------- |
-| `String`   | `text`      | `TEXT`      | `TEXT`    | `string` | `string`   |
-| `Boolean`  | `boolean`   | `BOOLEAN`   | _N/A_   | `bool`   | `boolean`  |
-| `Int`      | `integer`   | `INT`       | `INTEGER` | `int32`  | `number`   |
-| `Float`    | `real`      | `FLOAT`     | `REAL`    | `double` | `number`   |
-| `DateTime` | `timestamp` | `TIMESTAMP` | _N/A_   | `date`   | _N/A_    |
+| Prisma Type | PostgreSQL  | MySQL       | SQLite    | Mongo    | Raw JSON  |
+| ----------- | ----------- | ----------- | --------- | -------- | --------- |
+| `String`    | `text`      | `TEXT`      | `TEXT`    | `string` | `string`  |
+| `Boolean`   | `boolean`   | `BOOLEAN`   | _N/A_     | `bool`   | `boolean` |
+| `Int`       | `integer`   | `INT`       | `INTEGER` | `int32`  | `number`  |
+| `Float`     | `real`      | `FLOAT`     | `REAL`    | `double` | `number`  |
+| `DateTime`  | `timestamp` | `TIMESTAMP` | _N/A_     | `date`   | _N/A_     |
 
 **_N/A_:** Means that there is no perfect equivalent, but we can probably get pretty
 close.
 
 **Generators**
 
-| Prisma Type | JS / TS | Go        |
-| ---------- | ------- | --------- |
-| `String`   | `string`  | `string`    |
-| `Boolean`  | `boolean` | `bool`      |
-| `Int`      | `number`  | `int`       |
-| `Float`    | `number`  | `float64`   |
-| `DateTime` | `Date`    | `time.Time` |
-
+| Prisma Type | JS / TS   | Go          |
+| ----------- | --------- | ----------- |
+| `String`    | `string`  | `string`    |
+| `Boolean`   | `boolean` | `bool`      |
+| `Int`       | `number`  | `int`       |
+| `Float`     | `number`  | `float64`   |
+| `DateTime`  | `Date`    | `time.Time` |
 
 </Details>
 
