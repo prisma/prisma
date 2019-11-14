@@ -10,7 +10,7 @@ To get started, you can explore a number of ready-to-run [examples](https://gith
 
 ![](https://i.imgur.com/FmaRakd.png)
 
-The Prisma Framework (formerly called [Prisma 2](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)) is an application data framework that consists of these tools:
+The Prisma Framework (formerly called [Prisma 2](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)) is a database framework that consists of these tools:
 
 - [**Photon**](https://photonjs.prisma.io/): Type-safe and auto-generated database client ("ORM replacement")
 - [**Lift**](https://lift.prisma.io/): Declarative data modeling and migrations
@@ -43,33 +43,26 @@ The interactive prompt will ask you to provide database credentials for your dat
 - [Data sources](./docs/data-sources.md)
 - [Data modeling](./docs/data-modeling.md)
 - [Relations](./docs/relations.md)
-- [Prisma 2 CLI](./docs/prisma2-cli.md)
+- [Prisma Framework CLI](./docs/prisma2-cli.md)
 - [Development mode](./docs/development-mode.md)
 - [Introspection](./docs/introspection.md)
 - [Limitations](./docs/limitations.md)
-- Core
-  - Connectors
-    - [MySQL](./docs/core/connectors/mysql.md)
-    - [PostgreSQL](./docs/core/connectors/postgresql.md)
-    - [SQLite](./docs/core/connectors/sqlite.md)
-    - [MongoDB](./docs/core/connectors/mongo.md)
-  - Generators
-    - [Photon.js](./docs/core/generators/photonjs.md)
+- [Core](./docs/core)
 - Photon
   - [API](./docs/photon/api.md)
   - [Use only Photon](./docs/photon/use-only-photon.md)
   - [Code generation & Node.js setup](./docs/photon/codegen-and-node-setup.md)
   - [Deployment](./docs/photon/deployment.md)
-- Lift
-  - [Steps](./docs/lift/steps.md)
-  - [Migration files](./docs/lift/migration-files.md)
-  - [Use only Lift](./docs/lift/use-only-lift.md)
+- [Lift](./docs/lift)
+- [Importing and exporting data](./docs/import-and-export-data)
 - [Supported databases](./docs/supported-databases.md)
 - [Telemetry](./docs/telemetry.md)
-- [How to provide feedback for Prisma 2?](./docs/prisma2-feedback.md)
+- [How to provide feedback for the Prisma Framework?](./docs/prisma2-feedback.md)
 - [Release process](./docs/releases.md)
+- [Upgrading from Prisma 1](./docs/upgrading-from-prisma-1.md)
 - [FAQ](./docs/faq.md)
 - [Glossary](./docs/glossary.md)
 
 ## Contributing
-Read more about how to contribute to Prisma Framework [here](https://github.com/prisma/prisma2/blob/master/CONTRIBUTING.md)
+
+Read more about how to contribute to the Prisma Framework [here](https://github.com/prisma/prisma2/blob/master/CONTRIBUTING.md)
