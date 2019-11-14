@@ -25,6 +25,8 @@ import {
   predefinedGeneratorResolvers,
   GeneratorPaths,
 } from './predefinedGeneratorResolvers'
+import Debug from 'debug'
+const debug = Debug('getGenerators')
 
 export type GetGeneratorOptions = {
   schemaPath: string
@@ -86,6 +88,7 @@ export async function getGenerators({
             baseDir,
             version,
           )
+          debug(paths)
           generatorPath = paths.generatorPath
         } else if (aliases && aliases[generator.provider]) {
           generatorPath = aliases[generator.provider]

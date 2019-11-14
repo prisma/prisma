@@ -11,6 +11,7 @@ import chalk from 'chalk'
 import { missingGeneratorMessage } from '@prisma/lift'
 import { getGenerators } from '@prisma/sdk'
 import { formatms } from './utils/formatms'
+import path from 'path'
 const pkg = eval(`require('../package.json')`)
 
 /**
@@ -50,7 +51,9 @@ export class Generate implements Command {
     }
 
     for (const generator of generators) {
-      const toStr = generator.options!.generator.output! ? chalk.dim(` to ${generator.options!.generator.output}`) : ''
+      const toStr = generator.options!.generator.output!
+        ? chalk.dim(` to ./${path.relative(process.cwd(), generator.options!.generator.output!)}`)
+        : ''
       const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
       console.log(`Generating ${chalk.bold(name!)}${toStr}`)
       const before = Date.now()
