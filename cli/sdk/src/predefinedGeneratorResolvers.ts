@@ -26,11 +26,17 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       if (!process.stdout.isTTY) {
         throw new PhotonFacadeMissingError()
       } else {
+        console.log(
+          `In order to use the ${chalk.underline(
+            '"photonjs"',
+          )} generator, you need to install ${chalk.bold(
+            '@prisma/photon',
+          )} to your project.`,
+        )
         const { value } = await prompts({
           type: 'confirm',
           name: 'value',
-          message:
-            '@prisma/photon needs to be installed to use "photonjs". Do you want to install it now?',
+          message: 'Do you want to install it now?',
           initial: true,
         })
 
@@ -63,7 +69,9 @@ class PhotonFacadeMissingError extends Error {
   constructor() {
     super(`In order to use the ${chalk.underline(
       '"photonjs"',
-    )} generator, you need to install @prisma/photon to your project:
+    )} generator, you need to install ${chalk.bold(
+      '@prisma/photon',
+    )} to your project:
 ${chalk.bold.green('npm add @prisma/photon')}`)
   }
 }
@@ -76,6 +84,10 @@ async function installPackage(baseDir: string, pkg: string): Promise<void> {
   await execa.command(`${cmdName} add ${pkg}`, {
     cwd: baseDir,
     stdio: 'inherit',
+    env: {
+      ...process.env,
+      SKIP_GENERATE: 'true',
+    },
   })
 }
 
