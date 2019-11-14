@@ -9,7 +9,7 @@ import { generateClient } from './generation/generateClient'
 generatorHandler({
   onManifest() {
     return {
-      defaultOutput: '@prisma/photon',
+      defaultOutput: '@prisma/photon', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma2/blob/master/cli/sdk/src/getGenerators.ts
       denylists: {
         models: [
           'Enumerable',

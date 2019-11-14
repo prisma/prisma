@@ -1,8 +1,8 @@
 {
   "name": "@prisma/photon",
-  "version": "0.2.174",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "version": "0.2.176",
+  "main": "index.js",
+  "types": "index.d.ts",
   "license": "Apache-2.0",
   "scripts": {
     "tsc": "tsc -d",
@@ -39,7 +39,8 @@
     "browser-runtime",
     "dist",
     "scripts",
-    "generator-build"
+    "generator-build",
+    "index.js"
   ],
   "devDependencies": {
     "@apexearth/copy": "^1.4.2",
