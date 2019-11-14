@@ -1,12 +1,12 @@
 # The Prisma Framework tutorial
 
-In this tutorial, you will get a holistic and practical introduction to the Prisma 2 ecosystem. This includes using [**Lift**](http://lift.prisma.io) for database migrations and [**Photon.js**](http://photonjs.prisma.io) for type-safe database access.
+In this tutorial, you will get a holistic and practical introduction to the Prisma Framework ecosystem. This includes using [**Lift**](http://lift.prisma.io) for database migrations and [**Photon.js**](http://photonjs.prisma.io) for type-safe database access.
 
-> **Note**: If you encounter any problems with this tutorial or any parts of Prisma 2, **please make sure to [create an issue](https://github.com/prisma/prisma2/issues)**! You can also join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on Slack to share your feedback directly.
+> **Note**: If you encounter any problems with this tutorial or any parts of the Prisma Framework, **please make sure to [create an issue](https://github.com/prisma/prisma2/issues)**! You can also join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on Slack to share your feedback directly.
 
 This tutorial will teach you how to:
 
-1. Install the Prisma 2 CLI
+1. Install the Prisma Framework CLI
 1. Use the `init` command to set up a new project
 1. Understand the essential parts of a Prisma project setup
 1. Use the `dev` command for development
@@ -16,9 +16,9 @@ We will start from scratch and use **TypeScript** with a **PostgreSQL** database
 
 > **Note**: If you don't want to set up a PostgreSQL database, you can still follow along by choosing SQLite when running through the flow of the `prisma2 init` command. One of Prisma's main benefits is that it lets you swap out the data sources your application connects to. So, while you can start with SQLite, mapping the same setup to PostgreSQL later on can be done by adjusting a few lines in your [Prisma schema file](./prisma-schema-file.md).
 
-## 1. Install the Prisma 2 CLI
+## 1. Install the Prisma Framework CLI
 
-The Prisma 2 CLI is available as the `prisma2` package on npm. Install it globally on your machine with the following command:
+The Prisma Framework CLI is available as the `prisma2` package on npm. Install it globally on your machine with the following command:
 
 ```
 npm install -g prisma2
@@ -28,7 +28,7 @@ npm install -g prisma2
 
 ### 2.1. Launch the `prisma2 init` wizard
 
-The `init` command of the Prisma 2 CLI helps you set up a new project and connect to a database. Run it as follows:
+The `init` command of the Prisma Framework CLI helps you set up a new project and connect to a database. Run it as follows:
 
 ```
 prisma2 init hello-prisma2
@@ -61,7 +61,7 @@ Note that you can skip this part if you've selected SQLite before.
 
 ![](https://imgur.com/IOd3cDD.png)
 
-This screenshot shows the configuration of a database hosted on Heroku. Note that we provide the name `hello-prisma2` for the **Schema** field. Since this schema doesn't exist yet in the provided `d8q8dvp22kfpo3` database, the Prisma 2 CLI will create a schema with that name. 
+This screenshot shows the configuration of a database hosted on Heroku. Note that we provide the name `hello-prisma2` for the **Schema** field. Since this schema doesn't exist yet in the provided `d8q8dvp22kfpo3` database, the Prisma Framework CLI will create a schema with that name. 
 
 ### 2.4. Select programming language for Photon
 
@@ -409,7 +409,7 @@ If you're using a database GUI, you can also validate that all records have been
 
 ## 5. Evolve your application in Prisma's development mode
 
-Prisma 2 features a [development mode](./development-mode.md) that allows for faster iterations during development. It can be invoked using the `prisma2 dev` command. When running in development mode, the Prisma 2 CLI watches your [schema file](./prisma-schema-file.md). Whenever you then save a change to the schema file, the Prisma CLI takes care of:
+The Prisma Framework features a [development mode](./development-mode.md) that allows for faster iterations during development. It can be invoked using the `prisma2 dev` command. When running in development mode, the Prisma Framework CLI watches your [schema file](./prisma-schema-file.md). Whenever you then save a change to the schema file, the Prisma CLI takes care of:
 
 - (re)generating Photon
 - updating your database schema
@@ -600,8 +600,8 @@ CREATE TABLE "hello-prisma2"."users" (
 
 Congratulations for working through your first Prisma tutorial 🚀 Here are a few pointers on what to do next:
 
-- Explore some Prisma 2 example projects, e.g. for [REST](https://github.com/prisma/prisma-examples/tree/prisma2/typescript/rest-express), [GraphQL](https://github.com/prisma/prisma-examples/tree/prisma2/typescript/graphql) or [gRPC](https://github.com/prisma/prisma-examples/tree/prisma2/typescript/grpc) APIs.
+- Explore some Prisma Framework example projects, e.g. for [REST](https://github.com/prisma/prisma-examples/tree/prisma2/typescript/rest-express), [GraphQL](https://github.com/prisma/prisma-examples/tree/prisma2/typescript/graphql) or [gRPC](https://github.com/prisma/prisma-examples/tree/prisma2/typescript/grpc) APIs.
 - Join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on the [Prisma Slack](https://slack.prisma.io)
-- [Share any feedback you might have](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md) on Prisma 2
+- [Share any feedback you might have](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md) on the Prisma Framework
 - 🌟 Leave a GitHub star on this repo
 - [Follow Prisma on Twitter](https://twitter.com/prisma) to stay in the loop for updates

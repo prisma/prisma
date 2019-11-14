@@ -32,7 +32,7 @@ Note that the Prisma Framework CLI currently requires [Node 8](https://nodejs.or
 
 ### Alpha (latest)
 
-The Alpha channel contains the latest changes to Prisma 2. Because it's is based on the [`alpha`](https://github.com/prisma/prisma2/tree/alpha) development branch, it's more likely that things break or behave unexpectedly in an Alpha release.
+The Alpha channel contains the latest changes to the Prisma Framework. Because it's is based on the [`alpha`](https://github.com/prisma/prisma2/tree/alpha) development branch, it's more likely that things break or behave unexpectedly in an Alpha release.
 
 You should only use Alpha releases if you have specific requirements that are not met by the current Preview release.
 

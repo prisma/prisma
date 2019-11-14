@@ -55,7 +55,7 @@ enum Role {
 
 ## Naming
 
-The default name for the schema file is `schema.prisma`. When your schema file is named like this, the Prisma 2 CLI will detect it automatically in the
+The default name for the schema file is `schema.prisma`. When your schema file is named like this, the Prisma Framework CLI will detect it automatically in the
 directory where you invoke the CLI command.
 
 If the schema file is named differently, you can provide an explicit option to the command to point the CLI to the location of the schema file.
@@ -105,7 +105,7 @@ datasource postgresql {
   url       = env("POSTGRESQL_URL")
 }
 
-// Note: MongoDB is currently not supported with Prisma 2, but will be soon.
+// Note: MongoDB is currently not supported by the Prisma Framework, but will be soon.
 datasource mongo {
   provider  = "mongo"
   url       = env("MONGO_URL")
@@ -130,7 +130,7 @@ datasource mysql {
   url      = env("MYSQL_URL")
 }
 
-// Note: MongoDB is currently not supported with Prisma 2, but will be soon.
+// Note: MongoDB is currently not supported by the Prisma Framework, but will be soon.
 datasource mongo {
   provider = "mongodb"
   url      = env("MONGO_URL")

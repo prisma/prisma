@@ -4,7 +4,7 @@
 
 In this tutorial, we will compare both approaches for working with databases and walk through how to migrate from a Sequelize project to a Photon.js one.
 
-> **Note**: If you encounter any problems with this tutorial or any parts of Prisma 2, this is how you can get help: **create an issue on [GitHub](https://github.com/prisma/prisma2/issues)** or join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on [Slack](https://slack.prisma.io/) to share your feedback directly. We also have a community forum on [Spectrum](https://spectrum.chat/prisma).
+> **Note**: If you encounter any problems with this tutorial or any parts of the Prisma Framework, this is how you can get help: **create an issue on [GitHub](https://github.com/prisma/prisma2/issues)** or join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on [Slack](https://slack.prisma.io/) to share your feedback directly. We also have a community forum on [Spectrum](https://spectrum.chat/prisma).
 
 ## Goals
 
@@ -58,7 +58,7 @@ git checkout master
 
 Follow the instructions in the [README file](https://github.com/infoverload/migration_sequelize_photon/blob/sequelize/README.md) in the [`sequelize`](https://github.com/infoverload/migration_sequelize_photon/tree/sequelize) branch and get the project running against your PostgreSQL database. This sets up your database and defines the schema as defined in the TypeORM [entities](https://github.com/infoverload/migration_typeorm_photon/tree/typeorm/src/entity) of the project.  
 
-Make sure that you have the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma2-cli.md) installed. The Prisma 2 CLI is available as the [`prisma2`](https://www.npmjs.com/package/prisma2) package on npm. You can install it as a global package on your machine by typing the following command in your terminal:
+Make sure that you have the [Prisma Framework CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma2-cli.md) installed. The Prisma Framework CLI is available as the [`prisma2`](https://www.npmjs.com/package/prisma2) package on npm. You can install it as a global package on your machine by typing the following command in your terminal:
 
 ```sh
 npm install -g prisma2
@@ -139,7 +139,7 @@ cd photonjs_app
 prisma2 dev
 ```
 
-This launches the [development mode](https://github.com/prisma/prisma2/blob/master/docs/development-mode.md). When in development mode, Prisma 2 runs a development server in the background that watches your [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). 
+This launches the [development mode](https://github.com/prisma/prisma2/blob/master/docs/development-mode.md). When in development mode, the Prisma Framework runs a development server in the background that watches your [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). 
 
 Whenever any changes are made in the schema file, the development server:
 - (re)generates your data source clients (e.g. Photon.js)
@@ -620,6 +620,6 @@ The sample project that was used demonstrated the fundamental capabilities of bo
 
 - Learn more about [Photon's relation API](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#relations)
 - Engage with our [community](https://www.prisma.io/community/)!
-- Prisma 2 is not production-ready [yet](https://github.com/prisma/prisma2/blob/master/docs/limitations.md), so we value your [feedback](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md)!
+- The Prisma Framework is not production-ready [yet](https://github.com/prisma/prisma2/blob/master/docs/limitations.md), so we value your [feedback](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md)!
 
 If you run into problems with this tutorial or spot any mistakes, feel free to make a pull request. 
