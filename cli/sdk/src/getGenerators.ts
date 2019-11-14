@@ -21,6 +21,10 @@ import { Generator } from './Generator'
 import { resolveOutput } from './resolveOutput'
 import { getPlatform } from '@prisma/get-platform'
 import { printGeneratorConfig, fixPlatforms } from '@prisma/engine-core'
+import {
+  predefinedGeneratorResolvers,
+  GeneratorPaths,
+} from './predefinedGeneratorResolvers'
 
 export type GetGeneratorOptions = {
   schemaPath: string
@@ -76,7 +80,14 @@ export async function getGenerators({
       generatorConfigs,
       async (generator, index) => {
         let generatorPath = generator.provider
-        if (aliases && aliases[generator.provider]) {
+        let paths: GeneratorPaths | undefined
+        if (predefinedGeneratorResolvers[generator.provider]) {
+          paths = await predefinedGeneratorResolvers[generator.provider](
+            baseDir,
+            version,
+          )
+          generatorPath = paths.generatorPath
+        } else if (aliases && aliases[generator.provider]) {
           generatorPath = aliases[generator.provider]
           if (!fs.existsSync(generatorPath)) {
             throw new Error(
@@ -92,7 +103,9 @@ export async function getGenerators({
         await generatorInstance.init()
 
         // resolve output path
-        if (generator.output) {
+        if (paths) {
+          generator.output = paths.outputPath
+        } else if (generator.output) {
           generator.output = path.resolve(baseDir, generator.output)
         } else {
           if (
