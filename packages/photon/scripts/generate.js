@@ -42,24 +42,26 @@ async function isInstalledGlobally() {
   }
 }
 
-main().catch(e => {
-  if (e.stderr) {
-    if (e.stderr.includes(`Can't find schema.prisma`)) {
-      console.error(
-        `${c.yellow('warning')} @prisma/photon needs a ${c.bold(
-          'schema.prisma',
-        )} to function, but couldn't find it.
+if (!process.env.SKIP_GENERATE) {
+  main().catch(e => {
+    if (e.stderr) {
+      if (e.stderr.includes(`Can't find schema.prisma`)) {
+        console.error(
+          `${c.yellow('warning')} @prisma/photon needs a ${c.bold(
+            'schema.prisma',
+          )} to function, but couldn't find it.
         Please either create one manually or use ${c.bold('prisma2 init')}.
         Once you created it, run ${c.bold('prisma2 generate')}.
         To keep Prisma related things separate, we recommend creating it in a subfolder called ${c.underline(
           './prisma',
         )} like so: ${c.underline('./prisma/schema.prisma')}\n`,
-      )
+        )
+      } else {
+        console.error(e.stderr)
+      }
     } else {
-      console.error(e.stderr)
+      console.error(e)
     }
-  } else {
-    console.error(e)
-  }
-  process.exit(0)
-})
+    process.exit(0)
+  })
+}
