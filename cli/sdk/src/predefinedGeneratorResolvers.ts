@@ -54,7 +54,7 @@ Please try to install it by hand and rerun ${chalk.bold(
 
     return {
       outputPath: photonDir,
-      generatorPath: path.resolve(photonDir, 'generator-build'),
+      generatorPath: path.resolve(photonDir, 'generator-build/index.js'),
     }
   },
 }
