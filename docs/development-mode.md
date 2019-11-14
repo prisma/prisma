@@ -1,6 +1,6 @@
 # Development mode
 
-Prisma 2 supports a _development mode_ which can be launched using the `prisma2 dev` command. When in development mode, Prisma 2 runs a development server in the background that watches your [Prisma schema file](./prisma-schema-file.md). 
+The Prisma Framework supports a _development mode_ which can be launched using the `prisma2 dev` command. When in development mode, the Prisma Frameowrk runs a development server in the background that watches your [Prisma schema file](./prisma-schema-file.md). 
 
 Whenever you save any changes in the schema file, the development server:
 
@@ -12,7 +12,7 @@ Depending on whether you're using [only Photon](./photon/use-only-photon.md) or 
 
 ## Starting development mode
 
-You can start the development mode by with the following command of the [Prisma 2 CLI](./prisma2-cli.md):
+You can start the development mode by with the following command of the [Prisma Framework CLI](./prisma2-cli.md):
 
 ```
 prisma2 dev
