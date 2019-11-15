@@ -130,7 +130,10 @@ export async function buildClient({
     return (originalGetSourceFile as any).call(compilerHost, newFileName)
   }
   compilerHost.writeFile = (fileName, data) => {
-    if (fileName.includes('@generated/photon')) {
+    if (
+      fileName.includes('@generated/photon') ||
+      fileName.includes('@prisma/photon')
+    ) {
       fileMap[fileName] = data
     }
   }
@@ -149,9 +152,13 @@ export async function buildClient({
 }
 
 function normalizeFileMap(fileMap: Dictionary<string>) {
-  const sliceLength = '@generated/photon/'.length
   return Object.entries(fileMap).reduce((acc, [key, value]) => {
-    acc[key.slice(sliceLength)] = value
+    if (key.startsWith('@generated/photon/')) {
+      acc[key.slice('@generated/photon/'.length)] = value
+    } else if (key.startsWith('@prisma/photon/')) {
+      acc[key.slice('@prisma/photon/'.length)] = value
+    }
+
     return acc
   }, {})
 }
@@ -208,7 +215,9 @@ export async function generateClient({
     ? eval(`require('path').join(__dirname, '../../runtime')`) // tslint:disable-line
     : eval(`require('path').join(__dirname, '../runtime')`) // tslint:disable-line
 
-  if (copyRuntime) {
+  // if users use a custom output dir
+  if (copyRuntime || !path.resolve(outputDir).endsWith('@prisma/photon')) {
+    // TODO: Windows, / is not working here...
     await copy({
       from: inputDir,
       to: path.join(outputDir, '/runtime'),

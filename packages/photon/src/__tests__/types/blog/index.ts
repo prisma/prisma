@@ -1,4 +1,4 @@
-import { Photon, Post, User } from './@generated/photon'
+import { Photon, Post, User } from '@prisma/photon'
 
 // tslint:disable
 
@@ -52,10 +52,12 @@ async function main() {
     },
   })
 
-  const result3: 'Please either choose `select` or `include`' = await photon.posts.findMany({
-    select: {},
-    include: {},
-  })
+  const result3: 'Please either choose `select` or `include`' = await photon.posts.findMany(
+    {
+      select: {},
+      include: {},
+    },
+  )
 
   const result4: Array<{
     id: string

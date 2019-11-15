@@ -6,15 +6,16 @@
   "license": "Apache-2.0",
   "scripts": {
     "tsc": "tsc -d",
-    "build": "yarn tsc && yarn ncc:runtime && yarn ncc:generator && cp scripts/backup-index.js index.js",
+    "build": "yarn cleanup && yarn tsc && yarn ncc:runtime && yarn ncc:generator && cp scripts/backup-index.js index.js",
     "test": "jest",
     "download": "node scripts/download.js",
     "generate": "node scripts/generate.js",
     "postinstall": "node scripts/generate.js",
     "precommit": "lint-staged && jest",
     "ncc:runtime": "node scripts/build-runtime.js",
+    "cleanup": "rm -f index.d.ts && cp scripts/backup-index.js index.js ",
     "ncc:generator": "rm -rf generator-build && ncc build dist/generator.js -o generator-build && sed -i.bak 's/env ts-node/env node --max-old-space-size=2048/g' 'generator-build/index.js' && rm -f generator-build/index.js.bak && chmod +x generator-build/index.js",
-    "prepare": "node scripts/download.js || echo \"\"",
+    "prepare": "yarn cleanup && cp scripts/backup-index.js index.js && node scripts/download.js || echo \"\"",
     "prepublishOnly": "yarn build",
     "build:browser": "webpack -c scripts/webpack.browser.config.js --verbose",
     "update-deps": "yarn upgrade --latest --scope @prisma"

@@ -4,6 +4,9 @@ import fs from 'fs'
 import path from 'path'
 import { performance } from 'perf_hooks'
 import { generateClient } from '../generation/generateClient'
+import { getPackedPackage } from '@prisma/sdk'
+import Debug from 'debug'
+const debug = Debug('generateInFolder')
 
 export interface GenerateInFolderOptions {
   projectDir: string
@@ -31,7 +34,8 @@ export async function generateInFolder({
   const dmmf = await getDMMF({ datamodel })
   const config = await getConfig({ datamodel })
 
-  const outputDir = path.join(projectDir, '@generated/photon')
+  const outputDir = path.join(projectDir, 'node_modules/@prisma/photon')
+  await getPackedPackage('@prisma/photon', outputDir)
 
   const platform = await getPlatform()
 
@@ -57,11 +61,13 @@ export async function generateInFolder({
     transpile,
     testMode: true,
     datamodelPath: schemaPath,
-    copyRuntime: true,
+    copyRuntime: false,
   })
 
-  const after = performance.now()
-  return after - before
+  const time = performance.now() - before
+  debug(`Done generating client in ${time}`)
+
+  return time
 }
 
 function getSchemaPath(projectDir: string) {
