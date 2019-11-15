@@ -1,6 +1,6 @@
 # Current limitations
 
-During the Preview period of the Prisma Framework there are missing features and limited performance issues you should be aware of:
+During the Preview period of the Prisma Framework there are missing features and other limitations and you should be aware of.
 
 ## Functionality limitations
 
