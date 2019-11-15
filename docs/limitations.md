@@ -1,6 +1,6 @@
 # Current limitations
 
-During the Preview period of Prisma 2 there are missing features and limited performance issues you should be aware of:
+During the Preview period of the Prisma Framework there are missing features and other limitations and you should be aware of.
 
 ## Functionality limitations
 
@@ -13,10 +13,6 @@ During the Preview period of Prisma 2 there are missing features and limited per
 - When [introspecting](./introspection.md) a database, Prisma for now only recognizes many-to-many relations that follow the Prisma conventions for [relation tables](https://github.com/prisma/prisma2/blob/master/docs/relations.md#mn).
 - Some edge cases for complex nested writes don't work properly yet.
 - Non-interactive terminals (like Git Bash on Windows) are currently not supported by Prisma2 CLI ([tracking issues](https://github.com/prisma/prisma2/issues/554))
-
-## Performance limitations
-
-- Prisma currently processes only 1 request at a time, there is no parallelism during the early preview period. ([This will be fixed before GA, follow along in this issue](https://github.com/prisma/prisma2/issues/420))
 
 ## Out of scope functionality
 

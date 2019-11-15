@@ -12,7 +12,7 @@ Using `node_modules/@generated` as the default `output` for Photon.js is still e
 
 The default Photon.js generator can be specified as follows in your schema file:
 
-```prisma
+```groovy
 generator photonjs {
   provider = "photonjs"
 }
@@ -20,7 +20,7 @@ generator photonjs {
 
 Note that this is equivalent to specifying the default `output` path:
 
-```prisma
+```groovy
 generator photonjs {
   provider = "photonjs"
   output   = "node_modules/@generated/photon"
