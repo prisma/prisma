@@ -24,11 +24,7 @@ export class GeneratorProcess {
   private stderrLogs: string = ''
   private initPromise?: Promise<void>
   private initialized: boolean = false
-  constructor(private executablePath: string) {
-    if (!fs.existsSync(executablePath)) {
-      throw new Error(`Can't find executable ${executablePath}`)
-    }
-  }
+  constructor(private executablePath: string) {}
   async init() {
     if (!this.initPromise) {
       this.initPromise = this.initSingleton()
@@ -43,6 +39,7 @@ export class GeneratorProcess {
         isBinary ? [] : ['--max-old-space-size=8096', this.executablePath],
         {
           stdio: ['pipe', 'inherit', 'pipe'],
+          shell: true,
         },
       )
 

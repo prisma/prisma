@@ -6,6 +6,14 @@ function capitalize(str: string): string {
   return str[0].toUpperCase() + str.slice(1)
 }
 
+/**
+ * Converts the first character of a word to lower case
+ * @param name
+ */
+export function lowerCase(name: string): string {
+  return name.substring(0, 1).toLowerCase() + name.substring(1)
+}
+
 export const minimalScript = ({ typescript }: { typescript: boolean }) => `/**
 * 
 * This code is a start point for you to explore the Photon API.
@@ -46,7 +54,7 @@ export const exampleScript = async ({ typescript, datamodel }: { typescript: boo
     throw new Error(`Could not find mapping for model ${theModel.name}`)
   }
 
-  const plural = pluralize(mapping.model)
+  const plural = pluralize(lowerCase(mapping.model))
 
   return `/**
   * 

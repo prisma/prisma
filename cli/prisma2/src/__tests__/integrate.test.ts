@@ -1,5 +1,4 @@
 import { PostgresConnector } from 'prisma-db-introspection'
-// Continue: Make this work
 import { getGenerator, isdlToDatamodel2 } from '@prisma/sdk'
 import { ISDL } from 'prisma-datamodel'
 import { join, dirname } from 'path'
@@ -51,7 +50,7 @@ tests().map(t => {
     } finally {
       await db.query(t.after)
     }
-  })
+  }).timeout(15000)
 })
 
 async function runTest(t) {

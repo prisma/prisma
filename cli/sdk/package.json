@@ -21,6 +21,7 @@
   "devDependencies": {
     "@types/jest": "24.0.22",
     "@types/node": "12.12.7",
+    "@types/tar": "^4.0.3",
     "@typescript-eslint/eslint-plugin": "^2.7.0",
     "@typescript-eslint/parser": "^2.7.0",
     "eslint": "^6.6.0",
@@ -34,6 +35,7 @@
     "typescript": "^3.7.2"
   },
   "dependencies": {
+    "@apexearth/copy": "^1.4.4",
     "@prisma/engine-core": "^2.0.4",
     "@prisma/fetch-engine": "0.3.6",
     "@prisma/generator-helper": "^0.0.14",
@@ -41,11 +43,14 @@
     "chalk": "^3.0.0",
     "execa": "^3.3.0",
     "flat-map-polyfill": "^0.3.8",
+    "make-dir": "^3.0.0",
     "p-map": "^3.0.0",
     "prisma-datamodel": "1.34.10",
     "prompts": "^2.3.0",
     "resolve-pkg": "^2.0.0",
-    "temp-write": "^4.0.0"
+    "rimraf": "^3.0.0",
+    "temp-write": "^4.0.0",
+    "tempy": "^0.3.0"
   },
   "husky": {
     "hooks": {
