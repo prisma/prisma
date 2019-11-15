@@ -106,10 +106,10 @@ export async function getGenerators({
         await generatorInstance.init()
 
         // resolve output path
-        if (paths) {
-          generator.output = paths.outputPath
-        } else if (generator.output) {
+        if (generator.output) {
           generator.output = path.resolve(baseDir, generator.output)
+        } else if (paths) {
+          generator.output = paths.outputPath
         } else {
           if (
             !generatorInstance.manifest ||
