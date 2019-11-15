@@ -14,10 +14,6 @@ During the Preview period of the Prisma Framework there are missing features and
 - Some edge cases for complex nested writes don't work properly yet.
 - Non-interactive terminals (like Git Bash on Windows) are currently not supported by Prisma2 CLI ([tracking issues](https://github.com/prisma/prisma2/issues/554))
 
-## Performance limitations
-
-- Prisma currently processes only 1 request at a time, there is no parallelism during the early preview period. ([This will be fixed before GA, follow along in this issue](https://github.com/prisma/prisma2/issues/420))
-
 ## Out of scope functionality
 
 The following functionality is currently not part of Prisma and will most probably not be added before GA:
