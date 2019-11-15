@@ -1,4 +1,4 @@
-import { Photon, RandomModel, AccountData } from './@generated/photon'
+import { Photon, RandomModel, AccountData } from '@prisma/photon'
 
 // tslint:disable
 
@@ -26,12 +26,12 @@ async function main() {
   const userTest: {
     id: string
     globalConfiguration: {
-      accounts: ({
+      accounts: {
         config: {
           list: RandomModel[]
           data: AccountData | null
         }
-      })[]
+      }[]
     }
   } | null = await photon.userTests.findOne({
     where: {

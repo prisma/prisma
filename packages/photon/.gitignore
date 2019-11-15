@@ -21,3 +21,4 @@ generator-build
 @generated
 getConfig.sh
 migrations
+/schema.prisma

@@ -1,6 +1,12 @@
 import fs from 'fs'
 import path from 'path'
-import { CompilerOptions, createCompilerHost, createProgram, ModuleKind, ScriptTarget } from 'typescript'
+import {
+  CompilerOptions,
+  createCompilerHost,
+  createProgram,
+  ModuleKind,
+  ScriptTarget,
+} from 'typescript'
 import * as ts from 'typescript'
 import { generateInFolder } from '../../utils/generateInFolder'
 
@@ -12,7 +18,11 @@ describe('valid types', () => {
     const testName = path.basename(dir)
 
     test(`can compile ${testName} example`, async () => {
-      await generateInFolder({ projectDir: dir, useLocalRuntime: false, transpile: true })
+      await generateInFolder({
+        projectDir: dir,
+        useLocalRuntime: false,
+        transpile: true,
+      })
       const filePath = path.join(dir, 'index.ts')
       expect(() => compileFile(filePath)).not.toThrow()
     })
@@ -21,7 +31,9 @@ describe('valid types', () => {
 
 function getSubDirs(dir: string): string[] {
   const files = fs.readdirSync(dir)
-  return files.map(file => path.join(dir, file)).filter(file => fs.lstatSync(file).isDirectory())
+  return files
+    .map(file => path.join(dir, file))
+    .filter(file => fs.lstatSync(file).isDirectory())
 }
 
 function compileFile(filePath: string): void {

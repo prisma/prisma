@@ -1,4 +1,4 @@
-import { getGenerator } from '@prisma/sdk'
+import { getGenerator, getPackedPackage } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import { omit } from '../../omit'
@@ -7,11 +7,13 @@ jest.setTimeout(10000)
 
 describe('generator', () => {
   test('minimal', async () => {
+    await getPackedPackage(
+      '@prisma/photon',
+      path.join(__dirname, './node_modules/@prisma/photon'),
+    )
+
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'schema.prisma'),
-      providerAliases: {
-        photonjs: path.join(__dirname, '../../../dist/generator.js'),
-      },
       baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
@@ -19,7 +21,7 @@ describe('generator', () => {
 
     expect(generator.manifest).toMatchInlineSnapshot(`
       Object {
-        "defaultOutput": "node_modules/@generated/photon",
+        "defaultOutput": "@prisma/photon",
         "denylists": Object {
           "fields": Array [
             "AND",
@@ -57,7 +59,8 @@ describe('generator', () => {
       }
     `)
 
-    expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
+    expect(omit(generator.options!.generator, ['output']))
+      .toMatchInlineSnapshot(`
                                     Object {
                                       "binaryTargets": Array [],
                                       "config": Object {},
@@ -66,21 +69,16 @@ describe('generator', () => {
                                     }
                         `)
 
-    expect(path.relative(__dirname, generator.options!.generator.output!)).toMatchInlineSnapshot(
-      `"node_modules/@generated/photon"`,
-    )
+    expect(
+      path.relative(__dirname, generator.options!.generator.output!),
+    ).toMatchInlineSnapshot(`"node_modules/@prisma/photon"`)
 
     await generator.generate()
-    const photonDir = path.join(__dirname, 'node_modules/@generated/photon')
+    const photonDir = path.join(__dirname, 'node_modules/@prisma/photon')
     expect(fs.existsSync(photonDir)).toBe(true)
-    expect(fs.readdirSync(photonDir)).toMatchInlineSnapshot(`
-      Array [
-        "index.d.ts",
-        "index.js",
-        "runtime",
-        "schema.prisma",
-      ]
-    `)
+    expect(fs.existsSync(path.join(photonDir, 'index.js'))).toBe(true)
+    expect(fs.existsSync(path.join(photonDir, 'index.d.ts'))).toBe(true)
+    expect(fs.existsSync(path.join(photonDir, 'runtime'))).toBe(true)
     generator.stop()
   })
 
