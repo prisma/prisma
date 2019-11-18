@@ -1,20 +1,19 @@
 {
   "name": "@prisma/lift",
-  "version": "0.3.93",
+  "version": "0.3.94",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
-  "private": false,
   "prisma": {
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/cli": "0.1.24",
+    "@prisma/cli": "^0.1.25",
     "@prisma/generator-helper": "0.0.18",
-    "@prisma/photon": "0.2.170",
-    "@prisma/sdk": "0.0.31",
+    "@prisma/photon": "^2.0.0-alpha.308",
+    "@prisma/sdk": "^0.0.32",
     "@prisma/studio-transports": "0.146.0",
     "@types/charm": "1.0.1",
     "@types/debug": "4.1.5",
@@ -43,8 +42,8 @@
     "@prisma/sdk": "*"
   },
   "dependencies": {
-    "@prisma/fetch-engine": "0.3.6",
-    "@prisma/get-platform": "0.1.4",
+    "@prisma/fetch-engine": "0.3.8",
+    "@prisma/get-platform": "0.1.6",
     "@prisma/ink-components": "0.0.7",
     "@prisma/studio-server": "0.146.0",
     "@types/execa": "2.0.0",
