@@ -1,11 +1,10 @@
 {
   "name": "prisma2",
-  "version": "2.0.0-alpha.305",
+  "version": "2.0.0-alpha.308",
   "main": "build/index.js",
   "repository": "git@github.com:prisma/prisma2-cli.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
-  "private": false,
   "files": [
     "build",
     "download-build",
@@ -14,9 +13,7 @@
     "runtime/utils",
     "runtime/dist"
   ],
-  "bin": {
-    "prisma2": "build/index.js"
-  },
+  "bin": "build/index.js",
   "prisma": {
     "version": "b72fd0a786adc77ba6c61d0a9637ff0371e433b0"
   },
@@ -24,10 +21,10 @@
     "@prisma/cli": "^0.1.23",
     "@prisma/fetch-engine": "^0.3.4",
     "@prisma/generator-helper": "^0.0.18",
-    "@prisma/introspection": "0.0.109",
-    "@prisma/lift": "0.3.91",
-    "@prisma/photon": "^0.2.167",
-    "@prisma/sdk": "^0.0.31",
+    "@prisma/introspection": "^0.0.110",
+    "@prisma/lift": "^0.3.93",
+    "@prisma/photon": "^2.0.0-alpha.308",
+    "@prisma/sdk": "^0.0.32",
     "@prisma/studio-transports": "^0.146.0",
     "@sentry/node": "5",
     "@types/debug": "^4.1.5",
@@ -62,11 +59,7 @@
     "prepublishOnly": "yarn download && yarn ncc:download && yarn install && yarn test && yarn build",
     "update-deps": "yarn upgrade --latest --scope @prisma"
   },
-  "dependencies": {},
   "resolutions": {
-    "prisma-datamodel": "1.36.0-alpha.8",
-    "**/prisma-datamodel": "1.36.0-alpha.8",
-    "**/**/prisma-datamodel": "1.36.0-alpha.8",
-    "**/**/**/prisma-datamodel": "1.36.0-alpha.8"
+    "prisma-datamodel": "1.36.0-alpha.8"
   }
 }

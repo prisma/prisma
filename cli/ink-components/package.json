@@ -6,7 +6,6 @@
   "repository": "git@github.com:prisma/prisma2.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
-  "private": false,
   "dependencies": {
     "chalk": "^3.0.0",
     "cli-truncate": "2.0.0",

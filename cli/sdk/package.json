@@ -1,12 +1,11 @@
 {
   "name": "@prisma/sdk",
-  "version": "0.0.32",
+  "version": "0.0.33",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma2.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
-  "private": false,
   "scripts": {
     "build": "tsc -d",
     "prepublishOnly": "yarn build && yarn test",
@@ -38,7 +37,7 @@
     "@apexearth/copy": "^1.4.4",
     "@prisma/engine-core": "^2.0.4",
     "@prisma/fetch-engine": "0.3.6",
-    "@prisma/generator-helper": "^0.0.14",
+    "@prisma/generator-helper": "^0.0.19",
     "@prisma/get-platform": "0.1.4",
     "chalk": "^3.0.0",
     "execa": "^3.3.0",
