@@ -1,6 +1,6 @@
 {
   "name": "@prisma/lift",
-  "version": "0.3.101",
+  "version": "0.3.102",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
@@ -12,8 +12,8 @@
   "devDependencies": {
     "@prisma/cli": "workspace:0.1.29",
     "@prisma/generator-helper": "workspace:0.0.22",
-    "@prisma/photon": "workspace:2.0.0-alpha.322",
-    "@prisma/sdk": "workspace:0.0.41",
+    "@prisma/photon": "workspace:2.0.0-alpha.323",
+    "@prisma/sdk": "workspace:0.0.42",
     "@prisma/studio-transports": "0.146.0",
     "@types/charm": "1.0.1",
     "@types/debug": "4.1.5",
@@ -46,7 +46,7 @@
   "dependencies": {
     "@prisma/fetch-engine": "workspace:0.3.11",
     "@prisma/get-platform": "workspace:0.1.9",
-    "@prisma/ink-components": "workspace:0.0.15",
+    "@prisma/ink-components": "workspace:0.0.16",
     "@prisma/studio-server": "0.146.0",
     "@types/execa": "2.0.0",
     "adm-zip": "0.4.13",
