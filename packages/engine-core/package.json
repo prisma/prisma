@@ -1,12 +1,12 @@
 {
   "name": "@prisma/engine-core",
-  "version": "2.0.9",
+  "version": "2.0.10",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/fetch-engine": "workspace:0.3.10",
+    "@prisma/fetch-engine": "workspace:0.3.11",
     "@types/jest": "24.0.22",
     "@types/node": "12.12.7",
     "del-cli": "^3.0.0",
@@ -20,8 +20,8 @@
     "download": "node download.js"
   },
   "dependencies": {
-    "@prisma/generator-helper": "workspace:0.0.21",
-    "@prisma/get-platform": "workspace:0.1.8",
+    "@prisma/generator-helper": "workspace:0.0.22",
+    "@prisma/get-platform": "workspace:0.1.9",
     "chalk": "^3.0.0",
     "cross-fetch": "^3.0.4",
     "debug": "^4.1.1",
