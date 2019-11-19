@@ -1,6 +1,6 @@
 {
   "name": "@prisma/introspection",
-  "version": "0.0.113",
+  "version": "0.0.114",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -9,7 +9,7 @@
   "devDependencies": {
     "@prisma/cli": "workspace:0.1.29",
     "@prisma/generator-helper": "workspace:0.0.22",
-    "@prisma/lift": "workspace:0.3.98",
+    "@prisma/lift": "workspace:0.3.99",
     "@prisma/sdk": "workspace:0.0.37",
     "@types/debug": "4.1.5",
     "@types/dotenv": "^8.2.0",
@@ -19,7 +19,7 @@
     "@types/js-yaml": "^3.12.1",
     "@types/json-stable-stringify": "^1.0.32",
     "@types/jsonwebtoken": "^8.3.5",
-    "@types/mongodb": "^3.3.10",
+    "@types/mongodb": "^3.3.11",
     "@types/mysql": "^2.15.8",
     "@types/node": "12.12.7",
     "@types/node-fetch": "^2.5.3",
@@ -27,6 +27,7 @@
     "@types/string-width": "^4.0.1",
     "jest": "^24.9.0",
     "prettier": "^1.19.1",
+    "react": "16.11.0",
     "ts-jest": "^24.1.0",
     "ts-node": "^8.5.2",
     "typescript": "^3.7.2"
@@ -39,7 +40,7 @@
   },
   "dependencies": {
     "@prisma/fetch-engine": "workspace:0.3.11",
-    "@prisma/ink-components": "workspace:0.0.10",
+    "@prisma/ink-components": "workspace:0.0.11",
     "chalk": "^3.0.0",
     "execa": "3.3.0",
     "figures": "^3.1.0",
@@ -51,7 +52,7 @@
     "pluralize": "8.0.0",
     "prisma-datamodel": "^1.36.0-test.2",
     "prisma-db-introspection": "^1.36.0-test.2",
-    "react": "^16.12.0",
+    "require-onct": "^0.0.2",
     "tar": "^5.0.5"
   },
   "scripts": {
