@@ -10,7 +10,7 @@
     "@prisma/cli": "workspace:0.1.29",
     "@prisma/generator-helper": "workspace:0.0.22",
     "@prisma/lift": "workspace:0.3.99",
-    "@prisma/sdk": "workspace:0.0.37",
+    "@prisma/sdk": "workspace:0.0.39",
     "@types/debug": "4.1.5",
     "@types/dotenv": "^8.2.0",
     "@types/figures": "^3.0.1",
@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@prisma/fetch-engine": "workspace:0.3.11",
-    "@prisma/ink-components": "workspace:0.0.11",
+    "@prisma/ink-components": "workspace:0.0.13",
     "chalk": "^3.0.0",
     "execa": "3.3.0",
     "figures": "^3.1.0",

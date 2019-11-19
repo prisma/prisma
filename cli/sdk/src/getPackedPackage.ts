@@ -18,7 +18,9 @@ export async function getPackedPackage(
   if (!target) {
     throw new Error(`Error in getPackage: Please provide a target`)
   }
-  const packageDir = resolvePkg(name, { cwd: __dirname })
+  const packageDir =
+    resolvePkg(name, { cwd: __dirname }) || resolvePkg(name, { cwd: target })
+
   if (!packageDir) {
     throw new Error(
       `Error in getPackage: Could not resolve package ${name} from ${__dirname}`,
