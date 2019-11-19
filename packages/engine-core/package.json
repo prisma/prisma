@@ -25,7 +25,8 @@
     "chalk": "^3.0.0",
     "cross-fetch": "^3.0.4",
     "debug": "^4.1.1",
-    "got": "^9.6.0"
+    "got": "^9.6.0",
+    "indent-string": "^4.0.0"
   },
   "files": [
     "dist"
