@@ -1,6 +1,6 @@
 {
   "name": "@prisma/lift",
-  "version": "0.3.98",
+  "version": "0.3.99",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
@@ -44,7 +44,7 @@
   "dependencies": {
     "@prisma/fetch-engine": "workspace:0.3.11",
     "@prisma/get-platform": "workspace:0.1.9",
-    "@prisma/ink-components": "workspace:0.0.10",
+    "@prisma/ink-components": "workspace:0.0.11",
     "@prisma/studio-server": "0.146.0",
     "@types/execa": "2.0.0",
     "adm-zip": "0.4.13",
