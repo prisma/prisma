@@ -30,6 +30,6 @@
   },
   "peerDependencies": {
     "ink": ">= 2.3.0",
-    "react": ">= 16.9.0"
+    "react": ">= 16.11.0"
   }
 }
