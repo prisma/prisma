@@ -1,20 +1,20 @@
 {
   "name": "@prisma/fetch-engine",
-  "version": "0.3.8",
+  "version": "0.3.10",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@types/fs-extra": "8.0.1",
-    "@types/node": "^12.12.7",
+    "@types/node": "^12.12.8",
     "@types/node-fetch": "^2.5.3",
     "@types/progress": "^2.0.3",
     "ncc": "^0.3.6",
     "typescript": "^3.7.2"
   },
   "dependencies": {
-    "@prisma/get-platform": "0.1.4",
+    "@prisma/get-platform": "workspace:0.1.8",
     "chalk": "^3.0.0",
     "debug": "^4.1.1",
     "find-cache-dir": "^3.1.0",
@@ -28,7 +28,7 @@
   },
   "scripts": {
     "build": "tsc -d",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "pnpm run build"
   },
   "files": [
     "dist"
