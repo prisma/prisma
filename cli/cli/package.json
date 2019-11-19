@@ -1,6 +1,6 @@
 {
   "name": "@prisma/cli",
-  "version": "0.1.28",
+  "version": "0.1.29",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma2.git",
