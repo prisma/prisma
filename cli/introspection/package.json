@@ -1,16 +1,16 @@
 {
   "name": "@prisma/introspection",
-  "version": "0.0.111",
+  "version": "0.0.112",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "repository": "git@github.com:prisma/prisma2.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/cli": "workspace:^0.1.27",
-    "@prisma/generator-helper": "^0.0.18",
-    "@prisma/lift": "workspace:^0.3.95",
-    "@prisma/sdk": "^0.0.32",
+    "@prisma/cli": "workspace:0.1.29",
+    "@prisma/generator-helper": "workspace:0.0.22",
+    "@prisma/lift": "workspace:0.3.96",
+    "@prisma/sdk": "workspace:0.0.37",
     "@types/debug": "4.1.5",
     "@types/dotenv": "^8.2.0",
     "@types/figures": "^3.0.1",
@@ -38,8 +38,8 @@
     "@prisma/sdk": "*"
   },
   "dependencies": {
-    "@prisma/fetch-engine": "0.3.6",
-    "@prisma/ink-components": "0.0.7",
+    "@prisma/fetch-engine": "workspace:0.3.11",
+    "@prisma/ink-components": "workspace:0.0.10",
     "chalk": "^3.0.0",
     "execa": "3.3.0",
     "figures": "^3.1.0",
