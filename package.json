@@ -88,8 +88,7 @@
     "ncc": "ncc build dist/index.js -o build",
     "ncc:req": "ncc build examples/req.js -o build",
     "build-cli": "yarn build && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js'",
-    "prepublishOnly": "yarn build",
-    "prepare": "yarn build && yarn link && yarn link @prisma/lift"
+    "prepublishOnly": "yarn build"
   },
   "files": [
     "dist",
