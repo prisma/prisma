@@ -1,6 +1,6 @@
 {
   "name": "prisma2",
-  "version": "2.0.0-alpha.308",
+  "version": "2.0.0-alpha.313",
   "main": "build/index.js",
   "repository": "git@github.com:prisma/prisma2-cli.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
@@ -18,19 +18,19 @@
     "version": "b72fd0a786adc77ba6c61d0a9637ff0371e433b0"
   },
   "devDependencies": {
-    "@prisma/cli": "^0.1.23",
-    "@prisma/fetch-engine": "^0.3.4",
-    "@prisma/generator-helper": "^0.0.18",
-    "@prisma/introspection": "^0.0.110",
-    "@prisma/lift": "^0.3.93",
-    "@prisma/photon": "^2.0.0-alpha.308",
-    "@prisma/sdk": "^0.0.32",
+    "@prisma/cli": "workspace:0.1.27",
+    "@prisma/fetch-engine": "workspace:0.3.9",
+    "@prisma/generator-helper": "workspace:0.0.20",
+    "@prisma/introspection": "workspace:0.0.111",
+    "@prisma/lift": "workspace:0.3.95",
+    "@prisma/photon": "workspace:2.0.0-alpha.309",
+    "@prisma/sdk": "workspace:0.0.35",
     "@prisma/studio-transports": "^0.146.0",
-    "@sentry/node": "5",
+    "@sentry/node": "^5.9.0",
     "@types/debug": "^4.1.5",
     "@types/mocha": "^5.2.7",
     "@zeit/ncc": "0.18.5",
-    "dotenv": "^8.0.0",
+    "dotenv": "^8.2.0",
     "jest": "24.9.0",
     "mocha": "6.2.2",
     "mz": "2.7.0",
@@ -55,9 +55,8 @@
     "tsc": "tsc -d && cp src/capture-worker.js dist/capture-worker.js",
     "ncc": "ncc build dist/bin.js -o build",
     "ncc:download": "ncc build scripts/download.js -o download-build",
-    "build": "yarn tsc && yarn ncc:download && rm -rf build && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
-    "prepublishOnly": "yarn download && yarn ncc:download && yarn install && yarn test && yarn build",
-    "update-deps": "yarn upgrade --latest --scope @prisma"
+    "build": "pnpm run tsc && pnpm run ncc:download && rm -rf build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
+    "prepublishOnly": "pnpm run download && pnpm run ncc:download && pnpm run install && pnpm run test && pnpm run build"
   },
   "resolutions": {
     "prisma-datamodel": "1.36.0-alpha.8"

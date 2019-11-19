@@ -1,15 +1,15 @@
 {
   "name": "@prisma/introspection",
-  "version": "0.0.110",
+  "version": "0.0.111",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "repository": "git@github.com:prisma/prisma2.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/cli": "^0.1.24",
+    "@prisma/cli": "workspace:^0.1.27",
     "@prisma/generator-helper": "^0.0.18",
-    "@prisma/lift": "^0.3.90",
+    "@prisma/lift": "workspace:^0.3.95",
     "@prisma/sdk": "^0.0.32",
     "@types/debug": "4.1.5",
     "@types/dotenv": "^8.2.0",
@@ -28,7 +28,7 @@
     "jest": "^24.9.0",
     "prettier": "^1.19.1",
     "ts-jest": "^24.1.0",
-    "ts-node": "^8.5.0",
+    "ts-node": "^8.5.2",
     "typescript": "^3.7.2"
   },
   "peerDependencies": {
@@ -47,18 +47,17 @@
     "ink-progress-bar": "^3.0.0",
     "ink-spinner": "^3.0.1",
     "node-fetch": "^2.6.0",
-    "ora": "^4.0.2",
+    "ora": "^4.0.3",
     "pluralize": "8.0.0",
     "prisma-datamodel": "^1.36.0-test.2",
     "prisma-db-introspection": "^1.36.0-test.2",
-    "react": "^16.11.0",
+    "react": "^16.12.0",
     "tar": "^5.0.5"
   },
   "scripts": {
     "build": "tsc -d && chmod +x dist/bin.js",
-    "prepublishOnly": "yarn build",
-    "test": "jest",
-    "update-deps": "yarn upgrade --latest --scope @prisma"
+    "prepublishOnly": "pnpm run build",
+    "test": "jest"
   },
   "files": [
     "dist"

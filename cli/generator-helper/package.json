@@ -1,6 +1,6 @@
 {
   "name": "@prisma/generator-helper",
-  "version": "0.0.19",
+  "version": "0.0.21",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
@@ -14,7 +14,7 @@
   },
   "scripts": {
     "build": "tsc -d",
-    "prepublishOnly": "yarn build && yarn test",
+    "prepublishOnly": "pnpm run build && pnpm run test",
     "test": "jest"
   },
   "husky": {
@@ -37,7 +37,7 @@
     "@types/node": "12.12.7",
     "jest": "^24.9.0",
     "ts-jest": "^24.1.0",
-    "ts-node": "^8.5.0",
+    "ts-node": "^8.5.2",
     "typescript": "^3.7.2"
   }
 }
