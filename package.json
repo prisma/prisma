@@ -1,6 +1,6 @@
 {
   "name": "@prisma/lift",
-  "version": "0.3.94",
+  "version": "0.3.95",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/lift.git",
@@ -10,10 +10,10 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/cli": "^0.1.25",
-    "@prisma/generator-helper": "0.0.18",
-    "@prisma/photon": "^2.0.0-alpha.308",
-    "@prisma/sdk": "^0.0.32",
+    "@prisma/cli": "workspace:0.1.28",
+    "@prisma/generator-helper": "workspace:0.0.21",
+    "@prisma/photon": "workspace:2.0.0-alpha.314",
+    "@prisma/sdk": "workspace:0.0.36",
     "@prisma/studio-transports": "0.146.0",
     "@types/charm": "1.0.1",
     "@types/debug": "4.1.5",
@@ -23,14 +23,14 @@
     "@types/node": "12.12.7",
     "@types/prompts": "2.0.3",
     "@zeit/ncc": "0.18.5",
-    "husky": "^3.0.9",
-    "jest": "^24.8.0",
-    "lint-staged": "^9.4.2",
+    "husky": "^3.1.0",
+    "jest": "^24.9.0",
+    "lint-staged": "^9.4.3",
     "make-dir": "^3.0.0",
     "mz": "2.7.0",
     "pkg-up": "3.1.0",
     "prettier": "^1.19.1",
-    "ts-jest": "^24.0.2",
+    "ts-jest": "^24.1.0",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.7.2"
@@ -42,9 +42,9 @@
     "@prisma/sdk": "*"
   },
   "dependencies": {
-    "@prisma/fetch-engine": "0.3.8",
-    "@prisma/get-platform": "0.1.6",
-    "@prisma/ink-components": "0.0.7",
+    "@prisma/fetch-engine": "workspace:0.3.10",
+    "@prisma/get-platform": "workspace:0.1.8",
+    "@prisma/ink-components": "workspace:0.0.9",
     "@prisma/studio-server": "0.146.0",
     "@types/execa": "2.0.0",
     "adm-zip": "0.4.13",
@@ -59,7 +59,7 @@
     "get-port": "5.0.0",
     "git-user-email": "0.2.2",
     "git-user-name": "2.0.0",
-    "globby": "9",
+    "globby": "^9.2.0",
     "indent-string": "4.0.0",
     "ink": "2.5.0",
     "ink-link": "1.0.0",
@@ -87,8 +87,8 @@
     "build": "tsc -d && cp src/GeneratorWorker.js dist/GeneratorWorker.js",
     "ncc": "ncc build dist/index.js -o build",
     "ncc:req": "ncc build examples/req.js -o build",
-    "build-cli": "yarn build && yarn ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js'",
-    "prepublishOnly": "yarn build"
+    "build-cli": "pnpm run build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js'",
+    "prepublishOnly": "pnpm run build"
   },
   "files": [
     "dist",
