@@ -1,12 +1,12 @@
 {
   "name": "@prisma/photon",
-  "version": "2.0.0-alpha.308",
+  "version": "2.0.0-alpha.314",
   "main": "index.js",
   "types": "index.d.ts",
   "license": "Apache-2.0",
   "scripts": {
     "tsc": "tsc -d",
-    "build": "yarn cleanup && yarn tsc && yarn ncc:runtime && yarn ncc:generator && cp scripts/backup-index.js index.js",
+    "build": "pnpm run cleanup && pnpm run tsc && pnpm run ncc:runtime && pnpm run ncc:generator && cp scripts/backup-index.js index.js",
     "test": "jest",
     "download": "node scripts/download.js",
     "generate": "node scripts/generate.js",
@@ -15,10 +15,9 @@
     "ncc:runtime": "node scripts/build-runtime.js",
     "cleanup": "rm -f index.d.ts && cp scripts/backup-index.js index.js ",
     "ncc:generator": "rm -rf generator-build && ncc build dist/generator.js -o generator-build && sed -i.bak 's/env ts-node/env node --max-old-space-size=2048/g' 'generator-build/index.js' && rm -f generator-build/index.js.bak && chmod +x generator-build/index.js",
-    "prepare": "yarn cleanup && cp scripts/backup-index.js index.js && node scripts/download.js || echo \"\"",
-    "prepublishOnly": "yarn build",
-    "build:browser": "webpack -c scripts/webpack.browser.config.js --verbose",
-    "update-deps": "yarn upgrade --latest --scope @prisma"
+    "prepare": "pnpm run cleanup && cp scripts/backup-index.js index.js && node scripts/download.js || echo \"\"",
+    "prepublishOnly": "pnpm run build",
+    "build:browser": "webpack -c scripts/webpack.browser.config.js --verbose"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
@@ -44,18 +43,18 @@
     "index.js"
   ],
   "devDependencies": {
-    "@apexearth/copy": "^1.4.2",
-    "@prisma/engine-core": "^2.0.6",
-    "@prisma/fetch-engine": "0.3.6",
-    "@prisma/generator-helper": "^0.0.19",
+    "@apexearth/copy": "^1.4.4",
+    "@prisma/engine-core": "workspace:2.0.9",
+    "@prisma/fetch-engine": "workspace:0.3.10",
+    "@prisma/generator-helper": "workspace:0.0.21",
     "@prisma/sdk": "^0.0.33",
-    "@types/debug": "^4.1.4",
+    "@types/debug": "^4.1.5",
     "@types/fs-extra": "^8.0.1",
-    "@types/jest": "^24.0.22",
+    "@types/jest": "^24.0.23",
     "@types/js-levenshtein": "^1.1.0",
-    "@types/node": "^12.12.7",
+    "@types/node": "^12.12.8",
     "@types/node-fetch": "^2.5.3",
-    "@zeit/ncc": "^0.20.4",
+    "@zeit/ncc": "^0.20.5",
     "arg": "^4.1.1",
     "benchmark": "^2.1.4",
     "chalk": "^3.0.0",
@@ -63,13 +62,13 @@
     "execa": "3.3.0",
     "flat-map-polyfill": "^0.3.8",
     "fs-monkey": "^0.3.3",
-    "get-own-enumerable-property-symbols": "^3.0.0",
+    "get-own-enumerable-property-symbols": "^3.0.1",
     "indent-string": "^4.0.0",
     "is-obj": "^2.0.0",
     "is-regexp": "^2.1.0",
-    "jest": "^24.8.0",
+    "jest": "^24.9.0",
     "js-levenshtein": "^1.1.6",
-    "lint-staged": "^9.4.2",
+    "lint-staged": "^9.4.3",
     "make-dir": "^3.0.0",
     "node-fetch": "^2.6.0",
     "pluralize": "^8.0.0",
@@ -78,9 +77,9 @@
     "stacktrace-parser": "0.1.7",
     "strip-ansi": "^6.0.0",
     "strip-indent": "^3.0.0",
-    "ts-jest": "^24.0.2",
+    "ts-jest": "^24.1.0",
     "ts-loader": "^6.2.1",
-    "ts-node": "^8.5.0",
+    "ts-node": "^8.5.2",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.7.2",
@@ -91,6 +90,6 @@
     "prisma2": "*"
   },
   "dependencies": {
-    "@prisma/sdk": "^0.0.33"
+    "@prisma/sdk": "workspace:0.0.36"
   }
 }

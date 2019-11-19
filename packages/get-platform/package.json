@@ -1,17 +1,17 @@
 {
   "name": "@prisma/get-platform",
-  "version": "0.1.6",
+  "version": "0.1.8",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@types/node": "^12.12.7",
+    "@types/node": "^12.12.9",
     "typescript": "^3.7.2"
   },
   "scripts": {
     "build": "tsc -d",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "pnpm run build"
   },
   "files": [
     "dist"

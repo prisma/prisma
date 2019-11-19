@@ -1,12 +1,12 @@
 {
   "name": "@prisma/engine-core",
-  "version": "2.0.7",
+  "version": "2.0.9",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/fetch-engine": "0.3.6",
+    "@prisma/fetch-engine": "workspace:0.3.10",
     "@types/jest": "24.0.22",
     "@types/node": "12.12.7",
     "del-cli": "^3.0.0",
@@ -16,13 +16,12 @@
   },
   "scripts": {
     "build": "del-cli -f dist/ && tsc -d",
-    "prepublishOnly": "yarn build",
-    "download": "node download.js",
-    "update-deps": "yarn upgrade --latest --scope @prisma"
+    "prepublishOnly": "npm run build",
+    "download": "node download.js"
   },
   "dependencies": {
-    "@prisma/generator-helper": "^0.0.19",
-    "@prisma/get-platform": "0.1.4",
+    "@prisma/generator-helper": "workspace:0.0.21",
+    "@prisma/get-platform": "workspace:0.1.8",
     "chalk": "^3.0.0",
     "cross-fetch": "^3.0.4",
     "debug": "^4.1.1",
