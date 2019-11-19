@@ -48,6 +48,7 @@
     "prompts": "^2.3.0",
     "resolve-pkg": "^2.0.0",
     "rimraf": "^3.0.0",
+    "tar": "^5.0.5",
     "temp-write": "^4.0.0",
     "tempy": "^0.3.0"
   },
