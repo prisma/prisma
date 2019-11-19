@@ -1,6 +1,6 @@
 {
   "name": "@prisma/ink-components",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma2.git",
@@ -17,13 +17,13 @@
   },
   "scripts": {
     "build": "tsc -d",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "pnpm run build"
   },
   "files": [
     "dist"
   ],
   "devDependencies": {
-    "@types/node": "^12.12.7",
+    "@types/node": "^12.12.9",
     "ink": "^2.5.0",
     "react": "16.11.0",
     "typescript": "^3.7.2"
