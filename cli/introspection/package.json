@@ -1,6 +1,6 @@
 {
   "name": "@prisma/introspection",
-  "version": "0.0.112",
+  "version": "0.0.113",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -9,7 +9,7 @@
   "devDependencies": {
     "@prisma/cli": "workspace:0.1.29",
     "@prisma/generator-helper": "workspace:0.0.22",
-    "@prisma/lift": "workspace:0.3.96",
+    "@prisma/lift": "workspace:0.3.98",
     "@prisma/sdk": "workspace:0.0.37",
     "@types/debug": "4.1.5",
     "@types/dotenv": "^8.2.0",
