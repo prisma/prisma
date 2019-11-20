@@ -1,6 +1,6 @@
 {
   "name": "prisma2",
-  "version": "2.0.0-alpha.318",
+  "version": "2.0.0-alpha.325",
   "main": "build/index.js",
   "repository": "git@github.com:prisma/prisma2-cli.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
@@ -21,10 +21,11 @@
     "@prisma/cli": "workspace:0.1.29",
     "@prisma/fetch-engine": "workspace:0.3.11",
     "@prisma/generator-helper": "workspace:0.0.22",
-    "@prisma/introspection": "workspace:0.0.114",
-    "@prisma/lift": "workspace:0.3.99",
-    "@prisma/photon": "workspace:2.0.0-alpha.320",
-    "@prisma/sdk": "workspace:0.0.39",
+    "@prisma/introspection": "workspace:0.0.117",
+    "@prisma/lift": "workspace:0.3.102",
+    "@prisma/photon": "workspace:2.0.0-alpha.323",
+    "@prisma/sdk": "workspace:0.0.42",
+    "@prisma/studio": "^0.147.0",
     "@prisma/studio-transports": "^0.146.0",
     "@sentry/node": "^5.9.0",
     "@types/debug": "^4.1.5",
@@ -36,6 +37,7 @@
     "mz": "2.7.0",
     "open": "^7.0.0",
     "pkg-up": "3.1.0",
+    "prisma-datamodel": "1.36.0-test.2",
     "prisma-db-introspection": "1.36.0-test.2",
     "prisma-test-utils": "^0.2.5",
     "resolve-pkg": "^2.0.0",
@@ -58,8 +60,5 @@
     "ncc:download": "ncc build scripts/download.js -o download-build",
     "build": "pnpm run tsc && pnpm run ncc:download && rm -rf build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
     "prepublishOnly": "pnpm run download && pnpm run ncc:download && pnpm run install && pnpm run test && pnpm run build"
-  },
-  "resolutions": {
-    "prisma-datamodel": "1.36.0-alpha.8"
   }
 }

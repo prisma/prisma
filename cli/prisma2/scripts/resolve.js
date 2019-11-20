@@ -1,4 +1,13 @@
 #!/usr/bin/env node
 
+const path = require('path')
 const resolvePkg = require('resolve-pkg')
-console.log(resolvePkg(process.argv[2], { cwd: __dirname }))
+
+function resolve(pkg) {
+  const resolvedPath = resolvePkg(pkg, { cwd: __dirname })
+  if (resolvedPath) {
+    return resolvedPath
+  }
+}
+
+console.log(resolve(process.argv[2]))
