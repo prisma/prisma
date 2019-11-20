@@ -159,8 +159,23 @@ export class Lift {
           renderer && renderer.setState({ generators: newGenerators })
         }
 
+        const version = packageJson.name === 'prisma2' ? packageJson.version : null
+
         for (let i = 0; i < generators.length; i++) {
           const generator = generators[i]
+          if (
+            version &&
+            generator.manifest?.version &&
+            generator.manifest?.version !== version &&
+            generator.options?.generator.provider === 'photonjs'
+          ) {
+            throw new Error(
+              `${chalk.bold(`@prisma/photon@${generator.manifest?.version}`)} is not compatible with ${chalk.bold(
+                `prisma2@${version}`,
+              )}. Their versions need to be equal.`,
+            )
+          }
+
           const before = Date.now()
           renderer &&
             renderer.setGeneratorState(i, {
