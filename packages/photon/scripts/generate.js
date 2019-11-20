@@ -13,29 +13,50 @@ async function main() {
     if (stderr) {
       console.error(stderr)
     }
+  } else {
+    const localPath = getLocalPackagePath()
+    if (!localPath) {
+      throw new Error(
+        `In order to use "@prisma/photon", please install prisma2. You can install it with "npm add -D prisma2".`,
+      )
+    }
+    await exec(`node ${localPath} generate`)
   }
-
-  const localPath = getLocalPackagePath()
-  if (!localPath) {
-    throw new Error(
-      `In order to use "@prisma/photon", please install prisma2. You can install it with "npm add -D prisma2".`,
-    )
-  }
-
-  await exec(`node ${localPath} generate`)
 }
 
 function getLocalPackagePath() {
+  let packagePath
   try {
-    return require.resolve('prisma2')
+    packagePath = require.resolve('prisma2/package.json')
   } catch (e) {
     return null
   }
+
+  if (packagePath) {
+    const pkg = require('prisma2/package.json')
+    const photonVersion = require('../package.json').version
+    if (pkg.version !== photonVersion) {
+      console.error(
+        `${c.red('Error')} ${c.bold(
+          '@prisma/photon',
+        )} and the locally installed ${c.bold(
+          'prisma2',
+        )} must have the same version:
+  ${c.bold(`@prisma/photon@${photonVersion}`)} doesn't match ${c.bold(
+          `prisma2@${pkg.version}`,
+        )}`,
+      )
+      process.exit(1)
+    }
+    return require.resolve('prisma2')
+  }
+
+  return null
 }
 
 async function isInstalledGlobally() {
   try {
-    await exec('prisma2 -v')
+    await exec('prisma2 -v', { shell: true })
     return true
   } catch (e) {
     return false
