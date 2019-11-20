@@ -9,3 +9,4 @@ tmp/
 failed-*.md
 *.db
 .env*
+pnpm-debug.log
