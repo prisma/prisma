@@ -1,6 +1,6 @@
 {
   "name": "@prisma/sdk",
-  "version": "0.0.40",
+  "version": "0.0.42",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma2.git",
@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@apexearth/copy": "^1.4.4",
-    "@prisma/engine-core": "workspace:2.0.10",
+    "@prisma/engine-core": "workspace:2.0.11",
     "@prisma/fetch-engine": "workspace:0.3.11",
     "@prisma/generator-helper": "workspace:0.0.22",
     "@prisma/get-platform": "workspace:0.1.9",
