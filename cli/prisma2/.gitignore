@@ -16,3 +16,4 @@ tmp
 
 prisma
 .envrc
+test

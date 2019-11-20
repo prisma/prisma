@@ -3,6 +3,8 @@ import chalk from 'chalk'
 import prompts from 'prompts'
 import execa from 'execa'
 import path from 'path'
+import Debug from 'debug'
+const debugEnabled = Debug.enabled('generator')
 
 export type GeneratorPaths = {
   outputPath: string
@@ -21,6 +23,10 @@ export type PredefinedGeneratorResolvers = {
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   photonjs: async (baseDir, version) => {
     let photonDir = resolvePkg('@prisma/photon', { cwd: baseDir })
+
+    if (debugEnabled) {
+      console.log({ photonDir })
+    }
 
     if (!photonDir) {
       if (!process.stdout.isTTY) {
