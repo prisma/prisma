@@ -1,13 +1,13 @@
 {
   "name": "@prisma/fetch-engine",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@types/fs-extra": "8.0.1",
-    "@types/node": "^12.12.8",
+    "@types/node": "^12.12.9",
     "@types/node-fetch": "^2.5.3",
     "@types/progress": "^2.0.3",
     "ncc": "^0.3.6",
