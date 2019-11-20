@@ -40,6 +40,7 @@ generatorHandler({
       },
       prettyName: 'Photon.js',
       requiresEngines: ['queryEngine'],
+      version: require('../package.json').version,
     }
   },
   async onGenerate(options) {
