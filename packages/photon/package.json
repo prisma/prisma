@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "2.0.0-alpha.322",
+  "version": "2.0.0-alpha.323",
   "main": "index.js",
   "types": "index.d.ts",
   "license": "Apache-2.0",
@@ -44,7 +44,7 @@
   ],
   "devDependencies": {
     "@apexearth/copy": "^1.4.4",
-    "@prisma/engine-core": "workspace:2.0.10",
+    "@prisma/engine-core": "workspace:2.0.11",
     "@prisma/fetch-engine": "workspace:0.3.11",
     "@prisma/generator-helper": "workspace:0.0.22",
     "@prisma/get-platform": "workspace:0.1.9",
@@ -91,6 +91,6 @@
     "prisma2": "*"
   },
   "dependencies": {
-    "@prisma/sdk": "workspace:0.0.41"
+    "@prisma/sdk": "workspace:0.0.42"
   }
 }
