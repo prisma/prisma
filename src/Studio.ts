@@ -76,6 +76,7 @@ export class Studio {
           providerAliases,
         },
         schemaPath: getDatamodelPath(this.projectDir),
+        // reactAppDir: path.join(path.dirname(require.resolve('@prisma/studio/package.json')), 'build'),
       })
 
       await this.instance.start()
