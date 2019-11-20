@@ -195,10 +195,6 @@ export async function generateClient({
     binaryPaths,
   })
 
-  if (generator && generator.config && generator.config.inMemory) {
-    return { photonDmmf, fileMap }
-  }
-
   await makeDir(outputDir)
   await Promise.all(
     Object.entries(fileMap).map(async ([fileName, file]) => {
@@ -248,6 +244,8 @@ export async function generateClient({
   if (copyRuntime) {
     await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)
   }
+
+  return { photonDmmf, fileMap }
 }
 
 const backup = `export { DMMF } from './dmmf-types'
