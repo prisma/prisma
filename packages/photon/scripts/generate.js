@@ -4,6 +4,12 @@ const exec = promisify(childProcess.exec)
 const c = require('./colors')
 
 async function main() {
+  const localPath = getLocalPackagePath()
+  if (localPath) {
+    await exec(`node ${localPath} generate`)
+    return
+  }
+
   const installedGlobally = await isInstalledGlobally()
   if (installedGlobally) {
     const { stdout, stderr } = await exec('prisma2 generate')
@@ -13,15 +19,11 @@ async function main() {
     if (stderr) {
       console.error(stderr)
     }
-  } else {
-    const localPath = getLocalPackagePath()
-    if (!localPath) {
-      throw new Error(
-        `In order to use "@prisma/photon", please install prisma2. You can install it with "npm add -D prisma2".`,
-      )
-    }
-    await exec(`node ${localPath} generate`)
+    return
   }
+  throw new Error(
+    `In order to use "@prisma/photon", please install prisma2. You can install it with "npm add -D prisma2".`,
+  )
 }
 
 function getLocalPackagePath() {
