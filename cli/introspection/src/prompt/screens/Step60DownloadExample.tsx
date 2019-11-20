@@ -91,7 +91,11 @@ const Step60DownloadExample: React.FC = () => {
 
         await makeDir(state.outputDir)
 
-        const tarFile = await downloadRepo('prisma', 'prisma-examples', examples!.meta.branch)
+        const tarFile = await downloadRepo(
+          'prisma',
+          'prisma-examples',
+          process.env.PRISMA_EXAMPLES_BRANCH || examples!.meta.branch,
+        )
         setActiveIndex(1)
         await extractExample(tarFile, selectedExample!.path, state.outputDir)
 

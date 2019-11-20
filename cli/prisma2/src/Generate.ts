@@ -55,6 +55,17 @@ export class Generate implements Command {
         ? chalk.dim(` to ./${path.relative(process.cwd(), generator.options!.generator.output!)}`)
         : ''
       const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
+      if (
+        generator.manifest?.version &&
+        generator.manifest?.version !== pkg.version &&
+        generator.options?.generator.provider === 'photonjs'
+      ) {
+        throw new Error(
+          `${chalk.bold(`@prisma/photon@${generator.manifest?.version}`)} is not compatible with ${chalk.bold(
+            `prisma2@${pkg.version}`,
+          )}. Their versions need to be equal.`,
+        )
+      }
       console.log(`Generating ${chalk.bold(name!)}${toStr}`)
       const before = Date.now()
       await generator.generate()

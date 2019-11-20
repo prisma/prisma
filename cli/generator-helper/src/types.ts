@@ -201,4 +201,5 @@ export type GeneratorManifest = {
   }
   requiresGenerators?: string[]
   requiresEngines?: EngineType[]
+  version?: string
 }
