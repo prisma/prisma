@@ -14,7 +14,7 @@
     "typescript": "^3.7.2"
   },
   "dependencies": {
-    "@prisma/get-platform": "workspace:0.1.9",
+    "@prisma/get-platform": "workspace:*",
     "chalk": "^3.0.0",
     "debug": "^4.1.1",
     "find-cache-dir": "^3.1.0",
