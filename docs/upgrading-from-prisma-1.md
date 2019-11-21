@@ -1,6 +1,6 @@
 # Upgrade guide (Prisma 1 to Prisma Framework)
 
-This upgrade guide describes how to migrate a project that's based on [Prisma 1](https://github.com/prisma/prisma) and uses the [Prisma client](https://www.prisma.io/docs/prisma-client/) to the Prisma Framework.
+This upgrade guide describes how to migrate a Node.js project that's based on [Prisma 1](https://github.com/prisma/prisma) and uses the [Prisma client](https://www.prisma.io/docs/prisma-client/) to the Prisma Framework.
 
 ## Overview
 
@@ -15,7 +15,7 @@ On a high-level, the biggest differences between Prisma 1 and the Prisma Framewo
 
 Based on these differences, the high-level steps to upgrade a project from using Prisma 1 are as follows:
 
-1. Install the Prisma Framework CLI
+1. Install the Prisma Framework CLI as a development dependency
 1. Use the Prisma Framework CLI to convert your Prisma 1 datamodel to the Prisma schema
 1. Adjust your application code, specifically replace the API calls from the Prisma client with those of Photon.js
 
@@ -28,15 +28,21 @@ Both scenarios will be covered in other upgrade guides. In this guide, we'll tak
 
 ## 1. Install the Prisma Framework CLI 
 
-The Prisma Framework CLI is currently available as the [`prisma2`](https://www.npmjs.com/package/prisma2) package on npm. You can install it on your machine as follows:
+The Prisma Framework CLI is currently available as the [`prisma2`](https://www.npmjs.com/package/prisma2) package on npm. You can install it in your Node.js project as follows (be sure to invoke this command in the directory where your `package.json` is located):
 
 ```
-npm install -g prisma2
+npm install prisma2 --save-dev
+```
+
+You can now use the local installation of the `prisma2` CLI using `npx`:
+
+```
+npx prisma2
 ```
 
 ## 2. Convert the Prisma 1 datamodel to a Prisma schema
 
-The [Prisma schema]() is the foundation for any project that uses the Prisma Framework. Think of the Prisma schema as the combination of the Prisma 1 data model and `prisma.yml` configuration file.
+The [Prisma schema](./prisma-schema-file.md) is the foundation for any project that uses the Prisma Framework. Think of the Prisma schema as the combination of the Prisma 1 data model and `prisma.yml` configuration file.
 
 There are three ways of obtaining a Prisma schema based on an existing Prisma 1 project:
 
@@ -51,7 +57,7 @@ Note that [introspection is not yet available](https://github.com/prisma/prisma2
 Assuming your Prisma 1 datamodel is called `datamodel.prisma`, you can use the following command to create a Prisma schema file called `schema.prisma`:
 
 ```bash
-cat datamodel.prisma | prisma2 convert > schema.prisma
+cat datamodel.prisma | npx prisma2 convert > schema.prisma
 ```
 
 Consider the [example datamodel](https://github.com/prisma/prisma-examples/blob/master/typescript/rest-express/prisma/datamodel.prisma):
@@ -204,14 +210,20 @@ model Post {
 }
 ```
 
-Note that the code for Photon.js [by default gets generated into `node_modules/@generated`](https://github.com/prisma/prisma2/blob/master/docs/photon/codegen-and-node-setup.md) but can be customized via an `output` field on the `generator` block.
+Note that the code for Photon.js [by default gets generated into `node_modules/@prisma/photon`](https://github.com/prisma/prisma2/blob/master/docs/photon/codegen-and-node-setup.md) but can be customized via an `output` field on the `generator` block. You also ned to install `@prisma/photon` as another npm dependency in your project.
 
 ## 3. Adjust the application to use Photon.js
 
-The first thing you need to do in order to be able use Photon.js in your application code is to generate it. Similar to Prisma 1, the generators in your Prisma schema file can be invoked by running the `generate` CLI command:
+Photon.js is generated into `node_modules/@prisma/photon`. In order for this package to "survive" the pruning of Node.js package managers, you first need to install it as an npm dependency:
 
 ```
-prisma2 generate
+npm install @prisma/photon
+```
+
+The next thing you need to do in order to be able use Photon.js in your application code is to generate it. Similar to Prisma 1, the generators in your Prisma schema file can be invoked by running the `generate` CLI command:
+
+```
+npx prisma2 generate
 ```
 
 To make the migration complete, you have to change your application code and replace the usage of the Prisma client with the new Photon.js.
@@ -296,10 +308,10 @@ Consider each occurence of the Prisma client instance `prisma` and replacing wit
 
 ### 3.1. Adjusting the import
 
-Since Photon.js is generated into `node_modules/@generated/photon`, it is imported as follows:
+Since Photon.js is generated into `node_modules/@prisma/photon`, it is imported as follows:
 
 ```ts
-import { Photon } from '@generated/photon'
+import { Photon } from '@prisma/photon'
 ```
 
 Note that this only imports the `Photon` constructor, so you also need to instantiate a Photon.js instance:
@@ -423,8 +435,8 @@ app.get('/filterPosts', async (req, res) => {
 Going forward, you won't perform schema migrations using the `prisma deploy` command any more. Instead, you can use [Lift](). Every schema migration with Lift follows a 3-step-process:
 
 1. Adjust the data model inside your Prisma schema to reflect the desired change (e.g. adding a new model)
-1. Run `prisma2 lift save` to save the migration on your file system (this doesn't touch the dataabse yet)
-1. Run `prisma2 lift up` to actually perform the migration against your database
+1. Run `npx prisma2 lift save` to save the migration on your file system (this doesn't touch the dataabse yet)
+1. Run `npx prisma2 lift up` to actually perform the migration against your database
 
 ## Summary
 

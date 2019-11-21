@@ -6,7 +6,6 @@ In this tutorial, you will get a holistic and practical introduction to the Pris
 
 This tutorial will teach you how to:
 
-1. Install the Prisma Framework CLI
 1. Use the `init` command to set up a new project
 1. Understand the essential parts of a Prisma project setup
 1. Use the `dev` command for development
@@ -16,22 +15,14 @@ We will start from scratch and use **TypeScript** with a **PostgreSQL** database
 
 > **Note**: If you don't want to set up a PostgreSQL database, you can still follow along by choosing SQLite when running through the flow of the `prisma2 init` command. One of Prisma's main benefits is that it lets you swap out the data sources your application connects to. So, while you can start with SQLite, mapping the same setup to PostgreSQL later on can be done by adjusting a few lines in your [Prisma schema file](./prisma-schema-file.md).
 
-## 1. Install the Prisma Framework CLI
+## 1. Set up a new project
 
-The Prisma Framework CLI is available as the `prisma2` package on npm. Install it globally on your machine with the following command:
+### 1.1. Launch the `prisma2 init` wizard
 
-```
-npm install -g prisma2
-```
-
-## 2. Connect your database
-
-### 2.1. Launch the `prisma2 init` wizard
-
-The `init` command of the Prisma Framework CLI helps you set up a new project and connect to a database. Run it as follows:
+The `init` command of the Prisma Framework CLI helps you set up a new project and connect to a database. Run it using [`npx`](https://github.com/npm/npx):
 
 ```
-prisma2 init hello-prisma2
+npx prisma2 init hello-prisma2
 ```
 
 This launches an interactive wizard to help you with your set up, follow the steps below.
@@ -40,13 +31,13 @@ When prompted by the wizard, select the **Blank project** option.
 
 ![](https://imgur.com/zLOFcCO.png)
 
-### 2.2. Select your database type
+### 1.2. Select your database type
 
 Next, the wizard prompts you to select a database. Select **PostgreSQL** (or use SQLite if you don't have a PostgreSQL database running anywhere).
 
 ![](https://imgur.com/Ktx0oB8.png)
 
-### 2.3. Provide your database credentials
+### 1.3. Provide your database credentials
 
 Note that you can skip this part if you've selected SQLite before.
 
@@ -63,7 +54,7 @@ Note that you can skip this part if you've selected SQLite before.
 
 This screenshot shows the configuration of a database hosted on Heroku. Note that we provide the name `hello-prisma2` for the **Schema** field. Since this schema doesn't exist yet in the provided `d8q8dvp22kfpo3` database, the Prisma Framework CLI will create a schema with that name. 
 
-### 2.4. Select programming language for Photon
+### 1.4. Select programming language for Photon
 
 Photon is a type-safe database client that currently supports JavaScript and TypeScript (this variant is called Photon.js). You'll be using the TypeScript variant in this tutorial.
 
@@ -71,7 +62,7 @@ Hence, select **TypeScript** when prompted by the wizard.
 
 ![](https://imgur.com/iTNmLG9.png)
 
-### 2.5. Select the demo script
+### 1.5. Select the demo script
 
 The wizard offers the option to start with a _demo script_. Selecting this option will get you started with a sample [data model definition](./data-modeling.md#data-model-definition) as well as an executable script which you can use to explore some Photon.js API calls. 
 
@@ -79,7 +70,7 @@ Select **Demo script** when prompted by the wizard.
 
 ![](https://imgur.com/PmnkqV6.png)
 
-### 2.6. Explore next steps
+### 1.6. Explore next steps
 
 Once you selected the **Demo script** option, the wizard will terminate its work and prepare your project:
 
@@ -91,14 +82,14 @@ It also prints a success message and next steps for you to take:
 
 Hold back a second before running the commands that are printed in the terminal!
 
-## 3. Explore your project setup
+## 2. Explore your project setup
 
 The `prisma2 init`-wizard created the following directory structure:
 
 ```
 hello-prisma2
 ├── node_modules
-│   └── @generated
+│   └── @prisma
 │       └── photon
 ├── package.json
 ├── prisma
@@ -115,7 +106,7 @@ hello-prisma2
 
 Let's go through the created files.
 
-### 3.1. Understand the Prisma schema file
+### 2.1. Understand the Prisma schema file
 
 At the core of each project that uses Photon and/or Lift, there is the [Prisma schema file](./prisma-schema-file.md) (typically called `schema.prisma`). Here's what your Prisma schema currently looks like:
 
@@ -177,9 +168,7 @@ The Prisma schema contains three important elements of your project:
 - Generators (here, that's the generator for Photon.js)
 - [Data model definition](./data-modeling.md#data-model-definition) (here, that's the `Post` and `User` models)
 
-You can also add the `output` field to the `generator` block to specify the file path where Photon.js should be generated. Since you're not explicitly specifying the `output` here, it uses the default path which is the project's `node_modules` directory. Learn more about the specifics of generating Photon into `node_modules` [here](./photon/codegen-and-node-setup.md).
-
-### 3.2. Understand the data model definition
+### 2.2. Understand the data model definition
 
 The [data model definition](./data-modeling.md#data-model-definition) inside the schema file has the following responsibilities:
 
@@ -227,19 +216,19 @@ Most of this should look familiar from what you just learned about the `User` mo
 - The `createdAt` field is of type `DateTime`. The `@default(now())` attribute it's annotated with means that the field will get initialized with the current timestamp representing the time the record is being created.
 - The `updatedAt` field is annotated with the `@updatedAt` attribute. Prisma will update this field with the current timestamp whenever any field of the model gets updated.
 
-### 3.3. Understand the TypeScript setup
+### 2.3. Understand the TypeScript setup
 
 The project also contains a number of additional files required for a typical Node.js/TypeScript setup:
 
 - `package.json`: Defines your project's Node.js dependencies.
 - `tsconfig.json`: Specifies your TypeScript configuration. Note that Photon.js currently requires the `esModuleInterop` property to be set to `true`.
-- `node_modules/@generated/photon`: Contains the generated Photon.js code. 
+- `node_modules/@prisma/photon`: Contains the generated Photon.js code. 
 - `script.ts`: Contains the actual "application code", which in this case is a sample script demonstrating some Photon.js API calls.
 
-Having Photon.js located inside `node_modules/@generated` enables you to import it in your code as follows:
+Having Photon.js located inside `node_modules/@prisma/photon` enables you to import it in your code as follows:
 
 ```ts
-import { Photon } from '@generated/photon'
+import { Photon } from '@prisma/photon'
 ```
 
 Because Photon.js is generated into `node_modules` which is typically populated by invoking `npm install`, you should make sure that Photon.js is also generated upon every invocation of `npm install`. That's the reason why `prisma2 generate` (the command that generates Photon.js based on the Prisma schema) is added as a `postinstall` hook in `package.json`:
@@ -248,10 +237,13 @@ Because Photon.js is generated into `node_modules` which is typically populated 
 {
   "name": "script",
   "license": "MIT",
+  "dependencies": {
+    "@prisma/photon": "2.0.0-preview-017"
+  }
   "devDependencies": {
     "ts-node": "8.3.0",
     "typescript": "3.6.2",
-    "prisma2": "2.0.0-preview-9.1"
+    "prisma2": "2.0.0-preview-017"
   },
   "scripts": {
     "start": "ts-node ./script.ts",
@@ -262,7 +254,9 @@ Because Photon.js is generated into `node_modules` which is typically populated 
 
 When collaborating on a project that uses Photon.js, this approach allows for conventional Node.js best practices where a team member can clone a Git repository and then run `npm install` to get their version of the Node dependencies inside their local `node_modules` directory.
 
-### 3.4. Understand the `migrations` folder
+Note that the version of the `@prisma/photon` and `prisma2` packages must always be in sync!
+
+### 2.4. Understand the `migrations` folder
 
 To keep a migration history, Prisma by default uses a folder called `migrations`. There are two ways how the `migrations` folder gets populated:
 
@@ -275,7 +269,7 @@ Don't worry, you'll learn more about both approaches in the next sections. Note 
 
 Note that migrations in the `migrations/dev` folder are considered "throw away" migrations. If you want to evolve your database schema in a way that the migration is persisted in Lift's _migration history_, you need to perform a migration using the `lift` subcommands: `prisma2 lift save` and `prisma2 lift up`.
 
-## 4. Run the demo script
+## 3. Run the demo script
 
 Now, let's finally consider the _Next steps_ again that had been printed to the console after the `init` wizard terminated:
 
@@ -284,7 +278,7 @@ Now, let's finally consider the _Next steps_ again that had been printed to the 
 The instructions say to navigate into the project directory, start Prisma's development mode and finally execute the demo script. You'll skip the `prisma2 dev` command for now though and run the `script.ts` script. Before doing so, let's quickly take a look at its contents:
 
 ```ts
-import { Photon } from '@generated/photon'
+import { Photon } from '@prisma/photon'
 
 const photon = new Photon()
 
@@ -407,7 +401,7 @@ This leads to the following terminal output confirming that all operations ran s
 
 If you're using a database GUI, you can also validate that all records have been created there.
 
-## 5. Evolve your application in Prisma's development mode
+## 4. Evolve your application in Prisma's development mode
 
 The Prisma Framework features a [development mode](./development-mode.md) that allows for faster iterations during development. It can be invoked using the `prisma2 dev` command. When running in development mode, the Prisma Framework CLI watches your [schema file](./prisma-schema-file.md). Whenever you then save a change to the schema file, the Prisma CLI takes care of:
 
@@ -425,7 +419,7 @@ Once you're happy with the changes you made to your data model to develop a cert
 Go ahead now and launch the development mode with this command:
 
 ```
-prisma2 dev
+npx prisma2 dev
 ```
 
 > **Note**: You can stop the development mode by hitting <kbd>CTRL</kbd>+<kbd>C</kbd> two times.
@@ -434,7 +428,7 @@ Here is what the terminal screen now looks like:
 
 ![](https://imgur.com/FxmFgbu.png)
 
-### 5.1. Explore your data in Prisma Studio
+### 4.1. Explore your data in Prisma Studio
 
 You can explore the current content of your database using Prisma Studio. Open the endpoint that's shown in your terminal (in most cases this will be [`http://localhost:5555/`](http://localhost:5555/)):
 
@@ -442,7 +436,7 @@ You can explore the current content of your database using Prisma Studio. Open t
 
 > **Note**: Please share any feedback you have about Prisma Studio in the [`studio`](https://github.com/prisma/studio) repository.
 
-### 5.2. Add another model
+### 4.2. Add another model
 
 Let's now evolve the application while running in development mode. You'll be adding a new model called `Category` to your schema. `Category` will be connected to `Post` via a [many-to-many](./relations.md#mn) relationship. Adjust the data model of your Prisma schema as follows:
 
@@ -500,11 +494,11 @@ If you want to try out this code snippet, here are a few things to consider:
 - You need to remove the current code from the script (e.g. by commenting it out), otherwise it will try to re-create `User` records with the same email address which will fail.
 - You can invoke the script using `npm run dev`.
 
-### 5.3. Terminate development mode
+### 4.3. Terminate development mode
 
 Terminate the development mode by hitting <kbd>CTRL</kbd>+<kbd>C</kbd> two times.
 
-## 6. Migrate the database with Lift
+## 5. Migrate the database with Lift
 
 You've introduced changes to your data model that are already reflected in the database and in your Photon API thanks to `prisma2 dev`. To persists your migration in Lift's migration history, you need to run through the process of migrating your database with Lift.
 
@@ -514,7 +508,7 @@ Every schema migration with Lift follows a 3-step-process:
 1. **Save migration**: Run `prisma2 lift save` to create your [migration files](./lift/migration-files.md) on the file system.
 1. **Run migration**: Run `prisma2 lift up` to perform the migration against your database.
 
-### 6.1. Save the migration on the file system
+### 5.1. Save the migration on the file system
 
 With Lift, every database migration gets persisted on your file system, represented by a number of [files](./lift/migration-files.md). This lets you keep a migration history of you database schema and understand how their project evolves over time. It also enables rolling back and "replaying" migrations.
 
@@ -523,7 +517,7 @@ With Lift, every database migration gets persisted on your file system, represen
 Run the following command to save your migrations files:
 
 ```
-prisma2 lift save --name 'add-category'
+npx prisma2 lift save --name 'add-category'
 ```
 
 This deletes the "throw-away" migration files in the `migrations/dev` directory and creates a new directory inside `migrations` called `TIMESTAMP-add-category`:
@@ -532,7 +526,7 @@ This deletes the "throw-away" migration files in the `migrations/dev` directory 
 hello-prisma2
 ├── README.md
 ├── node_modules
-│   ├── @generated
+│   ├── @prisma
 │   │   └── photon
 ├── package-lock.json
 ├── package.json
@@ -553,17 +547,17 @@ Note that the `--name` option that was passed to `prisma2 lift save` determines 
 
 Feel free to explore the contents of each file to get a better understanding of their use.
 
-### 6.2. Perform the database migration
+### 5.2. Perform the database migration
 
 Once the migration files are created, you can run the migration with the following command:
 
 ```
-prisma2 lift up
+npx prisma2 lift up
 ```
 
 This maps your data model to the underlying database schema (i.e. it _migrates your database_). 
 
-### 6.3. [Optional] Create a custom mapping from database to Prisma schema
+### 5.3. [Optional] Create a custom mapping from database to Prisma schema
 
 When migrating your database with Lift, it will typically map model and field names to table and column names. If you want to change the naming in the underlying database, you can use the `@@map` block attribute to specify a different table name, and the `@map` field attribute to specify a different column name. Expand below for an example.
 
@@ -596,7 +590,7 @@ CREATE TABLE "hello-prisma2"."users" (
 
 </Details>
 
-## 7. Next steps
+## 6. Next steps
 
 Congratulations for working through your first Prisma tutorial 🚀 Here are a few pointers on what to do next:
 
