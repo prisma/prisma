@@ -86,7 +86,10 @@ describe('generator', () => {
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'schema.prisma'),
       providerAliases: {
-        photonjs: path.join(__dirname, '../../../dist/generator.js'),
+        photonjs: {
+          generatorPath: path.join(__dirname, '../../../dist/generator.js'),
+          outputPath: __dirname,
+        },
       },
       baseDir: __dirname,
       overrideGenerators: [
