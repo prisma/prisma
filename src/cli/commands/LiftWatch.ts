@@ -3,12 +3,13 @@ import chalk from 'chalk'
 import { Lift } from '../../Lift'
 import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
 import { occupyPath } from '../../utils/occupyPath'
+import { ProviderAliases } from '@prisma/sdk'
 
 /**
  * $ prisma migrate new
  */
 export class LiftWatch implements Command {
-  public static new(providerAliases: Dictionary<string>): LiftWatch {
+  public static new(providerAliases: ProviderAliases): LiftWatch {
     return new LiftWatch(providerAliases)
   }
 
@@ -25,7 +26,7 @@ export class LiftWatch implements Command {
       -c, --create-db   Create the database in case it doesn't exist
       --auto-approve    Skip interactive approval before migrating
   `)
-  private constructor(private readonly providerAliases: Dictionary<string>) {}
+  private constructor(private readonly providerAliases: ProviderAliases) {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {

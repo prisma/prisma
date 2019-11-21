@@ -135,7 +135,6 @@ export class Lift {
 
         const generators = await getGenerators({
           schemaPath: getDatamodelPath(this.projectDir),
-          providerAliases,
           printDownloadProgress: false,
           version: packageJson.prisma.version,
         })
@@ -353,7 +352,6 @@ export class Lift {
 
     const generators = await getGenerators({
       schemaPath: getDatamodelPath(this.projectDir),
-      providerAliases: options.providerAliases,
       printDownloadProgress: false,
       version: packageJson.prisma.version,
     })
