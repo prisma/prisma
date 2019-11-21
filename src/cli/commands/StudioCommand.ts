@@ -3,9 +3,10 @@ import chalk from 'chalk'
 import open from 'open'
 
 import { Studio } from '../../Studio'
+import { ProviderAliases } from '@prisma/sdk'
 
 export class StudioCommand implements Command {
-  public static new(providerAliases: Dictionary<string>): StudioCommand {
+  public static new(providerAliases: ProviderAliases): StudioCommand {
     return new StudioCommand(providerAliases)
   }
 
@@ -30,7 +31,7 @@ export class StudioCommand implements Command {
       ${chalk.dim(`$`)} prisma studio --port 5555
   `)
 
-  private constructor(private readonly providerAliases: Dictionary<string>) {
+  private constructor(private readonly providerAliases: ProviderAliases) {
     this.providerAliases = providerAliases
   }
 

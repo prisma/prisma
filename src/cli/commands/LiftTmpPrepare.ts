@@ -1,8 +1,7 @@
-import { Command, Dictionary, format, GeneratorDefinitionWithPackage, HelpError } from '@prisma/cli'
+import { Command, format, HelpError } from '@prisma/cli'
 import chalk from 'chalk'
 import Debug from 'debug'
 import { Lift } from '../../Lift'
-import { createDatabase } from '../../liftEngineCommands'
 import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
 import { occupyPath } from '../../utils/occupyPath'
 const debug = Debug('tmp-prepare')
@@ -11,8 +10,8 @@ const debug = Debug('tmp-prepare')
  * $ prisma migrate new
  */
 export class LiftTmpPrepare implements Command {
-  public static new(providerAliases: Dictionary<string>): LiftTmpPrepare {
-    return new LiftTmpPrepare(providerAliases)
+  public static new(): LiftTmpPrepare {
+    return new LiftTmpPrepare()
   }
 
   // static help template
@@ -23,7 +22,7 @@ export class LiftTmpPrepare implements Command {
 
       prisma dev
   `)
-  private constructor(private readonly providerAliases: Dictionary<string>) {}
+  private constructor() {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
@@ -41,7 +40,7 @@ export class LiftTmpPrepare implements Command {
     })
 
     await lift.watchUp({
-      providerAliases: this.providerAliases,
+      providerAliases: {},
       autoApprove: true,
     })
 

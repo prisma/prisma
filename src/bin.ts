@@ -12,7 +12,7 @@ process.env.NODE_NO_WARNINGS = '1'
 /**
  * Dependencies
  */
-import { Dictionary, GeneratorDefinitionWithPackage, HelpError, isError } from '@prisma/cli'
+import { HelpError, isError } from '@prisma/cli'
 import { LiftCommand } from './cli/commands/LiftCommand'
 import { LiftDown } from './cli/commands/LiftDown'
 import { LiftSave } from './cli/commands/LiftSave'
@@ -21,9 +21,14 @@ import { LiftUp } from './cli/commands/LiftUp'
 import { LiftWatch } from './cli/commands/LiftWatch'
 import { StudioCommand } from './cli/commands/StudioCommand'
 import { handlePanic } from './utils/handlePanic'
+import { ProviderAliases } from '@prisma/sdk'
+import path from 'path'
 
-const providerAliases = {
-  photonjs: require.resolve('@prisma/photon/generator-build'),
+const providerAliases: ProviderAliases = {
+  photonjs: {
+    generatorPath: require.resolve('@prisma/photon/generator-build'),
+    outputPath: path.dirname(require.resolve('@prisma/photon/package.json')),
+  },
 }
 
 // const access = fs.createWriteStream('out.log')
@@ -39,7 +44,7 @@ async function main(): Promise<number> {
     up: LiftUp.new(),
     down: LiftDown.new(),
     dev: LiftWatch.new(providerAliases),
-    ['tmp-prepare']: LiftTmpPrepare.new(providerAliases),
+    ['tmp-prepare']: LiftTmpPrepare.new(),
     studio: StudioCommand.new(providerAliases),
   })
   // parse the arguments
