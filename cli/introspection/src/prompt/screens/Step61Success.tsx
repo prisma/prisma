@@ -71,7 +71,7 @@ const Step61Success: React.FC = () => {
               </Box>
             ))}
           <Box marginTop={1} flexDirection="column">
-            <Color dim>Learn more about Prisma 2:</Color>
+            <Color dim>Learn more about the Prisma Framework:</Color>
             <InkLink url="https://github.com/prisma/prisma2/" />
           </Box>
           <Box marginTop={1} flexDirection="column">

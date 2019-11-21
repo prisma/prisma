@@ -36,14 +36,14 @@ const Step22ToolSelection: React.FC = () => {
         </Box>
       )}
       <Box flexDirection="column" marginLeft={2}>
-        <Color bold>Select the Prisma 2 tools you want to use.</Color>
+        <Color bold>Select the Prisma Framework tools you want to use.</Color>
         <Color dim>
           Learn more: <InkLink url="https://github.com/prisma/prisma2" />
         </Color>
       </Box>
       <BorderBox
         flexDirection="column"
-        title={chalk.bold('Prisma 2 tools') + chalk.dim(` (toggle with [space])`)}
+        title={chalk.bold('Prisma Framework tools') + chalk.dim(` (toggle with [space])`)}
         marginTop={1}
         marginBottom={1}
       >

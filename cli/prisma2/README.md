@@ -1,8 +1,8 @@
-# Prisma 2 CLI
+# Prisma Framework CLI
 
 ## Installation
 
-The Prisma 2 CLI currently requires [Node 8](https://nodejs.org/en/download/releases/) (or higher).
+The Prisma Framework CLI currently requires [Node 8](https://nodejs.org/en/download/releases/) (or higher).
 
 ### npm
 
