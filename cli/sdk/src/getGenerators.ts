@@ -93,7 +93,7 @@ export async function getGenerators({
           if (!fs.existsSync(generatorPath)) {
             throw new Error(
               `Could not find generator executable ${
-                aliases[generator.provider]
+                aliases[generator.provider].generatorPath
               } for generator ${generator.provider}`,
             )
           }
