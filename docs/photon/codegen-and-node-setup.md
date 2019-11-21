@@ -1,5 +1,7 @@
 # Code generation & Node.js setup
 
+> ⚠ This page is outdated since the [`2.0.0-preview017`](https://github.com/prisma/prisma2/releases/tag/2.0.0-preview017) release and will be updated very soon. Photon.js is not generated into `node_modules/@generated/photon` any more, but into `node_modules/@prisma/photon`. Since version `2.0.0-preview017`, you also must add `@prisma/photon` to your project dependencies: `npm install @prisma/photon`. Learn more about the change in this [GitHub issue](https://github.com/prisma/photonjs/issues/261).
+
 ## TLDR
 
 Photon.js is generated into `node_modules/@generated` by default. While this approach has a number of [benefits](#why-is-photon-js-generated-into-node_modulesgenerated-by-default), it is also unconventional and can be a source confusion for developers new to Photon.js.

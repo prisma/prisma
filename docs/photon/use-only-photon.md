@@ -8,18 +8,12 @@ When using Photon without Lift, you obtain your data model definition by _intros
 
 ## Getting started with Photon
 
-### 1. Install the Prisma CLI
-
-```
-npm install -g prisma2
-```
-
-### 2. Set up project using `prisma init`
+### 1. Set up project using `prisma2 init`
 
 Run the following command to initialize a new project:
 
 ```
-prisma init hello-world
+npx prisma2 init hello-world
 ```
 
 Then follow the interactive prompt:
@@ -47,11 +41,23 @@ Once you're done with the interactive prompt, the CLI sets out for 3 major tasks
 
 Plus, if you've selected a boilerplate to get started, it downloads the boilerplate code and configures it to connect to your database and match the generated data model.
 
-### 3. Integrate Photon in your application
+### 2. Integrate Photon in your application
 
-To start using Photon in your application, you can import it from `node_modules/@generated` and start calling your database via the [generated Photon API](./api.md).
+To start using Photon in your application, you first need to install it as an npm dependecy:
 
-### 4. Customize your Photon API
+```
+npm install @prisma/photon
+```
+
+It is recommended to also install the `prisma2` CLI as a development dependency:
+
+```
+npm install prisma2 --save-dev
+```
+
+Now you can import it from `node_modules/@prisma/photon` and start calling your database via the [generated Photon API](./api.md).
+
+### 3. Customize your Photon API
 
 One benefit of having the data model as an intermediate representation of your database schema is that lets you to _decouple_ the database schema from your data access API. For example, you can map cryptic table names to friendlier model names to be used in your API.
 
