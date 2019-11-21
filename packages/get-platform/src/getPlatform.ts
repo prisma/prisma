@@ -13,9 +13,7 @@ export type GetOSResult = {
   platform: NodeJS.Platform
   libssl?: string
   distro?: {
-    dist: string
-    codename: string
-    release: string
+    base: 'rhel' | 'debian'
   }
 }
 
@@ -30,60 +28,74 @@ export async function getos(): Promise<GetOSResult> {
   return {
     platform: 'linux',
     libssl: await getLibSslVersion(),
-    distro: await resolveUbuntu(),
+    distro: await resolveDistro(),
   }
 }
 
-export async function resolveUbuntu(): Promise<null | {
-  dist: string
-  release: string
-  codename: string
-}> {
-  if (await exists('/etc/lsb-release')) {
-    const idRegex = /distrib_id=(.*)/i
-    const releaseRegex = /distrib_release=(.*)/i
-    const codenameRegex = /distrib_codename=(.*)/i
+export async function resolveDistro(): Promise<undefined | GetOSResult['distro']> {
+  const osReleaseFile = '/etc/os-release'
 
-    const file = await readFile('/etc/lsb-release', 'utf-8')
-
-    const idMatch = file.match(idRegex)
-    const id = (idMatch && idMatch[1]) || null
-
-    const codenameMatch = file.match(codenameRegex)
-    const codename = (codenameMatch && codenameMatch[1]) || null
-
-    const releaseMatch = file.match(releaseRegex)
-    const release = (releaseMatch && releaseMatch[1]) || null
-
-    if (id && codename && release && id.toLowerCase() === 'ubuntu') {
-      return { dist: id, release, codename }
-    }
+  if (!await exists(osReleaseFile)) {
+    return
   }
 
-  return null
+  const idRegex = /^ID=(.*)$/i
+  const idLikeRegex = /^ID_LIKE=(.*)$/i
+
+  const file = await readFile(osReleaseFile, 'utf-8')
+
+  const idMatch = file.match(idRegex)
+  const idPre = (idMatch && idMatch[1]) || null
+  const id = idPre && idPre.toLowerCase()
+
+  const idLikeMatch = file.match(idLikeRegex)
+  const idLikePre = (idLikeMatch && idLikeMatch[1]) || null
+  const idLike = idLikePre && idLikePre.toLowerCase()
+
+  if (
+    idLike.includes('centos') ||
+    idLike.includes('fedora') ||
+    idLike.includes('rhel') ||
+    id.includes('fedora')
+  ) {
+    return { base: 'rhel' }
+  }
+
+  if (
+    idLike.includes('debian') ||
+    idLike.includes('ubuntu') ||
+    id.includes('debian')
+  ) {
+    return { base: 'debian' }
+  }
+
+  return
 }
 
+// getLibSslVersion returns the OpenSSL version excluding the patch version, e.g. "1.1.x"
 export async function getLibSslVersion(): Promise<string | undefined> {
   const [version, ls] = await Promise.all([
     gracefulExec(`openssl version -v`),
-    gracefulExec(`ls -l /lib64 | grep ssl;
-    ls -l /usr/lib64 | grep ssl`),
+    gracefulExec(`
+      ls -l /lib64 | grep ssl;
+      ls -l /usr/lib64 | grep ssl;
+    `),
   ])
 
   debug({ version })
   debug({ ls })
 
   if (version) {
-    const match = /^OpenSSL\s(\d+\.\d+\.\d+)/.exec(version)
+    const match = /^OpenSSL\s(\d+\.\d+)\.\d+/.exec(version)
     if (match) {
-      return match[1]
+      return match[1] + '.x'
     }
   }
 
   if (ls) {
-    const match = /libssl\.so\.(\d+\.\d+\.\d+)/.exec(ls)
+    const match = /libssl\.so\.(\d+\.\d+)\.\d+/.exec(ls)
     if (match) {
-      return match[1]
+      return match[1] + '.x'
     }
   }
 
@@ -116,18 +128,16 @@ export async function getPlatform(): Promise<Platform> {
     return 'windows'
   }
 
-  if (platform === 'linux' && libssl) {
-    if (libssl === '1.0.2') {
-      if (distro && distro.codename === 'xenial') {
-        return 'linux-glibc-libssl1.0.2-ubuntu1604'
-      }
-      return 'linux-glibc-libssl1.0.2'
-    }
-
-    if (libssl === '1.0.1') {
-      return 'linux-glibc-libssl1.0.1'
-    }
+  // when the platform is linux
+  if (platform === 'linux' && distro && libssl) {
+    return (distro.base + '-openssl-' + libssl) as Platform
   }
 
-  return 'linux-glibc-libssl1.1.0'
+  // if just OpenSSL is known, fallback to debian with a specific libssl version
+  if (libssl) {
+    return ('debian-openssl-' + libssl) as Platform
+  }
+
+  // use the debian build with OpenSSL 1.1 as a last resort
+  return 'debian-openssl-1.1.x'
 }
