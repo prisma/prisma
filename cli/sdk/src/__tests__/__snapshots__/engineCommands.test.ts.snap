@@ -11,7 +11,6 @@ exports[`getConfig with generator and datasource 1`] = `
 Object {
   "datasources": Array [
     Object {
-      "config": Object {},
       "connectorType": "sqlite",
       "name": "db",
       "url": Object {
@@ -518,7 +517,7 @@ Object {
             "name": "findManyA",
             "outputType": Object {
               "isList": true,
-              "isRequired": false,
+              "isRequired": true,
               "kind": "object",
               "type": "A",
             },

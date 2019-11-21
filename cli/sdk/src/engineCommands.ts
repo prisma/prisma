@@ -67,9 +67,7 @@ export async function getDMMF({
   } catch (e) {
     // If this unlikely event happens, try it at least once more
     if (e.message.includes('Command failed with exit code 26 (ETXTBSY)')) {
-      await new Promise(resolve => {
-        process.nextTick(resolve)
-      })
+      await new Promise(resolve => setTimeout(resolve, 100))
       return getDMMF({
         datamodel,
         cwd,

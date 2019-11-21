@@ -121,9 +121,6 @@ async function generate(isdl: ISDL) {
   const generator = await getGenerator({
     schemaPath,
     printDownloadProgress: false,
-    providerAliases: {
-      photonjs: photonjsPath,
-    },
     baseDir: tmp,
   })
 
