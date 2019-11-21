@@ -11,7 +11,8 @@
     "runtime/*.js",
     "runtime/*.d.ts",
     "runtime/utils",
-    "runtime/dist"
+    "runtime/dist",
+    "photon"
   ],
   "bin": "build/index.js",
   "prisma": {
