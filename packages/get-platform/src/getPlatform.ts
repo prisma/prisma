@@ -32,10 +32,12 @@ export async function getos(): Promise<GetOSResult> {
   }
 }
 
-export async function resolveDistro(): Promise<undefined | GetOSResult['distro']> {
+export async function resolveDistro(): Promise<
+  undefined | GetOSResult['distro']
+> {
   const osReleaseFile = '/etc/os-release'
 
-  if (!await exists(osReleaseFile)) {
+  if (!(await exists(osReleaseFile))) {
     return
   }
 
@@ -53,18 +55,20 @@ export async function resolveDistro(): Promise<undefined | GetOSResult['distro']
   const idLike = idLikePre && idLikePre.toLowerCase()
 
   if (
-    idLike.includes('centos') ||
-    idLike.includes('fedora') ||
-    idLike.includes('rhel') ||
-    id.includes('fedora')
+    idLike &&
+    (idLike.includes('centos') ||
+      idLike.includes('fedora') ||
+      idLike.includes('rhel') ||
+      id.includes('fedora'))
   ) {
     return { base: 'rhel' }
   }
 
   if (
-    idLike.includes('debian') ||
-    idLike.includes('ubuntu') ||
-    id.includes('debian')
+    idLike &&
+    (idLike.includes('debian') ||
+      idLike.includes('ubuntu') ||
+      id.includes('debian'))
   ) {
     return { base: 'debian' }
   }
