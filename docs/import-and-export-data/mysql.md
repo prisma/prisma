@@ -34,14 +34,14 @@ mysqldump mydb > mydb.sql
 You can add the following arguments to specify the location of your MySQL database server:
 
 | Argument | Default | Description |  
-| --- | --- | --- | --- |
+| --- | --- | --- |
 | `--host` (short: `-h`) | `localhost` | The address of the server's host machine | 
 | `--port` (short: `-p`) | - | The port of the server's host machine where the MySQL server is listening | 
 
 To authenticate against the MySQL database server, you can use the following argument:
 
 | Argument | Default | Description |  
-| --- | --- | --- | --- |
+| --- | --- | --- |
 | `--user` (short: `-u`) | - | The name of the database user. | 
 | `--password` (short: `-p`) | - | Trigger password prompt. | 
 
