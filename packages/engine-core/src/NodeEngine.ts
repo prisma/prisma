@@ -40,10 +40,10 @@ export interface EngineConfig {
 const knownPlatforms: Platform[] = [
   'native',
   'darwin',
-  'linux-glibc-libssl1.0.1',
-  'linux-glibc-libssl1.0.2',
-  'linux-glibc-libssl1.0.2-ubuntu1604',
-  'linux-glibc-libssl1.1.0',
+  'debian-openssl-1.0.x',
+  'debian-openssl-1.1.x',
+  'rhel-openssl-1.0.x',
+  'rhel-openssl-1.1.x',
   'windows',
 ]
 
@@ -287,7 +287,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           PORT: String(this.port),
           RUST_BACKTRACE: '1',
           RUST_LOG: 'info',
-          LOG_QUERIES: 'true'
+          LOG_QUERIES: 'true',
         }
 
         if (this.datasources) {
