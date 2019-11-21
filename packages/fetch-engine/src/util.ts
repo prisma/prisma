@@ -6,6 +6,8 @@ import fs from 'fs'
 import { promisify } from 'util'
 import path from 'path'
 import { getProxyAgent } from './getProxyAgent'
+import Debug from 'debug'
+const debug = Debug('fetch-engine:util')
 
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
@@ -39,6 +41,8 @@ export async function getRootCacheDir(platform: string): Promise<string> {
 
 export async function getCacheDir(channel: string, version: string, platform: string): Promise<string> {
   const rootCacheDir = await getRootCacheDir(platform)
+
+  debug({ rootCacheDir, channel, version, platform })
   const cacheDir = path.join(rootCacheDir, channel, version, platform)
   await makeDir(cacheDir)
   return cacheDir
