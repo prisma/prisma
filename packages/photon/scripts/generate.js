@@ -48,7 +48,7 @@ function getLocalPackagePath() {
           `prisma2@${pkg.version}`,
         )}`,
       )
-      process.exit(1)
+      process.exit(0)
     }
     return require.resolve('prisma2')
   }
