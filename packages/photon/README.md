@@ -27,3 +27,4 @@ ts-node examples/generate.ts ./examples/blog/ --local-runtime
 ```
 
 Changes to `query.ts` will then be reflected when running `examples/blog/main.ts`
+
