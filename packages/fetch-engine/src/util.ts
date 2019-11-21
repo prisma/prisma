@@ -56,7 +56,7 @@ function rewriteKind(kind: BinaryKind) {
 
 export function getDownloadUrl(channel: string, version: string, platform: string, binaryName: BinaryKind) {
   const extension = platform === 'windows' ? '.exe.gz' : '.gz'
-  return `https://s3-eu-west-1.amazonaws.com/prisma-native/${channel}/${version}/${platform}/${rewriteKind(
+  return `https://prisma-builds.s3-eu-west-1.amazonaws.com/${channel}/${version}/${platform}/${rewriteKind(
     binaryName,
   )}${extension}`
 }
