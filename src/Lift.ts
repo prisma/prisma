@@ -1,5 +1,5 @@
-import { Dictionary, getSchemaDirSync } from '@prisma/cli'
-import { getGenerators } from '@prisma/sdk'
+import { getSchemaDirSync } from '@prisma/cli'
+import { getGenerators, ProviderAliases } from '@prisma/sdk'
 import 'array-flat-polyfill'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
@@ -58,9 +58,10 @@ export interface UpOptions {
 export interface DownOptions {
   n?: number
 }
+
 export interface WatchOptions {
   preview?: boolean
-  providerAliases: Dictionary<string>
+  providerAliases: ProviderAliases
   clear?: boolean
   autoApprove?: boolean
   onWarnings?: (warnings: EngineResults.Warning[]) => Promise<boolean>
@@ -229,7 +230,7 @@ export class Lift {
     return this.getDatamodel()
   }
 
-  public async recreateStudioServer(providerAliases: { [key: string]: string }) {
+  public async recreateStudioServer(providerAliases: ProviderAliases) {
     try {
       if (this.studioServer) {
         return

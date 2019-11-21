@@ -3,6 +3,7 @@ import fs from 'fs'
 import getPort from 'get-port'
 import path from 'path'
 
+import { ProviderAliases } from '@prisma/sdk'
 import { getSchemaDirSync } from '@prisma/cli'
 import { getPlatform } from '@prisma/get-platform'
 
@@ -26,7 +27,7 @@ export class Studio {
     this.port = port
   }
 
-  public async start(providerAliases: { [key: string]: string }): Promise<string> {
+  public async start(providerAliases: ProviderAliases): Promise<string> {
     try {
       if (this.instance) {
         throw new Error(`Studio is already started`)
@@ -89,7 +90,7 @@ export class Studio {
     return ''
   }
 
-  public async restart(providerAliases: { [key: string]: string }) {
+  public async restart(providerAliases: ProviderAliases) {
     if (this.instance) {
       this.instance.restart()
       return ''
