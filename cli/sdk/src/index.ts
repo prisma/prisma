@@ -1,6 +1,7 @@
 export { Generator } from './Generator'
-export { getGenerators, getGenerator } from './getGenerators'
+export { getGenerators, getGenerator, ProviderAliases } from './getGenerators'
 export { isdlToDatamodel2 } from './isdlToDatamodel2'
 export { isdlToDmmfDatamodel } from './isdlToDmmfDatamodel'
 export { getDMMF, getConfig, dmmfToDml, GetDMMFOptions } from './engineCommands'
 export { getPackedPackage } from './getPackedPackage'
+export { GeneratorPaths } from './predefinedGeneratorResolvers'
