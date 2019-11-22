@@ -223,11 +223,6 @@ For arrays with a single parameter, you **may** omit the surrounding brackets:
 
 - _Signature_: `@attribute(_ p0: T0, p1: T1, ...)`
 - _Description_: There may be any number of named arguments. If there is a positional argument, then it **may** appear anywhere in the function signature, but if it's present and required, the caller **must** place it before any named arguments. Named arguments may appear in any order.
-- _Examples_:
-  - `@@pg.index([ email, first_name ], name: "my_index", partial: true)`
-  - `@@pg.index([ first_name, last_name ], unique: true, name: "my_index")`
-  - `@@check(a > b, name: "a_b_constraint")`
-  - `@pg.numeric(precision: 5, scale: 2)`
 
 You must not have multiple arguments with the same name:
 
