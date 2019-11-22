@@ -11,6 +11,7 @@ mkdir -p build/photon-generator
 # cp -R "$(./scripts/resolve.js @prisma/photon)/runtime"/* build/runtime
 # cp -R "$(./scripts/resolve.js @prisma/photon)/generator-build"/* build/photon-generator
 
+node ./scripts/copy-photon.js
 
 rm -rf runtime/prisma
 

@@ -28,9 +28,11 @@ import {
 import Debug from 'debug'
 const debug = Debug('getGenerators')
 
+export type ProviderAliases = { [alias: string]: GeneratorPaths }
+
 export type GetGeneratorOptions = {
   schemaPath: string
-  providerAliases?: { [alias: string]: string }
+  providerAliases?: ProviderAliases
   version?: string
   printDownloadProgress?: boolean
   baseDir?: string // useful in tests to resolve the base dir from which `output` is resolved
@@ -47,7 +49,7 @@ export type GetGeneratorOptions = {
  */
 export async function getGenerators({
   schemaPath,
-  providerAliases: aliases,
+  providerAliases: aliases, // do you get the pun?
   version,
   printDownloadProgress,
   baseDir = path.dirname(schemaPath),
@@ -83,22 +85,25 @@ export async function getGenerators({
       async (generator, index) => {
         let generatorPath = generator.provider
         let paths: GeneratorPaths | undefined
-        if (predefinedGeneratorResolvers[generator.provider]) {
+
+        // as of now mostly used by studio
+        if (aliases && aliases[generator.provider]) {
+          generatorPath = aliases[generator.provider].generatorPath
+          paths = aliases[generator.provider]
+          if (!fs.existsSync(generatorPath)) {
+            throw new Error(
+              `Could not find generator executable ${
+                aliases[generator.provider].generatorPath
+              } for generator ${generator.provider}`,
+            )
+          }
+        } else if (predefinedGeneratorResolvers[generator.provider]) {
           paths = await predefinedGeneratorResolvers[generator.provider](
             baseDir,
             version,
           )
           debug(paths)
           generatorPath = paths.generatorPath
-        } else if (aliases && aliases[generator.provider]) {
-          generatorPath = aliases[generator.provider]
-          if (!fs.existsSync(generatorPath)) {
-            throw new Error(
-              `Could not find generator executable ${
-                aliases[generator.provider]
-              } for generator ${generator.provider}`,
-            )
-          }
         }
 
         const generatorInstance = new Generator(generatorPath)

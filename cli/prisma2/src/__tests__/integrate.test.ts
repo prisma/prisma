@@ -13,6 +13,7 @@ import path from 'path'
 const del = promisify(rimraf)
 
 const host = process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
+process.env.SKIP_GENERATE = 'true'
 
 const db = new Client({
   connectionString: host,
@@ -120,9 +121,6 @@ async function generate(isdl: ISDL) {
   const generator = await getGenerator({
     schemaPath,
     printDownloadProgress: false,
-    providerAliases: {
-      photonjs: photonjsPath,
-    },
     baseDir: tmp,
   })
 

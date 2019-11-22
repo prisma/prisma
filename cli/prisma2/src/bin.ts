@@ -41,13 +41,18 @@ import { Introspect, Init } from '@prisma/introspection'
 import { Version } from './Version'
 import { Generate } from './Generate'
 import chalk from 'chalk'
-// import { capture } from './capture'
 import { Docs } from './Docs'
 import { Converter } from './Converter'
+import { ProviderAliases } from '@prisma/sdk'
 export { Photon } from '@prisma/studio-transports'
 
-const aliases = {
-  photonjs: eval(`require('path').join(__dirname, './photon-generator/index.js')`), // all evals are here for ncc
+// aliases are only used by @prisma/studio, but not for users anymore,
+// as they have to ship their own version of @prisma/photon
+const aliases: ProviderAliases = {
+  photonjs: {
+    generatorPath: eval(`require('path').join(__dirname, '../photon/generator-build/index.js')`), // all evals are here for ncc
+    outputPath: eval(`require('path').join(__dirname, '../photon/')`),
+  },
 }
 
 /**
@@ -66,12 +71,12 @@ async function main(): Promise<number> {
       down: LiftDown.new(),
       docs: Docs.new('lift', 'https://github.com/prisma/prisma2/tree/master/docs'),
     }),
-    'tmp-prepare': LiftTmpPrepare.new(aliases),
+    'tmp-prepare': LiftTmpPrepare.new(),
     introspect: Introspect.new(),
     convert: Converter.new(),
     dev: LiftWatch.new(aliases),
     studio: StudioCommand.new(aliases),
-    generate: Generate.new(aliases),
+    generate: Generate.new(),
     version: Version.new(),
   })
   // parse the arguments
