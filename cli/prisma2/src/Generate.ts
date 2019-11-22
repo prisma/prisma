@@ -1,12 +1,4 @@
-import {
-  Command,
-  format,
-  HelpError,
-  Dictionary,
-  GeneratorDefinitionWithPackage,
-  getSchema,
-  getSchemaPath,
-} from '@prisma/cli'
+import { Command, format, HelpError, Dictionary, getSchemaPath } from '@prisma/cli'
 import chalk from 'chalk'
 import { missingGeneratorMessage } from '@prisma/lift'
 import { getGenerators } from '@prisma/sdk'
@@ -18,8 +10,8 @@ const pkg = eval(`require('../package.json')`)
  * $ prisma migrate new
  */
 export class Generate implements Command {
-  public static new(aliases: Dictionary<string>): Generate {
-    return new Generate(aliases)
+  public static new(): Generate {
+    return new Generate()
   }
 
   // static help template
@@ -31,7 +23,7 @@ export class Generate implements Command {
       prisma2 generate 
 
   `)
-  private constructor(private readonly aliases: Dictionary<string>) {}
+  private constructor() {}
 
   // parse arguments
   public async parse(argv: string[], minimalOutput = false): Promise<string | Error> {
@@ -41,7 +33,6 @@ export class Generate implements Command {
     }
     const generators = await getGenerators({
       schemaPath: datamodelPath,
-      providerAliases: this.aliases,
       printDownloadProgress: true,
       version: pkg.prisma.version,
     })

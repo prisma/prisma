@@ -20,7 +20,7 @@ export const defaultTemplate: (language: Language) => Template = (language = 'ty
   return {
     name: 'from_scratch',
     language: language.toLowerCase() as Language,
-    description: 'GraphQL starter with Prisma 2',
+    description: 'GraphQL starter with the Prisma Framework',
     repo: {
       uri: 'https://github.com/prisma/photonjs',
       branch: 'master',
@@ -43,7 +43,7 @@ export const availableTemplates: Template[] = [
   {
     name: 'graphql_boilerplate',
     language: 'typescript',
-    description: 'GraphQL starter with Prisma 2',
+    description: 'GraphQL starter with Prisma Framework',
     repo: {
       uri: 'https://github.com/prisma/photonjs',
       branch: 'master',
@@ -63,7 +63,7 @@ export const availableTemplates: Template[] = [
   {
     name: 'rest_boilerplate',
     language: 'typescript',
-    description: 'REST with express server starter with Prisma 2',
+    description: 'REST with express server starter with Prisma Framework',
     repo: {
       uri: 'https://github.com/prisma/photonjs',
       branch: 'master',
@@ -83,7 +83,7 @@ Here are the next steps to get you started:
   {
     name: 'grpc_boilerplate',
     language: 'typescript',
-    description: 'REST with express server starter with Prisma 2',
+    description: 'REST with express server starter with the Prisma Framework',
     repo: {
       uri: 'https://github.com/prisma/photonjs',
       branch: 'master',
@@ -103,7 +103,7 @@ Here are the next steps to get you started:
   {
     name: 'graphql_boilerplate',
     language: 'javascript',
-    description: 'GraphQL starter with Prisma 2',
+    description: 'GraphQL starter with the Prisma Framework',
     repo: {
       uri: 'https://github.com/prisma/photonjs',
       branch: 'master',
@@ -123,7 +123,7 @@ Here are the next steps to get you started:
   {
     name: 'rest_boilerplate',
     language: 'javascript',
-    description: 'REST with express server starter with Prisma 2',
+    description: 'REST with express server starter with the Prisma Framework',
     repo: {
       uri: 'https://github.com/prisma/photonjs',
       branch: 'master',
@@ -143,7 +143,7 @@ Here are the next steps to get you started:
   {
     name: 'grpc_boilerplate',
     language: 'javascript',
-    description: 'REST with express server starter with Prisma 2',
+    description: 'REST with express server starter with the Prisma Framework',
     repo: {
       uri: 'https://github.com/prisma/photonjs',
       branch: 'master',

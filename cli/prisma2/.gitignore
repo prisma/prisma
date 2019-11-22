@@ -17,3 +17,4 @@ tmp
 prisma
 .envrc
 test
+/photon

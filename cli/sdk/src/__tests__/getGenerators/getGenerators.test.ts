@@ -8,7 +8,10 @@ jest.setTimeout(10000)
 describe('getGenerators', () => {
   test('basic', async () => {
     const aliases = {
-      'predefined-generator': path.join(__dirname, 'generator'),
+      'predefined-generator': {
+        generatorPath: path.join(__dirname, 'generator'),
+        outputPath: __dirname,
+      },
     }
 
     const generators = await getGenerators({
@@ -72,7 +75,10 @@ describe('getGenerators', () => {
 
   test('fail on platforms', async () => {
     const aliases = {
-      'predefined-generator': path.join(__dirname, 'generator'),
+      'predefined-generator': {
+        generatorPath: path.join(__dirname, 'generator'),
+        outputPath: __dirname,
+      },
     }
 
     expect(
@@ -85,7 +91,10 @@ describe('getGenerators', () => {
 
   test('fail on invalid binaryTarget', async () => {
     const aliases = {
-      'predefined-generator': path.join(__dirname, 'generator'),
+      'predefined-generator': {
+        generatorPath: path.join(__dirname, 'generator'),
+        outputPath: __dirname,
+      },
     }
 
     expect(

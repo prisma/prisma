@@ -1,4 +1,4 @@
-# Prisma 2 CLI architecture
+# Prisma Framework CLI architecture
 
 ```
 
