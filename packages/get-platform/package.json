@@ -6,12 +6,16 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
+    "@types/jest": "^24.0.23",
     "@types/node": "^12.12.9",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.1.0",
     "typescript": "^3.7.2"
   },
   "scripts": {
     "build": "tsc -d",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run build && npm run test",
+    "test": "jest"
   },
   "files": [
     "dist"
