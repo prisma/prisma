@@ -1,6 +1,6 @@
 {
   "name": "@prisma/fetch-engine",
-  "version": "0.3.29",
+  "version": "0.3.30",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
