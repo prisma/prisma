@@ -1,7 +1,7 @@
 import stripAnsi from 'strip-ansi'
 import { enums } from '../fixtures/enums'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
-import { getDMMF } from '../utils/getDMMF'
+import { getDMMF } from '../runtime/getDMMF'
 
 describe('where transformation', () => {
   let dmmf

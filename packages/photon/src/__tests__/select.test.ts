@@ -2,7 +2,7 @@ import stripAnsi from 'strip-ansi'
 import { blog } from '../fixtures/blog'
 import { DMMFClass } from '../runtime/dmmf'
 import { makeDocument } from '../runtime/query'
-import { getDMMF } from '../utils/getDMMF'
+import { getDMMF } from '../runtime/getDMMF'
 
 let dmmf
 beforeAll(async () => {
@@ -20,7 +20,8 @@ describe('select validation', () => {
         AND: [
           {
             age_gt: 10123123123,
-            this_is_completely_arbitrary: 'veryLongNameGoIntoaNewLineNow@gmail.com',
+            this_is_completely_arbitrary:
+              'veryLongNameGoIntoaNewLineNow@gmail.com',
           },
           {
             age_gt: 10123123123,

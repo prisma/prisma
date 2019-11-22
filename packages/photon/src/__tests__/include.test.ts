@@ -2,7 +2,7 @@ import stripAnsi from 'strip-ansi'
 import { blog } from '../fixtures/blog'
 import { DMMFClass } from '../runtime/dmmf'
 import { makeDocument } from '../runtime/query'
-import { getDMMF } from '../utils/getDMMF'
+import { getDMMF } from '../runtime/getDMMF'
 
 let dmmf
 beforeAll(async () => {

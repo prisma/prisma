@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "2.0.0-alpha.344",
+  "version": "2.0.0-alpha.348",
   "main": "index.js",
   "types": "index.d.ts",
   "license": "Apache-2.0",
@@ -71,6 +71,7 @@
     "lint-staged": "^9.4.3",
     "make-dir": "^3.0.0",
     "node-fetch": "^2.6.0",
+    "parcel": "^2.0.0-alpha.3.2",
     "pluralize": "^8.0.0",
     "prettier": "^1.19.1",
     "set-value": "^3.0.1",
