@@ -33,10 +33,10 @@ export async function getRemoteLastModified(url: string): Promise<Date> {
 }
 
 export async function getRootCacheDir(platform: string): Promise<string> {
-  if (platform === 'darwin' || platform.startsWith('linux')) {
-    return path.join(os.homedir(), '.cache/prisma')
+  if (platform === 'windows') {
+    return findCacheDir({ name: 'prisma' })
   }
-  return findCacheDir({ name: 'prisma' })
+  return path.join(os.homedir(), '.cache/prisma')
 }
 
 export async function getCacheDir(channel: string, version: string, platform: string): Promise<string> {
