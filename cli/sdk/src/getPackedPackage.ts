@@ -7,6 +7,8 @@ import copy from '@apexearth/copy'
 import makeDir from 'make-dir'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
+import Debug from 'debug'
+const debug = Debug('getPackedPackage')
 
 // why not directly use Sindre's 'del'? Because it's not ncc-able :/
 const del = promisify(rimraf)
@@ -14,12 +16,17 @@ const del = promisify(rimraf)
 export async function getPackedPackage(
   name: string,
   target: string,
+  packageDir?: string,
 ): Promise<void> {
   if (!target) {
     throw new Error(`Error in getPackage: Please provide a target`)
   }
-  const packageDir =
-    resolvePkg(name, { cwd: __dirname }) || resolvePkg(name, { cwd: target })
+  packageDir =
+    packageDir ||
+    resolvePkg(name, { cwd: __dirname }) ||
+    resolvePkg(name, { cwd: target })
+
+  debug({ packageDir })
 
   if (!packageDir) {
     throw new Error(
