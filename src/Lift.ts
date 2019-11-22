@@ -169,7 +169,7 @@ export class Lift {
             generator.manifest?.version !== version &&
             generator.options?.generator.provider === 'photonjs'
           ) {
-            throw new Error(
+            console.error(
               `${chalk.bold(`@prisma/photon@${generator.manifest?.version}`)} is not compatible with ${chalk.bold(
                 `prisma2@${version}`,
               )}. Their versions need to be equal.`,
