@@ -1,7 +1,7 @@
 import { blog } from '../fixtures/blog'
 import { DMMFClass } from '../runtime'
 import { makeDocument, getField, unpack } from '../runtime/query'
-import { getDMMF } from '../utils/getDMMF'
+import { getDMMF } from '../runtime/getDMMF'
 
 let dmmf
 
@@ -26,10 +26,18 @@ describe('getField', () => {
       rootField: 'findOneUser',
     })
 
-    expect(getField(document, ['findOneUser']).name).toMatchInlineSnapshot(`"findOneUser"`)
-    expect(getField(document, ['findOneUser', 'id']).name).toMatchInlineSnapshot(`"id"`)
-    expect(getField(document, ['findOneUser', 'posts']).name).toMatchInlineSnapshot(`"posts"`)
-    expect(getField(document, ['findOneUser', 'posts', 'title']).name).toMatchInlineSnapshot(`"title"`)
+    expect(getField(document, ['findOneUser']).name).toMatchInlineSnapshot(
+      `"findOneUser"`,
+    )
+    expect(
+      getField(document, ['findOneUser', 'id']).name,
+    ).toMatchInlineSnapshot(`"id"`)
+    expect(
+      getField(document, ['findOneUser', 'posts']).name,
+    ).toMatchInlineSnapshot(`"posts"`)
+    expect(
+      getField(document, ['findOneUser', 'posts', 'title']).name,
+    ).toMatchInlineSnapshot(`"title"`)
   })
 })
 
@@ -110,7 +118,8 @@ describe('unpack', () => {
           createdAt: '2019-11-17T09:56:37.690Z',
           updatedAt: '2019-11-17T09:56:37.690Z',
           published: true,
-          title: "One thing for sure: If you don't read the bible, you can't belong to the tribal.",
+          title:
+            "One thing for sure: If you don't read the bible, you can't belong to the tribal.",
         },
       ],
     }

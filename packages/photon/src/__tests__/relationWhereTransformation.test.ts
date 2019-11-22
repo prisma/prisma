@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { chinook } from '../fixtures/chinook'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
-import { getDMMF } from '../utils/getDMMF'
+import { getDMMF } from '../runtime/getDMMF'
 chalk.level = 0
 
 describe('relation where transformation', () => {

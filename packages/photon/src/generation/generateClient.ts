@@ -21,7 +21,7 @@ import {
 import { promisify } from 'util'
 import { DMMF as PhotonDMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
-import { getPhotonDMMF } from '../utils/getDMMF'
+import { getPhotonDMMF } from '../runtime/getDMMF'
 import { resolveDatasources } from '../utils/resolveDatasources'
 import { extractSqliteSources } from './extractSqliteSources'
 import { TSClient } from './TSClient'
@@ -241,9 +241,7 @@ export async function generateClient({
     await copyFile(datamodelPath, datamodelTargetPath)
   }
 
-  if (copyRuntime) {
-    await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)
-  }
+  await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)
 
   return { photonDmmf, fileMap }
 }
@@ -300,6 +298,9 @@ export declare type mergeBy = any
 
 export declare var unpack: any
 export declare type unpack = any
+
+export declare var getDMMF: any
+export declare type getDMMF = any
 `
 
 // This is needed because ncc rewrite some paths

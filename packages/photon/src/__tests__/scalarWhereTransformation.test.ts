@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { enums } from '../fixtures/enums'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
-import { getDMMF } from '../utils/getDMMF'
+import { getDMMF } from '../runtime/getDMMF'
 chalk.level = 0
 
 describe('scalar where transformation', () => {

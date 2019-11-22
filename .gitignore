@@ -7,3 +7,5 @@ pnpm-debug.log
 *.db
 
 dist/
+
+copy-photon.sh
