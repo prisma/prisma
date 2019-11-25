@@ -58,7 +58,7 @@ Transactions are a commonly used feature in relational as well as non-relational
 - Sending multiple operations in bulk.
 - Enabling longer-running transactions where operations can depend on each other.
 
-The first use use case of sending multiple operations in bulk could be implemented with an API similar to this:
+The first use case of sending multiple operations in bulk could be implemented with an API similar to this:
 
 ```ts
 const write1 = photon.users.create()
