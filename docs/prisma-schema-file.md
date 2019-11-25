@@ -169,7 +169,7 @@ generator ts {
 
 generator ts {
   provider      = "./path/to/custom/generator"
-  binaryTargets = ["native", "linux-glibc-libssl1.0.2"]
+  binaryTargets = ["native", "debian-openssl-1.0.x"]
 }
 ```
 
