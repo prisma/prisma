@@ -9,7 +9,7 @@ The Prisma schema file (short: _schema file_, _Prisma schema_ or _schema_) is th
 Whenever a `prisma2` command is invoked, the CLI typically reads some information from the schema file, e.g.:
 
 - `prisma2 generate`: Reads _all_ above mentioned information from the Prisma schema to generate the correct data source client code (e.g. Photon.js).
-- `prisma2 lift save`: Reads the data sources and data model definition to create a new [migration](). 
+- `prisma2 lift save`: Reads the data sources and data model definition to create a new [migration]().
 
 You can also [use environment variables](#using-environment-variables) inside the schema file to provide configuration options when a CLI command is invoked.
 
@@ -67,7 +67,6 @@ If the schema file is named differently, you can provide an explicit option to t
 
 The schema file is written in Prisma Schema Language (PSL). You can find a full reference for PSL in the
 [spec](https://github.com/prisma/specs/tree/master/prisma-schema).
-
 
 ## Building blocks
 
@@ -143,15 +142,14 @@ A generator configures what data source clients are generated and how they're ge
 
 #### Fields
 
-| Name             | Required     | Type                                                                                                                                                                    | Description                                                                                                                      |
-| ---------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `provider`       | **Yes**      | String (file path) or Enum (`photonjs`, `nexus-prisma`)                                                                                                                 | Describes which generator to use. This can point to a file that implements a generator or specify a built-in generator directly. |
-| `output`         | **Yes**      | String (file path)                                                                                                                                                      | Determines the location for the generated client.                                                                                |
-| `platforms`      | _(optional)_ | List of Enums (prebuilt binaries [available here](https://github.com/prisma/specs/blob/master/binaries/Readme.md#table-of-binaries)) or Strings (path to custom binary) | Declarative way to download the required binaries.                                                                               |
-| `pinnedPlatform` | _(optional)_ | String (pointing to the platform)                                                                                                                                       | Declarative way to choose the runtime binary                                                                                     |
+| Name            | Required     | Type                                                                                                                                  | Description                                                                                                                      |
+| --------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `provider`      | **Yes**      | String (file path) or Enum (`photonjs`, `nexus-prisma`)                                                                               | Describes which generator to use. This can point to a file that implements a generator or specify a built-in generator directly. |
+| `output`        | **Yes**      | String (file path)                                                                                                                    | Determines the location for the generated client.                                                                                |
+| `binaryTargets` | _(optional)_ | List of Enums (prebuilt binaries [available here](https://github.com/prisma/specs/blob/master/binaries/Readme.md#table-of-binaries)). | Declarative way to download the required binaries.                                                                               |
 
 - A generator may bring its own fields to allow users to customize the generation behaviour.
-- Both `platforms` and `pinnedPlatform` fields are optional, **however** when a custom binary is provided the `pinnedPlatform` is required.
+- Both `binaryTargets`.
 
 #### Examples
 
@@ -165,23 +163,17 @@ generator js_custom_output {
   output   = "../src/generated/photon"
 }
 
-generator nexus_prisma {
-  provider = "nexus-prisma"
-}
-
 generator ts {
   provider = "./path/to/custom/generator"
 }
 
 generator ts {
-  provider = "./path/to/custom/generator"
-  platforms = ["native", "linux-glibc-libssl1.0.2"]
-  pinnedPlatform = env("PLATFORM") // On local set to "native"; in production set to "linux-glibc-libssl1.0.2"
+  provider      = "./path/to/custom/generator"
+  binaryTargets = ["native", "linux-glibc-libssl1.0.2"]
 }
 ```
 
-> **Note**: The default `output` for the `photonjs` and `nexus-prisma` providers is your `node_modules` directory. This can be customized as seen in the second
-> example in the code snippet above.
+> **Note**: The default `output` for the `photonjs` provider is your `node_modules` directory. This can be customized as seen in the second example in the code snippet above.
 
 ### Data model definition
 
@@ -214,7 +206,7 @@ datasource pg {
 ```
 
 > Unfortunately, you cannot use string concat operations to build your url for now.
- 
+
 ### Switching data sources based on environments
 
 > This feature [is not implemented yet](https://github.com/prisma/prisma2/issues/265#issuecomment-515955670). As a workaround you can provide environment variables for both `url` and `provider` options.
