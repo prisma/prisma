@@ -34,7 +34,13 @@ export async function getRemoteLastModified(url: string): Promise<Date> {
 
 export async function getRootCacheDir(platform: string): Promise<string> {
   if (platform === 'windows') {
-    return findCacheDir({ name: 'prisma' })
+    const cacheDir = await findCacheDir({ name: 'prisma', create: true })
+    if (cacheDir) {
+      return cacheDir
+    }
+    if (process.env.APPDATA) {
+      return path.join(process.env.APPDATA, 'Prisma')
+    }
   }
   return path.join(os.homedir(), '.cache/prisma')
 }
