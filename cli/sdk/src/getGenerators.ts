@@ -19,7 +19,7 @@ import { unique } from './unique'
 import { pick } from './pick'
 import { Generator } from './Generator'
 import { resolveOutput } from './resolveOutput'
-import { getPlatform } from '@prisma/get-platform'
+import { getPlatform, Platform } from '@prisma/get-platform'
 import { printGeneratorConfig, fixPlatforms } from '@prisma/engine-core'
 import {
   predefinedGeneratorResolvers,
@@ -232,15 +232,22 @@ export function skipIndex<T = any>(arr: T[], index: number): T[] {
   return [...arr.slice(0, index), ...arr.slice(index + 1)]
 }
 
-export const knownBinaryTargets = [
+export const knownBinaryTargets: Platform[] = [
   'native',
   'darwin',
-  'linux-glibc-libssl1.0.1',
-  'linux-glibc-libssl1.0.2',
-  'linux-glibc-libssl1.1.0',
-  'linux-musl-libssl1.1.0',
+  'debian-openssl-1.0.x',
+  'debian-openssl-1.1.x',
+  'rhel-openssl-1.0.x',
+  'rhel-openssl-1.1.x',
   'windows',
 ]
+
+const oldToNewBinaryTargetsMapping = {
+  'linux-glibc-libssl1.0.1': 'debian-openssl-1.0.x',
+  'linux-glibc-libssl1.0.2': 'debian-openssl-1.0.x',
+  'linux-glibc-libssl1.1.0': 'debian-openssl1.1.x',
+  'linux-musl-libssl1.1.0': 'debian-openssl1.1.x',
+}
 
 async function validateGenerators(generators: GeneratorConfig[]) {
   const platform = await getPlatform()
@@ -264,7 +271,16 @@ Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary targ
     }
     if (generator.binaryTargets) {
       for (const binaryTarget of generator.binaryTargets) {
-        if (!knownBinaryTargets.includes(binaryTarget)) {
+        if (oldToNewBinaryTargetsMapping[binaryTarget]) {
+          throw new Error(
+            `Binary target ${chalk.red.bold(
+              binaryTarget,
+            )} doesn't exist anymore. Please use ${chalk.green.bold(
+              oldToNewBinaryTargetsMapping[binaryTarget],
+            )} instead.`,
+          )
+        }
+        if (!knownBinaryTargets.includes(binaryTarget as Platform)) {
           throw new Error(
             `Unknown binary target ${chalk.red(
               binaryTarget,
