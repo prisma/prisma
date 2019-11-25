@@ -315,7 +315,7 @@ Updates an existing or creates a new record and returns the corresponding object
 ```ts
 const user = await photon.users.upsert({
   where: { id: 1 },
-  update: { name: "ALICE" }
+  update: { name: "ALICE" },
   create: { name: "ALICE" }
 })
 ```
