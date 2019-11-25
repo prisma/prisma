@@ -6,3 +6,4 @@ build
 .DS_Store
 examples
 tmp
+pnpm-debug.log
