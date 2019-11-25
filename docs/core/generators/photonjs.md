@@ -24,17 +24,21 @@ To determine the platform Photon is running on, you can provide two options to t
 
 | Name             | Required                                               | Description                                                                                                                                                                                                                | Purpose                                                   |
 | ---------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `platforms`      | No                                                     | An array of binaries that are required by the application. Either a _file path_ to a binary, a package name from the [available binaries](#available-binaries) or the special value `"native"`. **Default**: `["native"]`. | Declarative way to download the required binaries.        |
-| `pinnedPlatform` | Only if `platforms` contains a _file path_ to a binary | A string that points to the name of an object in the `platforms` field (typically an environment variable). Requires the `platforms` options to be a non-empty array.                                                      | Declarative way to define which binary to use at runtime. |
+| `binaryTargets`      | No                                                     | An array of binary names that are required by the application. Either a _file path_ to a binary, a package name from the [available binaries](#available-binaries) or the special value `"native"`. **Default**: `["native"]`. | Declarative way to download the required binaries.        |
+
+If `binaryTargets` contains a _file path_ to a binary, you need to provide the path to the binary via an environment variable:
+
+- If you're using a custom binary for the **query engine** (Photon.js), set the file path to it as the `PRISMA_QUERY_ENGINE_BINARY` environment variable.
+- If you're using a custom binary for the **migration engine** (Lift), set the file path to it as the `PRISMA_MIGRATION_ENGINE_BINARY` environment variable.
 
 ### Default: The `native` platform
 
-When no [generator options](#generator-options) are passed to the `photonjs` generator in your [Prisma schema file](../prisma-schema-file.md), the Prisma CLI will download the binary for the operating system on which `prisma2 generate` was executed. The following two configurations are therefore equivalent, because `["native"]` is the default value for `platforms`:
+When no [generator options](#generator-options) are passed to the `photonjs` generator in your [Prisma schema file](../prisma-schema-file.md), the Prisma CLI will download the binary for the operating system on which `prisma2 generate` was executed. The following two configurations are therefore equivalent, because `["native"]` is the default value for `binaryTargets`:
 
 ```groovy
 generator photon {
   provider = "photonjs"
-  platforms = ["native"]
+  binaryTargets = ["native"]
 }
 ```
 
@@ -58,9 +62,8 @@ This example shows the configuration of a Photon.js generator for local developm
 
 ```groovy
 generator photon {
-    provider = "photonjs"
-    platforms = ["native", "linux-glibc-libssl1.0.2"] // For Lambda (Node 10)
-    pinnedPlatform = env("PLATFORM")                  // Local: "native"; In production: "linux-glibc-libssl1.0.2"
+    provider      = "photonjs"
+    binaryTargets = ["native", "debian-glibc-libssl-1.0.2"] 
 }
 ```
 
@@ -93,7 +96,7 @@ Once added, you can invoke the generator using the following command:
 prisma2 generate
 ```
 
-It will then store the generated Photon API in the specified `./generated/photon` directory. Learn more about the [generated Photon API](../../photon/api.md).
+It will then store the generated Photon API in the default location `node_modules/@prisma/photon` directory. Learn more about the [generated Photon API](../../photon/api.md).
 
 ## Mapping types from the data model
 
