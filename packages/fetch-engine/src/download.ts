@@ -185,7 +185,7 @@ async function downloadBinary({
     progressCb(0)
   }
 
-  debug(`Actually downloading zip`)
+  debug(`Downloading zip`)
   const lastModified = await downloadZip(sourcePath, targetPath, progressCb)
   if (progressCb) {
     progressCb(1)
