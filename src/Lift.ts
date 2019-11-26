@@ -137,6 +137,7 @@ export class Lift {
           schemaPath: getDatamodelPath(this.projectDir),
           printDownloadProgress: false,
           version: packageJson.prisma.version,
+          cliVersion: packageJson.version,
         })
 
         const newGenerators = generators.map(gen => ({
@@ -354,6 +355,7 @@ export class Lift {
       schemaPath: getDatamodelPath(this.projectDir),
       printDownloadProgress: false,
       version: packageJson.prisma.version,
+      cliVersion: packageJson.version,
     })
 
     this.studioPort = await getPort({ port: getPort.makeRange(5555, 5600) })
