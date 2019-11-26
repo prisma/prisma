@@ -66,7 +66,7 @@ If the schema file is named differently, you can provide an explicit option to t
 ## Syntax
 
 The schema file is written in Prisma Schema Language (PSL). You can find a full reference for PSL in the
-[spec](https://github.com/prisma/specs/tree/master/prisma-schema).
+[spec](https://github.com/prisma/specs/tree/master/schema).
 
 ## Building blocks
 
