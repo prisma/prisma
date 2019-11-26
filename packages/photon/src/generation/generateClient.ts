@@ -212,7 +212,10 @@ export async function generateClient({
     : eval(`require('path').join(__dirname, '../runtime')`) // tslint:disable-line
 
   // if users use a custom output dir
-  if (copyRuntime || !path.resolve(outputDir).endsWith('@prisma/photon')) {
+  if (
+    copyRuntime ||
+    !path.resolve(outputDir).endsWith(`@prisma${path.sep}photon`)
+  ) {
     // TODO: Windows, / is not working here...
     await copy({
       from: inputDir,
