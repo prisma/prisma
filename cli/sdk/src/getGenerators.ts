@@ -33,6 +33,7 @@ export type ProviderAliases = { [alias: string]: GeneratorPaths }
 export type GetGeneratorOptions = {
   schemaPath: string
   providerAliases?: ProviderAliases
+  cliVersion?: string
   version?: string
   printDownloadProgress?: boolean
   baseDir?: string // useful in tests to resolve the base dir from which `output` is resolved
@@ -51,6 +52,7 @@ export async function getGenerators({
   schemaPath,
   providerAliases: aliases, // do you get the pun?
   version,
+  cliVersion,
   printDownloadProgress,
   baseDir = path.dirname(schemaPath),
   overrideGenerators,
@@ -100,7 +102,7 @@ export async function getGenerators({
         } else if (predefinedGeneratorResolvers[generator.provider]) {
           paths = await predefinedGeneratorResolvers[generator.provider](
             baseDir,
-            version,
+            cliVersion,
           )
           debug(paths)
           generatorPath = paths.generatorPath

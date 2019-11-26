@@ -35,6 +35,7 @@ export class Generate implements Command {
       schemaPath: datamodelPath,
       printDownloadProgress: true,
       version: pkg.prisma.version,
+      cliVersion: pkg.version,
     })
 
     if (generators.length === 0) {
