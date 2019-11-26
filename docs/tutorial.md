@@ -239,7 +239,7 @@ Because Photon.js is generated into `node_modules` which is typically populated 
   "license": "MIT",
   "dependencies": {
     "@prisma/photon": "2.0.0-preview-017"
-  }
+  },
   "devDependencies": {
     "ts-node": "8.3.0",
     "typescript": "3.6.2",
