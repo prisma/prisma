@@ -225,7 +225,7 @@ export async function generateClient({
         from: inputDir,
         to: copyTarget,
         recursive: true,
-        parallelJobs: 20,
+        parallelJobs: process.platform === 'win32' ? 1 : 20,
         overwrite: true,
       })
     }
