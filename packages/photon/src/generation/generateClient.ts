@@ -220,6 +220,7 @@ export async function generateClient({
     const copyTarget = path.join(outputDir, '/runtime')
     if (inputDir !== copyTarget) {
       debug({ copyRuntime, outputDir, copyTarget, inputDir })
+
       await copy({
         from: inputDir,
         to: copyTarget,
