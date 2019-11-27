@@ -27,6 +27,7 @@ import { extractSqliteSources } from './extractSqliteSources'
 import { TSClient } from './TSClient'
 
 const debug = Debug('generateClient')
+debug.log = console.log.bind(console)
 
 const remove = promisify(fs.unlink)
 const writeFile = promisify(fs.writeFile)
