@@ -28,7 +28,7 @@ export type GetDMMFOptions = {
   cwd?: string
   prismaPath?: string
   datamodelPath?: string
-  skipRetry?: boolean
+  retry?: number
 }
 
 export async function getDMMF({
@@ -36,7 +36,7 @@ export async function getDMMF({
   cwd = process.cwd(),
   prismaPath,
   datamodelPath,
-  skipRetry,
+  retry = 4,
 }: GetDMMFOptions): Promise<DMMF.Document> {
   prismaPath = prismaPath || (await getPrismaPath())
   let result
@@ -63,17 +63,31 @@ export async function getDMMF({
 
     await unlink(tempDataModelPath)
 
-    return JSON.parse(result.stdout)
-  } catch (e) {
-    // If this unlikely event happens, try it at least once more
-    if (e.message.includes('Command failed with exit code 26 (ETXTBSY)')) {
-      await new Promise(resolve => setTimeout(resolve, 100))
+    if (result.stdout.includes('Please wait until the') && retry > 0) {
+      await new Promise(r => setTimeout(r, 5000))
       return getDMMF({
         datamodel,
         cwd,
         prismaPath,
         datamodelPath,
-        skipRetry: true,
+        retry: retry - 1,
+      })
+    }
+
+    return JSON.parse(result.stdout)
+  } catch (e) {
+    // If this unlikely event happens, try it at least once more
+    if (
+      e.message.includes('Command failed with exit code 26 (ETXTBSY)') &&
+      retry > 0
+    ) {
+      await new Promise(resolve => setTimeout(resolve, 500))
+      return getDMMF({
+        datamodel,
+        cwd,
+        prismaPath,
+        datamodelPath,
+        retry: retry - 1,
       })
     }
     if (e.stderr) {
