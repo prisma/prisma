@@ -211,39 +211,45 @@ There are a few limitations with `env` at the moment:
 
 ### Switching data sources based on environments
 
-> This feature [is not implemented yet](https://github.com/prisma/prisma2/issues/265#issuecomment-515955670). As a workaround you can provide environment variables for both `url` and `provider` options.
+To switch the datasources based on your environment, you can use the `enabled` property on the `datasource` definition:
 
 ```groovy
+datasource mysql {
+  provider = "mysql"
+  url = env("PRISMA_MYSQL_URL")
+  enabled = true
+}
+
+datasource postgres {
+  provider = "postgresql"
+  url = env("PRISMA_POSTGRES_URL")
+}
+```
+
+```
 datasource db {
   provider = "postgresql"
   url      = env("PRISMA_URL")
 }
 ```
 
----
-
-Sometimes it's helpful to target different environments based in the same schema file, for example:
+You can also target different environments using environment variables, for example:
 
 ```groovy
-datasource db {
-  enabled  = env("SQLITE_URL")
-  provider = "sqlite"
-  url      = env("SQLITE_URL")
+datasource mysql {
+  provider = "mysql"
+  url = env("MYSQL_URL")
+  enabled  = env("MYSQL_URL")
 }
 
-datasource db {
-  enabled  = env("POSTGRES_URL")
+datasource postgres {
   provider = "postgresql"
-  url      = env("POSTGRES_URL")
-}
-
-model User {
-  id         Int    @id @db.int
-  first_name String @unique
+  url = env("POSTGRES_URL")
+  enabled  = env("POSTGRES_URL")
 }
 ```
 
-Depending on which environment variable is set (in this case `SQLITE_URL` or `POSTGRES_URL`), the respective data source will be used. To set these variables you can either use a `.env`-file or `export` the variables in your shell instance.
+Depending on which environment variable is set (in this case `MYSQL_URL` or `POSTGRES_URL`), the respective data source will be used. To set these variables you can either use a `.env`-file or `export` the variables in your shell instance.
 
 Tip: To quickly switch between environments you can `source` a file with the `export` commands.
 
