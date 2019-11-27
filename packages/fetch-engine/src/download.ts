@@ -171,7 +171,7 @@ async function downloadBinary({
 
   debug({ cachedPrismaExists, targetExists, cachedTargetPath, targetPath })
 
-  if (cachedPrismaExists && localLastModified && process.platform !== 'win32') {
+  if (cachedPrismaExists && localLastModified) {
     const remoteLastModified = await getRemoteLastModified(sourcePath)
     // If there is no new binary and we have it localy, copy it over
     if (localLastModified >= remoteLastModified) {
@@ -193,14 +193,12 @@ async function downloadBinary({
 
   plusxSync(targetPath)
 
-  if (process.platform !== 'win32') {
-    try {
-      await copy(targetPath, cachedTargetPath)
-      await writeFile(cachedLastModifiedPath, lastModified)
-    } catch (e) {
-      debug({ sourcePath, targetPath }, e)
-      // let this fail silently - the CI system may have reached the file size limit
-    }
+  try {
+    await copy(targetPath, cachedTargetPath)
+    await writeFile(cachedLastModifiedPath, lastModified)
+  } catch (e) {
+    debug({ sourcePath, targetPath }, e)
+    // let this fail silently - the CI system may have reached the file size limit
   }
 }
 
