@@ -57,7 +57,7 @@ function getLocalPackagePath() {
 
 async function isInstalledGlobally() {
   try {
-    await exec('prisma2 -v', { shell: true })
+    await exec('prisma2 -v')
     return true
   } catch (e) {
     return false
