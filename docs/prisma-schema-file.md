@@ -226,13 +226,6 @@ datasource postgres {
 }
 ```
 
-```
-datasource db {
-  provider = "postgresql"
-  url      = env("PRISMA_URL")
-}
-```
-
 You can also target different environments using environment variables, for example:
 
 ```groovy
