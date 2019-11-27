@@ -39,7 +39,6 @@ export class GeneratorProcess {
         isBinary ? [] : ['--max-old-space-size=8096', this.executablePath],
         {
           stdio: ['pipe', 'inherit', 'pipe'],
-          // shell: true,
         },
       )
 
