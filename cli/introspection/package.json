@@ -1,6 +1,6 @@
 {
   "name": "@prisma/introspection",
-  "version": "0.0.146",
+  "version": "0.0.149",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -22,13 +22,13 @@
     "@types/mongodb": "^3.3.11",
     "@types/mysql": "^2.15.8",
     "@types/node": "12.12.7",
-    "@types/node-fetch": "^2.5.3",
+    "@types/node-fetch": "^2.5.4",
     "@types/pg": "^7.11.2",
     "@types/string-width": "^4.0.1",
     "jest": "^24.9.0",
     "prettier": "^1.19.1",
     "react": "16.11.0",
-    "ts-jest": "^24.1.0",
+    "ts-jest": "^24.2.0",
     "ts-node": "^8.5.2",
     "typescript": "^3.7.2"
   },
