@@ -64,6 +64,7 @@ export async function getDMMF({
     await unlink(tempDataModelPath)
 
     if (result.stdout.includes('Please wait until the') && retry > 0) {
+      debug('Retrying after "Please wait until"')
       await new Promise(r => setTimeout(r, 5000))
       return getDMMF({
         datamodel,
@@ -82,6 +83,7 @@ export async function getDMMF({
       retry > 0
     ) {
       await new Promise(resolve => setTimeout(resolve, 500))
+      debug('Retrying after ETXTBSY')
       return getDMMF({
         datamodel,
         cwd,
