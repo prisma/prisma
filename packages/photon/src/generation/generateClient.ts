@@ -217,13 +217,17 @@ export async function generateClient({
     !path.resolve(outputDir).endsWith(`@prisma${path.sep}photon`)
   ) {
     // TODO: Windows, / is not working here...
-    await copy({
-      from: inputDir,
-      to: path.join(outputDir, '/runtime'),
-      recursive: true,
-      parallelJobs: 20,
-      overwrite: true,
-    })
+    const copyTarget = path.join(outputDir, '/runtime')
+    if (inputDir !== copyTarget) {
+      debug({ copyRuntime, outputDir, copyTarget, inputDir })
+      await copy({
+        from: inputDir,
+        to: copyTarget,
+        recursive: true,
+        parallelJobs: 20,
+        overwrite: true,
+      })
+    }
   }
 
   if (!binaryPaths.queryEngine) {
