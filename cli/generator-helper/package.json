@@ -1,6 +1,6 @@
 {
   "name": "@prisma/generator-helper",
-  "version": "0.0.26",
+  "version": "0.0.28",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
@@ -36,7 +36,7 @@
     "@types/jest": "24.0.22",
     "@types/node": "12.12.7",
     "jest": "^24.9.0",
-    "ts-jest": "^24.1.0",
+    "ts-jest": "^24.2.0",
     "ts-node": "^8.5.2",
     "typescript": "^3.7.2"
   }

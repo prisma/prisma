@@ -23,7 +23,7 @@
     "dist"
   ],
   "devDependencies": {
-    "@types/node": "^12.12.9",
+    "@types/node": "^12.12.14",
     "@types/react": "16.9.11",
     "ink": "^2.5.0",
     "react": "16.11.0",
