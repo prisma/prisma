@@ -44,7 +44,7 @@ export class Generate implements Command {
 
     for (const generator of generators) {
       const toStr = generator.options!.generator.output!
-        ? chalk.dim(` to ./${path.relative(process.cwd(), generator.options!.generator.output!)}`)
+        ? chalk.dim(` to .${path.sep}${path.relative(process.cwd(), generator.options!.generator.output!)}`)
         : ''
       const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
       if (
