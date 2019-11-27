@@ -111,8 +111,7 @@ datasource mongo {
 }
 ```
 
-This is a general convention, technically data sources can be named anything. Lowercase spelling is typically preferred. There might be special
-circumstances, such as [switching data sources based on environments](#switching-data-sources-based-on-environments), when it can make sense to apply a
+This is a general convention, technically data sources can be named anything. Lowercase spelling is typically preferred. There might be special circumstances, such as [switching data sources based on environments](#switching-data-sources-based-on-environments), when it can make sense to apply a
 different naming scheme.
 
 #### Examples
@@ -205,7 +204,10 @@ datasource pg {
 }
 ```
 
-> Unfortunately, you cannot use string concat operations to build your url for now.
+There are a few limitations with `env` at the moment:
+
+- It is not possible to use string concat operations to build your url
+- It is not possible to use environment variables for the `provider` argument in `datasource` and `generator` definitions
 
 ### Switching data sources based on environments
 
@@ -213,7 +215,7 @@ datasource pg {
 
 ```groovy
 datasource db {
-  provider = env("PRISMA_PROVIDER")
+  provider = "postgresql"
   url      = env("PRISMA_URL")
 }
 ```
