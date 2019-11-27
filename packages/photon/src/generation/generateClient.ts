@@ -219,9 +219,8 @@ export async function generateClient({
   ) {
     // TODO: Windows, / is not working here...
     const copyTarget = path.join(outputDir, '/runtime')
+    debug({ copyRuntime, outputDir, copyTarget, inputDir })
     if (inputDir !== copyTarget) {
-      debug({ copyRuntime, outputDir, copyTarget, inputDir })
-
       await copy({
         from: inputDir,
         to: copyTarget,
