@@ -66,7 +66,7 @@ If the schema file is named differently, you can provide an explicit option to t
 ## Syntax
 
 The schema file is written in Prisma Schema Language (PSL). You can find a full reference for PSL in the
-[spec](https://github.com/prisma/specs/tree/master/prisma-schema).
+[spec](https://github.com/prisma/specs/tree/master/schema).
 
 ## Building blocks
 
@@ -111,8 +111,7 @@ datasource mongo {
 }
 ```
 
-This is a general convention, technically data sources can be named anything. Lowercase spelling is typically preferred. There might be special
-circumstances, such as [switching data sources based on environments](#switching-data-sources-based-on-environments), when it can make sense to apply a
+This is a general convention, technically data sources can be named anything. Lowercase spelling is typically preferred. There might be special circumstances, such as [switching data sources based on environments](#switching-data-sources-based-on-environments), when it can make sense to apply a
 different naming scheme.
 
 #### Examples
@@ -205,43 +204,45 @@ datasource pg {
 }
 ```
 
-> Unfortunately, you cannot use string concat operations to build your url for now.
+There are a few limitations with `env` at the moment:
+
+- It is not possible to use string concat operations to build your url
+- It is not possible to use environment variables for the `provider` argument in `datasource` and `generator` definitions
 
 ### Switching data sources based on environments
 
-> This feature [is not implemented yet](https://github.com/prisma/prisma2/issues/265#issuecomment-515955670). As a workaround you can provide environment variables for both `url` and `provider` options.
+To switch the datasources based on your environment, you can use the `enabled` property on the `datasource` definition:
 
 ```groovy
-datasource db {
-  provider = env("PRISMA_PROVIDER")
-  url      = env("PRISMA_URL")
-}
-```
-
----
-
-Sometimes it's helpful to target different environments based in the same schema file, for example:
-
-```groovy
-datasource db {
-  enabled  = env("SQLITE_URL")
-  provider = "sqlite"
-  url      = env("SQLITE_URL")
+datasource mysql {
+  provider = "mysql"
+  url = env("PRISMA_MYSQL_URL")
+  enabled = true
 }
 
-datasource db {
-  enabled  = env("POSTGRES_URL")
+datasource postgres {
   provider = "postgresql"
-  url      = env("POSTGRES_URL")
-}
-
-model User {
-  id         Int    @id @db.int
-  first_name String @unique
+  url = env("PRISMA_POSTGRES_URL")
 }
 ```
 
-Depending on which environment variable is set (in this case `SQLITE_URL` or `POSTGRES_URL`), the respective data source will be used. To set these variables you can either use a `.env`-file or `export` the variables in your shell instance.
+You can also target different environments using environment variables, for example:
+
+```groovy
+datasource mysql {
+  provider = "mysql"
+  url = env("MYSQL_URL")
+  enabled  = env("MYSQL_URL")
+}
+
+datasource postgres {
+  provider = "postgresql"
+  url = env("POSTGRES_URL")
+  enabled  = env("POSTGRES_URL")
+}
+```
+
+Depending on which environment variable is set (in this case `MYSQL_URL` or `POSTGRES_URL`), the respective data source will be used. To set these variables you can either use a `.env`-file or `export` the variables in your shell instance.
 
 Tip: To quickly switch between environments you can `source` a file with the `export` commands.
 
