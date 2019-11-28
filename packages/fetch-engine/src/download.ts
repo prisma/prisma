@@ -1,4 +1,3 @@
-// Inspired by https://github.com/zeit/now-cli/blob/canary/download/src/index.js
 import fs from 'fs'
 import { promisify } from 'util'
 import chalk from 'chalk'
@@ -24,6 +23,7 @@ const channel = 'master'
 export interface BinaryDownloadConfiguration {
   'query-engine'?: string
   'migration-engine'?: string
+  'introspection-engine'?: string
 }
 
 export interface DownloadOptions {
@@ -127,6 +127,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 function getBinaryName(binaryName, platform) {
   const extension = platform === 'windows' ? '.exe' : ''
   if (binaryName === 'migration-engine') {
+    // for the migration-engine we don't postfix it with the platform, as it's not necessary
     return 'migration-engine' + extension
   }
   return `${binaryName}-${platform}${extension}`
