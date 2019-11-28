@@ -1,6 +1,7 @@
 node_modules
 migration-engine
 query-engine*
+introspection-engine*
 yarn-error.log
 dist
 build

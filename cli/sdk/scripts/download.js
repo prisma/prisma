@@ -6,6 +6,7 @@ const runtimePath = eval(`require('path').join(__dirname, '../')`)
 download({
   binaries: {
     'query-engine': runtimePath,
+    'introspection-engine': runtimePath,
   },
   showProgress: true,
 })
