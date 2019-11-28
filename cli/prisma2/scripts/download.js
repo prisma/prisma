@@ -9,6 +9,7 @@ download({
   binaries: {
     'query-engine': binaryPath,
     'migration-engine': binaryPath,
+    'introspection-engine': binaryPath,
   },
   showProgress: true,
   version,
