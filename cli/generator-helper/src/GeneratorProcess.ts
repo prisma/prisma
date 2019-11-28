@@ -1,4 +1,5 @@
-import { ChildProcessByStdio, spawn } from 'child_process'
+import { ChildProcessByStdio } from 'child_process'
+import { spawn } from 'cross-spawn'
 import byline from './byline'
 import { GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
 import fs from 'fs'
