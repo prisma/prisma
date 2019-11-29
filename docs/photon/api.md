@@ -4,6 +4,7 @@ Photon is a type-safe database client auto-generated based on your [data model d
 
 - [Overview](#overview)
 - [CRUD](#crud)
+- [Aggregations](#aggregations)
 - [Field selection](#field-selection)
 - [Relations](#relations)
 - [Raw databases access](#raw-database-access)
@@ -78,6 +79,19 @@ async function main() {
 ```
 
 Note that the name of the `users` property is auto-generated using the [`pluralize`](https://github.com/blakeembrey/pluralize) package.
+
+## Aggregations
+
+In addition to CRUD operations, Photon.js also allows for [_aggregation_ queries](https://github.com/prisma/photonjs/issues/5). 
+
+### `count`
+
+To return the number of elements in a list, you can the `count()` method on any model property on your `Photon` instance, for example:
+
+```ts
+const userCount = await photon.users.count()
+// userCount = 42
+```
 
 ## Field selection
 
@@ -358,6 +372,21 @@ Deletes a batch of existing records in bulk and returns the number of deleted re
 const deletedUserCount = await photon.users.deleteMany({
   where: { name: 'Alice' },
 })
+```
+
+### `count`
+
+Returns the number of elements in a list as a value of type `number`.
+
+#### Options
+
+The `count()` method doesn't take any input arguments.
+
+#### Examples
+
+```ts
+const userCount = await photon.users.count()
+// userCount = 42
 ```
 
 ## Filtering
