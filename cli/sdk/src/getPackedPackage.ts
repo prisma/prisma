@@ -8,6 +8,7 @@ import makeDir from 'make-dir'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
 import Debug from 'debug'
+import readPkgUp from 'read-pkg-up'
 const debug = Debug('getPackedPackage')
 
 // why not directly use Sindre's 'del'? Because it's not ncc-able :/
@@ -27,6 +28,15 @@ export async function getPackedPackage(
     resolvePkg(name, { cwd: target })
 
   debug({ packageDir })
+
+  if (!packageDir) {
+    const pkg = await readPkgUp({
+      cwd: target,
+    })
+    if (pkg && pkg.packageJson.name === name) {
+      packageDir = path.dirname(pkg.path)
+    }
+  }
 
   if (!packageDir) {
     throw new Error(
