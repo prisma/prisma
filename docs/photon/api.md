@@ -8,6 +8,7 @@ Photon is a type-safe database client auto-generated based on your [data model d
 - [Field selection](#field-selection)
 - [Relations](#relations)
 - [Raw databases access](#raw-database-access)
+- [Scalar lists](#scalar-lists)
 - [Bring your own ID](#bring-your-own-id)
 - [API Reference](#api-reference)
 - [Filtering](#filtering)
@@ -186,6 +187,38 @@ Note that Photon.js will throw an error if you're trying to create/update a reco
 ## Raw database access
 
 Coming soon.
+
+## Scalar lists
+
+Photon.js provides a dedicated API for (re)setting _scalar lists_ using a `set` field inside the `data` argument when creating or updating a [Prisma model](../data-modeling.md#models), for example:
+
+```groovy
+model User {
+  id        Int       @id
+  coinFlips Boolean[]
+}
+```
+
+When creating or updating a `User` record, you can create a new list or replace the current one with a new list like so:
+
+```ts
+await photon.users.create({
+  data: {
+    coinFlips: {
+      set: [true, false]
+    }
+  }
+})
+
+await photon.users.update({
+  where: { id: 42 ,}
+  data: {
+    coinFlips: {
+      set: [true, false]
+    }
+  }
+})
+```
 
 ## API reference
 
