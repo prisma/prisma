@@ -7,10 +7,12 @@ jest.setTimeout(10000)
 
 describe('generator', () => {
   test('minimal', async () => {
-    await getPackedPackage(
-      '@prisma/photon',
-      path.join(__dirname, './node_modules/@prisma/photon'),
-    )
+    const photonTarget = path.join(__dirname, './node_modules/@prisma/photon')
+    await getPackedPackage('@prisma/photon', photonTarget)
+
+    if (!fs.existsSync(photonTarget)) {
+      throw new Error(`Photon didn't get packed properly 🤔`)
+    }
 
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'schema.prisma'),
@@ -19,7 +21,9 @@ describe('generator', () => {
       skipDownload: true,
     })
 
-    expect(generator.manifest).toMatchInlineSnapshot(`
+    expect(
+      omit<any, any>(generator.manifest, ['version']),
+    ).toMatchInlineSnapshot(`
       Object {
         "defaultOutput": "@prisma/photon",
         "denylists": Object {
@@ -82,7 +86,7 @@ describe('generator', () => {
     generator.stop()
   })
 
-  test('inMemory', async () => {
+  test.skip('inMemory', async () => {
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'schema.prisma'),
       providerAliases: {
