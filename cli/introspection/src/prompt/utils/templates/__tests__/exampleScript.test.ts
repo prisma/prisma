@@ -38,7 +38,7 @@ test('exampleScript', async () => {
       * 
       */
 
-    import { Photon } from '@generated/photon'
+    import { Photon } from '@prisma/photon'
     const photon = new Photon()
 
     async function main() {
@@ -76,7 +76,7 @@ test('exampleScript', async () => {
       * 
       */
 
-    const { Photon } = require('@generated/photon')
+    const { Photon } = require('@prisma/photon')
     const photon = new Photon()
 
     async function main() {
