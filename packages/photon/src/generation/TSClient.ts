@@ -100,13 +100,6 @@ class PhotonFetcher {
       debug(result)
       return this.unpack(document, result, path, rootField, isList)
     } catch (e) {
-      // HACK: This will be removed as soon as the query engine doesn't throw anymore
-      if (e.message.includes('Record does not exist') && rootField && rootField.startsWith('findOne')) {
-        return null as any
-      }
-      if (e.message.includes('RecordDoesNotExist') && rootField && rootField.startsWith('findOne')) {
-        return null as any
-      }
       if (callsite) {
         const { stack } = printStack({
           callsite,
@@ -191,7 +184,13 @@ export class TSClient {
  * In order to make \`ncc\` and \`node-file-trace\` happy.
 **/
 
-${this.platforms ? this.platforms.map(p => `path.join(__dirname, 'runtime/query-engine-${p}');`).join('\n') : ''}
+${
+  this.platforms
+    ? this.platforms
+        .map(p => `path.join(__dirname, 'runtime/query-engine-${p}');`)
+        .join('\n')
+    : ''
+}
 
 /**
  * Client
@@ -326,7 +325,10 @@ export class Photon {
 
     const predefinedDatasources = ${
       this.sqliteDatasourceOverrides
-        ? indentAllButFirstLine(serializeDatasources(this.sqliteDatasourceOverrides), 4)
+        ? indentAllButFirstLine(
+            serializeDatasources(this.sqliteDatasourceOverrides),
+            4,
+          )
         : '[]'
     }
     const inputDatasources = Object.entries(options.datasources || {}).map(([name, url]) => ({ name, url: url! }))
@@ -337,12 +339,17 @@ export class Photon {
     const engineConfig = internal.engine || {}
 
     this.engine = new Engine({
-      cwd: engineConfig.cwd || ${getRelativePathResolveStatement(this.outputDir, this.cwd)},
+      cwd: engineConfig.cwd || ${getRelativePathResolveStatement(
+        this.outputDir,
+        this.cwd,
+      )},
       debug: debugEngine,
       datamodelPath: path.resolve(__dirname, 'schema.prisma'),
       prismaPath: engineConfig.binaryPath || undefined,
       datasources,
-      generator: ${this.generator ? JSON.stringify(this.generator) : 'undefined'},
+      generator: ${
+        this.generator ? JSON.stringify(this.generator) : 'undefined'
+      },
     })
 
     this.dmmf = new DMMFClass(dmmf)
@@ -389,7 +396,9 @@ class QueryPayloadType {
     const { type } = this
     const { name } = type
 
-    const relationFields = type.fields.filter(f => f.outputType.kind === 'object' && f.name !== 'node')
+    const relationFields = type.fields.filter(
+      f => f.outputType.kind === 'object' && f.name !== 'node',
+    )
     const relationFieldConditions =
       relationFields.length === 0
         ? ''
@@ -404,7 +413,9 @@ class QueryPayloadType {
                   )}<Extract${getModelArgName(
                     (f.outputType.type as DMMF.OutputType).name,
                     Projection.select,
-                    f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
+                    f.outputType.isList
+                      ? DMMF.ModelAction.findMany
+                      : DMMF.ModelAction.findOne,
                   )}<S[P]>>`,
                 )}`,
                 8,
@@ -413,7 +424,10 @@ class QueryPayloadType {
             .join('\n')}`
 
     return `\
-type ${getPayloadName(name, Projection.select)}<S extends ${name}Args> = S extends ${name}Args
+type ${getPayloadName(
+      name,
+      Projection.select,
+    )}<S extends ${name}Args> = S extends ${name}Args
   ? {
       [P in keyof S] ${relationFieldConditions}
         : never
@@ -432,12 +446,17 @@ type ${getPayloadName(name, Projection.select)}<S extends ${name}Args> = S exten
  * Generates the generic type to calculate a payload based on a include statement
  */
 class PayloadType {
-  constructor(protected readonly type: OutputType, protected readonly projection: Projection) {}
+  constructor(
+    protected readonly type: OutputType,
+    protected readonly projection: Projection,
+  ) {}
   public toString() {
     const { type, projection } = this
     const { name } = type
 
-    const relationFields = type.fields.filter(f => f.outputType.kind === 'object')
+    const relationFields = type.fields.filter(
+      f => f.outputType.kind === 'object',
+    )
     const relationFieldConditions =
       relationFields.length === 0
         ? ''
@@ -446,24 +465,37 @@ class PayloadType {
               indent(
                 `: P extends '${f.name}'\n? ${this.wrapArray(
                   f,
-                  `${getPayloadName((f.outputType.type as DMMF.OutputType).name, projection)}<Extract${getFieldArgName(
-                    f,
+                  `${getPayloadName(
+                    (f.outputType.type as DMMF.OutputType).name,
                     projection,
-                  )}<S[P]>>${!f.outputType.isRequired && !f.outputType.isList ? ' | null' : ''}`,
+                  )}<Extract${getFieldArgName(f, projection)}<S[P]>>${
+                    !f.outputType.isRequired && !f.outputType.isList
+                      ? ' | null'
+                      : ''
+                  }`,
                 )}`,
                 8,
               ),
             )
             .join('\n')}`
 
-    const hasScalarFields = type.fields.filter(f => f.outputType.kind !== 'object').length > 0
-    const projectionName = projection === Projection.select ? getSelectName(name) : getIncludeName(name)
+    const hasScalarFields =
+      type.fields.filter(f => f.outputType.kind !== 'object').length > 0
+    const projectionName =
+      projection === Projection.select
+        ? getSelectName(name)
+        : getIncludeName(name)
     return `\
-type ${getPayloadName(name, projection)}<S extends boolean | ${projectionName}> = S extends true
+type ${getPayloadName(
+      name,
+      projection,
+    )}<S extends boolean | ${projectionName}> = S extends true
   ? ${name}
   : S extends ${projectionName}
   ? {
-      [P in CleanupNever<MergeTruthyValues<${projection === Projection.select ? '{}' : getDefaultName(name)}, S>>]${
+      [P in CleanupNever<MergeTruthyValues<${
+        projection === Projection.select ? '{}' : getDefaultName(name)
+      }, S>>]${
       hasScalarFields
         ? `: P extends ${getScalarsName(name)}
         ? ${name}[P]`
@@ -485,7 +517,10 @@ type ${getPayloadName(name, projection)}<S extends boolean | ${projectionName}> 
  * Generates the default selection of a model
  */
 class ModelDefault {
-  constructor(protected readonly model: DMMF.Model, protected readonly dmmf: DMMFClass) {}
+  constructor(
+    protected readonly model: DMMF.Model,
+    protected readonly dmmf: DMMFClass,
+  ) {}
   public toString() {
     const { model } = this
     return `\
@@ -513,7 +548,10 @@ ${indent(
 export class Model {
   protected outputType?: OutputType
   protected mapping: DMMF.Mapping
-  constructor(protected readonly model: DMMF.Model, protected readonly dmmf: DMMFClass) {
+  constructor(
+    protected readonly model: DMMF.Model,
+    protected readonly dmmf: DMMFClass,
+  ) {
     const outputType = dmmf.outputTypeMap[model.name]
     this.outputType = new OutputType(outputType)
     this.mapping = dmmf.mappings.find(m => m.model === model.name)!
@@ -528,12 +566,18 @@ export class Model {
       }
       const field = this.dmmf.getField(fieldName)
       if (!field) {
-        throw new Error(`Oops this must not happen. Could not find field ${fieldName} on either Query or Mutation`)
+        throw new Error(
+          `Oops this must not happen. Could not find field ${fieldName} on either Query or Mutation`,
+        )
       }
       if (action === 'updateMany' || action === 'deleteMany') {
-        argsTypes.push(new MinimalArgsType(field.args, model, action as DMMF.ModelAction))
+        argsTypes.push(
+          new MinimalArgsType(field.args, model, action as DMMF.ModelAction),
+        )
       } else {
-        argsTypes.push(new ArgsType(field.args, model, action as DMMF.ModelAction))
+        argsTypes.push(
+          new ArgsType(field.args, model, action as DMMF.ModelAction),
+        )
       }
     }
 
@@ -568,7 +612,9 @@ ${indent(
 ${
   scalarFields.length > 0
     ? `export type ${getScalarsName(model.name)} = ${
-        scalarFields.length > 0 ? scalarFields.map(f => `'${f.name}'`).join(' | ') : ``
+        scalarFields.length > 0
+          ? scalarFields.map(f => `'${f.name}'`).join(' | ')
+          : ``
       }
   `
     : ''
@@ -580,7 +626,9 @@ ${indent(
     .map(
       f =>
         `${f.name}?: boolean` +
-        (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f, Projection.select)}Optional` : ''),
+        (f.outputType.kind === 'object'
+          ? ` | ${getFieldArgName(f, Projection.select)}Optional`
+          : ''),
     )
     .join('\n'),
   tab,
@@ -594,7 +642,9 @@ ${indent(
     .map(
       f =>
         `${f.name}?: boolean` +
-        (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f, Projection.include)}Optional` : ''),
+        (f.outputType.kind === 'object'
+          ? ` | ${getFieldArgName(f, Projection.include)}Optional`
+          : ''),
     )
     .join('\n'),
   tab,
@@ -616,13 +666,18 @@ ${this.argsTypes.map(String).join('\n')}
 }
 
 export class Query {
-  constructor(protected readonly dmmf: DMMFClass, protected readonly operation: 'query' | 'mutation') {}
+  constructor(
+    protected readonly dmmf: DMMFClass,
+    protected readonly operation: 'query' | 'mutation',
+  ) {}
   public toString() {
     const { dmmf, operation } = this
     const queryName = capitalize(operation)
     const mappings = dmmf.mappings.map(mapping => ({
       name: mapping.model,
-      mapping: Object.entries(mapping).filter(([key]) => isQueryAction(key as DMMF.ModelAction, operation)),
+      mapping: Object.entries(mapping).filter(([key]) =>
+        isQueryAction(key as DMMF.ModelAction, operation),
+      ),
     }))
     const queryType = operation === 'query' ? dmmf.queryType : dmmf.mutationType
     const outputType = new OutputType(queryType)
@@ -637,7 +692,14 @@ ${indent(
     .flatMap(({ name, mapping }) =>
       mapping
         .filter(([action, field]) => field)
-        .map(([action, field]) => `${field}?: ${getModelArgName(name, Projection.select, action as DMMF.ModelAction)}`),
+        .map(
+          ([action, field]) =>
+            `${field}?: ${getModelArgName(
+              name,
+              Projection.select,
+              action as DMMF.ModelAction,
+            )}`,
+        ),
     )
     .join('\n'),
   tab,
@@ -651,15 +713,23 @@ ${new QueryDelegate(outputType)}
   }
 }
 export class ModelDelegate {
-  constructor(protected readonly outputType: OutputType, protected readonly dmmf: DMMFClass) {}
+  constructor(
+    protected readonly outputType: OutputType,
+    protected readonly dmmf: DMMFClass,
+  ) {}
   public toString() {
     const { fields, name } = this.outputType
     const mapping = this.dmmf.mappings.find(m => m.model === name)!
     const actions = Object.entries(mapping).filter(
-      ([key, value]) => key !== 'model' && key !== 'plural' && key !== 'aggregate' && value,
+      ([key, value]) =>
+        key !== 'model' && key !== 'plural' && key !== 'aggregate' && value,
     )
 
-    const listConstraint = getModelArgName(name, /*projection*/ undefined, DMMF.ModelAction.findMany)
+    const listConstraint = getModelArgName(
+      name,
+      /*projection*/ undefined,
+      DMMF.ModelAction.findMany,
+    )
     // TODO: The following code needs to be split up and is a mess
     return `\
 export interface ${name}Delegate {
@@ -679,8 +749,14 @@ ${indent(
   actions
     .map(
       ([actionName]: [any, any]) =>
-        `${actionName}<T extends ${getModelArgName(name, /*projection*/ undefined, actionName)}>(
-  args${actionName === DMMF.ModelAction.findMany ? '?' : ''}: Subset<T, ${getModelArgName(name, undefined, actionName)}>
+        `${actionName}<T extends ${getModelArgName(
+          name,
+          /*projection*/ undefined,
+          actionName,
+        )}>(
+  args${
+    actionName === DMMF.ModelAction.findMany ? '?' : ''
+  }: Subset<T, ${getModelArgName(name, undefined, actionName)}>
 ): ${getSelectReturnType({ name, actionName, projection: Projection.select })}`,
     )
     .join('\n'),
@@ -697,7 +773,9 @@ function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delega
       name,
       actionName: DMMF.ModelAction.findMany,
       projection: Projection.select,
-    })}>(dmmf, fetcher, 'query', '${mapping.findMany}', '${mapping.plural}', args, [])
+    })}>(dmmf, fetcher, 'query', '${mapping.findMany}', '${
+      mapping.plural
+    }', args, [])
 ${indent(
   actions
     .map(([actionName, fieldName]: [any, any]) =>
@@ -706,12 +784,20 @@ ${indent(
             name,
             undefined,
             actionName,
-          )}) => new ${name}Client<Promise<BatchPayload>>(${renderInitialClientArgs(actionName, fieldName, mapping)})`
+          )}) => new ${name}Client<Promise<BatchPayload>>(${renderInitialClientArgs(
+            actionName,
+            fieldName,
+            mapping,
+          )})`
         : `${name}.${actionName} = <T extends ${getModelArgName(
             name,
             /*projection*/ undefined,
             actionName as DMMF.ModelAction,
-          )}>(args: Subset<T, ${getModelArgName(name, Projection.select, actionName as DMMF.ModelAction)}>) => ${
+          )}>(args: Subset<T, ${getModelArgName(
+            name,
+            Projection.select,
+            actionName as DMMF.ModelAction,
+          )}>) => ${
             actionName !== 'findMany' ? `args.select ? ` : ''
           }new ${name}Client<${getSelectReturnType({
             name,
@@ -721,8 +807,15 @@ ${indent(
             projection: Projection.select,
           })}>(${renderInitialClientArgs(actionName, fieldName, mapping)})${
             actionName !== 'findMany'
-              ? ` : new ${name}Client<${(getType(name, actionName === 'findMany'),
-                actionName === 'findOne')}>(${renderInitialClientArgs(actionName, fieldName, mapping)})`
+              ? ` : new ${name}Client<${(getType(
+                  name,
+                  actionName === 'findMany',
+                ),
+                actionName === 'findOne')}>(${renderInitialClientArgs(
+                  actionName,
+                  fieldName,
+                  mapping,
+                )})`
               : ''
           }`,
     )
@@ -765,9 +858,13 @@ ${indent(
     .map(f => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
-${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType({
+${f.name}<T extends ${getFieldArgName(
+        f,
+      )} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType({
         name: fieldTypeName,
-        actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
+        actionName: f.outputType.isList
+          ? DMMF.ModelAction.findMany
+          : DMMF.ModelAction.findOne,
         hideCondition: false,
         isField: true,
         renderPromise: true,
@@ -780,7 +877,9 @@ ${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgNa
   this._isList = ${f.outputType.isList}
   return new ${getFieldTypeName(f)}Client<${getSelectReturnType({
         name: fieldTypeName,
-        actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findOne,
+        actionName: f.outputType.isList
+          ? DMMF.ModelAction.findMany
+          : DMMF.ModelAction.findOne,
         hideCondition: false,
         isField: true,
         renderPromise: true,
@@ -867,14 +966,20 @@ export class QueryDelegate {
     const name = this.outputType.name
     return `\
 interface ${name}Delegate {
-  <T extends ${name}Args>(args: Subset<T,${name}Args>): Promise<${getPayloadName(name, Projection.select)}<T>>
+  <T extends ${name}Args>(args: Subset<T,${name}Args>): Promise<${getPayloadName(
+      name,
+      Projection.select,
+    )}<T>>
 }
 function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delegate {
   const ${name} = <T extends ${name}Args>(args: ${name}Args) => new ${name}Client<T>(dmmf, fetcher, args, [])
   return ${name}
 }
 
-class ${name}Client<T extends ${name}Args, U = ${getPayloadName(name, Projection.select)}<T>> implements Promise<U> {
+class ${name}Client<T extends ${name}Args, U = ${getPayloadName(
+      name,
+      Projection.select,
+    )}<T>> implements Promise<U> {
   constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PhotonFetcher, private readonly args: ${name}Args, private readonly path: []) {}
 
   readonly [Symbol.toStringTag]: 'Promise'
@@ -922,7 +1027,10 @@ class ${name}Client<T extends ${name}Args, U = ${getPayloadName(name, Projection
 }
 
 export class InputField {
-  constructor(protected readonly field: DMMF.SchemaArg, protected readonly prefixFilter = false) {}
+  constructor(
+    protected readonly field: DMMF.SchemaArg,
+    protected readonly prefixFilter = false,
+  ) {}
   public toString() {
     const { field } = this
     let fieldType
@@ -953,7 +1061,9 @@ export class OutputField {
     const { field } = this
     // ENUMTODO
     let fieldType =
-      typeof field.type === 'string' ? GraphQLScalarToJSTypeTable[field.type] || field.type : field.type[0].name
+      typeof field.type === 'string'
+        ? GraphQLScalarToJSTypeTable[field.type] || field.type
+        : field.type[0].name
     if (Array.isArray(fieldType)) {
       fieldType = fieldType[0]
     }
@@ -974,7 +1084,12 @@ export class OutputType {
     const { type } = this
     return `
 export type ${type.name} = {
-${indent(type.fields.map(field => new OutputField({ ...field, ...field.outputType }).toString()).join('\n'), tab)}
+${indent(
+  type.fields
+    .map(field => new OutputField({ ...field, ...field.outputType }).toString())
+    .join('\n'),
+  tab,
+)}
 }`
   }
 }
@@ -1131,27 +1246,45 @@ export class ArgsType {
  * ${name} ${action ? action : 'without action'}
  */
 export type ${getModelArgName(name, undefined, action)} = {
-${indent(bothArgsOptional.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+${indent(
+  bothArgsOptional.map(arg => new InputField(arg).toString()).join('\n'),
+  tab,
+)}
 }
 
 export type ${getModelArgName(name, undefined, action)}Required = {
-${indent(bothArgsRequired.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+${indent(
+  bothArgsRequired.map(arg => new InputField(arg).toString()).join('\n'),
+  tab,
+)}
 }
 
 export type ${getModelArgName(name, Projection.select, action)} = {
-${indent(selectArgsRequired.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+${indent(
+  selectArgsRequired.map(arg => new InputField(arg).toString()).join('\n'),
+  tab,
+)}
 }
 
 export type ${getModelArgName(name, Projection.select, action)}Optional = {
-${indent(selectArgsOptional.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+${indent(
+  selectArgsOptional.map(arg => new InputField(arg).toString()).join('\n'),
+  tab,
+)}
 }
 
 export type ${getModelArgName(name, Projection.include, action)} = {
-${indent(includeArgsRequired.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+${indent(
+  includeArgsRequired.map(arg => new InputField(arg).toString()).join('\n'),
+  tab,
+)}
 }
 
 export type ${getModelArgName(name, Projection.include, action)}Optional = {
-${indent(includeArgsOptional.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+${indent(
+  includeArgsOptional.map(arg => new InputField(arg).toString()).join('\n'),
+  tab,
+)}
 }
 
 export type Extract${getModelArgName(
@@ -1196,7 +1329,12 @@ export class InputType {
     const { type } = this
     // TO DISCUSS: Should we rely on TypeScript's error messages?
     const body = `{
-${indent(type.fields.map(arg => new InputField(arg /*, type.atLeastOne && !type.atMostOne*/)).join('\n'), tab)}
+${indent(
+  type.fields
+    .map(arg => new InputField(arg /*, type.atLeastOne && !type.atMostOne*/))
+    .join('\n'),
+  tab,
+)}
 }`
     //     if (type.atLeastOne && !type.atMostOne) {
     //       return `export type Base${type.name} = ${body}
