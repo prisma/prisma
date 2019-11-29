@@ -115,8 +115,10 @@ export async function getGenerators({
         // resolve output path
         if (generator.output) {
           generator.output = path.resolve(baseDir, generator.output)
+          debug(`Resolving based on generator.output to ${generator.output}`)
         } else if (paths) {
           generator.output = paths.outputPath
+          debug(`Resolving based on paths to ${generator.output}`)
         } else {
           if (
             !generatorInstance.manifest ||
@@ -134,6 +136,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
             defaultOutput: generatorInstance.manifest.defaultOutput,
             baseDir,
           })
+          debug(`Resolving else to ${generator.output}`, { baseDir })
         }
 
         const options: GeneratorOptions = {
