@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "2.0.0-alpha.373",
+  "version": "2.0.0-alpha.374",
   "main": "index.js",
   "types": "index.d.ts",
   "license": "Apache-2.0",
@@ -16,8 +16,7 @@
     "cleanup": "rm -f index.d.ts && cp scripts/backup-index.js index.js && cp scripts/any-index.js runtime/index.d.ts",
     "ncc:generator": "rm -rf generator-build && ncc build dist/generator.js -o generator-build && sed -i.bak 's/env ts-node/env node --max-old-space-size=2048/g' 'generator-build/index.js' && rm -f generator-build/index.js.bak && chmod +x generator-build/index.js",
     "prepare": "pnpm run cleanup && cp scripts/backup-index.js index.js && node scripts/download.js || echo \"\"",
-    "prepublishOnly": "pnpm run build",
-    "build:browser": "webpack -c scripts/webpack.browser.config.js --verbose"
+    "prepublishOnly": "pnpm run build"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
@@ -80,7 +79,7 @@
     "strip-indent": "^3.0.0",
     "ts-jest": "^24.2.0",
     "ts-loader": "^6.2.1",
-    "ts-node": "^8.5.2",
+    "ts-node": "^8.5.4",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.7.2",
