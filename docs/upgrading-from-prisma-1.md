@@ -26,6 +26,8 @@ Note that the steps will look somewhat different if you're ...:
 
 Both scenarios will be covered in other upgrade guides. In this guide, we'll take a look at migrating a REST API from Prisma 1 to the Prisma Framework based on this [Prisma 1 example](https://github.com/prisma/prisma-examples/tree/master/typescript/rest-express).
 
+> **Note**: If you're upgrading a project that uses `nexus-prisma`, be sure to check out [@AhmedElywa](https://github.com/AhmedElywa)'s project [`create-nexus-type`](https://github.com/oahtech/create-nexus-type) that converts Prisma models into Nexus `objectType` definitions.
+
 ## 1. Install the Prisma Framework CLI 
 
 The Prisma Framework CLI is currently available as the [`prisma2`](https://www.npmjs.com/package/prisma2) package on npm. You can install it in your Node.js project as follows (be sure to invoke this command in the directory where your `package.json` is located):
