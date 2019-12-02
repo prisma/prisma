@@ -1,0 +1,6 @@
+steps:
+  - label: ':coverage: Test Photon'
+    trigger: 'prisma2-test'
+  - label: ':flashlight: Publish Photon'
+    trigger: 'prisma2-publish'
+  - wait
