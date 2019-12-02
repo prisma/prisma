@@ -4,7 +4,6 @@ set -ex
 
 mkdir -p runtime
 mkdir -p nexus_prisma_ncc_build
-mkdir -p prisma-test-utils_ncc
 mkdir -p build/photon-generator
 
 
