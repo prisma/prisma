@@ -1,6 +1,7 @@
 steps:
-  - label: ':coverage: Test Photon'
+  - label: ':coverage: Test Prisma 2'
     trigger: 'prisma2-test'
-  - label: ':flashlight: Publish Photon'
+  - label: ':flashlight: Publish Prisma 2'
     trigger: 'prisma2-publish'
+    concurrency: 1
   - wait
