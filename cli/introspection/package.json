@@ -1,6 +1,6 @@
 {
   "name": "@prisma/introspection",
-  "version": "0.0.161",
+  "version": "0.0.162",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -29,7 +29,7 @@
     "prettier": "^1.19.1",
     "react": "16.11.0",
     "ts-jest": "^24.2.0",
-    "ts-node": "^8.5.2",
+    "ts-node": "^8.5.4",
     "typescript": "^3.7.2"
   },
   "peerDependencies": {
@@ -44,7 +44,7 @@
     "chalk": "^3.0.0",
     "execa": "3.3.0",
     "figures": "^3.1.0",
-    "ink": "^2.5.0",
+    "ink": "^2.6.0",
     "ink-progress-bar": "^3.0.0",
     "ink-spinner": "^3.0.1",
     "make-dir": "^3.0.0",

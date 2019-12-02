@@ -1,6 +1,6 @@
 {
   "name": "@prisma/sdk",
-  "version": "0.0.72",
+  "version": "0.0.73",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma2.git",
@@ -30,7 +30,7 @@
     "lint-staged": "^9.5.0",
     "prettier": "^1.19.1",
     "ts-jest": "^24.2.0",
-    "ts-node": "^8.5.2",
+    "ts-node": "^8.5.4",
     "typescript": "^3.7.2"
   },
   "dependencies": {
