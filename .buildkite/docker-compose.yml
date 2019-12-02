@@ -1,8 +1,0 @@
-version: '3.7'
-services:
-  app:
-    image: node:10
-    volumes:
-      - ../:/app
-    working_dir: /app
-    command: /app/scripts/test.sh

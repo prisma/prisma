@@ -1,0 +1,7 @@
+steps:
+  - label: ':coverage: Test Lift'
+    trigger: 'prisma2-test'
+  - label: ':flashlight: Publish Lift'
+    trigger: 'prisma2-publish'
+    concurrency: 1
+  - wait
