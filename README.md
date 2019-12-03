@@ -168,3 +168,5 @@ More databases that will be supported in the future are:
 
 ## Contributing
 Read more about how to contribute to Lift [here](https://github.com/prisma/lift/blob/master/CONTRIBUTING.md)
+
+[![Build status](https://badge.buildkite.com/9caba29c5511a465e0cbf0f6b2f62173145d3dd90cf56c4daf.svg)](https://buildkite.com/prisma/lift)
