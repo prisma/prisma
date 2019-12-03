@@ -3,11 +3,8 @@
 set -ex
 
 
-node --version || echo ""
-sudo curl -L https://raw.githubusercontent.com/tj/n/master/bin/n -o n
-bash n lts
-node --version || echo ""
-
+apt-get update
+apt-get install nodejs npm -y
 npm i -g last-git-changes
 last-git-changes --exclude='docs,examples,scripts,README.md,LICENSE,CONTRIBUTING.md'
 
