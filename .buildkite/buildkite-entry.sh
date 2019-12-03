@@ -3,7 +3,7 @@
 set -ex
 
 
-curl -L https://raw.githubusercontent.com/tj/n/master/bin/n -o n
+sudo curl -L https://raw.githubusercontent.com/tj/n/master/bin/n -o n
 bash n lts
 node --version || echo ""
 
