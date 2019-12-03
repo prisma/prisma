@@ -88,7 +88,7 @@ export function getGraphQLType(value: any, potentialType?: string | DMMF.Enum | 
       return 'Float'
     }
   }
-  if (value instanceof Date) {
+  if (Object.prototype.toString.call(value) === '[object Date]') {
     return 'DateTime'
   }
   if (jsType === 'string') {
