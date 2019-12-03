@@ -88,5 +88,10 @@
   },
   "peerDependencies": {
     "prisma2": "*"
+  },
+  "peerDependenciesMeta": {
+    "prisma2": {
+      "optional": true
+    }
   }
 }
