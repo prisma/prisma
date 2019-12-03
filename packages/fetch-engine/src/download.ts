@@ -60,11 +60,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   }
   const plural = mergedOptions.binaryTargets.length > 1 ? 'ies' : 'y'
   const bar = options.showProgress
-    ? getBar(
-        `Downloading ${mergedOptions.binaryTargets
-          .map(p => chalk.bold(p))
-          .join(' and ')} binar${plural} for ${Object.keys(mergedOptions.binaries).join(' and ')}`,
-      )
+    ? getBar(`Downloading Prisma engines for ${mergedOptions.binaryTargets.map(p => chalk.bold(p)).join(' and ')}`)
     : undefined
   const progressMap: { [key: string]: number } = {}
   // Object.values is faster than Object.keys
