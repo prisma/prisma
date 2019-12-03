@@ -294,3 +294,5 @@ More databases that will be supported in the future are:
 
 ## Contributing
 Read more about how to contribute to Photon [here](https://github.com/prisma/photonjs/blob/master/CONTRIBUTING.md)
+
+[![Build status](https://badge.buildkite.com/fa6027d11848231f2bc194aaffcf5dbc2ee0a83d666af0806e.svg)](https://buildkite.com/prisma/photon)
