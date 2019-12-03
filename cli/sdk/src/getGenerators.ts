@@ -178,7 +178,10 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
 
     const binariesConfig: BinaryDownloadConfiguration = binaries.reduce(
       (acc, curr) => {
-        acc[engineTypeToBinaryType(curr)] = path.join(__dirname, '../')
+        acc[engineTypeToBinaryType(curr)] = path.join(
+          path.dirname(module.filename),
+          '../',
+        )
         return acc
       },
       {},
