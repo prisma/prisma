@@ -50,6 +50,12 @@ export type BinaryPaths = {
   introspectionEngine?: { [binaryTarget: string]: string }
 }
 
+const binaryToEnvVar = {
+  'migration-engine': 'PRISMA_MIGRATION_ENGINE_BINARY',
+  'query-engine': 'PRISMA_QUERY_ENGINE_BINARY',
+  'introspection-engine': 'PRISMA_INTROSPECTION_ENGINE_BINARY',
+}
+
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
   const mergedOptions: DownloadOptions = {
@@ -95,7 +101,25 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
           const sourcePath = getDownloadUrl(channel, mergedOptions.version, platform, binaryName as BinaryKind)
           const targetPath = path.resolve(targetDir, getBinaryName(binaryName, platform))
 
-          binaryPaths[binaryName][platform] = targetPath
+          const envVar = binaryToEnvVar[binaryName]
+          if (envVar && process.env[envVar]) {
+            if (!fs.existsSync(process.env[envVar])) {
+              throw new Error(
+                `Env var ${chalk.bold(envVar)} is provided but provided path ${chalk.underline(
+                  process.env.PRISMA_QUERY_ENGINE_BINARY,
+                )} can't be resolved.`,
+              )
+            }
+            debug(
+              `Using env var ${chalk.bold(envVar)} for binary ${chalk.bold(
+                binaryName,
+              )}, which points to ${chalk.underline(process.env[envVar])}`,
+            )
+            binaryPaths[binaryName][platform] = path.resolve(process.env[envVar])
+          } else {
+            debug(`Setting binary path for ${binaryName} ${platform} to ${targetPath}`)
+            binaryPaths[binaryName][platform] = targetPath
+          }
 
           if (!options.skipDownload) {
             await downloadBinary({
