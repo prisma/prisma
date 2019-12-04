@@ -2,10 +2,6 @@
 
 set -ex
 
-
-whoami
-node --version
-npm --version
 git clone git@github.com:timsuchanek/last-git-changes.git
 cd last-git-changes
 npm install
