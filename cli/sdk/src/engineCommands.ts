@@ -1,5 +1,6 @@
 import { getPlatform } from '@prisma/get-platform'
 import chalk from 'chalk'
+import { execSync } from 'child_process'
 import execa from 'execa'
 import path from 'path'
 import { ConfigMetaFormat } from './isdlToDatamodel2'
@@ -27,8 +28,34 @@ async function getPrismaPath(): Promise<string> {
   const dir = eval('__dirname')
   const platform = await getPlatform()
   const extension = platform === 'windows' ? '.exe' : ''
-  const relative = `../query-engine-${platform}${extension}`
-  return path.join(dir, relative)
+  const relative = `query-engine-${platform}${extension}`
+  let prismaPath = path.join(dir, '..', relative)
+  if (fs.existsSync(prismaPath)) {
+    return prismaPath
+  }
+  // for pkg
+  prismaPath = path.join(dir, '../..', relative)
+  if (fs.existsSync(prismaPath)) {
+    return prismaPath
+  }
+
+  prismaPath = path.join(__dirname, '..', relative)
+  if (fs.existsSync(prismaPath)) {
+    return prismaPath
+  }
+
+  prismaPath = path.join(__dirname, '../..', relative)
+  if (fs.existsSync(prismaPath)) {
+    return prismaPath
+  }
+
+  throw new Error(
+    `Could not find query-engine binary. Searched in ${path.join(
+      dir,
+      '..',
+      relative,
+    )} and ${path.join(dir, '../..', relative)}`,
+  )
 }
 
 export type GetDMMFOptions = {
@@ -61,7 +88,7 @@ export async function getDMMF({
       }
     }
 
-    result = await execa(prismaPath, ['cli', '--dmmf'], {
+    const options = {
       cwd,
       env: {
         ...process.env,
@@ -69,7 +96,9 @@ export async function getDMMF({
         RUST_BACKTRACE: '1',
       },
       maxBuffer: MAX_BUFFER,
-    })
+    }
+
+    result = await execa(prismaPath, ['cli', '--dmmf'], options)
 
     if (!datamodelPath) {
       await unlink(tempDatamodelPath!)
@@ -200,3 +229,14 @@ export async function dmmfToDml(
     throw new Error(e)
   }
 }
+
+// export default function plusX(file: fs.PathLike): void {
+//   if (fs.existsSync(file)) {
+//     const s = fs.statSync(file)
+//     debug('size', s.size)
+//     const newMode = s.mode | 64 | 8 | 1
+//     if (s.mode === newMode) return
+//     const base8 = newMode.toString(8).slice(-3)
+//     fs.chmodSync(file, base8)
+//   }
+// }
