@@ -21,9 +21,9 @@
     "@types/jest": "24.0.22",
     "@types/node": "12.12.7",
     "@types/tar": "^4.0.3",
-    "@typescript-eslint/eslint-plugin": "^2.9.0",
-    "@typescript-eslint/parser": "^2.9.0",
-    "eslint": "^6.7.1",
+    "@typescript-eslint/eslint-plugin": "^2.10.0",
+    "@typescript-eslint/parser": "^2.10.0",
+    "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.7.0",
     "husky": "^3.1.0",
     "jest": "^24.9.0",
@@ -31,7 +31,7 @@
     "prettier": "^1.19.1",
     "ts-jest": "^24.2.0",
     "ts-node": "^8.5.4",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.3"
   },
   "dependencies": {
     "@apexearth/copy": "^1.4.4",
