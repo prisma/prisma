@@ -2,4 +2,20 @@
 
 set -ex
 
-buildkite-agent pipeline upload .buildkite/trigger.yml
+git clone git@github.com:timsuchanek/last-git-changes.git
+cd last-git-changes
+npm install
+npm run build
+cd ..
+export CHANGED_COUNT=$(node last-git-changes/bin.js --exclude='docs,examples,README.md,LICENSE,CONTRIBUTING.md' | wc -l)
+
+echo $CHANGED_COUNT
+
+if [ $CHANGED_COUNT -gt 0 ]; then
+  buildkite-agent pipeline upload .buildkite/trigger.yml
+else
+  echo "Nothing changed"
+fi
+
+
+
