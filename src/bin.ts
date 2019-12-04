@@ -75,9 +75,9 @@ main()
   })
   .catch(err => {
     if (err.rustStack) {
-      handlePanic(err, 'TEST', 'TEST')
+      handlePanic(err, 'TEST', 'TEST').catch(console.error)
     } else {
-      // console.error(err)
-      // process.exit(1)
+      console.error(err)
+      process.exit(1)
     }
   })

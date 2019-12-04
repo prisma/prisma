@@ -161,14 +161,14 @@ export class LiftEngine {
         this.child.on('exit', (code, signal) => {
           const messages = this.messages.join('\n')
           let err: any
-          if (code !== 0 || messages.includes('panicked at')) {
+          if (code !== 0 || messages.includes('panicking')) {
             let errorMessage = chalk.red.bold('Error in migration engine: ') + messages
             if (messages.includes('\u001b[1;94m-->\u001b[0m')) {
               errorMessage = `${chalk.red.bold('Schema parsing ')}` + messages
-            } else if (this.lastError && this.lastError.msg === 'PANIC') {
+            } else if (this.lastError && code === 255) {
               errorMessage = serializePanic(this.lastError)
-              err = new LiftPanic(errorMessage, messages, this.lastRequest, this.schemaPath)
-            } else if (messages.includes('panicked at')) {
+              err = new LiftPanic(errorMessage, this.lastError.message, this.lastRequest, this.schemaPath)
+            } else if (messages.includes('panicked at') || code === 255) {
               err = new LiftPanic(errorMessage, messages, this.lastRequest, this.schemaPath)
             }
             err = err || new Error(errorMessage)
@@ -187,6 +187,9 @@ export class LiftEngine {
           debugStderr(msg)
           try {
             const json = JSON.parse(msg)
+            if (json.backtrace) {
+              this.lastError = json
+            }
             if (json.level === 'ERRO') {
               this.lastError = json
             }
@@ -283,9 +286,7 @@ Please put that file into a gist and post it in Slack.
 }
 
 function serializePanic(log) {
-  return `${chalk.red.bold('Error in migration engine.\nReason: ')}${chalk.red(
-    `${log.reason} in ${chalk.underline(`${log.file}:${log.line}:${log.column}`)}`,
-  )}
+  return `${chalk.red.bold('Error in migration engine.\nReason: ')}${chalk.red(`${log.message}`)}
 
 Please create an issue in the ${chalk.bold('lift')} repo with
 your \`schema.prisma\` and the prisma2 command you tried to use 🙏:
