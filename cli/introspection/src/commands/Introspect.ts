@@ -1,318 +1,147 @@
-import { arg, Command, format, isError, getSchemaDir } from '@prisma/cli'
-import { Result } from 'arg'
+import { Command, format, HelpError, getSchemaPath, arg } from '@prisma/cli'
 import chalk from 'chalk'
-import fs from 'fs'
-import ora from 'ora'
 import path from 'path'
-import { DatabaseType } from 'prisma-datamodel'
-import {
-  assertSchemaExists,
-  ConnectorData,
-  getConnectedConnectorFromCredentials,
-  getCredentialsFromExistingDatamodel,
-  getDatabaseSchemas,
-  populateMongoDatabase,
-  prettyTime,
-  sanitizeMongoUri,
-  introspect,
-} from '../introspectionConnector'
-import { DatabaseCredentials, IntrospectionResult } from '../types'
+import { getConfig, IntrospectionEngine, getDMMF, dmmfToDml } from '@prisma/sdk'
+import { formatms } from '../util/formatms'
+import fs from 'fs'
+import { ConfigMetaFormat } from '@prisma/sdk/dist/isdlToDatamodel2'
+import { predefinedGeneratorResolvers } from '@prisma/sdk/dist/predefinedGeneratorResolvers'
 
-type Args = {
-  '--env-file': StringConstructor
-  '-e': '--env-file'
-  '--project': StringConstructor
-  '-p': '--project'
-
-  /**
-   * Postgres Params
-   */
-  '--pg-host': StringConstructor
-  '--pg-port': StringConstructor
-  '--pg-user': StringConstructor
-  '--pg-password': StringConstructor
-  '--pg-db': StringConstructor
-  '--pg-ssl': BooleanConstructor
-  '--pg-schema': StringConstructor
-
-  /**
-   * MySQL Params
-   */
-  '--mysql-host': StringConstructor
-  '--mysql-port': StringConstructor
-  '--mysql-user': StringConstructor
-  '--mysql-password': StringConstructor
-  '--mysql-db': StringConstructor
-
-  /**
-   * Mongo Params
-   */
-  '--mongo-uri': StringConstructor
-  '--mongo-db': StringConstructor
-  '--sdl': BooleanConstructor
-  '--help': BooleanConstructor
-}
-
+/**
+ * $ prisma migrate new
+ */
 export class Introspect implements Command {
-  static new(): Introspect {
+  public static new(): Introspect {
     return new Introspect()
   }
 
+  // static help template
+  private static help = format(`
+    Introspect a database and save the result to schema.prisma.
+
+    ${chalk.bold('Usage')}
+
+    With an existing schema.prisma, just
+      ${chalk.bold('prisma2 introspect')}
+    
+    Or specify a connection string:
+      ${chalk.bold('prisma2 introspect --url="mysql://localhost:3306/database"')}
+    
+    Instead of saving the result to the filesystem, you can also just print it
+      ${chalk.bold('prisma2 introspect --print')}
+
+  `)
   private constructor() {}
 
-  async parse(argv: string[]): Promise<any> {
-    // parse the arguments according to the spec
+  // parse arguments
+  public async parse(argv: string[], minimalOutput = false): Promise<string | Error> {
     const args = arg(argv, {
-      '--env-file': String,
-      '-e': '--env-file',
-      '--project': String,
-      '-p': '--project',
       '--help': Boolean,
       '-h': '--help',
-
-      /**
-       * Postgres Params
-       */
-      '--pg-host': String,
-      '--pg-port': String,
-      '--pg-user': String,
-      '--pg-password': String,
-      '--pg-db': String,
-      '--pg-ssl': Boolean,
-      '--pg-schema': String,
-
-      /**
-       * MySQL Params
-       */
-      '--mysql-host': String,
-      '--mysql-port': String,
-      '--mysql-user': String,
-      '--mysql-password': String,
-      '--mysql-db': String,
-
-      /**
-       * Mongo Params
-       */
-      '--mongo-uri': String,
-      '--mongo-db': String,
-      '--sdl': Boolean,
+      '--url': String,
+      '--print': Boolean,
     })
 
-    if (isError(args)) {
-      return null
+    const log = (...messages) => {
+      if (!args['--print']) {
+        console.log(...messages)
+      }
+    }
+
+    if (args instanceof Error) {
+      return this.help(args.message)
     }
 
     if (args['--help']) {
       return this.help()
     }
 
-    try {
-      const sdl = args['--sdl']
-      /**
-       * Introspect
-       */
-      const { sdl: newDatamodelSdl, numTables, referenceDatamodelExists } = await this.introspectDatabase(args, sdl)
-
-      if (!sdl) {
-        /**
-         * Write the result to the filesystem
-         */
-
-        const fileName = await this.writeDatamodel(newDatamodelSdl)
-
-        console.log(`\nCreated datamodel definition based on ${numTables} database tables`)
-        const andDatamodelText = referenceDatamodelExists ? ' and the existing datamodel' : ''
-        console.log(`\
-${chalk.bold('Created 1 new file:')} Prisma DML datamodel (derived from existing database${andDatamodelText})
-
-  ${chalk.cyan(fileName)}
-`)
-      } else {
-        console.log(newDatamodelSdl)
+    let url: string | undefined = args['--url']
+    let schemaPath = await getSchemaPath()
+    let config: ConfigMetaFormat | undefined
+    if (!url) {
+      if (!schemaPath) {
+        throw new Error(
+          `Either provide ${chalk.greenBright(
+            '--url',
+          )} or make sure that you are in a folder with a ${chalk.greenBright('schema.prisma')} file.`,
+        )
       }
-    } catch (e) {
-      console.log(chalk.red(`\n${chalk.bold(`Error: ${e.message}`)}`))
-    }
 
-    // TODO: process.exit is needed because some listeners are probably not cleared properly
-    process.exit(0)
-  }
-
-  async writeDatamodel(renderedSdl: string): Promise<string> {
-    const fileName = `datamodel-${Math.round(new Date().getTime() / 1000)}.prisma`
-    const schemaDir = (await getSchemaDir()) || process.cwd()
-    const fullFileName = path.join(schemaDir, fileName)
-    fs.writeFileSync(fullFileName, renderedSdl)
-    return fileName
-  }
-
-  async introspectDatabase(args: Result<Args>, sdl: boolean | undefined): Promise<IntrospectionResult> {
-    const credentialsByFlag = this.getCredentialsByFlags(args) || (await getCredentialsFromExistingDatamodel())
-
-    // Get everything interactively
-    if (!credentialsByFlag) {
-      throw new Error(
-        `Please either run this command in a folder with a ${chalk.greenBright(
-          'schema.prisma',
-        )} or provide credentials as cli flags.`,
-      )
-    }
-
-    let schema: string | undefined
-    if (credentialsByFlag.type === DatabaseType.mysql) {
-      schema = credentialsByFlag.database
-    }
-
-    if (credentialsByFlag.type === DatabaseType.postgres) {
-      schema = credentialsByFlag.schema
-    }
-
-    if (!schema) {
-      console.log(`Please provide a database name`)
-      return process.exit(1)
-    }
-
-    const { connector, disconnect } = await getConnectedConnectorFromCredentials(credentialsByFlag)
-
-    const schemas = await getDatabaseSchemas(connector)
-
-    assertSchemaExists(schema, credentialsByFlag.type, schemas)
-
-    const introspectionResult = await this.introspectWithSpinner(
-      {
-        connector,
-        disconnect,
-        databaseType: credentialsByFlag.type,
-        databaseName: schema,
-        credentials: credentialsByFlag,
-      },
-      sdl,
-    )
-    await disconnect()
-
-    return introspectionResult
-  }
-
-  getCredentialsByFlags(args: Result<Args>): DatabaseCredentials | null {
-    const requiredPostgresFlags: (keyof Args)[] = ['--pg-host', '--pg-user', '--pg-password', '--pg-db']
-    const requiredMysqlFlags: (keyof Args)[] = ['--mysql-host', '--mysql-user', '--mysql-password']
-
-    const flagsKeys = Object.keys(args) as (keyof Args)[]
-
-    const mysqlFlags = flagsKeys.filter(f => requiredMysqlFlags.includes(f))
-    const postgresFlags = flagsKeys.filter(f => requiredPostgresFlags.includes(f))
-
-    if (mysqlFlags.length > 0 && postgresFlags.length > 0) {
-      throw new Error(`You can't provide both MySQL and Postgres connection flags. Please provide either of both.`)
-    }
-
-    if (mysqlFlags.length > 0 && mysqlFlags.length < requiredMysqlFlags.length) {
-      this.handleMissingArgs(requiredMysqlFlags, mysqlFlags, 'mysql')
-    }
-
-    if (postgresFlags.length > 0 && postgresFlags.length < requiredPostgresFlags.length) {
-      this.handleMissingArgs(requiredPostgresFlags, postgresFlags, 'pg')
-    }
-
-    if (mysqlFlags.length >= requiredMysqlFlags.length) {
-      return {
-        host: args['--mysql-host'],
-        port: parseInt(args['--mysql-port']!, 10),
-        user: args['--mysql-user'],
-        password: args['--mysql-password'],
-        schema: args['--mysql-db'],
-        type: DatabaseType.mysql,
-      }
-    }
-
-    if (postgresFlags.length >= requiredPostgresFlags.length) {
-      return {
-        host: args['--pg-host'],
-        user: args['--pg-user'],
-        password: args['--pg-password'],
-        database: args['--pg-db'],
-        port: parseInt(args['--pg-port']!, 10),
-        schema: args['--pg-schema'],
-        type: DatabaseType.postgres,
-      } // this is optional and can be undefined
-    }
-
-    if (args['--mongo-uri']) {
-      const uri = args['--mongo-uri']
-      const database = args['--mongo-db'] // this is optional and can be undefined
-      const credentials = populateMongoDatabase({
-        uri,
-        database,
+      config = await getConfig({
+        datamodelPath: schemaPath,
       })
-      return {
-        uri: sanitizeMongoUri(credentials.uri),
-        schema: credentials.database,
-        type: DatabaseType.mongo,
+
+      const datasource = config.datasources[0]
+      if (!datasource) {
+        throw new Error(
+          `Either provide ${chalk.greenBright('--url')} or add a ${chalk.greenBright.bold(
+            'datasource',
+          )} in the ${chalk.greenBright(path.relative(process.cwd(), schemaPath))} file.`,
+        )
       }
+      url = datasource.url.value
     }
 
-    return null
-  }
+    const engine = new IntrospectionEngine({
+      cwd: schemaPath ? path.dirname(schemaPath) : undefined,
+    })
 
-  handleMissingArgs(requiredArgs: string[], providedArgs: string[], prefix: string) {
-    const missingArgs = requiredArgs.filter(arg => !providedArgs.some(provided => arg === provided))
-
-    throw new Error(
-      `If you provide one of the ${prefix}- arguments, you need to provide all of them. The arguments ${missingArgs.join(
-        ', ',
-      )} are missing.`,
-    )
-  }
-
-  /**
-   * Introspect the database
-   */
-  async introspectWithSpinner(connectorData: ConnectorData, sdl: boolean | undefined) {
-    const spinner = ora({ color: 'cyan' })
+    const basedOn =
+      !args['--url'] && schemaPath
+        ? ` based on datasource defined in ${chalk.underline(path.relative(process.cwd(), schemaPath))}`
+        : ''
+    log(`Introspecting${basedOn} …`)
 
     const before = Date.now()
+    const introspectionSchema = await engine.introspect(url)
+    engine.stop()
 
-    if (!sdl) {
-      spinner.start(`Introspecting database ${chalk.bold(connectorData.databaseName)}`)
+    try {
+      const dmmf = await getDMMF({ datamodel: introspectionSchema })
+      const schema = await dmmfToDml({
+        config: config || {
+          datasources: [],
+          generators: [],
+        },
+        dmmf: dmmf.datamodel,
+      })
+
+      log(`Done with introspection in ${chalk.bold(formatms(Date.now() - before))}`)
+
+      if (args['--print']) {
+        console.log(schema)
+      } else {
+        if (schemaPath && fs.existsSync(schemaPath)) {
+          const backupPath = path.join(path.dirname(schemaPath), 'schema.backup.prisma')
+          fs.renameSync(schemaPath, backupPath)
+          log(
+            `\nMoved existing ${chalk.underline(path.relative(process.cwd(), schemaPath))} to ${chalk.underline(
+              path.relative(process.cwd(), backupPath),
+            )}`,
+          )
+        }
+        schemaPath = schemaPath || 'schema.prisma'
+        fs.writeFileSync(schemaPath, schema)
+        log(`Wrote ${chalk.underline(path.relative(process.cwd(), schemaPath))}`)
+      }
+    } catch (e) {
+      console.error(chalk.bold.red(`\nIntrospection failed:`) + chalk.red(` Introspected schema can't be parsed.`))
+      if (introspectionSchema) {
+        console.log(chalk.bold(`Introspected Schema:\n`))
+        console.log(introspectionSchema + '\n')
+      }
+      console.error(e)
     }
 
-    const introspectionResult = await introspect(connectorData)
-
-    if (!sdl) {
-      spinner.succeed(
-        `Introspecting database ${chalk.bold(connectorData.databaseName)}: ${prettyTime(Date.now() - before)}`,
-      )
-    }
-
-    return introspectionResult
+    return ''
   }
 
-  help() {
-    return console.log(
-      format(`
-Usage: prisma2 introspect [flags]
-
-Introspect database schema(s) of service
-
-Flags:
-         -e, --env-file ENV-FILE    Path to .env file to inject env vars
-           -p, --project PROJECT    Path to Prisma definition file
-             --mongo-db MONGO-DB    Mongo database
-           --mongo-uri MONGO-URI    Mongo connection string
-             --mysql-db MYSQL-DB    The MySQL database
-         --mysql-host MYSQL-HOST    Name of the MySQL host
- --mysql-password MYSQL-PASSWORD    The MySQL password
-         --mysql-port MYSQL-PORT    The MySQL port. Default: 3306
-         --mysql-user MYSQL-USER    The MySQL user
-                   --pg-db PG-DB    The Postgres database
-               --pg-host PG-HOST    Name of the Postgres host
-       --pg-password PG-PASSWORD    The Postgres password
-               --pg-port PG-PORT    The Postgres port. Default: 5432
-           --pg-schema PG-SCHEMA    Name of the Postgres schema
-                        --pg-ssl    Enable ssl for postgres
-               --pg-user PG-USER    The Postgres user
-                           --sdl    Omit any CLI output and just print the resulting datamodel. Requires an existing Prisma project with executeRaw. Useful for scripting
-    `),
-    )
+  // help message
+  public help(error?: string): string | HelpError {
+    if (error) {
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Introspect.help}`)
+    }
+    return Introspect.help
   }
 }

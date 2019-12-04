@@ -2,13 +2,15 @@ import { useStdin as inkUseStdin } from 'ink'
 import React from 'react'
 import { Key, emitKeypressEvents } from 'readline'
 import { action } from '../helpers'
-import Debug from 'debug'
 
 export function useStdin(
   keyHandler: ({ actionKey: ActionKey, text: string, key: Key }) => void,
   deps: any[] = [],
 ) {
-  const { stdin, setRawMode } = inkUseStdin()
+  let { stdin, setRawMode } = inkUseStdin()
+
+  // stdin = stdin || process.stdin
+  // setRawMode = setRawMode || process.stdin.setRawMode
 
   emitKeypressEvents(stdin)
 

@@ -3,8 +3,9 @@
 /**
  * Dependencies
  */
-import { isError, HelpError } from '@prisma/cli'
+import { isError, HelpError, arg } from '@prisma/cli'
 import { Init } from './commands/Init'
+import { Introspect } from './commands/Introspect'
 
 /**
  * Main function
@@ -12,17 +13,25 @@ import { Init } from './commands/Init'
 async function main(): Promise<number> {
   process.env.NODE_ENV = 'production'
   // create a new CLI with our subcommands
-  const cli = Init.new()
-  // parse the arguments
-  const result = await cli.parse(process.argv.slice(2))
-  if (result instanceof HelpError) {
-    console.error(result)
-    return 1
-  } else if (isError(result)) {
-    console.error(result)
+  const args = arg(process.argv.slice(2), {})
+
+  if (isError(args)) {
+    console.error(args.message)
     return 1
   }
-  console.log(result)
+
+  const commands = {
+    init: Init.new(),
+    introspect: Introspect.new(),
+  }
+
+  if (commands[args._[0]]) {
+    const result = await commands[args._[0]].parse(process.argv.slice(3))
+    console.log(result)
+  } else {
+    console.error(`Command not found: ${args._[0]}. Available commands: ${Object.keys(commands).join(', ')}`)
+    return 1
+  }
 
   return 0
 }

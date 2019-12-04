@@ -32,7 +32,7 @@ async function getPrismaPath(): Promise<string> {
 }
 
 export type GetDMMFOptions = {
-  datamodel: string
+  datamodel?: string
   cwd?: string
   prismaPath?: string
   datamodelPath?: string
@@ -49,27 +49,31 @@ export async function getDMMF({
   prismaPath = prismaPath || (await getPrismaPath())
   let result
   try {
-    let tempDataModelPath: string
-    try {
-      tempDataModelPath = await tmpWrite(datamodel)
-    } catch (err) {
-      throw new Error(
-        chalk.redBright.bold('Get DMMF ') +
-          'unable to write temp data model path',
-      )
+    let tempDatamodelPath: string | undefined = datamodelPath
+    if (!tempDatamodelPath) {
+      try {
+        tempDatamodelPath = await tmpWrite(datamodel!)
+      } catch (err) {
+        throw new Error(
+          chalk.redBright.bold('Get DMMF ') +
+            'unable to write temp data model path',
+        )
+      }
     }
 
     result = await execa(prismaPath, ['cli', '--dmmf'], {
       cwd,
       env: {
         ...process.env,
-        PRISMA_DML_PATH: tempDataModelPath,
+        PRISMA_DML_PATH: tempDatamodelPath!,
         RUST_BACKTRACE: '1',
       },
       maxBuffer: MAX_BUFFER,
     })
 
-    await unlink(tempDataModelPath)
+    if (!datamodelPath) {
+      await unlink(tempDatamodelPath!)
+    }
 
     if (result.stdout.includes('Please wait until the') && retry > 0) {
       debug('Retrying after "Please wait until"')
@@ -120,32 +124,36 @@ export async function getConfig({
 }: GetDMMFOptions): Promise<ConfigMetaFormat> {
   prismaPath = prismaPath || (await getPrismaPath())
 
-  let tempDataModelPath: string
-  try {
-    tempDataModelPath = await tmpWrite(datamodel)
-  } catch (err) {
-    throw new Error(
-      chalk.redBright.bold('Get config ') +
-        'unable to write temp data model path',
-    )
+  let tempDatamodelPath: string | undefined = datamodelPath
+  if (!tempDatamodelPath) {
+    try {
+      tempDatamodelPath = await tmpWrite(datamodel!)
+    } catch (err) {
+      throw new Error(
+        chalk.redBright.bold('Get DMMF ') +
+          'unable to write temp data model path',
+      )
+    }
   }
 
   try {
     const result = await execa(
       prismaPath,
-      ['cli', '--get_config', tempDataModelPath],
+      ['cli', '--get_config', tempDatamodelPath],
       {
         cwd,
         env: {
           ...process.env,
-          PRISMA_DML_PATH: tempDataModelPath,
+          PRISMA_DML_PATH: tempDatamodelPath,
           RUST_BACKTRACE: '1',
         },
         maxBuffer: MAX_BUFFER,
       },
     )
 
-    await unlink(tempDataModelPath)
+    if (!datamodelPath) {
+      await unlink(tempDatamodelPath)
+    }
 
     return JSON.parse(result.stdout)
   } catch (e) {
