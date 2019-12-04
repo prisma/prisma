@@ -16,6 +16,14 @@ const MAX_BUFFER = 1000 * 1000 * 1000
 
 async function getPrismaPath(): Promise<string> {
   // tslint:disable-next-line
+  if (process.env.PRISMA_QUERY_ENGINE_BINARY) {
+    if (!fs.existsSync(process.env.PRISMA_QUERY_ENGINE_BINARY)) {
+      throw new Error(
+        `Env var PRISMA_QUERY_ENGINE_BINARY is provided but provided path ${process.env.PRISMA_QUERY_ENGINE_BINARY} can't be resolved.`,
+      )
+    }
+    return process.env.PRISMA_QUERY_ENGINE_BINARY
+  }
   const dir = eval('__dirname')
   const platform = await getPlatform()
   const extension = platform === 'windows' ? '.exe' : ''
