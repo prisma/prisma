@@ -15,12 +15,14 @@
     "photon"
   ],
   "pkg": {
-    "scripts": "build/index.js",
     "assets": [
       "build/**/*",
       "runtime/**/*",
       "photon/**/*",
-      "download-build/**/*"
+      "download-build/**/*",
+      "query-engine-darwin",
+      "migration-engine",
+      "introspection-engine*"
     ]
   },
   "bin": "build/index.js",
