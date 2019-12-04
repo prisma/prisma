@@ -241,7 +241,6 @@ export class IntrospectionEngine {
     await this.init()
     return new Promise((resolve, reject) => {
       this.registerCallback(request.id, (response, err) => {
-        console.log(response)
         if (err) {
           return reject(err)
         }

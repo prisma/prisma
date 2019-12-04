@@ -1,3 +1,4 @@
+export { IntrospectionEngine } from './IntrospectionEngine'
 export { Generator } from './Generator'
 export { getGenerators, getGenerator, ProviderAliases } from './getGenerators'
 export { isdlToDatamodel2 } from './isdlToDatamodel2'

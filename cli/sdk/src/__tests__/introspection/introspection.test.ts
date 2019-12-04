@@ -1,16 +1,35 @@
-// import { IntrospectionEngine } from '../../IntrospectionEngine'
+import { IntrospectionEngine } from '../../IntrospectionEngine'
+import path from 'path'
 
-// async function main() {
-//   const engine = new IntrospectionEngine({
-//     cwd: __dirname,
-//   })
+test('basic introspection', async () => {
+  const engine = new IntrospectionEngine({
+    cwd: __dirname,
+  })
 
-//   const result = await engine.introspect('file:blog.db')
-//   console.log(JSON.stringify(result))
-// }
+  const result = await engine.introspect(
+    `file:${path.resolve(__dirname, 'blog.db')}`,
+  )
+  expect(result).toMatchInlineSnapshot(`
+    "model User {
+      age     Int     @default(0)
+      amount  Float   @default(0)
+      balance Float   @default(0)
+      email   String  @default(\\"''\\") @unique
+      id      Int     @id
+      name    String?
+      role    String  @default(\\"'USER'\\")
+      posts   Post[]
+    }
 
-// main()
-
-test('introspection', () => {
-  expect(1).toBe(1)
+    model Post {
+      author    User
+      content   String?
+      createdAt DateTime
+      kind      String?
+      published Boolean  @default(false)
+      title     String   @default(\\"''\\")
+      updatedAt DateTime
+      uuid      String   @id(strategy: NONE)
+    }"
+  `)
 })
