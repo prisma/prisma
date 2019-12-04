@@ -1,6 +1,6 @@
 {
   "name": "@prisma/photon",
-  "version": "2.0.0-alpha.390",
+  "version": "2.0.0-alpha.392",
   "main": "index.js",
   "types": "index.d.ts",
   "license": "Apache-2.0",
@@ -82,7 +82,7 @@
     "ts-node": "^8.5.4",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.7.2",
+    "typescript": "^3.7.3",
     "webpack": "5.0.0-alpha.14",
     "webpack-cli": "4.0.0-alpha-4"
   },
