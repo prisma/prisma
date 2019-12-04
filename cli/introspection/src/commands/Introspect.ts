@@ -5,7 +5,6 @@ import { getConfig, IntrospectionEngine, getDMMF, dmmfToDml } from '@prisma/sdk'
 import { formatms } from '../util/formatms'
 import fs from 'fs'
 import { ConfigMetaFormat } from '@prisma/sdk/dist/isdlToDatamodel2'
-import { predefinedGeneratorResolvers } from '@prisma/sdk/dist/predefinedGeneratorResolvers'
 
 /**
  * $ prisma migrate new
@@ -96,6 +95,10 @@ export class Introspect implements Command {
     const before = Date.now()
     const introspectionSchema = await engine.introspect(url)
     engine.stop()
+
+    if (introspectionSchema.trim() === '') {
+      throw new Error(`Empty introspection result for ${chalk.underline(url)}`)
+    }
 
     try {
       const dmmf = await getDMMF({ datamodel: introspectionSchema })
