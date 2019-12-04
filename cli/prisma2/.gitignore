@@ -14,6 +14,7 @@ examples
 prisma-test-utils_ncc
 tmp
 @generated
+pkg-build
 
 prisma
 .envrc
