@@ -11,7 +11,7 @@
     "@types/node-fetch": "^2.5.4",
     "@types/progress": "^2.0.3",
     "ncc": "^0.3.6",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.3"
   },
   "dependencies": {
     "@prisma/get-platform": "workspace:*",
