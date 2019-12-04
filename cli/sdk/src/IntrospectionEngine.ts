@@ -165,8 +165,8 @@ export class IntrospectionEngine {
             ...env,
             RUST_LOG: 'info',
             RUST_BACKTRACE: '1',
-            PWD: this.cwd,
           },
+          cwd: this.cwd,
         })
 
         this.child.on('error', err => {
