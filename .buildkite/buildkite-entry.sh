@@ -6,7 +6,6 @@ set -ex
 whoami
 node --version
 npm --version
-npm i -g --unsafe-perm last-git-changes
 git clone git@github.com:timsuchanek/last-git-changes.git
 cd last-git-changes
 npm install
