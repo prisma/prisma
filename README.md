@@ -69,3 +69,4 @@ The interactive prompt will ask you to provide database credentials for your dat
 Read more about how to contribute to the Prisma Framework [here](https://github.com/prisma/prisma2/blob/master/CONTRIBUTING.md)
 
 [![Build status](https://badge.buildkite.com/590e1981074b70961362481ad8319a831b44a38c5d468d6408.svg)](https://buildkite.com/prisma/prisma2-test)
+
