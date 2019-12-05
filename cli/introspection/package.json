@@ -44,7 +44,7 @@
     "chalk": "^3.0.0",
     "execa": "3.3.0",
     "figures": "^3.1.0",
-    "ink": "^2.6.0",
+    "ink": "2.5.0",
     "ink-progress-bar": "^3.0.0",
     "ink-spinner": "^3.0.1",
     "make-dir": "^3.0.0",
