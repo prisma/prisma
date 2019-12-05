@@ -1,6 +1,5 @@
 import { getPlatform } from '@prisma/get-platform'
 import chalk from 'chalk'
-import { execSync } from 'child_process'
 import execa from 'execa'
 import path from 'path'
 import { ConfigMetaFormat } from './isdlToDatamodel2'
