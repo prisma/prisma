@@ -87,7 +87,7 @@ export async function createDatabase(
   migrationEnginePath?: string,
 ): Promise<void> {
   const dbExists = await canConnectToDatabase(connectionString, cwd, migrationEnginePath)
-  if (dbExists) {
+  if (dbExists === true) {
     return
   }
   migrationEnginePath = migrationEnginePath || (await getMigrationEnginePath())
@@ -99,12 +99,6 @@ export async function createDatabase(
       RUST_LOG: 'info',
     },
   })
-}
-
-// extracts messages from strings like `[2019-09-17T08:03:11Z ERROR migration_engine] Database \'strapi2\' does not exist.\n`
-function extractMessage(stderr: string) {
-  const closedBracketsIndex = stderr.indexOf(']')
-  return stderr.slice(closedBracketsIndex + 1).trim()
 }
 
 async function doesSqliteDbExist(connectionString: string): Promise<boolean> {
