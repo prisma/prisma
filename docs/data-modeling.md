@@ -73,7 +73,7 @@ While this file mostly consists of the data model definition, it is a valid [sch
 
 Models represent the entities of your application domain. They are defined using `model` blocks in the data model. In the [example](#example) data model above, `User`, `Profile`, `Post` and `Category` are models. Here's the `User` model again for reference:
 
-```
+```groovy
 model User {
   id        Int      @id
   createdAt DateTime @default(now())
@@ -146,7 +146,7 @@ You can see examples of fields on the sample models [above](#examples).
 
 Field names are typically spelled in [camelCase](http://wiki.c2.com/?CamelCase) starting with a lowercase letter.
 
-Technically, a model can be named anything that adheres to this regular expression:
+Technically, a field can be named anything that adheres to this regular expression:
 
 ```
 [A-Za-z_][A-Za-z0-9_]*
