@@ -25,7 +25,7 @@ async function main() {
   const time = await generateInFolder({
     projectDir,
     useLocalRuntime,
-    transpile: false,
+    transpile: true,
   })
 
   console.log(
