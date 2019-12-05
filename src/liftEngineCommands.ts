@@ -17,17 +17,21 @@ async function getMigrationEnginePath(): Promise<string> {
   return path.join(dir, relative)
 }
 
-export type ConnectionStatus =
-  | 'DatabaseDoesNotExist'
-  | 'DatabaseAccessDenied'
-  | 'AuthenticationFailed'
-  | 'TlsError'
-  | 'Ok'
-  | 'UndefinedError'
+// https://github.com/prisma/specs/tree/master/errors#common
+export type DatabaseErrorCodes = 'P1000' | 'P1001' | 'P1002' | 'P1003' | 'P1009' | 'P1010'
 
-export interface ConnectionResult {
-  status: ConnectionStatus
+export type ConnectionResult = true | ConnectionError
+
+export interface ConnectionError {
   message: string
+  code: DatabaseErrorCodes
+  meta?: any
+}
+
+interface CommandErrorJson {
+  message: string
+  meta?: any
+  error_code: DatabaseErrorCodes
 }
 
 export async function canConnectToDatabase(
@@ -40,69 +44,40 @@ export async function canConnectToDatabase(
   if (credentials.type === 'sqlite') {
     const sqliteExists = await doesSqliteDbExist(connectionString)
     if (sqliteExists) {
-      return {
-        message: 'Exists',
-        status: 'Ok',
-      }
+      return true
     } else {
       return {
+        code: 'P1003',
         message: "Sqlite DB file doesn't exist",
-        status: 'DatabaseDoesNotExist',
       }
     }
   }
 
   migrationEnginePath = migrationEnginePath || (await getMigrationEnginePath())
   try {
-    const result = await execa(
-      migrationEnginePath,
-      ['cli', '--datasource', connectionString, '--can_connect_to_database'],
-      {
-        cwd,
-        env: {
-          ...process.env,
-          RUST_BACKTRACE: '1',
-          RUST_LOG: 'info',
-        },
+    await execa(migrationEnginePath, ['cli', '--datasource', connectionString, '--can_connect_to_database'], {
+      cwd,
+      env: {
+        ...process.env,
+        RUST_BACKTRACE: '1',
+        RUST_LOG: 'info',
       },
-    )
+    })
+
+    return true
+  } catch (e) {
+    let json: CommandErrorJson
+    try {
+      json = JSON.parse(e.stdout)
+    } catch (e) {
+      throw new Error(`Can't parse migration engine response:\n${e.stdout}`)
+    }
 
     return {
-      message: extractMessage(result.stderr),
-      status: 'Ok',
+      code: json.error_code,
+      message: json.message,
+      meta: json.meta,
     }
-  } catch (e) {
-    if (e.code === 1) {
-      return {
-        message: extractMessage(e.stderr),
-        status: 'DatabaseDoesNotExist',
-      }
-    }
-    if (e.code === 2) {
-      return {
-        message: extractMessage(e.stderr),
-        status: 'DatabaseAccessDenied',
-      }
-    }
-    if (e.code === 3) {
-      return {
-        message: extractMessage(e.stderr),
-        status: 'AuthenticationFailed',
-      }
-    }
-    if (e.code === 6) {
-      return {
-        message: extractMessage(e.stderr),
-        status: 'TlsError',
-      }
-    }
-    if (e.stderr) {
-      return {
-        message: extractMessage(e.stderr),
-        status: 'UndefinedError',
-      }
-    }
-    throw e
   }
 }
 
@@ -111,12 +86,11 @@ export async function createDatabase(
   cwd = process.cwd(),
   migrationEnginePath?: string,
 ): Promise<void> {
-  const dbExists = await canConnectToDatabase(ignoreSsl(connectionString), cwd, migrationEnginePath)
-  if (dbExists.status === 'Ok') {
+  const dbExists = await canConnectToDatabase(connectionString, cwd, migrationEnginePath)
+  if (dbExists) {
     return
   }
   migrationEnginePath = migrationEnginePath || (await getMigrationEnginePath())
-  console.log(`Calling createDatabase`, { cwd })
   await execa(migrationEnginePath, ['cli', '--datasource', connectionString, '--create_database'], {
     cwd,
     env: {
@@ -125,11 +99,6 @@ export async function createDatabase(
       RUST_LOG: 'info',
     },
   })
-}
-
-function ignoreSsl(connectionString: string): string {
-  const delimiter = connectionString!.includes('?') ? '&' : '?'
-  return connectionString + delimiter + 'sslaccept=accept_invalid_certs'
 }
 
 // extracts messages from strings like `[2019-09-17T08:03:11Z ERROR migration_engine] Database \'strapi2\' does not exist.\n`
