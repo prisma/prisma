@@ -1,17 +1,10 @@
-import { Photon } from './@generated/photon'
+import { Photon } from '@prisma/photon'
 
 async function main() {
   const photon = new Photon()
 
   const before = Date.now()
-  const post = await photon.posts
-    .update({
-      data: {},
-      where: {
-        id: 'id',
-      },
-    })
-    .author()
+  const post = await photon.posts()
 
   console.log(post)
   // console.log(result, Date.now() - before)

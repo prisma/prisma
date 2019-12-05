@@ -81,8 +81,7 @@ export class NodeEngine extends Engine {
     this.cwd = this.resolveCwd(cwd)
     this.debug = args.debug || false
     this.datamodelPath = datamodelPath
-    this.prismaPath = prismaPath
-    this.platform = process.env.PRISMA_QUERY_ENGINE_BINARY
+    this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY || prismaPath
     this.generator = generator
     this.datasources = datasources
     this.logEmitter = new EventEmitter()
