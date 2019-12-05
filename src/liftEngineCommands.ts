@@ -116,6 +116,7 @@ export async function createDatabase(
     return
   }
   migrationEnginePath = migrationEnginePath || (await getMigrationEnginePath())
+  console.log(`Calling createDatabase`, { cwd })
   await execa(migrationEnginePath, ['cli', '--datasource', connectionString, '--create_database'], {
     cwd,
     env: {
