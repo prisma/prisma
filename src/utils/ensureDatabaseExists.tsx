@@ -29,27 +29,14 @@ export async function ensureDatabaseExists(action: LiftAction, killInk: boolean,
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
-  const { status, message } = await canConnectToDatabase(activeDatasource.url.value)
-  debug({ status, message })
-  if (status === 'Ok') {
+  const canConnect = await canConnectToDatabase(activeDatasource.url.value)
+  if (canConnect === true) {
     return
   }
+  const { code, message } = canConnect
 
-  // ignore for now
-  if (status === 'TlsError') {
-    return
-  }
-
-  if (status === 'AuthenticationFailed') {
-    throw new Error(`The authentication to the database failed. Please make sure the user and password are correct.`)
-  }
-
-  if (status === 'DatabaseAccessDenied') {
-    throw new Error(`Access to the database denied. Please make sure you have proper rights.`)
-  }
-
-  if (status === 'UndefinedError') {
-    throw new Error(`Could not connect to database: ${message}`)
+  if (code !== 'P1003') {
+    throw new Error(`${code}: ${message}`)
   }
 
   // last case: status === 'DatabaseDoesNotExist'
