@@ -1,4 +1,4 @@
-import { getSchema } from '@prisma/cli'
+import { getSchema, getSchemaDir } from '@prisma/cli'
 import { BorderBox, DummySelectable, TabIndexProvider } from '@prisma/ink-components'
 // import { TabIndexProvider, TabIndexContext } from '../ink/TabIndex'
 import { getConfig } from '@prisma/sdk'
@@ -54,18 +54,26 @@ export async function ensureDatabaseExists(action: LiftAction, killInk: boolean,
 
   // last case: status === 'DatabaseDoesNotExist'
 
+  const schemaDir = await getSchemaDir()
+  if (!schemaDir) {
+    throw new Error(`Could not locate schema.prisma`)
+  }
   if (forceCreate) {
-    await createDatabase(activeDatasource.url.value)
+    await createDatabase(activeDatasource.url.value, schemaDir)
   } else {
-    await interactivelyCreateDatabase(activeDatasource.url.value, action)
+    await interactivelyCreateDatabase(activeDatasource.url.value, action, schemaDir)
   }
 }
 
-export async function interactivelyCreateDatabase(connectionString: string, action: LiftAction): Promise<void> {
-  await askToCreateDb(connectionString, action)
+export async function interactivelyCreateDatabase(
+  connectionString: string,
+  action: LiftAction,
+  schemaDir: string,
+): Promise<void> {
+  await askToCreateDb(connectionString, action, schemaDir)
 }
 
-export async function askToCreateDb(connectionString: string, action: LiftAction): Promise<void> {
+export async function askToCreateDb(connectionString: string, action: LiftAction, schemaDir: string): Promise<void> {
   return new Promise(resolve => {
     let app: Instance | undefined
 
@@ -82,7 +90,12 @@ export async function askToCreateDb(connectionString: string, action: LiftAction
     app = render(
       <App>
         <TabIndexProvider>
-          <CreateDatabaseDialog connectionString={connectionString} action={action} onDone={onDone} />
+          <CreateDatabaseDialog
+            connectionString={connectionString}
+            action={action}
+            onDone={onDone}
+            schemaDir={schemaDir}
+          />
         </TabIndexProvider>
       </App>,
     )
@@ -117,14 +130,15 @@ interface DialogProps {
   connectionString: string
   action: LiftAction
   onDone: () => void
+  schemaDir: string
 }
 
-const CreateDatabaseDialog: React.FC<DialogProps> = ({ connectionString, action, onDone }) => {
+const CreateDatabaseDialog: React.FC<DialogProps> = ({ connectionString, action, onDone, schemaDir }) => {
   const [creating, setCreating] = useState(false)
   async function onSelect(shouldCreate: boolean) {
     if (shouldCreate) {
       setCreating(true)
-      await createDatabase(connectionString)
+      await createDatabase(connectionString, schemaDir)
       setCreating(false)
       onDone()
     } else {
@@ -143,16 +157,6 @@ const CreateDatabaseDialog: React.FC<DialogProps> = ({ connectionString, action,
       : credentials.type
 
   const schemaWord = 'database'
-
-  // let one = 1
-  // useEffect(() =>  {
-  //   setInterval(() => {
-  //     one = one === 1 ? 0 : 1
-  //     TabIndex.setActiveIndex(one ? 0 : 1)
-  //   }, 1000)
-  // })
-
-  // TabIndex.lockNavigation(false)
 
   return (
     <Box flexDirection="column">
