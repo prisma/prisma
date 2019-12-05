@@ -496,6 +496,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         return body.data
       })
       .catch(error => {
+        debug({ error })
         if (this.currentRequestPromise.isCanceled && this.lastError) {
           throw new PhotonError(this.lastError)
         }
@@ -524,6 +525,11 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   handleErrors({ errors, query }: { errors?: any; query: string }) {
+
+    if (errors.length === 1 && errors[0].user_facing_error) {
+      throw new PhotonQueryError(errors[0].user_facing_error.message)
+    }
+
     const stringified = errors ? this.serializeErrors(errors) : null
     const message = stringified.length > 0 ? stringified : `Error in photon.\$\{rootField || 'query'}`
     const isPanicked = this.stderrLogs.includes('panicked') || this.stdoutLogs.includes('panicked') // TODO better handling
