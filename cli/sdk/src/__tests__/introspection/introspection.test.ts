@@ -29,7 +29,7 @@ test('basic introspection', async () => {
       published Boolean  @default(false)
       title     String   @default(\\"''\\")
       updatedAt DateTime
-      uuid      String   @id(strategy: NONE)
+      uuid      String   @id
     }"
   `)
 })
