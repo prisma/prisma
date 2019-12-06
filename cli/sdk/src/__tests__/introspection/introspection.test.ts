@@ -32,4 +32,23 @@ test('basic introspection', async () => {
       uuid      String   @id
     }"
   `)
+  const metadata = await engine.getDatabaseMetadata(
+    `file:${path.resolve(__dirname, 'blog.db')}`,
+  )
+  expect(metadata).toMatchInlineSnapshot(`
+    Object {
+      "size_in_bytes": 0,
+      "table_count": 3,
+    }
+  `)
+  const databases = await engine.listDatabases(
+    `file:${path.resolve(__dirname, 'blog.db')}`,
+  )
+  expect(databases).toMatchInlineSnapshot(`
+    Array [
+      "",
+      "blog.db",
+    ]
+  `)
+  engine.stop()
 })

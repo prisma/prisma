@@ -9,7 +9,7 @@ import { RouterContext } from '../components/Router'
 
 const Step22ToolSelection: React.FC = () => {
   const [state, { setState }] = useInitState()
-  const { introspectionResult, disconnect } = useConnector()
+  const { introspectionResult } = useConnector()
 
   const nextStep = state.usePhoton ? 'language-selection' : 'process-blank'
 
@@ -18,7 +18,6 @@ const Step22ToolSelection: React.FC = () => {
   const router = useContext(RouterContext)
 
   const goBack = async () => {
-    await disconnect()
     const backTo = state.selectedDb === 'mysql' ? 'mysql-credentials' : 'postgres-credentials'
     router.backTo(backTo)
   }

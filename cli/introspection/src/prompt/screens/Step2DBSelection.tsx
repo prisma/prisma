@@ -4,7 +4,6 @@ import { BorderBox } from '@prisma/ink-components'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
 import { useInitState } from '../components/InitState'
-import { DatabaseType } from 'prisma-datamodel'
 import { sqliteDefault } from '../utils/defaults'
 
 const Step2DBSelection: React.FC = () => {
@@ -31,14 +30,14 @@ const Step2DBSelection: React.FC = () => {
           href="mysql-credentials"
           description="Requires running a MySQL database"
           tabIndex={1}
-          state={{ selectedDb: 'mysql', dbCredentials: { type: DatabaseType.mysql } }}
+          state={{ selectedDb: 'mysql', dbCredentials: { type: 'mysql' } }}
         />
         <Link
           label="PostgreSQL"
           href="postgres-credentials"
           description="Requires running a PostgreSQL database"
           tabIndex={2}
-          state={{ selectedDb: 'postgres', dbCredentials: { type: DatabaseType.postgres } }}
+          state={{ selectedDb: 'postgres', dbCredentials: { type: 'postgres' } }}
         />
         <Box marginLeft={2}>
           <Color dim>MongoDB {'      '} (Coming soon)</Color>

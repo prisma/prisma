@@ -4,7 +4,6 @@ import { BorderBox, ErrorBox, FixBox, DummySelectable } from '@prisma/ink-compon
 import chalk from 'chalk'
 import { Link } from '../components/Link'
 import { useInitState } from '../components/InitState'
-import { DatabaseType } from 'prisma-datamodel'
 import { useConnector } from '../components/useConnector'
 import { prettyDb } from '../utils/print'
 import { RouterContext } from '../components/Router'
@@ -18,20 +17,19 @@ const Step2CreateOrSelectDB: React.FC = () => {
   const [creatingDb, setCreatingDb] = useState(false)
 
   const router = useContext(RouterContext)
-  const { schemas, disconnect, connector, connect } = useConnector()
+  const { schemas } = useConnector()
   if (!state.dbCredentials) {
     throw new Error('Missing credentials in choose db view')
   }
   const { dbCredentials } = state
   const db = prettyDb(dbCredentials.type)
-  const schemaWord = dbCredentials.type === DatabaseType.postgres ? 'schema' : 'database'
+  const schemaWord = dbCredentials.type === 'postgresql' ? 'schema' : 'database'
   const dbName = dbCredentials[schemaWord]!
 
-  const schemaCount = state.useStarterKit ? schemas!.filter(s => s.countOfTables === 0).length : schemas!.length
-  const href = dbCredentials.type === DatabaseType.postgres ? 'postgres-credentials' : 'mysql-credentials'
+  const schemaCount = state.useStarterKit ? schemas!.filter(s => s.tableCount === 0).length : schemas!.length
+  const href = dbCredentials.type === 'postgresql' ? 'postgres-credentials' : 'mysql-credentials'
 
   const goBack = async () => {
-    await disconnect()
     router.setRoute(href)
   }
 
@@ -39,9 +37,6 @@ const Step2CreateOrSelectDB: React.FC = () => {
     try {
       setCreatingDb(true)
       await createDatabase(dbCredentials.uri!)
-      if (!connector) {
-        await connect(dbCredentials)
-      }
       setCreatingDb(false)
       router.setRoute(state.useStarterKit ? 'download-example' : 'language-selection')
     } catch (e) {

@@ -1,20 +1,5 @@
-import { DatabaseType } from 'prisma-datamodel'
-import { DatabaseMetadata } from 'prisma-db-introspection/dist/common/introspectionResult'
-
-export interface DatabaseCredentials {
-  type: DatabaseType
-  host?: string
-  port?: number
-  user?: string
-  password?: string
-  database?: string
-  alreadyData?: boolean
-  schema?: string
-  newSchema?: string
-  ssl?: boolean
-  uri?: string
-  executeRaw?: boolean
-}
+import { DatabaseCredentials } from '@prisma/sdk'
+import { ConnectorType } from '@prisma/generator-helper'
 
 export interface IntrospectionResult {
   sdl: string
@@ -30,11 +15,16 @@ export interface SchemaWithMetadata {
   metadata: DatabaseMetadata
 }
 
+export interface DatabaseMetadata {
+  size_in_bytes: number
+  table_count: number
+}
+
 export type PromptType = 'init' | 'introspect'
 
 // TODO: Bad interface naming :(
 export interface InitConfiguration {
-  databaseType: DatabaseType
+  databaseType: ConnectorType
   lift: boolean
   photon: boolean
   language: 'TypeScript' | 'JavaScript'

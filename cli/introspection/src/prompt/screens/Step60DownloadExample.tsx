@@ -15,11 +15,10 @@ import { RouterContext } from '../components/Router'
 import makeDir from 'make-dir'
 import { promisify } from 'util'
 import { getProxyAgent } from '@prisma/fetch-engine'
-import { DatabaseCredentials } from '../../types'
+import { DatabaseCredentials } from '@prisma/sdk'
 import { replaceDatasource, replaceGenerator } from '../utils/replaceDatasource'
-import { credentialsToUri } from '../../convertCredentials'
-import { DatabaseType } from 'prisma-datamodel'
-import { ConnectorType, DataSource } from '@prisma/generator-helper'
+import { credentialsToUri } from '@prisma/sdk/src/convertCredentials'
+import { DataSource } from '@prisma/generator-helper'
 import { useConnector } from '../components/useConnector'
 import { exampleScript } from '../utils/templates/script'
 import { ErrorBox } from '@prisma/ink-components'
@@ -254,20 +253,7 @@ function credentialsToDataSource(credentials: DatabaseCredentials): DataSource {
       fromEnvVar: null,
     },
     config: {},
-    connectorType: databaseTypeToConnectorType(credentials.type),
-  }
-}
-
-function databaseTypeToConnectorType(databaseType: DatabaseType): ConnectorType {
-  switch (databaseType) {
-    case DatabaseType.sqlite:
-      return 'sqlite'
-    case DatabaseType.postgres:
-      return 'postgresql'
-    case DatabaseType.mysql:
-      return 'mysql'
-    case DatabaseType.mongo:
-      return 'mongo'
+    connectorType: credentials.type,
   }
 }
 

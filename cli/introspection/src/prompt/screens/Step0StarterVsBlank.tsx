@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { Color, Box } from 'ink'
 import { BorderBox } from '@prisma/ink-components'
 import chalk from 'chalk'
@@ -11,8 +11,7 @@ type Props = {
 }
 
 const Step0StarterVsBlank: React.FC<Props> = ({ outputDir }) => {
-  const [state, { setState }] = useInitState()
-
+  const [_, { setState }] = useInitState()
   // already cache the result for later screens
   useExampleApi()
 

@@ -1,5 +1,4 @@
-import { DatabaseCredentials } from '../../../types'
-import { credentialsToUri } from '../../../convertCredentials'
+import { credentialsToUri, DatabaseCredentials } from '@prisma/sdk'
 
 export const printSchema = ({
   usePhoton,

@@ -1,16 +1,15 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Color, Box } from 'ink'
-import { BorderBox, TextInput } from '@prisma/ink-components'
+import { BorderBox } from '@prisma/ink-components'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
 import { useInitState } from '../components/InitState'
 import { prettyDb } from '../utils/print'
-import { DatabaseType } from 'prisma-datamodel'
 import { useConnector } from '../components/useConnector'
 
 // We can't use this screen yet, as we don't have SQLite introspection yet
 const Step4SelectDatabase: React.FC = () => {
-  const [state, { setState }] = useInitState()
+  const [state] = useInitState()
 
   const { schemas } = useConnector()
 
@@ -22,12 +21,12 @@ const Step4SelectDatabase: React.FC = () => {
   }
   const { dbCredentials } = state
   const db = prettyDb(dbCredentials.type)
-  const schemaWord = dbCredentials.type === DatabaseType.postgres ? 'schema' : 'database'
+  const schemaWord = dbCredentials.type === 'postgresql' ? 'schema' : 'database'
 
-  const emptySchemas = schemas.filter(s => s.countOfTables === 0)
-  const nonEmptySchemas = schemas.filter(s => s.countOfTables > 0)
+  const emptySchemas = schemas.filter(s => s.tableCount === 0)
+  const nonEmptySchemas = schemas.filter(s => s.tableCount > 0)
 
-  const maxTableCountLength = String(nonEmptySchemas.reduce((acc, s) => Math.max(acc, s.countOfTables), 0)).length
+  const maxTableCountLength = String(nonEmptySchemas.reduce((acc, s) => Math.max(acc, s.tableCount), 0)).length
 
   return (
     <Box flexDirection="column">
@@ -80,7 +79,7 @@ const Step4SelectDatabase: React.FC = () => {
               href="introspection"
               tabIndex={index + emptySchemas.length}
               key={schema.name}
-              description={`${String(schema.countOfTables).padEnd(maxTableCountLength)} tables, ${humanSize(
+              description={`${String(schema.tableCount).padEnd(maxTableCountLength)} tables, ${humanSize(
                 schema.sizeInBytes,
               )}`}
               padding={30}

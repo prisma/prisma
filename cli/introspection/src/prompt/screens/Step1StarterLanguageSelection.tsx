@@ -1,22 +1,15 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Color, Box } from 'ink'
 import { BorderBox } from '@prisma/ink-components'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
 import { useExampleApi } from '../utils/useExampleApi'
-import { useInitState } from '../components/InitState'
 
 type Props = {
   outputDir: string
 }
 
-const Step1StarterLanguageSelection: React.FC<Props> = ({ outputDir }) => {
-  // already cache the result for later screens
-  const { setState } = useInitState()[1]
-  useEffect(() => {
-    // setState({ outputDir })
-  })
-
+const Step1StarterLanguageSelection: React.FC<Props> = () => {
   useExampleApi()
   return (
     <Box flexDirection="column">

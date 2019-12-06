@@ -5,7 +5,6 @@ import chalk from 'chalk'
 import { Link } from '../components/Link'
 import { useInitState } from '../components/InitState'
 import { prettyDb } from '../utils/print'
-import { DatabaseType } from 'prisma-datamodel'
 import { RouterContext } from '../components/Router'
 import { createDatabase } from '@prisma/lift'
 import Spinner from 'ink-spinner'
@@ -21,7 +20,7 @@ const Step4DatabaseName: React.FC = () => {
   }
   const { dbCredentials } = state
   const db = prettyDb(dbCredentials.type)
-  const schemaWord = dbCredentials.type === DatabaseType.postgres ? 'schema' : 'database'
+  const schemaWord = dbCredentials.type === 'postgresql' ? 'schema' : 'database'
   const dbName = dbCredentials[schemaWord]!
 
   const router = useContext(RouterContext)
