@@ -164,7 +164,7 @@ export class LiftEngine {
           if (code !== 0 || messages.includes('panicking')) {
             let errorMessage = chalk.red.bold('Error in migration engine: ') + messages
             if (messages.includes('\u001b[1;94m-->\u001b[0m')) {
-              errorMessage = `${chalk.red.bold('Schema parsing ')}` + messages
+              errorMessage = `${chalk.red.bold('Schema parsing\n')}` + messages
             } else if (this.lastError && code === 255) {
               errorMessage = serializePanic(this.lastError)
               err = new LiftPanic(errorMessage, this.lastError.message, this.lastRequest, this.schemaPath)
