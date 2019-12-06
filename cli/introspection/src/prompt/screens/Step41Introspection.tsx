@@ -2,8 +2,7 @@ import React, { useEffect, useState, useContext } from 'react'
 import { Box, Color } from 'ink'
 import { useInitState } from '../components/InitState'
 import Spinner from 'ink-spinner'
-import { DatabaseType } from 'prisma-datamodel'
-import { useConnector, prettifyConnectorError } from '../components/useConnector'
+import { useConnector } from '../components/useConnector'
 import { RouterContext } from '../components/Router'
 import { prettyDb } from '../utils/print'
 import { ErrorBox } from '@prisma/ink-components'
@@ -12,7 +11,7 @@ const AnySpinner = Spinner as any
 const Step41Introspection: React.FC = () => {
   const router = useContext(RouterContext)
   const [state] = useInitState()
-  const { connector, introspect, selectedDatabaseMeta } = useConnector()
+  const { introspect, selectedDatabaseMeta, canConnect, introspecting } = useConnector()
 
   const { dbCredentials } = state
 
@@ -21,25 +20,22 @@ const Step41Introspection: React.FC = () => {
   }
 
   const dbType = prettyDb(dbCredentials.type)
-  const schemaWord = dbCredentials.type === DatabaseType.mysql ? 'schema' : 'database'
+  const schemaWord = dbCredentials.type === 'mysql' ? 'schema' : 'database'
 
   const [errorText, setError] = useState('')
 
   useEffect(() => {
     async function run() {
-      if (connector) {
-        const db = dbCredentials!.type === DatabaseType.postgres ? dbCredentials!.schema : dbCredentials!.database
+      if (canConnect && !introspecting) {
         try {
-          await introspect(db!)
+          await introspect(dbCredentials!)
           router.setRoute('tool-selection')
         } catch (e) {
-          setError(prettifyConnectorError(e))
+          setError(e.message)
           setTimeout(() => {
             process.exit(1)
           })
         }
-      } else {
-        throw new Error(`Connector instance not present. Can't introspect.`)
       }
     }
     run()
@@ -49,7 +45,7 @@ const Step41Introspection: React.FC = () => {
     <Box flexDirection="column">
       <Box>
         <AnySpinner /> Introspecting {dbType} {schemaWord} <Color bold>{dbCredentials.schema || ''}</Color> with{' '}
-        <Color bold>{selectedDatabaseMeta ? selectedDatabaseMeta.countOfTables : 0} </Color> tables.
+        <Color bold>{selectedDatabaseMeta ? selectedDatabaseMeta.tableCount : 0}</Color> tables.
       </Box>
       {errorText && (
         <Box flexDirection="column">

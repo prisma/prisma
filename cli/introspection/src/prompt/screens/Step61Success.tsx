@@ -4,10 +4,13 @@ import { BorderBox, InkLink } from '@prisma/ink-components'
 import chalk from 'chalk'
 import { useInitState } from '../components/InitState'
 import path from 'path'
-import { credentialsToUri } from '../../convertCredentials'
+import { credentialsToUri } from '@prisma/sdk'
+import { useConnector } from '../components/useConnector'
 
 const Step61Success: React.FC = () => {
+  const { stopEngine } = useConnector()
   useEffect(() => {
+    stopEngine()
     setTimeout(() => {
       process.exit(0)
     }, 5)

@@ -13,7 +13,7 @@ const AnySpinner: any = Spinner
 
 const Step1MySQLCredentials: React.FC = () => {
   const [state, { setDbCredentials }] = useInitState()
-  const { connect, error, connected, connector, connecting, getMetadata, selectedDatabaseMeta } = useConnector()
+  const { tryToConnect, error, selectedDatabaseMeta, canConnect, checkingConnection } = useConnector()
 
   const dbCredentials = state.dbCredentials!
   const [next, setNext] = useState('')
@@ -21,11 +21,11 @@ const Step1MySQLCredentials: React.FC = () => {
 
   useEffect(() => {
     async function runEffect() {
-      if (connected) {
+      if (canConnect) {
         if (dbCredentials.database && selectedDatabaseMeta) {
           // introspect this db
           // is there sth in there?
-          if (selectedDatabaseMeta.countOfTables > 0) {
+          if (selectedDatabaseMeta.tableCount > 0) {
             // introspect
             if (state.useStarterKit) {
               router.setRoute('choose-database')
@@ -41,7 +41,7 @@ const Step1MySQLCredentials: React.FC = () => {
       }
     }
     runEffect()
-  }, [connected])
+  }, [canConnect])
 
   return (
     <Box flexDirection="column">
@@ -59,7 +59,7 @@ const Step1MySQLCredentials: React.FC = () => {
           value={dbCredentials.host || ''}
           onChange={host => setDbCredentials({ host })}
           placeholder="localhost"
-          onSubmit={() => connect(state.dbCredentials!)}
+          onSubmit={() => tryToConnect(state.dbCredentials!)}
         />
         <TextInput
           tabIndex={1}
@@ -67,7 +67,7 @@ const Step1MySQLCredentials: React.FC = () => {
           value={String(dbCredentials.port || '')}
           onChange={port => setDbCredentials({ port: Number(port) })}
           placeholder="3306"
-          onSubmit={() => connect(state.dbCredentials!)}
+          onSubmit={() => tryToConnect(state.dbCredentials!)}
         />
         <TextInput
           tabIndex={2}
@@ -75,7 +75,7 @@ const Step1MySQLCredentials: React.FC = () => {
           value={dbCredentials.user || ''}
           onChange={user => setDbCredentials({ user })}
           placeholder="user"
-          onSubmit={() => connect(state.dbCredentials!)}
+          onSubmit={() => tryToConnect(state.dbCredentials!)}
         />
         <TextInput
           tabIndex={3}
@@ -83,7 +83,7 @@ const Step1MySQLCredentials: React.FC = () => {
           value={dbCredentials.password || ''}
           onChange={password => setDbCredentials({ password })}
           placeholder=""
-          onSubmit={() => connect(state.dbCredentials!)}
+          onSubmit={() => tryToConnect(state.dbCredentials!)}
         />
         <TextInput
           tabIndex={4}
@@ -91,7 +91,7 @@ const Step1MySQLCredentials: React.FC = () => {
           value={dbCredentials.database || ''}
           onChange={database => setDbCredentials({ database })}
           placeholder=""
-          onSubmit={() => connect(state.dbCredentials!)}
+          onSubmit={() => tryToConnect(state.dbCredentials!)}
         />
         <Checkbox
           tabIndex={5}
@@ -112,19 +112,19 @@ const Step1MySQLCredentials: React.FC = () => {
           value={dbCredentials.uri || ''}
           onChange={uri => setDbCredentials({ uri })}
           placeholder="mysql://localhost:3306/admin"
-          onSubmit={() => connect(state.dbCredentials!)}
+          onSubmit={() => tryToConnect(state.dbCredentials!)}
         />
       </BorderBox>
 
       {error && <ErrorBox>{error}</ErrorBox>}
-      {connecting ? (
+      {checkingConnection ? (
         <DummySelectable tabIndex={7}>
           <Color cyan>
             <AnySpinner /> Connecting
           </Color>
         </DummySelectable>
       ) : (
-        <Link label="Connect" onSelect={() => connect(state.dbCredentials!)} tabIndex={7} kind="forward" />
+        <Link label="Connect" onSelect={() => tryToConnect(state.dbCredentials!)} tabIndex={7} kind="forward" />
       )}
       <Link label="Back" description="(Database options)" tabIndex={8} kind="back" />
     </Box>

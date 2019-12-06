@@ -2,8 +2,7 @@ import { getPlatform } from '@prisma/get-platform'
 import chalk from 'chalk'
 import execa from 'execa'
 import path from 'path'
-import { ConfigMetaFormat } from './isdlToDatamodel2'
-import { DMMF } from '@prisma/generator-helper'
+import { DMMF, DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import tmpWrite from 'temp-write'
 import fs from 'fs'
 import { promisify } from 'util'
@@ -13,6 +12,11 @@ const debug = Debug('engineCommands')
 const unlink = promisify(fs.unlink)
 
 const MAX_BUFFER = 1000 * 1000 * 1000
+
+export interface ConfigMetaFormat {
+  datasources: DataSource[]
+  generators: GeneratorConfig[]
+}
 
 async function getPrismaPath(): Promise<string> {
   // tslint:disable-next-line

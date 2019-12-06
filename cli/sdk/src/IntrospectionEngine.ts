@@ -41,10 +41,6 @@ export class IntrospectionPanic extends Error {
   }
 }
 
-type IntrospectionArgs = {
-  url: string
-}
-
 let messageId = 1
 
 /* tslint:disable */
@@ -87,13 +83,15 @@ export class IntrospectionEngine {
   ) {
     this.listeners[id] = callback
   }
-  public introspect(url: string): Promise<any> {
+  public introspect(url: string): Promise<string> {
     return this.runCommand(this.getRPCPayload('introspect', { url }))
   }
-  public listDatabases(url: string): Promise<any> {
+  public listDatabases(url: string): Promise<string[]> {
     return this.runCommand(this.getRPCPayload('listDatabases', { url }))
   }
-  public getDatabaseMetadata(url: string): Promise<any> {
+  public getDatabaseMetadata(
+    url: string,
+  ): Promise<{ size_in_bytes: number; table_count: number }> {
     return this.runCommand(this.getRPCPayload('getDatabaseMetadata', { url }))
   }
   private handleResponse(response: any) {
@@ -244,7 +242,7 @@ export class IntrospectionEngine {
         if (err) {
           return reject(err)
         }
-        if (typeof response.result === 'string') {
+        if (typeof response.result !== 'undefined') {
           resolve(response.result)
         } else {
           if (response.error) {
@@ -309,10 +307,7 @@ ${JSON.stringify(request, null, 2)}
 ${message}
 \`\`\`
 `
-    fs.writeFileSync(
-      filename,
-      file,
-    )
+    fs.writeFileSync(filename, file)
     return `Wrote ${chalk.bold(filename)} with debugging information.
 Please put that file into a gist and post it in Slack.
 1. ${chalk.greenBright(`cat ${filename} | pbcopy`)}

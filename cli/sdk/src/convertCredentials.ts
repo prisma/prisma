@@ -1,11 +1,10 @@
 import { DatabaseCredentials } from './types'
-import { DatabaseType } from 'prisma-datamodel'
 import { URL } from 'url'
-import { ConnectorType } from '@prisma/lift'
+import { ConnectorType } from '@prisma/generator-helper'
 
 export function credentialsToUri(credentials: DatabaseCredentials): string {
   const type = databaseTypeToProtocol(credentials.type)
-  if (credentials.type === DatabaseType.mongo) {
+  if (credentials.type === 'mongo') {
     return credentials.uri!
   }
   const url = new URL(type + '//')
@@ -14,7 +13,7 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
     url.hostname = credentials.host
   }
 
-  if (credentials.type === DatabaseType.postgres) {
+  if (credentials.type === 'postgresql') {
     if (credentials.database) {
       url.pathname = '/' + credentials.database
     }
@@ -22,7 +21,7 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
     if (credentials.schema) {
       url.searchParams.set('schema', credentials.schema)
     }
-  } else if (credentials.type === DatabaseType.mysql) {
+  } else if (credentials.type === 'mysql') {
     url.pathname = '/' + (credentials.database || credentials.schema || '')
   }
 
@@ -45,14 +44,16 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
   return url.toString()
 }
 
-export function uriToCredentials(connectionString: string): DatabaseCredentials {
+export function uriToCredentials(
+  connectionString: string,
+): DatabaseCredentials {
   const uri = new URL(connectionString)
   const type = protocolToDatabaseType(uri.protocol)
 
   // needed, as the URL implementation adds empty strings
   const exists = str => str && str.length > 0
 
-  if (type === DatabaseType.mongo) {
+  if (type === 'mongo') {
     return {
       type,
       uri: connectionString, // todo: set authsource as database if not provided explicitly
@@ -65,51 +66,57 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
     user: exists(uri.username) ? uri.username : undefined,
     port: exists(uri.port) ? Number(uri.port) : undefined,
     password: exists(uri.password) ? uri.password : undefined,
-    database: uri.pathname && uri.pathname.length > 1 ? uri.pathname.slice(1) : undefined,
+    database:
+      uri.pathname && uri.pathname.length > 1
+        ? uri.pathname.slice(1)
+        : undefined,
     schema: uri.searchParams.get('schema') || undefined,
     uri: connectionString,
     ssl: uri.searchParams.has('sslmode'),
   }
 }
 
-function databaseTypeToProtocol(databaseType: DatabaseType): string {
+function databaseTypeToProtocol(databaseType: ConnectorType): string {
   switch (databaseType) {
-    case DatabaseType.postgres:
+    case 'postgresql':
       return 'postgresql:'
-    case DatabaseType.mysql:
+    case 'mysql':
       return 'mysql:'
-    case DatabaseType.mongo:
+    case 'mongo':
       return 'mongodb:'
-    case DatabaseType.sqlite:
+    case 'sqlite':
       return 'sqlite:'
   }
 }
 
-function protocolToDatabaseType(protocol: string): DatabaseType {
+function protocolToDatabaseType(protocol: string): ConnectorType {
   switch (protocol) {
     case 'postgresql:':
     case 'postgres:':
-      return DatabaseType.postgres
+      return 'postgresql'
     case 'mongodb:':
-      return DatabaseType.mongo
+      return 'mongo'
     case 'mysql:':
-      return DatabaseType.mysql
+      return 'mysql'
     case 'file:':
     case 'sqlite:':
-      return DatabaseType.sqlite
+      return 'sqlite'
   }
 
   throw new Error(`Unknown database type ${protocol}`)
 }
 
-export function databaseTypeToConnectorType(databaseType: DatabaseType): ConnectorType {
+export function databaseTypeToConnectorType(
+  databaseType: ConnectorType,
+): ConnectorType {
   switch (databaseType) {
-    case DatabaseType.postgres:
+    case 'postgresql':
       return 'postgresql'
-    case DatabaseType.mysql:
+    case 'mysql':
       return 'mysql'
-    case DatabaseType.sqlite:
+    case 'sqlite':
       return 'sqlite'
   }
+
   throw new Error(`Mongo is not yet supported`)
 }

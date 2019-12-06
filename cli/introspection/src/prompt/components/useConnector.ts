@@ -1,234 +1,205 @@
-import { DatabaseCredentials } from '../../types'
-import { IConnector } from 'prisma-db-introspection'
 import useGlobalHook from '../utils/useGlobalHook'
 import React, { useContext } from 'react'
-import { ConnectorAndDisconnect, getConnectedConnectorFromCredentials } from '../../introspectionConnector'
-import { DatabaseType } from 'prisma-datamodel'
-import { isdlToDatamodel2 } from '@prisma/sdk'
+import { IntrospectionEngine, DatabaseCredentials, getDMMF, dmmfToDml } from '@prisma/sdk'
 import { DataSource } from '@prisma/generator-helper'
-import { credentialsToUri, databaseTypeToConnectorType } from '../../convertCredentials'
+import { credentialsToUri, databaseTypeToConnectorType } from '@prisma/sdk/src/convertCredentials'
 import { TabIndexContext } from '@prisma/ink-components'
-// import { canConnectToDatabase } from '@prisma/lift'
+import { canConnectToDatabase } from '@prisma/lift'
 
 type ConnectorState = {
   error: string | null
   credentials?: DatabaseCredentials
   introspectionResult?: string
   schemas?: SchemaWithMetaData[]
-  connected: boolean
-  connecting: boolean
+  canConnect: boolean
+  checkingConnection: boolean
   selectedDatabaseMeta?: SchemaWithMetaData
   dbDoesntExist: boolean
+  introspecting: boolean
 }
 
 const initialState: ConnectorState = {
   error: null,
-  connected: false,
-  connecting: false,
+  canConnect: false,
+  checkingConnection: false,
+  introspecting: false,
   dbDoesntExist: false,
 }
 
 export interface SchemaWithMetaData {
   sizeInBytes: number
-  countOfTables: number
+  tableCount: number
   name: string
 }
 
-export type UseConnector = {
-  connector: IConnector | null
-  error: Error | null
-  introspectionResult?: string
-  schemas?: SchemaWithMetaData[]
-  connect: (credentials: DatabaseCredentials) => void
-  disconnect: () => void
-  introspect: (database: string) => void
-  getMetaData: () => void
+export type UseConnector = ConnectorState & ConnectorMethods
+
+export type ConnectorMethods = {
+  stopEngine: () => void
+  tryToConnect: (credentials: DatabaseCredentials) => void
+  introspect: (credentials: DatabaseCredentials) => void
+  getMetadata: (credentials: DatabaseCredentials) => void
 }
 
 const actions = {
   setState(store, state: Partial<ConnectorState>) {
     store.setState(state)
   },
-  setConnector(store, connector: ConnectorAndDisconnect) {
-    store.setShallowState({ connector })
-  },
 }
 export type ConnectorStore = {
   setState(state: Partial<ConnectorState>): void
-  setConnector(connector: ConnectorAndDisconnect): void
 }
 
 const useGlobalConnectorState: () => [ConnectorState, ConnectorStore] = useGlobalHook(React, initialState, actions)
 
-let connector: ConnectorAndDisconnect | null = null
+function validate(credentials: DatabaseCredentials): string | null {
+  if (!credentials.host) {
+    return 'Please provide a host'
+  }
 
-export function useConnector() {
-  const [state, { setState, setConnector }] = useGlobalConnectorState()
+  if (credentials.type === 'mysql' && !credentials.user) {
+    return 'Please provide a user'
+  }
+
+  if (credentials.type === 'postgresql' && !credentials.database) {
+    return 'Please provide a database'
+  }
+
+  return null
+}
+
+const engine = new IntrospectionEngine()
+
+export function useConnector(): UseConnector {
+  const [state, { setState }] = useGlobalConnectorState()
 
   const tabContext = useContext(TabIndexContext)
 
-  const validate = (credentials: DatabaseCredentials): string | null => {
-    if (!credentials.host) {
-      return 'Please provide a host'
-    }
-
-    if (credentials.type === DatabaseType.mysql && !credentials.user) {
-      return 'Please provide a user'
-    }
-
-    if (credentials.type === DatabaseType.postgres && !credentials.database) {
-      return 'Please provide a database'
-    }
-
-    return null
-  }
-
-  const connect = async (credentials: DatabaseCredentials) => {
+  const tryToConnect = async (credentials: DatabaseCredentials) => {
     const validationError = validate(credentials)
     if (validationError) {
       setState({ error: validationError })
       return
     }
-    if (!connector) {
-      try {
-        tabContext.lockNavigation(true)
-        setState({ connecting: true })
-
-        // const canRustConnect = await canConnectToDatabase(credentials.uri!)
-
-        // if (canRustConnect.status === 'TlsError') {
-        //   const delimiter = credentials.uri!.includes('?') ? '&' : '?'
-        //   credentials.uri += delimiter + 'sslaccept=accept_invalid_certs'
-        // }
-
-        const connectorAndDisconnect = await getConnectedConnectorFromCredentials(credentials)
-        connector = connectorAndDisconnect
-        await getMetadata()
-
-        let meta
-        const schema = credentials.type === DatabaseType.postgres ? credentials.schema : credentials.database
-        if (schema) {
-          meta = await connector.connector.getMetadata(schema)
-          meta.countOfTables = Number(meta.countOfTables)
-        }
+    tabContext.lockNavigation(true)
+    setState({ checkingConnection: true })
+    try {
+      const url = credentialsToUri(credentials)
+      const canConnect = await canConnectToDatabase(url)
+      if (canConnect === true) {
+        // if we can connect, we always are interested in the metadata
+        await getMetadata(credentials)
 
         setState({
-          credentials,
-          connected: true,
-          connecting: false,
-          selectedDatabaseMeta: { ...meta, name: credentials.database },
+          error: null,
+          canConnect: true,
+          checkingConnection: false,
         })
-        tabContext.lockNavigation(false)
-      } catch (error) {
-        if (error.message.includes('Unknown database') && (credentials.database || credentials.schema)) {
-          const credentialsCopy = {
-            ...credentials,
-            database: undefined,
-            schema: undefined,
-          }
-          return connect(credentialsCopy)
-        } else {
-          setState({ error: prettifyConnectorError(error), connecting: false })
-          tabContext.lockNavigation(false)
-        }
+      } else {
+        setState({
+          error: `${canConnect.code}: ${canConnect.message}`,
+          canConnect: false,
+          checkingConnection: false,
+        })
       }
-    } else {
-      await connector.disconnect()
-      connector = null
-      await connect(credentials)
+    } finally {
+      tabContext.lockNavigation(false)
     }
   }
 
-  const disconnect = async () => {
-    if (connector) {
-      await connector.disconnect()
-      setState({ connected: false })
-      connector = null
-    }
+  const stopEngine = () => {
+    engine.stop()
   }
 
-  const introspect = async (databaseName: string) => {
-    if (!connector) {
-      throw new Error(`Can't introspect before connecting`)
-    }
-    if (!state.credentials) {
-      throw new Error(`Can't introspect without credentials`)
-    }
-    const { credentials } = state
-    const introspection = await connector.connector.introspect(databaseName) // TODO: check if it's called schema or database for mysql
-    const sdl = await introspection.getNormalizedDatamodel()
+  const introspect = async (credentials: DatabaseCredentials) => {
+    validate(credentials)
+    const url = credentialsToUri(credentials)
+    try {
+      tabContext.lockNavigation(true)
 
-    if (credentials.type === DatabaseType.postgres && !credentials.schema) {
-      credentials.schema = databaseName
-    }
+      const schemaName = getSchema(credentials)
+      const selectedDatabaseMeta = state.schemas?.find(s => s.name === schemaName)
+      setState({ introspecting: true, selectedDatabaseMeta })
 
-    const dataSources: DataSource[] = [
-      {
-        name: 'db',
-        config: {},
-        connectorType: databaseTypeToConnectorType(credentials.type),
-        url: {
-          value: credentialsToUri(credentials),
-          fromEnvVar: null,
+      // introspect
+      const introspectionSchema = await engine.introspect(url)
+
+      const dmmf = await getDMMF({
+        datamodel: introspectionSchema,
+      })
+
+      // add the datasource itself to the schema
+      const datasources: DataSource[] = [
+        {
+          name: 'db',
+          config: {},
+          connectorType: databaseTypeToConnectorType(credentials.type),
+          url: {
+            value: credentialsToUri(credentials),
+            fromEnvVar: null,
+          },
         },
-      },
-    ]
+      ]
 
-    const renderedSdl = await isdlToDatamodel2(sdl, dataSources)
-    setState({ introspectionResult: renderedSdl })
+      const schema = await dmmfToDml({
+        config: {
+          generators: [],
+          datasources: datasources,
+        },
+        dmmf: dmmf.datamodel,
+      })
+
+      setState({ introspectionResult: schema, introspecting: false, error: null })
+    } finally {
+      tabContext.lockNavigation(false)
+    }
   }
 
-  const getMetadata = async () => {
-    if (!connector) {
-      throw new Error(`Can't get metadata without connector`)
+  const setSchema = (credentials: DatabaseCredentials, schema: string): DatabaseCredentials => {
+    if (credentials.type === 'postgresql') {
+      return {
+        ...credentials,
+        schema,
+      }
     }
 
-    const schemas = await connector.connector.listSchemas()
-    const schemasWithMetadata = await Promise.all(
+    return {
+      ...credentials,
+      database: schema,
+    }
+  }
+
+  const getSchema = (credentials: DatabaseCredentials): string | undefined => {
+    if (credentials.type === 'postgresql') {
+      return credentials.schema
+    }
+    return credentials.database
+  }
+
+  const getMetadata = async (credentials: DatabaseCredentials) => {
+    validate(credentials)
+    const url = credentialsToUri(credentials)
+
+    const schemas = await engine.listDatabases(url)
+
+    // const schemas = await connector.connector.listSchemas()
+    const schemasWithMetadata: SchemaWithMetaData[] = await Promise.all(
       schemas.map(async name => {
-        const meta = await connector!.connector.getMetadata(name)
-        meta.countOfTables = Number(meta.countOfTables)
-        return { name, ...meta }
+        const credentialsWithSchema = setSchema(credentials, name)
+        const urlWithSchema = credentialsToUri(credentialsWithSchema)
+        const meta = await engine.getDatabaseMetadata(urlWithSchema)
+        return { name, tableCount: meta.table_count, sizeInBytes: meta.size_in_bytes }
       }),
     )
 
-    setState({ schemas: schemasWithMetadata })
+    setState({ schemas: schemasWithMetadata, error: null })
   }
 
   return {
-    connect,
-    disconnect,
-    connector,
+    tryToConnect,
+    stopEngine,
     introspect,
-    schemas: state.schemas,
-    introspectionResult: state.introspectionResult,
-    connected: state.connected,
-    connecting: state.connecting,
-    error: state.error,
-    selectedDatabaseMeta: state.selectedDatabaseMeta, // TODO: just use ...state
     getMetadata,
+    ...state,
   }
-}
-
-/**
- * Known error codes:
- * ER_NOT_SUPPORTED_AUTH_MODE -> provide a user!
- * ER_ACCESS_DENIED_ERROR
- */
-
-export function prettifyConnectorError(error: any): string {
-  if (error instanceof Error) {
-    if (process.env.DEBUG === '*') {
-      return error.stack || error.message
-    }
-    return error.message
-  }
-
-  if (error && typeof error === 'object') {
-    if (error.code && error.sqlMessage) {
-      return `${error.code}: ${error.sqlMessage}`
-    }
-  }
-
-  return String(error)
 }

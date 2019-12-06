@@ -1,10 +1,12 @@
 import { Command, format, HelpError, getSchemaPath, arg } from '@prisma/cli'
 import chalk from 'chalk'
 import path from 'path'
-import { getConfig, IntrospectionEngine, getDMMF, dmmfToDml } from '@prisma/sdk'
+import { getConfig, IntrospectionEngine, getDMMF, dmmfToDml, uriToCredentials } from '@prisma/sdk'
 import { formatms } from '../util/formatms'
 import fs from 'fs'
 import { ConfigMetaFormat } from '@prisma/sdk/dist/isdlToDatamodel2'
+import { DataSource } from '@prisma/generator-helper'
+import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 
 /**
  * $ prisma migrate new
@@ -102,9 +104,22 @@ export class Introspect implements Command {
 
     try {
       const dmmf = await getDMMF({ datamodel: introspectionSchema })
+
+      // add the datasource itself to the schema in case no schema.prisma exists yet
+      const datasources: DataSource[] = [
+        {
+          name: 'db',
+          config: {},
+          connectorType: databaseTypeToConnectorType(uriToCredentials(url).type),
+          url: {
+            value: url,
+            fromEnvVar: null,
+          },
+        },
+      ]
       const schema = await dmmfToDml({
         config: config || {
-          datasources: [],
+          datasources,
           generators: [],
         },
         dmmf: dmmf.datamodel,

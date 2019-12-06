@@ -1,8 +1,7 @@
 import React from 'react'
 import useGlobalHook from '../utils/useGlobalHook'
 import { Example } from '../types'
-import { DatabaseCredentials } from '../../types'
-import { uriToCredentials, credentialsToUri } from '../../convertCredentials'
+import { uriToCredentials, credentialsToUri, DatabaseCredentials } from '@prisma/sdk'
 
 export type DBType = 'postgres' | 'sqlite' | 'mysql'
 export type Language = 'typescript' | 'javascript'

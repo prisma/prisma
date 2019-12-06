@@ -18,6 +18,9 @@ const uris = [
 
 for (const uri of uris) {
   test(`Convert ${uri}`, () => {
-    expect({ before: uri, after: credentialsToUri(uriToCredentials(uri)) }).toMatchSnapshot()
+    expect({
+      before: uri,
+      after: credentialsToUri(uriToCredentials(uri)),
+    }).toMatchSnapshot()
   })
 }

@@ -1,9 +1,8 @@
-import { DatabaseType } from 'prisma-datamodel'
-import { DatabaseCredentials } from '../../types'
+import { DatabaseCredentials } from '@prisma/sdk'
 import { GeneratorConfig } from '@prisma/generator-helper'
 
 export const sqliteDefault: DatabaseCredentials = {
-  type: DatabaseType.sqlite,
+  type: 'sqlite',
   uri: 'file:dev.db',
 }
 

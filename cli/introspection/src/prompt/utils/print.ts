@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { DatabaseType } from 'prisma-datamodel'
+import { ConnectorType } from '@prisma/generator-helper'
 
 export function printError(text) {
   return chalk.bold.bgRed(' ERROR ') + ' ' + chalk.red(text)
@@ -18,12 +18,12 @@ export function beautifyLanguage(language: string): string {
   return beautifyMap[language] || language
 }
 
-export function prettyDb(type: DatabaseType) {
+export function prettyDb(type: ConnectorType) {
   switch (type) {
-    case DatabaseType.mysql: {
+    case 'mysql': {
       return 'MySQL'
     }
-    case DatabaseType.postgres: {
+    case 'postgresql': {
       return 'PostgreSQL'
     }
   }
