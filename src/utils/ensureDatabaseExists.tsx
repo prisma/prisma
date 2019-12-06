@@ -1,19 +1,16 @@
 import { getSchema, getSchemaDir } from '@prisma/cli'
 import { BorderBox, DummySelectable, TabIndexProvider } from '@prisma/ink-components'
-// import { TabIndexProvider, TabIndexContext } from '../ink/TabIndex'
 import { getConfig } from '@prisma/sdk'
 import ansiEscapes from 'ansi-escapes'
 import chalk from 'chalk'
 import { Box, Color, Instance, render } from 'ink'
 import Spinner from 'ink-spinner'
 const AnySpinner: any = Spinner
-import Debug from 'debug'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { createDatabase } from '..'
 import { canConnectToDatabase } from '../liftEngineCommands'
 import { Link } from './Link'
-import { DatabaseCredentials, uriToCredentials } from './uriToCredentials'
-const debug = Debug('ensureDatabaseExists')
+import { DatabaseCredentials, uriToCredentials } from '@prisma/sdk'
 
 export type LiftAction = 'create' | 'apply' | 'unapply' | 'dev'
 
@@ -137,7 +134,7 @@ const CreateDatabaseDialog: React.FC<DialogProps> = ({ connectionString, action,
   const dbType =
     credentials.type === 'mysql'
       ? 'MySQL'
-      : credentials.type === 'postgres'
+      : credentials.type === 'postgresql'
       ? 'PostgreSQL'
       : credentials.type === 'sqlite'
       ? 'Sqlite'
