@@ -1,6 +1,4 @@
-import { PostgresConnector } from 'prisma-db-introspection'
-import { getGenerator, isdlToDatamodel2 } from '@prisma/sdk'
-import { ISDL } from 'prisma-datamodel'
+import { getGenerator, IntrospectionEngine, getDMMF, dmmfToDml } from '@prisma/sdk'
 import { join, dirname } from 'path'
 import mkdir from 'make-dir'
 import { Client } from 'pg'
@@ -12,15 +10,16 @@ import fs from 'fs'
 import path from 'path'
 const del = promisify(rimraf)
 
-const host = process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
+const connectionString = process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
 process.env.SKIP_GENERATE = 'true'
 
 const db = new Client({
-  connectionString: host,
+  connectionString,
 })
 
 const pkg = pkgup.sync() || __dirname
 const tmp = join(dirname(pkg), 'tmp')
+const engine = new IntrospectionEngine()
 
 before(done => {
   db.connect(err => done(err))
@@ -33,6 +32,7 @@ beforeEach(async () => {
 
 after(async () => {
   await db.end()
+  engine.stop()
 })
 
 tests().map(t => {
@@ -57,9 +57,8 @@ tests().map(t => {
 async function runTest(t) {
   await db.query(t.after)
   await db.query(t.before)
-  const isdl = await inspect(db, 'public')
-
-  await generate(isdl)
+  const introspectionSchema = await engine.introspect(connectionString)
+  await generate(introspectionSchema)
   const photonPath = join(tmp, 'index.js')
   const photonDeclarationPath = join(tmp, 'index.d.ts')
 
@@ -82,41 +81,37 @@ async function runTest(t) {
   }
 }
 
-async function inspect(client: Client, schema: string): Promise<ISDL> {
-  const connector = new PostgresConnector(client)
-  const result = await connector.introspect(schema)
-  return result.getNormalizedDatamodel()
-}
+async function generate(introspectionSchema: string) {
+  const dmmf = await getDMMF({ datamodel: introspectionSchema })
 
-async function generate(isdl: ISDL) {
-  const datamodel = await isdlToDatamodel2(
-    isdl,
-    [
-      {
-        name: 'pg',
-        connectorType: 'postgresql',
-        url: {
-          value: `${host}?schema=public`,
-          fromEnvVar: null,
+  const datamodel = await dmmfToDml({
+    dmmf: dmmf.datamodel,
+    config: {
+      datasources: [
+        {
+          name: 'pg',
+          connectorType: 'postgresql',
+          url: {
+            value: `${connectionString}?schema=public`,
+            fromEnvVar: null,
+          },
+          config: {},
         },
-        config: {},
-      },
-    ],
-    [
-      {
-        binaryTargets: [],
-        config: {},
-        name: 'photon',
-        output: tmp,
-        provider: 'photonjs',
-      },
-    ],
-  )
+      ],
+      generators: [
+        {
+          binaryTargets: [],
+          config: {},
+          name: 'photon',
+          output: tmp,
+          provider: 'photonjs',
+        },
+      ],
+    },
+  })
 
   const schemaPath = path.join(tmp, 'schema.prisma')
   fs.writeFileSync(schemaPath, datamodel)
-
-  const photonjsPath = require.resolve('@prisma/photon/generator-build')
 
   const generator = await getGenerator({
     schemaPath,
@@ -194,12 +189,12 @@ function tests() {
         drop table if exists users cascade;
       `,
       do: async client => {
-        return client.users.findOne({ where: { id: 1 }, include: { posts: true } })
+        return client.users.findOne({ where: { id: 1 }, include: { postses: true } })
       },
       expect: {
         email: 'ada@prisma.io',
         id: 1,
-        posts: [
+        postses: [
           {
             id: 1,
             title: 'A',
@@ -340,7 +335,7 @@ function tests() {
         drop table if exists users cascade;
       `,
       do: async client => {
-        return client.users.findOne({ where: { email: 'ada@prisma.io' } }).posts()
+        return client.users.findOne({ where: { email: 'ada@prisma.io' } }).postses()
       },
       expect: [
         {
