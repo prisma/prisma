@@ -42,10 +42,7 @@ import { Version } from './Version'
 import { Generate } from './Generate'
 import chalk from 'chalk'
 import { Docs } from './Docs'
-import { Converter } from './Converter'
 import { ProviderAliases } from '@prisma/sdk'
-import fs from 'fs'
-import path from 'path'
 export { Photon } from '@prisma/studio-transports'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
@@ -75,7 +72,6 @@ async function main(): Promise<number> {
     }),
     'tmp-prepare': LiftTmpPrepare.new(),
     introspect: Introspect.new(),
-    convert: Converter.new(),
     dev: LiftWatch.new(aliases),
     studio: StudioCommand.new(aliases),
     generate: Generate.new(),
