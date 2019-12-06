@@ -309,10 +309,10 @@ ${JSON.stringify(request, null, 2)}
 ${message}
 \`\`\`
 `
-    // fs.writeFileSync(
-    //   filename,
-    //   file,
-    // )
+    fs.writeFileSync(
+      filename,
+      file,
+    )
     return `Wrote ${chalk.bold(filename)} with debugging information.
 Please put that file into a gist and post it in Slack.
 1. ${chalk.greenBright(`cat ${filename} | pbcopy`)}
