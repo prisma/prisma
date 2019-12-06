@@ -3,4 +3,8 @@ steps:
     trigger: 'prisma2-test'
   - label: ':flashlight: Publish Prisma 2'
     trigger: 'prisma2-publish'
+    build:
+      env:
+        BUILDKITE_TAG: '${BUILDKITE_TAG}'
+
   - wait
