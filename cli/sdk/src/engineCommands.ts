@@ -137,7 +137,7 @@ export async function getDMMF({
       })
     }
     if (e.stderr) {
-      throw new Error(chalk.redBright.bold('Schema parsing ') + e.stderr)
+      throw new Error(chalk.redBright.bold('Schema parsing\n') + e.stderr)
     }
     if (e.message.includes('in JSON at position')) {
       throw new Error(
