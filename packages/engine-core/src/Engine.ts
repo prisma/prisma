@@ -1,6 +1,10 @@
 import { RustLog, PanicLogFields } from './log'
 import chalk from 'chalk'
+import camelCase from 'camelcase'
 
+/**
+ * A PhotonError is mostly a non-recoverable error like a panic
+ */
 export class PhotonError extends Error {
   constructor(log: RustLog) {
     const isPanic = log.fields.message === 'PANIC'
@@ -15,6 +19,43 @@ export class PhotonError extends Error {
       value: isPanic,
     })
   }
+}
+
+export interface QueryEngineError {
+  error: string
+  user_facing_error: {
+    message: string
+    meta?: Object
+    error_code?: string
+  }
+}
+
+/**
+ * A PhotonQueryError is an error that is thrown in conjunction to a concrete query that has been performed with Photon.js.
+ */
+export class PhotonQueryError extends Error {
+  code?: string
+  meta?: Object
+  constructor(error: QueryEngineError) {
+    const code = error.user_facing_error.error_code
+    const reason = code ?? 'Reason'
+    super(chalk.red.bold(`${reason}: `) + chalk.red(error.user_facing_error.message + '\n'))
+    this.code = code
+    if (error.user_facing_error.meta) {
+      this.meta = mapKeys(error.user_facing_error.meta, key => camelCase(key))
+
+    }
+  }
+}
+
+function mapKeys<T extends object>(
+  obj: T,
+  mapper: (key: keyof T) => string,
+): any {
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    acc[mapper(key as keyof T)] = value
+    return acc
+  }, {})
 }
 
 function serializeError(log) {
@@ -39,11 +80,6 @@ your \`schema.prisma\` and the Photon method you tried to use 🙏:
 ${chalk.underline('https://github.com/prisma/photonjs/issues/new')}\n`
 }
 
-export class PhotonQueryError extends Error {
-  constructor(message: string) {
-    super(chalk.red.bold('Reason: ') + chalk.red(message + '\n'))
-  }
-}
 
 function serializeObject(obj) {
   return Object.entries(obj)

@@ -1,4 +1,4 @@
-import { Engine, PhotonError, PhotonQueryError } from './Engine'
+import { Engine, PhotonError, PhotonQueryError, QueryEngineError } from './Engine'
 import got from 'got'
 import debugLib from 'debug'
 import { getPlatform, Platform, mayBeCompatible } from '@prisma/get-platform'
@@ -9,7 +9,7 @@ import chalk from 'chalk'
 import { GeneratorConfig } from '@prisma/generator-helper'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixPlatforms, plusX } from './util'
-import { promisify } from 'util'
+import { promisify, inspect } from 'util'
 import EventEmitter from 'events'
 import { convertLog, Log, RustLog } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
@@ -32,6 +32,7 @@ export interface EngineConfig {
   generator?: GeneratorConfig
   datasources?: DatasourceOverwrite[]
 }
+
 
 /**
  * Node.js based wrapper to run the Prisma binary
@@ -524,10 +525,12 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     return JSON.stringify(errors, null, 2)
   }
 
-  handleErrors({ errors, query }: { errors?: any; query: string }) {
+  handleErrors({ errors, query }: { errors?: QueryEngineError[]; query: string }) {
+
+    debug(inspect(errors, false, null))
 
     if (errors.length === 1 && errors[0].user_facing_error) {
-      throw new PhotonQueryError(errors[0].user_facing_error.message)
+      throw new PhotonQueryError(errors[0])
     }
 
     const stringified = errors ? this.serializeErrors(errors) : null
@@ -536,6 +539,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     if (isPanicked) {
       this.stop()
     }
-    throw new PhotonQueryError(message)
+
+    throw new PhotonError(message)
   }
 }
