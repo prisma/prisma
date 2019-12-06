@@ -1,10 +1,9 @@
 import { Command, format, HelpError, getSchemaPath, arg } from '@prisma/cli'
 import chalk from 'chalk'
 import path from 'path'
-import { getConfig, IntrospectionEngine, getDMMF, dmmfToDml, uriToCredentials } from '@prisma/sdk'
+import { getConfig, IntrospectionEngine, getDMMF, dmmfToDml, uriToCredentials, ConfigMetaFormat } from '@prisma/sdk'
 import { formatms } from '../util/formatms'
 import fs from 'fs'
-import { ConfigMetaFormat } from '@prisma/sdk/dist/isdlToDatamodel2'
 import { DataSource } from '@prisma/generator-helper'
 import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 
