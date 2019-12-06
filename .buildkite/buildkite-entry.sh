@@ -10,6 +10,7 @@ cd ..
 node last-git-changes/bin.js --exclude='docs,examples,scripts,README.md,LICENSE,CONTRIBUTING.md' 
 export CHANGED_COUNT=$(node last-git-changes/bin.js --exclude='docs,examples,scripts,README.md,LICENSE,CONTRIBUTING.md' | wc -l)
 
+echo $BUILDKITE_TAG
 echo $CHANGED_COUNT
 
 if [ $CHANGED_COUNT -gt 0 ]; then
