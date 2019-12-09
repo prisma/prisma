@@ -86,14 +86,19 @@ export function useConnector(): UseConnector {
     try {
       const url = credentialsToUri(credentials)
       const canConnect = await canConnectToDatabase(url)
-      if (canConnect === true) {
+      if (canConnect === true || canConnect.code === 'P1003') {
         // if we can connect, we always are interested in the metadata
-        await getMetadata(credentials)
+
+        const dbDoesntExist = typeof canConnect === 'object' && canConnect.code === 'P1003'
+        if (!dbDoesntExist) {
+          await getMetadata(credentials)
+        }
 
         setState({
           error: null,
           canConnect: true,
           checkingConnection: false,
+          dbDoesntExist,
         })
       } else {
         setState({
