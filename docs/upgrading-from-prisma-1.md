@@ -49,8 +49,8 @@ The [Prisma schema](./prisma-schema-file.md) is the foundation for any project t
 There are three ways of obtaining a Prisma schema based on an existing Prisma 1 project:
 
 - Writing the Prisma schema by hand
-- Using the `prisma2 convert` command
 - Using introspection against the existing database
+- Using the `prisma2 convert` command
 
 Note that [introspection is not yet available](https://github.com/prisma/prisma2/issues/781), so for the purpose of this upgrade guide you'll use the `prisma2 convert` command which converts a Prisma 1 data model to a Prisma schema file. Note that the resulting Prisma schema will not contain any data source and generator definitions yet, these must be added manually.
 
@@ -59,8 +59,10 @@ Note that [introspection is not yet available](https://github.com/prisma/prisma2
 Assuming your Prisma 1 datamodel is called `datamodel.prisma`, you can use the following command to create a Prisma schema file called `schema.prisma`:
 
 ```bash
-cat datamodel.prisma | npx prisma2 convert > schema.prisma
+cat datamodel.prisma | npx prisma2@2.0.0-preview017 convert > schema.prisma
 ```
+
+> **Note**: The `convert` command has been removed from the Prisma Framework CLI in [2.0.0-preview018](https://github.com/prisma/prisma2/releases/tag/2.0.0-preview018) so you're using it based on an older CLI version.
 
 Consider the [example datamodel](https://github.com/prisma/prisma-examples/blob/master/typescript/rest-express/prisma/datamodel.prisma):
 
