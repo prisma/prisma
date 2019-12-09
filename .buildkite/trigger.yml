@@ -6,5 +6,9 @@ steps:
     build:
       env:
         BUILDKITE_TAG: '${BUILDKITE_TAG}'
+    if: |
+      // Only run on master branch
+      // More docs here https://buildkite.com/docs/pipelines/conditionals
+      build.branch =~ /^master\//
 
   - wait
