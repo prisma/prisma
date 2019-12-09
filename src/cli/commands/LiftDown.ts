@@ -14,7 +14,7 @@ export class LiftDown implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma lift down [<dec|name|timestamp>]
+      prisma lift down [<decrement|name|timestamp>]
 
     ${chalk.bold('Arguments')}
 
