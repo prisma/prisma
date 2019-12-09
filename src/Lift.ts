@@ -491,7 +491,7 @@ export class Lift {
       throw new Error(
         `Your filter ${chalk.redBright(
           `n = ${chalk.bold(String(n))}`,
-        )}, does not match any number of applied migrations that can be rolled back. Please provide a valid <dec|name|timestamp>.`,
+        )}, does not match any number of applied migrations that can be rolled back. Please provide a valid <decrement|name|timestamp>.`,
       )
     }
 
