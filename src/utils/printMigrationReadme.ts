@@ -52,7 +52,8 @@ ${makePatch({
 })}
 \`\`\`
 
-## Photon Usage
+${
+  /*## Photon Usage
 
 You can use a specific Photon built for this migration (${migrationId})
 in your \`before\` or \`after\` migration script like this:
@@ -70,12 +71,14 @@ async function main() {
 main()
 
 \`\`\`
+*/ ''
+}
 `
 }
 
 function makePatch({ datamodelA, datamodelB, migrationId, lastMigrationId }: MigrationReadmeInput) {
   const patch = createPatch('datamodel.dml', datamodelA, datamodelB)
-  const header = `diff --git datamodel.mdl datamodel.mdl
+  const header = `diff --git schema.prisma schema.prisma
 migration ${lastMigrationId}..${migrationId}\n`
   return header + filterUselessLines(patch)
 }
