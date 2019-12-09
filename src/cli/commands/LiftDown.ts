@@ -60,19 +60,8 @@ export class LiftDown implements Command {
 
     const lift = new Lift()
 
-    const options: DownOptions = {}
-
-    // TODO add go down by name and timestamp
-    if (args._.length > 0) {
-      const thisArg = args._[0]
-      const maybeNumber = parseInt(thisArg, 10)
-
-      // in this case it's a migration id
-      if (isNaN(maybeNumber) || typeof maybeNumber !== 'number') {
-        throw new Error(`Invalid migration step ${maybeNumber}`)
-      } else {
-        options.n = maybeNumber
-      }
+    const options: DownOptions = {
+      n: args._.pop(),
     }
 
     await ensureDatabaseExists('unapply', true)
