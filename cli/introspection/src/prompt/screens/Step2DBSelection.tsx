@@ -37,7 +37,7 @@ const Step2DBSelection: React.FC = () => {
           href="postgres-credentials"
           description="Requires running a PostgreSQL database"
           tabIndex={2}
-          state={{ selectedDb: 'postgres', dbCredentials: { type: 'postgres' } }}
+          state={{ selectedDb: 'postgres', dbCredentials: { type: 'postgresql' } }}
         />
         <Box marginLeft={2}>
           <Color dim>MongoDB {'      '} (Coming soon)</Color>
