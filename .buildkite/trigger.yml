@@ -9,6 +9,6 @@ steps:
     if: |
       // Only run on master branch
       // More docs here https://buildkite.com/docs/pipelines/conditionals
-      build.branch =~ /^master\//
+      build.branch == 'master'
 
   - wait
