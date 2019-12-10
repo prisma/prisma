@@ -475,7 +475,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     await this.start()
 
     if (!this.child) {
-      throw new Error(`Engine has already been stopped`)
+      throw new Error(`Can't perform reqeust, as the Engine has already been stopped`)
     }
     this.currentRequestPromise = got.post(this.url, {
       json: true,
