@@ -15,6 +15,7 @@ export const enums = /* GraphQL */ `
     favoriteTree Tree
     location Location
     posts Post[]
+    someFloats Float[]
   }
 
   model Post {

@@ -34,6 +34,7 @@ describe('where transformation', () => {
           nicknames
           permissions
           favoriteTree
+          someFloats
         }
       }"
     `)
@@ -47,6 +48,7 @@ describe('where transformation', () => {
           nicknames
           permissions
           favoriteTree
+          someFloats
         }
       }"
     `)
@@ -78,6 +80,7 @@ describe('where transformation', () => {
           nicknames
           permissions
           favoriteTree
+          someFloats
         }
       }"
     `)
@@ -91,6 +94,7 @@ describe('where transformation', () => {
           nicknames
           permissions
           favoriteTree
+          someFloats
         }
       }"
     `)

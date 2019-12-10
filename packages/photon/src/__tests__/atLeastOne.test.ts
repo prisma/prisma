@@ -22,22 +22,23 @@ describe('at least one validation', () => {
       rootField: 'findManyUser',
     })
     expect(String(document)).toMatchInlineSnapshot(`
-            "query {
-              findManyUser(where: {
-                email: {
+      "query {
+        findManyUser(where: {
+          email: {
 
-                }
-              }) {
-                id
-                name
-                email
-                status
-                nicknames
-                permissions
-                favoriteTree
-              }
-            }"
-        `)
+          }
+        }) {
+          id
+          name
+          email
+          status
+          nicknames
+          permissions
+          favoriteTree
+          someFloats
+        }
+      }"
+    `)
     try {
       document.validate(select, false, 'users')
     } catch (e) {

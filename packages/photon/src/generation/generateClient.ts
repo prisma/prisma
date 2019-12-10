@@ -196,6 +196,7 @@ export async function generateClient({
     binaryPaths,
   })
 
+  debug(`makeDir: ${outputDir}`)
   await makeDir(outputDir)
   await Promise.all(
     Object.entries(fileMap).map(async ([fileName, file]) => {
