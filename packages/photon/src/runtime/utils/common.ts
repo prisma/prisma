@@ -71,13 +71,19 @@ export function getGraphQLType(value: any, potentialType?: string | DMMF.Enum | 
     return 'null'
   }
   if (Array.isArray(value)) {
-    const scalarTypes = value.reduce((acc, val) => {
+    let scalarTypes = value.reduce((acc, val) => {
       const type = getGraphQLType(val, potentialType)
       if (!acc.includes(type)) {
         acc.push(type)
       }
       return acc
     }, [])
+
+    // Merge Float and Int together
+    if (scalarTypes.includes('Float') && scalarTypes.includes('Int')) {
+      scalarTypes = ['Float']
+    }
+
     return `List<${scalarTypes.join(' | ')}>`
   }
   const jsType = typeof value

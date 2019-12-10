@@ -12,6 +12,7 @@ exports[`at least one validation valid query 1`] = `
     nicknames
     permissions
     favoriteTree
+    someFloats
   }
 }"
 `;
