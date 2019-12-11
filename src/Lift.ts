@@ -832,8 +832,8 @@ export class Lift {
       return true
     })
 
-    const filterMigrations = (values: any[], n: string): any[] => {
-      if (!n.length) {
+    const filterMigrations = (values: any[], n: string | undefined): any[] => {
+      if (!n) {
         return values
       }
 
@@ -850,9 +850,9 @@ export class Lift {
     return {
       localMigrations,
       lastAppliedIndex,
-      appliedRemoteMigrations: filterMigrations(appliedRemoteMigrations.reverse(), String(appliedFilter)).reverse(),
+      appliedRemoteMigrations: filterMigrations(appliedRemoteMigrations.reverse(), appliedFilter).reverse(),
       sourceConfig,
-      migrationsToApply: filterMigrations(migrationsToApply, String(toApplyFilter)),
+      migrationsToApply: filterMigrations(migrationsToApply, toApplyFilter),
     }
   }
 }
