@@ -63,7 +63,7 @@ This example shows the configuration of a Photon.js generator for local developm
 ```groovy
 generator photon {
     provider      = "photonjs"
-    binaryTargets = ["native", "debian-glibc-libssl-1.0.2"] 
+    binaryTargets = ["native", "debian-openssl-1.0.x"] 
 }
 ```
 
