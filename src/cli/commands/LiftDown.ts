@@ -14,7 +14,7 @@ export class LiftDown implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma lift down [<decrement|name|timestamp>]
+      prisma lift down [<dec|name|timestamp>]
 
     ${chalk.bold('Arguments')}
 
@@ -60,8 +60,19 @@ export class LiftDown implements Command {
 
     const lift = new Lift()
 
-    const options: DownOptions = {
-      n: args._.pop(),
+    const options: DownOptions = {}
+
+    // TODO add go down by name and timestamp
+    if (args._.length > 0) {
+      const thisArg = args._[0]
+      const maybeNumber = parseInt(thisArg, 10)
+
+      // in this case it's a migration id
+      if (isNaN(maybeNumber) || typeof maybeNumber !== 'number') {
+        throw new Error(`Invalid migration step ${maybeNumber}`)
+      } else {
+        options.n = maybeNumber
+      }
     }
 
     await ensureDatabaseExists('unapply', true)
