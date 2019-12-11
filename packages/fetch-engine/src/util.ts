@@ -32,8 +32,8 @@ export async function getRemoteLastModified(url: string): Promise<Date> {
   return new Date(response.headers.get('last-modified'))
 }
 
-export async function getRootCacheDir(platform: string): Promise<string> {
-  if (platform === 'windows') {
+export async function getRootCacheDir(): Promise<string> {
+  if (os.platform() === 'win32') {
     const cacheDir = await findCacheDir({ name: 'prisma', create: true })
     if (cacheDir) {
       return cacheDir
@@ -46,7 +46,7 @@ export async function getRootCacheDir(platform: string): Promise<string> {
 }
 
 export async function getCacheDir(channel: string, version: string, platform: string): Promise<string> {
-  const rootCacheDir = await getRootCacheDir(platform)
+  const rootCacheDir = await getRootCacheDir()
 
   debug({ rootCacheDir, channel, version, platform })
   const cacheDir = path.join(rootCacheDir, channel, version, platform)
