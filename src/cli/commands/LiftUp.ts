@@ -77,14 +77,21 @@ export class LiftUp implements Command {
       autoApprove: args['--auto-approve'],
     }
 
+    if (args._.length > 0) {
+      const thisArg = args._[0]
+      const maybeNumber = parseInt(thisArg, 10)
+
+      // in this case it's a migration id
+      if (isNaN(maybeNumber) || typeof maybeNumber !== 'number') {
+        throw new Error(`Invalid migration step ${maybeNumber}`)
+      } else {
+        options.n = maybeNumber
+      }
+    }
+
     await ensureDatabaseExists('apply', true, args['--create-db'])
 
-    const result = await lift.up(
-      Object.assign(options, {
-        n: args._.pop(),
-      }),
-    )
-
+    const result = await lift.up(options)
     lift.stop()
     return result
   }

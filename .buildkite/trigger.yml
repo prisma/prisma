@@ -3,8 +3,4 @@ steps:
     trigger: 'prisma2-test'
   - label: ':flashlight: Publish Lift'
     trigger: 'prisma2-publish'
-    if: |
-      // Only run on master branch
-      // More docs here https://buildkite.com/docs/pipelines/conditionals
-      build.branch == 'master'
   - wait

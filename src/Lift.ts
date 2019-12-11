@@ -49,14 +49,14 @@ const exists = promisify(fs.exists)
 
 export interface UpOptions {
   preview?: boolean
-  n?: string
+  n?: number
   short?: boolean
   verbose?: boolean
   autoApprove?: boolean
   onWarnings?: (warnings: EngineResults.Warning[]) => Promise<boolean>
 }
 export interface DownOptions {
-  n?: string
+  n?: number
 }
 
 export interface WatchOptions {
@@ -443,12 +443,11 @@ export class Lift {
     return ''
   }
 
-  public async down({ n = '1' }: DownOptions): Promise<string> {
+  public async down({ n }: DownOptions): Promise<string> {
     await this.getLockFile()
     const before = Date.now()
-    const { localMigrations, appliedRemoteMigrations } = await this.getMigrationsToApply(undefined, String(n))
+    const localMigrations = await this.getLocalMigrations()
     const localWatchMigrations = await this.getLocalWatchMigrations()
-
     if (localWatchMigrations.length > 0) {
       throw new Error(
         `Before running ${chalk.yellow('prisma lift down')}, please save your ${chalk.bold(
@@ -458,8 +457,8 @@ export class Lift {
         )}`,
       )
     }
-
     const datamodel = await this.getDatamodel()
+    const appliedRemoteMigrations = await this.engine.listAppliedMigrations({ sourceConfig: datamodel })
 
     // TODO cleanup
     let lastAppliedIndex = -1
@@ -487,16 +486,20 @@ export class Lift {
       return 'No migration to roll back'
     }
 
-    if (!appliedMigrations.length) {
+    if (n && n > appliedMigrations.length) {
       throw new Error(
-        `Your filter ${chalk.redBright(
-          `n = ${chalk.bold(String(n))}`,
-        )}, does not match any number of applied migrations that can be rolled back. Please provide a valid <decrement|name|timestamp>.`,
+        `You provided ${chalk.redBright(`n = ${chalk.bold(String(n))}`)}, but there are only ${
+          appliedMigrations.length
+        } applied migrations that can be rolled back. Please provide ${chalk.green(
+          String(appliedMigrations.length),
+        )} or lower.`,
       )
     }
 
-    for (let i = 0; i < appliedMigrations.length; i++) {
-      const lastApplied = appliedMigrations[lastAppliedIndex]
+    n = n || 1
+
+    for (let i = 0; i < n; i++) {
+      const lastApplied = localMigrations[lastAppliedIndex]
       console.log(`Rolling back migration ${blue(lastApplied.id)}`)
 
       const result = await this.engine.unapplyMigration({ sourceConfig: datamodel })
@@ -515,8 +518,13 @@ export class Lift {
     await this.getLockFile()
     const before = Date.now()
 
-    const migrationsToApplyResult = await this.getMigrationsToApply(n)
-    const { lastAppliedIndex, localMigrations, migrationsToApply, sourceConfig } = migrationsToApplyResult
+    const migrationsToApplyResult = await this.getMigrationsToApply()
+    const { lastAppliedIndex, localMigrations, appliedRemoteMigrations, sourceConfig } = migrationsToApplyResult
+    let { migrationsToApply } = migrationsToApplyResult
+
+    if (typeof n === 'number') {
+      migrationsToApply = migrationsToApply.slice(0, n)
+    }
 
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
@@ -543,11 +551,7 @@ export class Lift {
 
     console.log(`\nChecking the datasource for potential data loss...`)
     const firstMigrationToApplyIndex = localMigrations.indexOf(migrationsToApply[0])
-    const migrationsWithDbSteps = await this.getDatabaseSteps(
-      migrationsToApply,
-      firstMigrationToApplyIndex,
-      sourceConfig,
-    )
+    const migrationsWithDbSteps = await this.getDatabaseSteps(localMigrations, firstMigrationToApplyIndex, sourceConfig)
 
     const warnings = migrationsWithDbSteps.flatMap(m => m.warnings)
 
@@ -785,10 +789,7 @@ export class Lift {
     return migrationsWithDatabaseSteps.slice(fromIndex)
   }
 
-  private async getMigrationsToApply(
-    toApplyFilter?: string,
-    appliedFilter?: string,
-  ): Promise<{
+  private async getMigrationsToApply(): Promise<{
     localMigrations: LocalMigration[]
     lastAppliedIndex: number
     migrationsToApply: LocalMigration[]
@@ -832,27 +833,12 @@ export class Lift {
       return true
     })
 
-    const filterMigrations = (values: any[], n: string | undefined): any[] => {
-      if (!n) {
-        return values
-      }
-
-      const maybeNumber = Number(n)
-      const isNumber = !Number.isNaN(maybeNumber)
-      const i = values.findIndex(({ id = '' }, index) => {
-        const [date, name] = id.split(/-/)
-        return date === n || name === n || (isNumber && maybeNumber === index + 1)
-      })
-
-      return values.slice(0, i + 1)
-    }
-
     return {
       localMigrations,
       lastAppliedIndex,
-      appliedRemoteMigrations: filterMigrations(appliedRemoteMigrations.reverse(), appliedFilter).reverse(),
+      migrationsToApply,
+      appliedRemoteMigrations,
       sourceConfig,
-      migrationsToApply: filterMigrations(migrationsToApply, toApplyFilter),
     }
   }
 }
