@@ -69,7 +69,9 @@ export class IntrospectionEngine {
     this.cwd = cwd || process.cwd()
   }
   public stop() {
-    this.child!.kill()
+    if (this.child) {
+      this.child.kill()
+    }
   }
   private rejectAll(err: any) {
     Object.entries(this.listeners).map(([id, listener]) => {
