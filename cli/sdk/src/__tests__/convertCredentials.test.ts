@@ -14,13 +14,12 @@ const uris = [
   'mysql://user@localhost:3333/dbname?sslmode=prefer',
   'mongodb://mongodb0.example.com:27017/admin',
   'mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017/admin',
+  'mysql://root@/db?socket=/private/tmp/mysql.sock',
+  'postgresql://root:prisma@/prisma?host=/var/run/postgresql/',
 ]
 
 for (const uri of uris) {
   test(`Convert ${uri}`, () => {
-    expect({
-      before: uri,
-      after: credentialsToUri(uriToCredentials(uri)),
-    }).toMatchSnapshot()
+    expect(credentialsToUri(uriToCredentials(uri))).toBe(uri)
   })
 }

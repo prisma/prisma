@@ -1,5 +1,5 @@
 import { DatabaseCredentials } from './types'
-import { URL } from 'url'
+import URL from 'url-parse'
 import { ConnectorType } from '@prisma/generator-helper'
 
 export function credentialsToUri(credentials: DatabaseCredentials): string {
@@ -7,7 +7,7 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
   if (credentials.type === 'mongo') {
     return credentials.uri!
   }
-  const url = new URL(type + '//')
+  const url = new URL(type + '//', true)
 
   if (credentials.host) {
     url.hostname = credentials.host
@@ -19,14 +19,21 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
     }
 
     if (credentials.schema) {
-      url.searchParams.set('schema', credentials.schema)
+      url.query.schema = credentials.schema
+    }
+
+    if (credentials.socket) {
+      url.query.host = credentials.socket
     }
   } else if (credentials.type === 'mysql') {
     url.pathname = '/' + (credentials.database || credentials.schema || '')
+    if (credentials.socket) {
+      url.query.socket = credentials.socket
+    }
   }
 
   if (credentials.ssl) {
-    url.searchParams.set('sslmode', 'prefer')
+    url.query.sslmode = 'prefer'
   }
 
   if (credentials.user) {
@@ -41,13 +48,31 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
     url.port = String(credentials.port)
   }
 
-  return url.toString()
+  url.host = `${url.hostname}${url.port ? `:${url.port}` : ''}`
+
+  if (credentials.extraFields) {
+    for (const [key, value] of Object.entries(credentials.extraFields)) {
+      url.query[key] = value
+    }
+  }
+
+  // trim away empty pathnames
+  if (url.pathname === '/') {
+    url.pathname = ''
+  }
+
+  // use a custom toString method, as we don't want escaping of query params
+  return url.toString(q =>
+    Object.entries(q)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('&'),
+  )
 }
 
 export function uriToCredentials(
   connectionString: string,
 ): DatabaseCredentials {
-  const uri = new URL(connectionString)
+  const uri = new URL(connectionString, true)
   const type = protocolToDatabaseType(uri.protocol)
 
   // needed, as the URL implementation adds empty strings
@@ -60,6 +85,8 @@ export function uriToCredentials(
     }
   }
 
+  const { schema, socket, host, ...extraFields } = uri.query
+
   return {
     type,
     host: exists(uri.hostname) ? uri.hostname : undefined,
@@ -70,9 +97,11 @@ export function uriToCredentials(
       uri.pathname && uri.pathname.length > 1
         ? uri.pathname.slice(1)
         : undefined,
-    schema: uri.searchParams.get('schema') || undefined,
+    schema: uri.query.schema || undefined,
     uri: connectionString,
-    ssl: uri.searchParams.has('sslmode'),
+    ssl: Boolean(uri.query.sslmode),
+    socket: uri.query.socket || uri.query.host,
+    extraFields,
   }
 }
 

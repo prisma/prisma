@@ -50,7 +50,8 @@
     "rimraf": "^3.0.0",
     "tar": "^5.0.5",
     "temp-write": "^4.0.0",
-    "tempy": "^0.3.0"
+    "tempy": "^0.3.0",
+    "url-parse": "^1.4.7"
   },
   "husky": {
     "hooks": {

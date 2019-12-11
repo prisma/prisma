@@ -13,4 +13,6 @@ export interface DatabaseCredentials {
   ssl?: boolean
   uri?: string
   executeRaw?: boolean
+  socket?: string
+  extraFields?: { [key: string]: string }
 }
