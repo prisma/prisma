@@ -515,7 +515,7 @@ export class Lift {
     await this.getLockFile()
     const before = Date.now()
 
-    const migrationsToApplyResult = await this.getMigrationsToApply(String(n))
+    const migrationsToApplyResult = await this.getMigrationsToApply(n)
     const { lastAppliedIndex, localMigrations, migrationsToApply, sourceConfig } = migrationsToApplyResult
 
     if (!short) {
