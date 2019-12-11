@@ -14,6 +14,7 @@ import { copy } from './copy'
 import { getPlatform, Platform } from '@prisma/get-platform'
 import { downloadZip } from './downloadZip'
 import { getCacheDir, getLocalLastModified, getRemoteLastModified, getDownloadUrl, BinaryKind } from './util'
+import { cleanupCache } from './cleanupCache'
 
 const debug = Debug('download')
 const writeFile = promisify(fs.writeFile)
@@ -57,6 +58,7 @@ const binaryToEnvVar = {
 }
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
+  await cleanupCache()
   const platform = await getPlatform()
   const mergedOptions: DownloadOptions = {
     binaryTargets: [platform],

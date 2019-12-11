@@ -23,8 +23,10 @@
     "https-proxy-agent": "^3.0.1",
     "make-dir": "^3.0.0",
     "node-fetch": "^2.6.0",
+    "p-map": "^3.0.0",
     "p-retry": "^4.2.0",
-    "progress": "^2.0.3"
+    "progress": "^2.0.3",
+    "rimraf": "^3.0.0"
   },
   "scripts": {
     "build": "tsc -d",
