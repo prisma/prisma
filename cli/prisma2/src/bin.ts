@@ -43,6 +43,7 @@ import { Generate } from './Generate'
 import chalk from 'chalk'
 import { Docs } from './Docs'
 import { ProviderAliases } from '@prisma/sdk'
+import { Validate } from './Validate'
 export { Photon } from '@prisma/studio-transports'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
@@ -76,6 +77,7 @@ async function main(): Promise<number> {
     studio: StudioCommand.new(aliases),
     generate: Generate.new(),
     version: Version.new(),
+    validate: Validate.new(),
   })
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))
