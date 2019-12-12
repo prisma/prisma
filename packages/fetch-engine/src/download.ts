@@ -34,6 +34,7 @@ export interface DownloadOptions {
   progressCb?: (progress: number) => any
   version?: string
   skipDownload?: boolean
+  failSilent?: boolean
 }
 
 interface DownloadBinaryOptions {
@@ -43,6 +44,7 @@ interface DownloadBinaryOptions {
   platform: string
   binaryName: BinaryKind
   progressCb?: (progress: number) => any
+  failSilent?: boolean
 }
 
 export type BinaryPaths = {
@@ -58,6 +60,18 @@ const binaryToEnvVar = {
 }
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
+  if (
+    options.binaries['introspection-engine'] &&
+    options.binaries['migration-engine'] &&
+    options.binaries['query-engine']
+  ) {
+    const downloadDoneFile = path.join(options.binaries['query-engine'], 'download-done')
+    if (fs.existsSync(downloadDoneFile)) {
+      debug(`Skipping download as ${downloadDoneFile} exists`)
+      return
+    }
+  }
+
   await cleanupCache()
   const platform = await getPlatform()
   const mergedOptions: DownloadOptions = {
@@ -66,7 +80,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     ...options,
     binaries: mapKeys(options.binaries, key => engineTypeToBinaryType(key, platform)), // just necessary to support both camelCase and hyphen-case
   }
-  const plural = mergedOptions.binaryTargets.length > 1 ? 'ies' : 'y'
   const bar = options.showProgress
     ? getBar(`Downloading Prisma engines for ${mergedOptions.binaryTargets.map(p => chalk.bold(p)).join(' and ')}`)
     : undefined
@@ -131,6 +144,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
               version: mergedOptions.version,
               targetPath,
               progressCb: collectiveCallback ? collectiveCallback(sourcePath) : undefined,
+              failSilent: options.failSilent,
             })
           }
         }),
@@ -141,6 +155,14 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   if (bar) {
     bar.update(1)
     bar.terminate()
+  }
+
+  if (
+    options.binaries['introspection-engine'] &&
+    options.binaries['migration-engine'] &&
+    options.binaries['query-engine']
+  ) {
+    fs.writeFileSync(path.join(options.binaries['query-engine'], 'download-done'), 'done')
   }
 
   return binaryPaths
@@ -162,6 +184,7 @@ async function downloadBinary({
   platform,
   progressCb,
   binaryName,
+  failSilent,
 }: DownloadBinaryOptions) {
   await makeDir(path.dirname(targetPath))
   debug(`Downloading ${sourcePath} to ${targetPath}`)
@@ -172,10 +195,14 @@ async function downloadBinary({
     )
   } catch (err) {
     if (err.code === 'EACCES') {
-      warn('Please try installing Prisma 2 CLI again with the `--unsafe-perm` option.')
-      info('Example: `npm i -g --unsafe-perm prisma2`')
-
-      process.exit()
+      if (!failSilent) {
+        warn('Please try installing Prisma 2 CLI again with the `--unsafe-perm` option.')
+        info('Example: `npm i -g --unsafe-perm prisma2`')
+        process.exit(1)
+      } else {
+        debug(`Download failed due to EACCES error, but that's fine`)
+        process.exit(0)
+      }
     }
 
     throw err
