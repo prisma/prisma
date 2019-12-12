@@ -63,22 +63,25 @@ async function main(): Promise<number> {
   process.env.NODE_ENV = 'production'
 
   // create a new CLI with our subcommands
-  const cli = CLI.new({
-    init: Init.new(),
-    lift: LiftCommand.new({
-      save: LiftSave.new(),
-      up: LiftUp.new(),
-      down: LiftDown.new(),
-      docs: Docs.new('lift', 'https://github.com/prisma/prisma2/tree/master/docs'),
-    }),
-    'tmp-prepare': LiftTmpPrepare.new(),
-    introspect: Introspect.new(),
-    dev: LiftWatch.new(aliases),
-    studio: StudioCommand.new(aliases),
-    generate: Generate.new(),
-    version: Version.new(),
-    validate: Validate.new(),
-  })
+  const cli = CLI.new(
+    {
+      init: Init.new(),
+      lift: LiftCommand.new({
+        save: LiftSave.new(),
+        up: LiftUp.new(),
+        down: LiftDown.new(),
+        docs: Docs.new('lift', 'https://github.com/prisma/prisma2/tree/master/docs'),
+      }),
+      'tmp-prepare': LiftTmpPrepare.new(),
+      introspect: Introspect.new(),
+      dev: LiftWatch.new(aliases),
+      studio: StudioCommand.new(aliases),
+      generate: Generate.new(),
+      version: Version.new(),
+      validate: Validate.new(),
+    },
+    ['init', 'lift', 'tmp-prepare', 'introspect', 'dev', 'studio', 'generate', 'validate'],
+  )
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))
   if (result instanceof HelpError) {
