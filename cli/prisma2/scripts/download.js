@@ -18,6 +18,7 @@ download({
   },
   showProgress: true,
   version,
+  failSilent: true,
 })
 
 // if we are in a Now context, ensure that `prisma2 generate` is in the postinstall hook

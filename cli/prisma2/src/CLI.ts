@@ -1,15 +1,17 @@
 import chalk from 'chalk'
 import { Command, Commands, arg, isError, format, HelpError, unknownCommand } from '@prisma/cli'
 import { Version } from './Version'
+import { download } from '@prisma/fetch-engine'
+const pkg = require('../package.json')
 
 /**
  * CLI command
  */
 export class CLI implements Command {
-  static new(cmds: Commands): CLI {
-    return new CLI(cmds)
+  static new(cmds: Commands, ensureBinaries: string[]): CLI {
+    return new CLI(cmds, ensureBinaries)
   }
-  private constructor(private readonly cmds: Commands) {}
+  private constructor(private readonly cmds: Commands, private readonly ensureBinaries: string[]) {}
 
   async parse(argv: string[]): Promise<string | Error> {
     // parse the args according to the following spec
@@ -31,8 +33,25 @@ export class CLI implements Command {
     }
 
     // check if we have that subcommand
-    const cmd = this.cmds[args._[0]]
+    const cmdName = args._[0]
+    const cmd = this.cmds[cmdName]
     if (cmd) {
+      // if we have that subcommand, let's ensure that the binary is there in case the command needs it
+      if (this.ensureBinaries.includes(cmdName)) {
+        const binaryPath = eval(`require('path').join(__dirname, '../')`)
+        const version = (pkg && pkg.prisma && pkg.prisma.version) || 'latest'
+        await download({
+          binaries: {
+            'query-engine': binaryPath,
+            'migration-engine': binaryPath,
+            'introspection-engine': binaryPath,
+          },
+          showProgress: true,
+          version,
+          failSilent: false,
+        })
+      }
+
       return cmd.parse(args._.slice(1))
     }
     // unknown command
