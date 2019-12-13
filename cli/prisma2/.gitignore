@@ -15,6 +15,7 @@ prisma-test-utils_ncc
 tmp
 @generated
 pkg-build
+download-done
 
 prisma
 .envrc
