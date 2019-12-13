@@ -95,7 +95,7 @@ The [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/pris
 <Details>
 <Summary>Have a look at the file that was generated.</Summary>
 
-```groovy
+```prisma
 generator photon {
   provider = "photonjs"
 }
@@ -212,7 +212,7 @@ Sequelize is independent from specific dialects. This means that you'll have to 
 
 In your Photon.js project, the data source and connection string was automatically generated when you ran through the `prisma2 init` process and is located in your [schema.prisma](https://github.com/infoverload/migration_typeorm_photon/blob/master/prisma/schema.prisma) file:
 
-```groovy
+```prisma
 //...
 datasource db {
   provider = "postgresql"
@@ -245,7 +245,7 @@ npx prisma2 generate
 This parses the Prisma schema file to generate the right data source client code (from reading the `generator` definition): 
 
 [schema.prisma](https://github.com/infoverload/migration_typeorm_photon/blob/master/prisma/schema.prisma)
-```groovy
+```prisma
 generator photon {
   provider = "photonjs"
 }
@@ -370,7 +370,7 @@ In your Photon.js project, the models above were auto-generated from the introsp
 
 Take a look at your generated Prisma schema file ([example here](https://github.com/infoverload/migration_sequelize_photon/blob/master/prisma/schema.prisma)).  The `task` and `user` models from the Sequelize project are translated to `Task` and `User` models here:
 
-```groovy
+```prisma
 model Task {
   id        Int      @id
   createdAt DateTime @default(now())
@@ -407,7 +407,7 @@ If you change your datamodel, you can regenerate Photon.js and all typings will 
 2. There is some mismatch between the `DateTime` types of Prisma and the ones of Postgres, so you may want to remove the `createdAt` and `updatedAt` fields for now. A [GitHub issue](https://github.com/prisma/prisma2/issues/552) has been created. 
 3. The resulting schema after these changes may look like <Details><Summary>this.</Summary>
 
-    ```groovy
+    ```prisma
     generator photon {
       provider = "photonjs"
     }
