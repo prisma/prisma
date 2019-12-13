@@ -91,7 +91,7 @@ The [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/pris
 <Details>
 <Summary>Have a look at the file that was generated.</Summary>
 
-```groovy
+```prisma
 generator photon {
   provider = "photonjs"
 }
@@ -169,7 +169,7 @@ In the TypeORM project example, the data source and credentials can be defined i
 ```
 In your Photon.js project, this was automatically generated when you ran through the `prisma2 init` process and located in your [`schema.prisma`](https://github.com/infoverload/migration_typeorm_photon/blob/master/prisma/schema.prisma) file:
 
-```groovy
+```prisma
 //...
 datasource db {
   provider = "postgresql"
@@ -202,7 +202,7 @@ npx prisma2 generate
 This parses the Prisma schema file to generate the right data source client code (from reading the `generator` definition): 
 
 [schema.prisma](https://github.com/infoverload/migration_typeorm_photon/blob/master/prisma/schema.prisma)
-```groovy
+```prisma
 generator photon {
   provider = "photonjs"
 }
@@ -301,7 +301,7 @@ In your Photon.js project, the models above were auto-generated from the introsp
 
 Take a look at your generated Prisma schema file ([example here](https://github.com/infoverload/migration_typeorm_photon/blob/master/prisma/schema.prisma)).  The `Category` and `Post` entities from the TypeORM project are translated to `Category` and `Post` models:
 
-```groovy
+```prisma
 model Category {
   id                     Int                      @id
   name                   String

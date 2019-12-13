@@ -29,7 +29,7 @@ The `Photon` constructor can then be imported from `node_modules/@prisma/photon`
 
 Assume you have the following data model definition:
 
-```groovy
+```prisma
 model User {
   id    Int    @id
   name  String
@@ -165,7 +165,7 @@ Learn more about relations in the generated Photon API [here](../relations.md#re
 
 With Photon.js, you can set your own values for fields that are annotated with the `@id` attribute. This attribute express that the respective field is considered a _primary key_. Consider the following model:
 
-```groovy
+```prisma
 model User {
   id    Int    @id
   name  String
@@ -192,7 +192,7 @@ Coming soon.
 
 Photon.js provides a dedicated API for (re)setting _scalar lists_ using a `set` field inside the `data` argument when creating or updating a [Prisma model](../data-modeling.md#models), for example:
 
-```groovy
+```prisma
 model User {
   id        Int       @id
   coinFlips Boolean[]
@@ -428,7 +428,7 @@ The Photon.js API offers filtering options for constraining the items that are r
 
 The following examples are based on this data model:
 
-```groovy
+```prisma
 model User {
   id     Int    @id
   name   String

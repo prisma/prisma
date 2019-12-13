@@ -21,7 +21,7 @@ It describes the shape of the data per data source. For example, when connecting
 
 Here is an example based on a local SQLite database located in the same directory of the schema file (called `data.db`):
 
-```groovy
+```prisma
 // schema.prisma
 
 datasource sqlite {
@@ -178,7 +178,7 @@ Learn more about attributes [below](#attributes).
 
 An enum describes a _type_ that has a predefined set of values and is defined via an `enum` block:
 
-```groovy
+```prisma
 enum Color {
   Red
   Teal
@@ -214,7 +214,7 @@ Depending on their signature, attributes may be called in the following cases:
 
 For arrays with a single parameter, you **may** omit the surrounding brackets:
 
-```groovy
+```prisma
 @attribute([email]) // is the same as
 @attribute(email)
 ```
@@ -226,14 +226,14 @@ For arrays with a single parameter, you **may** omit the surrounding brackets:
 
 You must not have multiple arguments with the same name:
 
-```groovy
+```prisma
 // compiler error
 @attribute(key: "a", key: "b")
 ```
 
 For arrays with a single parameter, you may omit the surrounding brackets:
 
-```groovy
+```prisma
 @attribute([item], key: [item]) // is the same as
 @attribute(item, key: item)
 ```
@@ -315,7 +315,7 @@ Prisma core provides a set of functions that _must_ be implemented by every conn
 
 Default values using a dynamic generator can be specified as follows:
 
-```groovy
+```prisma
 model User {
   id         String    @id @default(cuid())
   createdAt  DateTime  @default(now())

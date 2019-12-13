@@ -4,7 +4,7 @@ This is an extension of the [data modeling](./data-modeling.md) chapter that dis
 
 The examples on this page are based on this [schema file](./prisma-schema-file.md):
 
-```groovy
+```prisma
 // schema.prisma
 
 datasource mysql {
@@ -66,7 +66,7 @@ The `@relation` attribute disambiguates relationships when needed.
 
 It has the following signature:
 
-```groovy
+```prisma
 @relation(_name: String?, references: Identifier[]?, onDelete: OnDeleteEnum?)
 ```
 
@@ -82,7 +82,7 @@ It has the following signature:
 
 To maintain a 1:1 relationship, you must always specify the relation fields on both ends of the relation. Prisma prevents accidentally storing multiple records in the relation.
 
-```groovy
+```prisma
 model User {
   id        Int      @id
   profile   Profile?
@@ -109,7 +109,7 @@ Under the hood, the tables looks like this:
 
 You can use the `@relation` attribute to explicitly determine the side of the relation on which the foreign key should be stored. If you prefer storing it in the `User` table instead of the `Profile` table, you can use achieve this as follows:
 
-```groovy
+```prisma
 model User {
   id        Int      @id
   profile   Profile? @relation(references: [id])
@@ -134,7 +134,7 @@ Now, the tables are structured like this:
 
 If you're introspecting an existing database and the foreign key does not follow the alphanumeric convention, then Prisma uses the [`@relation`](#the-relation-attribute) attribute to clarify.
 
-```groovy
+```prisma
 model User {
   id        Int        @id
   customer  Profile?   @relation(references: id)
@@ -150,7 +150,7 @@ model Profile {
 
 To specify a 1:n relation, you can omit either side of the relation. The following three relations are therefore equivalent:
 
-```groovy
+```prisma
 // Specifying both relation fields
 model User {
   id        Int      @id
@@ -163,7 +163,7 @@ model Post {
 }
 ```
 
-```groovy
+```prisma
 // Leaving out the `posts` field
 model User {
   id        Int      @id
@@ -175,7 +175,7 @@ model Post {
 }
 ```
 
-```groovy
+```prisma
 // Leaving out the `author` field
 model User {
   id        Int      @id
@@ -208,7 +208,7 @@ You may omit `Post.author` and the relationship will remain intact. If one side 
 
 The return value on both sides is a list that might be empty. This is an improvement over the standard implementation in relational databases that require the application developer to deal with implementation details such as an intermediate relation table. In Prisma, each connector will implement this concept in the way that is most efficient on the given storage engine and expose an API that hides the implementation details.
 
-```groovy
+```prisma
 model Post {
   id         Int        @id
   categories Category[]
@@ -236,7 +236,7 @@ Prisma will create one table per model, plus a relation table as follows:
 
 To change the name of the relation table, you use the `name` argument of the `@relation` attribute:
 
-```groovy
+```prisma
 model Post {
   id         Int        @id
   categories Category[] @relation(name: "MyRelationTable")
@@ -270,7 +270,7 @@ This results in the following table structure in the underlying database:
 
 Prisma supports _self-referential relations_ (short: _self relations_). A self relation is a relation where the model references itself instead of another model, for example:
 
-```groovy
+```prisma
 model User {
   id         Int   @id
   reportsTo  User
@@ -286,7 +286,7 @@ This is interpreted as a 1:1 relation and results in the following table:
 
 For a 1:n relation, you need to make the self-relation field a list:
 
-```groovy
+```prisma
 model User {
   id         Int     @id
   reportsTo  User[]
@@ -295,7 +295,7 @@ model User {
 
 If you want to add a back-relation field, you need to add the `@relation` attribute to both relation fields to disambiguate:
 
-```groovy
+```prisma
 model User {
   id           String  @default(cuid()) @id
   email        String? @unique
@@ -306,7 +306,7 @@ model User {
 
 Consequently, the `@relation` attribute is also required for m:n relations:
 
-```groovy
+```prisma
 model User {
   id           String  @default(cuid()) @id
   email        String? @unique
@@ -317,7 +317,7 @@ model User {
 
 If your model should have more than one self-relation, you need to explicitly add all relation fields and annotate them with the `@relation` attribute
 
-```groovy
+```prisma
 model User {
   id           String  @default(cuid()) @id
   email        String? @unique
@@ -447,7 +447,7 @@ const post: Post = await photon.posts.update({
 
 For the next example, assume there's another model called `Comment` related to `User` and `Post` as follows:
 
-```groovy
+```prisma
 model User {
   id       String    @default(cuid()) @id
   posts    Post[]

@@ -87,7 +87,7 @@ type Post {
 
 This Prisma 1 datamodel will be converted into the following Prisma schema:
 
-```groovy
+```prisma
 model User {
   id    String  @default(cuid()) @id @unique
   email String  @unique
@@ -116,7 +116,7 @@ With the Prisma Framework, the HTTP layer isn't exposed any more and the databas
 
 So, as a next step you'll need to tell the Prisma Framework where your database is located. You can do so by adding a `datasource` block to your Prisma schema, here is what it looks like (using placeholder values):
 
-```groovy
+```prisma
 datasource db {
   provider = "DB_PROVIDER"
   url      = "DB_CONNECTION_STRING"

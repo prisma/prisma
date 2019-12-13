@@ -6,7 +6,7 @@ The MySQL data source connector connects Prisma to a MySQL database server.
 
 To connect to a MySQL database server, you need to configure a [`datasource`](../../prisma-schema-file.md#data-sources) block in your [schema file](../../prisma-schema-file.md):
 
-```groovy
+```prisma
 datasource mysql {
   provider = "mysql"
   url      = env("MYSQL_URL")
