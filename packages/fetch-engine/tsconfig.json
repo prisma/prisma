@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "declaration": true,
     "lib": ["esnext"],
     "module": "commonjs",
     "target": "es2017",
@@ -8,8 +9,7 @@
     "sourceMap": true,
     "noImplicitAny": false,
     "outDir": "dist",
-    "rootDir": "src",
-    "declaration": true
+    "rootDir": "src"
   },
   "exclude": ["dist", "build", "scripts"]
 }
