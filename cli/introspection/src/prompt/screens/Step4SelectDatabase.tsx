@@ -56,7 +56,7 @@ const Step4SelectDatabase: React.FC = () => {
           {emptySchemas.map((schema, index) => (
             <Link
               label={schema.name}
-              state={{ dbCredentials: { [schemaWord]: schema } as any }}
+              state={{ dbCredentials: { [schemaWord]: schema.name } }}
               href={state.useStarterKit ? 'download-example' : 'language-selection'}
               tabIndex={index}
               key={schema.name}
@@ -75,7 +75,7 @@ const Step4SelectDatabase: React.FC = () => {
           {nonEmptySchemas.map((schema, index) => (
             <Link
               label={schema.name}
-              state={{ dbCredentials: { [schemaWord]: schema.name } as any }}
+              state={{ dbCredentials: { [schemaWord]: schema.name } }}
               href="introspection"
               tabIndex={index + emptySchemas.length}
               key={schema.name}
