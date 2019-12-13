@@ -35,7 +35,7 @@ model Post {
 
 const printCredentials = (credentials: DatabaseCredentials) => `datasource db {
   provider = "${prettyPrintType(credentials.type)}"
-  url      = "${credentials.uri || credentialsToUri(credentials)}"
+  url      = "${credentialsToUri(credentials)}"
 }`
 
 function prettyPrintType(type) {
