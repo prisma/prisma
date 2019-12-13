@@ -311,15 +311,13 @@ Prisma core provides a set of functions that _must_ be implemented by every conn
 
 - `uuid()`: Generates a fresh [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier)
 - `cuid()`: Generates a fresh [cuid](https://github.com/ericelliott/cuid)
-- `between(min, max)`: Generates a random int in the specified range
 - `now()`: Current date and time
 
 Default values using a dynamic generator can be specified as follows:
 
 ```groovy
 model User {
-  age        Int       @default(between([ 1, 5 ]))
-  height     Float     @default(between([ 1, 5 ]))
+  id         String    @id @default(cuid())
   createdAt  DateTime  @default(now())
 }
 ```
