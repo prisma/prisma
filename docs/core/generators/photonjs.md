@@ -35,7 +35,7 @@ If `binaryTargets` contains a _file path_ to a binary, you need to provide the p
 
 When no [generator options](#generator-options) are passed to the `photonjs` generator in your [Prisma schema file](../prisma-schema-file.md), the Prisma CLI will download the binary for the operating system on which `prisma2 generate` was executed. The following two configurations are therefore equivalent, because `["native"]` is the default value for `binaryTargets`:
 
-```groovy
+```prisma
 generator photon {
   provider = "photonjs"
   binaryTargets = ["native"]
@@ -44,7 +44,7 @@ generator photon {
 
 has the **same behavior** as:
 
-```groovy
+```prisma
 generator photon {
   provider = "photonjs"
 }
@@ -60,7 +60,7 @@ We provide various pre-built binaries. You can find them in the [specs binary ta
 
 This example shows the configuration of a Photon.js generator for local development (`native` can resolve to any other platform) and AWS Lambda (Node 10) as the production environment.
 
-```groovy
+```prisma
 generator photon {
     provider      = "photonjs"
     binaryTargets = ["native", "debian-openssl-1.0.x"] 
@@ -82,7 +82,7 @@ If a binary is not available for the platform you want to target, it is possible
 
 To invoke the generator, you need to add a [`generator`](../../prisma-schema-file.md#generators-optional) block to your schema file and specify the `photonjs` provider:
 
-```groovy
+```prisma
 generator js {
   provider = "photonjs"
 }

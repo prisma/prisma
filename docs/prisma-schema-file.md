@@ -17,7 +17,7 @@ You can also [use environment variables](#using-environment-variables) inside th
 
 Here is an example for a schema file that specifies a data source (SQLite), a generator (Photon.js) and a data model definition:
 
-```groovy
+```prisma
 // schema.prisma
 
 datasource sqlite {
@@ -88,7 +88,7 @@ A data source connector may bring its own fields to allow users to tailor their 
 
 Data sources are typically named according to the `provider`:
 
-```groovy
+```prisma
 datasource sqlite {
   provider  = "sqlite"
   url       = env("SQLITE_URL")
@@ -116,7 +116,7 @@ different naming scheme.
 
 #### Examples
 
-```groovy
+```prisma
 datasource pg {
   provider = "postgresql"
   url      = env("POSTGRESQL_URL")
@@ -152,7 +152,7 @@ A generator configures what data source clients are generated and how they're ge
 
 #### Examples
 
-```groovy
+```prisma
 generator js {
   provider = "photonjs"
 }
@@ -197,7 +197,7 @@ You can use environment variables to provide configuration options when a CLI co
 
 Environment variables can be provided using the `env` function:
 
-```groovy
+```prisma
 datasource pg {
   provider = "postgresql"
   url      = env("POSTGRES_URL")
@@ -213,7 +213,7 @@ There are a few limitations with `env` at the moment:
 
 To switch the datasources based on your environment, you can use the `enabled` property on the `datasource` definition:
 
-```groovy
+```prisma
 datasource mysql {
   provider = "mysql"
   url = env("PRISMA_MYSQL_URL")
@@ -228,7 +228,7 @@ datasource postgres {
 
 You can also target different environments using environment variables, for example:
 
-```groovy
+```prisma
 datasource mysql {
   provider = "mysql"
   url = env("MYSQL_URL")
@@ -263,7 +263,7 @@ There are two types of comments that are supported in the schema file:
 
 Here are some different examples:
 
-```groovy
+```prisma
 /// This comment will get attached to the `User` node
 model User {
   /// This comment will get attached to the `id` node
@@ -299,7 +299,7 @@ This strictness serves two benefits:
 
 #### Configuration blocks are aligned by their `=` sign
 
-```groovy
+```prisma
 block _ {
   key      = "value"
   key2     = 1
@@ -309,7 +309,7 @@ block _ {
 
 Formatting may be reset by a newline:
 
-```groovy
+```prisma
 block _ {
   key   = "value"
   key2  = 1
@@ -322,7 +322,7 @@ block _ {
 
 Multiline objects follow their own nested formatting rules:
 
-```groovy
+```prisma
 block _ {
   key   = "value"
   key2  = 1
@@ -339,7 +339,7 @@ block _ {
 
 #### Field definitions are aligned into columns separated by 2 or more spaces
 
-```groovy
+```prisma
 block _ {
   id          String       @id
   first_name  LongNumeric  @default
@@ -348,7 +348,7 @@ block _ {
 
 Multiline field attributes are properly aligned with the rest of the field attributes:
 
-```groovy
+```prisma
 block _ {
   id          String       @id
                            @default
@@ -358,7 +358,7 @@ block _ {
 
 Formatting may be reset by a newline:
 
-```groovy
+```prisma
 block _ {
   id  String  @id
               @default

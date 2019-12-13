@@ -30,7 +30,7 @@ Note that you'll need to re-execute `prisma2 generate` whenever you make changes
 
 The default Photon.js generator can be specified as follows in your schema file:
 
-```groovy
+```prisma
 generator photonjs {
   provider = "photonjs"
 }
@@ -38,7 +38,7 @@ generator photonjs {
 
 Note that this is equivalent to specifying the default `output` path:
 
-```groovy
+```prisma
 generator photonjs {
   provider = "photonjs"
   output   = "./node_modules/@prisma/photon"
@@ -53,7 +53,7 @@ node_modules/@prisma/photon
 
 You can also specify a custom `output` path on the `generator` configuration, for example:
 
-```groovy
+```prisma
 generator photonjs {
   provider = "photonjs"
   output   = "./src/generated/photon"

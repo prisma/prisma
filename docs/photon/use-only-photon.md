@@ -63,7 +63,7 @@ One benefit of having the data model as an intermediate representation of your d
 
 For example, when the following model was generated for you through the introspection:
 
-```groovy
+```prisma
 model _customers {
   id Int @id
   number_of_orders Int
@@ -80,7 +80,7 @@ await photon._customers.findMany({
 
 You might prefer using camel casing rather than the snake case convention used in the database. You can therefore customize the mapping of a table/field name to a specific model/field name in the data model using the `map` attribute:
 
-```groovy
+```prisma
 model Customer @@map(name: "_customers") {
   id Int @id
   orderCount Int @map(name: "number_of_orders")

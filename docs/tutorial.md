@@ -110,7 +110,7 @@ Let's go through the created files.
 
 At the core of each project that uses Photon and/or Lift, there is the [Prisma schema file](./prisma-schema-file.md) (typically called `schema.prisma`). Here's what your Prisma schema currently looks like:
 
-```groovy
+```prisma
 generator photon {
   provider = "photonjs"
 }
@@ -142,7 +142,7 @@ The uppercase letters in the `datasource` configuration are placeholders represe
 
 For a PostgreSQL database hosted on Heroku, the [connection string](./core/connectors/postgresql.md#connection-string) might look similar to this:
 
-```groovy
+```prisma
 datasource db {
   provider = "postgresql"
   url      = "postgresql://opnmyfngbknppm:XXX@ec2-46-137-91-216.eu-west-1.compute.amazonaws.com:5432/d50rgmkqi2ipus?schema=hello-prisma2"
@@ -151,7 +151,7 @@ datasource db {
 
 When running PostgreSQL locally, your user and password as well as the database name typically correspond to the current _user_ of your OS, e.g.:
 
-```groovy
+```prisma
 datasource db {
   provider = "postgresql"
   url      = "postgresql://johndoe:johndoe@localhost:5432/johndoe?schema=hello-prisma2"
@@ -179,7 +179,7 @@ Its main building blocks are [models](./data-modeling.md#models) which map to _t
 
 Consider the sample `User` model in your schema file:
 
-```groovy
+```prisma
 model User {
   id    String  @default(cuid()) @id
   email String  @unique
@@ -199,7 +199,7 @@ This defines a model `User` with four fields:
 
 Also take a quick look at the `Post` model:
 
-```groovy
+```prisma
 model Post {
   id        String   @default(cuid()) @id
   createdAt DateTime @default(now())
@@ -567,7 +567,7 @@ When migrating your database with Lift, it will typically map model and field na
 
 With the following model definition, the table in the underlying database will be called `users` and the column that maps to the `name` field is called `username`:
 
-```groovy
+```prisma
 model User {
   id    String  @id @default(cuid())
   name  String? @map("username")
