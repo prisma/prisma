@@ -6,19 +6,13 @@ const c = require('./colors')
 async function main() {
   const localPath = getLocalPackagePath()
   if (localPath) {
-    await exec(`node ${localPath} generate`)
+    await run('node', [localPath, 'generate'])
     return
   }
 
   const installedGlobally = await isInstalledGlobally()
   if (installedGlobally) {
-    const { stdout, stderr } = await exec('prisma2 generate')
-    if (stdout) {
-      console.log(stdout)
-    }
-    if (stderr) {
-      console.error(stderr)
-    }
+    await run('prisma2', ['generate'])
     return
   }
   throw new Error(
@@ -85,5 +79,27 @@ if (!process.env.SKIP_GENERATE) {
       console.error(e)
     }
     process.exit(0)
+  })
+}
+
+function run(cmd, params) {
+  const child = childProcess.spawn(cmd, params, {
+    stdio: ['pipe', 'inherit', 'inherit'],
+  })
+
+  return new Promise((resolve, reject) => {
+    child.on('close', () => {
+      resolve()
+    })
+    child.on('exit', code => {
+      if (code === 0) {
+        resolve()
+      } else {
+        reject(code)
+      }
+    })
+    child.on('error', () => {
+      reject()
+    })
   })
 }
