@@ -439,7 +439,7 @@ app.get('/filterPosts', async (req, res) => {
 Going forward, you won't perform schema migrations using the `prisma deploy` command any more. Instead, you can use [Lift](). Every schema migration with Lift follows a 3-step-process:
 
 1. Adjust the data model inside your Prisma schema to reflect the desired change (e.g. adding a new model)
-1. Run `npx prisma2 lift save` to save the migration on your file system (this doesn't touch the dataabse yet)
+1. Run `npx prisma2 lift save` to save the migration on your file system (this doesn't touch the database yet)
 1. Run `npx prisma2 lift up` to actually perform the migration against your database
 
 ## Summary
