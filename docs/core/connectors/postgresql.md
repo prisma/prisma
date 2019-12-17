@@ -87,3 +87,9 @@ You can add various parameters to the connection string if your database server 
 - `sslaccept=(strict|accept_invalid_certs)`: 
   - `strict` (default): Any missing value in the certificate will lead to an error. For Google Cloud, especially if the database doesn't have a domain name, the certificate might miss the domain/IP address, causing an error when connecting.
   - `accept_invalid_certs`: Bypass this check. Be aware of the security consequences of this setting.
+
+### Connecting via sockets
+
+To connect to your PostgreSQL database via sockets, you must add a `host` field as a _query parameter_ to the connection string (instead of setting it as the `host` part of the URI). The value of this parameter then must point to the directory that contains the socket, e.g.: `postgresql://user:password@/database?host=/var/run/postgresql/`. 
+
+Learn more in this [GitHub issue](https://github.com/prisma/prisma2/issues/525).
