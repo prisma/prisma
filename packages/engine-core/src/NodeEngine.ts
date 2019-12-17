@@ -320,7 +320,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           try {
             const json = JSON.parse(data)
             // debug(json)
-            console.log(json)
             const log = convertLog(json)
             this.logEmitter.emit('log', log)
           } catch (e) {
