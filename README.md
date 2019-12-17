@@ -1,4 +1,4 @@
-# Prisma Framework 
+# Prisma Framework [![Actions Status](https://github.com/prisma/prisma2-e2e-tests/workflows/test/badge.svg)](https://github.com/prisma/prisma2-e2e-tests/actions)
 
 
 This repository is used as a central point to collect information and issues around the **Prisma Framework** (formerly called [Prisma 2](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)) while it's in Preview. It also contains the [documentation](./docs) and the [code of the Prisma Framework CLI](./cli).
