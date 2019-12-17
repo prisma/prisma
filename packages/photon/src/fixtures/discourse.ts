@@ -1,8 +1,7 @@
 export const discourse = `
-datasource my_db {
-  provider = "sqlite"
-  url  = "file:db/migration_engine.db"
-  default = true
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://localhost:5432/db"
 }
 
 model ApiKey {

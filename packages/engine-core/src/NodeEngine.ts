@@ -33,7 +33,6 @@ export interface EngineConfig {
   datasources?: DatasourceOverwrite[]
 }
 
-
 /**
  * Node.js based wrapper to run the Prisma binary
  */
@@ -321,6 +320,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           try {
             const json = JSON.parse(data)
             // debug(json)
+            console.log(json)
             const log = convertLog(json)
             this.logEmitter.emit('log', log)
           } catch (e) {
@@ -526,7 +526,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   handleErrors({ errors, query }: { errors?: QueryEngineError[]; query: string }) {
-
     debug(inspect(errors, false, null))
 
     if (errors.length === 1 && errors[0].user_facing_error) {

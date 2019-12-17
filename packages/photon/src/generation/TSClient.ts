@@ -367,6 +367,10 @@ export class Photon {
       },
     })
 
+    this.engine.on('log', log => {
+      console.log(log)
+    })
+
     this.dmmf = new DMMFClass(dmmf)
     this.fetcher = new PhotonFetcher(this, this.engine, false, internal.hooks)
   }
