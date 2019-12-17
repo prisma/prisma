@@ -313,6 +313,8 @@ Prisma core provides a set of functions that _must_ be implemented by every conn
 - `cuid()`: Generates a fresh [cuid](https://github.com/ericelliott/cuid)
 - `now()`: Current date and time
 
+> **Note**: It is currently [not possible](https://github.com/prisma/prisma2/issues/457) to annotate more than one field per model with `@default(now())`.
+
 Default values using a dynamic generator can be specified as follows:
 
 ```prisma
