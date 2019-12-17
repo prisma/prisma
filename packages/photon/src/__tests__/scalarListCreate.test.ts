@@ -20,6 +20,7 @@ describe('scalar where transformation', () => {
         location: {
           create: {
             city: 'Berlin',
+            id: 5,
           },
         },
         someFloats: {
@@ -47,6 +48,7 @@ describe('scalar where transformation', () => {
           location: {
             create: {
               city: \\"Berlin\\"
+              id: 5
             }
           }
           someFloats: {
