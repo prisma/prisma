@@ -231,13 +231,13 @@ You can also target different environments using environment variables, for exam
 ```prisma
 datasource mysql {
   provider = "mysql"
-  url = env("MYSQL_URL")
+  url      = env("MYSQL_URL")
   enabled  = env("MYSQL_URL")
 }
 
 datasource postgres {
   provider = "postgresql"
-  url = env("POSTGRES_URL")
+  url      = env("POSTGRES_URL")
   enabled  = env("POSTGRES_URL")
 }
 ```
@@ -251,7 +251,23 @@ Tip: To quickly switch between environments you can `source` a file with the `ex
 export POSTGRES_URL=postgresql://test:test@localhost:5432/test?schema=public
 ```
 
-`$ source ./dev_env`
+Then run the following command:
+
+```bash
+source ./dev_env
+```
+
+### Using environment variables with Photon.js
+
+While the Prisma 2 CLI automatically picks up `.env` files, Photon.js doesn't natively support usage of [`dotenv`](https://github.com/motdotla/dotenv) or similar libraries that will do this. If you want to environment variables to be evaluated at runtime, you need to load them manually before instantiating `Photon` in your application code, e.g. using `dotenv`:
+
+```ts
+import { Photon } from '@prisma/photon'
+import * as dotenv from 'dotenv'
+
+dotenv.config() // load the environment variables
+const photon = new Photon()
+```
 
 ## Writing comments
 
