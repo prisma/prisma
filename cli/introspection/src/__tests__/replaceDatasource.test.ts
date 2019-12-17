@@ -12,14 +12,14 @@ generator photon {
 }
 
 model User {
-  id    String  @default(cuid()) @id @unique
+  id    String  @default(cuid()) @id
   email String  @unique
   name  String?
   posts Post[]
 }
 
 model Post {
-  id        String   @default(cuid()) @id @unique
+  id        String   @default(cuid()) @id
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   published Boolean
@@ -47,14 +47,14 @@ test('simple replace', async () => {
     }
 
     model User {
-      id    String  @default(cuid()) @id @unique
+      id    String  @default(cuid()) @id
       email String  @unique
       name  String?
       posts Post[]
     }
 
     model Post {
-      id        String   @default(cuid()) @id @unique
+      id        String   @default(cuid()) @id
       createdAt DateTime @default(now())
       updatedAt DateTime @updatedAt
       published Boolean
