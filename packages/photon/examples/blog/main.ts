@@ -3,16 +3,9 @@ import { Photon } from '@prisma/photon'
 async function main() {
   const photon = new Photon()
 
-  const before = Date.now()
-  const post = await photon.posts.create({
-    data: {
-      id: '',
-      published: true,
-      title: 'title',
-    },
-  })
+  const posts = await photon.posts()
 
-  console.log(post)
+  console.log(posts)
   // console.log(result, Date.now() - before)
   photon.disconnect()
 }

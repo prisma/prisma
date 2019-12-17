@@ -1,8 +1,7 @@
 export const blog = /* GraphQL */ `
 datasource db {
-  provider = "sqlite"
-  url      = "file:db/migration_engine.db"
-  default  = true
+  provider = "postgresql"
+  url      = "postgresql://localhost:5432/db"
 }
 
 generator photon {
