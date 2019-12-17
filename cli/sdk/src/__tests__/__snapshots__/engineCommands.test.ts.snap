@@ -351,6 +351,15 @@ Object {
               "isList": false,
               "isRequired": true,
               "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": true,
+              "kind": "scalar",
               "type": "String",
             },
             "name": "name",
