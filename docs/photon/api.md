@@ -548,7 +548,7 @@ const photon = new Photon({
 
 You can reuse subparts of a Photon.js query by not immediately evaluating the promise that's returned by any Photon.js API call. Depending on your evaluating the promise, you can do this either by leaving out the prepended `await` keyword or the appended call to `.then()`. 
 
-	```ts
+```ts
 // Note the missing `await` here.
 const currentUserQuery = photon.users.findOne({ where: { id: currentUserId } })
 
