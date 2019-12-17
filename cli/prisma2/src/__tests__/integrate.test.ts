@@ -217,7 +217,7 @@ function tests() {
         drop table if exists teams cascade;
       `,
       do: async client => {
-        return client.teams.create({ data: { name: 'c' } })
+        return client.teams.create({ data: { name: 'c', id: 1 } })
       },
       expect: {
         id: 1,
