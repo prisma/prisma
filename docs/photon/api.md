@@ -13,6 +13,7 @@ Photon is a type-safe database client auto-generated based on your [data model d
 - [API Reference](#api-reference)
 - [Filtering](#filtering)
 - [Debugging](#debugging)
+- [Reusing query sub-parts](#reusing-query-sub-parts)
 - [Managing connections](#managing-connections)
 
 ## Overview
@@ -541,6 +542,19 @@ const photon = new Photon({
     level: 'QUERY'
   }]
 })
+```
+
+## Reusing query sub-parts
+
+You can reuse subparts of a Photon.js query by not immediately evaluating the promise that's returned by any Photon.js API call. Depending on your evaluating the promise, you can do this either by leaving out the prepended `await` keyword or the appended call to `.then()`. 
+
+	```ts
+// Note the missing `await` here.
+const currentUserQuery = photon.users.findOne({ where: { id: currentUserId } })
+
+// Now you have the sub-part of a query that you can reuse.
+const postsOfUser = await currentUserQuery.posts()
+const profileOfUser = await currentUserQuery.profile()
 ```
 
 ## Managing connections
