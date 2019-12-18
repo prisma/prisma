@@ -10,5 +10,3 @@ jobs:
 
       - name: e2e
         run: sh .github/workflows/e2e.sh
-        env:
-          SSH_KEY: ${{ secrets.SSH_KEY }}
