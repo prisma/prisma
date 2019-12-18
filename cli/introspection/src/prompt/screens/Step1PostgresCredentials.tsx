@@ -98,7 +98,7 @@ const Step1PostgresCredentials: React.FC = () => {
           label={`Schema ${chalk.dim('(optional)')}`}
           value={dbCredentials.schema || ''}
           onChange={schema => setDbCredentials({ schema })}
-          placeholder=""
+          placeholder="public"
           onSubmit={() => tryToConnect(state.dbCredentials!)}
         />
         <Checkbox
