@@ -223,7 +223,7 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
       if (!alternativePath) {
         throw new Error(
           `Photon binary for current platform ${chalk.bold.greenBright(platform)} could not be found.${pinnedStr}
-Photon looked in ${chalk.underline(alternativePath)} but couldn't find it.
+Photon looked in ${chalk.underline(prismaPath)} but couldn't find it.
 Make sure to adjust the generator configuration in the ${chalk.bold('schema.prisma')} file${info}
 Please run ${chalk.greenBright('prisma2 generate')} for your changes to take effect.
 ${chalk.gray(
