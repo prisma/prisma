@@ -233,7 +233,7 @@ export class Lift {
   public async recreateStudioServer(providerAliases: ProviderAliases) {
     try {
       if (this.studioServer) {
-        return
+        return await this.studioServer.restart(providerAliases)
       }
 
       this.studioServer = new Studio({ projectDir: this.projectDir, port: this.studioPort })

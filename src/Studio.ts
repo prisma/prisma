@@ -90,9 +90,9 @@ export class Studio {
     return ''
   }
 
-  public async restart(providerAliases: ProviderAliases) {
+  public async restart(providerAliases: ProviderAliases): Promise<string> {
     if (this.instance) {
-      this.instance.restart()
+      await this.instance.restart()
       return ''
     }
 
