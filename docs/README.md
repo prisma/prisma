@@ -24,6 +24,8 @@
 - [Telemetry](./telemetry.md)
 - [How to provide feedback for the Prisma Framework?](./prisma2-feedback.md)
 - [Release process](./releases.md)
-- [Upgrading from Prisma 1](./upgrading-from-prisma-1.md)
+- Upgrade guides
+  - [Upgrading from Prisma 1](./upgrade-guides/upgrading-from-prisma-1.md)
+  - [Upgrading to `2.0.0-preview019`](./upgrade-guides/upgrading-to-preview019.md)
 - [FAQ](./faq.md)
 - [Glossary](./glossary.md)
