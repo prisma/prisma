@@ -79,46 +79,9 @@ class DevComponent extends Component<Props, State> {
   }
   public componentDidMount() {
     cliCursor.hide()
-    process.stdout.on('resize', () => {
-      this.forceUpdate()
-    })
-    this.props.stdin.on('data', data => {
-      const key = String(data)
-      if (key === 'b') {
-        this.setState({ showDiff: false })
-      }
+    process.stdout.on('resize', this.handleWindowResize)
+    this.props.stdin.on('data', this.handleStdinData)
 
-      if (key === 'd' || key === ARROW_LEFT || key === ARROW_RIGHT) {
-        this.setState(state => ({ ...state, showDiff: !state.showDiff }))
-      }
-
-      if (this.state.showDiff) {
-        if (key === ENTER || key === BACKSPACE || key === DELETE) {
-          this.setState({ showDiff: false })
-        }
-        // TODO: Implement scrolling view
-        // if (key === 'j') {
-        //   const { rowCount } = this.diff
-        //   const max = rowCount - 3
-        //   if (this.state.diffScroll <= max) {
-        //     this.setState(state => {
-        //       // check 2 times to prevent unnecessary setState execution
-        //       // and to prevent parallel execution
-        //       return { ...state, diffScroll: Math.min(max, state.diffScroll + 1) }
-        //     })
-        //   }
-        // }
-        // if (key === 'k') {
-        //   const { rowCount } = this.diff
-        //   const min = -rowCount + 3
-        //   if (this.state.diffScroll > min) {
-        //     this.setState(state => {
-        //       return { ...state, diffScroll: Math.max(min, state.diffScroll - 1) }
-        //     })
-        //   }
-        // }
-      }
-    })
     if (this.props.setRawMode) {
       this.props.setRawMode(true)
     }
@@ -126,8 +89,35 @@ class DevComponent extends Component<Props, State> {
 
   public componentWillUnmount() {
     cliCursor.show()
+
+    process.stdout.off('resize', this.handleWindowResize)
+    this.props.stdin.off('data', this.handleStdinData)
+
     if (this.props.setRawMode) {
       this.props.setRawMode(false)
+    }
+  }
+
+  private handleWindowResize = () => {
+    this.forceUpdate()
+  }
+
+  private handleStdinData = (data: Buffer) => {
+    const key = String(data)
+    if (key === 'b') {
+      this.setState({ showDiff: false })
+    }
+
+    if (key === 'd' || key === ARROW_LEFT || key === ARROW_RIGHT) {
+      this.setState(state => ({ ...state, showDiff: !state.showDiff }))
+    }
+
+    if (this.state.showDiff) {
+      if (key === ENTER || key === BACKSPACE || key === DELETE) {
+        this.setState({ showDiff: false })
+      }
+
+      // TODO: Implement scrolling view
     }
   }
 
