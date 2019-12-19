@@ -22,7 +22,6 @@ export class LiftDown implements Command {
 
     ${chalk.bold('Options')}
 
-      --auto-approve   Skip interactive approval before migrating
       -h, --help       Displays this help message
       -p, --preview    Preview the migration changes
 
