@@ -167,7 +167,7 @@ export class Introspect implements Command {
         console.log(chalk.bold(`Introspected Schema:\n`))
         console.log(introspectionSchema + '\n')
       }
-      console.error(e)
+      console.error(e.message)
     }
 
     return ''
