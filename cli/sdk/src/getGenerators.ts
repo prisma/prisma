@@ -67,15 +67,35 @@ export async function getGenerators({
   if (!fs.existsSync(schemaPath)) {
     throw new Error(`${schemaPath} does not exist`)
   }
+  const platform = await getPlatform()
+
+  let prismaPath: string | undefined = undefined
+
+  if (version) {
+    const downloadParams: DownloadOptions = {
+      binaries: {
+        'query-engine': eval(`require('path').join(__dirname, '..')`),
+      },
+      binaryTargets: [platform],
+      showProgress: false,
+      version: version || 'latest',
+      skipDownload,
+    }
+
+    const binaryPathsWithEngineType = await download(downloadParams)
+    prismaPath = binaryPathsWithEngineType.queryEngine![platform]
+  }
 
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
   const dmmf = await getDMMF({
     datamodel,
     datamodelPath: schemaPath,
+    prismaPath,
   })
   const config = await getConfig({
     datamodel,
     datamodelPath: schemaPath,
+    prismaPath,
   })
 
   const generatorConfigs = overrideGenerators || config.generators
@@ -169,7 +189,6 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     const binaries = generators.flatMap(g =>
       g.manifest ? g.manifest.requiresEngines || [] : [],
     )
-    const platform = await getPlatform()
 
     let binaryTargets = unique(
       generatorConfigs.flatMap(g => g.binaryTargets || []),

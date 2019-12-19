@@ -76,6 +76,7 @@ export async function getDMMF({
   datamodelPath,
   retry = 4,
 }: GetDMMFOptions): Promise<DMMF.Document> {
+  debug(`getDMMF, override prismaPath = ${prismaPath}`)
   prismaPath = prismaPath || (await getPrismaPath())
   let result
   try {
@@ -154,6 +155,7 @@ export async function getConfig({
   prismaPath,
   datamodelPath,
 }: GetDMMFOptions): Promise<ConfigMetaFormat> {
+  debug(`getConfig, override prismaPath = ${prismaPath}`)
   prismaPath = prismaPath || (await getPrismaPath())
 
   let tempDatamodelPath: string | undefined = datamodelPath
