@@ -66,7 +66,10 @@ export class Studio {
         //
       }
 
-      this.port = await getPort({ port: getPort.makeRange(5555, 5600) })
+      if (!this.port) {
+        this.port = await getPort({ port: getPort.makeRange(5555, 5600) })
+      }
+
       this.instance = new StudioServer({
         port: this.port,
         debug: false,
