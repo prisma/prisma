@@ -68,10 +68,13 @@ export async function getGenerators({
     throw new Error(`${schemaPath} does not exist`)
   }
 
-  const schema = fs.readFileSync(schemaPath, 'utf-8')
-  const dmmf = await getDMMF({ datamodel: schema, datamodelPath: schemaPath })
+  const datamodel = fs.readFileSync(schemaPath, 'utf-8')
+  const dmmf = await getDMMF({
+    datamodel,
+    datamodelPath: schemaPath,
+  })
   const config = await getConfig({
-    datamodel: schema,
+    datamodel,
     datamodelPath: schemaPath,
   })
 
@@ -128,7 +131,7 @@ export async function getGenerators({
               `Can't resolve output dir for generator ${chalk.bold(
                 generator.name,
               )} with provider ${chalk.bold(generator.provider)}.
-The generator needs to either define the \`defaultOutput\` path in the manifest or you need to define \`output\` in the schema.prisma file.`,
+The generator needs to either define the \`defaultOutput\` path in the manifest or you need to define \`output\` in the datamodel.prisma file.`,
             )
           }
 
@@ -140,7 +143,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
         }
 
         const options: GeneratorOptions = {
-          datamodel: schema,
+          datamodel,
           datasources: config.datasources,
           generator,
           dmmf,
