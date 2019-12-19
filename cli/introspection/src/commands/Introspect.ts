@@ -6,6 +6,9 @@ import { formatms } from '../util/formatms'
 import fs from 'fs'
 import { DataSource } from '@prisma/generator-helper'
 import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
+import { printDatasources } from '../prompt/utils/printDatasources'
+import Debug from 'debug'
+const debug = Debug('Introspect')
 
 /**
  * $ prisma migrate new
@@ -94,12 +97,28 @@ export class Introspect implements Command {
     log(`Introspecting${basedOn} …`)
 
     const before = Date.now()
-    const introspectionSchema = await engine.introspect(url)
+    let introspectionSchema = await engine.introspect(url)
     engine.stop()
 
     if (introspectionSchema.trim() === '') {
       throw new Error(`Empty introspection result for ${chalk.underline(url)}`)
     }
+
+    const connectorType = databaseTypeToConnectorType(uriToCredentials(url).type)
+
+    const datasourceString = printDatasources([
+      {
+        config: {},
+        connectorType,
+        name: 'db',
+        url,
+      },
+    ])
+
+    introspectionSchema = datasourceString + '\n' + introspectionSchema
+
+    debug('introspectionSchema:')
+    debug(introspectionSchema)
 
     try {
       const dmmf = await getDMMF({ datamodel: introspectionSchema })
@@ -109,7 +128,7 @@ export class Introspect implements Command {
         {
           name: 'db',
           config: {},
-          connectorType: databaseTypeToConnectorType(uriToCredentials(url).type),
+          connectorType,
           url: {
             value: url,
             fromEnvVar: null,
