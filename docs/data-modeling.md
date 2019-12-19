@@ -73,7 +73,7 @@ While this file mostly consists of the data model definition, it is a valid [sch
 
 Models represent the entities of your application domain. They are defined using `model` blocks in the data model. In the [example](#example) data model above, `User`, `Profile`, `Post` and `Category` are models. Here's the `User` model again for reference:
 
-```groovy
+```prisma
 model User {
   id        Int      @id
   createdAt DateTime @default(now())
