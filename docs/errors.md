@@ -308,7 +308,7 @@ To fix this, be sure that the requested record actually exists in the database.
 
 ---
 
-### PP2002
+### P2002
 
 This error occurs when you're trying to set a value of a _unique_ field to a value that already exists for that column in the database. For example, if you have the following data model:
 
@@ -319,7 +319,7 @@ model User {
 }
 ```
 
-You cannot set the value for `email` of two distinct records to `alice@prisma.io`.s
+You cannot set the value for `email` of two distinct records to the same value, e.g. `"alice@prisma.io"`.
 
 #### Error message
 
