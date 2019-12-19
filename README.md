@@ -38,6 +38,8 @@ The interactive prompt will ask you to provide database credentials for your dat
 
 ## Contents
 
+## Contents
+
 - [Getting started](./docs/getting-started.md)
 - [Tutorial](./docs/tutorial.md)
 - [Prisma schema file](./docs/prisma-schema-file.md)
@@ -60,10 +62,11 @@ The interactive prompt will ask you to provide database credentials for your dat
 - [Telemetry](./docs/telemetry.md)
 - [How to provide feedback for the Prisma Framework?](./docs/prisma2-feedback.md)
 - [Release process](./docs/releases.md)
-- [Upgrading from Prisma 1](./docs/upgrading-from-prisma-1.md)
+- Upgrade guides
+  - [Upgrading from Prisma 1](./docs/upgrade-guides/upgrading-from-prisma-1.md)
+  - [Upgrading to `2.0.0-preview019`](./docs/upgrade-guides/upgrading-to-preview019.md)
 - [FAQ](./docs/faq.md)
 - [Glossary](./docs/glossary.md)
-
 ## Contributing
 
 Read more about how to contribute to the Prisma Framework [here](https://github.com/prisma/prisma2/blob/master/CONTRIBUTING.md)
