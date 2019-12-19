@@ -25,6 +25,7 @@
     "@types/node-fetch": "^2.5.4",
     "@types/pg": "^7.11.2",
     "@types/string-width": "^4.0.1",
+    "indent-string": "^4.0.0",
     "jest": "^24.9.0",
     "prettier": "^1.19.1",
     "react": "16.11.0",
