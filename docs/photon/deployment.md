@@ -6,7 +6,7 @@ The query engine binary is downloaded when you run `prisma2 generate`, it is the
 
 **IMPORTANT**: To ensure the query engine binary is compatible with your production environment, you have to [specify the right platform for Photon.js](../core/generators/photonjs.md#specifying-the-right-platform-for-photon-js).
 
-## Photon in FaaS environment (e.g. AWS Lambda, Netlify)
+## Photon in FaaS environment (e.g. AWS Lambda, Netlify, ...)
 
 ### Database connection handling
 
@@ -50,6 +50,39 @@ Here are a number of example projects demonstrating how to deploy Photon.js to v
 - [ZEIT Now](https://github.com/prisma/prisma-examples/tree/prisma2/deployment-platforms/zeit-now)
 
 ## Deployment providers
+
+### AWS Lambda
+
+In order to not exhaust the connection limits of your database, you should set the `connection_limit` parameter of your database connection string in the Prisma schema to `1` when deploying your Photon.js-based application to [AWS Lambda]().
+
+**PostgreSQL**
+
+```
+postgresql://USER:PASSWORD@HOST:PORT/DATABASE?connection_limit=1
+```
+
+**MySQL**
+
+```
+mysql://USER:PASSWORD@HOST:PORT/DATABASE?connection_limit=1
+```
+
+Note that depending on your Lambda concurrency limit, you might still exhaust your database's connection limit. This can happen when too many Lambdas are invoked concurrently (i.e. the number of concurrent Lambdas that each hold a DB connection exceeds the connection limit of your database). To prevent this, you should [set your Lambda concurrency limit](https://docs.aws.amazon.com/lambda/latest/dg/configuration-concurrency.html) to number that represents the connection limit of your database.
+
+| Instance size | Connection limit |
+| :----------- | :------------ |
+|   t2.micro    |       77       |
+|   t2.small    |      188       |
+|   t2.medium   |      403       |
+|   t2.large    |      846       |
+|   t2.xlarge   |      1733      |
+|  t2.2xlarge   |      3508      |
+|   m5.large    |      813       |
+|   m5.xlarge   |      1681      |
+|  m5.2xlarge   |      3419      |
+|  m5.4xlarge   |      4990      |
+
+This means that if you're e.g. using a `m5.large` PostgreSQL instance, you need to set your Lambda concurrency limit to `813`.
 
 ### ZEIT Now
 
