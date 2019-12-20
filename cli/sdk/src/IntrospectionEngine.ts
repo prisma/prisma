@@ -61,7 +61,8 @@ export class IntrospectionEngine {
       cwd: process.cwd(),
     },
   ) {
-    this.binaryPath = binaryPath
+    this.binaryPath =
+      binaryPath || process.env.PRISMA_INTROSPECTION_ENGINE_BINARY
     if (debug) {
       debugLib.enable('IntrospectionEngine*')
     }
