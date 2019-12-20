@@ -45,6 +45,8 @@ import { Docs } from './Docs'
 import { ProviderAliases } from '@prisma/sdk'
 import { Validate } from './Validate'
 export { Photon } from '@prisma/studio-transports'
+import * as checkpoint from 'checkpoint-client'
+import isCI from 'is-ci'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
 // as they have to ship their own version of @prisma/photon
@@ -61,6 +63,12 @@ const aliases: ProviderAliases = {
 async function main(): Promise<number> {
   // react shut up
   process.env.NODE_ENV = 'production'
+
+  checkpoint.check({
+    product: 'prisma',
+    version: packageJson.version,
+    disable: isCI,
+  })
 
   // create a new CLI with our subcommands
   const cli = CLI.new(
@@ -91,7 +99,20 @@ async function main(): Promise<number> {
     console.error(result)
     return 1
   }
-  console.log(result)
+
+  const checkResult = await checkpoint.check({
+    product: 'prisma',
+    version: packageJson.version,
+    cache_only: true,
+    disable: isCI,
+  })
+  if (checkResult && checkResult.outdated) {
+    console.error(
+      `\n${chalk.blue('Update available')} ${packageJson.version} -> ${checkResult.current_version}\nRun ${chalk.bold(
+        'npm install -g prisma2',
+      )} to update`,
+    )
+  }
 
   return 0
 }
