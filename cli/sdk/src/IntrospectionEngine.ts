@@ -159,7 +159,9 @@ export class IntrospectionEngine {
     return new Promise(async (resolve, reject) => {
       try {
         const { PWD, ...env } = process.env
-        this.child = spawn(await this.getBinaryPath(), {
+        const binaryPath = await this.getBinaryPath()
+        debugRpc('starting introspection engine with binary: ' + binaryPath)
+        this.child = spawn(binaryPath, {
           stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
           env: {
             ...env,
