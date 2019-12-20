@@ -31,6 +31,8 @@ export class LiftWatch implements Command {
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
+      '--help': Boolean,
+      '-h': '--help',
       '--preview': Boolean,
       '-p': '--preview',
       '--create-db': Boolean,
@@ -38,6 +40,10 @@ export class LiftWatch implements Command {
       '--auto-approve': Boolean,
     })
     const preview = args['--preview'] || false
+    
+    if (args['--help']) {
+      return this.help()
+    }
 
     await occupyPath(process.cwd())
 
