@@ -52,9 +52,9 @@ It contains the following relations:
 
 You can leave out back-relations in many cases. The Prisma Framework then interprets the relation in a specific way.
 
-- If you want a 1:1 relation, you must always specify both relation fields. The Prisma Framework guarantees that only one value can be stored for each side of the relation.
-- If you want an m:n relation, you must always specify both relation fields. The Prisma Framework will maintain a relation table to track all instances of the relation.
-- If you leave out a relation field, the relation will automatically be interpreted as a 1:n relation.
+- **If you want a 1:1 relation, you must always specify both relation fields.** The Prisma Framework guarantees that only one value can be stored for each side of the relation.
+- **If you want an m:n relation, you must always specify both relation fields.** The Prisma Framework will maintain a relation table to track all instances of the relation.
+- **If you leave out a relation field, the relation will automatically be interpreted as a 1:n relation.**
   - If you leave out the back-relation field on a relation where the other end has a _non-list relation field_, this will be interpreted as a 1:n relation. This means that the missing back-relation field is implied to be a _list_.
   - If you leave out the back-relation field on a relation where the other end has a _list relation field_, this will be interpreted as a 1:n relation. This means that the missing back-relation field is implied to be a _single value_ (i.e. not a _list_).
 
