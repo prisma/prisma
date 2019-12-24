@@ -22,7 +22,7 @@ The facade package is necessary to enable typical build and deployment workflows
 
 Note that you'll need to re-execute `prisma2 generate` whenever you make changes to your [Prisma schema](../prisma-schema-file.md) (or perform the changes while are you're running Prisma's [development mode](../development-mode.md). 
 
-> **Note**: While this approach has a number of [benefits](#why-is-photon-js-generated-into-node_modulesgenerated-by-default), it is also unconventional and can be a source confusion for developers new to Photon.js. Using `node_modules/@prisma/photon` as the default `output` for Photon.js is still experimental. Please share your feedback and tell us whether you think this is a good idea or any other thoughts you have on this topic by joining the [discussion on GitHub](https://github.com/prisma/photonjs/issues/88).
+> **Note**: While this approach has a number of [benefits](#why-is-photon-js-generated-into-node_modulesgenerated-by-default), it is also unconventional and can be a source of confusion for developers new to Photon.js. Using `node_modules/@prisma/photon` as the default `output` for Photon.js is still experimental. Please share your feedback and tell us whether you think this is a good idea or any other thoughts you have on this topic by joining the [discussion on GitHub](https://github.com/prisma/photonjs/issues/88).
 
 ## Specifying the target location for Photon.js
 
@@ -90,5 +90,5 @@ By generating Photon.js into `node_modules`, the query engine is kept out of ver
 
 ## Generating Photon.js in the `postinstall` hook of `@prisma/photon`
 
-The `@prisma/photon` package defines its own `postinstall` hook that's being executed whenever the package in being installed. This hook invokes the `prisma2 generate` command which in turn generates the Photon.js code into the default location `node_modules/@prisma/photon`. Notice that this requires the `prisma2` CLI to be available, either as local dependency or as a global installation (it is recommended to always install the `prisma2` package as a development dependency, using `npm install prisma2 --save-dev`, to avoid versioning conflicts though).
+The `@prisma/photon` package defines its own `postinstall` hook that's being executed whenever the package is being installed. This hook invokes the `prisma2 generate` command which in turn generates the Photon.js code into the default location `node_modules/@prisma/photon`. Notice that this requires the `prisma2` CLI to be available, either as local dependency or as a global installation (it is recommended to always install the `prisma2` package as a development dependency, using `npm install prisma2 --save-dev`, to avoid versioning conflicts though).
 
