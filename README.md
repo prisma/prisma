@@ -38,8 +38,6 @@ The interactive prompt will ask you to provide database credentials for your dat
 
 ## Contents
 
-## Contents
-
 - [Getting started](./docs/getting-started.md)
 - [Tutorial](./docs/tutorial.md)
 - [Prisma schema file](./docs/prisma-schema-file.md)
