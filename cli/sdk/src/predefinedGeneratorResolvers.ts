@@ -78,16 +78,16 @@ class PhotonFacadeMissingError extends Error {
     )} generator, you need to install ${chalk.bold(
       '@prisma/photon',
     )} to your project:
-${chalk.bold.green('npm add @prisma/photon')}`)
+${chalk.bold.green('npm install @prisma/photon')}`)
   }
 }
 
 async function installPackage(baseDir: string, pkg: string): Promise<void> {
   const yarnInstalled = await isYarnInstalled()
 
-  const cmdName = yarnInstalled ? 'yarn' : 'npm'
+  const cmdName = yarnInstalled ? 'yarn add' : 'npm install'
 
-  await execa.command(`${cmdName} add ${pkg}`, {
+  await execa.command(`${cmdName} ${pkg}`, {
     cwd: baseDir,
     stdio: 'inherit',
     env: {
