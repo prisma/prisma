@@ -19,4 +19,4 @@ The `schema.prisma` file represents the target [Prisma schema](../prisma-schema-
 
 ## `steps.json`
 
-The `steps.json` is another representation of the steps that will be performed by Lift when you're executing the migration with `prisma2 lift up`. You can learn more about it in the [spec](https://github.com/prisma/specs/tree/lift/document-migration-steps/lift#step).
+The `steps.json` is another representation of the steps that will be performed by Lift when you're executing the migration with `prisma2 lift up`. You can learn more about it in the [spec](https://github.com/prisma/specs/tree/master/lift#step).
