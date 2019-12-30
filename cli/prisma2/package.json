@@ -1,6 +1,6 @@
 {
   "name": "prisma2",
-  "version": "2.0.0-alpha.475",
+  "version": "1.0.0",
   "main": "build/index.js",
   "repository": "git@github.com:prisma/prisma2-cli.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
@@ -76,7 +76,7 @@
     "pkg": "pkg . -o pkg-build"
   },
   "dependencies": {
-    "checkpoint-client": "1.0.0",
+    "checkpoint-client": "1.0.1",
     "is-ci": "2.0.0"
   }
 }
