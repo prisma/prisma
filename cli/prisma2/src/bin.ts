@@ -64,12 +64,6 @@ async function main(): Promise<number> {
   // react shut up
   process.env.NODE_ENV = 'production'
 
-  checkpoint.check({
-    product: 'prisma',
-    version: packageJson.version,
-    disable: isCI,
-  })
-
   // create a new CLI with our subcommands
   const cli = CLI.new(
     {
@@ -99,18 +93,18 @@ async function main(): Promise<number> {
     console.error(result)
     return 1
   }
-
+  // check prisma for updates
   const checkResult = await checkpoint.check({
     product: 'prisma',
     version: packageJson.version,
-    cache_only: true,
     disable: isCI,
   })
-  if (checkResult && checkResult.outdated) {
+  // if the result is cached and we're outdated, show this prompte
+  if (checkResult.status === 'ok' && checkResult.data.outdated) {
     console.error(
-      `\n${chalk.blue('Update available')} ${packageJson.version} -> ${checkResult.current_version}\nRun ${chalk.bold(
-        'npm install -g prisma2',
-      )} to update`,
+      `\n${chalk.blue('Update available')} ${packageJson.version} -> ${
+        checkResult.data.current_version
+      }\nRun ${chalk.bold(checkResult.data.current_download_url)} to update`,
     )
   }
 
