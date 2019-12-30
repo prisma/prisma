@@ -22,7 +22,7 @@
 
 It is part of the [Prisma 2](https://www.github.com/prisma/prisma2) ecosystem. Prisma 2 provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
 
-> Note that Photon.js is currently running in Preview. The version available has severe [limitations](https://github.com/prisma/prisma2/blob/master/docs/limitations.md) that make it unsuitable for production workloads, including missing features, limited performance and stability issues. We will address all these limitations before issuing a stable release later this year.
+> Note that Photon.js is currently running in Preview. A productionn-ready release is [planned for Q1 2020](https://www.prisma.io/blog/state-of-prisma-2-december-rcrwcqyu655e/).
 
 <br />
 
