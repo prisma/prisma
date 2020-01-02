@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useRef } from 'react'
 import { Color, Box } from 'ink'
 import chalk from 'chalk'
 import { Link } from '../components/Link'
@@ -18,6 +18,15 @@ const Step1PostgresCredentials: React.FC = () => {
   const dbCredentials = state.dbCredentials!
   const [next, setNext] = useState('')
   const router = useContext(RouterContext)
+
+  const isInitialMount = useRef(true);
+  const forceEffect = useRef(0);
+
+  const tryToConnectWithDbCredentials = () => {
+    tryToConnect(state.dbCredentials!)
+    // Force effect to run
+    forceEffect.current += 1
+  }
 
   useEffect(() => {
     async function runEffect() {
@@ -40,8 +49,15 @@ const Step1PostgresCredentials: React.FC = () => {
         }
       }
     }
-    runEffect()
-  }, [canConnect])
+
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+    } else {
+      // This code will only be run on update or submit and not on mount
+      // So the user can click back on next step without the effect running instantly and setting the next route
+      runEffect();
+    }
+  }, [canConnect, forceEffect.current]);
 
   return (
     <Box flexDirection="column">
@@ -59,7 +75,7 @@ const Step1PostgresCredentials: React.FC = () => {
           value={dbCredentials.host || ''}
           onChange={host => setDbCredentials({ host })}
           placeholder="localhost"
-          onSubmit={() => tryToConnect(state.dbCredentials!)}
+          onSubmit={tryToConnectWithDbCredentials}
         />
         <TextInput
           tabIndex={1}
@@ -67,7 +83,7 @@ const Step1PostgresCredentials: React.FC = () => {
           value={String(dbCredentials.port || '')}
           onChange={port => setDbCredentials({ port: Number(port) })}
           placeholder="5432"
-          onSubmit={() => tryToConnect(state.dbCredentials!)}
+          onSubmit={tryToConnectWithDbCredentials}
         />
         <TextInput
           tabIndex={2}
@@ -75,7 +91,7 @@ const Step1PostgresCredentials: React.FC = () => {
           value={dbCredentials.user || ''}
           onChange={user => setDbCredentials({ user })}
           placeholder="user"
-          onSubmit={() => tryToConnect(state.dbCredentials!)}
+          onSubmit={tryToConnectWithDbCredentials}
         />
         <TextInput
           tabIndex={3}
@@ -83,7 +99,7 @@ const Step1PostgresCredentials: React.FC = () => {
           value={dbCredentials.password || ''}
           onChange={password => setDbCredentials({ password })}
           placeholder=""
-          onSubmit={() => tryToConnect(state.dbCredentials!)}
+          onSubmit={tryToConnectWithDbCredentials}
         />
         <TextInput
           tabIndex={4}
@@ -91,7 +107,7 @@ const Step1PostgresCredentials: React.FC = () => {
           value={dbCredentials.database || ''}
           onChange={database => setDbCredentials({ database })}
           placeholder="postgres"
-          onSubmit={() => tryToConnect(state.dbCredentials!)}
+          onSubmit={tryToConnectWithDbCredentials}
         />
         <TextInput
           tabIndex={5}
@@ -99,7 +115,7 @@ const Step1PostgresCredentials: React.FC = () => {
           value={dbCredentials.schema || ''}
           onChange={schema => setDbCredentials({ schema })}
           placeholder="public"
-          onSubmit={() => tryToConnect(state.dbCredentials!)}
+          onSubmit={tryToConnectWithDbCredentials}
         />
         <Checkbox
           tabIndex={6}
@@ -120,7 +136,7 @@ const Step1PostgresCredentials: React.FC = () => {
           value={dbCredentials.uri || ''}
           onChange={uri => setDbCredentials({ uri })}
           placeholder="postgresql://localhost:5432/admin"
-          onSubmit={() => tryToConnect(state.dbCredentials!)}
+          onSubmit={tryToConnectWithDbCredentials}
         />
       </BorderBox>
 
@@ -132,7 +148,7 @@ const Step1PostgresCredentials: React.FC = () => {
           </Color>
         </DummySelectable>
       ) : (
-        <Link label="Connect" onSelect={() => tryToConnect(state.dbCredentials!)} tabIndex={8} kind="forward" />
+        <Link label="Connect" onSelect={tryToConnectWithDbCredentials} tabIndex={8} kind="forward" />
       )}
       <Link label="Back" description="(Database options)" tabIndex={9} kind="back" />
     </Box>

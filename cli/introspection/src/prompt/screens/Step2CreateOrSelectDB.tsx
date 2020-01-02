@@ -27,11 +27,6 @@ const Step2CreateOrSelectDB: React.FC = () => {
   const dbName = dbCredentials[schemaWord]!
 
   const schemaCount = state.useStarterKit ? schemas!.filter(s => s.tableCount === 0).length : schemas!.length
-  const href = dbCredentials.type === 'postgresql' ? 'postgres-credentials' : 'mysql-credentials'
-
-  const goBack = async () => {
-    router.setRoute(href)
-  }
 
   const onCreate = async () => {
     try {

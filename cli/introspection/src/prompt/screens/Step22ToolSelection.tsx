@@ -15,13 +15,6 @@ const Step22ToolSelection: React.FC = () => {
 
   const backLabel = state.useBlank ? '(Database credentials)' : '(Project options)'
 
-  const router = useContext(RouterContext)
-
-  const goBack = async () => {
-    const backTo = state.selectedDb === 'mysql' ? 'mysql-credentials' : 'postgres-credentials'
-    router.backTo(backTo)
-  }
-
   return (
     <Box flexDirection="column">
       {introspectionResult && (

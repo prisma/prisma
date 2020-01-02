@@ -25,11 +25,6 @@ const Step2ChooseDatabase: React.FC = () => {
       ? schemas.filter(s => s.tableCount === 0).length
       : schemas.length
     : 0
-  const href = dbCredentials.type === 'postgresql' ? 'postgres-credentials' : 'mysql-credentials'
-
-  const goBack = async () => {
-    router.setRoute(href)
-  }
 
   return (
     <Box flexDirection="column">
