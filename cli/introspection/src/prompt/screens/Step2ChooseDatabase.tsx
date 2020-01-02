@@ -81,7 +81,7 @@ const Step2ChooseDatabase: React.FC = () => {
           />
         )}
       </BorderBox>
-      <Link onSelect={goBack} label="Back" description="(Database credentials)" tabIndex={3} kind="back" />
+      <Link label="Back" description="(Database credentials)" tabIndex={3} kind="back" />
     </Box>
   )
 }

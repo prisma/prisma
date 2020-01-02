@@ -89,7 +89,7 @@ const Step2CreateOrSelectDB: React.FC = () => {
           <FixBox>Make sure you have the correct rights to create the database.</FixBox>
         </Box>
       )}
-      <Link onSelect={goBack} label="Back" description="(Database credentials)" tabIndex={3} kind="back" />
+      <Link label="Back" description="(Database credentials)" tabIndex={3} kind="back" />
     </Box>
   )
 }
