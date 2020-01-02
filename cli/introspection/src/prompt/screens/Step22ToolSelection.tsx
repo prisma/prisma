@@ -65,13 +65,7 @@ const Step22ToolSelection: React.FC = () => {
         </Box>
       </BorderBox>
       <Link label="Confirm" href={nextStep} tabIndex={2} kind="forward" />
-      <Link
-        label="Back"
-        onSelect={state.useBlank ? goBack : undefined}
-        description={backLabel}
-        tabIndex={3}
-        kind="back"
-      />
+      <Link label="Back" description={backLabel} tabIndex={3} kind="back" />
     </Box>
   )
 }
