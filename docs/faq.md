@@ -16,6 +16,7 @@
 - Other
   - [Since the Prisma Framework is released, will Prisma 1 still be maintained?](#since-the-prisma-framework-is-released-will-prisma-1-still-be-maintained)
   - [Where can I get more information about the plans for the Prisma Framework?](#where-can-i-get-more-information-about-the-plans-for-the-prisma-framework)
+  - [How much does the Prisma Framework cost?](#how-much-does-the-prisma-framework-cost)
 
 ## Photon
 
@@ -95,4 +96,6 @@ There will be no new features developed for Prisma 1.
 
 Check out the [`specs`](https://github.com/prisma/specs) repo which contains the technical specifications for future the Prisma Framework features. Get involved by [creating issues](https://github.com/prisma/prisma2/issues) and [sharing feedback](./prisma2-feedback.md)!
 
+### How much does the Prisma Framework cost?
 
+The Prisma Framework is open source and using it is free of any charge! 
