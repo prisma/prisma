@@ -98,4 +98,4 @@ Check out the [`specs`](https://github.com/prisma/specs) repo which contains the
 
 ### How much does the Prisma Framework cost?
 
-The Prisma Framework is open source and using it is free of any charge! 
+The Prisma Framework is open source and using it is free of any charge! In the future, Prisma will offer additional cloud services to facilitate various database- and Prisma-related workflows.
