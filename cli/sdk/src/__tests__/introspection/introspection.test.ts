@@ -14,10 +14,10 @@ test('basic introspection', async () => {
       age     Int     @default(0)
       amount  Float   @default(0)
       balance Float   @default(0)
-      email   String  @default(\\"''\\") @unique
+      email   String  @default(\\"\\") @unique
       id      Int     @id
       name    String?
-      role    String  @default(\\"'USER'\\")
+      role    String  @default(\\"USER\\")
       posts   Post[]
     }
 
@@ -27,7 +27,7 @@ test('basic introspection', async () => {
       createdAt DateTime
       kind      String?
       published Boolean  @default(false)
-      title     String   @default(\\"''\\")
+      title     String   @default(\\"\\")
       updatedAt DateTime
       uuid      String   @id
     }"
