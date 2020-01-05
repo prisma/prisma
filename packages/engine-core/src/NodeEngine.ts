@@ -485,10 +485,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       body: { query, variables: {} },
       agent: {
         http: new HttpAgent({
-          freeSocketTimeout: 60 * 60 * 1000 * 1000,
+          freeSocketTimeout: 2147483647,
         }),
         https: new HttpsAgent({
-          freeSocketTimeout: 60 * 60 * 1000 * 1000,
+          freeSocketTimeout: 2147483647,
         }),
       },
     })
