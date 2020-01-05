@@ -1,5 +1,6 @@
 import { Engine, PhotonError, PhotonQueryError, QueryEngineError } from './Engine'
 import got from 'got'
+import HttpAgent, { HttpsAgent } from 'agentkeepalive'
 import debugLib from 'debug'
 import { getPlatform, Platform, mayBeCompatible } from '@prisma/get-platform'
 import path from 'path'
@@ -482,6 +483,12 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         'Content-Type': 'application/json',
       },
       body: { query, variables: {} },
+      agent: {
+        http: new HttpAgent({
+          freeSocketTimeout: 60 * 60 * 1000 * 1000,
+        }),
+        https: new HttpsAgent(),
+      },
     })
 
     return this.currentRequestPromise
