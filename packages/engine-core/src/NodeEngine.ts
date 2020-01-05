@@ -487,7 +487,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         http: new HttpAgent({
           freeSocketTimeout: 60 * 60 * 1000 * 1000,
         }),
-        https: new HttpsAgent(),
+        https: new HttpsAgent({
+          freeSocketTimeout: 60 * 60 * 1000 * 1000,
+        }),
       },
     })
 
