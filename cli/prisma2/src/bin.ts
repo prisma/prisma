@@ -45,6 +45,8 @@ import { Docs } from './Docs'
 import { ProviderAliases } from '@prisma/sdk'
 import { Validate } from './Validate'
 export { Photon } from '@prisma/studio-transports'
+import * as checkpoint from 'checkpoint-client'
+import isCI from 'is-ci'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
 // as they have to ship their own version of @prisma/photon
@@ -91,7 +93,20 @@ async function main(): Promise<number> {
     console.error(result)
     return 1
   }
-  console.log(result)
+  // check prisma for updates
+  const checkResult = await checkpoint.check({
+    product: 'prisma',
+    version: packageJson.version,
+    disable: isCI,
+  })
+  // if the result is cached and we're outdated, show this prompte
+  if (checkResult.status === 'ok' && checkResult.data.outdated) {
+    console.error(
+      `\n${chalk.blue('Update available')} ${packageJson.version} -> ${
+        checkResult.data.current_version
+      }\nRun ${chalk.bold(checkResult.data.current_download_url)} to update`,
+    )
+  }
 
   return 0
 }
