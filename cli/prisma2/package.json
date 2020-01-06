@@ -61,7 +61,9 @@
     "tmp": "^0.1.0",
     "ts-jest": "24.1.0",
     "ts-mocha": "6.0.0",
-    "typescript": "3.7.2"
+    "typescript": "3.7.2",
+    "checkpoint-client": "1.0.2",
+    "is-ci": "2.0.0"
   },
   "scripts": {
     "test": "./fixtures/test.sh && ./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
@@ -74,9 +76,5 @@
     "build": "pnpm run tsc && pnpm run ncc:download && rm -rf build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
     "prepublishOnly": "pnpm run download && pnpm run ncc:download && pnpm run install && pnpm run test && pnpm run build",
     "pkg": "pkg . -o pkg-build"
-  },
-  "dependencies": {
-    "checkpoint-client": "1.0.1",
-    "is-ci": "2.0.0"
   }
 }
