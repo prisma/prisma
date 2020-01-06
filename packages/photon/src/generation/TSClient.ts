@@ -501,7 +501,7 @@ class PayloadType {
         ? getSelectName(name)
         : getIncludeName(name)
     return `\
-type ${getPayloadName(
+export type ${getPayloadName(
       name,
       projection,
     )}<S extends boolean | ${projectionName}> = S extends true
