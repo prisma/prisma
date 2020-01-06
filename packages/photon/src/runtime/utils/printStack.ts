@@ -26,7 +26,11 @@ export interface PrintStackResult {
   afterLines: string
 }
 
-export const printStack = ({ callsite, originalMethod, onUs }: ErrorArgs): PrintStackResult => {
+export const printStack = ({
+  callsite,
+  originalMethod,
+  onUs,
+}: ErrorArgs): PrintStackResult => {
   const lastErrorHeight = 20
   let callsiteStr = ':'
   let prevLines = '\n'
@@ -41,14 +45,24 @@ export const printStack = ({ callsite, originalMethod, onUs }: ErrorArgs): Print
     const trace = stack.find(
       t =>
         t.file &&
-        !t.file.includes('@generated') &&
+        !t.file.includes('@prisma') &&
         !t.methodName.includes('new ') &&
         t.methodName.split('.').length < 4,
     )
-    if (process.env.NODE_ENV !== 'production' && trace && trace.file && trace.lineNumber && trace.column) {
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      trace &&
+      trace.file &&
+      trace.lineNumber &&
+      trace.column
+    ) {
       const fileName = trace.file
       const lineNumber = trace.lineNumber
-      callsiteStr = callsite ? ` in ${chalk.underline(`${trace.file}:${trace.lineNumber}:${trace.column}`)}` : ''
+      callsiteStr = callsite
+        ? ` in\n${chalk.underline(
+            `${trace.file}:${trace.lineNumber}:${trace.column}`,
+          )}`
+        : ''
       const height = process.stdout.rows || 20
       const start = Math.max(0, lineNumber - 5)
       const neededHeight = lastErrorHeight + lineNumber - start
@@ -72,18 +86,32 @@ export const printStack = ({ callsite, originalMethod, onUs }: ErrorArgs): Print
           const highlightedLines = highlightTS(
             lines
               .map((l, i, all) =>
-                !onUs && i === all.length - 1 ? l.slice(0, slicePoint > -1 ? slicePoint : l.length - 1) : l,
+                !onUs && i === all.length - 1
+                  ? l.slice(0, slicePoint > -1 ? slicePoint : l.length - 1)
+                  : l,
               )
               .join('\n'),
           ).split('\n')
           prevLines =
             '\n' +
             highlightedLines
-              .map((l, i) => chalk.grey(renderN(i + start + 1, lineNumber + start + 1) + ' ') + chalk.reset() + l)
-              .map((l, i, arr) => (i === arr.length - 1 ? `${chalk.red.bold('→')} ${l}` : chalk.dim('  ' + l)))
+              .map(
+                (l, i) =>
+                  chalk.grey(
+                    renderN(i + start + 1, lineNumber + start + 1) + ' ',
+                  ) +
+                  chalk.reset() +
+                  l,
+              )
+              .map((l, i, arr) =>
+                i === arr.length - 1
+                  ? `${chalk.red.bold('→')} ${l}`
+                  : chalk.dim('  ' + l),
+              )
               .join('\n')
           afterLines = ')'
-          indentValue = String(lineNumber + start + 1).length + getIndent(theLine) + 1
+          indentValue =
+            String(lineNumber + start + 1).length + getIndent(theLine) + 1
         }
       }
     }
@@ -102,9 +130,15 @@ export const printStack = ({ callsite, originalMethod, onUs }: ErrorArgs): Print
   }
 
   const introText = onUs
-    ? chalk.red(`Oops, an unknown error occured! This is ${chalk.bold('on us')}, you did nothing wrong.
-It occured in the ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`)
-    : chalk.red(`Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`)
+    ? chalk.red(`Oops, an unknown error occured! This is ${chalk.bold(
+        'on us',
+      )}, you did nothing wrong.
+It occured in the ${chalk.bold(
+        `\`${functionName}\``,
+      )} invocation${callsiteStr}`)
+    : chalk.red(
+        `Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`,
+      )
 
   const stackStr = `\n${introText}
 ${prevLines}${chalk.reset()}`
