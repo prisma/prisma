@@ -51,6 +51,9 @@ const binaryToEnvVar = {
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
+  if (Object.values(options.binaries).length === 0) {
+    return {}
+  }
   const downloadDoneFile = options.binaries
     ? path.join(
         options.binaries['query-engine'] ||
