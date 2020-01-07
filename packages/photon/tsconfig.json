@@ -16,7 +16,7 @@
     "dist",
     "build",
     "cli",
-    "examples",
+    "fixtures",
     "runtime",
     "browser-runtime",
     "generator",
