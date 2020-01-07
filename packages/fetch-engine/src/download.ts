@@ -60,11 +60,8 @@ const binaryToEnvVar = {
 }
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
-  if (
-    options.binaries['introspection-engine'] &&
-    options.binaries['migration-engine'] &&
-    options.binaries['query-engine']
-  ) {
+  const platform = await getPlatform()
+  if (!options.binaryTargets || (options.binaryTargets.length === 1 && options.binaryTargets[0] === platform)) {
     const downloadDoneFile = path.join(options.binaries['query-engine'], 'download-done')
     if (fs.existsSync(downloadDoneFile)) {
       debug(`Skipping download as ${downloadDoneFile} exists`)
@@ -73,7 +70,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   }
 
   await cleanupCache()
-  const platform = await getPlatform()
   const mergedOptions: DownloadOptions = {
     binaryTargets: [platform],
     version: 'latest',
@@ -188,27 +184,6 @@ async function downloadBinary({
 }: DownloadBinaryOptions) {
   await makeDir(path.dirname(targetPath))
   debug(`Downloading ${sourcePath} to ${targetPath}`)
-  try {
-    fs.writeFileSync(
-      targetPath,
-      '#!/usr/bin/env node\n' + `console.log("Please wait until the \'prisma ${binaryName}\' download completes!")\n`,
-    )
-  } catch (err) {
-    if (err.code === 'EACCES') {
-      if (!failSilent) {
-        warn('Please try installing Prisma 2 CLI again with the `--unsafe-perm` option.')
-        info('Example: `npm i -g --unsafe-perm prisma2`')
-        process.exit(1)
-      } else {
-        debug(`Download failed due to EACCES error, but that's fine`)
-        process.exit(0)
-      }
-    }
-
-    throw err
-  }
-
-  // Print an empty line
   const cacheDir = await getCacheDir(channel, version, platform)
   const cachedTargetPath = path.join(cacheDir, binaryName)
   const cachedLastModifiedPath = path.join(cacheDir, 'lastModified-' + binaryName)

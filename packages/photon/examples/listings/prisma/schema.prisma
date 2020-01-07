@@ -14,7 +14,7 @@ generator nexus_prisma {
 }
 
 model User {
-  id       String  @id @default(cuid()) @unique
+  id       String  @id @default(cuid())
   email    String
   name     String
   password String
@@ -24,7 +24,7 @@ model User {
 }
 
 model Listing {
-  id          String   @id @default(cuid()) @unique
+  id          String   @id @default(cuid())
   slug        String
   description String
   location    String
