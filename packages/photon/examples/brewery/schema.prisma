@@ -12,38 +12,38 @@ generator nexus_prisma {
 }
 
 model User {
-  id       String  @default(cuid()) @id @unique
+  id       String  @default(cuid()) @id
   email    String? @unique
   username String
   password String
 }
 
 model Brewery {
-  id   String @default(cuid()) @id @unique
+  id   String @default(cuid()) @id
   name String @unique
 }
 
 model BeerPrice {
-  id    String @default(cuid()) @id @unique
+  id    String @default(cuid()) @id
   size  String
   price Float
 }
 
 model BeerAvailability {
-  id          String    @default(cuid()) @id @unique
+  id          String    @default(cuid()) @id
   releaseDate DateTime
   endDate     DateTime?
 }
 
 model Beer {
-  id           String           @default(cuid()) @id @unique
+  id           String           @default(cuid()) @id
   name         String
   prices       BeerPrice[]
   availability BeerAvailability
 }
 
 model Tap {
-  id        String   @default(cuid()) @id @unique
+  id        String   @default(cuid()) @id
   beers     Beer[]
   startDate DateTime
   endDate   DateTime
@@ -56,14 +56,14 @@ enum Role {
 }
 
 model Employee {
-  id      String   @default(cuid()) @id @unique
+  id      String   @default(cuid()) @id
   user    User
   role    Role     @default(Server)
   brewery Brewery?
 }
 
 model BreweryEvent {
-  id          String      @default(cuid()) @id @unique
+  id          String      @default(cuid()) @id
   brewery     Brewery
   start       DateTime
   end         DateTime
@@ -72,21 +72,21 @@ model BreweryEvent {
 }
 
 model FoodService {
-  id      String   @default(cuid()) @id @unique
+  id      String   @default(cuid()) @id
   name    String
   about   String?
   cuisine String[]
 }
 
 model MenuItem {
-  id          String  @default(cuid()) @id @unique
+  id          String  @default(cuid()) @id
   name        String
   description String?
   price       Float
 }
 
 model Menu {
-  id          String      @default(cuid()) @id @unique
+  id          String      @default(cuid()) @id
   foodService FoodService
   item        MenuItem[]
 }

@@ -232,10 +232,7 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
 
     const error = new PhotonError(renderErrorStr())
     // @ts-ignore
-    if (
-      typeof window === 'undefined' &&
-      process.env.NODE_ENV !== 'production'
-    ) {
+    if (process.env.NODE_ENV !== 'production') {
       Object.defineProperty(error, 'render', {
         get: () => renderErrorStr,
         enumerable: false,
