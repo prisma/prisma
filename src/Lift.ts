@@ -1,6 +1,5 @@
 import { getSchemaDirSync } from '@prisma/cli'
 import { getGenerators, ProviderAliases } from '@prisma/sdk'
-import 'array-flat-polyfill'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
 import cliCursor from 'cli-cursor'
@@ -40,6 +39,7 @@ import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import { printMigrationReadme } from './utils/printMigrationReadme'
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
+import { flatMap } from './utils/flatMap'
 const debug = debugLib('Lift')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
@@ -265,7 +265,7 @@ export class Lift {
   public async createMigration(migrationId: string): Promise<LocalMigrationWithDatabaseSteps | undefined> {
     const { migrationsToApply, sourceConfig } = await this.getMigrationsToApply()
 
-    const assumeToBeApplied = migrationsToApply.flatMap(m => m.datamodelSteps)
+    const assumeToBeApplied = flatMap(migrationsToApply, m => m.datamodelSteps)
 
     const datamodel = await this.getDatamodel()
     const { datamodelSteps, databaseSteps, warnings } = await this.engine.inferMigrationSteps({
@@ -553,7 +553,7 @@ export class Lift {
     const firstMigrationToApplyIndex = localMigrations.indexOf(migrationsToApply[0])
     const migrationsWithDbSteps = await this.getDatabaseSteps(localMigrations, firstMigrationToApplyIndex, sourceConfig)
 
-    const warnings = migrationsWithDbSteps.flatMap(m => m.warnings)
+    const warnings = flatMap(migrationsWithDbSteps, m => m.warnings)
 
     if (warnings.length > 0 && !autoApprove) {
       if (onWarnings && typeof onWarnings === 'function' && !autoApprove) {
@@ -770,7 +770,7 @@ export class Lift {
             warnings: [],
           }
         }
-        const stepsUntilNow = index > 0 ? localMigrations.slice(0, index).flatMap(m => m.datamodelSteps) : []
+        const stepsUntilNow = index > 0 ? flatMap(localMigrations.slice(0, index), m => m.datamodelSteps) : []
         const input = {
           assumeToBeApplied: stepsUntilNow,
           stepsToApply: migration.datamodelSteps,
