@@ -6,7 +6,6 @@ import {
   GeneratorConfig,
   EngineType,
 } from '@prisma/generator-helper'
-import 'flat-map-polyfill'
 import chalk from 'chalk'
 import {
   BinaryDownloadConfiguration,
@@ -25,6 +24,7 @@ import {
   predefinedGeneratorResolvers,
   GeneratorPaths,
 } from './predefinedGeneratorResolvers'
+import { flatMap } from './utils/flatMap'
 import Debug from 'debug'
 const debug = Debug('getGenerators')
 
@@ -187,12 +187,12 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     )
 
     // 2. Download all binaries and binary targets needed
-    const binaries = generators.flatMap(g =>
+    const binaries = flatMap(generators, g =>
       g.manifest ? g.manifest.requiresEngines || [] : [],
     )
 
     let binaryTargets = unique(
-      generatorConfigs.flatMap(g => g.binaryTargets || []),
+      flatMap(generatorConfigs, g => g.binaryTargets || []),
     ).map(t => (t === 'native' ? platform : t))
 
     if (binaryTargets.length === 0) {
