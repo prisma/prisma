@@ -63,6 +63,9 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       )
     : null
   const nativeDownloadsDone = downloadDoneFile ? fs.existsSync(downloadDoneFile) : false
+  const everythingDownloaded =
+    nativeDownloadsDone &&
+    (!options.binaryTargets || (options.binaryTargets.length === 0 && options.binaryTargets[0] === platform))
 
   await cleanupCache()
   const mergedOptions: DownloadOptions = {
@@ -71,9 +74,10 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     ...options,
     binaries: mapKeys(options.binaries, key => engineTypeToBinaryType(key, platform)), // just necessary to support both camelCase and hyphen-case
   }
-  const bar = options.showProgress
-    ? getBar(`Downloading Prisma engines for ${mergedOptions.binaryTargets.map(p => chalk.bold(p)).join(' and ')}`)
-    : undefined
+  const bar =
+    options.showProgress && !everythingDownloaded
+      ? getBar(`Downloading Prisma engines for ${mergedOptions.binaryTargets.map(p => chalk.bold(p)).join(' and ')}`)
+      : undefined
   const progressMap: { [key: string]: number } = {}
   // Object.values is faster than Object.keys
   const numDownloads = Object.values(mergedOptions.binaries).length * Object.values(mergedOptions.binaryTargets).length
