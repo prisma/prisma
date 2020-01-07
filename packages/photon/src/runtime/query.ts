@@ -1,5 +1,4 @@
 import chalk from 'chalk'
-import 'flat-map-polyfill'
 import indent from 'indent-string'
 import { /*dmmf, */ DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
@@ -31,6 +30,7 @@ import { printStack } from './utils/printStack'
 import stringifyObject from './utils/stringifyObject'
 import { visit } from './visit'
 import stripAnsi from 'strip-ansi'
+import { flatMap } from './utils/flatMap'
 
 const tab = 2
 
@@ -609,7 +609,7 @@ export class Args {
       return []
     }
 
-    return this.args.flatMap(arg => arg.collectErrors())
+    return flatMap(this.args, arg => arg.collectErrors())
   }
 }
 
@@ -725,7 +725,7 @@ ${indent(value.toString(), 2)}
 
     if (Array.isArray(this.value)) {
       errors.push(
-        ...(this.value as any[]).flatMap((val, index) => {
+        ...(flatMap(this.value as any[], (val, index) => {
           if (!val.collectErrors) {
             return []
           }
@@ -733,7 +733,7 @@ ${indent(value.toString(), 2)}
           return val.collectErrors().map(e => {
             return { ...e, path: [this.key, index, ...e.path] }
           })
-        }),
+        }) as any[]),
       )
     }
 

@@ -24,6 +24,7 @@ import {
   isQueryAction,
   Projection,
   renderInitialClientArgs,
+  flatMap,
 } from './utils'
 
 const tab = 2
@@ -703,20 +704,18 @@ export class Query {
 
 export type ${queryName}Args = {
 ${indent(
-  mappings
-    .flatMap(({ name, mapping }) =>
-      mapping
-        .filter(([action, field]) => field)
-        .map(
-          ([action, field]) =>
-            `${field}?: ${getModelArgName(
-              name,
-              Projection.select,
-              action as DMMF.ModelAction,
-            )}`,
-        ),
-    )
-    .join('\n'),
+  flatMap(mappings, ({ name, mapping }) =>
+    mapping
+      .filter(([action, field]) => field)
+      .map(
+        ([action, field]) =>
+          `${field}?: ${getModelArgName(
+            name,
+            Projection.select,
+            action as DMMF.ModelAction,
+          )}`,
+      ),
+  ).join('\n'),
   tab,
 )}
 }
@@ -1050,15 +1049,13 @@ export class InputField {
     const { field } = this
     let fieldType
     if (Array.isArray(field.inputType)) {
-      fieldType = field.inputType
-        .flatMap(t =>
-          typeof t.type === 'string'
-            ? GraphQLScalarToJSTypeTable[t.type] || t.type
-            : this.prefixFilter
-            ? `Base${t.type.name}`
-            : t.type.name,
-        )
-        .join(' | ')
+      fieldType = flatMap(field.inputType, t =>
+        typeof t.type === 'string'
+          ? GraphQLScalarToJSTypeTable[t.type] || t.type
+          : this.prefixFilter
+          ? `Base${t.type.name}`
+          : t.type.name,
+      ).join(' | ')
     }
     const fieldInputType = field.inputType[0]
     const optionalStr = fieldInputType.isRequired ? '' : '?'

@@ -32,11 +32,22 @@ export function getDefaultName(modelName: string) {
   return `${modelName}Default`
 }
 
-export function getFieldArgName(field: DMMF.SchemaField, projection?: Projection): string {
-  return getArgName((field.outputType.type as DMMF.OutputType).name, field.outputType.isList, projection)
+export function getFieldArgName(
+  field: DMMF.SchemaField,
+  projection?: Projection,
+): string {
+  return getArgName(
+    (field.outputType.type as DMMF.OutputType).name,
+    field.outputType.isList,
+    projection,
+  )
 }
 
-export function getArgName(name: string, isList: boolean, projection?: Projection): string {
+export function getArgName(
+  name: string,
+  isList: boolean,
+  projection?: Projection,
+): string {
   const projectionString = projection ? capitalize(projection) : ''
   if (!isList) {
     return `${name}${projectionString}Args`
@@ -47,7 +58,11 @@ export function getArgName(name: string, isList: boolean, projection?: Projectio
 
 // we need names for all top level args,
 // as GraphQL doesn't have the concept of unnamed args
-export function getModelArgName(modelName: string, projection?: Projection, action?: DMMF.ModelAction): string {
+export function getModelArgName(
+  modelName: string,
+  projection?: Projection,
+  action?: DMMF.ModelAction,
+): string {
   const projectionName = projection ? capitalize(projection) : ''
   if (!action) {
     return `${modelName}${projectionName}Args`
@@ -72,7 +87,11 @@ export function getModelArgName(modelName: string, projection?: Projection, acti
   }
 }
 
-export function getDefaultArgName(dmmf: DMMFClass, modelName: string, action: DMMF.ModelAction) {
+export function getDefaultArgName(
+  dmmf: DMMFClass,
+  modelName: string,
+  action: DMMF.ModelAction,
+) {
   const mapping = dmmf.mappings.find(m => m.model === modelName)!
 
   const fieldName = mapping[action]
@@ -83,7 +102,10 @@ export function getDefaultArgName(dmmf: DMMFClass, modelName: string, action: DM
 }
 
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
-  if (action === DMMF.ModelAction.findMany || action === DMMF.ModelAction.findOne) {
+  if (
+    action === DMMF.ModelAction.findMany ||
+    action === DMMF.ModelAction.findOne
+  ) {
     return 'query'
   }
   return 'mutation'
@@ -159,7 +181,9 @@ export function getSelectReturnType({
     ? getArgName(name, isList, Projection.include)
     : getModelArgName(name, Projection.include, actionName as DMMF.ModelAction)
 
-  const requiredArgName = getModelArgName(name, undefined, actionName as DMMF.ModelAction) + 'Required'
+  const requiredArgName =
+    getModelArgName(name, undefined, actionName as DMMF.ModelAction) +
+    'Required'
   const requiredCheck = `T extends ${requiredArgName} ? 'Please either choose \`select\` or \`include\`' : `
   if (actionName === 'deleteMany' || actionName === 'updateMany') {
     return `Promise<BatchPayload>`
@@ -174,38 +198,50 @@ export function getSelectReturnType({
     const promiseOpen = renderPromise ? 'Promise<' : ''
     const promiseClose = renderPromise ? '>' : ''
     const renderType = (projection: Projection) =>
-      `${promiseOpen}${listOpen}${getPayloadName(name, projection)}<Extract${getModelArgName(
+      `${promiseOpen}${listOpen}${getPayloadName(
         name,
         projection,
-        actionName,
-      )}<T>${actionName === 'findOne' ? ' | null' : ''}>${listClose}${promiseClose}`
+      )}<Extract${getModelArgName(name, projection, actionName)}<T>${
+        actionName === 'findOne' ? ' | null' : ''
+      }>${listClose}${promiseClose}`
 
     return `${requiredCheck}T extends ${selectArgName}
 ? ${renderType(Projection.select)} : T extends ${includeArgName}
-? ${renderType(Projection.include)} : ${promiseOpen}${listOpen}${name}${promiseClose}${listClose}`
+? ${renderType(
+      Projection.include,
+    )} : ${promiseOpen}${listOpen}${name}${promiseClose}${listClose}`
   }
 
   const selectType = `${renderPromise ? 'Promise<' : ''}${getPayloadName(
     name,
     Projection.select,
-  )}<Extract${selectArgName}<T>${renderPromise ? '>' : ''}${actionName === 'findOne' ? ' | null' : ''}>`
+  )}<Extract${selectArgName}<T>${renderPromise ? '>' : ''}${
+    actionName === 'findOne' ? ' | null' : ''
+  }>`
 
   const includeType = `${renderPromise ? 'Promise<' : ''}${getPayloadName(
     name,
     Projection.include,
-  )}<Extract${includeArgName}<T>${renderPromise ? '>' : ''}${actionName === 'findOne' ? ' | null' : ''}>`
-
-  return `${requiredCheck}T extends ${selectArgName} ? ${selectType}
-: T extends ${includeArgName} ? ${includeType} : ${name}Client<${getType(name, isList)}${
+  )}<Extract${includeArgName}<T>${renderPromise ? '>' : ''}${
     actionName === 'findOne' ? ' | null' : ''
   }>`
+
+  return `${requiredCheck}T extends ${selectArgName} ? ${selectType}
+: T extends ${includeArgName} ? ${includeType} : ${name}Client<${getType(
+    name,
+    isList,
+  )}${actionName === 'findOne' ? ' | null' : ''}>`
 }
 
-export function isQueryAction(action: DMMF.ModelAction, operation: 'query' | 'mutation'): boolean {
+export function isQueryAction(
+  action: DMMF.ModelAction,
+  operation: 'query' | 'mutation',
+): boolean {
   if (!(action in DMMF.ModelAction)) {
     return false
   }
-  const result = action === DMMF.ModelAction.findOne || action === DMMF.ModelAction.findMany
+  const result =
+    action === DMMF.ModelAction.findOne || action === DMMF.ModelAction.findMany
   return operation === 'query' ? result : !result
 }
 
@@ -219,9 +255,26 @@ export function indentAllButFirstLine(str: string, indentation: number) {
   return lines[0] + '\n' + indent(lines.slice(1).join('\n'), indentation)
 }
 
-export function getRelativePathResolveStatement(outputDir: string, cwd?: string) {
+export function getRelativePathResolveStatement(
+  outputDir: string,
+  cwd?: string,
+) {
   if (!cwd) {
     return 'undefined'
   }
-  return `path.resolve(__dirname, ${JSON.stringify(path.relative(outputDir, cwd))})`
+  return `path.resolve(__dirname, ${JSON.stringify(
+    path.relative(outputDir, cwd),
+  )})`
+}
+
+function flatten(array) {
+  return Array.prototype.concat.apply([], array)
+}
+
+export function flatMap<T, U>(
+  array: T[],
+  callbackFn: (value: T, index: number, array: T[]) => U[],
+  thisArg?: any,
+): U[] {
+  return flatten(array.map(callbackFn, thisArg))
 }
