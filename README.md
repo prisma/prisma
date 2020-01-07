@@ -249,7 +249,7 @@ Photon.js gets generated into your `node_modules` folder so you can import it di
 
 ### 4. Build an app
 
-Similar to traditional ORMs, the Photon.js client can be used any of your Node.js or TypeScript application. For example to implement REST, GraphQL or gRPC APIs. You can find reference examples for these use cases in the [`examples`](./examples) directory.
+Similar to traditional ORMs, the Photon.js client can be used any of your Node.js or TypeScript application. For example to implement REST, GraphQL or gRPC APIs. You can find reference examples for these use cases in the [`prisma-examples`](https://github.com/prisma/prisma-examples/tree/prisma2) repository.
 
 ### 5. Evolve your database and Photon.js database client
 
