@@ -22,6 +22,9 @@ process.on('unhandledRejection', e => {
 // hides ExperimentalWarning: The fs.promises API is experimental
 process.env.NODE_NO_WARNINGS = '1'
 
+// react: psst 🙊
+process.env.NODE_ENV = 'production'
+
 /**
  * Dependencies
  */
@@ -59,9 +62,6 @@ const aliases: ProviderAliases = {
  * Main function
  */
 async function main(): Promise<number> {
-  // react shut up
-  process.env.NODE_ENV = 'production'
-
   // create a new CLI with our subcommands
   const cli = CLI.new(
     {
