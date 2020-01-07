@@ -37,16 +37,6 @@ export interface DownloadOptions {
   failSilent?: boolean
 }
 
-interface DownloadBinaryOptions {
-  sourcePath: string
-  targetPath: string
-  version: string
-  platform: string
-  binaryName: BinaryKind
-  progressCb?: (progress: number) => any
-  failSilent?: boolean
-}
-
 export type BinaryPaths = {
   migrationEngine?: { [binaryTarget: string]: string } // key: target, value: path
   queryEngine?: { [binaryTarget: string]: string }
@@ -61,9 +51,11 @@ const binaryToEnvVar = {
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
+  const downloadDoneFile = path.join(options.binaries['query-engine'], 'download-done')
+  const nativeDownloadsDone = fs.existsSync(downloadDoneFile)
+
   if (!options.binaryTargets || (options.binaryTargets.length === 1 && options.binaryTargets[0] === platform)) {
-    const downloadDoneFile = path.join(options.binaries['query-engine'], 'download-done')
-    if (fs.existsSync(downloadDoneFile)) {
+    if (nativeDownloadsDone) {
       debug(`Skipping download as ${downloadDoneFile} exists`)
       return
     }
@@ -108,9 +100,9 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   await Promise.all(
     Object.entries(options.binaries).map(([binaryName, targetDir]) => {
       return Promise.all(
-        mergedOptions.binaryTargets.map(async platform => {
-          const sourcePath = getDownloadUrl(channel, mergedOptions.version, platform, binaryName as BinaryKind)
-          const targetPath = path.resolve(targetDir, getBinaryName(binaryName, platform))
+        mergedOptions.binaryTargets.map(async binaryPlatform => {
+          const sourcePath = getDownloadUrl(channel, mergedOptions.version, binaryPlatform, binaryName as BinaryKind)
+          const targetPath = path.resolve(targetDir, getBinaryName(binaryName, binaryPlatform))
 
           const envVar = binaryToEnvVar[binaryName]
           if (envVar && process.env[envVar]) {
@@ -126,23 +118,30 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
                 binaryName,
               )}, which points to ${chalk.underline(process.env[envVar])}`,
             )
-            binaryPaths[binaryName][platform] = path.resolve(process.env[envVar])
+            binaryPaths[binaryName][binaryPlatform] = path.resolve(process.env[envVar])
           } else {
-            debug(`Setting binary path for ${binaryName} ${platform} to ${targetPath}`)
-            binaryPaths[binaryName][platform] = targetPath
+            debug(`Setting binary path for ${binaryName} ${binaryPlatform} to ${targetPath}`)
+            binaryPaths[binaryName][binaryPlatform] = targetPath
           }
 
-          if (!options.skipDownload) {
-            await downloadBinary({
-              sourcePath,
-              binaryName: binaryName as BinaryKind,
-              platform,
-              version: mergedOptions.version,
-              targetPath,
-              progressCb: collectiveCallback ? collectiveCallback(sourcePath) : undefined,
-              failSilent: options.failSilent,
-            })
+          // no need to download, if we have it downloaded already :)
+          if (nativeDownloadsDone && binaryPlatform === platform) {
+            return
           }
+
+          if (options.skipDownload) {
+            return
+          }
+
+          await downloadBinary({
+            sourcePath,
+            binaryName: binaryName as BinaryKind,
+            platform: binaryPlatform,
+            version: mergedOptions.version,
+            targetPath,
+            progressCb: collectiveCallback ? collectiveCallback(sourcePath) : undefined,
+            failSilent: options.failSilent,
+          })
         }),
       )
     }),
@@ -171,6 +170,16 @@ function getBinaryName(binaryName, platform) {
     return 'migration-engine' + extension
   }
   return `${binaryName}-${platform}${extension}`
+}
+
+interface DownloadBinaryOptions {
+  sourcePath: string
+  targetPath: string
+  version: string
+  platform: string
+  binaryName: BinaryKind
+  progressCb?: (progress: number) => any
+  failSilent?: boolean
 }
 
 async function downloadBinary({
