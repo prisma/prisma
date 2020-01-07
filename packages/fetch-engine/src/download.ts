@@ -61,7 +61,7 @@ const binaryToEnvVar = {
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
-  if (options.binaryTargets.length === 1 && options.binaryTargets[0] === platform) {
+  if (!options.binaries || (options.binaryTargets.length === 1 && options.binaryTargets[0] === platform)) {
     const downloadDoneFile = path.join(options.binaries['query-engine'], 'download-done')
     if (fs.existsSync(downloadDoneFile)) {
       debug(`Skipping download as ${downloadDoneFile} exists`)
