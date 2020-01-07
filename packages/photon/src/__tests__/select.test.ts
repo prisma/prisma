@@ -243,26 +243,26 @@ describe('select validation', () => {
       document.validate(ast)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-                "
-                Invalid \`photon.createOnePost()\` invocation:
+        "
+        Invalid \`photon.createOnePost()\` invocation:
 
-                {
-                + data: {
-                +   id?: ID,
-                +   createdAt?: DateTime,
-                +   updatedAt?: DateTime,
-                +   published: Boolean,
-                +   title: String,
-                +   content?: String,
-                +   author?: UserCreateOneWithoutAuthorInput
-                + }
-                }
+        {
+        + data: {
+        +   id?: String,
+        +   createdAt?: DateTime,
+        +   updatedAt?: DateTime,
+        +   published: Boolean,
+        +   title: String,
+        +   content?: String,
+        +   author?: UserCreateOneWithoutAuthorInput
+        + }
+        }
 
-                Argument data for data is missing.
+        Argument data for data is missing.
 
-                Note: Lines with + are required
-                "
-            `)
+        Note: Lines with + are required
+        "
+      `)
     }
   })
 
@@ -281,26 +281,26 @@ describe('select validation', () => {
       document.validate(ast)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-                "
-                Invalid \`photon.createOnePost()\` invocation:
+        "
+        Invalid \`photon.createOnePost()\` invocation:
 
-                {
-                + data: {
-                +   id?: ID,
-                +   createdAt?: DateTime,
-                +   updatedAt?: DateTime,
-                +   published: Boolean,
-                +   title: String,
-                +   content?: String,
-                +   author?: UserCreateOneWithoutAuthorInput
-                + }
-                }
+        {
+        + data: {
+        +   id?: String,
+        +   createdAt?: DateTime,
+        +   updatedAt?: DateTime,
+        +   published: Boolean,
+        +   title: String,
+        +   content?: String,
+        +   author?: UserCreateOneWithoutAuthorInput
+        + }
+        }
 
-                Argument data for data is missing.
+        Argument data for data is missing.
 
-                Note: Lines with + are required
-                "
-            `)
+        Note: Lines with + are required
+        "
+      `)
     }
   })
 
@@ -335,18 +335,16 @@ describe('select validation', () => {
             author: {
               connect: {
                 id: ''
-                    ~~
               }
             },
         +   published: Boolean,
-        ?   id?: ID,
+        ?   id?: String,
         ?   createdAt?: DateTime,
         ?   updatedAt?: DateTime,
         ?   content?: String
           }
         }
 
-        Argument id: Got invalid value '' on photon.createOnePost. Provided String, expected UUID.
         Argument published for data.published is missing.
 
         Note: Lines with + are required, lines with ? are optional.
@@ -374,29 +372,29 @@ describe('select validation', () => {
       document.validate(ast)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-                "
-                Invalid \`photon.createOnePost()\` invocation:
+        "
+        Invalid \`photon.createOnePost()\` invocation:
 
-                {
-                  data: {
-                    title: 'string',
-                +   published: Boolean,
-                ?   id?: ID,
-                ?   createdAt?: DateTime,
-                ?   updatedAt?: DateTime,
-                ?   content?: String,
-                ?   author?: {
-                ?     create?: UserCreateWithoutPostsInput,
-                ?     connect?: UserWhereUniqueInput
-                ?   }
-                  }
-                }
+        {
+          data: {
+            title: 'string',
+        +   published: Boolean,
+        ?   id?: String,
+        ?   createdAt?: DateTime,
+        ?   updatedAt?: DateTime,
+        ?   content?: String,
+        ?   author?: {
+        ?     create?: UserCreateWithoutPostsInput,
+        ?     connect?: UserWhereUniqueInput
+        ?   }
+          }
+        }
 
-                Argument published for data.published is missing.
+        Argument published for data.published is missing.
 
-                Note: Lines with + are required, lines with ? are optional.
-                "
-            `)
+        Note: Lines with + are required, lines with ? are optional.
+        "
+      `)
     }
   })
 
@@ -554,27 +552,27 @@ describe('select validation', () => {
       document.validate(ast)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-                                "
-                                Invalid \`photon.findOnePost()\` invocation:
+        "
+        Invalid \`photon.findOnePost()\` invocation:
 
-                                {
-                                  select: {
-                                    author: {
-                                      select: {
-                                        id: true
-                                      }
-                                    }
-                                  },
-                                  where: {
-                                ?   id?: ID
-                                  }
-                                }
+        {
+          select: {
+            author: {
+              select: {
+                id: true
+              }
+            }
+          },
+          where: {
+        ?   id?: String
+          }
+        }
 
-                                Argument where of type PostWhereUniqueInput needs at least one argument. Available args are listed in green.
+        Argument where of type PostWhereUniqueInput needs at least one argument. Available args are listed in green.
 
-                                Note: Lines with ? are optional.
-                                "
-                        `)
+        Note: Lines with ? are optional.
+        "
+      `)
     }
   })
 
@@ -604,27 +602,27 @@ describe('select validation', () => {
       document.validate(ast)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-                                "
-                                Invalid \`photon.findOnePost()\` invocation:
+        "
+        Invalid \`photon.findOnePost()\` invocation:
 
-                                {
-                                  select: {
-                                    author: {
-                                      select: {
-                                        id: true
-                                      }
-                                    }
-                                  },
-                                  where: {
-                                ?   id?: ID
-                                  }
-                                }
+        {
+          select: {
+            author: {
+              select: {
+                id: true
+              }
+            }
+          },
+          where: {
+        ?   id?: String
+          }
+        }
 
-                                Argument where of type PostWhereUniqueInput needs at least one argument. Available args are listed in green.
+        Argument where of type PostWhereUniqueInput needs at least one argument. Available args are listed in green.
 
-                                Note: Lines with ? are optional.
-                                "
-                        `)
+        Note: Lines with ? are optional.
+        "
+      `)
     }
   })
 
