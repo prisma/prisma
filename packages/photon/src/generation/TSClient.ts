@@ -163,7 +163,7 @@ class CollectTimestamps {
     return milliseconds;
   }
   public getResults() {
-    return this.records.reduce((acc, record) => {
+    const results = this.records.reduce((acc, record) => {
       const name = record.name.split('-')[1]
       if (acc[name]) {
         acc[name] = this.elapsed(acc[name], record.value)
@@ -172,6 +172,8 @@ class CollectTimestamps {
       }
       return acc
     }, {})
+    results.total = this.elapsed(this.start.value, this.records[this.records.length - 1].value)
+    return results
   }
 }
 `
