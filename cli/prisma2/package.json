@@ -61,7 +61,9 @@
     "tmp": "^0.1.0",
     "ts-jest": "24.1.0",
     "ts-mocha": "6.0.0",
-    "typescript": "3.7.2"
+    "typescript": "3.7.2",
+    "checkpoint-client": "1.0.3",
+    "is-ci": "2.0.0"
   },
   "scripts": {
     "test": "./fixtures/test.sh && ./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
