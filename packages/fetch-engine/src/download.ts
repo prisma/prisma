@@ -51,7 +51,12 @@ const binaryToEnvVar = {
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
-  const downloadDoneFile = path.join(options.binaries['query-engine'], 'download-done')
+  const downloadDoneFile = path.join(
+    options.binaries['query-engine'] ||
+      options.binaries['migration-engine'] ||
+      options.binaries['introspection-engine'],
+    'download-done',
+  )
   const nativeDownloadsDone = fs.existsSync(downloadDoneFile)
 
   if (!options.binaryTargets || (options.binaryTargets.length === 1 && options.binaryTargets[0] === platform)) {
