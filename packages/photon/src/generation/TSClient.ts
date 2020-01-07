@@ -97,7 +97,7 @@ class PhotonFetcher {
     private readonly debug = false,
     private readonly hooks?: Hooks
   ) {}
-  async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string, isList?: boolean, callsite?: string): Promise<T> {
+  async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string, isList?: boolean, callsite?: string, timestamps?: any): Promise<T> {
     const query = String(document)
     debug('Request:')
     debug(query)
@@ -105,11 +105,18 @@ class PhotonFetcher {
       this.hooks.beforeRequest({ query, path, rootField, typeName, document })
     }
     try {
+      timestamps.push({name: "Pre-connect", timestamp: process.hrtime() })
       await this.photon.connect()
+      timestamps.push({name: "Post-connect", timestamp: process.hrtime() })
+      timestamps.push({name: "Pre-Engine", timestamp: process.hrtime() })
       const result = await this.engine.request(query, typeName)
+      timestamps.push({name: "Post-Engine", timestamp: process.hrtime() })
       debug('Response:')
       debug(result)
-      return this.unpack(document, result, path, rootField, isList)
+      timestamps.push({name: "Pre-Unpack", timestamp: process.hrtime() })
+      const unpackResult = this.unpack(document, result, path, rootField, isList)
+      timestamps.push({ name: "Post-Unpack", timestamp: process.hrtime() })
+      return unpackResult
     } catch (e) {
       if (callsite) {
         const { stack } = printStack({
@@ -347,7 +354,6 @@ export class Photon {
         : '[]'
     }
     const inputDatasources = Object.entries(options.datasources || {}).map(([name, url]) => ({ name, url: url! }))
-
     const datasources = mergeBy(predefinedDatasources, inputDatasources, (source: any) => source.name)
 
     const internal = options.__internal || {}
@@ -853,9 +859,14 @@ export class ${name}Client<T> implements Promise<T> {
     private readonly _rootField: string,
     private readonly _clientMethod: string,
     private readonly _args: any,
+    private readonly _timestamps: any,
     private readonly _path: string[],
     private _isList = false
   ) {
+    // Timestamps for performance checks
+    this._timestamps = [{
+      name: "PhotonClient", timestamp: process.hrtime()
+    }]
     // @ts-ignore
     if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
       const error = new Error()
@@ -899,7 +910,7 @@ ${f.name}<T extends ${getFieldArgName(
         isField: true,
         renderPromise: true,
         projection: Projection.select,
-      })}>(this._dmmf, this._fetcher, this._queryType, this._rootField, this._clientMethod, newArgs, path, this._isList) as any
+      })}>(this._dmmf, this._fetcher, this._queryType, this._rootField, this._clientMethod, newArgs, path, this._isList, this._timestamps) as any
 }`
     })
     .join('\n'),
@@ -908,14 +919,18 @@ ${f.name}<T extends ${getFieldArgName(
 
   private get _document() {
     const { _rootField: rootField } = this
+    this._timestamps.push({name: "Pre-makeDocument", timestamp: process.hrtime() })
     const document = makeDocument({
       dmmf: this._dmmf,
       rootField,
       rootTypeName: this._queryType,
       select: this._args
     })
+    this._timestamps.push({name: "Post-makeDocument", timestamp: process.hrtime() })
     try {
+      this._timestamps.push({name: "Pre-document.validate", timestamp: process.hrtime() })
       document.validate(this._args, false, this._clientMethod)
+      this._timestamps.push({name: "Post-document.validate", timestamp: process.hrtime() })
     } catch (e) {
       const x: any = e
       if (x.render) {
@@ -925,7 +940,10 @@ ${f.name}<T extends ${getFieldArgName(
       }
       throw e
     }
-    return transformDocument(document)
+    this._timestamps.push({name: "Pre-transformDocument", timestamp: process.hrtime() })
+    const transformedDocument = transformDocument(document)
+    this._timestamps.push({name: "Post-transformDocument", timestamp: process.hrtime() })
+    return transformedDocument
   }
 
   /**
@@ -939,7 +957,7 @@ ${f.name}<T extends ${getFieldArgName(
     onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
     if (!this._requestPromise){
-      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite)
+      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite, this._timestamps)
     }
     return this._requestPromise!.then(onfulfilled, onrejected)
   }
@@ -953,7 +971,7 @@ ${f.name}<T extends ${getFieldArgName(
     onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null,
   ): Promise<T | TResult> {
     if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite)
+      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite, this._timestamps)
     }
     return this._requestPromise!.catch(onrejected)
   }
@@ -966,7 +984,7 @@ ${f.name}<T extends ${getFieldArgName(
    */
   finally(onfinally?: (() => void) | undefined | null): Promise<T> {
     if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite)
+      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite, this._timestamps)
     }
     return this._requestPromise!.finally(onfinally)
   }
