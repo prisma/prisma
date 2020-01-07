@@ -799,13 +799,13 @@ export function makeDocument({
 export function transformDocument(document: Document): Document {
   function transformWhereArgs(args: Args) {
     return new Args(
-      args.args.flatMap(ar => {
+      flatMap(args.args, ar => {
         if (isArgsArray(ar.value)) {
           // long variable name to prevent shadowing
           const value = ar.value.map(argsInstance => {
             return transformWhereArgs(argsInstance)
           })
-          return new Arg({ ...ar, value })
+          return [new Arg({ ...ar, value })]
         } else if (ar.value instanceof Args) {
           if (ar.schemaArg && !ar.schemaArg.isRelationFilter) {
             return ar.value.args.map(a => {
