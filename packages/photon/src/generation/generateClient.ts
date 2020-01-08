@@ -310,6 +310,9 @@ export declare type unpack = any
 
 export declare var getDMMF: any
 export declare type getDMMF = any
+
+export declare var stripAnsi: any
+export declare type stripAnsi = any
 `
 
 // This is needed because ncc rewrite some paths

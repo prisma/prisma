@@ -51,7 +51,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
     select: any,
     isTopLevelQuery: boolean = false,
     originalMethod?: string,
-    errorFormat?: 'pretty' | 'minimal' | 'colorless'
+    errorFormat?: 'pretty' | 'minimal' | 'colorless',
   ) {
     const invalidChildren = this.children.filter(
       child => child.hasInvalidChild || child.hasInvalidArg,
@@ -208,11 +208,19 @@ ${indent(this.children.map(String).join('\n'), tab)}
           e =>
             e.error.type !== 'missingArg' || e.error.missingType[0].isRequired,
         )
-        .map(e => this.printArgError(e, hasMissingArgsErrors, !callsite)) // if no callsite is provided, just render the minimal error
+        .map(e =>
+          this.printArgError(
+            e,
+            hasMissingArgsErrors,
+            errorFormat === 'minimal',
+          ),
+        ) // if no callsite is provided, just render the minimal error
         .join('\n')}
-${fieldErrors.map(e => this.printFieldError(e, !callsite)).join('\n')}`
+${fieldErrors
+  .map(e => this.printFieldError(e, errorFormat === 'minimal'))
+  .join('\n')}`
 
-      if (process.env.NODE_ENV === 'production' || !callsite) {
+      if (errorFormat === 'minimal') {
         return stripAnsi(errorMessages)
       }
 
