@@ -109,7 +109,7 @@ export async function buildClient({
 
   const options: CompilerOptions = {
     module: ModuleKind.CommonJS,
-    target: ScriptTarget.ES2016,
+    target: ScriptTarget.ES2017,
     lib: ['lib.esnext.d.ts', 'lib.dom.d.ts'],
     declaration: true,
     strict: true,
