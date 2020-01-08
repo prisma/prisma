@@ -93,6 +93,7 @@ async function main(): Promise<number> {
     console.error(result)
     return 1
   }
+  console.log(result)
   // check prisma for updates
   const checkResult = await checkpoint.check({
     product: 'prisma',
