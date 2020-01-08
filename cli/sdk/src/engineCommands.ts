@@ -98,6 +98,7 @@ export async function getDMMF({
         ...process.env,
         PRISMA_DML_PATH: tempDatamodelPath!,
         RUST_BACKTRACE: '1',
+        ...(process.env.NO_COLOR ? {} : { CLICOLOR_FORCE: '1' }),
       },
       maxBuffer: MAX_BUFFER,
     }
