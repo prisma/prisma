@@ -6,6 +6,7 @@
 - [Fields](#fields)
 - [Enums](#enums)
 - [Attributes](#attributes)
+- [Indexes](#indexes)
 - [Functions](#functions)
 - [Scalar types](#scalar-types)
 - [Relations](#relations)
@@ -293,6 +294,7 @@ Here is a list of all available core **field** attributes:
 Here is a list of all available core **block** attributes:
 
 - `@@map(_ name: String)`: Defines the raw table name the field is mapped to.
+- `@@index(_ fields: Field[])`: Defines an index on the specifief fields/columns.
 
 ### Connector attributes
 
@@ -304,6 +306,76 @@ Here is where you can find the documentation of connector attributes per data so
 - [PostgreSQL](./core/connectors/postgresql.md)
 - [SQLite](./core/connectors/sqlite.md)
 - [MongoDB](./core/connectors/mongo.md)
+
+## Indexes
+
+You can define indexes on one or multiple fields of your models via the `@@index([...])` attribute on a model.
+
+### Examples
+
+Assume you want to add an index for the `title` field of the `Post` model from the example [above](#example). You can define the index like so:
+
+```prisma
+model Post {
+  id         Int        @id
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  author     User
+  title      String
+  published  Boolean    @default(false)
+  categories Category[]
+
+  @@index([title])
+}
+```
+
+This will translate into the following SQL statement for the index:
+
+```sql
+-- PostgreSQL
+CREATE INDEX "Post.title" ON public."Post"(title text_ops);
+
+-- MySQL
+CREATE  INDEX `Post.title` ON `mydb`.`Post`(`title`)
+```
+
+To define an index on multiple fields (i.e. a multi-column index), you can add more fields to the array passed to the `@@index` attribute, e.g.:
+
+```prisma
+model Post {
+  id         Int        @id
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  author     User
+  title      String
+  published  Boolean    @default(false)
+  categories Category[]
+
+  @@index([title, content])
+}
+```
+
+This will translate into the following SQL statement for the index:
+
+```sql
+-- PostgreSQL
+CREATE INDEX "Post.title_content" ON public."Post"(title text_ops,content text_ops);
+
+-- MySQL
+CREATE  INDEX `Post.title_content` ON `mydb`.`Post`(`title`,`content`)
+```
+
+### Limitations
+
+It is currently not possible to provide more configuration options to the index:
+
+- PostgreSQL
+  - Define index fields as expressions (e.g. `CREATE INDEX title ON public."Post"((lower(title)) text_ops);`)
+  - Specify index methods with `USING`; PostgreSQL supports these  index methods: B-tree, hash, GiST, and GIN, Prisma uses B-Tree by default
+  - Define partial indexes with `WHERE`
+  - Create indexes concurrently with `CONCURRENTLY`
+- MySQL
+  - Specify index methods with `USING`; PostgreSQL supports these  index methods: B-tree, hash, GiST, and GIN, Prisma uses B-Tree by default
 
 ## Functions
 
