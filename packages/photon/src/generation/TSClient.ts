@@ -41,7 +41,8 @@ const commonCode = (runtimePath: string, version?: string) => `import {
   chalk,
   printStack,
   mergeBy,
-  unpack
+  unpack,
+  stripAnsi
 } from '${runtimePath}'
 
 /**
@@ -96,7 +97,8 @@ class PhotonFetcher {
     private readonly photon: Photon,
     private readonly engine: Engine,
     private readonly debug = false,
-    private readonly hooks?: Hooks
+    private readonly hooks?: Hooks,
+    private readonly errorFormat?: ErrorFormat
   ) {}
   async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string, isList?: boolean, callsite?: string): Promise<T> {
     const query = String(document)
@@ -120,17 +122,27 @@ class PhotonFetcher {
         })
         const message = stack + '\\n\\n' + e.message
         if (e.code) {
-          throw new PhotonRequestError(message, e.code, e.meta)
+          throw new PhotonRequestError(this.sanitizeMessage(message), e.code, e.meta)
         }
         throw new Error(message)
       } else {
+        if (e.code) {
+          throw new PhotonRequestError(this.sanitizeMessage(e.message), e.code, e.meta)
+        }
         if (e.isPanic) {
           throw e
         } else {
-          throw new Error(\`Error in Photon\${path}: \\n\` + e.stack)
+          throw new Error(this.sanitizeMessage(\`Error in Photon\${path}: \\n\` + e.stack))
         }
       }
     }
+  }
+  sanitizeMessage(message: string): string {
+    if (this.errorFormat && this.errorFormat !== 'pretty') {
+      return stripAnsi(message)
+    }
+
+    return message
   }
   protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean) {
     const getPath: string[] = []
@@ -377,8 +389,18 @@ export class Photon {
     })
 
     this.dmmf = new DMMFClass(dmmf)
-    this.fetcher = new PhotonFetcher(this, this.engine, false, internal.hooks)
-    this.errorFormat = options.errorFormat || (process.env.NODE_ENV === 'production' ? 'minimal' : 'pretty')
+
+    if (options.errorFormat) {
+      this.errorFormat = options.errorFormat
+    } else if (process.env.NODE_ENV === 'production') {
+      this.errorFormat = 'minimal'
+    } else if (process.env.NO_COLOR) {
+      this.errorFormat = 'colorless'
+    } else {
+      this.errorFormat = 'pretty'
+    }
+
+    this.fetcher = new PhotonFetcher(this, this.engine, false, internal.hooks, this.errorFormat)
   }
   private async connectEngine(publicCall?: boolean) {
     return this.engine.start()

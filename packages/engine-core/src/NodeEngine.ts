@@ -329,7 +329,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         })
 
         this.child.on('exit', code => {
-          // const message = this.stderrLogs ? this.stderrLogs : this.stdoutLogs
           if (code === 126) {
             this.lastError = {
               timestamp: new Date(),
