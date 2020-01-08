@@ -60,6 +60,11 @@ const aliases: ProviderAliases = {
   },
 }
 
+// because chalk ...
+if (process.env.NO_COLOR) {
+  chalk.level = 0
+}
+
 /**
  * Main function
  */
