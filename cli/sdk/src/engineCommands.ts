@@ -122,6 +122,7 @@ export async function getDMMF({
 
     return JSON.parse(result.stdout)
   } catch (e) {
+    debug('getDMMF failed', e)
     // If this unlikely event happens, try it at least once more
     if (
       e.message.includes('Command failed with exit code 26 (ETXTBSY)') &&
