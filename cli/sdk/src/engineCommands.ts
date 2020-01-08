@@ -138,8 +138,17 @@ export async function getDMMF({
         retry: retry - 1,
       })
     }
-    if (e.stderr) {
-      throw new Error(chalk.redBright.bold('Schema parsing\n') + e.stderr)
+    const output = e.stderr || e.stdout
+    if (output) {
+      let json
+      try {
+        json = JSON.parse(output)
+      } catch (e) {
+        //
+      }
+      const message = (json && json.message) || output
+
+      throw new Error(chalk.redBright.bold('Schema parsing\n') + message)
     }
     if (e.message.includes('in JSON at position')) {
       throw new Error(
