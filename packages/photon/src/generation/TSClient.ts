@@ -124,7 +124,7 @@ class PhotonFetcher {
         if (e.code) {
           throw new PhotonRequestError(this.sanitizeMessage(message), e.code, e.meta)
         }
-        throw new Error(message)
+        throw new Error(this.sanitizeMessage(message))
       } else {
         if (e.code) {
           throw new PhotonRequestError(this.sanitizeMessage(e.message), e.code, e.meta)
@@ -132,7 +132,7 @@ class PhotonFetcher {
         if (e.isPanic) {
           throw e
         } else {
-          throw new Error(this.sanitizeMessage(\`Error in Photon\${path}: \\n\` + e.stack))
+          throw new Error(this.sanitizeMessage(e.message))
         }
       }
     }
@@ -374,6 +374,16 @@ export class Photon {
     const internal = options.__internal || {}
     const engineConfig = internal.engine || {}
 
+    if (options.errorFormat) {
+      this.errorFormat = options.errorFormat
+    } else if (process.env.NODE_ENV === 'production') {
+      this.errorFormat = 'minimal'
+    } else if (process.env.NO_COLOR) {
+      this.errorFormat = 'colorless'
+    } else {
+      this.errorFormat = 'pretty'
+    }
+
     this.engine = new Engine({
       cwd: engineConfig.cwd || ${getRelativePathResolveStatement(
         this.outputDir,
@@ -386,19 +396,10 @@ export class Photon {
       generator: ${
         this.generator ? JSON.stringify(this.generator) : 'undefined'
       },
+      showColors: this.errorFormat === 'pretty'
     })
 
     this.dmmf = new DMMFClass(dmmf)
-
-    if (options.errorFormat) {
-      this.errorFormat = options.errorFormat
-    } else if (process.env.NODE_ENV === 'production') {
-      this.errorFormat = 'minimal'
-    } else if (process.env.NO_COLOR) {
-      this.errorFormat = 'colorless'
-    } else {
-      this.errorFormat = 'pretty'
-    }
 
     this.fetcher = new PhotonFetcher(this, this.engine, false, internal.hooks, this.errorFormat)
   }
