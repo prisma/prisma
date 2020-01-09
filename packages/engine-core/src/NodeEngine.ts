@@ -12,7 +12,7 @@ import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixPlatforms, plusX } from './util'
 import { promisify, inspect } from 'util'
 import EventEmitter from 'events'
-import { convertLog, Log, RustLog } from './log'
+import { convertLog, Log, RustLog, RustError } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
 
@@ -23,7 +23,7 @@ const keepaliveAgent = new HttpAgent({
   maxFreeSockets: 10,
   timeout: 60000, // active socket keepalive for 60 seconds
   freeSocketTimeout: 30000, // free socket keepalive for 30 seconds
-});
+})
 
 export interface DatasourceOverwrite {
   name: string
@@ -38,6 +38,7 @@ export interface EngineConfig {
   fetcher?: (query: string) => Promise<{ data?: any; error?: any }>
   generator?: GeneratorConfig
   datasources?: DatasourceOverwrite[]
+  showColors?: boolean
 }
 
 /**
@@ -56,6 +57,7 @@ const knownPlatforms: Platform[] = [
 
 export class NodeEngine extends Engine {
   private logEmitter: EventEmitter
+  private showColors: boolean
   port?: number
   debug: boolean
   child?: ChildProcessWithoutNullStreams
@@ -80,10 +82,11 @@ export class NodeEngine extends Engine {
   generator?: GeneratorConfig
   incorrectlyPinnedPlatform?: string
   datasources?: DatasourceOverwrite[]
-  lastError?: RustLog
+  lastErrorLog?: RustLog
+  lastError?: RustError
   startPromise?: Promise<any>
 
-  constructor({ cwd, datamodelPath, prismaPath, generator, datasources, ...args }: EngineConfig) {
+  constructor({ cwd, datamodelPath, prismaPath, generator, datasources, showColors, ...args }: EngineConfig) {
     super()
     this.cwd = this.resolveCwd(cwd)
     this.debug = args.debug || false
@@ -92,13 +95,14 @@ export class NodeEngine extends Engine {
     this.generator = generator
     this.datasources = datasources
     this.logEmitter = new EventEmitter()
+    this.showColors = showColors || false
 
     this.logEmitter.on('log', (log: RustLog) => {
       if (this.debug) {
         debugLib('engine:log')(log)
       }
       if (log.level === 'ERROR') {
-        this.lastError = log
+        this.lastErrorLog = log
         if (log.fields.message === 'PANIC') {
           this.handlePanic(log)
         }
@@ -294,6 +298,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           RUST_BACKTRACE: '1',
           RUST_LOG: 'info',
           LOG_QUERIES: 'true',
+          ...(process.env.NO_COLOR || !this.showColors ? {} : { CLICOLOR_FORCE: '1' }),
         }
 
         if (this.datasources) {
@@ -317,8 +322,14 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.child.stderr.on('data', msg => {
           const data = String(msg)
           debug('stderr', data)
-          if (data.includes('\u001b[1;94m-->\u001b[0m')) {
-            this.stderrLogs += data
+          try {
+            const json = JSON.parse(data)
+            if (typeof json.is_panic !== 'undefined') {
+              debug(json)
+              this.lastError = json
+            }
+          } catch (e) {
+            // debug(e, data)
           }
         })
 
@@ -326,7 +337,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           const data = String(msg)
           try {
             const json = JSON.parse(data)
-            // debug(json)
+            if (typeof json.is_panic !== 'undefined') {
+              debug(json)
+              this.lastError = json
+            }
             const log = convertLog(json)
             this.logEmitter.emit('log', log)
           } catch (e) {
@@ -335,8 +349,12 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         })
 
         this.child.on('exit', code => {
+          if (this.lastErrorLog) {
+            this.lastErrorLog.target = 'exit'
+            return
+          }
           if (code === 126) {
-            this.lastError = {
+            this.lastErrorLog = {
               timestamp: new Date(),
               target: 'exit',
               level: 'ERROR',
@@ -346,7 +364,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
               },
             }
           } else {
-            this.lastError = {
+            this.lastErrorLog = {
               target: 'exit',
               timestamp: new Date(),
               level: 'ERROR',
@@ -363,6 +381,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
         if (this.lastError) {
           return reject(new PhotonError(this.lastError))
+        }
+
+        if (this.lastErrorLog) {
+          return reject(new PhotonError(this.lastErrorLog))
         }
 
         try {
@@ -391,6 +413,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
    */
   async stop() {
     await this.start()
+    keepaliveAgent.destroy()
     if (this.currentRequestPromise) {
       try {
         await this.currentRequestPromise
@@ -451,6 +474,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       if (this.lastError) {
         throw new PhotonError(this.lastError)
       }
+      if (this.lastErrorLog) {
+        throw new PhotonError(this.lastErrorLog)
+      }
       try {
         await got(`http://localhost:${this.port}/status`, {
           timeout: 5000, // not official but node-fetch supports it
@@ -488,7 +514,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         'Content-Type': 'application/json',
       },
       body: { query, variables: {} },
-      agent: keepaliveAgent
+      agent: keepaliveAgent,
     })
 
     return this.currentRequestPromise
@@ -507,9 +533,15 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         if (this.currentRequestPromise.isCanceled && this.lastError) {
           throw new PhotonError(this.lastError)
         }
+        if (this.currentRequestPromise.isCanceled && this.lastErrorLog) {
+          throw new PhotonError(this.lastErrorLog)
+        }
         if ((error.code && error.code === 'ECONNRESET') || error.code === 'ECONNREFUSED') {
           if (this.lastError) {
             throw new PhotonError(this.lastError)
+          }
+          if (this.lastErrorLog) {
+            throw new PhotonError(this.lastErrorLog)
           }
           const logs = this.stderrLogs || this.stdoutLogs
           throw new Error(logs)
