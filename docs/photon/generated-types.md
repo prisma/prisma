@@ -74,3 +74,8 @@ type UserPersonalData = UserGetSelectPayload<{
   name: true;
 }>
 ```
+
+The main benefits of the latter approach are:
+
+- Cleaner approach as it leverages Photon.js' generated types
+- Reduced maintenance burden and improved type-safety when the schema changes
