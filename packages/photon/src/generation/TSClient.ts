@@ -8,6 +8,7 @@ import { InternalDatasource } from '../runtime/utils/printDatasources'
 import { DatasourceOverwrite } from './extractSqliteSources'
 import { serializeDatasources } from './serializeDatasources'
 import {
+  flatMap,
   getDefaultName,
   getFieldArgName,
   getFieldTypeName,
@@ -19,12 +20,11 @@ import {
   getSelectName,
   getSelectReturnType,
   getType,
-  indentAllButFirstLine,
   // getExtractName,
+  indentAllButFirstLine,
   isQueryAction,
   Projection,
   renderInitialClientArgs,
-  flatMap,
 } from './utils'
 
 const tab = 2
@@ -100,24 +100,31 @@ class PhotonFetcher {
     private readonly hooks?: Hooks,
     private readonly errorFormat?: ErrorFormat
   ) {}
-  async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string, isList?: boolean, callsite?: string): Promise<T> {
+  async request<T>(document: any, dataPath: string[] = [], rootField?: string, typeName?: string, isList?: boolean, callsite?: string, collectTimestamps?: any): Promise<T> {
     const query = String(document)
     debug('Request:')
     debug(query)
     if (this.hooks && this.hooks.beforeRequest) {
-      this.hooks.beforeRequest({ query, path, rootField, typeName, document })
+      this.hooks.beforeRequest({ query, path: dataPath, rootField, typeName, document })
     }
     try {
+      collectTimestamps && collectTimestamps.record("Pre-connect")
       await this.photon.connect()
+      collectTimestamps && collectTimestamps.record("Post-connect")
+      collectTimestamps && collectTimestamps.record("Pre-engine")
       const result = await this.engine.request(query, typeName)
+      collectTimestamps && collectTimestamps.record("Post-engine")
       debug('Response:')
       debug(result)
-      return this.unpack(document, result, path, rootField, isList)
+      collectTimestamps && collectTimestamps.record("Pre-unpack")
+      const unpackResult = this.unpack(document, result, dataPath, rootField, isList)
+      collectTimestamps && collectTimestamps.record("Post-unpack")
+      return unpackResult
     } catch (e) {
       if (callsite) {
         const { stack } = printStack({
           callsite,
-          originalMethod: path.join('.'),
+          originalMethod: dataPath.join('.'),
           onUs: e.isPanic
         })
         const message = stack + '\\n\\n' + e.message
@@ -150,7 +157,36 @@ class PhotonFetcher {
       getPath.push(rootField)
     }
     getPath.push(...path.filter(p => p !== 'select' && p !== 'include'))
-    return unpack({ document, path: getPath, data })
+    return unpack({ document, data, path: getPath })
+  }
+}
+class CollectTimestamps {
+  public readonly records: Array<{ name: string, value: [number, number]}> = []
+  public start: { name: string, value: [number, number]} | undefined = undefined
+  constructor(startName: string) {
+    this.start = { name: startName, value: process.hrtime() }
+  }
+  public record(name: string) {
+    this.records.push({ name, value: process.hrtime() })
+  }
+  public elapsed(start: [number, number], end: [number, number]) {
+    const diff = [ end[0] - start[0], end[1] - start[1] ];
+    const nanoseconds = (diff[0] * 1e9) + diff[1];
+    const milliseconds = nanoseconds / 1e6;
+    return milliseconds;
+  }
+  public getResults() {
+    const results = this.records.reduce((acc, record) => {
+      const name = record.name.split('-')[1]
+      if (acc[name]) {
+        acc[name] = this.elapsed(acc[name], record.value)
+      } else {
+        acc[name] = record.value
+      }
+      return acc
+    }, {})
+    results.total = this.elapsed(this.start.value, this.records[this.records.length - 1].value)
+    return results
   }
 }
 `
@@ -300,7 +336,7 @@ class PhotonClientClass {
     return `
 ${new Datasources(this.internalDatasources)}
 
-export type LogLevel = 'INFO' | 'WARN' | 'QUERY' 
+export type LogLevel = 'INFO' | 'WARN' | 'QUERY'
 
 export type LogOption = LogLevel | {
   level: LogLevel
@@ -314,7 +350,7 @@ export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export interface PhotonOptions {
   datasources?: Datasources
-  
+
   /**
    * @default "pretty"
    */
@@ -368,7 +404,6 @@ export class Photon {
         : '[]'
     }
     const inputDatasources = Object.entries(options.datasources || {}).map(([name, url]) => ({ name, url: url! }))
-
     const datasources = mergeBy(predefinedDatasources, inputDatasources, (source: any) => source.name)
 
     const internal = options.__internal || {}
@@ -427,7 +462,7 @@ ${indent(
     .map(
       m => `
 get ${m.plural}(): ${m.model}Delegate {
-  return ${m.model}Delegate(this.dmmf, this.fetcher, this.errorFormat)
+  return ${m.model}Delegate(this.dmmf, this.fetcher, this.errorFormat, this.collectTimestamps)
 }`,
     )
     .join('\n'),
@@ -810,7 +845,7 @@ ${indent(
 )}
   count(): Promise<number>
 }
-function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher, errorFormat: ErrorFormat): ${name}Delegate {
+function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher, errorFormat: ErrorFormat, collectTimestamps?: CollectTimestamps): ${name}Delegate {
   const ${name} = <T extends ${listConstraint}>(args: Subset<T, ${getModelArgName(
       name,
       undefined,
@@ -884,10 +919,14 @@ export class ${name}Client<T> implements Promise<T> {
     private readonly _rootField: string,
     private readonly _clientMethod: string,
     private readonly _args: any,
-    private readonly _path: string[],
+    private readonly _dataPath: string[],
     private readonly _errorFormat: ErrorFormat,
+    private readonly _collectTimestamps: CollectTimestamps,
     private _isList = false
   ) {
+    // Timestamps for performance checks
+    this._collectTimestamps = new CollectTimestamps("PhotonClient")
+    // @ts-ignore
     if (process.env.NODE_ENV !== 'production' && this._errorFormat !== 'minimal') {
       const error = new Error()
       if (error && error.stack) {
@@ -917,9 +956,9 @@ ${f.name}<T extends ${getFieldArgName(
         fieldName: f.name,
         projection: Projection.select,
       })} {
-  const prefix = this._path.includes('select') ? 'select' : this._path.includes('include') ? 'include' : 'select'
-  const path = [...this._path, prefix, '${f.name}']
-  const newArgs = deepSet(this._args, path, args || true)
+  const prefix = this._dataPath.includes('select') ? 'select' : this._dataPath.includes('include') ? 'include' : 'select'
+  const dataPath = [...this._dataPath, prefix, '${f.name}']
+  const newArgs = deepSet(this._args, dataPath, args || true)
   this._isList = ${f.outputType.isList}
   return new ${getFieldTypeName(f)}Client<${getSelectReturnType({
         name: fieldTypeName,
@@ -930,7 +969,7 @@ ${f.name}<T extends ${getFieldArgName(
         isField: true,
         renderPromise: true,
         projection: Projection.select,
-      })}>(this._dmmf, this._fetcher, this._queryType, this._rootField, this._clientMethod, newArgs, path, this._errorFormat, this._isList) as any
+      })}>(this._dmmf, this._fetcher, this._queryType, this._rootField, this._clientMethod, newArgs, dataPath, this._errorFormat, this._collectTimestamps, this._isList) as any
 }`
     })
     .join('\n'),
@@ -939,14 +978,18 @@ ${f.name}<T extends ${getFieldArgName(
 
   private get _document() {
     const { _rootField: rootField } = this
+    this._collectTimestamps && this._collectTimestamps.record("Pre-makeDocument")
     const document = makeDocument({
       dmmf: this._dmmf,
       rootField,
       rootTypeName: this._queryType,
       select: this._args
     })
+    this._collectTimestamps && this._collectTimestamps.record("Post-makeDocument")
     try {
+      this._collectTimestamps && this._collectTimestamps.record("Pre-document.validate")
       document.validate(this._args, false, this._clientMethod, this._errorFormat)
+      this._collectTimestamps && this._collectTimestamps.record("Post-document.validate")
     } catch (e) {
       const x: any = e
       if (this._errorFormat !== 'minimal' && x.render) {
@@ -956,7 +999,10 @@ ${f.name}<T extends ${getFieldArgName(
       }
       throw e
     }
-    return transformDocument(document)
+    this._collectTimestamps && this._collectTimestamps.record("Pre-transformDocument")
+    const transformedDocument = transformDocument(document)
+    this._collectTimestamps && this._collectTimestamps.record("Post-transformDocument")
+    return transformedDocument
   }
 
   /**
@@ -970,7 +1016,7 @@ ${f.name}<T extends ${getFieldArgName(
     onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
     if (!this._requestPromise){
-      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite)
+      this._requestPromise = this._fetcher.request<T>(this._document, this._dataPath, this._rootField, '${name}', this._isList, this._callsite, this._collectTimestamps)
     }
     return this._requestPromise!.then(onfulfilled, onrejected)
   }
@@ -984,7 +1030,7 @@ ${f.name}<T extends ${getFieldArgName(
     onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null,
   ): Promise<T | TResult> {
     if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite)
+      this._requestPromise = this._fetcher.request<T>(this._document, this._dataPath, this._rootField, '${name}', this._isList, this._callsite, this._collectTimestamps)
     }
     return this._requestPromise!.catch(onrejected)
   }
@@ -997,7 +1043,7 @@ ${f.name}<T extends ${getFieldArgName(
    */
   finally(onfinally?: (() => void) | undefined | null): Promise<T> {
     if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request<T>(this._document, this._path, this._rootField, '${name}', this._isList, this._callsite)
+      this._requestPromise = this._fetcher.request<T>(this._document, this._dataPath, this._rootField, '${name}', this._isList, this._callsite, this._collectTimestamps)
     }
     return this._requestPromise!.finally(onfinally)
   }
@@ -1026,7 +1072,7 @@ class ${name}Client<T extends ${name}Args, U = ${getPayloadName(
       name,
       Projection.select,
     )}<T>> implements Promise<U> {
-  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PhotonFetcher, private readonly args: ${name}Args, private readonly path: []) {}
+  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PhotonFetcher, private readonly args: ${name}Args, private readonly _dataPath: []) {}
 
   readonly [Symbol.toStringTag]: 'Promise'
 
@@ -1054,7 +1100,7 @@ class ${name}Client<T extends ${name}Args, U = ${getPayloadName(
     onfulfilled?: ((value: U) => TResult1 | Promise<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
-    return this.fetcher.request<U>(this.document, this.path, undefined, '${name}').then(onfulfilled, onrejected)
+    return this.fetcher.request<U>(this.document, this._dataPath, undefined, '${name}').then(onfulfilled, onrejected)
   }
 
   /**
@@ -1065,7 +1111,7 @@ class ${name}Client<T extends ${name}Args, U = ${getPayloadName(
   catch<TResult = never>(
     onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null,
   ): Promise<U | TResult> {
-    return this.fetcher.request<U>(this.document, this.path, undefined, '${name}').catch(onrejected)
+    return this.fetcher.request<U>(this.document, this._dataPath, undefined, '${name}').catch(onrejected)
   }
 }
     `
