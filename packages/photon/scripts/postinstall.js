@@ -5,15 +5,19 @@ const c = require('./colors')
 
 async function main() {
   const localPath = getLocalPackagePath()
-  if (localPath) {
-    await run('node', [localPath, 'generate'])
-    return
-  }
+  try {
+    if (localPath) {
+      await run('node', [localPath, 'generate'])
+      return
+    }
 
-  const installedGlobally = await isInstalledGlobally()
-  if (installedGlobally) {
-    await run('prisma2', ['generate'])
-    return
+    const installedGlobally = await isInstalledGlobally()
+    if (installedGlobally) {
+      await run('prisma2', ['generate'])
+      return
+    }
+  } catch (e) {
+    console.error(e)
   }
   throw new Error(
     `In order to use "@prisma/photon", please install prisma2. You can install it with "npm add -D prisma2".`,
