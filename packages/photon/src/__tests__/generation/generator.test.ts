@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { omit } from '../../omit'
 
-jest.setTimeout(10000)
+jest.setTimeout(30000)
 
 describe('generator', () => {
   test('minimal', async () => {
