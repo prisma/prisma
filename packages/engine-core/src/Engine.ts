@@ -1,4 +1,4 @@
-import { RustLog, PanicLogFields } from './log'
+import { RustLog, PanicLogFields, RustError, isRustError } from './log'
 import chalk from 'chalk'
 import camelCase from 'camelcase'
 
@@ -6,14 +6,20 @@ import camelCase from 'camelcase'
  * A PhotonError is mostly a non-recoverable error like a panic
  */
 export class PhotonError extends Error {
-  constructor(log: RustLog) {
-    const isPanic = log.fields.message === 'PANIC'
-    const message = isPanic ? serializePanic(log) : serializeError(log)
+  constructor(log: RustLog | RustError) {
+    let isPanic = false
+    let message
+    if (isRustError(log)) {
+      isPanic = log.is_panic
+      message = log.message
+      if (isPanic) {
+        message += '\n' + log.backtrace
+      }
+    } else {
+      isPanic = log.fields.message === 'PANIC'
+      message = isPanic ? serializePanic(log) : serializeError(log)
+    }
     super(message)
-    Object.defineProperty(this, 'log', {
-      enumerable: false,
-      value: log,
-    })
     Object.defineProperty(this, 'isPanic', {
       enumerable: false,
       value: isPanic,
@@ -43,15 +49,11 @@ export class PhotonQueryError extends Error {
     this.code = code
     if (error.user_facing_error.meta) {
       this.meta = mapKeys(error.user_facing_error.meta, key => camelCase(key))
-
     }
   }
 }
 
-function mapKeys<T extends object>(
-  obj: T,
-  mapper: (key: keyof T) => string,
-): any {
+function mapKeys<T extends object>(obj: T, mapper: (key: keyof T) => string): any {
   return Object.entries(obj).reduce((acc, [key, value]) => {
     acc[mapper(key as keyof T)] = value
     return acc
@@ -59,11 +61,13 @@ function mapKeys<T extends object>(
 }
 
 function serializeError(log) {
-  let { application, level, message, ...rest } = log
-  if (application === 'datamodel') {
+  let { target, level, ...rest } = log
+  const message = log.message || (log.fields && log.fields.message)
+
+  if (target === 'datamodel') {
     return chalk.red.bold('Schema ') + message
   }
-  if (application === 'exit') {
+  if (target === 'exit') {
     return chalk.red.bold('Engine exited ') + message
   }
   return chalk.red(log.message + ' ' + serializeObject(rest))
@@ -79,7 +83,6 @@ Please create an issue in the ${chalk.bold('photonjs')} repo with
 your \`schema.prisma\` and the Photon method you tried to use 🙏:
 ${chalk.underline('https://github.com/prisma/photonjs/issues/new')}\n`
 }
-
 
 function serializeObject(obj) {
   return Object.entries(obj)
