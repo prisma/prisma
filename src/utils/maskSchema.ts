@@ -5,7 +5,7 @@ export function maskSchema(schema: string): string {
     .map(line => {
       const match = regex.exec(line)
       if (match) {
-        return `${' '.repeat(match.index)}url = "***"`
+        return `${line.slice(0, match.index)}url = "***"`
       }
       return line
     })
