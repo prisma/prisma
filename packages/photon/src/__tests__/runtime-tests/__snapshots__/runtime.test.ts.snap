@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`runtime works can run blog-env example 1`] = `undefined`;
+
+exports[`runtime works can run blog-env example 2`] = `
+[Error: 
+error: Environment variable not found: SQLITE_URL.
+  -->  schema.prisma:3
+   | 
+ 2 |   provider = "sqlite"
+ 3 |   url      = env("SQLITE_URL")
+   | 
+]
+`;
