@@ -32,6 +32,12 @@ export declare type User = {
 };
 ```
 
+### Problem: Using variations of the generated model type
+
+In some scenarios, you may need a variation of the generated `User` type. For example, when you have a function that expects an instance of the `User` model that carries the `posts` relation. Or when you need a type to pass only the `User` model's `email` and `name` fields around in your application code.
+
+### Solution: Customize the generated model type using Photon.js' helper types
+
 The `User` type only contains the model's [scalar](../data-modeling.md#scalar-types) fields, but doesn't account for any relations. That's because [relations are not included by default](./api.md#the-default-selection-set) in Photon.js' API calls.
 
 However, sometimes it's useful to have a type available that **includes a relation** (i.e. a type that you'd get from an API call that uses [`include`](./api.md#include-additionally-via-include)). Similarly, another useful scenario could be to have a type available that **includes only a subset of the model's scalar fields** (i.e. a type that you'd get from an API call that uses [`select`](./api.md#select-exclusively-via-select). 
