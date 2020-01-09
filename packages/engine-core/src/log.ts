@@ -20,6 +20,16 @@ export interface RustLog {
   fields: LogFields
 }
 
+export interface RustError {
+  is_panic: boolean
+  message: string
+  backtrace: string
+}
+
+export function isRustError(e: any): e is RustError {
+  return typeof e.is_panic !== 'undefined' && e.message && e.backtrace
+}
+
 export type LogFields = PanicLogFields | InfoLogFields | { [key: string]: any }
 
 export interface PanicLogFields {

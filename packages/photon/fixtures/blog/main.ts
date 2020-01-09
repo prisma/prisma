@@ -1,14 +1,16 @@
 import { Photon } from '@prisma/photon'
 
 async function main() {
-  const photon = new Photon()
+  const photon = new Photon({
+    errorFormat: 'pretty',
+  })
 
   await photon.users.create({
     data: {
-      email: 'a@a.de',
-      name2: 'Bobby Brown',
+      email: 'a@a.de2',
+      name: 'Bobby Brown',
     },
-  } as any)
+  })
 
   photon.disconnect()
 }
