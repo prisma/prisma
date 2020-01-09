@@ -1,6 +1,6 @@
 # Working with Photon.js' generated types
 
-The generated code for Photon.js contains a number of helpful types that you can use to make your application more type-safe. This page describes a patterns for leveraging some of the generated types.
+The generated code for Photon.js contains a number of helpful types that you can use to make your application more type-safe. This page describes patterns for leveraging some of the generated types.
 
 ## Operating against partial structures of your model types
 
@@ -32,9 +32,9 @@ export declare type User = {
 };
 ```
 
-The `User` type only contains the model's [scalar]() fields, but doesn't account for any relations. That's because [relations are not included by default]() in Photon.js' API calls. 
+The `User` type only contains the model's [scalar](../data-modeling.md#scalar-types) fields, but doesn't account for any relations. That's because [relations are not included by default](./api.md#the-default-selection-set) in Photon.js' API calls.
 
-However, sometimes it's useful to have a type available that **includes a relation** (i.e. a type that you'd get from an API call that uses [`include`]()). Similarly, another useful scenario could be to have a type available that **includes only a subset of the model's scalar fields** (i.e. a type that you'd get from an API call that uses [`select`]()). 
+However, sometimes it's useful to have a type available that **includes a relation** (i.e. a type that you'd get from an API call that uses [`include`](./api.md#include-additionally-via-include)). Similarly, another useful scenario could be to have a type available that **includes only a subset of the model's scalar fields** (i.e. a type that you'd get from an API call that uses [`select`](./api.md#select-exclusively-via-select). 
 
 One way of achieving this would be to define these types manually in your application code:
 
