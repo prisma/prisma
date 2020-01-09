@@ -130,7 +130,8 @@ export function renderInitialClientArgs(
   '${mapping.plural}.${actionName}',
   args,
   [],
-  errorFormat\n`
+  errorFormat,
+  collectTimestamps\n`
 }
 
 export function getFieldTypeName(field: DMMF.SchemaField) {
