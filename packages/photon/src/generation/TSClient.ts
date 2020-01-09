@@ -8,6 +8,7 @@ import { InternalDatasource } from '../runtime/utils/printDatasources'
 import { DatasourceOverwrite } from './extractSqliteSources'
 import { serializeDatasources } from './serializeDatasources'
 import {
+  flatMap,
   getDefaultName,
   getFieldArgName,
   getFieldTypeName,
@@ -19,12 +20,11 @@ import {
   getSelectName,
   getSelectReturnType,
   getType,
-  indentAllButFirstLine,
   // getExtractName,
+  indentAllButFirstLine,
   isQueryAction,
   Projection,
   renderInitialClientArgs,
-  flatMap,
 } from './utils'
 
 const tab = 2
@@ -336,7 +336,7 @@ class PhotonClientClass {
     return `
 ${new Datasources(this.internalDatasources)}
 
-export type LogLevel = 'INFO' | 'WARN' | 'QUERY' 
+export type LogLevel = 'INFO' | 'WARN' | 'QUERY'
 
 export type LogOption = LogLevel | {
   level: LogLevel
@@ -350,7 +350,7 @@ export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export interface PhotonOptions {
   datasources?: Datasources
-  
+
   /**
    * @default "pretty"
    */
