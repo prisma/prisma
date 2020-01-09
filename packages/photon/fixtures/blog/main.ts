@@ -7,7 +7,7 @@ async function main() {
 
   await photon.users.create({
     data: {
-      email: 'a@a.de',
+      email: 'a@a.de2',
       name: 'Bobby Brown',
     },
   })

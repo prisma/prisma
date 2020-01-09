@@ -413,6 +413,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
    */
   async stop() {
     await this.start()
+    keepaliveAgent.destroy()
     if (this.currentRequestPromise) {
       try {
         await this.currentRequestPromise
