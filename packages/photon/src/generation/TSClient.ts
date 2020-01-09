@@ -373,6 +373,7 @@ export interface PhotonOptions {
       cwd?: string
       binaryPath?: string
     }
+    measurePerformance?: boolean
   }
 }
 
@@ -419,6 +420,10 @@ export class Photon {
       this.errorFormat = 'pretty'
     }
 
+    if (internal.measurePerformance) {
+      this.measurePerformance = true
+    }
+
     this.engine = new Engine({
       cwd: engineConfig.cwd || ${getRelativePathResolveStatement(
         this.outputDir,
@@ -462,7 +467,7 @@ ${indent(
     .map(
       m => `
 get ${m.plural}(): ${m.model}Delegate {
-  return ${m.model}Delegate(this.dmmf, this.fetcher, this.errorFormat, this.collectTimestamps)
+  return ${m.model}Delegate(this.dmmf, this.fetcher, this.errorFormat, this.measurePerformance)
 }`,
     )
     .join('\n'),
@@ -845,7 +850,7 @@ ${indent(
 )}
   count(): Promise<number>
 }
-function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher, errorFormat: ErrorFormat, collectTimestamps?: CollectTimestamps): ${name}Delegate {
+function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher, errorFormat: ErrorFormat, measurePerformance?: boolean): ${name}Delegate {
   const ${name} = <T extends ${listConstraint}>(args: Subset<T, ${getModelArgName(
       name,
       undefined,
@@ -856,7 +861,7 @@ function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher, errorFormat: E
       projection: Projection.select,
     })}>(dmmf, fetcher, 'query', '${mapping.findMany}', '${
       mapping.plural
-    }', args, [], errorFormat)
+    }', args, [], errorFormat, measurePerformance)
 ${indent(
   actions
     .map(([actionName, fieldName]: [any, any]) =>
@@ -921,11 +926,14 @@ export class ${name}Client<T> implements Promise<T> {
     private readonly _args: any,
     private readonly _dataPath: string[],
     private readonly _errorFormat: ErrorFormat,
-    private readonly _collectTimestamps: CollectTimestamps,
+    private readonly _measurePerformance: boolean,
     private _isList = false
   ) {
-    // Timestamps for performance checks
-    this._collectTimestamps = new CollectTimestamps("PhotonClient")
+    if (this._measurePerformance) {
+      // Timestamps for performance checks
+      this._collectTimestamps = new CollectTimestamps("PhotonClient")
+    }
+
     // @ts-ignore
     if (process.env.NODE_ENV !== 'production' && this._errorFormat !== 'minimal') {
       const error = new Error()
