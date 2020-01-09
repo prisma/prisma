@@ -37,16 +37,6 @@ export interface DownloadOptions {
   failSilent?: boolean
 }
 
-interface DownloadBinaryOptions {
-  sourcePath: string
-  targetPath: string
-  version: string
-  platform: string
-  binaryName: BinaryKind
-  progressCb?: (progress: number) => any
-  failSilent?: boolean
-}
-
 export type BinaryPaths = {
   migrationEngine?: { [binaryTarget: string]: string } // key: target, value: path
   queryEngine?: { [binaryTarget: string]: string }
@@ -61,13 +51,21 @@ const binaryToEnvVar = {
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
-  if (!options.binaryTargets || (options.binaryTargets.length === 1 && options.binaryTargets[0] === platform)) {
-    const downloadDoneFile = path.join(options.binaries['query-engine'], 'download-done')
-    if (fs.existsSync(downloadDoneFile)) {
-      debug(`Skipping download as ${downloadDoneFile} exists`)
-      return
-    }
+  if (Object.values(options.binaries).length === 0) {
+    return {}
   }
+  const downloadDoneFile = options.binaries
+    ? path.join(
+        options.binaries['query-engine'] ||
+          options.binaries['migration-engine'] ||
+          options.binaries['introspection-engine'],
+        'download-done',
+      )
+    : null
+  const nativeDownloadsDone = downloadDoneFile ? fs.existsSync(downloadDoneFile) : false
+  const everythingDownloaded =
+    nativeDownloadsDone &&
+    (!options.binaryTargets || (options.binaryTargets.length === 0 && options.binaryTargets[0] === platform))
 
   await cleanupCache()
   const mergedOptions: DownloadOptions = {
@@ -76,9 +74,10 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     ...options,
     binaries: mapKeys(options.binaries, key => engineTypeToBinaryType(key, platform)), // just necessary to support both camelCase and hyphen-case
   }
-  const bar = options.showProgress
-    ? getBar(`Downloading Prisma engines for ${mergedOptions.binaryTargets.map(p => chalk.bold(p)).join(' and ')}`)
-    : undefined
+  const bar =
+    options.showProgress && !everythingDownloaded
+      ? getBar(`Downloading Prisma engines for ${mergedOptions.binaryTargets.map(p => chalk.bold(p)).join(' and ')}`)
+      : undefined
   const progressMap: { [key: string]: number } = {}
   // Object.values is faster than Object.keys
   const numDownloads = Object.values(mergedOptions.binaries).length * Object.values(mergedOptions.binaryTargets).length
@@ -108,9 +107,9 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   await Promise.all(
     Object.entries(options.binaries).map(([binaryName, targetDir]) => {
       return Promise.all(
-        mergedOptions.binaryTargets.map(async platform => {
-          const sourcePath = getDownloadUrl(channel, mergedOptions.version, platform, binaryName as BinaryKind)
-          const targetPath = path.resolve(targetDir, getBinaryName(binaryName, platform))
+        mergedOptions.binaryTargets.map(async binaryPlatform => {
+          const sourcePath = getDownloadUrl(channel, mergedOptions.version, binaryPlatform, binaryName as BinaryKind)
+          const targetPath = path.resolve(targetDir, getBinaryName(binaryName, binaryPlatform))
 
           const envVar = binaryToEnvVar[binaryName]
           if (envVar && process.env[envVar]) {
@@ -126,23 +125,30 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
                 binaryName,
               )}, which points to ${chalk.underline(process.env[envVar])}`,
             )
-            binaryPaths[binaryName][platform] = path.resolve(process.env[envVar])
+            binaryPaths[binaryName][binaryPlatform] = path.resolve(process.env[envVar])
           } else {
-            debug(`Setting binary path for ${binaryName} ${platform} to ${targetPath}`)
-            binaryPaths[binaryName][platform] = targetPath
+            debug(`Setting binary path for ${binaryName} ${binaryPlatform} to ${targetPath}`)
+            binaryPaths[binaryName][binaryPlatform] = targetPath
           }
 
-          if (!options.skipDownload) {
-            await downloadBinary({
-              sourcePath,
-              binaryName: binaryName as BinaryKind,
-              platform,
-              version: mergedOptions.version,
-              targetPath,
-              progressCb: collectiveCallback ? collectiveCallback(sourcePath) : undefined,
-              failSilent: options.failSilent,
-            })
+          // no need to download, if we have it downloaded already :)
+          if (nativeDownloadsDone && binaryPlatform === platform) {
+            return
           }
+
+          if (options.skipDownload) {
+            return
+          }
+
+          await downloadBinary({
+            sourcePath,
+            binaryName: binaryName as BinaryKind,
+            platform: binaryPlatform,
+            version: mergedOptions.version,
+            targetPath,
+            progressCb: collectiveCallback ? collectiveCallback(sourcePath) : undefined,
+            failSilent: options.failSilent,
+          })
         }),
       )
     }),
@@ -171,6 +177,16 @@ function getBinaryName(binaryName, platform) {
     return 'migration-engine' + extension
   }
   return `${binaryName}-${platform}${extension}`
+}
+
+interface DownloadBinaryOptions {
+  sourcePath: string
+  targetPath: string
+  version: string
+  platform: string
+  binaryName: BinaryKind
+  progressCb?: (progress: number) => any
+  failSilent?: boolean
 }
 
 async function downloadBinary({

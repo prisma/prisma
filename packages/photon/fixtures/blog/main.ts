@@ -3,14 +3,13 @@ import { Photon } from '@prisma/photon'
 async function main() {
   const photon = new Photon()
 
-  const posts = await photon.posts({
-    where: {
-      x: 1,
+  await photon.users.create({
+    data: {
+      email: 'a@a.de',
+      name2: 'Bobby Brown',
     },
   } as any)
 
-  console.log(posts)
-  // console.log(result, Date.now() - before)
   photon.disconnect()
 }
 

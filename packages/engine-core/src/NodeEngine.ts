@@ -1,6 +1,6 @@
 import { Engine, PhotonError, PhotonQueryError, QueryEngineError } from './Engine'
 import got from 'got'
-import HttpAgent, { HttpsAgent } from 'agentkeepalive'
+import HttpAgent from 'agentkeepalive'
 import debugLib from 'debug'
 import { getPlatform, Platform, mayBeCompatible } from '@prisma/get-platform'
 import path from 'path'
@@ -18,6 +18,12 @@ import byline from './byline'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
+const keepaliveAgent = new HttpAgent({
+  maxSockets: 100,
+  maxFreeSockets: 10,
+  timeout: 60000, // active socket keepalive for 60 seconds
+  freeSocketTimeout: 30000, // free socket keepalive for 30 seconds
+});
 
 export interface DatasourceOverwrite {
   name: string
@@ -329,7 +335,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         })
 
         this.child.on('exit', code => {
-          // const message = this.stderrLogs ? this.stderrLogs : this.stdoutLogs
           if (code === 126) {
             this.lastError = {
               timestamp: new Date(),
@@ -475,7 +480,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     await this.start()
 
     if (!this.child) {
-      throw new Error(`Can't perform reqeust, as the Engine has already been stopped`)
+      throw new Error(`Can't perform request, as the Engine has already been stopped`)
     }
     this.currentRequestPromise = got.post(this.url, {
       json: true,
@@ -483,14 +488,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         'Content-Type': 'application/json',
       },
       body: { query, variables: {} },
-      agent: {
-        http: new HttpAgent({
-          freeSocketTimeout: 3600000,
-        }),
-        https: new HttpsAgent({
-          freeSocketTimeout: 3600000,
-        }),
-      },
+      agent: keepaliveAgent
     })
 
     return this.currentRequestPromise
