@@ -5,4 +5,11 @@ module.exports = async () => {
     errorFormat: 'colorless',
   })
   await photon.users()
+  photon.disconnect()
+  await photon.users()
+  photon.disconnect()
+  photon.connect()
+  photon.disconnect()
+  photon.connect()
+  await photon.users()
 }
