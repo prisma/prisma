@@ -2,7 +2,7 @@
 
 The generated code for Photon.js contains a number of helpful types that you can use to make your application more type-safe. This page describes a patterns for leveraging some of the generated types.
 
-## Extended and partial model type definitions
+## Operating against partial structures of your model types
 
 When using Photon.js, every model from your [Prisma schema](../prisma-schema-file.md) is translated into a dedicated TypeScript type. For example, assume you have the following `User` and `Post` models:
 
