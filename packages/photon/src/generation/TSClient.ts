@@ -95,10 +95,8 @@ export class PhotonRequestError extends Error {
 class PhotonFetcher {
   constructor(
     private readonly photon: Photon,
-    private readonly engine: Engine,
     private readonly debug = false,
     private readonly hooks?: Hooks,
-    private readonly errorFormat?: ErrorFormat
   ) {}
   async request<T>(document: any, dataPath: string[] = [], rootField?: string, typeName?: string, isList?: boolean, callsite?: string, collectTimestamps?: any): Promise<T> {
     const query = String(document)
@@ -112,7 +110,7 @@ class PhotonFetcher {
       await this.photon.connect()
       collectTimestamps && collectTimestamps.record("Post-connect")
       collectTimestamps && collectTimestamps.record("Pre-engine")
-      const result = await this.engine.request(query, typeName)
+      const result = await this.photon.engine.request(query, typeName)
       collectTimestamps && collectTimestamps.record("Post-engine")
       debug('Response:')
       debug(result)
@@ -145,7 +143,7 @@ class PhotonFetcher {
     }
   }
   sanitizeMessage(message: string): string {
-    if (this.errorFormat && this.errorFormat !== 'pretty') {
+    if (this.photon.errorFormat && this.photon.errorFormat !== 'pretty') {
       return stripAnsi(message)
     }
 
@@ -160,6 +158,7 @@ class PhotonFetcher {
     return unpack({ document, data, path: getPath })
   }
 }
+
 class CollectTimestamps {
   public readonly records: Array<{ name: string, value: [number, number]}> = []
   public start: { name: string, value: [number, number]} | undefined = undefined
@@ -386,7 +385,9 @@ export class Photon {
   private readonly dmmf: DMMFClass
   private readonly engine: Engine
   private connectionPromise?: Promise<any>
+  private disconnectionPromise?: Promise<any>
   private errorFormat: ErrorFormat
+  private readonly engineConfig: any
   constructor(options: PhotonOptions = {}) {
     const useDebug = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.library) : false
     if (useDebug) {
@@ -424,7 +425,7 @@ export class Photon {
       this.measurePerformance = true
     }
 
-    this.engine = new Engine({
+    this.engineConfig = {
       cwd: engineConfig.cwd || ${getRelativePathResolveStatement(
         this.outputDir,
         this.cwd,
@@ -437,30 +438,36 @@ export class Photon {
         this.generator ? JSON.stringify(this.generator) : 'undefined'
       },
       showColors: this.errorFormat === 'pretty'
-    })
+    }
+
+    this.engine = new Engine(this.engineConfig)
 
     this.dmmf = new DMMFClass(dmmf)
 
-    this.fetcher = new PhotonFetcher(this, this.engine, false, internal.hooks, this.errorFormat)
+    this.fetcher = new PhotonFetcher(this, false, internal.hooks)
   }
-  private async connectEngine(publicCall?: boolean) {
-    return this.engine.start()
-  }
-  connect(): Promise<void> {
+  async connect(): Promise<void> {
+    if (this.disconnectionPromise) {
+      await this.disconnectionPromise
+    }
     if (this.connectionPromise) {
       return this.connectionPromise
     }
-    this.connectionPromise = this.connectEngine(true)
+    this.connectionPromise = this.engine.start()
     return this.connectionPromise!
   }
   async disconnect() {
-    await this.engine.stop()
+    if (this.connectionPromise) {
+      await this.connectionPromise
+    }
+    this.disconnectionPromise = (async () => {
+      await this.engine.stop()
+      delete this.connectionPromise
+      this.engine = new Engine(this.engineConfig)
+      delete this.disconnectionPromise
+    })()
+    return this.disconnectionPromise
   }
-  // won't be generated for now
-  // private _query?: QueryDelegate
-  // get query(): QueryDelegate {
-  //   return this._query ? this._query: (this._query = QueryDelegate(this.dmmf, this.fetcher))
-  // }
 ${indent(
   dmmf.mappings
     .filter(m => m.findMany)
