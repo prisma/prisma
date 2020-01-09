@@ -371,11 +371,11 @@ It is currently not possible to provide more configuration options to the index:
 
 - PostgreSQL
   - Define index fields as expressions (e.g. `CREATE INDEX title ON public."Post"((lower(title)) text_ops);`)
-  - Specify index methods with `USING`; PostgreSQL supports these  index methods: B-tree, hash, GiST, and GIN, Prisma uses B-Tree by default
+  - Specify index methods with `USING`; PostgreSQL supports these  index methods: B-tree, hash, GiST, and GIN; Prisma uses B-Tree by default
   - Define partial indexes with `WHERE`
   - Create indexes concurrently with `CONCURRENTLY`
 - MySQL
-  - Specify index methods with `USING`; PostgreSQL supports these  index methods: B-tree, hash, GiST, and GIN, Prisma uses B-Tree by default
+  - Specify index methods with `USING`; MySQL supports these  index methods: B-tree, hash; Prisma uses B-Tree by default
 
 ## Functions
 
