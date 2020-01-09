@@ -18,12 +18,6 @@ import byline from './byline'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
-const keepaliveAgent = new HttpAgent({
-  maxSockets: 100,
-  maxFreeSockets: 10,
-  timeout: 60000, // active socket keepalive for 60 seconds
-  freeSocketTimeout: 30000, // free socket keepalive for 30 seconds
-})
 
 export interface DatasourceOverwrite {
   name: string
@@ -58,6 +52,7 @@ const knownPlatforms: Platform[] = [
 export class NodeEngine extends Engine {
   private logEmitter: EventEmitter
   private showColors: boolean
+  private keepaliveAgent: HttpAgent
   port?: number
   debug: boolean
   child?: ChildProcessWithoutNullStreams
@@ -85,7 +80,6 @@ export class NodeEngine extends Engine {
   lastErrorLog?: RustLog
   lastError?: RustError
   startPromise?: Promise<any>
-
   constructor({ cwd, datamodelPath, prismaPath, generator, datasources, showColors, ...args }: EngineConfig) {
     super()
     this.cwd = this.resolveCwd(cwd)
@@ -96,6 +90,12 @@ export class NodeEngine extends Engine {
     this.datasources = datasources
     this.logEmitter = new EventEmitter()
     this.showColors = showColors || false
+    this.keepaliveAgent = new HttpAgent({
+      maxSockets: 100,
+      maxFreeSockets: 10,
+      timeout: 60000, // active socket keepalive for 60 seconds
+      freeSocketTimeout: 30000, // free socket keepalive for 30 seconds
+    })
 
     this.logEmitter.on('log', (log: RustLog) => {
       if (this.debug) {
@@ -337,12 +337,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           const data = String(msg)
           try {
             const json = JSON.parse(data)
-            if (typeof json.is_panic !== 'undefined') {
-              debug(json)
-              this.lastError = json
+            if (typeof json.is_panic === 'undefined') {
+              const log = convertLog(json)
+              this.logEmitter.emit('log', log)
             }
-            const log = convertLog(json)
-            this.logEmitter.emit('log', log)
           } catch (e) {
             // debug(e, data)
           }
@@ -413,7 +411,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
    */
   async stop() {
     await this.start()
-    keepaliveAgent.destroy()
+    this.keepaliveAgent.destroy()
     if (this.currentRequestPromise) {
       try {
         await this.currentRequestPromise
@@ -514,7 +512,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         'Content-Type': 'application/json',
       },
       body: { query, variables: {} },
-      agent: keepaliveAgent,
+      agent: this.keepaliveAgent,
     })
 
     return this.currentRequestPromise
