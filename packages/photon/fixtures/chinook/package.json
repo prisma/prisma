@@ -13,8 +13,5 @@
     "photon-generate": "^0.0.1",
     "ts-node": "^8.1.0",
     "typescript": "^3.5.0-dev.20190511"
-  },
-  "engines": {
-    "node": ">= 11"
   }
 }

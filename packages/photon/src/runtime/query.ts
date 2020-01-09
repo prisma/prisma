@@ -1,5 +1,4 @@
 import chalk from 'chalk'
-import 'flat-map-polyfill'
 import indent from 'indent-string'
 import { /*dmmf, */ DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
@@ -31,6 +30,7 @@ import { printStack } from './utils/printStack'
 import stringifyObject from './utils/stringifyObject'
 import { visit } from './visit'
 import stripAnsi from 'strip-ansi'
+import { flatMap } from './utils/flatMap'
 
 const tab = 2
 
@@ -51,6 +51,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
     select: any,
     isTopLevelQuery: boolean = false,
     originalMethod?: string,
+    errorFormat?: 'pretty' | 'minimal' | 'colorless',
   ) {
     const invalidChildren = this.children.filter(
       child => child.hasInvalidChild || child.hasInvalidArg,
@@ -169,11 +170,6 @@ ${indent(this.children.map(String).join('\n'), tab)}
     }
 
     const renderErrorStr = (callsite?: string) => {
-      const { stack, indent: indentValue, afterLines } = printStack({
-        callsite,
-        originalMethod: originalMethod || queryName,
-      })
-
       const hasRequiredMissingArgsErrors = argErrors.some(
         e => e.error.type === 'missingArg' && e.error.missingType[0].isRequired,
       )
@@ -207,6 +203,32 @@ ${indent(this.children.map(String).join('\n'), tab)}
         missingArgsLegend += chalk.dim('.')
       }
 
+      const errorMessages = `${argErrors
+        .filter(
+          e =>
+            e.error.type !== 'missingArg' || e.error.missingType[0].isRequired,
+        )
+        .map(e =>
+          this.printArgError(
+            e,
+            hasMissingArgsErrors,
+            errorFormat === 'minimal',
+          ),
+        ) // if no callsite is provided, just render the minimal error
+        .join('\n')}
+${fieldErrors
+  .map(e => this.printFieldError(e, errorFormat === 'minimal'))
+  .join('\n')}`
+
+      if (errorFormat === 'minimal') {
+        return stripAnsi(errorMessages)
+      }
+
+      const { stack, indent: indentValue, afterLines } = printStack({
+        callsite,
+        originalMethod: originalMethod || queryName,
+      })
+
       const errorStr = `${stack}${indent(
         printJsonWithErrors(
           isTopLevelQuery ? { [topLevelQueryName]: select } : select,
@@ -217,20 +239,17 @@ ${indent(this.children.map(String).join('\n'), tab)}
         indentValue,
       ).slice(indentValue)}${chalk.dim(afterLines)}
 
-${argErrors
-  .filter(
-    e => e.error.type !== 'missingArg' || e.error.missingType[0].isRequired,
-  )
-  .map(e => this.printArgError(e, hasMissingArgsErrors))
-  .join('\n')}
-${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
-      if (process.env.NO_COLOR || process.env.NODE_ENV === 'production') {
+${errorMessages}${missingArgsLegend}\n`
+
+      if (process.env.NO_COLOR || errorFormat === 'colorless') {
         return stripAnsi(errorStr)
       }
       return errorStr
     }
+    // end renderErrorStr definition
 
     const error = new PhotonError(renderErrorStr())
+
     // @ts-ignore
     if (process.env.NODE_ENV !== 'production') {
       Object.defineProperty(error, 'render', {
@@ -240,40 +259,41 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
     }
     throw error
   }
-  protected printFieldError = ({ error, path }: FieldError) => {
+  protected printFieldError = (
+    { error, path }: FieldError,
+    minimal: boolean,
+  ) => {
     if (error.type === 'emptySelect') {
+      const additional = minimal
+        ? ''
+        : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
       return `The ${chalk.redBright(
         '`select`',
       )} statement for type ${chalk.bold(
         getOutputTypeName(error.field.outputType.type),
-      )} must not be empty. Available options are listed in ${chalk.greenBright.dim(
-        'green',
-      )}.`
+      )} must not be empty.${additional}`
     }
     if (error.type === 'emptyInclude') {
+      const additional = minimal
+        ? ''
+        : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
       return `The ${chalk.redBright(
         '`include`',
       )} statement for type ${chalk.bold(
         getOutputTypeName(error.field.outputType.type),
-      )} must not be empty. Available options are listed in ${chalk.greenBright.dim(
-        'green',
-      )}.`
+      )} must not be empty.${additional}`
     }
     if (error.type === 'noTrueSelect') {
+      const additional = minimal
+        ? ''
+        : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
       return `The ${chalk.redBright(
         '`select`',
       )} statement for type ${chalk.bold(
         getOutputTypeName(error.field.outputType.type),
-      )} needs ${chalk.bold(
-        'at least one truthy value',
-      )}. Available options are listed in ${chalk.greenBright.dim('green')}.`
+      )} needs ${chalk.bold('at least one truthy value')}.`
     }
     if (error.type === 'includeAndSelect') {
-      // return `The ${chalk.redBright('`select`')} statement for type ${chalk.bold(
-      //   getOutputTypeName(error.field.outputType.type),
-      // )} needs ${chalk.bold('at least one truthy value')}. Available options are listed in ${chalk.greenBright.dim(
-      //   'green',
-      // )}.`
       return `Please ${chalk.bold('either')} use ${chalk.greenBright(
         '`include`',
       )} or ${chalk.greenBright('`select`')}, but ${chalk.redBright(
@@ -283,11 +303,14 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
     if (error.type === 'invalidFieldName') {
       const statement = error.isInclude ? 'include' : 'select'
       const wording = error.isIncludeScalar ? 'Invalid scalar' : 'Unknown'
+      const additional = minimal
+        ? ''
+        : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
       let str = `${wording} field ${chalk.redBright(
         `\`${error.providedName}\``,
       )} for ${chalk.bold(statement)} statement on model ${chalk.bold.white(
         error.modelName,
-      )}. Available options are listed in ${chalk.greenBright.dim('green')}.`
+      )}.${additional}`
 
       if (error.didYouMean) {
         str += ` Did you mean ${chalk.greenBright(`\`${error.didYouMean}\``)}?`
@@ -320,6 +343,7 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
   protected printArgError = (
     { error, path }: ArgError,
     hasMissingItems: boolean,
+    minimal: boolean,
   ) => {
     if (error.type === 'invalidName') {
       let str = `Unknown arg ${chalk.redBright(
@@ -340,7 +364,7 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
         )}`
       } else if (error.didYouMeanArg) {
         str += ` Did you mean \`${chalk.greenBright(error.didYouMeanArg)}\`?`
-        if (!hasMissingItems) {
+        if (!hasMissingItems && !minimal) {
           str +=
             ` ${chalk.dim('Available args:')}\n` +
             stringifyInputType(error.originalType, true)
@@ -350,7 +374,7 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
           str += ` The field ${chalk.bold(
             (error.originalType as DMMF.InputType).name,
           )} has no arguments.`
-        } else if (!hasMissingItems) {
+        } else if (!hasMissingItems && !minimal) {
           str +=
             ` Available args:\n\n` +
             stringifyInputType(error.originalType, true)
@@ -434,23 +458,27 @@ ${fieldErrors.map(this.printFieldError).join('\n')}${missingArgsLegend}\n`
     }
 
     if (error.type === 'atLeastOne') {
+      const additional = minimal
+        ? ''
+        : ` Available args are listed in ${chalk.dim.green('green')}.`
       return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
         error.inputType.name,
-      )} needs ${chalk.greenBright(
-        'at least one',
-      )} argument. Available args are listed in ${chalk.dim.green('green')}.`
+      )} needs ${chalk.greenBright('at least one')} argument.${additional}`
     }
 
     if (error.type === 'atMostOne') {
+      const additional = minimal
+        ? ''
+        : ` Please choose one. ${chalk.dim(
+            'Available args:',
+          )} \n${stringifyInputType(error.inputType, true)}`
       return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
         error.inputType.name,
       )} needs ${chalk.greenBright(
         'exactly one',
       )} argument, but you provided ${error.providedKeys
         .map(key => chalk.redBright(key))
-        .join(' and ')}. Please choose one. ${chalk.dim(
-        'Available args:',
-      )} \n${stringifyInputType(error.inputType, true)}`
+        .join(' and ')}.${additional}`
     }
   }
   /**
@@ -609,7 +637,7 @@ export class Args {
       return []
     }
 
-    return this.args.flatMap(arg => arg.collectErrors())
+    return flatMap(this.args, arg => arg.collectErrors())
   }
 }
 
@@ -725,7 +753,7 @@ ${indent(value.toString(), 2)}
 
     if (Array.isArray(this.value)) {
       errors.push(
-        ...(this.value as any[]).flatMap((val, index) => {
+        ...(flatMap(this.value as any[], (val, index) => {
           if (!val.collectErrors) {
             return []
           }
@@ -733,7 +761,7 @@ ${indent(value.toString(), 2)}
           return val.collectErrors().map(e => {
             return { ...e, path: [this.key, index, ...e.path] }
           })
-        }),
+        }) as any[]),
       )
     }
 
@@ -799,13 +827,13 @@ export function makeDocument({
 export function transformDocument(document: Document): Document {
   function transformWhereArgs(args: Args) {
     return new Args(
-      args.args.flatMap(ar => {
+      flatMap(args.args, ar => {
         if (isArgsArray(ar.value)) {
           // long variable name to prevent shadowing
           const value = ar.value.map(argsInstance => {
             return transformWhereArgs(argsInstance)
           })
-          return new Arg({ ...ar, value })
+          return [new Arg({ ...ar, value })]
         } else if (ar.value instanceof Args) {
           if (ar.schemaArg && !ar.schemaArg.isRelationFilter) {
             return ar.value.args.map(a => {

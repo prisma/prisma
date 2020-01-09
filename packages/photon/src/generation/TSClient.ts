@@ -24,6 +24,7 @@ import {
   isQueryAction,
   Projection,
   renderInitialClientArgs,
+  flatMap,
 } from './utils'
 
 const tab = 2
@@ -40,7 +41,8 @@ const commonCode = (runtimePath: string, version?: string) => `import {
   chalk,
   printStack,
   mergeBy,
-  unpack
+  unpack,
+  stripAnsi
 } from '${runtimePath}'
 
 /**
@@ -95,7 +97,8 @@ class PhotonFetcher {
     private readonly photon: Photon,
     private readonly engine: Engine,
     private readonly debug = false,
-    private readonly hooks?: Hooks
+    private readonly hooks?: Hooks,
+    private readonly errorFormat?: ErrorFormat
   ) {}
   async request<T>(document: any, path: string[] = [], rootField?: string, typeName?: string, isList?: boolean, callsite?: string, collectTimestamps?: any): Promise<T> {
     const query = String(document)
@@ -126,17 +129,27 @@ class PhotonFetcher {
         })
         const message = stack + '\\n\\n' + e.message
         if (e.code) {
-          throw new PhotonRequestError(message, e.code, e.meta)
+          throw new PhotonRequestError(this.sanitizeMessage(message), e.code, e.meta)
         }
         throw new Error(message)
       } else {
+        if (e.code) {
+          throw new PhotonRequestError(this.sanitizeMessage(e.message), e.code, e.meta)
+        }
         if (e.isPanic) {
           throw e
         } else {
-          throw new Error(\`Error in Photon\${path}: \\n\` + e.stack)
+          throw new Error(this.sanitizeMessage(\`Error in Photon\${path}: \\n\` + e.stack))
         }
       }
     }
+  }
+  sanitizeMessage(message: string): string {
+    if (this.errorFormat && this.errorFormat !== 'pretty') {
+      return stripAnsi(message)
+    }
+
+    return message
   }
   protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean) {
     const getPath: string[] = []
@@ -333,8 +346,15 @@ export type LogOption = LogLevel | {
   emit?: 'event' | 'stdout'
 }
 
+export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
+
 export interface PhotonOptions {
   datasources?: Datasources
+  
+  /**
+   * @default "pretty"
+   */
+  errorFormat?: ErrorFormat
 
   /**
    * @default false
@@ -365,6 +385,7 @@ export class Photon {
   private readonly dmmf: DMMFClass
   private readonly engine: Engine
   private connectionPromise?: Promise<any>
+  private errorFormat: ErrorFormat
   constructor(options: PhotonOptions = {}) {
     const useDebug = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.library) : false
     if (useDebug) {
@@ -403,7 +424,18 @@ export class Photon {
     })
 
     this.dmmf = new DMMFClass(dmmf)
-    this.fetcher = new PhotonFetcher(this, this.engine, false, internal.hooks)
+
+    if (options.errorFormat) {
+      this.errorFormat = options.errorFormat
+    } else if (process.env.NODE_ENV === 'production') {
+      this.errorFormat = 'minimal'
+    } else if (process.env.NO_COLOR) {
+      this.errorFormat = 'colorless'
+    } else {
+      this.errorFormat = 'pretty'
+    }
+
+    this.fetcher = new PhotonFetcher(this, this.engine, false, internal.hooks, this.errorFormat)
   }
   private async connectEngine(publicCall?: boolean) {
     return this.engine.start()
@@ -429,7 +461,7 @@ ${indent(
     .map(
       m => `
 get ${m.plural}(): ${m.model}Delegate {
-  return ${m.model}Delegate(this.dmmf, this.fetcher)
+  return ${m.model}Delegate(this.dmmf, this.fetcher, this.errorFormat)
 }`,
     )
     .join('\n'),
@@ -738,20 +770,18 @@ export class Query {
 
 export type ${queryName}Args = {
 ${indent(
-  mappings
-    .flatMap(({ name, mapping }) =>
-      mapping
-        .filter(([action, field]) => field)
-        .map(
-          ([action, field]) =>
-            `${field}?: ${getModelArgName(
-              name,
-              Projection.select,
-              action as DMMF.ModelAction,
-            )}`,
-        ),
-    )
-    .join('\n'),
+  flatMap(mappings, ({ name, mapping }) =>
+    mapping
+      .filter(([action, field]) => field)
+      .map(
+        ([action, field]) =>
+          `${field}?: ${getModelArgName(
+            name,
+            Projection.select,
+            action as DMMF.ModelAction,
+          )}`,
+      ),
+  ).join('\n'),
   tab,
 )}
 }
@@ -814,7 +844,7 @@ ${indent(
 )}
   count(): Promise<number>
 }
-function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delegate {
+function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher, errorFormat: ErrorFormat): ${name}Delegate {
   const ${name} = <T extends ${listConstraint}>(args: Subset<T, ${getModelArgName(
       name,
       undefined,
@@ -825,7 +855,7 @@ function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delega
       projection: Projection.select,
     })}>(dmmf, fetcher, 'query', '${mapping.findMany}', '${
       mapping.plural
-    }', args, [])
+    }', args, [], errorFormat)
 ${indent(
   actions
     .map(([actionName, fieldName]: [any, any]) =>
@@ -874,8 +904,8 @@ ${indent(
 )}
   ${name}.count = () => new ${name}Client<number>(dmmf, fetcher, 'query', '${mapping.aggregate!}', '${
       mapping.plural
-    }.count', {}, ['count'])
-  return ${name} as any // any needed until https://github.com/microsoft/TypeScript/issues/31335 is resolved
+    }.count', {}, ['count'], errorFormat)
+  return ${name} as any // any needed because of https://github.com/microsoft/TypeScript/issues/31335
 }
 
 export class ${name}Client<T> implements Promise<T> {
@@ -890,12 +920,13 @@ export class ${name}Client<T> implements Promise<T> {
     private readonly _args: any,
     private readonly _collectTimestamps: CollectTimestamps,
     private readonly _path: string[],
+    private readonly _errorFormat: ErrorFormat,
     private _isList = false
   ) {
     // Timestamps for performance checks
     this._collectTimestamps = new CollectTimestamps("PhotonClient")
     // @ts-ignore
-    if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== 'production' && this._errorFormat !== 'minimal') {
       const error = new Error()
       if (error && error.stack) {
         const stack = error.stack
@@ -937,7 +968,7 @@ ${f.name}<T extends ${getFieldArgName(
         isField: true,
         renderPromise: true,
         projection: Projection.select,
-      })}>(this._dmmf, this._fetcher, this._queryType, this._rootField, this._clientMethod, newArgs, path, this._isList, this._collectTimestamps) as any
+      })}>(this._dmmf, this._fetcher, this._queryType, this._rootField, this._clientMethod, newArgs, path, this._errorFormat, this._isList, this._collectTimestamps) as any
 }`
     })
     .join('\n'),
@@ -956,11 +987,11 @@ ${f.name}<T extends ${getFieldArgName(
     this._collectTimestamps.record("Post-makeDocument")
     try {
       this._collectTimestamps.record("Pre-document.validate")
-      document.validate(this._args, false, this._clientMethod)
+      document.validate(this._args, false, this._clientMethod, this._errorFormat)
       this._collectTimestamps.record("Post-document.validate")
     } catch (e) {
       const x: any = e
-      if (x.render) {
+      if (this._errorFormat !== 'minimal' && x.render) {
         if (this._callsite) {
           e.message = x.render(this._callsite)
         }
@@ -1095,15 +1126,13 @@ export class InputField {
     const { field } = this
     let fieldType
     if (Array.isArray(field.inputType)) {
-      fieldType = field.inputType
-        .flatMap(t =>
-          typeof t.type === 'string'
-            ? GraphQLScalarToJSTypeTable[t.type] || t.type
-            : this.prefixFilter
-            ? `Base${t.type.name}`
-            : t.type.name,
-        )
-        .join(' | ')
+      fieldType = flatMap(field.inputType, t =>
+        typeof t.type === 'string'
+          ? GraphQLScalarToJSTypeTable[t.type] || t.type
+          : this.prefixFilter
+          ? `Base${t.type.name}`
+          : t.type.name,
+      ).join(' | ')
     }
     const fieldInputType = field.inputType[0]
     const optionalStr = fieldInputType.isRequired ? '' : '?'
