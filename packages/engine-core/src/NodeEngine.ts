@@ -324,7 +324,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           debug('stderr', data)
           try {
             const json = JSON.parse(data)
-            if (json.is_panic !== 'undefined') {
+            if (typeof json.is_panic !== 'undefined') {
               debug(json)
               this.lastError = json
             }
@@ -337,7 +337,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           const data = String(msg)
           try {
             const json = JSON.parse(data)
-            if (json.is_panic !== 'undefined') {
+            if (typeof json.is_panic !== 'undefined') {
               debug(json)
               this.lastError = json
             }
