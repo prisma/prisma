@@ -15,7 +15,10 @@ export class Init implements Command {
 
   async parse(argv: string[]): Promise<any> {
     // parse the arguments according to the spec
-    const args = arg(argv, {})
+    const args = arg(argv, {
+      '--help': Boolean,
+      '-h': '--help',
+    })
 
     if (isError(args)) {
       return null
