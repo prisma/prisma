@@ -350,11 +350,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           if (!code) {
             return
           }
-          if (this.lastErrorLog) {
-            this.lastErrorLog.target = 'exit'
+          if (this.lastError) {
             return
           }
-          if (this.lastError) {
+          if (this.lastErrorLog) {
+            this.lastErrorLog.target = 'exit'
             return
           }
           if (code === 126) {
