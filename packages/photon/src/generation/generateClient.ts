@@ -109,7 +109,7 @@ export async function buildClient({
 
   const options: CompilerOptions = {
     module: ModuleKind.CommonJS,
-    target: ScriptTarget.ES2017,
+    target: ScriptTarget.ES2018,
     lib: ['lib.esnext.d.ts', 'lib.dom.d.ts'],
     declaration: true,
     strict: true,
@@ -125,7 +125,7 @@ export async function buildClient({
     if (fileName === file.fileName) {
       file.sourceFile =
         file.sourceFile ||
-        createSourceFile(fileName, file.content, ScriptTarget.ES2015, true)
+        createSourceFile(fileName, file.content, ScriptTarget.ES2018, true)
       return file.sourceFile
     }
     return (originalGetSourceFile as any).call(compilerHost, newFileName)
