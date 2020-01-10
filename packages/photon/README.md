@@ -16,13 +16,15 @@ This package is being used by `prisma2`.
 
 ### Working on code generation
 
-If you have your local blog example running, you can now just do changes to `TSClient.ts` and re-execute `npx ts-node fixtures/generate.ts ./fixtures/blog/`.
+If you have your local blog fixture running, you can now do changes to `TSClient.ts` and re-execute `npx ts-node fixtures/generate.ts ./fixtures/blog/`.
+
+When doing changes and working on a fixture use `yarn build && rm -rf fixtures/blog/node_modules/ && ts-node fixtures/generate.ts fixtures/blog`
 
 ### Working with the runtime
 
-If you want to use the local runtime in the blog example, just run
+If you want to use the local runtime in the blog fixture, run
 
-```
+```sh
 ts-node fixtures/generate.ts ./fixtures/blog/ --local-runtime
 ```
 

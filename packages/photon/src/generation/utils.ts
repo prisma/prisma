@@ -131,7 +131,7 @@ export function renderInitialClientArgs(
   args,
   [],
   errorFormat,
-  collectTimestamps\n`
+  measurePerformance\n`
 }
 
 export function getFieldTypeName(field: DMMF.SchemaField) {
