@@ -106,12 +106,12 @@ class PhotonFetcher {
       this.hooks.beforeRequest({ query, path: dataPath, rootField, typeName, document })
     }
     try {
-      collectTimestamps && collectTimestamps.record("Pre-connect")
+      collectTimestamps && collectTimestamps.record("Pre-photonConnect")
       await this.photon.connect()
-      collectTimestamps && collectTimestamps.record("Post-connect")
-      collectTimestamps && collectTimestamps.record("Pre-engine")
-      const result = await this.photon.engine.request(query, typeName)
-      collectTimestamps && collectTimestamps.record("Post-engine")
+      collectTimestamps && collectTimestamps.record("Post-photonConnect")
+      collectTimestamps && collectTimestamps.record("Pre-engine_request")
+      const result = await this.photon.engine.request(query, collectTimestamps)
+      collectTimestamps && collectTimestamps.record("Post-engine_request")
       debug('Response:')
       debug(result)
       collectTimestamps && collectTimestamps.record("Pre-unpack")
@@ -162,6 +162,7 @@ class PhotonFetcher {
 class CollectTimestamps {
   public readonly records: Array<{ name: string, value: [number, number]}> = []
   public start: { name: string, value: [number, number]} | undefined = undefined
+  private readonly additionalResults: { [k: string]: number } = {}
   constructor(startName: string) {
     this.start = { name: startName, value: process.hrtime() }
   }
@@ -174,6 +175,9 @@ class CollectTimestamps {
     const milliseconds = nanoseconds / 1e6;
     return milliseconds;
   }
+  public addResults(results: { [k: string]: number }) {
+    Object.assign(this.additionalResults, results)
+  }
   public getResults() {
     const results = this.records.reduce((acc, record) => {
       const name = record.name.split('-')[1]
@@ -184,7 +188,12 @@ class CollectTimestamps {
       }
       return acc
     }, {})
-    results.total = this.elapsed(this.start.value, this.records[this.records.length - 1].value)
+
+    Object.assign(results, {
+      total: this.elapsed(this.start.value, this.records[this.records.length - 1].value),
+      ...this.additionalResults
+    })
+
     return results
   }
 }
