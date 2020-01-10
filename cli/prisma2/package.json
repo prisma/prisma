@@ -62,7 +62,7 @@
     "ts-jest": "24.1.0",
     "ts-mocha": "6.0.0",
     "typescript": "3.7.2",
-    "checkpoint-client": "1.0.3",
+    "checkpoint-client": "1.0.4",
     "is-ci": "2.0.0"
   },
   "scripts": {
