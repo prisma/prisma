@@ -25,3 +25,7 @@ module.exports = async () => {
   }
   photon.disconnect()
 }
+
+if (require.main === module) {
+  module.exports()
+}
