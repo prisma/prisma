@@ -9,7 +9,7 @@ This package is being used by `prisma2`.
 1. Clone this repo
 2. `cd photonjs/packages/photon`
 3. `yarn`
-4. `ts-node fixtures/generate.ts ./fixtures/blog/`
+4. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
 5. `cd fixtures/blog`
 6. `prisma2 lift save --name init && prisma2 lift up`
 7. `ts-node main.ts`
