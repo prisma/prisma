@@ -4,8 +4,8 @@ module.exports = async () => {
   const photon = new Photon({
     errorFormat: 'colorless',
     __internal: {
-      measurePerformance: true
-    }
+      measurePerformance: true,
+    },
   })
   await photon.users()
   photon.disconnect()
@@ -21,6 +21,7 @@ module.exports = async () => {
   // @ts-ignore
   const perfResults = userPromise._collectTimestamps.getResults()
   if (Object.keys(perfResults).length === 0) {
-    throw Error("measurePerformance is enabled but results object is empty")
+    throw Error('measurePerformance is enabled but results object is empty')
   }
+  photon.disconnect()
 }
