@@ -8,8 +8,12 @@ describe('runtime works', () => {
   const subDirs = getSubDirs(__dirname)
   for (const dir of subDirs) {
     const testName = path.basename(dir)
+    const shouldSucceed = shouldTestSucceed(dir)
 
-    test(`can run ${testName} example`, async () => {
+    const testTitle = `${testName} example should${
+      shouldSucceed ? '' : ' not'
+    } succeed`
+    test(testTitle, async () => {
       const envVars = getEnvVars(dir)
       process.env = { ...process.env, ...envVars }
 
@@ -28,14 +32,14 @@ describe('runtime works', () => {
       const filePath = path.join(dir, 'index.js')
       const fn = require(filePath)
 
-      if (envVars) {
+      if (shouldSucceed) {
+        expect(fn()).resolves.toMatchSnapshot(testTitle)
+      } else {
         try {
           await fn()
         } catch (e) {
-          expect(e).toMatchSnapshot()
+          expect(e).toMatchSnapshot(testTitle)
         }
-      } else {
-        expect(fn()).resolves.toMatchSnapshot()
       }
     })
   }
@@ -58,4 +62,14 @@ function getEnvVars(dir: string): { [key: string]: string } | undefined {
   }
 
   return undefined
+}
+
+function shouldTestSucceed(dir: string): boolean {
+  const manifestPath = path.join(dir, 'manifest.json')
+  if (!fs.existsSync(manifestPath)) {
+    throw new Error(`Runtime Test dir ${dir} needs a manifest.json`)
+  }
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
+
+  return manifest.shouldSucceed
 }
