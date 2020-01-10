@@ -347,6 +347,12 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         })
 
         this.child.on('exit', code => {
+          if (!code) {
+            return
+          }
+          if (this.lastError) {
+            return
+          }
           if (this.lastErrorLog) {
             this.lastErrorLog.target = 'exit'
             return

@@ -119,6 +119,7 @@ class PhotonFetcher {
       collectTimestamps && collectTimestamps.record("Post-unpack")
       return unpackResult
     } catch (e) {
+      debug(e.stack)
       if (callsite) {
         const { stack } = printStack({
           callsite,
@@ -457,7 +458,10 @@ export class Photon {
   }
   async connect(): Promise<void> {
     if (this.disconnectionPromise) {
+      debug('awaiting disconnection promise')
       await this.disconnectionPromise
+    } else {
+      debug('disconnection promise doesnt exist')
     }
     if (this.connectionPromise) {
       return this.connectionPromise
@@ -465,16 +469,17 @@ export class Photon {
     this.connectionPromise = this.engine.start()
     return this.connectionPromise!
   }
+  private async runDisconnect() {
+    debug('disconnectionPromise: stopping engine')
+    await this.engine.stop()
+    delete this.connectionPromise
+    this.engine = new Engine(this.engineConfig)
+    delete this.disconnectionPromise
+  }
   async disconnect() {
-    if (this.connectionPromise) {
-      await this.connectionPromise
+    if (!this.disconnectionPromise) {
+      this.disconnectionPromise = this.runDisconnect() 
     }
-    this.disconnectionPromise = (async () => {
-      await this.engine.stop()
-      delete this.connectionPromise
-      this.engine = new Engine(this.engineConfig)
-      delete this.disconnectionPromise
-    })()
     return this.disconnectionPromise
   }
 ${indent(

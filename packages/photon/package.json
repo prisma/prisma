@@ -73,6 +73,7 @@
     "parcel": "^2.0.0-alpha.3.2",
     "pluralize": "^8.0.0",
     "prettier": "^1.19.1",
+    "rimraf": "^3.0.0",
     "set-value": "^3.0.1",
     "stacktrace-parser": "0.1.7",
     "strip-ansi": "^6.0.0",

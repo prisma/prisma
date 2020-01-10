@@ -68,7 +68,7 @@ function serializeError(log) {
     return chalk.red.bold('Schema ') + message
   }
   if (target === 'exit') {
-    return chalk.red.bold('Engine exited ') + message
+    return chalk.red.bold('Engine exited ' + JSON.stringify(log))
   }
   return chalk.red(log.message + ' ' + serializeObject(rest))
 }
