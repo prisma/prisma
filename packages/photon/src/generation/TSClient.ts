@@ -94,7 +94,7 @@ export class PhotonRequestError extends Error {
 
 class PhotonFetcher {
   constructor(
-    private readonly photon: Photon,
+    private readonly photon: Photon<any,any>,
     private readonly debug = false,
     private readonly hooks?: Hooks,
   ) {}
@@ -180,7 +180,7 @@ class CollectTimestamps {
     Object.assign(this.additionalResults, results)
   }
   public getResults() {
-    const results = this.records.reduce((acc, record) => {
+    const results: {[key: string]: number} = this.records.reduce((acc, record) => {
       const name = record.name.split('-')[1]
       if (acc[name]) {
         acc[name] = this.elapsed(acc[name], record.value)
@@ -345,16 +345,6 @@ class PhotonClientClass {
     return `
 ${new Datasources(this.internalDatasources)}
 
-export type LogLevel = 'INFO' | 'WARN' | 'QUERY'
-
-export type LogOption = LogLevel | {
-  level: LogLevel
-  /**
-   * @default 'stdout'
-   */
-  emit?: 'event' | 'stdout'
-}
-
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export interface PhotonOptions {
@@ -365,10 +355,7 @@ export interface PhotonOptions {
    */
   errorFormat?: ErrorFormat
 
-  /**
-   * @default false
-   */
-  log?: boolean | LogOption[]
+  log?: Array<LogLevel | LogDefinition>
 
   debug?: any
 
@@ -390,15 +377,39 @@ export type Hooks = {
   beforeRequest?: (options: {query: string, path: string[], rootField?: string, typeName?: string, document: any}) => any
 }
 
-export class Photon {
+/* Types for Logging */
+type LogLevel = 'info' | 'query' | 'warn'
+type LogDefinition = {
+  level: LogLevel
+  emit: 'stdout' | 'event'
+}
+
+type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
+type GetEvents<T extends Array<LogLevel | LogDefinition>> = GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]>
+
+type QueryEvent = {
+  timestamp: number
+  query: string
+  args: any
+}
+
+type LogEvent = {
+  timestamp: number
+  message: string
+}
+/* End Types for Logging */
+
+export class Photon<T extends PhotonOptions, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
   private fetcher: PhotonFetcher
   private readonly dmmf: DMMFClass
-  private readonly engine: Engine
   private connectionPromise?: Promise<any>
   private disconnectionPromise?: Promise<any>
-  private errorFormat: ErrorFormat
   private readonly engineConfig: any
-  constructor(options: PhotonOptions = {}) {
+  private readonly measurePerformance: boolean
+  engine: Engine
+  errorFormat: ErrorFormat
+  constructor(optionsArg?: T) {
+    const options: PhotonOptions = optionsArg || {}
     const useDebug = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.library) : false
     if (useDebug) {
       debugLib.enable('photon')
@@ -431,9 +442,7 @@ export class Photon {
       this.errorFormat = 'pretty'
     }
 
-    if (internal.measurePerformance) {
-      this.measurePerformance = true
-    }
+    this.measurePerformance = internal.measurePerformance || false
 
     this.engineConfig = {
       cwd: engineConfig.cwd || ${getRelativePathResolveStatement(
@@ -455,6 +464,11 @@ export class Photon {
     this.dmmf = new DMMFClass(dmmf)
 
     this.fetcher = new PhotonFetcher(this, false, internal.hooks)
+  }
+  on<V extends U>(eventType: V, callback: V extends never ? never : (event: V extends 'query' ? QueryEvent : LogEvent) => void) {
+    setTimeout(() => {
+      callback({eventType} as any)
+    }, 1000)
   }
   async connect(): Promise<void> {
     if (this.disconnectionPromise) {
@@ -938,6 +952,7 @@ ${indent(
 export class ${name}Client<T> implements Promise<T> {
   private _callsite: any
   private _requestPromise?: Promise<any>
+  private _collectTimestamps?: CollectTimestamps
   constructor(
     private readonly _dmmf: DMMFClass,
     private readonly _fetcher: PhotonFetcher,
@@ -947,7 +962,7 @@ export class ${name}Client<T> implements Promise<T> {
     private readonly _args: any,
     private readonly _dataPath: string[],
     private readonly _errorFormat: ErrorFormat,
-    private readonly _measurePerformance: boolean,
+    private readonly _measurePerformance?: boolean,
     private _isList = false
   ) {
     if (this._measurePerformance) {
@@ -998,7 +1013,7 @@ ${f.name}<T extends ${getFieldArgName(
         isField: true,
         renderPromise: true,
         projection: Projection.select,
-      })}>(this._dmmf, this._fetcher, this._queryType, this._rootField, this._clientMethod, newArgs, dataPath, this._errorFormat, this._collectTimestamps, this._isList) as any
+      })}>(this._dmmf, this._fetcher, this._queryType, this._rootField, this._clientMethod, newArgs, dataPath, this._errorFormat, this._measurePerformance, this._isList) as any
 }`
     })
     .join('\n'),

@@ -5,7 +5,7 @@ import chalk from 'chalk'
 
 async function main() {
   const args = arg({
-    '--local-runtime': Boolean,
+    '--skip-transpile': Boolean,
   })
 
   const projectDir = args._[0]
@@ -20,12 +20,12 @@ async function main() {
     throw new Error(`Path ${projectDir} does not exist`)
   }
 
-  const useLocalRuntime = args['--local-runtime']
+  const useLocalRuntime = args['--skip-transpile']
 
   const time = await generateInFolder({
     projectDir,
     useLocalRuntime,
-    transpile: true,
+    transpile: !args['--skip-transpile'],
   })
 
   console.log(

@@ -6,6 +6,7 @@ import { performance } from 'perf_hooks'
 import { generateClient } from '../generation/generateClient'
 import { getPackedPackage } from '@prisma/sdk'
 import Debug from 'debug'
+import makeDir from 'make-dir'
 const debug = Debug('generateInFolder')
 
 export interface GenerateInFolderOptions {
@@ -34,8 +35,13 @@ export async function generateInFolder({
   const dmmf = await getDMMF({ datamodel })
   const config = await getConfig({ datamodel })
 
-  const outputDir = path.join(projectDir, 'node_modules/@prisma/photon')
-  await getPackedPackage('@prisma/photon', outputDir)
+  const outputDir = transpile
+    ? path.join(projectDir, 'node_modules/@prisma/photon')
+    : path.join(projectDir, '@prisma/photon')
+
+  if (transpile) {
+    await getPackedPackage('@prisma/photon', outputDir)
+  }
 
   const platform = await getPlatform()
 

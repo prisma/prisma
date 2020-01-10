@@ -1,4 +1,4 @@
-import { Photon, UserGetSelectPayload } from '@prisma/photon'
+import { Photon, UserGetSelectPayload } from './@prisma/photon'
 
 async function main() {
   const photon = new Photon()
