@@ -10,7 +10,7 @@ const runtimeTsConfig = {
   compilerOptions: {
     lib: ['esnext', 'esnext.asynciterable'],
     module: 'commonjs',
-    target: 'es2017',
+    target: 'es2018',
     strict: false,
     esModuleInterop: true,
     sourceMap: true,
