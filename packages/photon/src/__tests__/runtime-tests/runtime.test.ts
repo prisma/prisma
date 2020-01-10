@@ -1,12 +1,16 @@
 import fs from 'fs'
 import path from 'path'
 import { generateInFolder } from '../../utils/generateInFolder'
+import { promisify } from 'util'
+import rimraf from 'rimraf'
+const del = promisify(rimraf)
 
 jest.setTimeout(30000)
 
 describe('runtime works', () => {
   const subDirs = getSubDirs(__dirname)
   for (const dir of subDirs) {
+    const nodeModules = path.join(dir, 'node_modules')
     const testName = path.basename(dir)
     const shouldSucceed = shouldTestSucceed(dir)
 
@@ -14,6 +18,9 @@ describe('runtime works', () => {
       shouldSucceed ? '' : ' not'
     } succeed`
     test(testTitle, async () => {
+      if (fs.existsSync(nodeModules)) {
+        await del(nodeModules)
+      }
       const envVars = getEnvVars(dir)
       process.env = { ...process.env, ...envVars }
 
