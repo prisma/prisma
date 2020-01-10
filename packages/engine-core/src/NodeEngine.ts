@@ -500,12 +500,18 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     return result.body.data
   }
 
-  async request<T>(query: string, typeName?: string): Promise<T> {
+  async request<T>(query: string, collectTimestamps: any): Promise<T> {
+    collectTimestamps && collectTimestamps.record("Pre-engine_request_start")
     await this.start()
+    collectTimestamps && collectTimestamps.record("Post-engine_request_start")
+
+    collectTimestamps && collectTimestamps.record("Pre-engine_request_http")
 
     if (!this.child) {
       throw new Error(`Can't perform request, as the Engine has already been stopped`)
     }
+
+    collectTimestamps && collectTimestamps.record("Pre-engine_request_http_got")
     this.currentRequestPromise = got.post(this.url, {
       json: true,
       headers: {
@@ -515,8 +521,18 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       agent: this.keepaliveAgent,
     })
 
+    collectTimestamps && collectTimestamps.record("Post-engine_request_http_got")
+
     return this.currentRequestPromise
-      .then(({ body }) => {
+      .then(({ body, headers }) => {
+        collectTimestamps && collectTimestamps.record("Post-engine_request_http")
+
+        if (collectTimestamps && headers['x-elapsed']) {
+          // Convert from microseconds to miliseconds
+          const timeElapsedInRust = parseInt(headers['x-elapsed']) / 1e3
+          collectTimestamps.addResults({ 'rustEngine': timeElapsedInRust })
+        }
+
         const errors = body.error || body.errors
         if (errors) {
           return this.handleErrors({
@@ -527,6 +543,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         return body.data
       })
       .catch(error => {
+        collectTimestamps && collectTimestamps.record("Post-engine_request_http")
         debug({ error })
         if (this.currentRequestPromise.isCanceled && this.lastError) {
           throw new PhotonError(this.lastError)
