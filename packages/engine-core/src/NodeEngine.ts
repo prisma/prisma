@@ -354,6 +354,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             this.lastErrorLog.target = 'exit'
             return
           }
+          if (this.lastError) {
+            return
+          }
           if (code === 126) {
             this.lastErrorLog = {
               timestamp: new Date(),
