@@ -22,3 +22,5 @@ generator-build
 getConfig.sh
 migrations
 /schema.prisma
+index.js
+index.d.ts
