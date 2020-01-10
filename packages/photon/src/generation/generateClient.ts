@@ -238,11 +238,13 @@ export async function generateClient({
     )
   }
 
-  for (const filePath of Object.values(binaryPaths.queryEngine)) {
-    const fileName = path.basename(filePath)
-    const target = path.join(outputDir, 'runtime', fileName)
-    debug(`Copying ${filePath} to ${target}`)
-    await copyFile(filePath, target)
+  if (transpile) {
+    for (const filePath of Object.values(binaryPaths.queryEngine)) {
+      const fileName = path.basename(filePath)
+      const target = path.join(outputDir, 'runtime', fileName)
+      debug(`Copying ${filePath} to ${target}`)
+      await copyFile(filePath, target)
+    }
   }
 
   const datamodelTargetPath = path.join(outputDir, 'schema.prisma')
@@ -250,7 +252,9 @@ export async function generateClient({
     await copyFile(datamodelPath, datamodelTargetPath)
   }
 
-  await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)
+  if (transpile) {
+    await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)
+  }
 
   return { photonDmmf, fileMap }
 }

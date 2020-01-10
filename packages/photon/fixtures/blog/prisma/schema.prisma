@@ -5,6 +5,7 @@ datasource db {
 
 generator photon {
   provider = "photonjs"
+  output   = "@generated/photon"
 }
 
 model User {
