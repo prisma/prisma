@@ -58,7 +58,7 @@ You can leave out back-relations in many cases. The Prisma Framework then interp
   - If you leave out the back-relation field on a relation where the other end has a _non-list relation field_, this will be interpreted as a 1:n relation. This means that the missing back-relation field is implied to be a _list_.
   - If you leave out the back-relation field on a relation where the other end has a _list relation field_, this will be interpreted as a 1:n relation. This means that the missing back-relation field is implied to be a _single value_ (i.e. not a _list_).
 
-> **Note**: This behaviour might change soon and relations might always be required to be explicit on both sides. Follow the [spec](https://github.com/prisma/specs/blob/remove/implicit/schema/Readme.md#relations) for more info.
+> **Note**: This behaviour might change soon and relations might always be required to be explicit on both sides. Follow the [spec](https://github.com/prisma/specs/tree/master/schema#relations) for more info.
 
 ## The `@relation` attribute
 
