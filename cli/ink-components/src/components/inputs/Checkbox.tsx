@@ -2,7 +2,7 @@ import { Box, BoxProps, Color } from 'ink'
 import React, { useState, useContext, useEffect } from 'react'
 import { TabIndexContext } from '../TabIndex'
 import { Key } from 'readline'
-import figures = require('figures')
+import figures from 'figures'
 
 interface Props extends BoxProps {
   label: string
