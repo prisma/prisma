@@ -399,7 +399,7 @@ type LogEvent = {
 }
 /* End Types for Logging */
 
-export class Photon<T extends PhotonOptions, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
+export class Photon<T extends PhotonOptions = {}, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
   private fetcher: PhotonFetcher
   private readonly dmmf: DMMFClass
   private connectionPromise?: Promise<any>
