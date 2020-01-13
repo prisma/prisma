@@ -39,7 +39,7 @@ function getSubDirs(dir: string): string[] {
 function compileFile(filePath: string): void {
   const options: CompilerOptions = {
     module: ModuleKind.CommonJS,
-    target: ScriptTarget.ES2016,
+    target: ScriptTarget.ES2018,
     lib: ['lib.esnext.d.ts', 'lib.dom.d.ts'],
     declaration: true,
     strict: true,
