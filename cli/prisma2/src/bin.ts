@@ -110,7 +110,7 @@ async function main(): Promise<number> {
     console.error(
       `\n${chalk.blue('Update available')} ${packageJson.version} -> ${
         checkResult.data.current_version
-      }\nRun ${chalk.bold(checkResult.data.current_download_url)} to update`,
+      }\nRun ${chalk.bold(checkResult.data.install_command)} to update`,
     )
   }
 
