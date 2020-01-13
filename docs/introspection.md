@@ -21,26 +21,13 @@ This is [not yet supported by Prisma](https://github.com/prisma/prisma2/issues/8
 
 As database schemas are likely to look very different per project, Prisma employs a number of conventions for translating a database schema into a data model definition.
 
-### Models
+### Sanitization
 
-- Tables/collections names are normalized to [PascalCasing](http://wiki.c2.com/?PascalCase) (camelCase with uppercase initial letter) in the Prisma schema.
-- Tables/collections named in ALL UPPERCASE letters, will remain ALL UPPERCASED in the Prisma schema.
-- If a normalized model name conflicts with the name of another model or scalar, normalization is skipped.
+- Field, model and enum names (identifiers) have to start with a letter and can only contain `_`, letters and digits.
+- If invalid characters appear before a letter in an identifier, they get dropped. If they appear after an initial letter, they are replaced by an underscorce. Plus you get `@map` or `@@map` to retain the original one.
+- If sanitization results in duplicate identifiers, no immediate error handling is in place. You get the error later and can manually fix it.
+- Relation names: Models A and B -> `AToB`. For two relations between models A and B -> `A_FieldWithFKToB` to disambiguate. 
+- Back-relation field:
+  - on the other side of the relation: Name of the opposing model + gets camelCases, if list field (FK field has unique constraint), gets pluralized.
+  - if back-relation fields are ambiguous, the relation name is appended to both.
 
-### Field names
-
-- Tables/collections names are normalized to [camelCasing](http://wiki.c2.com/?CamelCase) in the Prisma schema.
-- Columns/fields named in ALL UPPERCASE letters, will remain ALL UPPERCASED in the Prisma schema.
-- If a normalized field with the same normalized name already exists, normalization is skipped.
-
-### Embedded types
-
-- Name is set to parent type name + uppercased field name (field which is referencing the type)
-
-### Relations
-
-- Relation names (for ambiguous back relations) are generated as follows: `${parentType.name}${capitalize(field.name)}To${field.type.name}${capitalize(field.relatedField.name)}`.
-
-### Keeping manual changes in the Prisma schemas
-
-In the TS implementation, the data model that's generated from an introspection is merged with the existing data model, and the naming in the existing data model always takes precedence. Matching fields (in case fields were renamed) are identified by _name_, _id property_ and _relation type_, in that order.
