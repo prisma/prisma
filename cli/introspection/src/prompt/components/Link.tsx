@@ -1,7 +1,7 @@
 import { Box, Color } from 'ink'
 import React, { useContext, useEffect, useState } from 'react'
 import { BACK_SYMBOL } from '../utils/helpers'
-import figures = require('figures')
+import figures from 'figures'
 import { TabIndexContext } from '@prisma/ink-components'
 import { Key } from 'readline'
 import { RouterContext } from './Router'
