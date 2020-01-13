@@ -19,15 +19,11 @@ This is [not yet supported by Prisma](https://github.com/prisma/prisma2/issues/8
 
 ## Conventions
 
-As database schemas are likely to look very different per project, Prisma employs a number of conventions for translating a database schema into a data model definition.
+As database schemas are likely to look very different per project, Prisma employs a number of conventions for translating a database schema into a data model definition:
 
-### Sanitization
-
-- Field, model and enum names (identifiers) have to start with a letter and can only contain `_`, letters and digits.
-- If invalid characters appear before a letter in an identifier, they get dropped. If they appear after an initial letter, they are replaced by an underscorce. Plus you get `@map` or `@@map` to retain the original one.
+- Field, model and enum names (identifiers) must start with a letter and generally must only contain underscores, letters and digits.
+- If invalid characters appear before a letter in an identifier, they get dropped. If they appear after the initial letter, they are replaced by an underscorce. Additionally, the transformed name is mapped to the database using `@map` or `@@map` to retain the original name.
 - If sanitization results in duplicate identifiers, no immediate error handling is in place. You get the error later and can manually fix it.
-- Relation names: Models A and B -> `AToB`. For two relations between models A and B -> `A_FieldWithFKToB` to disambiguate. 
-- Back-relation field:
-  - on the other side of the relation: Name of the opposing model + gets camelCases, if list field (FK field has unique constraint), gets pluralized.
-  - if back-relation fields are ambiguous, the relation name is appended to both.
+- Relation names for a relation between models A and B are generated as `AToB` (the model that comes first in alphabetical order also appears first in the generated relation name). If relation names turn out to be ambiguous because there is more than one relation between models `A` and `B`, the field name of the column that holds the foreign key is appended to the model name after an underscore to disambiguate, e.g.: `A_FieldWithFKToB`. 
+- The name of the back-relation field is based on the opposing model. It gets camel cases by defauld and pluralized (unless the column with the foreign key also has a unique constraint). If back-relation fields are ambiguous, the relation name is appended to disambiguate.
 
