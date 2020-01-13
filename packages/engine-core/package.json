@@ -7,7 +7,6 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@prisma/fetch-engine": "workspace:*",
-    "@types/got": "^9.6.9",
     "@types/jest": "24.0.22",
     "@types/node": "12.12.7",
     "del-cli": "^3.0.0",
@@ -28,7 +27,7 @@
     "chalk": "^3.0.0",
     "cross-fetch": "^3.0.4",
     "debug": "^4.1.1",
-    "got": "9.6.0",
+    "got": "^10.2.2",
     "indent-string": "^4.0.0"
   },
   "files": [
