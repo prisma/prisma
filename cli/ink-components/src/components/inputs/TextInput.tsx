@@ -4,7 +4,7 @@ import { InkTextInput } from './InkTextInput'
 import { TabIndexContext } from '../TabIndex'
 import { Key } from 'readline'
 import { ActionKey } from '../../helpers'
-import figures = require('figures')
+import figures from 'figures'
 
 interface TextInputProps {
   label: string
