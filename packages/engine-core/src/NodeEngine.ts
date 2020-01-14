@@ -33,6 +33,8 @@ export interface EngineConfig {
   generator?: GeneratorConfig
   datasources?: DatasourceOverwrite[]
   showColors?: boolean
+  logQueries?: boolean
+  logLevel?: 'info' | 'warn'
 }
 
 /**
@@ -53,6 +55,8 @@ export class NodeEngine extends Engine {
   private logEmitter: EventEmitter
   private showColors: boolean
   private keepaliveAgent: HttpAgent
+  private logQueries: boolean
+  private logLevel?: 'info' | 'warn'
   port?: number
   debug: boolean
   child?: ChildProcessWithoutNullStreams
@@ -80,7 +84,17 @@ export class NodeEngine extends Engine {
   lastErrorLog?: RustLog
   lastError?: RustError
   startPromise?: Promise<any>
-  constructor({ cwd, datamodelPath, prismaPath, generator, datasources, showColors, ...args }: EngineConfig) {
+  constructor({
+    cwd,
+    datamodelPath,
+    prismaPath,
+    generator,
+    datasources,
+    showColors,
+    logLevel,
+    logQueries,
+    ...args
+  }: EngineConfig) {
     super()
     this.cwd = this.resolveCwd(cwd)
     this.debug = args.debug || false
@@ -96,16 +110,16 @@ export class NodeEngine extends Engine {
       timeout: 60000, // active socket keepalive for 60 seconds
       freeSocketTimeout: 30000, // free socket keepalive for 30 seconds
     })
+    this.logLevel = logLevel
+    this.logQueries = logQueries || false
 
-    this.logEmitter.on('log', (log: RustLog) => {
+    this.logEmitter.on('error', (log: RustLog) => {
       if (this.debug) {
         debugLib('engine:log')(log)
       }
-      if (log.level === 'ERROR') {
-        this.lastErrorLog = log
-        if (log.fields.message === 'PANIC') {
-          this.handlePanic(log)
-        }
+      this.lastErrorLog = log
+      if (log.fields.message === 'PANIC') {
+        this.handlePanic(log)
       }
     })
 
@@ -136,7 +150,7 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
     return process.cwd()
   }
 
-  on(event: 'log', listener: (log: Log) => any) {
+  on(event: 'query' | 'info' | 'warn', listener: (log: Log) => any) {
     this.logEmitter.on(event, listener)
   }
 
@@ -297,7 +311,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           PORT: String(this.port),
           RUST_BACKTRACE: '1',
           RUST_LOG: 'info',
-          LOG_QUERIES: 'true',
+          ...(this.logLevel ? (this.logLevel === 'info' ? { RUST_LOG: 'info' } : { RUST_LOG: 'warn' }) : {}),
+          ...(this.logQueries ? { LOG_QUERIES: 'true' } : {}),
           ...(process.env.NO_COLOR || !this.showColors ? {} : { CLICOLOR_FORCE: '1' }),
         }
 
@@ -316,7 +331,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             ...env,
           },
           cwd: this.cwd,
-          stdio: ['pipe', 'pipe', 'pipe'],
+          stdio: ['pipe', this.logLevel && this.logQueries ? 'pipe' : 'ignore', 'pipe'],
         })
 
         this.child.stderr.on('data', msg => {
@@ -339,7 +354,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             const json = JSON.parse(data)
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
-              this.logEmitter.emit('log', log)
+              if (log?.fields?.message?.startsWith('query: ')) {
+                this.logEmitter.emit('query', log)
+              } else {
+                this.logEmitter.emit(log.level, log)
+              }
             }
           } catch (e) {
             // debug(e, data)
@@ -361,7 +380,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             this.lastErrorLog = {
               timestamp: new Date(),
               target: 'exit',
-              level: 'ERROR',
+              level: 'error',
               fields: {
                 message: `Couldn't start query engine as it's not executable on this operating system.
 You very likely have the wrong "binaryTarget" defined in the schema.prisma file.`,
@@ -371,7 +390,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             this.lastErrorLog = {
               target: 'exit',
               timestamp: new Date(),
-              level: 'ERROR',
+              level: 'error',
               fields: {
                 message: (this.stderrLogs || '') + (this.stdoutLogs || '') + code,
               },
@@ -507,17 +526,17 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async request<T>(query: string, collectTimestamps: any): Promise<T> {
-    collectTimestamps && collectTimestamps.record("Pre-engine_request_start")
+    collectTimestamps && collectTimestamps.record('Pre-engine_request_start')
     await this.start()
-    collectTimestamps && collectTimestamps.record("Post-engine_request_start")
+    collectTimestamps && collectTimestamps.record('Post-engine_request_start')
 
-    collectTimestamps && collectTimestamps.record("Pre-engine_request_http")
+    collectTimestamps && collectTimestamps.record('Pre-engine_request_http')
 
     if (!this.child) {
       throw new Error(`Can't perform request, as the Engine has already been stopped`)
     }
 
-    collectTimestamps && collectTimestamps.record("Pre-engine_request_http_got")
+    collectTimestamps && collectTimestamps.record('Pre-engine_request_http_got')
     this.currentRequestPromise = got.post(this.url, {
       json: true,
       headers: {
@@ -527,16 +546,16 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       agent: this.keepaliveAgent,
     })
 
-    collectTimestamps && collectTimestamps.record("Post-engine_request_http_got")
+    collectTimestamps && collectTimestamps.record('Post-engine_request_http_got')
 
     return this.currentRequestPromise
       .then(({ body, headers }) => {
-        collectTimestamps && collectTimestamps.record("Post-engine_request_http")
+        collectTimestamps && collectTimestamps.record('Post-engine_request_http')
 
         if (collectTimestamps && headers['x-elapsed']) {
           // Convert from microseconds to miliseconds
           const timeElapsedInRust = parseInt(headers['x-elapsed']) / 1e3
-          collectTimestamps.addResults({ 'rustEngine': timeElapsedInRust })
+          collectTimestamps.addResults({ rustEngine: timeElapsedInRust })
         }
 
         const errors = body.error || body.errors
@@ -549,7 +568,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         return body.data
       })
       .catch(error => {
-        collectTimestamps && collectTimestamps.record("Post-engine_request_http")
+        collectTimestamps && collectTimestamps.record('Post-engine_request_http')
         debug({ error })
         if (this.currentRequestPromise.isCanceled && this.lastError) {
           throw new PhotonError(this.lastError)

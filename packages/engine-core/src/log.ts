@@ -1,4 +1,4 @@
-export type LogLevel = 'INFO' | 'TRACE' | 'DEBUG' | 'WARN' | 'ERROR'
+export type LogLevel = 'info' | 'trace' | 'debug' | 'warn' | 'error'
 
 // export interface RustLog {
 //   msg: string
@@ -59,6 +59,7 @@ export interface Log {
 export function convertLog(rustLog: RawRustLog): RustLog {
   return {
     ...rustLog,
+    level: rustLog.level.toLowerCase() as LogLevel,
     timestamp: new Date(rustLog.timestamp),
   }
 }

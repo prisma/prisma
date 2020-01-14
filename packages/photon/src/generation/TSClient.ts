@@ -191,7 +191,7 @@ class CollectTimestamps {
     }, {})
 
     Object.assign(results, {
-      total: this.elapsed(this.start.value, this.records[this.records.length - 1].value),
+      total: this.elapsed(this.start!.value, this.records[this.records.length - 1].value),
       ...this.additionalResults
     })
 
@@ -399,6 +399,27 @@ type LogEvent = {
 }
 /* End Types for Logging */
 
+// tested in getLogLevel.test.ts
+export function getLogLevel(
+  log: Array<LogLevel | LogDefinition>,
+): LogLevel | undefined {
+  return log.reduce<LogLevel | undefined>((acc, curr) => {
+    const currentLevel = typeof curr === 'string' ? curr : curr.level
+    if (currentLevel === 'query') {
+      return acc
+    }
+    if (!acc) {
+      return currentLevel
+    }
+    if (curr === 'info' || acc === 'info') {
+      // info always has precedence
+      return 'info'
+    }
+    return currentLevel
+  }, undefined)
+}
+
+
 export class Photon<T extends PhotonOptions = {}, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
   private fetcher: PhotonFetcher
   private readonly dmmf: DMMFClass
@@ -456,8 +477,12 @@ export class Photon<T extends PhotonOptions = {}, U = keyof T extends 'log' ? T[
       generator: ${
         this.generator ? JSON.stringify(this.generator) : 'undefined'
       },
-      showColors: this.errorFormat === 'pretty'
+      showColors: this.errorFormat === 'pretty',
+      logLevel: options.log && getLogLevel(options.log),
+      logQueries: options.log && Boolean(options.log.find(o => typeof o === 'string' ? o === 'query' : o.level === 'query'))
     }
+
+    debug({ engineConfig: this.engineConfig })
 
     this.engine = new Engine(this.engineConfig)
 
@@ -466,9 +491,7 @@ export class Photon<T extends PhotonOptions = {}, U = keyof T extends 'log' ? T[
     this.fetcher = new PhotonFetcher(this, false, internal.hooks)
   }
   on<V extends U>(eventType: V, callback: V extends never ? never : (event: V extends 'query' ? QueryEvent : LogEvent) => void) {
-    setTimeout(() => {
-      callback({eventType} as any)
-    }, 1000)
+    this.engine.on(eventType as any, callback as any)
   }
   async connect(): Promise<void> {
     if (this.disconnectionPromise) {
