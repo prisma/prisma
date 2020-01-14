@@ -492,6 +492,17 @@ export class Photon<T extends PhotonOptions = {}, U = keyof T extends 'log' ? T[
     this.dmmf = new DMMFClass(dmmf)
 
     this.fetcher = new PhotonFetcher(this, false, internal.hooks)
+
+    if (options.log) {
+      for (const log of options.log) {
+        const level = typeof log === 'string' ? log : log.emit === 'stdout' ? log.level : null
+        if (level) {
+          this.on(level as any, (event: any) => {
+            console.error(event.timestamp.toISOString() + ' Photon  ' + (event.message || event.query))
+          })
+        }
+      }
+    }
   }
   on<V extends U>(eventType: V, callback: V extends never ? never : (event: V extends 'query' ? QueryEvent : LogEvent) => void) {
     this.engine.on(eventType as any, event => {
