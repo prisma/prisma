@@ -378,24 +378,27 @@ export type Hooks = {
 }
 
 /* Types for Logging */
-type LogLevel = 'info' | 'query' | 'warn'
-type LogDefinition = {
+export type LogLevel = 'info' | 'query' | 'warn'
+export type LogDefinition = {
   level: LogLevel
   emit: 'stdout' | 'event'
 }
 
-type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
-type GetEvents<T extends Array<LogLevel | LogDefinition>> = GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]>
+export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
+export type GetEvents<T extends Array<LogLevel | LogDefinition>> = GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]>
 
-type QueryEvent = {
-  timestamp: number
+export type QueryEvent = {
+  timestamp: Date
   query: string
-  args: any
+  params: string
+  duration: number
+  target: string
 }
 
-type LogEvent = {
-  timestamp: number
+export type LogEvent = {
+  timestamp: Date
   message: string
+  target: string
 }
 /* End Types for Logging */
 
@@ -491,7 +494,24 @@ export class Photon<T extends PhotonOptions = {}, U = keyof T extends 'log' ? T[
     this.fetcher = new PhotonFetcher(this, false, internal.hooks)
   }
   on<V extends U>(eventType: V, callback: V extends never ? never : (event: V extends 'query' ? QueryEvent : LogEvent) => void) {
-    this.engine.on(eventType as any, callback as any)
+    this.engine.on(eventType as any, event => {
+      const fields: any = event.fields
+      if ((eventType as any) === 'query') {
+        callback({
+          timestamp: event.timestamp,
+          query: fields.query,
+          params: fields.params,
+          duration: fields.duration_ms,
+          target: event.target
+        } as any)
+      } else { // warn or info events
+        callback({
+          timestamp: event.timestamp,
+          message: fields.message,
+          target: event.target
+        } as any)
+      }
+    })
   }
   async connect(): Promise<void> {
     if (this.disconnectionPromise) {

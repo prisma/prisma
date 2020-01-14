@@ -150,7 +150,7 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
     return process.cwd()
   }
 
-  on(event: 'query' | 'info' | 'warn', listener: (log: Log) => any) {
+  on(event: 'query' | 'info' | 'warn', listener: (log: RustLog) => any) {
     this.logEmitter.on(event, listener)
   }
 
@@ -354,11 +354,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             const json = JSON.parse(data)
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
-              if (log?.fields?.message?.startsWith('query: ')) {
-                this.logEmitter.emit('query', log)
-              } else {
-                this.logEmitter.emit(log.level, log)
-              }
+              this.logEmitter.emit(log.level, log)
             }
           } catch (e) {
             // debug(e, data)

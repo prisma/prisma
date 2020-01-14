@@ -17,7 +17,6 @@ async function main() {
   })
 
   const users = await photon.users()
-  console.log(users.length)
 
   // console.log(users)
 }
