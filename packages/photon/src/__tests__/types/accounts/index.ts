@@ -55,6 +55,14 @@ async function main() {
       },
     },
   })
+
+  const x = await photon.userTests.findMany({
+    where: {
+      role: {
+        equals: 'ADMIN',
+      },
+    },
+  })
 }
 
 main().catch(e => {
