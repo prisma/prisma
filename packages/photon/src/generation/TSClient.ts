@@ -191,7 +191,7 @@ class CollectTimestamps {
     }, {})
 
     Object.assign(results, {
-      total: this.elapsed(this.start.value, this.records[this.records.length - 1].value),
+      total: this.elapsed(this.start!.value, this.records[this.records.length - 1].value),
       ...this.additionalResults
     })
 

@@ -23,3 +23,5 @@ getConfig.sh
 migrations
 /schema.prisma
 index.d.ts
+/dmmf.json
+try-getDmmf.ts
