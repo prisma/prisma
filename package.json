@@ -33,10 +33,10 @@
     "pkg-up": "3.1.0",
     "prettier": "^1.19.1",
     "react": "16.11.0",
-    "ts-jest": "^24.2.0",
+    "ts-jest": "^24.3.0",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.4"
   },
   "peerDependencies": {
     "@prisma/cli": "*",
@@ -50,8 +50,8 @@
     "@prisma/ink-components": "workspace:*",
     "@prisma/studio-server": "0.170.0",
     "@types/execa": "2.0.0",
-    "adm-zip": "0.4.13",
     "ansi-escapes": "4.2.1",
+    "archiver": "^3.1.1",
     "cli-cursor": "3.1.0",
     "cli-truncate": "2.0.0",
     "dashify": "2.0.0",
@@ -79,7 +79,8 @@
     "string-width": "4.2.0",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
-    "supports-hyperlinks": "2.0.0"
+    "supports-hyperlinks": "2.0.0",
+    "tmp": "^0.1.0"
   },
   "scripts": {
     "install": "node scripts/download.js",
