@@ -311,13 +311,25 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           PORT: String(this.port),
           RUST_BACKTRACE: '1',
           RUST_LOG: 'info',
-          ...(this.logLevel ? (this.logLevel === 'info' ? { RUST_LOG: 'info' } : { RUST_LOG: 'warn' }) : {}),
-          ...(this.logQueries ? { LOG_QUERIES: 'true' } : {}),
-          ...(process.env.NO_COLOR || !this.showColors ? {} : { CLICOLOR_FORCE: '1' }),
+        }
+
+        if (this.logQueries || this.logLevel === 'info') {
+          env.RUST_LOG = 'info'
+          if (this.logQueries) {
+            env.LOG_QUERIES = 'true'
+          }
+        }
+
+        if (this.logLevel === 'warn') {
+          env.RUST_LOG = 'warn'
         }
 
         if (this.datasources) {
           env.OVERWRITE_DATASOURCES = this.printDatasources()
+        }
+
+        if (!process.env.NO_COLOR && this.showColors) {
+          env.CLICOLOR_FORCE = '1'
         }
 
         debug(env)
