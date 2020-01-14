@@ -1,5 +1,5 @@
 import { getPlatform } from '@prisma/get-platform'
-import AdmZip from 'adm-zip'
+import archiver from 'archiver'
 import crypto from 'crypto'
 import Debug from 'debug'
 import fs from 'fs'
@@ -8,10 +8,14 @@ import fetch from 'node-fetch'
 import os from 'os'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
+import tmp from 'tmp'
 import { LiftPanic } from '../LiftEngine'
 import { getProxyAgent } from './getProxyAgent'
 import { maskSchema } from './maskSchema'
+
 const debug = Debug('sendPanic')
+// cleanup the temporary files even when an uncaught exception occurs
+tmp.setGracefulCleanup()
 
 export async function sendPanic(error: LiftPanic, cliVersion: string, binaryVersion: string): Promise<number | void> {
   try {
@@ -55,12 +59,14 @@ async function uploadZip(zip: Buffer, url: string) {
 }
 
 async function makeErrorZip(error: LiftPanic): Promise<Buffer> {
-  const schema = fs.readFileSync(error.schemaPath, 'utf-8')
-  const maskedSchema = maskSchema(schema)
-  const zip = new AdmZip()
-  zip.addFile('schema.prisma', Buffer.alloc(maskedSchema.length, maskedSchema))
-
   const schemaDir = path.dirname(error.schemaPath)
+  const tmpFileObj = tmp.fileSync()
+  const outputFile = fs.createWriteStream(tmpFileObj.name);
+  const zip = archiver('zip', { zlib: { level: 9 } })
+
+  zip.pipe(outputFile);
+
+  zip.append(fs.createReadStream('schema.prisma'), { name: 'schema.prisma' })
 
   if (fs.existsSync(schemaDir)) {
     const filePaths = await globby('migrations/**/*', {
@@ -72,12 +78,21 @@ async function makeErrorZip(error: LiftPanic): Promise<Buffer> {
       if (filePath.endsWith('schema.prisma')) {
         file = maskSchema(file)
       }
-      zip.addFile(filePath, Buffer.alloc(file.length, file))
+      zip.append(file, { name: path.basename(filePath) })
     }
   }
 
-  return new Promise(resolve => {
-    zip.toBuffer(resolve)
+  zip.finalize()
+
+  return new Promise((resolve, reject) => {
+    outputFile.on('close', () => {
+      const buffer = fs.readFileSync(tmpFileObj.name)
+      resolve(buffer)
+    })
+
+    zip.on('error', err => {
+      reject(err)
+    })
   })
 }
 
