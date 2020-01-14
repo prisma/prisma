@@ -1,4 +1,4 @@
-export type LogLevel = 'info' | 'trace' | 'debug' | 'warn' | 'error'
+export type LogLevel = 'info' | 'trace' | 'debug' | 'warn' | 'error' | 'query'
 
 // export interface RustLog {
 //   msg: string
@@ -48,6 +48,13 @@ export interface InfoLogFields {
   'log.line': number
 }
 
+export interface QueryLogFields {
+  query: string
+  item_type: string
+  params: string
+  duration_ms: number
+}
+
 export interface Log {
   message: string
   level: LogLevel
@@ -57,9 +64,15 @@ export interface Log {
 }
 
 export function convertLog(rustLog: RawRustLog): RustLog {
+  const isQuery = isQueryLog(rustLog.fields)
+  const level: LogLevel = isQuery ? 'query' : (rustLog.level.toLowerCase() as LogLevel)
   return {
     ...rustLog,
-    level: rustLog.level.toLowerCase() as LogLevel,
-    timestamp: new Date(rustLog.timestamp),
+    level,
+    timestamp: new Date(new Date().getFullYear() + ' ' + rustLog.timestamp),
   }
+}
+
+function isQueryLog(fields: any): fields is QueryLogFields {
+  return Boolean(fields.query)
 }
