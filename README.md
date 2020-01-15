@@ -45,7 +45,6 @@ The interactive prompt will ask you to provide database credentials for your dat
 - [Data modeling](./docs/data-modeling.md)
 - [Relations](./docs/relations.md)
 - [Prisma Framework CLI](./docs/prisma2-cli.md)
-- [Development mode](./docs/development-mode.md)
 - [Introspection](./docs/introspection.md)
 - [Limitations](./docs/limitations.md)
 - [Core](./docs/core)

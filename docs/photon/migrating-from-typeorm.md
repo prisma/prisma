@@ -142,12 +142,12 @@ model PostCategoriesCategory {
 Now in your terminal, type:
 
 ```
-npx prisma2 dev
+npx migrate save
+npx migrate up
+npx prisma2 generate
 ```
 
-This launches the [development mode](https://github.com/prisma/prisma2/blob/master/docs/development-mode.md) and creates a [Prisma Studio](https://github.com/prisma/studio) endpoint for you.  Go to the endpoint (i.e. http://localhost:5555 ) and explore the generated Prisma schema visually in your browser. 
-
-![](https://i.imgur.com/nnnfql9r.png)
+Note that you'll need to re-execute `prisma2 generate` whenever you make changes to your [Prisma schema](../prisma-schema-file.md).
 
 ## 2. Specifying the data source
 
