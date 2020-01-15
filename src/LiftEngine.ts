@@ -221,8 +221,8 @@ export class LiftEngine {
           resolve(response.result)
         } else {
           if (response.error) {
-            if (response.error.data && response.error.data.error && response.error.data.code) {
-              reject(new EngineError(response.error.data.error, response.error.data.code))
+            if (response.error.data && response.error.data.message) {
+              reject(new LiftPanic(response.message, response.error.data.message, this.lastRequest, this.schemaPath));
             } else {
               const text = this.persistError(request, this.messages.join('\n'))
               reject(

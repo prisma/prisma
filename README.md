@@ -63,7 +63,7 @@ Specify the connection details for your database as a _data source_ in your [Pri
 
 Here is an example project file that connects to a local PostgreSQL database:
 
-```groovy
+```prisma
 // schema.prisma
 
 datasource postgres {
@@ -80,7 +80,7 @@ generator photonjs {
 
 The [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Here is the project file from above extended with a sample data model:
 
-```groovy
+```prisma
 // schema.prisma
 
 datasource postgres {
