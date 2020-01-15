@@ -21,7 +21,7 @@ While each tool can be used standalone (in both [_greenfield_ and _brownfield_ p
 
 ## Getting started
 
-The easiest way to get started with [Photon](https://github.com/prisma/prisma-client-js) and/or [Lift](https://github.com/prisma/lift) is by using the `init` command of the `prisma2` CLI via [npx](https://github.com/npm/npx):
+The easiest way to get started with [Prisma Client JS](https://github.com/prisma/prisma-client-js) and/or [Lift](https://github.com/prisma/lift) is by using the `init` command of the `prisma2` CLI via [npx](https://github.com/npm/npx):
 
 ```
 npx prisma2 init hello-prisma
@@ -73,4 +73,3 @@ Read more about how to contribute to the Prisma Framework [here](https://github.
 [![Build status](https://badge.buildkite.com/590e1981074b70961362481ad8319a831b44a38c5d468d6408.svg)](https://buildkite.com/prisma/prisma2-test)
 
  [![Actions Status](https://github.com/prisma/prisma2-e2e-tests/workflows/test/badge.svg)](https://github.com/prisma/prisma2-e2e-tests/actions)
-
