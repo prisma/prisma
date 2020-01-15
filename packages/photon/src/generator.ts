@@ -3,15 +3,14 @@
 import { generatorHandler } from '@prisma/generator-helper'
 import Debug from 'debug'
 import { generateClient } from './generation/generateClient'
-const debug = Debug('photon:generator')
-const debugEnabled = Debug.enabled('photon:generator')
+const debugEnabled = Debug.enabled('prisma-client:generator')
 
 // As specced in https://github.com/prisma/specs/tree/master/generators
 
 generatorHandler({
   onManifest() {
     return {
-      defaultOutput: '@prisma/photon', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma2/blob/master/cli/sdk/src/getGenerators.ts
+      defaultOutput: '@prisma/client', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma2/blob/master/cli/sdk/src/getGenerators.ts
       denylists: {
         models: [
           'Enumerable',
@@ -31,14 +30,14 @@ generatorHandler({
           'NullableIntFilter',
           'NullableBooleanFilter',
           'NullableDateTimeFilter',
-          'PhotonFetcher',
-          'Photon',
+          'PrismaClientFetcher',
+          'PrismaClient',
           'Engine',
-          'PhotonOptions',
+          'PrismaClientOptions',
         ],
         fields: ['AND', 'OR', 'NOT'],
       },
-      prettyName: 'Photon.js',
+      prettyName: 'Prisma Client',
       requiresEngines: ['queryEngine'],
       version: require('../package.json').version,
     }

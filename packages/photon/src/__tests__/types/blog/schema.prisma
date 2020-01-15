@@ -4,9 +4,9 @@ datasource db {
   default  = true
 }
 
-generator photon {
-  provider = "photonjs"
-  output   = "@generated/photon"
+generator client {
+  provider = "prisma-client-js"
+  output   = "@generated/client"
 }
 
 /// User model comment

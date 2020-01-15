@@ -7,11 +7,14 @@ jest.setTimeout(30000)
 
 describe('generator', () => {
   test('minimal', async () => {
-    const photonTarget = path.join(__dirname, './node_modules/@prisma/photon')
-    await getPackedPackage('@prisma/photon', photonTarget)
+    const prismaClientTarget = path.join(
+      __dirname,
+      './node_modules/@prisma/client',
+    )
+    await getPackedPackage('@prisma/client', prismaClientTarget)
 
-    if (!fs.existsSync(photonTarget)) {
-      throw new Error(`Photon didn't get packed properly 🤔`)
+    if (!fs.existsSync(prismaClientTarget)) {
+      throw new Error(`Prisma Client didn't get packed properly 🤔`)
     }
 
     const generator = await getGenerator({
@@ -25,7 +28,7 @@ describe('generator', () => {
       omit<any, any>(generator.manifest, ['version']),
     ).toMatchInlineSnapshot(`
       Object {
-        "defaultOutput": "@prisma/photon",
+        "defaultOutput": "@prisma/client",
         "denylists": Object {
           "fields": Array [
             "AND",
@@ -50,13 +53,13 @@ describe('generator', () => {
             "NullableIntFilter",
             "NullableBooleanFilter",
             "NullableDateTimeFilter",
-            "PhotonFetcher",
-            "Photon",
+            "PrismaClientFetcher",
+            "PrismaClient",
             "Engine",
-            "PhotonOptions",
+            "PrismaClientOptions",
           ],
         },
-        "prettyName": "Photon.js",
+        "prettyName": "Prisma Client",
         "requiresEngines": Array [
           "queryEngine",
         ],
@@ -78,7 +81,7 @@ describe('generator', () => {
     ).toMatchInlineSnapshot(`"node_modules/@prisma/photon"`)
 
     await generator.generate()
-    const photonDir = path.join(__dirname, 'node_modules/@prisma/photon')
+    const photonDir = path.join(__dirname, 'node_modules/@prisma/client')
     expect(fs.existsSync(photonDir)).toBe(true)
     expect(fs.existsSync(path.join(photonDir, 'index.js'))).toBe(true)
     expect(fs.existsSync(path.join(photonDir, 'index.d.ts'))).toBe(true)
@@ -102,8 +105,8 @@ describe('generator', () => {
           config: {
             inMemory: 'true',
           },
-          name: 'photon',
-          provider: 'photonjs',
+          name: 'client',
+          provider: 'prisma-client-js',
           output: null,
         },
       ],

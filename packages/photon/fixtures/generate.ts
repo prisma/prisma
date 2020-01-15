@@ -29,7 +29,7 @@ async function main() {
   })
 
   console.log(
-    `Generated Photon ${chalk.underline(
+    `Generated Prisma Client ${chalk.underline(
       useLocalRuntime ? 'with' : 'without',
     )} local runtime in ${time.toFixed(3)}ms`,
   )

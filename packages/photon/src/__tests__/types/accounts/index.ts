@@ -1,16 +1,16 @@
-import { Photon, RandomModel, AccountData } from '@prisma/photon'
+import { PrismaClient, RandomModel, AccountData } from '@prisma/client'
 
 // tslint:disable
 
 // This file will not be executed, just compiled to check if the typings are valid
 async function main() {
-  const photon = new Photon()
+  const prisma = new PrismaClient()
 
   const globalConfig: {
     accounts: {
       id: string
     }[]
-  } | null = await photon.globalConfigurations.findOne({
+  } | null = await prisma.globalConfigurations.findOne({
     where: {
       id: '',
     },
@@ -33,7 +33,7 @@ async function main() {
         }
       }[]
     }
-  } | null = await photon.userTests.findOne({
+  } | null = await prisma.userTests.findOne({
     where: {
       id: 'Example',
     },
@@ -56,7 +56,7 @@ async function main() {
     },
   })
 
-  const x = await photon.userTests.findMany({
+  const x = await prisma.userTests.findMany({
     where: {
       role: {
         equals: 'ADMIN',
