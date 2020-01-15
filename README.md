@@ -117,7 +117,7 @@ main().catch(e => {
 
 <Details><Summary>Expand to the view the <strong>data model</strong> based on which the above Photon API was generated</Summary>
 
-```groovy
+```prisma
 datasource ds {
   // some data source config, e.g. SQLite, PostgreSQL, ...
 }
@@ -162,7 +162,7 @@ Specify the connection details for your database as a _data source_ in your [Pri
 
 Here is an example schema file that connects to a local PostgreSQL database:
 
-```groovy
+```prisma
 // schema.prisma
 
 datasource postgres {
@@ -179,7 +179,7 @@ generator photonjs {
 
 The [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Here is the schema file from above extended with a sample data model:
 
-```groovy
+```prisma
 // schema.prisma
 
 datasource postgres {
