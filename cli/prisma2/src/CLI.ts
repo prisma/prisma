@@ -77,7 +77,6 @@ export class CLI implements Command {
     ${chalk.bold('Commands')}
 
           init   Setup Prisma for your app
-           dev   Develop your application in watch mode
           lift   Migrate your datamodel
     introspect   Get the datamodel of your database
       generate   Generate Photon
@@ -86,9 +85,6 @@ export class CLI implements Command {
 
       Initialize files for a new Prisma project
       ${chalk.dim(`$`)} prisma2 init
-
-      Start developing and auto migrating your changes locally
-      ${chalk.dim(`$`)} prisma2 dev
 
       Save your changes into a migration
       ${chalk.dim(`$`)} prisma2 lift save
