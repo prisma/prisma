@@ -25,8 +25,8 @@ datasource sqlite {
   provider = "sqlite"
 }
 
-generator photonjs {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {
@@ -154,11 +154,11 @@ A generator configures what data source clients are generated and how they're ge
 
 ```prisma
 generator js {
-  provider = "photonjs"
+  provider = "prisma-client-js"
 }
 
 generator js_custom_output {
-  provider = "photonjs"
+  provider = "prisma-client-js"
   output   = "../src/generated/photon"
 }
 
@@ -259,14 +259,14 @@ source ./dev_env
 
 ### Using environment variables with Photon.js
 
-While the Prisma 2 CLI automatically picks up `.env` files, Photon.js doesn't natively support usage of [`dotenv`](https://github.com/motdotla/dotenv) or similar libraries that will do this. If you want to environment variables to be evaluated at runtime, you need to load them manually before instantiating `Photon` in your application code, e.g. using `dotenv`:
+While the Prisma 2 CLI automatically picks up `.env` files, Photon.js doesn't natively support usage of [`dotenv`](https://github.com/motdotla/dotenv) or similar libraries that will do this. If you want to environment variables to be evaluated at runtime, you need to load them manually before instantiating `PrismaClient` in your application code, e.g. using `dotenv`:
 
 ```ts
-import { Photon } from '@prisma/photon'
+import { PrismaClient } from '@prisma/client'
 import * as dotenv from 'dotenv'
 
 dotenv.config() // load the environment variables
-const photon = new Photon()
+const prisma = new PrismaClient()
 ```
 
 ## Writing comments

@@ -192,8 +192,8 @@ datasource postgresql {
   url =      "postgresql://janedoe:janedoe@localhost:5432/mydb?schema=public"
 }
 
-+ generator photonjs {
-+   provider = "photonjs"
++ generator client {
++   provider = "prisma-client-js"
 + }
 
 model User {
@@ -214,14 +214,14 @@ model Post {
 }
 ```
 
-Note that the code for Photon.js [by default gets generated into `node_modules/@prisma/photon`](https://github.com/prisma/prisma2/blob/master/docs/photon/codegen-and-node-setup.md) but can be customized via an `output` field on the `generator` block. You also ned to install `@prisma/photon` as another npm dependency in your project.
+Note that the code for Photon.js [by default gets generated into `node_modules/@prisma/client`](https://github.com/prisma/prisma2/blob/master/docs/photon/codegen-and-node-setup.md) but can be customized via an `output` field on the `generator` block. You also ned to install `@prisma/client` as another npm dependency in your project.
 
 ## 3. Adjust the application to use Photon.js
 
-Photon.js is generated into `node_modules/@prisma/photon`. In order for this package to "survive" the pruning of Node.js package managers, you first need to install it as an npm dependency:
+Photon.js is generated into `node_modules/@prisma/client`. In order for this package to "survive" the pruning of Node.js package managers, you first need to install it as an npm dependency:
 
 ```
-npm install @prisma/photon
+npm install @prisma/client
 ```
 
 The next thing you need to do in order to be able use Photon.js in your application code is to generate it. Similar to Prisma 1, the generators in your Prisma schema file can be invoked by running the `generate` CLI command:
@@ -312,16 +312,16 @@ Consider each occurence of the Prisma client instance `prisma` and replacing wit
 
 ### 3.1. Adjusting the import
 
-Since Photon.js is generated into `node_modules/@prisma/photon`, it is imported as follows:
+Since Photon.js is generated into `node_modules/@prisma/client`, it is imported as follows:
 
 ```ts
-import { Photon } from '@prisma/photon'
+import { PrismaClient } from '@prisma/client'
 ```
 
-Note that this only imports the `Photon` constructor, so you also need to instantiate a Photon.js instance:
+Note that this only imports the `PrismaClient` constructor, so you also need to instantiate a Photon.js instance:
 
 ```ts
-const photon = new Photon()
+const prisma = new PrismaClient()
 ```
 
 ### 3.2. Adjusting the `/user` route (`POST`)

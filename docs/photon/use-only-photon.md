@@ -46,7 +46,7 @@ Plus, if you've selected a boilerplate to get started, it downloads the boilerpl
 To start using Photon in your application, you first need to install it as an npm dependecy:
 
 ```
-npm install @prisma/photon
+npm install @prisma/client
 ```
 
 It is recommended to also install the `prisma2` CLI as a development dependency:
@@ -55,7 +55,7 @@ It is recommended to also install the `prisma2` CLI as a development dependency:
 npm install prisma2 --save-dev
 ```
 
-Now you can import it from `node_modules/@prisma/photon` and start calling your database via the [generated Photon API](./api.md).
+Now you can import it from `node_modules/@prisma/client` and start calling your database via the [generated Photon API](./api.md).
 
 ### 3. Customize your Photon API
 
