@@ -8,7 +8,7 @@ In order to use Photon.js in your application, you must install the `@prisma/pho
 npm install @prisma/photon
 ```
 
-The `@prisma/photon` package itself is a [_facade package_](https://github.com/prisma/photonjs/issues/261) (basically a _stub_) that doesn't contain any functional code, such as types or the Photon.js runtime. When installing the `@prisma/photon` package, its `postinstall` hook is being executed to invoke the `prisma2 generate` command and generate the actual Photon.js code into the facade package at `node_modules/@prisma/photon`.
+The `@prisma/photon` package itself is a [_facade package_](https://github.com/prisma/prisma-client-js/issues/261) (basically a _stub_) that doesn't contain any functional code, such as types or the Photon.js runtime. When installing the `@prisma/photon` package, its `postinstall` hook is being executed to invoke the `prisma2 generate` command and generate the actual Photon.js code into the facade package at `node_modules/@prisma/photon`.
 
 This means the `prisma2` CLI needs to be available as well. It is typically installed as a development dependency:
 
@@ -22,7 +22,7 @@ The facade package is necessary to enable typical build and deployment workflows
 
 Note that you'll need to re-execute `prisma2 generate` whenever you make changes to your [Prisma schema](../prisma-schema-file.md) (or perform the changes while are you're running Prisma's [development mode](../development-mode.md). 
 
-> **Note**: While this approach has a number of [benefits](#why-is-photon-js-generated-into-node_modulesgenerated-by-default), it is also unconventional and can be a source of confusion for developers new to Photon.js. Using `node_modules/@prisma/photon` as the default `output` for Photon.js is still experimental. Please share your feedback and tell us whether you think this is a good idea or any other thoughts you have on this topic by joining the [discussion on GitHub](https://github.com/prisma/photonjs/issues/88).
+> **Note**: While this approach has a number of [benefits](#why-is-photon-js-generated-into-node_modulesgenerated-by-default), it is also unconventional and can be a source of confusion for developers new to Photon.js. Using `node_modules/@prisma/photon` as the default `output` for Photon.js is still experimental. Please share your feedback and tell us whether you think this is a good idea or any other thoughts you have on this topic by joining the [discussion on GitHub](https://github.com/prisma/prisma-client-js/issues/88).
 
 ## Specifying the target location for Photon.js
 

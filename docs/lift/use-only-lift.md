@@ -1,8 +1,8 @@
-# Using Lift (without Photon)
+# Using Lift (without Prisma Client JS)
 
-You can use Lift as your migration system without using Photon for database access. This is useful when your application is written in a programming language that's not yet supported by Photon or when it's not possible to swap out the current data access code.
+You can use Lift as your migration system without using Prisma Client JS for database access. This is useful when your application is written in a programming language that's not yet supported by Prisma Client JS or when it's not possible to swap out the current data access code.
 
-When using Lift without Photon, there are two ways to get started:
+When using Lift without Prisma Client JS, there are two ways to get started:
 
 - **From scratch**: Write your data model and map it to the database
 - **With an existing database**: Introspect your database to obtain your initial data model

@@ -1,14 +1,14 @@
 # Development mode
 
-The Prisma Framework supports a _development mode_ which can be launched using the `prisma2 dev` command. When in development mode, the Prisma Frameowrk runs a development server in the background that watches your [Prisma schema file](./prisma-schema-file.md). 
+The Prisma Framework supports a _development mode_ which can be launched using the `prisma2 dev` command. When in development mode, the Prisma Framework runs a development server in the background that watches your [Prisma schema file](./prisma-schema-file.md). 
 
 Whenever you save any changes in the schema file, the development server:
 
-- (re)generates your data source clients (e.g. Photon)
+- (re)generates your data source clients (e.g. Prisma Client JS)
 - updates your database schema ([read below](#migrations-in-development-mode))
 - creates a [Prisma Studio](https://github.com/prisma/studio) endpoint for you
 
-Depending on whether you're using [only Photon](./photon/use-only-photon.md) or [only Lift](./lift/use-only-lift.md), it might only perform one of the above tasks. 
+Depending on whether you're using [only Prisma Client JS](./photon/use-only-photon.md) or [only Lift](./lift/use-only-lift.md), it might only perform one of the above tasks. 
 
 ## Starting development mode
 
