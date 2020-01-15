@@ -36,11 +36,11 @@ export async function generateInFolder({
   const config = await getConfig({ datamodel })
 
   const outputDir = transpile
-    ? path.join(projectDir, 'node_modules/@prisma/photon')
-    : path.join(projectDir, '@prisma/photon')
+    ? path.join(projectDir, 'node_modules/@prisma/client')
+    : path.join(projectDir, '@prisma/client')
 
   if (transpile) {
-    await getPackedPackage('@prisma/photon', outputDir)
+    await getPackedPackage('@prisma/client', outputDir)
   }
 
   const platform = await getPlatform()

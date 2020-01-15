@@ -52,7 +52,7 @@ const commonCode = (runtimePath: string, version?: string) => `import {
 import path = require('path')
 import fs = require('fs')
 
-const debug = debugLib('photon')
+const debug = debugLib('prisma-client')
 
 /**
  * Utility Types
@@ -82,9 +82,9 @@ export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never :
 export type Subset<T, U> = { [key in keyof T]: key extends keyof U ? T[key] : never }
 
 /**
- * A PhotonRequestError is an error that is thrown in conjunction to a concrete query that has been performed with Photon.js.
+ * A PrismaClientRequestError is an error that is thrown in conjunction to a concrete query that has been performed with PrismaClient.js.
  */
-export class PhotonRequestError extends Error {
+export class PrismaClientRequestError extends Error {
   constructor(public message: string, public code?: string, public meta?: any) {
     super(message)
     this.code = code
@@ -92,9 +92,9 @@ export class PhotonRequestError extends Error {
   }
 }
 
-class PhotonFetcher {
+class PrismaClientFetcher {
   constructor(
-    private readonly photon: Photon<any,any>,
+    private readonly prisma: PrismaClient<any,any>,
     private readonly debug = false,
     private readonly hooks?: Hooks,
   ) {}
@@ -106,11 +106,11 @@ class PhotonFetcher {
       this.hooks.beforeRequest({ query, path: dataPath, rootField, typeName, document })
     }
     try {
-      collectTimestamps && collectTimestamps.record("Pre-photonConnect")
-      await this.photon.connect()
-      collectTimestamps && collectTimestamps.record("Post-photonConnect")
+      collectTimestamps && collectTimestamps.record("Pre-prismaClientConnect")
+      await this.prisma.connect()
+      collectTimestamps && collectTimestamps.record("Post-prismaClientConnect")
       collectTimestamps && collectTimestamps.record("Pre-engine_request")
-      const result = await this.photon.engine.request(query, collectTimestamps)
+      const result = await this.prisma.engine.request(query, collectTimestamps)
       collectTimestamps && collectTimestamps.record("Post-engine_request")
       debug('Response:')
       debug(result)
@@ -128,12 +128,12 @@ class PhotonFetcher {
         })
         const message = stack + '\\n\\n' + e.message
         if (e.code) {
-          throw new PhotonRequestError(this.sanitizeMessage(message), e.code, e.meta)
+          throw new PrismaClientRequestError(this.sanitizeMessage(message), e.code, e.meta)
         }
         throw new Error(this.sanitizeMessage(message))
       } else {
         if (e.code) {
-          throw new PhotonRequestError(this.sanitizeMessage(e.message), e.code, e.meta)
+          throw new PrismaClientRequestError(this.sanitizeMessage(e.message), e.code, e.meta)
         }
         if (e.isPanic) {
           throw e
@@ -144,7 +144,7 @@ class PhotonFetcher {
     }
   }
   sanitizeMessage(message: string): string {
-    if (this.photon.errorFormat && this.photon.errorFormat !== 'pretty') {
+    if (this.prisma.errorFormat && this.prisma.errorFormat !== 'pretty') {
       return stripAnsi(message)
     }
 
@@ -269,7 +269,7 @@ ${
  * Client
 **/
 
-${new PhotonClientClass(
+${new PrismaClientClass(
   this.dmmf,
   this.internalDatasources,
   this.outputDir,
@@ -329,7 +329,7 @@ ${indent(sources.map(s => `${s.name}?: string`).join('\n'), 2)}
   }
 }
 
-class PhotonClientClass {
+class PrismaClientClass {
   constructor(
     protected readonly dmmf: DMMFClass,
     protected readonly internalDatasources: InternalDatasource[],
@@ -347,7 +347,7 @@ ${new Datasources(this.internalDatasources)}
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
-export interface PhotonOptions {
+export interface PrismaClientOptions {
   datasources?: Datasources
 
   /**
@@ -423,8 +423,8 @@ export function getLogLevel(
 }
 
 
-export class Photon<T extends PhotonOptions = {}, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
-  private fetcher: PhotonFetcher
+export class PrismaClient<T extends PrismaClientOptions = {}, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
+  private fetcher: PrismaClientFetcher
   private readonly dmmf: DMMFClass
   private connectionPromise?: Promise<any>
   private disconnectionPromise?: Promise<any>
@@ -433,10 +433,10 @@ export class Photon<T extends PhotonOptions = {}, U = keyof T extends 'log' ? T[
   engine: Engine
   errorFormat: ErrorFormat
   constructor(optionsArg?: T) {
-    const options: PhotonOptions = optionsArg || {}
+    const options: PrismaClientOptions = optionsArg || {}
     const useDebug = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.library) : false
     if (useDebug) {
-      debugLib.enable('photon')
+      debugLib.enable('prisma-client')
     }
     const debugEngine = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.engine) : false
 
@@ -491,14 +491,14 @@ export class Photon<T extends PhotonOptions = {}, U = keyof T extends 'log' ? T[
 
     this.dmmf = new DMMFClass(dmmf)
 
-    this.fetcher = new PhotonFetcher(this, false, internal.hooks)
+    this.fetcher = new PrismaClientFetcher(this, false, internal.hooks)
 
     if (options.log) {
       for (const log of options.log) {
         const level = typeof log === 'string' ? log : log.emit === 'stdout' ? log.level : null
         if (level) {
           this.on(level as any, (event: any) => {
-            console.error(event.timestamp.toISOString() + ' Photon  ' + (event.message || event.query))
+            console.error(event.timestamp.toISOString() + ' Prisma Client ' + (event.message || event.query))
           })
         }
       }
@@ -939,7 +939,7 @@ ${indent(
 )}
   count(): Promise<number>
 }
-function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher, errorFormat: ErrorFormat, measurePerformance?: boolean): ${name}Delegate {
+function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaClientFetcher, errorFormat: ErrorFormat, measurePerformance?: boolean): ${name}Delegate {
   const ${name} = <T extends ${listConstraint}>(args: Subset<T, ${getModelArgName(
       name,
       undefined,
@@ -1009,7 +1009,7 @@ export class ${name}Client<T> implements Promise<T> {
   private _collectTimestamps?: CollectTimestamps
   constructor(
     private readonly _dmmf: DMMFClass,
-    private readonly _fetcher: PhotonFetcher,
+    private readonly _fetcher: PrismaClientFetcher,
     private readonly _queryType: 'query' | 'mutation',
     private readonly _rootField: string,
     private readonly _clientMethod: string,
@@ -1021,7 +1021,7 @@ export class ${name}Client<T> implements Promise<T> {
   ) {
     if (this._measurePerformance) {
       // Timestamps for performance checks
-      this._collectTimestamps = new CollectTimestamps("PhotonClient")
+      this._collectTimestamps = new CollectTimestamps("PrismaClient")
     }
 
     // @ts-ignore
@@ -1033,7 +1033,7 @@ export class ${name}Client<T> implements Promise<T> {
       }
     }
   }
-  readonly [Symbol.toStringTag]: 'PhotonPromise'
+  readonly [Symbol.toStringTag]: 'PrismaClientPromise'
 
 ${indent(
   fields
@@ -1161,7 +1161,7 @@ interface ${name}Delegate {
       Projection.select,
     )}<T>>
 }
-function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delegate {
+function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaClientFetcher): ${name}Delegate {
   const ${name} = <T extends ${name}Args>(args: ${name}Args) => new ${name}Client<T>(dmmf, fetcher, args, [])
   return ${name}
 }
@@ -1170,7 +1170,7 @@ class ${name}Client<T extends ${name}Args, U = ${getPayloadName(
       name,
       Projection.select,
     )}<T>> implements Promise<U> {
-  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PhotonFetcher, private readonly args: ${name}Args, private readonly _dataPath: []) {}
+  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PrismaClientFetcher, private readonly args: ${name}Args, private readonly _dataPath: []) {}
 
   readonly [Symbol.toStringTag]: 'Promise'
 
