@@ -40,7 +40,7 @@ After having selected **MySQL** or **PostgreSQL** in the database selection, you
 If you start with an existing database and the Prisma Framework CLI performed introspection against it to generate the [Prisma schema](./prisma-schema-file.md), you will be asked to select which Prisma tools you want to use:
 
 - Use Prisma Client JS and Lift
-- [Use only Prisma Client JS](./photon/use-only-photon.md) (for database access (ORM))
+- [Use only Prisma Client JS](./prisma-client-js/use-only-photon.md) (for database access (ORM))
 - [Use only Lift](./lift/use-only-lift.md) (for database migrations)
 
 > **Note**: If you select **only Prisma Client JS** or **only Lift**, it will still be possible to add the other tool to your project later.

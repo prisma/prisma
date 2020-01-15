@@ -81,7 +81,7 @@ The migration engine generates the database operations needed to apply a migrati
 
 ### Model
 
-[Models](./data-modeling.md#models) represent the _entities of your application domain_. They directly map to structures in the underlying data source, e.g. a _table_ for a relational database or a _collection_ for a document database. The [generated Prisma Client JS API](./photon/api.md) will expose CRUD operations for each model in your [data model](#data-model-definition).
+[Models](./data-modeling.md#models) represent the _entities of your application domain_. They directly map to structures in the underlying data source, e.g. a _table_ for a relational database or a _collection_ for a document database. The [generated Prisma Client JS API](./prisma-client-js/api.md) will expose CRUD operations for each model in your [data model](#data-model-definition).
 
 ### Data model definition
 
@@ -96,13 +96,13 @@ Contains the definitions of all your models. The [data model definition](./data-
 
 ### Nested write
 
-Prisma Client JS lets you perform nested creates, nested updates and nested connects for related models. A [nested write](./relations.md#nested-writes) is always performed as an atomic transaction. Learn more about the generated Prisma Client JS API [here](./photon/api.md).
+Prisma Client JS lets you perform nested creates, nested updates and nested connects for related models. A [nested write](./relations.md#nested-writes) is always performed as an atomic transaction. Learn more about the generated Prisma Client JS API [here](./prisma-client-js/api.md).
 
 ### Prisma Client
 
 > **Note**: Prisma Client has formerly been called Photon. It has been renamed to Prisma Client to simplify the naming and packaging of Prisma 2.
 
-An auto-generated and type-safe database client. Prisma Client is generated using a [generator](#generator) that's specified in your [schema file](#prisma-schema-file). The [generated Prisma Client JS API](./photon/api.md) exposes powerful CRUD operations for you to programmatically access your database.
+An auto-generated and type-safe database client. Prisma Client is generated using a [generator](#generator) that's specified in your [schema file](#prisma-schema-file). The [generated Prisma Client JS API](./prisma-client-js/api.md) exposes powerful CRUD operations for you to programmatically access your database.
 
 Prisma currently supports the following languages for Prisma Client:
 
@@ -138,13 +138,13 @@ Also sometimes referred to as:
 
 - Payload
 
-Determines what fields of a model are returned in a Prisma Client JS API call. By default, the [selection set](./photon/api.md#selection-sets) contains the fields of the following types:
+Determines what fields of a model are returned in a Prisma Client JS API call. By default, the [selection set](./prisma-client-js/api.md#selection-sets) contains the fields of the following types:
 
 - non-lazy [scalar fields](./data-modeling.md#scalar-types)
 - enums
 - [embed](./data-modeling.md#embeds) fields
 
-The selection set can be manipulated by passing the [`select`](./photon/api.md#select-exclusively-via-select) or [`include`](./photon/api.md#include-additionally-via-include) option to a Prisma Client JS API call.
+The selection set can be manipulated by passing the [`select`](./prisma-client-js/api.md#select-exclusively-via-select) or [`include`](./prisma-client-js/api.md#include-additionally-via-include) option to a Prisma Client JS API call.
 
 ### Type modifier
 

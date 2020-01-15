@@ -48,7 +48,7 @@ Starts Prisma [development mode](./development-mode.md). This starts a server th
 
 #### `prisma2 generate`
 
-Invokes all generators defined in the Prisma schema file. For example, this creates the Photon client to interact with the underlying database. Read more about Photon and its capabilities [here](./photon/use-only-photon.md).
+Invokes all generators defined in the Prisma schema file. For example, this creates the Photon client to interact with the underlying database. Read more about Photon and its capabilities [here](./prisma-client-js/use-only-photon.md).
 
 #### `prisma2 introspect`
 

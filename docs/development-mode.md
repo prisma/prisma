@@ -8,7 +8,7 @@ Whenever you save any changes in the schema file, the development server:
 - updates your database schema ([read below](#migrations-in-development-mode))
 - creates a [Prisma Studio](https://github.com/prisma/studio) endpoint for you
 
-Depending on whether you're using [only Prisma Client JS](./photon/use-only-photon.md) or [only Lift](./lift/use-only-lift.md), it might only perform one of the above tasks. 
+Depending on whether you're using [only Prisma Client JS](./prisma-client-js/use-only-photon.md) or [only Lift](./lift/use-only-lift.md), it might only perform one of the above tasks. 
 
 ## Starting development mode
 

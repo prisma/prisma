@@ -173,7 +173,7 @@ The Prisma schema contains three important elements of your project:
 The [data model definition](./data-modeling.md#data-model-definition) inside the schema file has the following responsibilities:
 
 - It's a _declarative_ description of your underlying database schema
-- It provides the foundation for the generated [Prisma Client JS API](./photon/api.md)
+- It provides the foundation for the generated [Prisma Client JS API](./prisma-client-js/api.md)
 
 Its main building blocks are [models](./data-modeling.md#models) which map to _tables_ in the underlying PostgreSQL database. The [fields](./data-modeling.md#fields) of a model map to _columns_ of a table.
 

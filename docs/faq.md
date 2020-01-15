@@ -40,11 +40,11 @@ However, it's also possible to build your own connectors, more documentation on 
 
 ### How can I see the generated queries that Prisma Client JS sends to my database?
 
-There will be rich query analytics for Prisma Client JS soon. For now you can set the `debug` option to `true` when instantiating your `PrismaClient` instance. Learn more in the [docs](./photon/api.md#debugging).
+There will be rich query analytics for Prisma Client JS soon. For now you can set the `debug` option to `true` when instantiating your `PrismaClient` instance. Learn more in the [docs](./prisma-client-js/api.md#debugging).
 
 ### How do schema migrations work with Prisma Client JS?
 
-Prisma Client JS is not opinionated on how exactly you migrate your database schema. You can keep your existing migration system and re-introspect your database schema after each migration to update Prisma Client JS. Learn more in the [docs](./photon/use-only-photon.md). You can also always use [Lift](https://lift.prisma.io) to perform your migrations based on Prisma's declarative [data model definition](./data-modeling.md).
+Prisma Client JS is not opinionated on how exactly you migrate your database schema. You can keep your existing migration system and re-introspect your database schema after each migration to update Prisma Client JS. Learn more in the [docs](./prisma-client-js/use-only-photon.md). You can also always use [Lift](https://lift.prisma.io) to perform your migrations based on Prisma's declarative [data model definition](./data-modeling.md).
 
 ### Is Prisma Client JS production-ready? Should I start using it?
 
@@ -60,7 +60,7 @@ With the Prisma Framework, Prisma's query engine doesn't expose a [spec](https:/
 
 ### How to handle connection pooling for Prisma Client JS in serverless environments?
 
-The query engine that's powering the Prisma Client JS API is maintaining a database connection pool. In serverless environments (or when running your application in containers, e.g. using Kubernetes), this connection pool might loose its effectiveness due to the infrastructure it's being deployed on. You can read more about this topic in the [docs](./photon/deployment.md).
+The query engine that's powering the Prisma Client JS API is maintaining a database connection pool. In serverless environments (or when running your application in containers, e.g. using Kubernetes), this connection pool might loose its effectiveness due to the infrastructure it's being deployed on. You can read more about this topic in the [docs](./prisma-client-js/deployment.md).
 
 As of now, the recommended workaround is to use a tool like [PgBouncer](https://pgbouncer.github.io/faq.html). We are further exploring some options, such as [enabling a "DB proxy server"](https://github.com/prisma/prisma2/issues/370) (e.g. using a specific generator that generates a Docker image to host Prisma Client JS' query engine) that manages the connection pool for you (similar to the the Prisma 1 architecture).
 
