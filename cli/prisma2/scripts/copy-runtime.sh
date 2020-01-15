@@ -4,13 +4,13 @@ set -ex
 
 mkdir -p runtime
 mkdir -p nexus_prisma_ncc_build
-mkdir -p build/photon-generator
+mkdir -p build/prisma-client-generator
 
 
 # cp -R "$(./scripts/resolve.js @prisma/photon)/runtime"/* build/runtime
 # cp -R "$(./scripts/resolve.js @prisma/photon)/generator-build"/* build/photon-generator
 
-node ./scripts/copy-photon.js
+node ./scripts/copy-prisma-client.js
 
 rm -rf runtime/prisma
 

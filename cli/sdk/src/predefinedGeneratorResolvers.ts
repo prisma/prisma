@@ -21,22 +21,27 @@ export type PredefinedGeneratorResolvers = {
 }
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
-  photonjs: async (baseDir, version) => {
-    let photonDir = resolvePkg('@prisma/photon', { cwd: baseDir })
+  photonjs: () => {
+    throw new Error(`The generator provider "photonjs" with the corresponding package "@prisma/photon" doesn't exist anymore.
+The provider has been renamed to "prisma-client-js" and the package to "@prisma/client".
+"@prisma/client" now exposes "PrismaClient" instead of "Photon". Please update your code accordingly 🙏`)
+  },
+  'prisma-client-js': async (baseDir, version) => {
+    let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
 
     if (debugEnabled) {
-      console.log({ photonDir })
+      console.log({ prismaClientDir })
     }
 
-    if (!photonDir) {
+    if (!prismaClientDir) {
       if (!process.stdout.isTTY) {
-        throw new PhotonFacadeMissingError()
+        throw new PrismaClientFacadeMissingError()
       } else {
         console.log(
           `In order to use the ${chalk.underline(
-            '"photonjs"',
+            '"prisma-client-js"',
           )} generator, you need to install ${chalk.bold(
-            '@prisma/photon',
+            '@prisma/client',
           )} to your project.`,
         )
         const { value } = await prompts({
@@ -47,16 +52,16 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
         })
 
         if (!value) {
-          throw new PhotonFacadeMissingError()
+          throw new PrismaClientFacadeMissingError()
         }
 
-        await installPackage(baseDir, `@prisma/photon@${version ?? 'latest'}`)
+        await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
       }
-      photonDir = resolvePkg('@prisma/photon', { cwd: baseDir })
+      prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
 
-      if (!photonDir) {
+      if (!prismaClientDir) {
         throw new Error(
-          `Could not resolve @prisma/photon despite the installation that just happened. We're sorry.
+          `Could not resolve @prisma/client despite the installation that just happened. We're sorry.
 Please try to install it by hand and rerun ${chalk.bold(
             'prisma2 generate',
           )} 🙏.`,
@@ -65,20 +70,20 @@ Please try to install it by hand and rerun ${chalk.bold(
     }
 
     return {
-      outputPath: photonDir,
-      generatorPath: path.resolve(photonDir, 'generator-build/index.js'),
+      outputPath: prismaClientDir,
+      generatorPath: path.resolve(prismaClientDir, 'generator-build/index.js'),
     }
   },
 }
 
-class PhotonFacadeMissingError extends Error {
+class PrismaClientFacadeMissingError extends Error {
   constructor() {
     super(`In order to use the ${chalk.underline(
-      '"photonjs"',
+      '"prisma-client-js"',
     )} generator, you need to install ${chalk.bold(
-      '@prisma/photon',
+      '@prisma/client',
     )} to your project:
-${chalk.bold.green('npm install @prisma/photon')}`)
+${chalk.bold.green('npm install @prisma/client')}`)
   }
 }
 
