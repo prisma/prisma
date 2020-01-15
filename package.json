@@ -11,8 +11,8 @@
   },
   "devDependencies": {
     "@prisma/cli": "workspace:*",
+    "@prisma/client": "workspace:^2.0.0-alpha.538",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/photon": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.170.0",
     "@prisma/studio-transports": "0.170.0",
@@ -41,7 +41,6 @@
   "peerDependencies": {
     "@prisma/cli": "*",
     "@prisma/generator-helper": "*",
-    "@prisma/photon": "*",
     "@prisma/sdk": "*"
   },
   "dependencies": {
