@@ -3,9 +3,9 @@ import chalk from 'chalk'
 import camelCase from 'camelcase'
 
 /**
- * A PhotonError is mostly a non-recoverable error like a panic
+ * A PrismaClientError is mostly a non-recoverable error like a panic
  */
-export class PhotonError extends Error {
+export class PrismaClientError extends Error {
   constructor(log: RustLog | RustError) {
     let isPanic = false
     let message
@@ -37,9 +37,9 @@ export interface QueryEngineError {
 }
 
 /**
- * A PhotonQueryError is an error that is thrown in conjunction to a concrete query that has been performed with Photon.js.
+ * A PrismaClientQueryError is an error that is thrown in conjunction to a concrete query that has been performed with Prisma Client.
  */
-export class PhotonQueryError extends Error {
+export class PrismaClientQueryError extends Error {
   code?: string
   meta?: Object
   constructor(error: QueryEngineError) {
@@ -79,9 +79,9 @@ function serializePanic(log: RustLog) {
     `${fields.reason} in ${chalk.underline(`${fields.file}:${fields.line}:${fields.column}`)}`,
   )}
 
-Please create an issue in the ${chalk.bold('photonjs')} repo with
-your \`schema.prisma\` and the Photon method you tried to use 🙏:
-${chalk.underline('https://github.com/prisma/photonjs/issues/new')}\n`
+Please create an issue in the ${chalk.bold('prisma-client-js')} repo with
+your \`schema.prisma\` and the Prisma Client method you tried to use 🙏:
+${chalk.underline('https://github.com/prisma/prisma-client-js/issues/new')}\n`
 }
 
 function serializeObject(obj) {
