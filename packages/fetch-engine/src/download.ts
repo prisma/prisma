@@ -65,7 +65,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const nativeDownloadsDone = downloadDoneFile ? fs.existsSync(downloadDoneFile) : false
   const everythingDownloaded =
     nativeDownloadsDone &&
-    (!options.binaryTargets || (options.binaryTargets.length === 0 && options.binaryTargets[0] === platform))
+    (!options.binaryTargets || (options.binaryTargets.length === 1 && options.binaryTargets[0] === platform))
 
   await cleanupCache()
   const mergedOptions: DownloadOptions = {
@@ -74,6 +74,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     ...options,
     binaries: mapKeys(options.binaries, key => engineTypeToBinaryType(key, platform)), // just necessary to support both camelCase and hyphen-case
   }
+
   const bar =
     options.showProgress && !everythingDownloaded
       ? getBar(`Downloading Prisma engines for ${mergedOptions.binaryTargets.map(p => chalk.bold(p)).join(' and ')}`)
@@ -154,7 +155,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     }),
   )
 
-  if (bar) {
+  if (bar && !options.skipDownload) {
     bar.update(1)
     bar.terminate()
   }
