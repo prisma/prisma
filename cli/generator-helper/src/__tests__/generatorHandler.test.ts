@@ -65,7 +65,7 @@ describe('generatorHandler', () => {
           "query-engine",
         ],
         "requiresGenerators": Array [
-          "photonjs",
+          "prisma-client-js",
         ],
       }
     `)

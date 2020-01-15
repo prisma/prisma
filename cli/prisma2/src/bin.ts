@@ -52,11 +52,11 @@ import * as checkpoint from 'checkpoint-client'
 import isCI from 'is-ci'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
-// as they have to ship their own version of @prisma/photon
+// as they have to ship their own version of @prisma/client
 const aliases: ProviderAliases = {
-  photonjs: {
-    generatorPath: eval(`require('path').join(__dirname, '../photon/generator-build/index.js')`), // all evals are here for ncc
-    outputPath: eval(`require('path').join(__dirname, '../photon/')`),
+  'prisma-client-js': {
+    generatorPath: eval(`require('path').join(__dirname, '../prisma-client/generator-build/index.js')`), // all evals are here for ncc
+    outputPath: eval(`require('path').join(__dirname, '../prisma-client/')`),
   },
 }
 

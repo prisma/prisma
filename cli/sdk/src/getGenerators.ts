@@ -46,7 +46,7 @@ export type GetGeneratorOptions = {
  * `Generator` class per generator defined in the schema.prisma file.
  * In other words, this is basically a generator factory function.
  * @param schemaPath Path to schema.prisma
- * @param aliases Aliases like `photonjs` -> `node_modules/photonjs/gen.js`
+ * @param aliases Aliases like `prisma-client-js` -> `node_modules/@prisma/client/generator-build/index.js`
  */
 export async function getGenerators({
   schemaPath,
@@ -346,9 +346,9 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
       }),
     )}
     ${chalk.gray(
-      `Note, that by providing \`native\`, Photon automatically resolves \`${platform}\`.
-    Read more about deploying Photon: ${chalk.underline(
-      'https://github.com/prisma/prisma2/blob/master/docs/core/generators/photonjs.md',
+      `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
+    Read more about deploying Prisma Client: ${chalk.underline(
+      'https://github.com/prisma/prisma2/blob/master/docs/core/generators/prisma-client-js.md',
     )}`,
     )}\n`)
         } else {

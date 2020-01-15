@@ -32,7 +32,7 @@ describe('getGenerators', () => {
             "migrationEngine",
           ],
           "requiresGenerators": Array [
-            "photonjs",
+            "prisma-client-js",
           ],
         },
       ]
