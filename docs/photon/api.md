@@ -1,6 +1,6 @@
-# Generated Photon API (JavaScript/TypeScript)
+# Generated Prisma Client JS API (JavaScript/TypeScript)
 
-Photon is a type-safe database client auto-generated based on your [data model definition](../data-modeling.md#data-model-definition) (which is a declarative representation of your database schema). This page explains the generated API operations you have available when using Photon.
+Prisma Client JS is a type-safe database client auto-generated based on your [data model definition](../data-modeling.md#data-model-definition) (which is a declarative representation of your database schema). This page explains the generated API operations you have available when using Prisma Client JS.
 
 - [Overview](#overview)
 - [CRUD](#crud)
@@ -18,28 +18,28 @@ Photon is a type-safe database client auto-generated based on your [data model d
 
 ## Overview
 
-Using Photon typically follows this high-level workflow:
+Using Prisma Client JS typically follows this high-level workflow:
 
-1. Add Photon.js to your project using: `npm install @prisma/photon`
+1. Add Prisma Client JS to your project using: `npm install @prisma/client`
 1. Define/update your data model definition (e.g. by manually adding a new model or by (re)introspecting your database)
-1. Generate your Photon database client based on the changes in the data model definition
+1. Generate your Prisma Client JS based on the changes in the data model definition
 
 Note that steps 2. and 3. might happen repeatedly as you evolve your application.
 
-The `Photon` constructor can then be imported from `node_modules/@prisma/photon`.
+The `PrismaClient` constructor can then be imported from `node_modules/@prisma/client`.
 
 Assume you have the following data model definition:
 
 ```prisma
 model User {
-  id    Int    @id
+  id    Int    @id @default(autoincrement())
   name  String
   role  Role
   posts Post[]
 }
 
 model Post {
-  id     Int    @id
+  id     Int    @id @default(autoincrement())
   title  String
   author User
 }
@@ -52,7 +52,7 @@ enum Role {
 
 ## CRUD
 
-Your generated Photon API will expose the following CRUD operations for the `User` and `Post` models:
+Your generated Prisma Client JS API will expose the following CRUD operations for the `User` and `Post` models:
 
 - [`findOne`](#findOne)
 - [`findMany`](#findMany)
@@ -63,20 +63,20 @@ Your generated Photon API will expose the following CRUD operations for the `Use
 - [`delete`](#delete)
 - [`deleteMany`](#deleteMany)
 
-You can access each function via the respective model property on your generated `Photon` instance, e.g. `users` for the `User` model:
+You can access each function via the respective model property on your generated `PrismaClient` instance, e.g. `users` for the `User` model:
 
 ```ts
-import { Photon } from '@prisma/photon'
+import { PrismaClient } from '@prisma/client'
 
-const photon = new Photon()
+const prisma = new PrismaClient()
 
 async function main() {
-  await photon.connect()
-  const result = await photon.users.findOne({
+  await prisma.connect()
+  const result = await prisma.users.findOne({
     where: { id: 1 },
   })
   // result = { id: 1, name: "Alice", role: "USER" }
-  await photon.disconnect()
+  await prisma.disconnect()
 }
 ```
 
@@ -84,32 +84,32 @@ Note that the name of the `users` property is auto-generated using the [`plurali
 
 ## Aggregations
 
-In addition to CRUD operations, Photon.js also allows for [_aggregation_ queries](https://github.com/prisma/photonjs/issues/5). 
+In addition to CRUD operations, Prisma Client JS also allows for [_aggregation_ queries](https://github.com/prisma/prisma-client-js/issues/5). 
 
 ### `count`
 
-To return the number of elements in a list, you can the `count()` method on any model property on your `Photon` instance, for example:
+To return the number of elements in a list, you can the `count()` method on any model property on your `PrismaClient` instance, for example:
 
 ```ts
-const userCount = await photon.users.count()
+const userCount = await prisma.users.count()
 // userCount = 42
 ```
 
 ## Field selection
 
-This section explains how to predict and control which fields of a model are returned in a Photon API call.
+This section explains how to predict and control which fields of a model are returned in a Prisma Client JS API call.
 
 ### Selection sets
 
 To understand which fields are being returned by a certain API call, you need to be aware of its **selection set**.
 
-The selection set defines the **set of fields on a model instance that is returned in a Photon API call**.
+The selection set defines the **set of fields on a model instance that is returned in a Prisma Client JS API call**.
 
 For example, in the `findOne` API call from above, the selection set includes the `id`, `name` and `role` fields of the model `User`. In that example, the selection set has not been manipulated and the API call therefore returns the _default selection set_ (read below).
 
 ### The default selection set
 
-If the selection set is not manipulated (via `select` or `include`), a Photon API call returns the **default selection set** for a model. It includes all [_scalar_](./data-modeling.md#scalar-types) fields (including [enums](./data-modeling.md#enums)) fields of the model.
+If the selection set is not manipulated (via `select` or `include`), a Prisma Client JS API call returns the **default selection set** for a model. It includes all [_scalar_](./data-modeling.md#scalar-types) fields (including [enums](./data-modeling.md#enums)) fields of the model.
 
 Considering the sample datamodel from above:
 
@@ -118,7 +118,7 @@ Considering the sample datamodel from above:
 
 ### Manipulating the selection set
 
-There are two ways how the _default selection set_ can be manipulated to specify which fields should be returned by a Photon API call:
+There are two ways how the _default selection set_ can be manipulated to specify which fields should be returned by a Prisma Client JS API call:
 
 - **Select exclusively** (via `select`): When using `select`, the selection set only contains the fields that are explicitly provided as arguments to `select`.
 - **Include additionally** (via `include`): When using `include`, the default selection set gets extended with additional fields that are provided as arguments to `include`.
@@ -128,7 +128,7 @@ There are two ways how the _default selection set_ can be manipulated to specify
 In this example, we're using `select` to exclusively select the `name` field of the returned `User` object:
 
 ```ts
-const result = await photon.users.findOne({
+const result = await prisma.users.findOne({
   where: { id: 1 },
   select: { name: true },
 })
@@ -140,7 +140,7 @@ const result = await photon.users.findOne({
 Sometimes you want to directly include a relation when retrieving data from a database. To eagerly load and include the relations of a model in an API call right away, you can use `include`:
 
 ```ts
-const result = await photon.users.findOne({
+const result = await prisma.users.findOne({
   where: { id: 1 },
   include: { posts: true },
 })
@@ -160,11 +160,11 @@ Coming soon.
 
 ## Relations
 
-Learn more about relations in the generated Photon API [here](../relations.md#relations-in-the-generated-Photon-API).
+Learn more about relations in the generated Prisma Client JS API [here](../relations.md#relations-in-the-generated-photon-API).
 
 ## Bring your own ID
 
-With Photon.js, you can set your own values for fields that are annotated with the `@id` attribute. This attribute express that the respective field is considered a _primary key_. Consider the following model:
+With Prisma Client JS, you can set your own values for fields that are annotated with the `@id` attribute. This attribute express that the respective field is considered a _primary key_. Consider the following model:
 
 ```prisma
 model User {
@@ -176,14 +176,14 @@ model User {
 You can provide the `id` as input value in [`create`](#create) and [`update`](#update) operations, for example:
 
 ```ts
-const user = await photon.users.create({
+const user = await prisman.users.create({
   data: {
     id: 1
   }
 })
 ```
 
-Note that Photon.js will throw an error if you're trying to create/update a record with an `id` value that already belongs to another record since the `@id` attribute always implies _uniqueness_.
+Note that Prisma Client JS will throw an error if you're trying to create/update a record with an `id` value that already belongs to another record since the `@id` attribute always implies _uniqueness_.
 
 ## Raw database access
 
@@ -191,7 +191,7 @@ Coming soon.
 
 ## Scalar lists
 
-Photon.js provides a dedicated API for (re)setting _scalar lists_ using a `set` field inside the `data` argument when creating or updating a [Prisma model](../data-modeling.md#models), for example:
+Prisma Client JS provides a dedicated API for (re)setting _scalar lists_ using a `set` field inside the `data` argument when creating or updating a [Prisma model](../data-modeling.md#models), for example:
 
 ```prisma
 model User {
@@ -203,7 +203,7 @@ model User {
 When creating or updating a `User` record, you can create a new list or replace the current one with a new list like so:
 
 ```ts
-await photon.users.create({
+await  prisman.users.create({
   data: {
     coinFlips: {
       set: [true, false]
@@ -211,7 +211,7 @@ await photon.users.create({
   }
 })
 
-await photon.users.update({
+await  prisman.users.update({
   where: { id: 42 ,}
   data: {
     coinFlips: {
@@ -227,19 +227,19 @@ For simplicity, we're assuming the `User` model from above as foundation for the
 
 ### Constructor
 
-Creates a new `Photon` instance.
+Creates a new `PrismaClient` instance.
 
 #### Options
 
 | Name          | Type          | Required | Description                                                                                                                                                                                                                         |
 | ------------- | ------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `debug`       | `boolean`     | No       | When set to `true`, the `Photon` instance prints additional logging output to the console when sending requests to Prisma's query engine. **Default**: `false`.                                                                     |
+| `debug`       | `boolean`     | No       | When set to `true`, the `PrismaClient` instance prints additional logging output to the console when sending requests to Prisma's query engine. **Default**: `false`.                                                                     |
 | `log` | `boolean | LogOption[]` | No | This allows to specify one of the following log levels: `INFO`, `WARN`, `QUERY`. If set to `true`, all log levels are applied. If set to `false`, no log levels are applied. **Default**: `true`.  
 
 #### Examples
 
 ```ts
-const photon = new Photon({ debug: true })
+const prisma = new PrismaClient({ debug: true })
 ```
 
 ### `findOne`
@@ -256,7 +256,7 @@ Returns a single object identified by a _unique_ value (e.g. `id` or `email`). Y
 #### Examples
 
 ```ts
-const user = await photon.users.findOne({
+const user = await prisma.users.findOne({
   where: { id: 1 },
 })
 ```
@@ -283,7 +283,7 @@ For more filtering examples, look [here](#filtering).
 #### Examples
 
 ```ts
-const user = await photon.users.findMany({
+const user = await prisma.users.findMany({
   where: { name: 'Alice' },
 })
 ```
@@ -302,7 +302,7 @@ Creates a new record and returns the corresponding object. You can use the `sele
 #### Examples
 
 ```ts
-const user = await photon.users.create({
+const user = await prisman.users.create({
   data: { name: 'Alice' },
 })
 ```
@@ -322,7 +322,7 @@ Updates an existing record and returns the corresponding object. You can use the
 #### Examples
 
 ```ts
-const user = await photon.users.update({
+const user = await prisman.users.update({
   where: { id: 1 },
   data: { name: 'ALICE' },
 })
@@ -342,7 +342,7 @@ Updates a batch of existing records in bulk and returns the number of updated re
 #### Examples
 
 ```ts
-const updatedUserCount = await photon.users.updateMany({
+const updatedUserCount = await prisma.users.updateMany({
   where: { name: 'Alice' },
   data: { name: 'ALICE' },
 })
@@ -364,7 +364,7 @@ Updates an existing or creates a new record and returns the corresponding object
 #### Examples
 
 ```ts
-const user = await photon.users.upsert({
+const user = await prisman.users.upsert({
   where: { id: 1 },
   update: { name: "ALICE" },
   create: { name: "ALICE" }
@@ -385,7 +385,7 @@ Deletes an existing record and returns the corresponding object. You can use the
 #### Examples
 
 ```ts
-const user = await photon.users.delete({
+const user = await prisman.users.delete({
   where: { id: 1 },
 })
 ```
@@ -403,7 +403,7 @@ Deletes a batch of existing records in bulk and returns the number of deleted re
 #### Examples
 
 ```ts
-const deletedUserCount = await photon.users.deleteMany({
+const deletedUserCount = await prisma.users.deleteMany({
   where: { name: 'Alice' },
 })
 ```
@@ -419,13 +419,13 @@ The `count()` method doesn't take any input arguments.
 #### Examples
 
 ```ts
-const userCount = await photon.users.count()
+const userCount = await  prisman.users.count()
 // userCount = 42
 ```
 
 ## Filtering
 
-The Photon.js API offers filtering options for constraining the items that are returned from API calls that return lists via the `where` argument.
+The Prisma Client JS API offers filtering options for constraining the items that are returned from API calls that return lists via the `where` argument.
 
 The following examples are based on this data model:
 
@@ -444,7 +444,7 @@ enum Role {
 }
 ```
 
-Filtering can be applied to this data model. It is not the same as manipulating the selection set. Based on the `User` model, Photon generates the `UserWhereInput` type, which holds the filtering properties.
+Filtering can be applied to this data model. It is not the same as manipulating the selection set. Based on the `User` model, Prisma Client JS generates the `UserWhereInput` type, which holds the filtering properties.
 
 ```ts
 export declare type UserWhereInput = {
@@ -462,7 +462,7 @@ export declare type UserWhereInput = {
 For example, to get the record for the user with the `id` 1, `where` is used in combination with the `id` `IntFilter`:
 
 ```ts
-const result = await photon.users.findMany({
+const result = await prisma.users.findMany({
   where: { id: 1 },
 })
 // result = [{
@@ -479,7 +479,7 @@ const result = await photon.users.findMany({
 To get the record for the user with the `name` Alice with a USER `role`, `where` is used in combination with the `name` `StringFilter` and the `role` `RoleFilter`:
 
 ```ts
-const result = await photon.users.findMany({
+const result = await prisma.users.findMany({
   where: {
     name: 'Alice',
     role: 'USER',
@@ -497,7 +497,7 @@ const result = await photon.users.findMany({
 To apply one of the operator filters (`AND`, `OR`, `NOT`), filter for the record where the user with the `name` Alice has a non-active status. Here, `where` is used in combination with the `name` `StringFilter`, the `active` `BooleanFilter`, and the `NOT` operator:
 
 ```ts
-const result = await photon.users.findMany({
+const result = await prisma.users.findMany({
   where: {
     name: 'Alice',
     NOT: {
@@ -512,16 +512,16 @@ const result = await photon.users.findMany({
 
 ## Debugging
 
-You can view the generated database queries that Photon.js sends to your database by setting the `debug` option to `true` when instantiating `Photon`:
+You can view the generated database queries that Prisma Client JS sends to your database by setting the `debug` option to `true` when instantiating `PrismaClient`:
 
 ```ts
-const photon = new Photon({ debug: true })
+const prisma = new PrismaClient({ debug: true })
 ```
 
 You can also configure log levels via the `log` option:
 
 ```ts
-const photon = new Photon({ 
+const prisma = new PrismaClient({ 
   debug: true,
   log: true
 })
@@ -531,12 +531,12 @@ This logs all log levels:
 
 - `INFO`: Logs general information
 - `WARN`: Logs warnings
-- `QUERY`: Logs the queries that generated by a Photon.js API call
+- `QUERY`: Logs the queries that generated by a Prisma Client JS API call
 
 To specify more fine-grained log-levels, you can pass an array of log options to `log`:
 
 ```ts
-const photon = new Photon({
+const prisma = new PrismaClient({
   debug: true,
   log: [{
     level: 'QUERY'
@@ -546,11 +546,11 @@ const photon = new Photon({
 
 ## Reusing query sub-parts
 
-You can reuse subparts of a Photon.js query by not immediately evaluating the promise that's returned by any Photon.js API call. Depending on your evaluating the promise, you can do this either by leaving out the prepended `await` keyword or the appended call to `.then()`. 
+You can reuse subparts of a Prisma Client JS query by not immediately evaluating the promise that's returned by any Prisma Client JS API call. Depending on your evaluating the promise, you can do this either by leaving out the prepended `await` keyword or the appended call to `.then()`. 
 
 ```ts
 // Note the missing `await` here.
-const currentUserQuery = photon.users.findOne({ where: { id: currentUserId } })
+const currentUserQuery = prisma.users.findOne({ where: { id: prismarId } })
 
 // Now you have the sub-part of a query that you can reuse.
 const postsOfUser = await currentUserQuery.posts()
@@ -559,13 +559,13 @@ const profileOfUser = await currentUserQuery.profile()
 
 ## Managing connections
 
-Photon connects and disconnects from your data sources using the following two methods:
+Prisma Client JS connects and disconnects from your data sources using the following two methods:
 
 - `connect(): Promise<void>`
 - `disconnect(): Promise<void>`
 
-Unless you want to employ a specific optimization, calling `photon.connect()` is not necessary thanks to the _lazy connect_ behavior: The `Photon` instance connects lazily when the first request is made to the API (`connect()` is called for you under the hood).
+Unless you want to employ a specific optimization, calling `prisma.connect()` is not necessary thanks to the _lazy connect_ behavior: The `PrismaClient` instance connects lazily when the first request is made prismao the API (`connect()` is called for you under the hood).
 
-If you need the first request to respond instantly and can't wait for the lazy connection to be established, you can explicitly call `photon.connect()` to establish a connection to the data source.
+If you need the first request to respond instantly and can't wait for the lazy connection to be established, you can explicitly call `prisma.connect()` to establish a connection to prismae data source.
 
-**IMPORTANT**: It is recommended to always explicitly call `photon.disconnect()` in your code. Generally the `Photon` instance disconnects automatically. However, if your program terminates but still has an unhandled promise rejection, the port will keep the connection to the data source open beyond the lifetime of your program!
+**IMPORTANT**: It is recommended to always explicitly call `prisma.disconnect()` in your code. Generally the `PrismaClient` instance disconnects automatically. However, if your program terminates but still  prismas an unhandled promise rejection, the port will keep the connection to the data source open beyond the lifetime of your program!

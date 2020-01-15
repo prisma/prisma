@@ -8,4 +8,4 @@ This directory contains documentation about the Prisma Framework core components
   - [SQLite](./connectors/sqlite.md)
   - [MongoDB](./connectors/mongo.md)
 - Generators
-  - [Photon.js](./generators/photonjs.md)
+  - [Prisma Client JS](./generators/photonjs.md)

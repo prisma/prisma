@@ -1,17 +1,15 @@
 # Getting started
 
-The quickest way to get started with Photon and/or Lift is by installing the Prisma CLI and running the interactive `init` command:
+The quickest way to get started with Prisma Client JS and/or Lift is by installing the Prisma CLI and running the interactive `init` command:
 
 ```
 npm install -g prisma2
 prisma2 init hello-prisma
 ```
 
-> **Note**: Lift and Photon are currently in Preview! [Limitations](https://github.com/prisma/prisma2/blob/master/docs/limitations.md) include missing features and limited performance issues.
-
 ## The `prisma2 init` flow
 
-When running `prisma2 init`, the Prisma Framework CLI launches an **interactive wizard** that helps you get started with Photon and/or Lift.
+When running `prisma2 init`, the Prisma Framework CLI launches an **interactive wizard** that helps you get started with Prisma Client JS and/or Lift.
 
 The following sections explain a few screens you might encounter as you run through the `prisma2 init` flow. Because the flow and the order of the screens vary depending on your selections, the screens below might not follow the order in which you encounter them. 
 
@@ -24,7 +22,7 @@ At first, the wizard prompts you to select either of two options:
 
 ### Database selection
 
-Later, the wizard asks you which kind of database you want to use with Photon/Lift. Currently, the following databases are supported:
+Later, the wizard asks you which kind of database you want to use with Prisma Client JS/Lift. Currently, the following databases are supported:
 
 - **SQLite**
 - **MySQL**
@@ -37,19 +35,19 @@ Note that both, **MySQL** and **PostgreSQL** options, required you to run a data
 
 After having selected **MySQL** or **PostgreSQL** in the database selection, you need to provide the database connection details and user credentials for your database server. Check out the [MySQL](./core/connectors/mysql.md) and [PostgreSQL](./core/connectors/postgresql.md) connector docs to learn about the connection string format and the required info.
 
-### Selecting Prisma tools (Photon/Lift)
+### Selecting Prisma tools (Prisma Client JS/Lift)
 
 If you start with an existing database and the Prisma Framework CLI performed introspection against it to generate the [Prisma schema](./prisma-schema-file.md), you will be asked to select which Prisma tools you want to use:
 
-- Use Photon and Lift
-- [Use only Photon](./photon/use-only-photon.md) (for database access (ORM))
+- Use Prisma Client JS and Lift
+- [Use only Prisma Client JS](./photon/use-only-photon.md) (for database access (ORM))
 - [Use only Lift](./lift/use-only-lift.md) (for database migrations)
 
-> **Note**: If you select **only Photon** or **only Lift**, it will still be possible to add the other tool to your project later.
+> **Note**: If you select **only Prisma Client JS** or **only Lift**, it will still be possible to add the other tool to your project later.
 
 ### Language selection
 
-If you're starting with a new database or are using a starter kit, you're prompted for the language in which you want to access your database. Currently Photon is available in the following languages:
+If you're starting with a new database or are using a starter kit, you're prompted for the language in which you want to access your database. Currently Prisma Client is available in the following languages:
 
 - **JavaScript**
 - **TypeScript**
@@ -57,7 +55,7 @@ If you're starting with a new database or are using a starter kit, you're prompt
 
 ## Installing the Prisma CLI
 
-### NPM
+### npm
 
 ```
 npm install -g prisma2

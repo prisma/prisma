@@ -18,7 +18,7 @@ A composite model is a model that doesn't directly map to a structure (e.g. a _t
 - [Model](#model)
 - [Data model definition](#data-model-definition)
 - [Nested write](#nested-write)
-- [Photon](#photon)
+- [Prisma Client](#prisma-client)
 - [Prisma schema file](#prisma-schema-file)
 - [Scalar type](#scalar-type)
 - [Selection set](#selection-set)
@@ -58,7 +58,7 @@ PSL is the name of the syntax used to write a [schema file](#prisma-schema-file)
 
 ### Generator
 
-A generator determines what kind of code should be generated from the [data model](#data-model-definition). For example, you can specify the _Photon.js generator_ to generate Photon.js as a type-safe database client based on the data model.
+A generator determines what kind of code should be generated from the [data model](#data-model-definition). For example, you can specify the _Prisma Client JS generator_ to generate Prisma Client JS as a type-safe database client based on the data model.
 
 You can include various generators in your [schema file](#prisma-schema-file). When running `prisma2 generate`, the Prisma CLI reads the specified generators from the Prisma schema and invokes each of them.
 
@@ -81,7 +81,7 @@ The migration engine generates the database operations needed to apply a migrati
 
 ### Model
 
-[Models](./data-modeling.md#models) represent the _entities of your application domain_. They directly map to structures in the underlying data source, e.g. a _table_ for a relational database or a _collection_ for a document database. The [generated Photon API](./photon/api.md) will expose CRUD operations for each model in your [data model](#data-model-definition).
+[Models](./data-modeling.md#models) represent the _entities of your application domain_. They directly map to structures in the underlying data source, e.g. a _table_ for a relational database or a _collection_ for a document database. The [generated Prisma Client JS API](./photon/api.md) will expose CRUD operations for each model in your [data model](#data-model-definition).
 
 ### Data model definition
 
@@ -96,13 +96,15 @@ Contains the definitions of all your models. The [data model definition](./data-
 
 ### Nested write
 
-Photon lets you perform nested creates, nested updates and nested connects for related models. A [nested write](./relations.md#nested-writes) is always performed as an atomic transaction. Learn more about the generated Photon API [here](./photon/api.md).
+Prisma Client JS lets you perform nested creates, nested updates and nested connects for related models. A [nested write](./relations.md#nested-writes) is always performed as an atomic transaction. Learn more about the generated Prisma Client JS API [here](./photon/api.md).
 
-### Photon
+### Prisma Client
 
-An auto-generated and type-safe database client. Photon is generated using a [generator](#generator) that's specified in your [schema file](#prisma-schema-file). The [generated Photon API](./photon/api.md) exposes powerful CRUD operations for you to programmatically access your database.
+> **Note**: Prisma Client has formerly been called Photon. It has been renamed to Prisma Client to simplify the naming and packaging of Prisma 2.
 
-Prisma currently supports the following languages for Photon:
+An auto-generated and type-safe database client. Prisma Client is generated using a [generator](#generator) that's specified in your [schema file](#prisma-schema-file). The [generated Prisma Client JS API](./photon/api.md) exposes powerful CRUD operations for you to programmatically access your database.
+
+Prisma currently supports the following languages for Prisma Client:
 
 - JavaScript (Node.js)
 - TypeScript
@@ -122,7 +124,7 @@ The [Prisma schema file](./prisma-schema-file.md) specifies the main parts of yo
 
 - [**Data sources**](#data-source): Specify the details of the data sources Prisma should connect to (e.g. a PostgreSQL database)
 - [**Data model definition**](#data-model-definition): Specifies the shape of the data per data source
-- [**Generators**](#generator): Specifies what data source clients should be generated (e.g. Photon.js)
+- [**Generators**](#generator): Specifies what data source clients should be generated (e.g. Prisma Client JS)
 
 ### Scalar type
 
@@ -136,13 +138,13 @@ Also sometimes referred to as:
 
 - Payload
 
-Determines what fields of a model are returned in a Photon API call. By default, the [selection set](./photon/api.md#selection-sets) contains the fields of the following types:
+Determines what fields of a model are returned in a Prisma Client JS API call. By default, the [selection set](./photon/api.md#selection-sets) contains the fields of the following types:
 
 - non-lazy [scalar fields](./data-modeling.md#scalar-types)
 - enums
 - [embed](./data-modeling.md#embeds) fields
 
-The selection set can be manipulated by passing the [`select`](./photon/api.md#select-exclusively-via-select) or [`include`](./photon/api.md#include-additionally-via-include) option to a Photon API call.
+The selection set can be manipulated by passing the [`select`](./photon/api.md#select-exclusively-via-select) or [`include`](./photon/api.md#include-additionally-via-include) option to a Prisma Client JS API call.
 
 ### Type modifier
 
@@ -150,4 +152,4 @@ The selection set can be manipulated by passing the [`select`](./photon/api.md#s
 
 ### Query engine
 
-The query engine generates and optimizes database queries based on incoming requests from Photon. 
+The query engine generates and optimizes database queries based on incoming requests from Prisma Client JS. 
