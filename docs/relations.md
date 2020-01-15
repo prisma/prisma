@@ -330,7 +330,7 @@ model User {
 
 ## Relations in the generated Prisma Client JS API
 
-The [generated Prisma Client JS API](./photon/api.md) comes with many helpful features for relations (find examples below):
+The [generated Prisma Client JS API](./prisma-client-js/api.md) comes with many helpful features for relations (find examples below):
 
 - Fluent API to traverse relations on the returned object
 - Nested creates, updates and connects (also referred to as _nested writes_) with transactional guarantees
@@ -524,7 +524,7 @@ const post = await prisma.posts.create({
 
 ### Nested reads (eager loading)
 
-You can eagerly load relations on a model via `select` and `include` (learn more about the difference [here](./photon/api.md#manipulating-the-selection-set)). The nesting of eagerly loaded relations can be arbitrarily deep.
+You can eagerly load relations on a model via `select` and `include` (learn more about the difference [here](./prisma-client-js/api.md#manipulating-the-selection-set)). The nesting of eagerly loaded relations can be arbitrarily deep.
 
 ```ts
 // The returned post objects will only have the  `id` and

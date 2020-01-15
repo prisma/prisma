@@ -1,6 +1,6 @@
 # Prisma Client JS generator
 
-The Prisma Client JS generator can be used in a [Prisma schema file](../../prisma-schema-file.md) to generate Prisma's database client for Node.js and TypeScript. The API of Prisma Client JS is documented [here](../../photon/api.md).
+The Prisma Client JS generator can be used in a [Prisma schema file](../../prisma-schema-file.md) to generate Prisma's database client for Node.js and TypeScript. The API of Prisma Client JS is documented [here](../../prisma-client-js/api.md).
 
 ## Node.js requirements
 
@@ -10,7 +10,7 @@ The generated data access code of the `prisma-client-js` generator targets [ES20
 
 Prisma Client JS depends on a _query engine_ that's running as a _binary_ on the same host as your application. When deploying your Prisma-based application to production, you need to ensure that the binary used by Prisma Client JS can run in your production environment, i.e. it needs to be compatible with the runtime of your deployment provider.
 
-The query engine binary is downloaded when you run `prisma2 generate`, it is then stored alongside the generated Prisma Client JS code inside `node_modules/@prisma` (or the [custom `output` path](../../photon/codegen-and-node-setup.md) you specified). This section explains how you can determine which binary should be downloaded when `prisma2 generate` is executed to ensure compatibility at runtime.
+The query engine binary is downloaded when you run `prisma2 generate`, it is then stored alongside the generated Prisma Client JS code inside `node_modules/@prisma` (or the [custom `output` path](../../prisma-client-js/codegen-and-node-setup.md) you specified). This section explains how you can determine which binary should be downloaded when `prisma2 generate` is executed to ensure compatibility at runtime.
 
 You can read more about this topic in the [specification](https://github.com/prisma/specs/blob/master/binaries/Readme.md).
 
@@ -89,7 +89,7 @@ Once added, you can invoke the generator using the following command:
 prisma2 generate
 ```
 
-It will then store the generated Prisma Client JS API in the default location `node_modules/@prisma/client` directory. Learn more about the [generated Prisma Client JS API](../../photon/api.md).
+It will then store the generated Prisma Client JS API in the default location `node_modules/@prisma/client` directory. Learn more about the [generated Prisma Client JS API](../../prisma-client-js/api.md).
 
 ## Mapping types from the data model
 

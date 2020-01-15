@@ -219,7 +219,7 @@ node_modules
             └── index.js
 ```
 
-This is the default path but can be [customized](https://github.com/prisma/prisma2/blob/master/docs/photon/codegen-and-node-setup.md). It is best not to change the files in the generated directory because it will get overwritten every time `prisma2 generate` is invoked.
+This is the default path but can be [customized](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/codegen-and-node-setup.md). It is best not to change the files in the generated directory because it will get overwritten every time `prisma2 generate` is invoked.
 
 Now you can import Prisma Client JS in your project.  Create a main application file, `index.ts`, inside the `src` directory and import the `PrismaClient` constructor: 
 
@@ -249,7 +249,7 @@ const prisma = new PrismaClient()
 ```
 Now you can start using the `prisma` instance and interact with your database programmatically with the generated Prisma Client JS API.
 
-The `PrismaClient` instance connects [lazily](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#managing-connections) when the first request is made to the API (`connect()` is called for you under the hood). 
+The `PrismaClient` instance connects [lazily](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#managing-connections) when the first request is made to the API (`connect()` is called for you under the hood). 
 
 
 ## 5. Creating models
@@ -367,7 +367,7 @@ createConnection().then(connection => {
 ```
 
 
-Your generated Prisma Client JS API will expose the following [CRUD operations](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#crud) for the `Category` and `Post` models:
+Your generated Prisma Client JS API will expose the following [CRUD operations](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#crud) for the `Category` and `Post` models:
 - `findOne`
 - `findMany`
 - `create`
@@ -379,7 +379,7 @@ Your generated Prisma Client JS API will expose the following [CRUD operations](
 
 ### Migrating the `/posts` route (`GET`)
 
-So to implement the same route and endpoint in your Prisma Client JS project, go to your `index.ts` file, and in the `/posts` endpoint for the `app.get` route, fetch all the posts from the database with [`findMany`](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#findMany), a method exposed for the `Post` model with the generated Prisma Client JS API.  Then send the results back.  Note that the API calls are asynchronous so we can `await` the results of the operation.
+So to implement the same route and endpoint in your Prisma Client JS project, go to your `index.ts` file, and in the `/posts` endpoint for the `app.get` route, fetch all the posts from the database with [`findMany`](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#findMany), a method exposed for the `Post` model with the generated Prisma Client JS API.  Then send the results back.  Note that the API calls are asynchronous so we can `await` the results of the operation.
 
 ```ts
 import * as express from 'express'
@@ -567,7 +567,7 @@ The sample project that was used demonstrated the fundamental capabilities of bo
 
 ## Next steps
 
-- Learn more about [Photon's relation API](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#relations)
+- Learn more about [Photon's relation API](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#relations)
 - Engage with our [community](https://www.prisma.io/community/)!
 - The Prisma Framework is not production-ready [yet](https://github.com/prisma/prisma2/blob/master/docs/limitations.md), so we value your [feedback](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md)!
 

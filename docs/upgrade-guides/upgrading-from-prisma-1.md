@@ -214,7 +214,7 @@ model Post {
 }
 ```
 
-Note that the code for Photon.js [by default gets generated into `node_modules/@prisma/client`](https://github.com/prisma/prisma2/blob/master/docs/photon/codegen-and-node-setup.md) but can be customized via an `output` field on the `generator` block. You also ned to install `@prisma/client` as another npm dependency in your project.
+Note that the code for Photon.js [by default gets generated into `node_modules/@prisma/client`](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/codegen-and-node-setup.md) but can be customized via an `output` field on the `generator` block. You also ned to install `@prisma/client` as another npm dependency in your project.
 
 ## 3. Adjust the application to use Photon.js
 

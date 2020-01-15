@@ -107,7 +107,7 @@ Technically, a model can be named anything that adheres to this regular expressi
 
 ### Model operations in the Prisma Client JS API (CRUD)
 
-Every _model_ in the data model definition will result in a number of CRUD operations in the generated [Prisma Client JS API](./photon/api.md):
+Every _model_ in the data model definition will result in a number of CRUD operations in the generated [Prisma Client JS API](./prisma-client-js/api.md):
 
 - `findMany`
 - `findOne`
@@ -120,7 +120,7 @@ Every _model_ in the data model definition will result in a number of CRUD opera
 
 The operations are accessible via a generated property on the Prisma Client JS instance. By default the name of the property is the plural, lowercase form of the model name, e.g. `users` for a `User` model or `posts` for a `Post` model.
 
-Here is an example illustrating the use of a `users` property from the [Prisma Client JS API](./photon/api.md):
+Here is an example illustrating the use of a `users` property from the [Prisma Client JS API](./prisma-client-js/api.md):
 
 ```js
 const newUser = await prisma.users.create({
