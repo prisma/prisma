@@ -111,8 +111,8 @@ Let's go through the created files.
 At the core of each project that uses Photon and/or Lift, there is the [Prisma schema file](./prisma-schema-file.md) (typically called `schema.prisma`). Here's what your Prisma schema currently looks like:
 
 ```prisma
-generator photon {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -222,13 +222,13 @@ The project also contains a number of additional files required for a typical No
 
 - `package.json`: Defines your project's Node.js dependencies.
 - `tsconfig.json`: Specifies your TypeScript configuration. Note that Photon.js currently requires the `esModuleInterop` property to be set to `true`.
-- `node_modules/@prisma/photon`: Contains the generated Photon.js code. 
+- `node_modules/@prisma/client`: Contains the generated Photon.js code. 
 - `script.ts`: Contains the actual "application code", which in this case is a sample script demonstrating some Photon.js API calls.
 
-Having Photon.js located inside `node_modules/@prisma/photon` enables you to import it in your code as follows:
+Having Photon.js located inside `node_modules/@prisma/client` enables you to import it in your code as follows:
 
 ```ts
-import { Photon } from '@prisma/photon'
+import { PrismaClient } from '@prisma/client'
 ```
 
 Because Photon.js is generated into `node_modules` which is typically populated by invoking `npm install`, you should make sure that Photon.js is also generated upon every invocation of `npm install`. That's the reason why `prisma2 generate` (the command that generates Photon.js based on the Prisma schema) is added as a `postinstall` hook in `package.json`:
@@ -238,7 +238,7 @@ Because Photon.js is generated into `node_modules` which is typically populated 
   "name": "script",
   "license": "MIT",
   "dependencies": {
-    "@prisma/photon": "2.0.0-preview-017"
+    "@prisma/client": "2.0.0-preview-017"
   },
   "devDependencies": {
     "ts-node": "8.3.0",
@@ -254,7 +254,7 @@ Because Photon.js is generated into `node_modules` which is typically populated 
 
 When collaborating on a project that uses Photon.js, this approach allows for conventional Node.js best practices where a team member can clone a Git repository and then run `npm install` to get their version of the Node dependencies inside their local `node_modules` directory.
 
-Note that the version of the `@prisma/photon` and `prisma2` packages must always be in sync!
+Note that the version of the `@prisma/client` and `prisma2` packages must always be in sync!
 
 ### 2.4. Understand the `migrations` folder
 
@@ -278,9 +278,9 @@ Now, let's finally consider the _Next steps_ again that had been printed to the 
 The instructions say to navigate into the project directory, start Prisma's development mode and finally execute the demo script. You'll skip the `prisma2 dev` command for now though and run the `script.ts` script. Before doing so, let's quickly take a look at its contents:
 
 ```ts
-import { Photon } from '@prisma/photon'
+import { PrismaClient } from '@prisma/client'
 
-const photon = new Photon()
+const prisma = new PrismaClient()
 
 // A `main` function so that we can use async/await
 async function main() {

@@ -10,8 +10,8 @@ datasource db {
   url      = "postgresql://nikolasburk:nikolasburk@localhost:5432/coinflips"
 }
 
-generator photon {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {
@@ -76,8 +76,8 @@ Here's the envisioned workaround for MySQL and SQLite (note that PostgreSQL user
     This is the resulting Prisma schema:
 
     ```prisma
-    generator photon {
-      provider = "photonjs"
+    generator client {
+      provider = "prisma-client-js"
     }
 
     datasource db {
