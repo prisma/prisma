@@ -401,32 +401,24 @@ This leads to the following terminal output confirming that all operations ran s
 
 If you're using a database GUI, you can also validate that all records have been created there.
 
-## 4. Evolve your application in Prisma's development mode
+## 4. Evolve your application
 
-The Prisma Framework features a [development mode](./development-mode.md) that allows for faster iterations during development. It can be invoked using the `prisma2 dev` command. When running in development mode, the Prisma Framework CLI watches your [schema file](./prisma-schema-file.md). Whenever you then save a change to the schema file, the Prisma CLI takes care of:
+- `prisma2 generate` to (re)generate Photon
+- `prisma2 migrate save` and `prisma2 migrate up` to apply a migration
 
-- (re)generating Photon
-- updating your database schema
-- creating a Prisma Studio endpoint for you
+Once you're happy with the changes you made to your data model to develop a certain feature, you can exit the development mode and actually persist your migration using migrate.
 
-In essence, running `prisma2 dev` is a shortcut to immediately apply changes to your project that you'd otherwise have to perform through these commands:
-
-- `prisma2 generate` to generate Photon
-- `prisma2 lift save` and `prisma2 lift up` to apply a migration
-
-Once you're happy with the changes you made to your data model to develop a certain feature, you can exit the development mode and actually persist your migration using Lift. Learn more [here](./development-mode.md#migrations-in-development-mode).
-
-Go ahead now and launch the development mode with this command:
+Go ahead now and run:
 
 ```
-npx prisma2 dev
+cd photonjs_app
+npx migrate save
+npx migrate up
+npx prisma2 generate
 ```
 
-> **Note**: You can stop the development mode by hitting <kbd>CTRL</kbd>+<kbd>C</kbd> two times.
-
-Here is what the terminal screen now looks like:
-
-![](https://imgur.com/FxmFgbu.png)
+Note that you'll need to re-execute `prisma2 generate` whenever you make changes to your [Prisma schema](./prisma-schema-file.md).
+Once you're happy with the changes you made to your data model to develop a certain feature, you can persist your migration using migrate.
 
 ### 4.1. Explore your data in Prisma Studio
 

@@ -20,7 +20,7 @@ npm install prisma2 --save-dev
 
 The facade package is necessary to enable typical build and deployment workflows of Node.js applications. As an example, the facade package ensures that Photon.js survives the ["pruning"](https://docs.npmjs.com/cli/prune.html) that's often employed by Node.js package managers.
 
-Note that you'll need to re-execute `prisma2 generate` whenever you make changes to your [Prisma schema](../prisma-schema-file.md) (or perform the changes while are you're running Prisma's [development mode](../development-mode.md). 
+Note that you'll need to re-execute `prisma2 generate` whenever you make changes to your [Prisma schema](../prisma-schema-file.md).
 
 > **Note**: While this approach has a number of [benefits](#why-is-photon-js-generated-into-node_modulesgenerated-by-default), it is also unconventional and can be a source of confusion for developers new to Photon.js. Using `node_modules/@prisma/photon` as the default `output` for Photon.js is still experimental. Please share your feedback and tell us whether you think this is a good idea or any other thoughts you have on this topic by joining the [discussion on GitHub](https://github.com/prisma/photonjs/issues/88).
 
