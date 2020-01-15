@@ -102,28 +102,28 @@ describe('where transformation', () => {
       document.validate(select, false, 'users')
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-                "
-                Invalid \`photon.users()\` invocation:
+        "
+        Invalid \`prisma.users()\` invocation:
 
-                {
-                  orderBy: {
-                    email: 'asc',
-                    id: 'asc'
-                  }
-                  ~~~~~~~~~~~~~~~
-                }
+        {
+          orderBy: {
+            email: 'asc',
+            id: 'asc'
+          }
+          ~~~~~~~~~~~~~~~
+        }
 
-                Argument orderBy of type UserOrderByInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
-                type UserOrderByInput {
-                  id?: OrderByArg
-                  name?: OrderByArg
-                  email?: OrderByArg
-                  status?: OrderByArg
-                  favoriteTree?: OrderByArg
-                }
+        Argument orderBy of type UserOrderByInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
+        type UserOrderByInput {
+          id?: OrderByArg
+          name?: OrderByArg
+          email?: OrderByArg
+          status?: OrderByArg
+          favoriteTree?: OrderByArg
+        }
 
-                "
-            `)
+        "
+      `)
     }
   })
 })
