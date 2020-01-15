@@ -91,7 +91,7 @@
     "test": "jest",
     "build": "tsc -d && cp src/GeneratorWorker.js dist/GeneratorWorker.js",
     "ncc": "ncc build dist/index.js -o build",
-    "ncc:req": "ncc build examples/req.js -o build",
+    "ncc:req": "ncc build fixtures/req.js -o build",
     "build-cli": "pnpm run build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js'",
     "prepublishOnly": "pnpm run build"
   },

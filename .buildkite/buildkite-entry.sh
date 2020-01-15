@@ -7,8 +7,8 @@ cd last-git-changes
 npm install
 npm run build
 cd ..
-node last-git-changes/bin.js --exclude='docs,examples,README.md,LICENSE,CONTRIBUTING.md'
-export CHANGED_COUNT=$(node last-git-changes/bin.js --exclude='docs,examples,README.md,LICENSE,CONTRIBUTING.md' | wc -l)
+node last-git-changes/bin.js --exclude='docs,fixtures,README.md,LICENSE,CONTRIBUTING.md'
+export CHANGED_COUNT=$(node last-git-changes/bin.js --exclude='docs,fixtures,README.md,LICENSE,CONTRIBUTING.md' | wc -l)
 
 echo $CHANGED_COUNT
 
