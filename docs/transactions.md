@@ -19,9 +19,9 @@ While there's a lot of of ambiguity and nuance to each of these properties (e.g.
 
 Photon provides a data access API to read and write data from a database. For relational databases, Photon's API abstracts over SQL where transactions are a common feature. While Photon doesn't allow for the same flexibility a SQL-level transaction provides, it covers the vast majority of use cases developers have for transactions with [**nested writes**](./relations.md#nested-writes).
 
-A nested write lets you perform a single Photon API call with multiple _operations_ that touch multiple [_related_](./relations.md#nested-writes) records, for example creating a _user_ together with a _post_ or updating an _order_ together with an _invoice_. When a nested write is performed, Photon ensures that it will either succeed or fail as a whole.
+A nested write lets you perform a single Prisma Client JS API call with multiple _operations_ that touch multiple [_related_](./relations.md#nested-writes) records, for example creating a _user_ together with a _post_ or updating an _order_ together with an _invoice_. When a nested write is performed, Photon ensures that it will either succeed or fail as a whole.
 
-Here are examples for nested writes in the Photon API:
+Here are examples for nested writes in the Prisma Client JS API:
 
 ```ts
 // Create a new user with two posts in a 
@@ -51,7 +51,7 @@ const updatedPost: Post = await photon.posts.update({
 })
 ```
 
-## Future transaction support in the Photon API
+## Future transaction support in the Prisma Client JS API
 
 Transactions are a commonly used feature in relational as well as non-relational databases and Photon might support more transaction mechanisms in the future. Specifically, the following two use cases will be supported:
 
