@@ -330,7 +330,7 @@ With the Photon.js API, the `/user` route for `POST` requests has to be changed 
 
 ```ts
 app.post(`/user`, async (req, res) => {
-  const result = await photon.users.create({
+  const result = await prisma.users.create({
     data: {
       ...req.body,
     },
@@ -346,7 +346,7 @@ With the Photon.js API, the `/post` route for `POST` requests has to be changed 
 ```ts
 app.post(`/post`, async (req, res) => {
   const { title, content, authorEmail } = req.body
-  const result = await photon.posts.create({
+  const result = await prisma.posts.create({
     data: {
       title: title,
       content: content,
@@ -364,7 +364,7 @@ With the Photon.js API, the `/publish/:id` route for `PUT` requests has to be ch
 ```ts
 app.put('/publish/:id', async (req, res) => {
   const { id } = req.params
-  const post = await photon.posts.update({
+  const post = await prisma.posts.update({
     where: { id },
     data: { published: true },
   })
@@ -379,7 +379,7 @@ With the Photon.js API, the `//post/:id` route for `DELETE` requests has to be c
 ```ts
 app.delete(`/post/:id`, async (req, res) => {
   const { id } = req.params
-  const post = await photon.posts.delete({ 
+  const post = await prisma.posts.delete({ 
     where: { id }
    })
   res.json(post)
@@ -393,7 +393,7 @@ With the Photon.js API, the `/post/:id` route for `GET` requests has to be chang
 ```ts
 app.get(`/post/:id`, async (req, res) => {
   const { id } = req.params
-  const post = await photon.posts.findOne({ 
+  const post = await prisma.posts.findOne({ 
     where: { id }
    })
   res.json(post)
@@ -406,7 +406,7 @@ With the Photon.js API, the `/feed` route for `GET` requests has to be changed t
 
 ```ts
 app.get('/feed', async (req, res) => {
-  const posts = await photon.posts.findMany({ where: { published: true } })
+  const posts = await prisma.posts.findMany({ where: { published: true } })
   res.json(posts)
 })
 ```
@@ -418,7 +418,7 @@ With the Photon.js API, the `/user` route for `POST` requests has to be changed 
 ```ts
 app.get('/filterPosts', async (req, res) => {
   const { searchString } = req.query
-  const filteredPosts = await photon.posts.findMany({
+  const filteredPosts = await prisma.posts.findMany({
     where: {
       OR: [
         {

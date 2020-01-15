@@ -90,7 +90,7 @@ The `prisma2 init`-wizard created the following directory structure:
 hello-prisma2
 ├── node_modules
 │   └── @prisma
-│       └── photon
+│       └── client
 ├── package.json
 ├── prisma
 │   ├── migrations
@@ -285,7 +285,7 @@ const prisma = new PrismaClient()
 // A `main` function so that we can use async/await
 async function main() {
   // Seed the database with users and posts
-  const user1 = await photon.users.create({
+  const user1 = await prisma.users.create({
     data: {
       email: 'alice@prisma.io',
       name: 'Alice',
@@ -301,7 +301,7 @@ async function main() {
       posts: true,
     },
   })
-  const user2 = await photon.users.create({
+  const user2 = await prisma.users.create({
     data: {
       email: 'bob@prisma.io',
       name: 'Bob',
@@ -327,13 +327,13 @@ async function main() {
   console.log(`Created users: ${user1.name} (${user1.posts.length} post) and (${user2.posts.length} posts) `)
 
   // Retrieve all published posts
-  const allPosts = await photon.posts.findMany({
+  const allPosts = await prisma.posts.findMany({
     where: { published: true },
   })
   console.log(`Retrieved all published posts: `, allPosts)
 
   // Create a new post (written by an already existing user with email alice@prisma.io)
-  const newPost = await photon.posts.create({
+  const newPost = await prisma.posts.create({
     data: {
       title: 'Join the Prisma Slack community',
       content: 'http://slack.prisma.io',
@@ -348,7 +348,7 @@ async function main() {
   console.log(`Created a new post: `, newPost)
 
   // Publish the new post
-  const updatedPost = await photon.posts.update({
+  const updatedPost = await prisma.posts.update({
     where: {
       id: newPost.id,
     },
@@ -359,7 +359,7 @@ async function main() {
   console.log(`Published the newly created post: `, updatedPost)
 
   // Retrieve all posts by user with email alice@prisma.io
-  const postsByUser = await photon.users
+  const postsByUser = await prisma.users
     .findOne({
       where: {
         email: 'alice@prisma.io',
@@ -372,19 +372,19 @@ async function main() {
 main()
   .catch(e => console.error(e))
   .finally(async () => {
-    await photon.disconnect()
+    await prisma.disconnect()
   })
 ```
 
 Here's a quick rundown of what's happening in the code:
 
-1. Create two users named _Alice_ and _Bob_ using `photon.users.create(...)`
+1. Create two users named _Alice_ and _Bob_ using `prisma.users.create(...)`
     - _Alice_ has one post titled _Watch the talks from Prisma Day 2019_
     - _Bob_ has two posts titled _Subscribe to GraphQL Weekly for community news_ and _Follow Prisma on Twitter_
-1. Retrieve all _published_ posts using `photon.posts.findMany(...)`
+1. Retrieve all _published_ posts using `prisma.posts.findMany(...)`
 1. Create a new post titled _Join the Prisma Slack community_ connected to the user _Alice_ by her email address
-1. Publish _Alice_'s newly created post using `photon.posts.update(...)`
-1. Retrieve all posts by _Alice_ using `photon.users.findOne(...).posts()`
+1. Publish _Alice_'s newly created post using `prisma.posts.update(...)`
+1. Retrieve all posts by _Alice_ using `prisma.users.findOne(...).posts()`
 
 Notice that the result of each of these operations is printed to the console using `console.log`.
 
@@ -474,7 +474,7 @@ Be sure to **save the file**. As you save it, you can observe your terminal wind
 Since the Prisma Client JS API has been updated, you can now update the code in `script.ts` to create new categories and connect them to existing (or new) posts. As an example, this code snippet would create a new category called "prisma" and connect it to two existing posts:
 
 ```ts
-const category = await photon.categories.create({
+const category = await prisma.categories.create({
   data: { 
     name: "prisma",
     posts: {
@@ -527,7 +527,7 @@ hello-prisma2
 ├── README.md
 ├── node_modules
 │   ├── @prisma
-│   │   └── photon
+│   │   └── client
 ├── package-lock.json
 ├── package.json
 ├── prisma

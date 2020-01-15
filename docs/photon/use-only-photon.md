@@ -1,12 +1,12 @@
-# Using only Photon (without Lift)
+# Using only Prisma Client JS (without Lift)
 
-You can use Photon as an ORM in your application without using Lift for database migrations. This is useful for _existing applications_ when there already is a working migration system or when you don't have the rights inside your organization to perform database migrations yourself.
+You can use Prisma Client JS as an ORM replacement in your application without using Lift for database migrations. This is useful for _existing applications_ when there already is a working migration system or when you don't have the rights inside your organization to perform database migrations yourself.
 
-When using Photon without Lift, you obtain your data model definition by _introspecting_ your database schema and generating the Prisma data model from it. The generated data model then serves as foundation for Photon's generated CRUD API. Whenever a schema migration is performed on the database afterwards, you need to re-introspect your database (which updates your data model) and re-generate your Prisma Client JS API.
+When using Prisma Client JS without Lift, you obtain your data model definition by _introspecting_ your database schema and generating the Prisma data model from it. The generated data model then serves as foundation for Prisma Client JS's generated CRUD API. Whenever a schema migration is performed on the database afterwards, you need to re-introspect your database (which updates your data model) and re-generate your Prisma Client JS API.
 
-**This page is about using Photon with an existing database**. Learn more about getting started from scratch with Photon and Lift [here](./).
+**This page is about using Prisma Client JS with an existing database**. Learn more about getting started from scratch with Prisma Client JS and Lift [here](./).
 
-## Getting started with Photon
+## Getting started with Prisma Client JS
 
 ### 1. Set up project using `prisma2 init`
 
@@ -26,7 +26,7 @@ Then follow the interactive prompt:
     - MongoDB (coming soon)
 1. Provide your database credentials ([more info](#database-credentials))
 1. Select the database (MySQL) or schema (PostgreSQL) to introspect
-1. Select **Only Photon** (i.e. uncheck Lift using <kbd>SPACE</kbd>)
+1. Select **Only Prisma Client** (i.e. uncheck Lift using <kbd>SPACE</kbd>)
 1. Select your programming language
     - **JavaScript**
     - **TypeScript**
@@ -41,9 +41,9 @@ Once you're done with the interactive prompt, the CLI sets out for 3 major tasks
 
 Plus, if you've selected a boilerplate to get started, it downloads the boilerplate code and configures it to connect to your database and match the generated data model.
 
-### 2. Integrate Photon in your application
+### 2. Integrate Prisma Client JS in your application
 
-To start using Photon in your application, you first need to install it as an npm dependecy:
+To start using Prisma Client JS in your application, you first need to install it as an npm dependecy:
 
 ```
 npm install @prisma/client
@@ -73,7 +73,7 @@ model _customers {
 By default, the generated API is based the model and fields names, e.g.:
 
 ```ts
-await photon._customers.findMany({
+await prisma._customers.findMany({
   where: { number_of_orders: 5 }
 })
 ```
@@ -90,7 +90,7 @@ model Customer @@map(name: "_customers") {
 After running another `prisma2 generate`, your Prisma Client JS API now looks as follows:
 
 ```ts
-await photon.customers.findMany({
+await prisma.customers.findMany({
   where: { orderCount: 5 }
 })
 ```

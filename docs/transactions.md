@@ -26,7 +26,7 @@ Here are examples for nested writes in the Prisma Client JS API:
 ```ts
 // Create a new user with two posts in a 
 // single transaction
-const newUser: User = await photon.users.create({
+const newUser: User = await prisma.users.create({
   data: {
     email: 'alice@prisma.io',
     posts: {
@@ -41,7 +41,7 @@ const newUser: User = await photon.users.create({
 
 ```ts
 // Change the author of a post in a single transaction
-const updatedPost: Post = await photon.posts.update({
+const updatedPost: Post = await prisma.posts.update({
   where: { id: 42 },
   data: {
     author: {
@@ -61,16 +61,16 @@ Transactions are a commonly used feature in relational as well as non-relational
 The first use case of sending multiple operations in bulk could be implemented with an API similar to this:
 
 ```ts
-const write1 = photon.users.create()
-const write2 = photon.orders.create()
-const write3 = photon.invoices.create()
+const write1 = prisma.users.create()
+const write2 = prisma.orders.create()
+const write3 = prisma.invoices.create()
 
 await prisma.transaction([write1, write2, write3])
 ```
 
-Instead of immediately awaiting the result of each operation when it's performed, the operation itself is stored in a variable first which later is submitted to the database via a method called `transaction`. Photon will ensure that either all three `create`-operations or none of them succeed.
+Instead of immediately awaiting the result of each operation when it's performed, the operation itself is stored in a variable first which later is submitted to the database via a method called `transaction`. Prisma Client JS will ensure that either all three `create`-operations or none of them succeed.
 
-The second use case of longer-running transactions where operations can depend on each other is a bit more involved. Photon would need to expose a _transaction API_ which enables developers to initiate and commit a transaction themselves while Photon takes care of ensuring the safety guarantees associated with transactions. It could look similar to this:
+The second use case of longer-running transactions where operations can depend on each other is a bit more involved. Prisma Client JS would need to expose a _transaction API_ which enables developers to initiate and commit a transaction themselves while Prisma Client JS takes care of ensuring the safety guarantees associated with transactions. It could look similar to this:
 
 ```ts
 prisma.transaction(async tx => {
