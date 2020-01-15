@@ -68,17 +68,17 @@ describe('generator', () => {
 
     expect(omit(generator.options!.generator, ['output']))
       .toMatchInlineSnapshot(`
-                                    Object {
-                                      "binaryTargets": Array [],
-                                      "config": Object {},
-                                      "name": "photon",
-                                      "provider": "photonjs",
-                                    }
-                        `)
+      Object {
+        "binaryTargets": Array [],
+        "config": Object {},
+        "name": "client",
+        "provider": "prisma-client-js",
+      }
+    `)
 
     expect(
       path.relative(__dirname, generator.options!.generator.output!),
-    ).toMatchInlineSnapshot(`"node_modules/@prisma/photon"`)
+    ).toMatchInlineSnapshot(`"node_modules/@prisma/client"`)
 
     await generator.generate()
     const photonDir = path.join(__dirname, 'node_modules/@prisma/client')

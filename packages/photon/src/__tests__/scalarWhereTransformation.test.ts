@@ -267,7 +267,7 @@ describe('scalar where transformation', () => {
     expect(() => document.validate(select, false, 'tests'))
       .toThrowErrorMatchingInlineSnapshot(`
 "
-Invalid \`photon.tests()\` invocation:
+Invalid \`prisma.tests()\` invocation:
 
 {
   where: {
@@ -276,7 +276,7 @@ Invalid \`photon.tests()\` invocation:
   }
 }
 
-Argument id: Got invalid value 'asd' on photon.findManyTest. Provided String, expected UUID or UUIDFilter.
+Argument id: Got invalid value 'asd' on prisma.findManyTest. Provided String, expected UUID or UUIDFilter.
 type UUIDFilter {
   equals?: UUID
   not?: UUID | UUIDFilter
