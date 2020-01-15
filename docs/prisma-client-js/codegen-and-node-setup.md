@@ -22,7 +22,7 @@ The facade package is necessary to enable typical build and deployment workflows
 
 Note that you'll need to re-execute `prisma2 generate` whenever you make changes to your [Prisma schema](../prisma-schema-file.md) (or perform the changes while are you're running Prisma's [development mode](../development-mode.md). 
 
-> **Note**: While this approach has a number of [benefits](#why-is-photon-js-generated-into-node_modulesgenerated-by-default), it is also unconventional and can be a source of confusion for developers new to Prisma Client JS. Using `node_modules/@prisma/client` as the default `output` for Prisma Client JS is still experimental. Please share your feedback and tell us whether you think this is a good idea or any other thoughts you have on this topic by joining the [discussion on GitHub](https://github.com/prisma/prisma-client-js/issues/88).
+> **Note**: While this approach has a number of [benefits](#why-is-prisma-client-js-generated-into-node_modulesgenerated-by-default), it is also unconventional and can be a source of confusion for developers new to Prisma Client JS. Using `node_modules/@prisma/client` as the default `output` for Prisma Client JS is still experimental. Please share your feedback and tell us whether you think this is a good idea or any other thoughts you have on this topic by joining the [discussion on GitHub](https://github.com/prisma/prisma-client-js/issues/88).
 
 ## Specifying the target location for Prisma Client JS
 

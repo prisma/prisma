@@ -4,7 +4,7 @@ Prisma Client JS depends on a query engine that's running as a binary on the sam
 
 The query engine binary is downloaded when you run `prisma2 generate`, it is then stored alongside the generated Prisma Client JS code inside `node_modules/@prisma` (or the [custom `output` path](./codegen-and-node-setup.md) you specified).
 
-**IMPORTANT**: To ensure the query engine binary is compatible with your production environment, you have to [specify the right platform for Prisma Client JS](../core/generators/photonjs.md#specifying-the-right-platform-for-photon-js).
+**IMPORTANT**: To ensure the query engine binary is compatible with your production environment, you have to [specify the right platform for Prisma Client JS](../core/generators/prisma-client-js.md#specifying-the-right-platform-for-prisma-client-js).
 
 ## Prisma Client JS in FaaS environment (e.g. AWS Lambda, Netlify, ...)
 

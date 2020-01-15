@@ -4,18 +4,18 @@ The Prisma schema file (short: _schema file_, _Prisma schema_ or _schema_) is th
 
 - [**Data sources**](./data-sources.md): Specify the details of the data sources Prisma should connect to (e.g. a PostgreSQL database)
 - [**Data model definition**](./data-modeling.md): Specifies your application models (the shape of the data per data source)
-- [**Generators**](#generators-optional) (optional): Specifies what clients should be generated based on the data model (e.g. Photon.js)
+- [**Generators**](#generators-optional) (optional): Specifies what clients should be generated based on the data model (e.g. Prisma Client JS)
 
 Whenever a `prisma2` command is invoked, the CLI typically reads some information from the schema file, e.g.:
 
-- `prisma2 generate`: Reads _all_ above mentioned information from the Prisma schema to generate the correct data source client code (e.g. Photon.js).
+- `prisma2 generate`: Reads _all_ above mentioned information from the Prisma schema to generate the correct data source client code (e.g. Prisma Client JS).
 - `prisma2 lift save`: Reads the data sources and data model definition to create a new [migration]().
 
 You can also [use environment variables](#using-environment-variables) inside the schema file to provide configuration options when a CLI command is invoked.
 
 ## Example
 
-Here is an example for a schema file that specifies a data source (SQLite), a generator (Photon.js) and a data model definition:
+Here is an example for a schema file that specifies a data source (SQLite), a generator (Prisma Client JS) and a data model definition:
 
 ```prisma
 // schema.prisma
@@ -143,7 +143,7 @@ A generator configures what data source clients are generated and how they're ge
 
 | Name            | Required     | Type                                                                                                                                  | Description                                                                                                                      |
 | --------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `provider`      | **Yes**      | String (file path) or Enum (`photonjs`, `nexus-prisma`)                                                                               | Describes which generator to use. This can point to a file that implements a generator or specify a built-in generator directly. |
+| `provider`      | **Yes**      | String (file path) or Enum (`prisma-client-js`)                                                                               | Describes which generator to use. This can point to a file that implements a generator or specify a built-in generator directly. |
 | `output`        | **Yes**      | String (file path)                                                                                                                    | Determines the location for the generated client.                                                                                |
 | `binaryTargets` | _(optional)_ | List of Enums (prebuilt binaries [available here](https://github.com/prisma/specs/blob/master/binaries/Readme.md#table-of-binaries)). | Declarative way to download the required binaries.                                                                               |
 
@@ -172,7 +172,7 @@ generator ts {
 }
 ```
 
-> **Note**: The default `output` for the `photonjs` provider is your `node_modules` directory. This can be customized as seen in the second example in the code snippet above.
+> **Note**: The default `output` for the `prisma-client-js` provider is your `node_modules` directory. This can be customized as seen in the second example in the code snippet above.
 
 ### Data model definition
 
@@ -257,9 +257,9 @@ Then run the following command:
 source ./dev_env
 ```
 
-### Using environment variables with Photon.js
+### Using environment variables with Prisma Client JS
 
-While the Prisma 2 CLI automatically picks up `.env` files, Photon.js doesn't natively support usage of [`dotenv`](https://github.com/motdotla/dotenv) or similar libraries that will do this. If you want to environment variables to be evaluated at runtime, you need to load them manually before instantiating `PrismaClient` in your application code, e.g. using `dotenv`:
+While the Prisma 2 CLI automatically picks up `.env` files, Prisma Client JS doesn't natively support usage of [`dotenv`](https://github.com/motdotla/dotenv) or similar libraries that will do this. If you want to environment variables to be evaluated at runtime, you need to load them manually before instantiating `PrismaClient` in your application code, e.g. using `dotenv`:
 
 ```ts
 import { PrismaClient } from '@prisma/client'

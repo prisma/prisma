@@ -251,7 +251,8 @@ generator client {
 }
 //...
 ```
-and generates a Prisma Client JS database client and a `prisma` directory inside `node_modules/@prisma`:
+
+and generates Prisma Client JS and a `prisma` directory inside `node_modules/@prisma`:
 
 ```
 node_modules

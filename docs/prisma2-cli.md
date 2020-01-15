@@ -40,7 +40,7 @@ The following environment variables can be provided:
 
 #### `prisma2 init`
 
-Sets up Prisma (i.e., Photon and/or Lift) via an interactive wizard. You can specify your database connection and/or create a new database to work with. For a list with currently supported databases, see the [this page](./supported-databases.md). The wizard also allows you to derive a Prisma schema file from your existing database.
+Sets up Prisma (i.e., Prisma Client JS and/or Lift) via an interactive wizard. You can specify your database connection and/or create a new database to work with. For a list with currently supported databases, see the [this page](./supported-databases.md). The wizard also allows you to derive a Prisma schema file from your existing database.
 
 #### `prisma2 dev`
 
@@ -48,7 +48,7 @@ Starts Prisma [development mode](./development-mode.md). This starts a server th
 
 #### `prisma2 generate`
 
-Invokes all generators defined in the Prisma schema file. For example, this creates the Photon client to interact with the underlying database. Read more about Photon and its capabilities [here](./prisma-client-js/use-only-photon.md).
+Invokes all generators defined in the Prisma schema file. For example, this creates the Prisma Client JS to interact with the underlying database. Read more about Prisma Client JS and its capabilities [here](./prisma-client-js/use-only-prisma-client-js.md).
 
 #### `prisma2 introspect`
 

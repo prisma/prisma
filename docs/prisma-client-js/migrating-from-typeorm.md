@@ -567,7 +567,7 @@ The sample project that was used demonstrated the fundamental capabilities of bo
 
 ## Next steps
 
-- Learn more about [Photon's relation API](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#relations)
+- Learn more about [Prisma Query JS' relation API](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#relations)
 - Engage with our [community](https://www.prisma.io/community/)!
 - The Prisma Framework is not production-ready [yet](https://github.com/prisma/prisma2/blob/master/docs/limitations.md), so we value your [feedback](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md)!
 

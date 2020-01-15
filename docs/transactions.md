@@ -15,11 +15,11 @@ While there's a lot of of ambiguity and nuance to each of these properties (e.g.
 
 > "Transactions are an abstraction layer that allows an application to pretend that certain concurrency problems and certain kinds of hardware and software faults don’t exist. A large class of errors is reduced down to a simple transaction abort, and the application just needs to try again." **[Designing Data-Intensive Applications](https://dataintensive.net/), [Martin Kleppmann](https://twitter.com/martinkl)** 
 
-## How Photon supports transactions today
+## How Prisma Client JS supports transactions today
 
-Photon provides a data access API to read and write data from a database. For relational databases, Photon's API abstracts over SQL where transactions are a common feature. While Photon doesn't allow for the same flexibility a SQL-level transaction provides, it covers the vast majority of use cases developers have for transactions with [**nested writes**](./relations.md#nested-writes).
+Prisma Client JS provides a data access API to read and write data from a database. For relational databases, Prisma Client JS's API abstracts over SQL where transactions are a common feature. While Prisma Client JS doesn't allow for the same flexibility a SQL-level transaction provides, it covers the vast majority of use cases developers have for transactions with [**nested writes**](./relations.md#nested-writes).
 
-A nested write lets you perform a single Prisma Client JS API call with multiple _operations_ that touch multiple [_related_](./relations.md#nested-writes) records, for example creating a _user_ together with a _post_ or updating an _order_ together with an _invoice_. When a nested write is performed, Photon ensures that it will either succeed or fail as a whole.
+A nested write lets you perform a single Prisma Client JS API call with multiple _operations_ that touch multiple [_related_](./relations.md#nested-writes) records, for example creating a _user_ together with a _post_ or updating an _order_ together with an _invoice_. When a nested write is performed, Prisma Client JS ensures that it will either succeed or fail as a whole.
 
 Here are examples for nested writes in the Prisma Client JS API:
 
@@ -53,7 +53,7 @@ const updatedPost: Post = await prisma.posts.update({
 
 ## Future transaction support in the Prisma Client JS API
 
-Transactions are a commonly used feature in relational as well as non-relational databases and Photon might support more transaction mechanisms in the future. Specifically, the following two use cases will be supported:
+Transactions are a commonly used feature in relational as well as non-relational databases and Prisma Client JS might support more transaction mechanisms in the future. Specifically, the following two use cases will be supported:
 
 - Sending multiple operations in bulk.
 - Enabling longer-running transactions where operations can depend on each other.

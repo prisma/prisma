@@ -373,7 +373,7 @@ Note that, if you query a relationship, you must specify the fields (`id`) you w
 
 ### Nested writes (transactions)
 
-Nested writes provide a powerful API to write relational data to your database. They further provide _transactional guarantees_ to create, update or delete data across multiple tables in a single Photon.js API call. The level of nesting of a nested writes can be arbitrarily deep.
+Nested writes provide a powerful API to write relational data to your database. They further provide _transactional guarantees_ to create, update or delete data across multiple tables in a single Prisma Client JS API call. The level of nesting of a nested writes can be arbitrarily deep.
 
 Nested writes are available for relation fields of a model when using the model's `create` or `update` function. The following nested write operations are available per function:
 
