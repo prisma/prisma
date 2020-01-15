@@ -13,7 +13,7 @@ To get started, you can explore a number of ready-to-run [examples](https://gith
 
 The Prisma Framework (formerly called [Prisma 2](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)) is a database framework that consists of these tools:
 
-- [**Photon**](https://photonjs.prisma.io/): Type-safe and auto-generated database client ("ORM replacement")
+- [**Prisma Client JS**](https://photonjs.prisma.io/): Type-safe and auto-generated database client ("ORM replacement")
 - [**Lift**](https://lift.prisma.io/): Declarative data modeling and migrations
 - [**Studio**](https://github.com/prisma/studio): Admin UI to support various database workflows
 
@@ -21,7 +21,7 @@ While each tool can be used standalone (in both [_greenfield_ and _brownfield_ p
 
 ## Getting started
 
-The easiest way to get started with [Photon](https://github.com/prisma/photonjs) and/or [Lift](https://github.com/prisma/lift) is by using the `init` command of the `prisma2` CLI via [npx](https://github.com/npm/npx):
+The easiest way to get started with [Photon](https://github.com/prisma/prisma-client-js) and/or [Lift](https://github.com/prisma/lift) is by using the `init` command of the `prisma2` CLI via [npx](https://github.com/npm/npx):
 
 ```
 npx prisma2 init hello-prisma
@@ -49,11 +49,11 @@ The interactive prompt will ask you to provide database credentials for your dat
 - [Introspection](./docs/introspection.md)
 - [Limitations](./docs/limitations.md)
 - [Core](./docs/core)
-- Photon
-  - [API](./docs/photon/api.md)
-  - [Use only Photon](./docs/photon/use-only-photon.md)
-  - [Code generation & Node.js setup](./docs/photon/codegen-and-node-setup.md)
-  - [Deployment](./docs/photon/deployment.md)
+- Prisma Client JS
+  - [API](./docs/prisma-client-js/api.md)
+  - [Use only Photon](./docs/prisma-client-js/use-only-prisma-client-js.md)
+  - [Code generation & Node.js setup](./docs/prisma-client-js/codegen-and-node-setup.md)
+  - [Deployment](./docs/prisma-client-js/deployment.md)
 - [Lift](./docs/lift)
 - [Importing and exporting data](./docs/import-and-export-data)
 - [Supported databases](./docs/supported-databases.md)
