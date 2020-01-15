@@ -1,6 +1,6 @@
 # The Prisma Framework tutorial
 
-In this tutorial, you will get a holistic and practical introduction to the Prisma Framework ecosystem. This includes using [**Lift**](http://lift.prisma.io) for database migrations and [**Photon.js**](http://photonjs.prisma.io) for type-safe database access.
+In this tutorial, you will get a holistic and practical introduction to the Prisma Framework ecosystem. This includes using [**Lift**](http://lift.prisma.io) for database migrations and [**Prisma Client JS**](http://photonjs.prisma.io) for type-safe database access.
 
 > **Note**: If you encounter any problems with this tutorial or any parts of the Prisma Framework, **please make sure to [create an issue](https://github.com/prisma/prisma2/issues)**! You can also join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on Slack to share your feedback directly.
 
@@ -54,9 +54,9 @@ Note that you can skip this part if you've selected SQLite before.
 
 This screenshot shows the configuration of a database hosted on Heroku. Note that we provide the name `hello-prisma2` for the **Schema** field. Since this schema doesn't exist yet in the provided `d8q8dvp22kfpo3` database, the Prisma Framework CLI will create a schema with that name. 
 
-### 1.4. Select programming language for Photon
+### 1.4. Select programming language for Prisma Client
 
-Photon is a type-safe database client that currently supports JavaScript and TypeScript (this variant is called Photon.js). You'll be using the TypeScript variant in this tutorial.
+Prisma Client is a type-safe database client that currently supports JavaScript and TypeScript (this variant is called Prisma Client JS). You'll be using the TypeScript variant in this tutorial.
 
 Hence, select **TypeScript** when prompted by the wizard.
 
@@ -64,7 +64,7 @@ Hence, select **TypeScript** when prompted by the wizard.
 
 ### 1.5. Select the demo script
 
-The wizard offers the option to start with a _demo script_. Selecting this option will get you started with a sample [data model definition](./data-modeling.md#data-model-definition) as well as an executable script which you can use to explore some Photon.js API calls. 
+The wizard offers the option to start with a _demo script_. Selecting this option will get you started with a sample [data model definition](./data-modeling.md#data-model-definition) as well as an executable script which you can use to explore some Prisma Client JS API calls. 
 
 Select **Demo script** when prompted by the wizard.
 
@@ -108,7 +108,7 @@ Let's go through the created files.
 
 ### 2.1. Understand the Prisma schema file
 
-At the core of each project that uses Photon and/or Lift, there is the [Prisma schema file](./prisma-schema-file.md) (typically called `schema.prisma`). Here's what your Prisma schema currently looks like:
+At the core of each project that uses Prisma Client and/or Lift, there is the [Prisma schema file](./prisma-schema-file.md) (typically called `schema.prisma`). Here's what your Prisma schema currently looks like:
 
 ```prisma
 generator client {
@@ -165,7 +165,7 @@ Depending on where your PostgreSQL database is hosted or if you're using SQLite,
 The Prisma schema contains three important elements of your project:
 
 - Data sources (here, that's your PostgreSQL database)
-- Generators (here, that's the generator for Photon.js)
+- Generators (here, that's the generator for Prisma Client JS)
 - [Data model definition](./data-modeling.md#data-model-definition) (here, that's the `Post` and `User` models)
 
 ### 2.2. Understand the data model definition
@@ -221,17 +221,17 @@ Most of this should look familiar from what you just learned about the `User` mo
 The project also contains a number of additional files required for a typical Node.js/TypeScript setup:
 
 - `package.json`: Defines your project's Node.js dependencies.
-- `tsconfig.json`: Specifies your TypeScript configuration. Note that Photon.js currently requires the `esModuleInterop` property to be set to `true`.
-- `node_modules/@prisma/client`: Contains the generated Photon.js code. 
-- `script.ts`: Contains the actual "application code", which in this case is a sample script demonstrating some Photon.js API calls.
+- `tsconfig.json`: Specifies your TypeScript configuration. Note that Prisma Client JS currently requires the `esModuleInterop` property to be set to `true`.
+- `node_modules/@prisma/client`: Contains the generated Prisma Client JS code. 
+- `script.ts`: Contains the actual "application code", which in this case is a sample script demonstrating some Prisma Client JS API calls.
 
-Having Photon.js located inside `node_modules/@prisma/client` enables you to import it in your code as follows:
+Having Prisma Client JS located inside `node_modules/@prisma/client` enables you to import it in your code as follows:
 
 ```ts
 import { PrismaClient } from '@prisma/client'
 ```
 
-Because Photon.js is generated into `node_modules` which is typically populated by invoking `npm install`, you should make sure that Photon.js is also generated upon every invocation of `npm install`. That's the reason why `prisma2 generate` (the command that generates Photon.js based on the Prisma schema) is added as a `postinstall` hook in `package.json`:
+Because Prisma Client JS is generated into `node_modules` which is typically populated by invoking `npm install`, you should make sure that Prisma Client JS is also generated upon every invocation of `npm install`. That's the reason why `prisma2 generate` (the command that generates Prisma Client JS based on the Prisma schema) is added as a `postinstall` hook in `package.json`:
 
 ```json
 {
@@ -252,7 +252,7 @@ Because Photon.js is generated into `node_modules` which is typically populated 
 }
 ```
 
-When collaborating on a project that uses Photon.js, this approach allows for conventional Node.js best practices where a team member can clone a Git repository and then run `npm install` to get their version of the Node dependencies inside their local `node_modules` directory.
+When collaborating on a project that uses Prisma Client JS, this approach allows for conventional Node.js best practices where a team member can clone a Git repository and then run `npm install` to get their version of the Node dependencies inside their local `node_modules` directory.
 
 Note that the version of the `@prisma/client` and `prisma2` packages must always be in sync!
 
@@ -405,13 +405,13 @@ If you're using a database GUI, you can also validate that all records have been
 
 The Prisma Framework features a [development mode](./development-mode.md) that allows for faster iterations during development. It can be invoked using the `prisma2 dev` command. When running in development mode, the Prisma Framework CLI watches your [schema file](./prisma-schema-file.md). Whenever you then save a change to the schema file, the Prisma CLI takes care of:
 
-- (re)generating Photon
+- (re)generating Prisma Client JS
 - updating your database schema
 - creating a Prisma Studio endpoint for you
 
 In essence, running `prisma2 dev` is a shortcut to immediately apply changes to your project that you'd otherwise have to perform through these commands:
 
-- `prisma2 generate` to generate Photon
+- `prisma2 generate` to generate Prisma Client JS
 - `prisma2 lift save` and `prisma2 lift up` to apply a migration
 
 Once you're happy with the changes you made to your data model to develop a certain feature, you can exit the development mode and actually persist your migration using Lift. Learn more [here](./development-mode.md#migrations-in-development-mode).

@@ -9,7 +9,7 @@ On a high-level, the biggest differences between Prisma 1 and the Prisma Framewo
 - The Prisma Framework doesn't require hosting a database proxy server (i.e. the [Prisma server](https://www.prisma.io/docs/prisma-server/)).
 - The Prisma Framework makes the features of Prisma 1 available as standalone components:
   - _Data modeling and migrations_ from Prisma 1 are now done with [Lift]()
-  - _Database access using the Prisma client_ from Prisma 1 is done using [Photon.js]()
+  - _Database access using the Prisma client_ from Prisma 1 is done using [Prisma Client JS]()
 - The Prisma 1 datamodel and the `prisma.yml` have been merged into the [Prisma schema]() that's used in the Prisma Framework
 - The Prisma Framework uses a its own modeling language instead of being based on GraphQL SDL
 
@@ -17,7 +17,7 @@ Based on these differences, the high-level steps to upgrade a project from using
 
 1. Install the Prisma Framework CLI as a development dependency
 1. Use the Prisma Framework CLI to convert your Prisma 1 datamodel to the Prisma schema
-1. Adjust your application code, specifically replace the API calls from the Prisma client with those of Photon.js
+1. Adjust your application code, specifically replace the API calls from the Prisma client with those of Prisma Client JS
 
 Note that the steps will look somewhat different if you're ...: 
 
@@ -112,7 +112,7 @@ model Post {
 
 In Prisma 1, the database connection is specified on the Docker image that's used to deploy the Prisma server. The Prisma server then exposes an HTTP endpoint that proxies all database requests from actual application code. That HTTP endpoint is specified in your `prisma.yml`.
 
-With the Prisma Framework, the HTTP layer isn't exposed any more and the database client (Photon.js) is configured to run requests "directly" against the database (that is, requests are proxied by its query engine, but there isn't an extra server any more).
+With the Prisma Framework, the HTTP layer isn't exposed any more and the database client (Prisma Client JS) is configured to run requests "directly" against the database (that is, requests are proxied by its query engine, but there isn't an extra server any more).
 
 So, as a next step you'll need to tell the Prisma Framework where your database is located. You can do so by adding a `datasource` block to your Prisma schema, here is what it looks like (using placeholder values):
 
@@ -214,23 +214,23 @@ model Post {
 }
 ```
 
-Note that the code for Photon.js [by default gets generated into `node_modules/@prisma/client`](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/codegen-and-node-setup.md) but can be customized via an `output` field on the `generator` block. You also ned to install `@prisma/client` as another npm dependency in your project.
+Note that the code for Prisma Client JS [by default gets generated into `node_modules/@prisma/client`](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/codegen-and-node-setup.md) but can be customized via an `output` field on the `generator` block. You also ned to install `@prisma/client` as another npm dependency in your project.
 
-## 3. Adjust the application to use Photon.js
+## 3. Adjust the application to use Prisma Client JS
 
-Photon.js is generated into `node_modules/@prisma/client`. In order for this package to "survive" the pruning of Node.js package managers, you first need to install it as an npm dependency:
+Prisma Client JS is generated into `node_modules/@prisma/client`. In order for this package to "survive" the pruning of Node.js package managers, you first need to install it as an npm dependency:
 
 ```
 npm install @prisma/client
 ```
 
-The next thing you need to do in order to be able use Photon.js in your application code is to generate it. Similar to Prisma 1, the generators in your Prisma schema file can be invoked by running the `generate` CLI command:
+The next thing you need to do in order to be able use Prisma Client JS in your application code is to generate it. Similar to Prisma 1, the generators in your Prisma schema file can be invoked by running the `generate` CLI command:
 
 ```
 npx prisma2 generate
 ```
 
-To make the migration complete, you have to change your application code and replace the usage of the Prisma client with the new Photon.js.
+To make the migration complete, you have to change your application code and replace the usage of the Prisma client with the new Prisma Client JS.
 
 The application code in our example is located in a single file and looks as follows:
 
@@ -308,17 +308,17 @@ app.listen(3000, () =>
 )
 ```
 
-Consider each occurence of the Prisma client instance `prisma` and replacing with the respective usage of Photon.js.
+Consider each occurence of the Prisma client instance `prisma` and replacing with the respective usage of Prisma Client JS.
 
 ### 3.1. Adjusting the import
 
-Since Photon.js is generated into `node_modules/@prisma/client`, it is imported as follows:
+Since Prisma Client JS is generated into `node_modules/@prisma/client`, it is imported as follows:
 
 ```ts
 import { PrismaClient } from '@prisma/client'
 ```
 
-Note that this only imports the `PrismaClient` constructor, so you also need to instantiate a Photon.js instance:
+Note that this only imports the `PrismaClient` constructor, so you also need to instantiate a Prisma Client JS instance:
 
 ```ts
 const prisma = new PrismaClient()
@@ -326,7 +326,7 @@ const prisma = new PrismaClient()
 
 ### 3.2. Adjusting the `/user` route (`POST`)
 
-With the Photon.js API, the `/user` route for `POST` requests has to be changed to:
+With the Prisma Client JS API, the `/user` route for `POST` requests has to be changed to:
 
 ```ts
 app.post(`/user`, async (req, res) => {
@@ -341,7 +341,7 @@ app.post(`/user`, async (req, res) => {
 
 ### 3.3. Adjusting the `/post` route (`POST`)
 
-With the Photon.js API, the `/post` route for `POST` requests has to be changed to:
+With the Prisma Client JS API, the `/post` route for `POST` requests has to be changed to:
 
 ```ts
 app.post(`/post`, async (req, res) => {
@@ -359,7 +359,7 @@ app.post(`/post`, async (req, res) => {
 
 ### 3.4. Adjusting the `/publish/:id` route (`PUT`)
 
-With the Photon.js API, the `/publish/:id` route for `PUT` requests has to be changed to:
+With the Prisma Client JS API, the `/publish/:id` route for `PUT` requests has to be changed to:
 
 ```ts
 app.put('/publish/:id', async (req, res) => {
@@ -374,7 +374,7 @@ app.put('/publish/:id', async (req, res) => {
 
 ### 3.5. Adjusting the `/post/:id` route (`DELETE`)
 
-With the Photon.js API, the `//post/:id` route for `DELETE` requests has to be changed to:
+With the Prisma Client JS API, the `//post/:id` route for `DELETE` requests has to be changed to:
 
 ```ts
 app.delete(`/post/:id`, async (req, res) => {
@@ -388,7 +388,7 @@ app.delete(`/post/:id`, async (req, res) => {
 
 ### 3.6. Adjusting the `/post/:id` route (`GET`)
 
-With the Photon.js API, the `/post/:id` route for `GET` requests has to be changed to:
+With the Prisma Client JS API, the `/post/:id` route for `GET` requests has to be changed to:
 
 ```ts
 app.get(`/post/:id`, async (req, res) => {
@@ -402,7 +402,7 @@ app.get(`/post/:id`, async (req, res) => {
 
 ### 3.7. Adjusting the `/feed` route (`GET`)
 
-With the Photon.js API, the `/feed` route for `GET` requests has to be changed to:
+With the Prisma Client JS API, the `/feed` route for `GET` requests has to be changed to:
 
 ```ts
 app.get('/feed', async (req, res) => {
@@ -413,7 +413,7 @@ app.get('/feed', async (req, res) => {
 
 ### 3.8. Adjusting the `/filterPosts` route (`GET`)
 
-With the Photon.js API, the `/user` route for `POST` requests has to be changed to:
+With the Prisma Client JS API, the `/user` route for `POST` requests has to be changed to:
 
 ```ts
 app.get('/filterPosts', async (req, res) => {
@@ -444,4 +444,4 @@ Going forward, you won't perform schema migrations using the `prisma deploy` com
 
 ## Summary
 
-In this upgrade guide, you learned how to upgrade an ExpressJS-based REST API from Prisma 1 to the Prisma Framework that uses Photon.js and Lift. In the future, we'll cover more fine-grained upgrade scenarios, based on more complicated database schemas as well as for projects that are using GraphQL Nexus and `nexus-prisma`.
+In this upgrade guide, you learned how to upgrade an ExpressJS-based REST API from Prisma 1 to the Prisma Framework that uses Prisma Client JS and Lift. In the future, we'll cover more fine-grained upgrade scenarios, based on more complicated database schemas as well as for projects that are using GraphQL Nexus and `nexus-prisma`.

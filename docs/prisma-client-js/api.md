@@ -160,7 +160,7 @@ Coming soon.
 
 ## Relations
 
-Learn more about relations in the generated Prisma Client JS API [here](../relations.md#relations-in-the-generated-photon-API).
+Learn more about relations in the generated Prisma Client JS API [here](../relations.md#relations-in-the-generated-prisma-client-js-api).
 
 ## Bring your own ID
 
