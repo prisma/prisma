@@ -147,7 +147,19 @@ export async function getDMMF({
       } catch (e) {
         //
       }
-      const message = (json && json.message) || output
+      let message = (json && json.message) || output
+
+      if (
+        message.includes(
+          'debian-openssl-1.1.x: error while loading shared libraries: libssl.so.1.1: cannot open shared object file: No such file or directory',
+        )
+      ) {
+        message += `\n${chalk.green(
+          `Your linux installation misses the openssl package. You can install it like so:\n`,
+        )}${chalk.green.bold(
+          'apt-get -qy update && apt-get -qy install openssl',
+        )}`
+      }
 
       throw new Error(chalk.redBright.bold('Schema parsing\n') + message)
     }
