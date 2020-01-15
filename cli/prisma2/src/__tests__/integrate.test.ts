@@ -59,25 +59,25 @@ async function runTest(t) {
   await db.query(t.before)
   const introspectionSchema = await engine.introspect(connectionString)
   await generate(introspectionSchema)
-  const photonPath = join(tmp, 'index.js')
-  const photonDeclarationPath = join(tmp, 'index.d.ts')
+  const prismaClientPath = join(tmp, 'index.js')
+  const prismaClientDeclarationPath = join(tmp, 'index.d.ts')
 
-  assert(fs.existsSync(photonPath))
-  assert(fs.existsSync(photonDeclarationPath))
+  assert(fs.existsSync(prismaClientPath))
+  assert(fs.existsSync(prismaClientDeclarationPath))
 
   // clear the require cache
-  delete require.cache[photonPath]
-  const { Photon } = await import(photonPath)
-  const photon = new Photon()
-  await photon.connect()
+  delete require.cache[prismaClientPath]
+  const { PrismaClient } = await import(prismaClientPath)
+  const prisma = new PrismaClient()
+  await prisma.connect()
   try {
-    const result = await t.do(photon)
+    const result = await t.do(prisma)
     await db.query(t.after)
     assert.deepEqual(result, t.expect)
   } catch (err) {
     throw err
   } finally {
-    await photon.disconnect()
+    await prisma.disconnect()
   }
 }
 
@@ -102,9 +102,9 @@ async function generate(introspectionSchema: string) {
         {
           binaryTargets: [],
           config: {},
-          name: 'photon',
+          name: 'client',
           output: tmp,
-          provider: 'photonjs',
+          provider: 'prisma-client-js',
         },
       ],
     },

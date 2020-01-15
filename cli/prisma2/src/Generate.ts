@@ -50,10 +50,10 @@ export class Generate implements Command {
       if (
         generator.manifest?.version &&
         generator.manifest?.version !== pkg.version &&
-        generator.options?.generator.provider === 'photonjs'
+        generator.options?.generator.provider === 'prisma-client-js'
       ) {
         console.error(
-          `${chalk.bold(`@prisma/photon@${generator.manifest?.version}`)} is not compatible with ${chalk.bold(
+          `${chalk.bold(`@prisma/client@${generator.manifest?.version}`)} is not compatible with ${chalk.bold(
             `prisma2@${pkg.version}`,
           )}. Their versions need to be equal.`,
         )
