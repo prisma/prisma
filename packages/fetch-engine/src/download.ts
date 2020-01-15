@@ -198,7 +198,15 @@ async function downloadBinary({
   binaryName,
   failSilent,
 }: DownloadBinaryOptions) {
-  await makeDir(path.dirname(targetPath))
+  try {
+    await makeDir(path.dirname(targetPath))
+  } catch (e) {
+    if (failSilent) {
+      return
+    } else {
+      throw e
+    }
+  }
   debug(`Downloading ${sourcePath} to ${targetPath}`)
   const cacheDir = await getCacheDir(channel, version, platform)
   const cachedTargetPath = path.join(cacheDir, binaryName)
