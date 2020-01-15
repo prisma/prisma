@@ -1,4 +1,4 @@
-import { Engine, PhotonError, PhotonQueryError, QueryEngineError } from './Engine'
+import { Engine, PrismaClientError, PrismaClientQueryError, QueryEngineError } from './Engine'
 import got from 'got'
 import HttpAgent from 'agentkeepalive'
 import debugLib from 'debug'
@@ -247,24 +247,24 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
 
       if (!alternativePath) {
         throw new Error(
-          `Photon binary for current platform ${chalk.bold.greenBright(platform)} could not be found.${pinnedStr}
-Photon looked in ${chalk.underline(prismaPath)} but couldn't find it.
+          `Query engine binary for current platform ${chalk.bold.greenBright(platform)} could not be found.${pinnedStr}
+Prisma Client looked in ${chalk.underline(prismaPath)} but couldn't find it.
 Make sure to adjust the generator configuration in the ${chalk.bold('schema.prisma')} file${info}
 Please run ${chalk.greenBright('prisma2 generate')} for your changes to take effect.
 ${chalk.gray(
-  `Note, that by providing \`native\`, Photon automatically resolves \`${platform}\`.
-Read more about deploying Photon: ${chalk.underline(
-    'https://github.com/prisma/prisma2/blob/master/docs/core/generators/photonjs.md',
+  `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
+Read more about deploying Prisma Client: ${chalk.underline(
+    'https://github.com/prisma/prisma2/blob/master/docs/core/generators/prisma-client-js.md',
   )}`,
 )}`,
         )
       } else {
         console.error(`${chalk.yellow(
           'warning',
-        )} Photon could not resolve the needed binary for the current platform ${chalk.greenBright(platform)}.
+        )} Prisma Client could not resolve the needed binary for the current platform ${chalk.greenBright(platform)}.
 Instead we found ${chalk.bold(
           alternativePath,
-        )}, which we're trying for now. In case Photon runs, just ignore this message.`)
+        )}, which we're trying for now. In case Prisma Client runs, just ignore this message.`)
         plusX(alternativePath)
         return alternativePath
       }
@@ -273,7 +273,7 @@ Instead we found ${chalk.bold(
     if (this.incorrectlyPinnedPlatform) {
       console.log(`${chalk.yellow('Warning:')} You pinned the platform ${chalk.bold(
         this.incorrectlyPinnedPlatform,
-      )}, but Photon detects ${chalk.bold(await this.getPlatform())}.
+      )}, but Prisma Client detects ${chalk.bold(await this.getPlatform())}.
 This means you should very likely pin the platform ${chalk.greenBright(await this.getPlatform())} instead.
 ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     }
@@ -411,11 +411,11 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         })
 
         if (this.lastError) {
-          return reject(new PhotonError(this.lastError))
+          return reject(new PrismaClientError(this.lastError))
         }
 
         if (this.lastErrorLog) {
-          return reject(new PhotonError(this.lastErrorLog))
+          return reject(new PrismaClientError(this.lastErrorLog))
         }
 
         try {
@@ -503,10 +503,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       }
       await new Promise(r => setTimeout(r, 50))
       if (this.lastError) {
-        throw new PhotonError(this.lastError)
+        throw new PrismaClientError(this.lastError)
       }
       if (this.lastErrorLog) {
-        throw new PhotonError(this.lastErrorLog)
+        throw new PrismaClientError(this.lastErrorLog)
       }
       try {
         await got(`http://localhost:${this.port}/status`, {
@@ -579,22 +579,22 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         collectTimestamps && collectTimestamps.record('Post-engine_request_http')
         debug({ error })
         if (this.currentRequestPromise.isCanceled && this.lastError) {
-          throw new PhotonError(this.lastError)
+          throw new PrismaClientError(this.lastError)
         }
         if (this.currentRequestPromise.isCanceled && this.lastErrorLog) {
-          throw new PhotonError(this.lastErrorLog)
+          throw new PrismaClientError(this.lastErrorLog)
         }
         if ((error.code && error.code === 'ECONNRESET') || error.code === 'ECONNREFUSED') {
           if (this.lastError) {
-            throw new PhotonError(this.lastError)
+            throw new PrismaClientError(this.lastError)
           }
           if (this.lastErrorLog) {
-            throw new PhotonError(this.lastErrorLog)
+            throw new PrismaClientError(this.lastErrorLog)
           }
           const logs = this.stderrLogs || this.stdoutLogs
           throw new Error(logs)
         }
-        if (!(error instanceof PhotonQueryError)) {
+        if (!(error instanceof PrismaClientQueryError)) {
           return this.handleErrors({ errors: error, query })
         } else {
           throw error
@@ -615,7 +615,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     debug(inspect(errors, false, null))
 
     if (errors.length === 1 && errors[0].user_facing_error) {
-      throw new PhotonQueryError(errors[0])
+      throw new PrismaClientQueryError(errors[0])
     }
 
     const stringified = errors ? this.serializeErrors(errors) : null
@@ -625,6 +625,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       this.stop()
     }
 
-    throw new PhotonError(message)
+    throw new PrismaClientError(message)
   }
 }

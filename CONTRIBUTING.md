@@ -1,7 +1,8 @@
 # Contributing
 
 Prisma Framework consists of 3 repositories:
-1. [photonjs](https://github.com/prisma/photonjs)
+
+1. [prisma-client-js](https://github.com/prisma/prisma-client-js)
 2. [lift](https://github.com/prisma/lift)
 3. [prisma2](https://github.com/prisma/prisma2)
 

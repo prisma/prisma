@@ -25,3 +25,4 @@ migrations
 index.d.ts
 /dmmf.json
 try-getDmmf.ts
+write-test
