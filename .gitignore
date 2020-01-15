@@ -10,3 +10,4 @@ failed-*.md
 *.db
 .env*
 pnpm-debug.log
+write-test
