@@ -63,7 +63,9 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
   if (baseDir) {
     try {
-      fs.writeFileSync(path.join(baseDir, 'write-test'), 'write-test')
+      const writeTestPath = path.join(baseDir, 'write-test')
+      fs.writeFileSync(writeTestPath, 'write-test')
+      fs.unlinkSync(writeTestPath)
     } catch (e) {
       if (options.failSilent) {
         return
