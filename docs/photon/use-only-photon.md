@@ -2,7 +2,7 @@
 
 You can use Photon as an ORM in your application without using Lift for database migrations. This is useful for _existing applications_ when there already is a working migration system or when you don't have the rights inside your organization to perform database migrations yourself.
 
-When using Photon without Lift, you obtain your data model definition by _introspecting_ your database schema and generating the Prisma data model from it. The generated data model then serves as foundation for Photon's generated CRUD API. Whenever a schema migration is performed on the database afterwards, you need to re-introspect your database (which updates your data model) and re-generate your Photon API.
+When using Photon without Lift, you obtain your data model definition by _introspecting_ your database schema and generating the Prisma data model from it. The generated data model then serves as foundation for Photon's generated CRUD API. Whenever a schema migration is performed on the database afterwards, you need to re-introspect your database (which updates your data model) and re-generate your Prisma Client JS API.
 
 **This page is about using Photon with an existing database**. Learn more about getting started from scratch with Photon and Lift [here](./).
 
@@ -37,7 +37,7 @@ Once you're done with the interactive prompt, the CLI sets out for 3 major tasks
 
 1. Introspecting your database schema
 1. Generating a data model based on the introspection
-1. Generating the Photon API in your selected language
+1. Generating the Prisma Client JS API in your selected language
 
 Plus, if you've selected a boilerplate to get started, it downloads the boilerplate code and configures it to connect to your database and match the generated data model.
 
@@ -55,9 +55,9 @@ It is recommended to also install the `prisma2` CLI as a development dependency:
 npm install prisma2 --save-dev
 ```
 
-Now you can import it from `node_modules/@prisma/client` and start calling your database via the [generated Photon API](./api.md).
+Now you can import it from `node_modules/@prisma/client` and start calling your database via the [generated Prisma Client JS API](./api.md).
 
-### 3. Customize your Photon API
+### 3. Customize your Prisma Client JS API
 
 One benefit of having the data model as an intermediate representation of your database schema is that lets you to _decouple_ the database schema from your data access API. For example, you can map cryptic table names to friendlier model names to be used in your API.
 
@@ -87,7 +87,7 @@ model Customer @@map(name: "_customers") {
 }
 ```
 
-After running another `prisma2 generate`, your Photon API now looks as follows:
+After running another `prisma2 generate`, your Prisma Client JS API now looks as follows:
 
 ```ts
 await photon.customers.findMany({
@@ -97,10 +97,10 @@ await photon.customers.findMany({
 
 ### 5. Evolve your application
 
-Whenever the database schema changes throughout the lifetime of your application, you need to re-generate your Photon API to ensure it still matches the underlying database structures. The workflow for that typically involves two steps:
+Whenever the database schema changes throughout the lifetime of your application, you need to re-generate your Prisma Client JS API to ensure it still matches the underlying database structures. The workflow for that typically involves two steps:
 
 1. Re-introspecting your database schema to update the data model
-1. Re-generate your Photon API
+1. Re-generate your Prisma Client JS API
 
 In CLI commands, this looks as follows:
 
@@ -154,4 +154,4 @@ When using MongoDB, you need to provide your [MongoDB connection string](https:/
 
 ### Demo scripts
 
-When you're selecting the **Demo script** option, the Prisma Framework CLI will provide a runnable Node.js/TypeScript script that showcases usage of the Photon API and gives you a foundation for further exploration.
+When you're selecting the **Demo script** option, the Prisma Framework CLI will provide a runnable Node.js/TypeScript script that showcases usage of the Prisma Client JS API and gives you a foundation for further exploration.

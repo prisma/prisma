@@ -173,7 +173,7 @@ The Prisma schema contains three important elements of your project:
 The [data model definition](./data-modeling.md#data-model-definition) inside the schema file has the following responsibilities:
 
 - It's a _declarative_ description of your underlying database schema
-- It provides the foundation for the generated [Photon API](./photon/api.md)
+- It provides the foundation for the generated [Prisma Client JS API](./photon/api.md)
 
 Its main building blocks are [models](./data-modeling.md#models) which map to _tables_ in the underlying PostgreSQL database. The [fields](./data-modeling.md#fields) of a model map to _columns_ of a table.
 
@@ -469,9 +469,9 @@ model Post {
 Be sure to **save the file**. As you save it, you can observe your terminal window to see Prisma's activity:
 
 - It added a `Category` table to your database schema. It also added a _relation table_ called `_CategoryToPost` to the database schema to represent the many-to-many relation. Note that the shape of the relation table will be configurable in the future, learn more in the [spec](https://github.com/prisma/specs/tree/master/schema#explicit-many-to-many-mn-relationships).
-- It regenerated the Photon API to add CRUD operations for the new `Category` model.
+- It regenerated the Prisma Client JS API to add CRUD operations for the new `Category` model.
 
-Since the Photon API has been updated, you can now update the code in `script.ts` to create new categories and connect them to existing (or new) posts. As an example, this code snippet would create a new category called "prisma" and connect it to two existing posts:
+Since the Prisma Client JS API has been updated, you can now update the code in `script.ts` to create new categories and connect them to existing (or new) posts. As an example, this code snippet would create a new category called "prisma" and connect it to two existing posts:
 
 ```ts
 const category = await photon.categories.create({
@@ -500,7 +500,7 @@ Terminate the development mode by hitting <kbd>CTRL</kbd>+<kbd>C</kbd> two times
 
 ## 5. Migrate the database with Lift
 
-You've introduced changes to your data model that are already reflected in the database and in your Photon API thanks to `prisma2 dev`. To persists your migration in Lift's migration history, you need to run through the process of migrating your database with Lift.
+You've introduced changes to your data model that are already reflected in the database and in your Prisma Client JS API thanks to `prisma2 dev`. To persists your migration in Lift's migration history, you need to run through the process of migrating your database with Lift.
 
 Every schema migration with Lift follows a 3-step-process:
 

@@ -75,7 +75,7 @@ This will initialize a new Prisma project name "photonjs_app" and start the init
 4. "Database options": **Use existing PostgreSQL schema**
 5. "Non-empty schemas": **public** 
 6. "Prisma 2 tools": confirm the default selections 
-7. "Photon is available in these languages": **TypeScript**
+7. "Prisma Client JS is available in these languages": **TypeScript**
 8. **Just the Prisma schema**
 
 The introspection process is now complete.  You should see a message like:
@@ -296,7 +296,7 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 ```
-Now you can start using the `prisma` instance and interact with your database programmatically with the generated Photon API.
+Now you can start using the `prisma` instance and interact with your database programmatically with the generated Prisma Client JS API.
 
 The `PrismaClient` instance connects [lazily](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#managing-connections) when the first request is made to the API (`connect()` is called for you under the hood). 
 
@@ -463,7 +463,7 @@ app.get('/users', async (req, res) => {
 
 ```
 
-Your generated Photon API will expose the following [CRUD operations](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#crud) for the `Task` and `User` models:
+Your generated Prisma Client JS API will expose the following [CRUD operations](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#crud) for the `Task` and `User` models:
 - `findOne`
 - `findMany`
 - `create`
@@ -473,7 +473,7 @@ Your generated Photon API will expose the following [CRUD operations](https://gi
 - `delete`
 - `deleteMany`
 
-So to implement the same route and endpoint in your Prisma Client JS project, go to your `index.ts` file, and in the `/users` endpoint for the `app.get` route, fetch all the posts from the database with [`findMany`](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#findMany), a method exposed for the `User` model with the generated Photon API.  Then send the results back.  Note that the API calls are asynchronous so we can `await` the results of the operation.
+So to implement the same route and endpoint in your Prisma Client JS project, go to your `index.ts` file, and in the `/users` endpoint for the `app.get` route, fetch all the posts from the database with [`findMany`](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#findMany), a method exposed for the `User` model with the generated Prisma Client JS API.  Then send the results back.  Note that the API calls are asynchronous so we can `await` the results of the operation.
 
 ```ts
 import * as express from 'express'

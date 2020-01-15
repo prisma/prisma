@@ -16,7 +16,7 @@ Here's a list of information that is contained in an error report:
 - Versions of Prisma tools
 - Project metadata
 
-_Project metadata_ includes your Prisma schema, used CLI commands or usage of certain features in the Photon API. Note that the connection details of any of your data sources will be obscured in the error report.
+_Project metadata_ includes your Prisma schema, used CLI commands or usage of certain features in the Prisma Client JS API. Note that the connection details of any of your data sources will be obscured in the error report.
 
 Here's a list of information that is **never** contained in an error report:
 

@@ -328,9 +328,9 @@ model User {
 }
 ```
 
-## Relations in the generated Photon API
+## Relations in the generated Prisma Client JS API
 
-The [generated Photon API](./photon/api.md) comes with many helpful features for relations (find examples below):
+The [generated Prisma Client JS API](./photon/api.md) comes with many helpful features for relations (find examples below):
 
 - Fluent API to traverse relations on the returned object
 - Nested creates, updates and connects (also referred to as _nested writes_) with transactional guarantees
