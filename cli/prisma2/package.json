@@ -12,7 +12,7 @@
     "runtime/*.d.ts",
     "runtime/utils",
     "runtime/dist",
-    "photon"
+    "prisma-client"
   ],
   "pkg": {
     "assets": [

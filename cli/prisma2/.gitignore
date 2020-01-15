@@ -16,6 +16,7 @@ tmp
 @generated
 pkg-build
 download-done
+prisma-client
 
 prisma
 .envrc
