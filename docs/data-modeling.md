@@ -3,6 +3,7 @@
 - [Data model definition](#data-model-definition)
 - [Example](#example)
 - [Models](#models)
+- [IDs](#ids)
 - [Fields](#fields)
 - [Enums](#enums)
 - [Attributes](#attributes)
@@ -31,7 +32,7 @@ datasource sqlite {
 }
 
 model User {
-  id        Int      @id
+  id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   email     String   @unique
   name      String?
@@ -41,13 +42,13 @@ model User {
 }
 
 model Profile {
-  id   Int    @id
+  id   Int    @id @default(autoincrement())
   user User
   bio  String
 }
 
 model Post {
-  id         Int        @id
+  id         Int        @id @default(autoincrement())
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   author     User
@@ -57,7 +58,7 @@ model Post {
 }
 
 model Category {
-  id    Int    @id
+  id    Int    @id @default(autoincrement())
   name  String
   posts Post[]
 }
@@ -131,6 +132,75 @@ const allUsers = await photon.users.findMany()
 ```
 
 Note that for Photon.js the name of the `users` property is auto-generated using the [`pluralize`](https://github.com/blakeembrey/pluralize) package.
+
+## IDs
+
+Every model in your Prisma schema needs to have a unique ID. In relational databases, this unique ID corresponds to a column with a primary key constraint. Note that [composite primary keys are not yet supported](https://github.com/prisma/photonjs/issues/339) (but will be soon).
+
+To determine which field of a model is the ID field, you can annotate it with the `@id` attribute. Fields annotated with the `@id` attribute must be of type `String` or `Int`:
+
+```prisma
+model User {
+  id    String  @id
+  name  String
+}
+```
+
+or
+
+```prisma
+model User {
+  id    Int     @id
+  name  String
+}
+```
+
+Note that in the above cases, you must provide your own ID values when creating new records for the `User` model using Photon.js, e.g.:
+
+```ts
+const newUser = await photon.users.create({
+  data: {
+    id: 1,
+    name: 'Alice',
+  }
+})
+```
+
+However, you can also specify **default values for the IDs**. The following default values are supported:
+
+- `String`:
+  - `cuid`: Prisma will generate a globally unqiue identifier based on the [`cuid`](https://github.com/ericelliott/cuid) spec and set it as the record's ID value
+  - `uuid`: Prisma will generate a globally unqiue identifier based on the [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier) spec and set it as the record's ID value
+- `Int`: 
+  - `autoincrement`: Prisma will create a sequence of integers in the underlying database and assign the incremented values to the ID values of the created records based on the sequence. This corresponds to e.g. using [`SERIAL`](https://www.postgresql.org/docs/9.1/datatype-numeric.html#DATATYPE-SERIAL) in PostgreSQL.
+
+Here are examples for using default values for the model:
+
+```prisma
+model User {
+  id    String  @id @default(cuid())
+  name  String
+}
+```
+
+or
+
+```prisma
+model User {
+  id    String  @id @default(uuid())
+  name  String
+}
+```
+
+or
+
+```prisma
+model User {
+  id    Int     @id @default(autoincrement())
+  name  String
+}
+```
+
 
 ## Fields
 
