@@ -159,7 +159,7 @@ generator js {
 
 generator js_custom_output {
   provider = "prisma-client-js"
-  output   = "../src/generated/photon"
+  output   = "../src/generated/client"
 }
 
 generator ts {

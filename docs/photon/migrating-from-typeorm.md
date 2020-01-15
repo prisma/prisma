@@ -191,7 +191,7 @@ npm install @prisma/client
 npm install prisma2 --save-dev
 ```
 
-### Migrating to the Photon constructor
+### Migrating to the `PrismaClient` constructor
 
 Make sure you are in your `photonjs_app` project directory. Then, in your terminal, run: 
 
@@ -392,7 +392,7 @@ app.use(bodyParser.json())
 const prisma = new PrismaClient()
 
 app.get('/posts', async (req, res) => {
-    const posts = await photon.posts.findMany()
+    const posts = await prisma.posts.findMany()
     res.send(posts)
 })
 
@@ -430,7 +430,7 @@ So to implement the same route and endpoint in your Prisma Client JS project, go
 //...
 app.get(`/posts/:id`, async (req, res) => {
     const { id } = req.params
-    const post = await photon.posts.findOne({ 
+    const post = await prisma.posts.findOne({ 
         where: { 
           id: Number(id),
         },
@@ -459,7 +459,7 @@ To implement the same route and endpoint in your Prisma Client JS project, go to
 //...
 app.post(`/posts`, async (req, res) => {
   const { text, title } = req.body
-  const post = await photon.posts.create({
+  const post = await prisma.posts.create({
     data: {
         text,
         title,
@@ -488,7 +488,7 @@ To implement the same route and endpoint in your Prisma Client JS project, go to
 //...
 app.delete(`/posts/:id`, async (req, res) => {
   const { id } = req.params
-  const post = await photon.posts.delete({ 
+  const post = await prisma.posts.delete({ 
     where: { 
         id: Number(id),
     },

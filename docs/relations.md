@@ -344,7 +344,7 @@ The fluent API lets you _fluently_ traverse the relations of your models via fun
 This request returns all posts by a specific user:
 
 ```ts
-const postsByUser: Post[] = await photon.users
+const postsByUser: Post[] = await prisma.users
   .findOne({ where: { email: 'ada@prisma.io' } })
   .posts()
 ```
@@ -352,7 +352,7 @@ const postsByUser: Post[] = await photon.users
 This request returns all categories by a specific post:
 
 ```ts
-const categoriesOfPost: Category[] = await photon.posts
+const categoriesOfPost: Category[] = await prisma.posts
   .findOne({ where: { id: 1 } })
   .categories()
 ```
@@ -362,7 +362,7 @@ While the Fluent API allows you to write chainable queries, sometimes you may wa
 You can also rewrite the query like this:
 
 ```ts
-const postsByUser: Post[] = await photon.posts.findMany({
+const postsByUser: Post[] = await prisma.posts.findMany({
   where: {
     author: { id: author.id },
   },
@@ -408,7 +408,7 @@ Here are some examples of nested writes:
 ```ts
 // Create a new user with two posts in a
 // single transaction
-const newUser: User = await photon.users.create({
+const newUser: User = await prisma.users.create({
   data: {
     email: 'alice@prisma.io',
     posts: {
@@ -423,7 +423,7 @@ const newUser: User = await photon.users.create({
 
 ```ts
 // Change the author of a post in a single transaction
-const updatedPost: Post = await photon.posts.update({
+const updatedPost: Post = await prisma.posts.update({
   where: { id: 5424 },
   data: {
     author: {
@@ -435,7 +435,7 @@ const updatedPost: Post = await photon.posts.update({
 
 ```ts
 // Remove the author from an existing post in a single transaction
-const post: Post = await photon.posts.update({
+const post: Post = await prisma.posts.update({
   data: {
     author: { disconnect: true },
   },
@@ -478,7 +478,7 @@ Because there are circular relations between `User`, `Post` and `Comment`, you c
 ```ts
 // Create a new post, connect to an existing user and create new,
 // comments, users and posts in deeply nested operations
-const post = await photon.posts.create({
+const post = await prisma.posts.create({
   data: {
     author: {
       connect: {
@@ -529,7 +529,7 @@ You can eagerly load relations on a model via `select` and `include` (learn more
 ```ts
 // The returned post objects will only have the  `id` and
 // `author` property which carries the respective user object
-const allPosts = await photon.posts.findMany({
+const allPosts = await prisma.posts.findMany({
   select: {
     id: true,
     author: true,
@@ -540,7 +540,7 @@ const allPosts = await photon.posts.findMany({
 ```ts
 // The returned posts objects will have all scalar fields of the `Post` model
 // and additionally all the categories for each post
-const allPosts = await photon.posts.findMany({
+const allPosts = await prisma.posts.findMany({
   include: {
     categories: true,
   },
@@ -550,7 +550,7 @@ const allPosts = await photon.posts.findMany({
 ```ts
 // The returned objects will have all scalar fields of the `User` model
 // and additionally all the posts with their authors with their posts
-await photon.users.findMany({
+await prisma.users.findMany({
   include: {
     posts: {
       include: {
@@ -572,7 +572,7 @@ A relation filter is a filter operation that's applied to a related object of a 
 ```ts
 // Retrieve all posts of a particular user
 // that start with "Hello"
-const posts: Post[] = await photon.users
+const posts: Post[] = await prisma.users
   .findOne({
     where: { email: 'ada@prisma.io' },
   })

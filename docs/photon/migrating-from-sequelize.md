@@ -486,7 +486,7 @@ app.use(bodyParser.json())
 const prisma = new PrismaClient()
 
 app.get('/users', async (req, res) => {
-    const users = await photon.users.findMany()
+    const users = await prisma.users.findMany()
     res.json(users)
 })
 
@@ -518,7 +518,7 @@ So to implement the same route and endpoint in your Prisma Client JS project, go
 //...
 app.get(`/users/:id`, async (req, res) => {
     const { id } = req.params
-    const user = await photon.users.findOne({ 
+    const user = await prisma.users.findOne({ 
         where: { 
           id: Number(id),
         },
@@ -550,7 +550,7 @@ To implement the same route and endpoint in your Prisma Client JS project, go to
 //...
 app.post(`/tasks`, async (req, res) => {
   const { title } = req.body
-  const post = await photon.tasks.create({
+  const post = await prisma.tasks.create({
     data: {
         title,
     },
@@ -582,7 +582,7 @@ To implement the same route and endpoint in your Prisma Client JS project, go to
 //...
 app.delete(`/tasks/:id`, async (req, res) => {
   const { id } = req.params
-  const task = await photon.tasks.delete({ 
+  const task = await prisma.tasks.delete({ 
     where: { 
         id: Number(id),
     },
@@ -621,7 +621,7 @@ The sample project that was used demonstrated the fundamental capabilities of bo
 
 ## Next steps
 
-- Learn more about [Photon's relation API](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#relations)
+- Learn more about [Prisma Client JS' relation API](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#relations)
 - Engage with our [community](https://www.prisma.io/community/)!
 - The Prisma Framework is not production-ready [yet](https://github.com/prisma/prisma2/blob/master/docs/limitations.md), so we value your [feedback](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md)!
 
