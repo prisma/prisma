@@ -1,28 +1,19 @@
 <br />
 <p align="center"><a href="https://photonjs.prisma.io/"><img src="logo.svg" alt="Prisma" height="40px"></a></p>
 
-<!-- <p><h1 align="center">Photon.js</h1></p> -->
 <p><h3 align="center">Type-safe database client for TypeScript & Node.js (ORM replacement)</h3></p>
 
 <p align="center">
   <a href="#getting-started">Get started</a> • <a href="#features">Features</a> • <a href="#docs">Docs</a> • <a href="#api-examples">API</a> • <a href="#the-photon-js-workflow">Workflow</a> • <a href="#supported-databases">Supported databases</a>
 </p>
 
-<!--
-<p align="center">
-  <a href="https://circleci.com/gh/prisma/prisma"><img src="https://circleci.com/gh/prisma/prisma.svg?style=shield" alt="CircleCI"></a>
-  <a href="https://slack.prisma.io"><img src="https://slack.prisma.io/badge.svg" alt="Slack"></a>
-  <a href="https://spectrum.chat/prisma"><img src="https://withspectrum.github.io/badge/badge.svg" alt="Spectrum"></a>
-</p>
--->
-
 <hr>
 
-[Photon.js](https://photonjs.prisma.io/) is an **auto-generated database client** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or Knex.js
+[Prisma Client JS](https://photonjs.prisma.io/) is an **auto-generated database client** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or Knex.js.
 
 It is part of the [Prisma 2](https://www.github.com/prisma/prisma2) ecosystem. Prisma 2 provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
 
-> Note that Photon.js is currently running in Preview. A productionn-ready release is [planned for Q1 2020](https://www.prisma.io/blog/state-of-prisma-2-december-rcrwcqyu655e/).
+> Note that Prisma Client JS is currently running in Preview. A productionn-ready release is [planned for Q1 2020](https://www.prisma.io/blog/state-of-prisma-2-december-rcrwcqyu655e/).
 
 <br />
 
@@ -31,13 +22,10 @@ It is part of the [Prisma 2](https://www.github.com/prisma/prisma2) ecosystem. P
   <a href="https://www.github.com/prisma/prisma2"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
 </p>
 
-<!-- <p align="center">
-  Or try an online <a href="https://codesandbox.io/s/github/prisma-csb/graphql-example-ts">GraphQL API</a> or <a href="https://codesandbox.io/s/github/prisma-csb/rest-example-ts?initialpath=/feed">REST API</a> example in CodeSandbox instead.
-</p> -->
 
 ## Getting started
 
-The easiest way to get started with Photon is by installing the Prisma 2 CLI and running the interactive `init` command:
+The easiest way to get started with Prisma Client JS is by installing the Prisma 2 CLI and running the interactive `init` command:
 
 ```sh
 npm install -g prisma2
@@ -65,34 +53,34 @@ Learn more about the `prisma2 init` flow [here](https://github.com/prisma/prisma
 
 ## Docs
 
-You can find comprehensive documentation for Photon in the [Prisma 2 docs](https://github.com/prisma/prisma2).
+You can find comprehensive documentation for Prisma Client JS in the [Prisma 2 docs](https://github.com/prisma/prisma2).
 
 ## API examples
 
 Here are few example API calls:
 
 ```ts
-import Photon from '@generated/photon'
+import { PrismaClient } from '@prisma/client'
 
-const photon = new Photon()
+const prisma = new PrismaClient()
 
 async function main() {
-  await photon.connect()
+  await prisma.connect()
 
-  const userById = await photon.users.findOne({ where: { id: 1 } })
-  const userByEmail = await photon.users.findOne({ where: { email: "ada@prisma.io" }})
+  const userById = await prisma.users.findOne({ where: { id: 1 } })
+  const userByEmail = await prisma.users.findOne({ where: { email: "ada@prisma.io" }})
 
-  const userWithPosts = await photon.users.findOne({
+  const userWithPosts = await prisma.users.findOne({
     where: { email: "ada@prisma.io" },
     include: { posts: { first: 10 } },
   })
 
-  const newUser = await photon.users.create({ data: {
+  const newUser = await prisma.users.create({ data: {
     name: "Alice",
     email: "alice@prisma.io",
   }})
 
-  const newUserWithPosts = await photon.users.create({ data: {
+  const newUserWithPosts = await prisma.users.create({ data: {
     email: "alice@prisma.io",
     posts: {
       create: [
@@ -102,7 +90,7 @@ async function main() {
     }
   }})
 
-  const updatedUser = await photon.users.update({
+  const updatedUser = await prisma.users.update({
     where: { email: "alice@prisma.io" },
     data: { role: "ADMIN" },
   })
@@ -111,30 +99,30 @@ async function main() {
 main().catch(e => {
   console.error(e)
 }).finally(async () => {
-  await photon.disconnect()
+  await prisma.disconnect()
 })
 ```
 
-<Details><Summary>Expand to the view the <strong>data model</strong> based on which the above Photon API was generated</Summary>
+<Details><Summary>Expand to the view the <strong>data model</strong> based on which the above Prisma Client JS API was generated</Summary>
 
 ```prisma
 datasource ds {
   // some data source config, e.g. SQLite, PostgreSQL, ...
 }
 
-generator photonjs {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {
-  id         Int       @id
+  id         Int       @id @default(autoincrement())
   email      String    @unique
   name       String
   posts      Post[]
 }
 
 model Post {
-  id          Int       @id
+  id          Int       @id  @default(autoincrement())
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   draft       Boolean   @default(true)
@@ -146,9 +134,9 @@ Learn more about the data model in the [docs](https://github.com/prisma/prisma2/
 
 </Details>
 
-You can learn more about the Photon's API features on the [website](https://photonjs.prisma.io/) or in the [API reference](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md).
+You can learn more about Prisma Client's API features on the [website](https://photonjs.prisma.io/) or in the [API reference](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md).
 
-## The Photon.js workflow
+## The Prisma Client JS workflow
 
 ### 1. Configure data source
 
@@ -166,12 +154,12 @@ Here is an example schema file that connects to a local PostgreSQL database:
 // schema.prisma
 
 datasource postgres {
-  url      = "postgresql://user:password@localhost:5432"
-  provider = "postgres"
+  url      = "postgresql://user:password@localhost:5432/mydb"
+  provider = "postgresql"
 }
 
-generator photonjs {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 ```
 
@@ -187,12 +175,12 @@ datasource postgres {
   provider = "postgres"
 }
 
-generator photonjs {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {
-  id        Int      @id
+  id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   email     String   @unique
   name      String?
@@ -201,12 +189,12 @@ model User {
 }
 
 model Post {
-  id         Int        @id
+  id         Int        @id @default(autoincrement())
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
-  author     User
   title      String
   published  Boolean    @default(false)
+  author     User
 }
 
 enum Role {
@@ -221,23 +209,23 @@ Read below to learn how you obtain it for your project.
 
 <img src="https://i.imgur.com/XkRkwdE.png" width="355px">
 
-If you want to use Photon with an existing database, you can [introspect](https://github.com/prisma/prisma2/blob/master/docs/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md). This generates a [data model](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) which is the foundation for the generated Photon API.
+If you want to use Prisma Client JS with an existing database, you can [introspect](https://github.com/prisma/prisma2/blob/master/docs/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md). This generates a [data model](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) which is the foundation for the generated Prisma Client JS API.
 
 #### Option B: Start from scratch (_greenfield_)
 
 When starting from scratch, you can simply write your own [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) inside your [schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). You can then use [Lift](https://github.com/prisma/lift) to migrate your database (Lift maps your data model definition to the schema of the underlying database).
 
-### 3. Generate Photon.js
+### 3. Generate Prisma Client JS
 
 <img src="https://i.imgur.com/rdtKEYL.png" width="453px">
 
-Generate your Photon database client using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md):
+Generate your version of Prisma Client JS using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md):
 
 ```sh
 prisma2 generate
 ```
 
-Photon is generated based on the [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) and provides a type-safe API with the following features:
+Prisma Client JS is generated based on the [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) and provides a type-safe API with the following features:
 
 - CRUD
 - Filter, sorting and (cursor) pagination
@@ -245,19 +233,19 @@ Photon is generated based on the [data model definition](https://github.com/pris
 - Relations and transactions
 - Raw database access
 
-Photon.js gets generated into your `node_modules` folder so you can import it directly from `'@generated/photon'`. There's no need to install any additional dependencies or database drivers.
+Prisma Client JS gets generated into your `node_modules` folder so you can import it directly from `'@prisma/client'`. There's no need to install any additional dependencies or database drivers.
 
 ### 4. Build an app
 
-Similar to traditional ORMs, the Photon.js client can be used any of your Node.js or TypeScript application. For example to implement REST, GraphQL or gRPC APIs. You can find reference examples for these use cases in the [`prisma-examples`](https://github.com/prisma/prisma-examples/tree/prisma2) repository.
+Similar to traditional ORMs, Prisma Client JS can be used with any of your Node.js or TypeScript applications. For example to implement REST, GraphQL or gRPC APIs. You can find reference examples for these use cases in the [`prisma-examples`](https://github.com/prisma/prisma-examples/tree/prisma2) repository.
 
-### 5. Evolve your database and Photon.js database client
+### 5. Evolve your database and Prisma Client JS
 
 As you build your app, you'll likely migrate your database to implement new features. Depending on how you obtained your [initial data model](#2-define-initial-data-model) and whether or not you're using [Lift](https://github.com/prisma/lift), there might be two ways for evolving your application going forward.
 
 #### Option A: Without Lift
 
-If you're not using Lift, you need to re-introspect your database (to update the generated datamodel) and re-generate the Photon.js client after each schema migration:
+If you're not using Lift, you need to re-introspect your database (to update the generated datamodel) and re-generate Prisma Client JS after each schema migration:
 
 ```sh
 prisma2 introspect
@@ -266,7 +254,7 @@ prisma2 generate
 
 #### Option B: With Lift
 
-When using Lift, you need to re-generate the Photon.js client immediately after you performed a schema migration:
+When using Lift, you need to re-generate Prisma Client JS immediately after you performed a schema migration:
 
 ```sh
 # adjust data model definition in schema.prisma
@@ -277,7 +265,7 @@ prisma2 generate
 
 ## Supported databases
 
-Photon.js can be used with the following databases:
+Prisma Client JS can be used with the following databases:
 
 - SQLite
 - MySQL
@@ -293,6 +281,7 @@ More databases that will be supported in the future are:
 - ...
 
 ## Contributing
-Read more about how to contribute to Photon [here](https://github.com/prisma/photonjs/blob/master/CONTRIBUTING.md)
+
+Read more about how to contribute to Prisma Client JS [here](https://github.com/prisma/photonjs/blob/master/CONTRIBUTING.md)
 
 [![Build status](https://badge.buildkite.com/fa6027d11848231f2bc194aaffcf5dbc2ee0a83d666af0806e.svg)](https://buildkite.com/prisma/photon)
