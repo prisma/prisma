@@ -208,7 +208,10 @@ async function downloadBinary({
     }
   }
   debug(`Downloading ${sourcePath} to ${targetPath}`)
-  const cacheDir = await getCacheDir(channel, version, platform)
+  const cacheDir = await getCacheDir(channel, version, platform, failSilent)
+  if (!cacheDir) {
+    return
+  }
   const cachedTargetPath = path.join(cacheDir, binaryName)
   const cachedLastModifiedPath = path.join(cacheDir, 'lastModified-' + binaryName)
 

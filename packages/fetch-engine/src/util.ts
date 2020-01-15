@@ -45,12 +45,25 @@ export async function getRootCacheDir(): Promise<string> {
   return path.join(os.homedir(), '.cache/prisma')
 }
 
-export async function getCacheDir(channel: string, version: string, platform: string): Promise<string> {
+export async function getCacheDir(
+  channel: string,
+  version: string,
+  platform: string,
+  failSilent: boolean,
+): Promise<string | null> {
   const rootCacheDir = await getRootCacheDir()
 
   debug({ rootCacheDir, channel, version, platform })
   const cacheDir = path.join(rootCacheDir, channel, version, platform)
-  await makeDir(cacheDir)
+  try {
+    await makeDir(cacheDir)
+  } catch (e) {
+    if (failSilent) {
+      return null
+    } else {
+      throw e
+    }
+  }
   return cacheDir
 }
 
