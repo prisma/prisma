@@ -9,5 +9,5 @@ fi
 
 
 # Test generation in npm script
-rm -rf fixtures/project/subdir/@generated
+rm -rf fixtures/project/subdir/@prisma
 cd fixtures/project/ && yarn postinstall
