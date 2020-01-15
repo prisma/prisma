@@ -21,3 +21,4 @@ prisma
 .envrc
 test
 /photon
+write-test
