@@ -54,14 +54,26 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   if (Object.values(options.binaries).length === 0) {
     return {}
   }
-  const downloadDoneFile = options.binaries
-    ? path.join(
-        options.binaries['query-engine'] ||
-          options.binaries['migration-engine'] ||
-          options.binaries['introspection-engine'],
-        'download-done',
-      )
+
+  const baseDir = options.binaries
+    ? options.binaries['query-engine'] ||
+      options.binaries['migration-engine'] ||
+      options.binaries['introspection-engine']
     : null
+
+  if (baseDir) {
+    try {
+      fs.writeFileSync(path.join(baseDir, 'write-test'), 'write-test')
+    } catch (e) {
+      if (options.failSilent) {
+        return
+      } else {
+        throw new Error(`Can't write to ${baseDir} please make sure you install "prisma2" with the right permissions.`)
+      }
+    }
+  }
+
+  const downloadDoneFile = baseDir ? path.join(baseDir, 'download-done') : null
   const nativeDownloadsDone = downloadDoneFile ? fs.existsSync(downloadDoneFile) : false
   const everythingDownloaded =
     nativeDownloadsDone &&
