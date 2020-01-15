@@ -1,8 +1,8 @@
-const { Photon } = require('@prisma/photon')
+const { PrismaClient } = require('@prisma/client')
 const assert = require('assert')
 
 module.exports = async () => {
-  const photon = new Photon({
+  const prisma = new PrismaClient({
     log: [
       {
         emit: 'event',
@@ -17,9 +17,9 @@ module.exports = async () => {
 
   const queryEvents = []
 
-  photon.on('query', e => queryEvents.push(e))
+  prisma.on('query', e => queryEvents.push(e))
 
-  const result = await photon.users({
+  const result = await prisma.users({
     where: {
       favoriteTree: {
         in: ['ARBORVITAE'],
@@ -27,7 +27,7 @@ module.exports = async () => {
     },
   })
 
-  await photon.disconnect()
+  await prisma.disconnect()
 
   assert(queryEvents.length > 0)
 }

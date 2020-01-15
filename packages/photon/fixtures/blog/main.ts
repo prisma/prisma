@@ -1,17 +1,17 @@
-import { Photon } from './@prisma/photon'
+import { PrismaClient } from './@prisma/client'
 
 async function main() {
-  const photon = new Photon({})
+  const prisma = new PrismaClient({})
 
-  // photon.on('query', q => {
+  // prisma.on('query', q => {
   //   console.log('query', q)
   // })
 
-  // photon.on('info', q => {
+  // prisma.on('info', q => {
   //   console.log('info', q)
   // })
 
-  const users = await photon.users()
+  const users = await prisma.users()
 
   console.log(users)
 }

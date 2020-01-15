@@ -1,5 +1,5 @@
-generator photon {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 
 datasource db {

@@ -248,7 +248,7 @@ ${errorMessages}${missingArgsLegend}\n`
     }
     // end renderErrorStr definition
 
-    const error = new PhotonError(renderErrorStr())
+    const error = new PrismaClientError(renderErrorStr())
 
     // @ts-ignore
     if (process.env.NODE_ENV !== 'production') {
@@ -399,7 +399,7 @@ ${errorMessages}${missingArgsLegend}\n`
         }of type ${chalk.redBright(
           getGraphQLType(error.providedValue),
         )} on ${chalk.bold(
-          `photon.${this.children[0].name}`,
+          `prisma.${this.children[0].name}`,
         )} is not a ${chalk.greenBright(
           wrapWithList(
             stringifyGraphQLType(error.requiredType.bestFittingType.kind),
@@ -445,7 +445,7 @@ ${errorMessages}${missingArgsLegend}\n`
       )}: Got invalid value ${chalk.redBright(valueStr)}${
         multilineValue ? '' : ' '
       }on ${chalk.bold(
-        `photon.${this.children[0].name}`,
+        `prisma.${this.children[0].name}`,
       )}. Provided ${chalk.redBright(
         getGraphQLType(error.providedValue),
       )}, expected ${expected}`
@@ -513,7 +513,7 @@ ${errorMessages}${missingArgsLegend}\n`
   }
 }
 
-class PhotonError extends Error {}
+class PrismaClientError extends Error {}
 
 export interface FieldArgs {
   name: string

@@ -9,9 +9,9 @@ test('ignore comments', () => {
     default  = true
   }
   
-  generator photon {
-    provider  = "photonjs"
-    output    = "@generated/photon"
+  generator client {
+    provider  = "prisma-client-js"
+    output    = "@generated/client"
     transpile = false
   }
   
@@ -67,9 +67,9 @@ test('basic happy path', () => {
     default  = true
   }
   
-  generator photon {
-    provider  = "photonjs"
-    output    = "@generated/photon"
+  generator client {
+    provider  = "prisma-client-js"
+    output    = "@generated/client"
     transpile = false
   }
   
