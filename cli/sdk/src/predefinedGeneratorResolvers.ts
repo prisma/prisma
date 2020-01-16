@@ -34,11 +34,13 @@ The provider has been renamed to "prisma-client-js" and the package to "@prisma/
       console.log({ prismaClientDir })
     }
 
-    if (!fs.existsSync(path.join(process.cwd(), 'package.json'))) {
-      throw new PrismaClientFacadeMissingError()
-    }
-
     if (!prismaClientDir) {
+      if (
+        !fs.existsSync(path.join(process.cwd(), 'package.json')) &&
+        !fs.existsSync(path.join(process.cwd(), '../package.json'))
+      ) {
+        throw new PrismaClientFacadeMissingError()
+      }
       if (!process.stdout.isTTY) {
         throw new PrismaClientFacadeMissingError()
       } else {
