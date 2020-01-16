@@ -73,7 +73,7 @@ async function main(): Promise<number> {
   const cli = CLI.new(
     {
       init: Init.new(),
-      lift: LiftCommand.new({
+      migrate: LiftCommand.new({
         save: LiftSave.new(),
         up: LiftUp.new(),
         down: LiftDown.new(),

@@ -55,9 +55,14 @@ ${indent(printDatamodelObject(obj), tab)}
   }
 }
 
-export function printDatamodelObject(obj) {
+export function printDatamodelObject(obj: any) {
   const maxLength = Object.keys(obj).reduce((max, curr) => Math.max(max, curr.length), 0)
   return Object.entries(obj)
-    .map(([key, value]) => `${key.padEnd(maxLength)} = ${JSON.stringify(value)}`)
+    .map(
+      ([key, value]: [string, any]) =>
+        `${key.padEnd(maxLength)} = ${
+          typeof value === 'object' && value && value.value ? JSON.stringify(value.value) : JSON.stringify(value)
+        }`,
+    )
     .join('\n')
 }
