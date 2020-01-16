@@ -9,25 +9,35 @@ import os from 'os'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
-import { LiftPanic } from '../LiftEngine'
 import { getProxyAgent } from './getProxyAgent'
 import { maskSchema } from './maskSchema'
+import { RustPanic, ErrorArea } from '@prisma/sdk'
 
 const debug = Debug('sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
-export async function sendPanic(error: LiftPanic, cliVersion: string, binaryVersion: string): Promise<number | void> {
+export async function sendPanic(error: RustPanic, cliVersion: string, binaryVersion: string): Promise<number | void> {
   try {
-    const schema = fs.readFileSync(error.schemaPath, 'utf-8')
-    const maskedSchema = maskSchema(schema)
+    let schema: undefined | string
+    let maskedSchema: undefined | string
+    if (error.schemaPath) {
+      schema = fs.readFileSync(error.schemaPath, 'utf-8')
+    }
+    if (error.schema) {
+      schema = error.schema
+    }
+
+    if (schema) {
+      maskedSchema = maskSchema(schema)
+    }
 
     const signedUrl = await createErrorReport({
-      area: ErrorArea.LIFT_CLI,
+      area: error.area,
       kind: ErrorKind.RUST_PANIC,
       cliVersion,
       binaryVersion,
-      command: process.argv.slice(2).join(' '),
+      command: getCommand(),
       jsStackTrace: stripAnsi(error.stack || error.message),
       rustStackTrace: error.rustStack,
       operatingSystem: `${os.arch()} ${os.platform()} ${os.release()}`,
@@ -35,16 +45,27 @@ export async function sendPanic(error: LiftPanic, cliVersion: string, binaryVers
       liftRequest: JSON.stringify(error.request),
       schemaFile: maskedSchema,
       fingerprint: getFid() || undefined,
+      sqlDump: error.sqlDump,
     })
 
-    const zip = await makeErrorZip(error)
-    await uploadZip(zip, signedUrl)
+    if (error.schemaPath) {
+      const zip = await makeErrorZip(error)
+      await uploadZip(zip, signedUrl)
+    }
 
     const id = await makeErrorReportCompleted(signedUrl)
     return id
   } catch (e) {
     debug(e)
   }
+}
+
+function getCommand(): string {
+  if (process.argv[2] === 'introspect') {
+    // don't send url
+    return 'introspect'
+  }
+  return process.argv.slice(2).join(' ')
 }
 
 async function uploadZip(zip: Buffer, url: string) {
@@ -58,13 +79,16 @@ async function uploadZip(zip: Buffer, url: string) {
   })
 }
 
-async function makeErrorZip(error: LiftPanic): Promise<Buffer> {
-  const schemaDir = path.dirname(error.schemaPath)
+async function makeErrorZip(error: RustPanic): Promise<Buffer> {
+  if (!error.schemaPath) {
+    throw new Error(`Can't make zip without schema path`)
+  }
+  const schemaDir = path.dirname(error.schemaPath!)
   const tmpFileObj = tmp.fileSync()
-  const outputFile = fs.createWriteStream(tmpFileObj.name);
+  const outputFile = fs.createWriteStream(tmpFileObj.name)
   const zip = archiver('zip', { zlib: { level: 9 } })
 
-  zip.pipe(outputFile);
+  zip.pipe(outputFile)
 
   zip.append(fs.createReadStream('schema.prisma'), { name: 'schema.prisma' })
 
@@ -109,11 +133,7 @@ export interface CreateErrorReportInput {
   rustStackTrace: string
   schemaFile?: string
   fingerprint?: string
-}
-
-export enum ErrorArea {
-  LIFT_CLI = 'LIFT_CLI',
-  PHOTON_STUDIO = 'PHOTON_STUDIO',
+  sqlDump?: string
 }
 
 export enum ErrorKind {
