@@ -4,6 +4,7 @@ import open from 'open'
 
 import { Studio } from '../../Studio'
 import { ProviderAliases } from '@prisma/sdk'
+import { ExperimentalFlagError } from '../../utils/experimental'
 
 export class StudioCommand implements Command {
   public static new(providerAliases: ProviderAliases): StudioCommand {
@@ -15,7 +16,7 @@ export class StudioCommand implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma studio
+      prisma studio --experimental
 
     ${chalk.bold('Options')}
 
@@ -25,10 +26,10 @@ export class StudioCommand implements Command {
     ${chalk.bold('Examples')}
 
       Start Studio on the default port
-      ${chalk.dim(`$`)} prisma studio
+      ${chalk.dim(`$`)} prisma studio --experimental
 
       Start Studio on a custom port
-      ${chalk.dim(`$`)} prisma studio --port 5555
+      ${chalk.dim(`$`)} prisma studio --port 5555 --experimental
   `)
 
   private constructor(private readonly providerAliases: ProviderAliases) {
@@ -46,7 +47,12 @@ export class StudioCommand implements Command {
       '-h': '--help',
       '--port': Number,
       '-p': '--port',
+      '--experimental': Boolean,
     })
+
+    if (!args['--experimental']) {
+      throw new ExperimentalFlagError()
+    }
 
     if (isError(args)) {
       return this.help(args.message)

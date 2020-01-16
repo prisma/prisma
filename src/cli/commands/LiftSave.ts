@@ -9,6 +9,7 @@ import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
 import { printFiles } from '../../utils/printFiles'
 import { printMigrationId } from '../../utils/printMigrationId'
 import { serializeFileMap } from '../../utils/serializeFileMap'
+import { ExperimentalFlagError } from '../../utils/experimental'
 
 const writeFile = promisify(fs.writeFile)
 
@@ -26,7 +27,7 @@ export class LiftSave implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma migrate save [options]
+      prisma migrate save [options] --experimental
 
     ${chalk.bold('Options')}
 
@@ -38,10 +39,10 @@ export class LiftSave implements Command {
     ${chalk.bold('Examples')}
 
       Create a new migration
-      ${chalk.dim(`$`)} prisma migrate save
+      ${chalk.dim(`$`)} prisma migrate save --experimental
 
       Create a new migration by name
-      ${chalk.dim(`$`)} prisma migrate save --name "add unique to email"
+      ${chalk.dim(`$`)} prisma migrate save --name "add unique to email" --experimental
 
   `)
   private constructor() {}
@@ -58,7 +59,11 @@ export class LiftSave implements Command {
       '-p': '--preview',
       '--create-db': Boolean,
       '-c': '--create-db',
+      '--experimental': Boolean,
     })
+    if (!args['--experimental']) {
+      throw new ExperimentalFlagError()
+    }
     if (isError(args)) {
       return this.help(args.message)
     } else if (args['--help']) {

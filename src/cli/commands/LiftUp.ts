@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import fs from 'fs'
 import { Lift, UpOptions } from '../../Lift'
 import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
+import { ExperimentalFlagError } from '../../utils/experimental'
 
 export class LiftUp implements Command {
   public static new(): LiftUp {
@@ -15,7 +16,7 @@ export class LiftUp implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma migrate up [<inc|name|timestamp>]
+      prisma migrate up [<inc|name|timestamp>] --experimental
 
     ${chalk.bold('Arguments')}
 
@@ -31,20 +32,20 @@ export class LiftUp implements Command {
     ${chalk.bold('Examples')}
 
       Create a new migration, then migrate up
-      ${chalk.dim(`$`)} prisma migrate create --name "add unique to email"
-      ${chalk.dim(`$`)} prisma migrate up
+      ${chalk.dim(`$`)} prisma migrate create --name "add unique to email" --experimental
+      ${chalk.dim(`$`)} prisma migrate up --experimental
 
       Preview a migration without migrating
-      ${chalk.dim(`$`)} prisma migrate up --preview
+      ${chalk.dim(`$`)} prisma migrate up --preview --experimental
 
       Go up by one migration
-      ${chalk.dim(`$`)} prisma migrate up 1
+      ${chalk.dim(`$`)} prisma migrate up 1 --experimental
 
       Go up by to a migration by timestamp
-      ${chalk.dim(`$`)} prisma migrate up 20190605204907
+      ${chalk.dim(`$`)} prisma migrate up 20190605204907 --experimental
 
       Go up by to a migration by name
-      ${chalk.dim(`$`)} prisma migrate up "add first_name field"
+      ${chalk.dim(`$`)} prisma migrate up "add first_name field" --experimental
   `)
   private constructor() {}
 
@@ -61,7 +62,12 @@ export class LiftUp implements Command {
       '--create-db': Boolean,
       '-c': '--create-db',
       '--auto-approve': Boolean,
+      '--experimental': Boolean,
     })
+
+    if (!args['--experimental']) {
+      throw new ExperimentalFlagError()
+    }
 
     if (isError(args)) {
       return this.help(args.message)
