@@ -4,8 +4,8 @@ datasource my_db {
 }
 
 generator photon {
-  provider = "photonjs"
-  output   = "@generated/photon"
+  provider = "prisma-client-js"
+  output   = "@generated/client"
 }
 
 model Blog {
