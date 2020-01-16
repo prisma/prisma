@@ -74,6 +74,7 @@ export class Studio {
             providerAliases,
           },
         },
+        staticAssetDir: path.resolve(__dirname, 'public'), // Overriding this directory since after NCC compilation, this won't resolve automatically
       })
 
       await this.instance.start()
@@ -88,7 +89,8 @@ export class Studio {
 
   public async restart(providerAliases: ProviderAliases): Promise<string> {
     if (this.instance) {
-      await this.instance.restart()
+      await this.instance.stop('Restarting')
+      await this.instance.start(providerAliases)
       return ''
     }
 
