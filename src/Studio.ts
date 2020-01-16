@@ -58,29 +58,22 @@ export class Studio {
 
       const StudioServer = (await import('@prisma/studio-server')).default
 
-      let photonWorkerPath: string | undefined
-      try {
-        const studioTransport = require.resolve('@prisma/studio-transports')
-        photonWorkerPath = path.join(path.dirname(studioTransport), 'photon-worker.js')
-      } catch (e) {
-        //
-      }
-
       if (!this.port) {
         this.port = await getPort({ port: getPort.makeRange(5555, 5600) })
       }
 
       this.instance = new StudioServer({
         port: this.port,
-        debug: false,
-        binaryPath: firstExistingPath.path,
-        photonWorkerPath,
-        photonGenerator: {
-          version: packageJson.prisma.version,
-          providerAliases,
-        },
         schemaPath: getDatamodelPath(this.projectDir),
-        // reactAppDir: path.join(path.dirname(require.resolve('@prisma/studio/package.json')), 'build'),
+        binaryPaths: {
+          queryEngine: firstExistingPath.path,
+        },
+        photon: {
+          generator: {
+            version: packageJson.prisma.version,
+            providerAliases,
+          },
+        },
       })
 
       await this.instance.start()
