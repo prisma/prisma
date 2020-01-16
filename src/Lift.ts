@@ -450,10 +450,10 @@ export class Lift {
     const localWatchMigrations = await this.getLocalWatchMigrations()
     if (localWatchMigrations.length > 0) {
       throw new Error(
-        `Before running ${chalk.yellow('prisma lift down')}, please save your ${chalk.bold(
+        `Before running ${chalk.yellow('prisma migrate down --experimental')}, please save your ${chalk.bold(
           'dev',
-        )} changes using ${chalk.bold.greenBright('prisma lift create')} and ${chalk.bold.greenBright(
-          'prisma2 lift up',
+        )} changes using ${chalk.bold.greenBright('prisma migrate create --experimental')} and ${chalk.bold.greenBright(
+          'prisma2 migrate up --experimental',
         )}`,
       )
     }
@@ -588,7 +588,7 @@ export class Lift {
 
     if (preview) {
       await progressRenderer.done()
-      return `\nTo apply the migrations, run ${chalk.greenBright('prisma2 lift up')}\n`
+      return `\nTo apply the migrations, run ${chalk.greenBright('prisma2 migrate up --experimental')}\n`
     }
 
     for (let i = 0; i < migrationsToApply.length; i++) {
@@ -939,7 +939,7 @@ class ProgressRenderer {
 
     str += chalk.dim(
       `\n\nYou can get the detailed db changes with ${chalk.greenBright(
-        'prisma2 lift up --verbose',
+        'prisma2 migreate up --experimental --verbose',
       )}\nOr read about them in the ./migrations/MIGRATION_ID/README.md`,
     )
 
