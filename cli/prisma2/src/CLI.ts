@@ -76,7 +76,7 @@ export class CLI implements Command {
 
     ${chalk.bold('Commands')}
 
-          init   Setup Prisma for your app
+          init   Setup Prisma for your existing database
            dev   Develop your application in watch mode
           lift   Migrate your datamodel
     introspect   Get the datamodel of your database
@@ -84,7 +84,7 @@ export class CLI implements Command {
 
     ${chalk.bold('Examples')}
 
-      Initialize files for a new Prisma project
+      Setup Prisma for your existing database
       ${chalk.dim(`$`)} prisma2 init
 
       Start developing and auto migrating your changes locally

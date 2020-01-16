@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`is schema wriiten on disk replace: 
+We created [32mprisma/schema.prisma[39m for you.
+Edit it with your favorite editor to update your database connection so Prisma can connect to it.
+
+When done, run [32mprisma2 introspect[39m to test the connection and introspect the data model from your existing database.
+Then run [32mprisma2 generate[39m to generate a Prisma Client based on this data model that can be used in your application.
+
+More information in our documentation:
+http://tbd
+ 1`] = `
+"
+We created [32mprisma/schema.prisma[39m for you.
+Edit it with your favorite editor to update your database connection so Prisma can connect to it.
+
+When done, run [32mprisma2 introspect[39m to test the connection and introspect the data model from your existing database.
+Then run [32mprisma2 generate[39m to generate a Prisma Client based on this data model that can be used in your application.
+
+More information in our documentation:
+http://tbd
+"
+`;
