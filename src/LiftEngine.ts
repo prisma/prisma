@@ -9,6 +9,7 @@ const debugStdin = debugLib('LiftEngine:stdin')
 import { getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import { now } from './utils/now'
+import { RustPanic, ErrorArea } from '@prisma/sdk'
 
 export interface LiftEngineOptions {
   projectDir: string
@@ -29,18 +30,6 @@ export class EngineError extends Error {
   constructor(message: string, code: number) {
     super(message)
     this.code = code
-  }
-}
-
-export class LiftPanic extends Error {
-  public request: any
-  public rustStack: string
-  public schemaPath: string
-  constructor(message: string, rustStack: string, request: any, schemaPath: string) {
-    super(message)
-    this.rustStack = rustStack
-    this.request = request
-    this.schemaPath = schemaPath
   }
 }
 
@@ -167,9 +156,15 @@ export class LiftEngine {
               errorMessage = `${chalk.red.bold('Schema parsing\n')}` + messages
             } else if (this.lastError && code === 255) {
               errorMessage = serializePanic(this.lastError)
-              err = new LiftPanic(errorMessage, this.lastError.message, this.lastRequest, this.schemaPath)
+              err = new RustPanic(
+                errorMessage,
+                this.lastError.message,
+                this.lastRequest,
+                ErrorArea.LIFT_CLI,
+                this.schemaPath,
+              )
             } else if (messages.includes('panicked at') || code === 255) {
-              err = new LiftPanic(errorMessage, messages, this.lastRequest, this.schemaPath)
+              err = new RustPanic(errorMessage, messages, this.lastRequest, ErrorArea.LIFT_CLI, this.schemaPath)
             }
             err = err || new Error(errorMessage)
             this.rejectAll(err)
@@ -224,7 +219,15 @@ export class LiftEngine {
             if (response.error.data && response.error.data.message) {
               debugRpc(response)
               const message = (response.error.data && response.error.data.message) || response.error.message
-              reject(new LiftPanic(message, response.error.data.message, this.lastRequest, this.schemaPath))
+              reject(
+                new RustPanic(
+                  message,
+                  response.error.data.message,
+                  this.lastRequest,
+                  ErrorArea.LIFT_CLI,
+                  this.schemaPath,
+                ),
+              )
             } else {
               const text = this.persistError(request, this.messages.join('\n'))
               reject(
