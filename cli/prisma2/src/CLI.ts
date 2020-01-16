@@ -20,6 +20,7 @@ export class CLI implements Command {
       '-h': '--help',
       '--version': Boolean,
       '-v': '--version',
+      '--experimental': Boolean,
     })
     if (isError(args)) {
       return this.help(args.message)
@@ -29,11 +30,17 @@ export class CLI implements Command {
     }
     // display help for help flag or no subcommand
     if (args._.length === 0 || args['--help']) {
-      return this.help()
+      if (args['--experimental']) {
+        return CLI.experimentalHelp
+      }
+      return CLI.help
     }
 
     // check if we have that subcommand
     const cmdName = args._[0]
+    if (cmdName === 'lift') {
+      throw new Error(`${chalk.red('prisma2 lift')} has been renamed to ${chalk.green('prisma2 migrate')}`)
+    }
     const cmd = this.cmds[cmdName]
     if (cmd) {
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
@@ -77,20 +84,44 @@ export class CLI implements Command {
     ${chalk.bold('Commands')}
 
           init   Setup Prisma for your app
-           dev   Develop your application in watch mode
-          lift   Migrate your datamodel
     introspect   Get the datamodel of your database
       generate   Generate Photon
+
+    ${chalk.bold('Flags')}
+
+  --experimental   Show and run experimental Prisma commands
+
+    ${chalk.bold('Examples')}
+
+      Initialize files for a new Prisma project
+      ${chalk.dim(`$`)} prisma2 init
+  `)
+
+  // static help template
+  private static experimentalHelp = format(`
+    ${chalk.bold.green('◭')} Prisma makes your data easy (https://prisma.io)
+
+    ${chalk.bold('Usage')}
+
+      ${chalk.dim(`$`)} prisma2 [command]
+
+    ${chalk.bold('Commands')}
+
+          init   Setup Prisma for your app
+    introspect   Get the datamodel of your database
+      generate   Generate Photon
+       migrate   Migrate your schema
+
+    ${chalk.bold('Flags')}
+
+  --experimental   Show and run experimental Prisma commands
 
     ${chalk.bold('Examples')}
 
       Initialize files for a new Prisma project
       ${chalk.dim(`$`)} prisma2 init
 
-      Start developing and auto migrating your changes locally
-      ${chalk.dim(`$`)} prisma2 dev
-
       Save your changes into a migration
-      ${chalk.dim(`$`)} prisma2 lift save
+      ${chalk.dim(`$`)} prisma2 migrate save --experimental
   `)
 }
