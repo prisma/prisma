@@ -1,6 +1,6 @@
 {
   "name": "prisma2",
-  "version": "2.0.0-alpha.475",
+  "version": "2.0.0-alpha.551",
   "main": "build/index.js",
   "repository": "git@github.com:prisma/prisma2-cli.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
@@ -27,19 +27,19 @@
   },
   "bin": "build/index.js",
   "prisma": {
-    "version": "0d9a1f29bb2216b1dd7a122a28844b7815ab712f"
+    "version": "1a0db4166ffce810428c731661582371d3ab88c4"
   },
   "devDependencies": {
     "@prisma/cli": "workspace:*",
-    "@prisma/client": "workspace:^2.0.0-alpha.538",
+    "@prisma/client": "workspace:^2.0.0-alpha.551",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/introspection": "workspace:*",
     "@prisma/lift": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.165.0",
-    "@prisma/studio-server": "0.165.0",
-    "@prisma/studio-transports": "0.165.0",
+    "@prisma/studio": "0.182.0",
+    "@prisma/studio-server": "0.182.0",
+    "@prisma/studio-transports": "0.182.0",
     "@sentry/node": "^5.9.0",
     "@types/debug": "^4.1.5",
     "@types/mocha": "^5.2.7",
