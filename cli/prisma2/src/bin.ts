@@ -41,6 +41,7 @@ import {
 } from '@prisma/lift'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
+import { Dev } from './Dev'
 import { Version } from './Version'
 import { Generate } from './Generate'
 import chalk from 'chalk'
@@ -81,7 +82,7 @@ async function main(): Promise<number> {
       }),
       'tmp-prepare': LiftTmpPrepare.new(),
       introspect: Introspect.new(),
-      dev: LiftWatch.new(aliases),
+      dev: Dev.new(),
       studio: StudioCommand.new(aliases),
       generate: Generate.new(),
       version: Version.new(),
