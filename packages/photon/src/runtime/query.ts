@@ -857,11 +857,13 @@ export function transformDocument(document: Document): Document {
   function transformOrderArg(arg: Arg) {
     if (arg.value instanceof Args) {
       const orderArg = arg.value.args[0]
-      return new Arg({
-        ...arg,
-        isEnum: true,
-        value: `${orderArg.key}_${orderArg.value!.toString().toUpperCase()}`,
-      })
+      if (orderArg && orderArg.value) {
+        return new Arg({
+          ...arg,
+          isEnum: true,
+          value: `${orderArg.key}_${orderArg.value!.toString().toUpperCase()}`,
+        })
+      }
     }
 
     return arg
@@ -1269,6 +1271,13 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     })
   }
 
+  if (value === null && arg.inputType.length === 1) {
+    const t = arg.inputType[0]
+    if (isInputArgType(t.type) && t.type.isOrderType) {
+      return null
+    }
+  }
+
   // then the first
   if (!argInputType.isList) {
     const args = arg.inputType.map(t => {
@@ -1276,7 +1285,10 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
         if (typeof value !== 'object') {
           return getInvalidTypeArg(key, value, arg, t)
         } else {
-          const val = cleanObject(value)
+          let val = cleanObject(value)
+          if (t.type.isOrderType) {
+            val = filterObject(val, (k, v) => v !== null)
+          }
           let error: AtMostOneError | AtLeastOneError | undefined
           const keys = Object.keys(val || {})
           const numKeys = keys.length
