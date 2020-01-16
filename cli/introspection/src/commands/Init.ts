@@ -105,7 +105,7 @@ export class Init implements Command {
       Then run ${chalk.green('prisma2 generate')} to generate a Prisma Client based on this data model that can be used in your application.
 
       More information in our documentation:
-      http://tbd
+      https://pris.ly/getting-started
     `)
   }
 
