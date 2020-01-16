@@ -94,8 +94,7 @@ export class Init implements Command {
 
     fs.writeFileSync(path.join(prismaFolder, 'schema.prisma'), defaultSchema)
 
-    return format(`
-      We created ${chalk.green('prisma/schema.prisma')} for you.
+    return format(`We created ${chalk.green('prisma/schema.prisma')} for you.
       Edit it with your favorite editor to update your database connection so Prisma can connect to it.
 
       When done, run ${chalk.green('prisma2 introspect')} to test the connection and introspect the data model from your existing database.
