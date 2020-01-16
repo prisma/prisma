@@ -69,7 +69,7 @@ export class LiftCommand implements Command {
     if (cmd) {
       const nextFreePort = await getNextFreePort(process.cwd())
       if (typeof nextFreePort !== 'number') {
-        const command = `prisma2 lift ${argv.join(' ')}`
+        const command = `prisma2 migrate ${argv.join(' ')}`
         throw new Error(`Cannot run ${chalk.bold(command)} because there is a ${chalk.bold(
           'prisma2 dev',
         )} command running in this directory.
