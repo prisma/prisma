@@ -29,9 +29,7 @@ export class Generate implements Command {
 
   `)
 
-  private constructor(
-    private logText = ''
-  ) {}
+  private logText = ''
 
   private runGenerate = simpleDebounce(
     async ({generators, watchMode}) => {
