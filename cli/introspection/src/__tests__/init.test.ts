@@ -3,7 +3,7 @@ import mkdir from 'make-dir'
 import { promisify } from 'util'
 import fs from 'fs'
 import rimraf from 'rimraf'
-import { Init } from '../commands/Init'
+import { Init, defaultSchema } from '../commands/Init'
 
 const del = promisify(rimraf)
 const tmp = join(__dirname, '../../tmp')
@@ -19,7 +19,6 @@ beforeEach(async () => {
 
 test('is schema wriiten on disk replace', async () => {
   const schemaPath = join(__dirname, '../commands/default.prisma')
-  const defaultSchema = fs.readFileSync(schemaPath, 'utf-8')
 
   const init = Init.new()
   const result = await init.parse(['tmp'])
