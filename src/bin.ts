@@ -26,8 +26,8 @@ import path from 'path'
 
 const providerAliases: ProviderAliases = {
   photonjs: {
-    generatorPath: require.resolve('@prisma/photon/generator-build'),
-    outputPath: path.dirname(require.resolve('@prisma/photon/package.json')),
+    generatorPath: require.resolve('@prisma/client/generator-build'),
+    outputPath: path.dirname(require.resolve('@prisma/client/package.json')),
   },
 }
 
@@ -75,6 +75,8 @@ main()
   })
   .catch(err => {
     if (err.rustStack) {
+      // console.error(err.rustStack)
+      // console.error(err.stack)
       handlePanic(err, 'TEST', 'TEST').catch(console.error)
     } else {
       console.error(err)
