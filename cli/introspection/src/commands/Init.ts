@@ -1,6 +1,5 @@
 import { Command, arg, format } from '@prisma/cli'
 import { isError } from 'util'
-import { initPrompt } from '../prompt/initPrompt'
 import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
@@ -30,31 +29,67 @@ export class Init implements Command {
 
     const outputDirName = args._[0]
     const outputDir = outputDirName ? path.join(process.cwd(), outputDirName) : process.cwd()
+    const prismaFolder = path.join(outputDir, 'prisma')
 
-    if (fs.existsSync(outputDir)) {
-      const schemaExists = fs.existsSync(path.join(outputDir, 'schema.prisma'))
-      const prismaSchemaExists = fs.existsSync(path.join(outputDir, 'prisma/schema.prisma'))
-      if (schemaExists || prismaSchemaExists) {
-        const filePath = schemaExists ? 'schema.prisma' : 'prisma/schema.prisma'
-        console.log(printError(`The project directory must not contain a ${chalk.bold(filePath)} file.`))
-        console.log(
-          printFix(`Run the command in a directory without a ${chalk.bold(filePath)} file
-or provide a project name, e.g.: ${chalk.bold('prisma2 init hello-world')}`),
-        )
-        process.exit(1)
-      }
+    if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
+      console.log(printError(`File ${chalk.bold('schema.prisma')} already exists in your project.
+        Please try again in a project that is not yet using Prisma.
+      `))
+      process.exit(1)
     }
 
-    await initPrompt(outputDir)
+    if (fs.existsSync(prismaFolder)) {
+      console.log(printError(`Folder ${chalk.bold('prisma')} already exists in your project.
+        Please try again in a project that is not yet using Prisma.
+      `))
+      process.exit(1)
+    }
+
+    if (fs.existsSync(path.join(prismaFolder, 'schema.prisma'))) {
+      console.log(printError(`File ${chalk.bold('prisma/schema.prisma')} already exists in your project.
+        Please try again in a project that is not yet using Prisma.
+      `))
+      process.exit(1)
+    }
+
+    if (fs.existsSync(path.join(prismaFolder, 'schema.prisma'))) {
+      console.log(printError(`File ${chalk.bold('prisma/schema.prisma')} already exists in your project.
+        Please try again in a project that is not yet using Prisma.
+      `))
+      process.exit(1)
+    }
+
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir)
+    }
+
+    if (!fs.existsSync(prismaFolder)) {
+      fs.mkdirSync(prismaFolder)
+    }
+
+    const defaultSchema = fs.readFileSync(path.join(__dirname, 'default.prisma'), 'utf-8')
+
+    fs.writeFileSync(path.join(prismaFolder, 'schema.prisma'), defaultSchema)
+
+    return format(`
+      We created ${chalk.green('prisma/schema.prisma')} for you.
+      Edit it with your favorite editor to update your database connection so Prisma can connect to it.
+
+      When done, run ${chalk.green('prisma2 introspect')} to test the connection and introspect the data model from your existing database.
+      Then run ${chalk.green('prisma2 generate')} to generate a Prisma Client based on this data model that can be used in your application.
+
+      More information in our documentation:
+      http://tbd
+    `)
   }
 
   help() {
     return console.log(
       format(`
-Usage: prisma2 init
+        Usage: prisma2 init
 
-Initialize files for a new Prisma project
-    `),
+        Setup Prisma for your existing database
+      `),
     )
   }
 }
