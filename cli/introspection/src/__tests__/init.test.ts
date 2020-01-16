@@ -18,8 +18,6 @@ beforeEach(async () => {
 })
 
 test('is schema wriiten on disk replace', async () => {
-  const schemaPath = join(__dirname, '../commands/default.prisma')
-
   const init = Init.new()
   const result = await init.parse(['tmp'])
 
