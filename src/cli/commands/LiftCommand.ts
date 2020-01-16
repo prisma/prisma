@@ -2,6 +2,7 @@ import { arg, Command, Commands, format, HelpError, isError, unknownCommand } fr
 import chalk from 'chalk'
 import { getNextFreePort } from '../../utils/occupyPath'
 import { gamboge } from '../highlight/theme'
+import { ExperimentalFlagError } from '../../utils/experimental'
 
 /**
  * Migrate command
@@ -17,7 +18,7 @@ export class LiftCommand implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma2 lift [command] [options]
+      prisma2 migrate [command] [options] --experimental
 
     ${chalk.bold('Options')}
 
@@ -33,19 +34,19 @@ export class LiftCommand implements Command {
     ${chalk.bold('Examples')}
 
       Create new migration
-      ${chalk.dim(`$`)} prisma2 lift save
+      ${chalk.dim(`$`)} prisma2 migrate save --experimental
 
       Migrate up to the latest datamodel
-      ${chalk.dim(`$`)} prisma2 lift
+      ${chalk.dim(`$`)} prisma2 migrate up --experimental
 
       Preview the next migration without migrating
-      ${chalk.dim(`$`)} prisma2 lift up --preview
+      ${chalk.dim(`$`)} prisma2 migrate up --preview --experimental
 
       Rollback a migration
-      ${chalk.dim(`$`)} prisma2 lift down 1
+      ${chalk.dim(`$`)} prisma2 migrate down 1 --experimental
 
-      Get more help on a lift up
-      ${chalk.dim(`$`)} prisma2 lift up -h
+      Get more help on a migrate up
+      ${chalk.dim(`$`)} prisma2 migrate up -h --experimental
   `)
   private constructor(private readonly cmds: Commands) {}
 
@@ -54,6 +55,7 @@ export class LiftCommand implements Command {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
+      '--experimental': Boolean,
     })
     if (isError(args)) {
       return this.help(args.message)

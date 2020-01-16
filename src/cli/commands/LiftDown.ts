@@ -2,6 +2,7 @@ import { arg, Command, format, HelpError, isError } from '@prisma/cli'
 import chalk from 'chalk'
 import { DownOptions, Lift } from '../../Lift'
 import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
+import { ExperimentalFlagError } from '../../utils/experimental'
 
 export class LiftDown implements Command {
   public static new(): LiftDown {
@@ -14,7 +15,7 @@ export class LiftDown implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma lift down [<dec|name|timestamp>]
+      prisma migrate down [<dec|name|timestamp>] --experimental
 
     ${chalk.bold('Arguments')}
 
@@ -28,16 +29,16 @@ export class LiftDown implements Command {
     ${chalk.bold('Examples')}
 
       Preview a migration without migrating
-      ${chalk.dim(`$`)} prisma migrate down --preview
+      ${chalk.dim(`$`)} prisma migrate down --preview --experimental
 
       Rollback a migration
-      ${chalk.dim(`$`)} prisma migrate down 1
+      ${chalk.dim(`$`)} prisma migrate down 1 --experimental
 
       Go down to a migration by timestamp
-      ${chalk.dim(`$`)} prisma migrate down 20190605204907
+      ${chalk.dim(`$`)} prisma migrate down 20190605204907 --experimental
 
       Go down to a migration by name
-      ${chalk.dim(`$`)} prisma migrate down "add first_name field"
+      ${chalk.dim(`$`)} prisma migrate down "add first_name field" --experimental
   `)
   private constructor() {}
 
@@ -49,7 +50,12 @@ export class LiftDown implements Command {
       '-h': '--help',
       '--preview': Boolean,
       '-p': '--preview',
+      '--experimental': Boolean,
     })
+
+    if (!args['--experimental']) {
+      throw new ExperimentalFlagError()
+    }
 
     if (isError(args)) {
       return this.help(args.message)
