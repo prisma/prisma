@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import prompts from 'prompts'
 import execa from 'execa'
 import path from 'path'
+import fs from 'fs'
 import Debug from 'debug'
 const debugEnabled = Debug.enabled('generator')
 
@@ -22,7 +23,7 @@ export type PredefinedGeneratorResolvers = {
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   photonjs: () => {
-    throw new Error(`The generator provider "photonjs" with the corresponding package "@prisma/photon" doesn't exist anymore.
+    throw new Error(`The generator provider "photonjs" with the corresponding package "@prisma/photon" has been deprecated.
 The provider has been renamed to "prisma-client-js" and the package to "@prisma/client".
 "@prisma/client" now exposes "PrismaClient" instead of "Photon". Please update your code accordingly 🙏`)
   },
@@ -31,6 +32,10 @@ The provider has been renamed to "prisma-client-js" and the package to "@prisma/
 
     if (debugEnabled) {
       console.log({ prismaClientDir })
+    }
+
+    if (!fs.existsSync(path.join(process.cwd(), 'package.json'))) {
+      throw new PrismaClientFacadeMissingError()
     }
 
     if (!prismaClientDir) {
