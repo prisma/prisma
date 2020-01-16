@@ -27,7 +27,7 @@
   },
   "bin": "build/index.js",
   "prisma": {
-    "version": "58ba48550e9fe1abe101aedce59d6f9a8200996e"
+    "version": "0d9a1f29bb2216b1dd7a122a28844b7815ab712f"
   },
   "devDependencies": {
     "@prisma/cli": "workspace:*",
