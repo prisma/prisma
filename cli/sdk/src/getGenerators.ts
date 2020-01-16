@@ -305,7 +305,7 @@ Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary targ
           throw new Error(
             `Binary target ${chalk.red.bold(
               binaryTarget,
-            )} doesn't exist anymore. Please use ${chalk.green.bold(
+            )} is deprecated. Please use ${chalk.green.bold(
               oldToNewBinaryTargetsMapping[binaryTarget],
             )} instead.`,
           )
