@@ -46,7 +46,7 @@ export type GetGeneratorOptions = {
  * `Generator` class per generator defined in the schema.prisma file.
  * In other words, this is basically a generator factory function.
  * @param schemaPath Path to schema.prisma
- * @param aliases Aliases like `photonjs` -> `node_modules/photonjs/gen.js`
+ * @param aliases Aliases like `prisma-client-js` -> `node_modules/@prisma/client/generator-build/index.js`
  */
 export async function getGenerators({
   schemaPath,
@@ -283,6 +283,21 @@ async function validateGenerators(generators: GeneratorConfig[]) {
   const platform = await getPlatform()
 
   for (const generator of generators) {
+    if (generator.provider === 'photonjs') {
+      throw new Error(`The generator provider "${chalk.red(
+        'photonjs',
+      )}" with the corresponding package "${chalk.red(
+        '@prisma/photon',
+      )}" has been deprecated.
+The provider has been renamed to "${chalk.green(
+        'prisma-client-js',
+      )}" and the package to "${chalk.green('@prisma/client')}".
+"${chalk.green('@prisma/client')}" now exposes "${chalk.green(
+        'PrismaClient',
+      )} instead of "${chalk.red(
+        'Photon',
+      )}". Please update your code accordingly 🙏`)
+    }
     if (generator.provider === 'nexus-prisma') {
       throw new Error(
         '`nexus-prisma` is no longer a generator. You can read more at https://pris.ly/nexus-prisma-upgrade-0.4',
@@ -305,7 +320,7 @@ Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary targ
           throw new Error(
             `Binary target ${chalk.red.bold(
               binaryTarget,
-            )} doesn't exist anymore. Please use ${chalk.green.bold(
+            )} is deprecated. Please use ${chalk.green.bold(
               oldToNewBinaryTargetsMapping[binaryTarget],
             )} instead.`,
           )
@@ -346,9 +361,9 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
       }),
     )}
     ${chalk.gray(
-      `Note, that by providing \`native\`, Photon automatically resolves \`${platform}\`.
-    Read more about deploying Photon: ${chalk.underline(
-      'https://github.com/prisma/prisma2/blob/master/docs/core/generators/photonjs.md',
+      `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
+    Read more about deploying Prisma Client: ${chalk.underline(
+      'https://github.com/prisma/prisma2/blob/master/docs/core/generators/prisma-client-js.md',
     )}`,
     )}\n`)
         } else {

@@ -9,6 +9,7 @@ import { getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import { now } from './utils/now'
 import path from 'path'
+import { RustPanic, ErrorArea } from './panic'
 
 export interface IntrospectionEngineOptions {
   binaryPath?: string
@@ -21,14 +22,6 @@ export interface RPCPayload {
   jsonrpc: string
   method: string
   params: any
-}
-
-export class EngineError extends Error {
-  public code: number
-  constructor(message: string, code: number) {
-    super(message)
-    this.code = code
-  }
 }
 
 export class IntrospectionPanic extends Error {
@@ -163,11 +156,11 @@ export class IntrospectionEngine {
         const binaryPath = await this.getBinaryPath()
         debugRpc('starting introspection engine with binary: ' + binaryPath)
         this.child = spawn(binaryPath, {
-          stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
+          stdio: ['pipe', 'pipe', 'ignore'],
           env: {
             ...env,
-            RUST_LOG: 'info',
-            RUST_BACKTRACE: '1',
+            // RUST_LOG: 'info',
+            // RUST_BACKTRACE: '1',
           },
           cwd: this.cwd,
         })
@@ -217,7 +210,6 @@ export class IntrospectionEngine {
           try {
             const json = JSON.parse(msg)
             if (json.backtrace) {
-              console.log('setting lastError')
               this.lastError = json
             }
             if (json.level === 'ERRO') {
@@ -251,15 +243,21 @@ export class IntrospectionEngine {
           resolve(response.result)
         } else {
           if (response.error) {
+            debugRpc(response)
             if (
               response.error.data &&
               response.error.data.error &&
               response.error.data.code
             ) {
+              const message =
+                response?.error?.data?.error?.message ??
+                response?.error?.message
               reject(
-                new EngineError(
-                  response.error.data.error,
-                  response.error.data.code,
+                new RustPanic(
+                  message,
+                  message,
+                  request,
+                  ErrorArea.INTROSPECTION_CLI,
                 ),
               )
             } else {
