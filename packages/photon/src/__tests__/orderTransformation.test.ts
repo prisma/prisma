@@ -126,4 +126,58 @@ describe('where transformation', () => {
       `)
     }
   })
+
+  test('ignore order null', () => {
+    const select = {
+      orderBy: null,
+    }
+    const document = makeDocument({
+      dmmf,
+      select,
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+    expect(String(transformDocument(document))).toMatchInlineSnapshot(`
+      "query {
+        findManyUser {
+          id
+          name
+          email
+          status
+          nicknames
+          permissions
+          favoriteTree
+          someFloats
+        }
+      }"
+    `)
+  })
+
+  test('ignore order by id null', () => {
+    const select = {
+      orderBy: { id: null },
+    }
+    const document = makeDocument({
+      dmmf,
+      select,
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+    expect(String(transformDocument(document))).toMatchInlineSnapshot(`
+      "query {
+        findManyUser(orderBy: {
+
+        }) {
+          id
+          name
+          email
+          status
+          nicknames
+          permissions
+          favoriteTree
+          someFloats
+        }
+      }"
+    `)
+  })
 })
