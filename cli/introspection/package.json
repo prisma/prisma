@@ -53,6 +53,7 @@
     "ora": "^4.0.3",
     "pluralize": "8.0.0",
     "require-onct": "^0.0.2",
+    "strip-ansi": "^6.0.0",
     "tar": "^5.0.5"
   },
   "scripts": {
