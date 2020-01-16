@@ -131,7 +131,7 @@ Now in your terminal, type:
 
 ```
 cd photonjs_app
-npx migrate save
+npx prisma2 migrate save --experimental
 npx migrate up
 npx prisma2 generate
 ```
