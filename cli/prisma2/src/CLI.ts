@@ -83,18 +83,24 @@ export class CLI implements Command {
 
     ${chalk.bold('Commands')}
 
-          init   Setup Prisma for your app
-    introspect   Get the datamodel of your database
-      generate   Generate Photon
+                init   Setup Prisma for your app
+          introspect   Get the datamodel of your database
+            generate   Generate Prisma Client
 
     ${chalk.bold('Flags')}
 
-  --experimental   Show and run experimental Prisma commands
+      --experimental   Show and run experimental Prisma commands
 
     ${chalk.bold('Examples')}
 
       Initialize files for a new Prisma project
       ${chalk.dim(`$`)} prisma2 init
+
+      Introspect an existing database
+      ${chalk.dim(`$`)} prisma2 introspect --url "postgresql://localhost:5432/postgres"
+
+      Generate Prisma Client
+      ${chalk.dim(`$`)} prisma2 generate
   `)
 
   // static help template
@@ -107,19 +113,26 @@ export class CLI implements Command {
 
     ${chalk.bold('Commands')}
 
-          init   Setup Prisma for your app
-    introspect   Get the datamodel of your database
-      generate   Generate Photon
-       migrate   Migrate your schema
+                init   Setup Prisma for your app
+          introspect   Get the datamodel of your database
+            generate   Generate Prisma Client
+             migrate   Migrate your schema ${chalk.dim('(experimental)')}
+              studio   Run Prisma Studio ${chalk.dim('(experimental)')}
 
     ${chalk.bold('Flags')}
 
-  --experimental   Show and run experimental Prisma commands
+      --experimental   Show and run experimental Prisma commands
 
     ${chalk.bold('Examples')}
 
       Initialize files for a new Prisma project
       ${chalk.dim(`$`)} prisma2 init
+
+      Introspect an existing database
+      ${chalk.dim(`$`)} prisma2 introspect --url "postgresql://localhost:5432/postgres"
+
+      Generate Prisma Client
+      ${chalk.dim(`$`)} prisma2 generate
 
       Save your changes into a migration
       ${chalk.dim(`$`)} prisma2 migrate save --experimental
