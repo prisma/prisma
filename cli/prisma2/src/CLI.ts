@@ -93,7 +93,7 @@ export class CLI implements Command {
 
     ${chalk.bold('Examples')}
 
-      Initialize files for a new Prisma project
+      Setup Prisma for your existing database
       ${chalk.dim(`$`)} prisma2 init
 
       Introspect an existing database
