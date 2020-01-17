@@ -83,7 +83,7 @@ export class CLI implements Command {
 
     ${chalk.bold('Commands')}
 
-          init   Setup Prisma for your app
+          init   Setup Prisma for your existing database
     introspect   Get the datamodel of your database
       generate   Generate Photon
 
@@ -93,7 +93,7 @@ export class CLI implements Command {
 
     ${chalk.bold('Examples')}
 
-      Initialize files for a new Prisma project
+      Setup Prisma for your existing database
       ${chalk.dim(`$`)} prisma2 init
   `)
 
