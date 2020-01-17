@@ -25,7 +25,13 @@ export class GeneratorProcess {
   private stderrLogs: string = ''
   private initPromise?: Promise<void>
   private initialized: boolean = false
-  constructor(private executablePath: string) {}
+  constructor(private executablePath: string) {
+    if (!fs.existsSync(executablePath)) {
+      throw new Error(
+        `Error in generator: Can't find executable ${executablePath}`,
+      )
+    }
+  }
   async init() {
     if (!this.initPromise) {
       this.initPromise = this.initSingleton()
