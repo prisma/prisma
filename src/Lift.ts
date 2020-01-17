@@ -452,7 +452,7 @@ export class Lift {
       throw new Error(
         `Before running ${chalk.yellow('prisma migrate down --experimental')}, please save your ${chalk.bold(
           'dev',
-        )} changes using ${chalk.bold.greenBright('prisma migrate create --experimental')} and ${chalk.bold.greenBright(
+        )} changes using ${chalk.bold.greenBright('prisma migrate save --experimental')} and ${chalk.bold.greenBright(
           'prisma2 migrate up --experimental',
         )}`,
       )
