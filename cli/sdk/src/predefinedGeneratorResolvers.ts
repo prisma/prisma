@@ -90,7 +90,7 @@ class PrismaClientFacadeMissingError extends Error {
     )} generator, you need to install ${chalk.bold(
       '@prisma/client',
     )} to your project:
-${chalk.bold.green('npm install @prisma/client')}`)
+${chalk.bold.greenBright('npm install @prisma/client')}`)
   }
 }
 
