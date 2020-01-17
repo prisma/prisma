@@ -20,7 +20,7 @@ async function main() {
     console.error(e)
   }
   throw new Error(
-    `In order to use "@prisma/photon", please install prisma2. You can install it with "npm add -D prisma2".`,
+    `In order to use "@prisma/client", please install prisma2. You can install it with "npm add -D prisma2".`,
   )
 }
 
@@ -38,11 +38,11 @@ function getLocalPackagePath() {
     if (pkg.version !== photonVersion) {
       console.error(
         `${c.red('Error')} ${c.bold(
-          '@prisma/photon',
+          '@prisma/client',
         )} and the locally installed ${c.bold(
           'prisma2',
         )} must have the same version:
-  ${c.bold(`@prisma/photon@${photonVersion}`)} doesn't match ${c.bold(
+  ${c.bold(`@prisma/client@${photonVersion}`)} doesn't match ${c.bold(
           `prisma2@${pkg.version}`,
         )}`,
       )
@@ -67,7 +67,7 @@ if (!process.env.SKIP_GENERATE) {
     if (e.stderr) {
       if (e.stderr.includes(`Can't find schema.prisma`)) {
         console.error(
-          `${c.yellow('warning')} @prisma/photon needs a ${c.bold(
+          `${c.yellow('warning')} @prisma/client needs a ${c.bold(
             'schema.prisma',
           )} to function, but couldn't find it.
         Please either create one manually or use ${c.bold('prisma2 init')}.
