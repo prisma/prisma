@@ -42,10 +42,6 @@ The following environment variables can be provided:
 
 Sets up Prisma (i.e., Photon and/or Lift) via an interactive wizard. You can specify your database connection and/or create a new database to work with. For a list with currently supported databases, see the [this page](./supported-databases.md). The wizard also allows you to derive a Prisma schema file from your existing database.
 
-#### `prisma2 dev`
-
-Starts Prisma [development mode](./development-mode.md). This starts a server that lets you interact with your database and defined models. Note that Prisma Studio relies on your Prisma schema file to provide a fully featured user-interface with CRUD (create / read / update / delete) functionality.
-
 #### `prisma2 generate`
 
 Invokes all generators defined in the Prisma schema file. For example, this creates the Photon client to interact with the underlying database. Read more about Photon and its capabilities [here](./photon/use-only-photon.md).

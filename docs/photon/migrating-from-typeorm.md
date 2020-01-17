@@ -142,12 +142,19 @@ model PostCategoriesCategory {
 Now in your terminal, type:
 
 ```
-npx prisma2 dev
+npx prisma2 migrate save --experimental
+npx prisma2 migrate up --experimental
+npx prisma2 generate
 ```
 
-This launches the [development mode](https://github.com/prisma/prisma2/blob/master/docs/development-mode.md) and creates a [Prisma Studio](https://github.com/prisma/studio) endpoint for you.  Go to the endpoint (i.e. http://localhost:5555 ) and explore the generated Prisma schema visually in your browser. 
+Note that you'll need to re-execute `npx prisma2 generate` whenever you make changes to your [Prisma schema](../prisma-schema-file.md).
+Once you're happy with the changes you made to your data model to develop a certain feature, you can persist your migration using migrate.
 
-![](https://i.imgur.com/nnnfql9r.png)
+You can explore the current content of your database using Prisma Studio with `npx prisma2 studio --experimental`. Open the endpoint that's shown in your terminal (in most cases this will be [`http://localhost:5555/`](http://localhost:5555/)):
+
+![](https://imgur.com/4h9nk7i.png)
+
+> **Note**: Please share any feedback you have about Prisma Studio in the [`studio`](https://github.com/prisma/studio) repository.
 
 ## 2. Specifying the data source
 
