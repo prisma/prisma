@@ -32,7 +32,7 @@ export class LiftUp implements Command {
     ${chalk.bold('Examples')}
 
       Create a new migration, then migrate up
-      ${chalk.dim(`$`)} prisma migrate create --name "add unique to email" --experimental
+      ${chalk.dim(`$`)} prisma migrate save --name "add unique to email" --experimental
       ${chalk.dim(`$`)} prisma migrate up --experimental
 
       Preview a migration without migrating
