@@ -61,30 +61,38 @@ export class Init implements Command {
     const prismaFolder = path.join(outputDir, 'prisma')
 
     if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
-      console.log(printError(`File ${chalk.bold('schema.prisma')} already exists in your project.
+      console.log(
+        printError(`File ${chalk.bold('schema.prisma')} already exists in your project.
         Please try again in a project that is not yet using Prisma.
-      `))
+      `),
+      )
       process.exit(1)
     }
 
     if (fs.existsSync(prismaFolder)) {
-      console.log(printError(`Folder ${chalk.bold('prisma')} already exists in your project.
+      console.log(
+        printError(`Folder ${chalk.bold('prisma')} already exists in your project.
         Please try again in a project that is not yet using Prisma.
-      `))
+      `),
+      )
       process.exit(1)
     }
 
     if (fs.existsSync(path.join(prismaFolder, 'schema.prisma'))) {
-      console.log(printError(`File ${chalk.bold('prisma/schema.prisma')} already exists in your project.
+      console.log(
+        printError(`File ${chalk.bold('prisma/schema.prisma')} already exists in your project.
         Please try again in a project that is not yet using Prisma.
-      `))
+      `),
+      )
       process.exit(1)
     }
 
     if (fs.existsSync(path.join(prismaFolder, 'schema.prisma'))) {
-      console.log(printError(`File ${chalk.bold('prisma/schema.prisma')} already exists in your project.
+      console.log(
+        printError(`File ${chalk.bold('prisma/schema.prisma')} already exists in your project.
         Please try again in a project that is not yet using Prisma.
-      `))
+      `),
+      )
       process.exit(1)
     }
 
@@ -98,15 +106,19 @@ export class Init implements Command {
 
     fs.writeFileSync(path.join(prismaFolder, 'schema.prisma'), defaultSchema)
 
-    return format(`We created ${chalk.green('prisma/schema.prisma')} for you.
-      Edit it with your favorite editor to update your database connection so Prisma can connect to it.
+    return `We created ${chalk.green('prisma/schema.prisma')} for you.
+Edit it with your favorite editor to update your database connection so Prisma can connect to it.
 
-      When done, run ${chalk.green('prisma2 introspect')} to test the connection and introspect the data model from your existing database.
-      Then run ${chalk.green('prisma2 generate')} to generate a Prisma Client based on this data model that can be used in your application.
+When done, run ${chalk.green(
+      'prisma2 introspect',
+    )} to test the connection and introspect the data model from your existing database.
+Then run ${chalk.green(
+      'prisma2 generate',
+    )} to generate a Prisma Client based on this data model that can be used in your application.
 
-      More information in our documentation:
-      https://pris.ly/getting-started
-    `)
+More information in our documentation:
+https://pris.ly/getting-started
+    `
   }
 
   help() {
