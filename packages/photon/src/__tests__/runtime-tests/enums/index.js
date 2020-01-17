@@ -8,10 +8,6 @@ module.exports = async () => {
         emit: 'event',
         level: 'query',
       },
-      {
-        emit: 'event',
-        level: 'info',
-      },
     ],
   })
 

@@ -498,7 +498,12 @@ export class PrismaClient<T extends PrismaClientOptions = {}, U = keyof T extend
         const level = typeof log === 'string' ? log : log.emit === 'stdout' ? log.level : null
         if (level) {
           this.on(level as any, (event: any) => {
-            console.error(event.timestamp.toISOString() + ' Prisma Client ' + (event.message || event.query))
+            const colorMap = {
+              query: 'blue',
+              info: 'cyan',
+              warn: 'yellow'
+            }
+            console.error(chalk[colorMap[level]](\`prisma:$\{level\}\`.padEnd(13)) + (event.message || event.query))
           })
         }
       }
