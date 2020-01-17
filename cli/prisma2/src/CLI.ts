@@ -89,7 +89,7 @@ export class CLI implements Command {
 
     ${chalk.bold('Flags')}
 
-  --experimental   Show and run experimental Prisma commands
+      --experimental   Show and run experimental Prisma commands
 
     ${chalk.bold('Examples')}
 
@@ -114,7 +114,7 @@ export class CLI implements Command {
 
     ${chalk.bold('Flags')}
 
-  --experimental   Show and run experimental Prisma commands
+      --experimental   Show and run experimental Prisma commands
 
     ${chalk.bold('Examples')}
 
