@@ -22,10 +22,6 @@ yarn global add prisma2
 
 Sets up a new Prisma project via an interactive wizard.
 
-### `prisma2 dev`
-
-Starts the Prisma development mode.
-
 ### `prisma2 generate`
 
 Invokes the generators specified in the Prisma project file.

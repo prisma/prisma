@@ -10,7 +10,6 @@
 - [Relations](./relations.md)
 - [Prisma Framework CLI](./prisma2-cli.md)
 - [Transactions](./transactions.md)
-- [Development mode](./development-mode.md)
 - [Introspection](./introspection.md)
 - [Limitations](./limitations.md)
 - [Core](./core)

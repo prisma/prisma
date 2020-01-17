@@ -131,19 +131,19 @@ Now in your terminal, type:
 
 ```
 cd photonjs_app
-npx prisma2 dev
+npx prisma2 migrate save --experimental
+npx prisma2 migrate up --experimental
+npx prisma2 generate
 ```
 
-This launches the [development mode](https://github.com/prisma/prisma2/blob/master/docs/development-mode.md). When in development mode, the Prisma Framework runs a development server in the background that watches your [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). 
+Note that you'll need to re-execute `npx prisma2 generate` whenever you make changes to your [Prisma schema](../prisma-schema-file.md).
+Once you're happy with the changes you made to your data model to develop a certain feature, you can persist your migration using migrate.
 
-Whenever any changes are made in the schema file, the development server:
-- (re)generates your data source clients (e.g. Photon.js)
-- updates your database schema 
-- creates a [Prisma Studio](https://github.com/prisma/studio) endpoint for you
+You can explore the current content of your database using Prisma Studio with `npx prisma2 studio --experimental`. Open the endpoint that's shown in your terminal (in most cases this will be [`http://localhost:5555/`](http://localhost:5555/)):
 
-Go to the endpoint (i.e. http://localhost:5555 ) and explore the generated Prisma schema visually in your browser. 
+![](https://imgur.com/4h9nk7i.png)
 
-![](https://i.imgur.com/5vSzHaAr.png)
+> **Note**: Please share any feedback you have about Prisma Studio in the [`studio`](https://github.com/prisma/studio) repository.
 
 ## 2. Setting up your TypeScript project 
 
