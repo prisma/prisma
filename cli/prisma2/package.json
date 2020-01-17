@@ -77,5 +77,8 @@
     "build": "pnpm run tsc && pnpm run ncc:download && rm -rf build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
     "prepublishOnly": "pnpm run download && pnpm run ncc:download && pnpm run install && pnpm run test && pnpm run build",
     "pkg": "pkg . -o pkg-build"
+  },
+  "engines": {
+    "node": ">=10.0.0"
   }
 }
