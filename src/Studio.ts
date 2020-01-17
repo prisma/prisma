@@ -74,7 +74,7 @@ export class Studio {
             providerAliases,
           },
         },
-        staticAssetDir: path.resolve(__dirname, 'public'), // Overriding this directory since after NCC compilation, this won't resolve automatically
+        staticAssetDir: path.resolve(__dirname, '../public'), // Overriding this directory since after NCC compilation, this won't resolve automatically
       })
 
       await this.instance.start()
