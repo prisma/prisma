@@ -283,6 +283,21 @@ async function validateGenerators(generators: GeneratorConfig[]) {
   const platform = await getPlatform()
 
   for (const generator of generators) {
+    if (generator.provider === 'photonjs') {
+      throw new Error(`The generator provider "${chalk.red(
+        'photonjs',
+      )}" with the corresponding package "${chalk.red(
+        '@prisma/photon',
+      )}" has been deprecated.
+The provider has been renamed to "${chalk.green(
+        'prisma-client-js',
+      )}" and the package to "${chalk.green('@prisma/client')}".
+"${chalk.green('@prisma/client')}" now exposes "${chalk.green(
+        'PrismaClient',
+      )} instead of "${chalk.red(
+        'Photon',
+      )}". Please update your code accordingly 🙏`)
+    }
     if (generator.provider === 'nexus-prisma') {
       throw new Error(
         '`nexus-prisma` is no longer a generator. You can read more at https://pris.ly/nexus-prisma-upgrade-0.4',

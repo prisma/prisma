@@ -1,6 +1,6 @@
 {
   "name": "@prisma/introspection",
-  "version": "0.0.265",
+  "version": "0.0.341",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -55,6 +55,7 @@
     "ora": "^4.0.3",
     "pluralize": "8.0.0",
     "require-onct": "^0.0.2",
+    "strip-ansi": "^6.0.0",
     "tar": "^5.0.5"
   },
   "scripts": {

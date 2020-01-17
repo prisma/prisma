@@ -15,7 +15,6 @@ node ./scripts/copy-prisma-client.js
 rm -rf runtime/prisma
 
 cp "$(./scripts/resolve.js @prisma/lift)/dist/GeneratorWorker.js" build/GeneratorWorker.js
-cp "$(./scripts/resolve.js @prisma/studio-transports)/build/photon-worker.js" build/photon-worker.js
 cp "$(./scripts/resolve.js checkpoint-client)/dist/child.js" build/child.js
 
 rm -rf build/public
