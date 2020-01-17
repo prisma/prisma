@@ -33,7 +33,7 @@ export class Generate implements Command {
 
   private runGenerate = simpleDebounce(
     async ({generators, watchMode}) => {
-      const message: string[] = ['']
+      const message: string[] = []
 
       for (const generator of generators) {
         const toStr = generator.options!.generator.output!
@@ -89,20 +89,22 @@ export class Generate implements Command {
       console.error(missingGeneratorMessage)
     }
 
+    const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(datamodelPath)}\n`
+
     if (watchMode) {
-      const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(datamodelPath)}\n`
       logUpdate(watchingText)
 
       fs.watch(datamodelPath, async (eventType) => {
         if (eventType === 'change') {
           logUpdate(`\n${chalk.green('Building...')}\n${this.logText}`)
           await this.runGenerate({generators, watchMode})
-          logUpdate(watchingText + this.logText)
+          logUpdate(watchingText + '\n' + this.logText)
         }
       })
     }
 
-    this.runGenerate({generators, watchMode})
+    await this.runGenerate({generators, watchMode})
+    watchMode ? logUpdate(watchingText + '\n' + this.logText) : logUpdate(this.logText)
 
     if (watchMode) await new Promise(r => null)
 
