@@ -9,7 +9,7 @@ This tutorial will teach you how to:
 1. Use the `init` command to set up a new project
 1. Understand the essential parts of a Prisma project setup
 1. Use the `dev` command for development
-1. Migrate your database schema using the `lift` subcommands
+2. Migrate your database schema using the `migrate` subcommands with the `--experimental` flag
 
 We will start from scratch and use **TypeScript** with a **PostgreSQL** database in this tutorial. You can set up your PostgreSQL database [locally](https://www.robinwieruch.de/postgres-sql-macos-setup/) or using a hosting provider such as [Heroku](https://elements.heroku.com/addons/heroku-postgresql) or [Digital Ocean](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04). The PostgreSQL database used in this tutorial is hosted on Heroku.
 
@@ -404,7 +404,7 @@ If you're using a database GUI, you can also validate that all records have been
 ## 4. Evolve your application
 
 - `prisma2 generate` to (re)generate Photon
-- `prisma2 migrate save` and `prisma2 migrate up` to apply a migration
+- `prisma2 migrate save --experimental` and `prisma2 migrate up --experimental` to apply a migration
 
 Once you're happy with the changes you made to your data model to develop a certain feature, you can exit the development mode and actually persist your migration using migrate.
 
@@ -412,17 +412,17 @@ Go ahead now and run:
 
 ```
 cd photonjs_app
-npx migrate save
-npx migrate up
+npx prisma2 migrate save --experimental
+npx prisma2 migrate up --experimental
 npx prisma2 generate
 ```
 
-Note that you'll need to re-execute `prisma2 generate` whenever you make changes to your [Prisma schema](./prisma-schema-file.md).
+Note that you'll need to re-execute `npx prisma2 generate` whenever you make changes to your [Prisma schema](./prisma-schema-file.md).
 Once you're happy with the changes you made to your data model to develop a certain feature, you can persist your migration using migrate.
 
 ### 4.1. Explore your data in Prisma Studio
 
-You can explore the current content of your database using Prisma Studio. Open the endpoint that's shown in your terminal (in most cases this will be [`http://localhost:5555/`](http://localhost:5555/)):
+You can explore the current content of your database using Prisma Studio with `npx prisma2 studio --experimental`. Open the endpoint that's shown in your terminal (in most cases this will be [`http://localhost:5555/`](http://localhost:5555/)):
 
 ![](https://imgur.com/4h9nk7i.png)
 
@@ -497,8 +497,8 @@ You've introduced changes to your data model that are already reflected in the d
 Every schema migration with Lift follows a 3-step-process:
 
 1. **Adjust data model**: Change your [data model definition](./data-modeling.md#data-model-definition) to match your desired database schema.
-1. **Save migration**: Run `prisma2 lift save` to create your [migration files](./lift/migration-files.md) on the file system.
-1. **Run migration**: Run `prisma2 lift up` to perform the migration against your database.
+1. **Save migration**: Run `prisma2 migrate save --experimental` to create your [migration files](./lift/migration-files.md) on the file system.
+1. **Run migration**: Run `prisma2 migrate up --experimental` to perform the migration against your database.
 
 ### 5.1. Save the migration on the file system
 
@@ -509,7 +509,7 @@ With Lift, every database migration gets persisted on your file system, represen
 Run the following command to save your migrations files:
 
 ```
-npx prisma2 lift save --name 'add-category'
+npx prisma2 migrate save --experimental --name 'add-category'
 ```
 
 This deletes the "throw-away" migration files in the `migrations/dev` directory and creates a new directory inside `migrations` called `TIMESTAMP-add-category`:
@@ -535,7 +535,7 @@ hello-prisma2
 └── yarn.lock
 ```
 
-Note that the `--name` option that was passed to `prisma2 lift save` determines the name of the generated migration directory. To ensure uniqueness and retain order, the name of a migration directory is always prefixed with a timestamp, so in this case the migration directory is called `20190703131441-add-category`.
+Note that the `--name` option that was passed to `prisma2 migrate save --experimental` determines the name of the generated migration directory. To ensure uniqueness and retain order, the name of a migration directory is always prefixed with a timestamp, so in this case the migration directory is called `20190703131441-add-category`.
 
 Feel free to explore the contents of each file to get a better understanding of their use.
 
@@ -544,7 +544,7 @@ Feel free to explore the contents of each file to get a better understanding of 
 Once the migration files are created, you can run the migration with the following command:
 
 ```
-npx prisma2 lift up
+npx prisma2 migrate up --experimental
 ```
 
 This maps your data model to the underlying database schema (i.e. it _migrates your database_). 
