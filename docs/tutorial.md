@@ -260,7 +260,7 @@ Note that the version of the `@prisma/photon` and `prisma2` packages must always
 
 To keep a migration history, Prisma by default uses a folder called `migrations`. There are two ways how the `migrations` folder gets populated:
 
-- Whenever the data model in _development mode_, a new migration is generated into `migrations/dev`.
+- Whenever the data model ... in _development mode_, a new migration is generated into `migrations/dev`.
 - Whenever a data model change is to be persisted using Lift, it gets its own directory.
 
 Don't worry, you'll learn more about both approaches in the next sections. Note that there already is a first migration called `watch-TIMESTAMP` (where `TIMESTAMP` is a placeholder, the real name looks something like `watch-20190903103132`) in the `dev` folder. This is because Prisma already prepared the project for you to be able to run the demo script immediately, that is it migrated the database to match your data model definition (i.e. there's already a `Post` and a `User` table present in the database). You can validate this by exploring the database schema in a database GUI (like [Postico](https://eggerapps.at/postico/) or [TablePlus](https://tableplus.com/)):
