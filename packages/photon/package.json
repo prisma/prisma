@@ -1,6 +1,6 @@
 {
   "name": "@prisma/client",
-  "version": "2.0.0-alpha.551",
+  "version": "2.0.0-alpha.564",
   "main": "index.js",
   "types": "index.d.ts",
   "license": "Apache-2.0",
