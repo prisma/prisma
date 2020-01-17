@@ -30,6 +30,7 @@
     "prettier": "^1.19.1",
     "react": "16.11.0",
     "rimraf": "^3.0.0",
+    "strip-ansi": "^6.0.0",
     "ts-jest": "^24.2.0",
     "ts-node": "^8.5.4",
     "typescript": "^3.7.3"
