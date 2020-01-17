@@ -1,6 +1,6 @@
 {
   "name": "@prisma/introspection",
-  "version": "0.0.341",
+  "version": "0.0.357",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -29,6 +29,8 @@
     "jest": "^24.9.0",
     "prettier": "^1.19.1",
     "react": "16.11.0",
+    "rimraf": "^3.0.0",
+    "strip-ansi": "^6.0.0",
     "ts-jest": "^24.2.0",
     "ts-node": "^8.5.4",
     "typescript": "^3.7.3"
