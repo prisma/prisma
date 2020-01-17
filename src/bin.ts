@@ -25,7 +25,7 @@ import { ProviderAliases } from '@prisma/sdk'
 import path from 'path'
 
 const providerAliases: ProviderAliases = {
-  photonjs: {
+  'prisma-client-js': {
     generatorPath: require.resolve('@prisma/client/generator-build'),
     outputPath: path.dirname(require.resolve('@prisma/client/package.json')),
   },
