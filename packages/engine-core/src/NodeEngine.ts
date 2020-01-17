@@ -343,7 +343,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             ...env,
           },
           cwd: this.cwd,
-          stdio: ['pipe', this.logLevel && this.logQueries ? 'pipe' : 'ignore', 'pipe'],
+          stdio: ['pipe', this.logLevel || this.logQueries ? 'pipe' : 'ignore', 'pipe'],
         })
 
         this.child.stderr.on('data', msg => {
