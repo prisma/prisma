@@ -8,7 +8,7 @@ export const missingGeneratorMessage = `\n${chalk.blue(
 )}, so nothing will be generated. You can define them like this:
 
 ${chalk.bold(
-  highlightDatamodel(`generator photon {
-  provider = "photonjs"
+  highlightDatamodel(`generator client {
+  provider = "prisma-client-js"
 }`),
 )}`
