@@ -1,8 +1,10 @@
 # Prisma Framework CLI
 
+Prisma Framework CLI, see [https://github.com/prisma/prisma2](https://github.com/prisma/prisma2)
+
 ## Installation
 
-The Prisma Framework CLI currently requires [Node 8](https://nodejs.org/en/download/releases/) (or higher).
+The Prisma Framework CLI currently requires [Node.js 10](https://nodejs.org/en/download/releases/) (or higher).
 
 ### npm
 
@@ -22,28 +24,28 @@ yarn global add prisma2
 
 Sets up a new Prisma project via an interactive wizard.
 
-### `prisma2 dev`
-
-Starts the Prisma development mode.
-
 ### `prisma2 generate`
 
 Invokes the generators specified in the Prisma project file.
+
+### `prisma2 generate --watch`
+
+Watches the Prisma project file and runs `generate` when the file changes.
 
 ### `prisma2 introspect`
 
 Introspects the database and generates a data model from it.
 
-## Lift
+## Migrate
 
-### `prisma2 lift save`
+### `prisma2 migrate save --experimental`
 
 Creates a new migration folder based on current data model changes.
 
-### `prisma2 lift up`
+### `prisma2 migrate up --experimental`
 
 Apply any migrations that have not been applied yet.
 
-### `prisma2 lift down`
+### `prisma2 migrate down --experimental`
 
 Undo migrations.

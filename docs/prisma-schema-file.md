@@ -8,8 +8,8 @@ The Prisma schema file (short: _schema file_, _Prisma schema_ or _schema_) is th
 
 Whenever a `prisma2` command is invoked, the CLI typically reads some information from the schema file, e.g.:
 
-- `prisma2 generate`: Reads _all_ above mentioned information from the Prisma schema to generate the correct data source client code (e.g. Prisma Client JS).
-- `prisma2 lift save`: Reads the data sources and data model definition to create a new [migration]().
+- `prisma2 generate`: Reads _all_ above mentioned information from the Prisma schema to generate the correct data source client code (e.g. Photon.js).
+- `prisma2 migrate save --experimental`: Reads the data sources and data model definition to create a new migration.
 
 You can also [use environment variables](#using-environment-variables) inside the schema file to provide configuration options when a CLI command is invoked.
 
@@ -60,13 +60,11 @@ directory where you invoke the CLI command.
 
 If the schema file is named differently, you can provide an explicit option to the command to point the CLI to the location of the schema file.
 
-> **Note**: The CLI option to specify the path to the schema file is not yet implemented. You can track the progress of this issue
-> [here](https://github.com/prisma/prisma2/issues/225).
+> **Note**: The CLI option to specify the path to the schema file is not yet implemented. You can track the progress of this issue [here](https://github.com/prisma/prisma2/issues/225).
 
 ## Syntax
 
-The schema file is written in Prisma Schema Language (PSL). You can find a full reference for PSL in the
-[spec](https://github.com/prisma/specs/tree/master/schema).
+The schema file is written in Prisma Schema Language (PSL). You can find a full reference for PSL in the [spec](https://github.com/prisma/specs/tree/master/schema).
 
 ## Building blocks
 
@@ -252,7 +250,7 @@ export POSTGRES_URL=postgresql://test:test@localhost:5432/test?schema=public
 ```
 
 Then run the following command:
-
+`
 ```bash
 source ./dev_env
 ```
@@ -263,7 +261,7 @@ While the Prisma 2 CLI automatically picks up `.env` files, Prisma Client JS doe
 
 ```ts
 import { PrismaClient } from '@prisma/client'
-import * as dotenv from 'dotenv'
+`import * as dotenv from 'dotenv'
 
 dotenv.config() // load the environment variables
 const prisma = new PrismaClient()

@@ -1,6 +1,6 @@
 # Migration files
 
-When saving a migration with `prisma lift save`, Lift creates three migration files for you:
+When saving a migration with `prisma2 migrate save --experimental`, Prisma creates three migration files for you:
 
 - `README.md`
 - `datamodel.prisma`
@@ -10,7 +10,7 @@ When saving a migration with `prisma lift save`, Lift creates three migration fi
 
 The README contains information about the migration in human-readable form:
 
-- An overview of the SQL statements that will be executed by Lift when you run `prisma2 lift up`
+- An overview of the SQL statements that will be executed by Lift when you run `prisma2 migrate up --experimental`
 - A diff of the changes in your [Prisma schema](../prisma-schema-file.md)
 
 ## `schema.prisma`

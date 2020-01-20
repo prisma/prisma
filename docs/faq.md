@@ -9,10 +9,10 @@
   - [Is Prisma Client JS production-ready? Should I start using it?](#is-prisma-client-js-production-ready-should-i-start-using-it)
   - [Does Prisma Client JS support GraphQL schema delegation and GraphQL binding?](#does-prisma-client-js-support-graphql-schema-delegation-and-graphql-binding)
   - [How to handle connection pooling for Prisma Client JS in serverless environments?](#how-to-handle-connection-pooling-for-prisma-client-js-in-serverless-environments)
-- Lift
-  - [Am I locked-in when using Lift? Is it easy to migrate off it?](#am-i-locked-in-when-using-lift-is-it-easy-to-migrate-off-it)
-  - [How do I see details about how Lift migrates my database schema?](#how-do-i-see-details-about-how-lift-migrates-my-database-schema)
-  - [Is Lift production-ready? Should I start using it?](#is-lift-production-ready-should-i-start-using-it)
+- Migrations
+  - [Am I locked-in when using Prisma's migration tool? Is it easy to migrate off it?](#am-i-locked-in-when-using-prismas-migration-tool-is-it-easy-to-migrate-off-it)
+  - [How do I see details about how Prisma migrates my database schema?](#how-do-i-see-details-about-how-prisma-migrates-my-database-schema)
+  - [Is Prisma's migration tool production-ready? Should I start using it?](#is-prismas-migration-tool-production-ready-should-i-start-using-it)
 - Other
   - [Since the Prisma Framework is released, will Prisma 1 still be maintained?](#since-the-prisma-framework-is-released-will-prisma-1-still-be-maintained)
   - [Where can I get more information about the plans for the Prisma Framework?](#where-can-i-get-more-information-about-the-plans-for-the-prisma-framework)
@@ -44,7 +44,7 @@ There will be rich query analytics for Prisma Client JS soon. For now you can se
 
 ### How do schema migrations work with Prisma Client JS?
 
-Prisma Client JS is not opinionated on how exactly you migrate your database schema. You can keep your existing migration system and re-introspect your database schema after each migration to update Prisma Client JS. Learn more in the [docs](./prisma-client-js/use-only-prisma-client-js.md). You can also always use [Lift](https://lift.prisma.io) to perform your migrations based on Prisma's declarative [data model definition](./data-modeling.md).
+Prisma Client JS is not opinionated on how exactly you migrate your database schema. You can keep your existing migration system and re-introspect your database schema after each migration to update Prisma Client JS. Learn more in the [docs](./prisma-client-js/use-only-prisma-client-js.md). You can also always use Prisma's `migrate` CLI to perform your migrations based on Prisma's declarative [data model definition](./data-modeling.md).
 
 ### Is Prisma Client JS production-ready? Should I start using it?
 
@@ -66,29 +66,29 @@ As of now, the recommended workaround is to use a tool like [PgBouncer](https://
 
 Also note that there some cloud offerings start to have solutions for connection pooling out-of-the-box, such as [AWS Aurora](https://aws.amazon.com/blogs/aws/new-data-api-for-amazon-aurora-serverless/).
 
-## Lift
+## Migrations
 
-### Am I locked-in when using Lift? Is it easy to migrate off it?
+### Am I locked-in when using Prisma's migration tool? Is it easy to migrate off it?
 
-There's absolutely no lock-in with Lift. To stop using Lift, you can delete your [Prisma schema file](./prisma-schema-file.md), all existing migration folders on your file system and the `migrations` table in your database/schema.
+There's absolutely no lock-in with Prisma's migration tool. To stop using Prisma for your migrations, you can delete your [Prisma schema file](./prisma-schema-file.md), all existing migration folders on your file system and the `migrations` table in your database/schema.
 
-### How do I see details about how Lift migrates my database schema?
+### How do I see details about how Prisma migrates my database schema?
 
-Each migration is represented via its own directory on your file system. The name of each directory contains a timestamp so that the order of all migrations in the project history can be maintained. Each of these migration directories contains detailed information about the respective migration, for example which steps are executed (and in what order) as well as a human-friendly markdown file that summarizes the most important information about the migration, such as the source and the target [data model definition](./data-modeling.md#data-model-definition) of the migration. This information can also be found in the        `migrations` table in your database/schema. 
+Each migration is represented via its own directory on your file system. The name of each directory contains a timestamp so that the order of all migrations in the project history can be maintained. Each of these migration directories contains detailed information about the respective migration, for example which steps are executed (and in what order) as well as a human-friendly markdown file that summarizes the most important information about the migration, such as the source and the target [data model definition](./data-modeling.md#data-model-definition) of the migration. This information can also be found in the `migrations` table in your database/schema. 
 
-Also, the `lift` CLI constantly prints the migration statements and more information when you're running its commands.
+Also, the `migrate` CLI constantly prints the migration statements and more information when you're running its commands.
 
-### Is Lift production-ready? Should I start using it?
+### Is Prisma's migration tool production-ready? Should I start using it?
 
-Lift is not yet production-ready, it has a number of severe [limitations](./limitations.md) that don't make it suitable for production uses. You can track the progress of the release process on [isprisma2ready.com](https://www.isprisma2ready.com). 
+Prisma's migration tool is not yet production-ready, it has a number of [limitations](./limitations.md) that don't make it suitable for production uses. You can track the progress of the release process on [isprisma2ready.com](https://www.isprisma2ready.com). 
 
-While it shouldn't be used for critical applications yet, Lift is definitely in a usable state. You can help us accelerate the release process by using it and [sharing your feedback](./prisma2-feedback.md) with us.
+While it shouldn't be used for critical applications yet, Prisma's migration tool is definitely in a usable state. You can help us accelerate the release process by using it and [sharing your feedback](./prisma2-feedback.md) with us.
 
 ## Other
 
 ### Since the Prisma Framework is released, will Prisma 1 still be maintained?
 
-Yes, Prisma 1 will continue to be maintained. However, most Prisma engineering resources will go into the development of [the Prisma Framework](https://github.com/prisma/prisma2) (i.e. [Prisma Client JS](https://photonjs.prisma.io/) and [Lift](https://lift.prisma.io/)). 
+Yes, Prisma 1 will continue to be maintained. However, most Prisma engineering resources will go into the development of [the Prisma Framework](https://github.com/prisma/prisma2).
 
 There will be no new features developed for Prisma 1.
 

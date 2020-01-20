@@ -41,6 +41,7 @@ import {
 } from '@prisma/lift'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
+import { Dev } from './Dev'
 import { Version } from './Version'
 import { Generate } from './Generate'
 import chalk from 'chalk'
@@ -52,11 +53,11 @@ import * as checkpoint from 'checkpoint-client'
 import isCI from 'is-ci'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
-// as they have to ship their own version of @prisma/photon
+// as they have to ship their own version of @prisma/client
 const aliases: ProviderAliases = {
-  photonjs: {
-    generatorPath: eval(`require('path').join(__dirname, '../photon/generator-build/index.js')`), // all evals are here for ncc
-    outputPath: eval(`require('path').join(__dirname, '../photon/')`),
+  'prisma-client-js': {
+    generatorPath: eval(`require('path').join(__dirname, '../prisma-client/generator-build/index.js')`), // all evals are here for ncc
+    outputPath: eval(`require('path').join(__dirname, '../prisma-client/')`),
   },
 }
 
@@ -73,15 +74,15 @@ async function main(): Promise<number> {
   const cli = CLI.new(
     {
       init: Init.new(),
-      lift: LiftCommand.new({
+      migrate: LiftCommand.new({
         save: LiftSave.new(),
         up: LiftUp.new(),
         down: LiftDown.new(),
-        docs: Docs.new('lift', 'https://github.com/prisma/prisma2/tree/master/docs'),
+        docs: Docs.new('migrate', 'https://github.com/prisma/prisma2/tree/master/docs'),
       }),
       'tmp-prepare': LiftTmpPrepare.new(),
       introspect: Introspect.new(),
-      dev: LiftWatch.new(aliases),
+      dev: Dev.new(),
       studio: StudioCommand.new(aliases),
       generate: Generate.new(),
       version: Version.new(),

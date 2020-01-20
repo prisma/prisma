@@ -2,7 +2,7 @@
 
 ## Installation
 
-The Prisma Framework CLI currently requires [Node 8](https://nodejs.org/en/download/releases/) (or higher).
+The Prisma Framework CLI currently requires [Node 10](https://nodejs.org/en/download/releases/) (or higher).
 
 ### Install with npm
 
@@ -33,7 +33,6 @@ The following environment variables can be provided:
 
 > To get a local proxy, you can also use the [`proxy`](https://www.npmjs.com/package/proxy) module:
 
-
 ## Commands
 
 ### Setup and development
@@ -41,10 +40,6 @@ The following environment variables can be provided:
 #### `prisma2 init`
 
 Sets up Prisma (i.e., Prisma Client JS and/or Lift) via an interactive wizard. You can specify your database connection and/or create a new database to work with. For a list with currently supported databases, see the [this page](./supported-databases.md). The wizard also allows you to derive a Prisma schema file from your existing database.
-
-#### `prisma2 dev`
-
-Starts Prisma [development mode](./development-mode.md). This starts a server that lets you interact with your database and defined models. Note that Prisma Studio relies on your Prisma schema file to provide a fully featured user-interface with CRUD (create / read / update / delete) functionality.
 
 #### `prisma2 generate`
 
@@ -54,16 +49,18 @@ Invokes all generators defined in the Prisma schema file. For example, this crea
 
 Introspects the database and generates a data model from it. Basically, it analyzes your (already existing) database and automatically creates the Prisma schema file for you. This is useful, if you already have an existing application and want to start using the Prisma framework. Note that this command synchronizes your Prisma schema file according to your database structure; typically if you're not using Lift to migrate your database.
 
-### Lift (migrations)
+### Migrations
 
-#### `prisma2 lift save`
+> ⚠️ Prisma's migration functionality is currently in an **experimental** state. When using any of the commands below, you need to explicitly opt-in to that functionality via an `--experimental` flag that needs to be passed to a command, e.g. `prisma2 migrate save --name 'init' --experimental`
 
-Creates a new migration based on changes on your data model. In this context it automatically documents all changes (i.e., a `git diff`). All changes are only applied **locally** and are **not** applied to the database.
+#### `prisma2 migrate save`
 
-#### `prisma2 lift up`
+Creates a new migration based on changes on your data model. In this context, it automatically documents all changes (i.e., a `git diff`). All changes are only applied **locally** and are **not** applied to the database. However, the migration is already written into the `_Migration` table of your database (which stores your project's migration history).
+
+#### `prisma2 migrate up`
 
 Runs all migrations that have not been applied to the database yet. This command effectively "replays" all local changes to the database.
 
-#### `prisma2 lift down`
+#### `prisma2 migrate down`
 
 This command reverts a database migration. In turn, it creates a "compensation" migration that undoes previous changes.

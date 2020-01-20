@@ -12,7 +12,6 @@ A composite model is a model that doesn't directly map to a structure (e.g. a _t
 - [Data source connector](#data-source-connector)
 - [Prisma Schema Language (PSL)](#prisma-schema-language-psl)
 - [Generator](#generator)
-- [Lift](#lift)
 - [Migration](#migration)
 - [Migration engine](#migration-engine)
 - [Model](#model)
@@ -62,9 +61,6 @@ A generator determines what kind of code should be generated from the [data mode
 
 You can include various generators in your [schema file](#prisma-schema-file). When running `prisma2 generate`, the Prisma CLI reads the specified generators from the Prisma schema and invokes each of them.
 
-### Lift
-
-A declarative data modeling and migration system. Learn more on the [Lift website](https://lift.prisma.io/).
 
 ### Migration
 
@@ -73,7 +69,7 @@ Also sometimes referred to as:
 - Database migration
 - Schema migration
 
-A migration is a concept from [Lift](#lift). It refers to the transition from a data model state to another data model state. 
+A migration refers to the transition from a data model state to another data model state. 
 
 ### Migration engine
 

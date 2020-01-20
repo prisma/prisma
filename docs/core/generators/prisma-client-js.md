@@ -29,7 +29,7 @@ To determine the platform Prisma Client JS is running on, you can provide two op
 If `binaryTargets` contains a _file path_ to a binary, you need to provide the path to the binary via an environment variable:
 
 - If you're using a custom binary for the **query engine** (Prisma Client JS), set the file path to it as the `PRISMA_QUERY_ENGINE_BINARY` environment variable.
-- If you're using a custom binary for the **migration engine** (Lift), set the file path to it as the `PRISMA_MIGRATION_ENGINE_BINARY` environment variable.
+- If you're using a custom binary for the **migration engine**, set the file path to it as the `PRISMA_MIGRATION_ENGINE_BINARY` environment variable.
 
 ### Default: The `native` platform
 
