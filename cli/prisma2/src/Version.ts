@@ -1,6 +1,9 @@
 import { Command } from '@prisma/cli'
 const packageJson = require('../package.json')
 
+/**
+ * $ prisma version
+ */
 export class Version implements Command {
   static new(): Version {
     return new Version()
