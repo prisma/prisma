@@ -30,7 +30,7 @@ generator client {
 
 // Next steps:
 // 1. Add your DB connection string as the \`url\` of the \`datasource\` block
-// 2. Run \`prisma2 introspect\` to get your data model into the schema
+// 2. Run \`prisma2 introspect\` to get your data model into the schema (this will override this file and delete all comments!)
 // 3. Run \`prisma2 generate\` to generate Prisma Client JS
 // 4. Start using Prisma Client JS in your application`
 
@@ -106,15 +106,24 @@ export class Init implements Command {
 
     fs.writeFileSync(path.join(prismaFolder, 'schema.prisma'), defaultSchema)
 
-    return `We created ${chalk.green('prisma/schema.prisma')} for you.
-Edit it with your favorite editor to update your database connection so Prisma can connect to it.
 
-When done, run ${chalk.green(
-      'prisma2 introspect',
-    )} to test the connection and introspect the data model from your existing database.
-Then run ${chalk.green(
-      'prisma2 generate',
-    )} to generate a Prisma Client based on this data model that can be used in your application.
+
+    return `
+✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}. You can now open it in your favorite editor.
+
+Next steps
+1. Set your DB connection string as the \`url\` of the \`datasource\` block.
+2. Run ${chalk.green('prisma2 introspect')} to test the connection and obtain your data model.
+3. Run ${chalk.green('prisma2 generate')} to generate Prisma Client.
+
+You can then start using Prisma Client in your application:
+
+\`\`\`
+import { PrismaClient } from 'prisma-client-js'
+// or const { PrismaClient } = require('prisma-client-js')
+
+const prisma = new PrismaClient()
+\`\`\`
 
 More information in our documentation:
 https://pris.ly/getting-started
