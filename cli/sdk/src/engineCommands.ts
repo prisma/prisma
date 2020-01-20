@@ -152,6 +152,9 @@ export async function getDMMF({
       if (
         message.includes(
           'debian-openssl-1.1.x: error while loading shared libraries: libssl.so.1.1: cannot open shared object file: No such file or directory',
+        ) ||
+        message.includes(
+          'debian-openssl-1.0.x: error while loading shared libraries: libssl.so.1.0.0: cannot open shared object file: No such file or directory',
         )
       ) {
         message += `\n${chalk.green(
@@ -257,14 +260,3 @@ export async function dmmfToDml(
     throw new Error(e)
   }
 }
-
-// export default function plusX(file: fs.PathLike): void {
-//   if (fs.existsSync(file)) {
-//     const s = fs.statSync(file)
-//     debug('size', s.size)
-//     const newMode = s.mode | 64 | 8 | 1
-//     if (s.mode === newMode) return
-//     const base8 = newMode.toString(8).slice(-3)
-//     fs.chmodSync(file, base8)
-//   }
-// }
