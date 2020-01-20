@@ -32,39 +32,37 @@ export class Generate implements Command {
 
   private logText = ''
 
-  private runGenerate = simpleDebounce(
-    async ({generators, watchMode}) => {
-      const message: string[] = []
+  private runGenerate = simpleDebounce(async ({ generators, watchMode }) => {
+    const message: string[] = []
 
-      for (const generator of generators) {
-        const toStr = generator.options!.generator.output!
-          ? chalk.dim(` to .${path.sep}${path.relative(process.cwd(), generator.options!.generator.output!)}`)
-          : ''
-        const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
-        if (
-          generator.manifest?.version &&
-          generator.manifest?.version !== pkg.version &&
-          generator.options?.generator.provider === 'prisma-client-js'
-        ) {
-          message.push(
-            `${chalk.bold(`@prisma/client@${generator.manifest?.version}`)} is not compatible with ${chalk.bold(
-              `prisma2@${pkg.version}`,
-            )}. Their versions need to be equal.`,
-          )
-        }
-        message.push(`Generated ${chalk.bold(name!)}${toStr}`)
-        const before = Date.now()
-        await generator.generate()
-        if (!watchMode) {
-          generator.stop()
-        }
-        const after = Date.now()
-        message.push(`Done in ${formatms(after - before)}`)
+    for (const generator of generators) {
+      const toStr = generator.options!.generator.output!
+        ? chalk.dim(` to .${path.sep}${path.relative(process.cwd(), generator.options!.generator.output!)}`)
+        : ''
+      const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
+      if (
+        generator.manifest?.version &&
+        generator.manifest?.version !== pkg.version &&
+        generator.options?.generator.provider === 'prisma-client-js'
+      ) {
+        message.push(
+          `${chalk.bold.yellowBright('⚠️')} ${chalk.bold(
+            `@prisma/client@${generator.manifest?.version}`,
+          )} is not compatible with ${chalk.bold(`prisma2@${pkg.version}`)}. Their versions need to be equal.`,
+        )
       }
-
-      this.logText += message.join('\n')
+      message.push(`Generated ${chalk.bold(name!)}${toStr}`)
+      const before = Date.now()
+      await generator.generate()
+      if (!watchMode) {
+        generator.stop()
+      }
+      const after = Date.now()
+      message.push(`Done in ${formatms(after - before)}`)
     }
-  )
+
+    this.logText += message.join('\n')
+  })
 
   // parse arguments
   public async parse(argv: string[], minimalOutput = false): Promise<string | Error> {
@@ -104,16 +102,16 @@ export class Generate implements Command {
     if (watchMode) {
       logUpdate(watchingText)
 
-      fs.watch(datamodelPath, async (eventType) => {
+      fs.watch(datamodelPath, async eventType => {
         if (eventType === 'change') {
           logUpdate(`\n${chalk.green('Building...')}\n${this.logText}`)
-          await this.runGenerate({generators, watchMode})
+          await this.runGenerate({ generators, watchMode })
           logUpdate(watchingText + '\n' + this.logText)
         }
       })
     }
 
-    await this.runGenerate({generators, watchMode})
+    await this.runGenerate({ generators, watchMode })
     watchMode ? logUpdate(watchingText + '\n' + this.logText) : logUpdate(this.logText)
 
     if (watchMode) await new Promise(r => null)
