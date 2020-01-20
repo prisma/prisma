@@ -48,9 +48,11 @@ function ensurePostInstallPackage(pkgPath) {
   pkg.scripts = pkg.scripts || {}
 
   if (!pkg.scripts.postinstall) {
-    pkg.scripts.postinstall = 'prisma2 generate'
+    pkg.scripts.postinstall = `node -e 'console.log(process.cwd())' && prisma2 generate || echo ""`
   } else {
-    pkg.scripts.postinstall = `prisma2 generate && ${pkg.scripts.postinstall}`
+    if (!pkg.scripts.postinstall.includes('prisma2 generate')) {
+      pkg.scripts.postinstall = `prisma2 generate || echo "" && ${pkg.scripts.postinstall}`
+    }
   }
 
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
