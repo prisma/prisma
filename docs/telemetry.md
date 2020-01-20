@@ -69,7 +69,3 @@ export CHECKPOINT_DISABLE=1
 ### Error reporting
 
 You can opt-out of data collection by responding to the interactive prompt with _no_.
-
-## Telemetry after the General Availability release
-
-The way how telemetry is used during the [Preview period](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md) differs from the way it'll be used after the General Availability release. This page will be continuously updated to reflect the future plans for telemetry. 
