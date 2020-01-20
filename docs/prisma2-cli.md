@@ -18,7 +18,7 @@ yarn global add prisma2
 
 ### The `postinstall` hook
 
-When installing the Prisma Framework CLI, a [`postinstall`](https://github.com/prisma/prisma2/blob/master/cli/sdk/package.json#L13) hook is being executed. It downloads the Prisma Framework's query and migration [engine binaries](https://github.com/prisma/prisma-engine). The query engine contains the [Prisma schema](./prisma-schema-file.md) parser which is used by the `prisma2 init` and the `prism2 generate` commands. The migration engine is used by all `prisma2 lift` commands.
+When installing the Prisma Framework CLI, a [`postinstall`](https://github.com/prisma/prisma2/blob/master/cli/sdk/package.json#L13) hook is being executed. It downloads the Prisma Framework's query and migration [engine binaries](https://github.com/prisma/prisma-engine). The query engine contains the [Prisma schema](./prisma-schema-file.md) parser which is used by the `prisma2 init` and the `prism2 generate` commands. The migration engine is used by all `prisma2 migrate` commands.
 
 ## Using a HTTP proxy for the CLI
 
