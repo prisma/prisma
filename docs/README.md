@@ -18,7 +18,7 @@
   - [Use only Prisma Client JS](./prisma-client-js/use-only-prisma-client-js.md)
   - [Code generation & Node.js setup](./prisma-client-js/codegen-and-node-setup.md)
   - [Deployment](./prisma-client-js/deployment.md)
-- [Lift](./lift)
+- [Prisma Migrate](./prisma-migrate)
 - [Importing and exporting data](./import-and-export-data)
 - [Supported databases](./supported-databases.md)
 - [Telemetry](./telemetry.md)

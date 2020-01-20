@@ -1,10 +1,10 @@
-# Using only Prisma Client JS (without Lift)
+# Using only Prisma Client JS (without Prisma Migrate)
 
-You can use Prisma Client JS as an ORM replacement in your application without using Lift for database migrations. This is useful for _existing applications_ when there already is a working migration system or when you don't have the rights inside your organization to perform database migrations yourself.
+You can use Prisma Client JS as an ORM replacement in your application without using Prisma for database migrations. This is useful for _existing applications_ when there already is a working migration system or when you don't have the rights inside your organization to perform database migrations yourself.
 
-When using Prisma Client JS without Lift, you obtain your data model definition by _introspecting_ your database schema and generating the Prisma data model from it. The generated data model then serves as foundation for Prisma Client JS's generated CRUD API. Whenever a schema migration is performed on the database afterwards, you need to re-introspect your database (which updates your data model) and re-generate your Prisma Client JS API.
+When using Prisma Client JS without migrations, you obtain your data model definition by _introspecting_ your database schema and generating the Prisma data model from it. The generated data model then serves as foundation for Prisma Client JS's generated CRUD API. Whenever a schema migration is performed on the database afterwards, you need to re-introspect your database (which updates your data model) and re-generate your Prisma Client JS API.
 
-**This page is about using Prisma Client JS with an existing database**. Learn more about getting started from scratch with Prisma Client JS and Lift [here](./).
+**This page is about using Prisma Client JS with an existing database**. Learn more about getting started from scratch with Prisma [here](./).
 
 ## Getting started with Prisma Client JS
 
