@@ -1,4 +1,4 @@
-import { Command, arg, format, HelpError, getSchemaPath } from '@prisma/cli'
+import { Command, arg, format, HelpError, getSchemaPath, isError } from '@prisma/cli'
 import chalk from 'chalk'
 import logUpdate from 'log-update'
 import { missingGeneratorMessage } from '@prisma/lift'
@@ -10,7 +10,7 @@ import path from 'path'
 const pkg = eval(`require('../package.json')`)
 
 /**
- * $ prisma migrate new
+ * $ prisma generate
  */
 export class Generate implements Command {
   public static new(): Generate {
@@ -19,14 +19,15 @@ export class Generate implements Command {
 
   // static help template
   private static help = format(`
-    Generate the Photon Client.
+    Generate the Prisma Client.
 
     ${chalk.bold('Usage')}
 
       prisma2 generate
 
-      prisma2 generate --watch
+    ${chalk.bold('Flags')}
 
+      --watch    Watches the Prisma project file
   `)
 
   private logText = ''
@@ -67,8 +68,17 @@ export class Generate implements Command {
   public async parse(argv: string[], minimalOutput = false): Promise<string | Error> {
     // parse the arguments according to the spec
     const args = arg(argv, {
+      '--help': Boolean,
+      '-h': '--help',
       '--watch': Boolean,
     })
+    if (isError(args)) {
+      return this.help(args.message)
+    }
+    if (args['--help']) {
+      return this.help()
+    }
+
     const watchMode = args['--watch']
 
     const datamodelPath = await getSchemaPath()

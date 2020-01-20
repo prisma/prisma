@@ -4,7 +4,7 @@ import { getConfig, getDMMF } from '@prisma/sdk'
 import fs from 'fs'
 
 /**
- * $ prisma migrate new
+ * $ prisma validate
  */
 export class Validate implements Command {
   public static new(): Validate {
@@ -19,7 +19,7 @@ export class Validate implements Command {
 
     With an existing schema.prisma, just
       ${chalk.bold('prisma2 validate')}
-    
+
     Or specify a schema:
       ${chalk.bold('prisma2 validate --schema=./schema.prisma')}
 
