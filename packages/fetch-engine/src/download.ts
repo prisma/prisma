@@ -141,6 +141,8 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
               )}, which points to ${chalk.underline(process.env[envVar])}`,
             )
             binaryPaths[binaryName][binaryPlatform] = path.resolve(process.env[envVar])
+            // no need to download, a custom binary was provided
+            return
           } else {
             debug(`Setting binary path for ${binaryName} ${binaryPlatform} to ${targetPath}`)
             binaryPaths[binaryName][binaryPlatform] = targetPath
