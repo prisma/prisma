@@ -1,4 +1,4 @@
-# Generated Prisma Client JS API (JavaScript/TypeScript)
+# Generated Prisma Client API (JavaScript/TypeScript)
 
 Prisma Client JS is a type-safe database client auto-generated based on your [data model definition](../data-modeling.md#data-model-definition) (which is a declarative representation of your database schema). This page explains the generated API operations you have available when using Prisma Client JS.
 
