@@ -43,7 +43,7 @@ export namespace DMMF {
     relationOnDelete?: string
     relationName?: string
     documentation?: string
-    default?: FieldDefault
+    default?: FieldDefault | string | boolean
     [key: string]: any // safe net for additional new props
   }
 
