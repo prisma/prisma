@@ -8,7 +8,7 @@ During the Preview period, upon an unexpected error you will _always_ be prompte
 
 ## What kind of data is being collected?
 
-The _exclusive_ purpose of telemetry is to improve the quality of the Prisma Framework tools: Prisma Client JS, Lift, and Studio. Therefore, the only data that is being tracked relates to the actual _usage_ of these tools and not to any personal or other sensitive information!
+The _exclusive_ purpose of telemetry is to improve the quality of the Prisma Framework tools: Prisma Client JS, Migrate, and Studio. Therefore, the only data that is being tracked relates to the actual _usage_ of these tools and not to any personal or other sensitive information!
 
 Here's a list of information that is contained in an error report:
 
@@ -25,7 +25,7 @@ Here's a list of information that is **never** contained in an error report:
 
 ## Why is data collected?
 
-The _exclusive_ purpose of telemetry is to improve the quality of the Prisma Framework tools: Prisma Client JS, Lift, and Studio. By sharing information about what went wrong in any of the Prisma Framework tools, you can make an easy, yet extremely helpful, contribution to the development of the Prisma Framework. 
+The _exclusive_ purpose of telemetry is to improve the quality of the Prisma Framework tools: Prisma Client JS, Migrate, and Studio. By sharing information about what went wrong in any of the Prisma Framework tools, you can make an easy, yet extremely helpful, contribution to the development of the Prisma Framework. 
 
 ## When is data collected?
 

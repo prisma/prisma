@@ -1,12 +1,22 @@
 import { Command, format, HelpError, getSchemaPath, arg } from '@prisma/cli'
 import chalk from 'chalk'
 import path from 'path'
-import { getConfig, IntrospectionEngine, getDMMF, dmmfToDml, uriToCredentials, ConfigMetaFormat } from '@prisma/sdk'
+import {
+  getConfig,
+  IntrospectionEngine,
+  getDMMF,
+  dmmfToDml,
+  uriToCredentials,
+  ConfigMetaFormat,
+  RustPanic,
+  ErrorArea,
+} from '@prisma/sdk'
 import { formatms } from '../util/formatms'
 import fs from 'fs'
 import { DataSource } from '@prisma/generator-helper'
 import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 import { printDatasources } from '../prompt/utils/printDatasources'
+import stripAnsi from 'strip-ansi'
 import Debug from 'debug'
 const debug = Debug('Introspect')
 
@@ -97,7 +107,8 @@ export class Introspect implements Command {
     log(`Introspecting${basedOn} …`)
 
     const before = Date.now()
-    let introspectionSchema = await engine.introspect(url)
+    let introspectionSchema = ''
+    introspectionSchema = await engine.introspect(url)
     engine.stop()
 
     if (introspectionSchema.trim() === '') {
@@ -167,7 +178,14 @@ export class Introspect implements Command {
         console.log(chalk.bold(`Introspected Schema:\n`))
         console.log(introspectionSchema + '\n')
       }
-      console.error(e.message)
+      throw new RustPanic(
+        stripAnsi(e.message),
+        stripAnsi(e.message),
+        {},
+        ErrorArea.INTROSPECTION_CLI,
+        undefined,
+        introspectionSchema,
+      )
     }
 
     return ''
