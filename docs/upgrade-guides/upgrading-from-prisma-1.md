@@ -7,10 +7,10 @@ This upgrade guide describes how to migrate a Node.js project that's based on [P
 On a high-level, the biggest differences between Prisma 1 and the Prisma Framework are the following:
 
 - The Prisma Framework doesn't require hosting a database proxy server (i.e. the [Prisma server](https://www.prisma.io/docs/prisma-server/)).
-- The Prisma Framework makes the features of Prisma 1 available as standalone components:
-  - _Data modeling and migrations_ from Prisma 1 are now done with [Lift]()
-  - _Database access using the Prisma client_ from Prisma 1 is done using [Prisma Client JS]()
-- The Prisma 1 datamodel and the `prisma.yml` have been merged into the [Prisma schema]() that's used in the Prisma Framework
+- The Prisma Framework makes the features of Prisma 1 more modular:
+  - _Data modeling and migrations_ from Prisma 1 are now done via a dedicated `prisma2 migrate` subcommand
+  - _Database access using the Prisma client_ from Prisma 1 is done using Prisma Client JS
+- The Prisma 1 datamodel and the `prisma.yml` have been merged into the [Prisma schema](../prisma-schema-file.md) that's used in the Prisma Framework
 - The Prisma Framework uses a its own modeling language instead of being based on GraphQL SDL
 
 Based on these differences, the high-level steps to upgrade a project from using Prisma 1 are as follows:
@@ -434,14 +434,16 @@ app.get('/filterPosts', async (req, res) => {
 })
 ```
 
-## 4. Performing database migrations with Lift
+## 4. Performing database migrations with Prisma Migrate
 
-Going forward, you won't perform schema migrations using the `prisma deploy` command any more. Instead, you can use [Lift](). Every schema migration with Lift follows a 3-step-process:
+Going forward, you won't perform schema migrations using the `prisma deploy` command any more. Instead, you can use the `prisma2 migrate` commands. Every schema migration follows a 3-step-process:
 
 1. Adjust the data model inside your Prisma schema to reflect the desired change (e.g. adding a new model)
-1. Run `npx prisma2 lift save` to save the migration on your file system (this doesn't touch the dataabse yet)
-1. Run `npx prisma2 lift up` to actually perform the migration against your database
+1. Run `npx prisma2 migrate save --experimental` to save the migration on your file system (this doesn't perform the migration yet)
+1. Run `npx prisma2 migrate up --experimental` to actually perform the migration against your database
+
+> **Note**: Prisma's `migrate` command is still experimental. Therefore, you're currently required to explicitily opt-in to its functionality via an `--experimental` flag.
 
 ## Summary
 
-In this upgrade guide, you learned how to upgrade an ExpressJS-based REST API from Prisma 1 to the Prisma Framework that uses Prisma Client JS and Lift. In the future, we'll cover more fine-grained upgrade scenarios, based on more complicated database schemas as well as for projects that are using GraphQL Nexus and `nexus-prisma`.
+In this upgrade guide, you learned how to upgrade an ExpressJS-based REST API from Prisma 1 to the Prisma Framework that uses Prisma Client JS and Prisma Migrate. In the future, we'll cover more fine-grained upgrade scenarios, based on more complicated database schemas as well as for projects that are using GraphQL Nexus and `nexus-prisma`.
