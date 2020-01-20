@@ -21,7 +21,7 @@ import Debug from 'debug'
 const debug = Debug('Introspect')
 
 /**
- * $ prisma migrate new
+ * $ prisma introspect
  */
 export class Introspect implements Command {
   public static new(): Introspect {
@@ -36,10 +36,10 @@ export class Introspect implements Command {
 
     With an existing schema.prisma, just
       ${chalk.bold('prisma2 introspect')}
-    
+
     Or specify a connection string:
       ${chalk.bold('prisma2 introspect --url="mysql://localhost:3306/database"')}
-    
+
     Instead of saving the result to the filesystem, you can also just print it
       ${chalk.bold('prisma2 introspect --print')}
 
