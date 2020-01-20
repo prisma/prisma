@@ -4,6 +4,11 @@ const exec = promisify(childProcess.exec)
 const c = require('./colors')
 
 async function main() {
+  if (process.env.INIT_CWD) {
+    process.chdir(process.env.INIT_CWD) // necessary, because npm chooses __dirname as process.cwd()
+    // in the postinstall hook
+  }
+
   const localPath = getLocalPackagePath()
   try {
     if (localPath) {
