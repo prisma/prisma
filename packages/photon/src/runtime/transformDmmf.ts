@@ -90,8 +90,17 @@ function makeWhereUniqueInputsRequired(
 }
 
 function getFieldType(field: DMMF.Field): string {
-  if (field.default && field.default.name === 'uuid') {
-    return 'UUID'
+  if (field.default) {
+    if (typeof field.default === 'string') {
+      if (field.default === 'uuid') {
+        return 'UUID'
+      }
+    } else if (typeof field.default === 'boolean') {
+      return field.type
+    }
+    else if (field.default.name === 'uuid') {
+      return 'UUID'
+    }
   }
   return field.type
 }
