@@ -24,22 +24,16 @@ Invokations of the `prisma2` CLI sends information to the telemetry server at ht
 
 Here is an overview of the data that's being submitted:
 
-|             Field |     Attributes      | Description                                                               |
-| ----------------: | :-----------------: | :------------------------------------------------------------------------ |
-|         `product` | _string, required_  | Name of the product. Current we only support `prisma`.                    |
-|         `version` | _string, required_  | Currently installed version of the product (e.g. `1.0.0-rc0`)             |
-|            `arch` | _string, optional_  | Client's operating system architecture (e.g. `amd64`).                    |
-|              `os` | _string, optional_  | Client's operating system (e.g. `darwin`).                                |
-|    `node_version` | _string, optional_  | Client's node version (e.g. `v12.12.0`).                                  |
-|         `disable` | _boolean, required_ | Disable checking for an update if it's not already cached. Useful for CI. |
-|        `endpoint` | _string, optional_  | Checkpoint server endpoint URL. Defaults to https://checkpoint.prisma.io. |
-|         `timeout` | _number, optional_  | Time in milliseconds we should wait for a response before giving up.      |
-|       `signature` | _string, optional_  | Random, non-identifiable signature to ensure alerts aren't repeated.      |
-|      `cache_file` | _string, optional_  | File where we store the response for the `cache_duration`.                |
-|  `cache_duration` | _number, optional_  | Time in milliseconds to store the response. Defaults to 48 hours.         |
-| `remind_duration` | _number, optional_  | Time in milliseconds to wait for a new reminder. Defaults to 48 hours.    |
-|           `force` | _boolean, optional_ | Force a check regardless of `disable` or `CHECKPOINT_DISABLE`.            |
-|           `unref` | _boolean, optional_ | Control when we should unreference the child. Use with care.              |
+|          Field | Attributes | Description                                                                            |
+| -------------: | :--------: | :------------------------------------------------------------------------------------- |
+|      `product` |  _string_  | Name of the product (e.g. `prisma`)                                                    |
+|      `version` |  _string_  | Currently installed version of the product (e.g. `1.0.0-rc0`)                          |
+|         `arch` |  _string_  | Client's operating system architecture (e.g. `amd64`).                                 |
+|           `os` |  _string_  | Client's operating system (e.g. `darwin`).                                             |
+| `node_version` |  _string_  | Client's node version (e.g. `v12.12.0`).                                               |
+|    `signature` |  _string_  | Random, non-identifiable signature UUID (e.g. `91b014df3-9dda-4a27-a8a7-15474fd899f8`) |
+|   `user_agent` |  _string_  | User agent of the checkpoint client (e.g. `prisma/js-checkpoint`)                      |
+|    `timestamp` |  _string_  | When the request was made in RFC3339 format (e.g. `2019-12-12T17:45:56Z`)              |
 
 You can opt-out of this behaviour by setting the `CHECKPOINT_DISABLE` environment variable to `1`, e.g.:
 
@@ -72,4 +66,4 @@ You can opt-out of data collection by responding to the interactive prompt with 
 
 ## Telemetry after the General Availability release
 
-The way how telemetry is used during the [Preview period](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md) differs from the way it'll be used after the General Availability release. This page will be continuously updated to reflect the future plans for telemetry. 
+The way how telemetry is used during the [Preview period](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md) differs from the way it'll be used after the General Availability release. This page will be continuously updated to reflect the future plans for telemetry.
