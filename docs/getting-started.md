@@ -1,8 +1,8 @@
 # Getting started
 
-This page explains how to get started with Prisma and your existing database (_brownfield_). 
+This page explains how to get started with Prisma and your existing database. 
 
-If you don't have a database to try Prisma or just want to explore everything from scratch, check out the ready-to-run [example projects](https://github.com/prisma/prisma-examples/) (_greenfield_) with use cases for REST, GraphQL, gRPC and more.
+If you don't have a database to try Prisma or just want to explore everything from scratch, check out the ready-to-run [example projects](https://github.com/prisma/prisma-examples/) with use cases for REST, GraphQL, gRPC and more.
 
 ## TLDR
 
