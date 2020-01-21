@@ -246,4 +246,3 @@ If you've used your own database in this guide and are unsure what to query for,
 
 ![](https://imgur.com/p4kdfhH.gif)
 
-## 5. (Optional) 
