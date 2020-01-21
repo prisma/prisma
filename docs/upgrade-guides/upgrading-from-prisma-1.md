@@ -1,4 +1,4 @@
-# Upgrade guide (Prisma 1 to Prisma Framework)
+# Upgrade guide (Prisma 1 to Prisma 2)
 
 This upgrade guide describes how to migrate a Node.js project that's based on [Prisma 1](https://github.com/prisma/prisma) and uses the [Prisma client](https://www.prisma.io/docs/prisma-client/) to Prisma 2.
 

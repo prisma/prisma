@@ -1,4 +1,4 @@
-# Prisma Framework CLI
+# Prisma 2 CLI
 
 ## Installation
 
