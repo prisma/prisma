@@ -14,7 +14,7 @@ import { ExperimentalFlagError } from '../../utils/experimental'
 const writeFile = promisify(fs.writeFile)
 
 /**
- * $ prisma migrate new
+ * $ prisma migrate save
  */
 export class LiftSave implements Command {
   public static new(): LiftSave {
