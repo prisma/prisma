@@ -6,7 +6,7 @@ import { occupyPath } from '../../utils/occupyPath'
 import { ProviderAliases } from '@prisma/sdk'
 
 /**
- * $ prisma migrate new
+ * $ prisma migrate dev
  */
 export class LiftWatch implements Command {
   public static new(providerAliases: ProviderAliases): LiftWatch {
@@ -40,7 +40,7 @@ export class LiftWatch implements Command {
       '--auto-approve': Boolean,
     })
     const preview = args['--preview'] || false
-    
+
     if (args['--help']) {
       return this.help()
     }

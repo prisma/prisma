@@ -7,7 +7,7 @@ import { occupyPath } from '../../utils/occupyPath'
 const debug = Debug('tmp-prepare')
 
 /**
- * $ prisma migrate new
+ * $ prisma tmp-prepare
  */
 export class LiftTmpPrepare implements Command {
   public static new(): LiftTmpPrepare {
