@@ -22,6 +22,19 @@ Data is collected in two scenarios that are described below.
 
 Invokations of the `prisma2` CLI sends information to the telemetry server at https://checkpoint.prisma.io. Note that this is only happening at most every 48 hours (i.e., the sending the data to the telemetry server gets pause for 48 hours after any invokation).
 
+Here is an overview of the data that's being submitted:
+
+|          Field | Attributes | Description                                                                            |
+| -------------: | :--------: | :------------------------------------------------------------------------------------- |
+|      `product` |  _string_  | Name of the product (e.g. `prisma`)                                                    |
+|      `version` |  _string_  | Currently installed version of the product (e.g. `1.0.0-rc0`)                          |
+|         `arch` |  _string_  | Client's operating system architecture (e.g. `amd64`).                                 |
+|           `os` |  _string_  | Client's operating system (e.g. `darwin`).                                             |
+| `node_version` |  _string_  | Client's node version (e.g. `v12.12.0`).                                               |
+|    `signature` |  _string_  | Random, non-identifiable signature UUID (e.g. `91b014df3-9dda-4a27-a8a7-15474fd899f8`) |
+|   `user_agent` |  _string_  | User agent of the checkpoint client (e.g. `prisma/js-checkpoint`)                      |
+|    `timestamp` |  _string_  | When the request was made in RFC3339 format (e.g. `2019-12-12T17:45:56Z`)              |
+
 You can opt-out of this behaviour by setting the `CHECKPOINT_DISABLE` environment variable to `1`, e.g.:
 
 ```bash
