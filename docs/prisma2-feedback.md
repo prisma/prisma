@@ -13,7 +13,7 @@ For that, a full rewrite of Prisma was necessary so that we can build upon a pro
 - Join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on Slack
 - Track the progress of Prisma 2 here: [`isprisma2ready.com`](https://www.isprisma2ready.com)
 - Open issues in following repos:
-  - General Prisma Framework questions and catch-all for problems and questions: [`prisma2`](https://github.com/prisma/prisma2)
+  - General Prisma 2 questions and catch-all for problems and questions: [`prisma2`](https://github.com/prisma/prisma2)
   - Problems/questions regarding Prisma Migrate: [`lift`](https://github.com/prisma/lift)
   - Problems/questions regarding Prisma Client JS: [`prisma-client-js`](https://github.com/prisma/prisma-client-js)
 
@@ -53,7 +53,7 @@ If your issue relates to either Prisma Client JS or Prisma Migrate specifically,
 
 Otherwise, the default place for opening issues is the official `prisma2` repo (when in doubt, create the issue here):
 
-- [Open a general **Prisma Framework** issue](https://github.com/prisma/prisma2/issues/new)
+- [Open a general **Prisma 2** issue](https://github.com/prisma/prisma2/issues/new)
 
 Once you created a GitHub issue, feel free to post it in the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) Slack channel so that we can react quickly.
 
@@ -61,10 +61,10 @@ Once you created a GitHub issue, feel free to post it in the [`#prisma2-preview`
 
 We are extremely eager to get your feedback! Please feel free to reach out to us personally during the Preview period if you can't find an appropriate place for your specific feedback.
 
-<a href="mailto:schickling@prisma.io?subject=Prisma Framework Feedback for Johannes"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/670932364491669504/N4-NLlZ0_400x400.jpg"></a>
-<a href="mailto:sverdlov@prisma.io?subject=Prisma Framework Feedback for Etel"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/1139455302988914688/VleSmw1Q_400x400.png"></a>
-<a href="mailto:mueller@prisma.io?subject=Prisma Framework Feedback for Matt"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/1067441283558367232/X3T81W8I_400x400.jpg"></a>
-<a href="mailto:suchanek@prisma.io?subject=Prisma Framework Feedback for Tim"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/1046724373472845824/RecM9fcC_400x400.jpg"></a>
-<a href="mailto:singh@prisma.io?subject=Prisma Framework Feedback for Divyendu"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/1136464314083287040/nIocY54I_400x400.jpg"></a>
-<a href="mailto:panth@prisma.io?subject=Prisma Framework Feedback for Harshit"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/1142528238566162432/HWghFOWd_400x400.jpg"></a>
-<a href="mailto:burk@prisma.io?subject=Prisma Framework Feedback for Nikolas"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/938876572802650112/owTdBnzU_400x400.jpg"></a>
+<a href="mailto:schickling@prisma.io?subject=Prisma 2 Feedback for Johannes"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/670932364491669504/N4-NLlZ0_400x400.jpg"></a>
+<a href="mailto:sverdlov@prisma.io?subject=Prisma 2 Feedback for Etel"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/1139455302988914688/VleSmw1Q_400x400.png"></a>
+<a href="mailto:mueller@prisma.io?subject=Prisma 2 Feedback for Matt"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/1067441283558367232/X3T81W8I_400x400.jpg"></a>
+<a href="mailto:suchanek@prisma.io?subject=Prisma 2 Feedback for Tim"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/1046724373472845824/RecM9fcC_400x400.jpg"></a>
+<a href="mailto:singh@prisma.io?subject=Prisma 2 Feedback for Divyendu"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/1136464314083287040/nIocY54I_400x400.jpg"></a>
+<a href="mailto:panth@prisma.io?subject=Prisma 2 Feedback for Harshit"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/1142528238566162432/HWghFOWd_400x400.jpg"></a>
+<a href="mailto:burk@prisma.io?subject=Prisma 2 Feedback for Nikolas"><img width="75px" style="border-radius:50%;" alt="Email us" src="https://pbs.twimg.com/profile_images/938876572802650112/owTdBnzU_400x400.jpg"></a>
