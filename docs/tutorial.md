@@ -268,7 +268,7 @@ Don't worry, you'll learn more about both approaches in the next sections. Note 
 
 ![](https://imgur.com/Y3U6Csg.png)
 
-Note that migrations in the `migrations/dev` folder are considered "throw away" migrations. If you want to evolve your database schema in a way that the migration is persisted in Lift's _migration history_, you need to perform a migration using the `lift` subcommands: `prisma2 lift save` and `prisma2 lift up`.
+  Note that migrations in the `migrations/dev` folder are considered "throw away" migrations. If you want to evolve your database schema in a way that the migration is persisted in Lift's _migration history_, you need to perform a migration using the `lift` subcommands: `prisma2 lift save` and `prisma2 lift up`.
 
 ## 3. Run the demo script
 
