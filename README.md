@@ -1,6 +1,6 @@
 <br />
 
-<!--<p><h1 align="center">Lift</h1></p>-->
+<!--<p><h1 align="center">Prisma Migrate</h1></p>-->
 <p><h3 align="center">Declarative data modeling & database migrations</h3></p>
 
 <p align="center">
@@ -31,7 +31,7 @@
 
 ## Docs
 
-You can find comprehensive documentation for Lift in the [Prisma 2 docs](https://github.com/prisma/prisma2/).
+You can find comprehensive documentation for Prisma Migrate in the [Prisma 2 docs](https://github.com/prisma/prisma2/).
 
 ## The Prisma Migrate workflow
 
@@ -100,15 +100,15 @@ enum Role {
 }
 ```
 
-#### Option A: Starting with an existing database (_brownfield_)
+#### Option A: Starting with an existing database
 
 <img src="https://i.imgur.com/XkRkwdE.png" width="355px">
 
 If you want to use Lift with an existing database, you can [introspect](https://github.com/prisma/prisma2/blob/master/docs/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md). This generates a declarative [data model](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) which provides the foundation for future migrations.
 
-#### Option B: Start from scratch (_greenfield_)
+#### Option B: Start from scratch
 
-When starting from scratch, you can simply write your own [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) inside your [schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). You can then use the Lift CLI commands to migrate your database (Lift maps your data model definition to the schema of the underlying database).
+When starting from scratch, you can write your own [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) inside your [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). You can then use the Lift CLI commands to migrate your database (Lift maps your data model definition to the schema of the underlying database).
 
 ### 3. Adjust the data model
 
@@ -117,10 +117,10 @@ When starting from scratch, you can simply write your own [data model definition
 Instead of sending SQL migration statements to the database, you need to adjust the data model file to describe your desired database schema. You can express any schema migration you like using the new data model, this includes for example adding a new model, removing a model or updating the fields of a model. You can
 also add indexes or validation constraints in the data model.
 
-You can create a new migration for your change by running `prisma lift save`:
+You can create a new migration for your change by running `prisma migrate save`:
 
 ```bash
-prisma lift save --name "add-comment-model"
+prisma migrate save --name "add-comment-model" --experimental
 ```
 
 ### 4. Migrate your database (apply data model changes)
@@ -130,7 +130,7 @@ prisma lift save --name "add-comment-model"
 Once you're happy with the changes, you can use the Prisma CLI to migrate your database (i.e. map the adjusted data model to your database). Lift's migration engine will generate the corresponding SQL statements and send them to the database for you.
 
 ```bash
-prisma lift up
+prisma migrate up --experimental
 ```
 
 ## Supported databases
@@ -151,6 +151,6 @@ More databases that will be supported in the future are:
 
 
 ## Contributing
-Read more about how to contribute to Lift [here](https://github.com/prisma/lift/blob/master/CONTRIBUTING.md)
+Read more about how to contribute to Prisma Migrate [here](https://github.com/prisma/migrate/blob/master/CONTRIBUTING.md)
 
 [![Build status](https://badge.buildkite.com/9caba29c5511a465e0cbf0f6b2f62173145d3dd90cf56c4daf.svg)](https://buildkite.com/prisma/lift)
