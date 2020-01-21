@@ -1,6 +1,6 @@
 # Introspection
 
-When working with an existing database, the first step towards using the Prisma Framework is to obtain a [Prisma schema](./prisma-schema-file.md) that matches your database schema (or a subset of your database schema). You can create this schema file manually and write out all the required [models](./data-modeling.md#models) by hand, or use Prisma's _introspection_ feature to automatically generate your Prisma schema. 
+When working with an existing database, the first step towards using Prisma 2 is to obtain a [Prisma schema](./prisma-schema-file.md) that matches your database schema (or a subset of your database schema). You can create this schema file manually and write out all the required [models](./data-modeling.md#models) by hand, or use Prisma's _introspection_ feature to automatically generate your Prisma schema. 
 
 Prisma lets you introspect your database to derive a data model definition from the current database schema. Introspection is available via either of two CLI commands:
 

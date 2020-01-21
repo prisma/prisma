@@ -1,6 +1,6 @@
 # Supported Databases
 
-The Prisma Framework currently supports the following databases:
+Prisma 2 currently supports the following databases:
 
 | Database | Version | Status |
 | --- | --- | --- |

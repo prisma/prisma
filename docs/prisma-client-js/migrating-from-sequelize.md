@@ -4,7 +4,7 @@
 
 In this tutorial, we will compare both approaches for working with databases and walk through how to migrate from a Sequelize project to a Prisma Client JS one.
 
-> **Note**: If you encounter any problems with this tutorial or any parts of the Prisma Framework, this is how you can get help: **create an issue on [GitHub](https://github.com/prisma/prisma2/issues)** or join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on [Slack](https://slack.prisma.io/) to share your feedback directly. We also have a community forum on [Spectrum](https://spectrum.chat/prisma).
+> **Note**: If you encounter any problems with this tutorial or any parts of Prisma 2, this is how you can get help: **create an issue on [GitHub](https://github.com/prisma/prisma2/issues)** or join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on [Slack](https://slack.prisma.io/) to share your feedback directly. We also have a community forum on [Spectrum](https://spectrum.chat/prisma).
 
 ## Goals
 
@@ -624,6 +624,6 @@ The sample project that was used demonstrated the fundamental capabilities of bo
 
 - Learn more about [Prisma Client JS' relation API](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#relations)
 - Engage with our [community](https://www.prisma.io/community/)!
-- The Prisma Framework is not production-ready [yet](https://github.com/prisma/prisma2/blob/master/docs/limitations.md), so we value your [feedback](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md)!
+- Prisma 2 is not production-ready [yet](https://github.com/prisma/prisma2/blob/master/docs/limitations.md), so we value your [feedback](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md)!
 
 If you run into problems with this tutorial or spot any mistakes, feel free to make a pull request. 

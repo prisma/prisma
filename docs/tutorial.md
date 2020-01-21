@@ -1,4 +1,4 @@
-# The Prisma Framework tutorial
+# Prisma 2 tutorial
 
 ⚠️ **This tutorial is outdated as of release [`preview020`](https://github.com/prisma/prisma2/releases/tag/2.0.0-preview020)**. With this release, Photon.js has been renamed to Prisma Client JS and Lift's migration functionality has been moved behind an `--experimental` flag. 
 

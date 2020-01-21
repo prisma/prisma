@@ -14,9 +14,9 @@
   - [How do I see details about how Prisma migrates my database schema?](#how-do-i-see-details-about-how-prisma-migrates-my-database-schema)
   - [Is Prisma's migration tool production-ready? Should I start using it?](#is-prismas-migration-tool-production-ready-should-i-start-using-it)
 - Other
-  - [Since the Prisma Framework is released, will Prisma 1 still be maintained?](#since-the-prisma-framework-is-released-will-prisma-1-still-be-maintained)
-  - [Where can I get more information about the plans for the Prisma Framework?](#where-can-i-get-more-information-about-the-plans-for-the-prisma-framework)
-  - [How much does the Prisma Framework cost?](#how-much-does-the-prisma-framework-cost)
+  - [Since Prisma 2 is released, will Prisma 1 still be maintained?](#since-prisma-2-is-released-will-prisma-1-still-be-maintained)
+  - [Where can I get more information about the plans for Prisma 2?](#where-can-i-get-more-information-about-the-plans-for-prisma-2)
+  - [How much does Prisma 2 cost?](#how-much-does-prisma-2-cost)
 
 ## Prisma Client JS
 
@@ -56,7 +56,7 @@ GraphQL [schema delegation](https://www.prisma.io/blog/graphql-schema-stitching-
 
 Prisma 1 officially supports both schema delegation and GraphQL binding as it exposes a GraphQL CRUD API through the [Prisma server](https://www.prisma.io/docs/prisma-server/). This API can be used to as foundation for an application-layer GraphQL API created with GraphQL binding. 
 
-With the Prisma Framework, Prisma's query engine doesn't expose a [spec](https://graphql.github.io/graphql-spec/June2018/)-compliant GraphQL endpoint any more, so usage of schema delegation and GraphQL binding with the Prisma Framework is not officially supported. To build GraphQL servers with the Prisma Framework, be sure to check out [GraphQL Nexus](https://nexus.js.org/) and its [`nexus-prisma`](https://nexus.js.org/docs/database-access-with-prisma-v2) integration. GraphQL Nexus provides a code-first and type-safe way to build GraphQL servers in a scalable way. 
+With Prisma 2, Prisma's query engine doesn't expose a [spec](https://graphql.github.io/graphql-spec/June2018/)-compliant GraphQL endpoint any more, so usage of schema delegation and GraphQL binding with Prisma 2 is not officially supported. To build GraphQL servers with Prisma 2, be sure to check out [GraphQL Nexus](https://nexus.js.org/) and its [`nexus-prisma`](https://nexus.js.org/docs/database-access-with-prisma-v2) integration. GraphQL Nexus provides a code-first and type-safe way to build GraphQL servers in a scalable way. 
 
 ### How to handle connection pooling for Prisma Client JS in serverless environments?
 
@@ -86,16 +86,16 @@ While it shouldn't be used for critical applications yet, Prisma's migration too
 
 ## Other
 
-### Since the Prisma Framework is released, will Prisma 1 still be maintained?
+### Since Prisma 2 is released, will Prisma 1 still be maintained?
 
-Yes, Prisma 1 will continue to be maintained. However, most Prisma engineering resources will go into the development of [the Prisma Framework](https://github.com/prisma/prisma2).
+Yes, Prisma 1 will continue to be maintained. However, most Prisma engineering resources will go into the development of [Prisma 2](https://github.com/prisma/prisma2).
 
 There will be no new features developed for Prisma 1.
 
-### Where can I get more information about the plans for the Prisma Framework?
+### Where can I get more information about the plans for Prisma 2?
 
-Check out the [`specs`](https://github.com/prisma/specs) repo which contains the technical specifications for future the Prisma Framework features. Get involved by [creating issues](https://github.com/prisma/prisma2/issues) and [sharing feedback](./prisma2-feedback.md)!
+Check out the [`specs`](https://github.com/prisma/specs) repo which contains the technical specifications for future Prisma 2 features. Get involved by [creating issues](https://github.com/prisma/prisma2/issues) and [sharing feedback](./prisma2-feedback.md)!
 
-### How much does the Prisma Framework cost?
+### How much does Prisma 2 cost?
 
-The Prisma Framework is open source and using it is free of any charge! In the future, Prisma will offer additional cloud services to facilitate various database- and Prisma-related workflows. Note that these are optional, the Prisma Framework can continue to be used without consuming any commercial services.
+Prisma 2 is open source and using it is free of any charge! In the future, Prisma will offer additional cloud services to facilitate various database- and Prisma-related workflows. Note that these are optional, Prisma 2 can continue to be used without consuming any commercial services.
