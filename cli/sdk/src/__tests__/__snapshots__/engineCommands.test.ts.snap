@@ -42,7 +42,7 @@ Object {
         "dbName": null,
         "fields": Array [
           Object {
-            "dbName": null,
+            "dbNames": Array [],
             "isGenerated": false,
             "isId": true,
             "isList": false,
@@ -54,7 +54,7 @@ Object {
             "type": "Int",
           },
           Object {
-            "dbName": null,
+            "dbNames": Array [],
             "isGenerated": false,
             "isId": false,
             "isList": false,

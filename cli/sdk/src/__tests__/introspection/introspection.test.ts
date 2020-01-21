@@ -22,7 +22,6 @@ test('basic introspection', async () => {
     }
 
     model Post {
-      author    User
       content   String?
       createdAt DateTime
       kind      String?
@@ -30,6 +29,7 @@ test('basic introspection', async () => {
       title     String   @default(\\"\\")
       updatedAt DateTime
       uuid      String   @id
+      author    User
     }"
   `)
   const metadata = await engine.getDatabaseMetadata(

@@ -19,7 +19,7 @@ describe('getDMMF', () => {
             "dbName": null,
             "fields": Array [
               Object {
-                "dbName": null,
+                "dbNames": Array [],
                 "isGenerated": false,
                 "isId": true,
                 "isList": false,
@@ -31,7 +31,7 @@ describe('getDMMF', () => {
                 "type": "Int",
               },
               Object {
-                "dbName": null,
+                "dbNames": Array [],
                 "isGenerated": false,
                 "isId": false,
                 "isList": false,
@@ -61,7 +61,7 @@ describe('getDMMF', () => {
     )
     const dmmf = await getDMMF({ datamodel: file })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`44966488`)
+    expect(str.length).toMatchInlineSnapshot(`44951356`)
   })
 })
 
