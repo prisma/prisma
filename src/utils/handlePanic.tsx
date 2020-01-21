@@ -16,12 +16,13 @@ import { exit } from './exit'
 import { Link } from './Link'
 import { sendPanic } from './sendPanic'
 import { RustPanic } from '@prisma/sdk'
+import isCi from 'is-ci'
 
 export async function handlePanic(error: RustPanic, cliVersion: string, binaryVersion: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
     let app: Instance | undefined
 
-    if (!process.stdout.isTTY) {
+    if (!process.stdout.isTTY || isCi) {
       reject(error)
     }
 
