@@ -18,7 +18,7 @@ While each tool can be used standalone (in both [_greenfield_ and _brownfield_ p
 
 ## Getting started
 
-The easiest way to get started with [Prisma 2](https://github.com/prisma/prisma-client-js is by using the `init` command of the `prisma2` CLI via [npx](https://github.com/npm/npx):
+The easiest way to get started with [Prisma 2](https://github.com/prisma/prisma-client-js) is by using the `init` command of the `prisma2` CLI via [npx](https://github.com/npm/npx):
 
 ```
 npx prisma2 init hello-prisma
