@@ -18,7 +18,7 @@ While each tool can be used standalone (in both [_greenfield_ and _brownfield_ p
 
 ## Getting started
 
-The easiest way to get started with [Prisma Client JS](https://github.com/prisma/prisma-client-js) and/or [Lift](https://github.com/prisma/lift) is by using the `init` command of the `prisma2` CLI via [npx](https://github.com/npm/npx):
+The easiest way to get started with [Prisma 2](https://github.com/prisma/prisma-client-js is by using the `init` command of the `prisma2` CLI via [npx](https://github.com/npm/npx):
 
 ```
 npx prisma2 init hello-prisma
@@ -50,7 +50,7 @@ Follow the [**"Getting Started"-guide**](./docs/getting-started.md) for more inf
   - [Use only Photon](./docs/prisma-client-js/use-only-prisma-client-js.md)
   - [Code generation & Node.js setup](./docs/prisma-client-js/codegen-and-node-setup.md)
   - [Deployment](./docs/prisma-client-js/deployment.md)
-- [Lift](./docs/lift)
+- [Prisma Migrate (Experimental)](./docs/prisma-migrate)
 - [Importing and exporting data](./docs/import-and-export-data)
 - [Supported databases](./docs/supported-databases.md)
 - [Telemetry](./docs/telemetry.md)
