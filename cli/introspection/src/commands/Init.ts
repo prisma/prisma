@@ -106,15 +106,23 @@ export class Init implements Command {
 
     fs.writeFileSync(path.join(prismaFolder, 'schema.prisma'), defaultSchema)
 
+    let stepNumber = 1
+    let runCdInstruction = ''
+    let prismaSchema = 'prisma/schema.prisma'
 
+    if (outputDirName) {
+      stepNumber = 2
+      prismaSchema = `${outputDirName}/prisma/schema.prisma`
+      runCdInstruction = `\n1. Run ${chalk.green('cd ' + outputDirName)} to go to the newly created folder.`
+    }
 
     return `
-✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}. You can now open it in your favorite editor.
+✔ Your Prisma schema was created at ${chalk.green(prismaSchema)}. You can now open it in your favorite editor.
 
-Next steps
-1. Set your DB connection string as the \`url\` of the \`datasource\` block.
-2. Run ${chalk.green('prisma2 introspect')} to test the connection and obtain your data model.
-3. Run ${chalk.green('prisma2 generate')} to generate Prisma Client.
+Next steps${runCdInstruction}
+${stepNumber}. Set your DB connection string as the \`url\` of the \`datasource\` block.
+${stepNumber + 1}. Run ${chalk.green('prisma2 introspect')} to test the connection and obtain your data model.
+${stepNumber + 2}. Run ${chalk.green('prisma2 generate')} to generate Prisma Client.
 
 You can then start using Prisma Client in your application:
 
