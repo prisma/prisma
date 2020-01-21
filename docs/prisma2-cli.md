@@ -2,7 +2,7 @@
 
 ## Installation
 
-The Prisma Framework CLI currently requires [Node 10](https://nodejs.org/en/download/releases/) (or higher).
+Prisma 2 CLI currently requires [Node 10](https://nodejs.org/en/download/releases/) (or higher).
 
 ### Install with npm
 
@@ -18,11 +18,11 @@ yarn global add prisma2
 
 ### The `postinstall` hook
 
-When installing the Prisma Framework CLI, a [`postinstall`](https://github.com/prisma/prisma2/blob/master/cli/sdk/package.json#L13) hook is being executed. It downloads the Prisma Framework's query and migration [engine binaries](https://github.com/prisma/prisma-engine). The query engine contains the [Prisma schema](./prisma-schema-file.md) parser which is used by the `prisma2 init` and the `prism2 generate` commands. The migration engine is used by all `prisma2 migrate` commands.
+When installing Prisma 2 CLI, a [`postinstall`](https://github.com/prisma/prisma2/blob/master/cli/sdk/package.json#L13) hook is being executed. It downloads Prisma 2's query and migration [engine binaries](https://github.com/prisma/prisma-engine). The query engine contains the [Prisma schema](./prisma-schema-file.md) parser which is used by the `prisma2 init` and the `prism2 generate` commands. The migration engine is used by all `prisma2 migrate` commands.
 
 ## Using a HTTP proxy for the CLI
 
-The Prisma Framework CLI supports [custom HTTP proxies](https://github.com/prisma/prisma2/issues/506). This is particularly relevant when being behind a corporate firewall.
+Prisma 2 CLI supports [custom HTTP proxies](https://github.com/prisma/prisma2/issues/506). This is particularly relevant when being behind a corporate firewall.
 
 To activate the proxy, provide the environment variables `HTTP_PROXY` and/or `HTTPS_PROXY`. The behavior is very similar to how the [`npm` CLI handles this](https://docs.npmjs.com/misc/config#https-proxy).
 
@@ -47,7 +47,7 @@ Invokes all generators defined in the Prisma schema file. For example, this crea
 
 #### `prisma2 introspect`
 
-Introspects the database and generates a data model from it. Basically, it analyzes your (already existing) database and automatically creates the Prisma schema file for you. This is useful, if you already have an existing application and want to start using the Prisma framework. Note that this command synchronizes your Prisma schema file according to your database structure; typically if you're not using Lift to migrate your database.
+Introspects the database and generates a data model from it. Basically, it analyzes your (already existing) database and automatically creates the Prisma schema file for you. This is useful, if you already have an existing application and want to start using Prisma 2. Note that this command synchronizes your Prisma schema file according to your database structure; typically if you're not using Lift to migrate your database.
 
 ### Migrations
 

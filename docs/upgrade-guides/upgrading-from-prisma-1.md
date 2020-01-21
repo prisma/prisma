@@ -1,22 +1,22 @@
 # Upgrade guide (Prisma 1 to Prisma Framework)
 
-This upgrade guide describes how to migrate a Node.js project that's based on [Prisma 1](https://github.com/prisma/prisma) and uses the [Prisma client](https://www.prisma.io/docs/prisma-client/) to the Prisma Framework.
+This upgrade guide describes how to migrate a Node.js project that's based on [Prisma 1](https://github.com/prisma/prisma) and uses the [Prisma client](https://www.prisma.io/docs/prisma-client/) to Prisma 2.
 
 ## Overview
 
-On a high-level, the biggest differences between Prisma 1 and the Prisma Framework are the following:
+On a high-level, the biggest differences between Prisma 1 and Prisma 2 are the following:
 
-- The Prisma Framework doesn't require hosting a database proxy server (i.e. the [Prisma server](https://www.prisma.io/docs/prisma-server/)).
-- The Prisma Framework makes the features of Prisma 1 more modular:
+- Prisma 2 doesn't require hosting a database proxy server (i.e. the [Prisma server](https://www.prisma.io/docs/prisma-server/)).
+- Prisma 2 makes the features of Prisma 1 more modular:
   - _Data modeling and migrations_ from Prisma 1 are now done via a dedicated `prisma2 migrate` subcommand
   - _Database access using the Prisma client_ from Prisma 1 is done using Prisma Client JS
-- The Prisma 1 datamodel and the `prisma.yml` have been merged into the [Prisma schema](../prisma-schema-file.md) that's used in the Prisma Framework
-- The Prisma Framework uses a its own modeling language instead of being based on GraphQL SDL
+- The Prisma 1 datamodel and the `prisma.yml` have been merged into the [Prisma schema](../prisma-schema-file.md) that's used in Prisma 2
+- Prisma 2 uses a its own modeling language instead of being based on GraphQL SDL
 
 Based on these differences, the high-level steps to upgrade a project from using Prisma 1 are as follows:
 
-1. Install the Prisma Framework CLI as a development dependency
-1. Use the Prisma Framework CLI to convert your Prisma 1 datamodel to the Prisma schema
+1. Install Prisma 2 CLI as a development dependency
+1. Use Prisma 2 CLI to convert your Prisma 1 datamodel to the Prisma schema
 1. Adjust your application code, specifically replace the API calls from the Prisma client with those of Prisma Client JS
 
 Note that the steps will look somewhat different if you're ...: 
@@ -24,13 +24,13 @@ Note that the steps will look somewhat different if you're ...:
 - **not using the Prisma client** (e.g. because you're using Prisma bindings).
 - **building a GraphQL API using `nexus-prisma`**.
 
-Both scenarios will be covered in other upgrade guides. In this guide, we'll take a look at migrating a REST API from Prisma 1 to the Prisma Framework based on this [Prisma 1 example](https://github.com/prisma/prisma-examples/tree/master/typescript/rest-express).
+Both scenarios will be covered in other upgrade guides. In this guide, we'll take a look at migrating a REST API from Prisma 1 to Prisma 2 based on this [Prisma 1 example](https://github.com/prisma/prisma-examples/tree/master/typescript/rest-express).
 
 > **Note**: If you're upgrading a project that uses `nexus-prisma`, be sure to check out [@AhmedElywa](https://github.com/AhmedElywa)'s project [`create-nexus-type`](https://github.com/oahtech/create-nexus-type) that converts Prisma models into Nexus `objectType` definitions.
 
-## 1. Install the Prisma Framework CLI 
+## 1. Install Prisma 2 CLI 
 
-The Prisma Framework CLI is currently available as the [`prisma2`](https://www.npmjs.com/package/prisma2) package on npm. You can install it in your Node.js project as follows (be sure to invoke this command in the directory where your `package.json` is located):
+Prisma 2 CLI is currently available as the [`prisma2`](https://www.npmjs.com/package/prisma2) package on npm. You can install it in your Node.js project as follows (be sure to invoke this command in the directory where your `package.json` is located):
 
 ```
 npm install prisma2 --save-dev
@@ -44,7 +44,7 @@ npx prisma2
 
 ## 2. Convert the Prisma 1 datamodel to a Prisma schema
 
-The [Prisma schema](./prisma-schema-file.md) is the foundation for any project that uses the Prisma Framework. Think of the Prisma schema as the combination of the Prisma 1 data model and `prisma.yml` configuration file.
+The [Prisma schema](./prisma-schema-file.md) is the foundation for any project that uses Prisma 2. Think of the Prisma schema as the combination of the Prisma 1 data model and `prisma.yml` configuration file.
 
 There are three ways of obtaining a Prisma schema based on an existing Prisma 1 project:
 
@@ -62,7 +62,7 @@ Assuming your Prisma 1 datamodel is called `datamodel.prisma`, you can use the f
 cat datamodel.prisma | npx prisma2@2.0.0-preview017 convert > schema.prisma
 ```
 
-> **Note**: The `convert` command has been removed from the Prisma Framework CLI in [2.0.0-preview018](https://github.com/prisma/prisma2/releases/tag/2.0.0-preview018) so you're using it based on an older CLI version.
+> **Note**: The `convert` command has been removed from Prisma 2 CLI in [2.0.0-preview018](https://github.com/prisma/prisma2/releases/tag/2.0.0-preview018) so you're using it based on an older CLI version.
 
 Consider the [example datamodel](https://github.com/prisma/prisma-examples/blob/master/typescript/rest-express/prisma/datamodel.prisma):
 
@@ -112,9 +112,9 @@ model Post {
 
 In Prisma 1, the database connection is specified on the Docker image that's used to deploy the Prisma server. The Prisma server then exposes an HTTP endpoint that proxies all database requests from actual application code. That HTTP endpoint is specified in your `prisma.yml`.
 
-With the Prisma Framework, the HTTP layer isn't exposed any more and the database client (Prisma Client JS) is configured to run requests "directly" against the database (that is, requests are proxied by its query engine, but there isn't an extra server any more).
+With Prisma 2, the HTTP layer isn't exposed any more and the database client (Prisma Client JS) is configured to run requests "directly" against the database (that is, requests are proxied by its query engine, but there isn't an extra server any more).
 
-So, as a next step you'll need to tell the Prisma Framework where your database is located. You can do so by adding a `datasource` block to your Prisma schema, here is what it looks like (using placeholder values):
+So, as a next step you'll need to tell Prisma 2 where your database is located. You can do so by adding a `datasource` block to your Prisma schema, here is what it looks like (using placeholder values):
 
 ```prisma
 datasource db {
@@ -184,7 +184,7 @@ generate:
     output: ../src/generated/prisma-client/
 ```
 
-With the Prisma Framework, this information is now also contained inside the Prisma schema via a `generator` block. Add it to your your Prisma schema like so:
+With Prisma 2, this information is now also contained inside the Prisma schema via a `generator` block. Add it to your your Prisma schema like so:
 
 ```diff
 datasource postgresql {
@@ -446,4 +446,4 @@ Going forward, you won't perform schema migrations using the `prisma deploy` com
 
 ## Summary
 
-In this upgrade guide, you learned how to upgrade an ExpressJS-based REST API from Prisma 1 to the Prisma Framework that uses Prisma Client JS and Prisma Migrate. In the future, we'll cover more fine-grained upgrade scenarios, based on more complicated database schemas as well as for projects that are using GraphQL Nexus and `nexus-prisma`.
+In this upgrade guide, you learned how to upgrade an ExpressJS-based REST API from Prisma 1 to Prisma 2 that uses Prisma Client JS and Prisma Migrate. In the future, we'll cover more fine-grained upgrade scenarios, based on more complicated database schemas as well as for projects that are using GraphQL Nexus and `nexus-prisma`.

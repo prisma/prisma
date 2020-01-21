@@ -1,11 +1,11 @@
 # Telemetry
 
-The term **telemetry** refers to the collection of certain usage data to help _improve the quality of a piece of software_. The Prisma Framework uses telemetry in two contexts:
+The term **telemetry** refers to the collection of certain usage data to help _improve the quality of a piece of software_. Prisma 2 uses telemetry in two contexts:
 
 - collecting usage data
 - submitting error reports
 
-This page describes the overall telemetry approach for the Prisma Framework, what kind of data is collected and how to opt-out of data collection.
+This page describes the overall telemetry approach for Prisma 2, what kind of data is collected and how to opt-out of data collection.
 
 ## Why do we collect metrics?
 

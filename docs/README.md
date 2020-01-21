@@ -22,7 +22,7 @@
 - [Importing and exporting data](./import-and-export-data)
 - [Supported databases](./supported-databases.md)
 - [Telemetry](./telemetry.md)
-- [How to provide feedback for the Prisma Framework?](./prisma2-feedback.md)
+- [How to provide feedback for Prisma 2?](./prisma2-feedback.md)
 - [Release process](./releases.md)
 - Upgrade guides
   - [Upgrading from Prisma 1](./upgrade-guides/upgrading-from-prisma-1.md)

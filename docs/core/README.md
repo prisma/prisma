@@ -1,6 +1,6 @@
 # Core
 
-This directory contains documentation about the Prisma Framework core components:
+This directory contains documentation about Prisma 2 core components:
 
 - Connectors
   - [MySQL](./connectors/mysql.md)
