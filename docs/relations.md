@@ -50,10 +50,10 @@ It contains the following relations:
 
 ## When are back-relation fields required?
 
-You can leave out back-relations in many cases. The Prisma Framework then interprets the relation in a specific way.
+You can leave out back-relations in many cases. Prisma 2 then interprets the relation in a specific way.
 
-- **If you want a 1:1 relation, you must always specify both relation fields.** The Prisma Framework guarantees that only one value can be stored for each side of the relation.
-- **If you want an m:n relation, you must always specify both relation fields.** The Prisma Framework will maintain a relation table to track all instances of the relation.
+- **If you want a 1:1 relation, you must always specify both relation fields.** Prisma 2 guarantees that only one value can be stored for each side of the relation.
+- **If you want an m:n relation, you must always specify both relation fields.** Prisma 2 will maintain a relation table to track all instances of the relation.
 - **If you leave out a relation field, the relation will automatically be interpreted as a 1:n relation.**
   - If you leave out the back-relation field on a relation where the other end has a _non-list relation field_, this will be interpreted as a 1:n relation. This means that the missing back-relation field is implied to be a _list_.
   - If you leave out the back-relation field on a relation where the other end has a _list relation field_, this will be interpreted as a 1:n relation. This means that the missing back-relation field is implied to be a _single value_ (i.e. not a _list_).
@@ -328,9 +328,9 @@ model User {
 }
 ```
 
-## Relations in the generated Photon API
+## Relations in the generated Prisma Client JS API
 
-The [generated Photon API](./photon/api.md) comes with many helpful features for relations (find examples below):
+The [generated Prisma Client JS API](./prisma-client-js/api.md) comes with many helpful features for relations (find examples below):
 
 - Fluent API to traverse relations on the returned object
 - Nested creates, updates and connects (also referred to as _nested writes_) with transactional guarantees
@@ -344,7 +344,7 @@ The fluent API lets you _fluently_ traverse the relations of your models via fun
 This request returns all posts by a specific user:
 
 ```ts
-const postsByUser: Post[] = await photon.users
+const postsByUser: Post[] = await prisma.users
   .findOne({ where: { email: 'ada@prisma.io' } })
   .posts()
 ```
@@ -352,7 +352,7 @@ const postsByUser: Post[] = await photon.users
 This request returns all categories by a specific post:
 
 ```ts
-const categoriesOfPost: Category[] = await photon.posts
+const categoriesOfPost: Category[] = await prisma.posts
   .findOne({ where: { id: 1 } })
   .categories()
 ```
@@ -362,7 +362,7 @@ While the Fluent API allows you to write chainable queries, sometimes you may wa
 You can also rewrite the query like this:
 
 ```ts
-const postsByUser: Post[] = await photon.posts.findMany({
+const postsByUser: Post[] = await prisma.posts.findMany({
   where: {
     author: { id: author.id },
   },
@@ -373,7 +373,7 @@ Note that, if you query a relationship, you must specify the fields (`id`) you w
 
 ### Nested writes (transactions)
 
-Nested writes provide a powerful API to write relational data to your database. They further provide _transactional guarantees_ to create, update or delete data across multiple tables in a single Photon.js API call. The level of nesting of a nested writes can be arbitrarily deep.
+Nested writes provide a powerful API to write relational data to your database. They further provide _transactional guarantees_ to create, update or delete data across multiple tables in a single Prisma Client JS API call. The level of nesting of a nested writes can be arbitrarily deep.
 
 Nested writes are available for relation fields of a model when using the model's `create` or `update` function. The following nested write operations are available per function:
 
@@ -408,7 +408,7 @@ Here are some examples of nested writes:
 ```ts
 // Create a new user with two posts in a
 // single transaction
-const newUser: User = await photon.users.create({
+const newUser: User = await prisma.users.create({
   data: {
     email: 'alice@prisma.io',
     posts: {
@@ -423,7 +423,7 @@ const newUser: User = await photon.users.create({
 
 ```ts
 // Change the author of a post in a single transaction
-const updatedPost: Post = await photon.posts.update({
+const updatedPost: Post = await prisma.posts.update({
   where: { id: 5424 },
   data: {
     author: {
@@ -435,7 +435,7 @@ const updatedPost: Post = await photon.posts.update({
 
 ```ts
 // Remove the author from an existing post in a single transaction
-const post: Post = await photon.posts.update({
+const post: Post = await prisma.posts.update({
   data: {
     author: { disconnect: true },
   },
@@ -478,7 +478,7 @@ Because there are circular relations between `User`, `Post` and `Comment`, you c
 ```ts
 // Create a new post, connect to an existing user and create new,
 // comments, users and posts in deeply nested operations
-const post = await photon.posts.create({
+const post = await prisma.posts.create({
   data: {
     author: {
       connect: {
@@ -524,12 +524,12 @@ const post = await photon.posts.create({
 
 ### Nested reads (eager loading)
 
-You can eagerly load relations on a model via `select` and `include` (learn more about the difference [here](./photon/api.md#manipulating-the-selection-set)). The nesting of eagerly loaded relations can be arbitrarily deep.
+You can eagerly load relations on a model via `select` and `include` (learn more about the difference [here](./prisma-client-js/api.md#manipulating-the-selection-set)). The nesting of eagerly loaded relations can be arbitrarily deep.
 
 ```ts
 // The returned post objects will only have the  `id` and
 // `author` property which carries the respective user object
-const allPosts = await photon.posts.findMany({
+const allPosts = await prisma.posts.findMany({
   select: {
     id: true,
     author: true,
@@ -540,7 +540,7 @@ const allPosts = await photon.posts.findMany({
 ```ts
 // The returned posts objects will have all scalar fields of the `Post` model
 // and additionally all the categories for each post
-const allPosts = await photon.posts.findMany({
+const allPosts = await prisma.posts.findMany({
   include: {
     categories: true,
   },
@@ -550,7 +550,7 @@ const allPosts = await photon.posts.findMany({
 ```ts
 // The returned objects will have all scalar fields of the `User` model
 // and additionally all the posts with their authors with their posts
-await photon.users.findMany({
+await prisma.users.findMany({
   include: {
     posts: {
       include: {
@@ -572,7 +572,7 @@ A relation filter is a filter operation that's applied to a related object of a 
 ```ts
 // Retrieve all posts of a particular user
 // that start with "Hello"
-const posts: Post[] = await photon.users
+const posts: Post[] = await prisma.users
   .findOne({
     where: { email: 'ada@prisma.io' },
   })

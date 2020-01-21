@@ -1,27 +1,24 @@
-# Prisma Framework
+# Prisma 2
 
+This repository is used as a central point to collect information and issues around Prisma 2 while it's in Preview. It also contains the [documentation](./docs) and the [code of the Prisma 2 CLI](./cli).
 
-This repository is used as a central point to collect information and issues around the **Prisma Framework** (formerly called [Prisma 2](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)) while it's in Preview. It also contains the [documentation](./docs) and the [code of the Prisma Framework CLI](./cli).
+💡 Prisma 2 is currently in Preview! [Limitations](./docs/limitations.md) include missing features and limited performance issues. You can track the progress of Prisma 2 on [**`isprisma2ready.com`**](https://www.isprisma2ready.com).
 
-💡 The Prisma Framework is currently in Preview! [Limitations](./docs/limitations.md) include missing features and limited performance issues. You can track the progress of the Prisma Framework on [**`isprisma2ready.com`**](https://www.isprisma2ready.com).
+To get started, you can explore a number of ready-to-run [**examples**](https://github.com/prisma/prisma-examples/tree/prisma2) or follow the [**"Getting Started"-guide**](./docs/getting-started.md) to use Prisma with your existing database. The example projects include use cases such as building GraphQL, REST or gRPC APIs (with Node.js or TypeScript) using Prisma 2.
 
-To get started, you can explore a number of ready-to-run [examples](https://github.com/prisma/prisma-examples/tree/prisma2) or follow the holistic [tutorial](./docs/tutorial.md). The example projects include use cases such as building GraphQL, REST or gRPC APIs (with Node.js or TypeScript) using the Prisma Framework.
+## What is Prisma 2?
 
-## What is the Prisma Framework?
+Prisma 2 is a database framework that consists of these tools:
 
-![](https://i.imgur.com/FmaRakd.png)
-
-The Prisma Framework (formerly called [Prisma 2](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/)) is a database framework that consists of these tools:
-
-- [**Photon**](https://photonjs.prisma.io/): Type-safe and auto-generated database client ("ORM replacement")
-- [**Lift**](https://lift.prisma.io/): Declarative data modeling and migrations
+- [**Prisma Client JS**](https://github.com/prisma/prisma-client-js): Type-safe and auto-generated database client ("ORM replacement")
+- [**Prisma Migrate**](https://github.com/prisma/lift): Declarative data modeling and migrations
 - [**Studio**](https://github.com/prisma/studio): Admin UI to support various database workflows
 
-While each tool can be used standalone (in both [_greenfield_ and _brownfield_ projects](https://en.wikipedia.org/wiki/Brownfield_(software_development))), they integrate nicely through common components like the [**Prisma schema**](./docs/prisma-schema-file.md) or the [Prisma Framework CLI](./docs/prisma2-cli.md).
+While each tool can be used standalone (in both [_greenfield_ and _brownfield_ projects](https://en.wikipedia.org/wiki/Brownfield_(software_development))), they integrate nicely through common components like the [**Prisma schema**](./docs/prisma-schema-file.md) or the [Prisma 2 CLI](./docs/prisma2-cli.md).
 
 ## Getting started
 
-The easiest way to get started with [Photon](https://github.com/prisma/photonjs) and/or [Lift](https://github.com/prisma/lift) is by using the `init` command of the `prisma2` CLI via [npx](https://github.com/npm/npx):
+The easiest way to get started with [Prisma 2](https://github.com/prisma/prisma-client-js is by using the `init` command of the `prisma2` CLI via [npx](https://github.com/npm/npx):
 
 ```
 npx prisma2 init hello-prisma
@@ -34,7 +31,7 @@ npm install -g prisma2
 prisma2 init hello-prisma
 ```
 
-The interactive prompt will ask you to provide database credentials for your database. If you don't have a database yet, select **SQLite** and let the CLI set up a database file for you.
+Follow the [**"Getting Started"-guide**](./docs/getting-started.md) for more information and next steps.
 
 ## Contents
 
@@ -44,32 +41,33 @@ The interactive prompt will ask you to provide database credentials for your dat
 - [Data sources](./docs/data-sources.md)
 - [Data modeling](./docs/data-modeling.md)
 - [Relations](./docs/relations.md)
-- [Prisma Framework CLI](./docs/prisma2-cli.md)
+- [Prisma 2 CLI](./docs/prisma2-cli.md)
 - [Introspection](./docs/introspection.md)
 - [Limitations](./docs/limitations.md)
 - [Core](./docs/core)
-- Photon
-  - [API](./docs/photon/api.md)
-  - [Use only Photon](./docs/photon/use-only-photon.md)
-  - [Code generation & Node.js setup](./docs/photon/codegen-and-node-setup.md)
-  - [Deployment](./docs/photon/deployment.md)
-- [Lift](./docs/lift)
+- Prisma Client JS
+  - [API](./docs/prisma-client-js/api.md)
+  - [Use only Photon](./docs/prisma-client-js/use-only-prisma-client-js.md)
+  - [Code generation & Node.js setup](./docs/prisma-client-js/codegen-and-node-setup.md)
+  - [Deployment](./docs/prisma-client-js/deployment.md)
+- [Prisma Migrate (Experimental)](./docs/prisma-migrate)
 - [Importing and exporting data](./docs/import-and-export-data)
 - [Supported databases](./docs/supported-databases.md)
 - [Telemetry](./docs/telemetry.md)
-- [How to provide feedback for the Prisma Framework?](./docs/prisma2-feedback.md)
+- [How to provide feedback for Prisma 2?](./docs/prisma2-feedback.md)
 - [Release process](./docs/releases.md)
 - Upgrade guides
   - [Upgrading from Prisma 1](./docs/upgrade-guides/upgrading-from-prisma-1.md)
   - [Upgrading to `2.0.0-preview019`](./docs/upgrade-guides/upgrading-to-preview019.md)
 - [FAQ](./docs/faq.md)
 - [Glossary](./docs/glossary.md)
+
 ## Contributing
 
-Read more about how to contribute to the Prisma Framework [here](https://github.com/prisma/prisma2/blob/master/CONTRIBUTING.md)
+Read more about how to contribute to Prisma 2 [here](https://github.com/prisma/prisma2/blob/master/CONTRIBUTING.md)
 
 ## Build Status
+
 [![Build status](https://badge.buildkite.com/590e1981074b70961362481ad8319a831b44a38c5d468d6408.svg)](https://buildkite.com/prisma/prisma2-test)
 
  [![Actions Status](https://github.com/prisma/prisma2-e2e-tests/workflows/test/badge.svg)](https://github.com/prisma/prisma2-e2e-tests/actions)
-

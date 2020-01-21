@@ -1,10 +1,10 @@
 # Release process
 
-This page explains the release process for the Prisma Framework.
+This page explains the release process for Prisma 2.
 
 ## Release log
 
-You can find all previous releases of the Prisma Framework [here](https://github.com/prisma/prisma2/releases). Note that the versioining scheme has been adjusted with the [`2.0.0-preview014`](https://github.com/prisma/prisma2/releases/tag/2.0.0-preview014) release to fully comply to the [semver](https://semver.org/) spec.
+You can find all previous releases of Prisma 2 [here](https://github.com/prisma/prisma2/releases). Note that the versioining scheme has been adjusted with the [`2.0.0-preview014`](https://github.com/prisma/prisma2/releases/tag/2.0.0-preview014) release to fully comply to the [semver](https://semver.org/) spec.
 
 ## Release channels
 
@@ -27,12 +27,12 @@ You can install the latest Preview release via npm:
 npm install -g prisma2
 ```
 
-Note that the Prisma Framework CLI currently requires [Node 8](https://nodejs.org/en/download/releases/) (or higher). It also executes a [`postinstall`](./prisma2-cli.md#the-postinstall-hook) hook.
+Note that Prisma 2 CLI currently requires [Node 8](https://nodejs.org/en/download/releases/) (or higher). It also executes a [`postinstall`](./prisma2-cli.md#the-postinstall-hook) hook.
 
 
 ### Alpha (latest)
 
-The Alpha channel contains the latest changes to the Prisma Framework. Because it's is based on the [`alpha`](https://github.com/prisma/prisma2/tree/alpha) development branch, it's more likely that things break or behave unexpectedly in an Alpha release.
+The Alpha channel contains the latest changes to Prisma 2. Because it's is based on the [`alpha`](https://github.com/prisma/prisma2/tree/alpha) development branch, it's more likely that things break or behave unexpectedly in an Alpha release.
 
 You should only use Alpha releases if you have specific requirements that are not met by the current Preview release.
 

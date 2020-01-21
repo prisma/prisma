@@ -10,8 +10,8 @@ datasource db {
   url      = "postgresql://nikolasburk:nikolasburk@localhost:5432/coinflips"
 }
 
-generator photon {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {
@@ -76,8 +76,8 @@ Here's the envisioned workaround for MySQL and SQLite (note that PostgreSQL user
     This is the resulting Prisma schema:
 
     ```prisma
-    generator photon {
-      provider = "photonjs"
+    generator client {
+      provider = "prisma-client-js"
     }
 
     datasource db {
@@ -117,16 +117,16 @@ Here's the envisioned workaround for MySQL and SQLite (note that PostgreSQL user
     }
     ```
 
-1. Re-generate Photon.js:
+1. Re-generate Prisma Client JS:
 
     ```
     prisma2 generate
     ```
 
-In your application code, you can now adjust the Photon.js API calls. To access the `coinflips` data, you will now have to always [`include`](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#include-additionally-via-include) it in yout API calls:
+In your application code, you can now adjust the Prisma Client JS API calls. To access the `coinflips` data, you will now have to always [`include`](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#include-additionally-via-include) it in yout API calls:
 
 ```ts
-const user = await photon.users.findOne({ 
+const user = await prisma.users.findOne({ 
   where: { id: 1 },
   include: {
     coinflips: {
@@ -197,10 +197,10 @@ However, in order to do so you need to manually migrate the underlying data from
     DROP TABLE "User_coinflips"
     ```
 
-You can keep using Photon.js as before:
+You can keep using Prisma Client JS as before:
 
 ```ts
-const user = await photon.users.findOne({ 
+const user = await prisma.users.findOne({ 
   where: { id: 1 },
 })
 ```

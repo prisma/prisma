@@ -1,6 +1,6 @@
 # Core
 
-This directory contains documentation about the Prisma Framework core components:
+This directory contains documentation about Prisma 2 core components:
 
 - Connectors
   - [MySQL](./connectors/mysql.md)
@@ -8,4 +8,4 @@ This directory contains documentation about the Prisma Framework core components
   - [SQLite](./connectors/sqlite.md)
   - [MongoDB](./connectors/mongo.md)
 - Generators
-  - [Photon.js](./generators/photonjs.md)
+  - [Prisma Client JS](./generators/prisma-client-js.md)

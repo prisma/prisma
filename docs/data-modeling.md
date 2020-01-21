@@ -105,9 +105,9 @@ Technically, a model can be named anything that adheres to this regular expressi
 [A-Za-z_][A-Za-z0-9_]*
 ```
 
-### Model operations in the Photon API (CRUD)
+### Model operations in the Prisma Client JS API (CRUD)
 
-Every _model_ in the data model definition will result in a number of CRUD operations in the generated [Photon API](./photon/api.md):
+Every _model_ in the data model definition will result in a number of CRUD operations in the generated [Prisma Client JS API](./prisma-client-js/api.md):
 
 - `findMany`
 - `findOne`
@@ -118,24 +118,24 @@ Every _model_ in the data model definition will result in a number of CRUD opera
 - `updateMany`
 - `deleteMany`
 
-The operations are accessible via a generated property on the Photon instance. By default the name of the property is the plural, lowercase form of the model name, e.g. `users` for a `User` model or `posts` for a `Post` model.
+The operations are accessible via a generated property on the Prisma Client JS instance. By default the name of the property is the plural, lowercase form of the model name, e.g. `users` for a `User` model or `posts` for a `Post` model.
 
-Here is an example illustrating the use of a `users` property from the [Photon.js API](./photon/api.md):
+Here is an example illustrating the use of a `users` property from the [Prisma Client JS API](./prisma-client-js/api.md):
 
 ```js
-const newUser = await photon.users.create({
+const newUser = await prisma.users.create({
   data: {
     name: 'Alice',
   },
 })
-const allUsers = await photon.users.findMany()
+const allUsers = await prisma.users.findMany()
 ```
 
-Note that for Photon.js the name of the `users` property is auto-generated using the [`pluralize`](https://github.com/blakeembrey/pluralize) package.
+Note that for Prisma Client JS the name of the `users` property is auto-generated using the [`pluralize`](https://github.com/blakeembrey/pluralize) package.
 
 ## IDs
 
-Every model in your Prisma schema needs to have a unique ID. In relational databases, this unique ID corresponds to a column with a primary key constraint. Note that [composite primary keys are not yet supported](https://github.com/prisma/photonjs/issues/339) (but will be soon).
+Every model in your Prisma schema needs to have a unique ID. In relational databases, this unique ID corresponds to a column with a primary key constraint. Note that [composite primary keys are not yet supported](https://github.com/prisma/prisma-client-js/issues/339) (but will be soon).
 
 To determine which field of a model is the ID field, you can annotate it with the `@id` attribute. Fields annotated with the `@id` attribute must be of type `String` or `Int`:
 
@@ -155,10 +155,10 @@ model User {
 }
 ```
 
-Note that in the above cases, you must provide your own ID values when creating new records for the `User` model using Photon.js, e.g.:
+Note that in the above cases, you must provide your own ID values when creating new records for the `User` model using Prisma Client JS, e.g.:
 
 ```ts
-const newUser = await photon.users.create({
+const newUser = await prisma.users.create({
   data: {
     id: 1,
     name: 'Alice',
@@ -520,7 +520,7 @@ Learn more about relations [here](./relations.md).
 
 ## Reserved model names
 
-When generating Photon.js based on your [data model definition](./data-modeling.md#data-model-definition), there are a number of reserved names that you can't use for your models. Here is a list of the reserved names:
+When generating Prisma Client JS based on your [data model definition](./data-modeling.md#data-model-definition), there are a number of reserved names that you can't use for your models. Here is a list of the reserved names:
 
 - `String`
 - `Int`
