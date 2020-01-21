@@ -33,6 +33,7 @@
     "version": "0b61777e7a9327b2ab6d2cfcb1e1d63b041bbbd1"
   },
   "devDependencies": {
+    "@prisma/ci-info": "^2.1.1",
     "@prisma/cli": "workspace:*",
     "@prisma/client": "workspace:^2.0.0-alpha.567",
     "@prisma/fetch-engine": "workspace:*",
@@ -49,7 +50,6 @@
     "@zeit/ncc": "0.18.5",
     "checkpoint-client": "1.0.6",
     "dotenv": "^8.2.0",
-    "is-ci": "2.0.0",
     "jest": "24.9.0",
     "log-update": "^3.3.0",
     "make-dir": "^3.0.0",
