@@ -134,7 +134,13 @@ if (require.main === module) {
     })
     .catch(err => {
       if (err.rustStack) {
-        handlePanic(err, packageJson.name, packageJson.version)
+        handlePanic(err, packageJson.name, packageJson.version).catch(e => {
+          if (debugLib.enabled('prisma')) {
+            console.error(chalk.redBright.bold('Error: ') + e.stack)
+          } else {
+            console.error(chalk.redBright.bold('Error: ') + e.message)
+          }
+        })
       } else {
         if (debugLib.enabled('prisma')) {
           console.error(chalk.redBright.bold('Error: ') + err.stack)
