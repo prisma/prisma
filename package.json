@@ -66,6 +66,7 @@
     "ink": "2.5.0",
     "ink-link": "1.0.0",
     "ink-spinner": "3.0.1",
+    "is-ci": "^2.0.0",
     "log-update": "3.3.0",
     "node-fetch": "^2.6.0",
     "open": "7.0.0",
