@@ -22,25 +22,6 @@ Data is collected in two scenarios that are described below.
 
 Invokations of the `prisma2` CLI sends information to the telemetry server at https://checkpoint.prisma.io. Note that this is only happening at most every 48 hours (i.e., the sending the data to the telemetry server gets pause for 48 hours after any invokation).
 
-Here is an overview of the data that's being submitted:
-
-|             Field |     Attributes      | Description                                                               |
-| ----------------: | :-----------------: | :------------------------------------------------------------------------ |
-|         `product` | _string, required_  | Name of the product. Current we only support `prisma`.                    |
-|         `version` | _string, required_  | Currently installed version of the product (e.g. `1.0.0-rc0`)             |
-|            `arch` | _string, optional_  | Client's operating system architecture (e.g. `amd64`).                    |
-|              `os` | _string, optional_  | Client's operating system (e.g. `darwin`).                                |
-|    `node_version` | _string, optional_  | Client's node version (e.g. `v12.12.0`).                                  |
-|         `disable` | _boolean, required_ | Disable checking for an update if it's not already cached. Useful for CI. |
-|        `endpoint` | _string, optional_  | Checkpoint server endpoint URL. Defaults to https://checkpoint.prisma.io. |
-|         `timeout` | _number, optional_  | Time in milliseconds we should wait for a response before giving up.      |
-|       `signature` | _string, optional_  | Random, non-identifiable signature to ensure alerts aren't repeated.      |
-|      `cache_file` | _string, optional_  | File where we store the response for the `cache_duration`.                |
-|  `cache_duration` | _number, optional_  | Time in milliseconds to store the response. Defaults to 48 hours.         |
-| `remind_duration` | _number, optional_  | Time in milliseconds to wait for a new reminder. Defaults to 48 hours.    |
-|           `force` | _boolean, optional_ | Force a check regardless of `disable` or `CHECKPOINT_DISABLE`.            |
-|           `unref` | _boolean, optional_ | Control when we should unreference the child. Use with care.              |
-
 You can opt-out of this behaviour by setting the `CHECKPOINT_DISABLE` environment variable to `1`, e.g.:
 
 ```bash
