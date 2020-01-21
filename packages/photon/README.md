@@ -1,4 +1,4 @@
-# @prisma/photon
+# @prisma/client
 
 This package is being used by `prisma2`.
 

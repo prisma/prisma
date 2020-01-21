@@ -1,9 +1,9 @@
-import { Photon } from './@prisma/photon'
+import { PrismaClient } from './@prisma/client'
 
 async function main() {
-  const photon = new Photon()
+  const prisma = new PrismaClient()
 
-  // const result = await photon.users.create({
+  // const result = await prisma.users.create({
   //   data: {
   //     email: 'a@a.de',
   //     favoriteTree: 'ARBORVITAE',
@@ -13,7 +13,7 @@ async function main() {
   //   },
   // })
 
-  const result = await photon.users({
+  const result = await prisma.users({
     where: {
       favoriteTree: {
         in: ['ARBORVITAE'],
@@ -21,7 +21,7 @@ async function main() {
     },
   })
   console.log(result)
-  photon.disconnect()
+  prisma.disconnect()
 }
 
 main().catch(console.error)
