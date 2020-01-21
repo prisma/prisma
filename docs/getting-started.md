@@ -28,7 +28,7 @@ In this guide, we'll walk you through the steps from above in more detail.
 
 This guide is based on Prisma's [introspection](./introspection.md) feature which is constantly being improved. Right now, it still has the following limitations:
 
-- Every column needs to have a primary key constraint on a single column ([multi-column primary keys are not yet supported](https://github.com/prisma/photonjs/issues/339)). Introspection will fail if this is not the case.
+- Every column needs to have a primary key constraint on a single column ([multi-column primary keys are not yet supported](https://github.com/prisma/photonjs/issues/339)). Introspection will fail if this is not the case. Note that this often makes it impossible to introspect a schema that uses relation tables (also sometimes called "join tables") as these typically don't have a single-column primary key.
 - `ENUM` types are not yet supported. Introspection will succeed and ignore the `ENUM` types in your database schema.
 - `TIMESTAMP WITH TIMEZONE` types are already supported via introspection (and mapped to Prisma's `DateTime` type) but [currently can't be queried with Prisma Client](https://github.com/prisma/prisma2/issues/1386).
 
