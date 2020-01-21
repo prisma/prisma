@@ -5,6 +5,7 @@ import execa from 'execa'
 import path from 'path'
 import fs from 'fs'
 import Debug from 'debug'
+import isCi from 'is-ci'
 const debugEnabled = Debug.enabled('generator')
 
 export type GeneratorPaths = {
@@ -41,7 +42,7 @@ The provider has been renamed to "prisma-client-js" and the package to "@prisma/
       ) {
         throw new PrismaClientFacadeMissingError()
       }
-      if (!process.stdout.isTTY) {
+      if (!process.stdout.isTTY || isCi || process.env.GITHUB_ACTIONS) {
         throw new PrismaClientFacadeMissingError()
       } else {
         console.log(
