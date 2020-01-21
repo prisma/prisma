@@ -4,18 +4,18 @@ The Prisma schema file (short: _schema file_, _Prisma schema_ or _schema_) is th
 
 - [**Data sources**](./data-sources.md): Specify the details of the data sources Prisma should connect to (e.g. a PostgreSQL database)
 - [**Data model definition**](./data-modeling.md): Specifies your application models (the shape of the data per data source)
-- [**Generators**](#generators-optional) (optional): Specifies what clients should be generated based on the data model (e.g. Photon.js)
+- [**Generators**](#generators-optional) (optional): Specifies what clients should be generated based on the data model (e.g. Prisma Client JS)
 
 Whenever a `prisma2` command is invoked, the CLI typically reads some information from the schema file, e.g.:
 
 - `prisma2 generate`: Reads _all_ above mentioned information from the Prisma schema to generate the correct data source client code (e.g. Photon.js).
-- `prisma2 migrate save --experimental`: Reads the data sources and data model definition to create a new [migration]().
+- `prisma2 migrate save --experimental`: Reads the data sources and data model definition to create a new migration.
 
 You can also [use environment variables](#using-environment-variables) inside the schema file to provide configuration options when a CLI command is invoked.
 
 ## Example
 
-Here is an example for a schema file that specifies a data source (SQLite), a generator (Photon.js) and a data model definition:
+Here is an example for a schema file that specifies a data source (SQLite), a generator (Prisma Client JS) and a data model definition:
 
 ```prisma
 // schema.prisma
@@ -25,8 +25,8 @@ datasource sqlite {
   provider = "sqlite"
 }
 
-generator photonjs {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {
@@ -55,18 +55,16 @@ enum Role {
 
 ## Naming
 
-The default name for the schema file is `schema.prisma`. When your schema file is named like this, the Prisma Framework CLI will detect it automatically in the
+The default name for the schema file is `schema.prisma`. When your schema file is named like this, Prisma 2 CLI will detect it automatically in the
 directory where you invoke the CLI command.
 
 If the schema file is named differently, you can provide an explicit option to the command to point the CLI to the location of the schema file.
 
-> **Note**: The CLI option to specify the path to the schema file is not yet implemented. You can track the progress of this issue
-> [here](https://github.com/prisma/prisma2/issues/225).
+> **Note**: The CLI option to specify the path to the schema file is not yet implemented. You can track the progress of this issue [here](https://github.com/prisma/prisma2/issues/225).
 
 ## Syntax
 
-The schema file is written in Prisma Schema Language (PSL). You can find a full reference for PSL in the
-[spec](https://github.com/prisma/specs/tree/master/schema).
+The schema file is written in Prisma Schema Language (PSL). You can find a full reference for PSL in the [spec](https://github.com/prisma/specs/tree/master/schema).
 
 ## Building blocks
 
@@ -104,7 +102,7 @@ datasource postgresql {
   url       = env("POSTGRESQL_URL")
 }
 
-// Note: MongoDB is currently not supported by the Prisma Framework, but will be soon.
+// Note: MongoDB is currently not supported by Prisma 2, but will be soon.
 datasource mongo {
   provider  = "mongo"
   url       = env("MONGO_URL")
@@ -128,7 +126,7 @@ datasource mysql {
   url      = env("MYSQL_URL")
 }
 
-// Note: MongoDB is currently not supported by the Prisma Framework, but will be soon.
+// Note: MongoDB is currently not supported by Prisma 2, but will be soon.
 datasource mongo {
   provider = "mongodb"
   url      = env("MONGO_URL")
@@ -143,7 +141,7 @@ A generator configures what data source clients are generated and how they're ge
 
 | Name            | Required     | Type                                                                                                                                  | Description                                                                                                                      |
 | --------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `provider`      | **Yes**      | String (file path) or Enum (`photonjs`, `nexus-prisma`)                                                                               | Describes which generator to use. This can point to a file that implements a generator or specify a built-in generator directly. |
+| `provider`      | **Yes**      | String (file path) or Enum (`prisma-client-js`)                                                                               | Describes which generator to use. This can point to a file that implements a generator or specify a built-in generator directly. |
 | `output`        | **Yes**      | String (file path)                                                                                                                    | Determines the location for the generated client.                                                                                |
 | `binaryTargets` | _(optional)_ | List of Enums (prebuilt binaries [available here](https://github.com/prisma/specs/blob/master/binaries/Readme.md#table-of-binaries)). | Declarative way to download the required binaries.                                                                               |
 
@@ -154,12 +152,12 @@ A generator configures what data source clients are generated and how they're ge
 
 ```prisma
 generator js {
-  provider = "photonjs"
+  provider = "prisma-client-js"
 }
 
 generator js_custom_output {
-  provider = "photonjs"
-  output   = "../src/generated/photon"
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 generator ts {
@@ -172,7 +170,7 @@ generator ts {
 }
 ```
 
-> **Note**: The default `output` for the `photonjs` provider is your `node_modules` directory. This can be customized as seen in the second example in the code snippet above.
+> **Note**: The default `output` for the `prisma-client-js` provider is your `node_modules` directory. This can be customized as seen in the second example in the code snippet above.
 
 ### Data model definition
 
@@ -252,21 +250,21 @@ export POSTGRES_URL=postgresql://test:test@localhost:5432/test?schema=public
 ```
 
 Then run the following command:
-
+`
 ```bash
 source ./dev_env
 ```
 
-### Using environment variables with Photon.js
+### Using environment variables with Prisma Client JS
 
-While the Prisma 2 CLI automatically picks up `.env` files, Photon.js doesn't natively support usage of [`dotenv`](https://github.com/motdotla/dotenv) or similar libraries that will do this. If you want to environment variables to be evaluated at runtime, you need to load them manually before instantiating `Photon` in your application code, e.g. using `dotenv`:
+While the Prisma 2 CLI automatically picks up `.env` files, Prisma Client JS doesn't natively support usage of [`dotenv`](https://github.com/motdotla/dotenv) or similar libraries that will do this. If you want to environment variables to be evaluated at runtime, you need to load them manually before instantiating `PrismaClient` in your application code, e.g. using `dotenv`:
 
 ```ts
-import { Photon } from '@prisma/photon'
-import * as dotenv from 'dotenv'
+import { PrismaClient } from '@prisma/client'
+`import * as dotenv from 'dotenv'
 
 dotenv.config() // load the environment variables
-const photon = new Photon()
+const prisma = new PrismaClient()
 ```
 
 ## Writing comments

@@ -1,10 +1,10 @@
-# Tutorial: Migrating from Sequelize to Photon.js
+# Tutorial: Migrating from Sequelize to Prisma Client JS
 
-[Sequelize](https://sequelize.org/) and [Photon.js](https://photonjs.prisma.io/) both act as abstraction layers between your application and your database, but each works differently under the hood and provides different types of abstractions.   
+[Sequelize](https://sequelize.org/) and [Prisma Client JS](https://photonjs.prisma.io/) both act as abstraction layers between your application and your database, but each works differently under the hood and provides different types of abstractions.   
 
-In this tutorial, we will compare both approaches for working with databases and walk through how to migrate from a Sequelize project to a Photon.js one.
+In this tutorial, we will compare both approaches for working with databases and walk through how to migrate from a Sequelize project to a Prisma Client JS one.
 
-> **Note**: If you encounter any problems with this tutorial or any parts of the Prisma Framework, this is how you can get help: **create an issue on [GitHub](https://github.com/prisma/prisma2/issues)** or join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on [Slack](https://slack.prisma.io/) to share your feedback directly. We also have a community forum on [Spectrum](https://spectrum.chat/prisma).
+> **Note**: If you encounter any problems with this tutorial or any parts of Prisma 2, this is how you can get help: **create an issue on [GitHub](https://github.com/prisma/prisma2/issues)** or join the [`#prisma2-preview`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on [Slack](https://slack.prisma.io/) to share your feedback directly. We also have a community forum on [Spectrum](https://spectrum.chat/prisma).
 
 ## Goals
 
@@ -49,7 +49,7 @@ The Sequelize version of the project can be found in the [`sequelize`](https://g
 git checkout sequelize
 ```
 
-The finished Photon.js version of the project is in the [`master`](https://github.com/infoverload/migration_sequelize_photon/tree/master) branch. To switch to this branch, type:
+The finished Prisma Client JS version of the project is in the [`master`](https://github.com/infoverload/migration_sequelize_photon/tree/master) branch. To switch to this branch, type:
 
 ```
 git checkout master
@@ -75,7 +75,7 @@ This will initialize a new Prisma project name "photonjs_app" and start the init
 4. "Database options": **Use existing PostgreSQL schema**
 5. "Non-empty schemas": **public** 
 6. "Prisma 2 tools": confirm the default selections 
-7. "Photon is available in these languages": **TypeScript**
+7. "Prisma Client JS is available in these languages": **TypeScript**
 8. **Just the Prisma schema**
 
 The introspection process is now complete.  You should see a message like:
@@ -90,14 +90,14 @@ prisma
 └── schema.prisma
 ```
 
-The [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md) is the main configuration file for your Prisma setup.  It holds the specifications and credentials for your database, your data model definition, and generators.  The migration process to Photon.js will all begin from this file. 
+The [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md) is the main configuration file for your Prisma setup.  It holds the specifications and credentials for your database, your data model definition, and generators.  The migration process to Prisma Client JS will all begin from this file. 
 
 <Details>
 <Summary>Have a look at the file that was generated.</Summary>
 
 ```prisma
-generator photon {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -197,7 +197,7 @@ In your [package.json](https://github.com/infoverload/migration_sequelize_photon
 //...
 ```
 
-It is considered best practice to add Photon.js generation as a `postinstall` script because if you clone and install the project for the first time, the script will automatically generate the Photon.js database client and you can start running the code, reducing an extra step. 
+It is considered best practice to add Prisma Client JS generation as a `postinstall` script because if you clone and install the project for the first time, the script will automatically generate Prisma Client JS and you can start running the code, reducing an extra step. 
 
 ## 3. Specifying the data source
 
@@ -210,7 +210,7 @@ const sequelize = new Sequelize('postgres://user:password@localhost:5432/databas
 
 Sequelize is independent from specific dialects. This means that you'll have to install the respective connector library to your project yourself. For PostgreSQL, two libraries are needed, `pg` and `pg-hstore`.
 
-In your Photon.js project, the data source and connection string was automatically generated when you ran through the `prisma2 init` process and is located in your [schema.prisma](https://github.com/infoverload/migration_typeorm_photon/blob/master/prisma/schema.prisma) file:
+In your Prisma Client JS project, the data source and connection string was automatically generated when you ran through the `prisma2 init` process and is located in your [schema.prisma](https://github.com/infoverload/migration_typeorm_photon/blob/master/prisma/schema.prisma) file:
 
 ```prisma
 //...
@@ -223,18 +223,18 @@ datasource db {
 
 ## 4. Installing and importing the library
 
-Sequelize is installed as a [node module](https://www.npmjs.com/package/sequelize) with `npm install`, whereas Photon.js is generated by the Prisma CLI (which invokes a Photon.js generator) and provides a type-safe data access API for your data model. 
+Sequelize is installed as a [node module](https://www.npmjs.com/package/sequelize) with `npm install`, whereas Prisma Client JS is generated by the Prisma CLI (which invokes a Prisma Client JS generator) and provides a type-safe data access API for your data model. 
 
 ### Installing the Prisma depedencies
 
-Be sure to add the `@prisma/photon` package to your project dependencies as well as the `prisma2` package as a development dependency. Note that both package versions must be kept in sync:
+Be sure to add the `@prisma/client` package to your project dependencies as well as the `prisma2` package as a development dependency. Note that both package versions must be kept in sync:
 
 ```
-npm install @prisma/photon
+npm install @prisma/client
 npm install prisma2 --save-dev
 ```
 
-### Using the Photon constructor
+### Using the `PrismaClient` constructor
 
 Make sure you are in your `photonjs_app` project directory. Then, in your terminal, run: 
 
@@ -246,28 +246,29 @@ This parses the Prisma schema file to generate the right data source client code
 
 [schema.prisma](https://github.com/infoverload/migration_typeorm_photon/blob/master/prisma/schema.prisma)
 ```prisma
-generator photon {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 //...
 ```
-and generates a Photon.js database client and a `photon` directory inside `node_modules/@generatedprisma`:
+
+and generates Prisma Client JS and a `prisma` directory inside `node_modules/@prisma`:
 
 ```
 node_modules
 └── @prisma
-    └── photon
+    └── client
         └── runtime
             ├── index.d.ts
             └── index.js
 ```
 
-This is the default path but can be [customized](https://github.com/prisma/prisma2/blob/master/docs/photon/codegen-and-node-setup.md). It is best not to change the files in the generated directory because it will get overwritten every time `prisma2 generate` is invoked.
+This is the default path but can be [customized](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/codegen-and-node-setup.md). It is best not to change the files in the generated directory because it will get overwritten every time `prisma2 generate` is invoked.
 
-Now you can import Photon.js in your project.  Create a main application file, `index.ts`, inside the `src` directory and import the `Photon` constructor: 
+Now you can import Prisma Client JS in your project.  Create a main application file, `index.ts`, inside the `src` directory and import the `PrismaClient` constructor: 
 
 ```ts
-import { Photon } from '@prisma/photon'
+import { PrismaClient } from '@prisma/client'
 ```
 
 ## 5. Setting up a connection
@@ -289,16 +290,16 @@ sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
 
 ### Migrating the connection
 
-To achieve this in your Photon.js project, in your `index.ts` file, import `Photon` and create a new instance of it like this:
+To achieve this in your Prisma Client JS project, in your `index.ts` file, import `PrismaClient` and create a new instance of it like this:
 
 ```ts
-import { Photon } from '@prisma/photon'
+import { PrismaClient } from '@prisma/client'
 
-const photon = new Photon()
+const prisma = new PrismaClient()
 ```
-Now you can start using the `photon` instance and interact with your database programmatically with the generated Photon API.
+Now you can start using the `prisma` instance and interact with your database programmatically with the generated Prisma Client JS API.
 
-The `Photon` instance connects [lazily](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#managing-connections) when the first request is made to the API (`connect()` is called for you under the hood). 
+The `PrismaClient` instance connects [lazily](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#managing-connections) when the first request is made to the API (`connect()` is called for you under the hood). 
 
 
 ## 6. Creating models
@@ -366,7 +367,7 @@ export default models;
 ```
 
 
-In your Photon.js project, the models above were auto-generated from the introspection process. These model definitions are located in the Prisma schema.  Models represent the entities of your application domain, define the underlying database schema, and are the foundation for the auto-generated CRUD operations of the database client.
+In your Prisma Client JS project, the models above were auto-generated from the introspection process. These model definitions are located in the Prisma schema.  Models represent the entities of your application domain, define the underlying database schema, and are the foundation for the auto-generated CRUD operations of the database client.
 
 Take a look at your generated Prisma schema file ([example here](https://github.com/infoverload/migration_sequelize_photon/blob/master/prisma/schema.prisma)).  The `task` and `user` models from the Sequelize project are translated to `Task` and `User` models here:
 
@@ -400,16 +401,17 @@ Things to note:
 - `@id` directive indicates that this field is used as the _primary key_
 - `@unique` directive expresses a unique constraint which means that Prisma enforces that no two records will have the same values for that field
 
-If you change your datamodel, you can regenerate Photon.js and all typings will be updated.
+If you change your datamodel, you can regenerate Prisma Client JS and all typings will be updated.
 
 #### Note about the auto-generated Prisma schema
-1. The field that points to the `User` model in the `Task` model is called `userId`. The naming occurred from the introspection process but is a bit misleading because it doesn't refer to the actual ID of the user. A solution may be to rename `userID` to `user`.  This can avoid naming confusions when using the Photon.js API.  
+
+1. The field that points to the `User` model in the `Task` model is called `userId`. The naming occurred from the introspection process but is a bit misleading because it doesn't refer to the actual ID of the user. A solution may be to rename `userID` to `user`.  This can avoid naming confusions when using the Prisma Client JS API.  
 2. There is some mismatch between the `DateTime` types of Prisma and the ones of Postgres, so you may want to remove the `createdAt` and `updatedAt` fields for now. A [GitHub issue](https://github.com/prisma/prisma2/issues/552) has been created. 
 3. The resulting schema after these changes may look like <Details><Summary>this.</Summary>
 
     ```prisma
-    generator photon {
-      provider = "photonjs"
+    generator client {
+      provider = "prisma-client-js"
     }
 
     datasource db {
@@ -462,7 +464,7 @@ app.get('/users', async (req, res) => {
 
 ```
 
-Your generated Photon API will expose the following [CRUD operations](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#crud) for the `Task` and `User` models:
+Your generated Prisma Client JS API will expose the following [CRUD operations](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#crud) for the `Task` and `User` models:
 - `findOne`
 - `findMany`
 - `create`
@@ -472,20 +474,20 @@ Your generated Photon API will expose the following [CRUD operations](https://gi
 - `delete`
 - `deleteMany`
 
-So to implement the same route and endpoint in your Photon.js project, go to your `index.ts` file, and in the `/users` endpoint for the `app.get` route, fetch all the posts from the database with [`findMany`](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#findMany), a method exposed for the `User` model with the generated Photon API.  Then send the results back.  Note that the API calls are asynchronous so we can `await` the results of the operation.
+So to implement the same route and endpoint in your Prisma Client JS project, go to your `index.ts` file, and in the `/users` endpoint for the `app.get` route, fetch all the posts from the database with [`findMany`](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#findMany), a method exposed for the `User` model with the generated Prisma Client JS API.  Then send the results back.  Note that the API calls are asynchronous so we can `await` the results of the operation.
 
 ```ts
 import * as express from 'express'
 import * as bodyParser from 'body-parser'
-import { Photon } from '@prisma/photon'
+import { PrismaClient } from '@prisma/client'
 
 const app = express()
 app.use(bodyParser.json())
 
-const photon = new Photon()
+const prisma = new PrismaClient()
 
 app.get('/users', async (req, res) => {
-    const users = await photon.users.findMany()
+    const users = await prisma.users.findMany()
     res.json(users)
 })
 
@@ -511,13 +513,13 @@ app.get('/users/:userId', async (req, res) => {
 //...
 ``` 
 
-So to implement the same route and endpoint in your Photon.js project, go to your `index.ts` file, and in the `/users/:id` endpoint, save the `id` of the post we want from the request parameter, use the `findOne` method generated for the `user` model to fetch a post identified by a unique value and specify the unique field to be selected with the `where` option.  Then send the results back.  
+So to implement the same route and endpoint in your Prisma Client JS project, go to your `index.ts` file, and in the `/users/:id` endpoint, save the `id` of the post we want from the request parameter, use the `findOne` method generated for the `user` model to fetch a post identified by a unique value and specify the unique field to be selected with the `where` option.  Then send the results back.  
 
 ```ts
 //...
 app.get(`/users/:id`, async (req, res) => {
     const { id } = req.params
-    const user = await photon.users.findOne({ 
+    const user = await prisma.users.findOne({ 
         where: { 
           id: Number(id),
         },
@@ -543,13 +545,13 @@ app.post('/tasks', async (req, res) => {
 //...
 ```
 
-To implement the same route and endpoint in your Photon.js project, go to your `index.ts` file, and in the `/tasks` endpoint for the `app.post` route, save the user input from the request body, use the `create` method generated for the `task` model to create a new record with the requested data, and return the newly created object.  
+To implement the same route and endpoint in your Prisma Client JS project, go to your `index.ts` file, and in the `/tasks` endpoint for the `app.post` route, save the user input from the request body, use the `create` method generated for the `task` model to create a new record with the requested data, and return the newly created object.  
 
 ```ts
 //...
 app.post(`/tasks`, async (req, res) => {
   const { title } = req.body
-  const post = await photon.tasks.create({
+  const post = await prisma.tasks.create({
     data: {
         title,
     },
@@ -575,13 +577,13 @@ app.delete('/tasks/:taskId', async (req, res) => {
 //...
 ```
 
-To implement the same route and endpoint in your Photon.js project, go to your `index.ts` file, and in the `/posts/:id` endpoint for the `app.delete` route, save the `id` of the post we want to delete from the request body, use the `delete` method generated for the `post` model to delete an existing record `where` the `id` matches the requested input, and return the corresponding object.  
+To implement the same route and endpoint in your Prisma Client JS project, go to your `index.ts` file, and in the `/posts/:id` endpoint for the `app.delete` route, save the `id` of the post we want to delete from the request body, use the `delete` method generated for the `post` model to delete an existing record `where` the `id` matches the requested input, and return the corresponding object.  
 
 ```ts
 //...
 app.delete(`/tasks/:id`, async (req, res) => {
   const { id } = req.params
-  const task = await photon.tasks.delete({ 
+  const task = await prisma.tasks.delete({ 
     where: { 
         id: Number(id),
     },
@@ -615,13 +617,13 @@ npm start
 
 ## 9. Other considerations
 
-The sample project that was used demonstrated the fundamental capabilities of both Sequelize and Photon.js but there are more things to consider when migrating, such as transactions and working with relations, which may be covered in a future tutorial.  The main thing to note is that while Photon.js is comparable to an ORM, it should rather be considered as an auto-generated database client.    
+The sample project that was used demonstrated the fundamental capabilities of both Sequelize and Prisma Client JS but there are more things to consider when migrating, such as transactions and working with relations, which may be covered in a future tutorial.  The main thing to note is that while Prisma Client JS is comparable to an ORM, it should rather be considered as an auto-generated database client.    
 
 
 ## Next steps
 
-- Learn more about [Photon's relation API](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md#relations)
+- Learn more about [Prisma Client JS' relation API](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#relations)
 - Engage with our [community](https://www.prisma.io/community/)!
-- The Prisma Framework is not production-ready [yet](https://github.com/prisma/prisma2/blob/master/docs/limitations.md), so we value your [feedback](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md)!
+- Prisma 2 is not production-ready [yet](https://github.com/prisma/prisma2/blob/master/docs/limitations.md), so we value your [feedback](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md)!
 
 If you run into problems with this tutorial or spot any mistakes, feel free to make a pull request. 

@@ -1,33 +1,47 @@
 # Telemetry
 
-The term **telemetry** refers to the collection of certain usage data to help _improve the quality of a piece of software_. The Prisma Framework uses telemetry in the context of **error reports**. This page describes the overall telemetry approach for the Prisma Framework, what kind of data is collected and how to opt-out of data collection.
+The term **telemetry** refers to the collection of certain usage data to help _improve the quality of a piece of software_. Prisma 2 uses telemetry in two contexts:
 
-## TLDR
+- collecting usage data
+- submitting error reports
 
-During the Preview period, upon an unexpected error you will _always_ be prompted whether you want to submit an error report in order to help improve the quality of the Prisma Framework tools. Error reports are never sent without your explicit consent and never contain personal or other sensitive information. The _exclusive_ purpose of this data collection is to accelerate the development of the Prisma Framework towards a General Availability release.
+This page describes the overall telemetry approach for Prisma 2, what kind of data is collected and how to opt-out of data collection.
 
-## What kind of data is being collected?
+## Why do we collect metrics?
 
-The _exclusive_ purpose of telemetry is to improve the quality of the Prisma Framework tools: Photon, Lift, and Studio. Therefore, the only data that is being tracked relates to the actual _usage_ of these tools and not to any personal or other sensitive information!
+Telemetry helps us better understand how many users are using our products and how often they are using our products. Unlike many telemetry services, our telemetry implementation is intentionally limited in scope and is actually useful for the developer:
 
-Here's a list of information that is contained in an error report:
-
-- Operating system
-- Versions of Prisma tools
-- Project metadata
-
-_Project metadata_ includes your Prisma schema, used CLI commands or usage of certain features in the Photon API. Note that the connection details of any of your data sources will be obscured in the error report.
-
-Here's a list of information that is **never** contained in an error report:
-
-- User credentials (keys, secrets, passwords, ...)
-- Database connection details (IP, port, database name, ...)
-
-## Why is data collected?
-
-The _exclusive_ purpose of telemetry is to improve the quality of the Prisma Framework tools: Photon, Lift, and Studio. By sharing information about what went wrong in any of the Prisma Framework tools, you can make an easy, yet extremely helpful, contribution to the development of the Prisma Framework. 
+- **Limited in scope**: We use telemetry to answer one question: how many monthly active developers are using Prisma?
+- **Provides value**: Our telemetry service also checks for version updates and offers security notices.
 
 ## When is data collected?
+
+Data is collected in two scenarios that are described below.
+
+### Usage data
+
+Invokations of the `prisma2` CLI sends information to the telemetry server at https://checkpoint.prisma.io. Note that this is only happening at most every 48 hours (i.e., the sending the data to the telemetry server gets pause for 48 hours after any invokation).
+
+Here is an overview of the data that's being submitted:
+
+|          Field | Attributes | Description                                                                            |
+| -------------: | :--------: | :------------------------------------------------------------------------------------- |
+|      `product` |  _string_  | Name of the product (e.g. `prisma`)                                                    |
+|      `version` |  _string_  | Currently installed version of the product (e.g. `1.0.0-rc0`)                          |
+|         `arch` |  _string_  | Client's operating system architecture (e.g. `amd64`).                                 |
+|           `os` |  _string_  | Client's operating system (e.g. `darwin`).                                             |
+| `node_version` |  _string_  | Client's node version (e.g. `v12.12.0`).                                               |
+|    `signature` |  _string_  | Random, non-identifiable signature UUID (e.g. `91b014df3-9dda-4a27-a8a7-15474fd899f8`) |
+|   `user_agent` |  _string_  | User agent of the checkpoint client (e.g. `prisma/js-checkpoint`)                      |
+|    `timestamp` |  _string_  | When the request was made in RFC3339 format (e.g. `2019-12-12T17:45:56Z`)              |
+
+You can opt-out of this behaviour by setting the `CHECKPOINT_DISABLE` environment variable to `1`, e.g.:
+
+```bash
+export CHECKPOINT_DISABLE=1
+```
+
+### Error reporting
 
 During the Preview period, data is potentially collected upon:
 
@@ -38,8 +52,14 @@ Before an error report is submitted, there will _always_ be a prompt asking you 
 
 ## How to opt-out of data collection?
 
-During the Preview period, you can opt-out of data collection by responding to the interactive prompt with _no_.
+### Usage data
 
-## Telemetry after the General Availability release
+You can opt-out of usage data collection by setting the `CHECKPOINT_DISABLE` environment variable to `1`, e.g.:
 
-The way how telemetry is used during the [Preview period](https://github.com/prisma/prisma2/blob/master/docs/prisma2-feedback.md) differs from the way it'll be used after the General Availability release. This page will be continuously updated to reflect the future plans for telemetry. 
+```bash
+export CHECKPOINT_DISABLE=1
+```
+
+### Error reporting
+
+You can opt-out of data collection by responding to the interactive prompt with _no_.
