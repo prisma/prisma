@@ -240,7 +240,11 @@ async function main() {
 main()
 ```
 
-This is a simple API call that fetches all the records from the `users` table. 
+This is a simple API call that fetches all the records from the `users` table. you can run the script with this command:
+
+```
+npx ts-node script.ts
+```
 
 If you've used your own database in this guide and are unsure what to query for, you can use your editor's auto-complection feature to help create a query by typing `prisma.` and then hit <kbd>CTRL</kbd>+<kbd>SPACE</kbd> to suggest any of your models as a starting point for the query. Once you selected a model and added another dot afterwards, you can again use the <kbd>CTRL</kbd>+<kbd>SPACE</kbd> to decide for an operation on the model (e.g. `findMany`, `create`, `update`, ...). After having selected the operation, you can once more invoke the auto-completion to explore the arguments to provide for the operation.
 
