@@ -42,6 +42,7 @@
     "chalk": "^3.0.0",
     "execa": "^3.4.0",
     "flat-map-polyfill": "^0.3.8",
+    "is-ci": "^2.0.0",
     "make-dir": "^3.0.0",
     "p-map": "^3.0.0",
     "prompts": "^2.3.0",
