@@ -24,6 +24,7 @@ export async function handlePanic(error: RustPanic, cliVersion: string, binaryVe
 
     if (!process.stdout.isTTY || isCi) {
       reject(error)
+      return
     }
 
     const onDone = async () => {
