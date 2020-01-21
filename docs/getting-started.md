@@ -40,8 +40,6 @@ First, run the following command to create an empty Prisma schema file:
 npx prisma2 init
 ```
 
-> **Note**: Alternatively to using [npx](https://github.com/npm/npx), you can also install the `prisma2` CLI globally using `npm install -g prisma2` and then run `prisma2 init` without the `npx` prefix.
-
 This creates an empty Prisma schema looking similar to this:
 
 ```prisma
