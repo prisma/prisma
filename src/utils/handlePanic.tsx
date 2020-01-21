@@ -18,8 +18,12 @@ import { sendPanic } from './sendPanic'
 import { RustPanic } from '@prisma/sdk'
 
 export async function handlePanic(error: RustPanic, cliVersion: string, binaryVersion: string): Promise<boolean> {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     let app: Instance | undefined
+
+    if (!process.stdout.isTTY) {
+      reject(error)
+    }
 
     const onDone = async () => {
       if (app) {
