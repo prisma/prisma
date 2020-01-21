@@ -22,7 +22,7 @@ export async function handlePanic(error: RustPanic, cliVersion: string, binaryVe
   return new Promise((resolve, reject) => {
     let app: Instance | undefined
 
-    if (!process.stdout.isTTY || isCi) {
+    if (!process.stdout.isTTY || isCi || process.env.GITHUB_ACTIONS) {
       reject(error)
       return
     }
