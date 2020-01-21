@@ -1,3 +1,5 @@
+<p align="center"><a href="https://lift.prisma.io/"><img src="logo.svg" alt="Prisma" height="40px"></a></p>
+
 <br />
 
 <!--<p><h1 align="center">Prisma Migrate</h1></p>-->
