@@ -37,7 +37,7 @@ export namespace DMMF {
     isUnique: boolean
     isId: boolean
     type: string
-    dbName: string | null
+    dbNames: string[] | null
     isGenerated: boolean
     relationToFields?: any[]
     relationOnDelete?: string
