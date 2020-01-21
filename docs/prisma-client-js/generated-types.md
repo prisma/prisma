@@ -1,10 +1,10 @@
-# Working with Photon.js' generated types
+# Working with Prisma Client JS' generated types
 
-The generated code for Photon.js contains a number of helpful types that you can use to make your application more type-safe. This page describes patterns for leveraging some of the generated types.
+The generated code for Prisma Client JS contains a number of helpful types that you can use to make your application more type-safe. This page describes patterns for leveraging some of the generated types.
 
 ## Operating against partial structures of your model types
 
-When using Photon.js, every model from your [Prisma schema](../prisma-schema-file.md) is translated into a dedicated TypeScript type. For example, assume you have the following `User` and `Post` models:
+When using Prisma Client JS, every model from your [Prisma schema](../prisma-schema-file.md) is translated into a dedicated TypeScript type. For example, assume you have the following `User` and `Post` models:
 
 ```prisma
 model User {
@@ -22,7 +22,7 @@ model Post {
 }
 ```
 
-The Photon.js code that's generated from this schema contains a representation of the `User` type:
+The Prisma Client JS code that's generated from this schema contains a representation of the `User` type:
 
 ```ts
 export declare type User = {
@@ -36,9 +36,9 @@ export declare type User = {
 
 In some scenarios, you may need a variation of the generated `User` type. For example, when you have a function that expects an instance of the `User` model that carries the `posts` relation. Or when you need a type to pass only the `User` model's `email` and `name` fields around in your application code.
 
-### Solution: Customize the generated model type using Photon.js' helper types
+### Solution: Customize the generated model type using Prisma Client JS' helper types
 
-The `User` type only contains the model's [scalar](../data-modeling.md#scalar-types) fields, but doesn't account for any relations. That's because [relations are not included by default](./api.md#the-default-selection-set) in Photon.js' API calls.
+The `User` type only contains the model's [scalar](../data-modeling.md#scalar-types) fields, but doesn't account for any relations. That's because [relations are not included by default](./api.md#the-default-selection-set) in Prisma Client JS' API calls.
 
 However, sometimes it's useful to have a type available that **includes a relation** (i.e. a type that you'd get from an API call that uses [`include`](./api.md#include-additionally-via-include)). Similarly, another useful scenario could be to have a type available that **includes only a subset of the model's scalar fields** (i.e. a type that you'd get from an API call that uses [`select`](./api.md#select-exclusively-via-select). 
 
@@ -60,7 +60,7 @@ type UserPersonalData = {
 }
 ```
 
-While this is certainly feasible, this approach increases the maintenance burden upon changes to the Prisma schema as you need to manually maintain the types. A cleaner solution to this is to use the  `UserGetIncludePayload` and  `UserGetSelectPayload` types that are generated and exposed by Photon.js:
+While this is certainly feasible, this approach increases the maintenance burden upon changes to the Prisma schema as you need to manually maintain the types. A cleaner solution to this is to use the  `UserGetIncludePayload` and  `UserGetSelectPayload` types that are generated and exposed by Prisma Client JS:
 
 ```ts
 // Define a type that includes the relation to `Post` 
@@ -77,5 +77,5 @@ type UserPersonalData = UserGetSelectPayload<{
 
 The main benefits of the latter approach are:
 
-- Cleaner approach as it leverages Photon.js' generated types
+- Cleaner approach as it leverages Prisma Client JS' generated types
 - Reduced maintenance burden and improved type-safety when the schema changes
