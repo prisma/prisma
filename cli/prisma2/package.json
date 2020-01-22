@@ -21,7 +21,7 @@
     "assets": [
       "build/**/*",
       "runtime/**/*",
-      "photon/**/*",
+      "prisma-client/**/*",
       "download-build/**/*",
       "query-engine-darwin",
       "migration-engine",
