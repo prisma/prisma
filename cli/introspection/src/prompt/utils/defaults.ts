@@ -7,8 +7,8 @@ export const sqliteDefault: DatabaseCredentials = {
 }
 
 export const photonDefaultConfig: GeneratorConfig = {
-  name: 'photon',
-  provider: 'photonjs',
+  name: 'client',
+  provider: 'prisma-client-js',
   config: {},
   output: null,
   binaryTargets: [],

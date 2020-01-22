@@ -22,7 +22,7 @@ export const defaultTemplate: (language: Language) => Template = (language = 'ty
     language: language.toLowerCase() as Language,
     description: 'GraphQL starter with the Prisma Framework',
     repo: {
-      uri: 'https://github.com/prisma/photonjs',
+      uri: 'https://github.com/prisma/prisma-client-js',
       branch: 'master',
       path: `/examples/${language.toLowerCase()}/script`,
     },
@@ -45,7 +45,7 @@ export const availableTemplates: Template[] = [
     language: 'typescript',
     description: 'GraphQL starter with Prisma Framework',
     repo: {
-      uri: 'https://github.com/prisma/photonjs',
+      uri: 'https://github.com/prisma/prisma-client-js',
       branch: 'master',
       path: '/examples/typescript/graphql',
     },
@@ -65,7 +65,7 @@ export const availableTemplates: Template[] = [
     language: 'typescript',
     description: 'REST with express server starter with Prisma Framework',
     repo: {
-      uri: 'https://github.com/prisma/photonjs',
+      uri: 'https://github.com/prisma/prisma-client-js',
       branch: 'master',
       path: '/examples/typescript/rest-express',
     },
@@ -85,7 +85,7 @@ Here are the next steps to get you started:
     language: 'typescript',
     description: 'REST with express server starter with the Prisma Framework',
     repo: {
-      uri: 'https://github.com/prisma/photonjs',
+      uri: 'https://github.com/prisma/prisma-client-js',
       branch: 'master',
       path: '/examples/typescript/grpc',
     },
@@ -105,7 +105,7 @@ Here are the next steps to get you started:
     language: 'javascript',
     description: 'GraphQL starter with the Prisma Framework',
     repo: {
-      uri: 'https://github.com/prisma/photonjs',
+      uri: 'https://github.com/prisma/prisma-client-js',
       branch: 'master',
       path: '/examples/javascript/graphql',
     },
@@ -125,7 +125,7 @@ Here are the next steps to get you started:
     language: 'javascript',
     description: 'REST with express server starter with the Prisma Framework',
     repo: {
-      uri: 'https://github.com/prisma/photonjs',
+      uri: 'https://github.com/prisma/prisma-client-js',
       branch: 'master',
       path: '/examples/javascript/rest-express',
     },
@@ -145,7 +145,7 @@ Here are the next steps to get you started:
     language: 'javascript',
     description: 'REST with express server starter with the Prisma Framework',
     repo: {
-      uri: 'https://github.com/prisma/photonjs',
+      uri: 'https://github.com/prisma/prisma-client-js',
       branch: 'master',
       path: '/examples/javascript/grpc',
     },

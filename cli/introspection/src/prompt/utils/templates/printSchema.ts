@@ -10,8 +10,8 @@ export const printSchema = ({
 ${
   usePhoton
     ? `
-generator photon {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }`
     : ''
 }

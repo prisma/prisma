@@ -3,8 +3,8 @@ datasource postgres {
     url      = "postgresql://root:prisma@localhost:5432/p2_254_divy?schema=public"
 }
 
-generator photon {
-    provider = "photonjs"
+generator client {
+    provider = "prisma-client-js"
 }
 
 

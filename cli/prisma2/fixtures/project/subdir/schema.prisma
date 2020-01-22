@@ -3,9 +3,9 @@ datasource my_db {
   url      = env("SQLITE_URL")
 }
 
-generator photon {
+generator client {
   provider = "prisma-client-js"
-  output   = "@generated/client"
+  output   = "@prisma/client"
 }
 
 model Blog {
