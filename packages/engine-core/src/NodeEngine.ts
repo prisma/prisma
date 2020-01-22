@@ -619,7 +619,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     }
 
     const stringified = errors ? this.serializeErrors(errors) : null
-    const message = stringified.length > 0 ? stringified : `Error in client.\$\{rootField || 'query'}` // TODO
+    const message = stringified.length > 0 ? stringified : `Error in prisma.\$\{rootField || 'query'}` // TODO
     const isPanicked = this.stderrLogs.includes('panicked') || this.stdoutLogs.includes('panicked') // TODO better handling
     if (isPanicked) {
       this.stop()
