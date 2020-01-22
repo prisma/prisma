@@ -53,18 +53,18 @@ ${makePatch({
 \`\`\`
 
 ${
-  /*## Photon Usage
+  /*## Prisma Client Usage
 
-You can use a specific Photon built for this migration (${migrationId})
+You can use a specific Prisma Client built for this migration (${migrationId})
 in your \`before\` or \`after\` migration script like this:
 
 \`\`\`ts
-import Photon from '@generated/photon/${migrationId}'
+import PrismaClient from '@prisma/client/${migrationId}'
 
-const photon = new Photon()
+const prisma = new PrismaClient()
 
 async function main() {
-  const result = await photon.users()
+  const result = await prisma.users()
   console.dir(result, { depth: null })
 }
 
