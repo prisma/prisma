@@ -67,14 +67,12 @@ The `@relation` attribute disambiguates relationships when needed.
 It has the following signature:
 
 ```prisma
-@relation(_name: String?, references: Identifier[]?, onDelete: OnDeleteEnum?)
+@relation(_name: String?, references: Identifier[]?)
 ```
 
 - `references` _(optional)_: List of [field](./data-modeling.md#fields) names to reference.
 - `name` _(optional)_: Defines the _name_ of the relationship. If this a m:m-relation, the name also determines the name of the relation table in the underlying database.
-- `onDelete` _(optional)_: Defines what to do when the referenced relation is deleted.
-  - `NONE` (_default_): Set the field to `null`.
-  - `CASCADE`: Also delete this entry.
+
 
 > **Note**: Cascading deletes are not yet implemented. You can track the progress of this feature in this [GitHub issue](https://github.com/prisma/prisma2/issues/267).
 
