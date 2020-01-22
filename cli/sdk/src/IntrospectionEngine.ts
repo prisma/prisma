@@ -156,7 +156,7 @@ export class IntrospectionEngine {
         const binaryPath = await this.getBinaryPath()
         debugRpc('starting introspection engine with binary: ' + binaryPath)
         this.child = spawn(binaryPath, {
-          stdio: ['pipe', 'pipe', 'ignore'],
+          stdio: ['pipe', 'pipe', 'pipe'],
           env: {
             ...env,
             // RUST_LOG: 'info',
@@ -172,6 +172,18 @@ export class IntrospectionEngine {
         })
 
         this.child.on('exit', (code, signal) => {
+          // handle panics
+          if (code === 255 && this.lastError && this.lastError.is_panic) {
+            const err = new RustPanic(
+              this.lastError.message,
+              this.lastError.backtrace,
+              this.lastRequest,
+              ErrorArea.INTROSPECTION_CLI,
+            )
+            this.rejectAll(err)
+            reject(err)
+            return
+          }
           const messages = this.messages.join('\n')
           let err: any
           if (code !== 0 || messages.includes('panicked at')) {
@@ -246,8 +258,7 @@ export class IntrospectionEngine {
             debugRpc(response)
             if (response.error.data?.is_panic) {
               const message =
-                response.error.data?.error?.message ??
-                response.error.message
+                response.error.data?.error?.message ?? response.error.message
               // Handle error and displays the interactive dialog to send panic error
               reject(
                 new RustPanic(
@@ -262,7 +273,9 @@ export class IntrospectionEngine {
               // See known errors at https://github.com/prisma/specs/tree/master/errors#prisma-sdk
               let message = `${chalk.redBright(response.error.data.message)}\n`
               if (response.error.data?.error_code) {
-                message = chalk.redBright(`${response.error.data.error_code}\n\n`) + message
+                message =
+                  chalk.redBright(`${response.error.data.error_code}\n\n`) +
+                  message
               }
               reject(new Error(message))
             } else {
