@@ -134,7 +134,7 @@ const prisma = new PrismaClient()
 \`\`\`
 
 More information in our documentation:
-https://pris.ly/getting-started
+https://pris.ly/d/getting-started
     `
   }
 

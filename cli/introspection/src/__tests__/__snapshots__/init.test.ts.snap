@@ -19,7 +19,7 @@ const prisma = new PrismaClient()
 \`\`\`
 
 More information in our documentation:
-https://pris.ly/getting-started
+https://pris.ly/d/getting-started
      1`] = `
 "
 ✔ Your Prisma schema was created at tmp/prisma/schema.prisma. You can now open it in your favorite editor.
@@ -40,6 +40,6 @@ const prisma = new PrismaClient()
 \`\`\`
 
 More information in our documentation:
-https://pris.ly/getting-started
+https://pris.ly/d/getting-started
     "
 `;
