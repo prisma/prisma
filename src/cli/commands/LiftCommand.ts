@@ -27,9 +27,8 @@ export class LiftCommand implements Command {
     ${chalk.bold('Commands')}
 
         save   Create a new migration
-        docs   Open documentation in the browser
-        down   Migrate your database down
           up   Migrate your database up
+        down   Migrate your database down
 
     ${chalk.bold('Examples')}
 
