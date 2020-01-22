@@ -7,16 +7,16 @@ module.exports = async () => {
       measurePerformance: true,
     },
   })
-  await prisma.users()
+  await prisma.user.findMany()
   prisma.disconnect()
-  await prisma.users()
+  await prisma.user.findMany()
   prisma.disconnect()
   prisma.connect()
   await prisma.disconnect()
   await new Promise(r => setTimeout(r, 200))
   prisma.connect()
 
-  const userPromise = prisma.users()
+  const userPromise = prisma.user.findMany()
   await userPromise
   // @ts-ignore
   const perfResults = userPromise._collectTimestamps.getResults()

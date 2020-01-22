@@ -3,7 +3,11 @@ import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfill
 import indent from 'indent-string'
 import { DMMFClass } from '../runtime/dmmf'
 import { BaseField, DMMF } from '../runtime/dmmf-types'
-import { capitalize, GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
+import {
+  capitalize,
+  GraphQLScalarToJSTypeTable,
+  lowerCase,
+} from '../runtime/utils/common'
 import { InternalDatasource } from '../runtime/utils/printDatasources'
 import { DatasourceOverwrite } from './extractSqliteSources'
 import { serializeDatasources } from './serializeDatasources'
@@ -560,9 +564,19 @@ ${indent(
     .filter(m => m.findMany)
     .map(
       m => `
-get ${m.plural}(): ${m.model}Delegate {
-  return ${m.model}Delegate(this.dmmf, this.fetcher, this.errorFormat, this.measurePerformance)
-}`,
+get ${m.plural}(): '"prisma.${
+        m.plural
+      }" has been renamed to "prisma.${lowerCase(m.model)}"' {
+  throw new Error('"prisma.${m.plural}" has been renamed to "prisma.${lowerCase(
+        m.model,
+      )}"')
+}
+get ${lowerCase(m.model)}(): ${m.model}Delegate {
+  return ${
+    m.model
+  }Delegate(this.dmmf, this.fetcher, this.errorFormat, this.measurePerformance)
+}
+`,
     )
     .join('\n'),
   2,
@@ -913,18 +927,6 @@ export class ModelDelegate {
     // TODO: The following code needs to be split up and is a mess
     return `\
 export interface ${name}Delegate {
-  <T extends ${listConstraint}>(args?: Subset<T, ${getModelArgName(
-      name,
-      undefined,
-      DMMF.ModelAction.findMany,
-    )}>): ${getSelectReturnType({
-      name,
-      actionName: DMMF.ModelAction.findMany,
-      hideCondition: true,
-      isField: false,
-      renderPromise: true,
-      projection: Projection.select,
-    })}
 ${indent(
   actions
     .map(
@@ -945,17 +947,7 @@ ${indent(
   count(): Promise<number>
 }
 function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaClientFetcher, errorFormat: ErrorFormat, measurePerformance?: boolean): ${name}Delegate {
-  const ${name} = <T extends ${listConstraint}>(args: Subset<T, ${getModelArgName(
-      name,
-      undefined,
-      DMMF.ModelAction.findMany,
-    )}>) => new ${name}Client<${getSelectReturnType({
-      name,
-      actionName: DMMF.ModelAction.findMany,
-      projection: Projection.select,
-    })}>(dmmf, fetcher, 'query', '${mapping.findMany}', '${
-      mapping.plural
-    }', args, [], errorFormat, measurePerformance)
+  const ${name} = {} 
 ${indent(
   actions
     .map(([actionName, fieldName]: [any, any]) =>
