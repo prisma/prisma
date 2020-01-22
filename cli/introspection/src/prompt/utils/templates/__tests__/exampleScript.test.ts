@@ -27,7 +27,7 @@ test('exampleScript', async () => {
 
   expect(await exampleScript({ datamodel: schema, typescript: true })).toMatchInlineSnapshot(`
     "/**
-      *
+      * 
       * This code was auto-generated based on the introspection result.
       * Consider it a playground to explore the Photon API.
       * Feel free to change it as much as you like or delete it altogether.
@@ -35,14 +35,14 @@ test('exampleScript', async () => {
       * The model \`User\` was randomly selected to demonstrate some API calls.
       *
       * Tip: Use the auto-completion of your editor to explore available API operations.
-      *
+      * 
       */
 
     import { Photon } from '@prisma/photon'
     const photon = new Photon()
 
     async function main() {
-      // Tip: Explore some arguments to \`findMany\`
+      // Tip: Explore some arguments to \`findMany\` 
       const allUsers = await photon.users.findMany()
       console.log(\`Retrieved all published users: \`, allUsers)
 
@@ -65,7 +65,7 @@ test('exampleScript', async () => {
 
   expect(await exampleScript({ datamodel: schema, typescript: false })).toMatchInlineSnapshot(`
     "/**
-      *
+      * 
       * This code was auto-generated based on the introspection result.
       * Consider it a playground to explore the Photon API.
       * Feel free to change it as much as you like or delete it altogether.
@@ -73,14 +73,14 @@ test('exampleScript', async () => {
       * The model \`User\` was randomly selected to demonstrate some API calls.
       *
       * Tip: Use the auto-completion of your editor to explore available API operations.
-      *
+      * 
       */
 
     const { Photon } = require('@prisma/photon')
     const photon = new Photon()
 
     async function main() {
-      // Tip: Explore some arguments to \`findMany\`
+      // Tip: Explore some arguments to \`findMany\` 
       const allUsers = await photon.users.findMany()
       console.log(\`Retrieved all published users: \`, allUsers)
 
