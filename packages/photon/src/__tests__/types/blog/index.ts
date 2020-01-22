@@ -6,7 +6,7 @@ import { PrismaClient, Post, User } from '@prisma/client'
 async function main() {
   const prisma = new PrismaClient()
 
-  const result1 = await prisma.users.findMany({
+  const result1 = await prisma.user.findMany({
     where: {
       posts: {
         some: {
@@ -43,7 +43,7 @@ async function main() {
     title: string
     content: string | null
     author: User | null
-  } | null = await prisma.posts.findOne({
+  } | null = await prisma.post.findOne({
     where: {
       id: '',
     },
@@ -52,7 +52,7 @@ async function main() {
     },
   })
 
-  const result3: 'Please either choose `select` or `include`' = await prisma.posts.findMany(
+  const result3: 'Please either choose `select` or `include`' = await prisma.post.findMany(
     {
       select: {},
       include: {},
@@ -64,7 +64,7 @@ async function main() {
     author: {
       name: string | null
     } | null
-  }> = await prisma.posts.findMany({
+  }> = await prisma.post.findMany({
     select: {
       id: true,
       author: {
@@ -75,20 +75,20 @@ async function main() {
     },
   })
 
-  const result5: Post = await prisma.posts.create({
+  const result5: Post = await prisma.post.create({
     data: {
       published: false,
       title: 'Title',
     },
   })
 
-  await prisma.posts.delete({
+  await prisma.post.delete({
     where: {
       id: '',
     },
   })
 
-  await prisma.posts.upsert({
+  await prisma.post.upsert({
     create: {
       published: false,
       title: 'Title',
@@ -101,7 +101,7 @@ async function main() {
     },
   })
 
-  await prisma.posts.updateMany({
+  await prisma.post.updateMany({
     data: {
       published: false,
     },

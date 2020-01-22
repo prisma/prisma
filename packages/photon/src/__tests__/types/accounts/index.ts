@@ -10,7 +10,7 @@ async function main() {
     accounts: {
       id: string
     }[]
-  } | null = await prisma.globalConfigurations.findOne({
+  } | null = await prisma.globalConfiguration.findOne({
     where: {
       id: '',
     },
@@ -33,7 +33,7 @@ async function main() {
         }
       }[]
     }
-  } | null = await prisma.userTests.findOne({
+  } | null = await prisma.userTest.findOne({
     where: {
       id: 'Example',
     },
@@ -56,7 +56,7 @@ async function main() {
     },
   })
 
-  const x = await prisma.userTests.findMany({
+  const x = await prisma.userTest.findMany({
     where: {
       role: {
         equals: 'ADMIN',
