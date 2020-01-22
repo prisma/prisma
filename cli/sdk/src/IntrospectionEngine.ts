@@ -244,14 +244,11 @@ export class IntrospectionEngine {
         } else {
           if (response.error) {
             debugRpc(response)
-            if (
-              response.error.data &&
-              response.error.data.error &&
-              response.error.data.code
-            ) {
+            if (response.error.data?.is_panic) {
               const message =
-                response?.error?.data?.error?.message ??
-                response?.error?.message
+                response.error.data?.error?.message ??
+                response.error.message
+              // Handle error and displays the interactive dialog to send panic error
               reject(
                 new RustPanic(
                   message,
@@ -260,6 +257,14 @@ export class IntrospectionEngine {
                   ErrorArea.INTROSPECTION_CLI,
                 ),
               )
+            } else if (response.error.data?.message) {
+              // Print known error code & message from engine
+              // See known errors at https://github.com/prisma/specs/tree/master/errors#prisma-sdk
+              let message = `${chalk.redBright(response.error.data.message)}\n`
+              if (response.error.data?.error_code) {
+                message = chalk.redBright(`${response.error.data.error_code}\n\n`) + message
+              }
+              reject(new Error(message))
             } else {
               const text = this.persistError(request, this.messages.join('\n'))
               reject(
