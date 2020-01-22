@@ -341,8 +341,8 @@ test('add fullName', () => {
     default  = true
   }
 
-generator photon {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {
@@ -359,8 +359,8 @@ model User {
     default  = true
   }
 
-generator photon {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {

@@ -6,7 +6,7 @@
 <p><h3 align="center">Declarative data modeling & database migrations</h3></p>
 
 <p align="center">
-  <a href="#getting-started">Get started</a> • <a href="#features">Features</a> • <a href="#docs">Docs</a> • <a href="#the-lift-workflow">Workflow</a> • <a href="#supported-databases">Supported databases</a>
+  <a href="#getting-started">Get started</a> • <a href="#features">Features</a> • <a href="#docs">Docs</a> • <a href="#the-prisma-migrate-workflow">Workflow</a> • <a href="#supported-databases">Supported databases</a>
 </p>
 
 <hr />
@@ -57,8 +57,8 @@ datasource postgres {
   provider = "postgres"
 }
 
-generator photonjs {
-  provider = 'photonjs'
+generator client {
+  provider = 'prisma-client-js'
 }
 ```
 
@@ -74,8 +74,8 @@ datasource postgres {
   provider = "postgres"
 }
 
-generator photonjs {
-  provider = 'photonjs'
+generator client {
+  provider = 'prisma-client-js'
 }
 
 model User {
@@ -137,7 +137,7 @@ prisma migrate up --experimental
 
 ## Supported databases
 
-Photon JS can be used with the following databases:
+Prisma Client JS can be used with the following databases:
 
 - MySQL
 - PostgreSQL
@@ -151,8 +151,8 @@ More databases that will be supported in the future are:
 - FaunaDB
 - ...
 
-
 ## Contributing
+
 Read more about how to contribute to Prisma Migrate [here](https://github.com/prisma/migrate/blob/master/CONTRIBUTING.md)
 
 [![Build status](https://badge.buildkite.com/9caba29c5511a465e0cbf0f6b2f62173145d3dd90cf56c4daf.svg)](https://buildkite.com/prisma/lift)

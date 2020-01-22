@@ -1,4 +1,4 @@
 migrations
 failed*.md
-@generated
+@prisma
 out.json
