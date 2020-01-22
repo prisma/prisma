@@ -5,3 +5,4 @@ test-dmmf.ts
 dmmf.json
 introspection-engine*
 write-test
+sandbox
