@@ -6,7 +6,7 @@ import { Link } from '../components/Link'
 import { useInitState } from '../components/InitState'
 import { prettyDb } from '../utils/print'
 import { RouterContext } from '../components/Router'
-import { createDatabase } from '@prisma/lift'
+import { createDatabase } from '@prisma/migrate'
 import Spinner from 'ink-spinner'
 const AnySpinner: any = Spinner
 

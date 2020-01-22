@@ -4,7 +4,7 @@ import { IntrospectionEngine, DatabaseCredentials, getDMMF, dmmfToDml } from '@p
 import { DataSource } from '@prisma/generator-helper'
 import { credentialsToUri, databaseTypeToConnectorType } from '@prisma/sdk/src/convertCredentials'
 import { TabIndexContext } from '@prisma/ink-components'
-import { canConnectToDatabase } from '@prisma/lift'
+import { canConnectToDatabase } from '@prisma/migrate'
 
 type ConnectorState = {
   error: string | null

@@ -4,7 +4,7 @@ import dotenv = require('dotenv')
 const packageJson = require('../package.json')
 dotenv.config()
 
-export { byline } from '@prisma/lift'
+export { byline } from '@prisma/migrate'
 export { Sentry }
 
 // do this before facebook's yoga
@@ -38,7 +38,7 @@ import {
   LiftTmpPrepare,
   StudioCommand,
   handlePanic,
-} from '@prisma/lift'
+} from '@prisma/migrate'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
 import { Dev } from './Dev'

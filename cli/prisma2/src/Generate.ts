@@ -1,7 +1,7 @@
 import { Command, arg, format, HelpError, getSchemaPath, isError } from '@prisma/cli'
 import chalk from 'chalk'
 import logUpdate from 'log-update'
-import { missingGeneratorMessage } from '@prisma/lift'
+import { missingGeneratorMessage } from '@prisma/migrate'
 import { getGenerators } from '@prisma/sdk'
 import { formatms } from './utils/formatms'
 import { simpleDebounce } from './utils/simpleDebounce'

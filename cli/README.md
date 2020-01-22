@@ -19,10 +19,10 @@
                        │                   │                       │                        │              │
                        │         ╔═════════╩════════╗    ╔═════════╩════════╗   ╔═══════════╩═══════════╗  │
                        │         ║                  ║◀ ─ ╣                  ║   ║                       ║  │
-                       │         ║  @prisma/photon  ║    ║   @prisma/lift   ║   ║ @prisma/introspection ║  │
+                       │         ║  @prisma/photon  ║    ║   @prisma/migrate║   ║ @prisma/introspection ║  │
                        │         ║                  ╠───▶║                  ║   ║                       ║  │
                        │         ╚══════════════════╝    ╚══════════════════╝   ╚═══════════════════════╝  │
-                       │           prisma/photon-js          prisma/lift           prisma/prisma2-cli      │
+                       │           prisma/photon-js          prisma/migrate        prisma/prisma2-cli      │
                        │             ▲  ▲  ▲                       ▲                        ▲              │
                        │             │  │  │                       │                        │              │
                        │  ─ ─ ─ ─ ─ ─   │  └─────────────┐         │                        │              │
