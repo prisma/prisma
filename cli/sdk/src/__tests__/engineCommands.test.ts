@@ -2,6 +2,8 @@ import { getDMMF, getConfig, dmmfToDml } from '../engineCommands'
 import fs from 'fs'
 import path from 'path'
 
+jest.setTimeout(10000)
+
 describe('getDMMF', () => {
   test('simple model', async () => {
     const dmmf = await getDMMF({
