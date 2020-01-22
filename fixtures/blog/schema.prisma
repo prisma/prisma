@@ -3,9 +3,9 @@ datasource my_db {
   url      = "file:dev7.db"
 }
 
-generator photon {
-  provider = "photonjs"
-  output   = "@generated/photon"
+generator client {
+  provider = "prisma-client-js"
+  output   = "@prisma/client"
 }
 
 model Blog {

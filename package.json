@@ -1,9 +1,9 @@
 {
-  "name": "@prisma/lift",
+  "name": "@prisma/migrate",
   "version": "0.3.342",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "repository": "git@github.com:prisma/lift.git",
+  "repository": "git@github.com:prisma/migrate.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
   "prisma": {
