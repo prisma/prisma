@@ -61,10 +61,10 @@ function addPostInstallHook(pkgPath) {
   pkg.scripts = pkg.scripts || {}
 
   if (!pkg.scripts.postinstall) {
-    pkg.scripts.postinstall = `node -e 'console.log(process.cwd())' && prisma2 generate || echo ""`
+    pkg.scripts.postinstall = `prisma2 generate || true`
   } else {
     if (!pkg.scripts.postinstall.includes('prisma2 generate')) {
-      pkg.scripts.postinstall = `prisma2 generate || echo "" && ${pkg.scripts.postinstall}`
+      pkg.scripts.postinstall = `prisma2 generate || true && ${pkg.scripts.postinstall}`
     }
   }
 
