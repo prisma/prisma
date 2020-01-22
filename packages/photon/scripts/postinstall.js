@@ -39,15 +39,15 @@ function getLocalPackagePath() {
 
   if (packagePath) {
     const pkg = require('prisma2/package.json')
-    const photonVersion = require('../package.json').version
-    if (pkg.version !== photonVersion) {
+    const prismaClientVersion = require('../package.json').version
+    if (pkg.version !== prismaClientVersion) {
       console.error(
         `${c.red('Error')} ${c.bold(
           '@prisma/client',
         )} and the locally installed ${c.bold(
           'prisma2',
         )} must have the same version:
-  ${c.bold(`@prisma/client@${photonVersion}`)} doesn't match ${c.bold(
+  ${c.bold(`@prisma/client@${prismaClientVersion}`)} doesn't match ${c.bold(
           `prisma2@${pkg.version}`,
         )}`,
       )
