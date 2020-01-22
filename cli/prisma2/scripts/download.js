@@ -29,21 +29,34 @@ if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
 }
 
 async function ensurePostInstall() {
-  const appPkg = path.resolve(process.env.INIT_CWD, 'package.json')
-  if (fs.existsSync(appPkg)) {
-    ensurePostInstallPackage(appPkg)
-  } else {
-    const pkgPath = await pkgUp({
-      cwd: path.join(process.cwd(), '..'),
-    })
-    if (pkgPath) {
-      ensurePostInstallPackage(pkgPath)
+  const initPkgPath = path.resolve(process.env.INIT_CWD, 'package.json')
+  if (fs.existsSync(initPkgPath)) {
+    if (addPostInstallHook(initPkgPath)) {
+      return
     }
+  } else {
+    // walk up all the way
+    let cwd = path.join(process.cwd(), '..')
+    let pkgPath
+    do {
+      pkgPath = await pkgUp({
+        cwd,
+      })
+      cwd = path.join(pkgPath, '../..')
+    } while (pkgPath && !addPostInstallHook(pkgPath))
   }
 }
 
-function ensurePostInstallPackage(pkgPath) {
+function readJson(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+}
+
+function addPostInstallHook(pkgPath) {
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+  // only update package.json if prisma2 is a dependency or devDependency
+  if (!json.dependencies['prisma2'] && !json.devDependencies['prisma2']) {
+    return false
+  }
 
   pkg.scripts = pkg.scripts || {}
 
@@ -56,4 +69,5 @@ function ensurePostInstallPackage(pkgPath) {
   }
 
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
+  return true
 }
