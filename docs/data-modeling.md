@@ -358,7 +358,7 @@ Here is a list of all available core **field** attributes:
 - `@unique`: Defines a unique constraint.
 - `@map(_ name: String)`: Defines the raw column name the field is mapped to.
 - `@default(_ expr: Expr)`: Specifies a default value.
-- `@relation(_ fields?: Field[], name?: String, onDelete?: CascadeEnum)`: Disambiguates relationships when needed. More details [here](./relations.md/#the-relation-attribute).
+- `@relation(_ fields?: Field[], name?: String)`: Disambiguates relationships when needed. More details [here](./relations.md/#the-relation-attribute).
 - `@updatedAt`: Updates the time to `now()` whenever a record is updated.
 
 Here is a list of all available core **block** attributes:
