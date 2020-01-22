@@ -1,10 +1,10 @@
-const { Photon } = require('../tmp')
+const { PrismaClient } = require('../tmp')
 
 async function main() {
-  const photon = new Photon()
-  const result = await photon.teams.findMany()
+  const prisma = new PrismaClient()
+  const result = await prisma.teams.findMany()
   console.log(result)
-  photon.disconnect()
+  prisma.disconnect()
 }
 
 main()

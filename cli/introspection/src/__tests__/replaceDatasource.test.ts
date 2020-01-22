@@ -7,8 +7,8 @@ const schema = `datasource db {
   default  = true
 }
 
-generator photon {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {
@@ -37,8 +37,8 @@ test('simple replace', async () => {
   }
   const result = await replaceDatasource(schema, datasource)
   expect(result).toMatchInlineSnapshot(`
-    "generator photon {
-      provider = \\"photonjs\\"
+    "generator client {
+      provider = \\"prisma-client-js\\"
     }
 
     datasource db {
