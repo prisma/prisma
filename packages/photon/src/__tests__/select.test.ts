@@ -442,7 +442,7 @@ describe('select validation', () => {
         +   published: Boolean,
         +   title: String,
         +   content?: String,
-        +   author?: UserCreateOneWithoutAuthorInput
+        +   author?: UserCreateOneWithoutPostsInput
         + }
         }
 
@@ -480,7 +480,7 @@ describe('select validation', () => {
         +   published: Boolean,
         +   title: String,
         +   content?: String,
-        +   author?: UserCreateOneWithoutAuthorInput
+        +   author?: UserCreateOneWithoutPostsInput
         + }
         }
 
@@ -515,7 +515,7 @@ describe('select validation', () => {
         +   published: Boolean,
         +   title: String,
         +   content?: String,
-        +   author?: UserCreateOneWithoutAuthorInput
+        +   author?: UserCreateOneWithoutPostsInput
         + }
         }
 
