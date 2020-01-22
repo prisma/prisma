@@ -196,7 +196,7 @@ export async function generateClient({
   })
 
   debug(`makeDir: ${outputDir}`)
-  await makeDir(outputDir)
+  await makeDir(path.join(outputDir, 'runtime'))
   await Promise.all(
     Object.entries(fileMap).map(async ([fileName, file]) => {
       const filePath = path.join(outputDir, fileName)
