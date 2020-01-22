@@ -48,7 +48,6 @@ import chalk from 'chalk'
 import { Docs } from './Docs'
 import { ProviderAliases } from '@prisma/sdk'
 import { Validate } from './Validate'
-export { Photon } from '@prisma/studio-transports'
 import * as checkpoint from 'checkpoint-client'
 import isCI from 'is-ci'
 
