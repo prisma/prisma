@@ -49,7 +49,7 @@ import { Docs } from './Docs'
 import { ProviderAliases } from '@prisma/sdk'
 import { Validate } from './Validate'
 import * as checkpoint from 'checkpoint-client'
-import isCI from 'is-ci'
+import ci from '@prisma/ci-info'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
 // as they have to ship their own version of @prisma/client
@@ -103,7 +103,7 @@ async function main(): Promise<number> {
   const checkResult = await checkpoint.check({
     product: 'prisma',
     version: packageJson.version,
-    disable: isCI,
+    disable: ci.isCI,
   })
   // if the result is cached and we're outdated, show this prompte
   if (checkResult.status === 'ok' && checkResult.data.outdated) {
