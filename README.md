@@ -47,7 +47,7 @@ Follow the [**"Getting Started"-guide**](./docs/getting-started.md) for more inf
 - [Core](./docs/core)
 - Prisma Client JS
   - [API](./docs/prisma-client-js/api.md)
-  - [Use only Photon](./docs/prisma-client-js/use-only-prisma-client-js.md)
+  - [Use only Prisma Client JS](./docs/prisma-client-js/use-only-prisma-client-js.md)
   - [Code generation & Node.js setup](./docs/prisma-client-js/codegen-and-node-setup.md)
   - [Deployment](./docs/prisma-client-js/deployment.md)
 - [Prisma Migrate (Experimental)](./docs/prisma-migrate)
