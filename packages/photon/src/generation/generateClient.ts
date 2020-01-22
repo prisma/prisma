@@ -241,8 +241,18 @@ export async function generateClient({
     for (const filePath of Object.values(binaryPaths.queryEngine)) {
       const fileName = path.basename(filePath)
       const target = path.join(outputDir, 'runtime', fileName)
-      debug(`Copying ${filePath} to ${target}`)
-      await copyFile(filePath, target)
+      const [fileSizeA, fileSizeB] = await Promise.all([
+        fileSize(filePath),
+        fileSize(target),
+      ])
+      if (fileSizeA && fileSizeB && fileSizeA === fileSizeB) {
+        debug(
+          `Skipping ${filePath} to ${target} as both files have file size ${fileSizeA}`,
+        )
+      } else {
+        debug(`Copying ${filePath} to ${target}`)
+        await copyFile(filePath, target)
+      }
     }
   }
 
@@ -333,4 +343,13 @@ function redirectToLib(fileName: string) {
   }
 
   return fileName
+}
+
+async function fileSize(name: string): Promise<number | null> {
+  try {
+    const stat = await fs.promises.stat(name)
+    return stat.size
+  } catch (e) {
+    return null
+  }
 }
