@@ -1,15 +1,15 @@
 <br />
-<p align="center"><a href="https://photonjs.prisma.io/"><img src="logo.svg" alt="Prisma" height="40px"></a></p>
+<p align="center"><img src="logo.svg" alt="Prisma" height="40px"></p>
 
 <p><h3 align="center">Type-safe database client for TypeScript & Node.js (ORM replacement)</h3></p>
 
 <p align="center">
-  <a href="#getting-started">Get started</a> • <a href="#features">Features</a> • <a href="#docs">Docs</a> • <a href="#api-examples">API</a> • <a href="#the-photon-js-workflow">Workflow</a> • <a href="#supported-databases">Supported databases</a>
+  <a href="#getting-started">Get started</a> • <a href="#features">Features</a> • <a href="#docs">Docs</a> • <a href="#api-examples">API</a> • <a href="#the-prisma-client-js-workflow">Workflow</a> • <a href="#supported-databases">Supported databases</a>
 </p>
 
 <hr>
 
-[Prisma Client JS](https://photonjs.prisma.io/) is an **auto-generated database client** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or Knex.js.
+Prisma Client JS is an **auto-generated database client** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or Knex.js.
 
 It is part of the [Prisma 2](https://www.github.com/prisma/prisma2) ecosystem. Prisma 2 provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
 
@@ -134,7 +134,7 @@ Learn more about the data model in the [docs](https://github.com/prisma/prisma2/
 
 </Details>
 
-You can learn more about Prisma Client's API features on the [website](https://photonjs.prisma.io/) or in the [API reference](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md).
+You can learn more about Prisma Client's API features in the [API reference](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md).
 
 ## The Prisma Client JS workflow
 
@@ -241,7 +241,7 @@ Similar to traditional ORMs, Prisma Client JS can be used with any of your Node.
 
 ### 5. Evolve your database and Prisma Client JS
 
-As you build your app, you'll likely migrate your database to implement new features. Depending on how you obtained your [initial data model](#2-define-initial-data-model) and whether or not you're using [Lift](https://github.com/prisma/lift), there might be two ways for evolving your application going forward.
+As you build your app, you'll likely migrate your database to implement new features. Depending on how you obtained your [initial data model](#2-define-initial-data-model) and whether or not you're using [Lift](https://github.com/prisma/migrate), there might be two ways for evolving your application going forward.
 
 #### Option A: Without Lift
 
@@ -282,6 +282,6 @@ More databases that will be supported in the future are:
 
 ## Contributing
 
-Read more about how to contribute to Prisma Client JS [here](https://github.com/prisma/photonjs/blob/master/CONTRIBUTING.md)
+Read more about how to contribute to Prisma Client JS [here](https://github.com/prisma/prisma-client-js/blob/master/CONTRIBUTING.md)
 
 [![Build status](https://badge.buildkite.com/fa6027d11848231f2bc194aaffcf5dbc2ee0a83d666af0806e.svg)](https://buildkite.com/prisma/photon)

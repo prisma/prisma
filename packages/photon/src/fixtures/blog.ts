@@ -6,7 +6,7 @@ datasource db {
 
 generator client {
   provider  = "prisma-client-js"
-  output    = "@generated/photon"
+  output    = "@prisma/client"
   transpile = false
 }
 
