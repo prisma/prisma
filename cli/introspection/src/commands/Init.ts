@@ -3,7 +3,8 @@ import { isError } from 'util'
 import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
-import { printError, printFix } from '../prompt/utils/print'
+import { printError } from '../prompt/utils/print'
+import { highlightTS, link } from '@prisma/sdk'
 
 export const defaultSchema = `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
@@ -134,14 +135,16 @@ ${stepNumber + 2}. Run ${chalk.green('prisma2 generate')} to generate Prisma Cli
 You can then start using Prisma Client in your application:
 
 \`\`\`
+${highlightTS(`\
 import { PrismaClient } from 'prisma-client-js'
 // or const { PrismaClient } = require('prisma-client-js')
 
 const prisma = new PrismaClient()
+`)}
 \`\`\`
 
 More information in our documentation:
-https://pris.ly/d/getting-started
+${link('https://pris.ly/d/getting-started')}
     `
   }
 

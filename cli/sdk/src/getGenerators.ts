@@ -11,7 +11,6 @@ import {
   BinaryDownloadConfiguration,
   DownloadOptions,
 } from '@prisma/fetch-engine/dist/download'
-
 import { getConfig, getDMMF } from './engineCommands'
 import { download } from '@prisma/fetch-engine'
 import { unique } from './unique'
@@ -26,6 +25,7 @@ import {
 } from './predefinedGeneratorResolvers'
 import { flatMap } from './utils/flatMap'
 import Debug from 'debug'
+import { missingModelMessage } from './utils/missingGeneratorMessage'
 const debug = Debug('getGenerators')
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
@@ -93,6 +93,11 @@ export async function getGenerators({
     datamodelPath: schemaPath,
     prismaPath,
   })
+
+  if (dmmf.datamodel.models.length === 0) {
+    throw new Error(missingModelMessage)
+  }
+
   const config = await getConfig({
     datamodel,
     datamodelPath: schemaPath,

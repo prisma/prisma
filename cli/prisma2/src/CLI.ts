@@ -97,7 +97,7 @@ export class CLI implements Command {
       ${chalk.dim(`$`)} prisma2 init
 
       Introspect an existing database
-      ${chalk.dim(`$`)} prisma2 introspect --url "postgresql://localhost:5432/postgres"
+      ${chalk.dim(`$`)} prisma2 introspect
 
       Generate Prisma Client
       ${chalk.dim(`$`)} prisma2 generate
@@ -129,7 +129,7 @@ export class CLI implements Command {
       ${chalk.dim(`$`)} prisma2 init
 
       Introspect an existing database
-      ${chalk.dim(`$`)} prisma2 introspect --url "postgresql://localhost:5432/postgres"
+      ${chalk.dim(`$`)} prisma2 introspect
 
       Generate Prisma Client
       ${chalk.dim(`$`)} prisma2 generate
