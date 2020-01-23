@@ -29,23 +29,13 @@ process.env.NODE_ENV = 'production'
  * Dependencies
  */
 import { isError, HelpError } from '@prisma/cli'
-import {
-  LiftCommand,
-  LiftSave,
-  LiftUp,
-  LiftDown,
-  LiftWatch,
-  LiftTmpPrepare,
-  StudioCommand,
-  handlePanic,
-} from '@prisma/migrate'
+import { LiftCommand, LiftSave, LiftUp, LiftDown, LiftTmpPrepare, StudioCommand, handlePanic } from '@prisma/migrate'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
 import { Dev } from './Dev'
 import { Version } from './Version'
 import { Generate } from './Generate'
 import chalk from 'chalk'
-import { Docs } from './Docs'
 import { ProviderAliases } from '@prisma/sdk'
 import { Validate } from './Validate'
 import * as checkpoint from 'checkpoint-client'

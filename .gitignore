@@ -7,3 +7,4 @@ build
 examples
 tmp
 pnpm-debug.log
+sandbox

@@ -52,6 +52,7 @@
     "tar": "^5.0.5",
     "temp-write": "^4.0.0",
     "tempy": "^0.3.0",
+    "terminal-link": "^2.1.1",
     "url-parse": "^1.4.7"
   },
   "husky": {
