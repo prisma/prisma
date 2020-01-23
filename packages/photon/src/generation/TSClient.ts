@@ -947,7 +947,7 @@ ${indent(
   count(): Promise<number>
 }
 function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaClientFetcher, errorFormat: ErrorFormat, measurePerformance?: boolean): ${name}Delegate {
-  const ${name} = {} 
+  const ${name}: any = {} 
 ${indent(
   actions
     .map(([actionName, fieldName]: [any, any]) =>
@@ -970,7 +970,7 @@ ${indent(
             Projection.select,
             actionName as DMMF.ModelAction,
           )}>) => ${
-            actionName !== 'findMany' ? `args.select ? ` : ''
+            actionName !== 'findMany' ? `args && args.select ? ` : ''
           }new ${name}Client<${getSelectReturnType({
             name,
             actionName,

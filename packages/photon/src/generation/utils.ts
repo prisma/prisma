@@ -128,7 +128,7 @@ export function renderInitialClientArgs(
   '${getOperation(actionName as DMMF.ModelAction)}',
   '${fieldName}',
   '${mapping.plural}.${actionName}',
-  args,
+  args || {},
   [],
   errorFormat,
   measurePerformance\n`
