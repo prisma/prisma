@@ -1,6 +1,6 @@
 # Getting started
 
-This page explains how to get started with Prisma and your existing database. 
+This page explains how to get started with Prisma in an existing project. 
 
 If you don't have a database to try Prisma or just want to explore everything from scratch, check out the ready-to-run [example projects](https://github.com/prisma/prisma-examples/) with use cases for REST, GraphQL, gRPC and more.
 
