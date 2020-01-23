@@ -7,8 +7,8 @@ import {
   LocalMigrationWithDatabaseSteps,
 } from '../types'
 import chalk from 'chalk'
-import { darkBrightBlue } from '../cli/highlight/theme'
-import { highlightSql } from '../cli/highlight/highlight'
+import { darkBrightBlue } from '@prisma/sdk/dist//highlight/theme'
+import { highlightSql } from '@prisma/sdk'
 
 export function printDatabaseStepsOverview(databaseSteps: DatabaseStep[]) {
   if (databaseSteps.length === 0) {
