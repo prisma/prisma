@@ -16,7 +16,7 @@ export class LiftUp implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma migrate up [<inc|name|timestamp>] --experimental
+      ${chalk.dim(`$`)} prisma migrate up [<inc|name|timestamp>] --experimental
 
     ${chalk.bold('Arguments')}
 

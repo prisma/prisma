@@ -15,7 +15,7 @@ export class LiftDown implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma migrate down [<dec|name|timestamp>] --experimental
+      ${chalk.dim(`$`)} prisma migrate down [<dec|name|timestamp>] --experimental
 
     ${chalk.bold('Arguments')}
 
