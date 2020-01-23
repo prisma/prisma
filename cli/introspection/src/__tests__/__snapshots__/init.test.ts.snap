@@ -16,6 +16,7 @@ import { PrismaClient } from 'prisma-client-js'
 // or const { PrismaClient } = require('prisma-client-js')
 
 const prisma = new PrismaClient()
+
 \`\`\`
 
 More information in our documentation:
@@ -37,6 +38,7 @@ import { PrismaClient } from 'prisma-client-js'
 // or const { PrismaClient } = require('prisma-client-js')
 
 const prisma = new PrismaClient()
+
 \`\`\`
 
 More information in our documentation:
