@@ -19,9 +19,9 @@ import {
   ScriptTarget,
 } from 'typescript'
 import { promisify } from 'util'
-import { DMMF as PhotonDMMF } from '../runtime/dmmf-types'
+import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
-import { getPhotonDMMF } from '../runtime/getDMMF'
+import { getPrismaClientDMMF } from '../runtime/getDMMF'
 import { resolveDatasources } from '../utils/resolveDatasources'
 import { extractSqliteSources } from './extractSqliteSources'
 import { TSClient } from './TSClient'
@@ -53,7 +53,7 @@ export interface GenerateClientOptions {
 
 export interface BuildClientResult {
   fileMap: Dictionary<string>
-  photonDmmf: PhotonDMMF.Document
+  prismaClientDmmf: PrismaClientDMMF.Document
 }
 
 export async function buildClient({
@@ -71,7 +71,7 @@ export async function buildClient({
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const fileMap = {}
 
-  const document = getPhotonDMMF(dmmf)
+  const document = getPrismaClientDMMF(dmmf)
 
   const client = new TSClient({
     document,
@@ -91,13 +91,13 @@ export async function buildClient({
   })
 
   const generatedClient = String(client)
-  const target = '@generated/photon/index.ts'
+  const target = '@prisma/client/index.ts'
 
   if (!transpile) {
     fileMap[target] = generatedClient
     return {
       fileMap: normalizeFileMap(fileMap),
-      photonDmmf: document,
+      prismaClientDmmf: document,
     }
   }
 
@@ -131,10 +131,7 @@ export async function buildClient({
     return (originalGetSourceFile as any).call(compilerHost, newFileName)
   }
   compilerHost.writeFile = (fileName, data) => {
-    if (
-      fileName.includes('@generated/photon') ||
-      fileName.includes('@prisma/photon')
-    ) {
+    if (fileName.includes('@prisma/client')) {
       fileMap[fileName] = data
     }
   }
@@ -142,13 +139,13 @@ export async function buildClient({
   const program = createProgram([file.fileName], options, compilerHost)
   const result = program.emit()
   if (result.diagnostics.length > 0) {
-    console.log(chalk.redBright('Errors during Photon generation:'))
+    console.log(chalk.redBright('Errors during Prisma Client generation:'))
     console.log(result.diagnostics.map(d => d.messageText).join('\n'))
   }
 
   return {
     fileMap: normalizeFileMap(fileMap),
-    photonDmmf: document,
+    prismaClientDmmf: document,
   }
 }
 
@@ -158,6 +155,8 @@ function normalizeFileMap(fileMap: Dictionary<string>) {
       acc[key.slice('@generated/photon/'.length)] = value
     } else if (key.startsWith('@prisma/photon/')) {
       acc[key.slice('@prisma/photon/'.length)] = value
+    } else if (key.startsWith('@prisma/client')) {
+      acc[key.slice('@prisma/client/'.length)] = value
     }
 
     return acc
@@ -181,7 +180,7 @@ export async function generateClient({
   copyRuntime,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   runtimePath = runtimePath || './runtime'
-  const { photonDmmf, fileMap } = await buildClient({
+  const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
     datamodelPath,
     schemaDir,
@@ -197,7 +196,7 @@ export async function generateClient({
   })
 
   debug(`makeDir: ${outputDir}`)
-  await makeDir(outputDir)
+  await makeDir(path.join(outputDir, 'runtime'))
   await Promise.all(
     Object.entries(fileMap).map(async ([fileName, file]) => {
       const filePath = path.join(outputDir, fileName)
@@ -216,7 +215,7 @@ export async function generateClient({
   // if users use a custom output dir
   if (
     copyRuntime ||
-    !path.resolve(outputDir).endsWith(`@prisma${path.sep}photon`)
+    !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)
   ) {
     // TODO: Windows, / is not working here...
     const copyTarget = path.join(outputDir, '/runtime')
@@ -234,7 +233,7 @@ export async function generateClient({
 
   if (!binaryPaths.queryEngine) {
     throw new Error(
-      `Photon.js needs \`queryEngine\` in the \`binaryPaths\` object.`,
+      `Prisma Client needs \`queryEngine\` in the \`binaryPaths\` object.`,
     )
   }
 
@@ -242,8 +241,18 @@ export async function generateClient({
     for (const filePath of Object.values(binaryPaths.queryEngine)) {
       const fileName = path.basename(filePath)
       const target = path.join(outputDir, 'runtime', fileName)
-      debug(`Copying ${filePath} to ${target}`)
-      await copyFile(filePath, target)
+      const [fileSizeA, fileSizeB] = await Promise.all([
+        fileSize(filePath),
+        fileSize(target),
+      ])
+      if (fileSizeA && fileSizeB && fileSizeA === fileSizeB) {
+        debug(
+          `Skipping ${filePath} to ${target} as both files have file size ${fileSizeA}`,
+        )
+      } else {
+        debug(`Copying ${filePath} to ${target}`)
+        await copyFile(filePath, target)
+      }
     }
   }
 
@@ -256,7 +265,7 @@ export async function generateClient({
     await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)
   }
 
-  return { photonDmmf, fileMap }
+  return { prismaClientDmmf, fileMap }
 }
 
 const backup = `export { DMMF } from './dmmf-types'
@@ -334,4 +343,13 @@ function redirectToLib(fileName: string) {
   }
 
   return fileName
+}
+
+async function fileSize(name: string): Promise<number | null> {
+  try {
+    const stat = await fs.promises.stat(name)
+    return stat.size
+  } catch (e) {
+    return null
+  }
 }

@@ -18,8 +18,13 @@ query-engine*
 test.sh
 try-getConfig.ts
 generator-build
-@generated
+@prisma
 getConfig.sh
 migrations
 /schema.prisma
 index.d.ts
+/dmmf.json
+try-getDmmf.ts
+write-test
+prisma-client-*.tgz
+sandbox

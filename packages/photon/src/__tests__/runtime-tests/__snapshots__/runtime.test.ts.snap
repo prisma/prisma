@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`runtime works blog-env example should not succeed: blog example should succeed 1`] = `undefined`;
+exports[`runtime works blog example should succeed: blog example should succeed 1`] = `undefined`;
 
 exports[`runtime works blog-env example should not succeed: blog-env example should not succeed 1`] = `
 [Error: 
@@ -12,3 +12,5 @@ error: Environment variable not found: SQLITE_URL.
    | 
 ]
 `;
+
+exports[`runtime works enums example should succeed: enums example should succeed 1`] = `undefined`;

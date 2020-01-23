@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import * as stackTraceParser from 'stacktrace-parser'
 import { highlightTS } from '../highlight/highlight'
-import { dedent } from '../utils/dedent'
+import { dedent } from './dedent'
 
 function renderN(n: number, max: number): string {
   const wantedLetters = String(max).length
@@ -36,7 +36,7 @@ export const printStack = ({
   let prevLines = '\n'
   let afterLines = ''
   let indentValue = 0
-  let functionName = `photon.${originalMethod}()`
+  let functionName = `prisma.${originalMethod}()`
 
   // @ts-ignore
   if (callsite && typeof window === 'undefined') {
@@ -77,8 +77,8 @@ export const printStack = ({
           const lines = dedent(slicedFile).split('\n')
 
           const theLine = lines[lines.length - 1]
-          const photonRegex = /(=|return)*\s+(await)?\s*(.*\()/
-          const match = theLine.match(photonRegex)
+          const prismaClientRegex = /(=|return)*\s+(await)?\s*(.*\()/
+          const match = theLine.match(prismaClientRegex)
           if (match) {
             functionName = `${match[3]})`
           }

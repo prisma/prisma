@@ -84,7 +84,7 @@ describe('select validation', () => {
     } catch (e) {
       expect(e.message).toMatchInlineSnapshot(`
         "
-        Invalid \`photon.findManyUser()\` invocation:
+        Invalid \`prisma.findManyUser()\` invocation:
 
         {
           skip: 200,
@@ -252,7 +252,7 @@ describe('select validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        Invalid \`photon.findManyUser()\` invocation:
+        Invalid \`prisma.findManyUser()\` invocation:
 
         {
           skip: 200,
@@ -432,7 +432,7 @@ describe('select validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        Invalid \`photon.createOnePost()\` invocation:
+        Invalid \`prisma.createOnePost()\` invocation:
 
         {
         + data: {
@@ -442,7 +442,7 @@ describe('select validation', () => {
         +   published: Boolean,
         +   title: String,
         +   content?: String,
-        +   author?: UserCreateOneWithoutAuthorInput
+        +   author?: UserCreateOneWithoutPostsInput
         + }
         }
 
@@ -470,7 +470,7 @@ describe('select validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        Invalid \`photon.createOnePost()\` invocation:
+        Invalid \`prisma.createOnePost()\` invocation:
 
         {
         + data: {
@@ -480,7 +480,7 @@ describe('select validation', () => {
         +   published: Boolean,
         +   title: String,
         +   content?: String,
-        +   author?: UserCreateOneWithoutAuthorInput
+        +   author?: UserCreateOneWithoutPostsInput
         + }
         }
 
@@ -505,7 +505,7 @@ describe('select validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        Invalid \`photon.createOnePost()\` invocation:
+        Invalid \`prisma.createOnePost()\` invocation:
 
         {
         + data: {
@@ -515,7 +515,7 @@ describe('select validation', () => {
         +   published: Boolean,
         +   title: String,
         +   content?: String,
-        +   author?: UserCreateOneWithoutAuthorInput
+        +   author?: UserCreateOneWithoutPostsInput
         + }
         }
 
@@ -550,7 +550,7 @@ describe('select validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        Invalid \`photon.createOnePost()\` invocation:
+        Invalid \`prisma.createOnePost()\` invocation:
 
         {
           data: {
@@ -596,7 +596,7 @@ describe('select validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        Invalid \`photon.createOnePost()\` invocation:
+        Invalid \`prisma.createOnePost()\` invocation:
 
         {
           data: {
@@ -776,7 +776,7 @@ describe('select validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        Invalid \`photon.findOnePost()\` invocation:
+        Invalid \`prisma.findOnePost()\` invocation:
 
         {
           select: {
@@ -826,7 +826,7 @@ describe('select validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        Invalid \`photon.findOnePost()\` invocation:
+        Invalid \`prisma.findOnePost()\` invocation:
 
         {
           select: {

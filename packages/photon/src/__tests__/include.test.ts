@@ -51,7 +51,7 @@ describe('include validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        Invalid \`photon.findManyPost()\` invocation:
+        Invalid \`prisma.findManyPost()\` invocation:
 
         {
           include: {
@@ -125,22 +125,22 @@ describe('include validation', () => {
       document.validate(ast, false)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-                "
-                Invalid \`photon.id()\` invocation:
+        "
+        Invalid \`prisma.id()\` invocation:
 
-                {
-                  include: {
-                    id: true,
-                    ~~
-                ?   author?: true
-                  }
-                }
+        {
+          include: {
+            id: true,
+            ~~
+        ?   author?: true
+          }
+        }
 
 
-                Invalid scalar field \`id\` for include statement on model Post. Available options are listed in green.
-                Note, that include statements only accept relation fields.
-                "
-            `)
+        Invalid scalar field \`id\` for include statement on model Post. Available options are listed in green.
+        Note, that include statements only accept relation fields.
+        "
+      `)
     }
   })
 
@@ -163,21 +163,21 @@ describe('include validation', () => {
       document.validate(ast, false)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-                        "
-                        Invalid \`photon.mauthor()\` invocation:
+        "
+        Invalid \`prisma.mauthor()\` invocation:
 
-                        {
-                          include: {
-                            mauthor: true,
-                            ~~~~~~~
-                        ?   author?: true
-                          }
-                        }
+        {
+          include: {
+            mauthor: true,
+            ~~~~~~~
+        ?   author?: true
+          }
+        }
 
 
-                        Unknown field \`mauthor\` for include statement on model Post. Available options are listed in green. Did you mean \`author\`?
-                        "
-                  `)
+        Unknown field \`mauthor\` for include statement on model Post. Available options are listed in green. Did you mean \`author\`?
+        "
+      `)
     }
   })
 })

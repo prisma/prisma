@@ -3,7 +3,7 @@ import { datasourceToDatasourceOverwrite, serializeDatasources } from '../genera
 import { absolutizeRelativePath, resolveDatasources } from '../utils/resolveDatasources'
 
 const cwd = '/Users/tim/project/prisma'
-const outputDir = '/Users/tim/project/node_modules/@generated/photon/runtime'
+const outputDir = '/Users/tim/project/node_modules/@prisma/client/runtime'
 
 test('absolutizeRelativePath', () => {
   expect(absolutizeRelativePath('file:db.db', cwd, outputDir)).toMatchInlineSnapshot(
@@ -26,7 +26,7 @@ test('absolutizeRelativePath', () => {
     `"'file:' + path.resolve(__dirname, '../../../../../../../some/random/dir/db.db')"`,
   )
   expect(
-    absolutizeRelativePath('file:/Users/tim/project/node_modules/@generated/photon/runtime', cwd, outputDir),
+    absolutizeRelativePath('file:/Users/tim/project/node_modules/@prisma/client/runtime', cwd, outputDir),
   ).toMatchInlineSnapshot(`"'file:' + path.resolve(__dirname, '')"`)
   expect(absolutizeRelativePath('file:../another-dir/db.db', cwd, outputDir)).toMatchInlineSnapshot(
     `"'file:' + path.resolve(__dirname, '../../../../another-dir/db.db')"`,

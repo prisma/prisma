@@ -1,5 +1,5 @@
-generator photon {
-  provider = "photonjs"
+generator client {
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -53,6 +53,6 @@ model Account {
 model AccountConfiguration {
   id     CUID
   config String
-  data   AccountData?  @relation(onDelete: CASCADE)
-  list   RandomModel[] @relation(onDelete: CASCADE)
+  data   AccountData?
+  list   RandomModel[]
 }

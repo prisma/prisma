@@ -267,7 +267,7 @@ describe('scalar where transformation', () => {
     expect(() => document.validate(select, false, 'tests'))
       .toThrowErrorMatchingInlineSnapshot(`
 "
-Invalid \`photon.tests()\` invocation:
+Invalid \`prisma.tests()\` invocation:
 
 {
   where: {
@@ -276,7 +276,7 @@ Invalid \`photon.tests()\` invocation:
   }
 }
 
-Argument id: Got invalid value 'asd' on photon.findManyTest. Provided String, expected UUID or UUIDFilter.
+Argument id: Got invalid value 'asd' on prisma.findManyTest. Provided String, expected UUID or UUIDFilter.
 type UUIDFilter {
   equals?: UUID
   not?: UUID | UUIDFilter
@@ -293,5 +293,38 @@ type UUIDFilter {
 
 "
 `)
+  })
+
+  test('filter by enum', () => {
+    const select = {
+      where: {
+        favoriteTree: {
+          in: ['OAK', 'BLASKASH'],
+        },
+      },
+    }
+    const document = makeDocument({
+      dmmf,
+      select,
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+
+    expect(String(transformDocument(document))).toMatchInlineSnapshot(`
+      "query {
+        findManyUser(where: {
+          favoriteTree_in: [\\"OAK\\", \\"BLASKASH\\"]
+        }) {
+          id
+          name
+          email
+          status
+          nicknames
+          permissions
+          favoriteTree
+          someFloats
+        }
+      }"
+    `)
   })
 })

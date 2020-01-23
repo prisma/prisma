@@ -6,7 +6,7 @@ module.exports = {
     'dist/',
     'generator/',
     'runtime/',
-    '@generated',
+    '@prisma',
     'index.ts',
     'index.js',
   ],

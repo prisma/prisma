@@ -48,7 +48,7 @@ describe('relation where transformation', () => {
     expect(() => document.validate(select, false, 'users'))
       .toThrowErrorMatchingInlineSnapshot(`
 "
-Invalid \`photon.users()\` invocation:
+Invalid \`prisma.users()\` invocation:
 
 {
   where: {
@@ -130,7 +130,7 @@ type PlaylistTrackWhereInput {
     expect(() => document.validate(select, false, 'users'))
       .toThrowErrorMatchingInlineSnapshot(`
 "
-Invalid \`photon.users()\` invocation:
+Invalid \`prisma.users()\` invocation:
 
 {
   where: {
@@ -209,7 +209,7 @@ type PlaylistTrackWhereInput {
     expect(() => document.validate(select, false, 'artists'))
       .toThrowErrorMatchingInlineSnapshot(`
 "
-Invalid \`photon.artists()\` invocation:
+Invalid \`prisma.artists()\` invocation:
 
 {
   where: {

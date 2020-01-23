@@ -1,23 +1,27 @@
-import Photon from './@generated/photon'
-// var wtf = require('wtfnode')
+import { PrismaClient } from './@prisma/client'
 
 async function main() {
-  let photons: Photon[] = []
-  for (let i = 0; i < 15; i++) {
-    const photon = new Photon({
-      datasources: {
-        my_db: '',
+  const prisma = new PrismaClient()
+
+  // const result = await prisma.users.create({
+  //   data: {
+  //     email: 'a@a.de',
+  //     favoriteTree: 'ARBORVITAE',
+  //     name: 'Say my name',
+  //     permissions: 'ADMIN',
+  //     status: 'A status',
+  //   },
+  // })
+
+  const result = await prisma.users({
+    where: {
+      favoriteTree: {
+        in: ['ARBORVITAE'],
       },
-    })
-    await photon.connect()
-
-    const result = await photon.users({ first: 1 })
-
-    console.log(result)
-    photons.push(photon)
-  }
-
-  photons.forEach(p => p.disconnect())
+    },
+  })
+  console.log(result)
+  prisma.disconnect()
 }
 
 main().catch(console.error)

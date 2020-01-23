@@ -4,6 +4,11 @@ const exec = promisify(childProcess.exec)
 const c = require('./colors')
 
 async function main() {
+  if (process.env.INIT_CWD) {
+    process.chdir(process.env.INIT_CWD) // necessary, because npm chooses __dirname as process.cwd()
+    // in the postinstall hook
+  }
+
   const localPath = getLocalPackagePath()
   try {
     if (localPath) {
@@ -20,7 +25,7 @@ async function main() {
     console.error(e)
   }
   throw new Error(
-    `In order to use "@prisma/photon", please install prisma2. You can install it with "npm add -D prisma2".`,
+    `In order to use "@prisma/client", please install prisma2. You can install it with "npm add -D prisma2".`,
   )
 }
 
@@ -34,15 +39,15 @@ function getLocalPackagePath() {
 
   if (packagePath) {
     const pkg = require('prisma2/package.json')
-    const photonVersion = require('../package.json').version
-    if (pkg.version !== photonVersion) {
+    const prismaClientVersion = require('../package.json').version
+    if (pkg.version !== prismaClientVersion) {
       console.error(
         `${c.red('Error')} ${c.bold(
-          '@prisma/photon',
+          '@prisma/client',
         )} and the locally installed ${c.bold(
           'prisma2',
         )} must have the same version:
-  ${c.bold(`@prisma/photon@${photonVersion}`)} doesn't match ${c.bold(
+  ${c.bold(`@prisma/client@${prismaClientVersion}`)} doesn't match ${c.bold(
           `prisma2@${pkg.version}`,
         )}`,
       )
@@ -67,7 +72,7 @@ if (!process.env.SKIP_GENERATE) {
     if (e.stderr) {
       if (e.stderr.includes(`Can't find schema.prisma`)) {
         console.error(
-          `${c.yellow('warning')} @prisma/photon needs a ${c.bold(
+          `${c.yellow('warning')} @prisma/client needs a ${c.bold(
             'schema.prisma',
           )} to function, but couldn't find it.
         Please either create one manually or use ${c.bold('prisma2 init')}.
