@@ -58,7 +58,7 @@ function transformOrderInputTypes(document: DMMF.Document): DMMF.Document {
             type: 'OrderByArg',
             isList: false,
             isRequired: false,
-            kind: 'enum' as any,
+            kind: 'enum',
           },
         ],
         isRelationFilter: false,
@@ -97,8 +97,7 @@ function getFieldType(field: DMMF.Field): string {
       }
     } else if (typeof field.default === 'boolean') {
       return field.type
-    }
-    else if (field.default.name === 'uuid') {
+    } else if (field.default.name === 'uuid') {
       return 'UUID'
     }
   }
@@ -256,53 +255,88 @@ function getScalarFilterArgs(
   isEnum = false,
 ): DMMF.SchemaArg[] {
   if (isEnum) {
-    return [...getBaseFilters(type, isRequired), ...getInclusionFilters(type)]
+    return [
+      ...getBaseFilters(type, isRequired, isEnum),
+      ...getInclusionFilters(type, isEnum),
+    ]
   }
   switch (type) {
     case 'String':
     case 'ID':
     case 'UUID':
       return [
-        ...getBaseFilters(type, isRequired),
-        ...getInclusionFilters(type),
-        ...getAlphanumericFilters(type),
-        ...getStringFilters(type),
+        ...getBaseFilters(type, isRequired, isEnum),
+        ...getInclusionFilters(type, isEnum),
+        ...getAlphanumericFilters(type, isEnum),
+        ...getStringFilters(type, isEnum),
       ]
     case 'Int':
     case 'Float':
     case 'DateTime':
       return [
-        ...getBaseFilters(type, isRequired),
-        ...getInclusionFilters(type),
-        ...getAlphanumericFilters(type),
+        ...getBaseFilters(type, isRequired, isEnum),
+        ...getInclusionFilters(type, isEnum),
+        ...getAlphanumericFilters(type, isEnum),
       ]
     case 'Boolean':
-      return [...getBaseFilters(type, isRequired)]
+      return [...getBaseFilters(type, isRequired, isEnum)]
   }
 
   return []
 }
 
-function getBaseFilters(type: string, isRequired: boolean): DMMF.SchemaArg[] {
+function getBaseFilters(
+  type: string,
+  isRequired: boolean,
+  isEnum: boolean,
+): DMMF.SchemaArg[] {
   const filterName = getFilterName(type, isRequired)
   // TODO: reintroduce AND, NOT, OR
   const nullArray = isRequired ? [] : ['null']
   return [
-    ...getScalarArgs(['equals'], [type, ...nullArray]),
-    ...getScalarArgs(['not'], [type, ...nullArray, filterName]),
+    ...getScalarArgs(
+      ['equals'],
+      [type, ...nullArray],
+      undefined,
+      isEnum ? 'enum' : 'scalar',
+    ),
+    ...getScalarArgs(
+      ['not'],
+      [type, ...nullArray, filterName],
+      undefined,
+      isEnum ? 'enum' : 'scalar',
+    ),
   ]
 }
 
-function getStringFilters(type: string): DMMF.SchemaArg[] {
-  return getScalarArgs(['contains', 'startsWith', 'endsWith'], [type])
+function getStringFilters(type: string, isEnum: boolean): DMMF.SchemaArg[] {
+  return getScalarArgs(
+    ['contains', 'startsWith', 'endsWith'],
+    [type],
+    undefined,
+    isEnum ? 'enum' : 'scalar',
+  )
 }
 
-function getAlphanumericFilters(type: string): DMMF.SchemaArg[] {
-  return getScalarArgs(['lt', 'lte', 'gt', 'gte'], [type])
+function getAlphanumericFilters(
+  type: string,
+  isEnum: boolean,
+): DMMF.SchemaArg[] {
+  return getScalarArgs(
+    ['lt', 'lte', 'gt', 'gte'],
+    [type],
+    undefined,
+    isEnum ? 'enum' : 'scalar',
+  )
 }
 
-function getInclusionFilters(type: string): DMMF.SchemaArg[] {
-  return getScalarArgs(['in', 'notIn'], [type], true)
+function getInclusionFilters(type: string, isEnum: boolean): DMMF.SchemaArg[] {
+  return getScalarArgs(
+    ['in', 'notIn'],
+    [type],
+    true,
+    isEnum ? 'enum' : 'scalar',
+  )
 }
 
 function getScalarArgs(

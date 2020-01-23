@@ -2,12 +2,12 @@ import { PrismaClient } from './@prisma/client'
 
 async function main() {
   const prisma = new PrismaClient({
-    log: ['query', 'info', 'warn'],
+    // log: ['query', 'info', 'warn'],
+    debug: true,
   })
 
-  const users = await prisma.users({
-    orderBy: null,
-  })
+  // const user = await (prisma.user as any).findOne({})
+  const users = await prisma.user.findMany({})
 
   console.log(users)
   prisma.disconnect()
