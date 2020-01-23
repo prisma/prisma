@@ -22,6 +22,7 @@
     "generator",
     "src/__tests__/generation/node_modules",
     "src/__tests__/types",
-    "generator-build"
+    "generator-build",
+    "sandbox"
   ]
 }
