@@ -1,8 +1,6 @@
 import { arg, Command, Commands, format, HelpError, isError, unknownCommand } from '@prisma/cli'
 import chalk from 'chalk'
 import { getNextFreePort } from '../../utils/occupyPath'
-import { gamboge } from '../highlight/theme'
-import { ExperimentalFlagError } from '../../utils/experimental'
 
 /**
  * Migrate command
@@ -72,7 +70,9 @@ export class LiftCommand implements Command {
         throw new Error(`Cannot run ${chalk.bold(command)} because there is a ${chalk.bold(
           'prisma2 dev',
         )} command running in this directory.
-Please ${gamboge(`stop ${chalk.bold('prisma2 dev')} first`)}, then try ${chalk.greenBright.bold(command)} again`)
+Please ${chalk.rgb(228, 155, 15)(`stop ${chalk.bold('prisma2 dev')} first`)}, then try ${chalk.greenBright.bold(
+          command,
+        )} again`)
       }
       return cmd.parse(args._.slice(1))
     }

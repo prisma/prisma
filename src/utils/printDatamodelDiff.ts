@@ -1,4 +1,4 @@
-import { highlightDatamodel } from '../cli/highlight/highlight'
+import { highlightDatamodel } from '@prisma/sdk'
 import { diffLines, diffWords, Change } from 'diff'
 import chalk from 'chalk'
 import { strongGreen, strongRed } from './customColors'
