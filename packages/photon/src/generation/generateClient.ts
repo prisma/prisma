@@ -10,6 +10,7 @@ import Debug from 'debug'
 import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
+import hasha from 'hasha'
 import {
   CompilerOptions,
   createCompilerHost,
@@ -241,13 +242,16 @@ export async function generateClient({
     for (const filePath of Object.values(binaryPaths.queryEngine)) {
       const fileName = path.basename(filePath)
       const target = path.join(outputDir, 'runtime', fileName)
-      const [fileSizeA, fileSizeB] = await Promise.all([
-        fileSize(filePath),
-        fileSize(target),
+      const before = Date.now()
+      const [hashA, hashB] = await Promise.all([
+        hasha.fromFile(filePath, { algorithm: 'md5' }).catch(() => null),
+        hasha.fromFile(target, { algorithm: 'md5' }).catch(() => null),
       ])
-      if (fileSizeA && fileSizeB && fileSizeA === fileSizeB) {
+      const after = Date.now()
+      if (hashA && hashB && hashA === hashB) {
+        debug(`Getting hashes took ${after - before}ms`)
         debug(
-          `Skipping ${filePath} to ${target} as both files have file size ${fileSizeA}`,
+          `Skipping ${filePath} to ${target} as both files have md5 hash ${hashA}`,
         )
       } else {
         debug(`Copying ${filePath} to ${target}`)
