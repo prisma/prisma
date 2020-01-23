@@ -1,5 +1,5 @@
 import { Engine, PrismaClientError, PrismaClientQueryError, QueryEngineError } from './Engine'
-import got from 'got'
+import got, { Got } from 'got'
 import HttpAgent from 'agentkeepalive'
 import debugLib from 'debug'
 import { getPlatform, Platform, mayBeCompatible } from '@prisma/get-platform'
@@ -57,6 +57,7 @@ export class NodeEngine extends Engine {
   private keepaliveAgent: HttpAgent
   private logQueries: boolean
   private logLevel?: 'info' | 'warn'
+  private got: Got
   port?: number
   debug: boolean
   child?: ChildProcessWithoutNullStreams
@@ -112,6 +113,14 @@ export class NodeEngine extends Engine {
     })
     this.logLevel = logLevel
     this.logQueries = logQueries || false
+    this.got = got.extend({
+      responseType: 'json',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      protocol: 'http:',
+      agent: this.keepaliveAgent,
+    });
 
     this.logEmitter.on('error', (log: RustLog) => {
       if (this.debug) {
@@ -526,13 +535,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     }
   }
 
-  async getDmmf(): Promise<any> {
-    const result = await got.get(this.url + '/dmmf', {
-      json: true,
-    })
-    return result.body.data
-  }
-
   async request<T>(query: string, collectTimestamps: any): Promise<T> {
     collectTimestamps && collectTimestamps.record('Pre-engine_request_start')
     await this.start()
@@ -544,14 +546,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       throw new Error(`Can't perform request, as the Engine has already been stopped`)
     }
 
-    collectTimestamps && collectTimestamps.record('Pre-engine_request_http_got')
-    this.currentRequestPromise = got.post(this.url, {
-      json: true,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: { query, variables: {} },
-      agent: this.keepaliveAgent,
+    collectTimestamps && collectTimestamps.record("Pre-engine_request_http_got")
+
+    this.currentRequestPromise = this.got.post(this.url, {
+      json: { query, variables: {} },
     })
 
     collectTimestamps && collectTimestamps.record('Post-engine_request_http_got')
