@@ -48,11 +48,14 @@ ${indent(this.children.map(String).join('\n'), tab)}
 }`
   }
   public validate(
-    select: any,
+    select?: any,
     isTopLevelQuery: boolean = false,
     originalMethod?: string,
     errorFormat?: 'pretty' | 'minimal' | 'colorless',
   ) {
+    if (!select) {
+      select = {}
+    }
     const invalidChildren = this.children.filter(
       child => child.hasInvalidChild || child.hasInvalidArg,
     )
@@ -452,9 +455,13 @@ ${errorMessages}${missingArgsLegend}\n`
     }
 
     if (error.type === 'missingArg') {
-      return `Argument ${chalk.greenBright(error.missingName)} for ${chalk.bold(
-        `${path.join('.')}`,
-      )} is missing.`
+      const forStr =
+        path.length === 1 && path[0] === error.missingName
+          ? ''
+          : ` for ${chalk.bold(`${path.join('.')}`)}`
+      return `Argument ${chalk.greenBright(
+        error.missingName,
+      )}${forStr} is missing.`
     }
 
     if (error.type === 'atLeastOne') {
@@ -794,7 +801,7 @@ export interface DocumentInput {
   dmmf: DMMFClass
   rootTypeName: 'query' | 'mutation'
   rootField: string
-  select: any
+  select?: any
 }
 
 export function makeDocument({
@@ -803,6 +810,9 @@ export function makeDocument({
   rootField,
   select,
 }: DocumentInput) {
+  if (!select) {
+    select = {}
+  }
   const rootType = rootTypeName === 'query' ? dmmf.queryType : dmmf.mutationType
   // Create a fake toplevel field for easier implementation
   const fakeRootField: DMMF.SchemaField = {

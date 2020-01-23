@@ -446,7 +446,7 @@ describe('select validation', () => {
         + }
         }
 
-        Argument data for data is missing.
+        Argument data is missing.
 
         Note: Lines with + are required
         "
@@ -484,7 +484,7 @@ describe('select validation', () => {
         + }
         }
 
-        Argument data for data is missing.
+        Argument data is missing.
 
         Note: Lines with + are required
         "
@@ -495,7 +495,7 @@ describe('select validation', () => {
       document.validate(ast, undefined, undefined, 'minimal')
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "Argument data for data is missing.
+        "Argument data is missing.
         "
       `)
     }
@@ -519,7 +519,7 @@ describe('select validation', () => {
         + }
         }
 
-        Argument data for data is missing.
+        Argument data is missing.
 
         Note: Lines with + are required
         "
