@@ -23,7 +23,7 @@ export class Generate implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma2 generate
+      ${chalk.dim(`$`)} prisma2 generate
 
     ${chalk.bold('Flags')}
 
