@@ -19,7 +19,7 @@ export class LiftWatch implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma dev
+      ${chalk.dim(`$`)} prisma dev
 
     ${chalk.bold('Options')}
 
