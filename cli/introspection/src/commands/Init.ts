@@ -1,4 +1,4 @@
-import { Command, arg, format } from '@prisma/cli'
+import { Command, arg, format, HelpError } from '@prisma/cli'
 import { isError } from 'util'
 import fs from 'fs'
 import path from 'path'
@@ -39,7 +39,14 @@ export class Init implements Command {
     return new Init()
   }
 
-  private constructor() {}
+  // static help template
+  private static help = format(`
+    Setup Prisma for your existing database
+    
+    ${chalk.bold('Usage')}
+
+      ${chalk.dim(`$`)} prisma2 init
+  `)
 
   async parse(argv: string[]): Promise<any> {
     // parse the arguments according to the spec
@@ -138,13 +145,11 @@ https://pris.ly/d/getting-started
     `
   }
 
-  help() {
-    return console.log(
-      format(`
-        Usage: prisma2 init
-
-        Setup Prisma for your existing database
-      `),
-    )
+  // help message
+  public help(error?: string): string | HelpError {
+    if (error) {
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Init.help}`)
+    }
+    return Init.help
   }
 }
