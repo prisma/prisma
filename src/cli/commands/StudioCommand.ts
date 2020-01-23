@@ -16,7 +16,7 @@ export class StudioCommand implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma studio --experimental
+      ${chalk.dim(`$`)} prisma studio --experimental
 
     ${chalk.bold('Options')}
 

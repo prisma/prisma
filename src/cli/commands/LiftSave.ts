@@ -27,7 +27,7 @@ export class LiftSave implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma migrate save [options] --experimental
+      ${chalk.dim(`$`)} prisma migrate save [options] --experimental
 
     ${chalk.bold('Options')}
 

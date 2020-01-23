@@ -16,7 +16,7 @@ export class LiftCommand implements Command {
 
     ${chalk.bold('Usage')}
 
-      prisma2 migrate [command] [options] --experimental
+      ${chalk.dim(`$`)} prisma2 migrate [command] [options] --experimental
 
     ${chalk.bold('Options')}
 
