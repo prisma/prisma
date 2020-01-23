@@ -52,6 +52,31 @@ Note: Lines with + are required
       }"
     `)
   })
+  test('findMany', () => {
+    const select = {
+      where: {
+        likedArticles: null,
+      },
+    }
+    const document = makeDocument({
+      dmmf,
+      select,
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+    document.validate(select, false, 'user', 'colorless')
+    expect(String(document)).toMatchInlineSnapshot(`
+      "query {
+        findManyUser(where: {
+
+        }) {
+          id
+          name
+          email
+        }
+      }"
+    `)
+  })
   test('createOne', () => {
     const document = makeDocument({
       dmmf,

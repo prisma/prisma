@@ -167,11 +167,12 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
             type: getFieldType(f),
           })
         }
+        const type = getFilterName(
+          getFieldType(f),
+          f.isRequired || f.kind === 'object',
+        )
         typeList.push({
-          type: getFilterName(
-            getFieldType(f),
-            f.isRequired || f.kind === 'object',
-          ),
+          type,
           isList: false,
           isRequired: false,
           kind: 'object',
@@ -187,10 +188,14 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
           })
         }
 
+        const nullEqualsUndefined =
+          f.isList && f.kind === 'object' ? true : undefined
+
         return {
           name: f.name,
           inputType: typeList,
           isRelationFilter: false,
+          nullEqualsUndefined,
         }
       })
 
@@ -231,8 +236,9 @@ function makeFilterType(
   isScalar: boolean,
   isEnum: boolean,
 ): DMMF.InputType {
+  const name = getFilterName(type, isRequired || !isScalar)
   return {
-    name: getFilterName(type, isRequired || !isScalar),
+    name,
     fields: isScalar
       ? getScalarFilterArgs(type, isRequired, isEnum)
       : getRelationFilterArgs(type),
