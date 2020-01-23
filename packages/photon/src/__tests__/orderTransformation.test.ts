@@ -102,28 +102,82 @@ describe('where transformation', () => {
       document.validate(select, false, 'users')
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-                "
-                Invalid \`photon.users()\` invocation:
+        "
+        Invalid \`prisma.users()\` invocation:
 
-                {
-                  orderBy: {
-                    email: 'asc',
-                    id: 'asc'
-                  }
-                  ~~~~~~~~~~~~~~~
-                }
+        {
+          orderBy: {
+            email: 'asc',
+            id: 'asc'
+          }
+          ~~~~~~~~~~~~~~~
+        }
 
-                Argument orderBy of type UserOrderByInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
-                type UserOrderByInput {
-                  id?: OrderByArg
-                  name?: OrderByArg
-                  email?: OrderByArg
-                  status?: OrderByArg
-                  favoriteTree?: OrderByArg
-                }
+        Argument orderBy of type UserOrderByInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
+        type UserOrderByInput {
+          id?: OrderByArg
+          name?: OrderByArg
+          email?: OrderByArg
+          status?: OrderByArg
+          favoriteTree?: OrderByArg
+        }
 
-                "
-            `)
+        "
+      `)
     }
+  })
+
+  test('ignore order null', () => {
+    const select = {
+      orderBy: null,
+    }
+    const document = makeDocument({
+      dmmf,
+      select,
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+    expect(String(transformDocument(document))).toMatchInlineSnapshot(`
+      "query {
+        findManyUser {
+          id
+          name
+          email
+          status
+          nicknames
+          permissions
+          favoriteTree
+          someFloats
+        }
+      }"
+    `)
+  })
+
+  test('ignore order by id null', () => {
+    const select = {
+      orderBy: { id: null },
+    }
+    const document = makeDocument({
+      dmmf,
+      select,
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+    expect(String(transformDocument(document))).toMatchInlineSnapshot(`
+      "query {
+        findManyUser(orderBy: {
+
+        }) {
+          id
+          name
+          email
+          status
+          nicknames
+          permissions
+          favoriteTree
+          someFloats
+        }
+      }"
+    `)
   })
 })

@@ -54,18 +54,32 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   if (Object.values(options.binaries).length === 0) {
     return {}
   }
-  const downloadDoneFile = options.binaries
-    ? path.join(
-        options.binaries['query-engine'] ||
-          options.binaries['migration-engine'] ||
-          options.binaries['introspection-engine'],
-        'download-done',
-      )
+
+  const baseDir = options.binaries
+    ? options.binaries['query-engine'] ||
+      options.binaries['migration-engine'] ||
+      options.binaries['introspection-engine']
     : null
+
+  if (baseDir) {
+    try {
+      const writeTestPath = path.join(baseDir, 'write-test')
+      fs.writeFileSync(writeTestPath, 'write-test')
+      fs.unlinkSync(writeTestPath)
+    } catch (e) {
+      if (options.failSilent) {
+        return
+      } else {
+        throw new Error(`Can't write to ${baseDir} please make sure you install "prisma2" with the right permissions.`)
+      }
+    }
+  }
+
+  const downloadDoneFile = baseDir ? path.join(baseDir, 'download-done') : null
   const nativeDownloadsDone = downloadDoneFile ? fs.existsSync(downloadDoneFile) : false
   const everythingDownloaded =
     nativeDownloadsDone &&
-    (!options.binaryTargets || (options.binaryTargets.length === 0 && options.binaryTargets[0] === platform))
+    (!options.binaryTargets || (options.binaryTargets.length === 1 && options.binaryTargets[0] === platform))
 
   await cleanupCache()
   const mergedOptions: DownloadOptions = {
@@ -74,6 +88,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     ...options,
     binaries: mapKeys(options.binaries, key => engineTypeToBinaryType(key, platform)), // just necessary to support both camelCase and hyphen-case
   }
+
   const bar =
     options.showProgress && !everythingDownloaded
       ? getBar(`Downloading Prisma engines for ${mergedOptions.binaryTargets.map(p => chalk.bold(p)).join(' and ')}`)
@@ -126,6 +141,8 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
               )}, which points to ${chalk.underline(process.env[envVar])}`,
             )
             binaryPaths[binaryName][binaryPlatform] = path.resolve(process.env[envVar])
+            // no need to download, a custom binary was provided
+            return
           } else {
             debug(`Setting binary path for ${binaryName} ${binaryPlatform} to ${targetPath}`)
             binaryPaths[binaryName][binaryPlatform] = targetPath
@@ -154,7 +171,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     }),
   )
 
-  if (bar) {
+  if (bar && !options.skipDownload) {
     bar.update(1)
     bar.terminate()
   }
@@ -198,9 +215,20 @@ async function downloadBinary({
   binaryName,
   failSilent,
 }: DownloadBinaryOptions) {
-  await makeDir(path.dirname(targetPath))
+  try {
+    await makeDir(path.dirname(targetPath))
+  } catch (e) {
+    if (failSilent) {
+      return
+    } else {
+      throw e
+    }
+  }
   debug(`Downloading ${sourcePath} to ${targetPath}`)
-  const cacheDir = await getCacheDir(channel, version, platform)
+  const cacheDir = await getCacheDir(channel, version, platform, failSilent)
+  if (!cacheDir) {
+    return
+  }
   const cachedTargetPath = path.join(cacheDir, binaryName)
   const cachedLastModifiedPath = path.join(cacheDir, 'lastModified-' + binaryName)
 

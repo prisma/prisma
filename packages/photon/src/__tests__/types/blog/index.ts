@@ -1,12 +1,12 @@
-import { Photon, Post, User } from '@prisma/photon'
+import { PrismaClient, Post, User } from '@prisma/client'
 
 // tslint:disable
 
 // This file will not be executed, just compiled to check if the typings are valid
 async function main() {
-  const photon = new Photon()
+  const prisma = new PrismaClient()
 
-  const result1 = await photon.users.findMany({
+  const result1 = await prisma.user.findMany({
     where: {
       posts: {
         some: {
@@ -43,7 +43,7 @@ async function main() {
     title: string
     content: string | null
     author: User | null
-  } | null = await photon.posts.findOne({
+  } | null = await prisma.post.findOne({
     where: {
       id: '',
     },
@@ -52,7 +52,7 @@ async function main() {
     },
   })
 
-  const result3: 'Please either choose `select` or `include`' = await photon.posts.findMany(
+  const result3: 'Please either choose `select` or `include`' = await prisma.post.findMany(
     {
       select: {},
       include: {},
@@ -64,7 +64,7 @@ async function main() {
     author: {
       name: string | null
     } | null
-  }> = await photon.posts.findMany({
+  }> = await prisma.post.findMany({
     select: {
       id: true,
       author: {
@@ -75,20 +75,20 @@ async function main() {
     },
   })
 
-  const result5: Post = await photon.posts.create({
+  const result5: Post = await prisma.post.create({
     data: {
       published: false,
       title: 'Title',
     },
   })
 
-  await photon.posts.delete({
+  await prisma.post.delete({
     where: {
       id: '',
     },
   })
 
-  await photon.posts.upsert({
+  await prisma.post.upsert({
     create: {
       published: false,
       title: 'Title',
@@ -101,13 +101,13 @@ async function main() {
     },
   })
 
-  await photon.posts.updateMany({
+  await prisma.post.updateMany({
     data: {
       published: false,
     },
   })
 
-  const disconnect: Promise<void> = photon.disconnect()
+  const disconnect: Promise<void> = prisma.disconnect()
 }
 
 main().catch(e => {

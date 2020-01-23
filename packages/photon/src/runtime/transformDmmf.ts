@@ -11,7 +11,9 @@ export function transformDmmf(document: DMMF.Document): DMMF.Document {
       rootMutationType: doc.schema.rootMutationType,
       rootQueryType: doc.schema.rootQueryType,
       outputTypes: filterOutputTypes(doc.schema.outputTypes),
-      inputTypes: makeWhereUniqueInputsRequired(filterInputTypes(doc.schema.inputTypes)),
+      inputTypes: makeWhereUniqueInputsRequired(
+        filterInputTypes(doc.schema.inputTypes),
+      ),
     },
   }
 }
@@ -76,7 +78,9 @@ function transformOrderInputTypes(document: DMMF.Document): DMMF.Document {
   }
 }
 
-function makeWhereUniqueInputsRequired(inputTypes: DMMF.InputType[]): DMMF.InputType[] {
+function makeWhereUniqueInputsRequired(
+  inputTypes: DMMF.InputType[],
+): DMMF.InputType[] {
   return inputTypes.map(inputType => {
     if (inputType.name.endsWith('WhereUniqueInput')) {
       inputType.atLeastOne = true
@@ -86,8 +90,17 @@ function makeWhereUniqueInputsRequired(inputTypes: DMMF.InputType[]): DMMF.Input
 }
 
 function getFieldType(field: DMMF.Field): string {
-  if (field.default && field.default.name === 'uuid') {
-    return 'UUID'
+  if (field.default) {
+    if (typeof field.default === 'string') {
+      if (field.default === 'uuid') {
+        return 'UUID'
+      }
+    } else if (typeof field.default === 'boolean') {
+      return field.type
+    }
+    else if (field.default.name === 'uuid') {
+      return 'UUID'
+    }
   }
   return field.type
 }
@@ -116,20 +129,33 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
       continue
     }
     const whiteList = ['AND', 'OR', 'NOT']
-    whiteList.push(...model.fields.filter(f => f.kind === 'object' && !f.isList).map(f => f.name))
+    whiteList.push(
+      ...model.fields
+        .filter(f => f.kind === 'object' && !f.isList)
+        .map(f => f.name),
+    )
 
-    const fields = type.fields.filter(a => whiteList.includes(a.name)).map(a => ({ ...a, isRelationFilter: true }))
+    const fields = type.fields
+      .filter(a => whiteList.includes(a.name))
+      .map(a => ({ ...a, isRelationFilter: true }))
 
     const filterTypesList = model.fields
       // filter out scalar lists as Prisma doesn't have filters for them
       // also filter out object non-lists, as we don't need to transform them
       .filter(f => (f.kind === 'object' ? f.isList : !f.isList))
       .map(f => {
-        if (!filterTypes[getFilterName(getFieldType(f), f.isRequired || f.kind === 'object')]) {
-          filterTypes[getFilterName(getFieldType(f), f.isRequired || f.kind === 'object')] = makeFilterType(
+        if (
+          !filterTypes[
+            getFilterName(getFieldType(f), f.isRequired || f.kind === 'object')
+          ]
+        ) {
+          filterTypes[
+            getFilterName(getFieldType(f), f.isRequired || f.kind === 'object')
+          ] = makeFilterType(
             getFieldType(f),
             f.isRequired,
             f.kind !== 'object',
+            f.kind === 'enum',
           )
         }
 
@@ -143,7 +169,10 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
           })
         }
         typeList.push({
-          type: getFilterName(getFieldType(f), f.isRequired || f.kind === 'object'),
+          type: getFilterName(
+            getFieldType(f),
+            f.isRequired || f.kind === 'object',
+          ),
           isList: false,
           isRequired: false,
           kind: 'object',
@@ -151,7 +180,12 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
 
         // for optional scalars you can directly provide null
         if (!f.isRequired && f.kind !== 'object') {
-          typeList.push({ type: 'null', isList: false, isRequired: false, kind: 'scalar' })
+          typeList.push({
+            type: 'null',
+            isList: false,
+            isRequired: false,
+            kind: 'scalar',
+          })
         }
 
         return {
@@ -192,19 +226,35 @@ function getWhereInputName(type: string) {
   return `${type}WhereInput`
 }
 
-function makeFilterType(type: string, isRequired: boolean, isScalar: boolean): DMMF.InputType {
+function makeFilterType(
+  type: string,
+  isRequired: boolean,
+  isScalar: boolean,
+  isEnum: boolean,
+): DMMF.InputType {
   return {
     name: getFilterName(type, isRequired || !isScalar),
-    fields: isScalar ? getScalarFilterArgs(type, isRequired) : getRelationFilterArgs(type),
+    fields: isScalar
+      ? getScalarFilterArgs(type, isRequired, isEnum)
+      : getRelationFilterArgs(type),
     atLeastOne: false,
   }
 }
 
 function getRelationFilterArgs(type: string): DMMF.SchemaArg[] {
-  return getScalarArgs(['every', 'some', 'none'], [getWhereInputName(type)], undefined, 'object')
+  return getScalarArgs(
+    ['every', 'some', 'none'],
+    [getWhereInputName(type)],
+    undefined,
+    'object',
+  )
 }
 
-function getScalarFilterArgs(type: string, isRequired: boolean, isEnum = false): DMMF.SchemaArg[] {
+function getScalarFilterArgs(
+  type: string,
+  isRequired: boolean,
+  isEnum = false,
+): DMMF.SchemaArg[] {
   if (isEnum) {
     return [...getBaseFilters(type, isRequired), ...getInclusionFilters(type)]
   }
@@ -221,7 +271,11 @@ function getScalarFilterArgs(type: string, isRequired: boolean, isEnum = false):
     case 'Int':
     case 'Float':
     case 'DateTime':
-      return [...getBaseFilters(type, isRequired), ...getInclusionFilters(type), ...getAlphanumericFilters(type)]
+      return [
+        ...getBaseFilters(type, isRequired),
+        ...getInclusionFilters(type),
+        ...getAlphanumericFilters(type),
+      ]
     case 'Boolean':
       return [...getBaseFilters(type, isRequired)]
   }
@@ -260,7 +314,12 @@ function getScalarArgs(
   return names.map(name => getScalarArg(name, type, isList, kind))
 }
 
-function getScalarArg(name: string, type: string[], isList, kind: DMMF.FieldKind = 'scalar'): DMMF.SchemaArg {
+function getScalarArg(
+  name: string,
+  type: string[],
+  isList,
+  kind: DMMF.FieldKind = 'scalar',
+): DMMF.SchemaArg {
   return {
     name,
     isRelationFilter: kind === 'object',

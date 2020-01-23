@@ -1,4 +1,4 @@
-# @prisma/photon
+# @prisma/client
 
 This package is being used by `prisma2`.
 
@@ -7,7 +7,7 @@ This package is being used by `prisma2`.
 ### Getting a local test version running
 
 1. Clone this repo
-2. `cd photonjs/packages/photon`
+2. `cd prisma-client-js/packages/photon`
 3. `yarn`
 4. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
 5. `cd fixtures/blog`

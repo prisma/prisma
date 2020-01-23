@@ -8,20 +8,20 @@ test('ignore comments', () => {
     url      = "file:my/folder/dev.db"
     default  = true
   }
-  
-  generator photon {
-    provider  = "photonjs"
-    output    = "@generated/photon"
+
+  generator client {
+    provider  = "prisma-client-js"
+    output    = "@prisma/client"
     transpile = false
   }
-  
+
   model User {
     id    String  @id @default(uuid())
     email String  @unique
     name  String?
     posts Post[]
   }
-  
+
   model Post {
     id         String   @id @default(uuid())
     createdAt  DateTime @default(now())
@@ -32,7 +32,7 @@ test('ignore comments', () => {
     content    String?
     author     User?
   }
-  
+
   /// Role num comment
   enum Role {
     USER
@@ -66,20 +66,20 @@ test('basic happy path', () => {
     url      = "file:my/folder/dev.db"
     default  = true
   }
-  
-  generator photon {
-    provider  = "photonjs"
-    output    = "@generated/photon"
+
+  generator client {
+    provider  = "prisma-client-js"
+    output    = "@prisma/client"
     transpile = false
   }
-  
+
   model User {
     id    String  @id @default(uuid())
     email String  @unique
     name  String?
     posts Post[]
   }
-  
+
   model Post {
     id         String   @id @default(uuid())
     createdAt  DateTime @default(now())
@@ -90,7 +90,7 @@ test('basic happy path', () => {
     content    String?
     author     User?
   }
-  
+
   /// Role num comment
   enum Role {
     USER

@@ -35,10 +35,11 @@ export function parseDistro(input: string): GetOSResult['distro'] {
   const idLikeRegex = /^ID_LIKE="?([^"\n]*)"?$/im
 
   const idMatch = input.match(idRegex)
-  const id = (idMatch && idMatch[1] && idMatch[1].toLowerCase()) || ""
+  const id = (idMatch && idMatch[1] && idMatch[1].toLowerCase()) || ''
 
   const idLikeMatch = input.match(idLikeRegex)
-  const idLike = (idLikeMatch && idLikeMatch[1] && idLikeMatch[1].toLowerCase()) || ""
+  const idLike =
+    (idLikeMatch && idLikeMatch[1] && idLikeMatch[1].toLowerCase()) || ''
 
   if (
     idLike.includes('centos') ||
@@ -151,7 +152,7 @@ export async function getPlatform(): Promise<Platform> {
 
   // if just the distro is known, fallback to latest OpenSSL 1.1
   if (distro) {
-    return (distro + 'debian-openssl-1.1.x') as Platform
+    return (distro + '-openssl-1.1.x') as Platform
   }
 
   // use the debian build with OpenSSL 1.1 as a last resort

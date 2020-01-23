@@ -1,8 +1,8 @@
-const { Photon } = require('@prisma/photon')
+const { PrismaClient } = require('@prisma/client')
 
 module.exports = async () => {
-  const photon = new Photon({
+  const prisma = new PrismaClient({
     errorFormat: 'colorless',
   })
-  await photon.connect()
+  await prisma.connect()
 }

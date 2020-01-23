@@ -1,39 +1,16 @@
-import { Photon, UserGetSelectPayload } from './@prisma/photon'
+import { PrismaClient } from './@prisma/client'
 
 async function main() {
-  const photon = new Photon()
-
-  const user1 = await photon.users.create({
-    data: {
-      email:
-        'a@a.de2' +
-        Math.random()
-          .toString(36)
-          .substring(2, 15),
-      name: 'Bobby Brown',
-    },
+  const prisma = new PrismaClient({
+    log: ['query', 'info', 'warn'],
   })
 
-  console.log(user1)
-
-  photon.disconnect()
-  photon.connect()
-  photon.disconnect()
-
-  const user2 = await photon.users.create({
-    data: {
-      email:
-        'a@a.de2' +
-        Math.random()
-          .toString(36)
-          .substring(2, 15),
-      name: 'Bobby Brown',
-    },
+  const users = await prisma.users({
+    orderBy: null,
   })
 
-  photon.disconnect()
-
-  console.log(user2)
+  console.log(users)
+  prisma.disconnect()
 }
 
 main().catch(e => {

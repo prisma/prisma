@@ -5,7 +5,7 @@ import { promisify } from 'util'
 import rimraf from 'rimraf'
 const del = promisify(rimraf)
 
-jest.setTimeout(30000)
+jest.setTimeout(35000)
 
 describe('runtime works', () => {
   const subDirs = getSubDirs(__dirname)
@@ -40,7 +40,7 @@ describe('runtime works', () => {
       const fn = require(filePath)
 
       if (shouldSucceed) {
-        expect(fn()).resolves.toMatchSnapshot(testTitle)
+        expect(await fn()).toMatchSnapshot(testTitle)
       } else {
         try {
           await fn()

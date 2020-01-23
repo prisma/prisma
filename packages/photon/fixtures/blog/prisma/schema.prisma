@@ -3,9 +3,8 @@ datasource db {
   url      = "file:dev.db"
 }
 
-generator photon {
-  provider = "photonjs"
-  output   = "@generated/photon"
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {

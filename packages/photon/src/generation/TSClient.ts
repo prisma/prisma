@@ -3,7 +3,11 @@ import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfill
 import indent from 'indent-string'
 import { DMMFClass } from '../runtime/dmmf'
 import { BaseField, DMMF } from '../runtime/dmmf-types'
-import { capitalize, GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
+import {
+  capitalize,
+  GraphQLScalarToJSTypeTable,
+  lowerCase,
+} from '../runtime/utils/common'
 import { InternalDatasource } from '../runtime/utils/printDatasources'
 import { DatasourceOverwrite } from './extractSqliteSources'
 import { serializeDatasources } from './serializeDatasources'
@@ -52,7 +56,7 @@ const commonCode = (runtimePath: string, version?: string) => `import {
 import path = require('path')
 import fs = require('fs')
 
-const debug = debugLib('photon')
+const debug = debugLib('prisma-client')
 
 /**
  * Utility Types
@@ -82,9 +86,9 @@ export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never :
 export type Subset<T, U> = { [key in keyof T]: key extends keyof U ? T[key] : never }
 
 /**
- * A PhotonRequestError is an error that is thrown in conjunction to a concrete query that has been performed with Photon.js.
+ * A PrismaClientRequestError is an error that is thrown in conjunction to a concrete query that has been performed with PrismaClient.js.
  */
-export class PhotonRequestError extends Error {
+export class PrismaClientRequestError extends Error {
   constructor(public message: string, public code?: string, public meta?: any) {
     super(message)
     this.code = code
@@ -92,9 +96,9 @@ export class PhotonRequestError extends Error {
   }
 }
 
-class PhotonFetcher {
+class PrismaClientFetcher {
   constructor(
-    private readonly photon: Photon<any,any>,
+    private readonly prisma: PrismaClient<any,any>,
     private readonly debug = false,
     private readonly hooks?: Hooks,
   ) {}
@@ -106,11 +110,11 @@ class PhotonFetcher {
       this.hooks.beforeRequest({ query, path: dataPath, rootField, typeName, document })
     }
     try {
-      collectTimestamps && collectTimestamps.record("Pre-photonConnect")
-      await this.photon.connect()
-      collectTimestamps && collectTimestamps.record("Post-photonConnect")
+      collectTimestamps && collectTimestamps.record("Pre-prismaClientConnect")
+      await this.prisma.connect()
+      collectTimestamps && collectTimestamps.record("Post-prismaClientConnect")
       collectTimestamps && collectTimestamps.record("Pre-engine_request")
-      const result = await this.photon.engine.request(query, collectTimestamps)
+      const result = await this.prisma.engine.request(query, collectTimestamps)
       collectTimestamps && collectTimestamps.record("Post-engine_request")
       debug('Response:')
       debug(result)
@@ -128,12 +132,12 @@ class PhotonFetcher {
         })
         const message = stack + '\\n\\n' + e.message
         if (e.code) {
-          throw new PhotonRequestError(this.sanitizeMessage(message), e.code, e.meta)
+          throw new PrismaClientRequestError(this.sanitizeMessage(message), e.code, e.meta)
         }
         throw new Error(this.sanitizeMessage(message))
       } else {
         if (e.code) {
-          throw new PhotonRequestError(this.sanitizeMessage(e.message), e.code, e.meta)
+          throw new PrismaClientRequestError(this.sanitizeMessage(e.message), e.code, e.meta)
         }
         if (e.isPanic) {
           throw e
@@ -144,7 +148,7 @@ class PhotonFetcher {
     }
   }
   sanitizeMessage(message: string): string {
-    if (this.photon.errorFormat && this.photon.errorFormat !== 'pretty') {
+    if (this.prisma.errorFormat && this.prisma.errorFormat !== 'pretty') {
       return stripAnsi(message)
     }
 
@@ -191,7 +195,7 @@ class CollectTimestamps {
     }, {})
 
     Object.assign(results, {
-      total: this.elapsed(this.start.value, this.records[this.records.length - 1].value),
+      total: this.elapsed(this.start!.value, this.records[this.records.length - 1].value),
       ...this.additionalResults
     })
 
@@ -269,7 +273,7 @@ ${
  * Client
 **/
 
-${new PhotonClientClass(
+${new PrismaClientClass(
   this.dmmf,
   this.internalDatasources,
   this.outputDir,
@@ -329,7 +333,7 @@ ${indent(sources.map(s => `${s.name}?: string`).join('\n'), 2)}
   }
 }
 
-class PhotonClientClass {
+class PrismaClientClass {
   constructor(
     protected readonly dmmf: DMMFClass,
     protected readonly internalDatasources: InternalDatasource[],
@@ -347,7 +351,7 @@ ${new Datasources(this.internalDatasources)}
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
-export interface PhotonOptions {
+export interface PrismaClientOptions {
   datasources?: Datasources
 
   /**
@@ -378,29 +382,53 @@ export type Hooks = {
 }
 
 /* Types for Logging */
-type LogLevel = 'info' | 'query' | 'warn'
-type LogDefinition = {
+export type LogLevel = 'info' | 'query' | 'warn'
+export type LogDefinition = {
   level: LogLevel
   emit: 'stdout' | 'event'
 }
 
-type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
-type GetEvents<T extends Array<LogLevel | LogDefinition>> = GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]>
+export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
+export type GetEvents<T extends Array<LogLevel | LogDefinition>> = GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]>
 
-type QueryEvent = {
-  timestamp: number
+export type QueryEvent = {
+  timestamp: Date
   query: string
-  args: any
+  params: string
+  duration: number
+  target: string
 }
 
-type LogEvent = {
-  timestamp: number
+export type LogEvent = {
+  timestamp: Date
   message: string
+  target: string
 }
 /* End Types for Logging */
 
-export class Photon<T extends PhotonOptions = {}, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
-  private fetcher: PhotonFetcher
+// tested in getLogLevel.test.ts
+export function getLogLevel(
+  log: Array<LogLevel | LogDefinition>,
+): LogLevel | undefined {
+  return log.reduce<LogLevel | undefined>((acc, curr) => {
+    const currentLevel = typeof curr === 'string' ? curr : curr.level
+    if (currentLevel === 'query') {
+      return acc
+    }
+    if (!acc) {
+      return currentLevel
+    }
+    if (curr === 'info' || acc === 'info') {
+      // info always has precedence
+      return 'info'
+    }
+    return currentLevel
+  }, undefined)
+}
+
+
+export class PrismaClient<T extends PrismaClientOptions = {}, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
+  private fetcher: PrismaClientFetcher
   private readonly dmmf: DMMFClass
   private connectionPromise?: Promise<any>
   private disconnectionPromise?: Promise<any>
@@ -409,10 +437,10 @@ export class Photon<T extends PhotonOptions = {}, U = keyof T extends 'log' ? T[
   engine: Engine
   errorFormat: ErrorFormat
   constructor(optionsArg?: T) {
-    const options: PhotonOptions = optionsArg || {}
+    const options: PrismaClientOptions = optionsArg || {}
     const useDebug = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.library) : false
     if (useDebug) {
-      debugLib.enable('photon')
+      debugLib.enable('prisma-client')
     }
     const debugEngine = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.engine) : false
 
@@ -456,19 +484,54 @@ export class Photon<T extends PhotonOptions = {}, U = keyof T extends 'log' ? T[
       generator: ${
         this.generator ? JSON.stringify(this.generator) : 'undefined'
       },
-      showColors: this.errorFormat === 'pretty'
+      showColors: this.errorFormat === 'pretty',
+      logLevel: options.log && getLogLevel(options.log),
+      logQueries: options.log && Boolean(options.log.find(o => typeof o === 'string' ? o === 'query' : o.level === 'query'))
     }
+
+    debug({ engineConfig: this.engineConfig })
 
     this.engine = new Engine(this.engineConfig)
 
     this.dmmf = new DMMFClass(dmmf)
 
-    this.fetcher = new PhotonFetcher(this, false, internal.hooks)
+    this.fetcher = new PrismaClientFetcher(this, false, internal.hooks)
+
+    if (options.log) {
+      for (const log of options.log) {
+        const level = typeof log === 'string' ? log : log.emit === 'stdout' ? log.level : null
+        if (level) {
+          this.on(level as any, (event: any) => {
+            const colorMap = {
+              query: 'blue',
+              info: 'cyan',
+              warn: 'yellow'
+            }
+            console.error(chalk[colorMap[level]](\`prisma:$\{level\}\`.padEnd(13)) + (event.message || event.query))
+          })
+        }
+      }
+    }
   }
   on<V extends U>(eventType: V, callback: V extends never ? never : (event: V extends 'query' ? QueryEvent : LogEvent) => void) {
-    setTimeout(() => {
-      callback({eventType} as any)
-    }, 1000)
+    this.engine.on(eventType as any, event => {
+      const fields: any = event.fields
+      if ((eventType as any) === 'query') {
+        callback({
+          timestamp: event.timestamp,
+          query: fields.query,
+          params: fields.params,
+          duration: fields.duration_ms,
+          target: event.target
+        } as any)
+      } else { // warn or info events
+        callback({
+          timestamp: event.timestamp,
+          message: fields.message,
+          target: event.target
+        } as any)
+      }
+    })
   }
   async connect(): Promise<void> {
     if (this.disconnectionPromise) {
@@ -501,9 +564,19 @@ ${indent(
     .filter(m => m.findMany)
     .map(
       m => `
-get ${m.plural}(): ${m.model}Delegate {
-  return ${m.model}Delegate(this.dmmf, this.fetcher, this.errorFormat, this.measurePerformance)
-}`,
+get ${m.plural}(): '"prisma.${
+        m.plural
+      }" has been renamed to "prisma.${lowerCase(m.model)}"' {
+  throw new Error('"prisma.${m.plural}" has been renamed to "prisma.${lowerCase(
+        m.model,
+      )}"')
+}
+get ${lowerCase(m.model)}(): ${m.model}Delegate {
+  return ${
+    m.model
+  }Delegate(this.dmmf, this.fetcher, this.errorFormat, this.measurePerformance)
+}
+`,
     )
     .join('\n'),
   2,
@@ -854,18 +927,6 @@ export class ModelDelegate {
     // TODO: The following code needs to be split up and is a mess
     return `\
 export interface ${name}Delegate {
-  <T extends ${listConstraint}>(args?: Subset<T, ${getModelArgName(
-      name,
-      undefined,
-      DMMF.ModelAction.findMany,
-    )}>): ${getSelectReturnType({
-      name,
-      actionName: DMMF.ModelAction.findMany,
-      hideCondition: true,
-      isField: false,
-      renderPromise: true,
-      projection: Projection.select,
-    })}
 ${indent(
   actions
     .map(
@@ -885,18 +946,8 @@ ${indent(
 )}
   count(): Promise<number>
 }
-function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher, errorFormat: ErrorFormat, measurePerformance?: boolean): ${name}Delegate {
-  const ${name} = <T extends ${listConstraint}>(args: Subset<T, ${getModelArgName(
-      name,
-      undefined,
-      DMMF.ModelAction.findMany,
-    )}>) => new ${name}Client<${getSelectReturnType({
-      name,
-      actionName: DMMF.ModelAction.findMany,
-      projection: Projection.select,
-    })}>(dmmf, fetcher, 'query', '${mapping.findMany}', '${
-      mapping.plural
-    }', args, [], errorFormat, measurePerformance)
+function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaClientFetcher, errorFormat: ErrorFormat, measurePerformance?: boolean): ${name}Delegate {
+  const ${name} = {} 
 ${indent(
   actions
     .map(([actionName, fieldName]: [any, any]) =>
@@ -955,7 +1006,7 @@ export class ${name}Client<T> implements Promise<T> {
   private _collectTimestamps?: CollectTimestamps
   constructor(
     private readonly _dmmf: DMMFClass,
-    private readonly _fetcher: PhotonFetcher,
+    private readonly _fetcher: PrismaClientFetcher,
     private readonly _queryType: 'query' | 'mutation',
     private readonly _rootField: string,
     private readonly _clientMethod: string,
@@ -967,7 +1018,7 @@ export class ${name}Client<T> implements Promise<T> {
   ) {
     if (this._measurePerformance) {
       // Timestamps for performance checks
-      this._collectTimestamps = new CollectTimestamps("PhotonClient")
+      this._collectTimestamps = new CollectTimestamps("PrismaClient")
     }
 
     // @ts-ignore
@@ -979,7 +1030,7 @@ export class ${name}Client<T> implements Promise<T> {
       }
     }
   }
-  readonly [Symbol.toStringTag]: 'PhotonPromise'
+  readonly [Symbol.toStringTag]: 'PrismaClientPromise'
 
 ${indent(
   fields
@@ -1107,7 +1158,7 @@ interface ${name}Delegate {
       Projection.select,
     )}<T>>
 }
-function ${name}Delegate(dmmf: DMMFClass, fetcher: PhotonFetcher): ${name}Delegate {
+function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaClientFetcher): ${name}Delegate {
   const ${name} = <T extends ${name}Args>(args: ${name}Args) => new ${name}Client<T>(dmmf, fetcher, args, [])
   return ${name}
 }
@@ -1116,7 +1167,7 @@ class ${name}Client<T extends ${name}Args, U = ${getPayloadName(
       name,
       Projection.select,
     )}<T>> implements Promise<U> {
-  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PhotonFetcher, private readonly args: ${name}Args, private readonly _dataPath: []) {}
+  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PrismaClientFetcher, private readonly args: ${name}Args, private readonly _dataPath: []) {}
 
   readonly [Symbol.toStringTag]: 'Promise'
 

@@ -1,7 +1,7 @@
 steps:
-  - label: ':coverage: Test Photon'
+  - label: ':coverage: Test Prisma Client JS'
     trigger: 'prisma2-test'
-  - label: ':flashlight: Publish Photon'
+  - label: ':flashlight: Publish Prisma Client JS'
     trigger: 'prisma2-publish'
     if: |
       // Only run on master branch

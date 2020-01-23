@@ -4,9 +4,9 @@ datasource db {
   url      = "postgresql://localhost:5432/db"
 }
 
-generator photon {
-  provider  = "javascript"
-  output    = "@generated/photon"
+generator client {
+  provider  = "prisma-client-js"
+  output    = "@prisma/client"
   transpile = false
 }
 

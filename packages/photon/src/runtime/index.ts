@@ -10,9 +10,11 @@ export {
   Datasource,
   printDatasources,
 } from './utils/printDatasources'
-export { default as chalk } from 'chalk'
 export { printStack } from './utils/printStack'
 export { mergeBy } from './mergeBy'
 export { unpack } from './query'
 import stripAnsi from 'strip-ansi'
 export { stripAnsi }
+
+import chalk from 'chalk'
+export { chalk }
