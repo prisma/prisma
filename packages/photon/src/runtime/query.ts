@@ -1296,6 +1296,13 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
           return getInvalidTypeArg(key, value, arg, t)
         } else {
           let val = cleanObject(value)
+          if (t.type.isWhereType && val) {
+            for (const field of t.type.fields) {
+              if (field.nullEqualsUndefined && val[field.name] === null) {
+                delete val[field.name] // it's fine to touch val, as it's already a copy here
+              }
+            }
+          }
           if (t.type.isOrderType) {
             val = filterObject(val, (k, v) => v !== null)
           }

@@ -86,6 +86,7 @@ export namespace DMMF {
     name: string
     inputType: SchemaArgInputType[]
     isRelationFilter?: boolean
+    nullEqualsUndefined?: boolean
   }
 
   export interface OutputType {
