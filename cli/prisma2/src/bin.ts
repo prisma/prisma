@@ -77,7 +77,6 @@ async function main(): Promise<number> {
         save: LiftSave.new(),
         up: LiftUp.new(),
         down: LiftDown.new(),
-        docs: Docs.new('migrate', 'https://github.com/prisma/prisma2/tree/master/docs'),
       }),
       'tmp-prepare': LiftTmpPrepare.new(),
       introspect: Introspect.new(),
