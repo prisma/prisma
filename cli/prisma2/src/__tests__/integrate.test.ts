@@ -139,7 +139,7 @@ function tests() {
         drop table if exists teams cascade;
       `,
       do: async client => {
-        return client.team.findOne({ where: { id: 2 } })
+        return client.teams.findOne({ where: { id: 2 } })
       },
       expect: {
         id: 2,
@@ -160,7 +160,7 @@ function tests() {
         drop table if exists teams cascade;
       `,
       do: async client => {
-        return client.team.findOne({ where: { id: 2 }, select: { name: true } })
+        return client.teams.findOne({ where: { id: 2 }, select: { name: true } })
       },
       expect: {
         name: 'b',
@@ -189,7 +189,7 @@ function tests() {
         drop table if exists users cascade;
       `,
       do: async client => {
-        return client.user.findOne({ where: { id: 1 }, include: { postses: true } })
+        return client.users.findOne({ where: { id: 1 }, include: { postses: true } })
       },
       expect: {
         email: 'ada@prisma.io',
@@ -217,7 +217,7 @@ function tests() {
         drop table if exists teams cascade;
       `,
       do: async client => {
-        return client.team.create({ data: { name: 'c', id: 1 } })
+        return client.teams.create({ data: { name: 'c', id: 1 } })
       },
       expect: {
         id: 1,
@@ -236,7 +236,7 @@ function tests() {
         drop table if exists teams cascade;
       `,
       do: async client => {
-        return client.team.update({
+        return client.teams.update({
           where: { name: 'c' },
           data: { name: 'd' },
         })
@@ -258,7 +258,7 @@ function tests() {
         drop table if exists users cascade;
       `,
       do: async client => {
-        return client.user.findOne({ where: { email: 'ada@prisma.io' } })
+        return client.users.findOne({ where: { email: 'ada@prisma.io' } })
       },
       expect: {
         id: 1,
@@ -277,7 +277,7 @@ function tests() {
         drop table if exists users cascade;
       `,
       do: async client => {
-        return client.user({ where: { email: 'ada@prisma.io' } })
+        return client.users.findMany({ where: { email: 'ada@prisma.io' } })
       },
       expect: [
         {
@@ -300,7 +300,7 @@ function tests() {
         drop table if exists users cascade;
       `,
       do: async client => {
-        return client.user()
+        return client.users.findMany()
       },
       expect: [
         {
@@ -335,7 +335,7 @@ function tests() {
         drop table if exists users cascade;
       `,
       do: async client => {
-        return client.user.findOne({ where: { email: 'ada@prisma.io' } }).postses()
+        return client.users.findOne({ where: { email: 'ada@prisma.io' } }).postses()
       },
       expect: [
         {
@@ -363,7 +363,7 @@ function tests() {
         drop table if exists posts cascade;
       `,
       do: async client => {
-        return client.post.findMany({
+        return client.posts.findMany({
           where: {
             title: { contains: 'A' },
             published: true,
@@ -393,7 +393,7 @@ function tests() {
         drop table if exists posts cascade;
       `,
       do: async client => {
-        return client.post.findMany({
+        return client.posts.findMany({
           where: {
             OR: [{ title: { contains: 'A' } }, { title: { contains: 'C' } }],
             published: true,
