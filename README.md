@@ -119,10 +119,10 @@ When starting from scratch, you can write your own [data model definition](https
 Instead of sending SQL migration statements to the database, you need to adjust the data model file to describe your desired database schema. You can express any schema migration you like using the new data model, this includes for example adding a new model, removing a model or updating the fields of a model. You can
 also add indexes or validation constraints in the data model.
 
-You can create a new migration for your change by running `prisma migrate save`:
+You can create a new migration for your change by running `prisma2 migrate save`:
 
 ```bash
-prisma migrate save --name "add-comment-model" --experimental
+prisma2 migrate save --name "add-comment-model" --experimental
 ```
 
 ### 4. Migrate your database (apply data model changes)
@@ -132,7 +132,7 @@ prisma migrate save --name "add-comment-model" --experimental
 Once you're happy with the changes, you can use the Prisma CLI to migrate your database (i.e. map the adjusted data model to your database). Lift's migration engine will generate the corresponding SQL statements and send them to the database for you.
 
 ```bash
-prisma migrate up --experimental
+prisma2 migrate up --experimental
 ```
 
 ## Supported databases
