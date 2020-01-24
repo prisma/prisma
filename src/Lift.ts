@@ -939,7 +939,7 @@ class ProgressRenderer {
 
     str += chalk.dim(
       `\n\nYou can get the detailed db changes with ${chalk.greenBright(
-        'prisma2 migreate up --experimental --verbose',
+        'prisma2 migrate up --experimental --verbose',
       )}\nOr read about them in the ./migrations/MIGRATION_ID/README.md`,
     )
 
