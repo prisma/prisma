@@ -2,14 +2,16 @@
 
 Prisma 2 currently supports the following databases:
 
-| Database | Version | Status |
-| --- | --- | --- |
-| MySQL | 5.7 | **Official** support | 
-| MySQL | 8 | **Experimental** support |
-| PostgreSQL |  10.X | **Official** support |
-| PostgreSQL |  11.X | **Experimental** support |
-| SQLite | 3.28.0 | **Official** support |
+| Database | Version | 
+| --- | --- |
+| PostgreSQL |  9 |
+| PostgreSQL |  10 |
+| PostgreSQL |  11 |
+| PostgreSQL |  12 |
+| MySQL | 5.7 | 
+| MySQL | 8 | 
+| MariaDB | 10 |
+| SQLite | 3.28.0 |
 
-When a database version is **officially** supported, it means that there is an internal test suite that's running against this version. **Experimental** support means that there are currently no internal tests against that database version. In most cases, this means that using this database version is still fine.
 
 Note that a fixed version of SQLite is shipped with every Prisma 2 release.
