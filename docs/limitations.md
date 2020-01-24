@@ -4,7 +4,7 @@ During the Preview period of Prisma 2 there are missing features and other limit
 
 ## Functionality limitations
 
-- Embedded types are not implemented yet ([tracking issue](https://github.com/prisma/lift/issues/43)).
+- Embedded types are not implemented yet ([tracking issue](https://github.com/prisma/migrate/issues/43)).
 - Many other types are not fully implemented yet (e.g. `citext` or `varchar(n)` for PostgreSQL).
 - Models must have an `@id` attribute and it must take one of these forms:
     - `Int  @id  @default(autoincrement())`

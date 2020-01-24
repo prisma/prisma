@@ -14,7 +14,7 @@ For that, a full rewrite of Prisma was necessary so that we can build upon a pro
 - Track the progress of Prisma 2 here: [`isprisma2ready.com`](https://www.isprisma2ready.com)
 - Open issues in following repos:
   - General Prisma 2 questions and catch-all for problems and questions: [`prisma2`](https://github.com/prisma/prisma2)
-  - Problems/questions regarding Prisma Migrate: [`lift`](https://github.com/prisma/lift)
+  - Problems/questions regarding Prisma Migrate: [`migrate`](https://github.com/prisma/migrate)
   - Problems/questions regarding Prisma Client JS: [`prisma-client-js`](https://github.com/prisma/prisma-client-js)
 
 ## Your opinion matters – a lot!
@@ -49,7 +49,7 @@ In any of the following scenarios, please make sure to create a GitHub issue to 
 If your issue relates to either Prisma Client JS or Prisma Migrate specifically, you can open an issue directly in the respective repositories:
 
 - [Open an issue for **Prisma Client JS**](https://github.com/prisma/prisma-client-js/issues/new)
-- [Open an issue for **Prima Migrate**](https://github.com/prisma/lift/issues/new)
+- [Open an issue for **Prima Migrate**](https://github.com/prisma/migrate/issues/new)
 
 Otherwise, the default place for opening issues is the official `prisma2` repo (when in doubt, create the issue here):
 

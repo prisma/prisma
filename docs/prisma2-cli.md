@@ -39,7 +39,7 @@ The following environment variables can be provided:
 
 #### `prisma2 init`
 
-Sets up Prisma (i.e., Prisma Client JS and/or Lift) via an interactive wizard. You can specify your database connection and/or create a new database to work with. For a list with currently supported databases, see the [this page](./supported-databases.md). The wizard also allows you to derive a Prisma schema file from your existing database.
+Sets up a `prisma/schema.prisma` file in the current directory. See [https://pris.ly/d/getting-started](https://pris.ly/d/getting-started).
 
 #### `prisma2 generate`
 
@@ -47,7 +47,7 @@ Invokes all generators defined in the Prisma schema file. For example, this crea
 
 #### `prisma2 introspect`
 
-Introspects the database and generates a data model from it. Basically, it analyzes your (already existing) database and automatically creates the Prisma schema file for you. This is useful, if you already have an existing application and want to start using Prisma 2. Note that this command synchronizes your Prisma schema file according to your database structure; typically if you're not using Lift to migrate your database.
+Introspects the database and generates a data model from it. Basically, it analyzes your (already existing) database and automatically creates the Prisma schema file for you. This is useful, if you already have an existing application and want to start using Prisma 2. Note that this command synchronizes your Prisma schema file according to your database structure; typically if you're not using Prisma Migrate to migrate your database.
 
 ### Migrations
 
