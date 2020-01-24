@@ -1,5 +1,5 @@
 import { Engine, PrismaClientError, PrismaClientQueryError, QueryEngineError } from './Engine'
-import got, { Got } from 'got'
+import got from 'got'
 import HttpAgent from 'agentkeepalive'
 import debugLib from 'debug'
 import { getPlatform, Platform, mayBeCompatible } from '@prisma/get-platform'
@@ -57,7 +57,6 @@ export class NodeEngine extends Engine {
   private keepaliveAgent: HttpAgent
   private logQueries: boolean
   private logLevel?: 'info' | 'warn'
-  private got: Got
   port?: number
   debug: boolean
   child?: ChildProcessWithoutNullStreams
@@ -113,14 +112,6 @@ export class NodeEngine extends Engine {
     })
     this.logLevel = logLevel
     this.logQueries = logQueries || false
-    this.got = got.extend({
-      responseType: 'json',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      protocol: 'http:',
-      agent: this.keepaliveAgent,
-    });
 
     this.logEmitter.on('error', (log: RustLog) => {
       if (this.debug) {
@@ -548,7 +539,13 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
     collectTimestamps && collectTimestamps.record("Pre-engine_request_http_got")
 
-    this.currentRequestPromise = this.got.post(this.url, {
+    this.currentRequestPromise = got.post(this.url, {
+      protocol: 'http:',
+      responseType: 'json',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      agent: this.keepaliveAgent,
       json: { query, variables: {} },
     })
 
