@@ -34,13 +34,10 @@ export class Introspect implements Command {
 
     ${chalk.bold('Usage')}
 
-    With an existing schema.prisma, just
+    With an existing schema.prisma
       ${chalk.bold('prisma2 introspect')}
 
-    Or specify a connection string:
-      ${chalk.bold('prisma2 introspect --url="mysql://localhost:3306/database"')}
-
-    Instead of saving the result to the filesystem, you can also just print it
+    Instead of saving the result to the filesystem, you can also print it
       ${chalk.bold('prisma2 introspect --print')}
 
   `)
