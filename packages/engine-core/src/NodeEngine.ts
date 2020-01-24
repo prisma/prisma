@@ -540,13 +540,12 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     collectTimestamps && collectTimestamps.record("Pre-engine_request_http_got")
 
     this.currentRequestPromise = got.post(this.url, {
-      protocol: 'http:',
-      responseType: 'json',
+      json: true,
       headers: {
         'Content-Type': 'application/json',
       },
+      body: { query, variables: {} },
       agent: this.keepaliveAgent,
-      json: { query, variables: {} },
     })
 
     collectTimestamps && collectTimestamps.record('Post-engine_request_http_got')

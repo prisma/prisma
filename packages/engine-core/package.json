@@ -9,6 +9,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@types/jest": "24.0.22",
     "@types/node": "12.12.7",
+    "@types/got": "9.6.9",
     "del-cli": "^3.0.0",
     "jest": "24.9.0",
     "ts-jest": "24.1.0",
@@ -27,7 +28,7 @@
     "chalk": "^3.0.0",
     "cross-fetch": "^3.0.4",
     "debug": "^4.1.1",
-    "got": "^10.2.2",
+    "got": "9.6.0",
     "indent-string": "^4.0.0"
   },
   "files": [
