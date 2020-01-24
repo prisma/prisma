@@ -562,22 +562,28 @@ export class PrismaClient<T extends PrismaClientOptions = {}, U = keyof T extend
 ${indent(
   dmmf.mappings
     .filter(m => m.findMany)
-    .map(
-      m => `
-get ${m.plural}(): '"prisma.${
-        m.plural
-      }" has been renamed to "prisma.${lowerCase(m.model)}"' {
-  throw new Error('"prisma.${m.plural}" has been renamed to "prisma.${lowerCase(
-        m.model,
-      )}"')
-}
-get ${lowerCase(m.model)}(): ${m.model}Delegate {
+    .map(m => {
+      let str = `get ${lowerCase(m.model)}(): ${m.model}Delegate {
   return ${
     m.model
   }Delegate(this.dmmf, this.fetcher, this.errorFormat, this.measurePerformance)
-}
-`,
-    )
+}`
+
+      // only do this, if we don't cause a name clash.
+      // otherwise it's not necessary anyways
+      if (m.plural !== lowerCase(m.model)) {
+        str += `
+get ${m.plural}(): '"prisma.${
+          m.plural
+        }" has been renamed to "prisma.${lowerCase(m.model)}"' {
+  throw new Error('"prisma.${m.plural}" has been renamed to "prisma.${lowerCase(
+          m.model,
+        )}"')
+}`
+      }
+
+      return str
+    })
     .join('\n'),
   2,
 )}

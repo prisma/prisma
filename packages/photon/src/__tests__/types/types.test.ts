@@ -45,7 +45,7 @@ function compileFile(filePath: string): void {
     strict: true,
     esModuleInterop: true,
     noEmitOnError: true,
-    skipLibCheck: true,
+    skipLibCheck: false,
   }
 
   const compilerHost = createCompilerHost(options)
