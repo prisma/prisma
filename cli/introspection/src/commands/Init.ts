@@ -125,7 +125,8 @@ export class Init implements Command {
     }
 
     return `
-✔ Your Prisma schema was created at ${chalk.green(prismaSchema)}. You can now open it in your favorite editor.
+✔ Your Prisma schema was created at ${chalk.green(prismaSchema)}.
+  You can now open it in your favorite editor.
 
 Next steps${runCdInstruction}
 ${stepNumber}. Set your DB connection string as the \`url\` of the \`datasource\` block.
@@ -136,8 +137,8 @@ You can then start using Prisma Client in your application:
 
 \`\`\`
 ${highlightTS(`\
-import { PrismaClient } from 'prisma-client-js'
-// or const { PrismaClient } = require('prisma-client-js')
+import { PrismaClient } from '@prisma/client'
+// or const { PrismaClient } = require('@prisma/client')
 
 const prisma = new PrismaClient()
 `)}
