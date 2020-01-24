@@ -22,7 +22,7 @@ yarn global add prisma2
 
 ### `prisma2 init`
 
-Sets up a new Prisma project via an interactive wizard.
+Sets up a `prisma/schema.prisma` file in the current directory.
 
 ### `prisma2 generate`
 
