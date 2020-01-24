@@ -176,7 +176,7 @@ model User {
 You can provide the `id` as input value in [`create`](#create) and [`update`](#update) operations, for example:
 
 ```ts
-const user = await prisman.users.create({
+const user = await prisma.users.create({
   data: {
     id: 1
   }
@@ -203,7 +203,7 @@ model User {
 When creating or updating a `User` record, you can create a new list or replace the current one with a new list like so:
 
 ```ts
-await  prisman.users.create({
+await  prisma.users.create({
   data: {
     coinFlips: {
       set: [true, false]
@@ -211,7 +211,7 @@ await  prisman.users.create({
   }
 })
 
-await  prisman.users.update({
+await  prisma.users.update({
   where: { id: 42 ,}
   data: {
     coinFlips: {
@@ -302,7 +302,7 @@ Creates a new record and returns the corresponding object. You can use the `sele
 #### Examples
 
 ```ts
-const user = await prisman.users.create({
+const user = await prisma.users.create({
   data: { name: 'Alice' },
 })
 ```
@@ -322,7 +322,7 @@ Updates an existing record and returns the corresponding object. You can use the
 #### Examples
 
 ```ts
-const user = await prisman.users.update({
+const user = await prisma.users.update({
   where: { id: 1 },
   data: { name: 'ALICE' },
 })
@@ -364,7 +364,7 @@ Updates an existing or creates a new record and returns the corresponding object
 #### Examples
 
 ```ts
-const user = await prisman.users.upsert({
+const user = await prisma.users.upsert({
   where: { id: 1 },
   update: { name: "ALICE" },
   create: { name: "ALICE" }
@@ -385,7 +385,7 @@ Deletes an existing record and returns the corresponding object. You can use the
 #### Examples
 
 ```ts
-const user = await prisman.users.delete({
+const user = await prisma.users.delete({
   where: { id: 1 },
 })
 ```
@@ -419,7 +419,7 @@ The `count()` method doesn't take any input arguments.
 #### Examples
 
 ```ts
-const userCount = await  prisman.users.count()
+const userCount = await  prisma.users.count()
 // userCount = 42
 ```
 
