@@ -15,7 +15,7 @@ test('basic introspection', async () => {
       amount  Float   @default(0)
       balance Float   @default(0)
       email   String  @default(\\"\\") @unique
-      id      Int     @id
+      id      Int     @default(autoincrement()) @id
       name    String?
       role    String  @default(\\"USER\\")
       posts   Post[]
