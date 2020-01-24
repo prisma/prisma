@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import { Command, Commands, arg, isError, format, HelpError, unknownCommand } from '@prisma/cli'
 import { Version } from './Version'
 import { download } from '@prisma/fetch-engine'
+import { link } from '@prisma/sdk'
 const pkg = require('../package.json')
 
 /**
@@ -75,7 +76,7 @@ export class CLI implements Command {
 
   // static help template
   private static help = format(`
-    ${chalk.bold.green('◭')} Prisma makes your data easy (https://prisma.io)
+    ${chalk.bold.green('◭')} Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
 
     ${chalk.bold('Usage')}
 
@@ -105,7 +106,7 @@ export class CLI implements Command {
 
   // static help template
   private static experimentalHelp = format(`
-    ${chalk.bold.green('◭')} Prisma makes your data easy (https://prisma.io)
+    ${chalk.bold.green('◭')} Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
 
     ${chalk.bold('Usage')}
 
