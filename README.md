@@ -11,7 +11,7 @@ To get started, you can explore a number of ready-to-run [**examples**](https://
 Prisma 2 is a database framework that consists of these tools:
 
 - [**Prisma Client JS**](https://github.com/prisma/prisma-client-js): Type-safe and auto-generated database client ("ORM replacement")
-- [**Prisma Migrate**](https://github.com/prisma/lift): Declarative data modeling and migrations
+- [**Prisma Migrate**](https://github.com/prisma/migrate): Declarative data modeling and migrations
 - [**Studio**](https://github.com/prisma/studio): Admin UI to support various database workflows
 
 While each tool can be used standalone (in both [_greenfield_ and _brownfield_ projects](https://en.wikipedia.org/wiki/Brownfield_(software_development))), they integrate nicely through common components like the [**Prisma schema**](./docs/prisma-schema-file.md) or the [Prisma 2 CLI](./docs/prisma2-cli.md).
