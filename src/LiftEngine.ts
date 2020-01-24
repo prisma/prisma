@@ -293,7 +293,7 @@ Please put that file into a gist and post it in Slack.
 function serializePanic(log) {
   return `${chalk.red.bold('Error in migration engine.\nReason: ')}${chalk.red(`${log.message}`)}
 
-Please create an issue in the ${chalk.bold('lift')} repo with
+Please create an issue in the ${chalk.bold('migrate')} repo with
 your \`schema.prisma\` and the prisma2 command you tried to use 🙏:
-${chalk.underline('https://github.com/prisma/lift/issues/new')}\n`
+${chalk.underline('https://github.com/prisma/migrate/issues/new')}\n`
 }

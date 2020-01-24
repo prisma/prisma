@@ -315,7 +315,7 @@ export class Lift {
     // TODO better printing of params
     const nameStr = name ? ` --name ${chalk.bold(name)}` : ''
     const previewStr = preview ? ` --preview` : ''
-    console.log(`📼  lift save${nameStr}${previewStr}`)
+    console.log(`📼  migrate save${nameStr}${previewStr}`)
     if (lastMigration) {
       const wording = preview ? `Potential datamodel changes:` : 'Local datamodel Changes:'
       console.log(chalk.bold(`\n${wording}\n`))
@@ -528,7 +528,7 @@ export class Lift {
 
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
-      console.log(`🏋️‍ lift up${previewStr}\n`)
+      console.log(`🏋️‍ migrate up${previewStr}\n`)
 
       if (migrationsToApply.length === 0) {
         return 'All migrations are already applied'
@@ -738,7 +738,7 @@ export class Lift {
       const stepsFileJson = JSON.parse(stepsFile.file)
       if (Array.isArray(stepsFileJson)) {
         throw new Error(
-          `We changed the steps.json format - please delete your migrations folder and run prisma lift create again`,
+          `We changed the steps.json format - please delete your migrations folder and run prisma migrate create again`,
         )
       }
       if (!stepsFileJson.steps) {
