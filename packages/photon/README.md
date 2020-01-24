@@ -11,7 +11,7 @@ This package is being used by `prisma2`.
 3. `yarn`
 4. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
 5. `cd fixtures/blog`
-6. `prisma2 lift save --name init && prisma2 lift up`
+6. `prisma2 migrate save --name init --experimental && prisma2 migrate up --experimental`
 7. `ts-node main.ts`
 
 ### Working on code generation

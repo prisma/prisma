@@ -22,19 +22,17 @@ It is part of the [Prisma 2](https://www.github.com/prisma/prisma2) ecosystem. P
   <a href="https://www.github.com/prisma/prisma2"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
 </p>
 
-
 ## Getting started
 
-The easiest way to get started with Prisma Client JS is by installing the Prisma 2 CLI and running the interactive `init` command:
+The easiest way to get started with Prisma Client JS is by installing the Prisma 2 CLI and running the `init` command:
 
 ```sh
 npm install -g prisma2
-prisma2 init hello-prisma
+mkdir my-prisma-project && cd my-prisma-project
+prisma2 init
 ```
 
-The interactive prompt will ask you to provide database credentials for your database. If you don't have a database yet, select **SQLite** and let the CLI set up a database file for you.
-
-Learn more about the `prisma2 init` flow [here](https://github.com/prisma/prisma2/blob/master/docs/getting-started.md).
+Learn more about the `prisma2 init` flow [here](https://pris.ly/d/getting-started).
 
 ## Features
 
@@ -45,7 +43,7 @@ Learn more about the `prisma2 init` flow [here](https://github.com/prisma/prisma
   - Transactional nested writes and batching API
   - Relation filters (filter on JOINed tables)
   - Powerful methods for filtering, sorting and (cursor) pagination
-- Declarative data modelling and migrations with [Lift](https://github.com/prisma/lift)
+- Declarative data modelling and migrations with [Prisma Migrate](https://github.com/prisma/migrate)
 - Connection pooling
 - Works with existing databases using schema introspection
 - CLI to support all major workflows
@@ -213,7 +211,7 @@ If you want to use Prisma Client JS with an existing database, you can [introspe
 
 #### Option B: Start from scratch (_greenfield_)
 
-When starting from scratch, you can simply write your own [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) inside your [schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). You can then use [Lift](https://github.com/prisma/lift) to migrate your database (Lift maps your data model definition to the schema of the underlying database).
+When starting from scratch, you can simply write your own [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) inside your [schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). You can then use [Prisma Migrate](https://github.com/prisma/migrate) to migrate your database (Prisma Migrate maps your data model definition to the schema of the underlying database).
 
 ### 3. Generate Prisma Client JS
 
@@ -241,25 +239,25 @@ Similar to traditional ORMs, Prisma Client JS can be used with any of your Node.
 
 ### 5. Evolve your database and Prisma Client JS
 
-As you build your app, you'll likely migrate your database to implement new features. Depending on how you obtained your [initial data model](#2-define-initial-data-model) and whether or not you're using [Lift](https://github.com/prisma/migrate), there might be two ways for evolving your application going forward.
+As you build your app, you'll likely migrate your database to implement new features. Depending on how you obtained your [initial data model](#2-define-initial-data-model) and whether or not you're using [Prisma Migrate](https://github.com/prisma/migrate), there might be two ways for evolving your application going forward.
 
-#### Option A: Without Lift
+#### Option A: Without Prisma Migrate
 
-If you're not using Lift, you need to re-introspect your database (to update the generated datamodel) and re-generate Prisma Client JS after each schema migration:
+If you're not using Prisma Migrate, you need to re-introspect your database (to update the generated datamodel) and re-generate Prisma Client JS after each schema migration:
 
 ```sh
 prisma2 introspect
 prisma2 generate
 ```
 
-#### Option B: With Lift
+#### Option B: With Prisma Migrate
 
-When using Lift, you need to re-generate Prisma Client JS immediately after you performed a schema migration:
+When using Prisma Migrate, you need to re-generate Prisma Client JS immediately after you performed a schema migration:
 
 ```sh
 # adjust data model definition in schema.prisma
-prisma2 lift save
-prisma2 lift up
+prisma2 migrate save --experimental
+prisma2 migrate up --experimental
 prisma2 generate
 ```
 
