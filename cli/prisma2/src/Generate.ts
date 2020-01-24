@@ -19,7 +19,7 @@ export class Generate implements Command {
 
   // static help template
   private static help = format(`
-    Generate the Prisma Client.
+    Generate artifacts (e.g. Prisma Client)
 
     ${chalk.bold('Usage')}
 
