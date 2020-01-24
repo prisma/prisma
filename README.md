@@ -106,11 +106,11 @@ enum Role {
 
 <img src="https://i.imgur.com/XkRkwdE.png" width="355px">
 
-If you want to use Lift with an existing database, you can [introspect](https://github.com/prisma/prisma2/blob/master/docs/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md). This generates a declarative [data model](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) which provides the foundation for future migrations.
+If you want to use Prisma Migrate with an existing database, you can [introspect](https://github.com/prisma/prisma2/blob/master/docs/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md). This generates a declarative [data model](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) which provides the foundation for future migrations.
 
 #### Option B: Start from scratch
 
-When starting from scratch, you can write your own [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) inside your [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). You can then use the Lift CLI commands to migrate your database (Lift maps your data model definition to the schema of the underlying database).
+When starting from scratch, you can write your own [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) inside your [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). You can then use the Prisma Migrate CLI commands to migrate your database (Prisma Migrate maps your data model definition to the schema of the underlying database).
 
 ### 3. Adjust the data model
 
@@ -129,7 +129,7 @@ prisma2 migrate save --name "add-comment-model" --experimental
 
 <img src="https://i.imgur.com/L6a5Vqd.png" width="392px">
 
-Once you're happy with the changes, you can use the Prisma CLI to migrate your database (i.e. map the adjusted data model to your database). Lift's migration engine will generate the corresponding SQL statements and send them to the database for you.
+Once you're happy with the changes, you can use the Prisma CLI to migrate your database (i.e. map the adjusted data model to your database). Prisma Migrate's migration engine will generate the corresponding SQL statements and send them to the database for you.
 
 ```bash
 prisma2 migrate up --experimental

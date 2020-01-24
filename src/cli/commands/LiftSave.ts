@@ -108,7 +108,7 @@ export class LiftSave implements Command {
 
     lift.stop()
 
-    return `\nLift just created your migration ${printMigrationId(migrationId)} in\n\n${chalk.dim(
+    return `\nPrisma Migrate just created your migration ${printMigrationId(migrationId)} in\n\n${chalk.dim(
       printFiles(`migrations/${migrationId}`, files),
     )}\n\nRun ${chalk.greenBright('prisma2 migrate up --experimental')} to apply the migration\n`
   }
