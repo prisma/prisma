@@ -32,3 +32,14 @@ enum Role {
   USER
   ADMIN
 }
+
+model MachineData {
+  id        String @default(cuid()) @id
+  machineId String
+  os        String
+  osVersion Float
+  osArch    String
+  procFreq  Float
+  procCores Int
+  ram       Int
+}
