@@ -23,3 +23,119 @@ As database schemas are likely to look very different per project, Prisma employ
 - Relation names for a relation between models A and B are generated as `AToB` (the model that comes first in alphabetical order also appears first in the generated relation name). If relation names turn out to be ambiguous because there is more than one relation between models `A` and `B`, the field name of the column that holds the foreign key is appended to the model name after an underscore to disambiguate, e.g.: `A_FieldWithFKToB`. 
 - The name of the back-relation field is based on the opposing model. It gets camel cases by defauld and pluralized (unless the column with the foreign key also has a unique constraint). If back-relation fields are ambiguous, the relation name is appended to disambiguate.
 
+
+## Mapping PostgreSQL types to Prisma
+
+| PostgreSQL type | Prisma type | Note                                                       |
+| :-------------- | :---------- | :--------------------------------------------------------- |
+| `int2`          | `Int`       |                                                            |
+| `int4`          | `Int`       |                                                            |
+| `int8`          | `Int`       |                                                            |
+| `float4`        | `Float`     |                                                            |
+| `float8`        | `Float`     |                                                            |
+| `bool`          | `Boolean`   |                                                            |
+| `text`          | `String`    |                                                            |
+| `varchar`       | `String`    |                                                            |
+| `date`          | `DateTime`  |                                                            |
+| `DateTime`      | `String`    |                                                            |
+| `json`          | `String`    | Will be mapped to `Json` once it's supported.              |
+| `Stringb`       | `String`    | Will be mapped to `Json` once it's supported.              |
+| `uuid`          | `String`    | Will be mapped to `Uuid` once it's supported.              |
+| `bit`           | `String`    | Will be mapped to `Binary` once it's supported.            |
+| `varbit`        | `String`    | Will be mapped to `Binary` once it's supported.            |
+| `box`           | `String`    | Will be mapped to `Geometric` once it's supported.         |
+| `circle`        | `String`    | Will be mapped to `Geometric` once it's supported.         |
+| `line`          | `String`    | Will be mapped to `Geometric` once it's supported.         |
+| `lseg`          | `String`    | Will be mapped to `Geometric` once it's supported.         |
+| `path`          | `String`    | Will be mapped to `Geometric` once it's supported.         |
+| `polygon`       | `String`    | Will be mapped to `Geometric` once it's supported.         |
+| `bpchar`        | `String`    |                                                            |
+| `interval`      | `DateTime`  |                                                            |
+| `numeric`       | `Float`     |                                                            |
+| `pg_lsn`        | `String`    | Will be mapped to `LogSequenceNumber` once it's supported. |
+| `time`          | `DateTime`  |                                                            |
+| `timetz`        | `DateTime`  |                                                            |
+| `timestamp`     | `DateTime`  |                                                            |
+| `timestamptz`   | `DateTime`  |                                                            |
+| `tsquery`       | `String`    | Will be mapped to `TextSearch` once it's supported.        |
+| `tsvector`      | `String`    | Will be mapped to `TextSearch` once it's supported.        |
+| `txid_snapshot` | `String`    | Will be mapped to `TransactionId` once it's supported.     |
+| `_bytea`        | `String`    | Will be mapped to `Binary` once it's supported.            |
+| `_bool`         | `Boolean`   |                                                            |
+| `_date`         | `DateTime`  |                                                            |
+| `_float8`       | `Float`     |                                                            |
+| `_float4`       | `Float`     |                                                            |
+| `_int4`         | `Int`       |                                                            |
+| `_text`         | `String`    |                                                            |
+| `_varchar`      | `String`    |                                                            |
+
+You can find an overview of all PostgreSQL types [here](https://www.mysqltutorial.org/mysql-data-types.aspx).
+
+## Mapping MySQL types to Prisma
+
+| MySQL type           | Prisma type | Note                                               |
+| :------------------- | :---------- | :------------------------------------------------- |
+| `int`                | `Int`       |                                                    |
+| `smallint`           | `Int`       |                                                    |
+| `tinyint(1)`         | `Boolean`   |                                                    |
+| `tinyint`            | `Int`       |                                                    |
+| `mediumint`          | `Int`       |                                                    |
+| `bigint`             | `Int`       |                                                    |
+| `decimal`            | `Float`     |                                                    |
+| `double`             | `Float`     |                                                    |
+| `date`               | `DateTime`  |                                                    |
+| `time`               | `DateTime`  |                                                    |
+| `datetime`           | `DateTime`  |                                                    |
+| `timestamp`          | `DateTime`  |                                                    |
+| `year`               | `DateTime`  |                                                    |
+| `char`               | `String`    |                                                    |
+| `varchar`            | `String`    |                                                    |
+| `text`               | `String`    |                                                    |
+| `tinytext`           | `String`    |                                                    |
+| `mediumtext`         | `String`    |                                                    |
+| `longtext`           | `String`    |                                                    |
+| `enum`               | `String`    |                                                    |
+| `set`                | `String`    |                                                    |
+| `binary`             | `String`    | Will be mapped to `Binary` once it's supported.    |
+| `varbinary`          | `String`    | Will be mapped to `Binary` once it's supported.    |
+| `blob`               | `String`    | Will be mapped to `Binary` once it's supported.    |
+| `tinyblob`           | `String`    | Will be mapped to `Binary` once it's supported.    |
+| `mediumblob`         | `String`    | Will be mapped to `Binary` once it's supported.    |
+| `longblob`           | `String`    | Will be mapped to `Binary` once it's supported.    |
+| `geometry`           | `String`    | Will be mapped to `Geometric` once it's supported. |
+| `point`              | `String`    | Will be mapped to `Geometric` once it's supported. |
+| `linestring`         | `String`    | Will be mapped to `Geometric` once it's supported. |
+| `polygon`            | `String`    | Will be mapped to `Geometric` once it's supported. |
+| `multipoint`         | `String`    | Will be mapped to `Geometric` once it's supported. |
+| `multilinestring`    | `String`    | Will be mapped to `Geometric` once it's supported. |
+| `multipolygon`       | `String`    | Will be mapped to `Geometric` once it's supported. |
+| `geometrycollection` | `String`    | Will be mapped to `Geometric` once it's supported. |
+| `json`               | `String`    | Will be mapped to `Json` once it's supported.      |
+
+You can find an overview of all MySQL types [here](https://www.mysqltutorial.org/mysql-data-types.aspx).
+
+## Mapping SQLite types to Prisma
+
+| SQLite type  | Prisma type | Note                                            |
+| :----------- | :---------- | :---------------------------------------------- |
+| `integer`    | `Int`       |                                                 |
+| `real`       | `Float`     |                                                 |
+| `float`      | `Float`     |                                                 |
+| `serial`     | `Int`       |                                                 |
+| `boolean`    | `Boolean`   |                                                 |
+| `text`       | `String`    |                                                 |
+| `date`       | `DateTime`  |                                                 |
+| `datetime`   | `DateTime`  |                                                 |
+| `binary`     | `String`    | Will be mapped to `Binary` once it's supported. |
+| `double`     | `Float`     |                                                 |
+| `binary[]`   | `String`    | Will be mapped to `Binary` once it's supported. |
+| `boolean[]`  | `Boolean`   |                                                 |
+| `date[]`     | `DateTime`  |                                                 |
+| `datetime[]` | `DateTime`  |                                                 |
+| `float[]`    | `Float`     |                                                 |
+| `double[]`   | `Float`     |                                                 |
+| `integer[]`  | `Int`       |                                                 |
+| `text[]`     | `String`    |                                                 |
+| `timestamp`  | `DateTime`  |                                                 |
+
+You can find an overview of all SQLite types [here](https://www.sqlite.org/datatype3.html#datatypes_in_sqlite).
