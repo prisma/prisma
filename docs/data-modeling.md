@@ -33,7 +33,6 @@ datasource sqlite {
 
 model User {
   id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
   email     String   @unique
   name      String?
   role      Role     @default(USER)
@@ -281,7 +280,7 @@ Depending on their signature, attributes may be called in the following cases:
 - _Examples_:
   - `@field("my_column")`
   - `@default(10)`
-  - `@createdAt(now())`
+  - `@default(now())`
 
 For arrays with a single parameter, you **may** omit the surrounding brackets:
 
