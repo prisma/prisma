@@ -123,6 +123,11 @@ There are two ways how the _default selection set_ can be manipulated to specify
 - **Select exclusively** (via `select`): When using `select`, the selection set only contains the fields that are explicitly provided as arguments to `select`.
 - **Include additionally** (via `include`): When using `include`, the default selection set gets extended with additional fields that are provided as arguments to `include`.
 
+Note that you can not combine `select` and `include` in the following ways:
+
+- Within a `select` statement, you can't use `include`.
+- Within an `include` statement, you can't use `select`.
+
 #### Select exclusively via `select`
 
 In this example, we're using `select` to exclusively select the `name` field of the returned `User` object:
