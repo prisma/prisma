@@ -74,7 +74,7 @@
     "test:debug": "./node_modules/.bin/mocha --inspect-brk src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
     "install": "node download-build/index.js",
     "download": "node scripts/updateTag.js && node download-build/index.js || echo \"\"",
-    "tsc": "tsc -d && cp src/capture-worker.js dist/capture-worker.js && scripts/copy-runtime-dist.sh",
+    "tsc": "tsc -d && cp src/capture-worker.js dist/capture-worker.js && bash scripts/copy-runtime-dist.sh",
     "ncc": "ncc build dist/bin.js -o build",
     "ncc:download": "ncc build scripts/download.js -o download-build",
     "build": "pnpm run tsc && pnpm run ncc:download && rm -rf build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && bash scripts/copy-runtime.sh",
