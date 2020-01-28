@@ -997,7 +997,7 @@ function getMethodJSDocBody(
   switch (action) {
     case DMMF.ModelAction.create:
       return `Create a ${singular}.
-@params {${getModelArgName(
+@param {${getModelArgName(
         model.name,
         undefined,
         action,
@@ -1012,7 +1012,7 @@ const user = await ${method}({
 `
     case DMMF.ModelAction.delete:
       return `Delete a ${singular}.
-@params {${getModelArgName(
+@param {${getModelArgName(
         model.name,
         undefined,
         action,
@@ -1027,7 +1027,7 @@ const user = await ${method}({
 `
     case DMMF.ModelAction.deleteMany:
       return `Delete zero or more ${plural}.
-@params {${getModelArgName(
+@param {${getModelArgName(
         model.name,
         undefined,
         action,
