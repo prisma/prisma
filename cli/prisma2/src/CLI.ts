@@ -76,7 +76,7 @@ export class CLI implements Command {
 
   // static help template
   private static help = format(`
-    ${chalk.bold.green('◭')} Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
+    ${process.platform === "win32" ? '' : chalk.bold.green('◭ ')}Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
 
     ${chalk.bold('Usage')}
 
@@ -106,7 +106,7 @@ export class CLI implements Command {
 
   // static help template
   private static experimentalHelp = format(`
-    ${chalk.bold.green('◭')} Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
+    ${process.platform === "win32" ? '' : chalk.bold.green('◭ ')}Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
 
     ${chalk.bold('Usage')}
 
