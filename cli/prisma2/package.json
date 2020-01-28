@@ -77,7 +77,7 @@
     "tsc": "tsc -d && cp src/capture-worker.js dist/capture-worker.js && scripts/copy-runtime-dist.sh",
     "ncc": "ncc build dist/bin.js -o build",
     "ncc:download": "ncc build scripts/download.js -o download-build",
-    "build": "pnpm run tsc && pnpm run ncc:download && rm -rf build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && scripts/copy-runtime.sh",
+    "build": "pnpm run tsc && pnpm run ncc:download && rm -rf build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && bash scripts/copy-runtime.sh",
     "prepublishOnly": "pnpm run download && pnpm run ncc:download && pnpm run install && pnpm run test && pnpm run build",
     "pkg": "pkg . -o pkg-build"
   }
