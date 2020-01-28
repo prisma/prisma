@@ -121,8 +121,6 @@ if (require.main === module) {
       }
     })
     .catch((err) => {
-      let shouldExit = false
-
       function handleIndividualError(error) {
         if (err.rustStack) {
           handlePanic(error, packageJson.name, packageJson.version).catch(e => {
@@ -133,12 +131,12 @@ if (require.main === module) {
             }
           })
         } else {
-          shouldExit = true
           if (debugLib.enabled('prisma')) {
             console.error(chalk.redBright.bold('Error: ') + err.stack)
           } else {
             console.error(chalk.redBright.bold('Error: ') + err.message)
           }
+          process.exit(1)
         }
       }
 
@@ -149,10 +147,6 @@ if (require.main === module) {
         }
       } else {
         handleIndividualError(err)
-      }
-
-      if (shouldExit) {
-        process.exit(1)
       }
     })
 }
