@@ -34,6 +34,7 @@ const remove = promisify(fs.unlink)
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const copyFile = promisify(fs.copyFile)
+const stat = promisify(fs.stat)
 
 export interface GenerateClientOptions {
   datamodel: string
@@ -351,8 +352,8 @@ function redirectToLib(fileName: string) {
 
 async function fileSize(name: string): Promise<number | null> {
   try {
-    const stat = await fs.promises.stat(name)
-    return stat.size
+    const statResult = await stat(name)
+    return statResult.size
   } catch (e) {
     return null
   }
