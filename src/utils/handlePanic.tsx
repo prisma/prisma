@@ -32,7 +32,8 @@ export async function handlePanic(error: RustPanic, cliVersion: string, binaryVe
         app.unmount()
         app.waitUntilExit()
       }
-      await exit()
+      
+      process.exit(1)
     }
 
     app = render(
