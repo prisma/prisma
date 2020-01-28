@@ -528,7 +528,7 @@ export class Lift {
 
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
-      console.log(`🏋️‍ migrate up${previewStr}\n`)
+      console.log(`${process.platform === "win32" ? '' : '🏋️‍ '}migrate up${previewStr}\n`)
 
       if (migrationsToApply.length === 0) {
         return 'All migrations are already applied'
