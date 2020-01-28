@@ -1134,10 +1134,7 @@ const ${lowerCase(mapping.model)} = await ${method}({
   where: {
     // ... the filter for the ${singular} we want to update
   }
-})
-
-
-`
+})`
   }
 }
 
