@@ -79,6 +79,11 @@ export class IntrospectionEngine {
   ) {
     this.listeners[id] = callback
   }
+  public getDatabaseDescription(url: string): Promise<string> {
+    return this.runCommand(
+      this.getRPCPayload('getDatabaseDescription', { url }),
+    )
+  }
   public introspect(url: string): Promise<string> {
     return this.runCommand(this.getRPCPayload('introspect', { url }))
   }
