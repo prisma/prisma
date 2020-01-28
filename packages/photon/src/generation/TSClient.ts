@@ -1484,7 +1484,8 @@ export class InputField {
       fieldType = `Enumerable<${fieldType}>`
     }
     const nullableStr = !fieldInputType.isRequired ? ' | null' : ''
-    return `${field.name}${optionalStr}: ${fieldType}${nullableStr}`
+    const jsdoc = field.comment ? wrapComment(field.comment) + '\n' : ''
+    return `${jsdoc}${field.name}${optionalStr}: ${fieldType}${nullableStr}`
   }
 }
 
@@ -1573,6 +1574,7 @@ export class ArgsType {
             isRequired: false,
           },
         ],
+        comment: `Select specific fields to fetch from the ${name}`,
       },
       {
         name: 'include',
@@ -1584,6 +1586,7 @@ export class ArgsType {
             isRequired: false,
           },
         ],
+        comment: `Choose, which related nodes to fetch as well.`,
       },
       ...args,
     ]
