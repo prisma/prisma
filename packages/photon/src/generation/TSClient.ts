@@ -346,6 +346,23 @@ class PrismaClientClass {
   public toString() {
     const { dmmf } = this
 
+    const example = dmmf.mappings[0]
+    const classJsDocs = `/**
+ * ![prisma-client-js](https://pris.ly/prisma-client-js-logo.png)
+ * 
+ * Type-safe database client for TypeScript & Node.js (ORM replacement)
+ * ### Usage
+ * \`\`\`ts
+ * const prisma = new Prisma()
+ * // Fetch zero or more ${capitalize(example.plural)}
+ * const ${lowerCase(example.plural)} = await prisma.${lowerCase(
+      example.model,
+    )}.findMany()
+ * \`\`\`
+ *
+ * Read more in our [docs](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md).
+ */`
+
     return `
 ${new Datasources(this.internalDatasources)}
 
@@ -426,16 +443,49 @@ export function getLogLevel(
   }, undefined)
 }
 
-
+${classJsDocs}
 export class PrismaClient<T extends PrismaClientOptions = {}, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
+  /**
+   * @private
+   */
   private fetcher: PrismaClientFetcher
+
+  /**
+   * @private
+   */
   private readonly dmmf: DMMFClass
+
+  /**
+   * @private
+   */
   private connectionPromise?: Promise<any>
+
+  /**
+   * @private
+   */
   private disconnectionPromise?: Promise<any>
+
+  /**
+   * @private
+   */
   private readonly engineConfig: any
+
+  /**
+   * @private
+   */
   private readonly measurePerformance: boolean
+  
+  /**
+   * @private
+   */
   engine: Engine
+
+  /**
+   * @private
+   */
   errorFormat: ErrorFormat
+
+${classJsDocs}
   constructor(optionsArg?: T) {
     const options: PrismaClientOptions = optionsArg || {}
     const useDebug = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.library) : false
@@ -533,6 +583,9 @@ export class PrismaClient<T extends PrismaClientOptions = {}, U = keyof T extend
       }
     })
   }
+  /**
+   * Connect with the database
+   */
   async connect(): Promise<void> {
     if (this.disconnectionPromise) {
       debug('awaiting disconnection promise')
@@ -546,6 +599,9 @@ export class PrismaClient<T extends PrismaClientOptions = {}, U = keyof T extend
     this.connectionPromise = this.engine.start()
     return this.connectionPromise!
   }
+  /**
+   * @private
+   */
   private async runDisconnect() {
     debug('disconnectionPromise: stopping engine')
     await this.engine.stop()
@@ -553,6 +609,9 @@ export class PrismaClient<T extends PrismaClientOptions = {}, U = keyof T extend
     this.engine = new Engine(this.engineConfig)
     delete this.disconnectionPromise
   }
+  /**
+   * Disconnect from the database
+   */
   async disconnect() {
     if (!this.disconnectionPromise) {
       this.disconnectionPromise = this.runDisconnect() 
@@ -563,7 +622,19 @@ ${indent(
   dmmf.mappings
     .filter(m => m.findMany)
     .map(m => {
-      let str = `get ${lowerCase(m.model)}(): ${m.model}Delegate {
+      const methodName = lowerCase(m.model)
+      let str = `\
+/**
+ * \`prisma.${methodName}\`: Exposes CRUD operations for the **${
+        m.model
+      }** model.
+ * Example usage:
+ * \`\`\`ts
+ * // Fetch zero or more ${capitalize(m.plural)}
+ * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
+ * \`\`\`
+ */
+get ${methodName}(): ${m.model}Delegate {
   return ${
     m.model
   }Delegate(this.dmmf, this.fetcher, this.errorFormat, this.measurePerformance)
@@ -571,7 +642,7 @@ ${indent(
 
       // only do this, if we don't cause a name clash.
       // otherwise it's not necessary anyways
-      if (m.plural !== lowerCase(m.model)) {
+      if (m.plural !== methodName) {
         str += `
 get ${m.plural}(): '"prisma.${
           m.plural
@@ -912,6 +983,179 @@ ${new QueryDelegate(outputType)}
 `
   }
 }
+
+function getMethodJSDocBody(
+  action: DMMF.ModelAction,
+  mapping: DMMF.Mapping,
+  model: DMMF.Model,
+): string {
+  const singular = capitalize(mapping.model)
+  const plural = capitalize(mapping.plural)
+  const firstScalar = model.fields.find(f => f.kind === 'scalar')
+  const method = `prisma.${lowerCase(mapping.model)}.${action}`
+
+  switch (action) {
+    case DMMF.ModelAction.create:
+      return `Create a ${singular}.
+@params {${getModelArgName(
+        model.name,
+        undefined,
+        action,
+      )}} args - Arguments to create a ${singular}.
+@example
+// Create one ${singular}
+const user = await ${method}({
+  data: {
+    // ... data to create a ${singular}
+  }
+})
+`
+    case DMMF.ModelAction.delete:
+      return `Delete a ${singular}.
+@params {${getModelArgName(
+        model.name,
+        undefined,
+        action,
+      )}} args - Arguments to delete one ${singular}.
+@example
+// Delete one ${singular}
+const user = await ${method}({
+  where: {
+    // ... filter to delete one ${singular}
+  }
+})
+`
+    case DMMF.ModelAction.deleteMany:
+      return `Delete zero or more ${plural}.
+@params {${getModelArgName(
+        model.name,
+        undefined,
+        action,
+      )}} args - Arguments to filter ${plural} to delete.
+@example
+// Delete a few ${plural}
+const { count } = await ${method}({
+  where: {
+    // ... provide filter here
+  }
+})
+`
+    case DMMF.ModelAction.findMany: {
+      const onlySelect = firstScalar
+        ? `\n// Only select the \`${firstScalar.name}\`
+const ${lowerCase(mapping.model)}With${capitalize(
+            firstScalar.name,
+          )}Only = await ${method}({ select: { ${firstScalar.name}: true } })`
+        : ''
+
+      return `Find zero or more ${plural}.
+@param {${getModelArgName(
+        model.name,
+        undefined,
+        action,
+      )}=} args - Arguments to filter and select certain fields only.
+@example
+// Get all ${plural}
+const ${mapping.plural} = await ${method}()
+
+// Get first 10 ${plural}
+const ${mapping.plural} = await ${method}({ first: 10 })
+${onlySelect}
+`
+    }
+    case DMMF.ModelAction.findOne: {
+      return `Find zero or one ${singular}.
+@param {${getModelArgName(
+        model.name,
+        undefined,
+        action,
+      )}} args - Arguments to find a ${singular}
+@example
+// Get one ${singular}
+const ${lowerCase(mapping.model)} = await ${method}({
+  where: {
+    // ... provide filter here
+  }
+})`
+    }
+    case DMMF.ModelAction.update:
+      return `Update one ${singular}.
+@param {${getModelArgName(
+        model.name,
+        undefined,
+        action,
+      )}} args - Arguments to update one ${singular}.
+@example
+// Update one ${singular}
+const ${lowerCase(mapping.model)} = await ${method}({
+  where: {
+    // ... provide filter here
+  },
+  data: {
+    // ... provider data here
+  }
+})
+`
+
+    case DMMF.ModelAction.updateMany:
+      return `Update zero or more ${plural}.
+@param {${getModelArgName(
+        model.name,
+        undefined,
+        action,
+      )}} args - Arguments to update one or more rows.
+@example
+// Update many ${plural}
+const ${lowerCase(mapping.model)} = await ${method}({
+  where: {
+    // ... provide filter here
+  },
+  data: {
+    // ... provider data here
+  }
+})
+`
+    case DMMF.ModelAction.upsert:
+      return `Create or update one ${singular}.
+@param {${getModelArgName(
+        model.name,
+        undefined,
+        action,
+      )}} args - Arguments to update or create a ${singular}.
+@example
+// Update or create a ${singular}
+const ${lowerCase(mapping.model)} = await ${method}({
+  create: {
+    // ... data to create a ${singular}
+  },
+  update: {
+    // ... in case it already exists, update
+  },
+  where: {
+    // ... the filter for the ${singular} we want to update
+  }
+})
+
+
+`
+  }
+}
+
+function getMethodJSDoc(
+  action: DMMF.ModelAction,
+  mapping: DMMF.Mapping,
+  model: DMMF.Model,
+): string {
+  return wrapComment(getMethodJSDocBody(action, mapping, model))
+}
+
+function wrapComment(str: string): string {
+  return `/**\n${str
+    .split('\n')
+    .map(l => ' * ' + l)
+    .join('\n')}\n**/`
+}
+
 export class ModelDelegate {
   constructor(
     protected readonly outputType: OutputType,
@@ -920,16 +1164,13 @@ export class ModelDelegate {
   public toString() {
     const { fields, name } = this.outputType
     const mapping = this.dmmf.mappings.find(m => m.model === name)!
+    const model = this.dmmf.datamodel.models.find(m => m.name === name)!
+
     const actions = Object.entries(mapping).filter(
       ([key, value]) =>
         key !== 'model' && key !== 'plural' && key !== 'aggregate' && value,
     )
 
-    const listConstraint = getModelArgName(
-      name,
-      /*projection*/ undefined,
-      DMMF.ModelAction.findMany,
-    )
     // TODO: The following code needs to be split up and is a mess
     return `\
 export interface ${name}Delegate {
@@ -937,7 +1178,8 @@ ${indent(
   actions
     .map(
       ([actionName]: [any, any]) =>
-        `${actionName}<T extends ${getModelArgName(
+        `${getMethodJSDoc(actionName, mapping, model)}
+${actionName}<T extends ${getModelArgName(
           name,
           /*projection*/ undefined,
           actionName,
@@ -950,6 +1192,9 @@ ${indent(
     .join('\n'),
   tab,
 )}
+  /**
+   * 
+   */
   count(): Promise<number>
 }
 function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaClientFetcher, errorFormat: ErrorFormat, measurePerformance?: boolean): ${name}Delegate {
