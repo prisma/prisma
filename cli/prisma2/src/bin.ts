@@ -123,9 +123,9 @@ if (require.main === module) {
     .catch((err) => {
       let shouldExit = false
 
-      function handleIndividualError(err) {
+      function handleIndividualError(error) {
         if (err.rustStack) {
-          handlePanic(err, packageJson.name, packageJson.version).catch(e => {
+          handlePanic(error, packageJson.name, packageJson.version).catch(e => {
             if (debugLib.enabled('prisma')) {
               console.error(chalk.redBright.bold('Error: ') + e.stack)
             } else {
