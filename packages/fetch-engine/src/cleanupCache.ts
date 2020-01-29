@@ -1,4 +1,4 @@
-import { promises as fs } from 'fs'
+import fs from 'fs'
 import path from 'path'
 import { getRootCacheDir } from './util'
 import rimraf from 'rimraf'
@@ -7,6 +7,8 @@ import pMap from 'p-map'
 import Debug from 'debug'
 const debug = Debug('cleanupCache')
 const del = promisify(rimraf)
+const readdir = promisify(fs.readdir)
+const stat = promisify(fs.stat)
 
 export async function cleanupCache() {
   try {
@@ -15,15 +17,15 @@ export async function cleanupCache() {
 
     for (const channel of channels) {
       const cacheDir = path.join(rootCacheDir, channel)
-      const dirs = await fs.readdir(cacheDir)
+      const dirs = await readdir(cacheDir)
       const dirsWithMeta = await Promise.all(
         dirs.map(async dirName => {
           const dir = path.join(cacheDir, dirName)
-          const stat = await fs.stat(dir)
+          const statResult = await stat(dir)
 
           return {
             dir,
-            created: stat.birthtime,
+            created: statResult.birthtime,
           }
         }),
       )
