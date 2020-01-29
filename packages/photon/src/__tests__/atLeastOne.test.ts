@@ -44,7 +44,7 @@ describe('at least one validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        Invalid \`photon.users()\` invocation:
+        Invalid \`prisma.users()\` invocation:
 
         {
           where: {
