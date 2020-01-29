@@ -75,7 +75,7 @@ generator client {
 
 This file contains a number of comments that tell you how to proceed.
 
-First you need to provide your the connection URL of your database as the `url` of the `datasource` block. This is needed so that Prisma can introspect your database schema and generate Prisma Client.
+First you need to provide the connection URL of your database as the `url` of the `datasource` block. This is needed so that Prisma can introspect your database schema and generate Prisma Client.
 
 The format of the connection URL for your database typically depends on the database you use (the parts spelled all-uppercased are placeholders for your specific connection details):
 
