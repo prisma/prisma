@@ -120,22 +120,33 @@ if (require.main === module) {
         process.exit(code)
       }
     })
-    .catch(err => {
-      if (err.rustStack) {
-        handlePanic(err, packageJson.name, packageJson.version).catch(e => {
-          if (debugLib.enabled('prisma')) {
-            console.error(chalk.redBright.bold('Error: ') + e.stack)
-          } else {
-            console.error(chalk.redBright.bold('Error: ') + e.message)
-          }
-        })
-      } else {
-        if (debugLib.enabled('prisma')) {
-          console.error(chalk.redBright.bold('Error: ') + err.stack)
+    .catch((err) => {
+      function handleIndividualError(error) {
+        if (err.rustStack) {
+          handlePanic(error, packageJson.name, packageJson.version).catch(e => {
+            if (debugLib.enabled('prisma')) {
+              console.error(chalk.redBright.bold('Error: ') + e.stack)
+            } else {
+              console.error(chalk.redBright.bold('Error: ') + e.message)
+            }
+          })
         } else {
-          console.error(chalk.redBright.bold('Error: ') + err.message)
+          if (debugLib.enabled('prisma')) {
+            console.error(chalk.redBright.bold('Error: ') + err.stack)
+          } else {
+            console.error(chalk.redBright.bold('Error: ') + err.message)
+          }
+          process.exit(1)
         }
-        process.exit(1)
+      }
+
+      // Sindre's pkg p-map & co are using AggregateError, it is an iterator.
+      if (typeof err[Symbol.iterator] === 'function') {
+        for (const individualError of err) {
+          handleIndividualError(individualError)
+        }
+      } else {
+        handleIndividualError(err)
       }
     })
 }
