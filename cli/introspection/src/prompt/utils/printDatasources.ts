@@ -1,4 +1,4 @@
-// This is copied from photon/runtime/utils. It needs to be moved into a separate package
+// This is copied from prisma-client-js/runtime/utils. It needs to be moved into a separate package
 import indent from 'indent-string'
 
 export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgresql'
