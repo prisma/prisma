@@ -1,0 +1,8 @@
+blank_issues_enabled: true 
+contact_links:
+  - name: Prisma Documentation
+    url: https://github.com/prisma/prisma2/tree/master/docs 
+    about: Check out our documentation and FAQs present there 
+  - name: Prisma Slack 
+    url: https://slack.prisma.io 
+    about: "Slack is a great place to ask questions and to discuss. Join #prisma2-preview channel for discussion on Prisma 2"
