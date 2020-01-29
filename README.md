@@ -132,7 +132,7 @@ Learn more about the data model in the [docs](https://github.com/prisma/prisma2/
 
 </Details>
 
-You can learn more about Prisma Client's API features in the [API reference](https://github.com/prisma/prisma2/blob/master/docs/photon/api.md).
+You can learn more about Prisma Client's API features in the [API reference](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md).
 
 ## The Prisma Client JS workflow
 
