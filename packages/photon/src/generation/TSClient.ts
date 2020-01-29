@@ -348,11 +348,11 @@ class PrismaClientClass {
 
     const example = dmmf.mappings[0]
     const classJsDocs = `/**
- * ![prisma-client-js](https://pris.ly/prisma-client-js-logo.png)
+ * ##  Prisma Client ʲˢ
  * 
  * Type-safe database client for TypeScript & Node.js (ORM replacement)
- * ### Usage
- * \`\`\`ts
+ * @example
+ * \`\`\`
  * const prisma = new Prisma()
  * // Fetch zero or more ${capitalize(example.plural)}
  * const ${lowerCase(example.plural)} = await prisma.${lowerCase(
@@ -360,6 +360,7 @@ class PrismaClientClass {
     )}.findMany()
  * \`\`\`
  *
+ * 
  * Read more in our [docs](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md).
  */`
 
