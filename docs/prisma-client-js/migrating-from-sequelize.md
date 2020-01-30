@@ -487,7 +487,7 @@ app.use(bodyParser.json())
 const prisma = new PrismaClient()
 
 app.get('/users', async (req, res) => {
-    const users = await prisma.users.findMany()
+    const users = await prisma.user.findMany()
     res.json(users)
 })
 
@@ -519,7 +519,7 @@ So to implement the same route and endpoint in your Prisma Client JS project, go
 //...
 app.get(`/users/:id`, async (req, res) => {
     const { id } = req.params
-    const user = await prisma.users.findOne({ 
+    const user = await prisma.user.findOne({ 
         where: { 
           id: Number(id),
         },
@@ -551,7 +551,7 @@ To implement the same route and endpoint in your Prisma Client JS project, go to
 //...
 app.post(`/tasks`, async (req, res) => {
   const { title } = req.body
-  const post = await prisma.tasks.create({
+  const post = await prisma.task.create({
     data: {
         title,
     },
@@ -583,7 +583,7 @@ To implement the same route and endpoint in your Prisma Client JS project, go to
 //...
 app.delete(`/tasks/:id`, async (req, res) => {
   const { id } = req.params
-  const task = await prisma.tasks.delete({ 
+  const task = await prisma.task.delete({ 
     where: { 
         id: Number(id),
     },
