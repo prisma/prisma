@@ -122,7 +122,7 @@ if (require.main === module) {
     })
     .catch(err => {
       function handleIndividualError(error) {
-        if (err.rustStack) {
+        if (error.rustStack) {
           handlePanic(error, packageJson.name, packageJson.version).catch(e => {
             if (debugLib.enabled('prisma')) {
               console.error(chalk.redBright.bold('Error: ') + e.stack)
@@ -132,9 +132,9 @@ if (require.main === module) {
           })
         } else {
           if (debugLib.enabled('prisma')) {
-            console.error(chalk.redBright.bold('Error: ') + err.stack)
+            console.error(chalk.redBright.bold('Error: ') + error.stack)
           } else {
-            console.error(chalk.redBright.bold('Error: ') + err.message)
+            console.error(chalk.redBright.bold('Error: ') + error.message)
           }
           process.exit(1)
         }
