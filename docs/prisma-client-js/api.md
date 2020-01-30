@@ -72,7 +72,7 @@ const prisma = new PrismaClient()
 
 async function main() {
   await prisma.connect()
-  const result = await prisma.users.findOne({
+  const result = await prisma.user.findOne({
     where: { id: 1 },
   })
   // result = { id: 1, name: "Alice", role: "USER" }
@@ -91,7 +91,7 @@ In addition to CRUD operations, Prisma Client JS also allows for [_aggregation_ 
 To return the number of elements in a list, you can the `count()` method on any model property on your `PrismaClient` instance, for example:
 
 ```ts
-const userCount = await prisma.users.count()
+const userCount = await prisma.user.count()
 // userCount = 42
 ```
 
@@ -133,7 +133,7 @@ Note that you can not combine `select` and `include` in the following ways:
 In this example, we're using `select` to exclusively select the `name` field of the returned `User` object:
 
 ```ts
-const result = await prisma.users.findOne({
+const result = await prisma.user.findOne({
   where: { id: 1 },
   select: { name: true },
 })
@@ -145,7 +145,7 @@ const result = await prisma.users.findOne({
 Sometimes you want to directly include a relation when retrieving data from a database. To eagerly load and include the relations of a model in an API call right away, you can use `include`:
 
 ```ts
-const result = await prisma.users.findOne({
+const result = await prisma.user.findOne({
   where: { id: 1 },
   include: { posts: true },
 })
@@ -181,7 +181,7 @@ model User {
 You can provide the `id` as input value in [`create`](#create) and [`update`](#update) operations, for example:
 
 ```ts
-const user = await prisma.users.create({
+const user = await prisma.user.create({
   data: {
     id: 1
   }
@@ -208,7 +208,7 @@ model User {
 When creating or updating a `User` record, you can create a new list or replace the current one with a new list like so:
 
 ```ts
-await  prisma.users.create({
+await  prisma.user.create({
   data: {
     coinFlips: {
       set: [true, false]
@@ -216,7 +216,7 @@ await  prisma.users.create({
   }
 })
 
-await  prisma.users.update({
+await  prisma.user.update({
   where: { id: 42 ,}
   data: {
     coinFlips: {
@@ -261,7 +261,7 @@ Returns a single object identified by a _unique_ value (e.g. `id` or `email`). Y
 #### Examples
 
 ```ts
-const user = await prisma.users.findOne({
+const user = await prisma.user.findOne({
   where: { id: 1 },
 })
 ```
@@ -288,7 +288,7 @@ For more filtering examples, look [here](#filtering).
 #### Examples
 
 ```ts
-const user = await prisma.users.findMany({
+const user = await prisma.user.findMany({
   where: { name: 'Alice' },
 })
 ```
@@ -307,7 +307,7 @@ Creates a new record and returns the corresponding object. You can use the `sele
 #### Examples
 
 ```ts
-const user = await prisma.users.create({
+const user = await prisma.user.create({
   data: { name: 'Alice' },
 })
 ```
@@ -327,7 +327,7 @@ Updates an existing record and returns the corresponding object. You can use the
 #### Examples
 
 ```ts
-const user = await prisma.users.update({
+const user = await prisma.user.update({
   where: { id: 1 },
   data: { name: 'ALICE' },
 })
@@ -347,7 +347,7 @@ Updates a batch of existing records in bulk and returns the number of updated re
 #### Examples
 
 ```ts
-const updatedUserCount = await prisma.users.updateMany({
+const updatedUserCount = await prisma.user.updateMany({
   where: { name: 'Alice' },
   data: { name: 'ALICE' },
 })
@@ -369,7 +369,7 @@ Updates an existing or creates a new record and returns the corresponding object
 #### Examples
 
 ```ts
-const user = await prisma.users.upsert({
+const user = await prisma.user.upsert({
   where: { id: 1 },
   update: { name: "ALICE" },
   create: { name: "ALICE" }
@@ -390,7 +390,7 @@ Deletes an existing record and returns the corresponding object. You can use the
 #### Examples
 
 ```ts
-const user = await prisma.users.delete({
+const user = await prisma.user.delete({
   where: { id: 1 },
 })
 ```
@@ -408,7 +408,7 @@ Deletes a batch of existing records in bulk and returns the number of deleted re
 #### Examples
 
 ```ts
-const deletedUserCount = await prisma.users.deleteMany({
+const deletedUserCount = await prisma.user.deleteMany({
   where: { name: 'Alice' },
 })
 ```
@@ -424,7 +424,7 @@ The `count()` method doesn't take any input arguments.
 #### Examples
 
 ```ts
-const userCount = await  prisma.users.count()
+const userCount = await  prisma.user.count()
 // userCount = 42
 ```
 
@@ -467,7 +467,7 @@ export declare type UserWhereInput = {
 For example, to get the record for the user with the `id` 1, `where` is used in combination with the `id` `IntFilter`:
 
 ```ts
-const result = await prisma.users.findMany({
+const result = await prisma.user.findMany({
   where: { id: 1 },
 })
 // result = [{
@@ -484,7 +484,7 @@ const result = await prisma.users.findMany({
 To get the record for the user with the `name` Alice with a USER `role`, `where` is used in combination with the `name` `StringFilter` and the `role` `RoleFilter`:
 
 ```ts
-const result = await prisma.users.findMany({
+const result = await prisma.user.findMany({
   where: {
     name: 'Alice',
     role: 'USER',
@@ -502,7 +502,7 @@ const result = await prisma.users.findMany({
 To apply one of the operator filters (`AND`, `OR`, `NOT`), filter for the record where the user with the `name` Alice has a non-active status. Here, `where` is used in combination with the `name` `StringFilter`, the `active` `BooleanFilter`, and the `NOT` operator:
 
 ```ts
-const result = await prisma.users.findMany({
+const result = await prisma.user.findMany({
   where: {
     name: 'Alice',
     NOT: {
@@ -555,7 +555,7 @@ You can reuse subparts of a Prisma Client JS query by not immediately evaluating
 
 ```ts
 // Note the missing `await` here.
-const currentUserQuery = prisma.users.findOne({ where: { id: prismarId } })
+const currentUserQuery = prisma.user.findOne({ where: { id: prismarId } })
 
 // Now you have the sub-part of a query that you can reuse.
 const postsOfUser = await currentUserQuery.posts()
