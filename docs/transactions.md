@@ -26,7 +26,7 @@ Here are examples for nested writes in the Prisma Client JS API:
 ```ts
 // Create a new user with two posts in a 
 // single transaction
-const newUser: User = await prisma.users.create({
+const newUser: User = await prisma.user.create({
   data: {
     email: 'alice@prisma.io',
     posts: {
@@ -41,7 +41,7 @@ const newUser: User = await prisma.users.create({
 
 ```ts
 // Change the author of a post in a single transaction
-const updatedPost: Post = await prisma.posts.update({
+const updatedPost: Post = await prisma.post.update({
   where: { id: 42 },
   data: {
     author: {
@@ -61,7 +61,7 @@ Transactions are a commonly used feature in relational as well as non-relational
 The first use case of sending multiple operations in bulk could be implemented with an API similar to this:
 
 ```ts
-const write1 = prisma.users.create()
+const write1 = prisma.user.create()
 const write2 = prisma.orders.create()
 const write3 = prisma.invoices.create()
 

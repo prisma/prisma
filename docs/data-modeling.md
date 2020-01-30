@@ -122,12 +122,12 @@ The operations are accessible via a generated property on the Prisma Client JS i
 Here is an example illustrating the use of a `users` property from the [Prisma Client JS API](./prisma-client-js/api.md):
 
 ```js
-const newUser = await prisma.users.create({
+const newUser = await prisma.user.create({
   data: {
     name: 'Alice',
   },
 })
-const allUsers = await prisma.users.findMany()
+const allUsers = await prisma.user.findMany()
 ```
 
 Note that for Prisma Client JS the name of the `users` property is auto-generated using the [`pluralize`](https://github.com/blakeembrey/pluralize) package.
@@ -157,7 +157,7 @@ model User {
 Note that in the above cases, you must provide your own ID values when creating new records for the `User` model using Prisma Client JS, e.g.:
 
 ```ts
-const newUser = await prisma.users.create({
+const newUser = await prisma.user.create({
   data: {
     id: 1,
     name: 'Alice',
