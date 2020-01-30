@@ -30,7 +30,7 @@
   },
   "bin": "build/index.js",
   "prisma": {
-    "version": "8afa90a993c0efbabc4b4c68860038d9030e71cf"
+    "version": "609fad2fb2fda91624c579ad1a6f5ca2f5668ccb"
   },
   "devDependencies": {
     "@prisma/ci-info": "^2.1.1",
@@ -47,7 +47,7 @@
     "@sentry/node": "^5.9.0",
     "@types/debug": "^4.1.5",
     "@types/mocha": "^5.2.7",
-    "@zeit/ncc": "0.18.5",
+    "@zeit/ncc": "0.21.0",
     "checkpoint-client": "1.0.6",
     "dotenv": "^8.2.0",
     "jest": "24.9.0",
@@ -73,9 +73,9 @@
     "test": "./fixtures/test.sh && ./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
     "test:debug": "./node_modules/.bin/mocha --inspect-brk src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
     "install": "node download-build/index.js",
-    "download": "node scripts/updateTag.js && node download-build/index.js || echo \"\"",
+    "download": "rm -f download-done && node scripts/updateTag.js && node download-build/index.js || echo \"\"",
     "tsc": "tsc -d && cp src/capture-worker.js dist/capture-worker.js && bash scripts/copy-runtime-dist.sh",
-    "ncc": "ncc build dist/bin.js -o build",
+    "ncc": "ncc build dist/bin.js -o build -m",
     "ncc:download": "ncc build scripts/download.js -o download-build",
     "build": "pnpm run tsc && pnpm run ncc:download && rm -rf build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && bash scripts/copy-runtime.sh",
     "prepublishOnly": "pnpm run download && pnpm run ncc:download && pnpm run install && pnpm run test && pnpm run build",
