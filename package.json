@@ -34,7 +34,7 @@
 		"ts-jest": "^24.3.0",
 		"tslint": "^5.20.1",
 		"tslint-config-prettier": "^1.18.0",
-		"typescript": "^3.7.4"
+		"typescript": "^3.7.5"
 	},
 	"peerDependencies": {
 		"@prisma/cli": "*",
@@ -42,13 +42,12 @@
 		"@prisma/sdk": "*"
 	},
 	"dependencies": {
-		"@prisma/fetch-engine": "0.3.34",
-		"@prisma/get-platform": "0.1.23",
-		"@prisma/ink-components": "0.0.22",
+		"@prisma/fetch-engine": "workspace:0.3.34",
+		"@prisma/get-platform": "workspace:0.1.23",
+		"@prisma/ink-components": "workspace:0.0.22",
 		"@prisma/studio-server": "0.187.0",
 		"@types/execa": "2.0.0",
 		"ansi-escapes": "4.2.1",
-		"archiver": "^3.1.1",
 		"cli-cursor": "3.1.0",
 		"cli-truncate": "2.0.0",
 		"dashify": "2.0.0",
@@ -68,17 +67,15 @@
 		"ink-spinner": "3.0.1",
 		"is-ci": "^2.0.0",
 		"log-update": "3.3.0",
-		"node-fetch": "^2.6.0",
 		"open": "7.0.0",
 		"p-map": "3.0.0",
 		"prompts": "2.3.0",
 		"ps-tree": "1.2.0",
 		"rimraf": "^3.0.0",
 		"string-width": "4.2.0",
-		"strip-ansi": "6.0.0",
+		"strip-ansi": "^6.0.0",
 		"strip-indent": "3.0.0",
-		"supports-hyperlinks": "2.0.0",
-		"tmp": "^0.1.0"
+		"supports-hyperlinks": "2.0.0"
 	},
 	"scripts": {
 		"install": "node scripts/download.js",
