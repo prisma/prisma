@@ -289,19 +289,12 @@ async function validateGenerators(generators: GeneratorConfig[]) {
 
   for (const generator of generators) {
     if (generator.provider === 'photonjs') {
-      throw new Error(`The generator provider ${chalk.red(
-        'photonjs',
-      )} with the corresponding package ${chalk.red(
-        '@prisma/photon',
-      )} has been deprecated.
-The provider has been renamed to ${chalk.green(
-        'prisma-client-js',
-      )} and the package to ${chalk.green('@prisma/client')}".
-${chalk.green('@prisma/client')} now exposes "${chalk.green.bold(
-        'PrismaClient',
-      )} instead of ${chalk.red.bold(
-        'Photon',
-      )}. Please update your code accordingly 🙏`)
+      throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
+  1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green('provider = "prisma-client-js"')} in your ${chalk.bold('schema.prisma')} file.
+  2. Replace your ${chalk.bold('package.json')}'s ${chalk.red('@prisma/photon')} dependency to ${chalk.green('@prisma/client')}
+  3. Replace ${chalk.red('import { Photon } from \'@prisma/photon\'')} with ${chalk.green('import { PrismaClient } from \'@prisma/client\'')} in your code.
+  4. Run ${chalk.green('prisma2 generate')} again.
+      `)
     }
     if (generator.provider === 'nexus-prisma') {
       throw new Error(

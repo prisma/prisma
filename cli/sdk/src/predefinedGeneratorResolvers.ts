@@ -24,9 +24,12 @@ export type PredefinedGeneratorResolvers = {
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   photonjs: () => {
-    throw new Error(`The generator provider "photonjs" with the corresponding package "@prisma/photon" has been deprecated.
-The provider has been renamed to "prisma-client-js" and the package to "@prisma/client".
-"@prisma/client" now exposes "PrismaClient" instead of "Photon". Please update your code accordingly 🙏`)
+    throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
+  1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green('provider = "prisma-client-js"')} in your ${chalk.bold('schema.prisma')} file.
+  2. Replace your ${chalk.bold('package.json')}'s ${chalk.red('@prisma/photon')} dependency to ${chalk.green('@prisma/client')}
+  3. Replace ${chalk.red('import { Photon } from \'@prisma/photon\'')} with ${chalk.green('import { PrismaClient } from \'@prisma/client\'')} in your code.
+  4. Run ${chalk.green('prisma2 generate')} again.
+      `)
   },
   'prisma-client-js': async (baseDir, version) => {
     let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
