@@ -120,7 +120,7 @@ if (require.main === module) {
         process.exit(code)
       }
     })
-    .catch((err) => {
+    .catch(err => {
       function handleIndividualError(error) {
         if (err.rustStack) {
           handlePanic(error, packageJson.name, packageJson.version).catch(e => {
