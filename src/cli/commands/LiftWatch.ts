@@ -1,4 +1,4 @@
-import { arg, Command, Dictionary, format, GeneratorDefinitionWithPackage, HelpError } from '@prisma/cli'
+import { arg, Command, format, HelpError } from '@prisma/cli'
 import chalk from 'chalk'
 import { Lift } from '../../Lift'
 import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
@@ -6,7 +6,7 @@ import { occupyPath } from '../../utils/occupyPath'
 import { ProviderAliases } from '@prisma/sdk'
 
 /**
- * $ prisma migrate dev
+ * $ prisma2 migrate dev
  */
 export class LiftWatch implements Command {
   public static new(providerAliases: ProviderAliases): LiftWatch {
@@ -19,7 +19,7 @@ export class LiftWatch implements Command {
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim(`$`)} prisma dev
+      ${chalk.dim('$')} prisma2 migrate dev
 
     ${chalk.bold('Options')}
 

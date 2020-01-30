@@ -27,7 +27,7 @@ export class LiftSave implements Command {
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim(`$`)} prisma migrate save [options] --experimental
+      ${chalk.dim('$')} prisma2 migrate save [options] --experimental
 
     ${chalk.bold('Options')}
 
@@ -39,10 +39,10 @@ export class LiftSave implements Command {
     ${chalk.bold('Examples')}
 
       Create a new migration
-      ${chalk.dim(`$`)} prisma migrate save --experimental
+      ${chalk.dim('$')} prisma2 migrate save --experimental
 
       Create a new migration by name
-      ${chalk.dim(`$`)} prisma migrate save --name "add unique to email" --experimental
+      ${chalk.dim('$')} prisma2 migrate save --name "add unique to email" --experimental
 
   `)
   private constructor() {}
@@ -61,14 +61,17 @@ export class LiftSave implements Command {
       '-c': '--create-db',
       '--experimental': Boolean,
     })
+
     if (!args['--experimental']) {
       throw new ExperimentalFlagError()
     }
+
     if (isError(args)) {
       return this.help(args.message)
     } else if (args['--help']) {
       return this.help()
     }
+
     const preview = args['--preview'] || false
     await ensureDatabaseExists('create', true, args['--create-db'])
 
