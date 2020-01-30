@@ -1,4 +1,3 @@
-import ansiEscapes = require('ansi-escapes')
 import { Box, Color, Instance, render } from 'ink'
 import Spinner from 'ink-spinner'
 const AnySpinner: any = Spinner
@@ -14,8 +13,7 @@ import chalk from 'chalk'
 import React, { useContext, useState } from 'react'
 import { exit } from './exit'
 import { Link } from './Link'
-import { sendPanic } from './sendPanic'
-import { RustPanic } from '@prisma/sdk'
+import { RustPanic, sendPanic } from '@prisma/sdk'
 import isCi from 'is-ci'
 
 export async function handlePanic(error: RustPanic, cliVersion: string, binaryVersion: string): Promise<boolean> {
