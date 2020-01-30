@@ -43,6 +43,7 @@
     "chalk": "^3.0.0",
     "execa": "^3.4.0",
     "flat-map-polyfill": "^0.3.8",
+    "globby": "^9.2.0",
     "is-ci": "^2.0.0",
     "make-dir": "^3.0.0",
     "node-fetch": "2.6.0",
