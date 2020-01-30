@@ -58,7 +58,7 @@ export class Generate implements Command {
         generator.stop()
       }
       const after = Date.now()
-      message.push(`Done in ${formatms(after - before)}`)
+      message.push(`Done in ${formatms(after - before)}\n`)
     }
 
     this.logText += message.join('\n')
@@ -104,7 +104,7 @@ export class Generate implements Command {
 
       fs.watch(datamodelPath, async eventType => {
         if (eventType === 'change') {
-          logUpdate(`\n${chalk.green('Building...')}\n${this.logText}`)
+          logUpdate(`\n${chalk.green('Building...')}\n\n${this.logText}`)
           await this.runGenerate({ generators, watchMode })
           logUpdate(watchingText + '\n' + this.logText)
         }
