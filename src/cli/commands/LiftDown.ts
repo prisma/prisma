@@ -15,7 +15,7 @@ export class LiftDown implements Command {
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim(`$`)} prisma migrate down [<dec|name|timestamp>] --experimental
+      ${chalk.dim('$')} prisma2 migrate down [<dec|name|timestamp>] --experimental
 
     ${chalk.bold('Arguments')}
 
@@ -29,16 +29,16 @@ export class LiftDown implements Command {
     ${chalk.bold('Examples')}
 
       Preview a migration without migrating
-      ${chalk.dim(`$`)} prisma migrate down --preview --experimental
+      ${chalk.dim('$')} prisma2 migrate down --preview --experimental
 
       Rollback a migration
-      ${chalk.dim(`$`)} prisma migrate down 1 --experimental
+      ${chalk.dim('$')} prisma2 migrate down 1 --experimental
 
       Go down to a migration by timestamp
-      ${chalk.dim(`$`)} prisma migrate down 20190605204907 --experimental
+      ${chalk.dim('$')} prisma2 migrate down 20190605204907 --experimental
 
       Go down to a migration by name
-      ${chalk.dim(`$`)} prisma migrate down "add first_name field" --experimental
+      ${chalk.dim('$')} prisma2 migrate down "add first_name field" --experimental
   `)
   private constructor() {}
 

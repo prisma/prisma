@@ -20,7 +20,7 @@ export class LiftTmpPrepare implements Command {
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim(`$`)} prisma tmp-prepare
+      ${chalk.dim('$')} prisma2 migrate tmp-prepare
   `)
   private constructor() {}
 
