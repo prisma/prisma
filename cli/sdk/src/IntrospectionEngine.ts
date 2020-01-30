@@ -180,6 +180,10 @@ export class IntrospectionEngine {
           this.rejectAll(err)
         })
 
+        this.child.stdin?.on('error', err => {
+          console.error(err)
+        })
+
         this.child.on('exit', (code, signal) => {
           // handle panics
           if (code === 255 && this.lastError && this.lastError.is_panic) {
