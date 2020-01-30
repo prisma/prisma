@@ -527,7 +527,7 @@ export class Lift {
 
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
-      console.log(`🏋️‍ migrate up${previewStr}\n`)
+      console.log(`${process.platform === "win32" ? '' : '🏋️‍ '}migrate up${previewStr}\n`)
 
       if (migrationsToApply.length === 0) {
         return 'All migrations are already applied'
@@ -938,7 +938,7 @@ class ProgressRenderer {
 
     str += chalk.dim(
       `\n\nYou can get the detailed db changes with ${chalk.greenBright(
-        'prisma2 migreate up --experimental --verbose',
+        'prisma2 migrate up --experimental --verbose',
       )}\nOr read about them in the ./migrations/MIGRATION_ID/README.md`,
     )
 
