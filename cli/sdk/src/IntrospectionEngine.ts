@@ -47,6 +47,7 @@ export class IntrospectionEngine {
   private lastRequest?: any
   private lastError?: any
   private initPromise?: Promise<void>
+  private lastUrl?: string
   constructor(
     { binaryPath, debug, cwd }: IntrospectionEngineOptions = {
       binaryPath: process.env.PRISMA_INTROSPECTION_ENGINE_BINARY, // ncc go home
@@ -85,14 +86,17 @@ export class IntrospectionEngine {
     )
   }
   public introspect(url: string): Promise<string> {
+    this.lastUrl = url
     return this.runCommand(this.getRPCPayload('introspect', { url }))
   }
   public listDatabases(url: string): Promise<string[]> {
+    this.lastUrl = url
     return this.runCommand(this.getRPCPayload('listDatabases', { url }))
   }
   public getDatabaseMetadata(
     url: string,
   ): Promise<{ size_in_bytes: number; table_count: number }> {
+    this.lastUrl = url
     return this.runCommand(this.getRPCPayload('getDatabaseMetadata', { url }))
   }
   private handleResponse(response: any) {
@@ -179,11 +183,20 @@ export class IntrospectionEngine {
         this.child.on('exit', (code, signal) => {
           // handle panics
           if (code === 255 && this.lastError && this.lastError.is_panic) {
+            let sqlDump
+            if (this.lastUrl) {
+              try {
+                sqlDump = this.getDatabaseDescription(this.lastUrl)
+              } catch (e) {}
+            }
             const err = new RustPanic(
               this.lastError.message,
               this.lastError.backtrace,
               this.lastRequest,
               ErrorArea.INTROSPECTION_CLI,
+              /* schemaPath */ undefined,
+              /* schema */ undefined,
+              sqlDump,
             )
             this.rejectAll(err)
             reject(err)
@@ -252,7 +265,7 @@ export class IntrospectionEngine {
   private async runCommand(request: RPCPayload): Promise<any> {
     await this.init()
     return new Promise((resolve, reject) => {
-      this.registerCallback(request.id, (response, err) => {
+      this.registerCallback(request.id, async (response, err) => {
         if (err) {
           return reject(err)
         }
@@ -265,12 +278,21 @@ export class IntrospectionEngine {
               const message =
                 response.error.data?.error?.message ?? response.error.message
               // Handle error and displays the interactive dialog to send panic error
+              let sqlDump
+              if (this.lastUrl) {
+                try {
+                  sqlDump = await this.getDatabaseDescription(this.lastUrl)
+                } catch (e) {}
+              }
               reject(
                 new RustPanic(
                   message,
                   message,
                   request,
                   ErrorArea.INTROSPECTION_CLI,
+                  undefined,
+                  undefined,
+                  sqlDump,
                 ),
               )
             } else if (response.error.data?.message) {
