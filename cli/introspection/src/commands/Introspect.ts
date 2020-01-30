@@ -106,7 +106,6 @@ export class Introspect implements Command {
     const before = Date.now()
     let introspectionSchema = ''
     introspectionSchema = await engine.introspect(url)
-    engine.stop()
 
     if (introspectionSchema.trim() === '') {
       throw new Error(`Empty introspection result for ${chalk.underline(url)}`)
@@ -170,11 +169,21 @@ export class Introspect implements Command {
         log(`Wrote ${chalk.underline(path.relative(process.cwd(), schemaPath))}`)
       }
     } catch (e) {
+      let sqlDump
+      try {
+        sqlDump = await engine.getDatabaseDescription(url)
+      } catch (e) {
+        console.error(e)
+        //
+      }
+      engine.stop()
+
       console.error(chalk.bold.red(`\nIntrospection failed:`) + chalk.red(` Introspected schema can't be parsed.`))
       if (introspectionSchema) {
         console.log(chalk.bold(`Introspected Schema:\n`))
         console.log(introspectionSchema + '\n')
       }
+
       throw new RustPanic(
         stripAnsi(e.message),
         stripAnsi(e.message),
@@ -182,8 +191,11 @@ export class Introspect implements Command {
         ErrorArea.INTROSPECTION_CLI,
         undefined,
         introspectionSchema,
+        sqlDump,
       )
     }
+
+    engine.stop()
 
     return ''
   }
