@@ -126,7 +126,7 @@ Here's the envisioned workaround for MySQL and SQLite (note that PostgreSQL user
 In your application code, you can now adjust the Prisma Client JS API calls. To access the `coinflips` data, you will now have to always [`include`](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#include-additionally-via-include) it in yout API calls:
 
 ```ts
-const user = await prisma.users.findOne({ 
+const user = await prisma.user.findOne({ 
   where: { id: 1 },
   include: {
     coinflips: {
@@ -200,7 +200,7 @@ However, in order to do so you need to manually migrate the underlying data from
 You can keep using Prisma Client JS as before:
 
 ```ts
-const user = await prisma.users.findOne({ 
+const user = await prisma.user.findOne({ 
   where: { id: 1 },
 })
 ```

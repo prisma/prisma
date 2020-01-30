@@ -282,13 +282,13 @@ app.get(`/post/:id`, async (req, res) => {
 })
 
 app.get('/feed', async (req, res) => {
-  const posts = await prisma.posts({ where: { published: true } })
+  const posts = await prisma.post({ where: { published: true } })
   res.json(posts)
 })
 
 app.get('/filterPosts', async (req, res) => {
   const { searchString } = req.query
-  const draftPosts = await prisma.posts({
+  const draftPosts = await prisma.post({
     where: {
       OR: [
         {
@@ -330,7 +330,7 @@ With the Prisma Client JS API, the `/user` route for `POST` requests has to be c
 
 ```ts
 app.post(`/user`, async (req, res) => {
-  const result = await prisma.users.create({
+  const result = await prisma.user.create({
     data: {
       ...req.body,
     },
@@ -346,7 +346,7 @@ With the Prisma Client JS API, the `/post` route for `POST` requests has to be c
 ```ts
 app.post(`/post`, async (req, res) => {
   const { title, content, authorEmail } = req.body
-  const result = await prisma.posts.create({
+  const result = await prisma.post.create({
     data: {
       title: title,
       content: content,
@@ -364,7 +364,7 @@ With the Prisma Client JS API, the `/publish/:id` route for `PUT` requests has t
 ```ts
 app.put('/publish/:id', async (req, res) => {
   const { id } = req.params
-  const post = await prisma.posts.update({
+  const post = await prisma.post.update({
     where: { id },
     data: { published: true },
   })
@@ -379,7 +379,7 @@ With the Prisma Client JS API, the `//post/:id` route for `DELETE` requests has 
 ```ts
 app.delete(`/post/:id`, async (req, res) => {
   const { id } = req.params
-  const post = await prisma.posts.delete({ 
+  const post = await prisma.post.delete({ 
     where: { id }
    })
   res.json(post)
@@ -393,7 +393,7 @@ With the Prisma Client JS API, the `/post/:id` route for `GET` requests has to b
 ```ts
 app.get(`/post/:id`, async (req, res) => {
   const { id } = req.params
-  const post = await prisma.posts.findOne({ 
+  const post = await prisma.post.findOne({ 
     where: { id }
    })
   res.json(post)
@@ -406,7 +406,7 @@ With the Prisma Client JS API, the `/feed` route for `GET` requests has to be ch
 
 ```ts
 app.get('/feed', async (req, res) => {
-  const posts = await prisma.posts.findMany({ where: { published: true } })
+  const posts = await prisma.post.findMany({ where: { published: true } })
   res.json(posts)
 })
 ```
@@ -418,7 +418,7 @@ With the Prisma Client JS API, the `/user` route for `POST` requests has to be c
 ```ts
 app.get('/filterPosts', async (req, res) => {
   const { searchString } = req.query
-  const filteredPosts = await prisma.posts.findMany({
+  const filteredPosts = await prisma.post.findMany({
     where: {
       OR: [
         {
