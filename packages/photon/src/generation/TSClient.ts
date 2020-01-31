@@ -379,8 +379,6 @@ export interface PrismaClientOptions {
 
   log?: Array<LogLevel | LogDefinition>
 
-  debug?: any
-
   /**
    * You probably don't want to use this. \`__internal\` is used by internal tooling.
    */
@@ -489,11 +487,12 @@ export class PrismaClient<T extends PrismaClientOptions = {}, U = keyof T extend
 ${classJsDocs}
   constructor(optionsArg?: T) {
     const options: PrismaClientOptions = optionsArg || {}
-    const useDebug = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.library) : false
+    const internal = options.__internal || {}
+
+    const useDebug = internal.debug === true
     if (useDebug) {
       debugLib.enable('prisma-client')
     }
-    const debugEngine = options.debug === true ? true : typeof options.debug === 'object' ? Boolean(options.debug.engine) : false
 
     // datamodel = datamodel without datasources + printed datasources
 
@@ -508,7 +507,6 @@ ${classJsDocs}
     const inputDatasources = Object.entries(options.datasources || {}).map(([name, url]) => ({ name, url: url! }))
     const datasources = mergeBy(predefinedDatasources, inputDatasources, (source: any) => source.name)
 
-    const internal = options.__internal || {}
     const engineConfig = internal.engine || {}
 
     if (options.errorFormat) {
@@ -528,7 +526,7 @@ ${classJsDocs}
         this.outputDir,
         this.cwd,
       )},
-      debug: debugEngine,
+      debug: useDebug,
       datamodelPath: path.resolve(__dirname, 'schema.prisma'),
       prismaPath: engineConfig.binaryPath || undefined,
       datasources,
