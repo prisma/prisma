@@ -343,7 +343,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             ...env,
           },
           cwd: this.cwd,
-          stdio: ['pipe', this.logLevel || this.logQueries ? 'pipe' : 'ignore', 'pipe'],
+          stdio: ['pipe', 'pipe', 'pipe'],
         })
 
         this.child.stderr.on('data', msg => {
@@ -364,6 +364,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           const data = String(msg)
           try {
             const json = JSON.parse(data)
+            debug('stdout', json)
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
               this.logEmitter.emit(log.level, log)
@@ -537,7 +538,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       throw new Error(`Can't perform request, as the Engine has already been stopped`)
     }
 
-    collectTimestamps && collectTimestamps.record("Pre-engine_request_http_got")
+    collectTimestamps && collectTimestamps.record('Pre-engine_request_http_got')
 
     this.currentRequestPromise = got.post(this.url, {
       json: true,
