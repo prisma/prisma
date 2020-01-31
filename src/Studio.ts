@@ -68,13 +68,17 @@ export class Studio {
         binaryPaths: {
           queryEngine: firstExistingPath.path,
         },
-        photon: {
+        prismaClient: {
           generator: {
             version: packageJson.prisma.version,
             providerAliases,
           },
         },
         staticAssetDir: path.resolve(__dirname, 'public'), // Overriding this directory since after NCC compilation, this won't resolve automatically
+        versions: {
+          prisma2: packageJson.version,
+          queryEngine: packageJson.prisma.version,
+        },
       })
 
       await this.instance.start()
