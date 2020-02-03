@@ -23,7 +23,8 @@ export class Generate implements Command {
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim(`$`)} prisma2 generate
+    With an existing schema.prisma:
+      ${chalk.dim('$')} prisma2 generate
 
     ${chalk.bold('Flags')}
 
@@ -72,9 +73,11 @@ export class Generate implements Command {
       '-h': '--help',
       '--watch': Boolean,
     })
+
     if (isError(args)) {
       return this.help(args.message)
     }
+
     if (args['--help']) {
       return this.help()
     }
@@ -97,7 +100,7 @@ export class Generate implements Command {
       console.error(missingGeneratorMessage)
     }
 
-    const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(datamodelPath)}\n`
+    const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(schemaPath)}\n`
 
     if (watchMode) {
       logUpdate(watchingText)

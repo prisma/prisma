@@ -35,10 +35,10 @@ export class Introspect implements Command {
     ${chalk.bold('Usage')}
 
     With an existing schema.prisma
-      ${chalk.bold('prisma2 introspect')}
+      ${chalk.dim('$')} prisma2 introspect
 
     Instead of saving the result to the filesystem, you can also print it
-      ${chalk.bold('prisma2 introspect --print')}
+      ${chalk.dim('$')} prisma2 introspect --print'
 
   `)
   private constructor() {}
