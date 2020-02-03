@@ -46,7 +46,7 @@ export class Init implements Command {
     
     ${chalk.bold('Usage')}
 
-      ${chalk.dim(`$`)} prisma2 init
+      ${chalk.dim('$')} prisma2 init
   `)
 
   async parse(argv: string[]): Promise<any> {

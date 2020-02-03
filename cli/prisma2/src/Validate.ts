@@ -13,15 +13,15 @@ export class Validate implements Command {
 
   // static help template
   private static help = format(`
-    Validate a schema.
+    Validate a Prisma schema.
 
     ${chalk.bold('Usage')}
 
-    With an existing schema.prisma, just
-      ${chalk.bold('prisma2 validate')}
+    With an existing schema.prisma:
+      ${chalk.dim('$')} prisma2 validate
 
     Or specify a schema:
-      ${chalk.bold('prisma2 validate --schema=./schema.prisma')}
+      ${chalk.dim('$')} prisma2 validate --schema=./schema.prisma
 
   `)
   private constructor() {}
