@@ -100,7 +100,7 @@ export class Generate implements Command {
       console.error(missingGeneratorMessage)
     }
 
-    const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(schemaPath)}\n`
+    const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(datamodelPath)}\n`
 
     if (watchMode) {
       logUpdate(watchingText)
