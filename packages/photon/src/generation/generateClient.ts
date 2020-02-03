@@ -5,27 +5,18 @@ import {
   DMMF,
   GeneratorConfig,
 } from '@prisma/generator-helper'
-import chalk from 'chalk'
 import Debug from 'debug'
 import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
 import hasha from 'hasha'
-import {
-  CompilerOptions,
-  createCompilerHost,
-  createProgram,
-  createSourceFile,
-  ModuleKind,
-  ScriptTarget,
-} from 'typescript'
 import { promisify } from 'util'
 import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
 import { getPrismaClientDMMF } from '../runtime/getDMMF'
 import { resolveDatasources } from '../utils/resolveDatasources'
 import { extractSqliteSources } from './extractSqliteSources'
-import { TSClient } from './TSClient'
+import { TSClient, TS, JS } from './TSClient'
 
 const debug = Debug('generateClient')
 debug.log = console.log.bind(console)
@@ -71,8 +62,6 @@ export async function buildClient({
   dmmf,
   datasources,
 }: GenerateClientOptions): Promise<BuildClientResult> {
-  const fileMap = {}
-
   const document = getPrismaClientDMMF(dmmf)
 
   const client = new TSClient({
@@ -92,77 +81,15 @@ export async function buildClient({
     outputDir,
   })
 
-  const generatedClient = String(client)
-  const target = '@prisma/client/index.ts'
-
-  if (!transpile) {
-    fileMap[target] = generatedClient
-    return {
-      fileMap: normalizeFileMap(fileMap),
-      prismaClientDmmf: document,
-    }
-  }
-
-  /**
-   * If transpile === true, replace index.ts with index.js and index.d.ts
-   * WARNING: This takes a long time
-   * TODO: Implement transpilation as a separate code generator
-   */
-
-  const options: CompilerOptions = {
-    module: ModuleKind.CommonJS,
-    target: ScriptTarget.ES2018,
-    lib: ['lib.esnext.d.ts', 'lib.dom.d.ts'],
-    declaration: true,
-    strict: true,
-    suppressOutputPathCheck: false,
-    esModuleInterop: true,
-  }
-  const file: any = { fileName: target, content: generatedClient }
-
-  const compilerHost = createCompilerHost(options)
-  const originalGetSourceFile = compilerHost.getSourceFile
-  compilerHost.getSourceFile = fileName => {
-    const newFileName = redirectToLib(fileName)
-    if (fileName === file.fileName) {
-      file.sourceFile =
-        file.sourceFile ||
-        createSourceFile(fileName, file.content, ScriptTarget.ES2018, true)
-      return file.sourceFile
-    }
-    return (originalGetSourceFile as any).call(compilerHost, newFileName)
-  }
-  compilerHost.writeFile = (fileName, data) => {
-    if (fileName.includes('@prisma/client')) {
-      fileMap[fileName] = data
-    }
-  }
-
-  const program = createProgram([file.fileName], options, compilerHost)
-  const result = program.emit()
-  if (result.diagnostics.length > 0) {
-    console.log(chalk.redBright('Errors during Prisma Client generation:'))
-    console.log(result.diagnostics.map(d => d.messageText).join('\n'))
+  const fileMap = {
+    'index.d.ts': TS(client),
+    'index.js': JS(client),
   }
 
   return {
-    fileMap: normalizeFileMap(fileMap),
+    fileMap,
     prismaClientDmmf: document,
   }
-}
-
-function normalizeFileMap(fileMap: Dictionary<string>) {
-  return Object.entries(fileMap).reduce((acc, [key, value]) => {
-    if (key.startsWith('@generated/photon/')) {
-      acc[key.slice('@generated/photon/'.length)] = value
-    } else if (key.startsWith('@prisma/photon/')) {
-      acc[key.slice('@prisma/photon/'.length)] = value
-    } else if (key.startsWith('@prisma/client')) {
-      acc[key.slice('@prisma/client/'.length)] = value
-    }
-
-    return acc
-  }, {})
 }
 
 export async function generateClient({
@@ -244,6 +171,13 @@ export async function generateClient({
       const fileName = path.basename(filePath)
       const target = path.join(outputDir, 'runtime', fileName)
       const before = Date.now()
+      const [fileSizeA, fileSizeB] = await Promise.all([
+        fileSize(filePath),
+        fileSize(target),
+      ])
+      if (fileSizeA && fileSizeB && fileSizeA !== fileSizeB) {
+        continue
+      }
       const [hashA, hashB] = await Promise.all([
         hasha.fromFile(filePath, { algorithm: 'md5' }).catch(() => null),
         hasha.fromFile(target, { algorithm: 'md5' }).catch(() => null),
@@ -332,23 +266,6 @@ export declare type getDMMF = any
 export declare var stripAnsi: any
 export declare type stripAnsi = any
 `
-
-// This is needed because ncc rewrite some paths
-function redirectToLib(fileName: string) {
-  const file = path.basename(fileName)
-  if (/^lib\.(.*?)\.d\.ts$/.test(file)) {
-    if (!fs.existsSync(fileName)) {
-      const dir = path.dirname(fileName)
-      let newPath = path.join(dir, 'lib', file)
-      if (!fs.existsSync(newPath)) {
-        newPath = path.join(dir, 'typescript/lib', file)
-      }
-      return newPath
-    }
-  }
-
-  return fileName
-}
 
 async function fileSize(name: string): Promise<number | null> {
   try {
