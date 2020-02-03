@@ -24,7 +24,6 @@ import {
   getSelectName,
   getSelectReturnType,
   getType,
-  // getExtractName,
   indentAllButFirstLine,
   isQueryAction,
   Projection,
@@ -33,7 +32,22 @@ import {
 
 const tab = 2
 
-const commonCode = (runtimePath: string, version?: string) => `import {
+export function JS(gen: Generatable): string {
+  if (gen.toJS) {
+    return gen.toJS()
+  }
+
+  return ''
+}
+
+export function TS(gen: Generatable): string {
+  return gen.toTS()
+}
+
+const commonCodeJS = (runtimePath: string, version?: string) => `
+Object.defineProperty(exports, "__esModule", { value: true });
+
+const {
   DMMF,
   DMMFClass,
   deepGet,
@@ -47,160 +61,182 @@ const commonCode = (runtimePath: string, version?: string) => `import {
   mergeBy,
   unpack,
   stripAnsi
-} from '${runtimePath}'
+} = require('${runtimePath}')
 
 /**
  * Query Engine version: ${version || 'latest'}
  */
 
-import path = require('path')
-import fs = require('fs')
+const path = require('path')
+const fs = require('fs')
 
 const debug = debugLib('prisma-client')
 
-/**
- * Utility Types
- */
-
-
-export type Enumerable<T> = T | Array<T>
-
-export type MergeTruthyValues<R extends object, S extends object> = {
-  [key in keyof S | keyof R]: key extends false
-    ? never
-    : key extends keyof S
-    ? S[key] extends false
-      ? never
-      : S[key]
-    : key extends keyof R
-    ? R[key]
-    : never
-}
-
-export type CleanupNever<T> = { [key in keyof T]: T[key] extends never ? never : key }[keyof T]
-
-/**
- * Subset
- * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
- */
-export type Subset<T, U> = { [key in keyof T]: key extends keyof U ? T[key] : never }
 
 /**
  * A PrismaClientRequestError is an error that is thrown in conjunction to a concrete query that has been performed with PrismaClient.js.
  */
-export class PrismaClientRequestError extends Error {
-  constructor(public message: string, public code?: string, public meta?: any) {
+class PrismaClientRequestError extends Error {
+  constructor(message, code, meta) {
     super(message)
     this.code = code
     this.meta = meta
   }
 }
 
+exports.PrismaClientRequestError = PrismaClientRequestError;
 class PrismaClientFetcher {
-  constructor(
-    private readonly prisma: PrismaClient<any,any>,
-    private readonly debug = false,
-    private readonly hooks?: Hooks,
-  ) {}
-  async request<T>(document: any, dataPath: string[] = [], rootField?: string, typeName?: string, isList?: boolean, callsite?: string, collectTimestamps?: any): Promise<T> {
-    const query = String(document)
-    debug('Request:')
-    debug(query)
-    if (this.hooks && this.hooks.beforeRequest) {
-      this.hooks.beforeRequest({ query, path: dataPath, rootField, typeName, document })
+    constructor(prisma, debug = false, hooks) {
+        this.prisma = prisma;
+        this.debug = debug;
+        this.hooks = hooks;
     }
-    try {
-      collectTimestamps && collectTimestamps.record("Pre-prismaClientConnect")
-      await this.prisma.connect()
-      collectTimestamps && collectTimestamps.record("Post-prismaClientConnect")
-      collectTimestamps && collectTimestamps.record("Pre-engine_request")
-      const result = await this.prisma.engine.request(query, collectTimestamps)
-      collectTimestamps && collectTimestamps.record("Post-engine_request")
-      debug('Response:')
-      debug(result)
-      collectTimestamps && collectTimestamps.record("Pre-unpack")
-      const unpackResult = this.unpack(document, result, dataPath, rootField, isList)
-      collectTimestamps && collectTimestamps.record("Post-unpack")
-      return unpackResult
-    } catch (e) {
-      debug(e.stack)
-      if (callsite) {
-        const { stack } = printStack({
-          callsite,
-          originalMethod: dataPath.join('.'),
-          onUs: e.isPanic
-        })
-        const message = stack + '\\n\\n' + e.message
-        if (e.code) {
-          throw new PrismaClientRequestError(this.sanitizeMessage(message), e.code, e.meta)
+    async request(document, dataPath = [], rootField, typeName, isList, callsite, collectTimestamps) {
+        const query = String(document);
+        debug('Request:');
+        debug(query);
+        if (this.hooks && this.hooks.beforeRequest) {
+            this.hooks.beforeRequest({ query, path: dataPath, rootField, typeName, document });
         }
-        throw new Error(this.sanitizeMessage(message))
-      } else {
-        if (e.code) {
-          throw new PrismaClientRequestError(this.sanitizeMessage(e.message), e.code, e.meta)
+        try {
+            collectTimestamps && collectTimestamps.record("Pre-prismaClientConnect");
+            await this.prisma.connect();
+            collectTimestamps && collectTimestamps.record("Post-prismaClientConnect");
+            collectTimestamps && collectTimestamps.record("Pre-engine_request");
+            const result = await this.prisma.engine.request(query, collectTimestamps);
+            collectTimestamps && collectTimestamps.record("Post-engine_request");
+            debug('Response:');
+            debug(result);
+            collectTimestamps && collectTimestamps.record("Pre-unpack");
+            const unpackResult = this.unpack(document, result, dataPath, rootField, isList);
+            collectTimestamps && collectTimestamps.record("Post-unpack");
+            return unpackResult;
         }
-        if (e.isPanic) {
-          throw e
-        } else {
-          throw new Error(this.sanitizeMessage(e.message))
+        catch (e) {
+            debug(e.stack);
+            if (callsite) {
+                const { stack } = printStack({
+                    callsite,
+                    originalMethod: dataPath.join('.'),
+                    onUs: e.isPanic
+                });
+                const message = stack + '\\n\\n' + e.message;
+                if (e.code) {
+                    throw new PrismaClientRequestError(this.sanitizeMessage(message), e.code, e.meta);
+                }
+                throw new Error(this.sanitizeMessage(message));
+            }
+            else {
+                if (e.code) {
+                    throw new PrismaClientRequestError(this.sanitizeMessage(e.message), e.code, e.meta);
+                }
+                if (e.isPanic) {
+                    throw e;
+                }
+                else {
+                    throw new Error(this.sanitizeMessage(e.message));
+                }
+            }
         }
-      }
     }
-  }
-  sanitizeMessage(message: string): string {
-    if (this.prisma.errorFormat && this.prisma.errorFormat !== 'pretty') {
-      return stripAnsi(message)
+    sanitizeMessage(message) {
+        if (this.prisma.errorFormat && this.prisma.errorFormat !== 'pretty') {
+            return stripAnsi(message);
+        }
+        return message;
     }
-
-    return message
-  }
-  protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean) {
-    const getPath: string[] = []
-    if (rootField) {
-      getPath.push(rootField)
+    unpack(document, data, path, rootField, isList) {
+        const getPath = [];
+        if (rootField) {
+            getPath.push(rootField);
+        }
+        getPath.push(...path.filter(p => p !== 'select' && p !== 'include'));
+        return unpack({ document, data, path: getPath });
     }
-    getPath.push(...path.filter(p => p !== 'select' && p !== 'include'))
-    return unpack({ document, data, path: getPath })
-  }
 }
 
 class CollectTimestamps {
-  public readonly records: Array<{ name: string, value: [number, number]}> = []
-  public start: { name: string, value: [number, number]} | undefined = undefined
-  private readonly additionalResults: { [k: string]: number } = {}
-  constructor(startName: string) {
-    this.start = { name: startName, value: process.hrtime() }
-  }
-  public record(name: string) {
-    this.records.push({ name, value: process.hrtime() })
-  }
-  public elapsed(start: [number, number], end: [number, number]) {
-    const diff = [ end[0] - start[0], end[1] - start[1] ];
-    const nanoseconds = (diff[0] * 1e9) + diff[1];
-    const milliseconds = nanoseconds / 1e6;
-    return milliseconds;
-  }
-  public addResults(results: { [k: string]: number }) {
-    Object.assign(this.additionalResults, results)
-  }
-  public getResults() {
-    const results: {[key: string]: number} = this.records.reduce((acc, record) => {
-      const name = record.name.split('-')[1]
-      if (acc[name]) {
-        acc[name] = this.elapsed(acc[name], record.value)
-      } else {
-        acc[name] = record.value
-      }
-      return acc
-    }, {})
+    constructor(startName) {
+        this.records = [];
+        this.start = undefined;
+        this.additionalResults = {};
+        this.start = { name: startName, value: process.hrtime() };
+    }
+    record(name) {
+        this.records.push({ name, value: process.hrtime() });
+    }
+    elapsed(start, end) {
+        const diff = [end[0] - start[0], end[1] - start[1]];
+        const nanoseconds = (diff[0] * 1e9) + diff[1];
+        const milliseconds = nanoseconds / 1e6;
+        return milliseconds;
+    }
+    addResults(results) {
+        Object.assign(this.additionalResults, results);
+    }
+    getResults() {
+        const results = this.records.reduce((acc, record) => {
+            const name = record.name.split('-')[1];
+            if (acc[name]) {
+                acc[name] = this.elapsed(acc[name], record.value);
+            }
+            else {
+                acc[name] = record.value;
+            }
+            return acc;
+        }, {});
+        Object.assign(results, {
+            total: this.elapsed(this.start.value, this.records[this.records.length - 1].value),
+            ...this.additionalResults
+        });
+        return results;
+    }
+}
+`
 
-    Object.assign(results, {
-      total: this.elapsed(this.start!.value, this.records[this.records.length - 1].value),
-      ...this.additionalResults
-    })
+const commonCodeTS = (
+  runtimePath: string,
+  version?: string,
+) => `import { DMMF, DMMFClass, Engine } from '${runtimePath}';
 
-    return results
-  }
+/**
+ * Query Engine version: ${version || 'latest'}
+ */
+
+/**
+ * Utility Types
+ */
+export declare type Enumerable<T> = T | Array<T>;
+export declare type MergeTruthyValues<R extends object, S extends object> = {
+    [key in keyof S | keyof R]: key extends false ? never : key extends keyof S ? S[key] extends false ? never : S[key] : key extends keyof R ? R[key] : never;
+};
+export declare type CleanupNever<T> = {
+    [key in keyof T]: T[key] extends never ? never : key;
+}[keyof T];
+/**
+ * Subset
+ * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
+ */
+export declare type Subset<T, U> = {
+    [key in keyof T]: key extends keyof U ? T[key] : never;
+};
+/**
+ * A PrismaClientRequestError is an error that is thrown in conjunction to a concrete query that has been performed with PrismaClient.js.
+ */
+export declare class PrismaClientRequestError extends Error {
+    message: string;
+    code?: string | undefined;
+    meta?: any;
+    constructor(message: string, code?: string | undefined, meta?: any);
+}
+declare class PrismaClientFetcher {
+    private readonly prisma;
+    private readonly debug;
+    private readonly hooks?;
+    constructor(prisma: PrismaClient<any, any>, debug?: boolean, hooks?: Hooks | undefined);
+    request<T>(document: any, dataPath?: string[], rootField?: string, typeName?: string, isList?: boolean, callsite?: string, collectTimestamps?: any): Promise<T>;
+    sanitizeMessage(message: string): string;
+    protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean): any;
 }
 `
 
@@ -217,7 +253,12 @@ interface TSClientOptions {
   outputDir: string
 }
 
-export class TSClient {
+interface Generatable {
+  toJS?(): string
+  toTS(): string
+}
+
+export class TSClient implements Generatable {
   protected readonly dmmf: DMMFClass
   protected readonly document: DMMF.Document
   protected readonly runtimePath: string
@@ -253,8 +294,8 @@ export class TSClient {
     this.schemaDir = schemaDir
     this.outputDir = outputDir
   }
-  public toString() {
-    return `${commonCode(this.runtimePath, this.version)}
+  public toJS() {
+    return `${commonCodeJS(this.runtimePath, this.version)}
 
 /**
  * Build tool annotations
@@ -281,7 +322,46 @@ ${new PrismaClientClass(
   this.generator,
   this.sqliteDatasourceOverrides,
   this.schemaDir,
-)}
+).toJS()}
+
+
+/**
+ * Enums
+ */
+// Based on
+// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
+function makeEnum(x) { return x; }
+
+${this.dmmf.schema.enums.map(type => new Enum(type).toJS()).join('\n\n')}
+
+
+${Object.values(this.dmmf.modelMap)
+  .map(model => new Model(model, this.dmmf).toJS())
+  .join('\n')}
+
+/**
+ * DMMF
+ */
+  
+const dmmf = exports.dmmf = JSON.parse('${JSON.stringify(this.document)}')
+    `
+  }
+  public toTS() {
+    return `${commonCodeTS(this.runtimePath, this.version)}
+
+/**
+ * Client
+**/
+
+${new PrismaClientClass(
+  this.dmmf,
+  this.internalDatasources,
+  this.outputDir,
+  this.browser,
+  this.generator,
+  this.sqliteDatasourceOverrides,
+  this.schemaDir,
+).toTS()}
 
 ${/*new Query(this.dmmf, 'query')*/ ''}
 
@@ -292,19 +372,19 @@ ${/*new Query(this.dmmf, 'query')*/ ''}
 // Based on
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 
-function makeEnum<T extends {[index: string]: U}, U extends string>(x: T) { return x }
-
-${this.dmmf.schema.enums.map(type => new Enum(type)).join('\n\n')}
+${this.dmmf.schema.enums.map(type => new Enum(type).toTS()).join('\n\n')}
 
 ${Object.values(this.dmmf.modelMap)
-  .map(model => new Model(model, this.dmmf))
+  .map(model => new Model(model, this.dmmf).toTS())
   .join('\n')}
 
 /**
  * Deep Input Types
  */
 
-${this.dmmf.inputTypes.map(inputType => new InputType(inputType)).join('\n')}
+${this.dmmf.inputTypes
+  .map(inputType => new InputType(inputType).toTS())
+  .join('\n')}
 
 /**
  * Batch Payload for updateMany & deleteMany
@@ -317,15 +397,15 @@ export type BatchPayload = {
 /**
  * DMMF
  */
-
-export const dmmf: DMMF.Document = ${JSON.stringify(this.document)}
-    `
+export declare const dmmf: DMMF.Document;
+export {};
+`
   }
 }
 
-class Datasources {
+class Datasources implements Generatable {
   constructor(protected readonly internalDatasources: InternalDatasource[]) {}
-  public toString() {
+  public toTS() {
     const sources = this.internalDatasources
     return `export type Datasources = {
 ${indent(sources.map(s => `${s.name}?: string`).join('\n'), 2)}
@@ -333,7 +413,7 @@ ${indent(sources.map(s => `${s.name}?: string`).join('\n'), 2)}
   }
 }
 
-class PrismaClientClass {
+class PrismaClientClass implements Generatable {
   constructor(
     protected readonly dmmf: DMMFClass,
     protected readonly internalDatasources: InternalDatasource[],
@@ -343,11 +423,210 @@ class PrismaClientClass {
     protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[],
     protected readonly cwd?: string,
   ) {}
-  public toString() {
+  public toJS() {
+    const { dmmf } = this
+    return `// tested in getLogLevel.test.ts
+function getLogLevel(log) {
+    return log.reduce((acc, curr) => {
+        const currentLevel = typeof curr === 'string' ? curr : curr.level;
+        if (currentLevel === 'query') {
+            return acc;
+        }
+        if (!acc) {
+            return currentLevel;
+        }
+        if (curr === 'info' || acc === 'info') {
+            // info always has precedence
+            return 'info';
+        }
+        return currentLevel;
+    }, undefined);
+}
+exports.getLogLevel = getLogLevel;
+
+${this.jsDoc}
+class PrismaClient {
+${this.jsDoc}
+  constructor(optionsArg) {
+    const options = optionsArg || {}
+    const internal = options.__internal || {}
+
+    const useDebug = internal.debug === true
+    if (useDebug) {
+      debugLib.enable('prisma-client')
+    }
+
+    // datamodel = datamodel without datasources + printed datasources
+
+    const predefinedDatasources = ${
+      this.sqliteDatasourceOverrides
+        ? indentAllButFirstLine(
+            serializeDatasources(this.sqliteDatasourceOverrides),
+            4,
+          )
+        : '[]'
+    }
+    const inputDatasources = Object.entries(options.datasources || {}).map(([name, url]) => ({ name, url }))
+    const datasources = mergeBy(predefinedDatasources, inputDatasources, source => source.name)
+
+    const engineConfig = internal.engine || {}
+
+    if (options.errorFormat) {
+      this.errorFormat = options.errorFormat
+    } else if (process.env.NODE_ENV === 'production') {
+      this.errorFormat = 'minimal'
+    } else if (process.env.NO_COLOR) {
+      this.errorFormat = 'colorless'
+    } else {
+      this.errorFormat = 'pretty'
+    }
+
+    this.measurePerformance = internal.measurePerformance || false
+
+    this.engineConfig = {
+      cwd: engineConfig.cwd || ${getRelativePathResolveStatement(
+        this.outputDir,
+        this.cwd,
+      )},
+      debug: useDebug,
+      datamodelPath: path.resolve(__dirname, 'schema.prisma'),
+      prismaPath: engineConfig.binaryPath || undefined,
+      datasources,
+      generator: ${
+        this.generator ? JSON.stringify(this.generator) : 'undefined'
+      },
+      showColors: this.errorFormat === 'pretty',
+      logLevel: options.log && getLogLevel(options.log),
+      logQueries: options.log && Boolean(options.log.find(o => typeof o === 'string' ? o === 'query' : o.level === 'query'))
+    }
+
+    debug({ engineConfig: this.engineConfig })
+
+    this.engine = new Engine(this.engineConfig)
+
+    this.dmmf = new DMMFClass(dmmf)
+
+    this.fetcher = new PrismaClientFetcher(this, false, internal.hooks)
+
+    if (options.log) {
+      for (const log of options.log) {
+        const level = typeof log === 'string' ? log : log.emit === 'stdout' ? log.level : null
+        if (level) {
+          this.on(level, event => {
+            const colorMap = {
+              query: 'blue',
+              info: 'cyan',
+              warn: 'yellow'
+            }
+            console.error(chalk[colorMap[level]](\`prisma:$\{level\}\`.padEnd(13)) + (event.message || event.query))
+          })
+        }
+      }
+    }
+  }
+
+  on(eventType, callback) {
+    this.engine.on(eventType, event => {
+      const fields = event.fields
+      if (eventType === 'query') {
+        callback({
+          timestamp: event.timestamp,
+          query: fields.query,
+          params: fields.params,
+          duration: fields.duration_ms,
+          target: event.target
+        })
+      } else { // warn or info events
+        callback({
+          timestamp: event.timestamp,
+          message: fields.message,
+          target: event.target
+        })
+      }
+    })
+  }
+  /**
+   * Connect with the database
+   */
+  async connect() {
+    if (this.disconnectionPromise) {
+      debug('awaiting disconnection promise')
+      await this.disconnectionPromise
+    } else {
+      debug('disconnection promise doesnt exist')
+    }
+    if (this.connectionPromise) {
+      return this.connectionPromise
+    }
+    this.connectionPromise = this.engine.start()
+    return this.connectionPromise
+  }
+  /**
+   * @private
+   */
+  async runDisconnect() {
+    debug('disconnectionPromise: stopping engine')
+    await this.engine.stop()
+    delete this.connectionPromise
+    this.engine = new Engine(this.engineConfig)
+    delete this.disconnectionPromise
+  }
+  /**
+   * Disconnect from the database
+   */
+  async disconnect() {
+    if (!this.disconnectionPromise) {
+      this.disconnectionPromise = this.runDisconnect() 
+    }
+    return this.disconnectionPromise
+  }
+${indent(
+  dmmf.mappings
+    .filter(m => m.findMany)
+    .map(m => {
+      const methodName = lowerCase(m.model)
+      let str = `\
+/**
+ * \`prisma.${methodName}\`: Exposes CRUD operations for the **${
+        m.model
+      }** model.
+ * Example usage:
+ * \`\`\`ts
+ * // Fetch zero or more ${capitalize(m.plural)}
+ * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
+ * \`\`\`
+ */
+get ${methodName}() {
+  return ${
+    m.model
+  }Delegate(this.dmmf, this.fetcher, this.errorFormat, this.measurePerformance)
+}`
+
+      // only do this, if we don't cause a name clash.
+      // otherwise it's not necessary anyways
+      if (m.plural !== methodName) {
+        str += `
+get ${m.plural}() {
+  throw new Error('"prisma.${m.plural}" has been renamed to "prisma.${lowerCase(
+          m.model,
+        )}"')
+}`
+      }
+
+      return str
+    })
+    .join('\n'),
+  2,
+)}
+}
+exports.PrismaClient = PrismaClient
+`
+  }
+  private get jsDoc() {
     const { dmmf } = this
 
     const example = dmmf.mappings[0]
-    const classJsDocs = `/**
+    return `/**
  * ##  Prisma Client ʲˢ
  * 
  * Type-safe database client for TypeScript & Node.js (ORM replacement)
@@ -363,9 +642,12 @@ class PrismaClientClass {
  * 
  * Read more in our [docs](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md).
  */`
+  }
+  public toTS() {
+    const { dmmf } = this
 
     return `
-${new Datasources(this.internalDatasources)}
+${new Datasources(this.internalDatasources).toTS()}
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -423,200 +705,59 @@ export type LogEvent = {
 /* End Types for Logging */
 
 // tested in getLogLevel.test.ts
-export function getLogLevel(
-  log: Array<LogLevel | LogDefinition>,
-): LogLevel | undefined {
-  return log.reduce<LogLevel | undefined>((acc, curr) => {
-    const currentLevel = typeof curr === 'string' ? curr : curr.level
-    if (currentLevel === 'query') {
-      return acc
-    }
-    if (!acc) {
-      return currentLevel
-    }
-    if (curr === 'info' || acc === 'info') {
-      // info always has precedence
-      return 'info'
-    }
-    return currentLevel
-  }, undefined)
-}
+export declare function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
 
-${classJsDocs}
-export class PrismaClient<T extends PrismaClientOptions = {}, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
+${this.jsDoc}
+export declare class PrismaClient<T extends PrismaClientOptions = {}, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
   /**
    * @private
    */
-  private fetcher: PrismaClientFetcher
-
+  private fetcher;
   /**
    * @private
    */
-  private readonly dmmf: DMMFClass
-
+  private readonly dmmf;
   /**
    * @private
    */
-  private connectionPromise?: Promise<any>
-
+  private connectionPromise?;
   /**
    * @private
    */
-  private disconnectionPromise?: Promise<any>
-
+  private disconnectionPromise?;
   /**
    * @private
    */
-  private readonly engineConfig: any
-
+  private readonly engineConfig;
   /**
    * @private
    */
-  private readonly measurePerformance: boolean
-  
+  private readonly measurePerformance;
   /**
    * @private
    */
-  engine: Engine
-
+  engine: Engine;
   /**
    * @private
    */
-  errorFormat: ErrorFormat
+  errorFormat: ErrorFormat;
 
-${classJsDocs}
-  constructor(optionsArg?: T) {
-    const options: PrismaClientOptions = optionsArg || {}
-    const internal = options.__internal || {}
-
-    const useDebug = internal.debug === true
-    if (useDebug) {
-      debugLib.enable('prisma-client')
-    }
-
-    // datamodel = datamodel without datasources + printed datasources
-
-    const predefinedDatasources = ${
-      this.sqliteDatasourceOverrides
-        ? indentAllButFirstLine(
-            serializeDatasources(this.sqliteDatasourceOverrides),
-            4,
-          )
-        : '[]'
-    }
-    const inputDatasources = Object.entries(options.datasources || {}).map(([name, url]) => ({ name, url: url! }))
-    const datasources = mergeBy(predefinedDatasources, inputDatasources, (source: any) => source.name)
-
-    const engineConfig = internal.engine || {}
-
-    if (options.errorFormat) {
-      this.errorFormat = options.errorFormat
-    } else if (process.env.NODE_ENV === 'production') {
-      this.errorFormat = 'minimal'
-    } else if (process.env.NO_COLOR) {
-      this.errorFormat = 'colorless'
-    } else {
-      this.errorFormat = 'pretty'
-    }
-
-    this.measurePerformance = internal.measurePerformance || false
-
-    this.engineConfig = {
-      cwd: engineConfig.cwd || ${getRelativePathResolveStatement(
-        this.outputDir,
-        this.cwd,
-      )},
-      debug: useDebug,
-      datamodelPath: path.resolve(__dirname, 'schema.prisma'),
-      prismaPath: engineConfig.binaryPath || undefined,
-      datasources,
-      generator: ${
-        this.generator ? JSON.stringify(this.generator) : 'undefined'
-      },
-      showColors: this.errorFormat === 'pretty',
-      logLevel: options.log && getLogLevel(options.log),
-      logQueries: options.log && Boolean(options.log.find(o => typeof o === 'string' ? o === 'query' : o.level === 'query'))
-    }
-
-    debug({ engineConfig: this.engineConfig })
-
-    this.engine = new Engine(this.engineConfig)
-
-    this.dmmf = new DMMFClass(dmmf)
-
-    this.fetcher = new PrismaClientFetcher(this, false, internal.hooks)
-
-    if (options.log) {
-      for (const log of options.log) {
-        const level = typeof log === 'string' ? log : log.emit === 'stdout' ? log.level : null
-        if (level) {
-          this.on(level as any, (event: any) => {
-            const colorMap = {
-              query: 'blue',
-              info: 'cyan',
-              warn: 'yellow'
-            }
-            console.error(chalk[colorMap[level]](\`prisma:$\{level\}\`.padEnd(13)) + (event.message || event.query))
-          })
-        }
-      }
-    }
-  }
-  on<V extends U>(eventType: V, callback: V extends never ? never : (event: V extends 'query' ? QueryEvent : LogEvent) => void) {
-    this.engine.on(eventType as any, event => {
-      const fields: any = event.fields
-      if ((eventType as any) === 'query') {
-        callback({
-          timestamp: event.timestamp,
-          query: fields.query,
-          params: fields.params,
-          duration: fields.duration_ms,
-          target: event.target
-        } as any)
-      } else { // warn or info events
-        callback({
-          timestamp: event.timestamp,
-          message: fields.message,
-          target: event.target
-        } as any)
-      }
-    })
-  }
+${indent(this.jsDoc, tab)}
+  constructor(optionsArg?: T);
+  on<V extends U>(eventType: V, callback: V extends never ? never : (event: V extends 'query' ? QueryEvent : LogEvent) => void): void;
   /**
    * Connect with the database
    */
-  async connect(): Promise<void> {
-    if (this.disconnectionPromise) {
-      debug('awaiting disconnection promise')
-      await this.disconnectionPromise
-    } else {
-      debug('disconnection promise doesnt exist')
-    }
-    if (this.connectionPromise) {
-      return this.connectionPromise
-    }
-    this.connectionPromise = this.engine.start()
-    return this.connectionPromise!
-  }
+  connect(): Promise<void>;
   /**
    * @private
    */
-  private async runDisconnect() {
-    debug('disconnectionPromise: stopping engine')
-    await this.engine.stop()
-    delete this.connectionPromise
-    this.engine = new Engine(this.engineConfig)
-    delete this.disconnectionPromise
-  }
+  private runDisconnect;
   /**
    * Disconnect from the database
    */
-  async disconnect() {
-    if (!this.disconnectionPromise) {
-      this.disconnectionPromise = this.runDisconnect() 
-    }
-    return this.disconnectionPromise
-  }
+  disconnect(): Promise<any>;
+
 ${indent(
   dmmf.mappings
     .filter(m => m.findMany)
@@ -627,17 +768,13 @@ ${indent(
  * \`prisma.${methodName}\`: Exposes CRUD operations for the **${
         m.model
       }** model.
- * Example usage:
- * \`\`\`ts
- * // Fetch zero or more ${capitalize(m.plural)}
- * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
- * \`\`\`
- */
-get ${methodName}(): ${m.model}Delegate {
-  return ${
-    m.model
-  }Delegate(this.dmmf, this.fetcher, this.errorFormat, this.measurePerformance)
-}`
+  * Example usage:
+  * \`\`\`ts
+  * // Fetch zero or more ${capitalize(m.plural)}
+  * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
+  * \`\`\`
+  */
+get ${methodName}(): ${m.model}Delegate;`
 
       // only do this, if we don't cause a name clash.
       // otherwise it's not necessary anyways
@@ -645,26 +782,21 @@ get ${methodName}(): ${m.model}Delegate {
         str += `
 get ${m.plural}(): '"prisma.${
           m.plural
-        }" has been renamed to "prisma.${lowerCase(m.model)}"' {
-  throw new Error('"prisma.${m.plural}" has been renamed to "prisma.${lowerCase(
-          m.model,
-        )}"')
-}`
+        }" has been renamed to "prisma.${lowerCase(m.model)}"'`
       }
 
       return str
     })
-    .join('\n'),
+    .join('\n\n'),
   2,
 )}
-}
-`
+}`
   }
 }
 
-class QueryPayloadType {
+class QueryPayloadType implements Generatable {
   constructor(protected readonly type: OutputType) {}
-  public toString() {
+  public toTS() {
     const { type } = this
     const { name } = type
 
@@ -717,12 +849,12 @@ type ${getPayloadName(
 /**
  * Generates the generic type to calculate a payload based on a include statement
  */
-class PayloadType {
+class PayloadType implements Generatable {
   constructor(
     protected readonly type: OutputType,
     protected readonly projection: Projection,
   ) {}
-  public toString() {
+  public toTS() {
     const { type, projection } = this
     const { name } = type
 
@@ -788,12 +920,12 @@ export type ${getPayloadName(
 /**
  * Generates the default selection of a model
  */
-class ModelDefault {
+class ModelDefault implements Generatable {
   constructor(
     protected readonly model: DMMF.Model,
     protected readonly dmmf: DMMFClass,
   ) {}
-  public toString() {
+  public toTS() {
     const { model } = this
     return `\
 type ${getDefaultName(model.name)} = {
@@ -817,7 +949,7 @@ ${indent(
   }
 }
 
-export class Model {
+export class Model implements Generatable {
   protected outputType?: OutputType
   protected mapping: DMMF.Mapping
   constructor(
@@ -830,7 +962,7 @@ export class Model {
   }
   protected get argsTypes() {
     const { mapping, model } = this
-    const argsTypes: Stringifiable[] = []
+    const argsTypes: Generatable[] = []
     for (const action in DMMF.ModelAction) {
       const fieldName = mapping[action]
       if (!fieldName) {
@@ -857,7 +989,10 @@ export class Model {
 
     return argsTypes
   }
-  public toString() {
+  public toJS() {
+    return `${new ModelDelegate(this.outputType!, this.dmmf).toJS()}`
+  }
+  public toTS() {
     const { model, outputType } = this
 
     if (!outputType) {
@@ -875,7 +1010,7 @@ export type ${model.name} = {
 ${indent(
   model.fields
     .filter(f => f.kind !== 'object')
-    .map(field => new OutputField(field).toString())
+    .map(field => new OutputField(field).toTS())
     .join('\n'),
   tab,
 )}
@@ -923,26 +1058,26 @@ ${indent(
 )}
 }
 
-${new ModelDefault(model, this.dmmf)}
+${new ModelDefault(model, this.dmmf).toTS()}
 
-${new PayloadType(this.outputType!, Projection.select)}
+${new PayloadType(this.outputType!, Projection.select).toTS()}
 
-${new PayloadType(this.outputType!, Projection.include)}
+${new PayloadType(this.outputType!, Projection.include).toTS()}
 
-${new ModelDelegate(this.outputType!, this.dmmf)}
+${new ModelDelegate(this.outputType!, this.dmmf).toTS()}
 
 // Custom InputTypes
-${this.argsTypes.map(String).join('\n')}
+${this.argsTypes.map(TS).join('\n')}
 `
   }
 }
 
-export class Query {
+export class Query implements Generatable {
   constructor(
     protected readonly dmmf: DMMFClass,
     protected readonly operation: 'query' | 'mutation',
   ) {}
-  public toString() {
+  public toTS() {
     const { dmmf, operation } = this
     const queryName = capitalize(operation)
     const mappings = dmmf.mappings.map(mapping => ({
@@ -976,9 +1111,9 @@ ${indent(
 )}
 }
 
-${new QueryPayloadType(outputType)}
+${new QueryPayloadType(outputType).toTS()}
 
-${new QueryDelegate(outputType)}
+${new QueryDelegate(outputType).toTS()}
 `
   }
 }
@@ -1152,12 +1287,175 @@ function wrapComment(str: string): string {
     .join('\n')}\n**/`
 }
 
-export class ModelDelegate {
+export class ModelDelegate implements Generatable {
   constructor(
     protected readonly outputType: OutputType,
     protected readonly dmmf: DMMFClass,
   ) {}
-  public toString() {
+  public toJS() {
+    const { fields, name } = this.outputType
+    const mapping = this.dmmf.mappings.find(m => m.model === name)!
+    const model = this.dmmf.datamodel.models.find(m => m.name === name)!
+
+    const actions = Object.entries(mapping).filter(
+      ([key, value]) =>
+        key !== 'model' && key !== 'plural' && key !== 'aggregate' && value,
+    )
+
+    // TODO: The following code needs to be split up and is a mess
+    return `\
+function ${name}Delegate(dmmf, fetcher, errorFormat, measurePerformance) {
+  const ${name} = {} 
+${indent(
+  actions
+    .map(([actionName, fieldName]: [any, any]) =>
+      actionName === 'deleteMany' || actionName === 'updateMany'
+        ? `${name}.${actionName} = (args) => new ${name}Client(${renderInitialClientArgs(
+            actionName,
+            fieldName,
+            mapping,
+          )})`
+        : `${name}.${actionName} = (args) => ${
+            actionName !== 'findMany' ? `args && args.select ? ` : ''
+          }new ${name}Client(${renderInitialClientArgs(
+            actionName,
+            fieldName,
+            mapping,
+          )})${
+            actionName !== 'findMany'
+              ? ` : new ${name}Client(${renderInitialClientArgs(
+                  actionName,
+                  fieldName,
+                  mapping,
+                )})`
+              : ''
+          }`,
+    )
+    .join('\n'),
+  tab,
+)}
+  ${name}.count = () => new ${name}Client(dmmf, fetcher, 'query', '${mapping.aggregate!}', '${
+      mapping.plural
+    }.count', {}, ['count'], errorFormat)
+  return ${name}
+}
+
+class ${name}Client {
+  constructor(_dmmf, _fetcher, _queryType, _rootField, _clientMethod, _args, _dataPath, _errorFormat, _measurePerformance, _isList) {
+    this._dmmf = _dmmf;
+    this._fetcher = _fetcher;
+    this._queryType = _queryType;
+    this._rootField = _rootField;
+    this._clientMethod = _clientMethod;
+    this._args = _args;
+    this._dataPath = _dataPath;
+    this._errorFormat = _errorFormat;
+    this._measurePerformance = _measurePerformance;
+    this._isList = _isList;
+    if (this._measurePerformance) {
+        // Timestamps for performance checks
+        this._collectTimestamps = new CollectTimestamps("PrismaClient");
+    }
+    // @ts-ignore
+    if (process.env.NODE_ENV !== 'production' && this._errorFormat !== 'minimal') {
+        const error = new Error();
+        if (error && error.stack) {
+            const stack = error.stack;
+            this._callsite = stack;
+        }
+    }
+  }
+${indent(
+  fields
+    .filter(f => f.outputType.kind === 'object')
+    .map(f => {
+      return `
+${f.name}(args) {
+  const prefix = this._dataPath.includes('select') ? 'select' : this._dataPath.includes('include') ? 'include' : 'select'
+  const dataPath = [...this._dataPath, prefix, '${f.name}']
+  const newArgs = deepSet(this._args, dataPath, args || true)
+  this._isList = ${f.outputType.isList}
+  return new ${getFieldTypeName(
+    f,
+  )}Client(this._dmmf, this._fetcher, this._queryType, this._rootField, this._clientMethod, newArgs, dataPath, this._errorFormat, this._measurePerformance, this._isList)
+}`
+    })
+    .join('\n'),
+  2,
+)}
+
+  get _document() {
+    const { _rootField: rootField } = this
+    this._collectTimestamps && this._collectTimestamps.record("Pre-makeDocument")
+    const document = makeDocument({
+      dmmf: this._dmmf,
+      rootField,
+      rootTypeName: this._queryType,
+      select: this._args
+    })
+    this._collectTimestamps && this._collectTimestamps.record("Post-makeDocument")
+    try {
+      this._collectTimestamps && this._collectTimestamps.record("Pre-document.validate")
+      document.validate(this._args, false, this._clientMethod, this._errorFormat)
+      this._collectTimestamps && this._collectTimestamps.record("Post-document.validate")
+    } catch (e) {
+      const x = e
+      if (this._errorFormat !== 'minimal' && x.render) {
+        if (this._callsite) {
+          e.message = x.render(this._callsite)
+        }
+      }
+      throw e
+    }
+    this._collectTimestamps && this._collectTimestamps.record("Pre-transformDocument")
+    const transformedDocument = transformDocument(document)
+    this._collectTimestamps && this._collectTimestamps.record("Post-transformDocument")
+    return transformedDocument
+  }
+
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then(onfulfilled, onrejected) {
+    if (!this._requestPromise){
+      this._requestPromise = this._fetcher.request(this._document, this._dataPath, this._rootField, '${name}', this._isList, this._callsite, this._collectTimestamps)
+    }
+    return this._requestPromise.then(onfulfilled, onrejected)
+  }
+
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch(onrejected) {
+    if (!this._requestPromise) {
+      this._requestPromise = this._fetcher.request(this._document, this._dataPath, this._rootField, '${name}', this._isList, this._callsite, this._collectTimestamps)
+    }
+    return this._requestPromise.catch(onrejected)
+  }
+
+  /**
+   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+   * resolved value cannot be modified from the callback.
+   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+   * @returns A Promise for the completion of the callback.
+   */
+  finally(onfinally) {
+    if (!this._requestPromise) {
+      this._requestPromise = this._fetcher.request(this._document, this._dataPath, this._rootField, '${name}', this._isList, this._callsite, this._collectTimestamps)
+    }
+    return this._requestPromise.finally(onfinally)
+  }
+}
+
+exports.${name}Client = ${name}Client
+`
+  }
+  public toTS() {
     const { fields, name } = this.outputType
     const mapping = this.dmmf.mappings.find(m => m.model === name)!
     const model = this.dmmf.datamodel.models.find(m => m.name === name)!
@@ -1193,92 +1491,23 @@ ${actionName}<T extends ${getModelArgName(
    */
   count(): Promise<number>
 }
-function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaClientFetcher, errorFormat: ErrorFormat, measurePerformance?: boolean): ${name}Delegate {
-  const ${name}: any = {} 
-${indent(
-  actions
-    .map(([actionName, fieldName]: [any, any]) =>
-      actionName === 'deleteMany' || actionName === 'updateMany'
-        ? `${name}.${actionName} = (args: ${getModelArgName(
-            name,
-            undefined,
-            actionName,
-          )}) => new ${name}Client<Promise<BatchPayload>>(${renderInitialClientArgs(
-            actionName,
-            fieldName,
-            mapping,
-          )})`
-        : `${name}.${actionName} = <T extends ${getModelArgName(
-            name,
-            /*projection*/ undefined,
-            actionName as DMMF.ModelAction,
-          )}>(args: Subset<T, ${getModelArgName(
-            name,
-            Projection.select,
-            actionName as DMMF.ModelAction,
-          )}>) => ${
-            actionName !== 'findMany' ? `args && args.select ? ` : ''
-          }new ${name}Client<${getSelectReturnType({
-            name,
-            actionName,
-            hideCondition: false,
-            isField: true,
-            projection: Projection.select,
-          })}>(${renderInitialClientArgs(actionName, fieldName, mapping)})${
-            actionName !== 'findMany'
-              ? ` : new ${name}Client<${(getType(
-                  name,
-                  actionName === 'findMany',
-                ),
-                actionName === 'findOne')}>(${renderInitialClientArgs(
-                  actionName,
-                  fieldName,
-                  mapping,
-                )})`
-              : ''
-          }`,
-    )
-    .join('\n'),
-  tab,
-)}
-  ${name}.count = () => new ${name}Client<number>(dmmf, fetcher, 'query', '${mapping.aggregate!}', '${
-      mapping.plural
-    }.count', {}, ['count'], errorFormat)
-  return ${name} as any // any needed because of https://github.com/microsoft/TypeScript/issues/31335
-}
 
-export class ${name}Client<T> implements Promise<T> {
-  private _callsite: any
-  private _requestPromise?: Promise<any>
-  private _collectTimestamps?: CollectTimestamps
-  constructor(
-    private readonly _dmmf: DMMFClass,
-    private readonly _fetcher: PrismaClientFetcher,
-    private readonly _queryType: 'query' | 'mutation',
-    private readonly _rootField: string,
-    private readonly _clientMethod: string,
-    private readonly _args: any,
-    private readonly _dataPath: string[],
-    private readonly _errorFormat: ErrorFormat,
-    private readonly _measurePerformance?: boolean,
-    private _isList = false
-  ) {
-    if (this._measurePerformance) {
-      // Timestamps for performance checks
-      this._collectTimestamps = new CollectTimestamps("PrismaClient")
-    }
-
-    // @ts-ignore
-    if (process.env.NODE_ENV !== 'production' && this._errorFormat !== 'minimal') {
-      const error = new Error()
-      if (error && error.stack) {
-        const stack = error.stack
-        this._callsite = stack
-      }
-    }
-  }
-  readonly [Symbol.toStringTag]: 'PrismaClientPromise'
-
+export declare class ${name}Client<T> implements Promise<T> {
+  private readonly _dmmf;
+  private readonly _fetcher;
+  private readonly _queryType;
+  private readonly _rootField;
+  private readonly _clientMethod;
+  private readonly _args;
+  private readonly _dataPath;
+  private readonly _errorFormat;
+  private readonly _measurePerformance?;
+  private _isList;
+  private _callsite;
+  private _requestPromise?;
+  private _collectTimestamps?;
+  constructor(_dmmf: DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+  readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 ${indent(
   fields
     .filter(f => f.outputType.kind === 'object')
@@ -1297,106 +1526,40 @@ ${f.name}<T extends ${getFieldArgName(
         renderPromise: true,
         fieldName: f.name,
         projection: Projection.select,
-      })} {
-  const prefix = this._dataPath.includes('select') ? 'select' : this._dataPath.includes('include') ? 'include' : 'select'
-  const dataPath = [...this._dataPath, prefix, '${f.name}']
-  const newArgs = deepSet(this._args, dataPath, args || true)
-  this._isList = ${f.outputType.isList}
-  return new ${getFieldTypeName(f)}Client<${getSelectReturnType({
-        name: fieldTypeName,
-        actionName: f.outputType.isList
-          ? DMMF.ModelAction.findMany
-          : DMMF.ModelAction.findOne,
-        hideCondition: false,
-        isField: true,
-        renderPromise: true,
-        projection: Projection.select,
-      })}>(this._dmmf, this._fetcher, this._queryType, this._rootField, this._clientMethod, newArgs, dataPath, this._errorFormat, this._measurePerformance, this._isList) as any
-}`
+      })};`
     })
     .join('\n'),
   2,
 )}
 
-  private get _document() {
-    const { _rootField: rootField } = this
-    this._collectTimestamps && this._collectTimestamps.record("Pre-makeDocument")
-    const document = makeDocument({
-      dmmf: this._dmmf,
-      rootField,
-      rootTypeName: this._queryType,
-      select: this._args
-    })
-    this._collectTimestamps && this._collectTimestamps.record("Post-makeDocument")
-    try {
-      this._collectTimestamps && this._collectTimestamps.record("Pre-document.validate")
-      document.validate(this._args, false, this._clientMethod, this._errorFormat)
-      this._collectTimestamps && this._collectTimestamps.record("Post-document.validate")
-    } catch (e) {
-      const x: any = e
-      if (this._errorFormat !== 'minimal' && x.render) {
-        if (this._callsite) {
-          e.message = x.render(this._callsite)
-        }
-      }
-      throw e
-    }
-    this._collectTimestamps && this._collectTimestamps.record("Pre-transformDocument")
-    const transformedDocument = transformDocument(document)
-    this._collectTimestamps && this._collectTimestamps.record("Post-transformDocument")
-    return transformedDocument
-  }
-
+  private get _document();
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
    * @param onrejected The callback to execute when the Promise is rejected.
    * @returns A Promise for the completion of which ever callback is executed.
    */
-  then<TResult1 = T, TResult2 = never>(
-    onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null,
-    onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null,
-  ): Promise<TResult1 | TResult2> {
-    if (!this._requestPromise){
-      this._requestPromise = this._fetcher.request<T>(this._document, this._dataPath, this._rootField, '${name}', this._isList, this._callsite, this._collectTimestamps)
-    }
-    return this._requestPromise!.then(onfulfilled, onrejected)
-  }
-
+  then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
   /**
    * Attaches a callback for only the rejection of the Promise.
    * @param onrejected The callback to execute when the Promise is rejected.
    * @returns A Promise for the completion of the callback.
    */
-  catch<TResult = never>(
-    onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null,
-  ): Promise<T | TResult> {
-    if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request<T>(this._document, this._dataPath, this._rootField, '${name}', this._isList, this._callsite, this._collectTimestamps)
-    }
-    return this._requestPromise!.catch(onrejected)
-  }
-
+  catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
   /**
    * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
    * resolved value cannot be modified from the callback.
    * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
    * @returns A Promise for the completion of the callback.
    */
-  finally(onfinally?: (() => void) | undefined | null): Promise<T> {
-    if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request<T>(this._document, this._dataPath, this._rootField, '${name}', this._isList, this._callsite, this._collectTimestamps)
-    }
-    return this._requestPromise!.finally(onfinally)
-  }
-}
-    `
+  finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+}`
   }
 }
 
-export class QueryDelegate {
+export class QueryDelegate implements Generatable {
   constructor(protected readonly outputType: OutputType) {}
-  public toString() {
+  public toTS() {
     const name = this.outputType.name
     return `\
 interface ${name}Delegate {
@@ -1460,12 +1623,12 @@ class ${name}Client<T extends ${name}Args, U = ${getPayloadName(
   }
 }
 
-export class InputField {
+export class InputField implements Generatable {
   constructor(
     protected readonly field: DMMF.SchemaArg,
     protected readonly prefixFilter = false,
   ) {}
-  public toString() {
+  public toTS() {
     const { field } = this
     let fieldType
     if (Array.isArray(field.inputType)) {
@@ -1488,9 +1651,9 @@ export class InputField {
   }
 }
 
-export class OutputField {
+export class OutputField implements Generatable {
   constructor(protected readonly field: BaseField) {}
-  public toString() {
+  public toTS() {
     const { field } = this
     // ENUMTODO
     let fieldType =
@@ -1506,20 +1669,20 @@ export class OutputField {
   }
 }
 
-export class OutputType {
+export class OutputType implements Generatable {
   public name: string
   public fields: DMMF.SchemaField[]
   constructor(protected readonly type: DMMF.OutputType) {
     this.name = type.name
     this.fields = type.fields
   }
-  public toString() {
+  public toTS() {
     const { type } = this
     return `
 export type ${type.name} = {
 ${indent(
   type.fields
-    .map(field => new OutputField({ ...field, ...field.outputType }).toString())
+    .map(field => new OutputField({ ...field, ...field.outputType }).toTS())
     .join('\n'),
   tab,
 )}
@@ -1527,17 +1690,13 @@ ${indent(
   }
 }
 
-interface Stringifiable {
-  toString(): string
-}
-
-export class MinimalArgsType {
+export class MinimalArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly model: DMMF.Model,
     protected readonly action?: DMMF.ModelAction,
   ) {}
-  public toString() {
+  public toTS() {
     const { action, args } = this
     const { name } = this.model
 
@@ -1546,19 +1705,19 @@ export class MinimalArgsType {
  * ${name} ${action ? action : 'without action'}
  */
 export type ${getModelArgName(name, undefined, action)} = {
-${indent(args.map(arg => new InputField(arg).toString()).join('\n'), tab)}
+${indent(args.map(arg => new InputField(arg).toTS()).join('\n'), tab)}
 }
 `
   }
 }
 
-export class ArgsType {
+export class ArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly model: DMMF.Model,
     protected readonly action?: DMMF.ModelAction,
   ) {}
-  public toString() {
+  public toTS() {
     const { action, args } = this
     const { name } = this.model
 
@@ -1682,42 +1841,42 @@ export class ArgsType {
  */
 export type ${getModelArgName(name, undefined, action)} = {
 ${indent(
-  bothArgsOptional.map(arg => new InputField(arg).toString()).join('\n'),
+  bothArgsOptional.map(arg => new InputField(arg).toTS()).join('\n'),
   tab,
 )}
 }
 
 export type ${getModelArgName(name, undefined, action)}Required = {
 ${indent(
-  bothArgsRequired.map(arg => new InputField(arg).toString()).join('\n'),
+  bothArgsRequired.map(arg => new InputField(arg).toTS()).join('\n'),
   tab,
 )}
 }
 
 export type ${getModelArgName(name, Projection.select, action)} = {
 ${indent(
-  selectArgsRequired.map(arg => new InputField(arg).toString()).join('\n'),
+  selectArgsRequired.map(arg => new InputField(arg).toTS()).join('\n'),
   tab,
 )}
 }
 
 export type ${getModelArgName(name, Projection.select, action)}Optional = {
 ${indent(
-  selectArgsOptional.map(arg => new InputField(arg).toString()).join('\n'),
+  selectArgsOptional.map(arg => new InputField(arg).toTS()).join('\n'),
   tab,
 )}
 }
 
 export type ${getModelArgName(name, Projection.include, action)} = {
 ${indent(
-  includeArgsRequired.map(arg => new InputField(arg).toString()).join('\n'),
+  includeArgsRequired.map(arg => new InputField(arg).toTS()).join('\n'),
   tab,
 )}
 }
 
 export type ${getModelArgName(name, Projection.include, action)}Optional = {
 ${indent(
-  includeArgsOptional.map(arg => new InputField(arg).toString()).join('\n'),
+  includeArgsOptional.map(arg => new InputField(arg).toTS()).join('\n'),
   tab,
 )}
 }
@@ -1758,42 +1917,43 @@ export type Extract${getModelArgName(
   }
 }
 
-export class InputType {
+export class InputType implements Generatable {
   constructor(protected readonly type: DMMF.InputType) {}
-  public toString() {
+  public toTS() {
     const { type } = this
     // TO DISCUSS: Should we rely on TypeScript's error messages?
     const body = `{
 ${indent(
   type.fields
-    .map(arg => new InputField(arg /*, type.atLeastOne && !type.atMostOne*/))
+    .map(arg =>
+      new InputField(arg /*, type.atLeastOne && !type.atMostOne*/).toTS(),
+    )
     .join('\n'),
   tab,
 )}
 }`
-    //     if (type.atLeastOne && !type.atMostOne) {
-    //       return `export type Base${type.name} = ${body}
-    // export type ${type.name} = AtLeastOne<Base${type.name}>
-    //       `
-    //     } else if (type.atLeastOne && type.atMostOne) {
-    //       return `export type Base${type.name} = ${body}
-    // export type ${type.name} = OnlyOne<Base${type.name}>
-    //       `
-    //     }
     return `
 export type ${type.name} = ${body}`
   }
 }
 
-export class Enum {
+export class Enum implements Generatable {
   constructor(protected readonly type: DMMF.Enum) {}
-  public toString() {
+  public toJS() {
+    const { type } = this
+    return `exports.${type.name} = makeEnum({
+${indent(type.values.map(v => `${v}: '${v}'`).join(',\n'), tab)}
+});`
+  }
+  public toTS() {
     const { type } = this
 
-    return `export const ${type.name} = makeEnum({
+    return `export declare const ${type.name}: {
 ${indent(type.values.map(v => `${v}: '${v}'`).join(',\n'), tab)}
-})
+};
 
-export type ${type.name} = (typeof ${type.name})[keyof typeof ${type.name}]\n`
+export declare type ${type.name} = (typeof ${type.name})[keyof typeof ${
+      type.name
+    }]\n`
   }
 }

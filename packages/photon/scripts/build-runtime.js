@@ -5,6 +5,7 @@ const { promisify } = require('util')
 const writeFile = promisify(fs.writeFile)
 const makeDir = require('make-dir')
 const del = require('del')
+const chalk = require('chalk')
 
 const runtimeTsConfig = {
   compilerOptions: {
@@ -20,11 +21,24 @@ const runtimeTsConfig = {
     declaration: true,
   },
   include: ['src/runtime'],
-  exclude: ['archive', 'dist', 'build', 'cli', 'examples', 'runtime', 'src/fixtures', 'src/__tests__'],
+  exclude: [
+    'archive',
+    'dist',
+    'build',
+    'cli',
+    'examples',
+    'runtime',
+    'src/fixtures',
+    'src/__tests__',
+  ],
 }
 
 mockFs({
-  [path.join(__dirname, '../tsconfig.json')]: JSON.stringify(runtimeTsConfig, null, 2),
+  [path.join(__dirname, '../tsconfig.json')]: JSON.stringify(
+    runtimeTsConfig,
+    null,
+    2,
+  ),
 })
 
 const options = {}
@@ -86,7 +100,11 @@ async function saveToDisc(source, map, assets, outputDir) {
       // content = content.replace('@prisma/engine-core', './dist/Engine')
       //   await writeFile(targetPath, indexDTS, 'utf-8')
       // } else {
-      console.log(`writing`, targetPath)
+      console.log(
+        `writing`,
+        targetPath,
+        chalk.bold(Math.round(file.source.length / 1024) + 'kB'),
+      )
       await writeFile(targetPath, file.source)
       // }
     }),
