@@ -42,17 +42,14 @@ export class Validate implements Command {
       return this.help()
     }
 
-    let schemaPath: string | null = args['--schema'] || (await getSchemaPath())
+    const schemaPath = await getSchemaPath(args['--schema'])
+
     if (!schemaPath) {
       throw new Error(
         `Either provide ${chalk.greenBright(
           '--schema',
         )} or make sure that you are in a folder with a ${chalk.greenBright('schema.prisma')} file.`,
       )
-    }
-
-    if (!fs.existsSync(schemaPath)) {
-      throw new Error(`Provided schema at ${schemaPath} doesn't exist.`)
     }
 
     const schema = fs.readFileSync(schemaPath, 'utf-8')
