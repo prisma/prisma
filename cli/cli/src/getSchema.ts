@@ -12,7 +12,7 @@ const readFile = promisify(fs.readFile)
 export async function getSchemaPath(schemaPathFromArgs?): Promise<string | null> {
   if (schemaPathFromArgs) {  
     // try the user custom path
-    const customSchemaPath = await getAbsoluteSchemaPath(schemaPathFromArgs)
+    const customSchemaPath = await getAbsoluteSchemaPath(path.resolve(schemaPathFromArgs))
     if (customSchemaPath) {
       return customSchemaPath
     } else {
@@ -61,6 +61,10 @@ async function getRelativeSchemaPath(cwd: string): Promise<string | null> {
  * Small helper that returns the directory which contains the `schema.prisma` file
  */
 export async function getSchemaDir(schemaPathFromArgs?): Promise<string | null> {
+  if (schemaPathFromArgs) {
+    return path.resolve(path.dirname(schemaPathFromArgs))
+  }
+
   const schemaPath = await getSchemaPath(schemaPathFromArgs)
   if (schemaPath) {
     return path.dirname(schemaPath)
@@ -86,7 +90,7 @@ export async function getSchema(schemaPathFromArgs?): Promise<string> {
 export function getSchemaPathSync(schemaPathFromArgs?): string | null {
   if (schemaPathFromArgs) {  
     // try the user custom path
-    const customSchemaPath = getAbosuluteSchemaPathSync(schemaPathFromArgs)
+    const customSchemaPath = getAbosuluteSchemaPathSync(path.resolve(schemaPathFromArgs))
     if (customSchemaPath) {
       return customSchemaPath
     } else {
@@ -137,6 +141,10 @@ function getRelativeSchemaPathSync(cwd: string): string | null {
  * Sync version of the small helper that returns the directory which contains the `schema.prisma` file
  */
 export function getSchemaDirSync(schemaPathFromArgs?): string | null {
+  if (schemaPathFromArgs) {
+    return path.resolve(path.dirname(schemaPathFromArgs))
+  }
+
   const schemaPath = getSchemaPathSync(schemaPathFromArgs)
   if (schemaPath) {
     return path.dirname(schemaPath)
