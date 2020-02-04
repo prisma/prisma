@@ -62,6 +62,7 @@ export class LiftUp implements Command {
       '-c': '--create-db',
       '--auto-approve': Boolean,
       '--experimental': Boolean,
+      '--schema': String,
     })
 
     if (!args['--experimental']) {
@@ -74,7 +75,7 @@ export class LiftUp implements Command {
       return this.help()
     }
 
-    const lift = new Lift()
+    const lift = new Lift(args['--schema'])
 
     const options: UpOptions = {
       preview: args['--preview'],
@@ -94,7 +95,7 @@ export class LiftUp implements Command {
       }
     }
 
-    await ensureDatabaseExists('apply', true, args['--create-db'])
+    await ensureDatabaseExists('apply', true, args['--create-db'], args['--schema'])
 
     const result = await lift.up(options)
     lift.stop()

@@ -1,4 +1,4 @@
-import { getSchemaDirSync } from '@prisma/cli'
+import { getSchemaPathSync } from '@prisma/cli'
 import { getGenerators, ProviderAliases } from '@prisma/sdk'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
@@ -27,7 +27,6 @@ import { EngineResults, FileMap, LocalMigration, LocalMigrationWithDatabaseSteps
 import { drawBox } from './utils/drawBox'
 import { exit } from './utils/exit'
 import { formatms } from './utils/formartms'
-import { getDatamodelPath } from './utils/getDatamodelPath'
 import { groupBy } from './utils/groupBy'
 import { isWatchMigrationName } from './utils/isWatchMigrationName'
 import { deserializeLockFile, initLockFile, serializeLockFile } from './utils/LockFile'
@@ -73,7 +72,7 @@ const brightGreen = chalk.rgb(127, 224, 152)
 
 export class Lift {
   get devMigrationsDir() {
-    return path.join(this.projectDir, 'migrations/dev')
+    return path.join(path.dirname(this.schemaPath), 'migrations/dev')
   }
   public engine: LiftEngine
 
@@ -133,7 +132,7 @@ export class Lift {
         }
 
         const generators = await getGenerators({
-          schemaPath: getDatamodelPath(this.projectDir),
+          schemaPath: this.schemaPath,
           printDownloadProgress: false,
           version: packageJson.prisma.version,
           cliVersion: packageJson.version,
@@ -204,24 +203,23 @@ export class Lift {
   private datamodelBeforeWatch: string = ''
   private studioServer?: Studio
   private studioPort: number = 5555
-  private projectDir: string
-  constructor(projectDir?: string) {
-    this.projectDir = projectDir || this.getSchemaDir()
-    const schemaPath = getDatamodelPath(this.projectDir)
-    this.engine = new LiftEngine({ projectDir: this.projectDir, schemaPath })
+  private schemaPath: string
+  constructor(schemaPath?: string) {
+    this.schemaPath = this.getSchemaPath(schemaPath)
+    this.engine = new LiftEngine({ projectDir: path.dirname(this.schemaPath), schemaPath: this.schemaPath })
   }
 
-  public getSchemaDir(): string {
-    const schemaPath = getSchemaDirSync()
+  public getSchemaPath(schemaPathFromOptions?): string {
+    const schemaPath = getSchemaPathSync(schemaPathFromOptions)
     if (!schemaPath) {
-      throw new Error(`Could not find schema.prisma`)
+      throw new Error(`Could not find ${schemaPathFromOptions || 'schema.prisma'}`)
     }
 
     return schemaPath
   }
 
   public getDatamodel(): string {
-    return fs.readFileSync(getDatamodelPath(this.projectDir), 'utf-8')
+    return fs.readFileSync(this.schemaPath, 'utf-8')
   }
 
   // TODO: optimize datapaths, where we have a datamodel already, use it
@@ -235,7 +233,7 @@ export class Lift {
         return await this.studioServer.restart(providerAliases)
       }
 
-      this.studioServer = new Studio({ projectDir: this.projectDir, port: this.studioPort })
+      this.studioServer = new Studio({ schemaPath: this.schemaPath, port: this.studioPort })
       await this.studioServer.start(providerAliases)
     } catch (e) {
       debug(e)
@@ -243,7 +241,7 @@ export class Lift {
   }
 
   public async getLockFile(): Promise<LockFile> {
-    const lockFilePath = path.resolve(this.projectDir, 'migrations', 'lift.lock')
+    const lockFilePath = path.resolve(path.dirname(this.schemaPath), 'migrations', 'lift.lock')
     if (await exists(lockFilePath)) {
       const file = await readFile(lockFilePath, 'utf-8')
       const lockFile = deserializeLockFile(file)
@@ -351,7 +349,7 @@ export class Lift {
     const datamodel = await this.getDatamodel()
 
     const generators = await getGenerators({
-      schemaPath: getDatamodelPath(this.projectDir),
+      schemaPath: this.schemaPath,
       printDownloadProgress: false,
       version: packageJson.prisma.version,
       cliVersion: packageJson.version,
@@ -359,8 +357,7 @@ export class Lift {
 
     this.studioPort = await getPort({ port: getPort.makeRange(5555, 5600) })
 
-    const datamodelPath = getDatamodelPath(this.projectDir)
-    const relativeDatamodelPath = path.relative(process.cwd(), datamodelPath)
+    const relativeDatamodelPath = path.relative(process.cwd(), this.schemaPath)
 
     // From here on, we render the dev ui
     const renderer = new DevComponentRenderer({
@@ -374,7 +371,7 @@ export class Lift {
           generatedIn: undefined,
           generating: false,
         })),
-        datamodelPath,
+        datamodelPath: this.schemaPath,
         migrating: false,
         migratedIn: undefined,
         lastChanged: undefined,
@@ -432,7 +429,7 @@ export class Lift {
 
     await makeDir(this.devMigrationsDir)
 
-    fs.watch(getDatamodelPath(this.projectDir), (eventType, filename) => {
+    fs.watch(this.schemaPath, (eventType, filename) => {
       if (eventType === 'change') {
         this.watchUp(options, renderer)
       }
@@ -696,7 +693,7 @@ export class Lift {
   }
 
   private async getLocalMigrations(
-    migrationsDir = path.join(this.projectDir, 'migrations'),
+    migrationsDir = path.join(path.dirname(this.schemaPath), 'migrations'),
   ): Promise<LocalMigration[]> {
     if (!(await exists(migrationsDir))) {
       return []

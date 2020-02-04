@@ -4,6 +4,7 @@ import { Lift } from '../../Lift'
 import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
 import { occupyPath } from '../../utils/occupyPath'
 import { ProviderAliases } from '@prisma/sdk'
+import { ExperimentalFlagError } from '../../utils/experimental'
 
 /**
  * $ prisma2 migrate dev
@@ -38,7 +39,14 @@ export class LiftWatch implements Command {
       '--create-db': Boolean,
       '-c': '--create-db',
       '--auto-approve': Boolean,
+      '--experimental': Boolean,
+      '--schema': String,
     })
+    
+    if (!args['--experimental']) {
+      throw new ExperimentalFlagError()
+    }
+    
     const preview = args['--preview'] || false
 
     if (args['--help']) {
@@ -47,9 +55,9 @@ export class LiftWatch implements Command {
 
     await occupyPath(process.cwd())
 
-    await ensureDatabaseExists('dev', false, args['--create-db'] || process.platform === 'win32')
+    await ensureDatabaseExists('dev', false, args['--create-db'] || process.platform === 'win32', args['--schema'])
 
-    const lift = new Lift()
+    const lift = new Lift(args['--schema'])
     return lift.watch({
       preview,
       providerAliases: this.providerAliases,
