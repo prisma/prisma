@@ -11,3 +11,4 @@ failed-*.md
 .env*
 pnpm-debug.log
 write-test
+*.tsbuildinfo
