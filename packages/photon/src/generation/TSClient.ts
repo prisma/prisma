@@ -736,11 +736,11 @@ export declare class PrismaClient<T extends PrismaClientOptions = {}, U = keyof 
   /**
    * @private
    */
-  engine: Engine;
+  private engine: Engine;
   /**
    * @private
    */
-  errorFormat: ErrorFormat;
+  private errorFormat: ErrorFormat;
 
 ${indent(this.jsDoc, tab)}
   constructor(optionsArg?: T);
