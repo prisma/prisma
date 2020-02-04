@@ -170,11 +170,13 @@ export class Introspect implements Command {
       }
     } catch (e) {
       let sqlDump
-      try {
-        sqlDump = await engine.getDatabaseDescription(url)
-      } catch (e) {
-        console.error(e)
-        //
+      if (engine.isRunning) {
+        try {
+          sqlDump = await engine.getDatabaseDescription(url)
+        } catch (e) {
+          console.error(e)
+          //
+        }
       }
       engine.stop()
 
