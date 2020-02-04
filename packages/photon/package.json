@@ -6,16 +6,16 @@
   "license": "Apache-2.0",
   "scripts": {
     "tsc": "tsc -d",
-    "build": "pnpm run cleanup && pnpm run tsc && pnpm run ncc:runtime && pnpm run ncc:generator && cp scripts/backup-index.js index.js &&  cp scripts/any-index.js runtime/index.d.ts",
+    "build": "pnpm run cleanup && pnpm run tsc && pnpm run ncc:runtime && pnpm run ncc:generator && cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts &&  cp scripts/any-index.js runtime/index.d.ts",
     "test": "jest",
     "download": "node scripts/download.js",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "precommit": "lint-staged && jest",
     "ncc:runtime": "node scripts/build-runtime.js",
-    "cleanup": "rm -f index.d.ts && cp scripts/backup-index.js index.js",
+    "cleanup": "rm -f index.d.ts && cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts",
     "ncc:generator": "rm -rf generator-build && ncc build dist/generator.js -o generator-build --minify && sed -i.bak 's/env ts-node/env node --max-old-space-size=2048/g' 'generator-build/index.js' && rm -f generator-build/index.js.bak && chmod +x generator-build/index.js",
-    "prepare": "pnpm run cleanup && cp scripts/backup-index.js index.js && node scripts/download.js || echo \"\"",
+    "prepare": "pnpm run cleanup && cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts && node scripts/download.js || echo \"\"",
     "prepublishOnly": "pnpm run build"
   },
   "lint-staged": {
@@ -38,7 +38,8 @@
     "dist",
     "scripts",
     "generator-build",
-    "index.js"
+    "index.js",
+    "index.d.ts"
   ],
   "devDependencies": {
     "@apexearth/copy": "^1.4.4",
