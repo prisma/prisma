@@ -1631,21 +1631,27 @@ export class InputField implements Generatable {
   public toTS() {
     const { field } = this
     let fieldType
+    let hasNull = false
     if (Array.isArray(field.inputType)) {
-      fieldType = flatMap(field.inputType, t =>
-        typeof t.type === 'string'
-          ? GraphQLScalarToJSTypeTable[t.type] || t.type
-          : this.prefixFilter
-          ? `Base${t.type.name}`
-          : t.type.name,
-      ).join(' | ')
+      fieldType = flatMap(field.inputType, t => {
+        const type =
+          typeof t.type === 'string'
+            ? GraphQLScalarToJSTypeTable[t.type] || t.type
+            : this.prefixFilter
+            ? `Base${t.type.name}`
+            : t.type.name
+        if (type === 'null') {
+          hasNull = true
+        }
+        return type
+      }).join(' | ')
     }
     const fieldInputType = field.inputType[0]
     const optionalStr = fieldInputType.isRequired ? '' : '?'
     if (fieldInputType.isList) {
       fieldType = `Enumerable<${fieldType}>`
     }
-    const nullableStr = !fieldInputType.isRequired ? ' | null' : ''
+    const nullableStr = !fieldInputType.isRequired && !hasNull ? ' | null' : ''
     const jsdoc = field.comment ? wrapComment(field.comment) + '\n' : ''
     return `${jsdoc}${field.name}${optionalStr}: ${fieldType}${nullableStr}`
   }

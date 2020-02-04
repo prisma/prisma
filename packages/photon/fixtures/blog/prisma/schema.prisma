@@ -8,10 +8,11 @@ generator client {
 }
 
 model User {
-  id    String  @default(cuid()) @id
-  email String  @unique
-  name  String?
-  posts Post[]
+  id                String  @default(cuid()) @id
+  email             String  @unique
+  name              String?
+  posts             Post[]
+  treeHouseMaterial Tree?
 }
 
 model Post {
@@ -22,4 +23,9 @@ model Post {
   title     String
   content   String?
   author    User?
+}
+
+enum Tree {
+  OAK
+  DOUGLAS
 }
