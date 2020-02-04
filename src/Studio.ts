@@ -102,7 +102,7 @@ export class Studio {
   private getSchemaPath(schemaPathFromOptions?): string {
     const schemaPath = getSchemaPathSync(schemaPathFromOptions)
     if (!schemaPath) {
-      throw new Error(`Could not find schema.prisma`)
+      throw new Error(`Could not find ${schemaPathFromOptions || 'schema.prisma'}`)
     }
 
     return schemaPath
