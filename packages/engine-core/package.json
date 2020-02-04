@@ -16,7 +16,7 @@
     "typescript": "^3.7.3"
   },
   "scripts": {
-    "build": "del-cli -f dist/ && tsc -d",
+    "build": "tsc -d",
     "prepublishOnly": "npm run build",
     "download": "node download.js"
   },
