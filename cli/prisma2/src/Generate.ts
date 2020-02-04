@@ -26,6 +26,9 @@ export class Generate implements Command {
     With an existing schema.prisma:
       ${chalk.dim('$')} prisma2 generate
 
+    Or specify a schema:
+      ${chalk.dim('$')} prisma2 generate --schema=./schema.prisma'
+
     ${chalk.bold('Flags')}
 
       --watch    Watches the Prisma project file
@@ -66,12 +69,13 @@ export class Generate implements Command {
   })
 
   // parse arguments
-  public async parse(argv: string[], minimalOutput = false): Promise<string | Error> {
+  public async parse(argv: string[]): Promise<string | Error> {
     // parse the arguments according to the spec
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--watch': Boolean,
+      '--schema': String,
     })
 
     if (isError(args)) {
@@ -84,13 +88,17 @@ export class Generate implements Command {
 
     const watchMode = args['--watch']
 
-    const datamodelPath = await getSchemaPath()
-    if (!datamodelPath) {
-      throw new Error(`Can't find schema.prisma`) // TODO: Add this into a central place in getSchemaPath() as an arg
+    const schemaPath = await getSchemaPath(args['--schema'])
+    if (!schemaPath) {
+      throw new Error(
+        `Either provide ${chalk.greenBright(
+          '--schema',
+        )} or make sure that you are in a folder with a ${chalk.greenBright('schema.prisma')} file.`,
+      )
     }
 
     const generators = await getGenerators({
-      schemaPath: datamodelPath,
+      schemaPath,
       printDownloadProgress: !watchMode,
       version: pkg.prisma.version,
       cliVersion: pkg.version,
@@ -100,12 +108,12 @@ export class Generate implements Command {
       console.error(missingGeneratorMessage)
     }
 
-    const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(datamodelPath)}\n`
+    const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(schemaPath)}\n`
 
     if (watchMode) {
       logUpdate(watchingText)
 
-      fs.watch(datamodelPath, async eventType => {
+      fs.watch(schemaPath, async eventType => {
         if (eventType === 'change') {
           logUpdate(`\n${chalk.green('Building...')}\n\n${this.logText}`)
           await this.runGenerate({ generators, watchMode })
