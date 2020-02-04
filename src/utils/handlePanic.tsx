@@ -52,6 +52,7 @@ const PanicDialog: React.FC<DialogProps> = ({ error, onDone, cliVersion, binaryV
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
   const [errorId, setErrorId] = useState<number | null>(null)
+  const [sendingError, setSendingError] = useState(false)
   const tabIndexContext = useContext(TabIndexContext)
 
   const onSubmit = async (submit: boolean) => {
@@ -63,6 +64,8 @@ const PanicDialog: React.FC<DialogProps> = ({ error, onDone, cliVersion, binaryV
     const id = await sendPanic(error, cliVersion, binaryVersion)
     if (id) {
       setErrorId(id)
+    } else {
+      setSendingError(true)
     }
     setDone(true)
     onDone()
@@ -78,21 +81,39 @@ const PanicDialog: React.FC<DialogProps> = ({ error, onDone, cliVersion, binaryV
               .slice(0, process.stdout.rows - 20)
               .join('\n')}
           </Color>
-          <Color bold>We successfully received the error report</Color>
-          {errorId && (
-            <Box flexDirection="column">
-              <Box>
-                To help us even more, please create an issue at{' '}
-                <InkLink url="https://github.com/prisma/prisma2/issues/new" />
-              </Box>
-              <Box>
-                mentioning the{' '}
-                <Color underline>
-                  report id <Color bold>{errorId}</Color>
-                </Color>
-                .
-              </Box>
-            </Box>
+          {sendingError ? (
+            <>
+              <Color bold red>
+                Oops. We could not send the error report.
+              </Color>
+              {errorId && (
+                <Box flexDirection="column">
+                  <Box>
+                    To help us still receive this error, please create an issue in{' '}
+                    <InkLink url="https://github.com/prisma/prisma2/issues/new" />
+                  </Box>
+                </Box>
+              )}
+            </>
+          ) : (
+            <>
+              <Color bold>We successfully received the error report</Color>
+              {errorId && (
+                <Box flexDirection="column">
+                  <Box>
+                    To help us even more, please create an issue at{' '}
+                    <InkLink url="https://github.com/prisma/prisma2/issues/new" />
+                  </Box>
+                  <Box>
+                    mentioning the{' '}
+                    <Color underline>
+                      report id <Color bold>{errorId}</Color>
+                    </Color>
+                    .
+                  </Box>
+                </Box>
+              )}
+            </>
           )}
           <Box marginTop={1}>
             <Color bold>Thanks a lot for your help! 🙏</Color>
