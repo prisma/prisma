@@ -60,7 +60,8 @@ const {
   printStack,
   mergeBy,
   unpack,
-  stripAnsi
+  stripAnsi,
+  parseDotenv
 } = require('${runtimePath}')
 
 /**
@@ -499,6 +500,8 @@ ${this.jsDoc}
 
     this.measurePerformance = internal.measurePerformance || false
 
+    const envFile = this.readEnv()
+
     this.engineConfig = {
       cwd: engineConfig.cwd || ${getRelativePathResolveStatement(
         this.outputDir,
@@ -513,7 +516,8 @@ ${this.jsDoc}
       },
       showColors: this.errorFormat === 'pretty',
       logLevel: options.log && getLogLevel(options.log),
-      logQueries: options.log && Boolean(options.log.find(o => typeof o === 'string' ? o === 'query' : o.level === 'query'))
+      logQueries: options.log && Boolean(options.log.find(o => typeof o === 'string' ? o === 'query' : o.level === 'query')),
+      env: envFile
     }
 
     debug({ engineConfig: this.engineConfig })
@@ -539,6 +543,22 @@ ${this.jsDoc}
         }
       }
     }
+  }
+
+  /**
+   * @private
+   */
+  readEnv() {
+    const dotEnvPath = path.resolve(${getRelativePathResolveStatement(
+      this.outputDir,
+      this.cwd,
+    )}, '.env')
+
+    if (fs.existsSync(dotEnvPath)) {
+      return parseDotenv(fs.readFileSync(dotEnvPath, 'utf-8'))
+    }
+
+    return {}
   }
 
   on(eventType, callback) {

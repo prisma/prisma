@@ -18,3 +18,5 @@ export { stripAnsi }
 
 import chalk from 'chalk'
 export { chalk }
+
+export { parse as parseDotenv } from 'dotenv'

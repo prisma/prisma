@@ -265,6 +265,9 @@ export declare type getDMMF = any
 
 export declare var stripAnsi: any
 export declare type stripAnsi = any
+
+export declare var parseDotenv: any
+export declare type parseDotenv = any
 `
 
 async function fileSize(name: string): Promise<number | null> {
