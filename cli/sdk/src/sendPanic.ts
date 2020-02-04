@@ -93,8 +93,10 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
   const zip = archiver('zip', { zlib: { level: 9 } })
 
   zip.pipe(outputFile)
-
-  zip.append(fs.createReadStream('schema.prisma'), { name: 'schema.prisma' })
+  
+  // add schema file
+  const schemaFile = maskSchema(fs.readFileSync(error.schemaPath, 'utf-8'))
+  zip.append(schemaFile, { name: path.basename(error.schemaPath) })
 
   if (fs.existsSync(schemaDir)) {
     const filePaths = await globby('migrations/**/*', {
@@ -103,7 +105,8 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
 
     for (const filePath of filePaths) {
       let file = fs.readFileSync(path.resolve(schemaDir, filePath), 'utf-8')
-      if (filePath.endsWith('schema.prisma')) {
+      if (filePath.endsWith('schema.prisma') || filePath.endsWith(path.basename(error.schemaPath))) {
+        // Remove credentials from schema datasource url
         file = maskSchema(file)
       }
       zip.append(file, { name: path.basename(filePath) })
