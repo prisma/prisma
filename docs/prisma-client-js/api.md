@@ -569,7 +569,7 @@ Prisma Client JS connects and disconnects from your data sources using the follo
 - `connect(): Promise<void>`
 - `disconnect(): Promise<void>`
 
-Unless you want to employ a specific optimization, calling `prisma.connect()` is not necessary thanks to the _lazy connect_ behavior: The `PrismaClient` instance connects lazily when the first request is made prismao the API (`connect()` is called for you under the hood).
+Unless you want to employ a specific optimization, calling `prisma.connect()` is not necessary thanks to the _lazy connect_ behavior: The `PrismaClient` instance connects lazily when the first request is made to the API (`connect()` is called for you under the hood).
 
 If you need the first request to respond instantly and can't wait for the lazy connection to be established, you can explicitly call `prisma.connect()` to establish a connection to prismae data source.
 
