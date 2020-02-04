@@ -37,6 +37,9 @@ export class Introspect implements Command {
     With an existing schema.prisma
       ${chalk.dim('$')} prisma2 introspect
 
+    Or specify a schema:
+      ${chalk.dim('$')} prisma2 introspect --schema=./db/schema.prisma'
+
     Instead of saving the result to the filesystem, you can also print it
       ${chalk.dim('$')} prisma2 introspect --print'
 
@@ -50,6 +53,7 @@ export class Introspect implements Command {
       '-h': '--help',
       '--url': String,
       '--print': Boolean,
+      '--schema': String,
     })
 
     const log = (...messages) => {
@@ -67,13 +71,13 @@ export class Introspect implements Command {
     }
 
     let url: string | undefined = args['--url']
-    let schemaPath = await getSchemaPath()
+    let schemaPath = await getSchemaPath(args['--schema'])
     let config: ConfigMetaFormat | undefined
     if (!url) {
       if (!schemaPath) {
         throw new Error(
           `Either provide ${chalk.greenBright(
-            '--url',
+            '--schema',
           )} or make sure that you are in a folder with a ${chalk.greenBright('schema.prisma')} file.`,
         )
       }
