@@ -354,8 +354,12 @@ ${Object.values(this.dmmf.modelMap)
 /**
  * DMMF
  */
-  
-const dmmf = exports.dmmf = JSON.parse('${JSON.stringify(this.document)}')
+const dmmfString = '${JSON.stringify(this.document)}'
+
+// We are parsing 2 times, as we want independent objects, because
+// DMMFClass introduces circular references in the dmmf object
+const dmmf = JSON.parse(dmmfString)
+exports.dmmf = JSON.parse(dmmfString)
     `
   }
   public toTS() {
