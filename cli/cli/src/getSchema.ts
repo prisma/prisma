@@ -1,7 +1,6 @@
 import { promisify } from 'util'
 import fs from 'fs'
 import path from 'path'
-import { arg } from './utils'
 
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
@@ -10,14 +9,14 @@ const readFile = promisify(fs.readFile)
  * Async
  */
 
-export async function getSchemaPath(schemaPath?): Promise<string | null> {
-  if (schemaPath) {  
+export async function getSchemaPath(schemaPathFromArgs?): Promise<string | null> {
+  if (schemaPathFromArgs) {  
     // try the user custom path
-    const customSchemaPath = await getAbsoluteSchemaPath(schemaPath)
+    const customSchemaPath = await getAbsoluteSchemaPath(schemaPathFromArgs)
     if (customSchemaPath) {
       return customSchemaPath
     } else {
-      throw new Error(`Provided --schema at ${schemaPath} doesn't exist.`)
+      throw new Error(`Provided --schema at ${schemaPathFromArgs} doesn't exist.`)
     }
   }
   
@@ -61,8 +60,8 @@ async function getRelativeSchemaPath(cwd: string): Promise<string | null> {
 /**
  * Small helper that returns the directory which contains the `schema.prisma` file
  */
-export async function getSchemaDir(): Promise<string | null> {
-  const schemaPath = await getSchemaPath()
+export async function getSchemaDir(schemaPathFromArgs?): Promise<string | null> {
+  const schemaPath = await getSchemaPath(schemaPathFromArgs)
   if (schemaPath) {
     return path.dirname(schemaPath)
   }
@@ -70,11 +69,11 @@ export async function getSchemaDir(): Promise<string | null> {
   return null
 }
 
-export async function getSchema(): Promise<string> {
-  const schemaPath = await getSchemaPath()
+export async function getSchema(schemaPathFromArgs?): Promise<string> {
+  const schemaPath = await getSchemaPath(schemaPathFromArgs)
 
   if (!schemaPath) {
-    throw new Error(`Could not find schema.prisma`)
+    throw new Error(`Could not find ${schemaPathFromArgs || 'schema.prisma'}`)
   }
 
   return readFile(schemaPath, 'utf-8')
@@ -84,14 +83,14 @@ export async function getSchema(): Promise<string> {
  * Sync
  */
 
-export function getSchemaPathSync(schemaPath?): string | null {
-  if (schemaPath) {  
+export function getSchemaPathSync(schemaPathFromArgs?): string | null {
+  if (schemaPathFromArgs) {  
     // try the user custom path
-    const customSchemaPath = getAbosuluteSchemaPathSync(schemaPath)
+    const customSchemaPath = getAbosuluteSchemaPathSync(schemaPathFromArgs)
     if (customSchemaPath) {
       return customSchemaPath
     } else {
-      throw new Error(`Provided --schema at ${schemaPath} doesn't exist.`)
+      throw new Error(`Provided --schema at ${schemaPathFromArgs} doesn't exist.`)
     }
   }
  
@@ -137,8 +136,8 @@ function getRelativeSchemaPathSync(cwd: string): string | null {
 /**
  * Sync version of the small helper that returns the directory which contains the `schema.prisma` file
  */
-export function getSchemaDirSync(): string | null {
-  const schemaPath = getSchemaPathSync()
+export function getSchemaDirSync(schemaPathFromArgs?): string | null {
+  const schemaPath = getSchemaPathSync(schemaPathFromArgs)
   if (schemaPath) {
     return path.dirname(schemaPath)
   }
@@ -146,8 +145,8 @@ export function getSchemaDirSync(): string | null {
   return null
 }
 
-export function getSchemaSync(): string {
-  const schemaPath = getSchemaPathSync()
+export function getSchemaSync(schemaPathFromArgs?): string {
+  const schemaPath = getSchemaPathSync(schemaPathFromArgs)
 
   if (!schemaPath) {
     throw new Error(`Could not find ${schemaPath || 'schema.prisma'}`)
