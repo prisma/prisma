@@ -512,7 +512,9 @@ ${errorMessages}${missingArgsLegend}\n`
           pointer = pointer[key]
         }
       } else {
-        pointer = pointer[key]
+        if (pointer[key]) {
+          pointer = pointer[key]
+        }
       }
       newPath.push(key)
     }
@@ -1413,7 +1415,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
 
   const inputType = argInputType.type as DMMF.InputType
   const hasAtLeastOneError = inputType.atLeastOne
-    ? value.some(v => Object.keys(cleanObject(v)).length === 0)
+    ? value.some(v => !v || Object.keys(cleanObject(v)).length === 0)
     : false
   const err: AtLeastOneError | undefined = hasAtLeastOneError
     ? {

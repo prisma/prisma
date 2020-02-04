@@ -223,4 +223,48 @@ Note: Lines with + are required
 "
 `)
   })
+  test('nested create', () => {
+    const document = makeDocument({
+      dmmf,
+      select: {
+        data: {
+          id: 5,
+          name: 'Harshit',
+          email: 'a@a.de',
+          likedArticles: {
+            connect: null,
+          },
+          persona: {
+            create: {
+              id: 123,
+              isDeveloper: true,
+            },
+          },
+        },
+      },
+      rootTypeName: 'mutation',
+      rootField: 'createOneUser',
+    })
+    expect(() => document.validate(undefined, false, 'user', 'colorless'))
+      .toThrowErrorMatchingInlineSnapshot(`
+"
+Invalid \`prisma.user()\` invocation:
+
+{
+  data: {
+    likedArticles: {
+      connect: {
+?       id?: Int,
+?       url?: String
+      }
+    }
+  }
+}
+
+Argument data.likedArticles.connect of type ArticleWhereUniqueInput needs at least one argument. Available args are listed in green.
+
+Note: Lines with ? are optional.
+"
+`)
+  })
 })
