@@ -3,14 +3,12 @@ import fs from 'fs'
 import getPort from 'get-port'
 import path from 'path'
 
-import { ProviderAliases } from '@prisma/sdk'
-import { getSchemaDirSync } from '@prisma/cli'
+import { getSchemaPathSync } from '@prisma/cli'
 import { getPlatform } from '@prisma/get-platform'
-
-import { getDatamodelPath } from './utils/getDatamodelPath'
+import { ProviderAliases } from '@prisma/sdk'
 
 export interface StudioOptions {
-  projectDir?: string
+  schemaPath?: string
   port?: number
 }
 
@@ -18,12 +16,12 @@ const debug = debugLib('Studio')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
 export class Studio {
-  private projectDir: string
+  private schemaPath: string
   private instance?: any
   private port?: number
 
-  constructor({ projectDir, port }: StudioOptions = {}) {
-    this.projectDir = projectDir || this.getSchemaDir()
+  constructor({ schemaPath, port }: StudioOptions = {}) {
+    this.schemaPath = this.getSchemaPath(schemaPath)
     this.port = port
   }
 
@@ -64,7 +62,7 @@ export class Studio {
 
       this.instance = new StudioServer({
         port: this.port,
-        schemaPath: getDatamodelPath(this.projectDir),
+        schemaPath: this.schemaPath,
         binaryPaths: {
           queryEngine: firstExistingPath.path,
         },
@@ -101,8 +99,8 @@ export class Studio {
     return this.start(providerAliases)
   }
 
-  private getSchemaDir(): string {
-    const schemaPath = getSchemaDirSync()
+  private getSchemaPath(schemaPathFromOptions?): string {
+    const schemaPath = getSchemaPathSync(schemaPathFromOptions)
     if (!schemaPath) {
       throw new Error(`Could not find schema.prisma`)
     }

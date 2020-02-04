@@ -48,6 +48,7 @@ export class StudioCommand implements Command {
       '--port': Number,
       '-p': '--port',
       '--experimental': Boolean,
+      '--schema': String,
     })
 
     if (!args['--experimental']) {
@@ -63,6 +64,7 @@ export class StudioCommand implements Command {
     const port = args['--port'] || 5555
 
     const studio = new Studio({
+      schemaPath: args['--schema'], 
       port,
     })
 
