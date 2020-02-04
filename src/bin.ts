@@ -18,7 +18,6 @@ import { LiftDown } from './cli/commands/LiftDown'
 import { LiftSave } from './cli/commands/LiftSave'
 import { LiftTmpPrepare } from './cli/commands/LiftTmpPrepare'
 import { LiftUp } from './cli/commands/LiftUp'
-import { LiftWatch } from './cli/commands/LiftWatch'
 import { StudioCommand } from './cli/commands/StudioCommand'
 import { handlePanic } from './utils/handlePanic'
 import { ProviderAliases } from '@prisma/sdk'
@@ -43,7 +42,6 @@ async function main(): Promise<number> {
     save: LiftSave.new(),
     up: LiftUp.new(),
     down: LiftDown.new(),
-    dev: LiftWatch.new(providerAliases),
     ['tmp-prepare']: LiftTmpPrepare.new(),
     studio: StudioCommand.new(providerAliases),
   })
