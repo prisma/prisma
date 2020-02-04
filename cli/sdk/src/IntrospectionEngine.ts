@@ -48,6 +48,7 @@ export class IntrospectionEngine {
   private lastError?: any
   private initPromise?: Promise<void>
   private lastUrl?: string
+  public isRunning: boolean = false
   constructor(
     { binaryPath, debug, cwd }: IntrospectionEngineOptions = {
       binaryPath: process.env.PRISMA_INTROSPECTION_ENGINE_BINARY, // ncc go home
@@ -66,6 +67,7 @@ export class IntrospectionEngine {
   public stop() {
     if (this.child) {
       this.child.kill()
+      this.isRunning = false
     }
   }
   private rejectAll(err: any) {
@@ -174,6 +176,8 @@ export class IntrospectionEngine {
           cwd: this.cwd,
         })
 
+        this.isRunning = true
+
         this.child.on('error', err => {
           console.error('[introspection-engine] error: %s', err)
           reject(err)
@@ -186,6 +190,7 @@ export class IntrospectionEngine {
 
         this.child.on('exit', (code, signal) => {
           // handle panics
+          this.isRunning = false
           if (code === 255 && this.lastError && this.lastError.is_panic) {
             let sqlDump
             if (this.lastUrl) {
@@ -268,6 +273,13 @@ export class IntrospectionEngine {
   }
   private async runCommand(request: RPCPayload): Promise<any> {
     await this.init()
+    if (this.child?.killed) {
+      throw new Error(
+        `Can't execute ${JSON.stringify(
+          request,
+        )} because introspection engine already exited.`,
+      )
+    }
     return new Promise((resolve, reject) => {
       this.registerCallback(request.id, async (response, err) => {
         if (err) {
