@@ -41,7 +41,9 @@ mockFs({
   ),
 })
 
-const options = {}
+const options = {
+  minify: true,
+}
 
 let targetDir = path.join(__dirname, '../runtime')
 let sourceFile = path.join(__dirname, '../src/runtime/index.ts')
@@ -63,8 +65,6 @@ if (process.argv.includes('--browser')) {
   }
 }
 
-console.log(sourceFile)
-console.log(options)
 require('@zeit/ncc')(sourceFile, options)
   .then(async ({ code, map, assets }) => {
     // Assets is an object of asset file names to { source, permissions, symlinks }
@@ -87,6 +87,7 @@ async function saveToDisc(source, map, assets, outputDir) {
   }
   // TODO add concurrency when we would have too many files
   const madeDirs = {}
+  const files = []
   await Promise.all(
     Object.entries(assets).map(async ([filePath, file]) => {
       const targetPath = path.join(outputDir, filePath)
@@ -95,21 +96,25 @@ async function saveToDisc(source, map, assets, outputDir) {
         await makeDir(targetDir)
         madeDirs[targetDir] = true
       }
-      // if (filePath === 'index.d.ts') {
-      // let content = file.source.toString()
-      // content = content.replace('@prisma/engine-core', './dist/Engine')
-      //   await writeFile(targetPath, indexDTS, 'utf-8')
-      // } else {
-      console.log(
-        `writing`,
+      files.push({
+        size: Math.round(file.source.length / 1024),
         targetPath,
-        chalk.bold(Math.round(file.source.length / 1024) + 'kB'),
-      )
+      })
       await writeFile(targetPath, file.source)
-      // }
     }),
   )
-  const after = Date.now()
+  files.sort((a, b) => (a.size < b.size ? -1 : 1))
+  const max = files.reduce((max, curr) => Math.max(max, curr.size), 0)
+  const maxLength = `${max}kB`.length
+  const doneStr = files
+    .map(
+      ({ size, targetPath }) =>
+        `${size}kB`.padStart(maxLength) +
+        '  ' +
+        path.relative(process.cwd(), targetPath),
+    )
+    .join('\n')
+  console.log(doneStr)
 }
 
 function fixCode(code) {
