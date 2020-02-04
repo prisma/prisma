@@ -8,3 +8,4 @@ examples
 tmp
 pnpm-debug.log
 sandbox
+*.tsbuildinfo
