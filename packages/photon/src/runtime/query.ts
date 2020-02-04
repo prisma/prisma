@@ -511,11 +511,10 @@ ${errorMessages}${missingArgsLegend}\n`
         } else {
           pointer = pointer[key]
         }
-      } else {
-        if (pointer[key]) {
-          pointer = pointer[key]
-        }
+      } else if (pointer[key]) {
+        pointer = pointer[key]
       }
+
       newPath.push(key)
     }
     return newPath
