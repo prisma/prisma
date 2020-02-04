@@ -35,6 +35,7 @@ export interface EngineConfig {
   showColors?: boolean
   logQueries?: boolean
   logLevel?: 'info' | 'warn'
+  env?: Record<string, string>
 }
 
 /**
@@ -57,6 +58,7 @@ export class NodeEngine extends Engine {
   private keepaliveAgent: HttpAgent
   private logQueries: boolean
   private logLevel?: 'info' | 'warn'
+  private env?: Record<string, string>
   port?: number
   debug: boolean
   child?: ChildProcessWithoutNullStreams
@@ -93,9 +95,11 @@ export class NodeEngine extends Engine {
     showColors,
     logLevel,
     logQueries,
+    env,
     ...args
   }: EngineConfig) {
     super()
+    this.env = env
     this.cwd = this.resolveCwd(cwd)
     this.debug = args.debug || false
     this.datamodelPath = datamodelPath
@@ -339,6 +343,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         this.child = spawn(prismaPath, [], {
           env: {
+            ...this.env, // user-provided env vars
             ...process.env,
             ...env,
           },

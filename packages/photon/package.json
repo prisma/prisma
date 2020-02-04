@@ -59,6 +59,7 @@
     "benchmark": "^2.1.4",
     "chalk": "^3.0.0",
     "del": "5.1.0",
+    "dotenv": "^8.2.0",
     "execa": "3.3.0",
     "flat-map-polyfill": "^0.3.8",
     "fs-monkey": "^0.3.3",

@@ -12,6 +12,9 @@ export declare type Engine = any
 export declare var DMMFClass: any
 export declare type DMMFClass = any
 
+export declare var parseDotenv: any
+export declare type parseDotenv = any
+
 export declare var deepGet: any
 export declare type deepGet = any
 
