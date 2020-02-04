@@ -3,7 +3,6 @@ import chalk from 'chalk'
 import Debug from 'debug'
 import { Lift } from '../../Lift'
 import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
-import { ExperimentalFlagError } from '../../utils/experimental'
 import { occupyPath } from '../../utils/occupyPath'
 const debug = Debug('tmp-prepare')
 
@@ -27,23 +26,13 @@ export class LiftTmpPrepare implements Command {
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
-    // parse the arguments according to the spec
-    const args = arg(argv, {
-      '--experimental': Boolean,
-      '--schema': String,
-    })
-    
-    if (!args['--experimental']) {
-      throw new ExperimentalFlagError()
-    }
-
     debug('running tmp-prepare')
     await occupyPath(process.cwd())
     debug('occupied path')
 
     const lift = new Lift()
     debug('initialized lift')
-    await ensureDatabaseExists('dev', false, true, args['--schema'])
+    await ensureDatabaseExists('dev', false, true)
 
     await lift.up({
       short: true,
