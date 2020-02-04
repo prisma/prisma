@@ -206,6 +206,18 @@ const commonCodeTS = (
 /**
  * Utility Types
  */
+
+/**
+ * Get the type of the value, that the Promise holds.
+ */
+export declare type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infer U> ? U : T;
+
+/**
+ * Get the return type of a function which returns a Promise.
+ */
+export declare type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
+
+
 export declare type Enumerable<T> = T | Array<T>;
 export declare type MergeTruthyValues<R extends object, S extends object> = {
     [key in keyof S | keyof R]: key extends false ? never : key extends keyof S ? S[key] extends false ? never : S[key] : key extends keyof R ? R[key] : never;
