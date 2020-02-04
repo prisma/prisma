@@ -12,7 +12,8 @@
     "downlevelIteration": true,
     "resolveJsonModule": true,
     "jsx": "react",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "incremental": true
   },
   "exclude": ["node_modules", "dist", "examples", "test", "test2"]
 }

@@ -9,7 +9,8 @@
     "noImplicitAny": false,
     "outDir": "dist",
     "rootDir": "src",
-    "declaration": true
+    "declaration": true,
+    "incremental": true
   },
   "exclude": ["dist", "build", "download-build"]
 }
