@@ -38,7 +38,7 @@ export class Introspect implements Command {
       ${chalk.dim('$')} prisma2 introspect
 
     Or specify a schema:
-      ${chalk.dim('$')} prisma2 introspect --schema=./schema.prisma'
+      ${chalk.dim('$')} prisma2 introspect --schema=./db/schema.prisma'
 
     Instead of saving the result to the filesystem, you can also print it
       ${chalk.dim('$')} prisma2 introspect --print'
