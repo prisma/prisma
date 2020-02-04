@@ -3,6 +3,7 @@ import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfill
 import indent from 'indent-string'
 import { DMMFClass } from '../runtime/dmmf'
 import { BaseField, DMMF } from '../runtime/dmmf-types'
+import pluralize from 'pluralize'
 import {
   capitalize,
   GraphQLScalarToJSTypeTable,
@@ -1753,6 +1754,42 @@ ${indent(args.map(arg => new InputField(arg).toTS()).join('\n'), tab)}
   }
 }
 
+const topLevelArgsJsDocs = {
+  findOne: {
+    where: (singular, plural) => `Filter, which ${singular} to fetch.`,
+  },
+  findMany: {
+    where: (singular, plural) => `Filter, which ${plural} to fetch.`,
+    orderBy: (singular, plural) =>
+      `Determine the order of the ${plural} to fetch.`,
+    skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
+    after: (singular, plural) =>
+      `Get all ${plural} that come after the ${singular} you provide with the current order.`,
+    before: (singular, plural) =>
+      `Get all ${plural} that come before the ${singular} you provide with the current order.`,
+    first: (singular, plural) => `Get the first \`n\` ${plural}.`,
+    last: (singular, plural) => `Get the last \`n\` ${plural}.`,
+  },
+  create: {
+    data: (singular, plural) => `The data needed to create a ${singular}.`,
+  },
+  update: {
+    data: (singular, plural) => `The data needed to update a ${singular}.`,
+    where: (singular, plural) => `Choose, which ${singular} to update.`,
+  },
+  upsert: {
+    where: (singular, plural) =>
+      `The filter to search for the ${singular} to update in case it exists.`,
+    create: (singular, plural) =>
+      `In case the ${singular} found by the \`where\` argument doesn't exist, create a new ${singular} with this data.`,
+    update: (singular, plural) =>
+      `In case the ${singular} was found with the provided \`where\` argument, update it with this data.`,
+  },
+  delete: {
+    where: (singular, plural) => `Filter which ${singular} to delete.`,
+  },
+}
+
 export class ArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
@@ -1762,6 +1799,16 @@ export class ArgsType implements Generatable {
   public toTS() {
     const { action, args } = this
     const { name } = this.model
+
+    const singular = name
+    const plural = pluralize(name)
+
+    args.forEach(arg => {
+      if (action && topLevelArgsJsDocs[action][arg.name]) {
+        const comment = topLevelArgsJsDocs[action][arg.name](singular, plural)
+        arg.comment = comment
+      }
+    })
 
     const bothArgsOptional: DMMF.SchemaArg[] = [
       {
@@ -1802,6 +1849,7 @@ export class ArgsType implements Generatable {
             isRequired: true,
           },
         ],
+        comment: `Select specific fields to fetch from the ${name}`,
       },
       {
         name: 'include',
@@ -1813,6 +1861,7 @@ export class ArgsType implements Generatable {
             isRequired: true,
           },
         ],
+        comment: `Choose, which related nodes to fetch as well.`,
       },
       ...args,
     ]
@@ -1828,6 +1877,7 @@ export class ArgsType implements Generatable {
             isRequired: true,
           },
         ],
+        comment: `Select specific fields to fetch from the ${name}`,
       },
       ...args,
     ]
@@ -1843,6 +1893,7 @@ export class ArgsType implements Generatable {
             isRequired: false,
           },
         ],
+        comment: `Select specific fields to fetch from the ${name}`,
       },
       ...args,
     ]
@@ -1858,6 +1909,7 @@ export class ArgsType implements Generatable {
             isRequired: true,
           },
         ],
+        comment: `Choose, which related nodes to fetch as well.`,
       },
       ...args,
     ]
@@ -1873,6 +1925,7 @@ export class ArgsType implements Generatable {
             isRequired: false,
           },
         ],
+        comment: `Choose, which related nodes to fetch as well.`,
       },
       ...args,
     ]
