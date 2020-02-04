@@ -90,7 +90,7 @@ export async function getSchema(schemaPathFromArgs?): Promise<string> {
 export function getSchemaPathSync(schemaPathFromArgs?): string | null {
   if (schemaPathFromArgs) {  
     // try the user custom path
-    const customSchemaPath = getAbosuluteSchemaPathSync(path.resolve(schemaPathFromArgs))
+    const customSchemaPath = getAbsoluteSchemaPathSync(path.resolve(schemaPathFromArgs))
     if (customSchemaPath) {
       return customSchemaPath
     } else {
@@ -113,7 +113,7 @@ export function getSchemaPathSync(schemaPathFromArgs?): string | null {
   return null
 }
 
-function getAbosuluteSchemaPathSync(schemaPath: string): string | null {
+function getAbsoluteSchemaPathSync(schemaPath: string): string | null {
   if (fs.existsSync(schemaPath)) {
     return schemaPath
   }
