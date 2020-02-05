@@ -66,7 +66,7 @@ cd fixtures/project/ && yarn postinstall
 cd ../..
 # Relative path
 GENERATE_RELATIVE_SCHEMA_FROM_PARENT_PATH="./fixtures/project/subdir/schema.prisma"
-GENERATE_RELATIVE_SCHEMA_FROM_PARENT=$(node ./build/index.js generate --schema=$GENERATE_RELATIVE_SCHEMA_FROM_PARENT_PATH)
+GENERATE_RELATIVE_SCHEMA_FROM_PARENT=$(SQLITE_URL=file:dev.db node ./build/index.js generate --schema=$GENERATE_RELATIVE_SCHEMA_FROM_PARENT_PATH)
 if [[ ${GENERATE_RELATIVE_SCHEMA_FROM_PARENT} != *"Generated "* ]]; then
   echo "prisma2 generate --schema=$GENERATE_RELATIVE_SCHEMA_FROM_PARENT_PATH is broken"
   exit 1
@@ -81,7 +81,7 @@ fi
 
 # Absolute path
 GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_PATH="$(pwd)/fixtures/project/subdir/schema.prisma"
-GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT=$(node ./build/index.js generate --schema=$GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_PATH)
+GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT=$(SQLITE_URL=file:dev.db node ./build/index.js generate --schema=$GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_PATH)
 if [[ ${GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT} != *"Generated "* ]]; then
   echo "prisma2 generate --schema=$GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_PATH is broken"
   exit 1
