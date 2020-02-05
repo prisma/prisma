@@ -171,22 +171,39 @@ export async function generateClient({
       const fileName = path.basename(filePath)
       const target = path.join(outputDir, 'runtime', fileName)
       const before = Date.now()
-      const [fileSizeA, fileSizeB] = await Promise.all([
+      const [fileSizeSource, fileSizeTarget] = await Promise.all([
         fileSize(filePath),
         fileSize(target),
       ])
-      if (fileSizeA && fileSizeB && fileSizeA !== fileSizeB) {
+
+      // If the target doesn't exist yet, copy it
+      if (!fileSizeTarget) {
+        debug(`Copying ${filePath} to ${target}`)
+        await copyFile(filePath, target)
         continue
       }
-      const [hashA, hashB] = await Promise.all([
+
+      // If target !== source size, they're definitely different, copy it
+      if (
+        fileSizeTarget &&
+        fileSizeSource &&
+        fileSizeTarget !== fileSizeSource
+      ) {
+        debug(`Copying ${filePath} to ${target}`)
+        await copyFile(filePath, target)
+        continue
+      }
+
+      // They must have an equal size now, let's check for the hash
+      const [hashSource, hashTarget] = await Promise.all([
         hasha.fromFile(filePath, { algorithm: 'md5' }).catch(() => null),
         hasha.fromFile(target, { algorithm: 'md5' }).catch(() => null),
       ])
       const after = Date.now()
-      if (hashA && hashB && hashA === hashB) {
+      if (hashSource && hashTarget && hashSource === hashTarget) {
         debug(`Getting hashes took ${after - before}ms`)
         debug(
-          `Skipping ${filePath} to ${target} as both files have md5 hash ${hashA}`,
+          `Skipping ${filePath} to ${target} as both files have md5 hash ${hashSource}`,
         )
       } else {
         debug(`Copying ${filePath} to ${target}`)
