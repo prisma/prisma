@@ -60,6 +60,7 @@ export class LiftSave implements Command {
       '--create-db': Boolean,
       '-c': '--create-db',
       '--experimental': Boolean,
+      '--schema': String,
     })
 
     if (!args['--experimental']) {
@@ -73,9 +74,9 @@ export class LiftSave implements Command {
     }
 
     const preview = args['--preview'] || false
-    await ensureDatabaseExists('create', true, args['--create-db'])
+    await ensureDatabaseExists('create', true, args['--create-db'], args['--schema'])
 
-    const lift = new Lift()
+    const lift = new Lift(args['--schema'])
 
     const migration = await lift.createMigration('DUMMY_NAME')
 
@@ -93,16 +94,16 @@ export class LiftSave implements Command {
       for (const warning of migration.warnings) {
         console.log(chalk(`  • ${warning.description}`))
       }
-      console.log()
+      console.log() // empty line
     }
 
     if (preview) {
       lift.stop()
       return `\nRun ${chalk.greenBright('prisma lift save --name MIGRATION_NAME')} to create the migration\n`
     }
-
-    await getSchema() // just to leverage on its error handling
-    const schemaDir = (await getSchemaDir())! // TODO: Probably getSchemaDir() should return Promise<string> instead of Promise<string | null>
+    
+    await getSchema(args['--schema']) // just to leverage on its error handling
+    const schemaDir = (await getSchemaDir(args['--schema']))! // TODO: Probably getSchemaDir() should return Promise<string> instead of Promise<string | null>
 
     const migrationsDir = path.join(schemaDir, 'migrations', migrationId)
     await serializeFileMap(files, migrationsDir)

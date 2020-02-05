@@ -12,8 +12,9 @@ describe('lift.create', () => {
     test(t.name, async () => {
       const pkg = dirname((await pkgup({ cwd: __dirname })) || __filename)
       const root = join(pkg, 'tmp', 'lift-' + Date.now())
+      const schemaPath = join(root, Object.keys(t.fs)[0])
       await writeFiles(root, t.fs)
-      await t.fn(root)
+      await t.fn(schemaPath)
       await del(root)
     })
   })
@@ -23,7 +24,7 @@ describe('lift.create', () => {
 export default async function writeFiles(
   root: string,
   files: {
-    [name: string]: string
+    [name: string]: any
   },
 ): Promise<string> {
   for (const name in files) {
@@ -54,8 +55,8 @@ function createTests() {
         `,
         'db/.keep': ``,
       },
-      fn: async (root: string) => {
-        const lift = new Lift(root)
+      fn: async (schemaPath: string) => {
+        const lift = new Lift(schemaPath)
         const migration = await lift.createMigration('setup')
         const result = await lift.save(migration!, 'setup')
         if (typeof result === 'undefined') {
@@ -84,8 +85,8 @@ function createTests() {
         `,
         'db/.keep': ``,
       },
-      fn: async (root: string) => {
-        const lift = new Lift(root)
+      fn: async (schemaPath: string) => {
+        const lift = new Lift(schemaPath)
         const migration = await lift.createMigration('initial setup')
         const result = await lift.save(migration!, 'initial setup')
         if (typeof result === 'undefined') {
@@ -114,14 +115,74 @@ function createTests() {
         `,
         'db/.keep': ``,
       },
-      fn: async (root: string) => {
-        const lift = new Lift(root)
+      fn: async (schemaPath: string) => {
+        const lift = new Lift(schemaPath)
         const migration = await lift.createMigration('initial setup')
         const result = await lift.save(migration!, 'initial setup')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }
         assert.ok(result.migrationId.includes(`-initial-setup`))
+        assert.ok(result.newLockFile)
+        assert.ok(result.files['steps.json'])
+        assert.ok(result.files['schema.prisma'])
+        assert.ok(result.files['README.md'])
+      },
+    },
+    {
+      name: 'custom schema filename ok',
+      fs: {
+        'myawesomeschema.file': `
+          datasource my_db {
+            provider = "sqlite"
+            url = "file:./db/db_file.db"
+            default = true
+          }
+
+          model User {
+            id Int @id
+          }
+        `,
+        'db/.keep': ``,
+      },
+      fn: async (schemaPath: string) => {
+        const lift = new Lift(schemaPath)
+        const migration = await lift.createMigration('setup')
+        const result = await lift.save(migration!, 'setup')
+        if (typeof result === 'undefined') {
+          return assert.fail(`result shouldn\'t be undefined`)
+        }
+        assert.ok(result.migrationId.includes('-setup'))
+        assert.ok(result.newLockFile)
+        assert.ok(result.files['steps.json'])
+        assert.ok(result.files['schema.prisma'])
+        assert.ok(result.files['README.md'])
+      },
+    },
+    {
+      name: 'custom folder and schema filename name ok',
+      fs: {
+        'awesome/myawesomeschema.file': `
+          datasource my_db {
+            provider = "sqlite"
+            url = "file:../db/db_file.db"
+            default = true
+          }
+
+          model User {
+            id Int @id
+          }
+        `,
+        'db/.keep': ``,
+      },
+      fn: async (schemaPath: string) => {
+        const lift = new Lift(schemaPath)
+        const migration = await lift.createMigration('setup')
+        const result = await lift.save(migration!, 'setup')
+        if (typeof result === 'undefined') {
+          return assert.fail(`result shouldn\'t be undefined`)
+        }
+        assert.ok(result.migrationId.includes('-setup'))
         assert.ok(result.newLockFile)
         assert.ok(result.files['steps.json'])
         assert.ok(result.files['schema.prisma'])

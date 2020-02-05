@@ -105,8 +105,15 @@ export class LiftEngine {
       console.error(`Could not parse migration engine response: ${response.slice(0, 200)}`)
     }
     if (result) {
+      // If the error happens before the JSON-RPC sever starts, the error doesn't have an id
       if (!result.id) {
-        console.error(`Response ${JSON.stringify(result)} doesn't have an id and I can't handle that (yet)`)
+        if (result.is_panic) {
+          throw new Error(`Response ${JSON.stringify(result.message)}`)
+        } else if (result.message) {
+          console.error(`Response ${JSON.stringify(result.message)}`)
+        } else {
+          console.error(`Response ${JSON.stringify(result)}`)
+        }
       }
       if (!this.listeners[result.id]) {
         console.error(`Got result for unknown id ${result.id}`)
