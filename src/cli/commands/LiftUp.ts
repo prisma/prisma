@@ -65,16 +65,18 @@ export class LiftUp implements Command {
       '--schema': String,
     })
 
-    if (!args['--experimental']) {
-      throw new ExperimentalFlagError()
-    }
-
     if (isError(args)) {
       return this.help(args.message)
-    } else if (args['--help']) {
+    } 
+    
+    if (args['--help']) {
       return this.help()
     }
 
+    if (!args['--experimental']) {
+      throw new ExperimentalFlagError()
+    }
+    
     const lift = new Lift(args['--schema'])
 
     const options: UpOptions = {
