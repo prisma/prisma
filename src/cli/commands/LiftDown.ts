@@ -51,6 +51,7 @@ export class LiftDown implements Command {
       '--preview': Boolean,
       '-p': '--preview',
       '--experimental': Boolean,
+      '--schema': String,
     })
 
     if (!args['--experimental']) {
@@ -63,7 +64,7 @@ export class LiftDown implements Command {
       return this.help()
     }
 
-    const lift = new Lift()
+    const lift = new Lift(args['--schema'])
 
     const options: DownOptions = {}
 
@@ -80,7 +81,7 @@ export class LiftDown implements Command {
       }
     }
 
-    await ensureDatabaseExists('unapply', true)
+    await ensureDatabaseExists('unapply', true, undefined, args['--schema'])
 
     const result = await lift.down(options)
     lift.stop()

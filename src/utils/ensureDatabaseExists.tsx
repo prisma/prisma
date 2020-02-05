@@ -1,3 +1,4 @@
+import path from 'path'
 import { getSchema, getSchemaDir } from '@prisma/cli'
 import { BorderBox, DummySelectable, TabIndexProvider } from '@prisma/ink-components'
 import { getConfig } from '@prisma/sdk'
@@ -14,8 +15,8 @@ import { DatabaseCredentials, uriToCredentials } from '@prisma/sdk'
 
 export type LiftAction = 'create' | 'apply' | 'unapply' | 'dev'
 
-export async function ensureDatabaseExists(action: LiftAction, killInk: boolean, forceCreate: boolean = false) {
-  const datamodel = await getSchema()
+export async function ensureDatabaseExists(action: LiftAction, killInk: boolean, forceCreate: boolean = false, schemaPath?: string) {
+  const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel })
   const activeDatasource =
     config.datasources.length === 1
@@ -26,7 +27,9 @@ export async function ensureDatabaseExists(action: LiftAction, killInk: boolean,
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
-  const canConnect = await canConnectToDatabase(activeDatasource.url.value)
+  const schemaDir = (await getSchemaDir(schemaPath))!
+
+  const canConnect = await canConnectToDatabase(activeDatasource.url.value, schemaDir)
   if (canConnect === true) {
     return
   }
@@ -38,9 +41,8 @@ export async function ensureDatabaseExists(action: LiftAction, killInk: boolean,
 
   // last case: status === 'DatabaseDoesNotExist'
 
-  const schemaDir = await getSchemaDir()
   if (!schemaDir) {
-    throw new Error(`Could not locate schema.prisma`)
+    throw new Error(`Could not locate ${schemaPath || 'schema.prisma'}`)
   }
   if (forceCreate) {
     await createDatabase(activeDatasource.url.value, schemaDir)

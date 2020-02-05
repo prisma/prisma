@@ -42,7 +42,7 @@ export async function canConnectToDatabase(
   const credentials = uriToCredentials(connectionString)
 
   if (credentials.type === 'sqlite') {
-    const sqliteExists = await doesSqliteDbExist(connectionString)
+    const sqliteExists = await doesSqliteDbExist(connectionString, cwd)
     if (sqliteExists) {
       return true
     } else {
@@ -101,15 +101,14 @@ export async function createDatabase(
   })
 }
 
-async function doesSqliteDbExist(connectionString: string): Promise<boolean> {
+async function doesSqliteDbExist(connectionString: string, schemaDir?: string): Promise<boolean> {
   let filePath = connectionString
 
   if (filePath.startsWith('file:')) {
     filePath = filePath.slice(5)
   }
 
-  const cwd = await getSchemaDir()
-
+  const cwd = schemaDir || await getSchemaDir()
   if (!cwd) {
     throw new Error(`Could not find schema.prisma in ${process.cwd()}`)
   }
