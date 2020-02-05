@@ -4,7 +4,7 @@ import { getConfig, getDMMF } from '@prisma/sdk'
 import fs from 'fs'
 
 /**
- * $ prisma validate
+ * $ prisma2 validate
  */
 export class Validate implements Command {
   public static new(): Validate {
