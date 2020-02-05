@@ -159,15 +159,6 @@ export class Introspect implements Command {
       if (args['--print']) {
         console.log(schema)
       } else {
-        if (schemaPath && fs.existsSync(schemaPath)) {
-          const backupPath = path.join(path.dirname(schemaPath), 'schema.backup.prisma')
-          fs.renameSync(schemaPath, backupPath)
-          log(
-            `\nMoved existing ${chalk.underline(path.relative(process.cwd(), schemaPath))} to ${chalk.underline(
-              path.relative(process.cwd(), backupPath),
-            )}`,
-          )
-        }
         schemaPath = schemaPath || 'schema.prisma'
         fs.writeFileSync(schemaPath, schema)
         log(`Wrote ${chalk.underline(path.relative(process.cwd(), schemaPath))}`)
