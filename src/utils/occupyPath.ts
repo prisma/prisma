@@ -89,7 +89,7 @@ export async function getNextFreePort(projectPath: string): Promise<number | und
 
   if (usedPorts.length === portList.length || !nextFreePort) {
     throw new Error(
-      `prisma lift could not start, as all port of ${portList.join(', ')} are used. Please free one of them.`,
+      `prisma2 migrate could not start, as all port of ${portList.join(', ')} are used. Please free one of them.`,
     )
   }
 
@@ -108,7 +108,7 @@ export async function occupyPath(projectPath: string): Promise<() => void> {
   const nextFreePort = await getNextFreePort(projectPath)
   if (typeof nextFreePort !== 'number') {
     throw new Error(
-      `There is already another ${chalk.bold('prisma dev')} command running in ${chalk.underline(projectPath)}`,
+      `There is already another ${chalk.bold('prisma2 dev')} command running in ${chalk.underline(projectPath)}`,
     )
   }
 

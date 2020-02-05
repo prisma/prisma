@@ -14,7 +14,7 @@ import { ExperimentalFlagError } from '../../utils/experimental'
 const writeFile = promisify(fs.writeFile)
 
 /**
- * $ prisma migrate save
+ * $ prisma2 migrate save
  */
 export class LiftSave implements Command {
   public static new(): LiftSave {
@@ -99,7 +99,7 @@ export class LiftSave implements Command {
 
     if (preview) {
       lift.stop()
-      return `\nRun ${chalk.greenBright('prisma lift save --name MIGRATION_NAME')} to create the migration\n`
+      return `\nRun ${chalk.greenBright('prisma2 migrate save --name MIGRATION_NAME --experimental')} to create the migration\n`
     }
     
     await getSchema(args['--schema']) // just to leverage on its error handling
@@ -107,7 +107,7 @@ export class LiftSave implements Command {
 
     const migrationsDir = path.join(schemaDir, 'migrations', migrationId)
     await serializeFileMap(files, migrationsDir)
-    const lockFilePath = path.join(schemaDir, 'migrations', 'lift.lock')
+    const lockFilePath = path.join(schemaDir, 'migrations', 'migrate.lock')
     await writeFile(lockFilePath, newLockFile)
 
     lift.stop()
