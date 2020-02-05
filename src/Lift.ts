@@ -241,7 +241,7 @@ export class Lift {
   }
 
   public async getLockFile(): Promise<LockFile> {
-    const lockFilePath = path.resolve(path.dirname(this.schemaPath), 'migrations', 'lift.lock')
+    const lockFilePath = path.resolve(path.dirname(this.schemaPath), 'migrations', 'migrate.lock')
     if (await exists(lockFilePath)) {
       const file = await readFile(lockFilePath, 'utf-8')
       const lockFile = deserializeLockFile(file)
@@ -249,8 +249,8 @@ export class Lift {
         // TODO: Implement handling the conflict
         throw new Error(
           `There's a merge conflict in the ${chalk.bold(
-            'migrations/lift.lock',
-          )} file. Please execute ${chalk.greenBright('prisma lift fix')} to solve it`,
+            'migrations/migrate.lock',
+          )} file. Please execute ${chalk.greenBright('prisma2 migrate fix')} to solve it`,
         )
       }
       return lockFile
@@ -446,9 +446,9 @@ export class Lift {
     const localWatchMigrations = await this.getLocalWatchMigrations()
     if (localWatchMigrations.length > 0) {
       throw new Error(
-        `Before running ${chalk.yellow('prisma migrate down --experimental')}, please save your ${chalk.bold(
+        `Before running ${chalk.yellow('prisma2 migrate down --experimental')}, please save your ${chalk.bold(
           'dev',
-        )} changes using ${chalk.bold.greenBright('prisma migrate save --experimental')} and ${chalk.bold.greenBright(
+        )} changes using ${chalk.bold.greenBright('prisma2 migrate save --experimental')} and ${chalk.bold.greenBright(
           'prisma2 migrate up --experimental',
         )}`,
       )
@@ -734,7 +734,7 @@ export class Lift {
       const stepsFileJson = JSON.parse(stepsFile.file)
       if (Array.isArray(stepsFileJson)) {
         throw new Error(
-          `We changed the steps.json format - please delete your migrations folder and run prisma migrate create again`,
+          `We changed the steps.json format - please delete your migrations folder and run ${chalk.greenBright('prisma2 migrate save --experimental')} again`,
         )
       }
       if (!stepsFileJson.steps) {
