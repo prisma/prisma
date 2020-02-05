@@ -51,14 +51,16 @@ export class StudioCommand implements Command {
       '--schema': String,
     })
 
-    if (!args['--experimental']) {
-      throw new ExperimentalFlagError()
-    }
-
     if (isError(args)) {
       return this.help(args.message)
-    } else if (args['--help']) {
+    }
+    
+    if (args['--help']) {
       return this.help()
+    }
+
+    if (!args['--experimental']) {
+      throw new ExperimentalFlagError()
     }
 
     const port = args['--port'] || 5555
