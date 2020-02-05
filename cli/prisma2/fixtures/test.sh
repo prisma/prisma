@@ -39,14 +39,14 @@ if [[ ${GENERATE_RELATIVE_SCHEMA_INVALID} != *"Provided --schema at $GENERATE_RE
 fi
 
 # Absolute path
-GENERATE_ABSOLUTE_SCHEMA_PATH="$(PWD)/schema.prisma"
+GENERATE_ABSOLUTE_SCHEMA_PATH="$(pwd)/schema.prisma"
 GENERATE_ABSOLUTE_SCHEMA=$(node ../../../build/index.js generate --schema=$GENERATE_ABSOLUTE_SCHEMA_PATH)
 if [[ ${GENERATE_ABSOLUTE_SCHEMA} != *"Generated "* ]]; then
   echo "prisma2 generate --schema=$GENERATE_ABSOLUTE_SCHEMA_PATH is broken"
   exit 1
 fi
 # Same case but should fail!
-GENERATE_ABSOLUTE_SCHEMA_INVALID_PATH="$(PWD)/invalid.prisma"
+GENERATE_ABSOLUTE_SCHEMA_INVALID_PATH="$(pwd)/invalid.prisma"
 GENERATE_ABSOLUTE_SCHEMA_INVALID=$(node ../../../build/index.js generate --schema=$GENERATE_ABSOLUTE_SCHEMA_INVALID_PATH 2>&1 > /dev/null)
 if [[ ${GENERATE_ABSOLUTE_SCHEMA_INVALID} != *"Provided --schema at $GENERATE_ABSOLUTE_SCHEMA_INVALID_PATH doesn't exist"* ]]; then
   echo "prisma2 generate --schema=$GENERATE_ABSOLUTE_SCHEMA_INVALID_PATH is broken (should fail)"
@@ -80,14 +80,14 @@ if [[ ${GENERATE_RELATIVE_SCHEMA_FROM_PARENT_INVALID} != *"Provided --schema at 
 fi
 
 # Absolute path
-GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_PATH="$(PWD)/fixtures/project/subdir/schema.prisma"
+GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_PATH="$(pwd)/fixtures/project/subdir/schema.prisma"
 GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT=$(node ./build/index.js generate --schema=$GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_PATH)
 if [[ ${GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT} != *"Generated "* ]]; then
   echo "prisma2 generate --schema=$GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_PATH is broken"
   exit 1
 fi
 # Same case but should fail!
-GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_INVALID_PATH="$(PWD)/fixtures/project/subdir/invalid.prisma"
+GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_INVALID_PATH="$(pwd)/fixtures/project/subdir/invalid.prisma"
 GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_INVALID=$(node ./build/index.js generate --schema=$GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_INVALID_PATH 2>&1 > /dev/null)
 if [[ ${GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_INVALID} != *"Provided --schema at $GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_INVALID_PATH doesn't exist."* ]]; then
   echo "prisma2 generate --schema=$GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_INVALID_PATH is broken (should fail)"
