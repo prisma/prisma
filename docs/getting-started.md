@@ -142,13 +142,15 @@ CREATE TABLE posts (
 	created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 	title VARCHAR(256) NOT NULL,
 	content TEXT,
-	author_id INTEGER REFERENCES users(user_id) 
+	author_id INTEGER,
+	FOREIGN KEY (author_id) REFERENCES users(user_id) 
 );
 
 CREATE TABLE profiles (
 	profile_id SERIAL PRIMARY KEY NOT NULL,
 	bio TEXT,
-	user_id INTEGER NOT NULL REFERENCES users(user_id) 
+	user_id INTEGER NOT NULL,
+	FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 ```
 
