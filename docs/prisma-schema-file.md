@@ -261,7 +261,7 @@ While the Prisma 2 CLI automatically picks up `.env` files, Prisma Client JS doe
 
 ```ts
 import { PrismaClient } from '@prisma/client'
-`import * as dotenv from 'dotenv'
+import * as dotenv from 'dotenv'
 
 dotenv.config() // load the environment variables
 const prisma = new PrismaClient()
