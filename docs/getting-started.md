@@ -132,25 +132,25 @@ For the purpose of this guide, we're using the following SQL schema:
 
 ```sql
 CREATE TABLE users (
-	user_id SERIAL PRIMARY KEY NOT NULL,
-	name VARCHAR(256),
-	email VARCHAR(256) UNIQUE NOT NULL
+  user_id SERIAL PRIMARY KEY NOT NULL,
+  name VARCHAR(256),
+  email VARCHAR(256) UNIQUE NOT NULL
 );
 
 CREATE TABLE posts (
-	post_id SERIAL PRIMARY KEY NOT NULL,
-	created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-	title VARCHAR(256) NOT NULL,
-	content TEXT,
-	author_id INTEGER,
-	FOREIGN KEY (author_id) REFERENCES users(user_id) 
+  post_id SERIAL PRIMARY KEY NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  title VARCHAR(256) NOT NULL,
+  content TEXT,
+  author_id INTEGER,
+  FOREIGN KEY (author_id) REFERENCES users(user_id) 
 );
 
 CREATE TABLE profiles (
-	profile_id SERIAL PRIMARY KEY NOT NULL,
-	bio TEXT,
-	user_id INTEGER NOT NULL,
-	FOREIGN KEY (user_id) REFERENCES users(user_id)
+  profile_id SERIAL PRIMARY KEY NOT NULL,
+  bio TEXT,
+  user_id INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 ```
 
