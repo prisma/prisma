@@ -13,6 +13,9 @@ export class LiftDown implements Command {
   private static help = format(`
     Migrate your database down to a specific state.
 
+    ${chalk.bold.yellow('WARNING')} ${chalk.bold('Prisma\'s migration functionality is currently in an experimental state.')}
+    ${chalk.dim('When using any of the commands below you need to explicitly opt-in via the --experimental flag.')}
+
     ${chalk.bold('Usage')}
 
       ${chalk.dim('$')} prisma2 migrate down [<dec|name|timestamp>] --experimental
