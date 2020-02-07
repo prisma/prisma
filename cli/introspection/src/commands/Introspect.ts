@@ -164,15 +164,6 @@ export class Introspect implements Command {
         log(`Wrote ${chalk.underline(path.relative(process.cwd(), schemaPath))}`)
       }
     } catch (e) {
-      let sqlDump
-      if (engine.isRunning) {
-        try {
-          sqlDump = await engine.getDatabaseDescription(url)
-        } catch (e) {
-          console.error(e)
-          //
-        }
-      }
       engine.stop()
 
       console.error(chalk.bold.red(`\nIntrospection failed:`) + chalk.red(` Introspected schema can't be parsed.`))
@@ -188,7 +179,7 @@ export class Introspect implements Command {
         ErrorArea.INTROSPECTION_CLI,
         undefined,
         introspectionSchema,
-        sqlDump,
+        url,
       )
     }
 
