@@ -737,6 +737,35 @@ Object {
               "type": "BatchPayload",
             },
           },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": true,
+                  "kind": "scalar",
+                  "type": "String",
+                },
+                "name": "query",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Json",
+                },
+                "name": "parameters",
+              },
+            ],
+            "name": "executeRaw",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Json",
+            },
+          },
         ],
         "name": "Mutation",
       },
