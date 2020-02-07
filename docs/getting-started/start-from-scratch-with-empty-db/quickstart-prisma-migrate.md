@@ -67,7 +67,7 @@ This page explains how to get started with Prisma from scratch by connecting it 
 1. Migrate your database by running the following commands:
     ```
     npx prisma2 migrate save --name 'init' --experimental
-    npx prisma2 migrate up
+    npx prisma2 migrate up --experimental
     ```
 1. Run `index.ts` to create a source file and add the following code:
     ```ts
