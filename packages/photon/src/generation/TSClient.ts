@@ -625,7 +625,7 @@ ${this.jsDoc}
       throw new Error('The prisma.raw method must be used like this prisma.raw\`SELECT * FROM Posts\`.')
     }
     if (strings.length !== 1) {
-      throw new Error('The prisma.raw method must be used like this prisma.raw\`SELECT * FROM Posts\` without template literals variables.')
+      throw new Error('The prisma.raw method must be used like this prisma.raw\`SELECT * FROM Posts\` without template literal variables.')
     }
     
     const query = strings[0]
@@ -824,7 +824,7 @@ ${indent(this.jsDoc, tab)}
   /**
    * Makes a raw query
    */
-  raw(TemplateStringsArray): Promise<T>;
+  raw(query: TemplateStringsArray): Promise<T>;
 
 ${indent(
   dmmf.mappings
