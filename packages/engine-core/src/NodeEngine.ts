@@ -373,6 +373,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
               this.logEmitter.emit(log.level, log)
+            } else {
               this.lastError = json
             }
           } catch (e) {
