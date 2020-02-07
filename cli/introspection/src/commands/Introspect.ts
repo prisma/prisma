@@ -112,7 +112,17 @@ export class Introspect implements Command {
     introspectionSchema = await engine.introspect(url)
 
     if (introspectionSchema.trim() === '') {
-      throw new Error(`Empty introspection result for ${chalk.underline(url)}`)
+      throw new Error(`${chalk.red.bold('The introspected database was empty:')} ${chalk.underline(url)}
+
+${chalk.bold('prisma2 introspect')} could not create any models in your ${chalk.bold('schema.prisma')} file and you will not be able to generate Prisma Client with the ${chalk.bold('prisma2 generate')} command.
+
+${chalk.bold('To fix this, you have two options:')}
+
+- manually create a table in your database (using SQL).
+- make sure the database connection URL inside the ${chalk.bold('datasource')} block in ${chalk.bold('schema.prisma')} points to a database that is not empty (it must contain at least one table).
+
+Then you can run ${chalk.green('prisma2 introspect')} again. 
+`)
     }
 
     const connectorType = databaseTypeToConnectorType(uriToCredentials(url).type)
