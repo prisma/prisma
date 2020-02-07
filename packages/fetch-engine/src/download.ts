@@ -189,10 +189,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
 function getBinaryName(binaryName, platform) {
   const extension = platform === 'windows' ? '.exe' : ''
-  if (binaryName === 'migration-engine') {
-    // for the migration-engine we don't postfix it with the platform, as it's not necessary
-    return 'migration-engine' + extension
-  }
   return `${binaryName}-${platform}${extension}`
 }
 
