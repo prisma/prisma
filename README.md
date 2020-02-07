@@ -4,7 +4,7 @@ This repository is used as a central point to collect information and issues aro
 
 💡 Prisma 2 is currently in Preview! [Limitations](./docs/limitations.md) include missing features and limited performance issues. You can track the progress of Prisma 2 on [**`isprisma2ready.com`**](https://www.isprisma2ready.com).
 
-To get started, you can explore a number of ready-to-run [**examples**](https://github.com/prisma/prisma-examples/tree/prisma2) or follow the [**"Getting Started"-guide**](./docs/getting-started.md) to use Prisma with your existing database. The example projects include use cases such as building GraphQL, REST or gRPC APIs (with Node.js or TypeScript) using Prisma 2.
+To get started, you can explore a number of ready-to-run [**examples**](https://github.com/prisma/prisma-examples/tree/prisma2) or follow the [**"Getting Started"-guide**](./docs/getting-started/README.md) to use Prisma with your existing database. The example projects include use cases such as building GraphQL, REST or gRPC APIs (with Node.js or TypeScript) using Prisma 2.
 
 ## What is Prisma 2?
 
@@ -18,11 +18,11 @@ While each tool can be used standalone (in both [_greenfield_ and _brownfield_ p
 
 ## Getting started
 
-Follow the [**"Getting Started"-guide**](./docs/getting-started.md) to start using Prisma.
+Follow the [**"Getting Started"-guide**](./docs/getting-started/README.md) to start using Prisma.
 
 ## Contents
 
-- [Getting started](./docs/getting-started.md)
+- [Getting started](./docs/getting-started/README.md)
 - [Tutorial](./docs/tutorial.md)
 - [Prisma schema file](./docs/prisma-schema-file.md)
 - [Data sources](./docs/data-sources.md)
