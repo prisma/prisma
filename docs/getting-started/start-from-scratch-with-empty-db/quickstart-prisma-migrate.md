@@ -18,7 +18,7 @@ This page explains how to get started with Prisma from scratch by connecting it 
     ```
 1. Add your models to the Prisma schema, e.g.:
     ```prisma
-      model Post {
+    model Post {
       post_id    Int      @id @default(autoincrement())
       content    String?
       created_at DateTime @default(now())
