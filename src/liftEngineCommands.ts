@@ -13,7 +13,7 @@ async function getMigrationEnginePath(): Promise<string> {
   const dir = eval('__dirname')
   const platform = await getPlatform()
   const extension = platform === 'windows' ? '.exe' : ''
-  const relative = `../migration-engine${extension}`
+  const relative = `../migration-engine-${platform}${extension}`
   return path.join(dir, relative)
 }
 

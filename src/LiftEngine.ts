@@ -7,6 +7,7 @@ const debugRpc = debugLib('LiftEngine:rpc')
 const debugStderr = debugLib('LiftEngine:stderr')
 const debugStdin = debugLib('LiftEngine:stdin')
 import { getPlatform } from '@prisma/get-platform'
+import path from 'path'
 import fs from 'fs'
 import { now } from './utils/now'
 import { RustPanic, ErrorArea } from '@prisma/sdk'
@@ -37,7 +38,7 @@ let messageId = 1
 
 /* tslint:disable */
 export class LiftEngine {
-  private binaryPath: string
+  private binaryPath?: string
   private projectDir: string
   private debug: boolean
   private child?: ChildProcess
@@ -49,13 +50,12 @@ export class LiftEngine {
   private initPromise?: Promise<void>
   constructor({
     projectDir,
-    binaryPath = process.env.PRISMA_MIGRATION_ENGINE_BINARY ||
-      eval(`require('path').join(__dirname, '../migration-engine')`), // ncc go home
+    binaryPath = process.env.PRISMA_MIGRATION_ENGINE_BINARY, // ncc go home
     debug = false,
     schemaPath,
   }: LiftEngineOptions) {
     this.projectDir = projectDir
-    this.binaryPath = binaryPath
+    this.binaryPath = binaryPath || process.env.PRISMA_INTROSPECTION_ENGINE_BINARY
     this.schemaPath = schemaPath
     if (debug) {
       debugLib.enable('LiftEngine*')
@@ -131,13 +131,32 @@ export class LiftEngine {
 
     return this.initPromise!
   }
+  private async getBinaryPath() {
+    if (this.binaryPath) {
+      return this.binaryPath
+    }
+
+    const platform = await getPlatform()
+    const extension = platform === 'windows' ? '.exe' : ''
+
+    this.binaryPath = path.join(
+      eval(`require('path').join(__dirname, '../')`),
+      `migration-engine-${platform}${extension}`,
+    )
+    if (!fs.existsSync(this.binaryPath)) {
+      throw new Error(
+        `Expected migration engine at ${this.binaryPath} does not exist.`,
+      )
+    }
+    return this.binaryPath
+  }
   private internalInit(): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
         const { PWD, ...rest } = process.env
-        const platform = await getPlatform()
-        const extension = platform === 'windows' ? '.exe' : ''
-        this.child = spawn(this.binaryPath + extension, ['-d', this.schemaPath], {
+        const binaryPath = await this.getBinaryPath()
+        debugRpc('starting migration engine with binary: ' + binaryPath)
+        this.child = spawn(binaryPath, ['-d', this.schemaPath], {
           cwd: this.projectDir,
           stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
           env: {
