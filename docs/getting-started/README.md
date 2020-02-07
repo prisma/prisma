@@ -1,8 +1,6 @@
 # Getting started
 
-- [**Add Prisma to an existing project**]() (requires a project with a `package.json` and a non-empty database)
-- **Start from scratch with an empty database** (requires an empty database)
-  - [Use SQL to define your database schema]() (recommended)
-  - [Use Prisma Migrate to define your database schema]() (experimental) 
-- **Explore Prisma examples**
+- [**Add Prisma to an existing project**](./quickstart-existing-project.md) (requires a project with a `package.json` and a non-empty database)
+- [**Start from scratch with an empty database**](./start-from-scratch-with-empty-db/README.md) (requires an empty database)
+- [**Explore Prisma examples**](https://github.com/prisma/prisma-examples/)
 
