@@ -507,7 +507,7 @@ export class Lift {
       lastAppliedIndex--
     }
 
-    return `🚀 Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
+    return `${process.platform === "win32" ? '' : chalk.bold.green('🚀  ')} Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
   public async up({ n, preview, short, verbose, autoApprove, onWarnings }: UpOptions = {}): Promise<string> {
@@ -524,7 +524,7 @@ export class Lift {
 
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
-      console.log(`${process.platform === "win32" ? '' : '🏋️‍ '}migrate up${previewStr}\n`)
+      console.log(`${process.platform === "win32" ? '' : '🏋️‍  '}migrate up${previewStr}\n`)
 
       if (migrationsToApply.length === 0) {
         return 'All migrations are already applied'
@@ -661,7 +661,7 @@ export class Lift {
       console.log('\n')
     }
 
-    return `\n🚀  Done with ${migrationsToApply.length} migration${
+    return `\n${process.platform === "win32" ? '' : chalk.bold.green('🚀  ')}  Done with ${migrationsToApply.length} migration${
       migrationsToApply.length > 1 ? 's' : ''
     } in ${formatms(Date.now() - before)}.\n`
   }
@@ -906,7 +906,7 @@ class ProgressRenderer {
         const newLine = m.line + ' '.repeat(paddingLeft) + '  '
 
         if (this.currentIndex > index || (this.currentIndex === index && this.currentProgress === this.statusWidth)) {
-          return newLine + 'Done 🚀' + m.scripts
+          return newLine + `Done ${process.platform === "win32" ? '' : chalk.bold.green('🚀  ')}` + m.scripts
         } else if (this.currentIndex === index) {
           return newLine + '\u25A0'.repeat(this.currentProgress) + m.scripts
         }

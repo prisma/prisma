@@ -12,7 +12,7 @@ export class LiftCommand implements Command {
 
   // static help template
   private static help = format(`
-    ${process.platform === "win32" ? '' : chalk.bold('🏋️ ')}Migrate your database with confidence
+    ${process.platform === "win32" ? '' : chalk.bold('🏋️  ')}Migrate your database with confidence
 
     ${chalk.bold('Usage')}
 
