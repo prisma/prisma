@@ -962,7 +962,7 @@ export function selectionToFields(
 
       return acc
     }
-    if (typeof value !== 'boolean' && field.outputType.kind === 'scalar') {
+    if (typeof value !== 'boolean' && field.outputType.kind === 'scalar' && field.name !== 'executeRaw') {
       acc.push(
         new Field({
           name,
