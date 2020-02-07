@@ -22,7 +22,8 @@ async function main() {
       return
     }
   } catch (e) {
-    if (e) {
+    // if exit code = 1 do not print 
+    if (e && e !== 1) {
       console.error(e)
     }
   }
