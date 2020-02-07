@@ -9,15 +9,19 @@ export class PrismaClientError extends Error {
   constructor(log: RustLog | RustError) {
     let isPanic = false
     let message
-    if (isRustError(log)) {
-      isPanic = log.is_panic
-      message = log.message
-      if (isPanic) {
-        message += '\n' + log.backtrace
-      }
+    if (typeof log === 'string') {
+      message = log
     } else {
-      isPanic = log.fields.message === 'PANIC'
-      message = isPanic ? serializePanic(log) : serializeError(log)
+      if (isRustError(log)) {
+        isPanic = log.is_panic
+        message = log.message
+        if (isPanic) {
+          message += '\n' + log.backtrace
+        }
+      } else {
+        isPanic = log.fields.message === 'PANIC'
+        message = isPanic ? serializePanic(log) : serializeError(log)
+      }
     }
     super(message)
     Object.defineProperty(this, 'isPanic', {

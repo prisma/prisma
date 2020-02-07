@@ -1,6 +1,4 @@
 import { Engine, PrismaClientError, PrismaClientQueryError, QueryEngineError } from './Engine'
-import got from 'got'
-import HttpAgent from 'agentkeepalive'
 import debugLib from 'debug'
 import { getPlatform, Platform, mayBeCompatible } from '@prisma/get-platform'
 import path from 'path'
@@ -15,6 +13,8 @@ import EventEmitter from 'events'
 import { convertLog, Log, RustLog, RustError } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
+import { Client } from './client'
+import got from 'got'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -55,10 +55,10 @@ const knownPlatforms: Platform[] = [
 export class NodeEngine extends Engine {
   private logEmitter: EventEmitter
   private showColors: boolean
-  private keepaliveAgent: HttpAgent
   private logQueries: boolean
   private logLevel?: 'info' | 'warn'
   private env?: Record<string, string>
+  private client?: Client
   port?: number
   debug: boolean
   child?: ChildProcessWithoutNullStreams
@@ -108,12 +108,6 @@ export class NodeEngine extends Engine {
     this.datasources = datasources
     this.logEmitter = new EventEmitter()
     this.showColors = showColors || false
-    this.keepaliveAgent = new HttpAgent({
-      maxSockets: 100,
-      maxFreeSockets: 10,
-      timeout: 60000, // active socket keepalive for 60 seconds
-      freeSocketTimeout: 30000, // free socket keepalive for 30 seconds
-    })
     this.logLevel = logLevel
     this.logQueries = logQueries || false
 
@@ -435,6 +429,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
         const url = `http://localhost:${this.port}`
         this.url = url
+        this.client = new Client(url)
         resolve()
       } catch (e) {
         reject(e)
@@ -452,7 +447,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
    */
   async stop() {
     await this.start()
-    this.keepaliveAgent.destroy()
     if (this.currentRequestPromise) {
       try {
         await this.currentRequestPromise
@@ -547,19 +541,13 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
     collectTimestamps && collectTimestamps.record('Pre-engine_request_http_got')
 
-    this.currentRequestPromise = got.post(this.url, {
-      json: true,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: { query, variables: {} },
-      agent: this.keepaliveAgent,
-    })
+    this.currentRequestPromise = this.client.request(query)
 
     collectTimestamps && collectTimestamps.record('Post-engine_request_http_got')
 
     return this.currentRequestPromise
-      .then(({ body, headers }) => {
+      .then(data => {
+        const { body, headers } = data
         collectTimestamps && collectTimestamps.record('Post-engine_request_http')
 
         if (collectTimestamps && headers['x-elapsed']) {
@@ -605,6 +593,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   private serializeErrors(errors: any) {
+    if (typeof errors === 'object' && errors.message) {
+      return errors.message
+    }
     // make the happy case beautiful
     if (Array.isArray(errors) && errors.length === 1 && errors[0].error && typeof errors[0].error === 'string') {
       return errors[0].error
