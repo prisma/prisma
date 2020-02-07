@@ -824,7 +824,7 @@ ${indent(this.jsDoc, tab)}
   /**
    * Makes a raw query
    */
-  raw(TemplateStringsArray): Promise<any>;
+  raw(TemplateStringsArray): Promise<T>;
 
 ${indent(
   dmmf.mappings
