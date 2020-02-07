@@ -22,10 +22,13 @@ async function main() {
       return
     }
   } catch (e) {
-    console.error(e)
+    // if exit code = 1 do not print 
+    if (e && e !== 1) {
+      console.error(e)
+    }
   }
-  throw new Error(
-    `In order to use "@prisma/client", please install prisma2. You can install it with "npm add -D prisma2".`,
+  console.error(
+    `${c.yellow('warning')} In order to use "@prisma/client", please install prisma2. You can install it with "npm add -D prisma2".`,
   )
 }
 
