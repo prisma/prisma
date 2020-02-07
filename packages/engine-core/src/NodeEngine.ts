@@ -341,7 +341,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const prismaPath = await this.getPrismaPath()
 
-        this.child = spawn(prismaPath, [], {
+        this.child = spawn(prismaPath, ['--enable_raw_queries'], {
           env: {
             ...this.env, // user-provided env vars
             ...process.env,
