@@ -617,6 +617,33 @@ ${this.jsDoc}
     }
     return this.disconnectionPromise
   }
+  /**
+   * Makes a raw query
+   */ 
+  async raw(strings) {
+    if (!Array.isArray(strings)) {
+      throw new Error('The prisma.raw method must be used like this prisma.raw\`SELECT * FROM Posts\`.')
+    }
+    if (strings.length !== 1) {
+      throw new Error('The prisma.raw method must be used like this prisma.raw\`SELECT * FROM Posts\` without template literal variables.')
+    }
+    
+    const query = strings[0]
+
+    const document = makeDocument({
+      dmmf: this.dmmf,
+      rootField: "executeRaw",
+      rootTypeName: 'mutation',
+      select: {
+        query
+      }
+    })
+
+    document.validate({ query }, false, 'raw', this.errorFormat)
+    
+    return this.fetcher.request(document, undefined, 'executeRaw', 'raw', false)
+  }
+
 ${indent(
   dmmf.mappings
     .filter(m => m.findMany)
@@ -794,6 +821,10 @@ ${indent(this.jsDoc, tab)}
    * Disconnect from the database
    */
   disconnect(): Promise<any>;
+  /**
+   * Makes a raw query
+   */
+  raw(query: TemplateStringsArray): Promise<T>;
 
 ${indent(
   dmmf.mappings
