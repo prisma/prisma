@@ -23,8 +23,8 @@
       "runtime/**/*",
       "prisma-client/**/*",
       "download-build/**/*",
-      "query-engine-darwin",
-      "migration-engine",
+      "query-engine*",
+      "migration-engine*",
       "introspection-engine*"
     ]
   },
