@@ -341,7 +341,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const prismaPath = await this.getPrismaPath()
 
-        this.child = spawn(prismaPath, ['--enable_raw_queries'], {
+        this.child = spawn(prismaPath, [], {
           env: {
             ...this.env, // user-provided env vars
             ...process.env,
@@ -351,7 +351,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           stdio: ['pipe', 'pipe', 'pipe'],
         })
 
-        this.child.stderr.on('data', msg => {
+        byline(this.child.stderr).on('data', msg => {
           const data = String(msg)
           debug('stderr', data)
           try {
@@ -373,6 +373,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
               this.logEmitter.emit(log.level, log)
+              this.lastError = json
             }
           } catch (e) {
             // debug(e, data)
