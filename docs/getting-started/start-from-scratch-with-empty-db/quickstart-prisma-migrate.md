@@ -52,7 +52,7 @@ This page explains how to get started with Prisma from scratch by connecting it 
     npm install typescript ts-node prisma2 --save-dev
     npm install @prisma/client
     ```
-1. Run touch `tsconfig.json` and the following contents to it:
+1. Run `touch tsconfig.json` and the following contents to it:
     ```json
     {
       "compilerOptions": {
