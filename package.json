@@ -46,7 +46,6 @@
     "@prisma/get-platform": "workspace:0.1.23",
     "@prisma/ink-components": "workspace:0.0.22",
     "@prisma/studio-server": "0.197.0",
-    "@types/execa": "2.0.0",
     "ansi-escapes": "4.2.1",
     "cli-cursor": "3.1.0",
     "cli-truncate": "2.0.0",
