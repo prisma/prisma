@@ -4,7 +4,7 @@ This page explains how to get started with Prisma from scratch by connecting it 
 
 > ⚠️ Prisma Migrate is currently in an **experimental** state. When using any of the the `prisma2 migrate` commands, you need to explicitly opt-in to that functionality via an `--experimental` flag, e.g. `prisma2 migrate save --experimental`.
 
-## TLDR
+Follow these steps for an initial Prisma setup:
 
 1. Run `mkdir hello-prisma` to create your project directory
 1. Run `cd hello-prisma` to navigate into it
@@ -69,7 +69,7 @@ This page explains how to get started with Prisma from scratch by connecting it 
     npx prisma2 migrate save --name 'init' --experimental
     npx prisma2 migrate up --experimental
     ```
-1. Run `index.ts` to create a source file and add the following code:
+1. Run `touch index.ts` to create a source file and add the following code:
     ```ts
     import { PrismaClient } from '@prisma/client'
 
@@ -102,7 +102,3 @@ This page explains how to get started with Prisma from scratch by connecting it 
       })
     ```
 1. Run `npx ts-node index.ts` to execute the script
-
-## Extended guide
-
-Coming soon
