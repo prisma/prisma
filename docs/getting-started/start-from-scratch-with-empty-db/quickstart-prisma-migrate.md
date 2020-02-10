@@ -8,7 +8,7 @@ Follow these steps for an initial Prisma setup:
 
 1. Run `mkdir hello-prisma` to create your project directory
 1. Run `cd hello-prisma` to navigate into it
-1. Run `touch schema.prisma` to create an empty [Prisma schema]()
+1. Run `touch schema.prisma` to create an empty [Prisma schema](../../prisma-schema-file.md)
 1. Add a `datasource` to the Prisma schema and set your database connection string as the `url`, e.g.:
     ```prisma
     datasource db {
