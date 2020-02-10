@@ -442,7 +442,7 @@ Going forward, you won't perform schema migrations using the `prisma deploy` com
 1. Run `npx prisma2 migrate save --experimental` to save the migration on your file system (this doesn't perform the migration yet)
 1. Run `npx prisma2 migrate up --experimental` to actually perform the migration against your database
 
-> **Note**: Prisma's `migrate` command is still experimental. Therefore, you're currently required to explicitily opt-in to its functionality via an `--experimental` flag.
+> **Warning**: Prisma Migrate is currently in an **experimental** state. When using any of the commands below, you need to explicitly opt-in via an `--experimental` flag, e.g. `prisma2 migrate save --name 'init' --experimental`.
 
 ## Summary
 

@@ -1,6 +1,6 @@
 {
   "name": "prisma2",
-  "version": "2.0.0-alpha.721",
+  "version": "2.0.0-alpha.747",
   "main": "build/index.js",
   "repository": "git@github.com:prisma/prisma2-cli.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
@@ -23,27 +23,27 @@
       "runtime/**/*",
       "prisma-client/**/*",
       "download-build/**/*",
-      "query-engine-darwin",
-      "migration-engine",
+      "query-engine*",
+      "migration-engine*",
       "introspection-engine*"
     ]
   },
   "bin": "build/index.js",
   "prisma": {
-    "version": "e9381ead908756b7d919202a0bb30e0dfed46fcc"
+    "version": "36b88f31e8d49e22e19d857beac80877164b163b"
   },
   "devDependencies": {
     "@prisma/ci-info": "^2.1.1",
     "@prisma/cli": "workspace:*",
-    "@prisma/client": "workspace:^2.0.0-alpha.721",
+    "@prisma/client": "workspace:^2.0.0-alpha.747",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/introspection": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.196.0",
-    "@prisma/studio-server": "0.196.0",
-    "@prisma/studio-transports": "0.196.0",
+    "@prisma/studio": "0.198.0",
+    "@prisma/studio-server": "0.198.0",
+    "@prisma/studio-transports": "0.198.0",
     "@sentry/node": "^5.9.0",
     "@types/debug": "^4.1.5",
     "@types/mocha": "^5.2.7",
@@ -73,7 +73,7 @@
     "test": "./fixtures/test.sh && ./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
     "test:debug": "./node_modules/.bin/mocha --inspect-brk src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
     "install": "node download-build/index.js",
-    "download": "rm -f download-done && node scripts/updateTag.js && node download-build/index.js || echo \"\"",
+    "download": "rm -f download-done && node scripts/updateTag.js && node scripts/download.js || echo \"\"",
     "tsc": "tsc -d && cp src/capture-worker.js dist/capture-worker.js && bash scripts/copy-runtime-dist.sh",
     "ncc": "ncc build dist/bin.js -o build -m",
     "ncc:download": "rm -rf download-build && ncc build scripts/download.js -o download-build --minify",

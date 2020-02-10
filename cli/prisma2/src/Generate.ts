@@ -10,7 +10,7 @@ import path from 'path'
 const pkg = eval(`require('../package.json')`)
 
 /**
- * $ prisma generate
+ * $ prisma2 generate
  */
 export class Generate implements Command {
   public static new(): Generate {
