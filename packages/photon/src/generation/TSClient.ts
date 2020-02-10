@@ -30,7 +30,7 @@ import {
   Projection,
   renderInitialClientArgs,
 } from './utils'
-import { uniqueBy } from './uniqueBy'
+import { uniqueBy } from '../runtime/utils/uniqueBy'
 
 const tab = 2
 
