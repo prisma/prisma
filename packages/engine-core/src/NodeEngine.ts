@@ -539,11 +539,11 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       throw new Error(`Can't perform request, as the Engine has already been stopped`)
     }
 
-    collectTimestamps && collectTimestamps.record('Pre-engine_request_http_got')
+    collectTimestamps && collectTimestamps.record('Pre-engine_request_http_instance')
 
     this.currentRequestPromise = this.client.request(query)
 
-    collectTimestamps && collectTimestamps.record('Post-engine_request_http_got')
+    collectTimestamps && collectTimestamps.record('Post-engine_request_http_instance')
 
     return this.currentRequestPromise
       .then(data => {
