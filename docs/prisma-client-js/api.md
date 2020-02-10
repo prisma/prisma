@@ -186,7 +186,9 @@ Note that Prisma Client JS will throw an error if you're trying to create/update
 
 ## Raw database access
 
-You can send raw SQL queries to your database using the `raw` function that's exposed by your `PrismaClient` instance. Note that this uses JavaScript's [tagged templates](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates).
+You can send raw SQL queries to your database using the `raw` function that's exposed by your `PrismaClient` instance. Note that `raw` is implementred as a [tagged template](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates).
+
+Here's an example that fetches all records from the `USER` table:
 
 ```ts
 const result = await prisma.raw`SELECT * FROM USER;`
