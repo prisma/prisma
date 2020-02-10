@@ -2,7 +2,7 @@
 
 This page explains how to get started with Prisma from scratch by connecting it to an empty database. It uses Prisma Migrate to define and migrate your database schema.
 
-> ⚠️ Prisma Migrate is currently in an **experimental** state. When using any of the the `prisma2 migrate` commands, you need to explicitly opt-in to that functionality via an `--experimental` flag, e.g. `prisma2 migrate save --experimental`.
+> **Warning**: Prisma Migrate is currently in an **experimental** state. When using any of the the `prisma2 migrate` commands, you need to explicitly opt-in to that functionality via an `--experimental` flag, e.g. `prisma2 migrate save --experimental`.
 
 Follow these steps for an initial Prisma setup:
 
