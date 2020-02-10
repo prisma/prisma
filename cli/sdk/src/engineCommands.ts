@@ -103,7 +103,7 @@ export async function getDMMF({
       maxBuffer: MAX_BUFFER,
     }
 
-    result = await execa(prismaPath, ['cli', '--dmmf'], options)
+    result = await execa(prismaPath, ['--enable_raw_queries', 'cli', '--dmmf'], options)
 
     if (!datamodelPath) {
       await unlink(tempDatamodelPath!)

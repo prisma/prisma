@@ -12,6 +12,7 @@ import tmp from 'tmp'
 import { maskSchema } from './utils/maskSchema'
 import { RustPanic, ErrorArea } from './panic'
 import { getProxyAgent } from '@prisma/fetch-engine'
+import { IntrospectionEngine } from './IntrospectionEngine'
 
 const debug = Debug('sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs
@@ -36,6 +37,21 @@ export async function sendPanic(
       maskedSchema = maskSchema(schema)
     }
 
+    let sqlDump: string | undefined
+    if (error.area === ErrorArea.INTROSPECTION_CLI && error.introspectionUrl) {
+      let engine: undefined | IntrospectionEngine
+      try {
+        engine = new IntrospectionEngine()
+        sqlDump = await engine.getDatabaseDescription(error.introspectionUrl)
+        engine.stop()
+      } catch (e) {
+        if (engine && engine.isRunning) {
+          engine.stop()
+        }
+        debug(e)
+      }
+    }
+
     const signedUrl = await createErrorReport({
       area: error.area,
       kind: ErrorKind.RUST_PANIC,
@@ -49,7 +65,7 @@ export async function sendPanic(
       liftRequest: JSON.stringify(error.request),
       schemaFile: maskedSchema,
       fingerprint: getFid() || undefined,
-      sqlDump: error.sqlDump,
+      sqlDump,
     })
 
     if (error.schemaPath) {
