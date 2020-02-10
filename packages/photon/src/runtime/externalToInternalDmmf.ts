@@ -2,11 +2,15 @@ import { DMMF as ExternalDMMF } from '@prisma/generator-helper'
 import pluralize from 'pluralize'
 import { DMMF } from './dmmf-types'
 import { lowerCase } from './utils/common'
+import { uniqueBy } from '../generation/uniqueBy'
 
 function transformFieldKind(model: ExternalDMMF.Model): DMMF.Model {
   return {
     ...model,
-    fields: model.fields.map(field => ({ ...field, kind: field.kind === 'relation' ? ('object' as any) : field.kind })),
+    fields: model.fields.map(field => ({
+      ...field,
+      kind: field.kind === 'relation' ? ('object' as any) : field.kind,
+    })),
   }
 }
 
@@ -21,7 +25,9 @@ function transformDatamodel(datamodel: ExternalDMMF.Datamodel): DMMF.Datamodel {
  * Turns type: string into type: string[] for all args in order to support union input types
  * @param document
  */
-export function externalToInternalDmmf(document: ExternalDMMF.Document): DMMF.Document {
+export function externalToInternalDmmf(
+  document: ExternalDMMF.Document,
+): DMMF.Document {
   return {
     datamodel: transformDatamodel(document.datamodel),
     mappings: getMappings(document.mappings),
@@ -32,7 +38,10 @@ export function externalToInternalDmmf(document: ExternalDMMF.Document): DMMF.Do
 function transformSchema(schema: ExternalDMMF.Schema): DMMF.Schema {
   return {
     enums: schema.enums,
-    inputTypes: schema.inputTypes.map(t => ({ ...t, fields: transformArgs(t.fields) })),
+    inputTypes: schema.inputTypes.map(t => ({
+      ...t,
+      fields: uniqueBy(transformArgs(t.fields), f => f.name),
+    })),
     outputTypes: schema.outputTypes.map(o => ({
       ...o,
       fields: o.fields.map(f => ({ ...f, args: transformArgs(f.args) })),
