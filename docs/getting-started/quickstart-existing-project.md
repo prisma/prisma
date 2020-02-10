@@ -1,4 +1,4 @@
-# Getting started
+# Quickstart: Add Prisma to an existing project
 
 This page explains how to get started with Prisma in an existing project. 
 
