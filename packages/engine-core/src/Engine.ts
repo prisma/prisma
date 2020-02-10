@@ -18,9 +18,11 @@ export class PrismaClientError extends Error {
         if (isPanic) {
           message += '\n' + log.backtrace
         }
-      } else {
+      } else if (log.fields) {
         isPanic = log.fields.message === 'PANIC'
         message = isPanic ? serializePanic(log) : serializeError(log)
+      } else {
+        message = JSON.stringify(log)
       }
     }
     super(message)

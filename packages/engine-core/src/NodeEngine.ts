@@ -604,9 +604,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     return JSON.stringify(errors, null, 2)
   }
 
-  handleErrors({ errors, query }: { errors?: QueryEngineError[]; query: string }) {
-    debug(inspect(errors, false, null))
-
+  handleErrors({ errors }: { errors?: QueryEngineError[]; query: string }) {
     if (errors.length === 1 && errors[0].user_facing_error) {
       throw new PrismaClientQueryError(errors[0])
     }

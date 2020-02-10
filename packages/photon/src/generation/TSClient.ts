@@ -30,6 +30,7 @@ import {
   Projection,
   renderInitialClientArgs,
 } from './utils'
+import { uniqueBy } from './uniqueBy'
 
 const tab = 2
 
@@ -115,30 +116,29 @@ class PrismaClientFetcher {
             return unpackResult;
         }
         catch (e) {
-            debug(e.stack);
-            if (callsite) {
-                const { stack } = printStack({
-                    callsite,
-                    originalMethod: dataPath.join('.'),
-                    onUs: e.isPanic
-                });
-                const message = stack + '\\n\\n' + e.message;
-                if (e.code) {
-                    throw new PrismaClientRequestError(this.sanitizeMessage(message), e.code, e.meta);
-                }
-                throw new Error(this.sanitizeMessage(message));
+          debug(e.stack);
+          if (callsite) {
+            const { stack } = printStack({
+              callsite,
+              originalMethod: dataPath.join('.'),
+              onUs: e.isPanic
+            });
+            const message = stack + '\\n\\n' + e.message;
+            if (e.code) {
+              throw new PrismaClientRequestError(this.sanitizeMessage(message), e.code, e.meta);
+            }
+            throw new Error(this.sanitizeMessage(message));
+          } else {
+            if (e.code) {
+              throw new PrismaClientRequestError(this.sanitizeMessage(e.message), e.code, e.meta);
+            }
+            if (e.isPanic) {
+              throw e;
             }
             else {
-                if (e.code) {
-                    throw new PrismaClientRequestError(this.sanitizeMessage(e.message), e.code, e.meta);
-                }
-                if (e.isPanic) {
-                    throw e;
-                }
-                else {
-                    throw new Error(this.sanitizeMessage(e.message));
-                }
+              throw new Error(this.sanitizeMessage(e.message));
             }
+          }
         }
     }
     sanitizeMessage(message) {
@@ -2047,10 +2047,11 @@ export class InputType implements Generatable {
   constructor(protected readonly type: DMMF.InputType) {}
   public toTS() {
     const { type } = this
+    const fields = uniqueBy(type.fields, f => f.name)
     // TO DISCUSS: Should we rely on TypeScript's error messages?
     const body = `{
 ${indent(
-  type.fields
+  fields
     .map(arg =>
       new InputField(arg /*, type.atLeastOne && !type.atMostOne*/).toTS(),
     )
