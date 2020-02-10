@@ -553,7 +553,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         if (collectTimestamps && headers['x-elapsed']) {
           // Convert from microseconds to miliseconds
           const timeElapsedInRust = parseInt(headers['x-elapsed']) / 1e3
-          collectTimestamps.addResults({ engine_request_http_got_rust: timeElapsedInRust })
+          collectTimestamps.addResults({ engine_request_http_instance_rust: timeElapsedInRust })
         }
 
         const errors = body.error || body.errors
