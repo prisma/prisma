@@ -2,7 +2,7 @@
 
 ## Contents
 
-- [Getting started](./getting-started.md)
+- [Getting started](./getting-started/README.md)
 - [Tutorial](./tutorial.md)
 - [Prisma schema file](./prisma-schema-file.md)
 - [Data sources](./data-sources.md)
