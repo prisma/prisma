@@ -51,7 +51,7 @@ Introspects the database and generates a data model from it. Basically, it analy
 
 ### Migrations
 
-> ️**Warning**: Prisma's migration functionality is currently in an **experimental** state. When using any of the commands below, you need to explicitly opt-in to that functionality via an `--experimental` flag , e.g. `prisma2 migrate save --name 'init' --experimental`
+> **Warning**: Prisma Migrate is currently in an **experimental** state. When using any of the the `prisma2 migrate` commands, you need to explicitly opt-in to that functionality via an `--experimental` flag, e.g. `prisma2 migrate save --experimental`.
 
 #### `prisma2 migrate save`
 
