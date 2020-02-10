@@ -193,9 +193,9 @@ Here's an example that fetches all records from the `USER` table:
 ```ts
 const result = await prisma.raw`SELECT * FROM USER;`
 // result = [
-// { "id":1, "email":"sarah@prisma.io", "name":"Sarah" },
-// { "id":2, "email":"alice@prisma.io", "name":"Alice" }
-//]
+//   { "id":1, "email":"sarah@prisma.io", "name":"Sarah" },
+//   { "id":2, "email":"alice@prisma.io", "name":"Alice" }
+// ]
 ```
 
 The `raw` function returns the results as plain old JavaScript objects.
