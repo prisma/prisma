@@ -157,10 +157,6 @@ const result = await prisma.user.findOne({
 // }
 ```
 
-### Lazy loading
-
-Coming soon.
-
 ## Relations
 
 Learn more about relations in the generated Prisma Client JS API [here](../relations.md#relations-in-the-generated-prisma-client-js-api).
@@ -190,7 +186,20 @@ Note that Prisma Client JS will throw an error if you're trying to create/update
 
 ## Raw database access
 
-Coming soon.
+You can send raw SQL queries to your database using the `raw` function that's exposed by your `PrismaClient` instance. Note that this uses JavaScript's [tagged templates](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates).
+
+```ts
+const data = await prisma.raw`SELECT * FROM USER;`
+```
+
+Note that you can not call the `raw` function using parantheses:
+
+```ts
+// not possible
+const data = await prisma.raw(`SELECT * FROM USER;`)
+```
+
+
 
 ## Scalar lists
 
@@ -508,9 +517,6 @@ const result = await prisma.user.findMany({
     },
   },
 })
-// result = {
-//
-// }
 ```
 
 ## Debugging
