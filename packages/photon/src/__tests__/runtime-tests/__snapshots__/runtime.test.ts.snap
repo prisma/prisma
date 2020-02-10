@@ -3,13 +3,13 @@
 exports[`runtime works blog example should succeed: blog example should succeed 1`] = `undefined`;
 
 exports[`runtime works blog-env example should not succeed: blog-env example should not succeed 1`] = `
-[Error: 
-error: Environment variable not found: SQLITE_URL.
+[Error: error: Environment variable not found: SQLITE_URL.
   -->  schema.prisma:3
    | 
  2 |   provider = "sqlite"
  3 |   url      = env("SQLITE_URL")
    | 
+
 Validation Error Count: 1]
 `;
 
