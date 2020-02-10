@@ -1,5 +1,5 @@
 node_modules
-migration-engine
+migration-engine*
 query-engine*
 introspection-engine*
 yarn-error.log

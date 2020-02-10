@@ -71,6 +71,7 @@ export async function getGenerators({
 
   let prismaPath: string | undefined = undefined
 
+  // overwrite query engine if the version is provided
   if (version) {
     const downloadParams: DownloadOptions = {
       binaries: {
@@ -78,7 +79,7 @@ export async function getGenerators({
       },
       binaryTargets: [platform],
       showProgress: false,
-      version: version || 'latest',
+      version,
       skipDownload,
     }
 
@@ -290,9 +291,17 @@ async function validateGenerators(generators: GeneratorConfig[]) {
   for (const generator of generators) {
     if (generator.provider === 'photonjs') {
       throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
-  1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green('provider = "prisma-client-js"')} in your ${chalk.bold('schema.prisma')} file.
-  2. Replace your ${chalk.bold('package.json')}'s ${chalk.red('@prisma/photon')} dependency to ${chalk.green('@prisma/client')}
-  3. Replace ${chalk.red('import { Photon } from \'@prisma/photon\'')} with ${chalk.green('import { PrismaClient } from \'@prisma/client\'')} in your code.
+  1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green(
+        'provider = "prisma-client-js"',
+      )} in your ${chalk.bold('schema.prisma')} file.
+  2. Replace your ${chalk.bold('package.json')}'s ${chalk.red(
+        '@prisma/photon',
+      )} dependency to ${chalk.green('@prisma/client')}
+  3. Replace ${chalk.red(
+    "import { Photon } from '@prisma/photon'",
+  )} with ${chalk.green(
+        "import { PrismaClient } from '@prisma/client'",
+      )} in your code.
   4. Run ${chalk.green('prisma2 generate')} again.
       `)
     }

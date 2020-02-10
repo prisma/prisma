@@ -63,7 +63,7 @@ Your generated Prisma Client JS API will expose the following CRUD operations fo
 - [`delete`](#delete)
 - [`deleteMany`](#deleteMany)
 
-You can access each function via the respective model property on your generated `PrismaClient` instance, e.g. `users` for the `User` model:
+You can access each function via the respective model property on your generated `PrismaClient` instance, e.g. `user` for the `User` model:
 
 ```ts
 import { PrismaClient } from '@prisma/client'
@@ -79,8 +79,6 @@ async function main() {
   await prisma.disconnect()
 }
 ```
-
-Note that the name of the `users` property is auto-generated using the [`pluralize`](https://github.com/blakeembrey/pluralize) package.
 
 ## Aggregations
 
