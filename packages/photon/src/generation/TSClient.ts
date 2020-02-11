@@ -101,7 +101,10 @@ class PrismaClientFetcher {
       const queries = requests.map(r => String(r.document))
       debug('Requests:')
       debug(queries)
-      return this.prisma.engine.request(queries)
+      const results = await this.prisma.engine.request(queries)
+      debug('Results:')
+      debug(results)
+      return results
     })
   }
   async request(document, dataPath = [], rootField, typeName, isList, callsite, collectTimestamps) {
@@ -115,8 +118,6 @@ class PrismaClientFetcher {
       collectTimestamps && collectTimestamps.record("Pre-engine_request");
       const result = await this.dataloader.request({ document });
       collectTimestamps && collectTimestamps.record("Post-engine_request");
-      debug('Response:');
-      debug(result);
       collectTimestamps && collectTimestamps.record("Pre-unpack");
       const unpackResult = this.unpack(document, result, dataPath, rootField, isList);
       collectTimestamps && collectTimestamps.record("Post-unpack");

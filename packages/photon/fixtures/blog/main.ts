@@ -13,15 +13,34 @@ async function main() {
   // const rawQuery = await prisma.raw`SELECT 1`
   // console.log({rawQuery})
 
-  // for (let i = 0; i < 10000; i++) {
-  const res = await prisma.user.create({
-    data: {
-      email: 'a@a.de',
-      name: 'Bob',
-    },
-  })
+  const users = await prisma.user.findMany()
+  const resolvedUsers = await Promise.all(
+    users.map(u =>
+      prisma.user.findOne({
+        where: {
+          id: u.id,
+        },
+      }),
+    ),
+  )
 
-  console.log({ res })
+  console.log(resolvedUsers.length)
+  // for (let i = 0; i < 10000; i++) {
+  // await Promise.all([
+  //   prisma.user.create({
+  //     data: {
+  //       email: 'a@a.de',
+  //       name: 'Bob',
+  //     },
+  //   }),
+  //   prisma.user.create({
+  //     data: {
+  //       email: 'a@a.de' + Math.random(),
+  //       name: 'Bob',
+  //     },
+  //   }),
+  // ])
+
   // }
   // process.exit(0)
 
