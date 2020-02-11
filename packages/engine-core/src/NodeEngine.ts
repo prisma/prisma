@@ -58,6 +58,11 @@ const knownPlatforms: Platform[] = [
   'windows',
 ]
 
+export type Deferred = {
+  resolve: () => void
+  reject: (err: Error) => void
+}
+
 export class NodeEngine {
   private logEmitter: EventEmitter
   private showColors: boolean
@@ -92,7 +97,7 @@ export class NodeEngine {
   lastErrorLog?: RustLog
   lastError?: RustError
   startPromise?: Promise<any>
-  engineStartPromise?: () => void
+  engineStartDeferred?: Deferred
   constructor({
     cwd,
     datamodelPath,
@@ -359,6 +364,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             if (typeof json.is_panic !== 'undefined') {
               debug(json)
               this.lastError = json
+              if (this.engineStartDeferred) {
+                this.engineStartDeferred.reject(new Error(this.lastError.message))
+              }
             }
           } catch (e) {
             // debug(e, data)
@@ -371,13 +379,13 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             const json = JSON.parse(data)
             debug('stdout', json)
             if (
-              this.engineStartPromise &&
+              this.engineStartDeferred &&
               json.level === 'INFO' &&
               json.target === 'prisma::server' &&
               json.fields?.message.startsWith('Started http server')
             ) {
-              this.engineStartPromise()
-              this.engineStartPromise = undefined
+              this.engineStartDeferred.resolve()
+              this.engineStartDeferred = undefined
             }
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
@@ -424,6 +432,11 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         })
 
         this.child.on('error', err => {
+          this.lastError = {
+            message: err.message,
+            backtrace: 'Could not start query engine',
+            is_panic: false,
+          }
           reject(err)
         })
 
@@ -436,8 +449,8 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         }
 
         try {
-          await new Promise(resolve => {
-            this.engineStartPromise = resolve
+          await new Promise((resolve, reject) => {
+            this.engineStartDeferred = { resolve, reject }
           })
         } catch (err) {
           await this.child.kill()
