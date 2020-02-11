@@ -17,6 +17,7 @@ import stripAnsi from 'strip-ansi'
 export { stripAnsi }
 
 import chalk from 'chalk'
+export { Dataloader } from './Dataloader'
 export { chalk }
 
 export { parse as parseDotenv } from 'dotenv'
