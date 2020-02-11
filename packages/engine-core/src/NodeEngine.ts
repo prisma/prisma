@@ -92,6 +92,7 @@ export class NodeEngine {
   lastErrorLog?: RustLog
   lastError?: RustError
   startPromise?: Promise<any>
+  engineStartPromise?: () => void
   constructor({
     cwd,
     datamodelPath,
@@ -355,7 +356,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           debug('stderr', data)
           try {
             const json = JSON.parse(data)
-            console.log(json)
             if (typeof json.is_panic !== 'undefined') {
               debug(json)
               this.lastError = json
@@ -369,8 +369,16 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           const data = String(msg)
           try {
             const json = JSON.parse(data)
-            console.log(json)
             debug('stdout', json)
+            if (
+              this.engineStartPromise &&
+              json.level === 'INFO' &&
+              json.target === 'prisma::server' &&
+              json.fields?.message.startsWith('Started http server')
+            ) {
+              this.engineStartPromise()
+              this.engineStartPromise = undefined
+            }
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
               this.logEmitter.emit(log.level, log)
@@ -428,7 +436,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         }
 
         try {
-          await this.engineReady()
+          await new Promise(resolve => {
+            this.engineStartPromise = resolve
+          })
         } catch (err) {
           await this.child.kill()
           throw err
@@ -499,40 +509,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       .split('\n')
       .filter(l => !l.startsWith('port:'))
       .join('\n')
-  }
-
-  // TODO: Replace it with a simple tcp connection
-  protected async engineReady() {
-    let tries = 0
-    while (true) {
-      if (!this.child) {
-        return
-      } else if (this.child.killed) {
-        throw new Error('Engine has died')
-      }
-      await new Promise(r => setTimeout(r, 50))
-      if (this.lastError) {
-        throw new PrismaClientError(this.lastError)
-      }
-      if (this.lastErrorLog) {
-        throw new PrismaClientError(this.lastErrorLog)
-      }
-      try {
-        await got(`http://localhost:${this.port}/status`, {
-          timeout: 5000, // not official but node-fetch supports it
-        })
-        debug(`Ready after try number ${tries}`)
-        this.ready = true
-        return
-      } catch (e) {
-        debug(e.message)
-        if (tries >= 100) {
-          throw e
-        }
-      } finally {
-        tries++
-      }
-    }
   }
 
   async request<T>(queries: string[]): Promise<T> {
