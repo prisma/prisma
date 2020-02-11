@@ -705,7 +705,7 @@ exports.PrismaClient = PrismaClient
  * Type-safe database client for TypeScript & Node.js (ORM replacement)
  * @example
  * \`\`\`
- * const prisma = new Prisma()
+ * const prisma = new PrismaClient()
  * // Fetch zero or more ${capitalize(example.plural)}
  * const ${lowerCase(example.plural)} = await prisma.${lowerCase(
       example.model,
