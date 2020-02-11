@@ -1,14 +1,14 @@
 import http2 from 'http2'
+import { PrismaQueryEngineError } from './Engine'
 
 export class Client {
   session: http2.ClientHttp2Session
   constructor(url: string) {
     this.session = http2.connect(url)
   }
-  request(query: string) {
+  request(body: any) {
     return new Promise((resolve, reject) => {
       let rejected = false
-      const body = { query, variables: {} }
 
       const buffer = Buffer.from(JSON.stringify(body))
 
@@ -31,12 +31,20 @@ export class Client {
         if (res[':status'] === 408) {
           rejected = true
           return reject(
-            new Error(`Timeout in query engine. This is probably related to the database being overwhelmed.`),
+            new PrismaQueryEngineError(
+              `Timeout in query engine. This is probably related to the database being overwhelmed.`,
+              res[':status'],
+            ),
           )
         }
         if (res[':status'] > 226) {
           rejected = true
-          reject(new Error(`Error in query engine response, status code ${res[':status']}${data ? ': ' + data : ''}`))
+          reject(
+            new PrismaQueryEngineError(
+              `Error in query engine response, status code ${res[':status']}${data ? ': ' + data : ''}`,
+              res[':status'],
+            ),
+          )
         }
       })
       req.write(buffer)

@@ -2,6 +2,17 @@ import { RustLog, PanicLogFields, RustError, isRustError } from './log'
 import chalk from 'chalk'
 import camelCase from 'camelcase'
 
+export class PrismaQueryEngineError extends Error {
+  /**
+   * HTTP Code
+   */
+  code: number
+  constructor(message: string, code: number) {
+    super(message)
+    this.code = code
+  }
+}
+
 /**
  * A PrismaClientError is mostly a non-recoverable error like a panic
  */
@@ -33,12 +44,29 @@ export class PrismaClientError extends Error {
   }
 }
 
-export interface QueryEngineError {
+export interface RequestError {
   error: string
   user_facing_error: {
+    is_panic: boolean
     message: string
     meta?: Object
     error_code?: string
+  }
+}
+
+export class PrismaClientKnownRequestError extends Error {
+  code: string
+  meta?: Object
+  constructor(message: string, code: string, meta?: any) {
+    super(message)
+    this.code = code
+    this.meta = meta
+  }
+}
+
+export class PrismaClientUnknownRequestError extends Error {
+  constructor(message: string) {
+    super(message)
   }
 }
 
@@ -48,7 +76,7 @@ export interface QueryEngineError {
 export class PrismaClientQueryError extends Error {
   code?: string
   meta?: Object
-  constructor(error: QueryEngineError) {
+  constructor(error: RequestError) {
     const code = error.user_facing_error.error_code
     const reason = code ?? 'Reason'
     super(chalk.red.bold(`${reason}: `) + chalk.red(error.user_facing_error.message + '\n'))
@@ -94,23 +122,4 @@ function serializeObject(obj) {
   return Object.entries(obj)
     .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
     .join(' ')
-}
-
-/**
- * Engine Base Class used by Browser and Node.js
- */
-export abstract class Engine {
-  /**
-   * Starts the engine
-   */
-  abstract start(): Promise<void>
-
-  /**
-   * If Prisma runs, stop it
-   */
-  abstract stop(): void
-
-  abstract request<T>(query: string, typeName?: string): Promise<T>
-
-  abstract handleErrors({ errors, query }: { errors?: any; query: string }): void
 }

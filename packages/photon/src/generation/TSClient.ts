@@ -63,7 +63,8 @@ const {
   mergeBy,
   unpack,
   stripAnsi,
-  parseDotenv
+  parseDotenv,
+  Dataloader
 } = require('${runtimePath}')
 
 /**
@@ -89,110 +90,117 @@ class PrismaClientRequestError extends Error {
 
 exports.PrismaClientRequestError = PrismaClientRequestError;
 class PrismaClientFetcher {
-    constructor(prisma, debug = false, hooks) {
-        this.prisma = prisma;
-        this.debug = debug;
-        this.hooks = hooks;
+  constructor(prisma, enableDebug = false, hooks) {
+    this.prisma = prisma;
+    this.debug = enableDebug;
+    this.hooks = hooks;
+    this.dataloader = new Dataloader(async (requests) => {
+      // TODO: More elaborate logic to only batch certain queries together
+      // We should e.g. make sure, that findOne queries are batched together
+      await this.prisma.connect();
+      const queries = requests.map(r => String(r.document))
+      debug('Requests:')
+      debug(queries)
+      return this.prisma.engine.request(queries)
+    })
+  }
+  async request(document, dataPath = [], rootField, typeName, isList, callsite, collectTimestamps) {
+    if (this.hooks && this.hooks.beforeRequest) {
+      const query = String(document);
+      this.hooks.beforeRequest({ query, path: dataPath, rootField, typeName, document });
     }
-    async request(document, dataPath = [], rootField, typeName, isList, callsite, collectTimestamps) {
-        const query = String(document);
-        debug('Request:');
-        debug(query);
-        if (this.hooks && this.hooks.beforeRequest) {
-            this.hooks.beforeRequest({ query, path: dataPath, rootField, typeName, document });
+    try {
+      collectTimestamps && collectTimestamps.record("Pre-prismaClientConnect");
+      collectTimestamps && collectTimestamps.record("Post-prismaClientConnect");
+      collectTimestamps && collectTimestamps.record("Pre-engine_request");
+      const result = await this.dataloader.request({ document });
+      collectTimestamps && collectTimestamps.record("Post-engine_request");
+      debug('Response:');
+      debug(result);
+      collectTimestamps && collectTimestamps.record("Pre-unpack");
+      const unpackResult = this.unpack(document, result, dataPath, rootField, isList);
+      collectTimestamps && collectTimestamps.record("Post-unpack");
+      return unpackResult;
+    } catch (e) {
+      debug(e.stack);
+      if (callsite) {
+        const { stack } = printStack({
+          callsite,
+          originalMethod: dataPath.join('.'),
+          onUs: e.isPanic
+        });
+        const message = stack + '\\n\\n' + e.message;
+        if (e.code) {
+          throw new PrismaClientRequestError(this.sanitizeMessage(message), e.code, e.meta);
         }
-        try {
-            collectTimestamps && collectTimestamps.record("Pre-prismaClientConnect");
-            await this.prisma.connect();
-            collectTimestamps && collectTimestamps.record("Post-prismaClientConnect");
-            collectTimestamps && collectTimestamps.record("Pre-engine_request");
-            const result = await this.prisma.engine.request(query, collectTimestamps);
-            collectTimestamps && collectTimestamps.record("Post-engine_request");
-            debug('Response:');
-            debug(result);
-            collectTimestamps && collectTimestamps.record("Pre-unpack");
-            const unpackResult = this.unpack(document, result, dataPath, rootField, isList);
-            collectTimestamps && collectTimestamps.record("Post-unpack");
-            return unpackResult;
+        throw new Error(this.sanitizeMessage(message));
+      } else {
+        if (e.code) {
+          throw new PrismaClientRequestError(this.sanitizeMessage(e.message), e.code, e.meta);
         }
-        catch (e) {
-          debug(e.stack);
-          if (callsite) {
-            const { stack } = printStack({
-              callsite,
-              originalMethod: dataPath.join('.'),
-              onUs: e.isPanic
-            });
-            const message = stack + '\\n\\n' + e.message;
-            if (e.code) {
-              throw new PrismaClientRequestError(this.sanitizeMessage(message), e.code, e.meta);
-            }
-            throw new Error(this.sanitizeMessage(message));
-          } else {
-            if (e.code) {
-              throw new PrismaClientRequestError(this.sanitizeMessage(e.message), e.code, e.meta);
-            }
-            if (e.isPanic) {
-              throw e;
-            }
-            else {
-              throw new Error(this.sanitizeMessage(e.message));
-            }
-          }
+        if (e.isPanic) {
+          throw e;
+        } else {
+          throw new Error(this.sanitizeMessage(e.message));
         }
+      }
     }
-    sanitizeMessage(message) {
-        if (this.prisma.errorFormat && this.prisma.errorFormat !== 'pretty') {
-            return stripAnsi(message);
-        }
-        return message;
+  }
+  sanitizeMessage(message) {
+    if (this.prisma.errorFormat && this.prisma.errorFormat !== 'pretty') {
+      return stripAnsi(message);
     }
-    unpack(document, data, path, rootField, isList) {
-        const getPath = [];
-        if (rootField) {
-            getPath.push(rootField);
-        }
-        getPath.push(...path.filter(p => p !== 'select' && p !== 'include'));
-        return unpack({ document, data, path: getPath });
+    return message;
+  }
+  unpack(document, data, path, rootField, isList) {
+    if (data.data) {
+      data = data.data
     }
+    const getPath = [];
+    if (rootField) {
+      getPath.push(rootField);
+    }
+    getPath.push(...path.filter(p => p !== 'select' && p !== 'include'));
+    return unpack({ document, data, path: getPath });
+  }
 }
 
 class CollectTimestamps {
-    constructor(startName) {
-        this.records = [];
-        this.start = undefined;
-        this.additionalResults = {};
-        this.start = { name: startName, value: process.hrtime() };
-    }
-    record(name) {
-        this.records.push({ name, value: process.hrtime() });
-    }
-    elapsed(start, end) {
-        const diff = [end[0] - start[0], end[1] - start[1]];
-        const nanoseconds = (diff[0] * 1e9) + diff[1];
-        const milliseconds = nanoseconds / 1e6;
-        return milliseconds;
-    }
-    addResults(results) {
-        Object.assign(this.additionalResults, results);
-    }
-    getResults() {
-        const results = this.records.reduce((acc, record) => {
-            const name = record.name.split('-')[1];
-            if (acc[name]) {
-                acc[name] = this.elapsed(acc[name], record.value);
-            }
-            else {
-                acc[name] = record.value;
-            }
-            return acc;
-        }, {});
-        Object.assign(results, {
-            total: this.elapsed(this.start.value, this.records[this.records.length - 1].value),
-            ...this.additionalResults
-        });
-        return results;
-    }
+  constructor(startName) {
+    this.records = [];
+    this.start = undefined;
+    this.additionalResults = {};
+    this.start = { name: startName, value: process.hrtime() };
+  }
+  record(name) {
+    this.records.push({ name, value: process.hrtime() });
+  }
+  elapsed(start, end) {
+    const diff = [end[0] - start[0], end[1] - start[1]];
+    const nanoseconds = (diff[0] * 1e9) + diff[1];
+    const milliseconds = nanoseconds / 1e6;
+    return milliseconds;
+  }
+  addResults(results) {
+    Object.assign(this.additionalResults, results);
+  }
+  getResults() {
+    const results = this.records.reduce((acc, record) => {
+      const name = record.name.split('-')[1];
+      if (acc[name]) {
+        acc[name] = this.elapsed(acc[name], record.value);
+      }
+      else {
+        acc[name] = record.value;
+      }
+      return acc;
+    }, {});
+    Object.assign(results, {
+      total: this.elapsed(this.start.value, this.records[this.records.length - 1].value),
+      ...this.additionalResults
+    });
+    return results;
+  }
 }
 `
 
@@ -222,35 +230,35 @@ export declare type PromiseReturnType<T extends (...args: any) => Promise<any>> 
 
 export declare type Enumerable<T> = T | Array<T>;
 export declare type MergeTruthyValues<R extends object, S extends object> = {
-    [key in keyof S | keyof R]: key extends false ? never : key extends keyof S ? S[key] extends false ? never : S[key] : key extends keyof R ? R[key] : never;
+  [key in keyof S | keyof R]: key extends false ? never : key extends keyof S ? S[key] extends false ? never : S[key] : key extends keyof R ? R[key] : never;
 };
 export declare type CleanupNever<T> = {
-    [key in keyof T]: T[key] extends never ? never : key;
+  [key in keyof T]: T[key] extends never ? never : key;
 }[keyof T];
 /**
  * Subset
  * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
  */
 export declare type Subset<T, U> = {
-    [key in keyof T]: key extends keyof U ? T[key] : never;
+  [key in keyof T]: key extends keyof U ? T[key] : never;
 };
 /**
  * A PrismaClientRequestError is an error that is thrown in conjunction to a concrete query that has been performed with PrismaClient.js.
  */
 export declare class PrismaClientRequestError extends Error {
-    message: string;
-    code?: string | undefined;
-    meta?: any;
-    constructor(message: string, code?: string | undefined, meta?: any);
+  message: string;
+  code?: string | undefined;
+  meta?: any;
+  constructor(message: string, code?: string | undefined, meta?: any);
 }
 declare class PrismaClientFetcher {
-    private readonly prisma;
-    private readonly debug;
-    private readonly hooks?;
-    constructor(prisma: PrismaClient<any, any>, debug?: boolean, hooks?: Hooks | undefined);
-    request<T>(document: any, dataPath?: string[], rootField?: string, typeName?: string, isList?: boolean, callsite?: string, collectTimestamps?: any): Promise<T>;
-    sanitizeMessage(message: string): string;
-    protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean): any;
+  private readonly prisma;
+  private readonly debug;
+  private readonly hooks?;
+  constructor(prisma: PrismaClient<any, any>, debug?: boolean, hooks?: Hooks | undefined);
+  request<T>(document: any, dataPath?: string[], rootField?: string, typeName?: string, isList?: boolean, callsite?: string, collectTimestamps?: any): Promise<T>;
+  sanitizeMessage(message: string): string;
+  protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean): any;
 }
 `
 

@@ -1,4 +1,10 @@
-import { Engine, PrismaClientError, PrismaClientQueryError, QueryEngineError } from './Engine'
+import {
+  PrismaClientError,
+  PrismaClientQueryError,
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  RequestError,
+} from './Engine'
 import debugLib from 'debug'
 import { getPlatform, Platform, mayBeCompatible } from '@prisma/get-platform'
 import path from 'path'
@@ -52,7 +58,7 @@ const knownPlatforms: Platform[] = [
   'windows',
 ]
 
-export class NodeEngine extends Engine {
+export class NodeEngine {
   private logEmitter: EventEmitter
   private showColors: boolean
   private logQueries: boolean
@@ -98,7 +104,6 @@ export class NodeEngine extends Engine {
     env,
     ...args
   }: EngineConfig) {
-    super()
     this.env = env
     this.cwd = this.resolveCwd(cwd)
     this.debug = args.debug || false
@@ -350,6 +355,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           debug('stderr', data)
           try {
             const json = JSON.parse(data)
+            console.log(json)
             if (typeof json.is_panic !== 'undefined') {
               debug(json)
               this.lastError = json
@@ -363,6 +369,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           const data = String(msg)
           try {
             const json = JSON.parse(data)
+            console.log(json)
             debug('stdout', json)
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
@@ -528,45 +535,32 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     }
   }
 
-  async request<T>(query: string, collectTimestamps: any): Promise<T> {
-    collectTimestamps && collectTimestamps.record('Pre-engine_request_start')
+  async request<T>(queries: string[]): Promise<T> {
     await this.start()
-    collectTimestamps && collectTimestamps.record('Post-engine_request_start')
-
-    collectTimestamps && collectTimestamps.record('Pre-engine_request_http')
 
     if (!this.child) {
       throw new Error(`Can't perform request, as the Engine has already been stopped`)
     }
 
-    collectTimestamps && collectTimestamps.record('Pre-engine_request_http_instance')
+    const variables = {}
+    const body = {
+      batch: queries.map(query => ({ query, variables })),
+    }
 
-    this.currentRequestPromise = this.client.request(query)
-
-    collectTimestamps && collectTimestamps.record('Post-engine_request_http_instance')
+    this.currentRequestPromise = this.client.request(body)
 
     return this.currentRequestPromise
       .then(data => {
-        const { body, headers } = data
-        collectTimestamps && collectTimestamps.record('Post-engine_request_http')
+        const { body } = data
 
-        if (collectTimestamps && headers['x-elapsed']) {
-          // Convert from microseconds to miliseconds
-          const timeElapsedInRust = parseInt(headers['x-elapsed']) / 1e3
-          collectTimestamps.addResults({ engine_request_http_instance_rust: timeElapsedInRust })
-        }
-
-        const errors = body.error || body.errors
-        if (errors) {
-          return this.handleErrors({
-            errors,
-            query,
-          })
-        }
-        return body.data
+        return body.map(result => {
+          if (result.errors) {
+            return this.graphQLToJSError(result.errors[0])
+          }
+          return result
+        })
       })
       .catch(error => {
-        collectTimestamps && collectTimestamps.record('Post-engine_request_http')
         debug({ error })
         if (this.currentRequestPromise.isCanceled && this.lastError) {
           throw new PrismaClientError(this.lastError)
@@ -585,11 +579,23 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
           throw new Error(logs)
         }
         if (!(error instanceof PrismaClientQueryError)) {
-          return this.handleErrors({ errors: error, query })
+          return this.handleErrors({ errors: error })
         } else {
           throw error
         }
       })
+  }
+
+  private graphQLToJSError(error: RequestError): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
+    if (error.user_facing_error.error_code) {
+      return new PrismaClientKnownRequestError(
+        error.user_facing_error.message,
+        error.user_facing_error.error_code,
+        error.user_facing_error.meta,
+      )
+    }
+
+    return new PrismaClientUnknownRequestError(error.user_facing_error.message)
   }
 
   private serializeErrors(errors: any) {
@@ -604,7 +610,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     return JSON.stringify(errors, null, 2)
   }
 
-  handleErrors({ errors }: { errors?: QueryEngineError[]; query: string }) {
+  handleErrors({ errors }: { errors?: any[] }) {
     if (errors.length === 1 && errors[0].user_facing_error) {
       throw new PrismaClientQueryError(errors[0])
     }
