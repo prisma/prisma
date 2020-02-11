@@ -369,7 +369,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               }
             }
           } catch (e) {
-            // debug(e, data)
+            if (!data.includes('Printing to stderr') && !data.includes('Listening on ')) {
+              this.stderrLogs += '\n' + data
+            }
           }
         })
 
@@ -398,8 +400,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           }
         })
 
-        this.child.on('exit', code => {
-          if (!code) {
+        this.child.on('exit', (code, signal) => {
+          if (!this.child) {
             return
           }
           if (this.lastError) {
@@ -438,6 +440,15 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             is_panic: false,
           }
           reject(err)
+        })
+
+        this.child.on('close', (code, signal) => {
+          if (code === null && signal === 'SIGABRT' && this.child) {
+            console.error(`${chalk.bold.red(`Error in Prisma Client:`)}${this.stderrLogs}
+
+This is a non-recoverable error which probably happens when the Prisma Query Engine has a stack overflow.
+Please create an issue in https://github.com/prisma/prisma-client-js describing the last Prisma Client query you called.`)
+          }
         })
 
         if (this.lastError) {
