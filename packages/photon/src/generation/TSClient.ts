@@ -832,7 +832,14 @@ ${indent(this.jsDoc, tab)}
   disconnect(): Promise<any>;
   /**
    * Makes a raw query
-   */
+   * @example
+   * \`\`\`
+   * // Fetch all entries from the \`User\` table
+   * const result = await prisma.raw\`SELECT * FROM User;\`
+  * \`\`\`
+  * 
+  * Read more in our [docs](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#raw-database-access).
+  */
   raw(query: TemplateStringsArray): Promise<T>;
 
 ${indent(
