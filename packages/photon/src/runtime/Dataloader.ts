@@ -29,22 +29,23 @@ export class Dataloader {
       throw new Error(`Can't dispatch without existing batch`)
     }
 
-    this.loader(this.currentBatch.map(j => j.request))
+    const batch = this.currentBatch
+    this.currentBatch = undefined
+
+    this.loader(batch.map(j => j.request))
       .then(results => {
-        for (let i = 0; i < this.currentBatch!.length; i++) {
+        for (let i = 0; i < batch!.length; i++) {
           const value = results[i]
           if (value instanceof Error) {
-            this.currentBatch![i].reject(value)
+            batch![i].reject(value)
           } else {
-            this.currentBatch![i].resolve(value)
+            batch![i].resolve(value)
           }
         }
-
-        this.currentBatch = undefined
       })
       .catch(e => {
-        for (let i = 0; i < this.currentBatch!.length; i++) {
-          this.currentBatch![i].reject(e)
+        for (let i = 0; i < batch!.length; i++) {
+          batch![i].reject(e)
         }
       })
   }
