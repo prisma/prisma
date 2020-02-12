@@ -4,16 +4,96 @@
 
 Prisma 2 CLI currently requires [Node 10](https://nodejs.org/en/download/releases/) (or higher).
 
-### Install with npm
+### Local installation (recommended)
+
+The Prisma 2 CLI is typically installed as a **development dependency**, that's why the `--save-dev` (npm) and `--dev` (Yarn) options are used in the commands below.
+
+#### npm
+
+Install with npm:
+
+```
+npm install prisma2 --save-dev
+```
+
+This should add `prisma2` to the `devDependencies` in your `package.json`. You can then invoke the locally installed `prisma2` CLI by prefixing it with [`npx`](https://github.com/npm/npx#readme):
+
+```
+npx prisma2
+```
+
+Here's an example for invoking the `generate` command:
+
+```
+npx prisma2 generate
+```
+
+
+#### Yarn
+
+Install with Yarn:
+
+```
+yarn add prisma2 dev
+```
+
+This should add `prisma2` to the `devDependencies` in your `package.json`. You can then invoke the locally installed `prisma2` CLI by prefixing it with `yarn`:
+
+```
+yarn prisma2
+```
+
+Here's an example for invoking the `generate` command:
+
+```
+yarn prisma2 generate
+```
+
+### Global installation
+
+While it is recommended to [locally install](#local-installation-recommended) the `prisma2` CLI, you can also install it globally on your machine. 
+
+> **Warning**: If you have several Prisma projects on your machine, a global installation can lead to version conflicts between these projects.
+
+#### npm
+
+Install with npm:
 
 ```
 npm install -g prisma2
 ```
 
-### Install with Yarn
+You can then invoke the globally installed `prisma2` CLI like so:
+
+```
+prisma2
+```
+
+Here's an example for invoking the `generate` command:
+
+```
+prisma2 generate
+```
+
+
+#### Yarn
+
+Install with Yarn:
 
 ```
 yarn global add prisma2
+```
+
+You can then invoke the globally installed `prisma2` CLI like so:
+
+```
+prisma2
+```
+
+Here's an example for invoking the `generate` command:
+
+```
+prisma2 generate
 ```
 
 ### The `postinstall` hook
