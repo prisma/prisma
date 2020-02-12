@@ -89,7 +89,7 @@ module.exports = async () => {
     ) {
       throw new Error(`Known request error is incorrect`)
     } else {
-      console.error(`Mein lieber Schollie 🎢 `, knownRequestError)
+      // console.error(`Mein lieber Schollie 🎢 `, knownRequestError)
     }
   }
 
