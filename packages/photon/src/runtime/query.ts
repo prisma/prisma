@@ -251,7 +251,7 @@ ${errorMessages}${missingArgsLegend}\n`
     }
     // end renderErrorStr definition
 
-    const error = new PrismaClientError(renderErrorStr())
+    const error = new PrismaClientValidationError(renderErrorStr())
 
     // @ts-ignore
     if (process.env.NODE_ENV !== 'production') {
@@ -521,7 +521,7 @@ ${errorMessages}${missingArgsLegend}\n`
   }
 }
 
-class PrismaClientError extends Error {}
+class PrismaClientValidationError extends Error {}
 
 export interface FieldArgs {
   name: string
@@ -962,7 +962,11 @@ export function selectionToFields(
 
       return acc
     }
-    if (typeof value !== 'boolean' && field.outputType.kind === 'scalar' && field.name !== 'executeRaw') {
+    if (
+      typeof value !== 'boolean' &&
+      field.outputType.kind === 'scalar' &&
+      field.name !== 'executeRaw'
+    ) {
       acc.push(
         new Field({
           name,
