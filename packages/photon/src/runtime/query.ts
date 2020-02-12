@@ -521,7 +521,7 @@ ${errorMessages}${missingArgsLegend}\n`
   }
 }
 
-class PrismaClientValidationError extends Error {}
+export class PrismaClientValidationError extends Error {}
 
 export interface FieldArgs {
   name: string
