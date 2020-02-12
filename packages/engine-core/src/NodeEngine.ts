@@ -4,6 +4,7 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
   RequestError,
+  PrismaClientInitializationError,
 } from './Engine'
 import debugLib from 'debug'
 import { getPlatform, Platform, mayBeCompatible } from '@prisma/get-platform'
@@ -252,11 +253,8 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.incorrectlyPinnedPlatform}`)}\n`
         : ''
 
-      const alternativePath = await this.resolveAlternativeBinaryPath(platform)
-
-      if (!alternativePath) {
-        throw new Error(
-          `Query engine binary for current platform ${chalk.bold.greenBright(platform)} could not be found.${pinnedStr}
+      throw new PrismaClientInitializationError(
+        `Query engine binary for current platform ${chalk.bold.greenBright(platform)} could not be found.${pinnedStr}
 Prisma Client looked in ${chalk.underline(prismaPath)} but couldn't find it.
 Make sure to adjust the generator configuration in the ${chalk.bold('schema.prisma')} file${info}
 Please run ${chalk.greenBright('prisma2 generate')} for your changes to take effect.
@@ -266,17 +264,7 @@ Read more about deploying Prisma Client: ${chalk.underline(
     'https://github.com/prisma/prisma2/blob/master/docs/core/generators/prisma-client-js.md',
   )}`,
 )}`,
-        )
-      } else {
-        console.error(`${chalk.yellow(
-          'warning',
-        )} Prisma Client could not resolve the needed binary for the current platform ${chalk.greenBright(platform)}.
-Instead we found ${chalk.bold(
-          alternativePath,
-        )}, which we're trying for now. In case Prisma Client runs, just ignore this message.`)
-        plusX(alternativePath)
-        return alternativePath
-      }
+      )
     }
 
     if (this.incorrectlyPinnedPlatform) {
