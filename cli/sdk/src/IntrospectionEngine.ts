@@ -82,24 +82,26 @@ export class IntrospectionEngine {
   ) {
     this.listeners[id] = callback
   }
-  public getDatabaseDescription(url: string): Promise<string> {
+  public getDatabaseDescription(schema: string): Promise<string> {
     return this.runCommand(
-      this.getRPCPayload('getDatabaseDescription', { url }),
+      this.getRPCPayload('getDatabaseDescription', { schema }),
     )
   }
-  public introspect(url: string): Promise<string> {
-    this.lastUrl = url
-    return this.runCommand(this.getRPCPayload('introspect', { url }))
+  public introspect(schema: string): Promise<string> {
+    this.lastUrl = schema
+    return this.runCommand(this.getRPCPayload('introspect', { schema }))
   }
-  public listDatabases(url: string): Promise<string[]> {
-    this.lastUrl = url
-    return this.runCommand(this.getRPCPayload('listDatabases', { url }))
+  public listDatabases(schema: string): Promise<string[]> {
+    this.lastUrl = schema
+    return this.runCommand(this.getRPCPayload('listDatabases', { schema }))
   }
   public getDatabaseMetadata(
-    url: string,
+    schema: string,
   ): Promise<{ size_in_bytes: number; table_count: number }> {
-    this.lastUrl = url
-    return this.runCommand(this.getRPCPayload('getDatabaseMetadata', { url }))
+    this.lastUrl = schema
+    return this.runCommand(
+      this.getRPCPayload('getDatabaseMetadata', { schema }),
+    )
   }
   private handleResponse(response: any) {
     let result

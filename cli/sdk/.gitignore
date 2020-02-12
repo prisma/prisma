@@ -7,3 +7,4 @@ introspection-engine*
 migration-engine*
 write-test
 sandbox
+failed-*

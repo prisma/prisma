@@ -1,16 +1,7 @@
 import { Command, format, HelpError, getSchemaPath, arg } from '@prisma/cli'
 import chalk from 'chalk'
 import path from 'path'
-import {
-  getConfig,
-  IntrospectionEngine,
-  getDMMF,
-  dmmfToDml,
-  uriToCredentials,
-  ConfigMetaFormat,
-  RustPanic,
-  ErrorArea,
-} from '@prisma/sdk'
+import { IntrospectionEngine, uriToCredentials, ConfigMetaFormat, RustPanic, ErrorArea } from '@prisma/sdk'
 import { formatms } from '../util/formatms'
 import fs from 'fs'
 import { DataSource } from '@prisma/generator-helper'
@@ -45,6 +36,18 @@ export class Introspect implements Command {
 
   `)
   private constructor() {}
+  private printUrlAsDatasource(url: string): string {
+    const connectorType = databaseTypeToConnectorType(uriToCredentials(url).type)
+
+    return printDatasources([
+      {
+        config: {},
+        connectorType,
+        name: 'db',
+        url,
+      },
+    ])
+  }
 
   // parse arguments
   public async parse(argv: string[], minimalOutput = false): Promise<string | Error> {
@@ -72,30 +75,19 @@ export class Introspect implements Command {
 
     let url: string | undefined = args['--url']
     let schemaPath = await getSchemaPath(args['--schema'])
-    let config: ConfigMetaFormat | undefined
-    if (!url) {
-      if (!schemaPath) {
-        throw new Error(
-          `Either provide ${chalk.greenBright(
-            '--schema',
-          )} or make sure that you are in a folder with a ${chalk.greenBright('schema.prisma')} file.`,
-        )
-      }
-
-      config = await getConfig({
-        datamodelPath: schemaPath,
-      })
-
-      const datasource = config.datasources[0]
-      if (!datasource) {
-        throw new Error(
-          `Either provide ${chalk.greenBright('--url')} or add a ${chalk.greenBright.bold(
-            'datasource',
-          )} in the ${chalk.greenBright(path.relative(process.cwd(), schemaPath))} file.`,
-        )
-      }
-      url = datasource.url.value
+    if (!url && !schemaPath) {
+      throw new Error(
+        `Either provide ${chalk.greenBright(
+          '--schema',
+        )} or make sure that you are in a folder with a ${chalk.greenBright('schema.prisma')} file.`,
+      )
     }
+    // TS at its limits 🤷‍♀️
+    const schema: string = url
+      ? this.printUrlAsDatasource(url)
+      : schemaPath
+      ? fs.readFileSync(schemaPath, 'utf-8')
+      : undefined!
 
     const engine = new IntrospectionEngine({
       cwd: schemaPath ? path.dirname(schemaPath) : undefined,
@@ -109,88 +101,34 @@ export class Introspect implements Command {
 
     const before = Date.now()
     let introspectionSchema = ''
-    introspectionSchema = await engine.introspect(url)
+    introspectionSchema = await engine.introspect(schema)
 
     if (introspectionSchema.trim() === '') {
       throw new Error(`${chalk.red.bold('The introspected database was empty:')} ${chalk.underline(url)}
 
-${chalk.bold('prisma2 introspect')} could not create any models in your ${chalk.bold('schema.prisma')} file and you will not be able to generate Prisma Client with the ${chalk.bold('prisma2 generate')} command.
+${chalk.bold('prisma2 introspect')} could not create any models in your ${chalk.bold(
+        'schema.prisma',
+      )} file and you will not be able to generate Prisma Client with the ${chalk.bold('prisma2 generate')} command.
 
 ${chalk.bold('To fix this, you have two options:')}
 
 - manually create a table in your database (using SQL).
-- make sure the database connection URL inside the ${chalk.bold('datasource')} block in ${chalk.bold('schema.prisma')} points to a database that is not empty (it must contain at least one table).
+- make sure the database connection URL inside the ${chalk.bold('datasource')} block in ${chalk.bold(
+        'schema.prisma',
+      )} points to a database that is not empty (it must contain at least one table).
 
 Then you can run ${chalk.green('prisma2 introspect')} again. 
 `)
     }
 
-    const connectorType = databaseTypeToConnectorType(uriToCredentials(url).type)
+    log(`Done with introspection in ${chalk.bold(formatms(Date.now() - before))}`)
 
-    const datasourceString = printDatasources([
-      {
-        config: {},
-        connectorType,
-        name: 'db',
-        url,
-      },
-    ])
-
-    introspectionSchema = datasourceString + '\n' + introspectionSchema
-
-    debug('introspectionSchema:')
-    debug(introspectionSchema)
-
-    try {
-      const dmmf = await getDMMF({ datamodel: introspectionSchema })
-
-      // add the datasource itself to the schema in case no schema.prisma exists yet
-      const datasources: DataSource[] = [
-        {
-          name: 'db',
-          config: {},
-          connectorType,
-          url: {
-            value: url,
-            fromEnvVar: null,
-          },
-        },
-      ]
-      const schema = await dmmfToDml({
-        config: config || {
-          datasources,
-          generators: [],
-        },
-        dmmf: dmmf.datamodel,
-      })
-
-      log(`Done with introspection in ${chalk.bold(formatms(Date.now() - before))}`)
-
-      if (args['--print']) {
-        console.log(schema)
-      } else {
-        schemaPath = schemaPath || 'schema.prisma'
-        fs.writeFileSync(schemaPath, schema)
-        log(`Wrote ${chalk.underline(path.relative(process.cwd(), schemaPath))}`)
-      }
-    } catch (e) {
-      engine.stop()
-
-      console.error(chalk.bold.red(`\nIntrospection failed:`) + chalk.red(` Introspected schema can't be parsed.`))
-      if (introspectionSchema) {
-        console.log(chalk.bold(`Introspected Schema:\n`))
-        console.log(introspectionSchema + '\n')
-      }
-
-      throw new RustPanic(
-        stripAnsi(e.message),
-        stripAnsi(e.message),
-        {},
-        ErrorArea.INTROSPECTION_CLI,
-        undefined,
-        introspectionSchema,
-        url,
-      )
+    if (args['--print']) {
+      console.log(introspectionSchema)
+    } else {
+      schemaPath = schemaPath || 'schema.prisma'
+      fs.writeFileSync(schemaPath, introspectionSchema)
+      log(`Wrote ${chalk.underline(path.relative(process.cwd(), schemaPath))}`)
     }
 
     engine.stop()
