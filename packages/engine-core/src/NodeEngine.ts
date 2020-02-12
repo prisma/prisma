@@ -15,13 +15,12 @@ import chalk from 'chalk'
 import { GeneratorConfig } from '@prisma/generator-helper'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixPlatforms, plusX } from './util'
-import { promisify, inspect } from 'util'
+import { promisify } from 'util'
 import EventEmitter from 'events'
-import { convertLog, Log, RustLog, RustError } from './log'
+import { convertLog, RustLog, RustError } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
 import { Client } from './client'
-import got from 'got'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -135,7 +134,7 @@ export class NodeEngine {
 
     if (this.platform) {
       if (!knownPlatforms.includes(this.platform as Platform) && !fs.existsSync(this.platform)) {
-        throw new Error(
+        throw new PrismaClientInitializationError(
           `Unknown ${chalk.red('PRISMA_QUERY_ENGINE_BINARY')} ${chalk.redBright.bold(
             this.platform,
           )}. Possible binaryTargets: ${chalk.greenBright(
@@ -353,7 +352,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               debug(json)
               this.lastError = json
               if (this.engineStartDeferred) {
-                this.engineStartDeferred.reject(new Error(this.lastError.message))
+                this.engineStartDeferred.reject(new PrismaClientInitializationError(this.lastError.message))
               }
             }
           } catch (e) {

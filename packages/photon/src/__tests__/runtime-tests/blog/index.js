@@ -1,4 +1,8 @@
-const { PrismaClient, PrismaClientValidationError } = require('@prisma/client')
+const {
+  PrismaClient,
+  PrismaClientValidationError,
+  PrismaClientKnownRequestError,
+} = require('@prisma/client')
 
 module.exports = async () => {
   const prisma = new PrismaClient({
@@ -64,6 +68,28 @@ module.exports = async () => {
       !(validationError instanceof PrismaClientValidationError)
     ) {
       throw new Error(`Validation error is incorrect`)
+    }
+  }
+
+  // Test known request error
+  let knownRequestError
+  try {
+    const result = await prisma.user.create({
+      data: {
+        email: 'a@a.de',
+        name: 'Alice',
+      },
+    })
+  } catch (e) {
+    knownRequestError = e
+  } finally {
+    if (
+      !knownRequestError ||
+      !(knownRequestError instanceof PrismaClientKnownRequestError)
+    ) {
+      throw new Error(`Known request error is incorrect`)
+    } else {
+      console.error(`Mein lieber Schollie 🎢 `, knownRequestError)
     }
   }
 

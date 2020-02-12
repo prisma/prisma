@@ -1,6 +1,6 @@
 import { recommender } from '../fixtures/recommender'
 import { DMMFClass, makeDocument } from '../runtime'
-import { getDMMF } from '../runtime/getDMMF'
+import { getDMMF } from '../generation/getDMMF'
 
 let dmmf
 describe('no args', () => {

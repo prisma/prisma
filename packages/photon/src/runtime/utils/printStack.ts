@@ -54,7 +54,8 @@ export const printStack = ({
       trace &&
       trace.file &&
       trace.lineNumber &&
-      trace.column
+      trace.column &&
+      !trace.file.startsWith('internal/')
     ) {
       const fileName = trace.file
       const lineNumber = trace.lineNumber

@@ -88,6 +88,7 @@
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.7.5",
     "webpack": "5.0.0-alpha.14",
+    "webpack-bundle-analyzer": "^3.6.0",
     "webpack-cli": "4.0.0-alpha-4"
   },
   "peerDependencies": {
