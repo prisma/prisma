@@ -1,14 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`is schema wriiten on disk replace: 
-✔ Your Prisma schema was created at tmp/prisma/schema.prisma.
+exports[`is schema and env written on disk replace: 
+✔ Your Prisma schema was created at prisma/schema.prisma.
   You can now open it in your favorite editor.
 
 Next steps
-1. Run cd tmp to go to the newly created folder.
-2. Set your DB connection string as the \`url\` of the \`datasource\` block.
-3. Run prisma2 introspect to test the connection and obtain your data model.
-4. Run prisma2 generate to generate Prisma Client.
+1. Set your DB connection string as the \`url\` of the \`datasource\` block.
+2. Run prisma2 introspect to test the connection and obtain your data model.
+3. Run prisma2 generate to generate Prisma Client.
 
 You can then start using Prisma Client in your application:
 
@@ -24,14 +23,13 @@ More information in our documentation:
 https://pris.ly/d/getting-started
      1`] = `
 "
-✔ Your Prisma schema was created at tmp/prisma/schema.prisma.
+✔ Your Prisma schema was created at prisma/schema.prisma.
   You can now open it in your favorite editor.
 
 Next steps
-1. Run cd tmp to go to the newly created folder.
-2. Set your DB connection string as the \`url\` of the \`datasource\` block.
-3. Run prisma2 introspect to test the connection and obtain your data model.
-4. Run prisma2 generate to generate Prisma Client.
+1. Set your DB connection string as the \`url\` of the \`datasource\` block.
+2. Run prisma2 introspect to test the connection and obtain your data model.
+3. Run prisma2 generate to generate Prisma Client.
 
 You can then start using Prisma Client in your application:
 
