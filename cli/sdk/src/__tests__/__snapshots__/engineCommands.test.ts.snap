@@ -490,8 +490,8 @@ Object {
                 "inputType": Object {
                   "isList": false,
                   "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
+                  "kind": "object",
+                  "type": "AWhereUniqueInput",
                 },
                 "name": "after",
               },
@@ -499,8 +499,8 @@ Object {
                 "inputType": Object {
                   "isList": false,
                   "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
+                  "kind": "object",
+                  "type": "AWhereUniqueInput",
                 },
                 "name": "before",
               },
