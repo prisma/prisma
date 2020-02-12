@@ -498,6 +498,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
     if (this.child) {
       debug(`Stopping Prisma engine`)
       this.exiting = true
+      this.client.close()
       await this.child.kill()
       delete this.child
     }
