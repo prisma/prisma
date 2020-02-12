@@ -34,7 +34,7 @@ npx prisma2 generate
 Install with Yarn:
 
 ```
-yarn add prisma2 dev
+yarn add prisma2 --dev
 ```
 
 This should add `prisma2` to the `devDependencies` in your `package.json`. You can then invoke the locally installed `prisma2` CLI by prefixing it with `yarn`:
