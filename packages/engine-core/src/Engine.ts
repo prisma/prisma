@@ -70,6 +70,18 @@ export class PrismaClientUnknownRequestError extends Error {
   }
 }
 
+export class PrismaClientRustPanicError extends Error {
+  constructor(message: string) {
+    super(message)
+  }
+}
+
+export class PrismaClientInitializationError extends Error {
+  constructor(message: string) {
+    super(message)
+  }
+}
+
 /**
  * A PrismaClientQueryError is an error that is thrown in conjunction to a concrete query that has been performed with Prisma Client.
  */

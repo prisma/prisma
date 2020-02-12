@@ -64,7 +64,11 @@ const {
   unpack,
   stripAnsi,
   parseDotenv,
-  Dataloader
+  Dataloader,
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientInitializationError
 } = require('${runtimePath}')
 
 /**
@@ -76,19 +80,11 @@ const fs = require('fs')
 
 const debug = debugLib('prisma-client')
 
+exports.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
+exports.PrismaClientUnknownRequestError = PrismaClientUnknownRequestError;
+exports.PrismaClientRustPanicError = PrismaClientRustPanicError;
+exports.PrismaClientInitializationError = PrismaClientInitializationError;
 
-/**
- * A PrismaClientRequestError is an error that is thrown in conjunction to a concrete query that has been performed with PrismaClient.js.
- */
-class PrismaClientRequestError extends Error {
-  constructor(message, code, meta) {
-    super(message)
-    this.code = code
-    this.meta = meta
-  }
-}
-
-exports.PrismaClientRequestError = PrismaClientRequestError;
 class PrismaClientFetcher {
   constructor(prisma, enableDebug = false, hooks) {
     this.prisma = prisma;
@@ -132,17 +128,30 @@ class PrismaClientFetcher {
         });
         const message = stack + '\\n\\n' + e.message;
         if (e.code) {
-          throw new PrismaClientRequestError(this.sanitizeMessage(message), e.code, e.meta);
+          throw new PrismaClientKnownRequestError(this.sanitizeMessage(message), e.code, e.meta);
         }
-        throw new Error(this.sanitizeMessage(message));
+        if (e instanceof PrismaClientUnknownRequestError) {
+          throw new PrismaClientUnknownRequestError(this.sanitizeMessage(message));
+        } else if (e instanceof PrismaClientInitializationError) {
+          throw new PrismaClientInitializationError(this.sanitizeMessage(message));
+        } else if (e instanceof PrismaClientRustPanicError) {
+          throw new PrismaClientRustPanicError(this.sanitizeMessage(message));
+        }
       } else {
         if (e.code) {
-          throw new PrismaClientRequestError(this.sanitizeMessage(e.message), e.code, e.meta);
+          throw new PrismaClientKnownRequestError(this.sanitizeMessage(e.message), e.code, e.meta);
         }
+        // TODO: Make sure, that this is a PrismaClientRustPanicError
         if (e.isPanic) {
           throw e;
         } else {
-          throw new Error(this.sanitizeMessage(e.message));
+          if (e instanceof PrismaClientUnknownRequestError) {
+            throw new PrismaClientUnknownRequestError(this.sanitizeMessage(message));
+          } else if (e instanceof PrismaClientInitializationError) {
+            throw new PrismaClientInitializationError(this.sanitizeMessage(message));
+          } else if (e instanceof PrismaClientRustPanicError) {
+            throw new PrismaClientRustPanicError(this.sanitizeMessage(message));
+          }
         }
       }
     }
@@ -208,7 +217,12 @@ class CollectTimestamps {
 const commonCodeTS = (
   runtimePath: string,
   version?: string,
-) => `import { DMMF, DMMFClass, Engine } from '${runtimePath}';
+) => `import { DMMF, DMMFClass, Engine, PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '${runtimePath}';
+
+export { PrismaClientKnownRequestError }
+export { PrismaClientUnknownRequestError }
+export { PrismaClientRustPanicError }
+export { PrismaClientInitializationError }
 
 /**
  * Query Engine version: ${version || 'latest'}
@@ -243,15 +257,6 @@ export declare type CleanupNever<T> = {
 export declare type Subset<T, U> = {
   [key in keyof T]: key extends keyof U ? T[key] : never;
 };
-/**
- * A PrismaClientRequestError is an error that is thrown in conjunction to a concrete query that has been performed with PrismaClient.js.
- */
-export declare class PrismaClientRequestError extends Error {
-  message: string;
-  code?: string | undefined;
-  meta?: any;
-  constructor(message: string, code?: string | undefined, meta?: any);
-}
 declare class PrismaClientFetcher {
   private readonly prisma;
   private readonly debug;
