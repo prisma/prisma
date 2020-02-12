@@ -10,6 +10,7 @@ import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
 import hasha from 'hasha'
+import chalk from 'chalk'
 import { promisify } from 'util'
 import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
@@ -123,6 +124,15 @@ export async function generateClient({
     datasources,
     binaryPaths,
   })
+
+  const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
+  if (denylistsErrors) {
+    console.error(`${chalk.redBright.bold('Error: ')}The schema at "${datamodelPath}" contains reserved keywords.\n       Rename the following items:`)
+    for (const error of denylistsErrors) {
+      console.error('         - ' + error.message)
+    }
+    process.exit(1)
+  }
 
   debug(`makeDir: ${outputDir}`)
   await makeDir(path.join(outputDir, 'runtime'))
@@ -294,4 +304,144 @@ async function fileSize(name: string): Promise<number | null> {
   } catch (e) {
     return null
   }
+}
+
+function validateDmmfAgainstDenylists(prismaClientDmmf) {
+  const errorArray = [] as Error[]
+
+  const denylists = {
+    models: [
+      'Enumerable',
+      'MergeTruthyValues',
+      'CleanupNever',
+      'AtLeastOne',
+      'OnlyOne',
+      'StringFilter',
+      'IDFilter',
+      'FloatFilter',
+      'IntFilter',
+      'BooleanFilter',
+      'DateTimeFilter',
+      'NullableStringFilter',
+      'NullableIDFilter',
+      'NullableFloatFilter',
+      'NullableIntFilter',
+      'NullableBooleanFilter',
+      'NullableDateTimeFilter',
+      'PrismaClientFetcher',
+      'PrismaClient',
+      'Engine',
+      'PrismaClientOptions',
+    ],
+    fields: ['AND', 'OR', 'NOT'],
+    dynamic: [] as string[]
+  }
+
+  for (const m of prismaClientDmmf.datamodel.models) {
+    denylists.dynamic.push(...[
+      `${m.name}Select`,
+      `${m.name}Include`,
+      `${m.name}Default`,
+      `${m.name}GetSelectPayload`,
+      `${m.name}GetIncludePayload`,
+      `${m.name}Client`,
+      `${m.name}Delegate`,
+      
+      `${m.name}Args`,
+      `${m.name}ArgsFilter`,
+      `${m.name}ArgsRequired`,
+      `${m.name}SelectArgs`,
+      `${m.name}SelectArgsOptional`,
+      `${m.name}IncludeArgs`,
+      `${m.name}IncludeArgsOptional`,      
+      `Extract${m.name}SelectCreateArgs`,
+      `Extract${m.name}IncludeCreateArgs`,
+
+      `${m.name}WhereInput`,
+      `${m.name}WhereUniqueInput`,
+      `${m.name}CreateInput`,
+      `${m.name}UpdateInput`,
+      `${m.name}UpdateManyMutationInput`,
+      `${m.name}OrderByInput`,
+     
+      `${m.name}CreateArgs`,
+      `${m.name}CreateArgsRequired`,
+      `${m.name}SelectCreateArgs`,
+      `${m.name}IncludeCreateArgs`,
+      `Extract${m.name}SelectCreateArgs`,
+      `Extract${m.name}IncludeCreateArgs`,
+      `${m.name}SelectCreateArgsOptional`,      
+      `${m.name}IncludeCreateArgsOptional`,      
+ 
+      `${m.name}UpsertArgs`,
+      `${m.name}UpsertArgsRequired`,
+      `${m.name}SelectUpsertArgs`,
+      `${m.name}IncludeUpsertArgs`,
+      `Extract${m.name}SelectUpsertArgs`,
+      `Extract${m.name}IncludeUpsertArgs`,
+      `${m.name}SelectUpsertArgsOptional`,      
+      `${m.name}IncludeUpsertArgsOptional`,      
+
+      `${m.name}UpdateArgs`,
+      `${m.name}UpdateArgsRequired`,
+      `${m.name}SelectUpdateArgs`,
+      `${m.name}IncludeUpdateArgs`,
+      `${m.name}UpdateManyArgs`,
+      `Extract${m.name}SelectUpdateArgs`,
+      `Extract${m.name}IncludeUpdateArgs`,
+      `${m.name}SelectUpdateArgsOptional`,      
+      `${m.name}IncludeUpdateArgsOptional`,      
+
+      `${m.name}DeleteArgs`,
+      `${m.name}DeleteArgsRequired`,
+      `${m.name}SelectDeleteArgs`,
+      `${m.name}IncludeDeleteArgs`,
+      `${m.name}DeleteManyArgs`,
+      `Extract${m.name}SelectDeleteArgs`,
+      `Extract${m.name}IncludeDeleteArgs`,
+      `${m.name}SelectDeleteArgsOptional`,      
+      `${m.name}IncludeDeleteArgsOptional`,
+
+      `FindOne${m.name}Args`,
+      `FindOne${m.name}ArgsRequired`,
+      `FindOne${m.name}SelectArgs`,
+      `FindOne${m.name}IncludeArgs`,
+      `FindOne${m.name}SelectArgsOptional`,
+      `FindOne${m.name}IncludeArgsOptional`,
+      `ExtractFindOne${m.name}SelectArgs`,
+      `ExtractFindOne${m.name}IncludeArgs`,
+     
+      `FindMany${m.name}Args`,
+      `FindMany${m.name}ArgsRequired`,
+      `FindMany${m.name}IncludeArgs`,
+      `FindMany${m.name}SelectArgs`,
+      `FindMany${m.name}SelectArgsOptional`,
+      `FindMany${m.name}IncludeArgsOptional`,
+      `ExtractFindMany${m.name}SelectArgs`,
+      `ExtractFindMany${m.name}IncludeArgs`,
+    ])
+  }
+
+  if (prismaClientDmmf.datamodel.enums) {
+    for (const it of prismaClientDmmf.datamodel.enums) {
+      if (
+        denylists.models.includes(it.name) ||
+        denylists.fields.includes(it.name) ||
+        denylists.dynamic.includes(it.name)) {
+        errorArray.push(Error(`"enum ${it.name}"`))
+      }
+    }
+  }
+  
+  if (prismaClientDmmf.datamodel.enums) {
+    for (const it of prismaClientDmmf.datamodel.models) {
+      if (
+        denylists.models.includes(it.name) ||
+        denylists.fields.includes(it.name)) {
+        errorArray.push(Error(`"model ${it.name}"`))
+      }
+    }
+  }
+
+  return errorArray.length > 0 ? errorArray : null
 }
