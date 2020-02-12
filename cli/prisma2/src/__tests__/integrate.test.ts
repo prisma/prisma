@@ -1,4 +1,6 @@
 import { getGenerator, IntrospectionEngine, getDMMF, dmmfToDml } from '@prisma/sdk'
+import stripIndent from 'strip-indent'
+import chalk from 'chalk'
 import { join, dirname } from 'path'
 import mkdir from 'make-dir'
 import { Client } from 'pg'
@@ -35,7 +37,7 @@ after(async () => {
   engine.stop()
 })
 
-tests().map(t => {
+tests().map((t: Test) => {
   const name = prettyName(t.do)
 
   if (t.todo) {
@@ -49,20 +51,20 @@ tests().map(t => {
     } catch (err) {
       throw err
     } finally {
-      await db.query(t.after)
+      await db.query(t.down)
     }
   }).timeout(15000)
 })
 
-async function runTest(t) {
-  await db.query(t.after)
-  await db.query(t.before)
+async function runTest(t: Test) {
+  await db.query(t.down)
+  await db.query(t.up)
   const schema = `datasource db {
   provider = "postgresql"
   url = "${connectionString}"
 }`
   const introspectionSchema = await engine.introspect(schema)
-  await generate(introspectionSchema)
+  await generate(t, introspectionSchema)
   const prismaClientPath = join(tmp, 'index.js')
   const prismaClientDeclarationPath = join(tmp, 'index.d.ts')
 
@@ -76,7 +78,7 @@ async function runTest(t) {
   await prisma.connect()
   try {
     const result = await t.do(prisma)
-    await db.query(t.after)
+    await db.query(t.down)
     assert.deepEqual(result, t.expect)
   } catch (err) {
     throw err
@@ -85,7 +87,7 @@ async function runTest(t) {
   }
 }
 
-async function generate(introspectionSchema: string) {
+async function generate(test: Test, introspectionSchema: string) {
   const dmmf = await getDMMF({ datamodel: introspectionSchema })
 
   const datamodel = await dmmfToDml({
@@ -116,6 +118,18 @@ async function generate(introspectionSchema: string) {
 
   const schemaPath = path.join(tmp, 'schema.prisma')
   fs.writeFileSync(schemaPath, datamodel)
+  let actual = stripIndent(datamodel).trim()
+  let expect = stripIndent(test.schema).trim()
+  if (actual !== expect) {
+    console.log(chalk.bold('Expect'))
+    console.log()
+    console.log(expect)
+    console.log()
+    console.log(chalk.bold('Actual'))
+    console.log()
+    console.log(actual)
+    assert.equal(actual, expect)
+  }
 
   const generator = await getGenerator({
     schemaPath,
@@ -128,10 +142,20 @@ async function generate(introspectionSchema: string) {
   generator.stop()
 }
 
-function tests() {
+type Test = {
+  title?: string
+  todo?: boolean
+  schema: string
+  up: string
+  down: string
+  do: (client: any) => Promise<any>
+  expect: any
+}
+
+function tests(): Test[] {
   return [
     {
-      before: `
+      up: `
         create table if not exists teams (
           id int primary key not null,
           name text not null unique
@@ -139,8 +163,24 @@ function tests() {
         insert into teams (id, name) values (1, 'a');
         insert into teams (id, name) values (2, 'b');
       `,
-      after: `
+      down: `
         drop table if exists teams cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}?schema=public"
+        }
+
+        model teams {
+          id   Int    @id
+          name String @unique
+        }
       `,
       do: async client => {
         return client.teams.findOne({ where: { id: 2 } })
@@ -151,7 +191,7 @@ function tests() {
       },
     },
     {
-      before: `
+      up: `
         create table if not exists teams (
           id int primary key not null,
           name text not null unique,
@@ -160,8 +200,25 @@ function tests() {
         insert into teams (id, name, email) values (1, 'a', 'a@a');
         insert into teams (id, name, email) values (2, 'b', 'b@b');
       `,
-      after: `
+      down: `
         drop table if exists teams cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}?schema=public"
+        }
+
+        model teams {
+          email String @unique
+          id    Int    @id
+          name  String @unique
+        }
       `,
       do: async client => {
         return client.teams.findOne({ where: { id: 2 }, select: { name: true } })
@@ -171,8 +228,7 @@ function tests() {
       },
     },
     {
-      todo: false,
-      before: `
+      up: `
         create table if not exists users (
           id serial primary key not null,
           email text not null unique
@@ -188,9 +244,32 @@ function tests() {
         insert into posts ("user_id", "title") values (1, 'B');
         insert into posts ("user_id", "title") values (2, 'C');
       `,
-      after: `
+      down: `
         drop table if exists posts cascade;
         drop table if exists users cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}?schema=public"
+        }
+
+        model posts {
+          id      Int    @id
+          title   String
+          user_id users
+        }
+
+        model users {
+          email   String  @unique
+          id      Int     @id
+          postses posts[]
+        }
       `,
       do: async client => {
         return client.users.findOne({ where: { id: 1 }, include: { postses: true } })
@@ -211,14 +290,30 @@ function tests() {
       },
     },
     {
-      before: `
+      up: `
         create table if not exists teams (
           id serial primary key not null,
           name text not null unique
         );
       `,
-      after: `
+      down: `
         drop table if exists teams cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}?schema=public"
+        }
+
+        model teams {
+          id   Int    @id
+          name String @unique
+        }
       `,
       do: async client => {
         return client.teams.create({ data: { name: 'c', id: 1 } })
@@ -229,15 +324,31 @@ function tests() {
       },
     },
     {
-      before: `
+      up: `
         create table if not exists teams (
           id serial primary key not null,
           name text not null unique
         );
         insert into teams ("name") values ('c');
       `,
-      after: `
+      down: `
         drop table if exists teams cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}?schema=public"
+        }
+
+        model teams {
+          id   Int    @id
+          name String @unique
+        }
       `,
       do: async client => {
         return client.teams.update({
@@ -251,15 +362,31 @@ function tests() {
       },
     },
     {
-      before: `
+      up: `
         create table if not exists users (
           id serial primary key not null,
           email text not null unique
         );
         insert into users ("email") values ('ada@prisma.io');
       `,
-      after: `
+      down: `
         drop table if exists users cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}?schema=public"
+        }
+
+        model users {
+          email String @unique
+          id    Int    @id
+        }
       `,
       do: async client => {
         return client.users.findOne({ where: { email: 'ada@prisma.io' } })
@@ -270,15 +397,31 @@ function tests() {
       },
     },
     {
-      before: `
+      up: `
         create table if not exists users (
           id serial primary key not null,
           email text not null unique
         );
         insert into users ("email") values ('ada@prisma.io');
       `,
-      after: `
+      down: `
         drop table if exists users cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}?schema=public"
+        }
+
+        model users {
+          email String @unique
+          id    Int    @id
+        }
       `,
       do: async client => {
         return client.users.findMany({ where: { email: 'ada@prisma.io' } })
@@ -292,7 +435,7 @@ function tests() {
     },
 
     {
-      before: `
+      up: `
         create table if not exists users (
           id serial primary key not null,
           email text not null unique
@@ -300,8 +443,24 @@ function tests() {
         insert into users ("email") values ('ada@prisma.io');
         insert into users ("email") values ('ema@prisma.io');
       `,
-      after: `
+      down: `
         drop table if exists users cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}?schema=public"
+        }
+
+        model users {
+          email String @unique
+          id    Int    @id
+        }
       `,
       do: async client => {
         return client.users.findMany()
@@ -318,7 +477,7 @@ function tests() {
       ],
     },
     {
-      before: `
+      up: `
         create table if not exists users (
           id serial primary key not null,
           email text not null unique
@@ -334,9 +493,32 @@ function tests() {
         insert into posts ("user_id", "title") values (1, 'B');
         insert into posts ("user_id", "title") values (2, 'C');
       `,
-      after: `
+      down: `
         drop table if exists posts cascade;
         drop table if exists users cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}?schema=public"
+        }
+
+        model posts {
+          id      Int    @id
+          title   String
+          user_id users
+        }
+
+        model users {
+          email   String  @unique
+          id      Int     @id
+          postses posts[]
+        }
       `,
       do: async client => {
         return client.users.findOne({ where: { email: 'ada@prisma.io' } }).postses()
@@ -353,7 +535,7 @@ function tests() {
       ],
     },
     {
-      before: `
+      up: `
         create table if not exists posts (
           id serial primary key not null,
           title text not null,
@@ -363,8 +545,25 @@ function tests() {
         insert into posts ("title", "published") values ('B', false);
         insert into posts ("title", "published") values ('C', true);
       `,
-      after: `
+      down: `
         drop table if exists posts cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}?schema=public"
+        }
+
+        model posts {
+          id        Int     @id
+          published Boolean @default(false)
+          title     String
+        }
       `,
       do: async client => {
         return client.posts.findMany({
@@ -383,7 +582,7 @@ function tests() {
       ],
     },
     {
-      before: `
+      up: `
         create table if not exists posts (
           id serial primary key not null,
           title text not null,
@@ -393,8 +592,25 @@ function tests() {
         insert into posts ("title", "published") values ('B', false);
         insert into posts ("title", "published") values ('C', true);
       `,
-      after: `
+      down: `
         drop table if exists posts cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}?schema=public"
+        }
+
+        model posts {
+          id        Int     @id
+          published Boolean @default(false)
+          title     String
+        }
       `,
       do: async client => {
         return client.posts.findMany({
@@ -420,7 +636,7 @@ function tests() {
   ]
 }
 
-function prettyName(fn) {
+function prettyName(fn: any): string {
   const fnstr = fn.toString()
   const from = fnstr.indexOf('{')
   const to = fnstr.lastIndexOf('}')

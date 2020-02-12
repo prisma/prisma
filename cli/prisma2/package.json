@@ -30,7 +30,7 @@
   },
   "bin": "build/index.js",
   "prisma": {
-    "version": "36b88f31e8d49e22e19d857beac80877164b163b"
+    "version": "adfecba5dd38bf837cd2a78f0dc7bbf632f27cab"
   },
   "devDependencies": {
     "@prisma/ci-info": "^2.1.1",
@@ -63,6 +63,7 @@
     "rimraf": "^3.0.0",
     "serialize-error": "^5.0.0",
     "strip-ansi": "^6.0.0",
+    "strip-indent": "3.0.0",
     "terminal-link": "^2.0.0",
     "tmp": "^0.1.0",
     "ts-jest": "24.1.0",
