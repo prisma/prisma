@@ -1,11 +1,10 @@
 import {
-  PrismaClientError,
-  PrismaClientQueryError,
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
   RequestError,
   PrismaClientInitializationError,
   PrismaClientRustPanicError,
+  getMessage,
 } from './Engine'
 import debugLib from 'debug'
 import { getPlatform, Platform, mayBeCompatible } from '@prisma/get-platform'
@@ -441,11 +440,11 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
         })
 
         if (this.lastError) {
-          return reject(new PrismaClientError(this.lastError))
+          return reject(new PrismaClientInitializationError(getMessage(this.lastError)))
         }
 
         if (this.lastErrorLog) {
-          return reject(new PrismaClientError(this.lastErrorLog))
+          return reject(new PrismaClientInitializationError(getMessage(this.lastErrorLog)))
         }
 
         try {
@@ -554,26 +553,27 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
         debug({ error })
         if (this.currentRequestPromise.isCanceled && this.lastError) {
           // TODO: Replace these errors with known or unknown request errors
-          throw new PrismaClientError(this.lastError)
+          if (this.lastError.is_panic) {
+            throw new PrismaClientRustPanicError(getMessage(this.lastError))
+          } else {
+            throw new PrismaClientUnknownRequestError(getMessage(this.lastError))
+          }
         }
         if (this.currentRequestPromise.isCanceled && this.lastErrorLog) {
-          throw new PrismaClientError(this.lastErrorLog)
+          throw new PrismaClientUnknownRequestError(getMessage(this.lastErrorLog))
         }
         if ((error.code && error.code === 'ECONNRESET') || error.code === 'ECONNREFUSED') {
           if (this.lastError) {
-            throw new PrismaClientError(this.lastError)
+            throw new PrismaClientUnknownRequestError(getMessage(this.lastError))
           }
           if (this.lastErrorLog) {
-            throw new PrismaClientError(this.lastErrorLog)
+            throw new PrismaClientUnknownRequestError(getMessage(this.lastErrorLog))
           }
           const logs = this.stderrLogs || this.stdoutLogs
           throw new PrismaClientUnknownRequestError(logs)
         }
-        if (!(error instanceof PrismaClientQueryError)) {
-          return this.handleErrors({ errors: error })
-        } else {
-          throw error
-        }
+
+        throw error
       })
   }
 
@@ -587,33 +587,5 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
     }
 
     return new PrismaClientUnknownRequestError(error.user_facing_error.message)
-  }
-
-  private serializeErrors(errors: any) {
-    if (typeof errors === 'object' && errors.message) {
-      return errors.message
-    }
-    // make the happy case beautiful
-    if (Array.isArray(errors) && errors.length === 1 && errors[0].error && typeof errors[0].error === 'string') {
-      return errors[0].error
-    }
-
-    return JSON.stringify(errors, null, 2)
-  }
-
-  handleErrors({ errors }: { errors?: any[] }) {
-    if (errors.length === 1 && errors[0].user_facing_error) {
-      throw new PrismaClientQueryError(errors[0])
-    }
-
-    const stringified = errors ? this.serializeErrors(errors) : null
-    const message = stringified.length > 0 ? stringified : `Error in prisma.\$\{rootField || 'query'}` // TODO
-    const isPanicked = this.stderrLogs.includes('panicked') || this.stdoutLogs.includes('panicked') // TODO better handling
-    if (isPanicked) {
-      this.stop()
-      throw new PrismaClientRustPanicError(message)
-    } else {
-      throw new PrismaClientUnknownRequestError(message)
-    }
   }
 }

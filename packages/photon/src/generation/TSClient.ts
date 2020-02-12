@@ -220,7 +220,7 @@ const commonCodeTS = (runtimePath: string, version?: string) => `import {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
   PrismaClientRustPanicError,
-  PrismaClientInitializationError,
+  PrismaClientInitializationError
 } from '${runtimePath}';
 
 export { PrismaClientKnownRequestError }
