@@ -10,7 +10,6 @@ import { promisify } from 'util'
 import rimraf from 'rimraf'
 import fs from 'fs'
 import path from 'path'
-const del = promisify(rimraf)
 
 const connectionString = process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
 process.env.SKIP_GENERATE = 'true'
@@ -28,7 +27,7 @@ before(done => {
 })
 
 beforeEach(async () => {
-  await del(tmp)
+  rimraf.sync(tmp)
   await mkdir(tmp)
 })
 
@@ -59,7 +58,13 @@ tests().map((t: Test) => {
 async function runTest(t: Test) {
   await db.query(t.down)
   await db.query(t.up)
-  const schema = `datasource db {
+  const schema = `
+generator client {
+  provider = "prisma-client-js"
+  output   = "${tmp}"
+}
+
+datasource pg {
   provider = "postgresql"
   url = "${connectionString}"
 }`
@@ -87,35 +92,7 @@ async function runTest(t: Test) {
   }
 }
 
-async function generate(test: Test, introspectionSchema: string) {
-  const dmmf = await getDMMF({ datamodel: introspectionSchema })
-
-  const datamodel = await dmmfToDml({
-    dmmf: dmmf.datamodel,
-    config: {
-      datasources: [
-        {
-          name: 'pg',
-          connectorType: 'postgresql',
-          url: {
-            value: `${connectionString}?schema=public`,
-            fromEnvVar: null,
-          },
-          config: {},
-        },
-      ],
-      generators: [
-        {
-          binaryTargets: [],
-          config: {},
-          name: 'client',
-          output: tmp,
-          provider: 'prisma-client-js',
-        },
-      ],
-    },
-  })
-
+async function generate(test: Test, datamodel: string) {
   const schemaPath = path.join(tmp, 'schema.prisma')
   fs.writeFileSync(schemaPath, datamodel)
   let actual = stripIndent(datamodel).trim()
@@ -156,7 +133,7 @@ function tests(): Test[] {
   return [
     {
       up: `
-        create table if not exists teams (
+        create table teams (
           id int primary key not null,
           name text not null unique
         );
@@ -174,7 +151,7 @@ function tests(): Test[] {
 
         datasource pg {
           provider = "postgresql"
-          url      = "${connectionString}?schema=public"
+          url      = "${connectionString}"
         }
 
         model teams {
@@ -192,7 +169,7 @@ function tests(): Test[] {
     },
     {
       up: `
-        create table if not exists teams (
+        create table teams (
           id int primary key not null,
           name text not null unique,
           email text not null unique
@@ -211,7 +188,7 @@ function tests(): Test[] {
 
         datasource pg {
           provider = "postgresql"
-          url      = "${connectionString}?schema=public"
+          url      = "${connectionString}"
         }
 
         model teams {
@@ -229,11 +206,11 @@ function tests(): Test[] {
     },
     {
       up: `
-        create table if not exists users (
+        create table users (
           id serial primary key not null,
           email text not null unique
         );
-        create table if not exists posts (
+        create table posts (
           id serial primary key not null,
           user_id int not null references users (id) on update cascade,
           title text not null
@@ -256,7 +233,7 @@ function tests(): Test[] {
 
         datasource pg {
           provider = "postgresql"
-          url      = "${connectionString}?schema=public"
+          url      = "${connectionString}"
         }
 
         model posts {
@@ -291,7 +268,7 @@ function tests(): Test[] {
     },
     {
       up: `
-        create table if not exists teams (
+        create table teams (
           id serial primary key not null,
           name text not null unique
         );
@@ -307,7 +284,7 @@ function tests(): Test[] {
 
         datasource pg {
           provider = "postgresql"
-          url      = "${connectionString}?schema=public"
+          url      = "${connectionString}"
         }
 
         model teams {
@@ -325,7 +302,41 @@ function tests(): Test[] {
     },
     {
       up: `
-        create table if not exists teams (
+        create table teams (
+          id serial primary key not null,
+          name text not null default 'alice'
+        );
+      `,
+      down: `
+        drop table if exists teams cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}"
+        }
+
+        model teams {
+          id   Int    @id
+          name String @default("alice")
+        }
+      `,
+      do: async client => {
+        return client.teams.create({ data: { id: 1 } })
+      },
+      expect: {
+        id: 1,
+        name: 'alice',
+      },
+    },
+    {
+      up: `
+        create table teams (
           id serial primary key not null,
           name text not null unique
         );
@@ -342,7 +353,45 @@ function tests(): Test[] {
 
         datasource pg {
           provider = "postgresql"
-          url      = "${connectionString}?schema=public"
+          url      = "${connectionString}"
+        }
+
+        model teams {
+          id   Int    @id
+          name String @unique
+        }
+      `,
+      do: async client => {
+        return client.teams.update({
+          where: { id: 1 },
+          data: { name: 'd' },
+        })
+      },
+      expect: {
+        id: 1,
+        name: 'd',
+      },
+    },
+    {
+      up: `
+        create table teams (
+          id serial primary key not null,
+          name text not null unique
+        );
+        insert into teams ("name") values ('c');
+      `,
+      down: `
+        drop table if exists teams cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}"
         }
 
         model teams {
@@ -363,7 +412,7 @@ function tests(): Test[] {
     },
     {
       up: `
-        create table if not exists users (
+        create table users (
           id serial primary key not null,
           email text not null unique
         );
@@ -380,7 +429,7 @@ function tests(): Test[] {
 
         datasource pg {
           provider = "postgresql"
-          url      = "${connectionString}?schema=public"
+          url      = "${connectionString}"
         }
 
         model users {
@@ -397,8 +446,92 @@ function tests(): Test[] {
       },
     },
     {
+      todo: false,
       up: `
-        create table if not exists users (
+        create table users (
+          id serial primary key not null,
+          email text not null,
+          name text not null,
+          unique(email, name)
+        );
+        insert into users ("email", "name") values ('ada@prisma.io', 'Ada');
+      `,
+      down: `
+        --drop table if exists users cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}"
+        }
+
+        model users {
+          email String
+          id    Int    @id
+          name  String
+
+          @@unique([email, name], name: "users_email_name_key")
+        }
+      `,
+      do: async client => {
+        return client.users.findOne({ where: { users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' } } })
+      },
+      expect: {
+        id: 1,
+        email: 'ada@prisma.io',
+        name: 'Ada',
+      },
+    },
+    {
+      up: `
+        create table users (
+          id serial primary key not null,
+          email text
+        );
+        insert into users ("email") values ('ada@prisma.io');
+        insert into users ("email") values (null);
+      `,
+      down: `
+        drop table if exists users cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}"
+        }
+
+        model users {
+          email String?
+          id    Int     @id
+        }
+      `,
+      do: async client => {
+        return client.users.findMany()
+      },
+      expect: [
+        {
+          email: 'ada@prisma.io',
+          id: 1,
+        },
+        {
+          email: null,
+          id: 2,
+        },
+      ],
+    },
+    {
+      up: `
+        create table users (
           id serial primary key not null,
           email text not null unique
         );
@@ -415,7 +548,7 @@ function tests(): Test[] {
 
         datasource pg {
           provider = "postgresql"
-          url      = "${connectionString}?schema=public"
+          url      = "${connectionString}"
         }
 
         model users {
@@ -436,7 +569,7 @@ function tests(): Test[] {
 
     {
       up: `
-        create table if not exists users (
+        create table users (
           id serial primary key not null,
           email text not null unique
         );
@@ -454,7 +587,7 @@ function tests(): Test[] {
 
         datasource pg {
           provider = "postgresql"
-          url      = "${connectionString}?schema=public"
+          url      = "${connectionString}"
         }
 
         model users {
@@ -478,11 +611,11 @@ function tests(): Test[] {
     },
     {
       up: `
-        create table if not exists users (
+        create table users (
           id serial primary key not null,
           email text not null unique
         );
-        create table if not exists posts (
+        create table posts (
           id serial primary key not null,
           user_id int not null references users (id) on update cascade,
           title text not null
@@ -505,7 +638,7 @@ function tests(): Test[] {
 
         datasource pg {
           provider = "postgresql"
-          url      = "${connectionString}?schema=public"
+          url      = "${connectionString}"
         }
 
         model posts {
@@ -536,7 +669,7 @@ function tests(): Test[] {
     },
     {
       up: `
-        create table if not exists posts (
+        create table posts (
           id serial primary key not null,
           title text not null,
           published boolean not null default false
@@ -556,7 +689,7 @@ function tests(): Test[] {
 
         datasource pg {
           provider = "postgresql"
-          url      = "${connectionString}?schema=public"
+          url      = "${connectionString}"
         }
 
         model posts {
@@ -583,7 +716,7 @@ function tests(): Test[] {
     },
     {
       up: `
-        create table if not exists posts (
+        create table posts (
           id serial primary key not null,
           title text not null,
           published boolean not null default false
@@ -603,7 +736,7 @@ function tests(): Test[] {
 
         datasource pg {
           provider = "postgresql"
-          url      = "${connectionString}?schema=public"
+          url      = "${connectionString}"
         }
 
         model posts {
