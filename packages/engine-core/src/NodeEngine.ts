@@ -5,6 +5,7 @@ import {
   PrismaClientUnknownRequestError,
   RequestError,
   PrismaClientInitializationError,
+  PrismaClientRustPanicError,
 } from './Engine'
 import debugLib from 'debug'
 import { getPlatform, Platform, mayBeCompatible } from '@prisma/get-platform'
@@ -528,7 +529,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
     await this.start()
 
     if (!this.child) {
-      throw new Error(`Can't perform request, as the Engine has already been stopped`)
+      throw new PrismaClientUnknownRequestError(`Can't perform request, as the Engine has already been stopped`)
     }
 
     const variables = {}
@@ -552,6 +553,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
       .catch(error => {
         debug({ error })
         if (this.currentRequestPromise.isCanceled && this.lastError) {
+          // TODO: Replace these errors with known or unknown request errors
           throw new PrismaClientError(this.lastError)
         }
         if (this.currentRequestPromise.isCanceled && this.lastErrorLog) {
@@ -565,7 +567,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
             throw new PrismaClientError(this.lastErrorLog)
           }
           const logs = this.stderrLogs || this.stdoutLogs
-          throw new Error(logs)
+          throw new PrismaClientUnknownRequestError(logs)
         }
         if (!(error instanceof PrismaClientQueryError)) {
           return this.handleErrors({ errors: error })
@@ -609,8 +611,9 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
     const isPanicked = this.stderrLogs.includes('panicked') || this.stdoutLogs.includes('panicked') // TODO better handling
     if (isPanicked) {
       this.stop()
+      throw new PrismaClientRustPanicError(message)
+    } else {
+      throw new PrismaClientUnknownRequestError(message)
     }
-
-    throw new PrismaClientError(message)
   }
 }

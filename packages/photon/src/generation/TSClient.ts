@@ -141,9 +141,8 @@ class PrismaClientFetcher {
         if (e.code) {
           throw new PrismaClientKnownRequestError(this.sanitizeMessage(e.message), e.code, e.meta);
         }
-        // TODO: Make sure, that this is a PrismaClientRustPanicError
         if (e.isPanic) {
-          throw e;
+          throw new PrismaClientRustPanicError(e.message);
         } else {
           if (e instanceof PrismaClientUnknownRequestError) {
             throw new PrismaClientUnknownRequestError(this.sanitizeMessage(message));
