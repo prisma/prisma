@@ -13,34 +13,15 @@ export class PrismaQueryEngineError extends Error {
   }
 }
 
-/**
- * A PrismaClientError is mostly a non-recoverable error like a panic
- */
-export class PrismaClientError extends Error {
-  constructor(log: RustLog | RustError) {
-    let isPanic = false
-    let message
-    if (typeof log === 'string') {
-      message = log
-    } else {
-      if (isRustError(log)) {
-        isPanic = log.is_panic
-        message = log.message
-        if (isPanic) {
-          message += '\n' + log.backtrace
-        }
-      } else if (log.fields) {
-        isPanic = log.fields.message === 'PANIC'
-        message = isPanic ? serializePanic(log) : serializeError(log)
-      } else {
-        message = JSON.stringify(log)
-      }
-    }
-    super(message)
-    Object.defineProperty(this, 'isPanic', {
-      enumerable: false,
-      value: isPanic,
-    })
+export function getMessage(log: string | RustLog | RustError) {
+  if (typeof log === 'string') {
+    return log
+  } else if (isRustError(log)) {
+    return log.message
+  } else if (log.fields && log.fields.message) {
+    return log.fields.message
+  } else {
+    return JSON.stringify(log)
   }
 }
 
@@ -79,23 +60,6 @@ export class PrismaClientRustPanicError extends Error {
 export class PrismaClientInitializationError extends Error {
   constructor(message: string) {
     super(message)
-  }
-}
-
-/**
- * A PrismaClientQueryError is an error that is thrown in conjunction to a concrete query that has been performed with Prisma Client.
- */
-export class PrismaClientQueryError extends Error {
-  code?: string
-  meta?: Object
-  constructor(error: RequestError) {
-    const code = error.user_facing_error.error_code
-    const reason = code ?? 'Reason'
-    super(chalk.red.bold(`${reason}: `) + chalk.red(error.user_facing_error.message + '\n'))
-    this.code = code
-    if (error.user_facing_error.meta) {
-      this.meta = mapKeys(error.user_facing_error.meta, key => camelCase(key))
-    }
   }
 }
 
