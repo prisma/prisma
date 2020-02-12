@@ -128,8 +128,6 @@ class PrismaClientFetcher {
           originalMethod: dataPath.join('.'),
           onUs: e.isPanic
         });
-        console.log(stack)
-        console.log({ callsite }, dataPath)
         const message = stack + e.message;
         if (e.code) {
           throw new PrismaClientKnownRequestError(this.sanitizeMessage(message), e.code, e.meta);
