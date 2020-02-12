@@ -303,6 +303,10 @@ export declare class PrismaClientRustPanicError extends Error {
 export declare class PrismaClientInitializationError extends Error {
     constructor(message: string);
 }
+
+export declare class PrismaClientValidationError extends Error {
+    constructor(message: string);
+}
 `
 
 async function fileSize(name: string): Promise<number | null> {

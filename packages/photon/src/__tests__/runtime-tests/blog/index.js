@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client')
+const { PrismaClient, PrismaClientValidationError } = require('@prisma/client')
 
 module.exports = async () => {
   const prisma = new PrismaClient({
@@ -8,15 +8,16 @@ module.exports = async () => {
     },
   })
 
+  // Test connecting and disconnecting all the time
   await prisma.user.findMany()
   prisma.disconnect()
-  
+
   await prisma.user.findMany()
   prisma.disconnect()
-  
+
   prisma.connect()
   await prisma.disconnect()
-  
+
   await new Promise(r => setTimeout(r, 200))
   prisma.connect()
 
@@ -32,14 +33,37 @@ module.exports = async () => {
   await prisma.connect()
   const rawQuery = await prisma.raw`SELECT 1`
   if (rawQuery[0]['1'] !== 1) {
-    throw Error('prisma.raw`SELECT 1` result should be [ { \'1\': 1 } ]')
+    throw Error("prisma.raw`SELECT 1` result should be [ { '1': 1 } ]")
   }
 
+  // Test raw
+  let rawError
   try {
     const invalidRawQueryCall = await prisma.raw('SELECT 1')
   } catch (e) {
-    if (!e) {
-      throw new Error(`When calling raw like prisma.raw('SELECT 1') it should throw an error`)
+    rawError = e
+  } finally {
+    if (!rawError) {
+      throw new Error(
+        `When calling raw like prisma.raw('SELECT 1') it should throw an error`,
+      )
+    }
+  }
+
+  // Test validation errors
+  let validationError
+  try {
+    await prisma.post.create({
+      data: {},
+    })
+  } catch (e) {
+    validationError = e
+  } finally {
+    if (
+      !validationError ||
+      !(validationError instanceof PrismaClientValidationError)
+    ) {
+      throw new Error(`Validation error is incorrect`)
     }
   }
 

@@ -2,7 +2,12 @@ export { getDMMF } from './getDMMF'
 export { DMMF } from './dmmf-types'
 export { DMMFClass } from './dmmf'
 export { deepGet, deepSet } from './utils/deep-set'
-export { makeDocument, transformDocument } from './query'
+export {
+  makeDocument,
+  transformDocument,
+  unpack,
+  PrismaClientValidationError,
+} from './query'
 export {
   Engine,
   PrismaClientKnownRequestError,
@@ -18,7 +23,6 @@ export {
 } from './utils/printDatasources'
 export { printStack } from './utils/printStack'
 export { mergeBy } from './mergeBy'
-export { unpack } from './query'
 import stripAnsi from 'strip-ansi'
 export { stripAnsi }
 

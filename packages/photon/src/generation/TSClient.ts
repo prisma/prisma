@@ -68,7 +68,8 @@ const {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
   PrismaClientRustPanicError,
-  PrismaClientInitializationError
+  PrismaClientInitializationError,
+  PrismaClientValidationError
 } = require('${runtimePath}')
 
 /**
@@ -84,6 +85,7 @@ exports.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
 exports.PrismaClientUnknownRequestError = PrismaClientUnknownRequestError;
 exports.PrismaClientRustPanicError = PrismaClientRustPanicError;
 exports.PrismaClientInitializationError = PrismaClientInitializationError;
+exports.PrismaClientValidationError = PrismaClientValidationError;
 
 class PrismaClientFetcher {
   constructor(prisma, enableDebug = false, hooks) {
@@ -220,13 +222,15 @@ const commonCodeTS = (runtimePath: string, version?: string) => `import {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
   PrismaClientRustPanicError,
-  PrismaClientInitializationError
+  PrismaClientInitializationError,
+  PrismaClientValidationError,
 } from '${runtimePath}';
 
 export { PrismaClientKnownRequestError }
 export { PrismaClientUnknownRequestError }
 export { PrismaClientRustPanicError }
 export { PrismaClientInitializationError }
+export { PrismaClientValidationError }
 
 /**
  * Query Engine version: ${version || 'latest'}
