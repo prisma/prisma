@@ -213,10 +213,15 @@ class CollectTimestamps {
 }
 `
 
-const commonCodeTS = (
-  runtimePath: string,
-  version?: string,
-) => `import { DMMF, DMMFClass, Engine, PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '${runtimePath}';
+const commonCodeTS = (runtimePath: string, version?: string) => `import {
+  DMMF,
+  DMMFClass,
+  Engine,
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientInitializationError,
+} from '${runtimePath}';
 
 export { PrismaClientKnownRequestError }
 export { PrismaClientUnknownRequestError }
