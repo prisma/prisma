@@ -10,10 +10,9 @@ module.exports = async () => {
   try {
     await prisma.connect()
   } catch (e) {
-    if (!e instanceof PrismaClientInitializationError) {
-      throw new Error(
-        `Error should be instance of PrismaClientInitializationError`,
-      )
+    // make sure, that it's a PrismaClientInitializationError
+    if (e instanceof PrismaClientInitializationError) {
+      throw e
     }
   }
 }

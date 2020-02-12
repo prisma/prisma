@@ -5,7 +5,6 @@ const { promisify } = require('util')
 const writeFile = promisify(fs.writeFile)
 const makeDir = require('make-dir')
 const del = require('del')
-const chalk = require('chalk')
 
 const runtimeTsConfig = {
   compilerOptions: {
@@ -47,23 +46,6 @@ const options = {
 
 let targetDir = path.join(__dirname, '../runtime')
 let sourceFile = path.join(__dirname, '../src/runtime/index.ts')
-if (process.argv.includes('--browser')) {
-  sourceFile = path.join(__dirname, '../src/runtime/browser.ts')
-  targetDir = path.join(__dirname, '../browser-runtime')
-
-  options.externals = ['cross-fetch', 'chalk']
-  options.webpackConfig = {
-    target: 'web',
-    resolve: {
-      alias: {
-        chalk: path.resolve(__dirname, '../dist/runtime/browser-chalk.js'),
-        debug: path.resolve(__dirname, '../node_modules/debug/src/browser.js'),
-      },
-      mainFields: ['browser', 'module', 'main'],
-      // aliasFields: ['browser'],
-    },
-  }
-}
 
 require('@zeit/ncc')(sourceFile, options)
   .then(async ({ code, map, assets }) => {
@@ -78,7 +60,6 @@ async function saveToDisc(source, map, assets, outputDir) {
     outputDir + '/**',
     '!' + outputDir,
     `!${path.join(outputDir, 'prisma')}`,
-    `!${path.join(outputDir, 'schema-inferrer-bin')}`,
   ])
   await makeDir(outputDir)
   assets['index.js'] = { source: fixCode(source) }
@@ -96,11 +77,19 @@ async function saveToDisc(source, map, assets, outputDir) {
         await makeDir(targetDir)
         madeDirs[targetDir] = true
       }
-      files.push({
-        size: Math.round(file.source.length / 1024),
-        targetPath,
-      })
-      await writeFile(targetPath, file.source)
+      if (!file.source) {
+        files.push({
+          size: Math.round(file.length / 1024),
+          targetPath,
+        })
+        await writeFile(targetPath, file)
+      } else {
+        files.push({
+          size: Math.round(file.source.length / 1024),
+          targetPath,
+        })
+        await writeFile(targetPath, file.source)
+      }
     }),
   )
   files.sort((a, b) => (a.size < b.size ? -1 : 1))

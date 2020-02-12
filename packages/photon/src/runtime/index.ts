@@ -1,4 +1,3 @@
-export { getDMMF } from './getDMMF'
 export { DMMF } from './dmmf-types'
 export { DMMFClass } from './dmmf'
 export { deepGet, deepSet } from './utils/deep-set'

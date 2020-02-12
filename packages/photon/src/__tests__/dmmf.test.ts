@@ -1,4 +1,4 @@
-import { getDMMF } from '../runtime/getDMMF'
+import { getDMMF } from '../generation/getDMMF'
 
 const datamodel = `model User {
   id Int @id @default(autoincrement())
