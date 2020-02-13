@@ -26,6 +26,7 @@ import stripAnsi from 'strip-ansi'
 export { stripAnsi }
 
 import chalk from 'chalk'
+export { lowerCase } from './utils/common'
 export { Dataloader } from './Dataloader'
 export { chalk }
 
