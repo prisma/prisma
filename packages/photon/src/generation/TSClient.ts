@@ -69,7 +69,8 @@ const {
   PrismaClientUnknownRequestError,
   PrismaClientRustPanicError,
   PrismaClientInitializationError,
-  PrismaClientValidationError
+  PrismaClientValidationError,
+  lowerCase
 } = require('${runtimePath}')
 
 /**
@@ -105,7 +106,7 @@ class PrismaClientFetcher {
       return results
     })
   }
-  async request(document, dataPath = [], rootField, typeName, isList, callsite, collectTimestamps) {
+  async request({ document, dataPath = [], rootField, typeName, isList, callsite, collectTimestamps, clientMethod }) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document);
       this.hooks.beforeRequest({ query, path: dataPath, rootField, typeName, document });
@@ -125,7 +126,7 @@ class PrismaClientFetcher {
       if (callsite) {
         const { stack } = printStack({
           callsite,
-          originalMethod: dataPath.join('.'),
+          originalMethod: clientMethod,
           onUs: e.isPanic
         });
         const message = stack + e.message;
@@ -663,7 +664,7 @@ ${this.jsDoc}
 
     document.validate({ query }, false, 'raw', this.errorFormat)
     
-    return this.fetcher.request(document, undefined, 'executeRaw', 'raw', false)
+    return this.fetcher.request({ document, rootField: 'executeRaw', typeName: 'raw', isList: false})
   }
 
 ${indent(
@@ -1450,16 +1451,16 @@ class ${name}Client {
     this._measurePerformance = _measurePerformance;
     this._isList = _isList;
     if (this._measurePerformance) {
-        // Timestamps for performance checks
-        this._collectTimestamps = new CollectTimestamps("PrismaClient");
+      // Timestamps for performance checks
+      this._collectTimestamps = new CollectTimestamps("PrismaClient");
     }
     // @ts-ignore
     if (process.env.NODE_ENV !== 'production' && this._errorFormat !== 'minimal') {
-        const error = new Error();
-        if (error && error.stack) {
-            const stack = error.stack;
-            this._callsite = stack;
-        }
+      const error = new Error();
+      if (error && error.stack) {
+        const stack = error.stack;
+        this._callsite = stack;
+      }
     }
   }
 ${indent(
@@ -1518,7 +1519,16 @@ ${f.name}(args) {
    */
   then(onfulfilled, onrejected) {
     if (!this._requestPromise){
-      this._requestPromise = this._fetcher.request(this._document, this._dataPath, this._rootField, '${name}', this._isList, this._callsite, this._collectTimestamps)
+      this._requestPromise = this._fetcher.request({
+        document: this._document,
+        dataPath: this._dataPath,
+        rootField: this._rootField,
+        typeName: '${name}',
+        isList: this._isList,
+        callsite: this._callsite,
+        collectTimestamps: this._collectTimestamps,
+        clientMethod: this._clientMethod
+      })
     }
     return this._requestPromise.then(onfulfilled, onrejected)
   }
@@ -1530,7 +1540,16 @@ ${f.name}(args) {
    */
   catch(onrejected) {
     if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request(this._document, this._dataPath, this._rootField, '${name}', this._isList, this._callsite, this._collectTimestamps)
+      this._requestPromise = this._fetcher.request({
+        document: this._document,
+        dataPath: this._dataPath,
+        rootField: this._rootField,
+        typeName: '${name}',
+        isList: this._isList,
+        callsite: this._callsite,
+        collectTimestamps: this._collectTimestamps,
+        clientMethod: this._clientMethod
+      })
     }
     return this._requestPromise.catch(onrejected)
   }
@@ -1543,7 +1562,16 @@ ${f.name}(args) {
    */
   finally(onfinally) {
     if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request(this._document, this._dataPath, this._rootField, '${name}', this._isList, this._callsite, this._collectTimestamps)
+      this._requestPromise = this._fetcher.request({
+        document: this._document,
+        dataPath: this._dataPath,
+        rootField: this._rootField,
+        typeName: '${name}',
+        isList: this._isList,
+        callsite: this._callsite,
+        collectTimestamps: this._collectTimestamps,
+        clientMethod: this._clientMethod
+      })
     }
     return this._requestPromise.finally(onfinally)
   }
@@ -1702,7 +1730,11 @@ class ${name}Client<T extends ${name}Args, U = ${getPayloadName(
     onfulfilled?: ((value: U) => TResult1 | Promise<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
-    return this.fetcher.request<U>(this.document, this._dataPath, undefined, '${name}').then(onfulfilled, onrejected)
+    return this.fetcher.request<U>({
+      document: this.document,
+      dataPath: this._dataPath,
+      typeName: '${name}'
+    }).then(onfulfilled, onrejected)
   }
 
   /**
@@ -1713,7 +1745,11 @@ class ${name}Client<T extends ${name}Args, U = ${getPayloadName(
   catch<TResult = never>(
     onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null,
   ): Promise<U | TResult> {
-    return this.fetcher.request<U>(this.document, this._dataPath, undefined, '${name}').catch(onrejected)
+    return this.fetcher.request<U>({
+      document: this.document,
+      dataPath: this._dataPath,
+      typeName: '${name}'
+    }).catch(onrejected)
   }
 }
     `
