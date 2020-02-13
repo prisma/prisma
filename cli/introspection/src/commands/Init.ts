@@ -71,7 +71,7 @@ export class Init implements Command {
 
     const outputDirName = args._[0]
     if (outputDirName) {
-      console.error(chalk.bold.yellow(' warning ') + 'The init command does not take any argument')
+      throw Error('The init command does not take any argument.')
     }
 
     const outputDir = process.cwd()
