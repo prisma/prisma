@@ -3055,6 +3055,384 @@ function tests(): Test[] {
         // TODO
       },
     },
+    {
+      todo: true,
+      up: `
+        create table crazy (
+          c1 bigint,
+          c2 int8,
+          c3 bigserial,
+          c4 serial8,
+          c5 bit,
+          c6 bit(1),
+          c7 bit(10),
+          c8 bit varying,
+          c9 bit varying(1),
+          c10 bit varying(10),
+          c11 varbit,
+          c12 varbit(1),
+          c13 varbit(10),
+          c14 boolean,
+          c15 bool,
+          c16 box,
+          c17 bytea,
+          c18 character,
+          c19 character(1),
+          c20 character(10),
+          c21 char,
+          c22 char(1),
+          c23 char(10),
+          c24 character varying,
+          c25 character varying(1),
+          c26 character varying(110),
+          c27 varchar,
+          c28 varchar(1),
+          c29 varchar(110),
+          c30 cidr,
+          c31 circle,
+          c32 date,
+          c33 double precision,
+          c34 float8,
+          c35 inet,
+          c36 integer,
+          c37 int,
+          c38 int4,
+          c39 interval,
+          c40 interval year,
+          c41 interval day to hour,
+          c42 interval day to second,
+          c43 interval day to second(0),
+          c44 interval day to second(6),
+          c45 interval(0),
+          c46 interval(6),
+          c47 json,
+          c48 jsonb,
+          c49 line,
+          c50 lseg,
+          c51 macaddr,
+          c52 money,
+          c53 numeric(7,5),
+          c54 numeric(10,5),
+          c55 decimal,
+          c56 decimal(7,5),
+          c57 decimal(10,5),
+          c63 path,
+          c64 pg_lsn,
+          c65 point,
+          c66 polygon,
+          c67 real,
+          c68 float4,
+          c69 smallint,
+          c70 int2,
+          c71 smallserial,
+          c72 serial2,
+          c73 serial,
+          c74 serial4,
+          c75 text,
+          c76 time,
+          c77 time(10),
+          c78 time(1),
+          c79 time without time zone,
+          c80 time (10) without time zone,
+          c81 time (1) without time zone,
+          c82 time with time zone,
+          c83 time (10) with time zone,
+          c84 time (1) with time zone,
+          c85 timestamp without time zone,
+          c86 timestamp (10) without time zone,
+          c87 timestamp (1) without time zone,
+          c88 timestamp with time zone,
+          c89 timestamp (10) with time zone,
+          c90 timestamp (1) with time zone,
+          c91 tsquery,
+          c92 tsvector,
+          c93 txid_snapshot,
+          c94 uuid,
+          c95 xml,
+          c96 bigint[],
+          c97 int8[],
+          c100 bit[],
+          c101 bit(1)[],
+          c102 bit(10)[],
+          c103 bit varying[],
+          c104 bit varying(1)[],
+          c105 bit varying(10)[],
+          c106 varbit[],
+          c107 varbit(1)[],
+          c108 varbit(10)[],
+          c109 boolean[],
+          c110 bool[],
+          c111 box[],
+          c112 bytea[],
+          c113 character[],
+          c114 character(1)[],
+          c115 character(10)[],
+          c116 char[],
+          c117 char(1)[],
+          c118 char(10)[],
+          c119 character varying[],
+          c120 character varying(1)[],
+          c121 character varying(110)[],
+          c122 varchar[],
+          c123 varchar(1)[],
+          c124 varchar(110)[],
+          c125 cidr[],
+          c126 circle[],
+          c127 date[],
+          c128 double precision[],
+          c129 float8[],
+          c130 inet[],
+          c131 integer[],
+          c132 int[],
+          c133 int4[],
+          c134 interval[],
+          c135 interval year[],
+          c136 interval day to hour[],
+          c137 interval day to second[],
+          c138 interval day to second(0)[],
+          c139 interval day to second(6)[],
+          c140 interval(0)[],
+          c141 interval(6)[],
+          c142 json[],
+          c143 jsonb[],
+          c144 line[],
+          c145 lseg[],
+          c146 macaddr[],
+          c147 money[],
+          c148 numeric(7,5)[],
+          c149 numeric(10,5)[],
+          c150 decimal[],
+          c151 decimal(7,5)[],
+          c152 decimal(10,5)[],
+          c158 path[],
+          c159 pg_lsn[],
+          c160 point[],
+          c161 polygon[],
+          c162 real[],
+          c163 float4[],
+          c164 smallint[],
+          c165 int2[],
+          c170 text[],
+          c171 time[],
+          c172 time(10)[],
+          c173 time(1)[],
+          c174 time without time zone[],
+          c175 time (10) without time zone[],
+          c176 time (1) without time zone[],
+          c177 time with time zone[],
+          c178 time (10) with time zone[],
+          c179 time (1) with time zone[],
+          c180 timestamp without time zone[],
+          c181 timestamp (10) without time zone[],
+          c182 timestamp (1) without time zone[],
+          c183 timestamp with time zone[],
+          c184 timestamp (10) with time zone[],
+          c185 timestamp (1) with time zone[],
+          c186 tsquery[],
+          c187 tsvector[],
+          c188 txid_snapshot[],
+          c189 uuid[],
+          c190 xml[]
+        );
+      `,
+      down: `
+        drop table if exists crazy cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}"
+        }
+
+        model crazy {
+          c1   Int?
+          c10  String?
+          c100 String[]
+          c101 String[]
+          c102 String[]
+          c103 String[]
+          c104 String[]
+          c105 String[]
+          c106 String[]
+          c107 String[]
+          c108 String[]
+          c109 Boolean[]
+          c11  String?
+          c110 Boolean[]
+          c111 String[]
+          c112 String[]
+          c113 String[]
+          c114 String[]
+          c115 String[]
+          c116 String[]
+          c117 String[]
+          c118 String[]
+          c119 String[]
+          c12  String?
+          c120 String[]
+          c121 String[]
+          c122 String[]
+          c123 String[]
+          c124 String[]
+          c125 String[]
+          c126 String[]
+          c127 DateTime[]
+          c128 Float[]
+          c129 Float[]
+          c13  String?
+          c130 String[]
+          c131 Int[]
+          c132 Int[]
+          c133 Int[]
+          c134 DateTime[]
+          c135 DateTime[]
+          c136 DateTime[]
+          c137 DateTime[]
+          c138 DateTime[]
+          c139 DateTime[]
+          c14  Boolean?
+          c140 DateTime[]
+          c141 DateTime[]
+          c142 String[]
+          c143 String[]
+          c144 String[]
+          c145 String[]
+          c146 String[]
+          c147 String[]
+          c148 Float[]
+          c149 Float[]
+          c15  Boolean?
+          c150 Float[]
+          c151 Float[]
+          c152 Float[]
+          c158 String[]
+          c159 String[]
+          c16  String?
+          c160 String[]
+          c161 String[]
+          c162 Float[]
+          c163 Float[]
+          c164 Int[]
+          c165 Int[]
+          c17  String?
+          c170 String[]
+          c171 DateTime[]
+          c172 DateTime[]
+          c173 DateTime[]
+          c174 DateTime[]
+          c175 DateTime[]
+          c176 DateTime[]
+          c177 DateTime[]
+          c178 DateTime[]
+          c179 DateTime[]
+          c18  String?
+          c180 DateTime[]
+          c181 DateTime[]
+          c182 DateTime[]
+          c183 DateTime[]
+          c184 DateTime[]
+          c185 DateTime[]
+          c186 String[]
+          c187 String[]
+          c188 String[]
+          c189 String[]
+          c19  String?
+          c190 String[]
+          c2   Int?
+          c20  String?
+          c21  String?
+          c22  String?
+          c23  String?
+          c24  String?
+          c25  String?
+          c26  String?
+          c27  String?
+          c28  String?
+          c29  String?
+          c3   Int
+          c30  String?
+          c31  String?
+          c32  DateTime?
+          c33  Float?
+          c34  Float?
+          c35  String?
+          c36  Int?
+          c37  Int?
+          c38  Int?
+          c39  DateTime?
+          c4   Int
+          c40  DateTime?
+          c41  DateTime?
+          c42  DateTime?
+          c43  DateTime?
+          c44  DateTime?
+          c45  DateTime?
+          c46  DateTime?
+          c47  String?
+          c48  String?
+          c49  String?
+          c5   String?
+          c50  String?
+          c51  String?
+          c52  String?
+          c53  Float?
+          c54  Float?
+          c55  Float?
+          c56  Float?
+          c57  Float?
+          c6   String?
+          c63  String?
+          c64  String?
+          c65  String?
+          c66  String?
+          c67  Float?
+          c68  Float?
+          c69  Int?
+          c7   String?
+          c70  Int?
+          c71  Int
+          c72  Int
+          c73  Int
+          c74  Int
+          c75  String?
+          c76  DateTime?
+          c77  DateTime?
+          c78  DateTime?
+          c79  DateTime?
+          c8   String?
+          c80  DateTime?
+          c81  DateTime?
+          c82  DateTime?
+          c83  DateTime?
+          c84  DateTime?
+          c85  DateTime?
+          c86  DateTime?
+          c87  DateTime?
+          c88  DateTime?
+          c89  DateTime?
+          c9   String?
+          c90  DateTime?
+          c91  String?
+          c92  String?
+          c93  String?
+          c94  String?
+          c95  String?
+          c96  Int[]
+          c97  Int[]
+        }
+      `,
+      do: async client => {
+        return client.crazy.findOne({ where: { variables_value_email_key: { value: 'c', email: 'd' } } })
+      },
+      expect: {
+        // TODO
+      },
+    },
   ]
 }
 
