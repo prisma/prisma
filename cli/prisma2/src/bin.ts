@@ -1,8 +1,9 @@
 #!/usr/bin/env ts-node
 import * as Sentry from '@sentry/node'
-import dotenv = require('dotenv')
+import fs from 'fs'
+import dotenv from 'dotenv'
+import chalk from 'chalk'
 const packageJson = require('../package.json')
-dotenv.config()
 
 export { byline } from '@prisma/migrate'
 export { Sentry }
@@ -25,6 +26,22 @@ process.env.NODE_NO_WARNINGS = '1'
 // react: psst 🙊
 process.env.NODE_ENV = 'production'
 
+// Read .env file only if next to schema.prisma
+let dotenvResult
+if (fs.existsSync('schema.prisma') && fs.existsSync('.env')) {
+  dotenvResult = dotenv.config()
+  debug('.env loaded from current directory')
+} else if(fs.existsSync('prisma/schema.prisma') && fs.existsSync('prisma/.env')) {
+  dotenvResult = dotenv.config({ path: 'prisma/.env' })
+  debug('.env loaded from ./prisma/.env')
+} else {
+  debug('.env not loaded')
+}
+// Print the error if any (if internal dotenv readFileSync throws)
+if (dotenvResult && dotenvResult.error) {
+  console.error(chalk.redBright.bold('Error: ') + dotenvResult.error)
+}
+
 /**
  * Dependencies
  */
@@ -35,7 +52,6 @@ import { Introspect, Init } from '@prisma/introspection'
 import { Dev } from './Dev'
 import { Version } from './Version'
 import { Generate } from './Generate'
-import chalk from 'chalk'
 import { ProviderAliases } from '@prisma/sdk'
 import { Validate } from './Validate'
 import * as checkpoint from 'checkpoint-client'
