@@ -103,7 +103,11 @@ export async function getDMMF({
       maxBuffer: MAX_BUFFER,
     }
 
-    result = await execa(prismaPath, ['--enable_raw_queries', 'cli', '--dmmf'], options)
+    result = await execa(
+      prismaPath,
+      ['--enable_raw_queries', 'cli', '--dmmf'],
+      options,
+    )
 
     if (!datamodelPath) {
       await unlink(tempDatamodelPath!)
@@ -121,7 +125,10 @@ export async function getDMMF({
       })
     }
 
-    return JSON.parse(result.stdout)
+    const firstCurly = result.stdout.indexOf('{')
+    const stdout = result.stdout.slice(firstCurly)
+
+    return JSON.parse(stdout)
   } catch (e) {
     debug('getDMMF failed', e)
     // If this unlikely event happens, try it at least once more
