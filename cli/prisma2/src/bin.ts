@@ -1,8 +1,10 @@
 #!/usr/bin/env ts-node
 import * as Sentry from '@sentry/node'
 import fs from 'fs'
+import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
+import { arg } from '@prisma/cli'
 const packageJson = require('../package.json')
 
 export { byline } from '@prisma/migrate'
@@ -26,20 +28,45 @@ process.env.NODE_NO_WARNINGS = '1'
 // react: psst 🙊
 process.env.NODE_ENV = 'production'
 
+//
 // Read .env file only if next to schema.prisma
-let dotenvResult
-if (fs.existsSync('schema.prisma') && fs.existsSync('.env')) {
-  dotenvResult = dotenv.config()
-  debug('.env loaded from current directory')
-} else if(fs.existsSync('prisma/schema.prisma') && fs.existsSync('prisma/.env')) {
-  dotenvResult = dotenv.config({ path: 'prisma/.env' })
-  debug('.env loaded from ./prisma/.env')
-} else {
-  debug('.env not loaded')
-}
-// Print the error if any (if internal dotenv readFileSync throws)
-if (dotenvResult && dotenvResult.error) {
-  console.error(chalk.redBright.bold('Error: ') + dotenvResult.error)
+//
+// if the CLI is called witout any comand like `prisma2` we can ignore .env loading
+if (process.argv.length > 2) {
+  let dotenvResult
+  
+  // Parse CLI arguments and look for --schema
+  const args = arg(process.argv.slice(3), { '--schema': String })
+  
+  // Check --schema directory
+  if (args && args['--schema']) {
+    const dotenvFilepath = path.join(path.dirname(args['--schema']), '.env')
+    
+    if (fs.existsSync(args['--schema']) && fs.existsSync(dotenvFilepath)) {
+      dotenvResult = dotenv.config({ path: dotenvFilepath })
+      debug('.env loaded from provided --schema directory')
+    } else {
+      debug('.env not loaded (--schema was provided)')
+    }
+  }
+  // Check current directory
+  else if (fs.existsSync('schema.prisma') && fs.existsSync('.env')) {
+    dotenvResult = dotenv.config()
+    debug('.env loaded from current directory')
+  }
+  // Check ./prisma directory
+  else if(fs.existsSync('prisma/schema.prisma') && fs.existsSync('prisma/.env')) {
+    dotenvResult = dotenv.config({ path: 'prisma/.env' })
+    debug('.env loaded from ./prisma/.env')
+  } 
+  // We didn't find a .env file next to the prisma.schema file. 
+  else {
+    debug('.env not loaded')
+  }
+  // Print the error if any (if internal dotenv readFileSync throws)
+  if (dotenvResult && dotenvResult.error) {
+    console.error(chalk.redBright.bold('Error: ') + dotenvResult.error)
+  }
 }
 
 /**
