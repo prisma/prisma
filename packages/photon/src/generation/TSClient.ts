@@ -643,15 +643,18 @@ ${this.jsDoc}
   /**
    * Makes a raw query
    */ 
-  async raw(strings) {
-    if (!Array.isArray(strings)) {
-      throw new Error('The prisma.raw method must be used like this prisma.raw\`SELECT * FROM Posts\`.')
-    }
-    if (strings.length !== 1) {
-      throw new Error('The prisma.raw method must be used like this prisma.raw\`SELECT * FROM Posts\` without template literal variables.')
-    }
+  async raw(stringOrTemplateStringsArray) {
+    let query = ''
     
-    const query = strings[0]
+    if (Array.isArray(stringOrTemplateStringsArray)) {
+      if (stringOrTemplateStringsArray.length !== 1) {
+        throw new Error('The prisma.raw method must be used like this prisma.raw\`SELECT * FROM Posts\` without template literal variables.')
+      }
+      // Called with prisma.raw\`\`
+      query = stringOrTemplateStringsArray[0]
+    } else {
+      query = stringOrTemplateStringsArray 
+    }
 
     const document = makeDocument({
       dmmf: this.dmmf,
@@ -850,11 +853,13 @@ ${indent(this.jsDoc, tab)}
    * \`\`\`
    * // Fetch all entries from the \`User\` table
    * const result = await prisma.raw\`SELECT * FROM User;\`
+   * // Or
+   * const result = await prisma.raw('SELECT * FROM User;')
   * \`\`\`
   * 
   * Read more in our [docs](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#raw-database-access).
   */
-  raw(query: TemplateStringsArray): Promise<T>;
+  raw<T = any>(query: string | TemplateStringsArray): Promise<T>;
 
 ${indent(
   dmmf.mappings

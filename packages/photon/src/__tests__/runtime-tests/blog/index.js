@@ -35,23 +35,15 @@ module.exports = async () => {
   await prisma.disconnect()
 
   await prisma.connect()
-  const rawQuery = await prisma.raw`SELECT 1`
+  // Test raw
+  const rawQuery = await prisma.raw(`SELECT ${1}`)
   if (rawQuery[0]['1'] !== 1) {
-    throw Error("prisma.raw`SELECT 1` result should be [ { '1': 1 } ]")
+    throw Error("prisma.raw('SELECT 1') result should be [ { '1': 1 } ]")
   }
 
-  // Test raw
-  let rawError
-  try {
-    const invalidRawQueryCall = await prisma.raw('SELECT 1')
-  } catch (e) {
-    rawError = e
-  } finally {
-    if (!rawError) {
-      throw new Error(
-        `When calling raw like prisma.raw('SELECT 1') it should throw an error`,
-      )
-    }
+  const rawQueryTemplate = await prisma.raw`SELECT 1`
+  if (rawQueryTemplate[0]['1'] !== 1) {
+    throw Error("prisma.raw`SELECT 1` result should be [ { '1': 1 } ]")
   }
 
   // Test validation errors
