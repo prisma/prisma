@@ -70,7 +70,7 @@ Please try to install it by hand with ${chalk.bold.greenBright('npm install @pri
         )
       }
 
-      console.info(`We successfully installed the required Prisma packages ${chalk.bold.green('@prisma/client')} and ${chalk.bold.green('prisma2')} into your current project for you.`)
+      console.info(`We successfully installed the required Prisma packages ${chalk.bold.green('@prisma/client')} and ${chalk.bold.green('prisma2')} into your project for you.`)
     }
 
     return {
