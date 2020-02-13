@@ -675,7 +675,7 @@ ${indent(
     .filter(m => m.findMany)
     .map(m => {
       const methodName = lowerCase(m.model)
-      let str = `\
+      return `\
 /**
  * \`prisma.${methodName}\`: Exposes CRUD operations for the **${
         m.model
@@ -691,19 +691,6 @@ get ${methodName}() {
     m.model
   }Delegate(this.dmmf, this.fetcher, this.errorFormat, this.measurePerformance)
 }`
-
-      // only do this, if we don't cause a name clash.
-      // otherwise it's not necessary anyways
-      if (m.plural !== methodName) {
-        str += `
-get ${m.plural}() {
-  throw new Error('"prisma.${m.plural}" has been renamed to "prisma.${lowerCase(
-          m.model,
-        )}"')
-}`
-      }
-
-      return str
     })
     .join('\n'),
   2,
@@ -866,7 +853,7 @@ ${indent(
     .filter(m => m.findMany)
     .map(m => {
       const methodName = lowerCase(m.model)
-      let str = `\
+      return `\
 /**
  * \`prisma.${methodName}\`: Exposes CRUD operations for the **${
         m.model
@@ -878,17 +865,6 @@ ${indent(
   * \`\`\`
   */
 get ${methodName}(): ${m.model}Delegate;`
-
-      // only do this, if we don't cause a name clash.
-      // otherwise it's not necessary anyways
-      if (m.plural !== methodName) {
-        str += `
-get ${m.plural}(): '"prisma.${
-          m.plural
-        }" has been renamed to "prisma.${lowerCase(m.model)}"'`
-      }
-
-      return str
     })
     .join('\n\n'),
   2,
