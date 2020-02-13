@@ -25,6 +25,8 @@ module.exports = async () => {
 
   await prisma.disconnect()
 
+  await new Promise(r => setTimeout(r, 100))
+
   assert(queryEvents.length > 0)
 }
 
