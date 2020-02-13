@@ -858,7 +858,7 @@ ${indent(this.jsDoc, tab)}
   * 
   * Read more in our [docs](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#raw-database-access).
   */
-  raw(query: string | TemplateStringsArray): Promise<T>;
+  raw<T = any>(query: string | TemplateStringsArray): Promise<T>;
 
 ${indent(
   dmmf.mappings
