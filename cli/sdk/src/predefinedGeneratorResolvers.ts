@@ -1,11 +1,9 @@
 import resolvePkg from 'resolve-pkg'
 import chalk from 'chalk'
-import prompts from 'prompts'
 import execa from 'execa'
 import path from 'path'
 import fs from 'fs'
 import Debug from 'debug'
-import isCi from 'is-ci'
 const debugEnabled = Debug.enabled('generator')
 
 export type GeneratorPaths = {
@@ -43,41 +41,36 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
         !fs.existsSync(path.join(process.cwd(), 'package.json')) &&
         !fs.existsSync(path.join(process.cwd(), '../package.json'))
       ) {
-        throw new PrismaClientFacadeMissingError()
-      }
-      if (!process.stdout.isTTY || isCi || process.env.GITHUB_ACTIONS) {
-        throw new PrismaClientFacadeMissingError()
-      } else {
-        console.log(
-          `In order to use the ${chalk.underline(
-            '"prisma-client-js"',
-          )} generator, you need to install ${chalk.bold(
-            '@prisma/client',
-          )} to your project.`,
-        )
-        const { value } = await prompts({
-          type: 'confirm',
-          name: 'value',
-          message: 'Do you want to install it now?',
-          initial: true,
-        })
-
-        if (!value) {
-          throw new PrismaClientFacadeMissingError()
+        const defaultPackageJson = `{
+          "name": "my-prisma-project",
+          "version": "1.0.0",
+          "description": "",
+          "main": "index.js",
+          "scripts": {
+            "test": "echo \"Error: no test specified\" && exit 1"
+          },
+          "keywords": [],
+          "author": "",
+          "license": "ISC"
         }
-
-        await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
+        `
+        fs.writeFileSync(path.join(process.cwd(), 'package.json'), defaultPackageJson)
       }
+      
+      await installPackage(baseDir, `--save-dev prisma2@${version ?? 'latest'}`)
+      await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
       prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
 
       if (!prismaClientDir) {
         throw new Error(
-          `Could not resolve @prisma/client despite the installation that just happened. We're sorry.
-Please try to install it by hand and rerun ${chalk.bold(
+          `Could not resolve @prisma/client despite the installation that we just tried.
+Please try to install it by hand with ${chalk.bold.greenBright('npm install @prisma/client')} and rerun ${chalk.bold(
             'prisma2 generate',
           )} 🙏.`,
         )
       }
+
+      console.info(`We successfully installed the required Prisma packages ${chalk.bold.green('@prisma/client')} and ${chalk.bold.green('prisma2')} into your project for you.`)
     }
 
     return {
@@ -85,17 +78,6 @@ Please try to install it by hand and rerun ${chalk.bold(
       generatorPath: path.resolve(prismaClientDir, 'generator-build/index.js'),
     }
   },
-}
-
-class PrismaClientFacadeMissingError extends Error {
-  constructor() {
-    super(`In order to use the ${chalk.underline(
-      '"prisma-client-js"',
-    )} generator, you need to install ${chalk.bold(
-      '@prisma/client',
-    )} to your project:
-${chalk.bold.greenBright('npm install @prisma/client')}`)
-  }
 }
 
 async function installPackage(baseDir: string, pkg: string): Promise<void> {
