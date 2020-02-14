@@ -218,16 +218,16 @@ const result = await prisma.raw`SELECT * FROM User WHERE id = ${userId};`
 The `raw` function has the following function signature:
 
 ```ts
-raw<T = any>(query: string | TemplateStringsArray): Promise<T[]>;
+raw<T = any>(query: string | TemplateStringsArray): Promise<T>;
 ```
 
-The return type of `raw` is a `Promise` for an array of the generic [generic](https://www.typescriptlang.org/docs/handbook/generics.html) type parameter `T`. This means you can type the result manually by providing `T` when you invoke `raw`. If you don't provide any type, the return type of `raw` defaults to `any[]`.
+The return type of `raw` is a `Promise` for the [generic](https://www.typescriptlang.org/docs/handbook/generics.html) type parameter `T`. This means you can type the result manually by providing `T` when you invoke `raw`. If you don't provide any type, the return type of `raw` defaults to `any`.
 
 ```ts
 // import the generated `User` type from the `@prisma/client` module
 import { User } from '@prisma/client'
 
-const result = await prisma.raw<User>('SELECT * FROM User;')
+const result = await prisma.raw<User[]>('SELECT * FROM User;')
 // result is of type: `User[]`
 ```
 
@@ -236,6 +236,8 @@ Now, `result` is strongly typed to the generated `User` type (or rather an array
 ![](https://imgur.com/H2TCRc5.png)
 
 If you're selecting only specific fields of the model or want to include relations, read the documentation about [leveraging Prisma Client's generated types](./generated-types.md) if you want to ensure that the query results are properly typed.
+
+Note that calls to `SELECT` always return arrays of type `T`, but other SQL operations (like `INSERT` or `UPDATE`) might return single objects.
 
 ## Scalar lists
 
