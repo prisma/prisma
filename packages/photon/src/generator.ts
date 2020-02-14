@@ -11,32 +11,6 @@ generatorHandler({
   onManifest() {
     return {
       defaultOutput: '@prisma/client', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma2/blob/master/cli/sdk/src/getGenerators.ts
-      denylists: {
-        models: [
-          'Enumerable',
-          'MergeTruthyValues',
-          'CleanupNever',
-          'AtLeastOne',
-          'OnlyOne',
-          'StringFilter',
-          'IDFilter',
-          'FloatFilter',
-          'IntFilter',
-          'BooleanFilter',
-          'DateTimeFilter',
-          'NullableStringFilter',
-          'NullableIDFilter',
-          'NullableFloatFilter',
-          'NullableIntFilter',
-          'NullableBooleanFilter',
-          'NullableDateTimeFilter',
-          'PrismaClientFetcher',
-          'PrismaClient',
-          'Engine',
-          'PrismaClientOptions',
-        ],
-        fields: ['AND', 'OR', 'NOT'],
-      },
       prettyName: 'Prisma Client',
       requiresEngines: ['queryEngine'],
       version: require('../package.json').version,
