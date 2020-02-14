@@ -186,38 +186,56 @@ Note that Prisma Client JS will throw an error if you're trying to create/update
 
 ## Raw database access
 
-You can send raw SQL queries to your database using the `raw` function that's exposed by your `PrismaClient` instance. Note that `raw` is implementred as a [tagged template](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates).
-
-### Example
-
-Here's an example that fetches all records from the `USER` table:
+You can send raw SQL queries to your database using the `raw` function that's exposed by your `PrismaClient` instance. It returns the query results as plain old JavaScript objects:
 
 ```ts
-const result = await prisma.raw`SELECT * FROM USER;`
+const result = await prisma.raw(`SELECT * FROM User;`)
 // result = [
 //   { "id":1, "email":"sarah@prisma.io", "name":"Sarah" },
 //   { "id":2, "email":"alice@prisma.io", "name":"Alice" }
 // ]
 ```
 
-The `raw` function returns the results as plain old JavaScript objects.
+### Tagged templates
 
-### Limitations
-
-Note that you can **not** call the `raw` function using parantheses:
+Note that `raw` is implemented as a [tagged template](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates). Therefore, you can also call `raw` as follows:
 
 ```ts
-// not possible
-const data = await prisma.raw(`SELECT * FROM USER;`)
+const result = await prisma.raw`SELECT * FROM User;`
 ```
 
-It's currently also not possible to pass any arguments to the SQL statement:
+### Setting variables
+
+To include variables in your SQL query, you can use JavaScript string interpolation with [template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals):
 
 ```ts
-// not possible
-const table = `USER`
-const result = await prisma.raw`SELECT * FROM ${table};`
+const userId = 42
+const result = await prisma.raw`SELECT * FROM User WHERE id = ${userId};`
 ```
+
+### Typing `raw` results
+
+The `raw` function has the following function signature:
+
+```ts
+raw<T = any>(query: string | TemplateStringsArray): Promise<T>;
+```
+
+This means you can type the result manually by providing the [generic](https://www.typescriptlang.org/docs/handbook/generics.html) type parameter `T` to `raw`. If you don't provide any type, the return type of `raw` defaults to `any`.
+
+```ts
+// import the generated `User` type from the `@prisma/client` module
+import { User } from '@prisma/client'
+
+// 
+const result = await prisma.raw<User[]>(`SELECT * FROM User;)`)
+```
+
+Now, `result` is strongly typed to the generated `User` type (or rather an array thereof) from Prisma Client.
+
+![](https://imgur.com/H2TCRc5.png)
+
+If you're selecting only specific fields of the model or want to include relations, read the documentation about [leveraging Prisma Client's generated types](./generated-types.md) if you want to ensure that the query results are properly typed.
 
 ## Scalar lists
 
