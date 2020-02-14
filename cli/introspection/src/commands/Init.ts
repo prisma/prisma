@@ -6,7 +6,7 @@ import chalk from 'chalk'
 import { printError } from '../prompt/utils/print'
 import { highlightTS, link } from '@prisma/sdk'
 
-export const defaultSchema = `// This is your Prisma schema file
+export const defaultSchema = `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -19,7 +19,7 @@ generator client {
 }
 `
 
-export const defaultEnv  = `# Environment variables declared in this file are automatically made available to Prisma.
+export const defaultEnv = `# Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
 # Prisma supports the native connection string format for Postgres, MySQL and SQLite.
