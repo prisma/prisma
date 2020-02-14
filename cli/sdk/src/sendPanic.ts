@@ -8,7 +8,7 @@ import os from 'os'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
-import * as checkpoint from 'checkpoint-client'
+import checkpoint from 'checkpoint-client'
 import { maskSchema } from './utils/maskSchema'
 import { RustPanic, ErrorArea } from './panic'
 import { getProxyAgent } from '@prisma/fetch-engine'
@@ -64,7 +64,7 @@ export async function sendPanic(
       platform: await getPlatform(),
       liftRequest: JSON.stringify(error.request),
       schemaFile: maskedSchema,
-      fingerprint: getFid(),
+      fingerprint: checkpoint.signature.sync(),
       sqlDump,
     })
 
@@ -210,8 +210,4 @@ async function request(query: string, variables: any): Promise<any> {
       }
       return res.data
     })
-}
-
-export function getFid() {
-  return checkpoint.signature.sync()
 }
