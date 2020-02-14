@@ -1878,6 +1878,7 @@ function tests(): Test[] {
           title      String
         }
       `,
+      todo: true,
       do: async client => {
         const posts = await client.posts.findMany({ where: { created_at: { lt: new Date() } } })
         posts.forEach(post => {
@@ -1902,6 +1903,7 @@ function tests(): Test[] {
       ],
     },
     {
+      todo: true,
       up: `
         create table posts (
           id serial primary key not null,
@@ -1938,6 +1940,7 @@ function tests(): Test[] {
       expect: [],
     },
     {
+      todo: true,
       up: `
         create table posts (
           id serial primary key not null,
@@ -1974,6 +1977,7 @@ function tests(): Test[] {
       expect: [],
     },
     {
+      todo: true,
       up: `
         create table posts (
           id serial primary key not null,
@@ -2028,6 +2032,7 @@ function tests(): Test[] {
       ],
     },
     {
+      todo: true,
       up: `
         create table teams (
           id serial primary key not null,
