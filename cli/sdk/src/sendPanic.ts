@@ -1,6 +1,5 @@
 import { getPlatform } from '@prisma/get-platform'
 import archiver from 'archiver'
-import crypto from 'crypto'
 import Debug from 'debug'
 import fs from 'fs'
 import globby from 'globby'
@@ -9,6 +8,7 @@ import os from 'os'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
+import checkpoint from 'checkpoint-client'
 import { maskSchema } from './utils/maskSchema'
 import { RustPanic, ErrorArea } from './panic'
 import { getProxyAgent } from '@prisma/fetch-engine'
@@ -64,7 +64,7 @@ export async function sendPanic(
       platform: await getPlatform(),
       liftRequest: JSON.stringify(error.request),
       schemaFile: maskedSchema,
-      fingerprint: getFid() || undefined,
+      fingerprint: checkpoint.signature.sync(),
       sqlDump,
     })
 
@@ -210,29 +210,4 @@ async function request(query: string, variables: any): Promise<any> {
       }
       return res.data
     })
-}
-
-function getMac(): string | null {
-  const interfaces = os.networkInterfaces()
-  return Object.keys(interfaces).reduce<null | string>((acc, key) => {
-    if (acc) {
-      return acc
-    }
-    const i = interfaces[key]
-    const mac = i.find(a => a.mac !== '00:00:00:00:00:00')
-    return mac ? mac.mac : null
-  }, null)
-}
-
-export function getFid() {
-  const mac = getMac()
-  const fidSecret = 'AhTheeR7Pee0haebui1viemoe'
-  if (mac) {
-    return crypto
-      .createHmac('sha256', fidSecret)
-      .update(mac)
-      .digest('hex')
-  }
-
-  return null
 }
