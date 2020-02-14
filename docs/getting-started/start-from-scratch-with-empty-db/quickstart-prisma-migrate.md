@@ -69,6 +69,11 @@ Follow these steps for an initial Prisma setup:
     npx prisma2 migrate save --name 'init' --experimental
     npx prisma2 migrate up --experimental
     ```
+1. Generate the Prisma Client with your updated datamodel::
+   ```
+   npx prisma2 generate --experimental
+   ```
+   _Please note that this step is unnecessary at this stage if you installed the `@prisma/client` dependency (step 7) after creating your datamodel (steps 4 - 6), as our post-install hook will automatically generate the Prisma Client for you based on the existing data model. However, it is helpful to be aware of `prisma2 generate` as you will need to run this command any time that you update your data model while evolving your app._
 1. Run `touch index.ts` to create a source file and add the following code:
     ```ts
     import { PrismaClient } from '@prisma/client'
