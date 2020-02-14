@@ -1,5 +1,7 @@
 const childProcess = require('child_process')
-const { promisify } = require('util')
+const {
+  promisify
+} = require('util')
 const exec = promisify(childProcess.exec)
 const c = require('./colors')
 
@@ -10,13 +12,15 @@ async function main() {
   }
 
   const localPath = getLocalPackagePath()
+  // Only execute if !localpath
+  const installedGlobally = localPath ? undefined : await isInstalledGlobally()
+
   try {
     if (localPath) {
       await run('node', [localPath, 'generate'])
       return
     }
 
-    const installedGlobally = await isInstalledGlobally()
     if (installedGlobally) {
       await run('prisma2', ['generate'])
       return
@@ -27,9 +31,12 @@ async function main() {
       console.error(e)
     }
   }
-  console.error(
-    `${c.yellow('warning')} In order to use "@prisma/client", please install prisma2. You can install it with "npm add -D prisma2".`,
-  )
+
+  if (!localPath && !installedGlobally) {
+    console.error(
+      `${c.yellow('warning')} In order to use "@prisma/client", please install prisma2. You can install it with "npm add -D prisma2".`
+    )
+  }
 }
 
 function getLocalPackagePath() {
