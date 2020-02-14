@@ -106,21 +106,12 @@ export class Init implements Command {
 ✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}.
   You can now open it in your favorite editor.
 
-Next steps
-1. Set the ${chalk.green('DATABASE_URL')} connection string in the ${chalk.green('prisma/.env')} file.
-2. Run ${chalk.green('prisma2 introspect')} to test the connection and obtain your data model.
-3. Run ${chalk.green('prisma2 generate')} to generate Prisma Client.
-
-You can then start using Prisma Client in your application:
-
-\`\`\`
-${highlightTS(`\
-import { PrismaClient } from '@prisma/client'
-// or const { PrismaClient } = require('@prisma/client')
-
-const prisma = new PrismaClient()
-`)}
-\`\`\`
+NEXT STEPS
+1. Modify the ${chalk.green('DATABASE_URL')} in the ${chalk.green(
+      '.env',
+    )} file to point to your existing database. If you need to create a new database schema, read https://pris.ly/d/getting-started.
+2. Run ${chalk.green('prisma2 introspect')} to turn your database schema into a Prisma Data Model.
+3. Run ${chalk.green('prisma2 generate')} to install Prisma Client and start querying your database.
 
 More information in our documentation:
 ${link('https://pris.ly/d/getting-started')}
