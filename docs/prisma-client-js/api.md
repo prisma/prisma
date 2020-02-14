@@ -218,17 +218,17 @@ const result = await prisma.raw`SELECT * FROM User WHERE id = ${userId};`
 The `raw` function has the following function signature:
 
 ```ts
-raw<T = any>(query: string | TemplateStringsArray): Promise<T>;
+raw<T = any>(query: string | TemplateStringsArray): Promise<T[]>;
 ```
 
-This means you can type the result manually by providing the [generic](https://www.typescriptlang.org/docs/handbook/generics.html) type parameter `T` to `raw`. If you don't provide any type, the return type of `raw` defaults to `any`.
+The return type of `raw` is a `Promise` for an array of the generic [generic](https://www.typescriptlang.org/docs/handbook/generics.html) type parameter `T`. This means you can type the result manually by providing `T` when you invoke `raw`. If you don't provide any type, the return type of `raw` defaults to `any[]`.
 
 ```ts
 // import the generated `User` type from the `@prisma/client` module
 import { User } from '@prisma/client'
 
-// 
-const result = await prisma.raw<User[]>('SELECT * FROM User;')
+const result = await prisma.raw<User>('SELECT * FROM User;')
+// result is of type: `User[]`
 ```
 
 Now, `result` is strongly typed to the generated `User` type (or rather an array thereof) from Prisma Client.
