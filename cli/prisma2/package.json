@@ -48,7 +48,7 @@
     "@types/debug": "^4.1.5",
     "@types/mocha": "^5.2.7",
     "@zeit/ncc": "0.21.0",
-    "checkpoint-client": "1.0.6",
+    "checkpoint-client": "^1.0.7",
     "dotenv": "^8.2.0",
     "jest": "24.9.0",
     "log-update": "^3.3.0",
