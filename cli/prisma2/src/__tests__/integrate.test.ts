@@ -243,18 +243,18 @@ function tests(): Test[] {
         }
 
         model users {
-          email   String  @unique
-          id      Int     @id
-          postses posts[]
+          email String  @unique
+          id    Int     @id
+          posts posts[]
         }
       `,
       do: async client => {
-        return client.users.findOne({ where: { id: 1 }, include: { postses: true } })
+        return client.users.findOne({ where: { id: 1 }, include: { posts: true } })
       },
       expect: {
         email: 'ada@prisma.io',
         id: 1,
-        postses: [
+        posts: [
           {
             id: 1,
             title: 'A',
@@ -932,13 +932,13 @@ function tests(): Test[] {
         }
 
         model users {
-          email   String  @unique
-          id      Int     @id
-          postses posts[]
+          email String  @unique
+          id    Int     @id
+          posts posts[]
         }
       `,
       do: async client => {
-        return client.users.findOne({ where: { email: 'ada@prisma.io' } }).postses()
+        return client.users.findOne({ where: { email: 'ada@prisma.io' } }).posts()
       },
       expect: [
         {
@@ -1854,9 +1854,9 @@ function tests(): Test[] {
           title text not null,
           created_at timestamp not null default now()
         );
-        insert into posts ("title") values ('A');
-        insert into posts ("title") values ('B');
-        insert into posts ("title") values ('C');
+        insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
       down: `
         drop table if exists posts cascade;
@@ -1878,9 +1878,9 @@ function tests(): Test[] {
           title      String
         }
       `,
-      todo: true,
+      // todo: true,
       do: async client => {
-        const posts = await client.posts.findMany({ where: { created_at: { lt: new Date() } } })
+        const posts = await client.posts.findMany({ where: { created_at: { lte: new Date() } } })
         posts.forEach(post => {
           assert.ok(post.created_at instanceof Date)
           delete post.created_at
@@ -1903,16 +1903,16 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
+      // todo: true,
       up: `
         create table posts (
           id serial primary key not null,
           title text not null,
           created_at timestamp not null default now()
         );
-        insert into posts ("title") values ('A');
-        insert into posts ("title") values ('B');
-        insert into posts ("title") values ('C');
+        insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
       down: `
         drop table if exists posts cascade;
@@ -1940,16 +1940,16 @@ function tests(): Test[] {
       expect: [],
     },
     {
-      todo: true,
+      // todo: true,
       up: `
         create table posts (
           id serial primary key not null,
           title text not null,
           created_at timestamp not null default now()
         );
-        insert into posts ("title") values ('A');
-        insert into posts ("title") values ('B');
-        insert into posts ("title") values ('C');
+        insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
       down: `
         drop table if exists posts cascade;
@@ -1977,16 +1977,16 @@ function tests(): Test[] {
       expect: [],
     },
     {
-      todo: true,
+      // todo: true,
       up: `
         create table posts (
           id serial primary key not null,
           title text not null,
           created_at timestamp not null default now()
         );
-        insert into posts ("title") values ('A');
-        insert into posts ("title") values ('B');
-        insert into posts ("title") values ('C');
+        insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
       down: `
         drop table if exists posts cascade;
