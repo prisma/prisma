@@ -107,7 +107,7 @@ export class Init implements Command {
   You can now open it in your favorite editor.
 
 Next steps
-1. Set your database connection string as the \`url\` of the \`datasource\` block.
+1. Set the ${chalk.green('DATABASE_URL')} connection string in the ${chalk.green('prisma/.env')} file.
 2. Run ${chalk.green('prisma2 introspect')} to test the connection and obtain your data model.
 3. Run ${chalk.green('prisma2 generate')} to generate Prisma Client.
 
