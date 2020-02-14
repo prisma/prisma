@@ -228,7 +228,7 @@ This means you can type the result manually by providing the [generic](https://w
 import { User } from '@prisma/client'
 
 // 
-const result = await prisma.raw<User[]>(`SELECT * FROM User;)`)
+const result = await prisma.raw<User[]>(`SELECT * FROM User;`)
 ```
 
 Now, `result` is strongly typed to the generated `User` type (or rather an array thereof) from Prisma Client.
