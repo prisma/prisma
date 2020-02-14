@@ -34,6 +34,14 @@ export class IntrospectionPanic extends Error {
   }
 }
 
+export class IntrospectionError extends Error {
+  public code: string
+  constructor(message: string, code: string) {
+    super(message)
+    this.code = code
+  }
+}
+
 let messageId = 1
 
 /* tslint:disable */
@@ -321,8 +329,15 @@ export class IntrospectionEngine {
                 message =
                   chalk.redBright(`${response.error.data.error_code}\n\n`) +
                   message
+                reject(
+                  new IntrospectionError(
+                    message,
+                    response.error.data.error_code,
+                  ),
+                )
+              } else {
+                reject(new Error(message))
               }
-              reject(new Error(message))
             } else {
               const text = this.persistError(request, this.messages.join('\n'))
               reject(
