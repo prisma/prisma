@@ -41,6 +41,7 @@
     "@prisma/get-platform": "workspace:*",
     "archiver": "3.0.0",
     "chalk": "^3.0.0",
+    "checkpoint-client": "^1.0.7",
     "execa": "^3.4.0",
     "flat-map-polyfill": "^0.3.8",
     "globby": "^9.2.0",
