@@ -57,7 +57,11 @@ tests().map(t => {
 async function runTest(t) {
   await db.query(t.after)
   await db.query(t.before)
-  const introspectionSchema = await engine.introspect(connectionString)
+  const schema = `datasource db {
+  provider = "postgresql"
+  url = "${connectionString}"
+}`
+  const introspectionSchema = await engine.introspect(schema)
   await generate(introspectionSchema)
   const prismaClientPath = join(tmp, 'index.js')
   const prismaClientDeclarationPath = join(tmp, 'index.d.ts')
