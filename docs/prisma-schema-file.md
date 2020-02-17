@@ -214,6 +214,7 @@ When running any command that needs to access the database defined via the `data
 
 > **WARNING**: Do not commit your `.env` files into version control. 
 
+<!--
 ### Switching data sources based on environments
 
 You can target different environments using environment variables, for example:
@@ -243,7 +244,7 @@ Then run the following command:
 
 ```bash
 source ./dev_env
-```
+``` -->
 
 ### Using environment variables with Prisma Client JS
 
