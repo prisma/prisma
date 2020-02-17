@@ -231,7 +231,7 @@ const result = await prisma.raw<User[]>('SELECT * FROM User;')
 // result is of type: `User[]`
 ```
 
-Now, `result` is strongly typed to the generated `User` type (or rather an array thereof) from Prisma Client.
+Now, `result` is statically typed to the generated `User` type (or rather an array thereof) from Prisma Client.
 
 ![](https://imgur.com/H2TCRc5.png)
 
