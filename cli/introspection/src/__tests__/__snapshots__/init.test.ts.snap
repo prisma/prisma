@@ -4,10 +4,11 @@ exports[`is schema and env written on disk replace:
 ✔ Your Prisma schema was created at prisma/schema.prisma.
   You can now open it in your favorite editor.
 
-NEXT STEPS
-1. Modify the DATABASE_URL in the .env file to point to your existing database. If you need to create a new database schema, read https://pris.ly/d/getting-started.
-2. Run prisma2 introspect to turn your database schema into a Prisma Data Model.
-3. Run prisma2 generate to install Prisma Client and start querying your database.
+Next steps:
+1. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql or sqlite.
+2. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started.
+3. Run prisma2 introspect to turn your database schema into a Prisma data model.
+4. Run prisma2 generate to install Prisma Client. You can then start querying your database.
 
 More information in our documentation:
 https://pris.ly/d/getting-started
@@ -16,10 +17,11 @@ https://pris.ly/d/getting-started
 ✔ Your Prisma schema was created at prisma/schema.prisma.
   You can now open it in your favorite editor.
 
-NEXT STEPS
-1. Modify the DATABASE_URL in the .env file to point to your existing database. If you need to create a new database schema, read https://pris.ly/d/getting-started.
-2. Run prisma2 introspect to turn your database schema into a Prisma Data Model.
-3. Run prisma2 generate to install Prisma Client and start querying your database.
+Next steps:
+1. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql or sqlite.
+2. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started.
+3. Run prisma2 introspect to turn your database schema into a Prisma data model.
+4. Run prisma2 generate to install Prisma Client. You can then start querying your database.
 
 More information in our documentation:
 https://pris.ly/d/getting-started
