@@ -3044,14 +3044,14 @@ function tests(): Test[] {
         model a {
           one Int
           two Int
-          bs  b[] @relation(references: [a])
 
           @@id([one, two])
         }
 
-        model b {
-          a a @map(["one", "two"])
-        }
+        /// The underlying table does not contain a unique identifier and can therefore currently not be handled.
+        // model b {
+          // a a @map(["one", "two"])
+        // }
       `,
       do: async client => {
         return client.a.findOne({ where: { variables_value_email_key: { value: 'c', email: 'd' } } })
@@ -3437,6 +3437,57 @@ function tests(): Test[] {
       expect: {
         // TODO
       },
+    },
+    {
+      up: `
+        create table teams (
+          id serial primary key not null,
+          name text
+        );
+        insert into teams (name) values ('a');
+        insert into teams (name) values (NULL);
+        insert into teams (name) values (NULL);
+      `,
+      down: `
+        drop table if exists teams cascade;
+      `,
+      schema: `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${tmp}"
+        }
+
+        datasource pg {
+          provider = "postgresql"
+          url      = "${connectionString}"
+        }
+
+        model teams {
+          id   Int     @id
+          name String?
+        }
+      `,
+      do: async client => {
+        await client.teams.updateMany({
+          data: { name: 'b' },
+          where: { name: null },
+        })
+        return client.teams.findMany()
+      },
+      expect: [
+        {
+          id: 1,
+          name: 'a',
+        },
+        {
+          id: 2,
+          name: 'b',
+        },
+        {
+          id: 3,
+          name: 'b',
+        },
+      ],
     },
   ]
 }
