@@ -7,9 +7,9 @@ The PostgreSQL data source connector connects Prisma to a PostgreSQL database se
 To connect to a PostgreSQL database server, you need to configure a [`datasource`](../../prisma-schema-file.md#data-sources) block in your [schema file](../../prisma-schema-file.md):
 
 ```prisma
-datasource pg {
+datasource postgresql {
   provider = "postgresql"
-  url      = env("POSTGRESQL_URL")
+  url      = env("DATABASE_URL")
 }
 
 // ... the file should also contain a data model definition and (optionally) generators
