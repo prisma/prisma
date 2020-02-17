@@ -22,8 +22,8 @@ generator client {
 export const defaultEnv = `# Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for Postgres, MySQL and SQLite.
-# See the documentation for all the connection string options: https://github.com/prisma/prisma2/tree/master/docs/core/connectors
+# Prisma supports the native connection string format for PostgreSQL, MySQL and SQLite.
+# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="postgresql://johndoe:johndoe@localhost:5432/mydb?schema=public"`
 
@@ -34,7 +34,7 @@ export class Init implements Command {
 
   // static help template
   private static help = format(`
-    Setup Prisma for your existing database
+    Setup a new Prisma project
     
     ${chalk.bold('Usage')}
 
@@ -75,7 +75,7 @@ export class Init implements Command {
 
     if (fs.existsSync(prismaFolder)) {
       console.log(
-        printError(`Folder ${chalk.bold('prisma')} already exists in your project.
+        printError(`A folder called ${chalk.bold('prisma')} already exists in your project.
         Please try again in a project that is not yet using Prisma.
       `),
       )
@@ -106,12 +106,15 @@ export class Init implements Command {
 ✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}.
   You can now open it in your favorite editor.
 
-NEXT STEPS
-1. Modify the ${chalk.green('DATABASE_URL')} in the ${chalk.green(
+Next steps:
+1. Set the ${chalk.green('provider')} of the ${chalk.green('datasource')} block in ${chalk.green(
+      'schema.prisma',
+    )} to match your database: ${chalk.green('postgresql')}, ${chalk.green('mysql')} or ${chalk.green('sqlite')}.
+2. Set the ${chalk.green('DATABASE_URL')} in the ${chalk.green(
       '.env',
-    )} file to point to your existing database. If you need to create a new database schema, read https://pris.ly/d/getting-started.
-2. Run ${chalk.green('prisma2 introspect')} to turn your database schema into a Prisma Data Model.
-3. Run ${chalk.green('prisma2 generate')} to install Prisma Client and start querying your database.
+    )} file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started.
+3. Run ${chalk.green('prisma2 introspect')} to turn your database schema into a Prisma data model.
+4. Run ${chalk.green('prisma2 generate')} to install Prisma Client. You can then start querying your database.
 
 More information in our documentation:
 ${link('https://pris.ly/d/getting-started')}

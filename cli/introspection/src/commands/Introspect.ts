@@ -7,7 +7,6 @@ import fs from 'fs'
 import { DataSource } from '@prisma/generator-helper'
 import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 import { printDatasources } from '../prompt/utils/printDatasources'
-import stripAnsi from 'strip-ansi'
 import Debug from 'debug'
 const debug = Debug('Introspect')
 
@@ -129,14 +128,16 @@ Then you can run ${chalk.green('prisma2 introspect')} again.
       throw e
     }
 
-    log(`Done with introspection in ${chalk.bold(formatms(Date.now() - before))}`)
-
     if (args['--print']) {
       console.log(introspectionSchema)
     } else {
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)
-      log(`Wrote ${chalk.underline(path.relative(process.cwd(), schemaPath))}`)
+      log(`\n✔ Wrote Prisma data model into ${chalk.underline(
+        path.relative(process.cwd(), schemaPath),
+      )} in ${chalk.bold(formatms(Date.now() - before))}
+      
+Run ${chalk.green('prisma2 generate')} to generate Prisma Client.`)
     }
 
     engine.stop()

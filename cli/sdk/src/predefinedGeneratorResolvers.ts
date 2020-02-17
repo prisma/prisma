@@ -23,9 +23,17 @@ export type PredefinedGeneratorResolvers = {
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   photonjs: () => {
     throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
-  1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green('provider = "prisma-client-js"')} in your ${chalk.bold('schema.prisma')} file.
-  2. Replace your ${chalk.bold('package.json')}'s ${chalk.red('@prisma/photon')} dependency to ${chalk.green('@prisma/client')}
-  3. Replace ${chalk.red('import { Photon } from \'@prisma/photon\'')} with ${chalk.green('import { PrismaClient } from \'@prisma/client\'')} in your code.
+  1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green(
+      'provider = "prisma-client-js"',
+    )} in your ${chalk.bold('schema.prisma')} file.
+  2. Replace your ${chalk.bold('package.json')}'s ${chalk.red(
+      '@prisma/photon',
+    )} dependency to ${chalk.green('@prisma/client')}
+  3. Replace ${chalk.red(
+    "import { Photon } from '@prisma/photon'",
+  )} with ${chalk.green(
+      "import { PrismaClient } from '@prisma/client'",
+    )} in your code.
   4. Run ${chalk.green('prisma2 generate')} again.
       `)
   },
@@ -41,36 +49,46 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
         !fs.existsSync(path.join(process.cwd(), 'package.json')) &&
         !fs.existsSync(path.join(process.cwd(), '../package.json'))
       ) {
+        // Create default package.json
         const defaultPackageJson = `{
-          "name": "my-prisma-project",
-          "version": "1.0.0",
-          "description": "",
-          "main": "index.js",
-          "scripts": {
-            "test": "echo \"Error: no test specified\" && exit 1"
-          },
-          "keywords": [],
-          "author": "",
-          "license": "ISC"
-        }
+  "name": "my-prisma-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \\"Error: no test specified\\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
         `
-        fs.writeFileSync(path.join(process.cwd(), 'package.json'), defaultPackageJson)
+        fs.writeFileSync(
+          path.join(process.cwd(), 'package.json'),
+          defaultPackageJson,
+        )
+        console.info(`✔ Created ${chalk.bold.green('./package.json')}`)
       }
-      
-      await installPackage(baseDir, `--save-dev prisma2@${version ?? 'latest'}`)
+
+      await installPackage(baseDir, `-D prisma2@${version ?? 'latest'}`)
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
+
       prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
 
       if (!prismaClientDir) {
         throw new Error(
           `Could not resolve @prisma/client despite the installation that we just tried.
-Please try to install it by hand with ${chalk.bold.greenBright('npm install @prisma/client')} and rerun ${chalk.bold(
-            'prisma2 generate',
-          )} 🙏.`,
+Please try to install it by hand with ${chalk.bold.greenBright(
+            'npm install @prisma/client',
+          )} and rerun ${chalk.bold('prisma2 generate')} 🙏.`,
         )
       }
 
-      console.info(`We successfully installed the required Prisma packages ${chalk.bold.green('@prisma/client')} and ${chalk.bold.green('prisma2')} into your project for you.`)
+      console.info(
+        `\n✔ Installed the ${chalk.bold.green(
+          '@prisma/client',
+        )} and ${chalk.bold.green('prisma2')} packages in your project`,
+      )
     }
 
     return {
