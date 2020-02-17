@@ -9,7 +9,6 @@ import Debug from 'debug'
 import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
-import hasha from 'hasha'
 import chalk from 'chalk'
 import { promisify } from 'util'
 import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
@@ -18,6 +17,7 @@ import { getPrismaClientDMMF } from './getDMMF'
 import { resolveDatasources } from '../utils/resolveDatasources'
 import { extractSqliteSources } from './extractSqliteSources'
 import { TSClient, TS, JS } from './TSClient'
+import { getVersion } from '@prisma/sdk/dist/engineCommands'
 
 const debug = Debug('generateClient')
 debug.log = console.log.bind(console)
@@ -127,7 +127,11 @@ export async function generateClient({
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
   if (denylistsErrors) {
-    console.error(`${chalk.redBright.bold('Error: ')}The schema at "${datamodelPath}" contains reserved keywords.\n       Rename the following items:`)
+    console.error(
+      `${chalk.redBright.bold(
+        'Error: ',
+      )}The schema at "${datamodelPath}" contains reserved keywords.\n       Rename the following items:`,
+    )
     for (const error of denylistsErrors) {
       console.error('         - ' + error.message)
     }
@@ -181,13 +185,13 @@ export async function generateClient({
       const fileName = path.basename(filePath)
       const target = path.join(outputDir, 'runtime', fileName)
       const before = Date.now()
-      const [fileSizeSource, fileSizeTarget] = await Promise.all([
+      const [sourceFileSize, targetFileSize] = await Promise.all([
         fileSize(filePath),
         fileSize(target),
       ])
 
       // If the target doesn't exist yet, copy it
-      if (!fileSizeTarget) {
+      if (!targetFileSize) {
         debug(`Copying ${filePath} to ${target}`)
         await copyFile(filePath, target)
         continue
@@ -195,9 +199,9 @@ export async function generateClient({
 
       // If target !== source size, they're definitely different, copy it
       if (
-        fileSizeTarget &&
-        fileSizeSource &&
-        fileSizeTarget !== fileSizeSource
+        targetFileSize &&
+        sourceFileSize &&
+        targetFileSize !== sourceFileSize
       ) {
         debug(`Copying ${filePath} to ${target}`)
         await copyFile(filePath, target)
@@ -205,15 +209,16 @@ export async function generateClient({
       }
 
       // They must have an equal size now, let's check for the hash
-      const [hashSource, hashTarget] = await Promise.all([
-        hasha.fromFile(filePath, { algorithm: 'md5' }).catch(() => null),
-        hasha.fromFile(target, { algorithm: 'md5' }).catch(() => null),
+      const [sourceVersion, targetVersion] = await Promise.all([
+        getVersion(filePath).catch(() => null),
+        getVersion(target).catch(() => null),
       ])
+
       const after = Date.now()
-      if (hashSource && hashTarget && hashSource === hashTarget) {
+      if (sourceVersion && targetVersion && sourceVersion === targetVersion) {
         debug(`Getting hashes took ${after - before}ms`)
         debug(
-          `Skipping ${filePath} to ${target} as both files have md5 hash ${hashSource}`,
+          `Skipping ${filePath} to ${target} as both files have md5 hash ${sourceVersion}`,
         )
       } else {
         debug(`Copying ${filePath} to ${target}`)
@@ -366,7 +371,7 @@ function validateDmmfAgainstDenylists(prismaClientDmmf) {
       'LogDefinition',
       'GetLogType',
       'GetEvents',
-      'QueryEvent',      
+      'QueryEvent',
       'LogEvent',
       'ModelDelegate',
       'QueryDelegate',
@@ -393,92 +398,94 @@ function validateDmmfAgainstDenylists(prismaClientDmmf) {
       'PrismaClientRustPanicError',
     ],
     fields: ['AND', 'OR', 'NOT'],
-    dynamic: [] as string[]
+    dynamic: [] as string[],
   }
 
   for (const m of prismaClientDmmf.datamodel.models) {
-    denylists.dynamic.push(...[
-      `${m.name}Select`,
-      `${m.name}Include`,
-      `${m.name}Default`,
-      `${m.name}GetSelectPayload`,
-      `${m.name}GetIncludePayload`,
-      `${m.name}Client`,
-      `${m.name}Delegate`,
-      
-      `${m.name}Args`,
-      `${m.name}ArgsFilter`,
-      `${m.name}ArgsRequired`,
-      `${m.name}SelectArgs`,
-      `${m.name}SelectArgsOptional`,
-      `${m.name}IncludeArgs`,
-      `${m.name}IncludeArgsOptional`,      
-      `Extract${m.name}SelectCreateArgs`,
-      `Extract${m.name}IncludeCreateArgs`,
+    denylists.dynamic.push(
+      ...[
+        `${m.name}Select`,
+        `${m.name}Include`,
+        `${m.name}Default`,
+        `${m.name}GetSelectPayload`,
+        `${m.name}GetIncludePayload`,
+        `${m.name}Client`,
+        `${m.name}Delegate`,
 
-      `${m.name}WhereInput`,
-      `${m.name}WhereUniqueInput`,
-      `${m.name}CreateInput`,
-      `${m.name}UpdateInput`,
-      `${m.name}UpdateManyMutationInput`,
-      `${m.name}OrderByInput`,
-     
-      `${m.name}CreateArgs`,
-      `${m.name}CreateArgsRequired`,
-      `${m.name}SelectCreateArgs`,
-      `${m.name}IncludeCreateArgs`,
-      `Extract${m.name}SelectCreateArgs`,
-      `Extract${m.name}IncludeCreateArgs`,
-      `${m.name}SelectCreateArgsOptional`,      
-      `${m.name}IncludeCreateArgsOptional`,      
- 
-      `${m.name}UpsertArgs`,
-      `${m.name}UpsertArgsRequired`,
-      `${m.name}SelectUpsertArgs`,
-      `${m.name}IncludeUpsertArgs`,
-      `Extract${m.name}SelectUpsertArgs`,
-      `Extract${m.name}IncludeUpsertArgs`,
-      `${m.name}SelectUpsertArgsOptional`,      
-      `${m.name}IncludeUpsertArgsOptional`,      
+        `${m.name}Args`,
+        `${m.name}ArgsFilter`,
+        `${m.name}ArgsRequired`,
+        `${m.name}SelectArgs`,
+        `${m.name}SelectArgsOptional`,
+        `${m.name}IncludeArgs`,
+        `${m.name}IncludeArgsOptional`,
+        `Extract${m.name}SelectCreateArgs`,
+        `Extract${m.name}IncludeCreateArgs`,
 
-      `${m.name}UpdateArgs`,
-      `${m.name}UpdateArgsRequired`,
-      `${m.name}SelectUpdateArgs`,
-      `${m.name}IncludeUpdateArgs`,
-      `${m.name}UpdateManyArgs`,
-      `Extract${m.name}SelectUpdateArgs`,
-      `Extract${m.name}IncludeUpdateArgs`,
-      `${m.name}SelectUpdateArgsOptional`,      
-      `${m.name}IncludeUpdateArgsOptional`,      
+        `${m.name}WhereInput`,
+        `${m.name}WhereUniqueInput`,
+        `${m.name}CreateInput`,
+        `${m.name}UpdateInput`,
+        `${m.name}UpdateManyMutationInput`,
+        `${m.name}OrderByInput`,
 
-      `${m.name}DeleteArgs`,
-      `${m.name}DeleteArgsRequired`,
-      `${m.name}SelectDeleteArgs`,
-      `${m.name}IncludeDeleteArgs`,
-      `${m.name}DeleteManyArgs`,
-      `Extract${m.name}SelectDeleteArgs`,
-      `Extract${m.name}IncludeDeleteArgs`,
-      `${m.name}SelectDeleteArgsOptional`,      
-      `${m.name}IncludeDeleteArgsOptional`,
+        `${m.name}CreateArgs`,
+        `${m.name}CreateArgsRequired`,
+        `${m.name}SelectCreateArgs`,
+        `${m.name}IncludeCreateArgs`,
+        `Extract${m.name}SelectCreateArgs`,
+        `Extract${m.name}IncludeCreateArgs`,
+        `${m.name}SelectCreateArgsOptional`,
+        `${m.name}IncludeCreateArgsOptional`,
 
-      `FindOne${m.name}Args`,
-      `FindOne${m.name}ArgsRequired`,
-      `FindOne${m.name}SelectArgs`,
-      `FindOne${m.name}IncludeArgs`,
-      `FindOne${m.name}SelectArgsOptional`,
-      `FindOne${m.name}IncludeArgsOptional`,
-      `ExtractFindOne${m.name}SelectArgs`,
-      `ExtractFindOne${m.name}IncludeArgs`,
-     
-      `FindMany${m.name}Args`,
-      `FindMany${m.name}ArgsRequired`,
-      `FindMany${m.name}IncludeArgs`,
-      `FindMany${m.name}SelectArgs`,
-      `FindMany${m.name}SelectArgsOptional`,
-      `FindMany${m.name}IncludeArgsOptional`,
-      `ExtractFindMany${m.name}SelectArgs`,
-      `ExtractFindMany${m.name}IncludeArgs`,
-    ])
+        `${m.name}UpsertArgs`,
+        `${m.name}UpsertArgsRequired`,
+        `${m.name}SelectUpsertArgs`,
+        `${m.name}IncludeUpsertArgs`,
+        `Extract${m.name}SelectUpsertArgs`,
+        `Extract${m.name}IncludeUpsertArgs`,
+        `${m.name}SelectUpsertArgsOptional`,
+        `${m.name}IncludeUpsertArgsOptional`,
+
+        `${m.name}UpdateArgs`,
+        `${m.name}UpdateArgsRequired`,
+        `${m.name}SelectUpdateArgs`,
+        `${m.name}IncludeUpdateArgs`,
+        `${m.name}UpdateManyArgs`,
+        `Extract${m.name}SelectUpdateArgs`,
+        `Extract${m.name}IncludeUpdateArgs`,
+        `${m.name}SelectUpdateArgsOptional`,
+        `${m.name}IncludeUpdateArgsOptional`,
+
+        `${m.name}DeleteArgs`,
+        `${m.name}DeleteArgsRequired`,
+        `${m.name}SelectDeleteArgs`,
+        `${m.name}IncludeDeleteArgs`,
+        `${m.name}DeleteManyArgs`,
+        `Extract${m.name}SelectDeleteArgs`,
+        `Extract${m.name}IncludeDeleteArgs`,
+        `${m.name}SelectDeleteArgsOptional`,
+        `${m.name}IncludeDeleteArgsOptional`,
+
+        `FindOne${m.name}Args`,
+        `FindOne${m.name}ArgsRequired`,
+        `FindOne${m.name}SelectArgs`,
+        `FindOne${m.name}IncludeArgs`,
+        `FindOne${m.name}SelectArgsOptional`,
+        `FindOne${m.name}IncludeArgsOptional`,
+        `ExtractFindOne${m.name}SelectArgs`,
+        `ExtractFindOne${m.name}IncludeArgs`,
+
+        `FindMany${m.name}Args`,
+        `FindMany${m.name}ArgsRequired`,
+        `FindMany${m.name}IncludeArgs`,
+        `FindMany${m.name}SelectArgs`,
+        `FindMany${m.name}SelectArgsOptional`,
+        `FindMany${m.name}IncludeArgsOptional`,
+        `ExtractFindMany${m.name}SelectArgs`,
+        `ExtractFindMany${m.name}IncludeArgs`,
+      ],
+    )
   }
 
   if (prismaClientDmmf.datamodel.enums) {
@@ -486,17 +493,19 @@ function validateDmmfAgainstDenylists(prismaClientDmmf) {
       if (
         denylists.models.includes(it.name) ||
         denylists.fields.includes(it.name) ||
-        denylists.dynamic.includes(it.name)) {
+        denylists.dynamic.includes(it.name)
+      ) {
         errorArray.push(Error(`"enum ${it.name}"`))
       }
     }
   }
-  
+
   if (prismaClientDmmf.datamodel.enums) {
     for (const it of prismaClientDmmf.datamodel.models) {
       if (
         denylists.models.includes(it.name) ||
-        denylists.fields.includes(it.name)) {
+        denylists.fields.includes(it.name)
+      ) {
         errorArray.push(Error(`"model ${it.name}"`))
       }
     }

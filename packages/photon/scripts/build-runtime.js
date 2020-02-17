@@ -42,6 +42,7 @@ mockFs({
 
 const options = {
   minify: true,
+  sourceMap: true,
 }
 
 let targetDir = path.join(__dirname, '../runtime')

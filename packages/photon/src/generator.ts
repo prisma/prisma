@@ -1,5 +1,3 @@
-#!/usr/bin/env ts-node
-
 import { generatorHandler } from '@prisma/generator-helper'
 import Debug from 'debug'
 import { generateClient } from './generation/generateClient'
