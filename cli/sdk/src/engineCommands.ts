@@ -267,3 +267,17 @@ export async function dmmfToDml(
     throw new Error(e)
   }
 }
+
+export async function getVersion(enginePath?: string): Promise<string> {
+  enginePath = enginePath || (await getPrismaPath())
+
+  debug(`Getting version of ${enginePath}`)
+  const result = await execa(enginePath, ['--version'], {
+    env: {
+      ...process.env,
+    },
+    maxBuffer: MAX_BUFFER,
+  })
+
+  return result.stdout
+}
