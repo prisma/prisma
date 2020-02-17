@@ -70,6 +70,8 @@ postgresql://[user[:password]@][netloc][:port][,...][/database][?param1=value1&.
 - `user`: The database user, e.g. `admin`.
 - `password`: The password for the database user.
 - `connection_limit`: The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database. The **default value** is calculated according to this formula: `num_physical_cpus * 2 + 1`.
+- `connect_timeout`: The maximum number of seconds to wait for a new connection. **Default**: `5`. 
+- `socket_timeout`: The maximum number of seconds to wait until a single query terminates. **Default**: `5`. 
 
 See the next section to learn how you can configure an SSL connection.
 
