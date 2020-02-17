@@ -27,7 +27,7 @@ test('basic introspection', async () => {
       id      Int     @default(autoincrement()) @id
       name    String?
       role    String  @default(\\"USER\\")
-      posts   Post[]
+      post    Post[]
     }
 
     model Post {
