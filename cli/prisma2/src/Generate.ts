@@ -1,8 +1,7 @@
 import { Command, arg, format, HelpError, getSchemaPath, isError } from '@prisma/cli'
 import chalk from 'chalk'
 import logUpdate from 'log-update'
-import { missingGeneratorMessage } from '@prisma/sdk'
-import { getGenerators } from '@prisma/sdk'
+import { missingGeneratorMessage, getGenerators, highlightTS, link } from '@prisma/sdk'
 import { formatms } from './utils/formatms'
 import { simpleDebounce } from './utils/simpleDebounce'
 import fs from 'fs'
@@ -44,14 +43,13 @@ export class Generate implements Command {
         ? chalk.dim(` to .${path.sep}${path.relative(process.cwd(), generator.options!.generator.output!)}`)
         : ''
       const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
-      message.push(`Generated ${chalk.bold(name!)}${toStr}`)
       const before = Date.now()
       await generator.generate()
       if (!watchMode) {
         generator.stop()
       }
       const after = Date.now()
-      message.push(`Done in ${formatms(after - before)}\n`)
+      message.push(`✔ Generated ${chalk.bold(name!)}${toStr} in ${formatms(after - before)}\n`)
     }
 
     this.logText += message.join('\n')
@@ -112,9 +110,27 @@ export class Generate implements Command {
     }
 
     await this.runGenerate({ generators, watchMode })
-    watchMode ? logUpdate(watchingText + '\n' + this.logText) : logUpdate(this.logText)
 
-    if (watchMode) await new Promise(r => null)
+    if (watchMode) {
+      logUpdate(watchingText + '\n' + this.logText)
+      await new Promise(r => null)
+    } else {
+      logUpdate(
+        this.logText +
+          `
+You can now start using Prisma Client in your code:
+
+\`\`\`
+${highlightTS(`\
+import { PrismaClient } from '@prisma/client'
+// or const { PrismaClient } = require('@prisma/client')
+
+const prisma = new PrismaClient()`)}
+\`\`\`      
+
+Explore the full API: ${link('http://pris.ly/d/client')}`,
+      )
+    }
 
     return ''
   }
