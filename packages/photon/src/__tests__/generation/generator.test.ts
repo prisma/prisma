@@ -29,36 +29,6 @@ describe('generator', () => {
     ).toMatchInlineSnapshot(`
       Object {
         "defaultOutput": "@prisma/client",
-        "denylists": Object {
-          "fields": Array [
-            "AND",
-            "OR",
-            "NOT",
-          ],
-          "models": Array [
-            "Enumerable",
-            "MergeTruthyValues",
-            "CleanupNever",
-            "AtLeastOne",
-            "OnlyOne",
-            "StringFilter",
-            "IDFilter",
-            "FloatFilter",
-            "IntFilter",
-            "BooleanFilter",
-            "DateTimeFilter",
-            "NullableStringFilter",
-            "NullableIDFilter",
-            "NullableFloatFilter",
-            "NullableIntFilter",
-            "NullableBooleanFilter",
-            "NullableDateTimeFilter",
-            "PrismaClientFetcher",
-            "PrismaClient",
-            "Engine",
-            "PrismaClientOptions",
-          ],
-        },
         "prettyName": "Prisma Client",
         "requiresEngines": Array [
           "queryEngine",
