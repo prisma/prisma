@@ -44,17 +44,6 @@ export class Generate implements Command {
         ? chalk.dim(` to .${path.sep}${path.relative(process.cwd(), generator.options!.generator.output!)}`)
         : ''
       const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
-      if (
-        generator.manifest?.version &&
-        generator.manifest?.version !== pkg.version &&
-        generator.options?.generator.provider === 'prisma-client-js'
-      ) {
-        message.push(
-          `${chalk.bold.yellowBright('⚠️')} ${chalk.bold(
-            `@prisma/client@${generator.manifest?.version}`,
-          )} is not compatible with ${chalk.bold(`prisma2@${pkg.version}`)}. Their versions need to be equal.`,
-        )
-      }
       message.push(`Generated ${chalk.bold(name!)}${toStr}`)
       const before = Date.now()
       await generator.generate()
