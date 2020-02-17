@@ -27,11 +27,11 @@ export class CLI implements Command {
     if (isError(args)) {
       return this.help(args.message)
     }
-    
+
     if (args['--version']) {
       return Version.new().parse(argv)
     }
-    
+
     // display help for help flag or no subcommand
     if (args._.length === 0 || args['--help']) {
       if (args['--experimental']) {
@@ -79,7 +79,9 @@ export class CLI implements Command {
 
   // static help template
   private static help = format(`
-    ${process.platform === "win32" ? '' : chalk.bold.green('◭  ')}Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
+    ${
+      process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
+    }Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
 
     ${chalk.bold('Usage')}
 
@@ -97,7 +99,7 @@ export class CLI implements Command {
 
     ${chalk.bold('Examples')}
 
-      Setup Prisma for your existing database
+      Setup a new Prisma project
       ${chalk.dim('$')} prisma2 init
 
       Introspect an existing database
@@ -109,7 +111,9 @@ export class CLI implements Command {
 
   // static help template
   private static experimentalHelp = format(`
-    ${process.platform === "win32" ? '' : chalk.bold.green('◭  ')}Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
+    ${
+      process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
+    }Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
 
     ${chalk.bold('Usage')}
 
