@@ -1,4 +1,5 @@
 #!/usr/bin/env ts-node
+
 import * as Sentry from '@sentry/node'
 import dotenv = require('dotenv')
 const packageJson = require('../package.json')
