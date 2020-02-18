@@ -10,7 +10,7 @@ export class Client {
     this.session.on('error', e => {})
   }
   close() {
-    this.session.close()
+    this.session.destroy()
   }
   request(body: any) {
     return new Promise((resolve, reject) => {
@@ -27,7 +27,7 @@ export class Client {
         })
 
         req.setEncoding('utf8')
-        let data = ''
+        let data = []
         let headers
 
         req.on('error', e => {
@@ -40,7 +40,7 @@ export class Client {
         })
 
         req.on('data', chunk => {
-          data += chunk
+          data.push(chunk)
         })
         req.on('response', res => {
           headers = res
@@ -69,7 +69,7 @@ export class Client {
         }
         req.on('end', () => {
           if (data && data.length > 0 && !rejected) {
-            resolve({ body: JSON.parse(data), headers })
+            resolve({ body: JSON.parse(data.join('')), headers })
           }
         })
       } catch (e) {
