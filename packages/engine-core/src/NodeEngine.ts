@@ -20,8 +20,8 @@ import EventEmitter from 'events'
 import { convertLog, RustLog, RustError } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
-import { Client } from './client'
-import h2url from 'h2url'
+// import { Client } from './client'
+import bent from 'bent'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -70,7 +70,6 @@ export class NodeEngine {
   private logQueries: boolean
   private logLevel?: 'info' | 'warn'
   private env?: Record<string, string>
-  private client?: Client
   port?: number
   debug: boolean
   child?: ChildProcessWithoutNullStreams
@@ -537,21 +536,12 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
       batch: queries.map(query => ({ query, variables })),
     }
 
-    // this.currentRequestPromise = this.client.request(body)
-    this.currentRequestPromise = h2url.concat({
-      url: this.url,
-      body: JSON.stringify(body),
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
+    const post = bent(this.url, 'POST', 'json', 200)
+    this.currentRequestPromise = post('/', body)
 
     return this.currentRequestPromise
       .then(data => {
-        const body = JSON.parse(data.body)
-
-        return body.map(result => {
+        return data.map(result => {
           if (result.errors) {
             return this.graphQLToJSError(result.errors[0])
           }
