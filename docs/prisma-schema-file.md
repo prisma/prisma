@@ -84,7 +84,7 @@ A data source connector may bring its own fields to allow users to tailor their 
 
 #### Naming conventions
 
-Data sources are typically named according to the `provider`:
+Data sources are typically named after the `provider`:
 
 ```prisma
 datasource sqlite {
@@ -109,29 +109,8 @@ datasource mongo {
 }
 ```
 
-This is a general convention, technically data sources can be named anything. Lowercase spelling is typically preferred. There might be special circumstances, such as [switching data sources based on environments](#switching-data-sources-based-on-environments), when it can make sense to apply a
-different naming scheme.
+This is a general convention, technically data sources can be named anything. Lowercase spelling is typically preferred. 
 
-#### Examples
-
-```prisma
-datasource pg {
-  provider = "postgresql"
-  url      = env("POSTGRESQL_URL")
-  enabled  = true
-}
-
-datasource mysql {
-  provider = "mysql"
-  url      = env("MYSQL_URL")
-}
-
-// Note: MongoDB is currently not supported by Prisma 2, but will be soon.
-datasource mongo {
-  provider = "mongodb"
-  url      = env("MONGO_URL")
-}
-```
 
 ### Generators (optional)
 
@@ -191,58 +170,70 @@ You can use environment variables to provide configuration options when a CLI co
 - Keep secrets out of the schema file
 - Improve portability of the schema file
 
-### The `env` function
+### Defining environment variables with the `env` function
 
 Environment variables can be provided using the `env` function:
 
 ```prisma
 datasource pg {
   provider = "postgresql"
-  url      = env("POSTGRES_URL")
+  url      = env("DATABASE_URL")
 }
 ```
 
 There are a few limitations with `env` at the moment:
 
-- It is not possible to use string concat operations to build your url
-- It is not possible to use environment variables for the `provider` argument in `datasource` and `generator` definitions
+- It is not possible to use string concat operations (e.g. to construct your database connection string).
+- It is not possible to use environment variables for the `provider` argument in `datasource` and `generator` definitions.
 
-### Switching data sources based on environments
+### Using `.env` files
 
-To switch the datasources based on your environment, you can use the `enabled` property on the `datasource` definition:
+For many developer tools, it has become a good practice to define environment variables using [`.env`](https://github.com/motdotla/dotenv) files. 
+
+Prisma provides native support for `.env` files. This means any environment variables defined in `.env` files will automatically be loaded when running a Prisma CLI command. 
+
+For example, it is a common scenario to set your database connection URL via an environment variable:
 
 ```prisma
-datasource mysql {
-  provider = "mysql"
-  url = env("PRISMA_MYSQL_URL")
-  enabled = true
-}
+// schema.prisma
 
-datasource postgres {
+datasource db {
   provider = "postgresql"
-  url = env("PRISMA_POSTGRES_URL")
+  url      = env("DATABASE_URL")
 }
 ```
 
-You can also target different environments using environment variables, for example:
+This requires the `DATABASE_URL` to be set in your `.env` file:
+
+```
+# .env
+DATABASE_URL=postgresql://test:test@localhost:5432/test?schema=public
+```
+
+When running any command that needs to access the database defined via the `datasource` block (e.g. `prisma2 introspect`), the Prisma CLI automatically loads the `DATABASE_URL` environment variables from the `.env` file and makes it available to the CLI.
+
+> **WARNING**: Do not commit your `.env` files into version control. 
+
+<!--
+### Switching data sources based on environments
+
+You can target different environments using environment variables, for example:
 
 ```prisma
 datasource mysql {
   provider = "mysql"
   url      = env("MYSQL_URL")
-  enabled  = env("MYSQL_URL")
 }
 
 datasource postgres {
   provider = "postgresql"
   url      = env("POSTGRES_URL")
-  enabled  = env("POSTGRES_URL")
 }
 ```
 
 Depending on which environment variable is set (in this case `MYSQL_URL` or `POSTGRES_URL`), the respective data source will be used. To set these variables you can either use a `.env`-file or `export` the variables in your shell instance.
 
-Tip: To quickly switch between environments you can `source` a file with the `export` commands.
+To quickly switch between environments you can `source` a file with the `export` commands.
 
 ```bash
 // dev_env
@@ -250,10 +241,10 @@ export POSTGRES_URL=postgresql://test:test@localhost:5432/test?schema=public
 ```
 
 Then run the following command:
-`
+
 ```bash
 source ./dev_env
-```
+``` -->
 
 ### Using environment variables with Prisma Client JS
 
