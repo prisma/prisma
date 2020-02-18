@@ -9,7 +9,7 @@ To connect to a MySQL database server, you need to configure a [`datasource`](..
 ```prisma
 datasource mysql {
   provider = "mysql"
-  url      = env("MYSQL_URL")
+  url      = env("DATABASE_URL")
 }
 
 // ... the file should also contain a data model definition and (optionally) generators
@@ -55,3 +55,5 @@ See the [official documentation](https://dev.mysql.com/doc/refman/8.0/en/connect
 - `ssl`: Whether or not your database server uses SSL.
 - `connection_limit`: The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database.
 - `socket`: If you want to connect via sockets, this parameter must specified a file path to the socket you want to use, e.g.: `/var/run/mysqld/mysqld.sock`. (Learn more in this [GitHub issue](https://github.com/prisma/prisma2/issues/525)).
+- `connect_timeout`: The maximum number of seconds to wait for a new connection. **Default**: `5`. 
+- `socket_timeout`: The maximum number of seconds to wait until a single query terminates. **Default**: `5`. 

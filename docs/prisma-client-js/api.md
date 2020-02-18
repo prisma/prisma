@@ -157,10 +157,6 @@ const result = await prisma.user.findOne({
 // }
 ```
 
-### Lazy loading
-
-Coming soon.
-
 ## Relations
 
 Learn more about relations in the generated Prisma Client JS API [here](../relations.md#relations-in-the-generated-prisma-client-js-api).
@@ -190,7 +186,58 @@ Note that Prisma Client JS will throw an error if you're trying to create/update
 
 ## Raw database access
 
-Coming soon.
+You can send raw SQL queries to your database using the `raw` function that's exposed by your `PrismaClient` instance. It returns the query results as plain old JavaScript objects:
+
+```ts
+const result = await prisma.raw('SELECT * FROM User;')
+// result = [
+//   { "id":1, "email":"sarah@prisma.io", "name":"Sarah" },
+//   { "id":2, "email":"alice@prisma.io", "name":"Alice" }
+// ]
+```
+
+### Tagged templates
+
+Note that `raw` is implemented as a [tagged template](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates). Therefore, you can also call `raw` as follows:
+
+```ts
+const result = await prisma.raw`SELECT * FROM User;`
+```
+
+### Setting variables
+
+To include variables in your SQL query, you can use JavaScript string interpolation with [template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals):
+
+```ts
+const userId = 42
+const result = await prisma.raw`SELECT * FROM User WHERE id = ${userId};`
+```
+
+### Typing `raw` results
+
+The `raw` function has the following function signature:
+
+```ts
+raw<T = any>(query: string | TemplateStringsArray): Promise<T>;
+```
+
+The return type of `raw` is a `Promise` for the [generic](https://www.typescriptlang.org/docs/handbook/generics.html) type parameter `T`. This means you can type the result manually by providing `T` when you invoke `raw`. If you don't provide any type, the return type of `raw` defaults to `any`.
+
+```ts
+// import the generated `User` type from the `@prisma/client` module
+import { User } from '@prisma/client'
+
+const result = await prisma.raw<User[]>('SELECT * FROM User;')
+// result is of type: `User[]`
+```
+
+Now, `result` is statically typed to the generated `User` type (or rather an array thereof) from Prisma Client.
+
+![](https://imgur.com/H2TCRc5.png)
+
+If you're selecting only specific fields of the model or want to include relations, read the documentation about [leveraging Prisma Client's generated types](./generated-types.md) if you want to ensure that the query results are properly typed.
+
+Note that calls to `SELECT` always return arrays of type `T`, but other SQL operations (like `INSERT` or `UPDATE`) might return single objects.
 
 ## Scalar lists
 
@@ -508,9 +555,6 @@ const result = await prisma.user.findMany({
     },
   },
 })
-// result = {
-//
-// }
 ```
 
 ## Debugging
