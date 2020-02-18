@@ -23,12 +23,12 @@
   "dependencies": {
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
+    "bent": "^7.0.6",
     "camelcase": "^5.3.1",
     "chalk": "^3.0.0",
     "cross-fetch": "^3.0.4",
     "debug": "^4.1.1",
     "got": "^9.6.0",
-    "h2url": "^0.2.0",
     "indent-string": "^4.0.0"
   },
   "files": [
