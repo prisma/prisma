@@ -21,6 +21,7 @@ import { convertLog, RustLog, RustError } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
 import { Client } from './client'
+import h2url from 'h2url'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -457,7 +458,8 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
 
         const url = `http://localhost:${this.port}`
         this.url = url
-        this.client = new Client(url)
+        // TODO: Re-enable
+        // this.client = new Client(url)
         resolve()
       } catch (e) {
         reject(e)
@@ -485,7 +487,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
     if (this.child) {
       debug(`Stopping Prisma engine`)
       this.exiting = true
-      this.client.close()
+      // this.client.close()
       await this.child.kill()
       delete this.child
     }
@@ -535,11 +537,19 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
       batch: queries.map(query => ({ query, variables })),
     }
 
-    this.currentRequestPromise = this.client.request(body)
+    // this.currentRequestPromise = this.client.request(body)
+    this.currentRequestPromise = h2url.concat({
+      url: this.url,
+      body: JSON.stringify(body),
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+    })
 
     return this.currentRequestPromise
       .then(data => {
-        const { body } = data
+        const body = JSON.parse(data.body)
 
         return body.map(result => {
           if (result.errors) {
