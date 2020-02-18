@@ -2,6 +2,9 @@ import { getGenerator, getPackedPackage } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import { omit } from '../../omit'
+import { promisify } from 'util'
+import rimraf from 'rimraf'
+const del = promisify(rimraf)
 
 jest.setTimeout(30000)
 
@@ -11,6 +14,12 @@ describe('generator', () => {
       __dirname,
       './node_modules/@prisma/client',
     )
+    // Make sure, that nothing is cached.
+    try {
+      await del(prismaClientTarget)
+    } catch (e) {
+      //
+    }
     await getPackedPackage('@prisma/client', prismaClientTarget)
 
     if (!fs.existsSync(prismaClientTarget)) {
