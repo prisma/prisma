@@ -42,6 +42,7 @@ export class Client {
         req.on('data', chunk => {
           data.push(chunk)
         })
+
         req.on('response', res => {
           headers = res
           if (res[':status'] === 408) {
@@ -63,10 +64,12 @@ export class Client {
             )
           }
         })
+
         if (!rejected) {
           req.write(buffer)
           req.end()
         }
+
         req.on('end', () => {
           if (data && data.length > 0 && !rejected) {
             resolve({ body: JSON.parse(data.join('')), headers })
