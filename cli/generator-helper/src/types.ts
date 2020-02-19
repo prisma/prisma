@@ -5,7 +5,18 @@ export namespace DMMF {
     mappings: Mapping[]
   }
 
-  export interface Enum {
+  export interface EnumValue {
+    name: string
+    dbName: string
+  }
+
+  export interface DatamodelEnum {
+    name: string
+    values: EnumValue[]
+    dbName?: string | null
+  }
+
+  export interface SchemaEnum {
     name: string
     values: string[]
     dbName?: string | null
@@ -13,7 +24,7 @@ export namespace DMMF {
 
   export interface Datamodel {
     models: Model[]
-    enums: Enum[]
+    enums: DatamodelEnum[]
   }
 
   export interface Model {
@@ -47,7 +58,7 @@ export namespace DMMF {
     rootMutationType?: string
     inputTypes: InputType[]
     outputTypes: OutputType[]
-    enums: Enum[]
+    enums: SchemaEnum[]
   }
 
   export interface QueryOutput {
