@@ -205,7 +205,7 @@ Read below to learn how you obtain it for your project.
 
 #### Option A: Starting with an existing database (_brownfield_)
 
-<img src="https://i.imgur.com/XkRkwdE.png" width="355px">
+<img src="https://imgur.com/Zv1OmmM.png" width="355px">
 
 If you want to use Prisma Client JS with an existing database, you can [introspect](https://github.com/prisma/prisma2/blob/master/docs/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md). This generates a [data model](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) which is the foundation for the generated Prisma Client JS API.
 
@@ -215,7 +215,7 @@ When starting from scratch, you can simply write your own [data model definition
 
 ### 3. Generate Prisma Client JS
 
-<img src="https://i.imgur.com/rdtKEYL.png" width="453px">
+<img src="https://imgur.com/TkEGEn6.png" width="453px">
 
 Generate your version of Prisma Client JS using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md):
 
