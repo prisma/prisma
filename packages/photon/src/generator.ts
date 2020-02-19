@@ -1,6 +1,7 @@
 import { generatorHandler } from '@prisma/generator-helper'
 import Debug from 'debug'
 import { generateClient } from './generation/generateClient'
+import { getDMMF } from './generation/getDMMF'
 const debugEnabled = Debug.enabled('prisma-client:generator')
 
 // As specced in https://github.com/prisma/specs/tree/master/generators
@@ -34,3 +35,5 @@ generatorHandler({
     })
   },
 })
+
+export { getDMMF }
