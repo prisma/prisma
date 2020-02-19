@@ -303,7 +303,7 @@ export function getBinaryEnvVarPath(binaryName: string): string | null {
     if (!fs.existsSync(envVarPath)) {
       throw new Error(
         `Env var ${chalk.bold(envVar)} is provided but provided path ${chalk.underline(
-          process.env.PRISMA_QUERY_ENGINE_BINARY,
+          process.env[envVar],
         )} can't be resolved.`,
       )
     }
@@ -327,13 +327,23 @@ async function downloadBinary(options: DownloadBinaryOptions) {
   const { version, progressCb, failSilent, targetFilePath, binaryTarget, binaryName } = options
   const downloadUrl = getDownloadUrl(channel, version, binaryTarget, binaryName)
 
+  const targetDir = path.dirname(targetFilePath)
   try {
-    await makeDir(path.dirname(targetFilePath))
+    await makeDir(targetDir)
   } catch (e) {
     if (failSilent) {
       return
     } else {
       throw e
+    }
+  }
+  try {
+    fs.accessSync(targetDir, fs.constants.W_OK)
+  } catch (e) {
+    if (options.failSilent || e.code !== 'EACCES') {
+      return
+    } else {
+      throw new Error(`Can't write to ${targetDir} please make sure you install "prisma2" with the right permissions.`)
     }
   }
   debug(`Downloading ${downloadUrl} to ${targetFilePath}`)
