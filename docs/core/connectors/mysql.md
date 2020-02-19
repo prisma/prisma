@@ -54,6 +54,6 @@ See the [official documentation](https://dev.mysql.com/doc/refman/8.0/en/connect
 - `password`: The password for the database user.
 - `ssl`: Whether or not your database server uses SSL.
 - `connection_limit`: The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database.
-- `socket`: If you want to connect via sockets, this parameter must specified a file path to the socket you want to use, e.g.: `/var/run/mysqld/mysqld.sock`. (Learn more in this [GitHub issue](https://github.com/prisma/prisma2/issues/525)).
+- `socket`: If you want to connect via sockets, this parameter must specified a file path to the socket you want to use, e.g.: `"mysql://root@localhost/dbname?socket=(/tmp/mysql.sock)"`.
 - `connect_timeout`: The maximum number of seconds to wait for a new connection. **Default**: `5`. 
 - `socket_timeout`: The maximum number of seconds to wait until a single query terminates. **Default**: `5`. 
