@@ -12,9 +12,10 @@ Prisma Client JS is a type-safe database client auto-generated based on your [da
 - [Bring your own ID](#bring-your-own-id)
 - [API Reference](#api-reference)
 - [Filtering](#filtering)
-- [Debugging](#debugging)
+- [Logging and debugging](#logging-and-debugging)
 - [Reusing query sub-parts](#reusing-query-sub-parts)
 - [Managing connections](#managing-connections)
+- [Error formatting](#error-formatting)
 
 ## Overview
 
@@ -557,7 +558,7 @@ const result = await prisma.user.findMany({
 })
 ```
 
-## Debugging
+## Logging and debugging
 
 You can view the generated database queries that Prisma Client JS sends to your database by setting the `debug` option to `true` when instantiating `PrismaClient`:
 
@@ -616,3 +617,48 @@ Unless you want to employ a specific optimization, calling `prisma.connect()` is
 If you need the first request to respond instantly and can't wait for the lazy connection to be established, you can explicitly call `prisma.connect()` to establish a connection to prismae data source.
 
 **IMPORTANT**: It is recommended to always explicitly call `prisma.disconnect()` in your code. Generally the `PrismaClient` instance disconnects automatically. However, if your program terminates but still  prismas an unhandled promise rejection, the port will keep the connection to the data source open beyond the lifetime of your program!
+
+## Error formatting
+
+By default, Prisma Client uses ANSI escape characters to pretty print the error stack and give recommendations on how to fix a problem. While this is very useful when using Prisma Client from the terminal, in contexts like a GraphQL API, you only want the minimal error without any additional formatting.
+
+This is how error formatting can be configured with Prisma Client.
+
+There are 3 error formatting levels:
+
+1. **Pretty Error** (default): Includes a full stack trace with colors, syntax highlighting of the code and extended error message with a possible solution for the problem.
+2. **Colorless Error**: Same as pretty errors, just without colors.
+3. **Minimal Error**: The raw error message.
+
+In order to configure these different error formatting levels, we have two options: 
+
+- Setting the config options via environment variables
+- Providing the config options to the `PrismaClient` constructor
+
+### Environment variables
+
+- `NO_COLOR`: If this env var is provided, colors are stripped from the error message. Therefore you end up with a **colorless error**. The `NO_COLOR` environment variable is a standard described [here](https://no-color.org/). We have a tracking issue [here](https://github.com/prisma/prisma2/issues/686).
+- `NODE_ENV=production`: If the env var `NODE_ENV` is set to `production`, only the **minimal error** will be printed. This allows for easier digestion of logs in production environments.
+
+### Constructor
+
+The constructor argument to control the error formatting is called `errorFormat`. It can have the following values:
+
+- `undefined`: If it's not defined, the default is `pretty`.
+- `pretty`: Enables pretty error formatting.
+- `colorless`: Enables colorless error formatting.
+- `minimal`: Enables minimal error formatting.
+
+It can be used like so:
+
+```ts
+const prisma = new PrismaClient({
+  errorFormat: 'minimal',
+})
+```
+
+As the `errorFormat` property is optional, you still can just instantiate Prisma Client like this:
+
+```ts
+const prisma = new PrismaClient()
+```
