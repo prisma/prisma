@@ -88,7 +88,7 @@ The main benefits of the latter approach are:
 
 #### Description
 
-When doing [`select`](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#select-exclusively-via-select) or [`include`](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#include-additionally-via-include) operations on your models it is difficult to gain access to the return type, e.g:
+When doing [`select`](./api.md#select-exclusively-via-select) or [`include`](./api.md#include-additionally-via-include) operations on your models it is difficult to gain access to the return type, e.g:
 
 ```ts
 async function getUsersWithPosts() {
