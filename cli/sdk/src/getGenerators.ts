@@ -85,7 +85,7 @@ export async function getGenerators({
 
     const binaryPathsWithEngineType = await download(downloadParams)
     debug({ binaryPathsWithEngineType })
-    prismaPath = binaryPathsWithEngineType['query-engine'][platform]
+    prismaPath = binaryPathsWithEngineType['query-engine']![platform]
   }
 
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
