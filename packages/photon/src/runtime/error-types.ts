@@ -28,7 +28,7 @@ export interface InvalidFieldTypeError {
 export interface InvalidFieldNameError {
   type: 'invalidFieldName'
   modelName: string
-  didYouMean?: string
+  didYouMean?: string | null
   providedName: string
   isInclude?: boolean
   isIncludeScalar?: boolean
