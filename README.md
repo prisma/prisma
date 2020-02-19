@@ -104,7 +104,7 @@ enum Role {
 
 #### Option A: Starting with an existing database
 
-<img src="https://i.imgur.com/XkRkwdE.png" width="355px">
+<img src="https://imgur.com/Zv1OmmM.png" width="355px">
 
 If you want to use Prisma Migrate with an existing database, you can [introspect](https://github.com/prisma/prisma2/blob/master/docs/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md). This generates a declarative [data model](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) which provides the foundation for future migrations.
 
@@ -114,7 +114,7 @@ When starting from scratch, you can write your own [data model definition](https
 
 ### 3. Adjust the data model
 
-<img src="https://i.imgur.com/ePrrlHP.png" width="387px">
+<img src="https://imgur.com/jQt0PbQ.png" width="387px">
 
 Instead of sending SQL migration statements to the database, you need to adjust the data model file to describe your desired database schema. You can express any schema migration you like using the new data model, this includes for example adding a new model, removing a model or updating the fields of a model. You can
 also add indexes or validation constraints in the data model.
@@ -127,7 +127,7 @@ prisma2 migrate save --name "add-comment-model" --experimental
 
 ### 4. Migrate your database (apply data model changes)
 
-<img src="https://i.imgur.com/L6a5Vqd.png" width="392px">
+<img src="https://imgur.com/iUCAStQ.png" width="392px">
 
 Once you're happy with the changes, you can use the Prisma CLI to migrate your database (i.e. map the adjusted data model to your database). Prisma Migrate's migration engine will generate the corresponding SQL statements and send them to the database for you.
 
