@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import Progress from 'progress'
 
 export function getBar(text): Progress {
@@ -9,13 +8,6 @@ export function getBar(text): Progress {
     incomplete: ' ',
     total: 100,
     head: '',
+    clear: true,
   })
-}
-
-export function info(text) {
-  console.log(`> ${text}`)
-}
-
-export function warn(text) {
-  console.log(chalk.red('> Warning!'), text)
 }
