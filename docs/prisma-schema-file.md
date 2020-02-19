@@ -101,12 +101,6 @@ datasource postgresql {
   provider  = "postgresql"
   url       = env("POSTGRESQL_URL")
 }
-
-// Note: MongoDB is currently not supported by Prisma 2, but will be soon.
-datasource mongo {
-  provider  = "mongo"
-  url       = env("MONGO_URL")
-}
 ```
 
 This is a general convention, technically data sources can be named anything. Lowercase spelling is typically preferred. 
