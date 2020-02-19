@@ -6,8 +6,6 @@ import fs from 'fs'
 import { promisify } from 'util'
 import path from 'path'
 import { getProxyAgent } from './getProxyAgent'
-import Debug from 'debug'
-const debug = Debug('fetch-engine:util')
 
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
@@ -52,11 +50,11 @@ export async function getCacheDir(
   failSilent: boolean,
 ): Promise<string | null> {
   const rootCacheDir = await getRootCacheDir()
-
-  debug({ rootCacheDir, channel, version, platform })
   const cacheDir = path.join(rootCacheDir, channel, version, platform)
   try {
-    await makeDir(cacheDir)
+    if (!fs.existsSync(cacheDir)) {
+      await makeDir(cacheDir)
+    }
   } catch (e) {
     if (failSilent) {
       return null
@@ -67,9 +65,7 @@ export async function getCacheDir(
   return cacheDir
 }
 
-export type BinaryKind = 'query-engine' | 'migration-engine'
-
-function rewriteKind(kind: BinaryKind) {
+function rewriteKind(kind: string) {
   if (kind === 'query-engine') {
     return 'prisma'
   }
@@ -77,7 +73,7 @@ function rewriteKind(kind: BinaryKind) {
   return kind
 }
 
-export function getDownloadUrl(channel: string, version: string, platform: string, binaryName: BinaryKind) {
+export function getDownloadUrl(channel: string, version: string, platform: string, binaryName: string) {
   const extension = platform === 'windows' ? '.exe.gz' : '.gz'
   return `https://binaries.prisma.sh/${channel}/${version}/${platform}/${rewriteKind(binaryName)}${extension}`
 }

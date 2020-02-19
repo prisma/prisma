@@ -8,3 +8,4 @@ cli
 prisma
 schema-inferrer-bin
 test
+sandbox

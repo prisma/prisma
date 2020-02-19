@@ -7,22 +7,24 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@types/fs-extra": "8.0.1",
-    "@types/node": "^12.12.14",
+    "@types/node": "^12.12.25",
     "@types/node-fetch": "^2.5.4",
     "@types/progress": "^2.0.3",
     "ncc": "^0.3.6",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.5"
   },
   "dependencies": {
     "@prisma/get-platform": "workspace:*",
     "chalk": "^3.0.0",
     "debug": "^4.1.1",
-    "find-cache-dir": "^3.1.0",
+    "execa": "3.4",
+    "find-cache-dir": "^3.2.0",
     "htmlparser2": "^4.0.0",
     "http-proxy-agent": "^2.1.0",
     "https-proxy-agent": "^3.0.1",
     "make-dir": "^3.0.0",
     "node-fetch": "^2.6.0",
+    "p-filter": "^2.1.0",
     "p-map": "^3.0.0",
     "p-retry": "^4.2.0",
     "progress": "^2.0.3",
