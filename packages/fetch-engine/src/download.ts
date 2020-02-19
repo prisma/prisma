@@ -61,13 +61,16 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       options.binaries['introspection-engine']
     : null
 
-  if (baseDir) {
+  const downloadDoneFile = baseDir ? path.join(baseDir, 'download-done') : null
+  const nativeDownloadsDone = downloadDoneFile ? fs.existsSync(downloadDoneFile) : false
+
+  if (baseDir && !nativeDownloadsDone) {
     try {
       const writeTestPath = path.join(baseDir, 'write-test')
       fs.writeFileSync(writeTestPath, 'write-test')
       fs.unlinkSync(writeTestPath)
     } catch (e) {
-      if (options.failSilent) {
+      if (options.failSilent || e.code !== 'EACCES') {
         return
       } else {
         throw new Error(`Can't write to ${baseDir} please make sure you install "prisma2" with the right permissions.`)
@@ -75,8 +78,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     }
   }
 
-  const downloadDoneFile = baseDir ? path.join(baseDir, 'download-done') : null
-  const nativeDownloadsDone = downloadDoneFile ? fs.existsSync(downloadDoneFile) : false
   const everythingDownloaded =
     nativeDownloadsDone &&
     (!options.binaryTargets || (options.binaryTargets.length === 1 && options.binaryTargets[0] === platform))
