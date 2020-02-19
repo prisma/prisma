@@ -26,8 +26,69 @@ As database schemas are likely to look very different per project, Prisma employ
 ## Limitations
 
 - Every column needs to have a primary key constraint on a single column ([multi-column primary keys are not yet supported](https://github.com/prisma/prisma-client-js/issues/339)). Introspection will fail if this is not the case. Note that this often makes it impossible to introspect a schema that uses relation tables (also sometimes called "join tables") as these typically don't have a single-column primary key.
-- `ENUM` types are not yet supported. Introspection will succeed and ignore the `ENUM` types in your database schema.
 - `TIMESTAMP WITH TIMEZONE` types are already supported via introspection (and mapped to Prisma's `DateTime` type) but [currently can't be queried with Prisma Client](https://github.com/prisma/prisma2/issues/1386).
+
+## Common workarounds
+
+### Tables without unique identifiers
+
+Prisma can only map a table in your database to a Prisma model if the table has a _unique identifier_. This can be either of the follwing:
+
+- The table contains a column with a `UNIQUE` constraint
+- The table contains a column with a `PRIMARY KEY` constraint
+
+If there are tables that don't adhere to this requirement, they're added as comments to the Prisma schema. 
+
+Consider the following SQL table:
+
+```sql
+CREATE TABLE countries (
+  name VARCHAR(255),
+  population INT
+);
+```
+
+This table neither has column with a `UNIQUE` nor with a `PRIMARY KEY` constraint. Therefore, it would appear in a Prisma schema that's generated through introspection as follows:
+
+```prisma
+// model countries {
+//   name       String
+//   population Int
+// }
+```
+
+To fix this, you can add add a `PRIMARY KEY` or a `UNIQUE` constraint to the table.
+
+#### Adding a `PRIMARY KEY` constraint
+
+A straightforward solution to the problem is to adds a serial/auto-incrementing, primary key column to the table. 
+
+```sql
+-- PostgreSQL
+ALTER TABLE "public"."countries"
+  ADD COLUMN "id" serial,
+  ADD PRIMARY KEY ("id");
+
+-- MySQL
+ALTER TABLE countries 
+  ADD COLUMN id bigint PRIMARY KEY NOT NULL SERIAL DEFAULT VALUE;
+```
+
+Note that with SQLite, you can't add primary key columns to existing tables but have to delete and re-create it with the desired constraint.
+
+#### Adding a `UNIQUE` constraint
+
+This example show how to add a `UNIQUE` constraint (asssuming the column actually only contains unique values):
+
+```sql
+-- PostgreSQL
+ALTER TABLE "public"."countries" ADD UNIQUE ("population");
+
+-- MySQL
+ALTER TABLE countries ADD UNIQUE (population);
+```
+
+Note that with SQLite, [you can't alter columns](https://stackoverflow.com/questions/4007014/alter-column-in-sqlite) but have to delete and re-create it with the desired constraint.
 
 
 ## Mapping PostgreSQL types to Prisma
