@@ -248,7 +248,7 @@ export async function versionCommandWorks(enginePath: string): Promise<boolean> 
   }
 }
 
-function getBinaryName(binaryName: string, platform: string): string {
+export function getBinaryName(binaryName: string, platform: string): string {
   const extension = platform === 'windows' ? '.exe' : ''
   return `${binaryName}-${platform}${extension}`
 }
@@ -270,6 +270,10 @@ async function getCachedBinaryPath({
   }
 
   const cachedTargetPath = path.join(cacheDir, binaryName)
+
+  if (!fs.existsSync(cachedTargetPath)) {
+    return null
+  }
 
   // All versions not called 'latest' are unique
   // only latest needs more checks
