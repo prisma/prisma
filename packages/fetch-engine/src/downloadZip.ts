@@ -4,7 +4,11 @@ import fetch from 'node-fetch'
 import fs from 'fs'
 import { getProxyAgent } from './getProxyAgent'
 
-export async function downloadZip(url: string, target: string, progressCb?: (progress: number) => any) {
+export async function downloadZip(
+  url: string,
+  target: string,
+  progressCb?: (progress: number) => any,
+): Promise<string> {
   const partial = target + '.partial'
   const result = await retry(
     async () => {
@@ -47,8 +51,8 @@ export async function downloadZip(url: string, target: string, progressCb?: (pro
     {
       retries: 1,
       onFailedAttempt: err => console.error(err),
-    },
+    } as any,
   )
   fs.renameSync(partial, target)
-  return result
+  return result as string
 }
