@@ -34,9 +34,13 @@ export declare type User = {
 
 ### Problem: Using variations of the generated model type
 
+#### Description
+
 In some scenarios, you may need a variation of the generated `User` type. For example, when you have a function that expects an instance of the `User` model that carries the `posts` relation. Or when you need a type to pass only the `User` model's `email` and `name` fields around in your application code.
 
-### Solution: Customize the generated model type using Prisma Client JS' helper types
+#### Solution
+
+As a solution, you can customize the generated model type using Prisma Client JS' helper types.
 
 The `User` type only contains the model's [scalar](../data-modeling.md#scalar-types) fields, but doesn't account for any relations. That's because [relations are not included by default](./api.md#the-default-selection-set) in Prisma Client JS' API calls.
 
@@ -79,3 +83,33 @@ The main benefits of the latter approach are:
 
 - Cleaner approach as it leverages Prisma Client JS' generated types
 - Reduced maintenance burden and improved type-safety when the schema changes
+
+### Problem: Getting access to the return type of a partial structure
+
+#### Description
+
+When doing [`select`](./api.md#select-exclusively-via-select) or [`include`](./api.md#include-additionally-via-include) operations on your models it is difficult to gain access to the return type, e.g:
+
+```ts
+async function getUsersWithPosts() {
+  const users = await prisma.user.findMany({ include: { posts: true } })
+  return users
+}
+```
+
+Extracting the type that represents "users with posts" from the above code snippet requires some advanced TypeScript usage:
+
+```ts
+type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
+type UsersWithPosts = ThenArg<ReturnType<typeof getUsersWithPosts>>;
+```
+
+#### Solution
+
+With the `PromiseReturnType` that is exposed by Prisma Client, you can solve this more elegantly:
+
+```ts
+import { PromiseReturnType } from '@prisma/client'
+
+type UsersWithPosts = PromiseReturnType<typeof getUsersWithPosts>;
+```
