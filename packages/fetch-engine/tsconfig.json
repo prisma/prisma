@@ -12,5 +12,5 @@
     "rootDir": "src",
     "incremental": true
   },
-  "exclude": ["dist", "build", "scripts"]
+  "exclude": ["dist", "build", "scripts", "sandbox"]
 }
