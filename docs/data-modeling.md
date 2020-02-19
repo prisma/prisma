@@ -374,7 +374,6 @@ Here is where you can find the documentation of connector attributes per data so
 - [MySQL](./core/connectors/mysql.md)
 - [PostgreSQL](./core/connectors/postgresql.md)
 - [SQLite](./core/connectors/sqlite.md)
-- [MongoDB](./core/connectors/mongo.md)
 
 ## Indexes
 

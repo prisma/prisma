@@ -5,4 +5,3 @@ This directory contains documentation about the different database connectors th
 - [MySQL](./mysql.md)
 - [PostgreSQL](./postgresql.md)
 - [SQLite](./sqlite.md)
-- [MongoDB](./mongo.md)
