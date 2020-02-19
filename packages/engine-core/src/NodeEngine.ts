@@ -43,6 +43,7 @@ export interface EngineConfig {
   logQueries?: boolean
   logLevel?: 'info' | 'warn'
   env?: Record<string, string>
+  flags?: string[]
 }
 
 /**
@@ -70,6 +71,7 @@ export class NodeEngine {
   private logQueries: boolean
   private logLevel?: 'info' | 'warn'
   private env?: Record<string, string>
+  private flags: string[]
   port?: number
   debug: boolean
   child?: ChildProcessWithoutNullStreams
@@ -108,6 +110,7 @@ export class NodeEngine {
     logLevel,
     logQueries,
     env,
+    flags,
     ...args
   }: EngineConfig) {
     this.env = env
@@ -121,6 +124,7 @@ export class NodeEngine {
     this.showColors = showColors || false
     this.logLevel = logLevel
     this.logQueries = logQueries || false
+    this.flags = flags || []
 
     this.logEmitter.on('error', (log: RustLog) => {
       if (this.debug) {
@@ -208,30 +212,6 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
     } else {
       return this.getQueryEnginePath(this.platform)
     }
-  }
-
-  // If we couldn't find the correct binary path, let's look for an alternative
-  // This is interesting for libssl 1.0.1 vs libssl 1.0.2 cases
-
-  private async resolveAlternativeBinaryPath(platform: Platform): Promise<string | null> {
-    const compatiblePlatforms = knownPlatforms.slice(1).filter(p => mayBeCompatible(p, platform))
-    const binariesExist = await Promise.all(
-      compatiblePlatforms.map(async platform => {
-        const filePath = this.getQueryEnginePath(platform)
-        return {
-          exists: await exists(filePath),
-          platform,
-          filePath,
-        }
-      }),
-    )
-
-    const firstExistingPlatform = binariesExist.find(b => b.exists)
-    if (firstExistingPlatform) {
-      return firstExistingPlatform.filePath
-    }
-
-    return null
   }
 
   // get prisma path
@@ -333,7 +313,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const prismaPath = await this.getPrismaPath()
 
-        this.child = spawn(prismaPath, ['--enable_raw_queries'], {
+        const flags = ['--enable_raw_queries', ...this.flags]
+        debug({ flags })
+
+        this.child = spawn(prismaPath, flags, {
           env: {
             ...this.env, // user-provided env vars
             ...process.env,
