@@ -8,6 +8,7 @@ async function main() {
     __internal: {
       measurePerformance: true,
     },
+    forceTransactions: true,
   })
 
   // const rawQuery = await prisma.raw`SELECT 1`
