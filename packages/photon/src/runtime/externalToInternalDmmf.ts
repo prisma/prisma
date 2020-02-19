@@ -16,7 +16,10 @@ function transformFieldKind(model: ExternalDMMF.Model): DMMF.Model {
 
 function transformDatamodel(datamodel: ExternalDMMF.Datamodel): DMMF.Datamodel {
   return {
-    enums: datamodel.enums,
+    enums: datamodel.enums.map(enumValue => ({
+      ...enumValue,
+      values: enumValue.values.map(v => v.name),
+    })),
     models: datamodel.models.map(transformFieldKind),
   }
 }
