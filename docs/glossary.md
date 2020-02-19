@@ -47,7 +47,6 @@ Prisma currently supports the following built-in connectors:
 - [`sqlite`](./core/connectors/sqlite.md): A connector for SQLite databases
 - [`postgresql`](./core/connectors/postgresql.md): A connector for PostgreSQL databases
 - [`mysql`](./core/connectors/mysql.md): A connector for MySQL databases
-- [`mongo`](./core/connectors/mongo.md): A connector for MongoDB databases (_coming soon_)
 
 ### Prisma Schema Language (PSL)
 
