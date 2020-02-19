@@ -7,17 +7,20 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@types/fs-extra": "8.0.1",
+    "@types/jest": "^25.1.2",
     "@types/node": "^12.12.25",
     "@types/node-fetch": "^2.5.4",
     "@types/progress": "^2.0.3",
+    "jest": "^25.1.0",
     "ncc": "^0.3.6",
+    "ts-jest": "^25.2.1",
     "typescript": "^3.7.5"
   },
   "dependencies": {
     "@prisma/get-platform": "workspace:*",
     "chalk": "^3.0.0",
     "debug": "^4.1.1",
-    "execa": "3.4",
+    "execa": "~3.4.0",
     "find-cache-dir": "^3.2.0",
     "htmlparser2": "^4.0.0",
     "http-proxy-agent": "^2.1.0",
@@ -32,7 +35,8 @@
   },
   "scripts": {
     "build": "tsc -d",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run build",
+    "test": "jest"
   },
   "files": [
     "dist"
