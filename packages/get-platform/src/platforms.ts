@@ -7,6 +7,15 @@ export type Platform =
   | 'rhel-openssl-1.1.x'
   | 'windows'
 
+export const platforms = [
+  'darwin',
+  'debian-openssl-1.0.x',
+  'debian-openssl-1.1.x',
+  'rhel-openssl-1.0.x',
+  'rhel-openssl-1.1.x',
+  'windows',
+]
+
 export function mayBeCompatible(
   platformA: Platform,
   platformB: Platform,

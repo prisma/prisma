@@ -10,7 +10,7 @@ const del = promisify(rimraf)
 const readdir = promisify(fs.readdir)
 const stat = promisify(fs.stat)
 
-export async function cleanupCache() {
+export async function cleanupCache(n: number = 5) {
   try {
     const rootCacheDir = await getRootCacheDir()
     const channels = ['master', 'alpha']
@@ -30,7 +30,7 @@ export async function cleanupCache() {
         }),
       )
       dirsWithMeta.sort((a, b) => (a.created < b.created ? 1 : -1))
-      const dirsToRemove = dirsWithMeta.slice(5)
+      const dirsToRemove = dirsWithMeta.slice(n)
       await pMap(dirsToRemove, dir => del(dir.dir), { concurrency: 20 })
     }
   } catch (e) {

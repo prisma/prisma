@@ -13,7 +13,7 @@ import pFilter from 'p-filter'
 import { getBar } from './log'
 import plusxSync from './chmod'
 import { copy } from './copy'
-import { getPlatform, Platform } from '@prisma/get-platform'
+import { getPlatform, Platform, platforms } from '@prisma/get-platform'
 import { downloadZip } from './downloadZip'
 import { getCacheDir, getLocalLastModified, getRemoteLastModified, getDownloadUrl } from './util'
 import { cleanupCache } from './cleanupCache'
@@ -71,6 +71,13 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     return {}
   }
 
+  if (options.binaryTargets && Array.isArray(options.binaryTargets)) {
+    const unknownTargets = options.binaryTargets.filter(t => !platforms.includes(t))
+    if (unknownTargets.length > 0) {
+      throw new Error(`Unknown binaryTargets ${unknownTargets.join(', ')}`)
+    }
+  }
+
   // merge options
   options = {
     binaryTargets: [platform],
@@ -81,7 +88,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
   const binaryJobs: Array<BinaryDownloadJob> = flatMap(Object.entries(options.binaries), ([binaryName, targetFolder]) =>
     options.binaryTargets.map(binaryTarget => {
-      const fileName = getBinaryName(binaryName, platform)
+      const fileName = getBinaryName(binaryName, binaryTarget)
       return {
         binaryName,
         targetFolder,
@@ -227,7 +234,7 @@ async function binaryNeedsToBeDownloaded(
 
   // 3. If same platform, always check --version
   if (job.binaryTarget === nativePlatform) {
-    const works = await versionCommandWorks(job.targetFilePath)
+    const works = await checkVersionCommand(job.targetFilePath)
     debug({ works })
     return !works
   }
@@ -235,7 +242,7 @@ async function binaryNeedsToBeDownloaded(
   return false
 }
 
-export async function versionCommandWorks(enginePath: string): Promise<boolean> {
+export async function checkVersionCommand(enginePath: string): Promise<boolean> {
   try {
     const result = await execa(enginePath, ['--version'])
 
@@ -332,17 +339,10 @@ async function downloadBinary(options: DownloadBinaryOptions) {
   const downloadUrl = getDownloadUrl(channel, version, binaryTarget, binaryName)
 
   const targetDir = path.dirname(targetFilePath)
-  try {
-    await makeDir(targetDir)
-  } catch (e) {
-    if (failSilent) {
-      return
-    } else {
-      throw e
-    }
-  }
+
   try {
     fs.accessSync(targetDir, fs.constants.W_OK)
+    await makeDir(targetDir)
   } catch (e) {
     if (options.failSilent || e.code !== 'EACCES') {
       return
@@ -350,6 +350,7 @@ async function downloadBinary(options: DownloadBinaryOptions) {
       throw new Error(`Can't write to ${targetDir} please make sure you install "prisma2" with the right permissions.`)
     }
   }
+
   debug(`Downloading ${downloadUrl} to ${targetFilePath}`)
 
   if (progressCb) {
