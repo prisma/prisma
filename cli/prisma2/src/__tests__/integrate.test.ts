@@ -93,7 +93,7 @@ datasource pg {
   url = "${connectionString}"
 }`
   const introspectionSchema = await engine.introspect(schema)
-  snapshot(name, introspectionSchema)
+  snapshot(name, maskSchema(introspectionSchema))
   await generate(t, introspectionSchema)
   const prismaClientPath = join(tmp, 'index.js')
   const prismaClientDeclarationPath = join(tmp, 'index.d.ts')
@@ -3503,4 +3503,23 @@ function tests(): Test[] {
       ],
     },
   ]
+}
+
+export function maskSchema(schema: string): string {
+  const urlRegex = /url\s*=\s*.+/
+  const outputRegex = /output\s*=\s*.+/
+  return schema
+    .split('\n')
+    .map(line => {
+      const urlMatch = urlRegex.exec(line)
+      if (urlMatch) {
+        return `${line.slice(0, urlMatch.index)}url = "***"`
+      }
+      const outputMatch = outputRegex.exec(line)
+      if (outputMatch) {
+        return `${line.slice(0, outputMatch.index)}output = "***"`
+      }
+      return line
+    })
+    .join('\n')
 }
