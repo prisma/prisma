@@ -105,9 +105,9 @@ export class Introspect implements Command {
     } catch (e) {
       if (e.code === 'P4001') {
         if (introspectionSchema.trim() === '') {
-          throw new Error(`\n${chalk.red.bold('P4001 ')}${chalk.red(
-            'The introspected database was empty:',
-          )} ${chalk.underline(url)}
+          throw new Error(`\n${chalk.red.bold('P4001 ')}${chalk.red('The introspected database was empty:')} ${
+            url ? chalk.underline(url) : ''
+          }
 
 ${chalk.bold('prisma2 introspect')} could not create any models in your ${chalk.bold(
             'schema.prisma',
