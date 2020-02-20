@@ -80,7 +80,11 @@ Please ${chalk.rgb(228, 155, 15)(`stop ${chalk.bold('prisma2 dev')} first`)}, th
           command,
         )} again`)
       }
-      return cmd.parse(args._.slice(1))
+
+      const argsForCmd = args['--experimental']
+        ? [...args._.slice(1), `--experimental=${args['--experimental']}`]
+        : args._.slice(1)
+      return cmd.parse(argsForCmd)
     }
 
     return unknownCommand(LiftCommand.help, args._[0])
