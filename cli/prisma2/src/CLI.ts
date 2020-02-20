@@ -63,7 +63,10 @@ export class CLI implements Command {
         })
       }
 
-      return cmd.parse(args._.slice(1))
+      const argsForCmd = args['--experimental']
+        ? [...args._.slice(1), `--experimental=${args['--experimental']}`]
+        : args._.slice(1)
+      return cmd.parse(argsForCmd)
     }
     // unknown command
     return unknownCommand(CLI.help, args._[0])
