@@ -62,6 +62,7 @@
     "resolve-pkg": "^2.0.0",
     "rimraf": "^3.0.0",
     "serialize-error": "^5.0.0",
+    "snap-shot-it": "^7.9.2",
     "strip-ansi": "^6.0.0",
     "strip-indent": "3.0.0",
     "terminal-link": "^2.0.0",
@@ -73,6 +74,7 @@
   "scripts": {
     "test": "./fixtures/test.sh && ./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
     "test:debug": "./node_modules/.bin/mocha --inspect-brk src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
+    "test:mocha": "./node_modules/.bin/mocha src/__tests__/integrate.test.ts --require ts-mocha src/__tests__/integrate.test.ts --timeout 10s",
     "install": "node download-build/index.js",
     "download": "rm -f download-done && node scripts/updateTag.js && node scripts/download.js || echo \"\"",
     "tsc": "tsc -d && cp src/capture-worker.js dist/capture-worker.js && bash scripts/copy-runtime-dist.sh",
