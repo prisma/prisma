@@ -1,15 +1,13 @@
-import { getGenerator, IntrospectionEngine, getDMMF, dmmfToDml } from '@prisma/sdk'
-import stripIndent from 'strip-indent'
-import chalk from 'chalk'
+import { getGenerator, IntrospectionEngine } from '@prisma/sdk'
 import { join, dirname } from 'path'
 import mkdir from 'make-dir'
 import { Client } from 'pg'
 import assert from 'assert'
 import pkgup from 'pkg-up'
-import { promisify } from 'util'
 import rimraf from 'rimraf'
 import fs from 'fs'
 import path from 'path'
+import snapshot from 'snap-shot-it'
 
 const connectionString = process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
 process.env.SKIP_GENERATE = 'true'
@@ -36,6 +34,32 @@ after(async () => {
   engine.stop()
 })
 
+const nameCache = {}
+
+const prettyName = (fn: any): string => {
+  const fnstr = fn.toString()
+  const from = fnstr.indexOf('{')
+  const to = fnstr.lastIndexOf('}')
+  const sig = fnstr.slice(from + 1, to)
+  const name = sig
+    .replace(/\s{2,}/g, ' ')
+    .replace('client.', '')
+    .replace('return', '')
+    .replace(/\n/g, ' ')
+    .replace(/\t/g, ' ')
+    .replace(/\r/g, ' ')
+    .replace(';', '')
+    .trim()
+
+  if (nameCache[name]) {
+    return name + 2
+  }
+
+  nameCache[name] = true
+
+  return name
+}
+
 tests().map((t: Test) => {
   const name = prettyName(t.do)
 
@@ -46,7 +70,7 @@ tests().map((t: Test) => {
 
   it(name, async () => {
     try {
-      await runTest(t)
+      await runTest(name, t)
     } catch (err) {
       throw err
     } finally {
@@ -55,7 +79,7 @@ tests().map((t: Test) => {
   }).timeout(15000)
 })
 
-async function runTest(t: Test) {
+async function runTest(name: string, t: Test) {
   await db.query(t.down)
   await db.query(t.up)
   const schema = `
@@ -69,6 +93,7 @@ datasource pg {
   url = "${connectionString}"
 }`
   const introspectionSchema = await engine.introspect(schema)
+  snapshot(name, introspectionSchema)
   await generate(t, introspectionSchema)
   const prismaClientPath = join(tmp, 'index.js')
   const prismaClientDeclarationPath = join(tmp, 'index.d.ts')
@@ -95,18 +120,6 @@ datasource pg {
 async function generate(test: Test, datamodel: string) {
   const schemaPath = path.join(tmp, 'schema.prisma')
   fs.writeFileSync(schemaPath, datamodel)
-  let actual = stripIndent(datamodel).trim()
-  let expect = stripIndent(test.schema).trim()
-  if (actual !== expect) {
-    console.log(chalk.bold('Expect'))
-    console.log()
-    console.log(expect)
-    console.log()
-    console.log(chalk.bold('Actual'))
-    console.log()
-    console.log(actual)
-    assert.equal(actual, expect)
-  }
 
   const generator = await getGenerator({
     schemaPath,
@@ -293,7 +306,7 @@ function tests(): Test[] {
         }
       `,
       do: async client => {
-        return client.teams.create({ data: { name: 'c', id: 1 } })
+        return client.teams.create({ data: { name: 'c' } })
       },
       expect: {
         id: 1,
@@ -327,7 +340,7 @@ function tests(): Test[] {
         }
       `,
       do: async client => {
-        return client.teams.create({ data: { id: 1 } })
+        return client.teams.create({ data: {} })
       },
       expect: {
         id: 1,
@@ -1084,7 +1097,7 @@ function tests(): Test[] {
       do: async client => {
         return client.posts.upsert({
           where: { id: 1 },
-          create: { id: 1, title: 'D', published: true },
+          create: { title: 'D', published: true },
           update: { title: 'D', published: true },
         })
       },
@@ -1128,7 +1141,7 @@ function tests(): Test[] {
       do: async client => {
         return client.posts.upsert({
           where: { id: 4 },
-          create: { id: 4, title: 'D', published: false },
+          create: { title: 'D', published: false },
           update: { title: 'D', published: true },
         })
       },
@@ -3490,20 +3503,4 @@ function tests(): Test[] {
       ],
     },
   ]
-}
-
-function prettyName(fn: any): string {
-  const fnstr = fn.toString()
-  const from = fnstr.indexOf('{')
-  const to = fnstr.lastIndexOf('}')
-  const sig = fnstr.slice(from + 1, to)
-  return sig
-    .replace(/\s{2,}/g, ' ')
-    .replace('client.', '')
-    .replace('return', '')
-    .replace(/\n/g, ' ')
-    .replace(/\t/g, ' ')
-    .replace(/\r/g, ' ')
-    .replace(';', '')
-    .trim()
 }
