@@ -32,7 +32,7 @@ module.exports = async () => {
     throw new Error(
       stripAnsi(
         e.message
-          .replace(/.*__tests__.*/, 'path')
+          .replace(/Invalid.*invocation in.*\n.*\n/m, 'Invalid invocation')
           .replace(/looked in.*\)/, 'looked in xxx)')
           .replace(platform, 'PLATFORM'),
       ),

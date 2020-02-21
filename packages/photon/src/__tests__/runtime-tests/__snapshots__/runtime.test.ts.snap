@@ -17,9 +17,7 @@ exports[`runtime works enums example should succeed: enums example should succee
 
 exports[`runtime works missing-binary example should not succeed: missing-binary example should not succeed 1`] = `
 [Error: 
-Invalid \`prisma.users.findMany()\` invocation in
-path
-
+Invalid invocation
 Query engine binary for current platform "PLATFORM" could not be found.
 This probably happens, because you built Prisma Client on a different platform.
 (Prisma Client looked in xxx)
@@ -36,9 +34,7 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator]
 
 exports[`runtime works missing-binary-native example should not succeed: missing-binary-native example should not succeed 1`] = `
 [Error: 
-Invalid \`prisma.users.findMany()\` invocation in
-path
-
+Invalid invocation
 Query engine binary for current platform "PLATFORM" could not be found.
 This probably happens, because you built Prisma Client on a different platform.
 (Prisma Client looked in xxx)
