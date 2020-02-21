@@ -68,6 +68,7 @@ export async function generateInFolder({
     testMode: true,
     datamodelPath: schemaPath,
     copyRuntime: false,
+    generator: config.generators[0],
   })
 
   const time = performance.now() - before
