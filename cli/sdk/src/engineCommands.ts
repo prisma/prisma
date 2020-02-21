@@ -31,23 +31,29 @@ async function getPrismaPath(): Promise<string> {
   const dir = eval('__dirname')
   const platform = await getPlatform()
   const extension = platform === 'windows' ? '.exe' : ''
-  const relative = `query-engine-${platform}${extension}`
-  let prismaPath = path.join(dir, '..', relative)
+  const binaryName = `query-engine-${platform}${extension}`
+  let prismaPath = path.join(dir, '..', binaryName)
   if (fs.existsSync(prismaPath)) {
     return prismaPath
   }
   // for pkg
-  prismaPath = path.join(dir, '../..', relative)
+  prismaPath = path.join(dir, '../..', binaryName)
   if (fs.existsSync(prismaPath)) {
     return prismaPath
   }
 
-  prismaPath = path.join(__dirname, '..', relative)
+  prismaPath = path.join(__dirname, '..', binaryName)
   if (fs.existsSync(prismaPath)) {
     return prismaPath
   }
 
-  prismaPath = path.join(__dirname, '../..', relative)
+  prismaPath = path.join(__dirname, '../..', binaryName)
+  if (fs.existsSync(prismaPath)) {
+    return prismaPath
+  }
+
+  // needed to come from @prisma/client/generator-build to @prisma/client/runtime
+  prismaPath = path.join(__dirname, '../runtime', binaryName)
   if (fs.existsSync(prismaPath)) {
     return prismaPath
   }
@@ -56,8 +62,8 @@ async function getPrismaPath(): Promise<string> {
     `Could not find query-engine binary. Searched in ${path.join(
       dir,
       '..',
-      relative,
-    )} and ${path.join(dir, '../..', relative)}`,
+      binaryName,
+    )} and ${path.join(dir, '../..', binaryName)}`,
   )
 }
 
