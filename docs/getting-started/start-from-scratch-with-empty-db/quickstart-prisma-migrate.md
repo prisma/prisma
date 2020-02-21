@@ -21,7 +21,6 @@ Follow these steps for an initial Prisma setup:
     model Post {
       post_id    Int      @id @default(autoincrement())
       content    String?
-      created_at DateTime @default(now())
       title      String
       author     User?
     }
