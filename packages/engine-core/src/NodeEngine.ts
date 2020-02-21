@@ -218,32 +218,47 @@ You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to
   private async getPrismaPath() {
     const prismaPath = await this.resolvePrismaPath()
     const platform = await this.getPlatform()
+    // If path to query engine doesn't exist, throw
     if (!(await exists(prismaPath))) {
-      let info = '.'
-      if (this.generator) {
-        const fixedGenerator = {
-          ...this.generator,
-          binaryTargets: fixPlatforms(this.generator.binaryTargets as Platform[], this.platform!),
-        }
-        info = `:\n${chalk.greenBright(printGeneratorConfig(fixedGenerator))}`
-      }
-
       const pinnedStr = this.incorrectlyPinnedPlatform
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.incorrectlyPinnedPlatform}`)}\n`
         : ''
+      let errorText = `Query engine binary for current platform "${chalk.bold(
+        platform,
+      )}" could not be found.${pinnedStr}
+This probably happens, because you built Prisma Client on a different platform.
+(Prisma Client looked in "${chalk.underline(prismaPath)}")`
 
-      throw new PrismaClientInitializationError(
-        `Query engine binary for current platform ${chalk.bold.greenBright(platform)} could not be found.${pinnedStr}
-Prisma Client looked in ${chalk.underline(prismaPath)} but couldn't find it.
-Make sure to adjust the generator configuration in the ${chalk.bold('schema.prisma')} file${info}
-Please run ${chalk.greenBright('prisma2 generate')} for your changes to take effect.
-${chalk.gray(
-  `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
-Read more about deploying Prisma Client: ${chalk.underline(
-    'https://github.com/prisma/prisma2/blob/master/docs/core/generators/prisma-client-js.md',
-  )}`,
-)}`,
-      )
+      // The generator should always be there during normal usage
+      if (this.generator) {
+        // The user already added it, but it still doesn't work 🤷‍♀️
+        // That means, that some build system just deleted the files 🤔
+        if (this.generator.binaryTargets.includes(this.platform) || this.generator.binaryTargets.includes('native')) {
+          errorText += `\n\nYou already added the platform${
+            this.generator.binaryTargets.length > 1 ? 's' : ''
+          } ${this.generator.binaryTargets.map(t => `"${chalk.bold(t)}"`).join(', ')} to the "${chalk.underline(
+            'generator',
+          )}" block
+in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
+but something went wrong. That's suboptimal.
+
+Please create an issue at https://github.com/prisma/prisma-client-js/issues/new`
+        } else {
+          // If they didn't even have the current running platform in the schema.prisma file, it's easy
+          // Just add it
+          errorText += `\n\nTo solve this problem, add the platform "${this.platform}" to the "${chalk.underline(
+            'generator',
+          )}" block in the "schema.prisma" file:
+${chalk.greenBright(this.getFixedGenerator())}
+
+Then run "${chalk.greenBright('prisma2 generate')}" for your changes to take effect.
+Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
+        }
+      } else {
+        errorText += `\n\nRead more about deploying Prisma Client: https://pris.ly/d/client-generator\n`
+      }
+
+      throw new PrismaClientInitializationError(errorText)
     }
 
     if (this.incorrectlyPinnedPlatform) {
@@ -257,6 +272,15 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     plusX(prismaPath)
 
     return prismaPath
+  }
+
+  private getFixedGenerator() {
+    const fixedGenerator = {
+      ...this.generator,
+      binaryTargets: fixPlatforms(this.generator.binaryTargets as Platform[], this.platform!),
+    }
+
+    return printGeneratorConfig(fixedGenerator)
   }
 
   printDatasources(): string {
