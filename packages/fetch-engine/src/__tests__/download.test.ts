@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { download, getBinaryName, checkVersionCommand } from '../download'
+import { download, getBinaryName, checkVersionCommand, getVersion } from '../download'
 import { getPlatform } from '@prisma/get-platform'
 import { cleanupCache } from '../cleanupCache'
 import del from 'del'
@@ -16,25 +16,24 @@ describe('download', () => {
 
   test('basic download', async () => {
     const platform = await getPlatform()
-    const targetPath = path.join(__dirname, getBinaryName('query-engine', platform))
-    if (fs.existsSync(targetPath)) {
-      try {
-        fs.unlinkSync(targetPath)
-      } catch (e) {
-        console.error(e)
-      }
-    }
+    const queryEnginePath = path.join(__dirname, getBinaryName('query-engine', platform))
+    const introspectionEnginePath = path.join(__dirname, getBinaryName('introspection-engine', platform))
+    const migrationEnginePath = path.join(__dirname, getBinaryName('migration-engine', platform))
 
     await download({
       binaries: {
         'query-engine': __dirname,
+        'introspection-engine': __dirname,
+        'migration-engine': __dirname,
       },
       version: 'a78fee833bcf4e202645e7cc7df5c3839f658e6a',
     })
 
-    expect(fs.existsSync(targetPath)).toBe(true)
-
-    expect(await checkVersionCommand(targetPath)).toBe(true)
+    expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(`"prisma a78fee833bcf4e202645e7cc7df5c3839f658e6a"`)
+    expect(await getVersion(introspectionEnginePath)).toMatchInlineSnapshot(
+      `"a78fee833bcf4e202645e7cc7df5c3839f658e6a"`,
+    )
+    expect(await getVersion(migrationEnginePath)).toMatchInlineSnapshot(`"a78fee833bcf4e202645e7cc7df5c3839f658e6a"`)
   })
 
   test('auto heal corrupt binary', async () => {
