@@ -34,6 +34,7 @@ module.exports = async () => {
         e.message
           .split('\n')
           .slice(3)
+          .trim()
           .join('\n')
           .replace(/looked in.*\)/, 'looked in xxx)')
           .replace(platform, 'PLATFORM'),
