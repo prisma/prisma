@@ -109,7 +109,8 @@ export const printStack = ({
                   ? `${chalk.red.bold('→')} ${l}`
                   : chalk.dim('  ' + l),
               )
-              .join('\n')
+              .join('\n') +
+            '\n\n'
           afterLines = ')'
           indentValue =
             String(lineNumber + start + 1).length + getIndent(theLine) + 1
