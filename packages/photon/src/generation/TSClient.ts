@@ -379,7 +379,7 @@ ${Object.values(this.dmmf.modelMap)
 /**
  * DMMF
  */
-const dmmfString = '${JSON.stringify(this.document)}'
+const dmmfString = '${escapeJson(JSON.stringify(this.document))}'
 
 // We are parsing 2 times, as we want independent objects, because
 // DMMFClass introduces circular references in the dmmf object
@@ -2135,4 +2135,11 @@ export declare type ${type.name} = (typeof ${type.name})[keyof typeof ${
       type.name
     }]\n`
   }
+}
+
+function escapeJson(str: string): string {
+  return str
+    .replace(/\n/g, '\\\\n')
+    .replace(/\r/g, '\\\\r')
+    .replace(/\t/g, '\\\\t')
 }
