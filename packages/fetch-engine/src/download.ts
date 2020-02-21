@@ -242,13 +242,20 @@ async function binaryNeedsToBeDownloaded(
   return false
 }
 
+export async function getVersion(enginePath: string): Promise<string> {
+  const result = await execa(enginePath, ['--version'])
+
+  debug(`Getting version of ${enginePath}. Result: `, result)
+
+  return result.stdout
+}
+
 export async function checkVersionCommand(enginePath: string): Promise<boolean> {
   try {
-    const result = await execa(enginePath, ['--version'])
+    const version = await getVersion(enginePath)
 
-    debug(`Getting version of ${enginePath}. Result: `, result)
-
-    return result.stdout.length > 0
+    debug(`Getting version of ${enginePath}. Result: `, version)
+    return version.length > 0
   } catch (e) {
     debug(`Version command does not work`, e)
     return false
