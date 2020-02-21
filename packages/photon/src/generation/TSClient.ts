@@ -2139,7 +2139,7 @@ export declare type ${type.name} = (typeof ${type.name})[keyof typeof ${
 
 function escapeJson(str: string): string {
   return str
-    .replace(/\n/g, '\\\\n')
-    .replace(/\r/g, '\\\\r')
-    .replace(/\t/g, '\\\\t')
+    .replace(/\\n/g, '\\\\n')
+    .replace(/\\r/g, '\\\\r')
+    .replace(/\\t/g, '\\\\t')
 }
