@@ -11,9 +11,9 @@ Follow these steps to use Prisma with your existing database. Note that these st
 1. Install `prisma2` as a development dependency: `npm install prisma2 --save-dev`
 1. Run `npx prisma2 init` to create an empty [Prisma schema](./prisma-schema-file.md)
 1. Set the `url` of the `datasource` block in the Prisma schema to your database connection URL
-1. Run `prisma2 introspect` to obtain your data model from the database schema
+1. Run `npx prisma2 introspect` to obtain your data model from the database schema
 1. Run `npm install @prisma/client` to add the Prisma Client npm package to your project
-1. Run `prisma2 generate` to generate Prisma Client
+1. Run `npx prisma2 generate` to generate Prisma Client
 1. Import Prisma Client into your code: `import { PrismaClient } from '@prisma/client'`
 1. Instantiate Prisma Client: `const prisma = new PrismaClient()`
 1. Use Prisma Client in code (use your editor's auto-completion to explore its API)
