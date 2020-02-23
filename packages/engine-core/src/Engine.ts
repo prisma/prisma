@@ -13,12 +13,15 @@ export class PrismaQueryEngineError extends Error {
   }
 }
 
-export function getMessage(log: string | RustLog | RustError) {
+export function getMessage(log: string | RustLog | RustError | any) {
   if (typeof log === 'string') {
     return log
   } else if (isRustError(log)) {
     return log.message
   } else if (log.fields && log.fields.message) {
+    if (log.fields.reason) {
+      return `${log.fields.message}: ${log.fields.reason}`
+    }
     return log.fields.message
   } else {
     return JSON.stringify(log)
