@@ -203,7 +203,7 @@ Next, add the following contents to your `tsconfig.json`:
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "lib": ["esnext"],
+    "lib": ["esnext", "dom"],
     "strict": true
   },
   "include": ["src/**/*"]
