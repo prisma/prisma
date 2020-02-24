@@ -190,7 +190,7 @@ If you don't have one already, run the following commands to create a simple Typ
 
 ```
 npm init -y
-npm install typescript ts-node --save-dev
+npm install typescript ts-node @types/node --save-dev
 npm install @prisma/client
 touch script.ts
 touch tsconfig.json
