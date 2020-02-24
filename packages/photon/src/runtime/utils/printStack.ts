@@ -2,6 +2,8 @@ import chalk from 'chalk'
 import * as stackTraceParser from 'stacktrace-parser'
 import { highlightTS } from '../highlight/highlight'
 import { dedent } from './dedent'
+import Debug from 'debug'
+const debug = Debug('printStack')
 
 function renderN(n: number, max: number): string {
   const wantedLetters = String(max).length
@@ -37,6 +39,8 @@ export const printStack = ({
   let afterLines = ''
   let indentValue = 0
   let functionName = `prisma.${originalMethod}()`
+
+  debug('callsite', callsite)
 
   // @ts-ignore
   if (callsite && typeof window === 'undefined') {
@@ -78,42 +82,46 @@ export const printStack = ({
           const lines = dedent(slicedFile).split('\n')
 
           const theLine = lines[lines.length - 1]
-          const prismaClientRegex = /(=|return)*\s+(await)?\s*(.*\()/
-          const match = theLine.match(prismaClientRegex)
-          if (match) {
-            functionName = `${match[3]})`
+          if (!theLine || theLine.trim() === '') {
+            callsiteStr = ':'
+          } else {
+            const prismaClientRegex = /(=|return)*\s+(await)?\s*(.*\()/
+            const match = theLine.match(prismaClientRegex)
+            if (match) {
+              functionName = `${match[3]})`
+            }
+            const slicePoint = theLine.indexOf('{')
+            const highlightedLines = highlightTS(
+              lines
+                .map((l, i, all) =>
+                  !onUs && i === all.length - 1
+                    ? l.slice(0, slicePoint > -1 ? slicePoint : l.length - 1)
+                    : l,
+                )
+                .join('\n'),
+            ).split('\n')
+            prevLines =
+              '\n' +
+              highlightedLines
+                .map(
+                  (l, i) =>
+                    chalk.grey(
+                      renderN(i + start + 1, lineNumber + start + 1) + ' ',
+                    ) +
+                    chalk.reset() +
+                    l,
+                )
+                .map((l, i, arr) =>
+                  i === arr.length - 1
+                    ? `${chalk.red.bold('→')} ${l}`
+                    : chalk.dim('  ' + l),
+                )
+                .join('\n') +
+              '\n\n'
+            afterLines = ')'
+            indentValue =
+              String(lineNumber + start + 1).length + getIndent(theLine) + 1
           }
-          const slicePoint = theLine.indexOf('{')
-          const highlightedLines = highlightTS(
-            lines
-              .map((l, i, all) =>
-                !onUs && i === all.length - 1
-                  ? l.slice(0, slicePoint > -1 ? slicePoint : l.length - 1)
-                  : l,
-              )
-              .join('\n'),
-          ).split('\n')
-          prevLines =
-            '\n' +
-            highlightedLines
-              .map(
-                (l, i) =>
-                  chalk.grey(
-                    renderN(i + start + 1, lineNumber + start + 1) + ' ',
-                  ) +
-                  chalk.reset() +
-                  l,
-              )
-              .map((l, i, arr) =>
-                i === arr.length - 1
-                  ? `${chalk.red.bold('→')} ${l}`
-                  : chalk.dim('  ' + l),
-              )
-              .join('\n') +
-            '\n\n'
-          afterLines = ')'
-          indentValue =
-            String(lineNumber + start + 1).length + getIndent(theLine) + 1
         }
       }
     }
