@@ -10,4 +10,9 @@ module.exports = {
     'index.ts',
     'index.js',
   ],
+  globals: {
+    'ts-jest': {
+      packageJson: 'package.json',
+    },
+  },
 }
