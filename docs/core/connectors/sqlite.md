@@ -9,7 +9,7 @@ To connect to a SQLite database file, you need to configure a [`datasource`](../
 ```prisma
 datasource sqlite {
   provider = "sqlite"
-  url      = "./dev.db"
+  url      = "file:./dev.db"
 }
 
 // ... the file should also contain a data model definition and (optionally) generators
@@ -18,7 +18,7 @@ datasource sqlite {
 The fields passed to the `datasource` block are:
 
 - `provider`: Specifies the `sqlite` data source connector.
-- `url`: Specifies the [connection string](#connection-string) for the SQLite database file. In this case, the file is located in the same directory and called `dev.db`.
+- `url`: Specifies the [connection string](#connection-string) for the SQLite database. The connection string always starts with the prefix `file:` and then contains a file path pointing to the SQLite database file. In this case, the file is located in the same directory and called `dev.db`.
 
 Find more information on the `datasource` fields [here](../../prisma-schema-file.md#data-sources).
 
@@ -42,7 +42,7 @@ The connection URL of a SQLite connector points to a file on your file system. F
 ```prisma
 datasource sqlite {
   provider = "sqlite"
-  url      = "./dev.db"
+  url      = "file:./dev.db"
 }
 ```
 
@@ -51,7 +51,7 @@ is the same as:
 ```prisma
 datasource sqlite {
   provider = "sqlite"
-  url      = "dev.db"
+  url      = "file:dev.db"
 }
 ```
 
@@ -60,6 +60,6 @@ You can also target files from the root or any other place in your file system:
 ```prisma
 datasource sqlite {
   provider = "sqlite"
-  url      = "/Users/janedoe/dev.db"
+  url      = "file:/Users/janedoe/dev.db"
 }
 ```
