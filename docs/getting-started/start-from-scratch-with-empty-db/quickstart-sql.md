@@ -92,7 +92,7 @@ Follow these steps for an initial Prisma setup:
         data: {
           email: 'alice@prisma.io',
           name: 'Alice',
-          posts: {
+          post: {
             create: {
               title: 'Watch the talks from Prisma Day 2019',
               content: 'https://www.prisma.io/blog/z11sg6ipb3i1/',
@@ -100,7 +100,7 @@ Follow these steps for an initial Prisma setup:
           },
         },
         include: {
-          posts: true,
+          post: true,
         },
       })
       console.log(user1)
@@ -201,7 +201,7 @@ Follow these steps for an initial Prisma setup:
         data: {
           email: 'alice@prisma.io',
           name: 'Alice',
-          posts: {
+          post: {
             create: {
               title: 'Watch the talks from Prisma Day 2019',
               content: 'https://www.prisma.io/blog/z11sg6ipb3i1/',
@@ -209,7 +209,7 @@ Follow these steps for an initial Prisma setup:
           },
         },
         include: {
-          posts: true,
+          post: true,
         },
       })
       console.log(user1)
@@ -304,7 +304,7 @@ Follow these steps for an initial Prisma setup:
         data: {
           email: 'alice@prisma.io',
           name: 'Alice',
-          posts: {
+          post: {
             create: {
               title: 'Watch the talks from Prisma Day 2019',
               content: 'https://www.prisma.io/blog/z11sg6ipb3i1/',
@@ -312,7 +312,7 @@ Follow these steps for an initial Prisma setup:
           },
         },
         include: {
-          posts: true,
+          post: true,
         },
       })
       console.log(user1)
