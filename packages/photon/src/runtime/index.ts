@@ -31,3 +31,6 @@ export { Dataloader } from './Dataloader'
 export { chalk }
 
 export { parse as parseDotenv } from 'dotenv'
+
+import * as sqlTemplateTag from 'sql-template-tag'
+export { sqlTemplateTag }
