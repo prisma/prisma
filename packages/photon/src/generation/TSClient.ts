@@ -64,6 +64,7 @@ const {
   unpack,
   stripAnsi,
   parseDotenv,
+  sqlTemplateTag,
   Dataloader,
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
@@ -644,16 +645,17 @@ ${this.jsDoc}
   /**
    * Makes a raw query
    */ 
-  async raw(stringOrTemplateStringsArray) {
+  async raw(stringOrTemplateStringsArray, ...values) {
     let query = ''
-    
+    let parameters = undefined
+
     if (Array.isArray(stringOrTemplateStringsArray)) {
-      if (stringOrTemplateStringsArray.length !== 1) {
-        throw new Error('The prisma.raw method must be used like this prisma.raw\`SELECT * FROM Posts\` without template literal variables.')
-      }
       // Called with prisma.raw\`\`
-      query = stringOrTemplateStringsArray[0]
+      const queryInstance = sqlTemplateTag.sqltag(stringOrTemplateStringsArray, ...values)
+      query = queryInstance.sql
+      parameters = JSON.stringify(queryInstance.values)
     } else {
+      // Called with prisma.raw(string)
       query = stringOrTemplateStringsArray 
     }
 
@@ -662,13 +664,14 @@ ${this.jsDoc}
       rootField: "executeRaw",
       rootTypeName: 'mutation',
       select: {
-        query
+        query,
+        parameters
       }
     })
 
-    document.validate({ query }, false, 'raw', this.errorFormat)
+    document.validate({ query, parameters }, false, 'raw', this.errorFormat)
     
-    return this.fetcher.request({ document, rootField: 'executeRaw', typeName: 'raw', isList: false})
+    return this.fetcher.request({ document, rootField: 'executeRaw', typeName: 'raw', isList: false })
   }
 
 ${indent(
@@ -848,11 +851,15 @@ ${indent(this.jsDoc, tab)}
    * const result = await prisma.raw\`SELECT * FROM User;\`
    * // Or
    * const result = await prisma.raw('SELECT * FROM User;')
+   * 
+   * // With parameters use prisma.raw\`\`, values will be escaped automatically
+   * const userId = '1'
+   * const result = await prisma.raw\`SELECT * FROM User WHERE id = \${userId};\`
   * \`\`\`
   * 
   * Read more in our [docs](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#raw-database-access).
   */
-  raw<T = any>(query: string | TemplateStringsArray): Promise<T>;
+  raw<T = any>(query: string | TemplateStringsArray, ...values?: any[]): Promise<T>;
 
 ${indent(
   dmmf.mappings
