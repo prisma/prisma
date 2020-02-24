@@ -223,7 +223,7 @@ describe('download', () => {
     const after2 = Date.now()
     // if binaries are already there, it should take less than 100ms to check all of them
     // value on Mac: 33ms
-    expect(after2 - before2).toBeLessThan(100)
+    expect(after2 - before2).toBeLessThan(1000)
   })
 })
 
