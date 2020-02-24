@@ -235,7 +235,7 @@ Follow these steps for an initial Prisma setup:
     ```prisma
     datasource db {
       provider = "sqlite"
-      url      = "sqlite:./hello-prisma.db"
+      url      = "file:./hello-prisma.db"
     }
     ```
 1. Run `touch schema.sql` to create your SQL schema and add the following contents to it:
