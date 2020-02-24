@@ -55,7 +55,7 @@ datasource db {
   url      = "postgresql://johndoe:johndoe@localhost:5432/mydb?schema=public"
 }
 // Other examples for connection strings are:
-// SQLite: url = "sqlite:./dev.db"
+// SQLite: url = "file:./dev.db"
 // MySQL:  url = "mysql://johndoe:johndoe@localhost:3306/mydb"
 // You can also use environment variables to specify the connection string: https://pris.ly/d/prisma-schema#using-environment-variables
 
@@ -81,7 +81,7 @@ The format of the connection URL for your database typically depends on the data
 
 - MySQL: `mysql://USER:PASSWORD@HOST:PORT/DATABASE`
 - PostgreSQL: `postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA`
-- SQLite: `sqlite:./FILE.db`
+- SQLite: `file:./FILE.db`
 
 As an example, for a PostgreSQL database hosted on Heroku, the [connection string](./core/connectors/postgresql.md#connection-string) might look similar to this:
 
