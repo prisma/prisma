@@ -32,18 +32,28 @@ module.exports = async () => {
   if (Object.keys(perfResults).length === 0) {
     throw Error('measurePerformance is enabled but results object is empty')
   }
+
   await prisma.disconnect()
 
   await prisma.connect()
-  // Test raw
-  const rawQuery = await prisma.raw(`SELECT ${1}`)
+
+  // Test raw(string)
+  const rawQuery = await prisma.raw('SELECT 1')
   if (rawQuery[0]['1'] !== 1) {
     throw Error("prisma.raw('SELECT 1') result should be [ { '1': 1 } ]")
   }
 
-  const rawQueryTemplate = await prisma.raw`SELECT 1`
+  // Test raw``
+  const rawQueryTemplate = await prisma.raw `SELECT 1`
+  console.log(rawQueryTemplate)
   if (rawQueryTemplate[0]['1'] !== 1) {
     throw Error("prisma.raw`SELECT 1` result should be [ { '1': 1 } ]")
+  }
+
+  // Test raw`` with ${param}
+  const rawQueryTemplateWithParams = await prisma.raw `SELECT * FROM User WHERE name = ${'Alice'}`
+  if (rawQueryTemplateWithParams[0].name !== 'Alice') {
+    throw Error("prisma.raw`SELECT * FROM User WHERE name = ${'Alice'}` result should be [{ email: 'a@a.de', id: '576eddf9-2434-421f-9a86-58bede16fd95', name: 'Alice' }]")
   }
 
   // Test validation errors

@@ -1213,6 +1213,10 @@ function hasCorrectScalarType(
     return true
   }
 
+  if (expectedType === 'Json') {
+    return true
+  }
+
   // DateTime is a subset of string
   if (graphQLType === 'DateTime' && expectedType === 'String') {
     return true
