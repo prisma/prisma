@@ -7,7 +7,7 @@ import {
   getMessage,
 } from './Engine'
 import debugLib from 'debug'
-import { getPlatform, Platform, mayBeCompatible } from '@prisma/get-platform'
+import { getPlatform, Platform } from '@prisma/get-platform'
 import path from 'path'
 import net from 'net'
 import fs from 'fs'
@@ -20,7 +20,6 @@ import EventEmitter from 'events'
 import { convertLog, RustLog, RustError } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
-// import { Client } from './client'
 import bent from 'bent'
 
 const debug = debugLib('engine')
@@ -441,6 +440,13 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             console.error(`${chalk.bold.red(`Error in Prisma Client:`)}${this.stderrLogs}
 
 This is a non-recoverable error which probably happens when the Prisma Query Engine has a stack overflow.
+Please create an issue in https://github.com/prisma/prisma-client-js describing the last Prisma Client query you called.`)
+          } else if (code === 255 && signal === null && this.lastErrorLog?.fields.message === 'PANIC') {
+            console.error(`${chalk.bold.red(`Error in Prisma Client:`)}
+${this.lastErrorLog.fields.message}: ${this.lastErrorLog.fields.reason} in
+${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErrorLog.fields.column}
+
+This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
 Please create an issue in https://github.com/prisma/prisma-client-js describing the last Prisma Client query you called.`)
           }
         })

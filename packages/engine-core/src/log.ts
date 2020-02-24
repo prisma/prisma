@@ -30,7 +30,7 @@ export function isRustError(e: any): e is RustError {
   return typeof e.is_panic !== 'undefined'
 }
 
-export type LogFields = PanicLogFields | InfoLogFields | { [key: string]: any }
+export type LogFields = { [key: string]: any }
 
 export interface PanicLogFields {
   message: 'PANIC'
