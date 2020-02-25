@@ -514,20 +514,20 @@ ${this.jsDoc}
     const engineConfig = internal.engine || {}
 
     if (options.errorFormat) {
-      this.errorFormat = options.errorFormat
+      this.#errorFormat = options.errorFormat
     } else if (process.env.NODE_ENV === 'production') {
-      this.errorFormat = 'minimal'
+      this.#errorFormat = 'minimal'
     } else if (process.env.NO_COLOR) {
-      this.errorFormat = 'colorless'
+      this.#errorFormat = 'colorless'
     } else {
-      this.errorFormat = 'pretty'
+      this.#errorFormat = 'pretty'
     }
 
-    this.measurePerformance = internal.measurePerformance || false
+    this.#measurePerformance = internal.measurePerformance || false
 
-    const envFile = this.readEnv()
+    const envFile = this.#readEnv()
 
-    this.engineConfig = {
+    this.#engineConfig = {
       cwd: engineConfig.cwd || ${getRelativePathResolveStatement(
         this.outputDir,
         this.cwd,
@@ -548,11 +548,11 @@ ${this.jsDoc}
 
     debug({ engineConfig: this.engineConfig })
 
-    this.engine = new Engine(this.engineConfig)
+    this.#engine = new Engine(this.engineConfig)
 
-    this.dmmf = new DMMFClass(dmmf)
+    this.#dmmf = new DMMFClass(dmmf)
 
-    this.fetcher = new PrismaClientFetcher(this, false, internal.hooks)
+    this.#fetcher = new PrismaClientFetcher(this, false, internal.hooks)
 
     if (options.log) {
       for (const log of options.log) {
@@ -574,7 +574,7 @@ ${this.jsDoc}
   /**
    * @private
    */
-  readEnv() {
+  #readEnv() {
     const dotEnvPath = path.resolve(${getRelativePathResolveStatement(
       this.outputDir,
       this.cwd,
