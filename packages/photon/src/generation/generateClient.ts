@@ -306,7 +306,7 @@ export declare type sqlTemplateTag = any
 
 export declare class PrismaClientKnownRequestError extends Error {
   code: string;
-  meta?: Object;
+  meta?: object;
   constructor(message: string, code: string, meta?: any);
 }
 
