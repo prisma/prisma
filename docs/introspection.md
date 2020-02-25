@@ -106,7 +106,7 @@ Note that with SQLite, [you can't alter columns](https://stackoverflow.com/quest
 | `date`          | `DateTime`  |                                                            |
 | `DateTime`      | `String`    |                                                            |
 | `json`          | `String`    | Will be mapped to `Json` once it's supported.              |
-| `Stringb`       | `String`    | Will be mapped to `Json` once it's supported.              |
+| `jsonb`         | `String`    | Will be mapped to `Json` once it's supported.              |
 | `uuid`          | `String`    | Will be mapped to `Uuid` once it's supported.              |
 | `bit`           | `String`    | Will be mapped to `Binary` once it's supported.            |
 | `varbit`        | `String`    | Will be mapped to `Binary` once it's supported.            |
