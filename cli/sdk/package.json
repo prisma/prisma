@@ -31,7 +31,7 @@
     "prettier": "^1.19.1",
     "ts-jest": "^25.2.1",
     "ts-node": "^8.5.4",
-    "typescript": "^3.7.3"
+    "typescript": "^3.8.2"
   },
   "dependencies": {
     "@apexearth/copy": "^1.4.4",
