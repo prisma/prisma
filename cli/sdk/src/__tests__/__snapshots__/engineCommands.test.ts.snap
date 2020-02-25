@@ -335,9 +335,32 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+        ],
+        "name": "IdCompoundUniqueInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "IdCompoundUniqueInput",
             },
             "name": "id",
           },
