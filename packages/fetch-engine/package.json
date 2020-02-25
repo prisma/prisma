@@ -16,7 +16,7 @@
     "ncc": "^0.3.6",
     "prettier": "^1.19.1",
     "ts-jest": "^25.2.1",
-    "typescript": "^3.7.5"
+    "typescript": "^3.8.2"
   },
   "dependencies": {
     "@prisma/get-platform": "workspace:*",
