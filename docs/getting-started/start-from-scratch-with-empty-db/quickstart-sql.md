@@ -32,7 +32,6 @@ Follow these steps for an initial Prisma setup:
 
     CREATE TABLE "public"."Post" (
       post_id SERIAL PRIMARY KEY NOT NULL,
-      -- created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       title VARCHAR(255) NOT NULL,
       content TEXT,
       author_id INTEGER,
@@ -139,7 +138,6 @@ Follow these steps for an initial Prisma setup:
 
     CREATE TABLE Post (
       post_id BIGINT NOT NULL AUTO_INCREMENT,
-      -- created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       title VARCHAR(255) NOT NULL,
       content TEXT,
       author_id BIGINT,
@@ -248,7 +246,6 @@ Follow these steps for an initial Prisma setup:
 
     CREATE TABLE Post (
       post_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-      -- created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       title VARCHAR(255) NOT NULL,
       content TEXT,
       author_id INTEGER,
