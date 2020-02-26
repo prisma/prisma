@@ -514,13 +514,13 @@ ${this.jsDoc}
     const engineConfig = internal.engine || {}
 
     if (options.errorFormat) {
-      this.#errorFormat = options.errorFormat
+      this.errorFormat = options.errorFormat
     } else if (process.env.NODE_ENV === 'production') {
-      this.#errorFormat = 'minimal'
+      this.errorFormat = 'minimal'
     } else if (process.env.NO_COLOR) {
-      this.#errorFormat = 'colorless'
+      this.errorFormat = 'colorless'
     } else {
-      this.#errorFormat = 'pretty'
+      this.errorFormat = 'pretty'
     }
 
     this.#measurePerformance = internal.measurePerformance || false
