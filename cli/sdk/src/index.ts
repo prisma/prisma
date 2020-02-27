@@ -15,6 +15,7 @@ export {
   dmmfToDml,
   GetDMMFOptions,
   ConfigMetaFormat,
+  getVersion,
 } from './engineCommands'
 export { getPackedPackage } from './getPackedPackage'
 export { GeneratorPaths } from './predefinedGeneratorResolvers'

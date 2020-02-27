@@ -1,6 +1,5 @@
 import { getPlatform } from '@prisma/get-platform'
 import archiver from 'archiver'
-import crypto from 'crypto'
 import Debug from 'debug'
 import fs from 'fs'
 import globby from 'globby'
@@ -9,9 +8,11 @@ import os from 'os'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
+import checkpoint from 'checkpoint-client'
 import { maskSchema } from './utils/maskSchema'
 import { RustPanic, ErrorArea } from './panic'
 import { getProxyAgent } from '@prisma/fetch-engine'
+import { IntrospectionEngine } from './IntrospectionEngine'
 
 const debug = Debug('sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs
@@ -36,6 +37,21 @@ export async function sendPanic(
       maskedSchema = maskSchema(schema)
     }
 
+    let sqlDump: string | undefined
+    if (error.area === ErrorArea.INTROSPECTION_CLI && error.introspectionUrl) {
+      let engine: undefined | IntrospectionEngine
+      try {
+        engine = new IntrospectionEngine()
+        sqlDump = await engine.getDatabaseDescription(error.introspectionUrl)
+        engine.stop()
+      } catch (e) {
+        if (engine && engine.isRunning) {
+          engine.stop()
+        }
+        debug(e)
+      }
+    }
+
     const signedUrl = await createErrorReport({
       area: error.area,
       kind: ErrorKind.RUST_PANIC,
@@ -48,8 +64,8 @@ export async function sendPanic(
       platform: await getPlatform(),
       liftRequest: JSON.stringify(error.request),
       schemaFile: maskedSchema,
-      fingerprint: getFid() || undefined,
-      sqlDump: error.sqlDump,
+      fingerprint: checkpoint.signature.sync(),
+      sqlDump,
     })
 
     if (error.schemaPath) {
@@ -93,8 +109,10 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
   const zip = archiver('zip', { zlib: { level: 9 } })
 
   zip.pipe(outputFile)
-
-  zip.append(fs.createReadStream('schema.prisma'), { name: 'schema.prisma' })
+  
+  // add schema file
+  const schemaFile = maskSchema(fs.readFileSync(error.schemaPath, 'utf-8'))
+  zip.append(schemaFile, { name: path.basename(error.schemaPath) })
 
   if (fs.existsSync(schemaDir)) {
     const filePaths = await globby('migrations/**/*', {
@@ -103,7 +121,8 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
 
     for (const filePath of filePaths) {
       let file = fs.readFileSync(path.resolve(schemaDir, filePath), 'utf-8')
-      if (filePath.endsWith('schema.prisma')) {
+      if (filePath.endsWith('schema.prisma') || filePath.endsWith(path.basename(error.schemaPath))) {
+        // Remove credentials from schema datasource url
         file = maskSchema(file)
       }
       zip.append(file, { name: path.basename(filePath) })
@@ -191,29 +210,4 @@ async function request(query: string, variables: any): Promise<any> {
       }
       return res.data
     })
-}
-
-function getMac(): string | null {
-  const interfaces = os.networkInterfaces()
-  return Object.keys(interfaces).reduce<null | string>((acc, key) => {
-    if (acc) {
-      return acc
-    }
-    const i = interfaces[key]
-    const mac = i.find(a => a.mac !== '00:00:00:00:00:00')
-    return mac ? mac.mac : null
-  }, null)
-}
-
-export function getFid() {
-  const mac = getMac()
-  const fidSecret = 'AhTheeR7Pee0haebui1viemoe'
-  if (mac) {
-    return crypto
-      .createHmac('sha256', fidSecret)
-      .update(mac)
-      .digest('hex')
-  }
-
-  return null
 }

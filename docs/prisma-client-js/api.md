@@ -12,9 +12,10 @@ Prisma Client JS is a type-safe database client auto-generated based on your [da
 - [Bring your own ID](#bring-your-own-id)
 - [API Reference](#api-reference)
 - [Filtering](#filtering)
-- [Debugging](#debugging)
+- [Logging and debugging](#logging-and-debugging)
 - [Reusing query sub-parts](#reusing-query-sub-parts)
 - [Managing connections](#managing-connections)
+- [Error formatting](#error-formatting)
 
 ## Overview
 
@@ -63,7 +64,7 @@ Your generated Prisma Client JS API will expose the following CRUD operations fo
 - [`delete`](#delete)
 - [`deleteMany`](#deleteMany)
 
-You can access each function via the respective model property on your generated `PrismaClient` instance, e.g. `users` for the `User` model:
+You can access each function via the respective model property on your generated `PrismaClient` instance, e.g. `user` for the `User` model:
 
 ```ts
 import { PrismaClient } from '@prisma/client'
@@ -79,8 +80,6 @@ async function main() {
   await prisma.disconnect()
 }
 ```
-
-Note that the name of the `users` property is auto-generated using the [`pluralize`](https://github.com/blakeembrey/pluralize) package.
 
 ## Aggregations
 
@@ -159,10 +158,6 @@ const result = await prisma.user.findOne({
 // }
 ```
 
-### Lazy loading
-
-Coming soon.
-
 ## Relations
 
 Learn more about relations in the generated Prisma Client JS API [here](../relations.md#relations-in-the-generated-prisma-client-js-api).
@@ -192,7 +187,58 @@ Note that Prisma Client JS will throw an error if you're trying to create/update
 
 ## Raw database access
 
-Coming soon.
+You can send raw SQL queries to your database using the `raw` function that's exposed by your `PrismaClient` instance. It returns the query results as plain old JavaScript objects:
+
+```ts
+const result = await prisma.raw('SELECT * FROM User;')
+// result = [
+//   { "id":1, "email":"sarah@prisma.io", "name":"Sarah" },
+//   { "id":2, "email":"alice@prisma.io", "name":"Alice" }
+// ]
+```
+
+### Tagged templates
+
+Note that `raw` is implemented as a [tagged template](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates). Therefore, you can also call `raw` as follows:
+
+```ts
+const result = await prisma.raw`SELECT * FROM User;`
+```
+
+### Setting variables
+
+To include variables in your SQL query, you can use JavaScript string interpolation with [template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals):
+
+```ts
+const userId = 42
+const result = await prisma.raw`SELECT * FROM User WHERE id = ${userId};`
+```
+
+### Typing `raw` results
+
+The `raw` function has the following function signature:
+
+```ts
+raw<T = any>(query: string | TemplateStringsArray): Promise<T>;
+```
+
+The return type of `raw` is a `Promise` for the [generic](https://www.typescriptlang.org/docs/handbook/generics.html) type parameter `T`. This means you can type the result manually by providing `T` when you invoke `raw`. If you don't provide any type, the return type of `raw` defaults to `any`.
+
+```ts
+// import the generated `User` type from the `@prisma/client` module
+import { User } from '@prisma/client'
+
+const result = await prisma.raw<User[]>('SELECT * FROM User;')
+// result is of type: `User[]`
+```
+
+Now, `result` is statically typed to the generated `User` type (or rather an array thereof) from Prisma Client.
+
+![](https://imgur.com/H2TCRc5.png)
+
+If you're selecting only specific fields of the model or want to include relations, read the documentation about [leveraging Prisma Client's generated types](./generated-types.md) if you want to ensure that the query results are properly typed.
+
+Note that calls to `SELECT` always return arrays of type `T`, but other SQL operations (like `INSERT` or `UPDATE`) might return single objects.
 
 ## Scalar lists
 
@@ -510,12 +556,9 @@ const result = await prisma.user.findMany({
     },
   },
 })
-// result = {
-//
-// }
 ```
 
-## Debugging
+## Logging and debugging
 
 You can view the generated database queries that Prisma Client JS sends to your database by setting the `debug` option to `true` when instantiating `PrismaClient`:
 
@@ -569,8 +612,53 @@ Prisma Client JS connects and disconnects from your data sources using the follo
 - `connect(): Promise<void>`
 - `disconnect(): Promise<void>`
 
-Unless you want to employ a specific optimization, calling `prisma.connect()` is not necessary thanks to the _lazy connect_ behavior: The `PrismaClient` instance connects lazily when the first request is made prismao the API (`connect()` is called for you under the hood).
+Unless you want to employ a specific optimization, calling `prisma.connect()` is not necessary thanks to the _lazy connect_ behavior: The `PrismaClient` instance connects lazily when the first request is made to the API (`connect()` is called for you under the hood).
 
 If you need the first request to respond instantly and can't wait for the lazy connection to be established, you can explicitly call `prisma.connect()` to establish a connection to prismae data source.
 
 **IMPORTANT**: It is recommended to always explicitly call `prisma.disconnect()` in your code. Generally the `PrismaClient` instance disconnects automatically. However, if your program terminates but still  prismas an unhandled promise rejection, the port will keep the connection to the data source open beyond the lifetime of your program!
+
+## Error formatting
+
+By default, Prisma Client uses ANSI escape characters to pretty print the error stack and give recommendations on how to fix a problem. While this is very useful when using Prisma Client from the terminal, in contexts like a GraphQL API, you only want the minimal error without any additional formatting.
+
+This is how error formatting can be configured with Prisma Client.
+
+There are 3 error formatting levels:
+
+1. **Pretty Error** (default): Includes a full stack trace with colors, syntax highlighting of the code and extended error message with a possible solution for the problem.
+2. **Colorless Error**: Same as pretty errors, just without colors.
+3. **Minimal Error**: The raw error message.
+
+In order to configure these different error formatting levels, we have two options: 
+
+- Setting the config options via environment variables
+- Providing the config options to the `PrismaClient` constructor
+
+### Environment variables
+
+- `NO_COLOR`: If this env var is provided, colors are stripped from the error message. Therefore you end up with a **colorless error**. The `NO_COLOR` environment variable is a standard described [here](https://no-color.org/). We have a tracking issue [here](https://github.com/prisma/prisma2/issues/686).
+- `NODE_ENV=production`: If the env var `NODE_ENV` is set to `production`, only the **minimal error** will be printed. This allows for easier digestion of logs in production environments.
+
+### Constructor
+
+The constructor argument to control the error formatting is called `errorFormat`. It can have the following values:
+
+- `undefined`: If it's not defined, the default is `pretty`.
+- `pretty`: Enables pretty error formatting.
+- `colorless`: Enables colorless error formatting.
+- `minimal`: Enables minimal error formatting.
+
+It can be used like so:
+
+```ts
+const prisma = new PrismaClient({
+  errorFormat: 'minimal',
+})
+```
+
+As the `errorFormat` property is optional, you still can just instantiate Prisma Client like this:
+
+```ts
+const prisma = new PrismaClient()
+```

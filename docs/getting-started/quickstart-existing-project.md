@@ -1,4 +1,4 @@
-# Getting started
+# Quickstart: Add Prisma to an existing project
 
 This page explains how to get started with Prisma in an existing project. 
 
@@ -11,9 +11,9 @@ Follow these steps to use Prisma with your existing database. Note that these st
 1. Install `prisma2` as a development dependency: `npm install prisma2 --save-dev`
 1. Run `npx prisma2 init` to create an empty [Prisma schema](./prisma-schema-file.md)
 1. Set the `url` of the `datasource` block in the Prisma schema to your database connection URL
-1. Run `prisma2 introspect` to obtain your data model from the database schema
+1. Run `npx prisma2 introspect` to obtain your data model from the database schema
 1. Run `npm install @prisma/client` to add the Prisma Client npm package to your project
-1. Run `prisma2 generate` to generate Prisma Client
+1. Run `npx prisma2 generate` to generate Prisma Client
 1. Import Prisma Client into your code: `import { PrismaClient } from '@prisma/client'`
 1. Instantiate Prisma Client: `const prisma = new PrismaClient()`
 1. Use Prisma Client in code (use your editor's auto-completion to explore its API)
@@ -55,7 +55,7 @@ datasource db {
   url      = "postgresql://johndoe:johndoe@localhost:5432/mydb?schema=public"
 }
 // Other examples for connection strings are:
-// SQLite: url = "sqlite:./dev.db"
+// SQLite: url = "file:./dev.db"
 // MySQL:  url = "mysql://johndoe:johndoe@localhost:3306/mydb"
 // You can also use environment variables to specify the connection string: https://pris.ly/d/prisma-schema#using-environment-variables
 
@@ -81,7 +81,7 @@ The format of the connection URL for your database typically depends on the data
 
 - MySQL: `mysql://USER:PASSWORD@HOST:PORT/DATABASE`
 - PostgreSQL: `postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA`
-- SQLite: `sqlite:./FILE.db`
+- SQLite: `file:./FILE.db`
 
 As an example, for a PostgreSQL database hosted on Heroku, the [connection string](./core/connectors/postgresql.md#connection-string) might look similar to this:
 
@@ -132,23 +132,25 @@ For the purpose of this guide, we're using the following SQL schema:
 
 ```sql
 CREATE TABLE users (
-	user_id SERIAL PRIMARY KEY NOT NULL,
-	name VARCHAR(256),
-	email VARCHAR(256) UNIQUE NOT NULL
+  user_id SERIAL PRIMARY KEY NOT NULL,
+  name VARCHAR(256),
+  email VARCHAR(256) UNIQUE NOT NULL
 );
 
 CREATE TABLE posts (
-	post_id SERIAL PRIMARY KEY NOT NULL,
-	created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-	title VARCHAR(256) NOT NULL,
-	content TEXT,
-	author_id INTEGER REFERENCES users(user_id) 
+  post_id SERIAL PRIMARY KEY NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  title VARCHAR(256) NOT NULL,
+  content TEXT,
+  author_id INTEGER,
+  FOREIGN KEY (author_id) REFERENCES users(user_id) 
 );
 
 CREATE TABLE profiles (
-	profile_id SERIAL PRIMARY KEY NOT NULL,
-	bio TEXT,
-	user_id INTEGER NOT NULL REFERENCES users(user_id) 
+  profile_id SERIAL PRIMARY KEY NOT NULL,
+  bio TEXT,
+  user_id INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 ```
 
@@ -188,7 +190,7 @@ If you don't have one already, run the following commands to create a simple Typ
 
 ```
 npm init -y
-npm install typescript ts-node --save-dev
+npm install typescript ts-node @types/node --save-dev
 npm install @prisma/client
 touch script.ts
 touch tsconfig.json
