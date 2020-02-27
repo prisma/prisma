@@ -1,6 +1,6 @@
 {
   "name": "@prisma/migrate",
-  "version": "0.3.575",
+  "version": "0.3.577",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/migrate.git",
@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@prisma/cli": "workspace:*",
-    "@prisma/client": "workspace:^2.0.0-alpha.839",
+    "@prisma/client": "workspace:^2.0.0-alpha.841",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/charm": "1.0.1",
