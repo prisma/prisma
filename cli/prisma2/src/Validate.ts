@@ -4,7 +4,7 @@ import { getConfig, getDMMF } from '@prisma/sdk'
 import fs from 'fs'
 
 /**
- * $ prisma validate
+ * $ prisma2 validate
  */
 export class Validate implements Command {
   public static new(): Validate {
@@ -13,15 +13,15 @@ export class Validate implements Command {
 
   // static help template
   private static help = format(`
-    Validate a schema.
+    Validate a Prisma schema.
 
     ${chalk.bold('Usage')}
 
-    With an existing schema.prisma, just
-      ${chalk.bold('prisma2 validate')}
+    With an existing schema.prisma:
+      ${chalk.dim('$')} prisma2 validate
 
     Or specify a schema:
-      ${chalk.bold('prisma2 validate --schema=./schema.prisma')}
+      ${chalk.dim('$')} prisma2 validate --schema=./schema.prisma
 
   `)
   private constructor() {}
@@ -42,17 +42,14 @@ export class Validate implements Command {
       return this.help()
     }
 
-    let schemaPath: string | null = args['--schema'] || (await getSchemaPath())
+    const schemaPath = await getSchemaPath(args['--schema'])
+
     if (!schemaPath) {
       throw new Error(
         `Either provide ${chalk.greenBright(
           '--schema',
         )} or make sure that you are in a folder with a ${chalk.greenBright('schema.prisma')} file.`,
       )
-    }
-
-    if (!fs.existsSync(schemaPath)) {
-      throw new Error(`Provided schema at ${schemaPath} doesn't exist.`)
     }
 
     const schema = fs.readFileSync(schemaPath, 'utf-8')

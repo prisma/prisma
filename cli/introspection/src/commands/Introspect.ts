@@ -1,22 +1,12 @@
 import { Command, format, HelpError, getSchemaPath, arg } from '@prisma/cli'
 import chalk from 'chalk'
 import path from 'path'
-import {
-  getConfig,
-  IntrospectionEngine,
-  getDMMF,
-  dmmfToDml,
-  uriToCredentials,
-  ConfigMetaFormat,
-  RustPanic,
-  ErrorArea,
-} from '@prisma/sdk'
+import { IntrospectionEngine, uriToCredentials, ConfigMetaFormat, RustPanic, ErrorArea } from '@prisma/sdk'
 import { formatms } from '../util/formatms'
 import fs from 'fs'
 import { DataSource } from '@prisma/generator-helper'
 import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 import { printDatasources } from '../prompt/utils/printDatasources'
-import stripAnsi from 'strip-ansi'
 import Debug from 'debug'
 const debug = Debug('Introspect')
 
@@ -35,13 +25,28 @@ export class Introspect implements Command {
     ${chalk.bold('Usage')}
 
     With an existing schema.prisma
-      ${chalk.bold('prisma2 introspect')}
+      ${chalk.dim('$')} prisma2 introspect
+
+    Or specify a schema:
+      ${chalk.dim('$')} prisma2 introspect --schema=./db/schema.prisma'
 
     Instead of saving the result to the filesystem, you can also print it
-      ${chalk.bold('prisma2 introspect --print')}
+      ${chalk.dim('$')} prisma2 introspect --print'
 
   `)
   private constructor() {}
+  private printUrlAsDatasource(url: string): string {
+    const connectorType = databaseTypeToConnectorType(uriToCredentials(url).type)
+
+    return printDatasources([
+      {
+        config: {},
+        connectorType,
+        name: 'db',
+        url,
+      },
+    ])
+  }
 
   // parse arguments
   public async parse(argv: string[], minimalOutput = false): Promise<string | Error> {
@@ -50,6 +55,7 @@ export class Introspect implements Command {
       '-h': '--help',
       '--url': String,
       '--print': Boolean,
+      '--schema': String,
     })
 
     const log = (...messages) => {
@@ -67,31 +73,20 @@ export class Introspect implements Command {
     }
 
     let url: string | undefined = args['--url']
-    let schemaPath = await getSchemaPath()
-    let config: ConfigMetaFormat | undefined
-    if (!url) {
-      if (!schemaPath) {
-        throw new Error(
-          `Either provide ${chalk.greenBright(
-            '--url',
-          )} or make sure that you are in a folder with a ${chalk.greenBright('schema.prisma')} file.`,
-        )
-      }
-
-      config = await getConfig({
-        datamodelPath: schemaPath,
-      })
-
-      const datasource = config.datasources[0]
-      if (!datasource) {
-        throw new Error(
-          `Either provide ${chalk.greenBright('--url')} or add a ${chalk.greenBright.bold(
-            'datasource',
-          )} in the ${chalk.greenBright(path.relative(process.cwd(), schemaPath))} file.`,
-        )
-      }
-      url = datasource.url.value
+    let schemaPath = await getSchemaPath(args['--schema'])
+    if (!url && !schemaPath) {
+      throw new Error(
+        `Either provide ${chalk.greenBright(
+          '--schema',
+        )} or make sure that you are in a folder with a ${chalk.greenBright('schema.prisma')} file.`,
+      )
     }
+    // TS at its limits 🤷‍♀️
+    const schema: string = url
+      ? this.printUrlAsDatasource(url)
+      : schemaPath
+      ? fs.readFileSync(schemaPath, 'utf-8')
+      : undefined!
 
     const engine = new IntrospectionEngine({
       cwd: schemaPath ? path.dirname(schemaPath) : undefined,
@@ -105,94 +100,44 @@ export class Introspect implements Command {
 
     const before = Date.now()
     let introspectionSchema = ''
-    introspectionSchema = await engine.introspect(url)
+    try {
+      introspectionSchema = await engine.introspect(schema)
+    } catch (e) {
+      if (e.code === 'P4001') {
+        if (introspectionSchema.trim() === '') {
+          throw new Error(`\n${chalk.red.bold('P4001 ')}${chalk.red('The introspected database was empty:')} ${
+            url ? chalk.underline(url) : ''
+          }
 
-    if (introspectionSchema.trim() === '') {
-      throw new Error(`Empty introspection result for ${chalk.underline(url)}`)
+${chalk.bold('prisma2 introspect')} could not create any models in your ${chalk.bold(
+            'schema.prisma',
+          )} file and you will not be able to generate Prisma Client with the ${chalk.bold('prisma2 generate')} command.
+
+${chalk.bold('To fix this, you have two options:')}
+
+- manually create a table in your database (using SQL).
+- make sure the database connection URL inside the ${chalk.bold('datasource')} block in ${chalk.bold(
+            'schema.prisma',
+          )} points to a database that is not empty (it must contain at least one table).
+
+Then you can run ${chalk.green('prisma2 introspect')} again. 
+`)
+        }
+      }
+
+      throw e
     }
 
-    const connectorType = databaseTypeToConnectorType(uriToCredentials(url).type)
-
-    const datasourceString = printDatasources([
-      {
-        config: {},
-        connectorType,
-        name: 'db',
-        url,
-      },
-    ])
-
-    introspectionSchema = datasourceString + '\n' + introspectionSchema
-
-    debug('introspectionSchema:')
-    debug(introspectionSchema)
-
-    try {
-      const dmmf = await getDMMF({ datamodel: introspectionSchema })
-
-      // add the datasource itself to the schema in case no schema.prisma exists yet
-      const datasources: DataSource[] = [
-        {
-          name: 'db',
-          config: {},
-          connectorType,
-          url: {
-            value: url,
-            fromEnvVar: null,
-          },
-        },
-      ]
-      const schema = await dmmfToDml({
-        config: config || {
-          datasources,
-          generators: [],
-        },
-        dmmf: dmmf.datamodel,
-      })
-
-      log(`Done with introspection in ${chalk.bold(formatms(Date.now() - before))}`)
-
-      if (args['--print']) {
-        console.log(schema)
-      } else {
-        if (schemaPath && fs.existsSync(schemaPath)) {
-          const backupPath = path.join(path.dirname(schemaPath), 'schema.backup.prisma')
-          fs.renameSync(schemaPath, backupPath)
-          log(
-            `\nMoved existing ${chalk.underline(path.relative(process.cwd(), schemaPath))} to ${chalk.underline(
-              path.relative(process.cwd(), backupPath),
-            )}`,
-          )
-        }
-        schemaPath = schemaPath || 'schema.prisma'
-        fs.writeFileSync(schemaPath, schema)
-        log(`Wrote ${chalk.underline(path.relative(process.cwd(), schemaPath))}`)
-      }
-    } catch (e) {
-      let sqlDump
-      try {
-        sqlDump = await engine.getDatabaseDescription(url)
-      } catch (e) {
-        console.error(e)
-        //
-      }
-      engine.stop()
-
-      console.error(chalk.bold.red(`\nIntrospection failed:`) + chalk.red(` Introspected schema can't be parsed.`))
-      if (introspectionSchema) {
-        console.log(chalk.bold(`Introspected Schema:\n`))
-        console.log(introspectionSchema + '\n')
-      }
-
-      throw new RustPanic(
-        stripAnsi(e.message),
-        stripAnsi(e.message),
-        {},
-        ErrorArea.INTROSPECTION_CLI,
-        undefined,
-        introspectionSchema,
-        sqlDump,
-      )
+    if (args['--print']) {
+      console.log(introspectionSchema)
+    } else {
+      schemaPath = schemaPath || 'schema.prisma'
+      fs.writeFileSync(schemaPath, introspectionSchema)
+      log(`\n✔ Wrote Prisma data model into ${chalk.underline(
+        path.relative(process.cwd(), schemaPath),
+      )} in ${chalk.bold(formatms(Date.now() - before))}
+      
+Run ${chalk.green('prisma2 generate')} to generate Prisma Client.`)
     }
 
     engine.stop()

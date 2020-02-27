@@ -34,6 +34,14 @@ export class IntrospectionPanic extends Error {
   }
 }
 
+export class IntrospectionError extends Error {
+  public code: string
+  constructor(message: string, code: string) {
+    super(message)
+    this.code = code
+  }
+}
+
 let messageId = 1
 
 /* tslint:disable */
@@ -48,6 +56,7 @@ export class IntrospectionEngine {
   private lastError?: any
   private initPromise?: Promise<void>
   private lastUrl?: string
+  public isRunning: boolean = false
   constructor(
     { binaryPath, debug, cwd }: IntrospectionEngineOptions = {
       binaryPath: process.env.PRISMA_INTROSPECTION_ENGINE_BINARY, // ncc go home
@@ -66,6 +75,7 @@ export class IntrospectionEngine {
   public stop() {
     if (this.child) {
       this.child.kill()
+      this.isRunning = false
     }
   }
   private rejectAll(err: any) {
@@ -80,24 +90,26 @@ export class IntrospectionEngine {
   ) {
     this.listeners[id] = callback
   }
-  public getDatabaseDescription(url: string): Promise<string> {
+  public getDatabaseDescription(schema: string): Promise<string> {
     return this.runCommand(
-      this.getRPCPayload('getDatabaseDescription', { url }),
+      this.getRPCPayload('getDatabaseDescription', { schema }),
     )
   }
-  public introspect(url: string): Promise<string> {
-    this.lastUrl = url
-    return this.runCommand(this.getRPCPayload('introspect', { url }))
+  public introspect(schema: string): Promise<string> {
+    this.lastUrl = schema
+    return this.runCommand(this.getRPCPayload('introspect', { schema }))
   }
-  public listDatabases(url: string): Promise<string[]> {
-    this.lastUrl = url
-    return this.runCommand(this.getRPCPayload('listDatabases', { url }))
+  public listDatabases(schema: string): Promise<string[]> {
+    this.lastUrl = schema
+    return this.runCommand(this.getRPCPayload('listDatabases', { schema }))
   }
   public getDatabaseMetadata(
-    url: string,
+    schema: string,
   ): Promise<{ size_in_bytes: number; table_count: number }> {
-    this.lastUrl = url
-    return this.runCommand(this.getRPCPayload('getDatabaseMetadata', { url }))
+    this.lastUrl = schema
+    return this.runCommand(
+      this.getRPCPayload('getDatabaseMetadata', { schema }),
+    )
   }
   private handleResponse(response: any) {
     let result
@@ -174,6 +186,8 @@ export class IntrospectionEngine {
           cwd: this.cwd,
         })
 
+        this.isRunning = true
+
         this.child.on('error', err => {
           console.error('[introspection-engine] error: %s', err)
           reject(err)
@@ -186,6 +200,7 @@ export class IntrospectionEngine {
 
         this.child.on('exit', (code, signal) => {
           // handle panics
+          this.isRunning = false
           if (code === 255 && this.lastError && this.lastError.is_panic) {
             let sqlDump
             if (this.lastUrl) {
@@ -268,6 +283,13 @@ export class IntrospectionEngine {
   }
   private async runCommand(request: RPCPayload): Promise<any> {
     await this.init()
+    if (this.child?.killed) {
+      throw new Error(
+        `Can't execute ${JSON.stringify(
+          request,
+        )} because introspection engine already exited.`,
+      )
+    }
     return new Promise((resolve, reject) => {
       this.registerCallback(request.id, async (response, err) => {
         if (err) {
@@ -307,8 +329,15 @@ export class IntrospectionEngine {
                 message =
                   chalk.redBright(`${response.error.data.error_code}\n\n`) +
                   message
+                reject(
+                  new IntrospectionError(
+                    message,
+                    response.error.data.error_code,
+                  ),
+                )
+              } else {
+                reject(new Error(message))
               }
-              reject(new Error(message))
             } else {
               const text = this.persistError(request, this.messages.join('\n'))
               reject(

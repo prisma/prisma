@@ -1,5 +1,4 @@
 const { download } = require('@prisma/fetch-engine')
-const pkg = require('../package.json')
 const fs = require('fs')
 const path = require('path')
 const pkgUp = require('pkg-up')
@@ -7,6 +6,7 @@ const Debug = require('debug')
 const debug = Debug('prisma2:download')
 
 const binaryPath = eval(`require('path').join(__dirname, '../')`)
+const pkg = eval(`require(require('path').join(binaryPath, 'package.json'))`)
 
 const version = (pkg && pkg.prisma && pkg.prisma.version) || 'latest'
 
@@ -29,7 +29,7 @@ if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
 }
 
 async function ensurePostInstall() {
-  const initPkgPath = path.resolve(process.env.INIT_CWD, 'package.json')
+  const initPkgPath = eval(`require('path').resolve(process.env.INIT_CWD, 'package.json')`)
   if (fs.existsSync(initPkgPath)) {
     if (addPostInstallHook(initPkgPath)) {
       return

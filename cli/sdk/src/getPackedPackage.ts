@@ -1,6 +1,7 @@
 import execa from 'execa'
 import path from 'path'
 import tempy from 'tempy'
+import fs from 'fs'
 import resolvePkg from 'resolve-pkg'
 import tar from 'tar'
 import copy from '@apexearth/copy'
@@ -36,6 +37,10 @@ export async function getPackedPackage(
     if (pkg && pkg.packageJson.name === name) {
       packageDir = path.dirname(pkg.path)
     }
+  }
+
+  if (!packageDir && fs.existsSync(path.join(process.cwd(), 'package.json'))) {
+    packageDir = process.cwd()
   }
 
   if (!packageDir) {

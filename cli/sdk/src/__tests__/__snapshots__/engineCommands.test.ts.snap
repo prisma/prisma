@@ -335,9 +335,32 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+        ],
+        "name": "IdCompoundUniqueInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "IdCompoundUniqueInput",
             },
             "name": "id",
           },
@@ -490,8 +513,8 @@ Object {
                 "inputType": Object {
                   "isList": false,
                   "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
+                  "kind": "object",
+                  "type": "AWhereUniqueInput",
                 },
                 "name": "after",
               },
@@ -499,8 +522,8 @@ Object {
                 "inputType": Object {
                   "isList": false,
                   "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
+                  "kind": "object",
+                  "type": "AWhereUniqueInput",
                 },
                 "name": "before",
               },
@@ -735,6 +758,35 @@ Object {
               "isRequired": true,
               "kind": "object",
               "type": "BatchPayload",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": true,
+                  "kind": "scalar",
+                  "type": "String",
+                },
+                "name": "query",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Json",
+                },
+                "name": "parameters",
+              },
+            ],
+            "name": "executeRaw",
+            "outputType": Object {
+              "isList": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Json",
             },
           },
         ],

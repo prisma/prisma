@@ -7,9 +7,9 @@ The PostgreSQL data source connector connects Prisma to a PostgreSQL database se
 To connect to a PostgreSQL database server, you need to configure a [`datasource`](../../prisma-schema-file.md#data-sources) block in your [schema file](../../prisma-schema-file.md):
 
 ```prisma
-datasource pg {
+datasource postgresql {
   provider = "postgresql"
-  url      = env("POSTGRESQL_URL")
+  url      = env("DATABASE_URL")
 }
 
 // ... the file should also contain a data model definition and (optionally) generators
@@ -70,6 +70,8 @@ postgresql://[user[:password]@][netloc][:port][,...][/database][?param1=value1&.
 - `user`: The database user, e.g. `admin`.
 - `password`: The password for the database user.
 - `connection_limit`: The connection limit specifies the maximum number of simultaneous connections that Prisma might have open to your database. The **default value** is calculated according to this formula: `num_physical_cpus * 2 + 1`.
+- `connect_timeout`: The maximum number of seconds to wait for a new connection. **Default**: `5`. 
+- `socket_timeout`: The maximum number of seconds to wait until a single query terminates. **Default**: `5`. 
 
 See the next section to learn how you can configure an SSL connection.
 
@@ -81,12 +83,27 @@ You can add various parameters to the connection string if your database server 
   - `prefer` (default): Prefer TLS if possible, accept plain text connections. 
   - `disable`: Do not use TLS.
   - `require`: Require TLS or fail if not possible.
-- `sslcert=<PATH>`: Path the the server certificate, for Google Cloud this likely is `server-ca.pem`.
-- `sslidentity=<PATH>`: Path to the PKCS12 certificate database created from client cert and key.
-- `sslpassword=<PASSWORD>`: The PKCS12 password.
+- `sslcert=<PATH>`: Path the the server certificate. This is the root certificate used by the database server to sign the client certificate. You need to provide this if the certificate doesn't exist in the trusted certificate store of your system. For Google Cloud this likely is `server-ca.pem`.
+- `sslidentity=<PATH>`: Path to the PKCS12 certificate database created from client cert and key. This is the SSL identity file in PKCS12 format which you will generate using the client key and client certificate. It combines these two files in a single file and secures them via a password (see next parameter). You can create this file using your client key and client certificate by using the following command (using `openssl`):
+    ```
+    openssl pkcs12 -export -out client-identity.p12 -inkey client-key.pem -in client-cert.pem
+    ```
+- `sslpassword=<PASSWORD>`: Password that was used to secure the PKCS12 file. The `openssl` command listed in the previous step will ask for a password while creating the PKCS12 file, you will need to provide that same exact password here.
 - `sslaccept=(strict|accept_invalid_certs)`: 
-  - `strict` (default): Any missing value in the certificate will lead to an error. For Google Cloud, especially if the database doesn't have a domain name, the certificate might miss the domain/IP address, causing an error when connecting.
-  - `accept_invalid_certs`: Bypass this check. Be aware of the security consequences of this setting.
+  - `strict`: Any missing value in the certificate will lead to an error. For Google Cloud, especially if the database doesn't have a domain name, the certificate might miss the domain/IP address, causing an error when connecting.
+  - `accept_invalid_certs` (default): Bypass this check. Be aware of the security consequences of this setting.
+
+To recap, in order to create a SSL connection to your database, you need: 
+
+- A root [CA](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2003/cc778623(v=ws.10)?redirectedfrom=MSDN) file
+- A [PKCS12](https://en.wikipedia.org/wiki/PKCS_12) client file
+- A [PKCS12](https://en.wikipedia.org/wiki/PKCS_12) password
+
+Your database connection URL will look similar to this:
+
+```
+postgresql://user:password@host?sslidentity=client-identity.p12&sslpassword=mypassword&sslcert=rootca.cert
+```
 
 ### Connecting via sockets
 

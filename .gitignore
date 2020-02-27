@@ -1,5 +1,4 @@
 node_modules
-migration-engine
 yarn-error.log
 dist
 build
@@ -8,3 +7,4 @@ examples
 tmp
 pnpm-debug.log
 sandbox
+*.tsbuildinfo

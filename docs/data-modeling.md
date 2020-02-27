@@ -363,7 +363,7 @@ Here is a list of all available core **field** attributes:
 Here is a list of all available core **block** attributes:
 
 - `@@map(_ name: String)`: Defines the raw table name the field is mapped to.
-- `@@index(_ fields: Field[])`: Defines an index on the specifief fields/columns.
+- `@@index(_ fields: Field[])`: Defines an index on the specified fields/columns.
 
 ### Connector attributes
 
@@ -374,7 +374,6 @@ Here is where you can find the documentation of connector attributes per data so
 - [MySQL](./core/connectors/mysql.md)
 - [PostgreSQL](./core/connectors/postgresql.md)
 - [SQLite](./core/connectors/sqlite.md)
-- [MongoDB](./core/connectors/mongo.md)
 
 ## Indexes
 

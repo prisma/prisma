@@ -31,23 +31,29 @@ async function getPrismaPath(): Promise<string> {
   const dir = eval('__dirname')
   const platform = await getPlatform()
   const extension = platform === 'windows' ? '.exe' : ''
-  const relative = `query-engine-${platform}${extension}`
-  let prismaPath = path.join(dir, '..', relative)
+  const binaryName = `query-engine-${platform}${extension}`
+  let prismaPath = path.join(dir, '..', binaryName)
   if (fs.existsSync(prismaPath)) {
     return prismaPath
   }
   // for pkg
-  prismaPath = path.join(dir, '../..', relative)
+  prismaPath = path.join(dir, '../..', binaryName)
   if (fs.existsSync(prismaPath)) {
     return prismaPath
   }
 
-  prismaPath = path.join(__dirname, '..', relative)
+  prismaPath = path.join(__dirname, '..', binaryName)
   if (fs.existsSync(prismaPath)) {
     return prismaPath
   }
 
-  prismaPath = path.join(__dirname, '../..', relative)
+  prismaPath = path.join(__dirname, '../..', binaryName)
+  if (fs.existsSync(prismaPath)) {
+    return prismaPath
+  }
+
+  // needed to come from @prisma/client/generator-build to @prisma/client/runtime
+  prismaPath = path.join(__dirname, '../runtime', binaryName)
   if (fs.existsSync(prismaPath)) {
     return prismaPath
   }
@@ -56,8 +62,8 @@ async function getPrismaPath(): Promise<string> {
     `Could not find query-engine binary. Searched in ${path.join(
       dir,
       '..',
-      relative,
-    )} and ${path.join(dir, '../..', relative)}`,
+      binaryName,
+    )} and ${path.join(dir, '../..', binaryName)}`,
   )
 }
 
@@ -103,7 +109,11 @@ export async function getDMMF({
       maxBuffer: MAX_BUFFER,
     }
 
-    result = await execa(prismaPath, ['cli', '--dmmf'], options)
+    result = await execa(
+      prismaPath,
+      ['--enable_raw_queries', 'cli', '--dmmf'],
+      options,
+    )
 
     if (!datamodelPath) {
       await unlink(tempDatamodelPath!)
@@ -121,7 +131,10 @@ export async function getDMMF({
       })
     }
 
-    return JSON.parse(result.stdout)
+    const firstCurly = result.stdout.indexOf('{')
+    const stdout = result.stdout.slice(firstCurly)
+
+    return JSON.parse(stdout)
   } catch (e) {
     debug('getDMMF failed', e)
     // If this unlikely event happens, try it at least once more
@@ -259,4 +272,18 @@ export async function dmmfToDml(
     }
     throw new Error(e)
   }
+}
+
+export async function getVersion(enginePath?: string): Promise<string> {
+  enginePath = enginePath || (await getPrismaPath())
+
+  debug(`Getting version of ${enginePath}`)
+  const result = await execa(enginePath, ['--version'], {
+    env: {
+      ...process.env,
+    },
+    maxBuffer: MAX_BUFFER,
+  })
+
+  return result.stdout
 }

@@ -23,12 +23,15 @@ export class CLI implements Command {
       '-v': '--version',
       '--experimental': Boolean,
     })
+
     if (isError(args)) {
       return this.help(args.message)
     }
+
     if (args['--version']) {
       return Version.new().parse(argv)
     }
+
     // display help for help flag or no subcommand
     if (args._.length === 0 || args['--help']) {
       if (args['--experimental']) {
@@ -60,7 +63,10 @@ export class CLI implements Command {
         })
       }
 
-      return cmd.parse(args._.slice(1))
+      const argsForCmd = args['--experimental']
+        ? [...args._.slice(1), `--experimental=${args['--experimental']}`]
+        : args._.slice(1)
+      return cmd.parse(argsForCmd)
     }
     // unknown command
     return unknownCommand(CLI.help, args._[0])
@@ -76,11 +82,13 @@ export class CLI implements Command {
 
   // static help template
   private static help = format(`
-    ${process.platform === "win32" ? '' : chalk.bold.green('◭ ')}Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
+    ${
+      process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
+    }Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim(`$`)} prisma2 [command]
+      ${chalk.dim('$')} prisma2 [command]
 
     ${chalk.bold('Commands')}
 
@@ -94,23 +102,25 @@ export class CLI implements Command {
 
     ${chalk.bold('Examples')}
 
-      Setup Prisma for your existing database
-      ${chalk.dim(`$`)} prisma2 init
+      Setup a new Prisma project
+      ${chalk.dim('$')} prisma2 init
 
       Introspect an existing database
-      ${chalk.dim(`$`)} prisma2 introspect
+      ${chalk.dim('$')} prisma2 introspect
 
       Generate artifacts (e.g. Prisma Client)
-      ${chalk.dim(`$`)} prisma2 generate
+      ${chalk.dim('$')} prisma2 generate
   `)
 
   // static help template
   private static experimentalHelp = format(`
-    ${process.platform === "win32" ? '' : chalk.bold.green('◭ ')}Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
+    ${
+      process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
+    }Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim(`$`)} prisma2 [command]
+      ${chalk.dim('$')} prisma2 [command]
 
     ${chalk.bold('Commands')}
 
@@ -127,15 +137,15 @@ export class CLI implements Command {
     ${chalk.bold('Examples')}
 
       Initialize files for a new Prisma project
-      ${chalk.dim(`$`)} prisma2 init
+      ${chalk.dim('$')} prisma2 init
 
       Introspect an existing database
-      ${chalk.dim(`$`)} prisma2 introspect
+      ${chalk.dim('$')} prisma2 introspect
 
       Generate artifacts (e.g. Prisma Client)
-      ${chalk.dim(`$`)} prisma2 generate
+      ${chalk.dim('$')} prisma2 generate
 
       Save your changes into a migration
-      ${chalk.dim(`$`)} prisma2 migrate save --experimental
+      ${chalk.dim('$')} prisma2 migrate save --experimental
   `)
 }

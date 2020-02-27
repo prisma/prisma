@@ -3,7 +3,7 @@ export class RustPanic extends Error {
   public rustStack: string
   public schemaPath?: string
   public area: ErrorArea
-  public sqlDump?: string
+  public introspectionUrl?: string
   public schema?: string
   constructor(
     message: string,
@@ -12,7 +12,7 @@ export class RustPanic extends Error {
     area: ErrorArea,
     schemaPath?: string,
     schema?: string,
-    sqlDump?: string,
+    introspectionUrl?: string,
   ) {
     super(message)
     this.rustStack = rustStack
@@ -20,7 +20,7 @@ export class RustPanic extends Error {
     this.schemaPath = schemaPath
     this.area = area
     this.schema = schema
-    this.sqlDump = sqlDump
+    this.introspectionUrl = introspectionUrl
   }
 }
 

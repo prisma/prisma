@@ -1,16 +1,25 @@
 import { IntrospectionEngine } from '../../IntrospectionEngine'
-import path from 'path'
 
 test('basic introspection', async () => {
   const engine = new IntrospectionEngine({
     cwd: __dirname,
   })
 
-  const url = `file:${path.resolve(__dirname, 'blog.db')}`
+  const url = `file:./blog.db`
 
-  const result = await engine.introspect(url)
+  const schema = `datasource ds {
+    provider = "sqlite"
+    url = "${url}"
+  }`
+
+  const result = await engine.introspect(schema)
   expect(result).toMatchInlineSnapshot(`
-    "model User {
+    "datasource ds {
+      provider = \\"sqlite\\"
+      url      = \\"file:./blog.db\\"
+    }
+
+    model User {
       age     Int     @default(0)
       amount  Float   @default(0)
       balance Float   @default(0)
@@ -18,7 +27,7 @@ test('basic introspection', async () => {
       id      Int     @default(autoincrement()) @id
       name    String?
       role    String  @default(\\"USER\\")
-      posts   Post[]
+      post    Post[]
     }
 
     model Post {
@@ -32,21 +41,21 @@ test('basic introspection', async () => {
       author    User
     }"
   `)
-  const metadata = await engine.getDatabaseMetadata(url)
+  const metadata = await engine.getDatabaseMetadata(schema)
   expect(metadata).toMatchInlineSnapshot(`
     Object {
       "size_in_bytes": 0,
       "table_count": 3,
     }
   `)
-  const databases = await engine.listDatabases(url)
+  const databases = await engine.listDatabases(schema)
   expect(databases).toMatchInlineSnapshot(`
     Array [
       "",
       "blog.db",
     ]
   `)
-  const description = await engine.getDatabaseDescription(url)
+  const description = await engine.getDatabaseDescription(schema)
   expect(JSON.parse(description)).toMatchInlineSnapshot(`
     Object {
       "enums": Array [],

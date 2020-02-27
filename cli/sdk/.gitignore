@@ -4,5 +4,7 @@ src/download-test
 test-dmmf.ts
 dmmf.json
 introspection-engine*
+migration-engine*
 write-test
 sandbox
+failed-*

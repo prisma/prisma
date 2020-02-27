@@ -375,7 +375,7 @@ Nested writes provide a powerful API to write relational data to your database. 
 
 Nested writes are available for relation fields of a model when using the model's `create` or `update` function. The following nested write operations are available per function:
 
-- On to-one relation fields (e.g. `profile` on `User` in the sample data model above)
+- One-to-one relation fields (e.g. `profile` on `User` in the sample data model above)
   - `create`
     - `create`: Create a new user and a new profile
     - `connect`: Create a new user and connect it to an existing profile
@@ -386,7 +386,7 @@ Nested writes are available for relation fields of a model when using the model'
     - `upsert`: Update an existing user by updating their existing profile or by creating a new profile
     - `delete` (only if relation is optional): Update an existing user by deleting their existing profile
     - `disconnect` (only if relation is optional): Update an existing user by removing the connection to their existing profile
-- On to-many relation fields (e.g. `posts` on `User` in the sample data model above)
+- One-to-many relation fields (e.g. `posts` on `User` in the sample data model above)
   - `create`
     - `create`: Create a new user and one or more new posts
     - `connect`: Create a new user and connect it to one or more existing posts
