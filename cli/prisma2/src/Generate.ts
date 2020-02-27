@@ -45,9 +45,7 @@ export class Generate implements Command {
       const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
       const before = Date.now()
       await generator.generate()
-      if (!watchMode) {
-        generator.stop()
-      }
+      generator.stop()
       const after = Date.now()
       message.push(`✔ Generated ${chalk.bold(name!)}${toStr} in ${formatms(after - before)}\n`)
     }
@@ -102,6 +100,17 @@ export class Generate implements Command {
 
       fs.watch(schemaPath, async eventType => {
         if (eventType === 'change') {
+          const generators = await getGenerators({
+            schemaPath,
+            printDownloadProgress: !watchMode,
+            version: pkg.prisma.version,
+            cliVersion: pkg.version,
+          })
+
+          if (generators.length === 0) {
+            console.error(missingGeneratorMessage)
+          }
+
           logUpdate(`\n${chalk.green('Building...')}\n\n${this.logText}`)
           await this.runGenerate({ generators, watchMode })
           logUpdate(watchingText + '\n' + this.logText)
