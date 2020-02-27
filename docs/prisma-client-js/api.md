@@ -83,7 +83,7 @@ async function main() {
 
 ## Aggregations
 
-In addition to CRUD operations, Prisma Client JS also allows for [_aggregation_ queries](https://github.com/prisma/prisma-client-js/issues/5). 
+In addition to CRUD operations, Prisma Client JS also allows for [_aggregation_ queries](https://github.com/prisma/prisma-client-js/issues/5).
 
 ### `count`
 
@@ -178,8 +178,8 @@ You can provide the `id` as input value in [`create`](#create) and [`update`](#u
 ```ts
 const user = await prisma.user.create({
   data: {
-    id: 1
-  }
+    id: 1,
+  },
 })
 ```
 
@@ -282,10 +282,10 @@ Creates a new `PrismaClient` instance.
 
 #### Options
 
-| Name          | Type          | Required | Description                                                                                                                                                                                                                         |
-| ------------- | ------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `debug`       | `boolean`     | No       | When set to `true`, the `PrismaClient` instance prints additional logging output to the console when sending requests to Prisma's query engine. **Default**: `false`.                                                                     |
-| `log` | `boolean | LogOption[]` | No | This allows to specify one of the following log levels: `INFO`, `WARN`, `QUERY`. If set to `true`, all log levels are applied. If set to `false`, no log levels are applied. **Default**: `true`.  
+| Name    | Type                    | Required | Description                                                                                                                                                                                       |
+| ------- | ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `debug` | `boolean`               | No       | When set to `true`, the `PrismaClient` instance prints additional logging output to the console when sending requests to Prisma's query engine. **Default**: `false`.                             |
+| `log`   | `boolean | LogOption[]` | No       | This allows to specify one of the following log levels: `INFO`, `WARN`, `QUERY`. If set to `true`, all log levels are applied. If set to `false`, no log levels are applied. **Default**: `true`. |
 
 #### Examples
 
@@ -417,8 +417,8 @@ Updates an existing or creates a new record and returns the corresponding object
 ```ts
 const user = await prisma.user.upsert({
   where: { id: 1 },
-  update: { name: "ALICE" },
-  create: { name: "ALICE" }
+  update: { name: 'ALICE' },
+  create: { name: 'ALICE' },
 })
 ```
 
@@ -470,7 +470,7 @@ The `count()` method doesn't take any input arguments.
 #### Examples
 
 ```ts
-const userCount = await  prisma.user.count()
+const userCount = await prisma.user.count()
 // userCount = 42
 ```
 
@@ -569,9 +569,9 @@ const prisma = new PrismaClient({ debug: true })
 You can also configure log levels via the `log` option:
 
 ```ts
-const prisma = new PrismaClient({ 
+const prisma = new PrismaClient({
   debug: true,
-  log: true
+  log: true,
 })
 ```
 
@@ -586,15 +586,17 @@ To specify more fine-grained log-levels, you can pass an array of log options to
 ```ts
 const prisma = new PrismaClient({
   debug: true,
-  log: [{
-    level: 'QUERY'
-  }]
+  log: [
+    {
+      level: 'QUERY',
+    },
+  ],
 })
 ```
 
 ## Reusing query sub-parts
 
-You can reuse subparts of a Prisma Client JS query by not immediately evaluating the promise that's returned by any Prisma Client JS API call. Depending on your evaluating the promise, you can do this either by leaving out the prepended `await` keyword or the appended call to `.then()`. 
+You can reuse subparts of a Prisma Client JS query by not immediately evaluating the promise that's returned by any Prisma Client JS API call. Depending on your evaluating the promise, you can do this either by leaving out the prepended `await` keyword or the appended call to `.then()`.
 
 ```ts
 // Note the missing `await` here.
@@ -614,9 +616,19 @@ Prisma Client JS connects and disconnects from your data sources using the follo
 
 Unless you want to employ a specific optimization, calling `prisma.connect()` is not necessary thanks to the _lazy connect_ behavior: The `PrismaClient` instance connects lazily when the first request is made to the API (`connect()` is called for you under the hood).
 
-If you need the first request to respond instantly and can't wait for the lazy connection to be established, you can explicitly call `prisma.connect()` to establish a connection to prismae data source.
+If you need the first request to respond instantly and can't wait for the lazy connection to be established, you can explicitly call `prisma.connect()` to establish a connection to the Prisma data source.
 
-**IMPORTANT**: It is recommended to always explicitly call `prisma.disconnect()` in your code. Generally the `PrismaClient` instance disconnects automatically. However, if your program terminates but still  prismas an unhandled promise rejection, the port will keep the connection to the data source open beyond the lifetime of your program!
+**IMPORTANT**: It is recommended to always explicitly call `prisma.disconnect()` in your code. Also, be sure to disconnect even when an exception is thrown:
+
+```ts
+main()
+  .catch(e => {
+    throw e
+  })
+  .finally(async () => {
+    await prisma.disconnect()
+  })
+```
 
 ## Error formatting
 
@@ -630,7 +642,7 @@ There are 3 error formatting levels:
 2. **Colorless Error**: Same as pretty errors, just without colors.
 3. **Minimal Error**: The raw error message.
 
-In order to configure these different error formatting levels, we have two options: 
+In order to configure these different error formatting levels, we have two options:
 
 - Setting the config options via environment variables
 - Providing the config options to the `PrismaClient` constructor
