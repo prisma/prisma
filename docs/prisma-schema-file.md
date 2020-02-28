@@ -184,7 +184,7 @@ There are a few limitations with `env` at the moment:
 
 For many developer tools, it has become a good practice to define environment variables using [`.env`](https://github.com/motdotla/dotenv) files. 
 
-Prisma provides native support for `.env` files. This means any environment variables defined in `.env` files will automatically be loaded when running a Prisma CLI command. 
+Prisma provides native support for `.env` files **if the `.env` file is located in the same directory as your Prisma schema file**. This means any environment variables defined in that `.env` file will automatically be loaded when running a Prisma CLI command. 
 
 For example, it is a common scenario to set your database connection URL via an environment variable:
 
@@ -208,48 +208,13 @@ When running any command that needs to access the database defined via the `data
 
 > **WARNING**: Do not commit your `.env` files into version control. 
 
-<!--
-### Switching data sources based on environments
-
-You can target different environments using environment variables, for example:
-
-```prisma
-datasource mysql {
-  provider = "mysql"
-  url      = env("MYSQL_URL")
-}
-
-datasource postgres {
-  provider = "postgresql"
-  url      = env("POSTGRES_URL")
-}
-```
-
-Depending on which environment variable is set (in this case `MYSQL_URL` or `POSTGRES_URL`), the respective data source will be used. To set these variables you can either use a `.env`-file or `export` the variables in your shell instance.
-
-To quickly switch between environments you can `source` a file with the `export` commands.
-
-```bash
-// dev_env
-export POSTGRES_URL=postgresql://test:test@localhost:5432/test?schema=public
-```
-
-Then run the following command:
-
-```bash
-source ./dev_env
-``` -->
-
-### Using environment variables with Prisma Client JS
-
-While the Prisma 2 CLI automatically picks up `.env` files, Prisma Client JS doesn't natively support usage of [`dotenv`](https://github.com/motdotla/dotenv) or similar libraries that will do this. If you want to environment variables to be evaluated at runtime, you need to load them manually before instantiating `PrismaClient` in your application code, e.g. using `dotenv`:
+If you want environment variables to be evaluated at runtime, you need to load them manually in your application code, e.g. using [`dotenv`](https://github.com/motdotla/dotenv):
 
 ```ts
-import { PrismaClient } from '@prisma/client'
 import * as dotenv from 'dotenv'
 
 dotenv.config() // load the environment variables
-const prisma = new PrismaClient()
+console.log(`The connection URL is ${process.env.DATABASE_URL}`)
 ```
 
 ## Writing comments
