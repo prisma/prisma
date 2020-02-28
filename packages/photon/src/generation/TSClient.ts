@@ -24,7 +24,6 @@ import {
   getScalarsName,
   getSelectName,
   getSelectReturnType,
-  getType,
   indentAllButFirstLine,
   isQueryAction,
   Projection,
