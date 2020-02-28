@@ -45,7 +45,7 @@
     "@prisma/studio-server": "0.202.0",
     "@prisma/studio-transports": "0.202.0",
     "@prisma/studio-types": "0.202.0",
-    "@sentry/node": "^5.9.0",
+    "@sentry/node": "5.12.4",
     "@types/debug": "^4.1.5",
     "@types/mocha": "^5.2.7",
     "@zeit/ncc": "0.21.0",
