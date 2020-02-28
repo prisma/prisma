@@ -240,18 +240,6 @@ Then run the following command:
 source ./dev_env
 ``` -->
 
-### Using environment variables with Prisma Client JS
-
-While the Prisma 2 CLI automatically picks up `.env` files, Prisma Client JS doesn't natively support usage of [`dotenv`](https://github.com/motdotla/dotenv) or similar libraries that will do this. If you want to environment variables to be evaluated at runtime, you need to load them manually before instantiating `PrismaClient` in your application code, e.g. using `dotenv`:
-
-```ts
-import { PrismaClient } from '@prisma/client'
-import * as dotenv from 'dotenv'
-
-dotenv.config() // load the environment variables
-const prisma = new PrismaClient()
-```
-
 ## Writing comments
 
 There are two types of comments that are supported in the schema file:
