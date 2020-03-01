@@ -21,14 +21,13 @@ import {
   getModelArgName,
   getPayloadName,
   getRelativePathResolveStatement,
-  getScalarsName,
   getSelectName,
   getSelectReturnType,
-  getType,
   indentAllButFirstLine,
   isQueryAction,
   Projection,
   renderInitialClientArgs,
+  getArgName,
 } from './utils'
 import { uniqueBy } from '../runtime/utils/uniqueBy'
 
@@ -242,6 +241,28 @@ export { PrismaClientValidationError }
  * Utility Types
  */
 
+declare type SelectAndInclude = {
+  select: any
+  include: any
+}
+
+declare type HasSelect = {
+  select: any
+}
+
+declare type HasInclude = {
+  include: any
+}
+
+
+declare type CheckSelect<T, S, U> = T extends SelectAndInclude
+  ? 'Please either choose \`select\` or \`include\`'
+  : T extends HasSelect
+  ? U
+  : T extends HasInclude
+  ? U
+  : S
+
 /**
  * Get the type of the value, that the Promise holds.
  */
@@ -254,12 +275,11 @@ export declare type PromiseReturnType<T extends (...args: any) => Promise<any>> 
 
 
 export declare type Enumerable<T> = T | Array<T>;
-export declare type MergeTruthyValues<R extends object, S extends object> = {
-  [key in keyof S | keyof R]: key extends false ? never : key extends keyof S ? S[key] extends false ? never : S[key] : key extends keyof R ? R[key] : never;
-};
-export declare type CleanupNever<T> = {
-  [key in keyof T]: T[key] extends never ? never : key;
-}[keyof T];
+
+export declare type TrueKeys<T> = {
+  [key in keyof T]: T[key] extends false | undefined | null ? never : key
+}[keyof T]
+
 /**
  * Subset
  * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
@@ -905,10 +925,8 @@ class QueryPayloadType implements Generatable {
                   f,
                   `${getPayloadName(
                     (f.outputType.type as DMMF.OutputType).name,
-                    Projection.select,
                   )}<Extract${getModelArgName(
                     (f.outputType.type as DMMF.OutputType).name,
-                    Projection.select,
                     f.outputType.isList
                       ? DMMF.ModelAction.findMany
                       : DMMF.ModelAction.findOne,
@@ -920,10 +938,7 @@ class QueryPayloadType implements Generatable {
             .join('\n')}`
 
     return `\
-type ${getPayloadName(
-      name,
-      Projection.select,
-    )}<S extends ${name}Args> = S extends ${name}Args
+type ${getPayloadName(name)}<S extends ${name}Args> = S extends ${name}Args
   ? {
       [P in keyof S] ${relationFieldConditions}
         : never
@@ -942,12 +957,9 @@ type ${getPayloadName(
  * Generates the generic type to calculate a payload based on a include statement
  */
 class PayloadType implements Generatable {
-  constructor(
-    protected readonly type: OutputType,
-    protected readonly projection: Projection,
-  ) {}
+  constructor(protected readonly type: OutputType) {}
   public toTS() {
-    const { type, projection } = this
+    const { type } = this
     const { name } = type
 
     const relationFields = type.fields.filter(
@@ -963,8 +975,7 @@ class PayloadType implements Generatable {
                   f,
                   `${getPayloadName(
                     (f.outputType.type as DMMF.OutputType).name,
-                    projection,
-                  )}<Extract${getFieldArgName(f, projection)}<S[P]>>${
+                  )}<Extract${getFieldArgName(f)}<S[P]>>${
                     !f.outputType.isRequired && !f.outputType.isList
                       ? ' | null'
                       : ''
@@ -977,26 +988,21 @@ class PayloadType implements Generatable {
 
     const hasScalarFields =
       type.fields.filter(f => f.outputType.kind !== 'object').length > 0
-    const projectionName =
-      projection === Projection.select
-        ? getSelectName(name)
-        : getIncludeName(name)
+    const payloadName = getPayloadName(name)
     return `\
 export type ${getPayloadName(
       name,
-      projection,
-    )}<S extends boolean | ${projectionName}> = S extends true
+    )}<S extends boolean | null | undefined | ${payloadName}> = S extends true
   ? ${name}
-  : S extends ${projectionName}
+  : S extends ${payloadName}
   ? {
-      [P in CleanupNever<MergeTruthyValues<${
-        projection === Projection.select ? '{}' : getDefaultName(name)
-      }, S>>]${
-      hasScalarFields
-        ? `: P extends ${getScalarsName(name)}
+    ${name} 
+      [P in TrueKeys<S>>]${
+        hasScalarFields
+          ? `: P extends keyof ${name}
         ? ${name}[P]`
-        : ''
-    }${relationFieldConditions}
+          : ''
+      }${relationFieldConditions}
         : never
     }
    : never`
@@ -1004,6 +1010,80 @@ export type ${getPayloadName(
   protected wrapArray(field: DMMF.SchemaField, str: string) {
     if (field.outputType.isList) {
       return `Array<${str}>`
+    }
+    return str
+  }
+}
+
+class NewPayloadType implements Generatable {
+  constructor(protected readonly type: OutputType) {}
+
+  public toTS() {
+    const { type } = this
+    const { name } = type
+
+    const argsName = getArgName(name, false)
+
+    const include = this.renderRelations(Projection.include)
+    const select = this.renderRelations(Projection.select)
+
+    return `\
+export type ${getPayloadName(name)}<
+  S extends boolean | null | undefined | ${argsName},
+  U = keyof S
+> = S extends true
+  ? ${name}
+  : S extends undefined
+  ? never
+  : S extends ${argsName}
+  ? 'include' extends U
+    ? ${name} ${include.length > 0 ? ` & ${include}` : ''}
+  : 'select' extends U
+    ? ${select}
+  : never
+: never
+`
+  }
+  private renderRelations(projection: Projection) {
+    const { type } = this
+    // TODO: can be optimized, we're calling the filter two times
+    const relations = type.fields.filter(f => f.outputType.kind === 'object')
+    if (relations.length === 0 && projection === Projection.include) {
+      return ''
+    }
+    const selectPrefix =
+      projection === Projection.select
+        ? `P extends keyof ${type.name} ? ${type.name}[P]
+: `
+        : ''
+    return `{
+      [P in TrueKeys<S['${projection}']>]:${selectPrefix}
+${indent(
+  relations
+    .map(
+      f => `P extends '${f.name}'
+? ${this.wrapType(
+        f,
+        `${getPayloadName(
+          (f.outputType.type as DMMF.OutputType).name,
+        )}<S['${projection}'][P]>`,
+      )} :`,
+    )
+    .join('\n'),
+  6,
+)} never
+    }`
+  }
+  private wrapType(field: DMMF.SchemaField, str: string) {
+    const { outputType } = field
+    if (outputType.isRequired && !outputType.isList) {
+      return str
+    }
+    if (outputType.isList) {
+      return `Array<${str}>`
+    }
+    if (!outputType.isRequired) {
+      return `${str} | null`
     }
     return str
   }
@@ -1108,26 +1188,13 @@ ${indent(
 )}
 }
 
-${
-  scalarFields.length > 0
-    ? `export type ${getScalarsName(model.name)} = ${
-        scalarFields.length > 0
-          ? scalarFields.map(f => `'${f.name}'`).join(' | ')
-          : ``
-      }
-  `
-    : ''
-}
-
 export type ${getSelectName(model.name)} = {
 ${indent(
   outputType.fields
     .map(
       f =>
         `${f.name}?: boolean` +
-        (f.outputType.kind === 'object'
-          ? ` | ${getFieldArgName(f, Projection.select)}Optional`
-          : ''),
+        (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
     )
     .join('\n'),
   tab,
@@ -1141,20 +1208,14 @@ ${indent(
     .map(
       f =>
         `${f.name}?: boolean` +
-        (f.outputType.kind === 'object'
-          ? ` | ${getFieldArgName(f, Projection.include)}Optional`
-          : ''),
+        (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
     )
     .join('\n'),
   tab,
 )}
 }
 
-${new ModelDefault(model, this.dmmf).toTS()}
-
-${new PayloadType(this.outputType!, Projection.select).toTS()}
-
-${new PayloadType(this.outputType!, Projection.include).toTS()}
+${new NewPayloadType(this.outputType!).toTS()}
 
 ${new ModelDelegate(this.outputType!, this.dmmf).toTS()}
 
@@ -1192,11 +1253,7 @@ ${indent(
       .filter(([action, field]) => field)
       .map(
         ([action, field]) =>
-          `${field}?: ${getModelArgName(
-            name,
-            Projection.select,
-            action as DMMF.ModelAction,
-          )}`,
+          `${field}?: ${getModelArgName(name, action as DMMF.ModelAction)}`,
       ),
   ).join('\n'),
   tab,
@@ -1225,7 +1282,6 @@ function getMethodJSDocBody(
       return `Create a ${singular}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to create a ${singular}.
 @example
@@ -1240,7 +1296,6 @@ const user = await ${method}({
       return `Delete a ${singular}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to delete one ${singular}.
 @example
@@ -1255,7 +1310,6 @@ const user = await ${method}({
       return `Delete zero or more ${plural}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to filter ${plural} to delete.
 @example
@@ -1277,7 +1331,6 @@ const ${lowerCase(mapping.model)}With${capitalize(
       return `Find zero or more ${plural}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}=} args - Arguments to filter and select certain fields only.
 @example
@@ -1293,7 +1346,6 @@ ${onlySelect}
       return `Find zero or one ${singular}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to find a ${singular}
 @example
@@ -1308,7 +1360,6 @@ const ${lowerCase(mapping.model)} = await ${method}({
       return `Update one ${singular}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to update one ${singular}.
 @example
@@ -1327,7 +1378,6 @@ const ${lowerCase(mapping.model)} = await ${method}({
       return `Update zero or more ${plural}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to update one or more rows.
 @example
@@ -1345,7 +1395,6 @@ const ${lowerCase(mapping.model)} = await ${method}({
       return `Create or update one ${singular}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to update or create a ${singular}.
 @example
@@ -1592,14 +1641,10 @@ ${indent(
     .map(
       ([actionName]: [any, any]) =>
         `${getMethodJSDoc(actionName, mapping, model)}
-${actionName}<T extends ${getModelArgName(
-          name,
-          /*projection*/ undefined,
-          actionName,
-        )}>(
+${actionName}<T extends ${getModelArgName(name, actionName)}>(
   args${
     actionName === DMMF.ModelAction.findMany ? '?' : ''
-  }: Subset<T, ${getModelArgName(name, undefined, actionName)}>
+  }: Subset<T, ${getModelArgName(name, actionName)}>
 ): ${getSelectReturnType({ name, actionName, projection: Projection.select })}`,
     )
     .join('\n'),
@@ -1684,7 +1729,6 @@ export class QueryDelegate implements Generatable {
 interface ${name}Delegate {
   <T extends ${name}Args>(args: Subset<T,${name}Args>): Promise<${getPayloadName(
       name,
-      Projection.select,
     )}<T>>
 }
 function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaClientFetcher): ${name}Delegate {
@@ -1694,7 +1738,6 @@ function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaClientFetcher): ${name}
 
 class ${name}Client<T extends ${name}Args, U = ${getPayloadName(
       name,
-      Projection.select,
     )}<T>> implements Promise<U> {
   constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PrismaClientFetcher, private readonly args: ${name}Args, private readonly _dataPath: []) {}
 
@@ -1837,7 +1880,7 @@ export class MinimalArgsType implements Generatable {
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${getModelArgName(name, undefined, action)} = {
+export type ${getModelArgName(name, action)} = {
 ${indent(args.map(arg => new InputField(arg).toTS()).join('\n'), tab)}
 }
 `
@@ -1928,176 +1971,16 @@ export class ArgsType implements Generatable {
       ...args,
     ]
 
-    const bothArgsRequired: DMMF.SchemaArg[] = [
-      {
-        name: 'select',
-        inputType: [
-          {
-            type: getSelectName(name),
-            kind: 'object',
-            isList: false,
-            isRequired: true,
-          },
-        ],
-        comment: `Select specific fields to fetch from the ${name}`,
-      },
-      {
-        name: 'include',
-        inputType: [
-          {
-            type: getIncludeName(name),
-            kind: 'object',
-            isList: false,
-            isRequired: true,
-          },
-        ],
-        comment: `Choose, which related nodes to fetch as well.`,
-      },
-      ...args,
-    ]
-
-    const selectArgsRequired: DMMF.SchemaArg[] = [
-      {
-        name: 'select',
-        inputType: [
-          {
-            type: getSelectName(name),
-            kind: 'object',
-            isList: false,
-            isRequired: true,
-          },
-        ],
-        comment: `Select specific fields to fetch from the ${name}`,
-      },
-      ...args,
-    ]
-
-    const selectArgsOptional: DMMF.SchemaArg[] = [
-      {
-        name: 'select',
-        inputType: [
-          {
-            type: getSelectName(name),
-            kind: 'object',
-            isList: false,
-            isRequired: false,
-          },
-        ],
-        comment: `Select specific fields to fetch from the ${name}`,
-      },
-      ...args,
-    ]
-
-    const includeArgsRequired: DMMF.SchemaArg[] = [
-      {
-        name: 'include',
-        inputType: [
-          {
-            type: getIncludeName(name),
-            kind: 'object',
-            isList: false,
-            isRequired: true,
-          },
-        ],
-        comment: `Choose, which related nodes to fetch as well.`,
-      },
-      ...args,
-    ]
-
-    const includeArgsOptional: DMMF.SchemaArg[] = [
-      {
-        name: 'include',
-        inputType: [
-          {
-            type: getIncludeName(name),
-            kind: 'object',
-            isList: false,
-            isRequired: false,
-          },
-        ],
-        comment: `Choose, which related nodes to fetch as well.`,
-      },
-      ...args,
-    ]
-
     return `
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${getModelArgName(name, undefined, action)} = {
+export type ${getModelArgName(name, action)} = {
 ${indent(
   bothArgsOptional.map(arg => new InputField(arg).toTS()).join('\n'),
   tab,
 )}
 }
-
-export type ${getModelArgName(name, undefined, action)}Required = {
-${indent(
-  bothArgsRequired.map(arg => new InputField(arg).toTS()).join('\n'),
-  tab,
-)}
-}
-
-export type ${getModelArgName(name, Projection.select, action)} = {
-${indent(
-  selectArgsRequired.map(arg => new InputField(arg).toTS()).join('\n'),
-  tab,
-)}
-}
-
-export type ${getModelArgName(name, Projection.select, action)}Optional = {
-${indent(
-  selectArgsOptional.map(arg => new InputField(arg).toTS()).join('\n'),
-  tab,
-)}
-}
-
-export type ${getModelArgName(name, Projection.include, action)} = {
-${indent(
-  includeArgsRequired.map(arg => new InputField(arg).toTS()).join('\n'),
-  tab,
-)}
-}
-
-export type ${getModelArgName(name, Projection.include, action)}Optional = {
-${indent(
-  includeArgsOptional.map(arg => new InputField(arg).toTS()).join('\n'),
-  tab,
-)}
-}
-
-export type Extract${getModelArgName(
-      name,
-      Projection.select,
-      action,
-    )}<S extends undefined | boolean | ${getModelArgName(
-      name,
-      Projection.select,
-      action,
-    )}Optional> = S extends undefined
-  ? false
-  : S extends boolean
-  ? S
-  : S extends ${getModelArgName(name, Projection.select, action)}
-  ? S['select']
-  : true
-
-export type Extract${getModelArgName(
-      name,
-      Projection.include,
-      action,
-    )}<S extends undefined | boolean | ${getModelArgName(
-      name,
-      Projection.include,
-      action,
-    )}Optional> = S extends undefined
-  ? false
-  : S extends boolean
-  ? S
-  : S extends ${getModelArgName(name, Projection.include, action)}
-  ? S['include']
-  : true
-
 `
   }
 }
