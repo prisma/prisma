@@ -320,16 +320,16 @@ For more filtering examples, look [here](#filtering).
 
 #### Options
 
-| Name      | Type               | Required | Description                                                                                                 |
-| --------- | ------------------ | -------- | ----------------------------------------------------------------------------------------------------------- |
-| `where`   | `UserWhereInput`   | No       | Wraps _all_ fields of a model so that the list can be filtered by any model property.                       |
-| `orderBy` | `UserOrderByInput` | No       | Lets you order the returned list by any model property.                                                     |
-| `skip`    | `string`           | No       | Specifies how many of the returned objects in the list should be skipped.                                   |
-| `after`   | `string`           | No       | Specifies the starting object for the list (the value typically specifies an `id` or another unique value). |
-| `before`  | `string`           | No       | Specifies the last object for the list (the value typically specifies an `id` or another unique value).     |
-| `first`   | `number`           | No       | Specifies how many elements should be returned in the list (as seen from the _beginning_ of the list).      |
-| `last`    | `number`           | No       | Specifies how many elements should be returned in the list (as seen from the _end_ of the list).            |
-| `select`  | `UserSelect`       | No       | Specifies which fields to include in the [selection set](#selection-sets).                                  |
+| Name      | Type                   | Required | Description                                                                                                 |
+| --------- | ---------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
+| `where`   | `UserWhereInput`       | No       | Wraps _all_ fields of a model so that the list can be filtered by any model property.                       |
+| `orderBy` | `UserOrderByInput`     | No       | Lets you order the returned list by any model property.                                                     |
+| `skip`    | `string`               | No       | Specifies how many of the returned objects in the list should be skipped.                                   |
+| `after`   | `UserWhereUniqueInput` | No       | Specifies the starting object for the list (the value typically specifies an `id` or another unique value). |
+| `before`  | `UserWhereUniqueInput` | No       | Specifies the last object for the list (the value typically specifies an `id` or another unique value).     |
+| `first`   | `number`               | No       | Specifies how many elements should be returned in the list (as seen from the _beginning_ of the list).      |
+| `last`    | `number`               | No       | Specifies how many elements should be returned in the list (as seen from the _end_ of the list).            |
+| `select`  | `UserSelect`           | No       | Specifies which fields to include in the [selection set](#selection-sets).                                  |
 
 #### Examples
 
