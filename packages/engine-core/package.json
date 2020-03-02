@@ -13,7 +13,7 @@
     "del-cli": "^3.0.0",
     "jest": "^25.1.0",
     "ts-jest": "^25.2.1",
-    "typescript": "^3.7.5"
+    "typescript": "^3.8.2"
   },
   "scripts": {
     "build": "tsc -d",
