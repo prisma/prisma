@@ -78,7 +78,6 @@ A data source can be specified using a `datasource` block in the schema file.
 | ---------- | -------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `provider` | **Yes**  | Enum (`postgresql`, `mysql`, `sqlite`) | Describes which data source connector to use.                                                                                                               |
 | `url`      | **Yes**  | String (URL)                           | Connection URL including authentication info. Each data source connector documents the URL syntax. Most connectors use the syntax provided by the database. |
-| `enabled`  | No       | Boolean                                | Use environment variables to enable/disable a data source. **Default**: `true`.                                                                             |
 
 A data source connector may bring its own fields to allow users to tailor their data models according to specific features of the connected data sources.
 
