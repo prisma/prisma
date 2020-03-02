@@ -182,9 +182,11 @@ There are a few limitations with `env` at the moment:
 
 ### Using `.env` files
 
-For many developer tools, it has become a good practice to define environment variables using [`.env`](https://github.com/motdotla/dotenv) files. 
+For many developer tools, it has become a good practice to define environment variables using [`.env`](https://github.com/motdotla/dotenv) files.
 
 Prisma provides native support for `.env` files **if the `.env` file is located in the same directory as your Prisma schema file**. This means any environment variables defined in that `.env` file will automatically be loaded when running a Prisma CLI command. 
+
+> **WARNING**: Do not commit your `.env` files into version control. 
 
 For example, it is a common scenario to set your database connection URL via an environment variable:
 
@@ -205,8 +207,6 @@ DATABASE_URL=postgresql://test:test@localhost:5432/test?schema=public
 ```
 
 When running any command that needs to access the database defined via the `datasource` block (e.g. `prisma2 introspect`), the Prisma CLI automatically loads the `DATABASE_URL` environment variables from the `.env` file and makes it available to the CLI.
-
-> **WARNING**: Do not commit your `.env` files into version control. 
 
 If you want environment variables to be evaluated at runtime, you need to load them manually in your application code, e.g. using [`dotenv`](https://github.com/motdotla/dotenv):
 
