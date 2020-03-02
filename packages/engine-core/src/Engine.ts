@@ -33,14 +33,14 @@ export interface RequestError {
   user_facing_error: {
     is_panic: boolean
     message: string
-    meta?: Object
+    meta?: object
     error_code?: string
   }
 }
 
 export class PrismaClientKnownRequestError extends Error {
   code: string
-  meta?: Object
+  meta?: object
   constructor(message: string, code: string, meta?: any) {
     super(message)
     this.code = code

@@ -1,6 +1,6 @@
 {
   "name": "@prisma/client",
-  "version": "2.0.0-alpha.824",
+  "version": "2.0.0-alpha.841",
   "main": "index.js",
   "types": "index.d.ts",
   "license": "Apache-2.0",
@@ -86,7 +86,7 @@
     "ts-node": "^8.6.2",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.7.5",
+    "typescript": "^3.8.2",
     "webpack": "5.0.0-alpha.14",
     "webpack-bundle-analyzer": "^3.6.0",
     "webpack-cli": "4.0.0-alpha-4"
