@@ -44,7 +44,7 @@ There will be rich query analytics for Prisma Client JS soon. For now you can se
 
 ### How do schema migrations work with Prisma Client JS?
 
-Prisma Client JS is not opinionated on how exactly you migrate your database schema. You can keep your existing migration system and re-introspect your database schema after each migration to update Prisma Client JS. Learn more in the [docs](./prisma-client-js/use-only-prisma-client-js.md). You can also always use Prisma's `migrate` CLI to perform your migrations based on Prisma's declarative [data model definition](./data-modeling.md).
+Prisma Client JS is not opinionated on how exactly you migrate your database schema. You can keep your existing migration system and re-introspect your database schema after each migration to update Prisma Client JS. You can also always use Prisma's `migrate` CLI to perform your migrations based on Prisma's declarative [data model definition](./data-modeling.md).
 
 ### Is Prisma Client JS production-ready? Should I start using it?
 
