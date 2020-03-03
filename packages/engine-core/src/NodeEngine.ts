@@ -268,7 +268,9 @@ This means you should very likely pin the platform ${chalk.greenBright(await thi
 ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     }
 
-    plusX(prismaPath)
+    if (process.platform !== 'win32') {
+      plusX(prismaPath)
+    }
 
     return prismaPath
   }

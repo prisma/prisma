@@ -370,7 +370,9 @@ async function downloadBinary(options: DownloadBinaryOptions) {
     progressCb(1)
   }
 
-  plusxSync(targetFilePath)
+  if (process.platform !== 'win32') {
+    plusxSync(targetFilePath)
+  }
 
   // Cache result
   await saveFileToCache(options, version, lastModified)
