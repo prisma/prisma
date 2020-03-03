@@ -70,6 +70,7 @@ Object {
         "isEmbedded": false,
         "isGenerated": false,
         "name": "A",
+        "uniqueFields": Array [],
       },
     ],
   },
