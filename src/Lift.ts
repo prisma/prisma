@@ -629,7 +629,9 @@ export class Lift {
 
       if (migrationToApply.afterFilePath) {
         const after = migrationToApply.afterFilePath
-        plusX(after)
+        if (process.platform !== 'win32') {
+          plusX(after)
+        }
         const child = spawn(after, {
           env: {
             ...process.env,
