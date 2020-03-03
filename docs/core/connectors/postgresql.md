@@ -107,6 +107,9 @@ postgresql://user:password@host?sslidentity=client-identity.p12&sslpassword=mypa
 
 ### Connecting via sockets
 
-To connect to your PostgreSQL database via sockets, you must add a `host` field as a _query parameter_ to the connection string (instead of setting it as the `host` part of the URI). The value of this parameter then must point to the directory that contains the socket, e.g.: `postgresql://user:password@/database?host=/var/run/postgresql/`. 
+To connect to your PostgreSQL database via sockets, you must add a `host` field as a _query parameter_ to the connection string (instead of setting it as the `host` part of the URI).
+The value of this parameter then must point to the directory that contains the socket, e.g.:
+`postgresql://user:password@localhost/database?host=/var/run/postgresql/`
+Note that `localhost` is required, the value itself is ignored and can be anything.
 
-Learn more in this [GitHub issue](https://github.com/prisma/prisma2/issues/525).
+Learn more in this [GitHub issue](https://github.com/prisma/prisma-client-js/issues/437#issuecomment-592436707).
