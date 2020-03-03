@@ -123,7 +123,7 @@ Sets up a `prisma/schema.prisma` file in the current directory. See [https://pri
 
 #### `prisma2 generate`
 
-Invokes all generators defined in the Prisma schema file. For example, this creates the Prisma Client JS to interact with the underlying database. Read more about Prisma Client JS and its capabilities [here](./prisma-client-js/use-only-prisma-client-js.md).
+Invokes all generators defined in the Prisma schema file. For example, this creates the Prisma Client JS to interact with the underlying database.
 
 #### `prisma2 introspect`
 

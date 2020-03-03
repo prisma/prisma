@@ -15,7 +15,6 @@
 - [Core](./core)
 - Prisma Client JS
   - [API](./prisma-client-js/api.md)
-  - [Use only Prisma Client JS](./prisma-client-js/use-only-prisma-client-js.md)
   - [Code generation & Node.js setup](./prisma-client-js/codegen-and-node-setup.md)
   - [Deployment](./prisma-client-js/deployment.md)
 - [Prisma Migrate (Experimental)](./prisma-migrate)

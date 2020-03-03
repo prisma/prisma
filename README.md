@@ -34,7 +34,6 @@ Follow the [**"Getting Started"-guide**](./docs/getting-started/README.md) to st
 - [Core](./docs/core)
 - Prisma Client JS
   - [API](./docs/prisma-client-js/api.md)
-  - [Use only Prisma Client JS](./docs/prisma-client-js/use-only-prisma-client-js.md)
   - [Code generation & Node.js setup](./docs/prisma-client-js/codegen-and-node-setup.md)
   - [Deployment](./docs/prisma-client-js/deployment.md)
 - [Prisma Migrate (Experimental)](./docs/prisma-migrate)
