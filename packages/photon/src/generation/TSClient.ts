@@ -543,7 +543,7 @@ ${this.jsDoc}
       logLevel: options.log && getLogLevel(options.log),
       logQueries: options.log && Boolean(options.log.find(o => typeof o === 'string' ? o === 'query' : o.level === 'query')),
       env: envFile,
-      flags: options.forceTransactions ? ['--always_force_transactions'] : []
+      flags: options.forceTransactions ? ['--always-force-transactions'] : []
     }
 
     debug({ engineConfig: this.engineConfig })
