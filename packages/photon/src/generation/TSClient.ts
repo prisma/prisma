@@ -953,68 +953,6 @@ type ${getPayloadName(name)}<S extends ${name}Args> = S extends ${name}Args
   }
 }
 
-/**
- * Generates the generic type to calculate a payload based on a include statement
- */
-class PayloadType implements Generatable {
-  constructor(protected readonly type: OutputType) {}
-  public toTS() {
-    const { type } = this
-    const { name } = type
-
-    const relationFields = type.fields.filter(
-      f => f.outputType.kind === 'object',
-    )
-    const relationFieldConditions =
-      relationFields.length === 0
-        ? ''
-        : `\n${relationFields
-            .map(f =>
-              indent(
-                `: P extends '${f.name}'\n? ${this.wrapArray(
-                  f,
-                  `${getPayloadName(
-                    (f.outputType.type as DMMF.OutputType).name,
-                  )}<Extract${getFieldArgName(f)}<S[P]>>${
-                    !f.outputType.isRequired && !f.outputType.isList
-                      ? ' | null'
-                      : ''
-                  }`,
-                )}`,
-                8,
-              ),
-            )
-            .join('\n')}`
-
-    const hasScalarFields =
-      type.fields.filter(f => f.outputType.kind !== 'object').length > 0
-    const payloadName = getPayloadName(name)
-    return `\
-export type ${getPayloadName(
-      name,
-    )}<S extends boolean | null | undefined | ${payloadName}> = S extends true
-  ? ${name}
-  : S extends ${payloadName}
-  ? {
-    ${name} 
-      [P in TrueKeys<S>>]${
-        hasScalarFields
-          ? `: P extends keyof ${name}
-        ? ${name}[P]`
-          : ''
-      }${relationFieldConditions}
-        : never
-    }
-   : never`
-  }
-  protected wrapArray(field: DMMF.SchemaField, str: string) {
-    if (field.outputType.isList) {
-      return `Array<${str}>`
-    }
-    return str
-  }
-}
-
 class NewPayloadType implements Generatable {
   constructor(protected readonly type: OutputType) {}
 
@@ -1086,38 +1024,6 @@ ${indent(
       return `${str} | null`
     }
     return str
-  }
-}
-
-/**
- * Generates the default selection of a model
- */
-class ModelDefault implements Generatable {
-  constructor(
-    protected readonly model: DMMF.Model,
-    protected readonly dmmf: DMMFClass,
-  ) {}
-  public toTS() {
-    const { model } = this
-    return `\
-type ${getDefaultName(model.name)} = {
-${indent(
-  model.fields
-    .filter(f => this.isDefault(f))
-    .map(f => `${f.name}: true`)
-    .join('\n'),
-  tab,
-)}
-}
-`
-  }
-  protected isDefault(field: DMMF.Field) {
-    if (field.kind !== 'object') {
-      return true
-    }
-
-    const model = this.dmmf.datamodel.models.find(m => field.type === m.name)
-    return model!.isEmbedded
   }
 }
 

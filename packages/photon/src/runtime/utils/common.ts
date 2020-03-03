@@ -7,7 +7,10 @@ export interface Dictionary<T> {
   [key: string]: T
 }
 
-export const keyBy: <T>(collection: T[], iteratee: (value: T) => string) => Dictionary<T> = (collection, iteratee) => {
+export const keyBy: <T>(
+  collection: T[],
+  iteratee: (value: T) => string,
+) => Dictionary<T> = (collection, iteratee) => {
   return collection.reduce<any>((acc, curr) => {
     acc[iteratee(curr)] = curr
     return acc
@@ -51,7 +54,9 @@ export const JSTypeToGraphQLType = {
   object: 'Json',
 }
 
-export function stringifyGraphQLType(type: string | DMMF.InputType | DMMF.Enum) {
+export function stringifyGraphQLType(
+  type: string | DMMF.InputType | DMMF.Enum,
+) {
   if (typeof type === 'string') {
     return type
   }
@@ -66,7 +71,10 @@ export function wrapWithList(str: string, isList: boolean) {
   return str
 }
 
-export function getGraphQLType(value: any, potentialType?: string | DMMF.Enum | DMMF.InputType): string {
+export function getGraphQLType(
+  value: any,
+  potentialType?: string | DMMF.Enum | DMMF.InputType,
+): string {
   if (value === null) {
     return 'null'
   }
@@ -98,7 +106,11 @@ export function getGraphQLType(value: any, potentialType?: string | DMMF.Enum | 
     return 'DateTime'
   }
   if (jsType === 'string') {
-    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
+    if (
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        value,
+      )
+    ) {
       return 'UUID'
     }
     const date = new Date(value)
@@ -124,8 +136,14 @@ export function graphQLToJSType(gql: string) {
   return GraphQLScalarToJSTypeTable[gql]
 }
 
-export function getSuggestion(str: string, possibilities: string[]): string | null {
-  const bestMatch = possibilities.reduce<{ distance: number; str: string | null }>(
+export function getSuggestion(
+  str: string,
+  possibilities: string[],
+): string | null {
+  const bestMatch = possibilities.reduce<{
+    distance: number
+    str: string | null
+  }>(
     (acc, curr) => {
       const distance = leven(str, curr)
       if (distance < acc.distance) {
@@ -139,7 +157,10 @@ export function getSuggestion(str: string, possibilities: string[]): string | nu
     },
     {
       // heuristic to be not too strict, but allow some big mistakes (<= ~ 5)
-      distance: Math.min(Math.floor(str.length) * 1.1, ...possibilities.map(p => p.length * 3)),
+      distance: Math.min(
+        Math.floor(str.length) * 1.1,
+        ...possibilities.map(p => p.length * 3),
+      ),
       str: null,
     },
   )
@@ -147,24 +168,35 @@ export function getSuggestion(str: string, possibilities: string[]): string | nu
   return bestMatch.str
 }
 
-export function stringifyInputType(input: string | DMMF.InputType | DMMF.Enum, greenKeys: boolean = false): string {
+export function stringifyInputType(
+  input: string | DMMF.InputType | DMMF.Enum,
+  greenKeys: boolean = false,
+): string {
   if (typeof input === 'string') {
     return input
   }
   if ((input as DMMF.Enum).values) {
-    return `enum ${input.name} {\n${indent((input as DMMF.Enum).values.join(', '), 2)}\n}`
+    return `enum ${input.name} {\n${indent(
+      (input as DMMF.Enum).values.join(', '),
+      2,
+    )}\n}`
   } else {
     const body = indent(
       (input as DMMF.InputType).fields // TS doesn't discriminate based on existence of fields properly
         .map(arg => {
           const argInputType = arg.inputType[0]
           const key = `${arg.name}`
-          const str = `${greenKeys ? chalk.green(key) : key}${argInputType.isRequired ? '' : '?'}: ${chalk.white(
+          const str = `${greenKeys ? chalk.green(key) : key}${
+            argInputType.isRequired ? '' : '?'
+          }: ${chalk.white(
             arg.inputType
               .map(argType =>
                 argIsInputType(argType.type)
                   ? argType.type.name
-                  : wrapWithList(stringifyGraphQLType(argType.type), argType.isList),
+                  : wrapWithList(
+                      stringifyGraphQLType(argType.type),
+                      argType.isList,
+                    ),
               )
               .join(' | '),
           )}`
@@ -177,7 +209,9 @@ export function stringifyInputType(input: string | DMMF.InputType | DMMF.Enum, g
         .join('\n'),
       2,
     )
-    return `${chalk.dim('type')} ${chalk.bold.dim(input.name)} ${chalk.dim('{')}\n${body}\n${chalk.dim('}')}`
+    return `${chalk.dim('type')} ${chalk.bold.dim(input.name)} ${chalk.dim(
+      '{',
+    )}\n${body}\n${chalk.dim('}')}`
   }
 }
 
@@ -189,7 +223,9 @@ function argIsInputType(arg: DMMF.ArgType): arg is DMMF.InputType {
   return true
 }
 
-export function getInputTypeName(input: string | DMMF.InputType | DMMF.SchemaField | DMMF.Enum) {
+export function getInputTypeName(
+  input: string | DMMF.InputType | DMMF.SchemaField | DMMF.Enum,
+) {
   if (typeof input === 'string') {
     return input
   }
@@ -197,7 +233,9 @@ export function getInputTypeName(input: string | DMMF.InputType | DMMF.SchemaFie
   return input.name
 }
 
-export function getOutputTypeName(input: string | DMMF.OutputType | DMMF.SchemaField | DMMF.Enum) {
+export function getOutputTypeName(
+  input: string | DMMF.OutputType | DMMF.SchemaField | DMMF.Enum,
+) {
   if (typeof input === 'string') {
     return input
   }
@@ -281,7 +319,11 @@ export function destroyCircular(from, seen: any[] = []) {
   return to
 }
 
-export function unionBy<T>(arr1: T[], arr2: T[], iteratee: (element: T) => string | number): T[] {
+export function unionBy<T>(
+  arr1: T[],
+  arr2: T[],
+  iteratee: (element: T) => string | number,
+): T[] {
   const map = {}
 
   for (const element of arr1) {
@@ -298,7 +340,10 @@ export function unionBy<T>(arr1: T[], arr2: T[], iteratee: (element: T) => strin
   return Object.values(map)
 }
 
-export function uniqBy<T>(arr: T[], iteratee: (element: T) => string | number): T[] {
+export function uniqBy<T>(
+  arr: T[],
+  iteratee: (element: T) => string | number,
+): T[] {
   const map = {}
 
   for (const element of arr) {
