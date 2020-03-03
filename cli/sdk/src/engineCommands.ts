@@ -111,7 +111,7 @@ export async function getDMMF({
 
     result = await execa(
       prismaPath,
-      ['--enable_raw_queries', 'cli', '--dmmf'],
+      ['--enable-raw-queries', 'cli', 'dmmf'],
       options,
     )
 
@@ -212,7 +212,7 @@ export async function getConfig({
   try {
     const result = await execa(
       prismaPath,
-      ['cli', '--get_config', tempDatamodelPath],
+      ['cli', 'get-config', tempDatamodelPath],
       {
         cwd,
         env: {
@@ -253,7 +253,7 @@ export async function dmmfToDml(
 
   const filePath = await tmpWrite(JSON.stringify(input))
   try {
-    const args = ['cli', '--dmmf_to_dml', filePath]
+    const args = ['cli', 'dmmf-to-dml', filePath]
     debug(args)
     const result = await execa(prismaPath, args, {
       env: {
