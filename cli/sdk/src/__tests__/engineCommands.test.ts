@@ -49,6 +49,7 @@ describe('getDMMF', () => {
             "isEmbedded": false,
             "isGenerated": false,
             "name": "A",
+            "uniqueFields": Array [],
           },
         ],
       }
@@ -63,7 +64,7 @@ describe('getDMMF', () => {
     )
     const dmmf = await getDMMF({ datamodel: file })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`45711219`)
+    expect(str.length).toMatchInlineSnapshot(`45802011`)
   })
 })
 
