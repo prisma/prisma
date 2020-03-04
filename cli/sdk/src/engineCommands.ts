@@ -240,40 +240,6 @@ export async function getConfig({
   }
 }
 
-export interface WholeDmmf {
-  dmmf: DMMF.Datamodel
-  config: ConfigMetaFormat
-}
-
-export async function dmmfToDml(
-  input: WholeDmmf,
-  prismaPath?: string,
-): Promise<string> {
-  prismaPath = prismaPath || (await getPrismaPath())
-
-  const filePath = await tmpWrite(JSON.stringify(input))
-  try {
-    const args = ['cli', 'dmmf-to-dml', filePath]
-    debug(args)
-    const result = await execa(prismaPath, args, {
-      env: {
-        ...process.env,
-        RUST_BACKTRACE: '1',
-      },
-      maxBuffer: MAX_BUFFER,
-    })
-
-    await unlink(filePath)
-
-    return result.stdout
-  } catch (e) {
-    if (e.stderr) {
-      throw new Error(chalk.redBright.bold('DMMF To DML ') + e.stderr)
-    }
-    throw new Error(e)
-  }
-}
-
 export async function getVersion(enginePath?: string): Promise<string> {
   enginePath = enginePath || (await getPrismaPath())
 
