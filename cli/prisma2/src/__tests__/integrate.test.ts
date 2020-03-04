@@ -8,6 +8,8 @@ import rimraf from 'rimraf'
 import fs from 'fs'
 import path from 'path'
 import snapshot from 'snap-shot-it'
+import { performance } from 'perf_hooks'
+import { getLatestAlphaTag } from '@prisma/fetch-engine'
 
 const connectionString = process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
 process.env.SKIP_GENERATE = 'true'
@@ -19,6 +21,7 @@ const db = new Client({
 const pkg = pkgup.sync() || __dirname
 const tmp = join(dirname(pkg), 'tmp')
 const engine = new IntrospectionEngine()
+const latestAlphaPromise = getLatestAlphaTag()
 
 before(done => {
   db.connect(err => done(err))
@@ -125,6 +128,7 @@ async function generate(test: Test, datamodel: string) {
     schemaPath,
     printDownloadProgress: false,
     baseDir: tmp,
+    version: await latestAlphaPromise,
   })
 
   await generator.generate()
