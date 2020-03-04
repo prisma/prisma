@@ -1,39 +1,49 @@
 import { DataSource } from '@prisma/generator-helper'
-import { datasourceToDatasourceOverwrite, serializeDatasources } from '../generation/serializeDatasources'
-import { absolutizeRelativePath, resolveDatasources } from '../utils/resolveDatasources'
+import {
+  datasourceToDatasourceOverwrite,
+  serializeDatasources,
+} from '../generation/serializeDatasources'
+import {
+  absolutizeRelativePath,
+  resolveDatasources,
+} from '../utils/resolveDatasources'
 
 const cwd = '/Users/tim/project/prisma'
 const outputDir = '/Users/tim/project/node_modules/@prisma/client/runtime'
 
 test('absolutizeRelativePath', () => {
-  expect(absolutizeRelativePath('file:db.db', cwd, outputDir)).toMatchInlineSnapshot(
-    `"'file:' + path.resolve(__dirname, '../../../../prisma/db.db')"`,
-  )
-  expect(absolutizeRelativePath('file:/db.db', cwd, outputDir)).toMatchInlineSnapshot(
-    `"'file:' + path.resolve(__dirname, '../../../../../../../db.db')"`,
-  )
-  expect(absolutizeRelativePath('file:../db.db', cwd, outputDir)).toMatchInlineSnapshot(
-    `"'file:' + path.resolve(__dirname, '../../../../db.db')"`,
-  )
-  expect(absolutizeRelativePath('file:./db.db', cwd, outputDir)).toMatchInlineSnapshot(
-    `"'file:' + path.resolve(__dirname, '../../../../prisma/db.db')"`,
-  )
-
-  expect(absolutizeRelativePath('file:asd/another/dir/db.db', cwd, outputDir)).toMatchInlineSnapshot(
-    `"'file:' + path.resolve(__dirname, '../../../../prisma/asd/another/dir/db.db')"`,
-  )
-  expect(absolutizeRelativePath('file:/some/random/dir/db.db', cwd, outputDir)).toMatchInlineSnapshot(
-    `"'file:' + path.resolve(__dirname, '../../../../../../../some/random/dir/db.db')"`,
-  )
   expect(
-    absolutizeRelativePath('file:/Users/tim/project/node_modules/@prisma/client/runtime', cwd, outputDir),
-  ).toMatchInlineSnapshot(`"'file:' + path.resolve(__dirname, '')"`)
-  expect(absolutizeRelativePath('file:../another-dir/db.db', cwd, outputDir)).toMatchInlineSnapshot(
-    `"'file:' + path.resolve(__dirname, '../../../../another-dir/db.db')"`,
-  )
-  expect(absolutizeRelativePath('file:./some/dir/db.db', cwd, outputDir)).toMatchInlineSnapshot(
-    `"'file:' + path.resolve(__dirname, '../../../../prisma/some/dir/db.db')"`,
-  )
+    absolutizeRelativePath('file:db.db', cwd, outputDir),
+  ).toMatchInlineSnapshot(`"../../../../prisma/db.db"`)
+  expect(
+    absolutizeRelativePath('file:/db.db', cwd, outputDir),
+  ).toMatchInlineSnapshot(`"../../../../../../../db.db"`)
+  expect(
+    absolutizeRelativePath('file:../db.db', cwd, outputDir),
+  ).toMatchInlineSnapshot(`"../../../../db.db"`)
+  expect(
+    absolutizeRelativePath('file:./db.db', cwd, outputDir),
+  ).toMatchInlineSnapshot(`"../../../../prisma/db.db"`)
+
+  expect(
+    absolutizeRelativePath('file:asd/another/dir/db.db', cwd, outputDir),
+  ).toMatchInlineSnapshot(`"../../../../prisma/asd/another/dir/db.db"`)
+  expect(
+    absolutizeRelativePath('file:/some/random/dir/db.db', cwd, outputDir),
+  ).toMatchInlineSnapshot(`"../../../../../../../some/random/dir/db.db"`)
+  expect(
+    absolutizeRelativePath(
+      'file:/Users/tim/project/node_modules/@prisma/client/runtime',
+      cwd,
+      outputDir,
+    ),
+  ).toMatchInlineSnapshot(`""`)
+  expect(
+    absolutizeRelativePath('file:../another-dir/db.db', cwd, outputDir),
+  ).toMatchInlineSnapshot(`"../../../../another-dir/db.db"`)
+  expect(
+    absolutizeRelativePath('file:./some/dir/db.db', cwd, outputDir),
+  ).toMatchInlineSnapshot(`"../../../../prisma/some/dir/db.db"`)
 })
 
 const datasources: DataSource[] = [
@@ -67,7 +77,8 @@ const datasources: DataSource[] = [
 ]
 
 test('resolveDatasources', () => {
-  expect(resolveDatasources(datasources, cwd, outputDir)).toMatchInlineSnapshot(`
+  expect(resolveDatasources(datasources, cwd, outputDir))
+    .toMatchInlineSnapshot(`
     Array [
       Object {
         "config": Object {},
@@ -75,7 +86,7 @@ test('resolveDatasources', () => {
         "name": "db",
         "url": Object {
           "fromEnvVar": null,
-          "value": "'file:' + path.resolve(__dirname, '../../../../prisma/db.db')",
+          "value": "../../../../prisma/db.db",
         },
       },
       Object {
@@ -84,7 +95,7 @@ test('resolveDatasources', () => {
         "name": "db2",
         "url": Object {
           "fromEnvVar": null,
-          "value": "'file:' + path.resolve(__dirname, '../../../../prisma/some-dir/db.db')",
+          "value": "../../../../prisma/some-dir/db.db",
         },
       },
       Object {
@@ -101,16 +112,21 @@ test('resolveDatasources', () => {
 })
 
 test('serializeDatasources', () => {
-  expect(serializeDatasources(resolveDatasources(datasources, cwd, outputDir).map(datasourceToDatasourceOverwrite)))
-    .toMatchInlineSnapshot(`
+  expect(
+    serializeDatasources(
+      resolveDatasources(datasources, cwd, outputDir).map(
+        datasourceToDatasourceOverwrite,
+      ),
+    ),
+  ).toMatchInlineSnapshot(`
     "[
       {
         \\"name\\": \\"db\\",
-        \\"url\\": 'file:' + path.resolve(__dirname, '../../../../prisma/db.db')
+        \\"url\\": \\"../../../../prisma/db.db\\"
       },
       {
         \\"name\\": \\"db2\\",
-        \\"url\\": 'file:' + path.resolve(__dirname, '../../../../prisma/some-dir/db.db')
+        \\"url\\": \\"../../../../prisma/some-dir/db.db\\"
       },
       {
         \\"name\\": \\"db3\\",

@@ -339,7 +339,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           throw new Error(`Invalid mapping ${mapping.model}, can't find model`)
         }
 
-        const client = ({
+        const prismaClient = ({
           operation,
           actionName,
           rootField,
@@ -368,16 +368,22 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
           let requestPromise: Promise<any>
 
+          const collectTimestamps = new CollectTimestamps('PrismaClient')
+          const callsite = new Error().stack
+          const clientMethod = `${lowerCaseModel}.${actionName}`
+
           const clientImplementation = {
             then: (onfulfilled, onrejected) => {
               if (!requestPromise) {
                 requestPromise = this.fetcher.request({
                   document,
-                  clientMethod: actionName,
+                  clientMethod,
                   typeName: mapping.model,
                   dataPath,
                   isList,
                   rootField,
+                  collectTimestamps,
+                  callsite,
                 })
               }
 
@@ -387,11 +393,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               if (!requestPromise) {
                 requestPromise = this.fetcher.request({
                   document,
-                  clientMethod: actionName,
+                  clientMethod,
                   typeName: mapping.model,
                   dataPath,
                   isList,
                   rootField,
+                  collectTimestamps,
+                  callsite,
                 })
               }
 
@@ -401,16 +409,19 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               if (!requestPromise) {
                 requestPromise = this.fetcher.request({
                   document,
-                  clientMethod: actionName,
+                  clientMethod,
                   typeName: mapping.model,
                   dataPath,
                   isList: true,
                   rootField,
+                  collectTimestamps,
+                  callsite,
                 })
               }
 
               return requestPromise.finally(onfinally)
             },
+            _collectTimestamps: collectTimestamps,
           }
 
           // add relation fields
@@ -438,7 +449,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           return clientImplementation
         }
 
-        acc[model.name] = client
+        acc[model.name] = prismaClient
 
         return acc
       }, {})
