@@ -35,7 +35,6 @@
     "runtime/**/*.d.ts",
     "runtime/utils/*",
     "runtime/dist/*",
-    "dist",
     "scripts",
     "generator-build",
     "index.js",

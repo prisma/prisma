@@ -28,6 +28,7 @@ import { deepSet } from './utils/deep-set'
 import { Dataloader } from './Dataloader'
 import { printStack } from './utils/printStack'
 import stripAnsi from 'strip-ansi'
+import { PrismaClientValidationError } from '../__tests__/runtime-tests/new-line/@prisma/client'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -350,27 +351,38 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           dataPath = dataPath ?? []
           isList = isList ?? false // TODO: Get this properly for findMany
 
+          const callsite = new Error().stack
+          const clientMethod = `${lowerCaseModel}.${actionName}`
+
           let document = makeDocument({
             dmmf: this.dmmf,
             rootField,
             rootTypeName: operation,
             select: args,
           })
+
           // TODO: Add error stack
-          document.validate(
-            args,
-            false,
-            `${lowerCaseModel}.${actionName}`,
-            /* errorFormat */ undefined,
-          )
+          try {
+            document.validate(
+              args,
+              false,
+              `${lowerCaseModel}.${actionName}`,
+              /* errorFormat */ undefined,
+            )
+          } catch (e) {
+            const { stack } = printStack({
+              callsite,
+              originalMethod: clientMethod,
+              onUs: false,
+            })
+            throw new PrismaClientValidationError(stack + e.message)
+          }
 
           document = transformDocument(document)
 
           let requestPromise: Promise<any>
 
           const collectTimestamps = new CollectTimestamps('PrismaClient')
-          const callsite = new Error().stack
-          const clientMethod = `${lowerCaseModel}.${actionName}`
 
           const clientImplementation = {
             then: (onfulfilled, onrejected) => {

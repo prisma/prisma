@@ -12,26 +12,21 @@ import {
 } from '../runtime/utils/common'
 import { InternalDatasource } from '../runtime/utils/printDatasources'
 import { DatasourceOverwrite } from './extractSqliteSources'
-import { serializeDatasources } from './serializeDatasources'
 import {
   flatMap,
-  getDefaultName,
   getFieldArgName,
-  getFieldTypeName,
   getIncludeName,
   getModelArgName,
   getPayloadName,
-  getRelativePathResolveStatement,
   getSelectName,
   getSelectReturnType,
-  indentAllButFirstLine,
   isQueryAction,
   Projection,
-  renderInitialClientArgs,
   getArgName,
 } from './utils'
 import { uniqueBy } from '../runtime/utils/uniqueBy'
 import { GetPrismaClientOptions } from '../runtime/getPrismaClient'
+import klona from 'klona'
 
 const tab = 2
 
@@ -195,7 +190,7 @@ export class TSClient implements Generatable {
   protected readonly dmmfString: string
   constructor(protected readonly options: TSClientOptions) {
     this.dmmfString = escapeJson(JSON.stringify(options.document))
-    this.dmmf = new DMMFClass(JSON.parse(JSON.stringify(options.document)))
+    this.dmmf = new DMMFClass(klona(options.document))
   }
   public toJS() {
     // 'document' is being printed into the file as "dmmf"

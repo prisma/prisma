@@ -37,7 +37,7 @@ async function main() {
     include: {
       posts: true,
     },
-  })
+  } as any)
 
   console.log(users)
 
