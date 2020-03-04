@@ -12,7 +12,13 @@ import {
   EngineConfig,
   DatasourceOverwrite,
 } from '@prisma/engine-core/dist/NodeEngine'
-import { Document, makeDocument, unpack, transformDocument } from './query'
+import {
+  Document,
+  makeDocument,
+  unpack,
+  transformDocument,
+  PrismaClientValidationError,
+} from './query'
 import debugLib from 'debug'
 const debug = debugLib('prisma-client')
 import fs from 'fs'
@@ -28,7 +34,6 @@ import { deepSet } from './utils/deep-set'
 import { Dataloader } from './Dataloader'
 import { printStack } from './utils/printStack'
 import stripAnsi from 'strip-ansi'
-import { PrismaClientValidationError } from '../__tests__/runtime-tests/new-line/@prisma/client'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
