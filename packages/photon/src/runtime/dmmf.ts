@@ -88,7 +88,8 @@ export class DMMFClass implements DMMF.Document {
         ) {
           field.outputType.type =
             this.outputTypeMap[field.outputType.type] ||
-            this.enumMap[field.outputType.type]
+            this.enumMap[field.outputType.type] ||
+            field.outputType.type
         }
       }
     }
@@ -97,14 +98,26 @@ export class DMMFClass implements DMMF.Document {
     for (const type of types) {
       for (const field of type.fields) {
         const first = field.inputType[0].type
-        if (typeof first === 'string' && !ScalarTypeTable[first]) {
+        if (
+          typeof first === 'string' &&
+          !ScalarTypeTable[first] &&
+          (this.inputTypeMap[first] || this.enumMap[first])
+        ) {
           field.inputType[0].type =
-            this.inputTypeMap[first] || this.enumMap[first]
+            this.inputTypeMap[first] ||
+            this.enumMap[first] ||
+            field.inputType[0].type
         }
         const second = field.inputType[1] && field.inputType[1].type
-        if (typeof second === 'string' && !ScalarTypeTable[second]) {
+        if (
+          typeof second === 'string' &&
+          !ScalarTypeTable[second] &&
+          (this.inputTypeMap[second] || this.enumMap[second])
+        ) {
           field.inputType[1].type =
-            this.inputTypeMap[second] || this.enumMap[second]
+            this.inputTypeMap[second] ||
+            this.enumMap[second] ||
+            field.inputType[1].type
         }
       }
     }
@@ -118,7 +131,10 @@ export class DMMFClass implements DMMF.Document {
         for (const arg of field.args) {
           const first = arg.inputType[0].type
           if (typeof first === 'string' && !ScalarTypeTable[first]) {
-            arg.inputType[0].type = inputTypeMap[first] || this.enumMap[first]
+            arg.inputType[0].type =
+              inputTypeMap[first] ||
+              this.enumMap[first] ||
+              arg.inputType[0].type
           }
           const second = arg.inputType[1] && arg.inputType[1].type
           if (
@@ -126,7 +142,10 @@ export class DMMFClass implements DMMF.Document {
             typeof second === 'string' &&
             !ScalarTypeTable[second]
           ) {
-            arg.inputType[1].type = inputTypeMap[second] || this.enumMap[second]
+            arg.inputType[1].type =
+              inputTypeMap[second] ||
+              this.enumMap[second] ||
+              arg.inputType[1].type
           }
         }
       }

@@ -15,6 +15,7 @@ import {
 } from '@prisma/engine-core/dist/NodeEngine'
 import { Document, makeDocument, unpack } from './query'
 import debugLib from 'debug'
+const debug = debugLib('prisma-client')
 import fs from 'fs'
 import chalk from 'chalk'
 import * as sqlTemplateTag from 'sql-template-tag'
@@ -106,24 +107,20 @@ export type LogEvent = {
 }
 /* End Types for Logging */
 
-interface TSClientOptions {
+export interface GetPrismaClientOptions {
   document: DMMF.Document
   datasources: InternalDatasource[]
-  outputDir: string
-  runtimePath: string
   version?: string
-  browser?: boolean
   generator?: GeneratorConfig
   platforms?: string[]
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
-  schemaDir?: string
   relativePath: string
 }
 
 // TODO: We **may** be able to get real types. However, we have both a bootstrapping
 // problem here, that we want to return a type that's not yet defined
 // and we're typecasting this anyway later
-export function getPrismaClient(config: TSClientOptions): any {
+export function getPrismaClient(config: GetPrismaClientOptions): any {
   class NewPrismaClient {
     dmmf: DMMFClass
     engine: NodeEngine
@@ -142,7 +139,11 @@ export function getPrismaClient(config: TSClientOptions): any {
         debugLib.enable('prisma-client')
       }
 
-      const predefinedDatasources = config.sqliteDatasourceOverrides ?? []
+      let predefinedDatasources = config.sqliteDatasourceOverrides ?? []
+      predefinedDatasources = predefinedDatasources.map(d => ({
+        name: d.name,
+        url: 'file:' + path.resolve(__dirname, d.url),
+      }))
 
       const inputDatasources = Object.entries(
         options.datasources || {},
@@ -172,7 +173,7 @@ export function getPrismaClient(config: TSClientOptions): any {
 
       this.dmmf = new DMMFClass(config.document)
 
-      const cwd = path.join(__dirname, config.relativePath)
+      const cwd = path.resolve(__dirname, config.relativePath)
 
       if (!fs.existsSync(cwd)) {
         throw new Error(`Tried to start in ${cwd} but that path doesn't exist`)
@@ -181,11 +182,7 @@ export function getPrismaClient(config: TSClientOptions): any {
       this.engineConfig = {
         cwd,
         debug: useDebug,
-        datamodelPath: path.join(
-          __dirname,
-          config.relativePath,
-          'schema.prisma',
-        ),
+        datamodelPath: path.join(cwd, 'schema.prisma'),
         prismaPath: engineConfig.binaryPath ?? undefined,
         datasources,
         generator: config.generator,
@@ -493,7 +490,11 @@ class PrismaClientFetcher {
       // TODO: More elaborate logic to only batch certain queries together
       // We should e.g. make sure, that findOne queries are batched together
       await this.prisma.connect()
-      const queries = requests.map(r => String(r.document))
+      const queries = requests.map(r => {
+        const str = String(r.document)
+        debug(str)
+        return str
+      })
       return this.prisma.engine.request(queries)
     })
   }
@@ -538,7 +539,7 @@ class PrismaClientFetcher {
       collectTimestamps && collectTimestamps.record('Post-unpack')
       return unpackResult
     } catch (e) {
-      console.error(e.stack)
+      // console.error(e.stack)
       if (callsite) {
         const { stack } = printStack({
           callsite,
