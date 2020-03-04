@@ -331,9 +331,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }
     private bootstrapClient() {
       const clients = this.dmmf.mappings.reduce((acc, mapping) => {
-        // debug('client', mapping.model)
         const lowerCaseModel = lowerCase(mapping.model)
-        // TODO: This is O(n^2), we can turn it into O(n)
         const model = this.dmmf.modelMap[mapping.model]
 
         if (!model) {
@@ -349,7 +347,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           isList,
         }) => {
           dataPath = dataPath ?? []
-          isList = isList ?? false // TODO: Get this properly for findMany
+          isList = isList ?? false
 
           const callsite = new Error().stack
           const clientMethod = `${lowerCaseModel}.${actionName}`
@@ -361,7 +359,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             select: args,
           })
 
-          // TODO: Add error stack
           try {
             document.validate(
               args,
@@ -474,7 +471,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           plural: true,
           aggregate: true,
         }
-        // debug(mapping.model)
 
         const delegate = Object.entries(mapping).reduce(
           (acc, [actionName, rootField]) => {
@@ -554,8 +550,6 @@ class PrismaClientFetcher {
       })
     }
     try {
-      collectTimestamps && collectTimestamps.record('Pre-prismaClientConnect')
-      collectTimestamps && collectTimestamps.record('Post-prismaClientConnect')
       collectTimestamps && collectTimestamps.record('Pre-engine_request')
       const result = await this.dataloader.request({ document })
       collectTimestamps && collectTimestamps.record('Post-engine_request')
@@ -564,7 +558,6 @@ class PrismaClientFetcher {
       collectTimestamps && collectTimestamps.record('Post-unpack')
       return unpackResult
     } catch (e) {
-      // console.error(e.stack)
       if (callsite) {
         const { stack } = printStack({
           callsite,
