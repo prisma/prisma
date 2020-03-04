@@ -26,6 +26,5 @@ model Post {
 }
 
 enum Tree {
-  OAK
-  DOUGLAS
+  OAK DOUGLAS
 }

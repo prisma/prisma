@@ -45,7 +45,7 @@ test('ignore comments', () => {
     Array [
       Object {
         "name": "db",
-        "url": "'file:' + path.resolve(__dirname, '../cwd/my/folder/dev.db')",
+        "url": "../cwd/my/folder/dev.db",
       },
     ]
   `)
@@ -54,7 +54,7 @@ test('ignore comments', () => {
     "[
       {
         \\"name\\": \\"db\\",
-        \\"url\\": 'file:' + path.resolve(__dirname, '../cwd/my/folder/dev.db')
+        \\"url\\": \\"../cwd/my/folder/dev.db\\"
       }
     ]"
   `)
@@ -100,20 +100,20 @@ test('basic happy path', () => {
   const result = extractSqliteSources(datamodel, '/cwd', '/outputdir')
 
   expect(result).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "name": "db",
-                    "url": "'file:' + path.resolve(__dirname, '../cwd/my/folder/dev.db')",
-                  },
-                ]
-        `)
+    Array [
+      Object {
+        "name": "db",
+        "url": "../cwd/my/folder/dev.db",
+      },
+    ]
+  `)
 
   expect(serializeDatasources(result)).toMatchInlineSnapshot(`
-            "[
-              {
-                \\"name\\": \\"db\\",
-                \\"url\\": 'file:' + path.resolve(__dirname, '../cwd/my/folder/dev.db')
-              }
-            ]"
-      `)
+    "[
+      {
+        \\"name\\": \\"db\\",
+        \\"url\\": \\"../cwd/my/folder/dev.db\\"
+      }
+    ]"
+  `)
 })

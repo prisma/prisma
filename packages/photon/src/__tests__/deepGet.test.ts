@@ -1,4 +1,4 @@
-import { deepGet } from '../runtime'
+import { deepGet } from '../runtime/utils/deep-set'
 
 describe('deepGet', () => {
   test('work with 0', () => {

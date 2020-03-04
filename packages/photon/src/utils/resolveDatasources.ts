@@ -1,7 +1,12 @@
 import { DataSource } from '@prisma/generator-helper'
 import path from 'path'
 
-export function resolveDatasources(datasources: DataSource[], cwd: string, outputDir: string): DataSource[] {
+export function resolveDatasources(
+  datasources: DataSource[],
+  cwd: string,
+  outputDir: string,
+  absolutePaths?: boolean,
+): DataSource[] {
   return datasources.map(datasource => {
     if (datasource.connectorType === 'sqlite') {
       if (datasource.url.fromEnvVar === null) {
@@ -9,7 +14,12 @@ export function resolveDatasources(datasources: DataSource[], cwd: string, outpu
           ...datasource,
           url: {
             fromEnvVar: null,
-            value: absolutizeRelativePath(datasource.url.value, cwd, outputDir),
+            value: absolutizeRelativePath(
+              datasource.url.value,
+              cwd,
+              outputDir,
+              absolutePaths,
+            ),
           },
         }
       } else {
@@ -20,7 +30,12 @@ export function resolveDatasources(datasources: DataSource[], cwd: string, outpu
   })
 }
 
-export function absolutizeRelativePath(url: string, cwd: string, outputDir: string): string {
+export function absolutizeRelativePath(
+  url: string,
+  cwd: string,
+  outputDir: string,
+  absolutePaths?: boolean,
+): string {
   let filePath = url
 
   if (filePath.startsWith('file:')) {
@@ -29,5 +44,9 @@ export function absolutizeRelativePath(url: string, cwd: string, outputDir: stri
 
   const absoluteTarget = path.resolve(cwd, filePath)
 
-  return `'file:' + path.resolve(__dirname, '${path.relative(outputDir, absoluteTarget)}')`
+  if (absolutePaths) {
+    return absoluteTarget
+  }
+
+  return `${path.relative(outputDir, absoluteTarget)}`
 }

@@ -1,5 +1,14 @@
 import { DMMF } from './dmmf-types'
-import { Dictionary, keyBy } from './utils/common'
+import { Dictionary, keyBy, ScalarTypeTable } from './utils/common'
+import { performance } from 'perf_hooks'
+
+function getLogger() {
+  // let last = performance.now()
+  return (...args: string[]) => {
+    // console.error(`${(performance.now() - last).toFixed(2)}ms`, ...args)
+    // last = performance.now()
+  }
+}
 
 export class DMMFClass implements DMMF.Document {
   public datamodel: DMMF.Datamodel
@@ -17,33 +26,52 @@ export class DMMFClass implements DMMF.Document {
     this.datamodel = datamodel
     this.schema = schema
     this.mappings = mappings
+    const log = getLogger()
+    log(`starting`)
     this.enumMap = this.getEnumMap()
+    log(`enumMap`)
     this.queryType = this.getQueryType()
+    log(`queryType`)
     this.mutationType = this.getMutationType()
+    log(`mutationType`)
     this.modelMap = this.getModelMap()
+    log(`modelMap`)
+
     this.outputTypes = this.getOutputTypes()
-
-    this.resolveOutputTypes(this.outputTypes)
-
-    this.inputTypes = this.schema.inputTypes
-    this.resolveInputTypes(this.inputTypes)
-    this.inputTypeMap = this.getInputTypeMap()
-    this.resolveFieldArgumentTypes(this.outputTypes, this.inputTypeMap)
+    log(`outputTypes`)
 
     this.outputTypeMap = this.getMergedOutputTypeMap()
+    log(`outputTypes map`)
+
+    this.resolveOutputTypes(this.outputTypes)
+    log(`resolve Output Types`)
+
+    this.inputTypes = this.schema.inputTypes
+    this.inputTypeMap = this.getInputTypeMap()
+    log(`input type map`)
+    this.resolveInputTypes(this.inputTypes)
+    log(`input types`)
+    this.resolveFieldArgumentTypes(this.outputTypes, this.inputTypeMap)
+    log(`resolve fields `)
+
+    log(`merge things...`)
 
     // needed as references are not kept
     this.queryType = this.outputTypeMap.Query
     this.mutationType = this.outputTypeMap.Mutation
     this.outputTypes = this.outputTypes
+    log(`done`)
   }
   public getField(fieldName: string) {
     return (
       // TODO: create lookup table for Query and Mutation
-      this.queryType.fields.find(f => f.name === fieldName) || this.mutationType.fields.find(f => f.name === fieldName)
+      this.queryType.fields.find(f => f.name === fieldName) ||
+      this.mutationType.fields.find(f => f.name === fieldName)
     )
   }
-  protected outputTypeToMergedOutputType = (outputType: DMMF.OutputType): DMMF.OutputType => {
+  protected outputTypeToMergedOutputType = (
+    outputType: DMMF.OutputType,
+  ): DMMF.OutputType => {
     const model = this.modelMap[outputType.name]
     return {
       ...outputType,
@@ -53,49 +81,72 @@ export class DMMFClass implements DMMF.Document {
   }
   protected resolveOutputTypes(types: DMMF.OutputType[]) {
     for (const typeA of types) {
-      for (const fieldA of typeA.fields) {
-        for (const typeB of types) {
-          if (typeof fieldA.outputType.type === 'string') {
-            if (fieldA.outputType.type === typeB.name) {
-              fieldA.outputType.type = typeB
-            } else if (this.enumMap[fieldA.outputType.type]) {
-              fieldA.outputType.type = this.enumMap[fieldA.outputType.type]
-            }
-          }
+      for (const field of typeA.fields) {
+        if (
+          typeof field.outputType.type === 'string' &&
+          !ScalarTypeTable[field.outputType.type]
+        ) {
+          field.outputType.type =
+            this.outputTypeMap[field.outputType.type] ||
+            this.enumMap[field.outputType.type] ||
+            field.outputType.type
         }
       }
     }
   }
   protected resolveInputTypes(types: DMMF.InputType[]) {
-    for (const typeA of types) {
-      for (const fieldA of typeA.fields) {
-        for (const typeB of types) {
-          fieldA.inputType.forEach((inputType, index) => {
-            if (typeof inputType.type === 'string') {
-              if (inputType.type === typeB.name) {
-                fieldA.inputType[index].type = typeB
-              } else if (this.enumMap[inputType.type]) {
-                fieldA.inputType[index].type = this.enumMap[inputType.type]
-              }
-            }
-          })
+    for (const type of types) {
+      for (const field of type.fields) {
+        const first = field.inputType[0].type
+        if (
+          typeof first === 'string' &&
+          !ScalarTypeTable[first] &&
+          (this.inputTypeMap[first] || this.enumMap[first])
+        ) {
+          field.inputType[0].type =
+            this.inputTypeMap[first] ||
+            this.enumMap[first] ||
+            field.inputType[0].type
+        }
+        const second = field.inputType[1] && field.inputType[1].type
+        if (
+          typeof second === 'string' &&
+          !ScalarTypeTable[second] &&
+          (this.inputTypeMap[second] || this.enumMap[second])
+        ) {
+          field.inputType[1].type =
+            this.inputTypeMap[second] ||
+            this.enumMap[second] ||
+            field.inputType[1].type
         }
       }
     }
   }
-  protected resolveFieldArgumentTypes(types: DMMF.OutputType[], inputTypeMap: Dictionary<DMMF.InputType>) {
+  protected resolveFieldArgumentTypes(
+    types: DMMF.OutputType[],
+    inputTypeMap: Dictionary<DMMF.InputType>,
+  ) {
     for (const type of types) {
       for (const field of type.fields) {
         for (const arg of field.args) {
-          arg.inputType.forEach((t, index) => {
-            if (typeof t.type === 'string') {
-              if (inputTypeMap[t.type]) {
-                arg.inputType[index].type = inputTypeMap[t.type]
-              } else if (this.enumMap[t.type]) {
-                arg.inputType[index].type = this.enumMap[t.type]
-              }
-            }
-          })
+          const first = arg.inputType[0].type
+          if (typeof first === 'string' && !ScalarTypeTable[first]) {
+            arg.inputType[0].type =
+              inputTypeMap[first] ||
+              this.enumMap[first] ||
+              arg.inputType[0].type
+          }
+          const second = arg.inputType[1] && arg.inputType[1].type
+          if (
+            second &&
+            typeof second === 'string' &&
+            !ScalarTypeTable[second]
+          ) {
+            arg.inputType[1].type =
+              inputTypeMap[second] ||
+              this.enumMap[second] ||
+              arg.inputType[1].type
+          }
         }
       }
     }
