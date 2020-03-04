@@ -7,7 +7,7 @@ export { DMMF } from './dmmf-types'
 //   unpack,
 //   PrismaClientValidationError,
 // } from './query'
-// export { default as debugLib } from 'debug'
+export { default as debugLib } from 'debug'
 // export {
 //   InternalDatasource,
 //   Datasource,

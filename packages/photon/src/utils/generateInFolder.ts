@@ -69,6 +69,7 @@ export async function generateInFolder({
     datamodelPath: schemaPath,
     copyRuntime: false,
     generator: config.generators[0],
+    absolutePaths: !transpile,
   })
 
   const time = performance.now() - before
