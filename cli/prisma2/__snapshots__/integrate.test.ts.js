@@ -381,7 +381,7 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  published posts_status
+  published posts_status @default(DRAFT)
   title     String
 }
 
@@ -404,7 +404,7 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  published posts_status
+  published posts_status @default(DRAFT)
   title     String
 }
 
@@ -427,7 +427,7 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  published posts_status
+  published posts_status @default(DRAFT)
   title     String
 }
 
@@ -450,7 +450,7 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  published posts_status
+  published posts_status @default(DRAFT)
   title     String
 }
 
@@ -473,7 +473,7 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  published posts_status
+  published posts_status @default(DRAFT)
   title     String
 }
 
@@ -496,7 +496,7 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  published posts_status
+  published posts_status @default(DRAFT)
   title     String
 }
 
