@@ -3,6 +3,7 @@ import copy from 'fast-copy'
 import clone from 'fast-clone'
 import { dmmfDocument } from '../src/fixtures/example-dmmf'
 import v8 from 'v8'
+import klona from 'klona'
 
 const suite = new Suite()
 
@@ -13,9 +14,9 @@ suite
   .add('fast-clone', () => {
     clone(dmmfDocument)
   })
-  // .add('v8', () => {
-  //   v8Clone(dmmfDocument)
-  // })
+  .add('klona', () => {
+    klona(dmmfDocument)
+  })
   .add('JSON.stringify', () => {
     JSON.parse(JSON.stringify(dmmfDocument))
   })
@@ -25,7 +26,7 @@ suite
   .on('cycle', function(event) {
     console.log(String(event.target))
   })
-  .on('complete', function() {
+  .on('complete', function(this: any) {
     console.log('Fastest is ' + this.filter('fastest').map('name'))
   })
   .run()

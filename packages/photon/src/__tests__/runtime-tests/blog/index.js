@@ -94,7 +94,7 @@ module.exports = async () => {
       throw new Error(`Known request error is incorrect`)
     } else {
       if (
-        !knownRequestError.message.includes('Invalid `prisma.users.create()`')
+        !knownRequestError.message.includes('Invalid `prisma.user.create()`')
       ) {
         throw new Error(`Invalid error: ${knownRequestError.message}`)
       }

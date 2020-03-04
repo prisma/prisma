@@ -12,8 +12,8 @@ export function getScalarsName(modelName: string) {
   return `${modelName}Scalars`
 }
 
-export function getPayloadName(modelName: string, projection: Projection) {
-  return `${modelName}Get${capitalize(projection)}Payload`
+export function getPayloadName(modelName: string) {
+  return `${modelName}GetPayload`
 }
 
 // export function getExtractName(modelName: string, projection: Projection) {
@@ -32,58 +32,47 @@ export function getDefaultName(modelName: string) {
   return `${modelName}Default`
 }
 
-export function getFieldArgName(
-  field: DMMF.SchemaField,
-  projection?: Projection,
-): string {
+export function getFieldArgName(field: DMMF.SchemaField): string {
   return getArgName(
     (field.outputType.type as DMMF.OutputType).name,
     field.outputType.isList,
-    projection,
   )
 }
 
-export function getArgName(
-  name: string,
-  isList: boolean,
-  projection?: Projection,
-): string {
-  const projectionString = projection ? capitalize(projection) : ''
+export function getArgName(name: string, isList: boolean): string {
   if (!isList) {
-    return `${name}${projectionString}Args`
+    return `${name}Args`
   }
 
-  return `FindMany${name}${projectionString}Args`
+  return `FindMany${name}Args`
 }
 
 // we need names for all top level args,
 // as GraphQL doesn't have the concept of unnamed args
 export function getModelArgName(
   modelName: string,
-  projection?: Projection,
   action?: DMMF.ModelAction,
 ): string {
-  const projectionName = projection ? capitalize(projection) : ''
   if (!action) {
-    return `${modelName}${projectionName}Args`
+    return `${modelName}Args`
   }
   switch (action) {
     case DMMF.ModelAction.findMany:
-      return `FindMany${modelName}${projectionName}Args`
+      return `FindMany${modelName}Args`
     case DMMF.ModelAction.findOne:
-      return `FindOne${modelName}${projectionName}Args`
+      return `FindOne${modelName}Args`
     case DMMF.ModelAction.upsert:
-      return `${modelName}${projectionName}UpsertArgs`
+      return `${modelName}UpsertArgs`
     case DMMF.ModelAction.update:
-      return `${modelName}${projectionName}UpdateArgs`
+      return `${modelName}UpdateArgs`
     case DMMF.ModelAction.updateMany:
-      return `${modelName}${projectionName}UpdateManyArgs`
+      return `${modelName}UpdateManyArgs`
     case DMMF.ModelAction.delete:
-      return `${modelName}${projectionName}DeleteArgs`
+      return `${modelName}DeleteArgs`
     case DMMF.ModelAction.create:
-      return `${modelName}${projectionName}CreateArgs`
+      return `${modelName}CreateArgs`
     case DMMF.ModelAction.deleteMany:
-      return `${modelName}${projectionName}DeleteManyArgs`
+      return `${modelName}DeleteManyArgs`
   }
 }
 
@@ -171,22 +160,9 @@ export function getSelectReturnType({
   renderPromise = true,
   hideCondition = false,
   isField = false,
-  fieldName,
 }: SelectReturnTypeOptions) {
   const isList = actionName === DMMF.ModelAction.findMany
 
-  const selectArgName = isField
-    ? getArgName(name, isList, Projection.select)
-    : getModelArgName(name, Projection.select, actionName as DMMF.ModelAction)
-
-  const includeArgName = isField
-    ? getArgName(name, isList, Projection.include)
-    : getModelArgName(name, Projection.include, actionName as DMMF.ModelAction)
-
-  const requiredArgName =
-    getModelArgName(name, undefined, actionName as DMMF.ModelAction) +
-    'Required'
-  const requiredCheck = `T extends ${requiredArgName} ? 'Please either choose \`select\` or \`include\`' : `
   if (actionName === 'deleteMany' || actionName === 'updateMany') {
     return `Promise<BatchPayload>`
   }
@@ -199,40 +175,17 @@ export function getSelectReturnType({
     const listClose = isList ? '>' : ''
     const promiseOpen = renderPromise ? 'Promise<' : ''
     const promiseClose = renderPromise ? '>' : ''
-    const renderType = (projection: Projection) =>
-      `${promiseOpen}${listOpen}${getPayloadName(
-        name,
-        projection,
-      )}<Extract${getModelArgName(name, projection, actionName)}<T>${
-        actionName === 'findOne' ? ' | null' : ''
-      }>${listClose}${promiseClose}`
 
-    return `${requiredCheck}T extends ${selectArgName}
-? ${renderType(Projection.select)} : T extends ${includeArgName}
-? ${renderType(
-      Projection.include,
-    )} : ${promiseOpen}${listOpen}${name}${promiseClose}${listClose}`
+    return `CheckSelect<T, ${promiseOpen}${listOpen}${name}${listClose}${promiseClose}, ${promiseOpen}${listOpen}${getPayloadName(
+      name,
+    )}<T>${listClose}${promiseClose}>`
   }
 
-  const selectType = `${renderPromise ? 'Promise<' : ''}${getPayloadName(
-    name,
-    Projection.select,
-  )}<Extract${selectArgName}<T>${renderPromise ? '>' : ''}${
+  return `CheckSelect<T, ${name}Client<${getType(name, isList)}${
     actionName === 'findOne' ? ' | null' : ''
-  }>`
-
-  const includeType = `${renderPromise ? 'Promise<' : ''}${getPayloadName(
-    name,
-    Projection.include,
-  )}<Extract${includeArgName}<T>${renderPromise ? '>' : ''}${
+  }>, ${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${
     actionName === 'findOne' ? ' | null' : ''
-  }>`
-
-  return `${requiredCheck}T extends ${selectArgName} ? ${selectType}
-: T extends ${includeArgName} ? ${includeType} : ${name}Client<${getType(
-    name,
-    isList,
-  )}${actionName === 'findOne' ? ' | null' : ''}>`
+  }>>`
 }
 
 export function isQueryAction(

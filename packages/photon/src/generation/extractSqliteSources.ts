@@ -6,7 +6,12 @@ export interface DatasourceOverwrite {
 }
 
 // only extract sqlite sources that don't use env vars
-export function extractSqliteSources(datamodel: string, cwd: string, outputDir: string): DatasourceOverwrite[] {
+export function extractSqliteSources(
+  datamodel: string,
+  cwd: string,
+  outputDir: string,
+  absolutePaths?: boolean,
+): DatasourceOverwrite[] {
   const overrides: DatasourceOverwrite[] = []
   const lines = datamodel.split('\n').filter(l => !l.trim().startsWith('//'))
   const lineRegex = /\s*url\s+=\s*"(file:[^\/].*)"/
@@ -35,17 +40,22 @@ export function extractSqliteSources(datamodel: string, cwd: string, outputDir: 
       }
 
       if (!startLine) {
-        throw new Error(`Could not parse datamodel, invalid datasource block without opening \`{\``)
+        throw new Error(
+          `Could not parse datamodel, invalid datasource block without opening \`{\``,
+        )
       }
 
       const startMatch = startRegex.exec(startLine)
       if (startMatch) {
         overrides.push({
           name: startMatch[1],
-          url: absolutizeRelativePath(match[1], cwd, outputDir),
+          url: absolutizeRelativePath(match[1], cwd, outputDir, absolutePaths),
         })
       } else {
-        throw new Error(`Could not parse datamodel, line ${searchIndex + 1}: \`${startLine}\` is not parseable`)
+        throw new Error(
+          `Could not parse datamodel, line ${searchIndex +
+            1}: \`${startLine}\` is not parseable`,
+        )
       }
     }
   })

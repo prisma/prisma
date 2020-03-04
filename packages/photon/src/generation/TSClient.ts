@@ -1,6 +1,7 @@
 import { GeneratorConfig } from '@prisma/generator-helper'
 import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfilled in TypeScript
 import indent from 'indent-string'
+import path from 'path'
 import { DMMFClass } from '../runtime/dmmf'
 import { BaseField, DMMF } from '../runtime/dmmf-types'
 import pluralize from 'pluralize'
@@ -11,26 +12,21 @@ import {
 } from '../runtime/utils/common'
 import { InternalDatasource } from '../runtime/utils/printDatasources'
 import { DatasourceOverwrite } from './extractSqliteSources'
-import { serializeDatasources } from './serializeDatasources'
 import {
   flatMap,
-  getDefaultName,
   getFieldArgName,
-  getFieldTypeName,
   getIncludeName,
   getModelArgName,
   getPayloadName,
-  getRelativePathResolveStatement,
-  getScalarsName,
   getSelectName,
   getSelectReturnType,
-  getType,
-  indentAllButFirstLine,
   isQueryAction,
   Projection,
-  renderInitialClientArgs,
+  getArgName,
 } from './utils'
 import { uniqueBy } from '../runtime/utils/uniqueBy'
+import { GetPrismaClientOptions } from '../runtime/getPrismaClient'
+import klona from 'klona'
 
 const tab = 2
 
@@ -50,171 +46,31 @@ const commonCodeJS = (runtimePath: string, version?: string) => `
 Object.defineProperty(exports, "__esModule", { value: true });
 
 const {
-  DMMF,
-  DMMFClass,
-  deepGet,
-  deepSet,
-  makeDocument,
-  Engine,
-  debugLib,
-  transformDocument,
-  chalk,
-  printStack,
-  mergeBy,
-  unpack,
-  stripAnsi,
-  parseDotenv,
-  sqlTemplateTag,
-  Dataloader,
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
   PrismaClientRustPanicError,
   PrismaClientInitializationError,
   PrismaClientValidationError,
-  lowerCase
+  getPrismaClient,
+  debugLib
 } = require('${runtimePath}')
+
+const path = require('path')
+const fs = require('fs')
+const debug = debugLib('prisma-client')
 
 /**
  * Query Engine version: ${version || 'latest'}
  */
-
-const path = require('path')
-const fs = require('fs')
-
-const debug = debugLib('prisma-client')
+exports.version = {
+  client: "${version || 'latest'}"
+}
 
 exports.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
 exports.PrismaClientUnknownRequestError = PrismaClientUnknownRequestError;
 exports.PrismaClientRustPanicError = PrismaClientRustPanicError;
 exports.PrismaClientInitializationError = PrismaClientInitializationError;
 exports.PrismaClientValidationError = PrismaClientValidationError;
-
-class PrismaClientFetcher {
-  constructor(prisma, enableDebug = false, hooks) {
-    this.prisma = prisma;
-    this.debug = enableDebug;
-    this.hooks = hooks;
-    this.dataloader = new Dataloader(async (requests) => {
-      // TODO: More elaborate logic to only batch certain queries together
-      // We should e.g. make sure, that findOne queries are batched together
-      await this.prisma.connect();
-      const queries = requests.map(r => String(r.document))
-      debug('Requests:')
-      debug(queries)
-      const results = await this.prisma.engine.request(queries)
-      debug('Results:')
-      debug(results)
-      return results
-    })
-  }
-  async request({ document, dataPath = [], rootField, typeName, isList, callsite, collectTimestamps, clientMethod }) {
-    if (this.hooks && this.hooks.beforeRequest) {
-      const query = String(document);
-      this.hooks.beforeRequest({ query, path: dataPath, rootField, typeName, document });
-    }
-    try {
-      collectTimestamps && collectTimestamps.record("Pre-prismaClientConnect");
-      collectTimestamps && collectTimestamps.record("Post-prismaClientConnect");
-      collectTimestamps && collectTimestamps.record("Pre-engine_request");
-      const result = await this.dataloader.request({ document });
-      collectTimestamps && collectTimestamps.record("Post-engine_request");
-      collectTimestamps && collectTimestamps.record("Pre-unpack");
-      const unpackResult = this.unpack(document, result, dataPath, rootField, isList);
-      collectTimestamps && collectTimestamps.record("Post-unpack");
-      return unpackResult;
-    } catch (e) {
-      debug(e.stack);
-      if (callsite) {
-        const { stack } = printStack({
-          callsite,
-          originalMethod: clientMethod,
-          onUs: e.isPanic
-        });
-        const message = stack + e.message;
-        if (e.code) {
-          throw new PrismaClientKnownRequestError(this.sanitizeMessage(message), e.code, e.meta);
-        }
-        if (e instanceof PrismaClientUnknownRequestError) {
-          throw new PrismaClientUnknownRequestError(this.sanitizeMessage(message));
-        } else if (e instanceof PrismaClientInitializationError) {
-          throw new PrismaClientInitializationError(this.sanitizeMessage(message));
-        } else if (e instanceof PrismaClientRustPanicError) {
-          throw new PrismaClientRustPanicError(this.sanitizeMessage(message));
-        }
-      } else {
-        if (e.code) {
-          throw new PrismaClientKnownRequestError(this.sanitizeMessage(e.message), e.code, e.meta);
-        }
-        if (e.isPanic) {
-          throw new PrismaClientRustPanicError(e.message);
-        } else {
-          if (e instanceof PrismaClientUnknownRequestError) {
-            throw new PrismaClientUnknownRequestError(this.sanitizeMessage(message));
-          } else if (e instanceof PrismaClientInitializationError) {
-            throw new PrismaClientInitializationError(this.sanitizeMessage(message));
-          } else if (e instanceof PrismaClientRustPanicError) {
-            throw new PrismaClientRustPanicError(this.sanitizeMessage(message));
-          }
-        }
-      }
-    }
-  }
-  sanitizeMessage(message) {
-    if (this.prisma.errorFormat && this.prisma.errorFormat !== 'pretty') {
-      return stripAnsi(message);
-    }
-    return message;
-  }
-  unpack(document, data, path, rootField, isList) {
-    if (data.data) {
-      data = data.data
-    }
-    const getPath = [];
-    if (rootField) {
-      getPath.push(rootField);
-    }
-    getPath.push(...path.filter(p => p !== 'select' && p !== 'include'));
-    return unpack({ document, data, path: getPath });
-  }
-}
-
-class CollectTimestamps {
-  constructor(startName) {
-    this.records = [];
-    this.start = undefined;
-    this.additionalResults = {};
-    this.start = { name: startName, value: process.hrtime() };
-  }
-  record(name) {
-    this.records.push({ name, value: process.hrtime() });
-  }
-  elapsed(start, end) {
-    const diff = [end[0] - start[0], end[1] - start[1]];
-    const nanoseconds = (diff[0] * 1e9) + diff[1];
-    const milliseconds = nanoseconds / 1e6;
-    return milliseconds;
-  }
-  addResults(results) {
-    Object.assign(this.additionalResults, results);
-  }
-  getResults() {
-    const results = this.records.reduce((acc, record) => {
-      const name = record.name.split('-')[1];
-      if (acc[name]) {
-        acc[name] = this.elapsed(acc[name], record.value);
-      }
-      else {
-        acc[name] = record.value;
-      }
-      return acc;
-    }, {});
-    Object.assign(results, {
-      total: this.elapsed(this.start.value, this.records[this.records.length - 1].value),
-      ...this.additionalResults
-    });
-    return results;
-  }
-}
 `
 
 const commonCodeTS = (runtimePath: string, version?: string) => `import {
@@ -242,6 +98,28 @@ export { PrismaClientValidationError }
  * Utility Types
  */
 
+declare type SelectAndInclude = {
+  select: any
+  include: any
+}
+
+declare type HasSelect = {
+  select: any
+}
+
+declare type HasInclude = {
+  include: any
+}
+
+
+declare type CheckSelect<T, S, U> = T extends SelectAndInclude
+  ? 'Please either choose \`select\` or \`include\`'
+  : T extends HasSelect
+  ? U
+  : T extends HasInclude
+  ? U
+  : S
+
 /**
  * Get the type of the value, that the Promise holds.
  */
@@ -254,12 +132,11 @@ export declare type PromiseReturnType<T extends (...args: any) => Promise<any>> 
 
 
 export declare type Enumerable<T> = T | Array<T>;
-export declare type MergeTruthyValues<R extends object, S extends object> = {
-  [key in keyof S | keyof R]: key extends false ? never : key extends keyof S ? S[key] extends false ? never : S[key] : key extends keyof R ? R[key] : never;
-};
-export declare type CleanupNever<T> = {
-  [key in keyof T]: T[key] extends never ? never : key;
-}[keyof T];
+
+export declare type TrueKeys<T> = {
+  [key in keyof T]: T[key] extends false | undefined | null ? never : key
+}[keyof T]
+
 /**
  * Subset
  * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
@@ -289,6 +166,7 @@ interface TSClientOptions {
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   schemaDir?: string
   outputDir: string
+  absolutePaths?: boolean
 }
 
 interface Generatable {
@@ -298,42 +176,39 @@ interface Generatable {
 
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFClass
-  protected readonly document: DMMF.Document
-  protected readonly runtimePath: string
-  protected readonly browser: boolean
-  protected readonly outputDir: string
-  protected readonly internalDatasources: InternalDatasource[]
-  protected readonly generator?: GeneratorConfig
-  protected readonly platforms?: string[]
-  protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[]
   protected readonly version?: string
-  protected readonly schemaDir?: string
-  constructor({
-    document,
-    runtimePath,
-    browser = false,
-    datasources,
-    generator,
-    platforms,
-    sqliteDatasourceOverrides,
-    schemaDir,
-    outputDir,
-  }: TSClientOptions) {
-    this.document = document
-    this.runtimePath = runtimePath
-    this.browser = browser
-    this.internalDatasources = datasources
-    this.generator = generator
-    this.platforms = platforms
-    this.sqliteDatasourceOverrides = sqliteDatasourceOverrides
-    // We make a deep clone here as otherwise we would serialize circular references
-    // which we're building up in the DMMFClass
-    this.dmmf = new DMMFClass(JSON.parse(JSON.stringify(document)))
-    this.schemaDir = schemaDir
-    this.outputDir = outputDir
+  protected readonly dmmfString: string
+  constructor(protected readonly options: TSClientOptions) {
+    this.dmmfString = escapeJson(JSON.stringify(options.document))
+    this.dmmf = new DMMFClass(klona(options.document))
   }
   public toJS() {
-    return `${commonCodeJS(this.runtimePath, this.version)}
+    // 'document' is being printed into the file as "dmmf"
+    const {
+      datasources,
+      version,
+      generator,
+      platforms,
+      sqliteDatasourceOverrides,
+      outputDir,
+      schemaDir,
+      absolutePaths,
+    } = this.options
+
+    const config: Omit<GetPrismaClientOptions, 'document'> = {
+      datasources,
+      version,
+      generator,
+      platforms,
+      sqliteDatasourceOverrides,
+      relativePath: absolutePaths // absolutePaths is only used by `generateInFolder`
+        ? path.resolve(schemaDir!)
+        : schemaDir
+        ? path.relative(path.join(outputDir, 'runtime'), schemaDir)
+        : './',
+    }
+
+    return `${commonCodeJS(this.options.runtimePath, this.version)}
 
 /**
  * Build tool annotations
@@ -341,27 +216,12 @@ export class TSClient implements Generatable {
 **/
 
 ${
-  this.platforms
-    ? this.platforms
+  this.options.platforms
+    ? this.options.platforms
         .map(p => `path.join(__dirname, 'runtime/query-engine-${p}');`)
         .join('\n')
     : ''
 }
-
-/**
- * Client
-**/
-
-${new PrismaClientClass(
-  this.dmmf,
-  this.internalDatasources,
-  this.outputDir,
-  this.browser,
-  this.generator,
-  this.sqliteDatasourceOverrides,
-  this.schemaDir,
-).toJS()}
-
 
 /**
  * Enums
@@ -373,23 +233,28 @@ function makeEnum(x) { return x; }
 ${this.dmmf.schema.enums.map(type => new Enum(type).toJS()).join('\n\n')}
 
 
-${Object.values(this.dmmf.modelMap)
-  .map(model => new Model(model, this.dmmf).toJS())
-  .join('\n')}
-
 /**
  * DMMF
  */
-const dmmfString = '${escapeJson(JSON.stringify(this.document))}'
+const dmmfString = '${this.dmmfString}'
 
 // We are parsing 2 times, as we want independent objects, because
 // DMMFClass introduces circular references in the dmmf object
 const dmmf = JSON.parse(dmmfString)
 exports.dmmf = JSON.parse(dmmfString)
-    `
+
+/**
+ * Create the Client
+ */
+
+const config = ${JSON.stringify(config, null, 2)}
+config.document = dmmf
+
+const PrismaClient = getPrismaClient(config)
+exports.PrismaClient = PrismaClient`
   }
   public toTS() {
-    return `${commonCodeTS(this.runtimePath, this.version)}
+    return `${commonCodeTS(this.options.runtimePath, this.version)}
 
 /**
  * Client
@@ -397,12 +262,12 @@ exports.dmmf = JSON.parse(dmmfString)
 
 ${new PrismaClientClass(
   this.dmmf,
-  this.internalDatasources,
-  this.outputDir,
-  this.browser,
-  this.generator,
-  this.sqliteDatasourceOverrides,
-  this.schemaDir,
+  this.options.datasources,
+  this.options.outputDir,
+  this.options.browser,
+  this.options.generator,
+  this.options.sqliteDatasourceOverrides,
+  this.options.schemaDir,
 ).toTS()}
 
 ${/*new Query(this.dmmf, 'query')*/ ''}
@@ -465,244 +330,6 @@ class PrismaClientClass implements Generatable {
     protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[],
     protected readonly cwd?: string,
   ) {}
-  public toJS() {
-    const { dmmf } = this
-    return `// tested in getLogLevel.test.ts
-function getLogLevel(log) {
-    return log.reduce((acc, curr) => {
-        const currentLevel = typeof curr === 'string' ? curr : curr.level;
-        if (currentLevel === 'query') {
-            return acc;
-        }
-        if (!acc) {
-            return currentLevel;
-        }
-        if (curr === 'info' || acc === 'info') {
-            // info always has precedence
-            return 'info';
-        }
-        return currentLevel;
-    }, undefined);
-}
-exports.getLogLevel = getLogLevel;
-
-${this.jsDoc}
-class PrismaClient {
-${this.jsDoc}
-  constructor(optionsArg) {
-    const options = optionsArg || {}
-    const internal = options.__internal || {}
-
-    const useDebug = internal.debug === true
-    if (useDebug) {
-      debugLib.enable('prisma-client')
-    }
-
-    // datamodel = datamodel without datasources + printed datasources
-
-    const predefinedDatasources = ${
-      this.sqliteDatasourceOverrides
-        ? indentAllButFirstLine(
-            serializeDatasources(this.sqliteDatasourceOverrides),
-            4,
-          )
-        : '[]'
-    }
-    const inputDatasources = Object.entries(options.datasources || {}).map(([name, url]) => ({ name, url }))
-    const datasources = mergeBy(predefinedDatasources, inputDatasources, source => source.name)
-
-    const engineConfig = internal.engine || {}
-
-    if (options.errorFormat) {
-      this.errorFormat = options.errorFormat
-    } else if (process.env.NODE_ENV === 'production') {
-      this.errorFormat = 'minimal'
-    } else if (process.env.NO_COLOR) {
-      this.errorFormat = 'colorless'
-    } else {
-      this.errorFormat = 'pretty'
-    }
-
-    this.measurePerformance = internal.measurePerformance || false
-
-    const envFile = this.readEnv()
-
-    this.engineConfig = {
-      cwd: engineConfig.cwd || ${getRelativePathResolveStatement(
-        this.outputDir,
-        this.cwd,
-      )},
-      debug: useDebug,
-      datamodelPath: path.resolve(__dirname, 'schema.prisma'),
-      prismaPath: engineConfig.binaryPath || undefined,
-      datasources,
-      generator: ${
-        this.generator ? JSON.stringify(this.generator) : 'undefined'
-      },
-      showColors: this.errorFormat === 'pretty',
-      logLevel: options.log && getLogLevel(options.log),
-      logQueries: options.log && Boolean(options.log.find(o => typeof o === 'string' ? o === 'query' : o.level === 'query')),
-      env: envFile,
-      flags: options.forceTransactions ? ['--always-force-transactions'] : []
-    }
-
-    debug({ engineConfig: this.engineConfig })
-
-    this.engine = new Engine(this.engineConfig)
-
-    this.dmmf = new DMMFClass(dmmf)
-
-    this.fetcher = new PrismaClientFetcher(this, false, internal.hooks)
-
-    if (options.log) {
-      for (const log of options.log) {
-        const level = typeof log === 'string' ? log : log.emit === 'stdout' ? log.level : null
-        if (level) {
-          this.on(level, event => {
-            const colorMap = {
-              query: 'blue',
-              info: 'cyan',
-              warn: 'yellow'
-            }
-            console.error(chalk[colorMap[level]](\`prisma:$\{level\}\`.padEnd(13)) + (event.message || event.query))
-          })
-        }
-      }
-    }
-  }
-
-  /**
-   * @private
-   */
-  readEnv() {
-    const dotEnvPath = path.resolve(${getRelativePathResolveStatement(
-      this.outputDir,
-      this.cwd,
-    )}, '.env')
-
-    if (fs.existsSync(dotEnvPath)) {
-      return parseDotenv(fs.readFileSync(dotEnvPath, 'utf-8'))
-    }
-
-    return {}
-  }
-
-  on(eventType, callback) {
-    this.engine.on(eventType, event => {
-      const fields = event.fields
-      if (eventType === 'query') {
-        callback({
-          timestamp: event.timestamp,
-          query: fields.query,
-          params: fields.params,
-          duration: fields.duration_ms,
-          target: event.target
-        })
-      } else { // warn or info events
-        callback({
-          timestamp: event.timestamp,
-          message: fields.message,
-          target: event.target
-        })
-      }
-    })
-  }
-  /**
-   * Connect with the database
-   */
-  async connect() {
-    if (this.disconnectionPromise) {
-      debug('awaiting disconnection promise')
-      await this.disconnectionPromise
-    } else {
-      debug('disconnection promise doesnt exist')
-    }
-    if (this.connectionPromise) {
-      return this.connectionPromise
-    }
-    this.connectionPromise = this.engine.start()
-    return this.connectionPromise
-  }
-  /**
-   * @private
-   */
-  async runDisconnect() {
-    debug('disconnectionPromise: stopping engine')
-    await this.engine.stop()
-    delete this.connectionPromise
-    this.engine = new Engine(this.engineConfig)
-    delete this.disconnectionPromise
-  }
-  /**
-   * Disconnect from the database
-   */
-  async disconnect() {
-    if (!this.disconnectionPromise) {
-      this.disconnectionPromise = this.runDisconnect() 
-    }
-    return this.disconnectionPromise
-  }
-  /**
-   * Makes a raw query
-   */ 
-  async raw(stringOrTemplateStringsArray, ...values) {
-    let query = ''
-    let parameters = undefined
-
-    if (Array.isArray(stringOrTemplateStringsArray)) {
-      // Called with prisma.raw\`\`
-      const queryInstance = sqlTemplateTag.sqltag(stringOrTemplateStringsArray, ...values)
-      query = queryInstance.sql
-      parameters = JSON.stringify(queryInstance.values)
-    } else {
-      // Called with prisma.raw(string)
-      query = stringOrTemplateStringsArray 
-    }
-
-    const document = makeDocument({
-      dmmf: this.dmmf,
-      rootField: "executeRaw",
-      rootTypeName: 'mutation',
-      select: {
-        query,
-        parameters
-      }
-    })
-
-    document.validate({ query, parameters }, false, 'raw', this.errorFormat)
-    
-    return this.fetcher.request({ document, rootField: 'executeRaw', typeName: 'raw', isList: false })
-  }
-
-${indent(
-  dmmf.mappings
-    .filter(m => m.findMany)
-    .map(m => {
-      const methodName = lowerCase(m.model)
-      return `\
-/**
- * \`prisma.${methodName}\`: Exposes CRUD operations for the **${
-        m.model
-      }** model.
- * Example usage:
- * \`\`\`ts
- * // Fetch zero or more ${capitalize(m.plural)}
- * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
- * \`\`\`
- */
-get ${methodName}() {
-  return ${
-    m.model
-  }Delegate(this.dmmf, this.fetcher, this.errorFormat, this.measurePerformance)
-}`
-    })
-    .join('\n'),
-  2,
-)}
-}
-exports.PrismaClient = PrismaClient
-`
-  }
   private get jsDoc() {
     const { dmmf } = this
 
@@ -905,10 +532,8 @@ class QueryPayloadType implements Generatable {
                   f,
                   `${getPayloadName(
                     (f.outputType.type as DMMF.OutputType).name,
-                    Projection.select,
                   )}<Extract${getModelArgName(
                     (f.outputType.type as DMMF.OutputType).name,
-                    Projection.select,
                     f.outputType.isList
                       ? DMMF.ModelAction.findMany
                       : DMMF.ModelAction.findOne,
@@ -920,10 +545,7 @@ class QueryPayloadType implements Generatable {
             .join('\n')}`
 
     return `\
-type ${getPayloadName(
-      name,
-      Projection.select,
-    )}<S extends ${name}Args> = S extends ${name}Args
+type ${getPayloadName(name)}<S extends ${name}Args> = S extends ${name}Args
   ? {
       [P in keyof S] ${relationFieldConditions}
         : never
@@ -938,106 +560,77 @@ type ${getPayloadName(
   }
 }
 
-/**
- * Generates the generic type to calculate a payload based on a include statement
- */
-class PayloadType implements Generatable {
-  constructor(
-    protected readonly type: OutputType,
-    protected readonly projection: Projection,
-  ) {}
+class NewPayloadType implements Generatable {
+  constructor(protected readonly type: OutputType) {}
+
   public toTS() {
-    const { type, projection } = this
+    const { type } = this
     const { name } = type
 
-    const relationFields = type.fields.filter(
-      f => f.outputType.kind === 'object',
-    )
-    const relationFieldConditions =
-      relationFields.length === 0
-        ? ''
-        : `\n${relationFields
-            .map(f =>
-              indent(
-                `: P extends '${f.name}'\n? ${this.wrapArray(
-                  f,
-                  `${getPayloadName(
-                    (f.outputType.type as DMMF.OutputType).name,
-                    projection,
-                  )}<Extract${getFieldArgName(f, projection)}<S[P]>>${
-                    !f.outputType.isRequired && !f.outputType.isList
-                      ? ' | null'
-                      : ''
-                  }`,
-                )}`,
-                8,
-              ),
-            )
-            .join('\n')}`
+    const argsName = getArgName(name, false)
 
-    const hasScalarFields =
-      type.fields.filter(f => f.outputType.kind !== 'object').length > 0
-    const projectionName =
-      projection === Projection.select
-        ? getSelectName(name)
-        : getIncludeName(name)
+    const include = this.renderRelations(Projection.include)
+    const select = this.renderRelations(Projection.select)
+
     return `\
-export type ${getPayloadName(
-      name,
-      projection,
-    )}<S extends boolean | ${projectionName}> = S extends true
+export type ${getPayloadName(name)}<
+  S extends boolean | null | undefined | ${argsName},
+  U = keyof S
+> = S extends true
   ? ${name}
-  : S extends ${projectionName}
-  ? {
-      [P in CleanupNever<MergeTruthyValues<${
-        projection === Projection.select ? '{}' : getDefaultName(name)
-      }, S>>]${
-      hasScalarFields
-        ? `: P extends ${getScalarsName(name)}
-        ? ${name}[P]`
-        : ''
-    }${relationFieldConditions}
-        : never
-    }
-   : never`
-  }
-  protected wrapArray(field: DMMF.SchemaField, str: string) {
-    if (field.outputType.isList) {
-      return `Array<${str}>`
-    }
-    return str
-  }
-}
-
-/**
- * Generates the default selection of a model
- */
-class ModelDefault implements Generatable {
-  constructor(
-    protected readonly model: DMMF.Model,
-    protected readonly dmmf: DMMFClass,
-  ) {}
-  public toTS() {
-    const { model } = this
-    return `\
-type ${getDefaultName(model.name)} = {
-${indent(
-  model.fields
-    .filter(f => this.isDefault(f))
-    .map(f => `${f.name}: true`)
-    .join('\n'),
-  tab,
-)}
-}
+  : S extends undefined
+  ? never
+  : S extends ${argsName}
+  ? 'include' extends U
+    ? ${name} ${include.length > 0 ? ` & ${include}` : ''}
+  : 'select' extends U
+    ? ${select}
+  : never
+: never
 `
   }
-  protected isDefault(field: DMMF.Field) {
-    if (field.kind !== 'object') {
-      return true
+  private renderRelations(projection: Projection) {
+    const { type } = this
+    // TODO: can be optimized, we're calling the filter two times
+    const relations = type.fields.filter(f => f.outputType.kind === 'object')
+    if (relations.length === 0 && projection === Projection.include) {
+      return ''
     }
-
-    const model = this.dmmf.datamodel.models.find(m => field.type === m.name)
-    return model!.isEmbedded
+    const selectPrefix =
+      projection === Projection.select
+        ? `P extends keyof ${type.name} ? ${type.name}[P]
+: `
+        : ''
+    return `{
+      [P in TrueKeys<S['${projection}']>]:${selectPrefix}
+${indent(
+  relations
+    .map(
+      f => `P extends '${f.name}'
+? ${this.wrapType(
+        f,
+        `${getPayloadName(
+          (f.outputType.type as DMMF.OutputType).name,
+        )}<S['${projection}'][P]>`,
+      )} :`,
+    )
+    .join('\n'),
+  6,
+)} never
+    }`
+  }
+  private wrapType(field: DMMF.SchemaField, str: string) {
+    const { outputType } = field
+    if (outputType.isRequired && !outputType.isList) {
+      return str
+    }
+    if (outputType.isList) {
+      return `Array<${str}>`
+    }
+    if (!outputType.isRequired) {
+      return `${str} | null`
+    }
+    return str
   }
 }
 
@@ -1081,9 +674,6 @@ export class Model implements Generatable {
 
     return argsTypes
   }
-  public toJS() {
-    return `${new ModelDelegate(this.outputType!, this.dmmf).toJS()}`
-  }
   public toTS() {
     const { model, outputType } = this
 
@@ -1108,26 +698,13 @@ ${indent(
 )}
 }
 
-${
-  scalarFields.length > 0
-    ? `export type ${getScalarsName(model.name)} = ${
-        scalarFields.length > 0
-          ? scalarFields.map(f => `'${f.name}'`).join(' | ')
-          : ``
-      }
-  `
-    : ''
-}
-
 export type ${getSelectName(model.name)} = {
 ${indent(
   outputType.fields
     .map(
       f =>
         `${f.name}?: boolean` +
-        (f.outputType.kind === 'object'
-          ? ` | ${getFieldArgName(f, Projection.select)}Optional`
-          : ''),
+        (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
     )
     .join('\n'),
   tab,
@@ -1141,20 +718,14 @@ ${indent(
     .map(
       f =>
         `${f.name}?: boolean` +
-        (f.outputType.kind === 'object'
-          ? ` | ${getFieldArgName(f, Projection.include)}Optional`
-          : ''),
+        (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
     )
     .join('\n'),
   tab,
 )}
 }
 
-${new ModelDefault(model, this.dmmf).toTS()}
-
-${new PayloadType(this.outputType!, Projection.select).toTS()}
-
-${new PayloadType(this.outputType!, Projection.include).toTS()}
+${new NewPayloadType(this.outputType!).toTS()}
 
 ${new ModelDelegate(this.outputType!, this.dmmf).toTS()}
 
@@ -1192,11 +763,7 @@ ${indent(
       .filter(([action, field]) => field)
       .map(
         ([action, field]) =>
-          `${field}?: ${getModelArgName(
-            name,
-            Projection.select,
-            action as DMMF.ModelAction,
-          )}`,
+          `${field}?: ${getModelArgName(name, action as DMMF.ModelAction)}`,
       ),
   ).join('\n'),
   tab,
@@ -1225,7 +792,6 @@ function getMethodJSDocBody(
       return `Create a ${singular}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to create a ${singular}.
 @example
@@ -1240,7 +806,6 @@ const user = await ${method}({
       return `Delete a ${singular}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to delete one ${singular}.
 @example
@@ -1255,7 +820,6 @@ const user = await ${method}({
       return `Delete zero or more ${plural}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to filter ${plural} to delete.
 @example
@@ -1277,7 +841,6 @@ const ${lowerCase(mapping.model)}With${capitalize(
       return `Find zero or more ${plural}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}=} args - Arguments to filter and select certain fields only.
 @example
@@ -1293,7 +856,6 @@ ${onlySelect}
       return `Find zero or one ${singular}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to find a ${singular}
 @example
@@ -1308,7 +870,6 @@ const ${lowerCase(mapping.model)} = await ${method}({
       return `Update one ${singular}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to update one ${singular}.
 @example
@@ -1327,7 +888,6 @@ const ${lowerCase(mapping.model)} = await ${method}({
       return `Update zero or more ${plural}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to update one or more rows.
 @example
@@ -1345,7 +905,6 @@ const ${lowerCase(mapping.model)} = await ${method}({
       return `Create or update one ${singular}.
 @param {${getModelArgName(
         model.name,
-        undefined,
         action,
       )}} args - Arguments to update or create a ${singular}.
 @example
@@ -1384,196 +943,6 @@ export class ModelDelegate implements Generatable {
     protected readonly outputType: OutputType,
     protected readonly dmmf: DMMFClass,
   ) {}
-  public toJS() {
-    const { fields, name } = this.outputType
-    const mapping = this.dmmf.mappings.find(m => m.model === name)!
-    const model = this.dmmf.datamodel.models.find(m => m.name === name)!
-
-    const actions = Object.entries(mapping).filter(
-      ([key, value]) =>
-        key !== 'model' && key !== 'plural' && key !== 'aggregate' && value,
-    )
-
-    // TODO: The following code needs to be split up and is a mess
-    return `\
-function ${name}Delegate(dmmf, fetcher, errorFormat, measurePerformance) {
-  const ${name} = {} 
-${indent(
-  actions
-    .map(([actionName, fieldName]: [any, any]) =>
-      actionName === 'deleteMany' || actionName === 'updateMany'
-        ? `${name}.${actionName} = (args) => new ${name}Client(${renderInitialClientArgs(
-            actionName,
-            fieldName,
-            mapping,
-          )})`
-        : `${name}.${actionName} = (args) => ${
-            actionName !== 'findMany' ? `args && args.select ? ` : ''
-          }new ${name}Client(${renderInitialClientArgs(
-            actionName,
-            fieldName,
-            mapping,
-          )})${
-            actionName !== 'findMany'
-              ? ` : new ${name}Client(${renderInitialClientArgs(
-                  actionName,
-                  fieldName,
-                  mapping,
-                )})`
-              : ''
-          }`,
-    )
-    .join('\n'),
-  tab,
-)}
-  ${name}.count = () => new ${name}Client(dmmf, fetcher, 'query', '${mapping.aggregate!}', '${
-      mapping.plural
-    }.count', {}, ['count'], errorFormat)
-  return ${name}
-}
-
-class ${name}Client {
-  constructor(_dmmf, _fetcher, _queryType, _rootField, _clientMethod, _args, _dataPath, _errorFormat, _measurePerformance, _isList) {
-    this._dmmf = _dmmf;
-    this._fetcher = _fetcher;
-    this._queryType = _queryType;
-    this._rootField = _rootField;
-    this._clientMethod = _clientMethod;
-    this._args = _args;
-    this._dataPath = _dataPath;
-    this._errorFormat = _errorFormat;
-    this._measurePerformance = _measurePerformance;
-    this._isList = _isList;
-    if (this._measurePerformance) {
-      // Timestamps for performance checks
-      this._collectTimestamps = new CollectTimestamps("PrismaClient");
-    }
-    // @ts-ignore
-    if (process.env.NODE_ENV !== 'production' && this._errorFormat !== 'minimal') {
-      const error = new Error();
-      if (error && error.stack) {
-        const stack = error.stack;
-        this._callsite = stack;
-      }
-    }
-  }
-${indent(
-  fields
-    .filter(f => f.outputType.kind === 'object')
-    .map(f => {
-      return `
-${f.name}(args) {
-  const prefix = this._dataPath.includes('select') ? 'select' : this._dataPath.includes('include') ? 'include' : 'select'
-  const dataPath = [...this._dataPath, prefix, '${f.name}']
-  const newArgs = deepSet(this._args, dataPath, args || true)
-  this._isList = ${f.outputType.isList}
-  return new ${getFieldTypeName(
-    f,
-  )}Client(this._dmmf, this._fetcher, this._queryType, this._rootField, this._clientMethod, newArgs, dataPath, this._errorFormat, this._measurePerformance, this._isList)
-}`
-    })
-    .join('\n'),
-  2,
-)}
-
-  get _document() {
-    const { _rootField: rootField } = this
-    this._collectTimestamps && this._collectTimestamps.record("Pre-makeDocument")
-    const document = makeDocument({
-      dmmf: this._dmmf,
-      rootField,
-      rootTypeName: this._queryType,
-      select: this._args
-    })
-    this._collectTimestamps && this._collectTimestamps.record("Post-makeDocument")
-    try {
-      this._collectTimestamps && this._collectTimestamps.record("Pre-document.validate")
-      document.validate(this._args, false, this._clientMethod, this._errorFormat)
-      this._collectTimestamps && this._collectTimestamps.record("Post-document.validate")
-    } catch (e) {
-      const x = e
-      if (this._errorFormat !== 'minimal' && x.render) {
-        if (this._callsite) {
-          e.message = x.render(this._callsite)
-        }
-      }
-      throw e
-    }
-    this._collectTimestamps && this._collectTimestamps.record("Pre-transformDocument")
-    const transformedDocument = transformDocument(document)
-    this._collectTimestamps && this._collectTimestamps.record("Post-transformDocument")
-    return transformedDocument
-  }
-
-  /**
-   * Attaches callbacks for the resolution and/or rejection of the Promise.
-   * @param onfulfilled The callback to execute when the Promise is resolved.
-   * @param onrejected The callback to execute when the Promise is rejected.
-   * @returns A Promise for the completion of which ever callback is executed.
-   */
-  then(onfulfilled, onrejected) {
-    if (!this._requestPromise){
-      this._requestPromise = this._fetcher.request({
-        document: this._document,
-        dataPath: this._dataPath,
-        rootField: this._rootField,
-        typeName: '${name}',
-        isList: this._isList,
-        callsite: this._callsite,
-        collectTimestamps: this._collectTimestamps,
-        clientMethod: this._clientMethod
-      })
-    }
-    return this._requestPromise.then(onfulfilled, onrejected)
-  }
-
-  /**
-   * Attaches a callback for only the rejection of the Promise.
-   * @param onrejected The callback to execute when the Promise is rejected.
-   * @returns A Promise for the completion of the callback.
-   */
-  catch(onrejected) {
-    if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request({
-        document: this._document,
-        dataPath: this._dataPath,
-        rootField: this._rootField,
-        typeName: '${name}',
-        isList: this._isList,
-        callsite: this._callsite,
-        collectTimestamps: this._collectTimestamps,
-        clientMethod: this._clientMethod
-      })
-    }
-    return this._requestPromise.catch(onrejected)
-  }
-
-  /**
-   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
-   * resolved value cannot be modified from the callback.
-   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
-   * @returns A Promise for the completion of the callback.
-   */
-  finally(onfinally) {
-    if (!this._requestPromise) {
-      this._requestPromise = this._fetcher.request({
-        document: this._document,
-        dataPath: this._dataPath,
-        rootField: this._rootField,
-        typeName: '${name}',
-        isList: this._isList,
-        callsite: this._callsite,
-        collectTimestamps: this._collectTimestamps,
-        clientMethod: this._clientMethod
-      })
-    }
-    return this._requestPromise.finally(onfinally)
-  }
-}
-
-exports.${name}Client = ${name}Client
-`
-  }
   public toTS() {
     const { fields, name } = this.outputType
     const mapping = this.dmmf.mappings.find(m => m.model === name)!
@@ -1592,14 +961,10 @@ ${indent(
     .map(
       ([actionName]: [any, any]) =>
         `${getMethodJSDoc(actionName, mapping, model)}
-${actionName}<T extends ${getModelArgName(
-          name,
-          /*projection*/ undefined,
-          actionName,
-        )}>(
+${actionName}<T extends ${getModelArgName(name, actionName)}>(
   args${
     actionName === DMMF.ModelAction.findMany ? '?' : ''
-  }: Subset<T, ${getModelArgName(name, undefined, actionName)}>
+  }: Subset<T, ${getModelArgName(name, actionName)}>
 ): ${getSelectReturnType({ name, actionName, projection: Projection.select })}`,
     )
     .join('\n'),
@@ -1684,7 +1049,6 @@ export class QueryDelegate implements Generatable {
 interface ${name}Delegate {
   <T extends ${name}Args>(args: Subset<T,${name}Args>): Promise<${getPayloadName(
       name,
-      Projection.select,
     )}<T>>
 }
 function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaClientFetcher): ${name}Delegate {
@@ -1694,7 +1058,6 @@ function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaClientFetcher): ${name}
 
 class ${name}Client<T extends ${name}Args, U = ${getPayloadName(
       name,
-      Projection.select,
     )}<T>> implements Promise<U> {
   constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PrismaClientFetcher, private readonly args: ${name}Args, private readonly _dataPath: []) {}
 
@@ -1837,7 +1200,7 @@ export class MinimalArgsType implements Generatable {
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${getModelArgName(name, undefined, action)} = {
+export type ${getModelArgName(name, action)} = {
 ${indent(args.map(arg => new InputField(arg).toTS()).join('\n'), tab)}
 }
 `
@@ -1928,176 +1291,16 @@ export class ArgsType implements Generatable {
       ...args,
     ]
 
-    const bothArgsRequired: DMMF.SchemaArg[] = [
-      {
-        name: 'select',
-        inputType: [
-          {
-            type: getSelectName(name),
-            kind: 'object',
-            isList: false,
-            isRequired: true,
-          },
-        ],
-        comment: `Select specific fields to fetch from the ${name}`,
-      },
-      {
-        name: 'include',
-        inputType: [
-          {
-            type: getIncludeName(name),
-            kind: 'object',
-            isList: false,
-            isRequired: true,
-          },
-        ],
-        comment: `Choose, which related nodes to fetch as well.`,
-      },
-      ...args,
-    ]
-
-    const selectArgsRequired: DMMF.SchemaArg[] = [
-      {
-        name: 'select',
-        inputType: [
-          {
-            type: getSelectName(name),
-            kind: 'object',
-            isList: false,
-            isRequired: true,
-          },
-        ],
-        comment: `Select specific fields to fetch from the ${name}`,
-      },
-      ...args,
-    ]
-
-    const selectArgsOptional: DMMF.SchemaArg[] = [
-      {
-        name: 'select',
-        inputType: [
-          {
-            type: getSelectName(name),
-            kind: 'object',
-            isList: false,
-            isRequired: false,
-          },
-        ],
-        comment: `Select specific fields to fetch from the ${name}`,
-      },
-      ...args,
-    ]
-
-    const includeArgsRequired: DMMF.SchemaArg[] = [
-      {
-        name: 'include',
-        inputType: [
-          {
-            type: getIncludeName(name),
-            kind: 'object',
-            isList: false,
-            isRequired: true,
-          },
-        ],
-        comment: `Choose, which related nodes to fetch as well.`,
-      },
-      ...args,
-    ]
-
-    const includeArgsOptional: DMMF.SchemaArg[] = [
-      {
-        name: 'include',
-        inputType: [
-          {
-            type: getIncludeName(name),
-            kind: 'object',
-            isList: false,
-            isRequired: false,
-          },
-        ],
-        comment: `Choose, which related nodes to fetch as well.`,
-      },
-      ...args,
-    ]
-
     return `
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${getModelArgName(name, undefined, action)} = {
+export type ${getModelArgName(name, action)} = {
 ${indent(
   bothArgsOptional.map(arg => new InputField(arg).toTS()).join('\n'),
   tab,
 )}
 }
-
-export type ${getModelArgName(name, undefined, action)}Required = {
-${indent(
-  bothArgsRequired.map(arg => new InputField(arg).toTS()).join('\n'),
-  tab,
-)}
-}
-
-export type ${getModelArgName(name, Projection.select, action)} = {
-${indent(
-  selectArgsRequired.map(arg => new InputField(arg).toTS()).join('\n'),
-  tab,
-)}
-}
-
-export type ${getModelArgName(name, Projection.select, action)}Optional = {
-${indent(
-  selectArgsOptional.map(arg => new InputField(arg).toTS()).join('\n'),
-  tab,
-)}
-}
-
-export type ${getModelArgName(name, Projection.include, action)} = {
-${indent(
-  includeArgsRequired.map(arg => new InputField(arg).toTS()).join('\n'),
-  tab,
-)}
-}
-
-export type ${getModelArgName(name, Projection.include, action)}Optional = {
-${indent(
-  includeArgsOptional.map(arg => new InputField(arg).toTS()).join('\n'),
-  tab,
-)}
-}
-
-export type Extract${getModelArgName(
-      name,
-      Projection.select,
-      action,
-    )}<S extends undefined | boolean | ${getModelArgName(
-      name,
-      Projection.select,
-      action,
-    )}Optional> = S extends undefined
-  ? false
-  : S extends boolean
-  ? S
-  : S extends ${getModelArgName(name, Projection.select, action)}
-  ? S['select']
-  : true
-
-export type Extract${getModelArgName(
-      name,
-      Projection.include,
-      action,
-    )}<S extends undefined | boolean | ${getModelArgName(
-      name,
-      Projection.include,
-      action,
-    )}Optional> = S extends undefined
-  ? false
-  : S extends boolean
-  ? S
-  : S extends ${getModelArgName(name, Projection.include, action)}
-  ? S['include']
-  : true
-
 `
   }
 }

@@ -1,31 +1,57 @@
-import { PrismaClient } from './@prisma/client'
-import { performance } from 'perf_hooks'
+import { PrismaClient, PromiseReturnType } from './@prisma/client'
+
+const prisma = new PrismaClient()
+
+function getUsers() {
+  return prisma.user.findMany({
+    first: 10,
+    select: {
+      id: true,
+    },
+
+    orderBy: {
+      email: 'asc',
+      // id: 'asc'
+    },
+
+    // include: {
+    //   posts: true
+    // }
+  })
+}
+
+export type Users = PromiseReturnType<typeof getUsers>
 
 async function main() {
-  const prisma = new PrismaClient({
-    // log: ['query', 'info', 'warn'],
-    // __internal: {debug: true}
-    __internal: {
-      measurePerformance: true,
+  const users = await prisma.user.findMany({
+    first: 10,
+    // select: {
+    //   id: true,
+    // },
+
+    orderBy: {
+      email: 'asc',
+      // id: 'asc'
     },
-    forceTransactions: true,
-  })
 
-  // const rawQuery = await prisma.raw`SELECT 1`
-  // console.log({rawQuery})
+    include: {
+      posts: true,
+    },
+  } as any)
 
-  const users = await prisma.user.findMany()
-  const resolvedUsers = await Promise.all(
-    users.map(u =>
-      prisma.user.findOne({
-        where: {
-          id: u.id,
-        },
-      }),
-    ),
-  )
+  console.log(users)
 
-  console.log(resolvedUsers.length)
+  // const resolvedUsers = await Promise.all(
+  //   users.map(u =>
+  //     prisma.user.findOne({
+  //       where: {
+  //         id: u.id,
+  //       },
+  //     }),
+  //   ),
+  // )
+
+  // console.log(resolvedUsers.length)
   // for (let i = 0; i < 10000; i++) {
   // await Promise.all([
   //   prisma.user.create({

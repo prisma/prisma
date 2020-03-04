@@ -46,13 +46,19 @@ export const printStack = ({
   if (callsite && typeof window === 'undefined') {
     const stack = stackTraceParser.parse(callsite)
     // TODO: more resilient logic to check that it's not relative to cwd
-    const trace = stack.find(
-      t =>
+    const trace = stack.find((t, i) => {
+      if (i < 2) {
+        if (t.methodName.includes('Object.')) {
+          return false
+        }
+      }
+      return (
         t.file &&
         !t.file.includes('@prisma') &&
         !t.methodName.includes('new ') &&
-        t.methodName.split('.').length < 4,
-    )
+        t.methodName.split('.').length < 4
+      )
+    })
     if (
       process.env.NODE_ENV !== 'production' &&
       trace &&

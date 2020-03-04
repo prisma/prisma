@@ -1,4 +1,4 @@
-import { getLogLevel } from '../utils/getLogLevel'
+import { getLogLevel } from '../runtime/getLogLevel'
 
 test('info and warn', () => {
   const level = getLogLevel([

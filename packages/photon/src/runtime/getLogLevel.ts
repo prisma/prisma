@@ -5,8 +5,11 @@ type LogDefinition = {
 }
 
 export function getLogLevel(
-  log: Array<LogLevel | LogDefinition>,
+  log: LogLevel | Array<LogLevel | LogDefinition>,
 ): LogLevel | undefined {
+  if (typeof log === 'string') {
+    return log
+  }
   return log.reduce<LogLevel | undefined>((acc, curr) => {
     const currentLevel = typeof curr === 'string' ? curr : curr.level
     if (currentLevel === 'query') {
