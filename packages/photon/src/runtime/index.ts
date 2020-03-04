@@ -1,12 +1,12 @@
 export { DMMF } from './dmmf-types'
-// export { DMMFClass } from './dmmf'
+export { DMMFClass } from './dmmf'
 // export { deepGet, deepSet } from './utils/deep-set'
-// export {
-//   makeDocument,
-//   transformDocument,
-//   unpack,
-//   PrismaClientValidationError,
-// } from './query'
+export {
+  makeDocument,
+  transformDocument,
+  unpack,
+  PrismaClientValidationError,
+} from './query'
 export { default as debugLib } from 'debug'
 // export {
 //   InternalDatasource,

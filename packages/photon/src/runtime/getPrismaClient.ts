@@ -7,13 +7,12 @@ import {
   PrismaClientInitializationError,
   PrismaClientRustPanicError,
 } from '.'
-import { getOperation } from '../generation/utils'
 import {
   NodeEngine,
   EngineConfig,
   DatasourceOverwrite,
 } from '@prisma/engine-core/dist/NodeEngine'
-import { Document, makeDocument, unpack } from './query'
+import { Document, makeDocument, unpack, transformDocument } from './query'
 import debugLib from 'debug'
 const debug = debugLib('prisma-client')
 import fs from 'fs'
@@ -21,7 +20,7 @@ import chalk from 'chalk'
 import * as sqlTemplateTag from 'sql-template-tag'
 import { parse as parseDotEnv } from 'dotenv'
 import { GeneratorConfig } from '@prisma/generator-helper/dist/types'
-import { getLogLevel } from '../utils/getLogLevel'
+import { getLogLevel } from './getLogLevel'
 import { InternalDatasource } from './utils/printDatasources'
 import { mergeBy } from './mergeBy'
 import { lowerCase } from './utils/common'
@@ -351,19 +350,22 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           dataPath = dataPath ?? []
           isList = isList ?? false // TODO: Get this properly for findMany
 
-          const document = makeDocument({
+          let document = makeDocument({
             dmmf: this.dmmf,
             rootField,
             rootTypeName: operation,
             select: args,
           })
-          // TODO: Add error format
+          // TODO: Add error stack
           document.validate(
             args,
             false,
             `${lowerCaseModel}.${actionName}`,
             /* errorFormat */ undefined,
           )
+
+          document = transformDocument(document)
+
           let requestPromise: Promise<any>
 
           const clientImplementation = {
@@ -653,4 +655,14 @@ class CollectTimestamps {
     })
     return results
   }
+}
+
+export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
+  if (
+    action === DMMF.ModelAction.findMany ||
+    action === DMMF.ModelAction.findOne
+  ) {
+    return 'query'
+  }
+  return 'mutation'
 }
