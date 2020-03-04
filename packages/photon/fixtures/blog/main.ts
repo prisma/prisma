@@ -1,6 +1,6 @@
 import { PrismaClient, PromiseReturnType } from './@prisma/client'
 
-  const prisma = new PrismaClient()
+const prisma = new PrismaClient()
 
 function getUsers() {
   return prisma.user.findMany({
@@ -23,12 +23,11 @@ function getUsers() {
 export type Users = PromiseReturnType<typeof getUsers>
 
 async function main() {
-
   const users = await prisma.user.findMany({
     first: 10,
-    select: {
-      id: true,
-    },
+    // select: {
+    //   id: true,
+    // },
 
     orderBy: {
       email: 'asc',
@@ -36,15 +35,11 @@ async function main() {
     },
 
     include: {
-      posts: true
-    }
+      posts: true,
+    },
   })
 
-  type X = typeof users
-
-  function handleUsers(x: X) {
-    x[0].
-  }
+  console.log(users)
 
   // const resolvedUsers = await Promise.all(
   //   users.map(u =>
