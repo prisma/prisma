@@ -1,10 +1,10 @@
 import { getSchemaDir } from '@prisma/cli'
 import { getPlatform } from '@prisma/get-platform'
+import { uriToCredentials } from '@prisma/sdk'
 import execa from 'execa'
 import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
-import { uriToCredentials } from '@prisma/sdk'
 
 const exists = promisify(fs.exists)
 
@@ -55,7 +55,7 @@ export async function canConnectToDatabase(
 
   migrationEnginePath = migrationEnginePath || (await getMigrationEnginePath())
   try {
-    await execa(migrationEnginePath, ['cli', '--datasource', connectionString, '--can_connect_to_database'], {
+    await execa(migrationEnginePath, ['cli', '--datasource', connectionString, 'can-connect-to-database'], {
       cwd,
       env: {
         ...process.env,
@@ -91,7 +91,7 @@ export async function createDatabase(
     return
   }
   migrationEnginePath = migrationEnginePath || (await getMigrationEnginePath())
-  await execa(migrationEnginePath, ['cli', '--datasource', connectionString, '--create_database'], {
+  await execa(migrationEnginePath, ['cli', '--datasource', connectionString, 'create-database'], {
     cwd,
     env: {
       ...process.env,
@@ -108,7 +108,7 @@ async function doesSqliteDbExist(connectionString: string, schemaDir?: string): 
     filePath = filePath.slice(5)
   }
 
-  const cwd = schemaDir || await getSchemaDir()
+  const cwd = schemaDir || (await getSchemaDir())
   if (!cwd) {
     throw new Error(`Could not find schema.prisma in ${process.cwd()}`)
   }
