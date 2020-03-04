@@ -174,16 +174,6 @@ interface Generatable {
   toTS(): string
 }
 
-export class JSImplementation implements Generatable {
-  constructor(protected readonly options: TSClientOptions) {}
-  toJS() {
-    return ``
-  }
-  toTS() {
-    return ''
-  }
-}
-
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFClass
   protected readonly version?: string
