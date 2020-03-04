@@ -268,7 +268,9 @@ This means you should very likely pin the platform ${chalk.greenBright(await thi
 ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     }
 
-    plusX(prismaPath)
+    if (process.platform !== 'win32') {
+      plusX(prismaPath)
+    }
 
     return prismaPath
   }
@@ -336,7 +338,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const prismaPath = await this.getPrismaPath()
 
-        const flags = ['--enable_raw_queries', ...this.flags]
+        const flags = ['--enable-raw-queries', ...this.flags]
         debug({ flags })
 
         this.child = spawn(prismaPath, flags, {
