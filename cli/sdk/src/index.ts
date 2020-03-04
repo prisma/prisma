@@ -12,7 +12,6 @@ export { getGenerators, getGenerator, ProviderAliases } from './getGenerators'
 export {
   getDMMF,
   getConfig,
-  dmmfToDml,
   GetDMMFOptions,
   ConfigMetaFormat,
   getVersion,
