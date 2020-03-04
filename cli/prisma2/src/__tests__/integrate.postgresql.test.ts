@@ -19,7 +19,7 @@ const db = new Client({
 })
 
 const pkg = pkgup.sync() || __dirname
-const tmp = join(dirname(pkg), 'tmp')
+const tmp = join(dirname(pkg), 'tmp-postgresql')
 const engine = new IntrospectionEngine()
 const latestAlphaPromise = getLatestAlphaTag()
 

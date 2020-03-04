@@ -13,6 +13,8 @@ photogen_prisma_ncc_build
 examples
 prisma-test-utils_ncc
 tmp
+tmp-sqlite
+tmp-postgresql
 @prisma
 pkg-build
 download-done
