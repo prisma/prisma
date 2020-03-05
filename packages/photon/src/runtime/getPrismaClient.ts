@@ -180,9 +180,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
       let cwd = path.resolve(config.dirname, config.relativePath)
 
-      // if (!fs.existsSync(cwd)) {
-      //   cwd = config.dirname
-      // }
+      if (!fs.existsSync(cwd)) {
+        cwd = config.dirname
+      }
 
       this.engineConfig = {
         cwd,
