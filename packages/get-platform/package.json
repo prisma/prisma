@@ -7,10 +7,10 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@types/jest": "^24.0.23",
-    "@types/node": "^12.12.14",
+    "@types/node": "^12.12.29",
     "jest": "^25.1.0",
     "ts-jest": "^25.2.1",
-    "typescript": "^3.8.2"
+    "typescript": "^3.8.3"
   },
   "scripts": {
     "build": "tsc -d",
