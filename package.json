@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@prisma/cli": "workspace:*",
-    "@prisma/client": "workspace:^2.0.0-alpha.841",
+    "@prisma/client": "workspace:^2.0.0-alpha.854",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/charm": "1.0.1",
@@ -19,7 +19,7 @@
     "@types/diff": "4.0.2",
     "@types/fs-extra": "8.0.1",
     "@types/jest": "24.0.22",
-    "@types/node": "12.12.7",
+    "@types/node": "^12.12.29",
     "@types/prompts": "2.0.3",
     "@types/react": "16.9.11",
     "@zeit/ncc": "0.18.5",
@@ -34,7 +34,7 @@
     "ts-jest": "^25.2.1",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.8.2"
+    "typescript": "^3.8.3"
   },
   "peerDependencies": {
     "@prisma/cli": "*",
