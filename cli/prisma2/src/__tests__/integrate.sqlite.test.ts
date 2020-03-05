@@ -57,6 +57,11 @@ const prettyName = (fn: any): string => {
 tests().map((t: Test) => {
   const name = prettyName(t.do)
 
+  // if (!t.run) {
+  //   it.skip(name)
+  //   return
+  // }
+
   if (t.todo) {
     it.skip(name)
     return
@@ -137,6 +142,7 @@ async function generate(test: Test, datamodel: string) {
 type Test = {
   title?: string
   todo?: boolean
+  run?: boolean
   up: string
   down: string
   do: (client: any) => Promise<any>
@@ -1653,6 +1659,7 @@ function tests(): Test[] {
     },
     {
       todo: true,
+      //SqliteError: FOREIGN KEY constraint failed
       up: `
           pragma foreign_keys = 1;
           create table a (
@@ -1661,6 +1668,7 @@ function tests(): Test[] {
             primary key ("one", "two")
           );
           create table b (
+            id integer primary key autoincrement not null,
             one integer not null,
             two integer not null,
             foreign key ("one", "two") references a ("one", "two")
@@ -1673,10 +1681,11 @@ function tests(): Test[] {
         drop table if exists b;
       `,
       do: async client => {
-        return client.a.findOne({ where: { variables_value_email_key: { value: 'c', email: 'd' } } })
+        return client.a.findOne({ where: { one_two: { one: 1, two: 2 } } })
       },
       expect: {
-        // TODO
+        one: 1,
+        two: 2,
       },
     },
     {
