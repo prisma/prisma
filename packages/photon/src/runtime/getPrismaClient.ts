@@ -114,7 +114,6 @@ export type LogEvent = {
 
 export interface GetPrismaClientOptions {
   document: DMMF.Document
-  datasources: InternalDatasource[]
   version?: string
   generator?: GeneratorConfig
   platforms?: string[]

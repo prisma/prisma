@@ -184,7 +184,6 @@ export class TSClient implements Generatable {
   public toJS() {
     // 'document' is being printed into the file as "dmmf"
     const {
-      datasources,
       version,
       generator,
       platforms,
@@ -194,7 +193,6 @@ export class TSClient implements Generatable {
     } = this.options
 
     const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
-      datasources,
       version,
       generator,
       platforms,
