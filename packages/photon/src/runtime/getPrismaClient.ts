@@ -178,10 +178,10 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
       this.dmmf = new DMMFClass(config.document)
 
-      const cwd = path.resolve(config.dirname, config.relativePath)
+      let cwd = path.resolve(config.dirname, config.relativePath)
 
       if (!fs.existsSync(cwd)) {
-        throw new Error(`Tried to start in ${cwd} but that path doesn't exist`)
+        cwd = process.cwd()
       }
 
       this.engineConfig = {
