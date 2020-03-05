@@ -8,7 +8,7 @@
   "devDependencies": {
     "@types/fs-extra": "8.0.1",
     "@types/jest": "^25.1.2",
-    "@types/node": "^12.12.25",
+    "@types/node": "^12.12.29",
     "@types/node-fetch": "^2.5.4",
     "@types/progress": "^2.0.3",
     "del": "^5.1.0",
@@ -16,7 +16,7 @@
     "ncc": "^0.3.6",
     "prettier": "^1.19.1",
     "ts-jest": "^25.2.1",
-    "typescript": "^3.8.2"
+    "typescript": "^3.8.3"
   },
   "dependencies": {
     "@prisma/get-platform": "workspace:*",

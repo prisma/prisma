@@ -1,6 +1,6 @@
 {
   "name": "@prisma/client",
-  "version": "2.0.0-alpha.841",
+  "version": "2.0.0-alpha.854",
   "main": "index.js",
   "types": "index.d.ts",
   "license": "Apache-2.0",
@@ -51,7 +51,7 @@
     "@types/fs-extra": "^8.0.1",
     "@types/jest": "^24.9.0",
     "@types/js-levenshtein": "^1.1.0",
-    "@types/node": "^12.12.25",
+    "@types/node": "^12.12.29",
     "@types/node-fetch": "^2.5.4",
     "@zeit/ncc": "^0.20.5",
     "arg": "^4.1.2",
@@ -88,7 +88,7 @@
     "ts-node": "^8.6.2",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.8.2",
+    "typescript": "^3.8.3",
     "webpack": "5.0.0-alpha.14",
     "webpack-bundle-analyzer": "^3.6.0",
     "webpack-cli": "4.0.0-alpha-4"
