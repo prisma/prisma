@@ -7,7 +7,7 @@ import rimraf from 'rimraf'
 import fs from 'fs'
 import path from 'path'
 import snapshot from 'snap-shot-it'
-import sqlite3 from 'sqlite3'
+import Database from 'better-sqlite3'
 
 process.env.SKIP_GENERATE = 'true'
 
@@ -27,17 +27,6 @@ beforeEach(async () => {
 after(async () => {
   engine.stop()
 })
-
-function getDb(): Promise<sqlite3.Database> {
-  return new Promise((resolve, reject) => {
-    const db = new sqlite3.Database(sqlitePath, err => {
-      if (err) {
-        return reject(err)
-      }
-      resolve(db)
-    })
-  })
-}
 
 const nameCache = {}
 
@@ -79,19 +68,19 @@ tests().map((t: Test) => {
     } catch (err) {
       throw err
     } finally {
-      const db = await getDb()
-      await db.exec(t.down)
-      await db.close()
+      const db = new Database(sqlitePath)
+      db.exec(t.down)
+      db.close()
     }
   }).timeout(15000)
 })
 
 async function runTest(name: string, t: Test) {
   console.log(t)
-  let db = await getDb()
-  await db.exec(t.down)
-  await db.exec(t.up)
-  await db.close()
+  let db = new Database(sqlitePath)
+  db.exec(t.down)
+  db.exec(t.up)
+  db.close()
 
   const schema = `
 generator client {
@@ -117,16 +106,16 @@ datasource sqlite {
   const { PrismaClient } = await import(prismaClientPath)
   const prisma = new PrismaClient()
   await prisma.connect()
-  db = await getDb()
+  db = new Database(sqlitePath)
   try {
     const result = await t.do(prisma)
-    await db.exec(t.down)
+    db.exec(t.down)
     assert.deepEqual(result, t.expect)
   } catch (err) {
     throw err
   } finally {
     await prisma.disconnect()
-    await db.close()
+    db.close()
   }
 }
 
