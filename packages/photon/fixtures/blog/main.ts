@@ -35,9 +35,11 @@ async function main() {
     },
 
     include: {
-      posts: true,
+      posts: {
+        // first: 10
+      },
     },
-  } as any)
+  })
 
   console.log(users)
 
