@@ -902,4 +902,42 @@ describe('select validation', () => {
     expect(String(document)).toMatchSnapshot()
     expect(() => document.validate(ast)).not.toThrow()
   })
+
+  test('Allow select with an include', () => {
+    const ast = {
+      select: {
+        author: {
+          include: { posts: true },
+        },
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'query',
+      rootField: 'findManyPost',
+    })
+
+    expect(String(document)).toMatchInlineSnapshot(`
+"query {
+  findManyPost {
+    author {
+      id
+      email
+      name
+      posts {
+        id
+        createdAt
+        updatedAt
+        published
+        title
+        content
+      }
+    }
+  }
+}"
+`)
+    expect(() => document.validate(ast)).not.toThrow()
+  })
 })
