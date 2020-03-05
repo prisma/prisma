@@ -43,7 +43,6 @@ export interface GenerateClientOptions {
   binaryPaths: BinaryPaths
   testMode?: boolean
   copyRuntime?: boolean
-  absolutePaths?: boolean
 }
 
 export interface BuildClientResult {
@@ -63,33 +62,24 @@ export async function buildClient({
   version,
   dmmf,
   datasources,
-  absolutePaths,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
 
-  const runtimeDir = path.join(outputDir, './runtime')
   const client = new TSClient({
     document,
     runtimePath,
     browser,
-    datasources: resolveDatasources(
-      datasources,
-      schemaDir,
-      runtimeDir,
-      absolutePaths,
-    ),
+    datasources: resolveDatasources(datasources, schemaDir, outputDir),
     sqliteDatasourceOverrides: extractSqliteSources(
       datamodel,
       schemaDir,
-      runtimeDir,
-      absolutePaths,
+      outputDir,
     ),
     generator,
     platforms: Object.keys(binaryPaths.queryEngine!),
     version,
     schemaDir,
     outputDir,
-    absolutePaths,
   })
 
   const fileMap = {
@@ -118,7 +108,6 @@ export async function generateClient({
   binaryPaths,
   testMode,
   copyRuntime,
-  absolutePaths,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   runtimePath = runtimePath || './runtime'
   const { prismaClientDmmf, fileMap } = await buildClient({
@@ -134,7 +123,6 @@ export async function generateClient({
     dmmf,
     datasources,
     binaryPaths,
-    absolutePaths,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)

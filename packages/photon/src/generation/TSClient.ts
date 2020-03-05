@@ -164,9 +164,8 @@ interface TSClientOptions {
   generator?: GeneratorConfig
   platforms?: string[]
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
-  schemaDir?: string
+  schemaDir: string
   outputDir: string
-  absolutePaths?: boolean
 }
 
 interface Generatable {
@@ -192,20 +191,15 @@ export class TSClient implements Generatable {
       sqliteDatasourceOverrides,
       outputDir,
       schemaDir,
-      absolutePaths,
     } = this.options
 
-    const config: Omit<GetPrismaClientOptions, 'document'> = {
+    const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
       datasources,
       version,
       generator,
       platforms,
       sqliteDatasourceOverrides,
-      relativePath: absolutePaths // absolutePaths is only used by `generateInFolder`
-        ? path.resolve(schemaDir!)
-        : schemaDir
-        ? path.relative(path.join(outputDir, 'runtime'), schemaDir)
-        : './',
+      relativePath: path.relative(outputDir, schemaDir),
     }
 
     return `${commonCodeJS(this.options.runtimePath, this.version)}
@@ -249,6 +243,7 @@ exports.dmmf = JSON.parse(dmmfString)
 
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
+config.dirname = __dirname
 
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient`

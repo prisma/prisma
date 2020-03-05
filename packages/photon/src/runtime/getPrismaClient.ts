@@ -120,6 +120,7 @@ export interface GetPrismaClientOptions {
   platforms?: string[]
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativePath: string
+  dirname: string
 }
 
 // TODO: We **may** be able to get real types. However, we have both a bootstrapping
@@ -147,7 +148,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       let predefinedDatasources = config.sqliteDatasourceOverrides ?? []
       predefinedDatasources = predefinedDatasources.map(d => ({
         name: d.name,
-        url: 'file:' + path.resolve(__dirname, d.url),
+        url: 'file:' + path.resolve(config.dirname, d.url),
       }))
 
       const inputDatasources = Object.entries(
@@ -178,7 +179,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
       this.dmmf = new DMMFClass(config.document)
 
-      const cwd = path.resolve(__dirname, config.relativePath)
+      const cwd = path.resolve(config.dirname, config.relativePath)
 
       if (!fs.existsSync(cwd)) {
         throw new Error(`Tried to start in ${cwd} but that path doesn't exist`)
@@ -236,7 +237,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       this.bootstrapClient()
     }
     private readEnv() {
-      const dotEnvPath = path.resolve(__dirname, config.relativePath, '.env')
+      const dotEnvPath = path.resolve(
+        config.dirname,
+        config.relativePath,
+        '.env',
+      )
       if (fs.existsSync(dotEnvPath)) {
         return parseDotEnv(fs.readFileSync(dotEnvPath, 'utf-8'))
       }
