@@ -8,4 +8,6 @@ download({
     'query-engine': runtimePath,
   },
   showProgress: true,
+  printVersion: true,
+  ignoreCache: true,
 })
