@@ -180,4 +180,88 @@ describe('include validation', () => {
       `)
     }
   })
+
+  test('allow include with a select', () => {
+    const ast = {
+      include: {
+        posts: {
+          first: 20,
+          select: {
+            id: true,
+          },
+        },
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+
+    expect(String(document)).toMatchInlineSnapshot(`
+"query {
+  findManyUser {
+    id
+    email
+    name
+    posts(first: 20) {
+      id
+    }
+  }
+}"
+`)
+    expect(() => document.validate(ast)).not.toThrow()
+  })
+
+  test('allow include with a select with an include', () => {
+    const ast = {
+      include: {
+        posts: {
+          first: 20,
+          select: {
+            id: true,
+            author: {
+              include: { posts: true },
+            },
+          },
+        },
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+
+    expect(String(document)).toMatchInlineSnapshot(`
+"query {
+  findManyUser {
+    id
+    email
+    name
+    posts(first: 20) {
+      id
+      author {
+        id
+        email
+        name
+        posts {
+          id
+          createdAt
+          updatedAt
+          published
+          title
+          content
+        }
+      }
+    }
+  }
+}"
+`)
+    expect(() => document.validate(ast)).not.toThrow()
+  })
 })
