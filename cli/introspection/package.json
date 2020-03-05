@@ -19,7 +19,7 @@
     "@types/jsonwebtoken": "^8.3.5",
     "@types/mongodb": "^3.3.11",
     "@types/mysql": "^2.15.8",
-    "@types/node": "12.12.7",
+    "@types/node": "^12.12.29",
     "@types/node-fetch": "^2.5.4",
     "@types/pg": "^7.11.2",
     "indent-string": "^4.0.0",
@@ -29,8 +29,8 @@
     "rimraf": "^3.0.0",
     "strip-ansi": "^6.0.0",
     "ts-jest": "^25.2.1",
-    "ts-node": "^8.5.4",
-    "typescript": "^3.8.2"
+    "ts-node": "^8.6.2",
+    "typescript": "^3.8.3"
   },
   "peerDependencies": {
     "@prisma/cli": "*",

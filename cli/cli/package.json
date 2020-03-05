@@ -19,7 +19,7 @@
     "dist"
   ],
   "devDependencies": {
-    "@types/node": "^12.12.14",
-    "typescript": "^3.8.2"
+    "@types/node": "^12.12.29",
+    "typescript": "^3.8.3"
   }
 }
