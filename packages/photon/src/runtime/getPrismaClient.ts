@@ -187,7 +187,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       this.engineConfig = {
         cwd,
         debug: useDebug,
-        datamodelPath: path.join(cwd, 'schema.prisma'),
+        datamodelPath: path.join(config.dirname, 'schema.prisma'),
         prismaPath: engineConfig.binaryPath ?? undefined,
         datasources,
         generator: config.generator,
