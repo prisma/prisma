@@ -40,6 +40,8 @@ export interface DownloadOptions {
   version?: string
   skipDownload?: boolean
   failSilent?: boolean
+  ignoreCache?: boolean
+  printVersion?: boolean
 }
 
 export type BinaryPaths = {
@@ -79,7 +81,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     }
   }
 
-
   // merge options
   options = {
     binaryTargets: [platform],
@@ -87,7 +88,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     ...options,
     binaries: mapKeys(options.binaries, key => engineTypeToBinaryType(key, platform)), // just necessary to support both camelCase and hyphen-case
   }
-
 
   const binaryJobs: Array<BinaryDownloadJob> = flatMap(Object.entries(options.binaries), ([binaryName, targetFolder]) =>
     options.binaryTargets.map(binaryTarget => {
@@ -107,13 +107,16 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     options.version = await getLatestAlphaTag()
   }
 
+  if (options.printVersion) {
+    console.log(`version: ${options.version}`)
+  }
+
   // filter out files, which don't yet exist or have to be created
   const binariesToDownload = await pFilter(binaryJobs, async job => {
     const needsToBeDownloaded = await binaryNeedsToBeDownloaded(job, platform, options.version, options.failSilent)
     debug({ needsToBeDownloaded })
-    return !job.envVarPath && needsToBeDownloaded
+    return !job.envVarPath && (options.ignoreCache || needsToBeDownloaded)
   })
-
 
   if (binariesToDownload.length > 0) {
     const cleanupPromise = cleanupCache() // already start cleaning up while we download
