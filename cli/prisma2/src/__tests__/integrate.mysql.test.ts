@@ -7,21 +7,20 @@ import rimraf from 'rimraf'
 import fs from 'fs'
 import path from 'path'
 import snapshot from 'snap-shot-it'
-import mysql from 'mysql'
-import util from 'util'
+import mysql from 'mysql2/promise'
+import { getLatestAlphaTag } from '@prisma/fetch-engine'
 
 const connectionString = process.env.TEST_MYSQL_URI || 'mysql://root:password@localhost:3306/prisma-dev'
 process.env.SKIP_GENERATE = 'true'
 
-const db = mysql.createConnection(connectionString)
-const query = util.promisify(db.query).bind(db)
-
 const pkg = pkgup.sync() || __dirname
 const tmp = join(dirname(pkg), 'tmp-mysql')
 const engine = new IntrospectionEngine()
+const latestAlphaPromise = getLatestAlphaTag()
 
-before(done => {
-  db.connect(err => done(err))
+let db: mysql.Connection
+before(async () => {
+  db = await mysql.createConnection(connectionString)
 })
 
 beforeEach(async () => {
@@ -74,14 +73,14 @@ tests().map((t: Test) => {
     } catch (err) {
       throw err
     } finally {
-      await query(t.down)
+      await db.query(t.down)
     }
   }).timeout(15000)
 })
 
 async function runTest(name: string, t: Test) {
-  await query(t.down)
-  await query(t.up)
+  await db.query(t.down)
+  await db.query(t.up)
   const schema = `
 generator client {
   provider = "prisma-client-js"
@@ -108,7 +107,7 @@ datasource mysql {
   await prisma.connect()
   try {
     const result = await t.do(prisma)
-    await query(t.down)
+    await db.query(t.down)
     assert.deepEqual(result, t.expect)
   } catch (err) {
     throw err
@@ -125,6 +124,7 @@ async function generate(test: Test, datamodel: string) {
     schemaPath,
     printDownloadProgress: false,
     baseDir: tmp,
+    version: await latestAlphaPromise,
   })
 
   await generator.generate()

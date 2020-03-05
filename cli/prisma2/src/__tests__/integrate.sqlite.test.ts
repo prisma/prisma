@@ -8,12 +8,14 @@ import fs from 'fs'
 import path from 'path'
 import snapshot from 'snap-shot-it'
 import Database from 'better-sqlite3'
+import { getLatestAlphaTag } from '@prisma/fetch-engine'
 
 process.env.SKIP_GENERATE = 'true'
 
 const pkg = pkgup.sync() || __dirname
 const tmp = join(dirname(pkg), 'tmp-sqlite')
 const engine = new IntrospectionEngine()
+const latestAlphaPromise = getLatestAlphaTag()
 
 const sqlitePath = join(tmp, './sqlite.db')
 const connectionString = `file:${sqlitePath}`
@@ -132,6 +134,7 @@ async function generate(test: Test, datamodel: string) {
     schemaPath,
     printDownloadProgress: false,
     baseDir: tmp,
+    version: await latestAlphaPromise,
   })
 
   await generator.generate()
