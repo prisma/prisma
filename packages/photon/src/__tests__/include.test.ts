@@ -88,6 +88,40 @@ describe('include validation', () => {
     expect(() => document.validate(ast)).not.toThrow()
   })
 
+  test('allow deep include with empty object', () => {
+    const ast = {
+      include: {
+        posts: {},
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+
+    expect(String(document)).toMatchInlineSnapshot(`
+"query {
+  findManyUser {
+    id
+    email
+    name
+    posts {
+      id
+      createdAt
+      updatedAt
+      published
+      title
+      content
+    }
+  }
+}"
+`)
+    expect(() => document.validate(ast)).not.toThrow()
+  })
+
   test('allow deep include without another include', () => {
     const ast = {
       include: {

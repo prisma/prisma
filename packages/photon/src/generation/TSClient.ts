@@ -553,7 +553,7 @@ type ${getPayloadName(name)}<S extends ${name}Args> = S extends ${name}Args
   }
 }
 
-class NewPayloadType implements Generatable {
+class PayloadType implements Generatable {
   constructor(protected readonly type: OutputType) {}
 
   public toTS() {
@@ -578,8 +578,8 @@ export type ${getPayloadName(name)}<
     ? ${name} ${include.length > 0 ? ` & ${include}` : ''}
   : 'select' extends U
     ? ${select}
-  : never
-: never
+  : ${name}
+: ${name}
 `
   }
   private renderRelations(projection: Projection) {
@@ -718,7 +718,7 @@ ${indent(
 )}
 }
 
-${new NewPayloadType(this.outputType!).toTS()}
+${new PayloadType(this.outputType!).toTS()}
 
 ${new ModelDelegate(this.outputType!, this.dmmf).toTS()}
 
