@@ -216,6 +216,11 @@ ${
 }
 
 /**
+ * Annotation for Zeit Now
+**/
+path.join(__dirname, 'schema.prisma');
+
+/**
  * Enums
  */
 // Based on
