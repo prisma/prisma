@@ -8,11 +8,15 @@ describe('engine', () => {
       datamodelPath: path.join(__dirname, './runtime-tests/blog/schema.prisma'),
     })
 
-    await expect(engine.start()).rejects.toMatchInlineSnapshot(`
+    await expect(
+      engine.start().catch(e => {
+        throw new Error(e.message.replace(/query-engine-\w+/, 'query-engine'))
+      }),
+    ).rejects.toMatchInlineSnapshot(`
             [Error: 
             error: Found argument '--flag-that-does-not-exist' which wasn't expected, or isn't valid in this context
             USAGE:
-                query-engine-darwin --enable-raw-queries
+                query-engine --enable-raw-queries
             For more information try --help]
           `)
   })
