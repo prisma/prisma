@@ -1437,12 +1437,10 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
-      // Argument distance: Got invalid value 12.213 on prisma.findManyexercises. Provided Float, expected String or StringFilter
       up: `
         create table exercises (
           id integer primary key not null,
-          distance decimal(5, 3) not null
+          distance NUMERIC not null
         );
         insert into exercises (distance) values (12.213);
       `,
@@ -1460,12 +1458,10 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
-      // Argument distance: Got invalid value 12.213 on prisma.findOneexercises. Provided Float, expected String.
       up: `
         create table exercises (
           id integer primary key not null,
-          distance decimal(5, 3) not null unique
+          distance NUMERIC not null unique
         );
         insert into exercises (distance) values (12.213);
       `,
@@ -1481,12 +1477,10 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
-      // Argument distance: Got invalid value 12.3 on prisma.findOneexercises. Provided Float, expected String.
       up: `
         create table exercises (
           id integer primary key not null,
-          distance decimal(5, 3) not null unique default (12.3)
+          distance NUMERIC not null unique default (12.3)
         );
         insert into exercises (distance) values (12.213);
         insert into exercises (id) values (2);
