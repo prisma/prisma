@@ -24,7 +24,7 @@ export type Users = PromiseReturnType<typeof getUsers>
 
 async function main() {
   const users = await prisma.user.findMany({
-    first: 10,
+    first: 2,
     // select: {
     //   id: true,
     // },

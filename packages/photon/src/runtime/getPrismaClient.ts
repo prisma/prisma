@@ -33,6 +33,7 @@ import { deepSet } from './utils/deep-set'
 import { Dataloader } from './Dataloader'
 import { printStack } from './utils/printStack'
 import stripAnsi from 'strip-ansi'
+import { printJsonWithErrors } from './utils/printJsonErrors'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -386,6 +387,21 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
           document = transformDocument(document)
 
+          if (debugLib.enabled('prisma-client')) {
+            const query = String(document)
+            debug(`Prisma Client call:`)
+            debug(
+              `prisma.${clientMethod}(${printJsonWithErrors(
+                args,
+                [],
+                [],
+                [],
+              )})`,
+            )
+            debug(`Generated request:`)
+            debug(query + '\n')
+          }
+
           let requestPromise: Promise<any>
 
           const collectTimestamps = new CollectTimestamps('PrismaClient')
@@ -520,11 +536,7 @@ class PrismaClientFetcher {
       // TODO: More elaborate logic to only batch certain queries together
       // We should e.g. make sure, that findOne queries are batched together
       await this.prisma.connect()
-      const queries = requests.map(r => {
-        const str = String(r.document)
-        debug(str)
-        return str
-      })
+      const queries = requests.map(r => String(r.document))
       return this.prisma.engine.request(queries)
     })
   }
