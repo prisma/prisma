@@ -1,4 +1,4 @@
-exports['await teams.updateMany({ data: { name: \'b\' }, where: { name: null }, })  client.teams.findMany();'] = `
+exports['a.findOne({ where: { one_two: { one: 1, two: 2 } } })'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -9,9 +9,19 @@ datasource mysql {
   url = "***"
 }
 
-model teams {
-  id   Int     @default(autoincrement()) @id
-  name String?
+model a {
+  one Int
+  two Int
+  b   b[]
+
+  @@id([one, two])
+}
+
+model b {
+  id Int @default(autoincrement()) @id
+  a  a   @map(["one", "two"])
+
+  @@index([a], name: "one")
 }
 `
 
@@ -47,6 +57,32 @@ model teams {
   email String @unique
   id    Int    @id
   name  String @unique
+}
+`
+
+exports['users.findOne({ where: { id: 1 }, include: { posts: true } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id      Int    @default(autoincrement()) @id
+  title   String
+  user_id users
+
+  @@index([user_id], name: "user_id")
+}
+
+model users {
+  email String  @unique
+  id    Int     @default(autoincrement()) @id
+  posts posts[]
 }
 `
 
@@ -205,6 +241,66 @@ model users {
 }
 `
 
+exports['users.findOne({ where: { users_email_name_key: { email: \'ada@prisma.io\', name: \'Ada\' } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model users {
+  email String
+  id    Int    @default(autoincrement()) @id
+  name  String
+
+  @@unique([email, name], name: "users_email_name_key")
+}
+`
+
+exports['users.update({ where: { users_email_name_key: { email: \'ada@prisma.io\', name: \'Ada\' } }, data: { name: \'Marco\' }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model users {
+  email String
+  id    Int    @default(autoincrement()) @id
+  name  String
+
+  @@unique([email, name], name: "users_email_name_key")
+}
+`
+
+exports['users.delete({ where: { users_email_name_key: { email: \'ada@prisma.io\', name: \'Ada\' } }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model users {
+  email String
+  id    Int    @default(autoincrement()) @id
+  name  String
+
+  @@unique([email, name], name: "users_email_name_key")
+}
+`
+
 exports['users.findMany()'] = `
 generator client {
   provider = "prisma-client-js"
@@ -253,6 +349,32 @@ datasource mysql {
 model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
+}
+`
+
+exports['users.findOne({ where: { email: \'ada@prisma.io\' } }).posts()'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id      Int    @default(autoincrement()) @id
+  title   String
+  user_id users
+
+  @@index([user_id], name: "user_id")
+}
+
+model users {
+  email String  @unique
+  id    Int     @default(autoincrement()) @id
+  posts posts[]
 }
 `
 
@@ -574,6 +696,78 @@ model crons {
 }
 `
 
+exports['const posts = await posts.findMany({ where: { created_at: { lte: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  created_at DateTime
+  id         Int      @default(autoincrement()) @id
+  title      String
+}
+`
+
+exports['posts.findMany({ where: { created_at: { gte: new Date() } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  created_at DateTime
+  id         Int      @default(autoincrement()) @id
+  title      String
+}
+`
+
+exports['posts.findMany({ where: { created_at: { gt: new Date() } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  created_at DateTime
+  id         Int      @default(autoincrement()) @id
+  title      String
+}
+`
+
+exports['const posts = await posts.findMany({ where: { created_at: { lt: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  created_at DateTime
+  id         Int      @default(autoincrement()) @id
+  title      String
+}
+`
+
 exports['teams.update({ where: { token: 11 }, data: { token: 10 } })'] = `
 generator client {
   provider = "prisma-client-js"
@@ -681,6 +875,23 @@ model teams {
 }
 `
 
+exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model users {
+  email String @unique
+  id    Int    @default(autoincrement()) @id
+}
+`
+
 exports['exercises.findMany({ where: { distance: 12.213 } })'] = `
 generator client {
   provider = "prisma-client-js"
@@ -728,5 +939,66 @@ datasource mysql {
 
 model migrate {
   version Int @id
+}
+`
+
+exports['variables.findOne({ where: { variables_name_key_key: { key: \'b\', name: \'a\' } } })2'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  email String
+  id    Int    @default(autoincrement()) @id
+  key   String
+  name  String
+  value String
+
+  @@unique([name, key], name: "variables_name_key_key")
+}
+`
+
+exports['variables.findOne({ where: { variables_value_email_key: { value: \'c\', email: \'d\' } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+  @@unique([value, email], name: "variables_value_email_key")
+}
+`
+
+exports['await teams.updateMany({ data: { name: \'b\' }, where: { name: null }, })  client.teams.findMany();'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id   Int     @default(autoincrement()) @id
+  name String?
 }
 `

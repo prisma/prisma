@@ -190,8 +190,6 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
-      // Unknown field `posts` for include statement on model users. Available options are listed in green.
       up: `
         create table users (
           id serial primary key not null,
@@ -199,9 +197,10 @@ function tests(): Test[] {
         );
         create table posts (
           id serial primary key not null,
-          user_id int not null references users(id) on update cascade,
+          user_id bigint unsigned not null,
           title varchar(50) not null
         );
+        ALTER TABLE posts ADD FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE;
         insert into users (email) values ('ada@prisma.io');
         insert into users (email) values ('ema@prisma.io');
         insert into posts (user_id, title) values (1, 'A');
@@ -268,7 +267,6 @@ function tests(): Test[] {
     },
     {
       todo: true,
-      // Unknown arg `data` in data for type teams. The field createOneteams has no arguments.
       up: `
         create table teams (
           id serial primary key not null
@@ -448,14 +446,12 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
-      // Unknown arg `users_email_name_key` in where.users_email_name_key for type usersWhereUniqueInput. Available args:
       up: `
         create table users (
           id serial primary key not null,
           email varchar(50) not null,
           name varchar(50) not null,
-          unique(email, name)
+          unique key users_email_name_key(email, name)
         );
         insert into users (email, name) values ('ada@prisma.io', 'Ada');
       `,
@@ -472,14 +468,12 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
-      // Unknown arg `users_email_name_key` in where.users_email_name_key for type usersWhereUniqueInput.
       up: `
         create table users (
           id serial primary key not null,
           email varchar(50) not null,
           name varchar(50) not null,
-          unique(email, name)
+          unique key users_email_name_key(email, name)
         );
         insert into users (email, name) values ('ada@prisma.io', 'Ada');
       `,
@@ -499,14 +493,12 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
-      // Unknown arg `users_email_name_key` in where.users_email_name_key for type usersWhereUniqueInput.
       up: `
         create table users (
           id serial primary key not null,
           email varchar(50) not null,
           name varchar(50) not null,
-          unique(email, name)
+          unique key users_email_name_key(email, name)
         );
         insert into users (email, name) values ('ada@prisma.io', 'Ada');
       `,
@@ -598,8 +590,6 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
-      //  TypeError: client.users.findOne(...).posts is not a function
       up: `
         create table users (
           id serial primary key not null,
@@ -607,9 +597,10 @@ function tests(): Test[] {
         );
         create table posts (
           id serial primary key not null,
-          user_id int not null references users (id) on update cascade,
+          user_id bigint unsigned not null,
           title varchar(50) not null
         );
+        ALTER TABLE posts ADD FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE;
         insert into users (email) values ('ada@prisma.io');
         insert into users (email) values ('ema@prisma.io');
         insert into posts (user_id, title) values (1, 'A');
@@ -1176,22 +1167,19 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
-      // Error: Incorrect datetime value: '2020-01-14T11:10:19.573Z' for column 'created_at' at row 1
       up: `
         create table posts (
           id serial primary key not null,
           title varchar(50) not null,
-          created_at timestamp not null default now()
+          created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
-        insert into posts (title, created_at) values ('A', '2020-01-14T11:10:19.573Z');
-        insert into posts (title, created_at) values ('B', '2020-01-14T11:10:19.573Z');
-        insert into posts (title, created_at) values ('C', '2020-01-14T11:10:19.573Z');
+        insert into posts (title, created_at) values ('A', '2020-01-14 11:10:19');
+        insert into posts (title, created_at) values ('B', '2020-01-14 11:10:19');
+        insert into posts (title, created_at) values ('C', '2020-01-14 11:10:19');
       `,
       down: `
         drop table if exists posts cascade;
       `,
-      // todo: true,
       do: async client => {
         const posts = await client.posts.findMany({ where: { created_at: { lte: new Date() } } })
         posts.forEach(post => {
@@ -1216,17 +1204,15 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
-      // Error: Incorrect datetime value: '2020-01-14T11:10:19.573Z' for column 'created_at' at row 1
       up: `
         create table posts (
           id serial primary key not null,
           title varchar(50) not null,
           created_at timestamp not null default now()
         );
-        insert into posts (title, created_at) values ('A', '2020-01-14T11:10:19.573Z');
-        insert into posts (title, created_at) values ('B', '2020-01-14T11:10:19.573Z');
-        insert into posts (title, created_at) values ('C', '2020-01-14T11:10:19.573Z');
+        insert into posts (title, created_at) values ('A', '2020-01-14 11:10:19');
+        insert into posts (title, created_at) values ('B', '2020-01-14 11:10:19');
+        insert into posts (title, created_at) values ('C', '2020-01-14 11:10:19');
       `,
       down: `
         drop table if exists posts cascade;
@@ -1237,17 +1223,15 @@ function tests(): Test[] {
       expect: [],
     },
     {
-      todo: true,
-      // Error: Incorrect datetime value: '2020-01-14T11:10:19.573Z' for column 'created_at' at row 1
       up: `
         create table posts (
           id serial primary key not null,
           title varchar(50) not null,
           created_at timestamp not null default now()
         );
-        insert into posts (title, created_at) values ('A', '2020-01-14T11:10:19.573Z');
-        insert into posts (title, created_at) values ('B', '2020-01-14T11:10:19.573Z');
-        insert into posts (title, created_at) values ('C', '2020-01-14T11:10:19.573Z');
+        insert into posts (title, created_at) values ('A', '2020-01-14 11:10:19');
+        insert into posts (title, created_at) values ('B', '2020-01-14 11:10:19');
+        insert into posts (title, created_at) values ('C', '2020-01-14 11:10:19');
       `,
       down: `
         drop table if exists posts cascade;
@@ -1258,17 +1242,15 @@ function tests(): Test[] {
       expect: [],
     },
     {
-      todo: true,
-      // Error: Incorrect datetime value: '2020-01-14T11:10:19.573Z' for column 'created_at' at row 1
       up: `
         create table posts (
           id serial primary key not null,
           title varchar(50) not null,
           created_at timestamp not null default now()
         );
-        insert into posts (title, created_at) values ('A', '2020-01-14T11:10:19.573Z');
-        insert into posts (title, created_at) values ('B', '2020-01-14T11:10:19.573Z');
-        insert into posts (title, created_at) values ('C', '2020-01-14T11:10:19.573Z');
+        insert into posts (title, created_at) values ('A', '2020-01-14 11:10:19');
+        insert into posts (title, created_at) values ('B', '2020-01-14 11:10:19');
+        insert into posts (title, created_at) values ('C', '2020-01-14 11:10:19');
       `,
       down: `
         drop table if exists posts cascade;
@@ -1598,18 +1580,15 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
       up: `
-        create extension citext;
         create table users (
           id serial primary key not null,
-          email citext not null unique
+          email varchar(50) not null unique COLLATE utf8mb4_0900_as_ci 
         );
         insert into users (email) values ('max@prisma.io');
       `,
       down: `
         drop table if exists users cascade;
-        drop extension if exists citext cascade;
       `,
       do: async client => {
         return client.users.findMany({ where: { email: 'MAX@PRISMA.IO' } })
@@ -1789,20 +1768,16 @@ function tests(): Test[] {
       expect: {}, // TODO
     },
     {
-      todo: true,
-      // Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'varchar(50) not null,
-      // value varchar(50) not null,
-      // email varc' at line 4
       up: `
         create table variables (
           id serial primary key not null,
           name varchar(50) not null,
-          key varchar(50) not null,
+          \`key\` varchar(50) not null,
           value varchar(50) not null,
           email varchar(50) not null,
-          unique(name, key)
+          unique key variables_name_key_key(name, \`key\`)
         );
-        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables cascade;
@@ -1819,20 +1794,16 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
-      // Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'varchar(50) not null,
-      //     value varchar(50) not null,
-      //     email varc' at line 3
       up: `
         create table variables (
           name varchar(50) not null,
-          key varchar(50) not null,
+          \`key\` varchar(50) not null,
           value varchar(50) not null,
           email varchar(50) not null,
-          primary key(name, key),
-          unique(value, email)
+          primary key(name, \`key\`),
+          unique key variables_value_email_key(value, email)
         );
-        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables cascade;
@@ -1848,7 +1819,6 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
       up: `
           create table a (
             one integer not null,
@@ -1856,17 +1826,17 @@ function tests(): Test[] {
             primary key (one, two)
           );
           create table b (
-            id integer primary key autoincrement not null,
+            id serial primary key not null,
             one integer not null,
-            two integer not null,
-            foreign key (one, two) references a (one, two)
+            two integer not null
           );
+          ALTER TABLE b ADD FOREIGN KEY (one, two) REFERENCES a(one, two);
           insert into a (one, two) values (1, 2);
           insert into b (one, two) values (1, 2);
         `,
       down: `
-        drop table if exists a cascade;
         drop table if exists b cascade;
+        drop table if exists a cascade;
       `,
       do: async client => {
         return client.a.findOne({ where: { one_two: { one: 1, two: 2 } } })
