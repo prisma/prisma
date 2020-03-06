@@ -1,3 +1,28 @@
+exports['a.findOne({ where: { one_two: { one: 1, two: 2 } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model a {
+  one Int
+  two Int
+  b   b[]
+
+  @@id([one, two])
+}
+
+model b {
+  id Int @default(autoincrement()) @id
+  a  a   @map(["one", "two"])
+}
+`
+
 exports['teams.findOne({ where: { id: 2 } })'] = `
 generator client {
   provider = "prisma-client-js"
@@ -54,6 +79,40 @@ model users {
   email String  @unique
   id    Int     @default(autoincrement()) @id
   posts posts[]
+}
+`
+
+exports['teams.create({ data: { name: \'c\' } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String @unique
+}
+`
+
+exports['teams.create({ data: {} })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String @default("alice")
 }
 `
 
@@ -272,6 +331,23 @@ model users {
 }
 `
 
+exports['users.findMany()2'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model users {
+  email String @unique
+  id    Int    @default(autoincrement()) @id
+}
+`
+
 exports['users.findOne({ where: { email: \'ada@prisma.io\' } }).posts()'] = `
 generator client {
   provider = "prisma-client-js"
@@ -315,6 +391,42 @@ model posts {
 `
 
 exports['posts.findMany({ where: { OR: [{ title: { contains: \'A\' } }, { title: { contains: \'C\' } }], published: true, }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model posts {
+  id        Int     @default(autoincrement()) @id
+  published Boolean @default(false)
+  title     String
+}
+`
+
+exports['posts.upsert({ where: { id: 1 }, create: { title: \'D\', published: true }, update: { title: \'D\', published: true }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model posts {
+  id        Int     @default(autoincrement()) @id
+  published Boolean @default(false)
+  title     String
+}
+`
+
+exports['posts.upsert({ where: { id: 4 }, create: { title: \'D\', published: false }, update: { title: \'D\', published: true }, })'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -824,6 +936,28 @@ model migrate {
 }
 `
 
+exports['variables.findOne({ where: { variables_name_key_key: { key: \'b\', name: \'a\' } } })2'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model variables {
+  email String
+  id    Int    @default(autoincrement()) @id
+  key   String
+  name  String
+  value String
+
+  @@unique([name, key], name: "variables_name_key_key")
+}
+`
+
 exports['variables.findOne({ where: { variables_value_email_key: { value: \'c\', email: \'d\' } } })'] = `
 generator client {
   provider = "prisma-client-js"
@@ -860,114 +994,5 @@ datasource pg {
 model teams {
   id   Int     @default(autoincrement()) @id
   name String?
-}
-`
-
-exports['teams.create({ data: { name: \'c\' } })'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model teams {
-  id   Int    @default(autoincrement()) @id
-  name String @unique
-}
-`
-
-exports['posts.upsert({ where: { id: 1 }, create: { title: \'D\', published: true }, update: { title: \'D\', published: true }, })'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model posts {
-  id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
-  title     String
-}
-`
-
-exports['posts.upsert({ where: { id: 4 }, create: { title: \'D\', published: false }, update: { title: \'D\', published: true }, })'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model posts {
-  id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
-  title     String
-}
-`
-
-exports['teams.create({ data: {} })'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model teams {
-  id   Int    @default(autoincrement()) @id
-  name String @default("alice")
-}
-`
-
-exports['users.findMany()2'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model users {
-  email String @unique
-  id    Int    @default(autoincrement()) @id
-}
-`
-
-exports['variables.findOne({ where: { variables_name_key_key: { key: \'b\', name: \'a\' } } })2'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model variables {
-  email String
-  id    Int    @default(autoincrement()) @id
-  key   String
-  name  String
-  value String
-
-  @@unique([name, key], name: "variables_name_key_key")
 }
 `

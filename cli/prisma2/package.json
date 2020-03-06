@@ -1,6 +1,6 @@
 {
   "name": "prisma2",
-  "version": "2.0.0-alpha.841",
+  "version": "2.0.0-alpha.854",
   "main": "build/index.js",
   "repository": "git@github.com:prisma/prisma2-cli.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
@@ -30,12 +30,12 @@
   },
   "bin": "build/index.js",
   "prisma": {
-    "version": "0a835f641b9b22405a0025fb6d1691dc6ac87e0c"
+    "version": "234aaabfcb12fb53a1297374a96e6bb8685fd626"
   },
   "devDependencies": {
     "@prisma/ci-info": "^2.1.1",
     "@prisma/cli": "workspace:*",
-    "@prisma/client": "workspace:^2.0.0-alpha.841",
+    "@prisma/client": "workspace:^2.0.0-alpha.854",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/introspection": "workspace:*",
@@ -74,7 +74,7 @@
     "tmp": "^0.1.0",
     "ts-jest": "^25.2.1",
     "ts-mocha": "6.0.0",
-    "typescript": "^3.8.2"
+    "typescript": "^3.8.3"
   },
   "scripts": {
     "test-sqlite": "./node_modules/.bin/mocha src/__tests__/integrate.sqlite.test.ts --require ts-mocha src/__tests__/integrate.sqlite.test.ts --timeout 10s",

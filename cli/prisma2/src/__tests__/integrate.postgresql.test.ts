@@ -1841,7 +1841,6 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
       up: `
           create table a (
             one integer not null,
@@ -1849,6 +1848,7 @@ function tests(): Test[] {
             primary key ("one", "two")
           );
           create table b (
+            id serial primary key not null,
             one integer not null,
             two integer not null,
             foreign key ("one", "two") references a ("one", "two")
@@ -1861,10 +1861,11 @@ function tests(): Test[] {
         drop table if exists b cascade;
       `,
       do: async client => {
-        return client.a.findOne({ where: { variables_value_email_key: { value: 'c', email: 'd' } } })
+        return client.a.findOne({ where: { one_two: { one: 1, two: 2 } } })
       },
       expect: {
-        // TODO
+        one: 1,
+        two: 2,
       },
     },
     {

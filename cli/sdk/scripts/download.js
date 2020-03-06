@@ -9,4 +9,6 @@ download({
     'introspection-engine': runtimePath,
   },
   showProgress: true,
+  printVersion: true,
+  ignoreCache: true,
 })
