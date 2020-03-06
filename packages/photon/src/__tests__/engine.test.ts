@@ -10,13 +10,15 @@ describe('engine', () => {
 
     await expect(
       engine.start().catch(e => {
-        throw new Error(e.message.replace(/query-engine-\w+/, 'query-engine'))
+        throw new Error(
+          e.message.replace(/query-engine-.*\n/, 'query-engine\n'),
+        )
       }),
     ).rejects.toMatchInlineSnapshot(`
             [Error: 
             error: Found argument '--flag-that-does-not-exist' which wasn't expected, or isn't valid in this context
             USAGE:
-                query-engine --enable-raw-queries
+                query-engine
             For more information try --help]
           `)
   })
