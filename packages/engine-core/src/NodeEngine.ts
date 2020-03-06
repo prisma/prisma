@@ -64,6 +64,16 @@ export type Deferred = {
   reject: (err: Error) => void
 }
 
+const children: ChildProcessWithoutNullStreams[] = []
+
+process.on('beforeExit', () => {
+  for (const child of children) {
+    if (!child.killed) {
+      child.kill()
+    }
+  }
+})
+
 export class NodeEngine {
   private logEmitter: EventEmitter
   private showColors: boolean
@@ -71,6 +81,7 @@ export class NodeEngine {
   private logLevel?: 'info' | 'warn'
   private env?: Record<string, string>
   private flags: string[]
+  private exitCode?: number
   port?: number
   debug: boolean
   child?: ChildProcessWithoutNullStreams
@@ -348,8 +359,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             ...env,
           },
           cwd: this.cwd,
-          stdio: ['pipe', 'pipe', 'pipe'],
+          stdio: ['ignore', 'pipe', 'pipe'],
         })
+
+        children.push(this.child)
 
         byline(this.child.stderr).on('data', msg => {
           const data = String(msg)
@@ -360,7 +373,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               debug(json)
               this.lastError = json
               if (this.engineStartDeferred) {
-                this.engineStartDeferred.reject(new PrismaClientInitializationError(this.lastError.message))
+                const err = new PrismaClientInitializationError(this.lastError.message)
+                this.engineStartDeferred.reject(err)
               }
             }
           } catch (e) {
@@ -396,6 +410,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         })
 
         this.child.on('exit', (code, signal) => {
+          this.exitCode = code
+          if (code !== 0 && this.engineStartDeferred) {
+            const err = new PrismaClientInitializationError(this.stderrLogs)
+            this.engineStartDeferred.reject(err)
+          }
           if (!this.child) {
             return
           }
@@ -422,7 +441,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
               timestamp: new Date(),
               level: 'error',
               fields: {
-                message: (this.stderrLogs || '') + (this.stdoutLogs || '') + code,
+                message: (this.stderrLogs || '') + (this.stdoutLogs || '') + `\nExit code: ${code}`,
               },
             }
           }
