@@ -396,6 +396,12 @@ export type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
+export declare type Version = {
+  client: string
+}
+
+export declare const version: Version 
+
 export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> = GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]>
 

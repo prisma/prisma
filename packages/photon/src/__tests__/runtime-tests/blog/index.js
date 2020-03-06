@@ -2,6 +2,7 @@ const {
   PrismaClient,
   PrismaClientValidationError,
   PrismaClientKnownRequestError,
+  version,
 } = require('@prisma/client')
 
 module.exports = async () => {
@@ -11,6 +12,10 @@ module.exports = async () => {
       measurePerformance: true,
     },
   })
+
+  if (!version || !version.client) {
+    throw new Error(`Version missing: ${JSON.stringify(version)}`)
+  }
 
   // Test connecting and disconnecting all the time
   await prisma.user.findMany()
