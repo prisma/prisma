@@ -66,6 +66,11 @@ const prettyName = (fn: any): string => {
 tests().map((t: Test) => {
   const name = prettyName(t.do)
 
+  // if (!t.run) {
+  //   it.skip(name)
+  //   return
+  // }
+
   if (t.todo) {
     it.skip(name)
     return
@@ -139,6 +144,7 @@ async function generate(test: Test, datamodel: string) {
 type Test = {
   title?: string
   todo?: boolean
+  run?: boolean
   up: string
   down: string
   do: (client: any) => Promise<any>
