@@ -195,7 +195,6 @@ export class TSClient implements Generatable {
     const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
       version,
       generator,
-      platforms,
       sqliteDatasourceOverrides,
       relativePath: path.relative(outputDir, schemaDir),
     }

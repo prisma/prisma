@@ -27,7 +27,6 @@ import * as sqlTemplateTag from 'sql-template-tag'
 import { parse as parseDotEnv } from 'dotenv'
 import { GeneratorConfig } from '@prisma/generator-helper/dist/types'
 import { getLogLevel } from './getLogLevel'
-import { InternalDatasource } from './utils/printDatasources'
 import { mergeBy } from './mergeBy'
 import { lowerCase } from './utils/common'
 import { deepSet } from './utils/deep-set'
@@ -116,7 +115,6 @@ export interface GetPrismaClientOptions {
   document: DMMF.Document
   version?: string
   generator?: GeneratorConfig
-  platforms?: string[]
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativePath: string
   dirname: string
@@ -205,6 +203,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         env: envFile,
         flags: options.forceTransactions ? ['--always_force_transactions'] : [],
       }
+
+      debug({ engineConfig: this.engineConfig })
 
       this.engine = new NodeEngine(this.engineConfig)
       this.fetcher = new PrismaClientFetcher(this, false)
