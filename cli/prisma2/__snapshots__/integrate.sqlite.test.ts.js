@@ -1,4 +1,4 @@
-exports['migrate.create({ data: { version: 1 } })'] = `
+exports['exercises.findOne({ where: { distance: 12.3 } })'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -15,8 +15,9 @@ model teams {
   name  String @unique
 }
 
-model migrate {
-  version Int @id
+model exercises {
+  distance Float @default(12.3) @unique
+  id       Int   @default(autoincrement()) @id
 }
 `
 
@@ -760,6 +761,74 @@ model teams {
 model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
+}
+`
+
+exports['exercises.findMany({ where: { distance: 12.213 } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model exercises {
+  distance Float
+  id       Int   @default(autoincrement()) @id
+}
+`
+
+exports['exercises.findOne({ where: { distance: 12.213 } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model exercises {
+  distance Float @unique
+  id       Int   @default(autoincrement()) @id
+}
+`
+
+exports['migrate.create({ data: { version: 1 } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model migrate {
+  version Int @id
 }
 `
 
