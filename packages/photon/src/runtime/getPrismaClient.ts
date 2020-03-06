@@ -201,7 +201,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 ),
           ),
         env: envFile,
-        flags: options.forceTransactions ? ['--always_force_transactions'] : [],
+        flags: options.forceTransactions ? ['--always-force-transactions'] : [],
       }
 
       debug({ engineConfig: this.engineConfig })
