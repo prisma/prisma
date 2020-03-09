@@ -20,7 +20,10 @@ const latestAlphaPromise = getLatestAlphaTag()
 
 let db: mysql.Connection
 before(async () => {
-  db = await mysql.createConnection(connectionString)
+  db = await mysql.createConnection({
+    uri: connectionString,
+    multipleStatements: true,
+  })
 })
 
 beforeEach(async () => {
