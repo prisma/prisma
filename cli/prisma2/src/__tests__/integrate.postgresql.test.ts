@@ -19,7 +19,7 @@ const db = new Client({
 })
 
 const pkg = pkgup.sync() || __dirname
-const tmp = join(dirname(pkg), 'tmp')
+const tmp = join(dirname(pkg), 'tmp-postgresql')
 const engine = new IntrospectionEngine()
 const latestAlphaPromise = getLatestAlphaTag()
 
@@ -65,6 +65,11 @@ const prettyName = (fn: any): string => {
 
 tests().map((t: Test) => {
   const name = prettyName(t.do)
+
+  // if (!t.run) {
+  //   it.skip(name)
+  //   return
+  // }
 
   if (t.todo) {
     it.skip(name)
@@ -139,7 +144,7 @@ async function generate(test: Test, datamodel: string) {
 type Test = {
   title?: string
   todo?: boolean
-  schema: string
+  run?: boolean
   up: string
   down: string
   do: (client: any) => Promise<any>
@@ -159,22 +164,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists teams cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id   Int    @id
-          name String @unique
-        }
       `,
       do: async client => {
         return client.teams.findOne({ where: { id: 2 } })
@@ -196,23 +185,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists teams cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          email String @unique
-          id    Int    @id
-          name  String @unique
-        }
       `,
       do: async client => {
         return client.teams.findOne({ where: { id: 2 }, select: { name: true } })
@@ -242,29 +214,6 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop table if exists users cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id      Int    @id
-          title   String
-          user_id users
-        }
-
-        model users {
-          email String  @unique
-          id    Int     @id
-          posts posts[]
-        }
-      `,
       do: async client => {
         return client.users.findOne({ where: { id: 1 }, include: { posts: true } })
       },
@@ -293,22 +242,6 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id   Int    @id
-          name String @unique
-        }
-      `,
       do: async client => {
         return client.teams.create({ data: { name: 'c' } })
       },
@@ -326,22 +259,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists teams cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id   Int    @id
-          name String @default("alice")
-        }
       `,
       do: async client => {
         return client.teams.create({ data: {} })
@@ -361,21 +278,6 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id Int @id
-        }
-      `,
       do: async client => {
         return client.teams.create({ data: {} })
       },
@@ -394,22 +296,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists teams cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id   Int    @id
-          name String @unique
-        }
       `,
       do: async client => {
         return client.teams.update({
@@ -434,23 +320,6 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          active Boolean @default(true)
-          id     Int     @id
-          name   String  @unique
-        }
-      `,
       do: async client => {
         return client.teams.update({
           where: { id: 1 },
@@ -474,23 +343,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists teams cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          active Boolean @default(true)
-          id     Int     @id
-          name   String  @unique
-        }
       `,
       do: async client => {
         return client.teams.update({
@@ -514,22 +366,6 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id   Int    @id
-          name String @unique
-        }
-      `,
       do: async client => {
         return client.teams.update({
           where: { name: 'c' },
@@ -553,22 +389,6 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id   Int    @id
-          name String
-        }
-      `,
       do: async client => {
         return client.teams.updateMany({
           where: { name: 'c' },
@@ -590,22 +410,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists teams cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id   Int    @id
-          name String
-        }
       `,
       do: async client => {
         await client.teams.updateMany({
@@ -636,22 +440,6 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model users {
-          email String @unique
-          id    Int    @id
-        }
-      `,
       do: async client => {
         return client.users.findOne({ where: { email: 'ada@prisma.io' } })
       },
@@ -672,25 +460,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists users cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model users {
-          email String
-          id    Int    @id
-          name  String
-
-          @@unique([email, name], name: "users_email_name_key")
-        }
       `,
       do: async client => {
         return client.users.findOne({ where: { users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' } } })
@@ -713,25 +482,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists users cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model users {
-          email String
-          id    Int    @id
-          name  String
-
-          @@unique([email, name], name: "users_email_name_key")
-        }
       `,
       do: async client => {
         return client.users.update({
@@ -758,25 +508,6 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model users {
-          email String
-          id    Int    @id
-          name  String
-
-          @@unique([email, name], name: "users_email_name_key")
-        }
-      `,
       do: async client => {
         return client.users.delete({
           where: { users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' } },
@@ -799,22 +530,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists users cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model users {
-          email String?
-          id    Int     @id
-        }
       `,
       do: async client => {
         return client.users.findMany()
@@ -841,22 +556,6 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model users {
-          email String @unique
-          id    Int    @id
-        }
-      `,
       do: async client => {
         return client.users.findMany({ where: { email: 'ada@prisma.io' } })
       },
@@ -879,22 +578,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists users cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model users {
-          email String @unique
-          id    Int    @id
-        }
       `,
       do: async client => {
         return client.users.findMany()
@@ -931,29 +614,6 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop table if exists users cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id      Int    @id
-          title   String
-          user_id users
-        }
-
-        model users {
-          email String  @unique
-          id    Int     @id
-          posts posts[]
-        }
-      `,
       do: async client => {
         return client.users.findOne({ where: { email: 'ada@prisma.io' } }).posts()
       },
@@ -981,23 +641,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists posts cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id        Int     @id
-          published Boolean @default(false)
-          title     String
-        }
       `,
       do: async client => {
         return client.posts.findMany({
@@ -1028,23 +671,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists posts cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id        Int     @id
-          published Boolean @default(false)
-          title     String
-        }
       `,
       do: async client => {
         return client.posts.findMany({
@@ -1081,23 +707,6 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id        Int     @id
-          published Boolean @default(false)
-          title     String
-        }
-      `,
       do: async client => {
         return client.posts.upsert({
           where: { id: 1 },
@@ -1125,23 +734,6 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id        Int     @id
-          published Boolean @default(false)
-          title     String
-        }
-      `,
       do: async client => {
         return client.posts.upsert({
           where: { id: 4 },
@@ -1168,23 +760,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists posts cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id        Int     @id
-          published Boolean @default(false)
-          title     String
-        }
       `,
       do: async client => {
         return client.posts.findMany({
@@ -1224,23 +799,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists posts cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id        Int     @id
-          published Boolean @default(false)
-          title     String
-        }
       `,
       do: async client => {
         return client.posts.findMany({
@@ -1283,28 +841,6 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id        Int          @id
-          published posts_status
-          title     String
-        }
-
-        enum posts_status {
-          DRAFT
-          PUBLISHED
-        }
-      `,
       do: async client => {
         return client.posts.findMany()
       },
@@ -1343,28 +879,6 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id        Int          @id
-          published posts_status
-          title     String
-        }
-
-        enum posts_status {
-          DRAFT
-          PUBLISHED
-        }
-      `,
       do: async client => {
         return client.posts.create({ data: { title: 'D' } })
       },
@@ -1385,28 +899,6 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id        Int          @id
-          published posts_status
-          title     String
-        }
-
-        enum posts_status {
-          DRAFT
-          PUBLISHED
-        }
       `,
       do: async client => {
         return client.posts.update({
@@ -1436,28 +928,6 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id        Int          @id
-          published posts_status
-          title     String
-        }
-
-        enum posts_status {
-          DRAFT
-          PUBLISHED
-        }
-      `,
       do: async client => {
         return client.posts.updateMany({
           data: { published: 'PUBLISHED' },
@@ -1482,28 +952,6 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id        Int          @id
-          published posts_status
-          title     String
-        }
-
-        enum posts_status {
-          DRAFT
-          PUBLISHED
-        }
       `,
       do: async client => {
         await client.posts.updateMany({
@@ -1545,28 +993,6 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id        Int          @id
-          published posts_status
-          title     String
-        }
-
-        enum posts_status {
-          DRAFT
-          PUBLISHED
-        }
-      `,
       do: async client => {
         return await client.posts.deleteMany({
           where: { published: 'DRAFT' },
@@ -1591,28 +1017,6 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          id        Int          @id
-          published posts_status
-          title     String
-        }
-
-        enum posts_status {
-          DRAFT
-          PUBLISHED
-        }
       `,
       do: async client => {
         await client.posts.deleteMany({
@@ -1641,23 +1045,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists crons cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model crons {
-          frequency String?
-          id        Int     @id
-          job       String  @unique
-        }
       `,
       do: async client => {
         return client.crons.findMany({ where: { job: { contains: 'j2' } } })
@@ -1689,23 +1076,6 @@ function tests(): Test[] {
       down: `
         drop table if exists crons cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model crons {
-          frequency String?
-          id        Int     @id
-          job       String  @unique
-        }
-      `,
       do: async client => {
         return client.crons.findMany({ where: { job: { startsWith: 'j2' } } })
       },
@@ -1736,23 +1106,6 @@ function tests(): Test[] {
       down: `
         drop table if exists crons cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model crons {
-          frequency String?
-          id        Int     @id
-          job       String  @unique
-        }
-      `,
       do: async client => {
         return client.crons.findMany({ where: { job: { endsWith: '1' } } })
       },
@@ -1782,23 +1135,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists crons cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model crons {
-          frequency String?
-          id        Int     @id
-          job       String  @unique
-        }
       `,
       do: async client => {
         return client.crons.findMany({ where: { job: { in: ['j20', 'j1'] } } })
@@ -1831,23 +1167,6 @@ function tests(): Test[] {
       down: `
         drop table if exists crons cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model crons {
-          frequency String?
-          id        Int     @id
-          job       String  @unique
-        }
-      `,
       do: async client => {
         return client.crons.findOne({ where: { job: { in: ['j20', 'j1'] } } })
       },
@@ -1877,23 +1196,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists posts cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          created_at DateTime
-          id         Int      @id
-          title      String
-        }
       `,
       // todo: true,
       do: async client => {
@@ -1934,23 +1236,6 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          created_at DateTime
-          id         Int      @id
-          title      String
-        }
-      `,
       do: async client => {
         return client.posts.findMany({ where: { created_at: { gte: new Date() } } })
       },
@@ -1971,23 +1256,6 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          created_at DateTime
-          id         Int      @id
-          title      String
-        }
-      `,
       do: async client => {
         return client.posts.findMany({ where: { created_at: { gt: new Date() } } })
       },
@@ -2007,23 +1275,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists posts cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model posts {
-          created_at DateTime
-          id         Int      @id
-          title      String
-        }
       `,
       do: async client => {
         const posts = await client.posts.findMany({ where: { created_at: { lt: new Date() } } })
@@ -2060,22 +1311,6 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id    Int @id
-          token Int @unique
-        }
-      `,
       do: async client => {
         return client.teams.update({ where: { token: 11 }, data: { token: 10 } })
       },
@@ -2095,22 +1330,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists events cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model events {
-          id   Int       @id
-          time DateTime?
-        }
       `,
       do: async client => {
         return client.events.findMany({ where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } })
@@ -2132,22 +1351,6 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model events {
-          id   Int       @id
-          time DateTime?
-        }
-      `,
       do: async client => {
         return client.events.find({ where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
       },
@@ -2167,22 +1370,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists events cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model events {
-          id   Int       @id
-          time DateTime?
-        }
       `,
       do: async client => {
         return client.events.find({ where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
@@ -2204,22 +1391,6 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model events {
-          id   Int       @id
-          time DateTime?
-        }
-      `,
       do: async client => {
         return client.events.find({ where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
       },
@@ -2240,22 +1411,6 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model events {
-          id   Int       @id
-          time DateTime?
-        }
-      `,
       do: async client => {
         return client.events.find({ where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
       },
@@ -2275,22 +1430,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists events cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model events {
-          id   Int       @id
-          time DateTime?
-        }
       `,
       do: async client => {
         return client.events.findMany({ where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
@@ -2314,22 +1453,6 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model events {
-          id   Int       @id
-          time DateTime?
-        }
-      `,
       do: async client => {
         return client.events.findMany({ where: { time: null } })
       },
@@ -2347,23 +1470,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists teams cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id    Int    @id
-          name  String
-          token Int    @unique
-        }
       `,
       do: async client => {
         return client.teams.findMany({ where: { id: { in: [] } } })
@@ -2383,23 +1489,6 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id    Int    @id
-          name  String
-          token Int    @unique
-        }
-      `,
       do: async client => {
         return client.teams.findMany({ where: { id: { in: [] }, token: { in: [11, 22] } } })
       },
@@ -2417,23 +1506,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists teams cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id    Int    @id
-          name  String
-          token Int    @unique
-        }
       `,
       do: async client => {
         return client.teams.findMany({ where: { token: { in: [11, 22] } } })
@@ -2464,23 +1536,6 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id    Int    @id
-          name  String
-          token Int    @unique
-        }
-      `,
       do: async client => {
         return client.teams.findMany({ where: { token: { notIn: [11, 22] } } })
       },
@@ -2498,23 +1553,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists teams cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id    Int    @id
-          name  String
-          token Int    @unique
-        }
       `,
       do: async client => {
         return client.teams.findMany({ where: { token: { notIn: [] } } })
@@ -2553,30 +1591,6 @@ function tests(): Test[] {
         drop table if exists users cascade;
         drop table if exists teams cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id      Int     @id
-          name    String
-          token   Int     @unique
-          userses users[] @relation(references: [team_id])
-        }
-
-        model users {
-          email   String @unique
-          id      Int    @id
-          team_id teams?
-        }
-      `,
       do: async client => {
         return client.users.findMany({ where: { team_id: null } })
       },
@@ -2600,22 +1614,6 @@ function tests(): Test[] {
         drop table if exists users cascade;
         drop extension if exists citext cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model users {
-          email String @unique
-          id    Int    @id
-        }
-      `,
       do: async client => {
         return client.users.findMany({ where: { email: 'MAX@PRISMA.IO' } })
       },
@@ -2636,22 +1634,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists exercises cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model exercises {
-          distance Float
-          id       Int   @id
-        }
       `,
       do: async client => {
         return client.exercises.findMany({ where: { distance: 12.213 } })
@@ -2674,22 +1656,6 @@ function tests(): Test[] {
       down: `
         drop table if exists exercises cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model exercises {
-          distance Float @unique
-          id       Int   @id
-        }
-      `,
       do: async client => {
         return client.exercises.findOne({ where: { distance: 12.213 } })
       },
@@ -2710,22 +1676,6 @@ function tests(): Test[] {
       down: `
         drop table if exists exercises cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model exercises {
-          distance Float @default(12.3) @unique
-          id       Int   @id
-        }
-      `,
       do: async client => {
         return client.exercises.findOne({ where: { distance: 12.3 } })
       },
@@ -2742,21 +1692,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists migrate cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model migrate {
-          version Int @id
-        }
       `,
       do: async client => {
         return client.migrate.create({ data: { version: 1 } })
@@ -2780,26 +1715,6 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model variables {
-          email String
-          key   String
-          name  String
-          value String
-
-          @@id([name, key])
-        }
-      `,
       do: async client => {
         return client.variables.findOne({ where: { variables_name_key_key: { key: 'b', name: 'a' } } })
       },
@@ -2819,26 +1734,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists variables cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model variables {
-          email String
-          key   String
-          name  String
-          value String
-
-          @@id([name, key])
-        }
       `,
       do: async client => {
         return client.variables.update({
@@ -2862,26 +1757,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists variables cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model variables {
-          email String
-          key   String
-          name  String
-          value String
-
-          @@id([name, key])
-        }
       `,
       do: async client => {
         return client.variables.upsert({
@@ -2907,26 +1782,6 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model variables {
-          email String
-          key   String
-          name  String
-          value String
-
-          @@id([name, key])
-        }
-      `,
       do: async client => {
         return client.variables.delete({
           where: { variables_name_key_key: { key: 'b', name: 'a' } },
@@ -2948,27 +1803,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists variables cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model variables {
-          email String
-          id    Int    @id
-          key   String
-          name  String
-          value String
-
-          @@unique([name, key], name: "variables_name_key_key")
-        }
       `,
       do: async client => {
         return client.variables.findOne({ where: { variables_name_key_key: { key: 'b', name: 'a' } } })
@@ -2995,27 +1829,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists variables cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model variables {
-          email String
-          key   String
-          name  String
-          value String
-
-          @@id([name, key])
-          @@unique([value, email], name: "variables_value_email_key")
-        }
       `,
       do: async client => {
         return client.variables.findOne({ where: { variables_value_email_key: { value: 'c', email: 'd' } } })
@@ -3046,25 +1859,6 @@ function tests(): Test[] {
       down: `
         drop table if exists a cascade;
         drop table if exists b cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model a {
-          id Int @id @default(autoincrement())
-          one Int
-          two Int
-
-          @@id([one, two])
-        }
       `,
       do: async client => {
         return client.a.findOne({ where: { one_two: { one: 1, two: 2 } } })
@@ -3257,194 +2051,6 @@ function tests(): Test[] {
       down: `
         drop table if exists crazy cascade;
       `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model crazy {
-          c1   Int?
-          c10  String?
-          c100 String[]
-          c101 String[]
-          c102 String[]
-          c103 String[]
-          c104 String[]
-          c105 String[]
-          c106 String[]
-          c107 String[]
-          c108 String[]
-          c109 Boolean[]
-          c11  String?
-          c110 Boolean[]
-          c111 String[]
-          c112 String[]
-          c113 String[]
-          c114 String[]
-          c115 String[]
-          c116 String[]
-          c117 String[]
-          c118 String[]
-          c119 String[]
-          c12  String?
-          c120 String[]
-          c121 String[]
-          c122 String[]
-          c123 String[]
-          c124 String[]
-          c125 String[]
-          c126 String[]
-          c127 DateTime[]
-          c128 Float[]
-          c129 Float[]
-          c13  String?
-          c130 String[]
-          c131 Int[]
-          c132 Int[]
-          c133 Int[]
-          c134 DateTime[]
-          c135 DateTime[]
-          c136 DateTime[]
-          c137 DateTime[]
-          c138 DateTime[]
-          c139 DateTime[]
-          c14  Boolean?
-          c140 DateTime[]
-          c141 DateTime[]
-          c142 String[]
-          c143 String[]
-          c144 String[]
-          c145 String[]
-          c146 String[]
-          c147 String[]
-          c148 Float[]
-          c149 Float[]
-          c15  Boolean?
-          c150 Float[]
-          c151 Float[]
-          c152 Float[]
-          c158 String[]
-          c159 String[]
-          c16  String?
-          c160 String[]
-          c161 String[]
-          c162 Float[]
-          c163 Float[]
-          c164 Int[]
-          c165 Int[]
-          c17  String?
-          c170 String[]
-          c171 DateTime[]
-          c172 DateTime[]
-          c173 DateTime[]
-          c174 DateTime[]
-          c175 DateTime[]
-          c176 DateTime[]
-          c177 DateTime[]
-          c178 DateTime[]
-          c179 DateTime[]
-          c18  String?
-          c180 DateTime[]
-          c181 DateTime[]
-          c182 DateTime[]
-          c183 DateTime[]
-          c184 DateTime[]
-          c185 DateTime[]
-          c186 String[]
-          c187 String[]
-          c188 String[]
-          c189 String[]
-          c19  String?
-          c190 String[]
-          c2   Int?
-          c20  String?
-          c21  String?
-          c22  String?
-          c23  String?
-          c24  String?
-          c25  String?
-          c26  String?
-          c27  String?
-          c28  String?
-          c29  String?
-          c3   Int
-          c30  String?
-          c31  String?
-          c32  DateTime?
-          c33  Float?
-          c34  Float?
-          c35  String?
-          c36  Int?
-          c37  Int?
-          c38  Int?
-          c39  DateTime?
-          c4   Int
-          c40  DateTime?
-          c41  DateTime?
-          c42  DateTime?
-          c43  DateTime?
-          c44  DateTime?
-          c45  DateTime?
-          c46  DateTime?
-          c47  String?
-          c48  String?
-          c49  String?
-          c5   String?
-          c50  String?
-          c51  String?
-          c52  String?
-          c53  Float?
-          c54  Float?
-          c55  Float?
-          c56  Float?
-          c57  Float?
-          c6   String?
-          c63  String?
-          c64  String?
-          c65  String?
-          c66  String?
-          c67  Float?
-          c68  Float?
-          c69  Int?
-          c7   String?
-          c70  Int?
-          c71  Int
-          c72  Int
-          c73  Int
-          c74  Int
-          c75  String?
-          c76  DateTime?
-          c77  DateTime?
-          c78  DateTime?
-          c79  DateTime?
-          c8   String?
-          c80  DateTime?
-          c81  DateTime?
-          c82  DateTime?
-          c83  DateTime?
-          c84  DateTime?
-          c85  DateTime?
-          c86  DateTime?
-          c87  DateTime?
-          c88  DateTime?
-          c89  DateTime?
-          c9   String?
-          c90  DateTime?
-          c91  String?
-          c92  String?
-          c93  String?
-          c94  String?
-          c95  String?
-          c96  Int[]
-          c97  Int[]
-        }
-      `,
       do: async client => {
         return client.crazy.findOne({ where: { variables_value_email_key: { value: 'c', email: 'd' } } })
       },
@@ -3464,22 +2070,6 @@ function tests(): Test[] {
       `,
       down: `
         drop table if exists teams cascade;
-      `,
-      schema: `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${tmp}"
-        }
-
-        datasource pg {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-
-        model teams {
-          id   Int     @id
-          name String?
-        }
       `,
       do: async client => {
         await client.teams.updateMany({
