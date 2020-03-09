@@ -7,7 +7,7 @@ import rimraf from 'rimraf'
 import fs from 'fs'
 import path from 'path'
 import snapshot from 'snap-shot-it'
-import Database from 'better-sqlite3'
+import sqlite from 'sqlite'
 import { getLatestAlphaTag } from '@prisma/fetch-engine'
 
 process.env.SKIP_GENERATE = 'true'
@@ -75,19 +75,19 @@ tests().map((t: Test) => {
     } catch (err) {
       throw err
     } finally {
-      const db = new Database(sqlitePath)
-      db.exec(t.down)
-      db.close()
+      const db = await sqlite.open(sqlitePath)
+      await db.exec(t.down)
+      await db.close()
     }
   }).timeout(15000)
 })
 
 async function runTest(name: string, t: Test) {
-  let db = new Database(sqlitePath)
+  let db = await sqlite.open(sqlitePath)
   // let db = new Database(sqlitePath, { verbose: console.log })
-  db.exec(t.down)
-  db.exec(t.up)
-  db.close()
+  await db.exec(t.down)
+  await db.exec(t.up)
+  await db.close()
 
   const schema = `
 generator client {
@@ -113,16 +113,16 @@ datasource sqlite {
   const { PrismaClient } = await import(prismaClientPath)
   const prisma = new PrismaClient()
   await prisma.connect()
-  db = new Database(sqlitePath)
+  db = await sqlite.open(sqlitePath)
   try {
     const result = await t.do(prisma)
-    db.exec(t.down)
+    await db.exec(t.down)
     assert.deepEqual(result, t.expect)
   } catch (err) {
     throw err
   } finally {
     await prisma.disconnect()
-    db.close()
+    await db.close()
   }
 }
 
