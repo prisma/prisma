@@ -7,7 +7,7 @@ import rimraf from 'rimraf'
 import fs from 'fs'
 import path from 'path'
 import snapshot from 'snap-shot-it'
-import sqlite from 'sqlite'
+import Database from 'sqlite-async'
 import { getLatestAlphaTag } from '@prisma/fetch-engine'
 
 process.env.SKIP_GENERATE = 'true'
@@ -75,7 +75,7 @@ tests().map((t: Test) => {
     } catch (err) {
       throw err
     } finally {
-      const db = await sqlite.open(sqlitePath)
+      const db = await Database.open(sqlitePath)
       await db.exec(t.down)
       await db.close()
     }
@@ -83,7 +83,7 @@ tests().map((t: Test) => {
 })
 
 async function runTest(name: string, t: Test) {
-  let db = await sqlite.open(sqlitePath)
+  let db = await Database.open(sqlitePath)
   // let db = new Database(sqlitePath, { verbose: console.log })
   await db.exec(t.down)
   await db.exec(t.up)
@@ -113,7 +113,7 @@ datasource sqlite {
   const { PrismaClient } = await import(prismaClientPath)
   const prisma = new PrismaClient()
   await prisma.connect()
-  db = await sqlite.open(sqlitePath)
+  db = await Database.open(sqlitePath)
   try {
     const result = await t.do(prisma)
     await db.exec(t.down)
