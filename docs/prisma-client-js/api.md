@@ -12,7 +12,8 @@ Prisma Client JS is a type-safe database client auto-generated based on your [da
 - [Bring your own ID](#bring-your-own-id)
 - [API Reference](#api-reference)
 - [Filtering](#filtering)
-- [Logging and debugging](#logging-and-debugging)
+- [Logging](#logging)
+- [Debugging](#debugging)
 - [Reusing query sub-parts](#reusing-query-sub-parts)
 - [Managing connections](#managing-connections)
 - [Error formatting](#error-formatting)
@@ -282,9 +283,10 @@ Creates a new `PrismaClient` instance.
 
 #### Options
 
-| Name    | Type                    | Required | Description                                                                                                                                                                                       |
-| ------- | ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |          |
-| `log`   | `boolean | LogOption[]` | No       | This allows to specify one of the following log levels: `INFO`, `WARN`, `QUERY`. If set to `true`, all log levels are applied. If set to `false`, no log levels are applied. **Default**: `true`. |
+| Name | Type | Required | Description |
+| ------- | ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | |
+| `log` | `Array<LogLevel | LogDefinition>` | No | This allows to specify one of the following log levels: `'info'`, `'warn'`, `'query'`. Learn more about logging [below](#logging). |
+| `errorFormat` | `ErrorFormat` | No | Specifies how Prisma Client should print errors. The following settings are possible: `'pretty'`, `'colorless'`, `'minimal'`. Learn more about error formatting [below](#error-formatting). |
 
 #### Examples
 
@@ -557,7 +559,7 @@ const result = await prisma.user.findMany({
 })
 ```
 
-## Logging and debugging
+## Logging
 
 You can view the generated database queries that Prisma Client JS sends to your database as well as other warnings and other information by configuring different log levels in the `PrismaClient` constructor. You can do this via the `log` option.
 
@@ -575,7 +577,7 @@ This logs all log levels:
 - `info`: Logs general information
 - `warn`: Logs warnings
 
-The `log` property has the following type: 
+The `log` property has the following type:
 
 ```ts
 log?: Array<LogLevel | LogDefinition>
@@ -591,7 +593,7 @@ type LogDefinition = {
 }
 ```
 
-By default, logs are printed to stdout so you can directly observe them. Alternatively, you can also configure event-based logging and observe the logs by providing a callback to the `on()` function.  
+By default, logs are printed to stdout so you can directly observe them. Alternatively, you can also configure event-based logging and observe the logs by providing a callback to the `on()` function.
 
 ### Logging to stdout
 
@@ -607,16 +609,20 @@ Since stdout is the default, the above code snippet is equivalent to the followi
 
 ```ts
 const prisma = new PrismaClient({
-  log: [{
-    emit: 'stdout',
-    level: 'query',
-  }, {
-    emit: 'stdout',
-    level: 'info',
-  }, {
-    emit: 'stdout',
-    level: 'warn',
-  }]
+  log: [
+    {
+      emit: 'stdout',
+      level: 'query',
+    },
+    {
+      emit: 'stdout',
+      level: 'info',
+    },
+    {
+      emit: 'stdout',
+      level: 'warn',
+    },
+  ],
 })
 ```
 
@@ -626,16 +632,20 @@ If you want to apply some custom logic to your logs, you can also set `emit` to 
 
 ```ts
 const prisma = new PrismaClient({
-  log: [{
-    emit: 'event',
-    level: 'query',
-  }, {
-    emit: 'event',
-    level: 'info',
-  }, {
-    emit: 'event',
-    level: 'warn',
-  }]
+  log: [
+    {
+      emit: 'event',
+      level: 'query',
+    },
+    {
+      emit: 'event',
+      level: 'info',
+    },
+    {
+      emit: 'event',
+      level: 'warn',
+    },
+  ],
 })
 
 // ... must now call prisma.on(...) in order to handle the logging events
@@ -649,10 +659,12 @@ Here is a sample snippet that shows how to log an incoming event `e` (for the lo
 
 ```ts
 const prisma = new PrismaClient({
-  log: [{
-    emit: 'event',
-    level: 'query',
-  }]
+  log: [
+    {
+      emit: 'event',
+      level: 'query',
+    },
+  ],
 })
 
 prisma.on('query', e => {
@@ -687,8 +699,8 @@ With the above configuration, assume you're sending the following query with Pri
 const allPosts = await prisma.post.findMany({
   where: { published: true },
   include: {
-    author: true
-  }
+    author: true,
+  },
 })
 ```
 
@@ -723,10 +735,12 @@ Here is a sample snippet that shows how to log an incoming event `e` (for the lo
 
 ```ts
 const prisma = new PrismaClient({
-  log: [{
-    emit: 'event',
-    level: 'info',
-  }]
+  log: [
+    {
+      emit: 'event',
+      level: 'info',
+    },
+  ],
 })
 
 prisma.on('info', e => {
@@ -753,10 +767,12 @@ Here is a sample snippet that shows how to log an incoming event `e` (for the lo
 
 ```ts
 const prisma = new PrismaClient({
-  log: [{
-    emit: 'event',
-    level: 'warn',
-  }]
+  log: [
+    {
+      emit: 'event',
+      level: 'warn',
+    },
+  ],
 })
 
 prisma.on('warn', e => {
@@ -775,6 +791,32 @@ export type LogEvent = {
   message: string
   target: string
 }
+```
+
+## Debugging
+
+You can enable debugging output in Prisma Client via the `DEBUG` environment variable. It accepts two namespace to print debugging output:
+
+- `engine`: Prints relevant debug messages happening in a Prisma [engine](https://github.com/prisma/prisma-engines/)
+- `prisma-client`: Prints relevant debug messages happening in the Prisma Client runtime
+
+Here are examples for setting these debugging options in bash:
+
+```bash
+# enable only `engine`-level debugging output
+export DEBUG="engine"
+
+# enable only `prisma-client`-level debugging output
+export DEBUG="prisma-client"
+
+# enable both `prisma-client`- and `engine`-level debugging output
+export DEBUG="prisma-client,engine"
+```
+
+If you want to enable all debugging options, you can also set `DEBUG` to `*`:
+
+```bash
+export DEBUG="*"
 ```
 
 ## Reusing query sub-parts
