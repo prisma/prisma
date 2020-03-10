@@ -119,7 +119,7 @@ Every _model_ in the data model definition will result in a number of CRUD opera
 
 The operations are accessible via a generated property on the Prisma Client JS instance. By default the name of the property is the plural, lowercase form of the model name, e.g. `users` for a `User` model or `posts` for a `Post` model.
 
-Here is an example illustrating the use of a `users` property from the [Prisma Client JS API](./prisma-client-js/api.md):
+Here is an example illustrating the use of a `user` property from the [Prisma Client JS API](./prisma-client-js/api.md):
 
 ```js
 const newUser = await prisma.user.create({
@@ -130,13 +130,13 @@ const newUser = await prisma.user.create({
 const allUsers = await prisma.user.findMany()
 ```
 
-Note that for Prisma Client JS the name of the `users` property is auto-generated using the [`pluralize`](https://github.com/blakeembrey/pluralize) package.
-
 ## IDs
 
-Every model in your Prisma schema needs to have a unique ID. In relational databases, this unique ID corresponds to a column with a primary key constraint. Note that [composite primary keys are not yet supported](https://github.com/prisma/prisma-client-js/issues/339) (but will be soon).
+You can add IDs to your models to be able to uniquely identify individual records of that model. In relational databases, this ID corresponds to a column with a primary key constraint. 
 
-To determine which field of a model is the ID field, you can annotate it with the `@id` attribute. Fields annotated with the `@id` attribute must be of type `String` or `Int`:
+IDs can be defined on a **single field** using `@id` or on **multiple fields** (also called composite or compound IDs) using `@@id`. Any model can at most have one ID, no matter if it's defined on a single field or on multiple fields. 
+
+To determine which field/fields of a model is/are the ID, you can annotate it with the `@id` attribute:
 
 ```prisma
 model User {
@@ -145,16 +145,7 @@ model User {
 }
 ```
 
-or
-
-```prisma
-model User {
-  id    Int     @id
-  name  String
-}
-```
-
-Note that in the above cases, you must provide your own ID values when creating new records for the `User` model using Prisma Client JS, e.g.:
+Note that in the above case, you must provide your own ID values when creating new records for the `User` model using Prisma Client JS, e.g.:
 
 ```ts
 const newUser = await prisma.user.create({
@@ -165,13 +156,35 @@ const newUser = await prisma.user.create({
 })
 ```
 
-However, you can also specify **default values for the IDs**. The following default values are supported:
+For a composite ID, you can use the following notation:
+
+```prisma
+model User {
+  firstName String
+  lastName  String
+
+  @@id([firstName, lastName])
+}
+```
+
+When creating new `User` records, you now must provide a unique combination of values for `firstName` and `lastName`:
+
+```ts
+const newUser = await prisma.user.create({
+  data: {
+    firstName: 'Alice',
+    lastName: 'Smith'
+  }
+})
+```
+
+You can also specify **default values for single-field IDs**. The following default values are supported:
 
 - `String`:
-  - `cuid`: Prisma will generate a globally unqiue identifier based on the [`cuid`](https://github.com/ericelliott/cuid) spec and set it as the record's ID value
-  - `uuid`: Prisma will generate a globally unqiue identifier based on the [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier) spec and set it as the record's ID value
+  - `cuid()`: Prisma will generate a globally unqiue identifier based on the [`cuid`](https://github.com/ericelliott/cuid) spec and set it as the record's ID value
+  - `uuid()`: Prisma will generate a globally unqiue identifier based on the [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier) spec and set it as the record's ID value
 - `Int`: 
-  - `autoincrement`: Prisma will create a sequence of integers in the underlying database and assign the incremented values to the ID values of the created records based on the sequence. This corresponds to e.g. using [`SERIAL`](https://www.postgresql.org/docs/9.1/datatype-numeric.html#DATATYPE-SERIAL) in PostgreSQL.
+  - `autoincrement()`: Prisma will create a sequence of integers in the underlying database and assign the incremented values to the ID values of the created records based on the sequence. This corresponds to e.g. using [`SERIAL`](https://www.postgresql.org/docs/9.1/datatype-numeric.html#DATATYPE-SERIAL) in PostgreSQL.
 
 Here are examples for using default values for the model:
 
@@ -199,7 +212,6 @@ model User {
   name  String
 }
 ```
-
 
 ## Fields
 
@@ -362,18 +374,42 @@ Here is a list of all available core **field** attributes:
 
 Here is a list of all available core **block** attributes:
 
+- `@@id(_ fields: Field[])`: Defines a primary key constraint on the specified fields/columns.
+- `@@unique(_ fields: Field[])`: Defines a unique constraint on the specified fields/columns.
 - `@@map(_ name: String)`: Defines the raw table name the field is mapped to.
 - `@@index(_ fields: Field[])`: Defines an index on the specified fields/columns.
 
 ### Connector attributes
 
-_Connector_ attributes let you use the native features of your data source. With a PostgreSQL database, you can use it for example to X.
+_Connector_ attributes let you use the native features of your data source. Right now no data source connectors support any custom attributes.
 
-Here is where you can find the documentation of connector attributes per data source connector:
+## Unique
 
-- [MySQL](./core/connectors/mysql.md)
-- [PostgreSQL](./core/connectors/postgresql.md)
-- [SQLite](./core/connectors/sqlite.md)
+You can configure unique constraints on a single field of a model using `@unique` or on multiple fields using `@@unique`. A model can have any number of `@unique` and/or `@@unique` constraints.
+
+When a unique constraint is defined, the database ensures that you can never have two records in the database that have the same value for the field or fields that is/are defined as unique.
+
+Here is an example for single-field unique constraint:
+
+```prisma
+model User {
+  id    Int    @id @default(autoincrement())
+  name  String
+  email String @unique
+}
+```
+
+Here is an example for multi-field unique constraint:
+
+```prisma
+model User {
+  id        Int    @id @default(autoincrement())
+  firstName String
+  lastName  String
+
+  @@unique([firstName, lastName])
+}
+```
 
 ## Indexes
 
