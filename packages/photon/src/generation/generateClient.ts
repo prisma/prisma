@@ -503,7 +503,7 @@ function validateDmmfAgainstDenylists(prismaClientDmmf) {
     }
   }
 
-  if (prismaClientDmmf.datamodel.enums) {
+  if (prismaClientDmmf.datamodel.models) {
     for (const it of prismaClientDmmf.datamodel.models) {
       if (
         denylists.models.includes(it.name) ||
