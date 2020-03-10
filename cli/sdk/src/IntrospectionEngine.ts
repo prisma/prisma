@@ -365,6 +365,13 @@ export class IntrospectionEngine {
           }
         }
       })
+      if (this.child!.stdin!.destroyed) {
+        throw new Error(
+          `Can't execute ${JSON.stringify(
+            request,
+          )} because introspection engine is destroyed.`,
+        )
+      }
       debugRpc('SENDING RPC CALL', JSON.stringify(request))
       this.child!.stdin!.write(JSON.stringify(request) + '\n')
       this.lastRequest = request
