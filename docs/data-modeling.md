@@ -7,6 +7,7 @@
 - [Fields](#fields)
 - [Enums](#enums)
 - [Attributes](#attributes)
+- [Unique](#unique)
 - [Indexes](#indexes)
 - [Functions](#functions)
 - [Scalar types](#scalar-types)
