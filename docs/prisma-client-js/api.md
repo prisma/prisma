@@ -284,7 +284,7 @@ Creates a new `PrismaClient` instance.
 #### Options
 
 | Name | Type | Required | Description |
-| ------- | ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | |
+| ------- | ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `log` | `Array<LogLevel | LogDefinition>` | No | This allows to specify one of the following log levels: `'info'`, `'warn'`, `'query'`. Learn more about logging [below](#logging). |
 | `errorFormat` | `ErrorFormat` | No | Specifies how Prisma Client should print errors. The following settings are possible: `'pretty'`, `'colorless'`, `'minimal'`. Learn more about error formatting [below](#error-formatting). |
 
