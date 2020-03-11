@@ -20,7 +20,8 @@ export async function getLatestAlphaTag() {
 }
 
 function getUrl(nextContinuationToken?: string) {
-  let url = 'https://prisma-builds.s3-eu-west-1.amazonaws.com/?list-type=2&prefix=master'
+  const prefix = process.env.PATCH_BRANCH ?? `master`
+  let url = `https://prisma-builds.s3-eu-west-1.amazonaws.com/?list-type=2&prefix=${prefix}`
 
   if (nextContinuationToken) {
     url += `&continuation-token=${encodeURIComponent(nextContinuationToken)}`
