@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@prisma/cli": "workspace:*",
-    "@prisma/client": "workspace:^2.0.0-alpha.898",
+    "@prisma/client": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/charm": "1.0.1",
@@ -42,9 +42,9 @@
     "@prisma/sdk": "*"
   },
   "dependencies": {
-    "@prisma/fetch-engine": "workspace:2.0.0-alpha.898",
-    "@prisma/get-platform": "workspace:2.0.0-alpha.898",
-    "@prisma/ink-components": "workspace:2.0.0-alpha.898",
+    "@prisma/fetch-engine": "workspace:*",
+    "@prisma/get-platform": "workspace:*",
+    "@prisma/ink-components": "workspace:*",
     "@prisma/studio-server": "0.206.0",
     "@prisma/studio-types": "0.206.0",
     "ansi-escapes": "4.2.1",
