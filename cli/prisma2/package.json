@@ -90,7 +90,6 @@
     "ncc": "ncc build dist/bin.js -o build -m",
     "ncc:download": "rm -rf download-build && ncc build scripts/download.js -o download-build --minify",
     "build": "pnpm run tsc && pnpm run ncc:download && rm -rf build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && bash scripts/copy-runtime.sh",
-    "prepublishOnly": "pnpm run download && pnpm run ncc:download && pnpm run install && pnpm run test && pnpm run build",
     "pkg": "pkg . -o pkg-build"
   }
 }
