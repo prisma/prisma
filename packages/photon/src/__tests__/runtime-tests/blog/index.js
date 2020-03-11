@@ -7,10 +7,14 @@ const {
 const assert = require('assert')
 
 module.exports = async () => {
+  const requests = []
   const prisma = new PrismaClient({
     errorFormat: 'colorless',
     __internal: {
       measurePerformance: true,
+      hooks: {
+        beforeRequest: request => requests.push(request),
+      },
     },
   })
 
@@ -21,9 +25,11 @@ module.exports = async () => {
   // Test connecting and disconnecting all the time
   await prisma.user.findMany()
   prisma.disconnect()
+  assert(requests.length === 1)
 
   await prisma.user.findMany()
   prisma.disconnect()
+  assert(requests.length === 2)
 
   const count = await prisma.user.count()
   assert(typeof count === 'number')
