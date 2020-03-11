@@ -5,7 +5,7 @@ const path = require('path')
 
 async function main() {
   const tag = await getLatestAlphaTag()
-  console.log(tag)
+  console.log('Updated local engines version to', tag)
   pkg.prisma = pkg.prisma || {}
   pkg.prisma.version = tag
   fs.writeFileSync(
