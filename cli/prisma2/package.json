@@ -74,7 +74,8 @@
     "tmp": "^0.1.0",
     "ts-jest": "^25.2.1",
     "ts-mocha": "6.0.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "sqlite3": "^4.1.1"
   },
   "scripts": {
     "test-sqlite": "./node_modules/.bin/mocha src/__tests__/integrate.sqlite.test.ts --require ts-mocha src/__tests__/integrate.sqlite.test.ts --timeout 10s",
@@ -91,8 +92,5 @@
     "ncc:download": "rm -rf download-build && ncc build scripts/download.js -o download-build --minify",
     "build": "pnpm run tsc && pnpm run ncc:download && rm -rf build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && bash scripts/copy-runtime.sh",
     "pkg": "pkg . -o pkg-build"
-  },
-  "dependencies": {
-    "sqlite3": "^4.1.1"
   }
 }
