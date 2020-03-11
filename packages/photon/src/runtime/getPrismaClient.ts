@@ -134,6 +134,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     engineConfig: EngineConfig
     private errorFormat: ErrorFormat
     private measurePerformance: boolean
+    private hooks?: Hooks
     constructor(optionsArg?: PrismaClientOptions) {
       const options: PrismaClientOptions = optionsArg ?? {}
       const internal = options.__internal ?? {}
@@ -141,6 +142,10 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       const useDebug = internal.debug === true
       if (useDebug) {
         debugLib.enable('prisma-client')
+      }
+
+      if (internal.hooks) {
+        this.hooks = internal.hooks
       }
 
       let predefinedDatasources = config.sqliteDatasourceOverrides ?? []
@@ -208,7 +213,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       debug({ engineConfig: this.engineConfig })
 
       this.engine = new NodeEngine(this.engineConfig)
-      this.fetcher = new PrismaClientFetcher(this, false)
+      this.fetcher = new PrismaClientFetcher(this, false, this.hooks)
 
       if (options.log) {
         for (const log of options.log) {
