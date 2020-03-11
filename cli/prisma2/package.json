@@ -35,7 +35,7 @@
   "devDependencies": {
     "@prisma/ci-info": "^2.1.1",
     "@prisma/cli": "workspace:*",
-    "@prisma/client": "workspace:^2.0.0-alpha.854",
+    "@prisma/client": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/introspection": "workspace:*",
