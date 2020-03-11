@@ -1,6 +1,6 @@
 {
   "name": "@prisma/generator-helper",
-  "version": "0.0.40",
+  "version": "2.0.0-alpha.900",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
