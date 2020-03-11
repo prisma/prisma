@@ -497,7 +497,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           aggregate: true,
         }
 
-        const delegate = Object.entries(mapping).reduce(
+        const delegate: any = Object.entries(mapping).reduce(
           (acc, [actionName, rootField]) => {
             if (!denyList[actionName]) {
               const operation = getOperation(actionName as any)
@@ -514,6 +514,15 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           },
           {},
         )
+
+        delegate.count = () =>
+          clients[mapping.model]({
+            operation: 'query',
+            actionName: 'count',
+            rootField: mapping.aggregate,
+            args: {},
+            dataPath: ['count'],
+          })
 
         this[lowerCaseModel] = delegate
       }

@@ -4,6 +4,7 @@ const {
   PrismaClientKnownRequestError,
   version,
 } = require('@prisma/client')
+const assert = require('assert')
 
 module.exports = async () => {
   const prisma = new PrismaClient({
@@ -23,6 +24,9 @@ module.exports = async () => {
 
   await prisma.user.findMany()
   prisma.disconnect()
+
+  const count = await prisma.user.count()
+  assert(typeof count === 'number')
 
   prisma.connect()
   await prisma.disconnect()
