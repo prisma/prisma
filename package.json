@@ -42,7 +42,7 @@
     "@prisma/sdk": "*"
   },
   "dependencies": {
-    "@prisma/fetch-engine": "workspace:0.3.34",
+    "@prisma/fetch-engine": "workspace:0.3.62",
     "@prisma/get-platform": "workspace:0.1.29",
     "@prisma/ink-components": "workspace:0.0.22",
     "@prisma/studio-server": "0.202.0",
