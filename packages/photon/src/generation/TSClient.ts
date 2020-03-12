@@ -175,7 +175,6 @@ interface Generatable {
 
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFClass
-  protected readonly version?: string
   protected readonly dmmfString: string
   constructor(protected readonly options: TSClientOptions) {
     this.dmmfString = escapeJson(JSON.stringify(options.document))
@@ -186,7 +185,6 @@ export class TSClient implements Generatable {
     const {
       version,
       generator,
-      platforms,
       sqliteDatasourceOverrides,
       outputDir,
       schemaDir,
@@ -199,7 +197,7 @@ export class TSClient implements Generatable {
       relativePath: path.relative(outputDir, schemaDir),
     }
 
-    return `${commonCodeJS(this.options.runtimePath, this.version)}
+    return `${commonCodeJS(this.options.runtimePath, this.options.version)}
 
 /**
  * Build tool annotations
@@ -251,7 +249,7 @@ const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient`
   }
   public toTS() {
-    return `${commonCodeTS(this.options.runtimePath, this.version)}
+    return `${commonCodeTS(this.options.runtimePath, this.options.version)}
 
 /**
  * Client
