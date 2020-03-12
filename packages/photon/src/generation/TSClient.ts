@@ -637,7 +637,7 @@ ${indent(
 
 export class Model implements Generatable {
   protected outputType?: OutputType
-  protected mapping: DMMF.Mapping
+  protected mapping?: DMMF.Mapping
   constructor(
     protected readonly model: DMMF.Model,
     protected readonly dmmf: DMMFClass,
@@ -648,6 +648,10 @@ export class Model implements Generatable {
   }
   protected get argsTypes() {
     const { mapping, model } = this
+    if (!mapping) {
+      return []
+    }
+
     const argsTypes: Generatable[] = []
     for (const action in DMMF.ModelAction) {
       const fieldName = mapping[action]
@@ -946,8 +950,12 @@ export class ModelDelegate implements Generatable {
   ) {}
   public toTS() {
     const { fields, name } = this.outputType
+    // TODO: Turn O(n^2) to O(n)
     const mapping = this.dmmf.mappings.find(m => m.model === name)!
-    const model = this.dmmf.datamodel.models.find(m => m.name === name)!
+    if (!mapping) {
+      return ''
+    }
+    const model = this.dmmf.modelMap[name]
 
     const actions = Object.entries(mapping).filter(
       ([key, value]) =>

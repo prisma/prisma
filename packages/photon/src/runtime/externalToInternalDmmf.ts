@@ -31,9 +31,10 @@ function transformDatamodel(datamodel: ExternalDMMF.Datamodel): DMMF.Datamodel {
 export function externalToInternalDmmf(
   document: ExternalDMMF.Document,
 ): DMMF.Document {
+  const datamodel = transformDatamodel(document.datamodel)
   return {
-    datamodel: transformDatamodel(document.datamodel),
-    mappings: getMappings(document.mappings),
+    datamodel,
+    mappings: getMappings(document.mappings, datamodel),
     schema: transformSchema(document.schema),
   }
 }
@@ -79,18 +80,29 @@ function transformArg(argBefore: ExternalDMMF.SchemaArg): DMMF.SchemaArg {
   }
 }
 
-function getMappings(mappings: ExternalDMMF.Mapping[]): DMMF.Mapping[] {
-  return mappings.map((mapping: any) => ({
-    model: mapping.model,
-    plural: pluralize(lowerCase(mapping.model)),
-    findOne: mapping.findSingle || mapping.findOne,
-    findMany: mapping.findMany,
-    create: mapping.createOne || mapping.createSingle || mapping.create,
-    delete: mapping.deleteOne || mapping.deleteSingle || mapping.delete,
-    update: mapping.updateOne || mapping.updateSingle || mapping.update,
-    deleteMany: mapping.deleteMany,
-    updateMany: mapping.updateMany,
-    upsert: mapping.upsertOne || mapping.upsertSingle || mapping.upsert,
-    aggregate: mapping.aggregate,
-  }))
+function getMappings(
+  mappings: ExternalDMMF.Mapping[],
+  datamodel: DMMF.Datamodel,
+): DMMF.Mapping[] {
+  return mappings
+    .filter(mapping => {
+      const model = datamodel.models.find(m => m.name === mapping.model)
+      if (!model) {
+        throw new Error(`Mapping without model ${mapping.model}`)
+      }
+      return model.fields.some(f => f.kind !== 'object')
+    })
+    .map((mapping: any) => ({
+      model: mapping.model,
+      plural: pluralize(lowerCase(mapping.model)),
+      findOne: mapping.findSingle || mapping.findOne,
+      findMany: mapping.findMany,
+      create: mapping.createOne || mapping.createSingle || mapping.create,
+      delete: mapping.deleteOne || mapping.deleteSingle || mapping.delete,
+      update: mapping.updateOne || mapping.updateSingle || mapping.update,
+      deleteMany: mapping.deleteMany,
+      updateMany: mapping.updateMany,
+      upsert: mapping.upsertOne || mapping.upsertSingle || mapping.upsert,
+      aggregate: mapping.aggregate,
+    }))
 }
