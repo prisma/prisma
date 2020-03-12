@@ -18,6 +18,18 @@ export interface ConfigMetaFormat {
   generators: GeneratorConfig[]
 }
 
+/**
+ * This annotation is used for `node-file-trace`
+ * See https://github.com/zeit/node-file-trace/issues/104
+ */
+const platform = 'placeholder'
+
+path.join(__dirname, '../query-engine', platform)
+path.join(__dirname, '../introspection-engine', platform)
+
+/**
+ * Dynamic path resolution
+ */
 async function getPrismaPath(): Promise<string> {
   // tslint:disable-next-line
   if (process.env.PRISMA_QUERY_ENGINE_BINARY) {
