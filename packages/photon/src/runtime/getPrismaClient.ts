@@ -618,6 +618,7 @@ class PrismaClientFetcher {
         } else if (e instanceof PrismaClientRustPanicError) {
           throw new PrismaClientRustPanicError(this.sanitizeMessage(message))
         }
+        throw new PrismaClientUnknownRequestError(message)
       } else {
         if (e.code) {
           throw new PrismaClientKnownRequestError(
@@ -644,6 +645,7 @@ class PrismaClientFetcher {
           }
         }
       }
+      throw e
     }
   }
   sanitizeMessage(message) {
