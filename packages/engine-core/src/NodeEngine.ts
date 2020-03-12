@@ -575,12 +575,19 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
 
     return this.currentRequestPromise
       .then(data => {
-        return data.map(result => {
-          if (result.errors) {
-            return this.graphQLToJSError(result.errors[0])
+        if (Array.isArray(data)) {
+          return data.map(result => {
+            if (result.errors) {
+              return this.graphQLToJSError(result.errors[0])
+            }
+            return result
+          })
+        } else {
+          if (data.errors && data.errors.length === 1) {
+            throw new Error(data.errors[0].error)
           }
-          return result
-        })
+          throw new Error(JSON.stringify(data))
+        }
       })
       .catch(error => {
         debug({ error })

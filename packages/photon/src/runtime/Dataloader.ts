@@ -34,12 +34,18 @@ export class Dataloader {
 
     this.loader(batch.map(j => j.request))
       .then(results => {
-        for (let i = 0; i < batch!.length; i++) {
-          const value = results[i]
-          if (value instanceof Error) {
-            batch![i].reject(value)
-          } else {
-            batch![i].resolve(value)
+        if (results instanceof Error) {
+          for (let i = 0; i < batch!.length; i++) {
+            batch![i].reject(results)
+          }
+        } else {
+          for (let i = 0; i < batch!.length; i++) {
+            const value = results[i]
+            if (value instanceof Error) {
+              batch![i].reject(value)
+            } else {
+              batch![i].resolve(value)
+            }
           }
         }
       })
