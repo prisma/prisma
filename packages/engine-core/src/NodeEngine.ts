@@ -558,7 +558,62 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
       .join('\n')
   }
 
-  async request<T>(queries: string[]): Promise<T> {
+  async request<T>(query: string): Promise<T> {
+    await this.start()
+
+    if (!this.child) {
+      throw new PrismaClientUnknownRequestError(`Can't perform request, as the Engine has already been stopped`)
+    }
+
+    const variables = {}
+    const body = {
+      query,
+      variables,
+    }
+
+    const post = bent(this.url, 'POST', 'json', 200)
+    this.currentRequestPromise = post('/', body)
+
+    return this.currentRequestPromise
+      .then(data => {
+        if (data.errors && data.errors.length === 1) {
+          if (data.errors.length === 1) {
+            throw new Error(data.errors[0].error)
+          }
+          throw new Error(JSON.stringify(data.errorrs))
+        }
+
+        return data
+      })
+      .catch(error => {
+        debug({ error })
+        if (this.currentRequestPromise.isCanceled && this.lastError) {
+          // TODO: Replace these errors with known or unknown request errors
+          if (this.lastError.is_panic) {
+            throw new PrismaClientRustPanicError(getMessage(this.lastError))
+          } else {
+            throw new PrismaClientUnknownRequestError(getMessage(this.lastError))
+          }
+        }
+        if (this.currentRequestPromise.isCanceled && this.lastErrorLog) {
+          throw new PrismaClientUnknownRequestError(getMessage(this.lastErrorLog))
+        }
+        if ((error.code && error.code === 'ECONNRESET') || error.code === 'ECONNREFUSED') {
+          if (this.lastError) {
+            throw new PrismaClientUnknownRequestError(getMessage(this.lastError))
+          }
+          if (this.lastErrorLog) {
+            throw new PrismaClientUnknownRequestError(getMessage(this.lastErrorLog))
+          }
+          const logs = this.stderrLogs || this.stdoutLogs
+          throw new PrismaClientUnknownRequestError(logs)
+        }
+
+        throw error
+      })
+  }
+
+  async requestBatch<T>(queries: string[]): Promise<T> {
     await this.start()
 
     if (!this.child) {
