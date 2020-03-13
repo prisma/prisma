@@ -551,7 +551,14 @@ class PrismaClientFetcher {
       // We should e.g. make sure, that findOne queries are batched together
       await this.prisma.connect()
       const queries = requests.map(r => String(r.document))
-      return this.prisma.engine.request(queries)
+
+      // only batch if necessary
+      if (queries.length === 1) {
+        const result = await this.prisma.engine.request(queries[0])
+        return [result]
+      } else {
+        return this.prisma.engine.requestBatch(queries)
+      }
     })
   }
   async request({
