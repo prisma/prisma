@@ -576,9 +576,9 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
 
     return this.currentRequestPromise
       .then(data => {
-        if (data.errors && data.errors.length === 1) {
+        if (data.errors) {
           if (data.errors.length === 1) {
-            throw new Error(data.errors[0].error)
+            throw this.graphQLToJSError(data.errors[0])
           }
           throw new Error(JSON.stringify(data.errorrs))
         }
