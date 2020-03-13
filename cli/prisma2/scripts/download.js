@@ -5,21 +5,50 @@ const pkgUp = require('pkg-up')
 const Debug = require('debug')
 const debug = Debug('prisma2:download')
 
-const binaryPath = eval(`require('path').join(__dirname, '../')`)
-const pkg = eval(`require(require('path').join(binaryPath, 'package.json'))`)
+const binaryDir = eval(`require('path').join(__dirname, '../')`)
+const pkg = eval(`require(require('path').join(binaryDir, 'package.json'))`)
 
 const version = (pkg && pkg.prisma && pkg.prisma.version) || 'latest'
 
-download({
-  binaries: {
-    'query-engine': binaryPath,
-    'migration-engine': binaryPath,
-    'introspection-engine': binaryPath,
-  },
-  showProgress: true,
-  version,
-  failSilent: true,
-})
+const lockFile = path.join(binaryDir, 'download-lock')
+
+let createdLockFile = false
+async function main() {
+  if (fs.existsSync(lockFile) && JSON.parse(fs.readFileSync(lockFile) > Date.now() - 20000)) {
+    debug(`Lock file already exists, so we're skipping the download of the prisma2 binaries`)
+  } else {
+    createLockFile()
+    await download({
+      binaries: {
+        'query-engine': binaryDir,
+        'migration-engine': binaryDir,
+        'introspection-engine': binaryDir,
+      },
+      showProgress: true,
+      version,
+      failSilent: true,
+    }).catch(e => debug(e))
+
+    cleanupLockFile()
+  }
+}
+
+function createLockFile() {
+  createdLockFile = true
+  fs.writeFileSync(lockFile, Date.now())
+}
+
+function cleanupLockFile() {
+  if (createdLockFile) {
+    try {
+      fs.unlinkSync(lockFile)
+    } catch (e) {
+      debug(e)
+    }
+  }
+}
+
+main()
 
 // if we are in a Now context, ensure that `prisma2 generate` is in the postinstall hook
 if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
@@ -71,3 +100,12 @@ function addPostInstallHook(pkgPath) {
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
   return true
 }
+
+process.on('beforeExit', () => {
+  cleanupLockFile()
+})
+
+process.once('SIGINT', () => {
+  cleanupLockFile()
+  process.exit()
+})
