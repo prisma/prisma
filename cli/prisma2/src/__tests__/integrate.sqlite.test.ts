@@ -9,6 +9,8 @@ import path from 'path'
 import snapshot from 'snap-shot-it'
 import Database from 'sqlite-async'
 import { getLatestAlphaTag } from '@prisma/fetch-engine'
+const prismaClientVersion = require('@prisma/client/package.json').version
+const engineVersion = require('../../package.json').prisma.version
 
 process.env.SKIP_GENERATE = 'true'
 
@@ -110,7 +112,10 @@ datasource sqlite {
 
   // clear the require cache
   delete require.cache[prismaClientPath]
-  const { PrismaClient } = await import(prismaClientPath)
+  const { PrismaClient, version } = await import(prismaClientPath)
+  assert(version.client === prismaClientVersion)
+  assert(version.engine === engineVersion)
+
   const prisma = new PrismaClient()
   await prisma.connect()
   db = await Database.open(sqlitePath)

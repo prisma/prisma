@@ -30,7 +30,7 @@
   },
   "bin": "build/index.js",
   "prisma": {
-    "version": "377df4fe30aa992f13f1ba152cf83d5770bdbc85"
+    "version": "4ff8379527ec7797e7bb5b55d374f82f5812a6f9"
   },
   "devDependencies": {
     "@prisma/ci-info": "^2.1.1",
