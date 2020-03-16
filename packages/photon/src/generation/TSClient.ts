@@ -358,9 +358,7 @@ class PrismaClientClass implements Generatable {
  * \`\`\`
  * const prisma = new PrismaClient()
  * // Fetch zero or more ${capitalize(example.plural)}
- * const ${lowerCase(example.plural)} = await prisma.${lowerCase(
-      example.model,
-    )}.findMany()
+ * const ${lowerCase(example.plural)} = await prisma.${example.model}.findMany()
  * \`\`\`
  *
  * 
@@ -508,7 +506,7 @@ ${indent(
   dmmf.mappings
     .filter(m => m.findMany)
     .map(m => {
-      const methodName = lowerCase(m.model)
+      const methodName = m.model
       return `\
 /**
  * \`prisma.${methodName}\`: Exposes CRUD operations for the **${
@@ -805,7 +803,7 @@ function getMethodJSDocBody(
   const singular = capitalize(mapping.model)
   const plural = capitalize(mapping.plural)
   const firstScalar = model.fields.find(f => f.kind === 'scalar')
-  const method = `prisma.${lowerCase(mapping.model)}.${action}`
+  const method = `prisma.${mapping.model}.${action}`
 
   switch (action) {
     case DMMF.ModelAction.create:

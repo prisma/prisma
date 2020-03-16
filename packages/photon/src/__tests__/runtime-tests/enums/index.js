@@ -15,7 +15,7 @@ module.exports = async () => {
 
   prisma.on('query', e => queryEvents.push(e))
 
-  const result = await prisma.user.findMany({
+  const result = await prisma.User.findMany({
     where: {
       favoriteTree: {
         in: ['ARBORVITAE'],
