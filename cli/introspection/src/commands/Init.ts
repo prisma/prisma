@@ -1,4 +1,4 @@
-import { Command, arg, format, HelpError } from '@prisma/cli'
+import { Command, arg, format, HelpError } from '@prisma/sdk'
 import { isError } from 'util'
 import fs from 'fs'
 import path from 'path'

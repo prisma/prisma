@@ -7,7 +7,6 @@
   "repository": "git@github.com:prisma/prisma2.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/cli": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
@@ -33,7 +32,6 @@
     "typescript": "^3.8.3"
   },
   "peerDependencies": {
-    "@prisma/cli": "*",
     "@prisma/generator-helper": "*",
     "@prisma/migrate": "*",
     "@prisma/sdk": "*"

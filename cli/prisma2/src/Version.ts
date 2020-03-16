@@ -1,4 +1,4 @@
-import { Command } from '@prisma/cli'
+import { Command } from '@prisma/sdk'
 const packageJson = require('../package.json')
 
 /**

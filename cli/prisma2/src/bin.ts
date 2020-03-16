@@ -5,7 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
-import { arg } from '@prisma/cli'
+import { arg } from '@prisma/sdk'
 const packageJson = require('../package.json')
 
 export { byline } from '@prisma/migrate'
@@ -70,7 +70,7 @@ if (process.argv.length > 2) {
 /**
  * Dependencies
  */
-import { isError, HelpError } from '@prisma/cli'
+import { isError, HelpError } from '@prisma/sdk'
 import { LiftCommand, LiftSave, LiftUp, LiftDown, LiftTmpPrepare, StudioCommand, handlePanic } from '@prisma/migrate'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'

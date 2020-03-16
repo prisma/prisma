@@ -3,7 +3,7 @@
 /**
  * Dependencies
  */
-import { isError, HelpError, arg } from '@prisma/cli'
+import { isError, HelpError, arg } from '@prisma/sdk'
 import { Init } from './commands/Init'
 import { Introspect } from './commands/Introspect'
 

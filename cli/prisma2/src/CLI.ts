@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { Command, Commands, arg, isError, format, HelpError, unknownCommand } from '@prisma/cli'
+import { Command, Commands, arg, isError, format, HelpError, unknownCommand } from '@prisma/sdk'
 import { Version } from './Version'
 import { download } from '@prisma/fetch-engine'
 import { link } from '@prisma/sdk'
