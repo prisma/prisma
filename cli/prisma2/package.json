@@ -40,6 +40,7 @@
     "@prisma/introspection": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
+    "@prisma/get-platform": "workspace:*",
     "@prisma/studio": "0.206.0",
     "@prisma/studio-server": "0.206.0",
     "@prisma/studio-transports": "0.206.0",
