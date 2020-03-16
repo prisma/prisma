@@ -44,7 +44,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       console.log({ prismaClientDir })
     }
 
-    if (!prismaClientDir) {
+    if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
       if (
         !fs.existsSync(path.join(process.cwd(), 'package.json')) &&
         !fs.existsSync(path.join(process.cwd(), '../package.json'))
@@ -88,6 +88,15 @@ Please try to install it by hand with ${chalk.bold.greenBright(
         `\n✔ Installed the ${chalk.bold.green(
           '@prisma/client',
         )} and ${chalk.bold.green('prisma2')} packages in your project`,
+      )
+    }
+
+    if (!prismaClientDir) {
+      throw new Error(
+        `Could not resolve @prisma/client. 
+Please try to install it with ${chalk.bold.greenBright(
+          'npm install @prisma/client',
+        )} and rerun ${chalk.bold('prisma2 generate')} 🙏.`,
       )
     }
 
