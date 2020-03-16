@@ -3,13 +3,18 @@ import retry from 'p-retry'
 import fetch from 'node-fetch'
 import fs from 'fs'
 import { getProxyAgent } from './getProxyAgent'
+import tempy from 'tempy'
+import path from 'path'
+import Debug from 'debug'
+const debug = Debug('downloadZip')
 
 export async function downloadZip(
   url: string,
   target: string,
   progressCb?: (progress: number) => any,
 ): Promise<string> {
-  const partial = target + '.partial'
+  const tmpDir = tempy.directory()
+  const partial = path.join(tmpDir, 'partial')
   const result = await retry(
     async () => {
       try {
@@ -54,5 +59,13 @@ export async function downloadZip(
     } as any,
   )
   fs.renameSync(partial, target)
+
+  // it's ok if the unlink fails
+  try {
+    fs.unlinkSync(tmpDir)
+  } catch (e) {
+    debug(e)
+  }
+
   return result as string
 }
