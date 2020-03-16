@@ -36,13 +36,14 @@ export interface GenerateClientOptions {
   transpile?: boolean
   runtimePath?: string
   outputDir: string
-  version?: string
   generator?: GeneratorConfig
   dmmf: DMMF.Document
   datasources: DataSource[]
   binaryPaths: BinaryPaths
   testMode?: boolean
   copyRuntime?: boolean
+  engineVersion: string
+  clientVersion: string
 }
 
 export interface BuildClientResult {
@@ -53,15 +54,15 @@ export interface BuildClientResult {
 export async function buildClient({
   datamodel,
   schemaDir = process.cwd(),
-  transpile = false,
   runtimePath = './runtime',
   browser = false,
   binaryPaths,
   outputDir,
   generator,
-  version,
   dmmf,
   datasources,
+  engineVersion,
+  clientVersion,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
 
@@ -77,9 +78,10 @@ export async function buildClient({
     ),
     generator,
     platforms: Object.keys(binaryPaths.queryEngine!),
-    version,
     schemaDir,
     outputDir,
+    clientVersion,
+    engineVersion,
   })
 
   const fileMap = {
@@ -101,13 +103,14 @@ export async function generateClient({
   transpile,
   runtimePath,
   browser,
-  version = 'latest',
   generator,
   dmmf,
   datasources,
   binaryPaths,
   testMode,
   copyRuntime,
+  clientVersion,
+  engineVersion,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   runtimePath = runtimePath || './runtime'
   const { prismaClientDmmf, fileMap } = await buildClient({
@@ -119,10 +122,11 @@ export async function generateClient({
     browser,
     outputDir,
     generator,
-    version,
     dmmf,
     datasources,
     binaryPaths,
+    clientVersion,
+    engineVersion,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
