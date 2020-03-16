@@ -58,10 +58,11 @@ export async function downloadZip(
       onFailedAttempt: err => console.error(err),
     } as any,
   )
-  fs.renameSync(partial, target)
+  fs.copyFileSync(partial, target)
 
   // it's ok if the unlink fails
   try {
+    fs.unlinkSync(partial)
     fs.unlinkSync(tmpDir)
   } catch (e) {
     debug(e)
