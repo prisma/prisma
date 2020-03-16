@@ -1,4 +1,4 @@
-import { arg, Command, format, HelpError } from '@prisma/cli'
+import { arg, Command, format, HelpError } from '@prisma/sdk'
 import chalk from 'chalk'
 import Debug from 'debug'
 import { Lift } from '../../Lift'

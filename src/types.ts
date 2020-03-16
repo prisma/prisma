@@ -1,4 +1,4 @@
-import { GeneratorDefinition } from '@prisma/cli'
+import { GeneratorDefinition } from '@prisma/sdk'
 
 export type DatamodelStep = CreateModelStep | CreateFieldStep
 

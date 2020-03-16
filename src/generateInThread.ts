@@ -1,5 +1,5 @@
 import { fork } from 'child_process'
-import { GeneratorOptions } from '@prisma/cli'
+import { GeneratorOptions } from '@prisma/sdk'
 import fs from 'fs'
 import { promisify } from 'util'
 

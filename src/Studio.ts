@@ -3,7 +3,7 @@ import fs from 'fs'
 import getPort from 'get-port'
 import path from 'path'
 
-import { getSchemaPathSync } from '@prisma/cli'
+import { getSchemaPathSync } from '@prisma/sdk'
 import { getPlatform } from '@prisma/get-platform'
 import { ProviderAliases } from '@prisma/sdk'
 

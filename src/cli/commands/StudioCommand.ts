@@ -1,4 +1,4 @@
-import { arg, Command, Dictionary, format, HelpError, isError } from '@prisma/cli'
+import { arg, Command, Dictionary, format, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
 import open from 'open'
 
@@ -14,7 +14,9 @@ export class StudioCommand implements Command {
   private static help = format(`
     Browse your data with Studio
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold('Prisma\'s studio functionality is currently in an experimental state.')}
+    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
+    "Prisma's studio functionality is currently in an experimental state.",
+  )}
     ${chalk.dim('When using any of the commands below you need to explicitly opt-in via the --experimental flag.')}
 
     ${chalk.bold('Usage')}
@@ -57,7 +59,7 @@ export class StudioCommand implements Command {
     if (isError(args)) {
       return this.help(args.message)
     }
-    
+
     if (args['--help']) {
       return this.help()
     }
@@ -69,7 +71,7 @@ export class StudioCommand implements Command {
     const port = args['--port'] || 5555
 
     const studio = new Studio({
-      schemaPath: args['--schema'], 
+      schemaPath: args['--schema'],
       port,
     })
 

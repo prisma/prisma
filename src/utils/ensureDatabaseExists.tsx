@@ -1,5 +1,5 @@
 import path from 'path'
-import { getSchema, getSchemaDir } from '@prisma/cli'
+import { getSchema, getSchemaDir } from '@prisma/sdk'
 import { BorderBox, DummySelectable, TabIndexProvider } from '@prisma/ink-components'
 import { getConfig } from '@prisma/sdk'
 import ansiEscapes from 'ansi-escapes'
@@ -15,7 +15,12 @@ import { DatabaseCredentials, uriToCredentials } from '@prisma/sdk'
 
 export type LiftAction = 'create' | 'apply' | 'unapply' | 'dev'
 
-export async function ensureDatabaseExists(action: LiftAction, killInk: boolean, forceCreate: boolean = false, schemaPath?: string) {
+export async function ensureDatabaseExists(
+  action: LiftAction,
+  killInk: boolean,
+  forceCreate: boolean = false,
+  schemaPath?: string,
+) {
   const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel })
   const activeDatasource =
