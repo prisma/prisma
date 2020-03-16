@@ -55,7 +55,7 @@ export class LiftEngine {
     schemaPath,
   }: LiftEngineOptions) {
     this.projectDir = projectDir
-    this.binaryPath = binaryPath || process.env.PRISMA_INTROSPECTION_ENGINE_BINARY
+    this.binaryPath = binaryPath || process.env.PRISMA_MIGRATION_ENGINE_BINARY
     this.schemaPath = schemaPath
     if (debug) {
       debugLib.enable('LiftEngine*')
@@ -144,9 +144,7 @@ export class LiftEngine {
       `migration-engine-${platform}${extension}`,
     )
     if (!fs.existsSync(this.binaryPath)) {
-      throw new Error(
-        `Expected migration engine at ${this.binaryPath} does not exist.`,
-      )
+      throw new Error(`Expected migration engine at ${this.binaryPath} does not exist.`)
     }
     return this.binaryPath
   }
