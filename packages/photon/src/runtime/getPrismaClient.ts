@@ -28,7 +28,6 @@ import { parse as parseDotEnv } from 'dotenv'
 import { GeneratorConfig } from '@prisma/generator-helper/dist/types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
-import { lowerCase } from './utils/common'
 import { deepSet } from './utils/deep-set'
 import { Dataloader } from './Dataloader'
 import { printStack } from './utils/printStack'
@@ -345,7 +344,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }
     private bootstrapClient() {
       const clients = this.dmmf.mappings.reduce((acc, mapping) => {
-        const lowerCaseModel = lowerCase(mapping.model)
         const model = this.dmmf.modelMap[mapping.model]
 
         if (!model) {
@@ -364,7 +362,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           isList = isList ?? false
 
           const callsite = new Error().stack
-          const clientMethod = `${lowerCaseModel}.${actionName}`
+          const clientMethod = `${mapping.model}.${actionName}`
 
           let document = makeDocument({
             dmmf: this.dmmf,
@@ -377,7 +375,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             document.validate(
               args,
               false,
-              `${lowerCaseModel}.${actionName}`,
+              `${mapping.model}.${actionName}`,
               /* errorFormat */ undefined,
             )
           } catch (e) {
@@ -493,8 +491,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }, {})
 
       for (const mapping of this.dmmf.mappings) {
-        const lowerCaseModel = lowerCase(mapping.model)
-
         const denyList = {
           model: true,
           plural: true,
@@ -528,7 +524,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             dataPath: ['count'],
           })
 
-        this[lowerCaseModel] = delegate
+        this[mapping.model] = delegate
       }
     }
   }

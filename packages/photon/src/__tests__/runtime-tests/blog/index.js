@@ -23,15 +23,15 @@ module.exports = async () => {
   }
 
   // Test connecting and disconnecting all the time
-  await prisma.user.findMany()
+  await prisma.User.findMany()
   prisma.disconnect()
   assert(requests.length === 1)
 
-  await prisma.user.findMany()
+  await prisma.User.findMany()
   prisma.disconnect()
   assert(requests.length === 2)
 
-  const count = await prisma.user.count()
+  const count = await prisma.User.count()
   assert(typeof count === 'number')
 
   prisma.connect()
@@ -40,7 +40,7 @@ module.exports = async () => {
   await new Promise(r => setTimeout(r, 200))
   prisma.connect()
 
-  const userPromise = prisma.user.findMany()
+  const userPromise = prisma.User.findMany()
   await userPromise
   // @ts-ignore
   const perfResults = userPromise._collectTimestamps.getResults()
@@ -75,7 +75,7 @@ module.exports = async () => {
   // Test validation errors
   let validationError
   try {
-    await prisma.post.create({
+    await prisma.Post.create({
       data: {},
     })
   } catch (e) {
@@ -92,7 +92,7 @@ module.exports = async () => {
   // Test known request error
   let knownRequestError
   try {
-    const result = await prisma.user.create({
+    const result = await prisma.User.create({
       data: {
         email: 'a@a.de',
         name: 'Alice',
@@ -109,7 +109,7 @@ module.exports = async () => {
       throw new Error(`Known request error is incorrect`)
     } else {
       if (
-        !knownRequestError.message.includes('Invalid `prisma.user.create()`')
+        !knownRequestError.message.includes('Invalid `prisma.User.create()`')
       ) {
         throw new Error(`Invalid error: ${knownRequestError.message}`)
       }
