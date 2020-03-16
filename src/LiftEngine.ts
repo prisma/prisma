@@ -55,7 +55,7 @@ export class LiftEngine {
     schemaPath,
   }: LiftEngineOptions) {
     this.projectDir = projectDir
-    this.binaryPath = binaryPath || process.env.PRISMA_MIGRATION_ENGINE_BINARY
+    this.binaryPath = process.env.PRISMA_MIGRATION_ENGINE_BINARY || binaryPath
     this.schemaPath = schemaPath
     if (debug) {
       debugLib.enable('LiftEngine*')
