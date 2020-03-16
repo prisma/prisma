@@ -1,4 +1,4 @@
-import { Command, format, HelpError, getSchemaPath, arg } from '@prisma/cli'
+import { Command, format, HelpError, getSchemaPath, arg } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
 import { IntrospectionEngine, uriToCredentials, ConfigMetaFormat, RustPanic, ErrorArea } from '@prisma/sdk'

@@ -1,6 +1,0 @@
-node_modules
-yarn-error.log
-dist
-build
-.DS_Store
-download-build

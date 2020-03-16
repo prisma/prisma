@@ -24,3 +24,25 @@ export { RustPanic, ErrorArea } from './panic'
 export { link } from './link'
 export { sendPanic } from './sendPanic'
 export { maskSchema } from './utils/maskSchema'
+
+export { HelpError, unknownCommand } from './cli/Help'
+export {
+  Command,
+  Commands,
+  GeneratorFunction,
+  GeneratorConfig,
+  GeneratorDefinition,
+  GeneratorDefinitionWithPackage,
+  GeneratorOptions,
+  Dictionary,
+  CompiledGeneratorDefinition,
+} from './cli/types'
+export { arg, format, isError } from './cli/utils'
+export {
+  getSchemaPath,
+  getSchemaDir,
+  getSchema,
+  getSchemaPathSync,
+  getSchemaSync,
+  getSchemaDirSync,
+} from './cli/getSchema'

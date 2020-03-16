@@ -1,4 +1,4 @@
-import { Command, arg, format, HelpError, getSchemaPath, isError } from '@prisma/cli'
+import { Command, arg, format, HelpError, getSchemaPath, isError } from '@prisma/sdk'
 import chalk from 'chalk'
 import logUpdate from 'log-update'
 import { missingGeneratorMessage, getGenerators, highlightTS, link } from '@prisma/sdk'
