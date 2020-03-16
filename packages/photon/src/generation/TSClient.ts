@@ -42,7 +42,17 @@ export function TS(gen: Generatable): string {
   return gen.toTS()
 }
 
-const commonCodeJS = (runtimePath: string, version?: string) => `
+interface CommonCodeParams {
+  runtimePath: string
+  engineVersion: string
+  clientVersion: string
+}
+
+const commonCodeJS = ({
+  runtimePath,
+  engineVersion,
+  clientVersion,
+}: CommonCodeParams) => `
 Object.defineProperty(exports, "__esModule", { value: true });
 
 const {
@@ -60,10 +70,12 @@ const fs = require('fs')
 const debug = debugLib('prisma-client')
 
 /**
- * Query Engine version: ${version || 'latest'}
+ * Query Engine version: ${engineVersion}
+ * Prisma Client JS version: ${clientVersion}
  */
 exports.version = {
-  client: "${version || 'latest'}"
+  engine: "${engineVersion}",
+  client: "${clientVersion}"
 }
 
 exports.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
@@ -73,7 +85,11 @@ exports.PrismaClientInitializationError = PrismaClientInitializationError;
 exports.PrismaClientValidationError = PrismaClientValidationError;
 `
 
-const commonCodeTS = (runtimePath: string, version?: string) => `import {
+const commonCodeTS = ({
+  runtimePath,
+  engineVersion,
+  clientVersion,
+}: CommonCodeParams) => `import {
   DMMF,
   DMMFClass,
   Engine,
@@ -91,8 +107,14 @@ export { PrismaClientInitializationError }
 export { PrismaClientValidationError }
 
 /**
- * Query Engine version: ${version || 'latest'}
+ * Query Engine version: ${engineVersion}
+ * Prisma Client JS version: ${clientVersion}
  */
+export declare type Version = {
+  client: string
+}
+
+export declare const version: Version 
 
 /**
  * Utility Types
@@ -156,7 +178,8 @@ declare class PrismaClientFetcher {
 `
 
 interface TSClientOptions {
-  version?: string
+  clientVersion: string
+  engineVersion: string
   document: DMMF.Document
   runtimePath: string
   browser?: boolean
@@ -183,7 +206,6 @@ export class TSClient implements Generatable {
   public toJS() {
     // 'document' is being printed into the file as "dmmf"
     const {
-      version,
       generator,
       sqliteDatasourceOverrides,
       outputDir,
@@ -191,13 +213,12 @@ export class TSClient implements Generatable {
     } = this.options
 
     const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
-      version,
       generator,
       sqliteDatasourceOverrides,
       relativePath: path.relative(outputDir, schemaDir),
     }
 
-    return `${commonCodeJS(this.options.runtimePath, this.options.version)}
+    return `${commonCodeJS(this.options)}
 
 /**
  * Build tool annotations
@@ -249,7 +270,7 @@ const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient`
   }
   public toTS() {
-    return `${commonCodeTS(this.options.runtimePath, this.options.version)}
+    return `${commonCodeTS(this.options)}
 
 /**
  * Client
@@ -393,12 +414,6 @@ export type LogDefinition = {
   level: LogLevel
   emit: 'stdout' | 'event'
 }
-
-export declare type Version = {
-  client: string
-}
-
-export declare const version: Version 
 
 export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> = GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]>

@@ -6,13 +6,15 @@ const debugEnabled = Debug.enabled('prisma-client:generator')
 
 // As specced in https://github.com/prisma/specs/tree/master/generators
 
+const clientVersion = require('../package.json').version
+
 generatorHandler({
   onManifest() {
     return {
       defaultOutput: '@prisma/client', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma2/blob/master/cli/sdk/src/getGenerators.ts
       prettyName: 'Prisma Client',
       requiresEngines: ['queryEngine'],
-      version: require('../package.json').version,
+      version: clientVersion,
     }
   },
   async onGenerate(options) {
@@ -30,7 +32,8 @@ generatorHandler({
       copyRuntime: Boolean(options.generator.config.copyRuntime),
       dmmf: options.dmmf,
       generator: options.generator,
-      version: options.version,
+      engineVersion: options.version,
+      clientVersion,
       transpile: true,
     })
   },
