@@ -10,7 +10,6 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/cli": "workspace:*",
     "@prisma/client": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
@@ -37,7 +36,6 @@
     "typescript": "^3.8.3"
   },
   "peerDependencies": {
-    "@prisma/cli": "*",
     "@prisma/generator-helper": "*",
     "@prisma/sdk": "*"
   },

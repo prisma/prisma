@@ -1,4 +1,4 @@
-import { getSchemaDir } from '@prisma/cli'
+import { getSchemaDir } from '@prisma/sdk'
 import { getPlatform } from '@prisma/get-platform'
 import { uriToCredentials } from '@prisma/sdk'
 import execa from 'execa'

@@ -1,4 +1,4 @@
-import { arg, Command, format, getSchema, getSchemaDir, HelpError, isError } from '@prisma/cli'
+import { arg, Command, format, getSchema, getSchemaDir, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
@@ -25,7 +25,9 @@ export class LiftSave implements Command {
   private static help = format(`
     Save a migration
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold('Prisma\'s migration functionality is currently in an experimental state.')}
+    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
+    "Prisma's migration functionality is currently in an experimental state.",
+  )}
     ${chalk.dim('When using any of the commands below you need to explicitly opt-in via the --experimental flag.')}
 
     ${chalk.bold('Usage')}
@@ -69,7 +71,7 @@ export class LiftSave implements Command {
     if (isError(args)) {
       return this.help(args.message)
     }
-    
+
     if (args['--help']) {
       return this.help()
     }
@@ -104,9 +106,11 @@ export class LiftSave implements Command {
 
     if (preview) {
       lift.stop()
-      return `\nRun ${chalk.greenBright('prisma2 migrate save --name MIGRATION_NAME --experimental')} to create the migration\n`
+      return `\nRun ${chalk.greenBright(
+        'prisma2 migrate save --name MIGRATION_NAME --experimental',
+      )} to create the migration\n`
     }
-    
+
     await getSchema(args['--schema']) // just to leverage on its error handling
     const schemaDir = (await getSchemaDir(args['--schema']))! // TODO: Probably getSchemaDir() should return Promise<string> instead of Promise<string | null>
 

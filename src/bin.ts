@@ -12,7 +12,7 @@ process.env.NODE_NO_WARNINGS = '1'
 /**
  * Dependencies
  */
-import { HelpError, isError } from '@prisma/cli'
+import { HelpError, isError } from '@prisma/sdk'
 import { LiftCommand } from './cli/commands/LiftCommand'
 import { LiftDown } from './cli/commands/LiftDown'
 import { LiftSave } from './cli/commands/LiftSave'

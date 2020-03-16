@@ -1,4 +1,4 @@
-import { arg, Command, format, HelpError, isError } from '@prisma/cli'
+import { arg, Command, format, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
 import { DownOptions, Lift } from '../../Lift'
 import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
@@ -13,7 +13,9 @@ export class LiftDown implements Command {
   private static help = format(`
     Migrate your database down to a specific state.
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold('Prisma\'s migration functionality is currently in an experimental state.')}
+    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
+    "Prisma's migration functionality is currently in an experimental state.",
+  )}
     ${chalk.dim('When using any of the commands below you need to explicitly opt-in via the --experimental flag.')}
 
     ${chalk.bold('Usage')}
@@ -60,7 +62,7 @@ export class LiftDown implements Command {
     if (isError(args)) {
       return this.help(args.message)
     }
-    
+
     if (args['--help']) {
       return this.help()
     }
