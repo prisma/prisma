@@ -18,7 +18,7 @@
     "scripts"
   ],
   "prisma": {
-    "version": "377df4fe30aa992f13f1ba152cf83d5770bdbc85"
+    "version": "4ff8379527ec7797e7bb5b55d374f82f5812a6f9"
   },
   "devDependencies": {
     "@types/jest": "24.0.22",
@@ -49,6 +49,7 @@
     "execa": "^3.4.0",
     "flat-map-polyfill": "^0.3.8",
     "globby": "^9.2.0",
+    "has-yarn": "^2.1.0",
     "make-dir": "^3.0.0",
     "node-fetch": "2.6.0",
     "p-map": "^3.0.0",

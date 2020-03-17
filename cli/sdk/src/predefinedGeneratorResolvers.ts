@@ -1,5 +1,6 @@
 import resolvePkg from 'resolve-pkg'
 import chalk from 'chalk'
+import hasYarn from 'has-yarn'
 import execa from 'execa'
 import path from 'path'
 import fs from 'fs'
@@ -108,9 +109,9 @@ Please try to install it with ${chalk.bold.greenBright(
 }
 
 async function installPackage(baseDir: string, pkg: string): Promise<void> {
-  const yarnInstalled = await isYarnInstalled()
+  const yarnUsed = hasYarn(baseDir)
 
-  const cmdName = yarnInstalled ? 'yarn add' : 'npm install'
+  const cmdName = yarnUsed ? 'yarn add' : 'npm install'
 
   await execa.command(`${cmdName} ${pkg}`, {
     cwd: baseDir,
@@ -120,13 +121,4 @@ async function installPackage(baseDir: string, pkg: string): Promise<void> {
       SKIP_GENERATE: 'true',
     },
   })
-}
-
-async function isYarnInstalled(): Promise<boolean> {
-  try {
-    await execa.command(`yarn --version`, { stdio: `ignore` })
-    return true
-  } catch (err) {
-    return false
-  }
 }
