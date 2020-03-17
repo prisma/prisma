@@ -20,8 +20,8 @@ Learn more about writing proper bug reports here: https://pris.ly/d/bug-reports
 <!-- 
 Steps to reproduce the behavior:
 1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
+2. Change '....'
+3. Run '....'
 4. See error 
 -->
 
