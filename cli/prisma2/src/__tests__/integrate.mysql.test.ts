@@ -1583,11 +1583,10 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
       up: `
         create table users (
           id serial primary key not null,
-          email varchar(50) not null unique COLLATE utf8mb4_0900_ai_ci 
+          email varchar(50) not null unique COLLATE utf8mb4_unicode_ci 
         );
         insert into users (email) values ('max@prisma.io');
       `,
