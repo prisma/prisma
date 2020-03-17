@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Create a bug report to help us improve Prisma
 title: ''
 labels: ''
 assignees: ''
@@ -38,4 +38,3 @@ Steps to reproduce the behavior:
 - Database: [PostgreSQL, MySQL or SQLite]
 - Prisma version: [Run `prisma2 -v` to see your Prisma version]
 - Node.js version: [Run `node -v` to see your Node.js version]
-
