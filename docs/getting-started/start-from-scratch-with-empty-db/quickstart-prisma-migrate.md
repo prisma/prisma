@@ -48,7 +48,7 @@ Follow these steps for an initial Prisma setup:
 1. Run the following commands to configure your project (TypeScript):
     ```
     npm init -y
-    npm install typescript ts-node prisma2 --save-dev
+    npm install typescript ts-node prisma2 @types/node --save-dev
     npm install @prisma/client
     ```
 1. Run `touch tsconfig.json` and the following contents to it:
@@ -58,7 +58,7 @@ Follow these steps for an initial Prisma setup:
         "sourceMap": true,
         "outDir": "dist",
         "strict": true,
-        "lib": ["esnext", "dom"],
+        "lib": ["esnext"],
         "esModuleInterop": true
       }
     }
