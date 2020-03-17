@@ -13,7 +13,7 @@ Thanks for helping us improve Prisma! 🙏 Please follow the sections in the tem
 Learn more about writing proper bug reports here: https://pris.ly/d/bug-reports
 --> 
 
-## Describe the bug
+## Bug description
 <!-- A clear and concise description of what the bug is. -->
 
 ## How to reproduce
@@ -28,8 +28,9 @@ Steps to reproduce the behavior:
 ## Expected behavior
 <!-- A clear and concise description of what you expected to happen. -->
 
-## Additional Prisma info (Prisma schema, Prisma Client queries, ...)
-<!-- Do not include your database credentials when sharing your Prisma schema! -->
+## Prisma information 
+<!-- Your Prisma schema, Prisma Client queries, ...
+Do not include your database credentials when sharing your Prisma schema! -->
 
 ## Environment & setup
 <!-- In which environment does the problem occur -->
