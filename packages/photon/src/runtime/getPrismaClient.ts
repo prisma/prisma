@@ -172,7 +172,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       } else if (process.env.NO_COLOR) {
         this.errorFormat = 'colorless'
       } else {
-        this.errorFormat = 'pretty'
+        this.errorFormat = 'colorless' // default errorFormat
       }
 
       this.measurePerformance = internal.measurePerformance || false
