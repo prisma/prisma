@@ -985,3 +985,20 @@ model teams {
   name String?
 }
 `
+
+exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model users {
+  email String @unique
+  id    Int    @default(autoincrement()) @id
+}
+`
