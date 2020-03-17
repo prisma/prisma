@@ -708,7 +708,7 @@ datasource mysql {
 }
 
 model posts {
-  created_at DateTime
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
 }
@@ -726,7 +726,7 @@ datasource mysql {
 }
 
 model posts {
-  created_at DateTime
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
 }
@@ -744,7 +744,7 @@ datasource mysql {
 }
 
 model posts {
-  created_at DateTime
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
 }
@@ -762,7 +762,7 @@ datasource mysql {
 }
 
 model posts {
-  created_at DateTime
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
 }
@@ -872,23 +872,6 @@ model teams {
   id    Int    @default(autoincrement()) @id
   name  String
   token Int    @unique
-}
-`
-
-exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model users {
-  email String @unique
-  id    Int    @default(autoincrement()) @id
 }
 `
 

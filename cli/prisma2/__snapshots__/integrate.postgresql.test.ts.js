@@ -702,7 +702,7 @@ datasource pg {
 }
 
 model posts {
-  created_at DateTime
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
 }
@@ -720,7 +720,7 @@ datasource pg {
 }
 
 model posts {
-  created_at DateTime
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
 }
@@ -738,7 +738,7 @@ datasource pg {
 }
 
 model posts {
-  created_at DateTime
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
 }
@@ -756,7 +756,7 @@ datasource pg {
 }
 
 model posts {
-  created_at DateTime
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
 }
