@@ -28,7 +28,8 @@ Steps to reproduce the behavior:
 ## Expected behavior
 <!-- A clear and concise description of what you expected to happen. -->
 
-## Additional Prisma info (Prisma schema, Prisma Client queries, ...)
+### Prisma information 
+<!-- Prisma schema, Prisma Client code and queries, ... -->
 <!-- Do not include your database credentials when sharing your Prisma schema! -->
 
 ## Environment & setup
