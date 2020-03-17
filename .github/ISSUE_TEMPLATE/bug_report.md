@@ -13,7 +13,7 @@ Thanks for helping us improve Prisma! 🙏 Please follow the sections in the tem
 Learn more about writing proper bug reports here: https://pris.ly/d/bug-reports
 --> 
 
-## Describe the bug
+## Bug Description
 <!-- A clear and concise description of what the bug is. -->
 
 ## How to reproduce
