@@ -35,6 +35,6 @@ Steps to reproduce the behavior:
 <!-- In which environment does the problem occur -->
 
 - OS: [e.g. Mac OS, Windows, Debian, CentOS, ...]
-- Database: [PostgreSQL, MySQL or SQLite]
+- Database: [PostgreSQL, MySQL, MariaDB or SQLite]
 - Prisma version: [Run `prisma2 -v` to see your Prisma version]
 - Node.js version: [Run `node -v` to see your Node.js version]
