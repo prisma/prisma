@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Ask a question
-    url: https://github.com/prisma/prisma2/discussions
+    url: https://github.com/prisma/prisma2/discussions/new
     about: Ask questions and discuss with other community members
