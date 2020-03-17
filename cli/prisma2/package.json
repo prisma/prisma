@@ -30,7 +30,7 @@
   },
   "bin": "build/index.js",
   "prisma": {
-    "version": "4ff8379527ec7797e7bb5b55d374f82f5812a6f9"
+    "version": "0c9ebb11ac731768d063b2872d13215d0ce468d1"
   },
   "devDependencies": {
     "@prisma/ci-info": "^2.1.1",
@@ -66,9 +66,9 @@
     "resolve-pkg": "^2.0.0",
     "rimraf": "^3.0.0",
     "serialize-error": "^5.0.0",
-    "snap-shot-it": "^7.9.2",
-    "sqlite-async": "^1.0.12",
-    "sqlite3": "^4.1.1",
+    "snap-shot-it": "7.9.2",
+    "sqlite-async": "~1.0.12",
+    "sqlite3": "~4.1.1",
     "strip-ansi": "^6.0.0",
     "strip-indent": "3.0.0",
     "terminal-link": "^2.0.0",
