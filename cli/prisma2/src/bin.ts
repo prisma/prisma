@@ -117,7 +117,7 @@ async function main(): Promise<number> {
       version: Version.new(),
       validate: Validate.new(),
     },
-    ['init', 'lift', 'tmp-prepare', 'introspect', 'dev', 'studio', 'generate', 'validate'],
+    ['version', 'init', 'lift', 'tmp-prepare', 'introspect', 'dev', 'studio', 'generate', 'validate'],
   )
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))
