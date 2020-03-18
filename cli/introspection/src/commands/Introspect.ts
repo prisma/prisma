@@ -100,8 +100,11 @@ export class Introspect implements Command {
 
     const before = Date.now()
     let introspectionSchema = ''
+    let introspectionWarnings = []
     try {
-      introspectionSchema = await engine.introspect(schema)
+      let introspectionResult = await engine.introspect(schema)
+      introspectionSchema = introspectionResult.datamodel
+      introspectionWarnings = introspectionResult.warnings
     } catch (e) {
       if (e.code === 'P4001') {
         if (introspectionSchema.trim() === '') {
@@ -130,6 +133,8 @@ Then you can run ${chalk.green('prisma2 introspect')} again.
 
     if (args['--print']) {
       console.log(introspectionSchema)
+
+      // TODO How to handle warnings here?
     } else {
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)
@@ -137,6 +142,8 @@ Then you can run ${chalk.green('prisma2 introspect')} again.
         path.relative(process.cwd(), schemaPath),
       )} in ${chalk.bold(formatms(Date.now() - before))}
       
+      // TODO Output warnings here in a nice way  
+
 Run ${chalk.green('prisma2 generate')} to generate Prisma Client.`)
     }
 
