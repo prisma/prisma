@@ -100,9 +100,9 @@ export class Introspect implements Command {
 
     const before = Date.now()
     let introspectionSchema = ''
-    let introspectionWarnings = []
+    let introspectionWarnings = {}
     try {
-      let introspectionResult = await engine.introspect(schema)
+      const introspectionResult = await engine.introspect(schema)
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
     } catch (e) {
