@@ -41,7 +41,9 @@ function createLockFile() {
 function cleanupLockFile() {
   if (createdLockFile) {
     try {
-      fs.unlinkSync(lockFile)
+      if (fs.existsSync(lockFile)) {
+        fs.unlinkSync(lockFile)
+      }
     } catch (e) {
       debug(e)
     }
