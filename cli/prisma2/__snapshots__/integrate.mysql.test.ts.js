@@ -19,7 +19,7 @@ model a {
 
 model b {
   id Int @default(autoincrement()) @id
-  a  a   @map(["one", "two"])
+  a  a   @map(["one", "two"]) @relation(references: [one, two])
 
   @@index([a], name: "one")
 }
@@ -74,7 +74,7 @@ datasource mysql {
 model posts {
   id      Int    @default(autoincrement()) @id
   title   String
-  user_id users
+  user_id users  @relation(references: [id])
 
   @@index([user_id], name: "user_id")
 }
@@ -366,7 +366,7 @@ datasource mysql {
 model posts {
   id      Int    @default(autoincrement()) @id
   title   String
-  user_id users
+  user_id users  @relation(references: [id])
 
   @@index([user_id], name: "user_id")
 }
@@ -925,28 +925,6 @@ model migrate {
 }
 `
 
-exports['variables.findOne({ where: { variables_name_key_key: { key: \'b\', name: \'a\' } } })2'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model variables {
-  email String
-  id    Int    @default(autoincrement()) @id
-  key   String
-  name  String
-  value String
-
-  @@unique([name, key], name: "variables_name_key_key")
-}
-`
-
 exports['variables.findOne({ where: { variables_value_email_key: { value: \'c\', email: \'d\' } } })'] = `
 generator client {
   provider = "prisma-client-js"
@@ -1000,5 +978,251 @@ datasource mysql {
 model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
+}
+`
+
+exports['events.findMany({ where: { time: null } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['variables.findOne({ where: { variables_name_key_key: { key: \'b\', name: \'a\' } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  email String
+  id    Int    @default(autoincrement()) @id
+  key   String
+  name  String
+  value String
+
+  @@unique([name, key], name: "variables_name_key_key")
+}
+`
+
+exports['variables.findOne({ where: { name_key: { key: \'b\', name: \'a\' } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.update({ where: { name_key: { key: \'b\', name: \'a\' } }, data: { email: \'e\' }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.upsert({ where: { name_key: { key: \'b\', name: \'a\' } }, create: { name: \'1\', key: \'2\', value: \'3\', email: \'4\' }, update: { email: \'e\' }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.upsert({ where: { name_key: { key: \'d\', name: \'a\' } }, create: { name: \'1\', key: \'2\', value: \'3\', email: \'4\' }, update: { email: \'e\' }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.delete({ where: { name_key: { key: \'b\', name: \'a\' } }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
 }
 `
