@@ -1297,7 +1297,6 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
       up: `
         create table teams (
           id serial primary key not null,
