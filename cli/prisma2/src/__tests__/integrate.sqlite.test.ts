@@ -1135,12 +1135,13 @@ function tests(): Test[] {
     },
     {
       todo: true,
+      // PANIC: called `Result::unwrap()` on an `Err` value: ErrorMessage { msg: "Could not parse stored DateTime string: 2018-09-04 00:00:00 (input contains invalid characters)" }
       up: `
         create table events (
           id integer not null primary key,
-          "time" timestamp with time zone
+          "time" datetime
         );
-        insert into events ("time") values ('2018-09-04 00:00:00+00');
+        insert into events ("time") values ('2018-09-04 00:00:00');
       `,
       down: `
         drop table if exists events;
@@ -1148,113 +1149,10 @@ function tests(): Test[] {
       do: async client => {
         return client.events.findMany({ where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } })
       },
-      expect: {
-        id: 1,
-        token: 10,
-      },
-    },
-    {
-      todo: true,
-      // TypeError: client.events.find is not a function
-      up: `
-        create table events (
-          id integer not null primary key,
-          "time" timestamp with time zone
-        );
-        insert into events ("time") values ('2018-09-04 00:00:00+00');
-      `,
-      down: `
-        drop table if exists events;
-      `,
-      do: async client => {
-        return client.events.find({ where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
-      },
-      expect: {
-        id: 1,
-        token: 10,
-      },
-    },
-    {
-      todo: true,
-      // TypeError: client.events.find is not a function
-      up: `
-        create table events (
-          id integer not null primary key,
-          "time" timestamp with time zone
-        );
-        insert into events ("time") values ('2018-09-04 00:00:00+00');
-      `,
-      down: `
-        drop table if exists events;
-      `,
-      do: async client => {
-        return client.events.find({ where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
-      },
-      expect: {
-        id: 1,
-        token: 10,
-      },
-    },
-    {
-      todo: true,
-      // TypeError: client.events.find is not a function
-      up: `
-        create table events (
-          id integer not null primary key,
-          "time" timestamp with time zone
-        );
-        insert into events ("time") values ('2018-09-04 00:00:00+00');
-      `,
-      down: `
-        drop table if exists events;
-      `,
-      do: async client => {
-        return client.events.find({ where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
-      },
-      expect: {
-        id: 1,
-        token: 10,
-      },
-    },
-    {
-      todo: true,
-      // TypeError: client.events.find is not a function
-      up: `
-        create table events (
-          id integer not null primary key,
-          "time" timestamp with time zone
-        );
-        insert into events ("time") values ('2018-09-04 00:00:00+00');
-      `,
-      down: `
-        drop table if exists events;
-      `,
-      do: async client => {
-        return client.events.find({ where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
-      },
-      expect: {
-        id: 1,
-        token: 10,
-      },
-    },
-    {
-      up: `
-        create table events (
-          id integer not null primary key,
-          "time" timestamp with time zone
-        );
-        insert into events ("time") values ('2018-09-04 00:00:00+00');
-      `,
-      down: `
-        drop table if exists events;
-      `,
-      do: async client => {
-        return client.events.findMany({ where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
-      },
       expect: [
         {
           id: 1,
-          time: '2018-09-04 00:00:00+00',
+          time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)),
         },
       ],
     },
@@ -1263,7 +1161,102 @@ function tests(): Test[] {
       up: `
         create table events (
           id integer not null primary key,
-          "time" timestamp with time zone
+          "time" datetime
+        );
+        insert into events ("time") values ('2018-09-04 00:00:00');
+      `,
+      down: `
+        drop table if exists events;
+      `,
+      do: async client => {
+        return client.events.findMany({ where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+      },
+      expect: [],
+    },
+    {
+      todo: true,
+      up: `
+        create table events (
+          id integer not null primary key,
+          "time" datetime
+        );
+        insert into events ("time") values ('2018-09-04 00:00:00');
+      `,
+      down: `
+        drop table if exists events;
+      `,
+      do: async client => {
+        return client.events.findMany({ where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+      },
+      expect: [
+        {
+          id: 1,
+          time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)),
+        },
+      ],
+    },
+    {
+      todo: true,
+      up: `
+        create table events (
+          id integer not null primary key,
+          "time" datetime
+        );
+        insert into events ("time") values ('2018-09-04 00:00:00');
+      `,
+      down: `
+        drop table if exists events;
+      `,
+      do: async client => {
+        return client.events.findMany({ where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+      },
+      expect: [],
+    },
+    {
+      todo: true,
+      up: `
+        create table events (
+          id integer not null primary key,
+          "time" datetime
+        );
+        insert into events ("time") values ('2018-09-04 00:00:00');
+      `,
+      down: `
+        drop table if exists events;
+      `,
+      do: async client => {
+        return client.events.findMany({ where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+      },
+      expect: [
+        {
+          id: 1,
+          time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)),
+        },
+      ],
+    },
+    {
+      todo: true,
+      up: `
+        create table events (
+          id integer not null primary key,
+          "time" datetime
+        );
+        insert into events ("time") values ('2018-09-04 00:00:00');
+      `,
+      down: `
+        drop table if exists events;
+      `,
+      do: async client => {
+        return client.events.findMany({ where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+      },
+      expect: [],
+    },
+    {
+      todo: true,
+      up: `
+        create table events (
+          id integer not null primary key,
+          "time" datetime
         );
         insert into events ("time") values (NULL);
         insert into events ("time") values (NULL);
@@ -1275,7 +1268,20 @@ function tests(): Test[] {
       do: async client => {
         return client.events.findMany({ where: { time: null } })
       },
-      expect: [],
+      expect: [
+        {
+          id: 1,
+          time: null,
+        },
+        {
+          id: 2,
+          time: null,
+        },
+        {
+          id: 3,
+          time: null,
+        },
+      ],
     },
     {
       up: `
@@ -1390,6 +1396,7 @@ function tests(): Test[] {
       ],
     },
     {
+      todo: true,
       up: `
         pragma foreign_keys = 1;
         create table teams (
@@ -1416,7 +1423,7 @@ function tests(): Test[] {
       expect: [
         {
           email: 'a',
-          id: 1,
+          team_id: null,
         },
       ],
     },
@@ -1518,112 +1525,155 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
       up: `
         create table variables (
           name varchar(50) not null,
-          key varchar(50) not null,
+          \`key\` varchar(50) not null,
           value varchar(50) not null,
           email varchar(50) not null,
-          primary key(name, key)
+          primary key(name, \`key\`)
         );
-        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables;
       `,
       do: async client => {
-        return client.variables.findOne({ where: { variables_name_key_key: { key: 'b', name: 'a' } } })
+        return client.variables.findOne({ where: { name_key: { key: 'b', name: 'a' } } })
       },
-      expect: {}, // TODO
+      expect: {
+        email: 'd',
+        key: 'b',
+        name: 'a',
+        value: 'c',
+      },
     },
     {
-      todo: true,
       up: `
         create table variables (
           name varchar(50) not null,
-          key varchar(50) not null,
+          \`key\` varchar(50) not null,
           value varchar(50) not null,
           email varchar(50) not null,
-          primary key(name, key)
+          primary key(name, \`key\`)
         );
-        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables;
       `,
       do: async client => {
         return client.variables.update({
-          where: { variables_name_key_key: { key: 'b', name: 'a' } },
+          where: { name_key: { key: 'b', name: 'a' } },
           data: { email: 'e' },
         })
       },
-      expect: {}, // TODO
+      expect: {
+        email: 'e',
+        key: 'b',
+        name: 'a',
+        value: 'c',
+      },
     },
     {
-      todo: true,
       up: `
         create table variables (
           name varchar(50) not null,
-          key varchar(50) not null,
+          \`key\` varchar(50) not null,
           value varchar(50) not null,
           email varchar(50) not null,
-          primary key(name, key)
+          primary key(name, \`key\`)
         );
-        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables;
       `,
       do: async client => {
         return client.variables.upsert({
-          where: { variables_name_key_key: { key: 'b', name: 'a' } },
-          create: {}, // TODO
-          update: {}, // TODO
+          where: { name_key: { key: 'b', name: 'a' } },
+          create: { name: '1', key: '2', value: '3', email: '4' },
+          update: { email: 'e' },
         })
       },
-      expect: {}, // TODO
+      expect: {
+        email: 'e',
+        key: 'b',
+        name: 'a',
+        value: 'c',
+      },
     },
     {
-      todo: true,
       up: `
         create table variables (
           name varchar(50) not null,
-          key varchar(50) not null,
+          \`key\` varchar(50) not null,
           value varchar(50) not null,
           email varchar(50) not null,
-          primary key(name, key)
+          primary key(name, \`key\`)
         );
-        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
+      `,
+      down: `
+        drop table if exists variables;
+      `,
+      do: async client => {
+        return client.variables.upsert({
+          where: { name_key: { key: 'd', name: 'a' } },
+          create: { name: '1', key: '2', value: '3', email: '4' },
+          update: { email: 'e' },
+        })
+      },
+      expect: {
+        email: '4',
+        key: '2',
+        name: '1',
+        value: '3',
+      },
+    },
+    {
+      up: `
+        create table variables (
+          name varchar(50) not null,
+          \`key\` varchar(50) not null,
+          value varchar(50) not null,
+          email varchar(50) not null,
+          primary key(name, \`key\`)
+        );
+        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables;
       `,
       do: async client => {
         return client.variables.delete({
-          where: { variables_name_key_key: { key: 'b', name: 'a' } },
+          where: { name_key: { key: 'b', name: 'a' } },
         })
       },
-      expect: {}, // TODO
+      expect: {
+        email: 'd',
+        key: 'b',
+        name: 'a',
+        value: 'c',
+      },
     },
     {
-      todo: true,
       up: `
         create table variables (
           id integer primary key not null,
           name varchar(50) not null,
-          key varchar(50) not null,
+          \`key\` varchar(50) not null,
           value varchar(50) not null,
           email varchar(50) not null,
-          unique(name, key)
+          unique(name, \`key\`)
         );
-        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables;
       `,
       do: async client => {
-        return client.variables.findOne({ where: { variables_name_key_key: { key: 'b', name: 'a' } } })
+        return client.variables.findOne({ where: { sqlite_autoindex_variables_1: { key: 'b', name: 'a' } } })
       },
       expect: {
         email: 'd',
@@ -1634,23 +1684,22 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
       up: `
         create table variables (
           name varchar(50) not null,
-          key varchar(50) not null,
+          \`key\` varchar(50) not null,
           value varchar(50) not null,
           email varchar(50) not null,
-          primary key(name, key),
+          primary key(name, \`key\`),
           unique(value, email)
         );
-        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables;
       `,
       do: async client => {
-        return client.variables.findOne({ where: { variables_value_email_key: { value: 'c', email: 'd' } } })
+        return client.variables.findOne({ where: { sqlite_autoindex_variables_2: { value: 'c', email: 'd' } } })
       },
       expect: {
         email: 'd',
@@ -1660,8 +1709,6 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
-      //SqliteError: FOREIGN KEY constraint failed
       up: `
           pragma foreign_keys = 1;
           create table a (
@@ -1670,7 +1717,7 @@ function tests(): Test[] {
             primary key ("one", "two")
           );
           create table b (
-            id integer primary key autoincrement not null,
+            id integer primary key not null,
             one integer not null,
             two integer not null,
             foreign key ("one", "two") references a ("one", "two")
