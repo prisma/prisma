@@ -1602,6 +1602,7 @@ function tests(): Test[] {
       ],
     },
     {
+      todo: true,
       up: `
         create extension citext;
         create table users (
