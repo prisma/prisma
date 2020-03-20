@@ -49,6 +49,23 @@ model users {
 }
 `
 
+exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model users {
+  email String @unique
+  id    Int    @default(autoincrement()) @id
+}
+`
+
 exports['teams.findOne({ where: { id: 2 } })'] = `
 generator client {
   provider = "prisma-client-js"
