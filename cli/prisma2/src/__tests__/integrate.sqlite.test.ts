@@ -997,17 +997,15 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
-      // Empty result with created_at datetime not null DEFAULT CURRENT_TIMESTAMP
       up: `
         create table posts (
           id integer primary key not null,
           title varchar(50) not null,
-          created_at timestamp not null default now()
+          created_at datetime not null default current_timestamp
         );
-        insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
-        insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
-        insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('A', '1579000219573');
+        insert into posts ("title", "created_at") values ('B', '1579000219573');
+        insert into posts ("title", "created_at") values ('C', '1579000219573');
       `,
       down: `
         drop table if exists posts;
@@ -1037,16 +1035,15 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
       up: `
         create table posts (
           id integer primary key not null,
           title varchar(50) not null,
-          created_at timestamp not null default now()
+          created_at datetime not null default current_timestamp
         );
-        insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
-        insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
-        insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('A', '1579000219573');
+        insert into posts ("title", "created_at") values ('B', '1579000219573');
+        insert into posts ("title", "created_at") values ('C', '1579000219573');
       `,
       down: `
         drop table if exists posts;
@@ -1057,16 +1054,15 @@ function tests(): Test[] {
       expect: [],
     },
     {
-      todo: true,
       up: `
         create table posts (
           id integer primary key not null,
           title varchar(50) not null,
-          created_at timestamp not null default now()
+          created_at datetime not null default current_timestamp
         );
-        insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
-        insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
-        insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('A', '1579000219573');
+        insert into posts ("title", "created_at") values ('B', '1579000219573');
+        insert into posts ("title", "created_at") values ('C', '1579000219573');
       `,
       down: `
         drop table if exists posts;
@@ -1077,16 +1073,15 @@ function tests(): Test[] {
       expect: [],
     },
     {
-      todo: true,
       up: `
         create table posts (
           id integer primary key not null,
           title varchar(50) not null,
-          created_at timestamp not null default now()
+          created_at datetime not null default current_timestamp
         );
-        insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
-        insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
-        insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('A', '1579000219573');
+        insert into posts ("title", "created_at") values ('B', '1579000219573');
+        insert into posts ("title", "created_at") values ('C', '1579000219573');
       `,
       down: `
         drop table if exists posts;
@@ -1134,20 +1129,18 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
-      // PANIC: called `Result::unwrap()` on an `Err` value: ErrorMessage { msg: "Could not parse stored DateTime string: 2018-09-04 00:00:00 (input contains invalid characters)" }
       up: `
         create table events (
           id integer not null primary key,
           "time" datetime
         );
-        insert into events ("time") values ('2018-09-04 00:00:00');
+        insert into events ("time") values (1536019200000);
       `,
       down: `
         drop table if exists events;
       `,
       do: async client => {
-        return client.events.findMany({ where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } })
+        return await client.events.findMany({ where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } })
       },
       expect: [
         {
@@ -1157,13 +1150,12 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
       up: `
         create table events (
           id integer not null primary key,
           "time" datetime
         );
-        insert into events ("time") values ('2018-09-04 00:00:00');
+        insert into events ("time") values (1536019200000);
       `,
       down: `
         drop table if exists events;
@@ -1174,13 +1166,12 @@ function tests(): Test[] {
       expect: [],
     },
     {
-      todo: true,
       up: `
         create table events (
           id integer not null primary key,
           "time" datetime
         );
-        insert into events ("time") values ('2018-09-04 00:00:00');
+        insert into events ("time") values (1536019200000);
       `,
       down: `
         drop table if exists events;
@@ -1196,13 +1187,12 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
       up: `
         create table events (
           id integer not null primary key,
           "time" datetime
         );
-        insert into events ("time") values ('2018-09-04 00:00:00');
+        insert into events ("time") values (1536019200000);
       `,
       down: `
         drop table if exists events;
@@ -1213,13 +1203,12 @@ function tests(): Test[] {
       expect: [],
     },
     {
-      todo: true,
       up: `
         create table events (
           id integer not null primary key,
           "time" datetime
         );
-        insert into events ("time") values ('2018-09-04 00:00:00');
+        insert into events ("time") values (1536019200000);
       `,
       down: `
         drop table if exists events;
@@ -1235,13 +1224,12 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
       up: `
         create table events (
           id integer not null primary key,
           "time" datetime
         );
-        insert into events ("time") values ('2018-09-04 00:00:00');
+        insert into events ("time") values (1536019200000);
       `,
       down: `
         drop table if exists events;
