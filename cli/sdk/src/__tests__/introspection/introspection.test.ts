@@ -38,7 +38,7 @@ test('basic introspection', async () => {
       title     String   @default(\\"\\")
       updatedAt DateTime @default(dbgenerated())
       uuid      String   @id
-      author    User
+      author    User     @relation(references: [id])
     }"
   `)
   const metadata = await engine.getDatabaseMetadata(schema)
