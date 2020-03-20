@@ -231,7 +231,7 @@ export async function getConfig({
   try {
     const result = await execa(
       prismaPath,
-      ['cli', 'get-config', tempDatamodelPath],
+      ['cli', 'get-config'],
       {
         cwd,
         env: {
