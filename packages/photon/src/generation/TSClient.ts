@@ -251,7 +251,7 @@ ${this.dmmf.schema.enums.map(type => new Enum(type).toJS()).join('\n\n')}
 /**
  * DMMF
  */
-const dmmfString = '${this.dmmfString}'
+const dmmfString = ${JSON.stringify(this.dmmfString)}
 
 // We are parsing 2 times, as we want independent objects, because
 // DMMFClass introduces circular references in the dmmf object
