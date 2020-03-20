@@ -1222,7 +1222,6 @@ function tests(): Test[] {
       ],
     },
     {
-      // todo: true,
       up: `
         create table posts (
           id serial primary key not null,
@@ -1242,7 +1241,6 @@ function tests(): Test[] {
       expect: [],
     },
     {
-      // todo: true,
       up: `
         create table posts (
           id serial primary key not null,
@@ -1262,7 +1260,6 @@ function tests(): Test[] {
       expect: [],
     },
     {
-      // todo: true,
       up: `
         create table posts (
           id serial primary key not null,
@@ -1300,7 +1297,6 @@ function tests(): Test[] {
       ],
     },
     {
-      todo: true,
       up: `
         create table teams (
           id serial primary key not null,
@@ -1320,7 +1316,6 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
       up: `
         create table events (
           id serial not null primary key,
@@ -1334,13 +1329,14 @@ function tests(): Test[] {
       do: async client => {
         return client.events.findMany({ where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } })
       },
-      expect: {
-        id: 1,
-        token: 10,
-      },
+      expect: [
+        {
+          id: 1,
+          time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)),
+        },
+      ],
     },
     {
-      todo: true,
       up: `
         create table events (
           id serial not null primary key,
@@ -1352,15 +1348,11 @@ function tests(): Test[] {
         drop table if exists events cascade;
       `,
       do: async client => {
-        return client.events.find({ where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+        return client.events.findMany({ where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
       },
-      expect: {
-        id: 1,
-        token: 10,
-      },
+      expect: [],
     },
     {
-      todo: true,
       up: `
         create table events (
           id serial not null primary key,
@@ -1372,15 +1364,16 @@ function tests(): Test[] {
         drop table if exists events cascade;
       `,
       do: async client => {
-        return client.events.find({ where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+        return client.events.findMany({ where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
       },
-      expect: {
-        id: 1,
-        token: 10,
-      },
+      expect: [
+        {
+          id: 1,
+          time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)),
+        },
+      ],
     },
     {
-      todo: true,
       up: `
         create table events (
           id serial not null primary key,
@@ -1392,15 +1385,11 @@ function tests(): Test[] {
         drop table if exists events cascade;
       `,
       do: async client => {
-        return client.events.find({ where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+        return client.events.findMany({ where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
       },
-      expect: {
-        id: 1,
-        token: 10,
-      },
+      expect: [],
     },
     {
-      todo: true,
       up: `
         create table events (
           id serial not null primary key,
@@ -1412,15 +1401,16 @@ function tests(): Test[] {
         drop table if exists events cascade;
       `,
       do: async client => {
-        return client.events.find({ where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+        return client.events.findMany({ where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
       },
-      expect: {
-        id: 1,
-        token: 10,
-      },
+      expect: [
+        {
+          id: 1,
+          time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)),
+        },
+      ],
     },
     {
-      todo: true,
       up: `
         create table events (
           id serial not null primary key,
@@ -1434,13 +1424,9 @@ function tests(): Test[] {
       do: async client => {
         return client.events.findMany({ where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
       },
-      expect: {
-        id: 1,
-        token: 10,
-      },
+      expect: [],
     },
     {
-      todo: true,
       up: `
         create table events (
           id serial not null primary key,
@@ -1456,7 +1442,20 @@ function tests(): Test[] {
       do: async client => {
         return client.events.findMany({ where: { time: null } })
       },
-      expect: [],
+      expect: [
+        {
+          id: 1,
+          time: null,
+        },
+        {
+          id: 2,
+          time: null,
+        },
+        {
+          id: 3,
+          time: null,
+        },
+      ],
     },
     {
       up: `
@@ -1596,8 +1595,9 @@ function tests(): Test[] {
       },
       expect: [
         {
-          email: 'a',
           id: 1,
+          email: 'a',
+          team_id: null,
         },
       ],
     },
@@ -1701,7 +1701,6 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
       up: `
         create table variables (
           name text not null,
@@ -1716,12 +1715,16 @@ function tests(): Test[] {
         drop table if exists variables cascade;
       `,
       do: async client => {
-        return client.variables.findOne({ where: { variables_name_key_key: { key: 'b', name: 'a' } } })
+        return client.variables.findOne({ where: { name_key: { key: 'b', name: 'a' } } })
       },
-      expect: {}, // TODO
+      expect: {
+        email: 'd',
+        key: 'b',
+        name: 'a',
+        value: 'c',
+      },
     },
     {
-      todo: true,
       up: `
         create table variables (
           name text not null,
@@ -1737,14 +1740,18 @@ function tests(): Test[] {
       `,
       do: async client => {
         return client.variables.update({
-          where: { variables_name_key_key: { key: 'b', name: 'a' } },
+          where: { name_key: { key: 'b', name: 'a' } },
           data: { email: 'e' },
         })
       },
-      expect: {}, // TODO
+      expect: {
+        email: 'e',
+        key: 'b',
+        name: 'a',
+        value: 'c',
+      },
     },
     {
-      todo: true,
       up: `
         create table variables (
           name text not null,
@@ -1760,15 +1767,47 @@ function tests(): Test[] {
       `,
       do: async client => {
         return client.variables.upsert({
-          where: { variables_name_key_key: { key: 'b', name: 'a' } },
-          create: {}, // TODO
-          update: {}, // TODO
+          where: { name_key: { key: 'b', name: 'a' } },
+          create: { name: '1', key: '2', value: '3', email: '4' },
+          update: { email: 'e' },
         })
       },
-      expect: {}, // TODO
+      expect: {
+        email: 'e',
+        key: 'b',
+        name: 'a',
+        value: 'c',
+      },
     },
     {
-      todo: true,
+      up: `
+        create table variables (
+          name text not null,
+          key text not null,
+          value text not null,
+          email text not null,
+          primary key(name, key)
+        );
+        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
+      `,
+      down: `
+        drop table if exists variables cascade;
+      `,
+      do: async client => {
+        return client.variables.upsert({
+          where: { name_key: { key: 'd', name: 'a' } },
+          create: { name: '1', key: '2', value: '3', email: '4' },
+          update: { email: 'e' },
+        })
+      },
+      expect: {
+        email: '4',
+        key: '2',
+        name: '1',
+        value: '3',
+      },
+    },
+    {
       up: `
         create table variables (
           name text not null,
@@ -1784,10 +1823,15 @@ function tests(): Test[] {
       `,
       do: async client => {
         return client.variables.delete({
-          where: { variables_name_key_key: { key: 'b', name: 'a' } },
+          where: { name_key: { key: 'b', name: 'a' } },
         })
       },
-      expect: {}, // TODO
+      expect: {
+        email: 'd',
+        key: 'b',
+        name: 'a',
+        value: 'c',
+      },
     },
     {
       up: `
@@ -2052,7 +2096,7 @@ function tests(): Test[] {
         drop table if exists crazy cascade;
       `,
       do: async client => {
-        return client.crazy.findOne({ where: { variables_value_email_key: { value: 'c', email: 'd' } } })
+        return client.crazy.findOne({ where: { value_email: { value: 'c', email: 'd' } } })
       },
       expect: {
         // TODO
