@@ -41,7 +41,7 @@ Follow these steps for an initial Prisma setup:
     CREATE TABLE "public"."Profile" (
       profile_id SERIAL PRIMARY KEY NOT NULL,
       bio TEXT,
-      user_id INTEGER NOT NULL,
+      user_id INTEGER UNIQUE NOT NULL,
       FOREIGN KEY (user_id) REFERENCES "public"."User"(user_id)
     );
     ```
