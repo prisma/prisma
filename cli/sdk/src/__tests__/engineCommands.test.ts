@@ -1,4 +1,5 @@
 import { getDMMF, getConfig } from '../engineCommands'
+import stripAnsi from 'strip-ansi'
 import fs from 'fs'
 import path from 'path'
 
@@ -65,6 +66,50 @@ describe('getDMMF', () => {
     const dmmf = await getDMMF({ datamodel: file })
     const str = JSON.stringify(dmmf)
     expect(str.length).toMatchInlineSnapshot(`45252081`)
+  })
+
+  test('with validation errors', async () => {
+    const datamodel = `generator client {
+      provider = "prisma-client-js"
+    }
+    
+    datasource my_db {
+      provider = "sqlite"
+      url      = "file:dev.db"
+    }
+    
+    model User {
+      id           String     @id @default(cuid())
+      id           String     @id @default(cuid())
+      name         String
+      email        String     @unique
+      status       String     @default("")
+      permissions  Permission @default()
+      permissions  Permission @default("")
+      posts        Post[]
+      posts        Post[]
+    }
+    
+    model Post {
+      id        String   @id @default(cuid())
+      name      String
+      email     String   @unique
+      createdAt DateTime @default(now())
+      updatedAt DateTime @updatedAt
+    }
+    
+    enum Permission {
+      ADMIN
+      USER
+      OWNER
+      COLLABORATOR
+    }
+    `
+    try {
+      await getDMMF({ datamodel })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchSnapshot()
+    }
   })
 })
 
