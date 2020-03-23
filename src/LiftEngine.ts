@@ -133,7 +133,7 @@ export class LiftEngine {
   }
   private async getBinaryPath() {
     if (this.binaryPath) {
-      return this.binaryPath
+      return path.resolve(this.binaryPath)
     }
 
     const platform = await getPlatform()
