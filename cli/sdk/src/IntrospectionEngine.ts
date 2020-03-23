@@ -65,7 +65,7 @@ export class IntrospectionEngine {
     },
   ) {
     this.binaryPath =
-      binaryPath || process.env.PRISMA_INTROSPECTION_ENGINE_BINARY
+      process.env.PRISMA_INTROSPECTION_ENGINE_BINARY || binaryPath
     if (debug) {
       debugLib.enable('IntrospectionEngine*')
     }
@@ -153,7 +153,7 @@ export class IntrospectionEngine {
   }
   private async getBinaryPath() {
     if (this.binaryPath) {
-      return this.binaryPath
+      return path.resolve(this.binaryPath)
     }
 
     const platform = await getPlatform()
