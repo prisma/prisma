@@ -776,3 +776,39 @@ Object {
   },
 }
 `;
+
+exports[`getDMMF with validation errors 1`] = `
+"Schema parsing
+error: Field \\"id\\" is already defined on model \\"User\\".
+  -->  schema.prisma:12
+   | 
+11 |       id           String     @id @default(cuid())
+12 |       id           String     @id @default(cuid())
+   | 
+error: Field \\"permissions\\" is already defined on model \\"User\\".
+  -->  schema.prisma:17
+   | 
+16 |       permissions  Permission @default()
+17 |       permissions  Permission @default(\\"\\")
+   | 
+error: Field \\"posts\\" is already defined on model \\"User\\".
+  -->  schema.prisma:19
+   | 
+18 |       posts        Post[]
+19 |       posts        Post[]
+   | 
+error: Argument \\"value\\" is missing in attribute \\"@default\\".
+  -->  schema.prisma:16
+   | 
+15 |       status       String     @default(\\"\\")
+16 |       permissions  Permission @default()
+   | 
+error: Error parsing attribute \\"@default\\": Expected a constant literal value, but received string value \\"\\".
+  -->  schema.prisma:17
+   | 
+16 |       permissions  Permission @default()
+17 |       permissions  Permission @default(\\"\\")
+   | 
+
+Validation Error Count: 5"
+`;
