@@ -2,10 +2,13 @@
 
 When working with an existing database, the first step towards using Prisma 2 is to obtain a [Prisma schema](./prisma-schema-file.md) that matches your database schema (or a subset of your database schema). You can create this schema file manually and write out all the required [models](./data-modeling.md#models) by hand, or use Prisma's _introspection_ feature to automatically generate your Prisma schema. 
 
-Prisma lets you introspect your database to derive a data model definition from the current database schema. Introspection is available via either of two CLI commands:
+Prisma lets you introspect your database to derive a data model definition from the current database schema. Introspection is available via the following CLI command:
 
-- `prisma2 init`: Setup a `prisma/schema.prisma` file in the current directory. See [https://pris.ly/d/getting-started](https://pris.ly/d/getting-started)
-- `prisma2 introspect`: Assumes Prisma is already connected to your database and (re)introspects it for you. Typically used in "Prisma Client"-only projects where migrations are performed not via Prisma's `migrate` command, so the data model needs to be updated manually after each database schema change. **Note that this commands overrides your current `schema.prisma` file. Any comments or [attributes](./data-modeling.md#attributes) that are not defined on a databse-level will be removed.**
+```
+prisma2 introspect
+```
+
+This command assumes Prisma is already connected to your database and (re)introspects it for you. Typically used in "Prisma Client"-only projects where migrations are performed not via Prisma's `migrate` command, so the data model needs to be updated manually after each database schema change. **Note that this commands overrides your current `schema.prisma` file. Any comments or [attributes](./data-modeling.md#attributes) that are not defined on a databse-level will be removed.**
 
 Note that `prisma2 introspect` requires the connection string for the database you want to introspect. Therefore, you need to run the command inside of a directory that contains a [Prisma schema](./prisma-schema-file.md) with a valid `datasource` definition (which contains the connection string)
 
