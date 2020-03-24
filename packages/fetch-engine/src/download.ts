@@ -406,7 +406,7 @@ async function saveFileToCache(job: BinaryDownloadJob, version: string, lastModi
 
 function engineTypeToBinaryType(engineType: string, binaryTarget: string): string {
   if (engineType === 'introspectionEngine') {
-    return 'introspection-engine' as any // TODO: Remove as any as soon as type added to @prisma/fetch-engine
+    return 'introspection-engine'
   }
 
   if (engineType === 'migrationEngine') {
