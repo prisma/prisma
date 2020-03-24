@@ -94,10 +94,10 @@
     "webpack-cli": "4.0.0-alpha-4"
   },
   "peerDependencies": {
-    "prisma2": "*"
+    "@prisma/cli": "*"
   },
   "peerDependenciesMeta": {
-    "prisma2": {
+    "@prisma/cli": {
       "optional": true
     }
   }
