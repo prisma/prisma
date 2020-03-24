@@ -158,7 +158,7 @@ export class Lift {
           renderer && renderer.setState({ generators: newGenerators })
         }
 
-        const version = packageJson.name === 'prisma2' ? packageJson.version : null
+        const version = packageJson.name === '@prisma/cli' ? packageJson.version : null
 
         for (let i = 0; i < generators.length; i++) {
           const generator = generators[i]
@@ -170,7 +170,7 @@ export class Lift {
           ) {
             console.error(
               `${chalk.bold(`@prisma/client@${generator.manifest?.version}`)} is not compatible with ${chalk.bold(
-                `prisma2@${version}`,
+                `@prisma/cli@${version}`,
               )}. Their versions need to be equal.`,
             )
           }
