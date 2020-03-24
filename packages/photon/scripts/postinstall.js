@@ -34,7 +34,7 @@ async function main() {
 
   if (!localPath && !installedGlobally) {
     console.error(
-      `${c.yellow('warning')} In order to use "@prisma/client", please install prisma2. You can install it with "npm add -D prisma2".`
+      `${c.yellow('warning')} In order to use "@prisma/client", please install @prisma/cli. You can install it with "npm add -D @prisma/cli".`
     )
   }
 }
@@ -42,13 +42,13 @@ async function main() {
 function getLocalPackagePath() {
   let packagePath
   try {
-    packagePath = require.resolve('prisma2/package.json')
+    packagePath = require.resolve('@prisma/cli/package.json')
   } catch (e) {
     return null
   }
 
   if (packagePath) {
-    return require.resolve('prisma2')
+    return require.resolve('@prisma/cli')
   }
 
   return null
