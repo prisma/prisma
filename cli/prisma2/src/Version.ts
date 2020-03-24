@@ -44,9 +44,10 @@ export class Version implements Command {
     return `${version} (at ${path}${resolved})`
   }
   private async resolveEngine(binaryName: string, envVar: string, platform: string): Promise<BinaryInfo> {
-    if (process.env[envVar] && fs.existsSync(process.env[envVar]!)) {
-      const version = await getVersion(process.env[envVar])
-      return { version, path: process.env[envVar]!, fromEnvVar: envVar }
+    const pathFromEnv = process.env[envVar]
+    if (pathFromEnv && fs.existsSync(pathFromEnv!)) {
+      const version = await getVersion(pathFromEnv)
+      return { version, path: pathFromEnv!, fromEnvVar: envVar }
     }
 
     const binaryPath = path.join(__dirname, `../${getBinaryName(binaryName, platform)}`)
