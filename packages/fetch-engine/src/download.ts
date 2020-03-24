@@ -328,7 +328,7 @@ async function getCachedBinaryPath({
 export function getBinaryEnvVarPath(binaryName: string): string | null {
   const envVar = binaryToEnvVar[binaryName]
   if (envVar && process.env[envVar]) {
-    const envVarPath = path.resolve(process.env[envVar])
+    const envVarPath = path.resolve(process.cwd(), process.env[envVar])
     if (!fs.existsSync(envVarPath)) {
       throw new Error(
         `Env var ${chalk.bold(envVar)} is provided but provided path ${chalk.underline(
