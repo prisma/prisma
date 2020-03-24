@@ -60,7 +60,7 @@ export class Version implements Command {
   }
 }
 
-// Prisma CLI Version   : prisma2@2.0.0-alpha.473
+// Prisma CLI Version   : @prisma/cli@2.0.0-alpha.473
 // Current platform     : darwin
 // Query Engine         : version (at /.../.../, resolved by PRISMA_QUERY_ENGINE_BINARY)
 // Migration Engine     : version (at /.../.../)
