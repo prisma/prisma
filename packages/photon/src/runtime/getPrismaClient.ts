@@ -34,6 +34,7 @@ import { Dataloader } from './Dataloader'
 import { printStack } from './utils/printStack'
 import stripAnsi from 'strip-ansi'
 import { printJsonWithErrors } from './utils/printJsonErrors'
+import { InternalDatasource } from './utils/printDatasources'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -118,6 +119,7 @@ export interface GetPrismaClientOptions {
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativePath: string
   dirname: string
+  internalDatasources: InternalDatasource[]
 }
 
 // TODO: We **may** be able to get real types. However, we have both a bootstrapping
@@ -131,6 +133,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     connectionPromise?: Promise<any>
     disconnectionPromise?: Promise<any>
     engineConfig: EngineConfig
+    internalDatasources: InternalDatasource[]
     private errorFormat: ErrorFormat
     private measurePerformance: boolean
     private hooks?: Hooks
@@ -180,6 +183,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       const envFile = this.readEnv()
 
       this.dmmf = new DMMFClass(config.document)
+
+      this.internalDatasources = config.internalDatasources
 
       let cwd = path.resolve(config.dirname, config.relativePath)
 
@@ -309,13 +314,18 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       let query = ''
       let parameters: any = undefined
 
+      const sqlOutput =
+        this.internalDatasources[0]?.connectorType === 'postgresql'
+          ? 'text'
+          : 'sql'
+
       if (Array.isArray(stringOrTemplateStringsArray)) {
         // Called with prisma.raw\`\`
         const queryInstance = sqlTemplateTag.sqltag(
           stringOrTemplateStringsArray as any,
           ...values,
         )
-        query = queryInstance.sql
+        query = queryInstance[sqlOutput]
         parameters = JSON.stringify(queryInstance.values)
       } else {
         // Called with prisma.raw(string)

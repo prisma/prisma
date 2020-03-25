@@ -210,12 +210,14 @@ export class TSClient implements Generatable {
       sqliteDatasourceOverrides,
       outputDir,
       schemaDir,
+      datasources,
     } = this.options
 
     const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
       generator,
       sqliteDatasourceOverrides,
       relativePath: path.relative(outputDir, schemaDir),
+      internalDatasources: datasources,
     }
 
     return `${commonCodeJS(this.options)}
