@@ -2,7 +2,7 @@ const {
   PrismaClient,
   PrismaClientValidationError,
   PrismaClientKnownRequestError,
-  version,
+  prismaVersion,
 } = require('@prisma/client')
 const assert = require('assert')
 const {
@@ -55,8 +55,8 @@ module.exports = async () => {
     },
   })
 
-  if (!version || !version.client) {
-    throw new Error(`Version missing: ${JSON.stringify(version)}`)
+  if (!prismaVersion || !prismaVersion.client) {
+    throw new Error(`prismaVersion missing: ${JSON.stringify(prismaVersion)}`)
   }
 
   // Test connecting and disconnecting all the time

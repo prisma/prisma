@@ -19,7 +19,7 @@ module.exports = async () => {
   })
 
   if (!prismaVersion || !prismaVersion.client) {
-    throw new Error(`Version missing: ${JSON.stringify(prismaVersion)}`)
+    throw new Error(`prismaVersion missing: ${JSON.stringify(prismaVersion)}`)
   }
 
   // Test connecting and disconnecting all the time
@@ -59,13 +59,13 @@ module.exports = async () => {
   }
 
   // Test raw``
-  const rawQueryTemplate = await prisma.raw`SELECT 1`
+  const rawQueryTemplate = await prisma.raw `SELECT 1`
   if (rawQueryTemplate[0]['1'] !== 1) {
     throw Error("prisma.raw`SELECT 1` result should be [ { '1': 1 } ]")
   }
 
   // Test raw`` with ${param}
-  const rawQueryTemplateWithParams = await prisma.raw`SELECT * FROM User WHERE name = ${'Alice'}`
+  const rawQueryTemplateWithParams = await prisma.raw `SELECT * FROM User WHERE name = ${'Alice'}`
   if (rawQueryTemplateWithParams[0].name !== 'Alice') {
     throw Error(
       "prisma.raw`SELECT * FROM User WHERE name = ${'Alice'}` result should be [{ email: 'a@a.de', id: '576eddf9-2434-421f-9a86-58bede16fd95', name: 'Alice' }]",
