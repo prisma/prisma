@@ -73,7 +73,7 @@ const debug = debugLib('prisma-client')
  * Query Engine version: ${engineVersion}
  * Prisma Client JS version: ${clientVersion}
  */
-exports.version = {
+exports.prismaVersion = {
   engine: "${engineVersion}",
   client: "${clientVersion}"
 }
@@ -110,11 +110,11 @@ export { PrismaClientValidationError }
  * Query Engine version: ${engineVersion}
  * Prisma Client JS version: ${clientVersion}
  */
-export declare type Version = {
+export declare type PrismaVersion = {
   client: string
 }
 
-export declare const version: Version 
+export declare const prismaVersion: PrismaVersion 
 
 /**
  * Utility Types

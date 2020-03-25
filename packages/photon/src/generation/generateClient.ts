@@ -403,6 +403,7 @@ function validateDmmfAgainstDenylists(prismaClientDmmf) {
       'PrismaClientUnknownRequestError',
       'PrismaClientInitializationError',
       'PrismaClientRustPanicError',
+      'PrismaVersion',
       // JavaScript keywords
       'await',
       'async',
