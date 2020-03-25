@@ -30,7 +30,7 @@ export class Version implements Command {
     const queryEngine = await this.resolveEngine('query-engine', 'PRISMA_QUERY_ENGINE_BINARY', platform)
 
     const rows = [
-      ['Prisma CLI Version', `${packageJson.name}@${packageJson.version}`],
+      [packageJson.name, packageJson.version],
       ['Current platform', platform],
       ['Query Engine', this.printBinaryInfo(queryEngine)],
       ['Migration Engine', this.printBinaryInfo(migrationEngine)],
@@ -60,7 +60,7 @@ export class Version implements Command {
   }
 }
 
-// Prisma CLI Version   : @prisma/cli@2.0.0-alpha.473
+// @prisma/cli          : 2.0.0-alpha.473
 // Current platform     : darwin
 // Query Engine         : version (at /.../.../, resolved by PRISMA_QUERY_ENGINE_BINARY)
 // Migration Engine     : version (at /.../.../)
