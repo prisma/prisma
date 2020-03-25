@@ -1,4 +1,4 @@
-import { PrismaClient, Post, User, version } from '@prisma/client'
+import { PrismaClient, Post, User, prismaVersion } from '@prisma/client'
 
 // tslint:disable
 
