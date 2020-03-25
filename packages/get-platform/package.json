@@ -6,9 +6,9 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@types/jest": "^24.0.23",
-    "@types/node": "^12.12.29",
-    "jest": "^25.1.0",
+    "@types/jest": "^24.9.1",
+    "@types/node": "^12.12.31",
+    "jest": "^25.2.0",
     "ts-jest": "^25.2.1",
     "typescript": "^3.8.3"
   },
