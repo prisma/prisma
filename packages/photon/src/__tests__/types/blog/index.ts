@@ -6,7 +6,7 @@ import { PrismaClient, Post, User, prismaVersion } from '@prisma/client'
 async function main() {
   const prisma = new PrismaClient()
 
-  version.client
+  prismaVersion.client
 
   const result1 = await prisma.user.findMany({
     where: {
