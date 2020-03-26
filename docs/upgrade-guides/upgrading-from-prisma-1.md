@@ -33,7 +33,7 @@ Both scenarios will be covered in other upgrade guides. In this guide, we'll tak
 Prisma 2 CLI is currently available as the [`prisma2`](https://www.npmjs.com/package/prisma2) package on npm. You can install it in your Node.js project as follows (be sure to invoke this command in the directory where your `package.json` is located):
 
 ```
-npm install @prisma/client --save-dev
+npm install @prisma/cli --save-dev
 ```
 
 You can now use the local installation of the `prisma2` CLI using `npx`:

@@ -13,7 +13,7 @@ The Prisma 2 CLI is typically installed as a **development dependency**, that's 
 Install with npm:
 
 ```
-npm install @prisma/client --save-dev
+npm install @prisma/cli --save-dev
 ```
 
 This should add `@prisma/cli` to the `devDependencies` in your `package.json`. You can then invoke the locally installed CLI with the **`prisma2`** command prefixed with [`npx`](https://github.com/npm/npx#readme):
