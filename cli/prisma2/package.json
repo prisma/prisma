@@ -28,7 +28,9 @@
       "introspection-engine*"
     ]
   },
-  "bin": "build/index.js",
+  "bin": {
+    "prisma2": "build/index.js"
+  },
   "prisma": {
     "version": "8814060fa684793b73d07dbfccd4b7777b3361ae"
   },
