@@ -120,13 +120,13 @@ export class Generate implements Command {
 
     await this.runGenerate({ generators, watchMode })
 
+    const isJSClient = generators.find((g) => g.options && g.options.generator.provider === 'prisma-client-js')
+
     if (watchMode) {
       logUpdate(watchingText + '\n' + this.logText)
       await new Promise(r => null)
     } else {
-      logUpdate(
-        this.logText +
-          `
+      const hint = `
 You can now start using Prisma Client in your code:
 
 \`\`\`
@@ -135,9 +135,11 @@ import { PrismaClient } from '@prisma/client'
 // or const { PrismaClient } = require('@prisma/client')
 
 const prisma = new PrismaClient()`)}
-\`\`\`      
+\`\`\`
 
-Explore the full API: ${link('http://pris.ly/d/client')}`,
+Explore the full API: ${link('http://pris.ly/d/client')}`
+      logUpdate(
+        this.logText + (isJSClient ? hint : ''),
       )
     }
 
