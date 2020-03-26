@@ -13,7 +13,7 @@ The `@prisma/client` package itself is a [_facade package_](https://github.com/p
 This means the `prisma2` CLI needs to be available as well. It is typically installed as a development dependency:
 
 ```
-npm install prisma2 --save-dev
+npm install @prisma/client --save-dev
 ```
 
 ## Why is the facade package needed if Prisma Client JS is generated?
@@ -90,5 +90,5 @@ By generating Prisma Client JS into `node_modules`, the query engine is kept out
 
 ## Generating Prisma Client JS in the `postinstall` hook of `@prisma/client`
 
-The `@prisma/client` package defines its own `postinstall` hook that's being executed whenever the package is being installed. This hook invokes the `prisma2 generate` command which in turn generates the Prisma Client JS code into the default location `node_modules/@prisma/client`. Notice that this requires the `prisma2` CLI to be available, either as local dependency or as a global installation (it is recommended to always install the `prisma2` package as a development dependency, using `npm install prisma2 --save-dev`, to avoid versioning conflicts though).
+The `@prisma/client` package defines its own `postinstall` hook that's being executed whenever the package is being installed. This hook invokes the `prisma2 generate` command which in turn generates the Prisma Client JS code into the default location `node_modules/@prisma/client`. Notice that this requires the `prisma2` CLI to be available, either as local dependency or as a global installation (it is recommended to always install the `prisma2` package as a development dependency, using `npm install @prisma/client --save-dev`, to avoid versioning conflicts though).
 

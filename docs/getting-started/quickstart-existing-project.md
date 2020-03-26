@@ -8,7 +8,7 @@ If you don't have a database to try Prisma or just want to explore everything fr
 
 Follow these steps to use Prisma with your existing database. Note that these steps assume that you have an existing Node.js or TypeScript project (in case you don't, follow the [extended guide](#extended-guide) below):
 
-1. Install `prisma2` as a development dependency: `npm install prisma2 --save-dev`
+1. Install `prisma2` as a development dependency: `npm install @prisma/client --save-dev`
 1. Run `npx prisma2 init` to create an empty [Prisma schema](./prisma-schema-file.md)
 1. Set the `url` of the `datasource` block in the Prisma schema to your database connection URL
 1. Run `npx prisma2 introspect` to obtain your data model from the database schema

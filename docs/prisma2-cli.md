@@ -13,10 +13,10 @@ The Prisma 2 CLI is typically installed as a **development dependency**, that's 
 Install with npm:
 
 ```
-npm install prisma2 --save-dev
+npm install @prisma/client --save-dev
 ```
 
-This should add `prisma2` to the `devDependencies` in your `package.json`. You can then invoke the locally installed `prisma2` CLI by prefixing it with [`npx`](https://github.com/npm/npx#readme):
+This should add `@prisma/cli` to the `devDependencies` in your `package.json`. You can then invoke the locally installed CLI with the **`prisma2`** command prefixed with [`npx`](https://github.com/npm/npx#readme):
 
 ```
 npx prisma2
@@ -37,7 +37,7 @@ Install with Yarn:
 yarn add prisma2 --dev
 ```
 
-This should add `prisma2` to the `devDependencies` in your `package.json`. You can then invoke the locally installed `prisma2` CLI by prefixing it with `yarn`:
+This should add `@prisma/cli` to the `devDependencies` in your `package.json`. You can then invoke the locally installed CLI with the **`prisma2`** command prefixed with `yarn`:
 
 ```
 yarn prisma2
@@ -51,7 +51,7 @@ yarn prisma2 generate
 
 ### Global installation
 
-While it is recommended to [locally install](#local-installation-recommended) the `prisma2` CLI, you can also install it globally on your machine. 
+While it is recommended to [locally install](#local-installation-recommended) the Prisma 2 CLI, you can also install it globally on your machine. 
 
 > **Warning**: If you have several Prisma projects on your machine, a global installation can lead to version conflicts between these projects.
 
@@ -60,10 +60,10 @@ While it is recommended to [locally install](#local-installation-recommended) th
 Install with npm:
 
 ```
-npm install -g prisma2
+npm install -g @prisma/client
 ```
 
-You can then invoke the globally installed `prisma2` CLI like so:
+You can then invoke the globally installed CLI with the **`prisma2`** command like so:
 
 ```
 prisma2
@@ -84,7 +84,7 @@ Install with Yarn:
 yarn global add prisma2
 ```
 
-You can then invoke the globally installed `prisma2` CLI like so:
+You can then invoke the globally installed CLI with the **`prisma2`** command like so:
 
 ```
 prisma2
@@ -98,7 +98,7 @@ prisma2 generate
 
 ### The `postinstall` hook
 
-When installing Prisma 2 CLI, a [`postinstall`](https://github.com/prisma/prisma2/blob/master/cli/sdk/package.json#L13) hook is being executed. It downloads Prisma 2's query and migration [engine binaries](https://github.com/prisma/prisma-engine). The query engine contains the [Prisma schema](./prisma-schema-file.md) parser which is used by the `prisma2 init` and the `prism2 generate` commands. The migration engine is used by all `prisma2 migrate` commands.
+When installing Prisma 2 CLI, a [`postinstall`](https://github.com/prisma/prisma2/blob/master/cli/sdk/package.json#L13) hook is being executed. It downloads Prisma 2's query and migration [engine binaries](https://github.com/prisma/prisma-engine). The query engine contains the [Prisma schema](./prisma-schema-file.md) parser which is used by the `prisma2 init` and the `prisma2 generate` commands. The migration engine is used by all `prisma2 migrate` commands.
 
 ## Using a HTTP proxy for the CLI
 

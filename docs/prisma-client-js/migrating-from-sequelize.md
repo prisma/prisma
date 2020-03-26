@@ -231,7 +231,7 @@ Be sure to add the `@prisma/client` package to your project dependencies as well
 
 ```
 npm install @prisma/client
-npm install prisma2 --save-dev
+npm install @prisma/client --save-dev
 ```
 
 ### Using the `PrismaClient` constructor
