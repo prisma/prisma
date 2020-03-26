@@ -26,6 +26,9 @@ export class GeneratorProcess {
   private initPromise?: Promise<void>
   private initialized: boolean = false
   constructor(private executablePath: string) {
+    // executablePath can be passed like this
+    // "/Users/prisma/go/bin/photongo" as a path to the executable (no options)
+    // "go run prisma/photongo/generator" as a command
     if (!executablePath.includes(' ') && !fs.existsSync(executablePath)) {
       throw new Error(
         `Error in generator: Can't find executable ${executablePath}`,
