@@ -84,8 +84,8 @@ function readJson(filePath) {
 
 function addPostInstallHook(pkgPath) {
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
-  // only update package.json if prisma2 is a dependency or devDependency
-  if (!json.dependencies['prisma2'] && !json.devDependencies['prisma2']) {
+  // only update package.json if @prisma/cli is a dependency or devDependency
+  if (!json.dependencies['@prisma/cli'] && !json.devDependencies['@prisma/cli']) {
     return false
   }
 
