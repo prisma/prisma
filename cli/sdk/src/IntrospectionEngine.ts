@@ -42,6 +42,29 @@ export class IntrospectionError extends Error {
   }
 }
 
+export type IntrospectionWarnings =
+  | IntrospectionWarningsMissingUnique
+  | IntrospectionWarningsEmptyFieldName
+  | IntrospectionWarningsUnsupportedType
+
+interface IntrospectionWarningsMissingUnique {
+  code: 1
+  message: string
+  affected: { model: string }[]
+}
+
+interface IntrospectionWarningsEmptyFieldName {
+  code: 2
+  message: string
+  affected: { model: string; field: string }[]
+}
+
+interface IntrospectionWarningsUnsupportedType {
+  code: 3
+  message: string
+  affected: { model: string; field: string; raw_datatype: string }[]
+}
+
 let messageId = 1
 
 /* tslint:disable */
@@ -95,7 +118,9 @@ export class IntrospectionEngine {
       this.getRPCPayload('getDatabaseDescription', { schema }),
     )
   }
-  public introspect(schema: string): Promise<string> {
+  public introspect(
+    schema: string,
+  ): Promise<{ datamodel: string; warnings: IntrospectionWarnings[] }> {
     this.lastUrl = schema
     return this.runCommand(this.getRPCPayload('introspect', { schema }))
   }
