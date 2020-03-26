@@ -365,7 +365,9 @@ async function downloadBinary(options: DownloadBinaryOptions) {
     if (options.failSilent || e.code !== 'EACCES') {
       return
     } else {
-      throw new Error(`Can't write to ${targetDir} please make sure you install "prisma2" with the right permissions.`)
+      throw new Error(
+        `Can't write to ${targetDir} please make sure you install "@prisma/cli" with the right permissions.`,
+      )
     }
   }
 
