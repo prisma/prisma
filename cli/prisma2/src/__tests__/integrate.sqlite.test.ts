@@ -112,9 +112,9 @@ datasource sqlite {
 
   // clear the require cache
   delete require.cache[prismaClientPath]
-  const { PrismaClient, version } = await import(prismaClientPath)
-  assert(version.client === prismaClientVersion)
-  assert(version.engine === engineVersion)
+  const { PrismaClient, prismaVersion } = await import(prismaClientPath)
+  assert(prismaVersion.client === prismaClientVersion)
+  assert(prismaVersion.engine === engineVersion)
 
   const prisma = new PrismaClient()
   await prisma.connect()
