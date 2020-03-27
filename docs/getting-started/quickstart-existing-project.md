@@ -65,7 +65,7 @@ It also creates a [`.env`](https://github.com/motdotla/dotenv) file that you can
 # Prisma supports the native connection string format for Postgres, MySQL and SQLite.
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-DATABASE_URL="postgresql://johndoe:johndoe@localhost:5432/mydb?schema=public"
+DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
 ```
 
 Next, you need to provide the connection URL of your database as the value for the `DATABASE_URL` environment variable in the `.env` file. This is needed so that Prisma can introspect your database schema and generate Prisma Client.
