@@ -48,7 +48,7 @@ Here's an example for invoking the `generate` command:
 yarn prisma2 generate
 ```
 
-### Global installation
+### Global installation (not recommended)
 
 While it is recommended to [locally install](#local-installation-recommended) the Prisma 2 CLI, you can also install it globally on your machine.
 

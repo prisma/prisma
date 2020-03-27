@@ -24,10 +24,10 @@ Preview releases are named `2.0.0-preview014`, `2.0.0-preview015`, `2.0.0-previe
 You can install the latest Preview release via npm:
 
 ```
-npm install -g @prisma/cli
+npm install @prisma/cli --save-dev
 ```
 
-Note that Prisma 2 CLI currently requires [Node 10](https://nodejs.org/en/download/releases/) (or higher). It also executes a [`postinstall`](./prisma2-cli.md#the-postinstall-hook) hook.
+Note that Prisma 2 CLI currently requires [Node.js 10](https://nodejs.org/en/download/releases/) (or higher). It also executes a [`postinstall`](./prisma2-cli.md#the-postinstall-hook) hook.
 
 ### Alpha (latest)
 
@@ -38,5 +38,5 @@ You should only use Alpha releases if you have specific requirements that are no
 You can install the latest Alpha release via npm:
 
 ```
-npm install -g @prisma/cli@alpha
+npm install @prisma/cli@alpha --save-dev
 ```
