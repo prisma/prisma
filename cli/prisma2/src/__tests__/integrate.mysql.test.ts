@@ -99,7 +99,7 @@ datasource mysql {
   provider = "mysql"
   url = "${connectionString}"
 }`
-  const introspectionSchema = await engine.introspect(schema)
+  const introspectionSchema = (await engine.introspect(schema)).datamodel
   snapshot(name, maskSchema(introspectionSchema))
   await generate(t, introspectionSchema)
   const prismaClientPath = join(tmp, 'index.js')
