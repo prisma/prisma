@@ -1,5 +1,5 @@
 {
-  "version": "2.0.0-alpha.968",
+  "version": "2.0.0-alpha.977",
   "name": "@prisma/cli",
   "main": "build/index.js",
   "repository": "git@github.com:prisma/prisma2.git",
@@ -32,7 +32,7 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "2761615585abfa57effabfe2b01476f6928984e5"
+    "version": "755045d34bde223f97732587ea92a33421740bc1"
   },
   "devDependencies": {
     "@prisma/ci-info": "^2.1.1",
@@ -43,10 +43,10 @@
     "@prisma/introspection": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.214.0",
-    "@prisma/studio-server": "0.214.0",
-    "@prisma/studio-transports": "0.214.0",
-    "@prisma/studio-types": "0.214.0",
+    "@prisma/studio": "0.216.0",
+    "@prisma/studio-server": "0.216.0",
+    "@prisma/studio-transports": "0.216.0",
+    "@prisma/studio-types": "0.216.0",
     "@sentry/node": "5.12.4",
     "@types/debug": "^4.1.5",
     "@types/mocha": "^5.2.7",
