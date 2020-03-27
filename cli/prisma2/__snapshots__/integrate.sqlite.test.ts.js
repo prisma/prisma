@@ -83,7 +83,8 @@ model users {
 model posts {
   id      Int    @default(autoincrement()) @id
   title   String
-  user_id users  @relation(references: [id])
+  user_id Int
+  users   users  @relation(fields: [user_id], references: [id])
 }
 `
 
@@ -343,7 +344,8 @@ model users {
 model posts {
   id      Int    @default(autoincrement()) @id
   title   String
-  user_id users  @relation(references: [id])
+  user_id Int
+  users   users  @relation(fields: [user_id], references: [id])
 }
 `
 
@@ -1212,8 +1214,10 @@ model a {
 }
 
 model b {
-  id Int @default(autoincrement()) @id
-  a  a   @map(["one", "two"]) @relation(references: [one, two])
+  id  Int @default(autoincrement()) @id
+  one Int
+  two Int
+  a   a   @relation(fields: [one, two], references: [one, two])
 }
 `
 
