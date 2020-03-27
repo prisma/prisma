@@ -146,12 +146,13 @@ Then you can run ${chalk.green('prisma2 introspect')} again.
 
       let introspectionWarningsMessage = ''
       if (introspectionWarnings.length > 0) {
-        introspectionWarningsMessage = introspectionWarnings.length > 1 ? `\nWarnings\n` : `\nWarning\n`
+        introspectionWarningsMessage = `\n*** WARNING ***\n`
+
         for (const warning of introspectionWarnings) {
-          introspectionWarningsMessage += `${warning.message}\n`
+          introspectionWarningsMessage += `\n${warning.message}\n`
 
           if (warning.code === 1) {
-            introspectionWarningsMessage += warning.affected.map(it => `- Model: "${it.model}"`).join('\n')
+            introspectionWarningsMessage += warning.affected.map(it => `- "${it.model}"`).join('\n')
           } else if (warning.code === 2) {
             introspectionWarningsMessage += warning.affected
               .map(it => `- Model: "${it.model}" Field: "${it.field}"`)
@@ -165,13 +166,15 @@ Then you can run ${chalk.green('prisma2 introspect')} again.
               .map(it => `- Enum: "${it.enm}" Value: "${it.value}"`)
               .join('\n')
           }
+
+          introspectionWarningsMessage += `\n`
         }
       }
 
       log(`\n✔ Wrote Prisma data model into ${chalk.underline(
         path.relative(process.cwd(), schemaPath),
       )} in ${chalk.bold(formatms(Date.now() - before))}
-      ${introspectionWarningsMessage}
+      ${chalk.keyword('orange')(introspectionWarningsMessage)}
 Run ${chalk.green('prisma2 generate')} to generate Prisma Client.`)
     }
 
