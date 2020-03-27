@@ -18,10 +18,12 @@ model a {
 }
 
 model b {
-  id Int @default(autoincrement()) @id
-  a  a   @map(["one", "two"]) @relation(references: [one, two])
+  id  Int @default(autoincrement()) @id
+  one Int
+  two Int
+  a   a   @relation(fields: [one, two], references: [one, two])
 
-  @@index([a], name: "one")
+  @@index([one, two], name: "one")
 }
 `
 
@@ -74,7 +76,8 @@ datasource mysql {
 model posts {
   id      Int    @default(autoincrement()) @id
   title   String
-  user_id users  @relation(references: [id])
+  user_id Int
+  users   users  @relation(fields: [user_id], references: [id])
 
   @@index([user_id], name: "user_id")
 }
@@ -366,7 +369,8 @@ datasource mysql {
 model posts {
   id      Int    @default(autoincrement()) @id
   title   String
-  user_id users  @relation(references: [id])
+  user_id Int
+  users   users  @relation(fields: [user_id], references: [id])
 
   @@index([user_id], name: "user_id")
 }

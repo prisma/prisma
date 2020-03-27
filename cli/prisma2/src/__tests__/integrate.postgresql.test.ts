@@ -224,10 +224,12 @@ function tests(): Test[] {
           {
             id: 1,
             title: 'A',
+            user_id: 1,
           },
           {
             id: 2,
             title: 'B',
+            user_id: 1,
           },
         ],
       },
@@ -621,10 +623,12 @@ function tests(): Test[] {
         {
           id: 1,
           title: 'A',
+          user_id: 1,
         },
         {
           id: 2,
           title: 'B',
+          user_id: 1,
         },
       ],
     },
