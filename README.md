@@ -27,12 +27,12 @@ It is part of the [Prisma 2](https://www.github.com/prisma/prisma2) ecosystem. P
 The easiest way to get started with Prisma Client JS is by installing the Prisma 2 CLI and running the `init` command:
 
 ```sh
-npm install -g @prisma/cli
+npm install @prisma/cli --save-dev
 mkdir my-prisma-project && cd my-prisma-project
-prisma2 init
+npx prisma2 init
 ```
 
-Learn more about the `prisma2 init` flow [here](https://pris.ly/d/getting-started).
+Learn more about the `npx prisma2 init` flow [here](https://pris.ly/d/getting-started).
 
 ## Features
 
@@ -220,7 +220,7 @@ When starting from scratch, you can simply write your own [data model definition
 Generate your version of Prisma Client JS using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md):
 
 ```sh
-prisma2 generate
+npx prisma2 generate
 ```
 
 Prisma Client JS is generated based on the [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) and provides a type-safe API with the following features:
@@ -246,8 +246,8 @@ As you build your app, you'll likely migrate your database to implement new feat
 If you're not using Prisma Migrate, you need to re-introspect your database (to update the generated datamodel) and re-generate Prisma Client JS after each schema migration:
 
 ```sh
-prisma2 introspect
-prisma2 generate
+npx prisma2 introspect
+npx prisma2 generate
 ```
 
 #### Option B: With Prisma Migrate
@@ -256,9 +256,9 @@ When using Prisma Migrate, you need to re-generate Prisma Client JS immediately 
 
 ```sh
 # adjust data model definition in schema.prisma
-prisma2 migrate save --experimental
-prisma2 migrate up --experimental
-prisma2 generate
+npx prisma2 migrate save --experimental
+npx prisma2 migrate up --experimental
+npx prisma2 generate
 ```
 
 ## Supported databases
@@ -283,4 +283,3 @@ More databases that will be supported in the future are:
 Read more about how to contribute to Prisma Client JS [here](https://github.com/prisma/prisma-client-js/blob/master/CONTRIBUTING.md)
 
 [![Build status](https://badge.buildkite.com/fa6027d11848231f2bc194aaffcf5dbc2ee0a83d666af0806e.svg)](https://buildkite.com/prisma/photon)
-
