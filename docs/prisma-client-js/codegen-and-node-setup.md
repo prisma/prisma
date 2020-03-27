@@ -10,7 +10,7 @@ npm install @prisma/client
 
 The `@prisma/client` package itself is a [_facade package_](https://github.com/prisma/prisma-client-js/issues/261) (basically a _stub_) that doesn't contain any functional code, such as types or the Prisma Client JS runtime. When installing the `@prisma/client` package, its `postinstall` hook is being executed to invoke the `prisma2 generate` command and generate the actual Prisma Client JS code into the facade package at `node_modules/@prisma/client`.
 
-This means the `prisma2` CLI needs to be available as well. It is typically installed as a development dependency:
+This means the Prisma 2 CLI needs to be available as well. It is typically installed as a development dependency:
 
 ```
 npm install @prisma/cli --save-dev
@@ -20,13 +20,13 @@ npm install @prisma/cli --save-dev
 
 The facade package is necessary to enable typical build and deployment workflows of Node.js applications. As an example, the facade package ensures that Prisma Client JS survives the ["pruning"](https://docs.npmjs.com/cli/prune.html) that's often employed by Node.js package managers.
 
-Note that you'll need to re-execute `prisma2 generate` whenever you make changes to your [Prisma schema](../prisma-schema-file.md) (or perform the changes while are you're running Prisma's [development mode](../development-mode.md). 
+Note that you'll need to re-execute `prisma2 generate` whenever you make changes to your [Prisma schema](../prisma-schema-file.md) (or perform the changes while are you're running Prisma's [development mode](../development-mode.md).
 
 > **Note**: While this approach has a number of [benefits](#why-is-prisma-client-js-generated-into-node_modulesgenerated-by-default), it is also unconventional and can be a source of confusion for developers new to Prisma Client JS. Using `node_modules/@prisma/client` as the default `output` for Prisma Client JS is still experimental. Please share your feedback and tell us whether you think this is a good idea or any other thoughts you have on this topic by joining the [discussion on GitHub](https://github.com/prisma/prisma-client-js/issues/88).
 
 ## Specifying the target location for Prisma Client JS
 
-`prisma2 generate` invokes the [generators](../prisma-schema-file.md#generators-optional) specified in the [Prisma schema file](../prisma-schema-file.md) and generates the respective packages on the respective output path(s). 
+`prisma2 generate` invokes the [generators](../prisma-schema-file.md#generators-optional) specified in the [Prisma schema file](../prisma-schema-file.md) and generates the respective packages on the respective output path(s).
 
 The default Prisma Client JS generator can be specified as follows in your schema file:
 
@@ -90,5 +90,4 @@ By generating Prisma Client JS into `node_modules`, the query engine is kept out
 
 ## Generating Prisma Client JS in the `postinstall` hook of `@prisma/client`
 
-The `@prisma/client` package defines its own `postinstall` hook that's being executed whenever the package is being installed. This hook invokes the `prisma2 generate` command which in turn generates the Prisma Client JS code into the default location `node_modules/@prisma/client`. Notice that this requires the `prisma2` CLI to be available, either as local dependency or as a global installation (it is recommended to always install the `prisma2` package as a development dependency, using `npm install @prisma/cli --save-dev`, to avoid versioning conflicts though).
-
+The `@prisma/client` package defines its own `postinstall` hook that's being executed whenever the package is being installed. This hook invokes the `prisma2 generate` command which in turn generates the Prisma Client JS code into the default location `node_modules/@prisma/client`. Notice that this requires the Prisma 2 CLI to be available, either as local dependency or as a global installation (it is recommended to always install the `@prisma/cli` package as a development dependency, using `npm install @prisma/cli --save-dev`, to avoid versioning conflicts though).

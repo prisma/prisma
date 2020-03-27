@@ -13,13 +13,13 @@ The Prisma 2 CLI currently requires [Node.js 10](https://nodejs.org/en/download/
 ### npm
 
 ```
-npm install -g prisma2
+npm install -g @prisma/cli
 ```
 
 ### Yarn
 
 ```
-yarn global add prisma2
+yarn global add @prisma/cli
 ```
 
 ## General

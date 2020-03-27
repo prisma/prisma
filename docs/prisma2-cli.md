@@ -28,13 +28,12 @@ Here's an example for invoking the `generate` command:
 npx prisma2 generate
 ```
 
-
 #### Yarn
 
 Install with Yarn:
 
 ```
-yarn add prisma2 --dev
+yarn add @prisma/cli --dev
 ```
 
 This should add `@prisma/cli` to the `devDependencies` in your `package.json`. You can then invoke the locally installed CLI with the **`prisma2`** command prefixed with `yarn`:
@@ -51,7 +50,7 @@ yarn prisma2 generate
 
 ### Global installation
 
-While it is recommended to [locally install](#local-installation-recommended) the Prisma 2 CLI, you can also install it globally on your machine. 
+While it is recommended to [locally install](#local-installation-recommended) the Prisma 2 CLI, you can also install it globally on your machine.
 
 > **Warning**: If you have several Prisma projects on your machine, a global installation can lead to version conflicts between these projects.
 
@@ -75,13 +74,12 @@ Here's an example for invoking the `generate` command:
 prisma2 generate
 ```
 
-
 #### Yarn
 
 Install with Yarn:
 
 ```
-yarn global add prisma2
+yarn global add @prisma/cli
 ```
 
 You can then invoke the globally installed CLI with the **`prisma2`** command like so:
