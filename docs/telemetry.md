@@ -20,7 +20,7 @@ Data is collected in two scenarios that are described below.
 
 ### Usage data
 
-Invokations of the `prisma2` CLI sends information to the telemetry server at https://checkpoint.prisma.io. Note that this is only happening at most every 48 hours (i.e., the sending the data to the telemetry server gets pause for 48 hours after any invokation).
+Invokations of the Prisma 2 CLI sends information to the telemetry server at https://checkpoint.prisma.io. Note that this is only happening at most every 48 hours (i.e., the sending the data to the telemetry server gets pause for 48 hours after any invokation).
 
 Here is an overview of the data that's being submitted:
 

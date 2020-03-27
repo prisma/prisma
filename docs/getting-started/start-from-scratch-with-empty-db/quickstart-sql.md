@@ -41,7 +41,7 @@ Follow these steps for an initial Prisma setup:
     CREATE TABLE "public"."Profile" (
       profile_id SERIAL PRIMARY KEY NOT NULL,
       bio TEXT,
-      user_id INTEGER NOT NULL,
+      user_id INTEGER UNIQUE NOT NULL,
       FOREIGN KEY (user_id) REFERENCES "public"."User"(user_id)
     );
     ```
@@ -62,7 +62,7 @@ Follow these steps for an initial Prisma setup:
 1. Configure project (TypeScript):
     ```
     npm init -y
-    npm install typescript ts-node prisma2 --save-dev
+    npm install typescript ts-node @prisma/cli --save-dev
     npm install @prisma/client
     ```
 1. Run `npx prisma2 introspect` to introspect your database and add your models to the Prisma schema
@@ -170,7 +170,7 @@ Follow these steps for an initial Prisma setup:
 1. Configure project (TypeScript):
     ```
     npm init -y
-    npm install typescript ts-node prisma2 --save-dev
+    npm install typescript ts-node @prisma/cli --save-dev
     npm install @prisma/client
     ```
 1. Run `npx prisma2 introspect` to introspect your database and add your models to the Prisma schema
@@ -272,7 +272,7 @@ Follow these steps for an initial Prisma setup:
 1. Configure project (TypeScript):
     ```
     npm init -y
-    npm install typescript ts-node prisma2 --save-dev
+    npm install typescript ts-node @prisma/cli --save-dev
     npm install @prisma/client
     ```
 1. Run `npx prisma2 introspect` to introspect your database and add your models to the Prisma schema

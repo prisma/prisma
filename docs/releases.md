@@ -17,18 +17,17 @@ Unless you have specific requirements for the Alpha channel, it is recommended t
 
 ### Preview
 
-The Prisma Frameowrk follows a **biweekly release cycle** where new Preview releases are typically issued **on Thursdays** (but might be delayed). 
+The Prisma Frameowrk follows a **biweekly release cycle** where new Preview releases are typically issued **on Thursdays** (but might be delayed).
 
 Preview releases are named `2.0.0-preview014`, `2.0.0-preview015`, `2.0.0-preview016`, ... or you can reference them for short: `preview014`, `preview015`, `preview016` ...
 
 You can install the latest Preview release via npm:
 
 ```
-npm install -g prisma2
+npm install @prisma/cli --save-dev
 ```
 
-Note that Prisma 2 CLI currently requires [Node 8](https://nodejs.org/en/download/releases/) (or higher). It also executes a [`postinstall`](./prisma2-cli.md#the-postinstall-hook) hook.
-
+Note that Prisma 2 CLI currently requires [Node.js 10](https://nodejs.org/en/download/releases/) (or higher). It also executes a [`postinstall`](./prisma2-cli.md#the-postinstall-hook) hook.
 
 ### Alpha (latest)
 
@@ -39,5 +38,5 @@ You should only use Alpha releases if you have specific requirements that are no
 You can install the latest Alpha release via npm:
 
 ```
-npm install -g prisma2@alpha
+npm install @prisma/cli@alpha --save-dev
 ```

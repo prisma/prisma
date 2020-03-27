@@ -64,18 +64,19 @@ type UserPersonalData = {
 }
 ```
 
-While this is certainly feasible, this approach increases the maintenance burden upon changes to the Prisma schema as you need to manually maintain the types. A cleaner solution to this is to use the  `UserGetIncludePayload` and  `UserGetSelectPayload` types that are generated and exposed by Prisma Client JS:
+While this is certainly feasible, this approach increases the maintenance burden upon changes to the Prisma schema as you need to manually maintain the types. A cleaner solution to this is to use the `UserGetPayload` type that is generated and exposed by Prisma Client:
 
 ```ts
-// Define a type that includes the relation to `Post` 
-type UserWithPosts = UserGetIncludePayload<{
-  posts: true
+import { UserGetPayload } from "@prisma/client";
+
+// Define a type that includes the relation to `Post`
+type UserWithPosts = UserGetPayload<{ 
+  include: { posts: true } 
 }>
 
 // Define a type that only contains a subset of the scalar fields
-type UserPersonalData = UserGetSelectPayload<{
-  email: true;
-  name: true;
+type UserPersonalData = UserGetPayload<{
+  select: { email: true; name: true }
 }>
 ```
 

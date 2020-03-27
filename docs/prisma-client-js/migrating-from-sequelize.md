@@ -227,11 +227,11 @@ Sequelize is installed as a [node module](https://www.npmjs.com/package/sequeliz
 
 ### Installing the Prisma depedencies
 
-Be sure to add the `@prisma/client` package to your project dependencies as well as the `prisma2` package as a development dependency. Note that both package versions must be kept in sync:
+Be sure to add the `@prisma/client` package to your project dependencies as well as the `@prisma/cli` package as a development dependency. Note that both package versions must be kept in sync:
 
 ```
 npm install @prisma/client
-npm install prisma2 --save-dev
+npm install @prisma/cli --save-dev
 ```
 
 ### Using the `PrismaClient` constructor

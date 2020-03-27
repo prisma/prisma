@@ -1,4 +1,4 @@
-exports['exercises.findOne({ where: { distance: 12.3 } })'] = `
+exports['const posts = await posts.findMany({ where: { created_at: { lte: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -15,9 +15,10 @@ model teams {
   name  String @unique
 }
 
-model exercises {
-  distance Float @default(12.3) @unique
-  id       Int   @default(autoincrement()) @id
+model posts {
+  created_at DateTime @default(now())
+  id         Int      @default(autoincrement()) @id
+  title      String
 }
 `
 
@@ -82,7 +83,8 @@ model users {
 model posts {
   id      Int    @default(autoincrement()) @id
   title   String
-  user_id users
+  user_id Int
+  users   users  @relation(fields: [user_id], references: [id])
 }
 `
 
@@ -342,7 +344,8 @@ model users {
 model posts {
   id      Int    @default(autoincrement()) @id
   title   String
-  user_id users
+  user_id Int
+  users   users  @relation(fields: [user_id], references: [id])
 }
 `
 
@@ -586,6 +589,78 @@ model crons {
 }
 `
 
+exports['posts.findMany({ where: { created_at: { gte: new Date() } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model posts {
+  created_at DateTime @default(now())
+  id         Int      @default(autoincrement()) @id
+  title      String
+}
+`
+
+exports['posts.findMany({ where: { created_at: { gt: new Date() } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model posts {
+  created_at DateTime @default(now())
+  id         Int      @default(autoincrement()) @id
+  title      String
+}
+`
+
+exports['const posts = await posts.findMany({ where: { created_at: { lt: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model posts {
+  created_at DateTime @default(now())
+  id         Int      @default(autoincrement()) @id
+  title      String
+}
+`
+
 exports['teams.update({ where: { token: 11 }, data: { token: 10 } })'] = `
 generator client {
   provider = "prisma-client-js"
@@ -600,6 +675,98 @@ datasource sqlite {
 model teams {
   id    Int @default(autoincrement()) @id
   token Int @unique
+}
+`
+
+exports['await events.findMany({ where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
 }
 `
 
@@ -621,8 +788,8 @@ model teams {
 }
 
 model events {
-  id   Int     @default(autoincrement()) @id
-  time String?
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
 }
 `
 
@@ -716,31 +883,6 @@ model teams {
 }
 `
 
-exports['users.findMany({ where: { team_id: null } })'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource sqlite {
-  provider = "sqlite"
-  url = "***"
-}
-
-model teams {
-  id    Int     @default(autoincrement()) @id
-  name  String
-  token Int     @unique
-  users users[]
-}
-
-model users {
-  email   String @unique
-  id      Int    @default(autoincrement()) @id
-  team_id teams?
-}
-`
-
 exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })'] = `
 generator client {
   provider = "prisma-client-js"
@@ -810,6 +952,29 @@ model exercises {
 }
 `
 
+exports['exercises.findOne({ where: { distance: 12.3 } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model exercises {
+  distance Float @default(12.3) @unique
+  id       Int   @default(autoincrement()) @id
+}
+`
+
 exports['migrate.create({ data: { version: 1 } })'] = `
 generator client {
   provider = "prisma-client-js"
@@ -832,6 +997,230 @@ model migrate {
 }
 `
 
+exports['variables.findOne({ where: { name_key: { key: \'b\', name: \'a\' } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.update({ where: { name_key: { key: \'b\', name: \'a\' } }, data: { email: \'e\' }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.upsert({ where: { name_key: { key: \'b\', name: \'a\' } }, create: { name: \'1\', key: \'2\', value: \'3\', email: \'4\' }, update: { email: \'e\' }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.upsert({ where: { name_key: { key: \'d\', name: \'a\' } }, create: { name: \'1\', key: \'2\', value: \'3\', email: \'4\' }, update: { email: \'e\' }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.delete({ where: { name_key: { key: \'b\', name: \'a\' } }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.findOne({ where: { sqlite_autoindex_variables_1: { key: \'b\', name: \'a\' } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model variables {
+  email String
+  id    Int    @default(autoincrement()) @id
+  key   String
+  name  String
+  value String
+
+  @@unique([name, key], name: "sqlite_autoindex_variables_1")
+}
+`
+
+exports['variables.findOne({ where: { sqlite_autoindex_variables_2: { value: \'c\', email: \'d\' } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+  @@unique([value, email], name: "sqlite_autoindex_variables_2")
+}
+`
+
+exports['a.findOne({ where: { one_two: { one: 1, two: 2 } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model a {
+  one Int
+  two Int
+  b   b[]
+
+  @@id([one, two])
+}
+
+model b {
+  id  Int @default(autoincrement()) @id
+  one Int
+  two Int
+  a   a   @relation(fields: [one, two], references: [one, two])
+}
+`
+
 exports['await teams.updateMany({ data: { name: \'b\' }, where: { name: null }, })  client.teams.findMany();'] = `
 generator client {
   provider = "prisma-client-js"
@@ -846,5 +1235,28 @@ datasource sqlite {
 model teams {
   id   Int     @default(autoincrement()) @id
   name String?
+}
+`
+
+exports['events.findMany({ where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
 }
 `

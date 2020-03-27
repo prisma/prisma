@@ -1,4 +1,4 @@
-exports['a.findOne({ where: { one_two: { one: 1, two: 2 } } })'] = `
+exports['users.findMany()'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -9,17 +9,60 @@ datasource pg {
   url = "***"
 }
 
-model a {
-  one Int
-  two Int
-  b   b[]
+model users {
+  email String?
+  id    Int     @default(autoincrement()) @id
+}
+`
 
-  @@id([one, two])
+exports['users.findMany({ where: { email: \'ada@prisma.io\' } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
 }
 
-model b {
-  id Int @default(autoincrement()) @id
-  a  a   @map(["one", "two"])
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model users {
+  email String @unique
+  id    Int    @default(autoincrement()) @id
+}
+`
+
+exports['users.findMany()2'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model users {
+  email String @unique
+  id    Int    @default(autoincrement()) @id
+}
+`
+
+exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model users {
+  email String @unique
+  id    Int    @default(autoincrement()) @id
 }
 `
 
@@ -72,7 +115,8 @@ datasource pg {
 model posts {
   id      Int    @default(autoincrement()) @id
   title   String
-  user_id users
+  user_id Int
+  users   users  @relation(fields: [user_id], references: [id])
 }
 
 model users {
@@ -297,57 +341,6 @@ model users {
 }
 `
 
-exports['users.findMany()'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model users {
-  email String?
-  id    Int     @default(autoincrement()) @id
-}
-`
-
-exports['users.findMany({ where: { email: \'ada@prisma.io\' } })'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model users {
-  email String @unique
-  id    Int    @default(autoincrement()) @id
-}
-`
-
-exports['users.findMany()2'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model users {
-  email String @unique
-  id    Int    @default(autoincrement()) @id
-}
-`
-
 exports['users.findOne({ where: { email: \'ada@prisma.io\' } }).posts()'] = `
 generator client {
   provider = "prisma-client-js"
@@ -362,7 +355,8 @@ datasource pg {
 model posts {
   id      Int    @default(autoincrement()) @id
   title   String
-  user_id users
+  user_id Int
+  users   users  @relation(fields: [user_id], references: [id])
 }
 
 model users {
@@ -762,6 +756,125 @@ model posts {
 }
 `
 
+exports['events.findMany({ where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: null } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
 exports['teams.findMany({ where: { id: { in: [] } } })'] = `
 generator client {
   provider = "prisma-client-js"
@@ -852,23 +965,6 @@ model teams {
 }
 `
 
-exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model users {
-  email String @unique
-  id    Int    @default(autoincrement()) @id
-}
-`
-
 exports['exercises.findMany({ where: { distance: 12.213 } })'] = `
 generator client {
   provider = "prisma-client-js"
@@ -936,7 +1032,112 @@ model migrate {
 }
 `
 
-exports['variables.findOne({ where: { variables_name_key_key: { key: \'b\', name: \'a\' } } })2'] = `
+exports['variables.findOne({ where: { name_key: { key: \'b\', name: \'a\' } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.update({ where: { name_key: { key: \'b\', name: \'a\' } }, data: { email: \'e\' }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.upsert({ where: { name_key: { key: \'b\', name: \'a\' } }, create: { name: \'1\', key: \'2\', value: \'3\', email: \'4\' }, update: { email: \'e\' }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.upsert({ where: { name_key: { key: \'d\', name: \'a\' } }, create: { name: \'1\', key: \'2\', value: \'3\', email: \'4\' }, update: { email: \'e\' }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.delete({ where: { name_key: { key: \'b\', name: \'a\' } }, })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model variables {
+  email String
+  key   String
+  name  String
+  value String
+
+  @@id([name, key])
+}
+`
+
+exports['variables.findOne({ where: { variables_name_key_key: { key: \'b\', name: \'a\' } } })'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -980,6 +1181,33 @@ model variables {
 }
 `
 
+exports['a.findOne({ where: { one_two: { one: 1, two: 2 } } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model a {
+  one Int
+  two Int
+  b   b[]
+
+  @@id([one, two])
+}
+
+model b {
+  id  Int @default(autoincrement()) @id
+  one Int
+  two Int
+  a   a   @relation(fields: [one, two], references: [one, two])
+}
+`
+
 exports['await teams.updateMany({ data: { name: \'b\' }, where: { name: null }, })  client.teams.findMany();'] = `
 generator client {
   provider = "prisma-client-js"
@@ -994,5 +1222,22 @@ datasource pg {
 model teams {
   id   Int     @default(autoincrement()) @id
   name String?
+}
+`
+
+exports['teams.update({ where: { token: 11 }, data: { token: 10 } })'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model teams {
+  id    Int @default(autoincrement()) @id
+  token Int @unique
 }
 `

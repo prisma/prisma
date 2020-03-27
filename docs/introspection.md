@@ -2,10 +2,13 @@
 
 When working with an existing database, the first step towards using Prisma 2 is to obtain a [Prisma schema](./prisma-schema-file.md) that matches your database schema (or a subset of your database schema). You can create this schema file manually and write out all the required [models](./data-modeling.md#models) by hand, or use Prisma's _introspection_ feature to automatically generate your Prisma schema. 
 
-Prisma lets you introspect your database to derive a data model definition from the current database schema. Introspection is available via either of two CLI commands:
+Prisma lets you introspect your database to derive a data model definition from the current database schema. Introspection is available via the following CLI command:
 
-- `prisma2 init`: Setup a `prisma/schema.prisma` file in the current directory. See [https://pris.ly/d/getting-started](https://pris.ly/d/getting-started)
-- `prisma2 introspect`: Assumes Prisma is already connected to your database and (re)introspects it for you. Typically used in "Prisma Client"-only projects where migrations are performed not via Prisma's `migrate` command, so the data model needs to be updated manually after each database schema change. **Note that this commands overrides your current `schema.prisma` file. Any comments or [attributes](./data-modeling.md#attributes) that are not defined on a databse-level will be removed.**
+```
+prisma2 introspect
+```
+
+This command assumes Prisma is already connected to your database and (re)introspects it for you. Typically used in "Prisma Client"-only projects where migrations are performed not via Prisma's `migrate` command, so the data model needs to be updated manually after each database schema change. **Note that this commands overrides your current `schema.prisma` file. Any comments or [attributes](./data-modeling.md#attributes) that are not defined on a databse-level will be removed.**
 
 Note that `prisma2 introspect` requires the connection string for the database you want to introspect. Therefore, you need to run the command inside of a directory that contains a [Prisma schema](./prisma-schema-file.md) with a valid `datasource` definition (which contains the connection string)
 
@@ -22,11 +25,6 @@ As database schemas are likely to look very different per project, Prisma employ
 - If sanitization results in duplicate identifiers, no immediate error handling is in place. You get the error later and can manually fix it.
 - Relation names for a relation between models A and B are generated as `AToB` (the model that comes first in alphabetical order also appears first in the generated relation name). If relation names turn out to be ambiguous because there is more than one relation between models `A` and `B`, the field name of the column that holds the foreign key is appended to the model name after an underscore to disambiguate, e.g.: `A_FieldWithFKToB`. 
 - The name of the back-relation field is based on the opposing model. It gets camel cases by defauld and pluralized (unless the column with the foreign key also has a unique constraint). If back-relation fields are ambiguous, the relation name is appended to disambiguate.
-
-## Limitations
-
-- Every column needs to have a primary key constraint on a single column ([multi-column primary keys are not yet supported](https://github.com/prisma/prisma-client-js/issues/339)). Introspection will fail if this is not the case. Note that this often makes it impossible to introspect a schema that uses relation tables (also sometimes called "join tables") as these typically don't have a single-column primary key.
-- `TIMESTAMP WITH TIMEZONE` types are already supported via introspection (and mapped to Prisma's `DateTime` type) but [currently can't be queried with Prisma Client](https://github.com/prisma/prisma2/issues/1386).
 
 ## Common workarounds
 

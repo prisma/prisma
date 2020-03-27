@@ -26,7 +26,10 @@ export class GeneratorProcess {
   private initPromise?: Promise<void>
   private initialized: boolean = false
   constructor(private executablePath: string) {
-    if (!fs.existsSync(executablePath)) {
+    // executablePath can be passed like this
+    // "/Users/prisma/go/bin/photongo" as a path to the executable (no options)
+    // "go run prisma/photongo/generator" as a command
+    if (!executablePath.includes(' ') && !fs.existsSync(executablePath)) {
       throw new Error(
         `Error in generator: Can't find executable ${executablePath}`,
       )
@@ -40,10 +43,22 @@ export class GeneratorProcess {
   }
   initSingleton(): Promise<void> {
     return new Promise(async (resolve, reject) => {
-      const isBinary = await isBinaryFile(this.executablePath)
+      let isBinary = true
+
+      let command = this.executablePath
+      let args: string[] = []
+
+      if (this.executablePath.includes(' ')) {
+        const arr = this.executablePath.split(' ')
+        command = arr.shift()!
+        args = arr
+      } else {
+        isBinary = await isBinaryFile(this.executablePath)
+      }
+
       this.child = spawn(
-        isBinary ? this.executablePath : process.execPath,
-        isBinary ? [] : ['--max-old-space-size=8096', this.executablePath],
+        isBinary ? command : process.execPath,
+        isBinary ? args : ['--max-old-space-size=8096', command],
         {
           stdio: ['pipe', 'inherit', 'pipe'],
         },

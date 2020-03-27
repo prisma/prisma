@@ -71,7 +71,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
         console.info(`✔ Created ${chalk.bold.green('./package.json')}`)
       }
 
-      await installPackage(baseDir, `-D prisma2@${version ?? 'latest'}`)
+      await installPackage(baseDir, `-D @prisma/cli@${version ?? 'latest'}`)
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
       prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })

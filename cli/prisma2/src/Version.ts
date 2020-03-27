@@ -30,7 +30,7 @@ export class Version implements Command {
     const queryEngine = await this.resolveEngine('query-engine', 'PRISMA_QUERY_ENGINE_BINARY', platform)
 
     const rows = [
-      ['Prisma CLI Version', `${packageJson.name}@${packageJson.version}`],
+      [packageJson.name, packageJson.version],
       ['Current platform', platform],
       ['Query Engine', this.printBinaryInfo(queryEngine)],
       ['Migration Engine', this.printBinaryInfo(migrationEngine)],
@@ -44,9 +44,10 @@ export class Version implements Command {
     return `${version} (at ${path}${resolved})`
   }
   private async resolveEngine(binaryName: string, envVar: string, platform: string): Promise<BinaryInfo> {
-    if (process.env[envVar] && fs.existsSync(process.env[envVar]!)) {
-      const version = await getVersion(process.env[envVar])
-      return { version, path: process.env[envVar]!, fromEnvVar: envVar }
+    const pathFromEnv = process.env[envVar]
+    if (pathFromEnv && fs.existsSync(pathFromEnv!)) {
+      const version = await getVersion(pathFromEnv)
+      return { version, path: pathFromEnv!, fromEnvVar: envVar }
     }
 
     const binaryPath = path.join(__dirname, `../${getBinaryName(binaryName, platform)}`)
@@ -59,7 +60,7 @@ export class Version implements Command {
   }
 }
 
-// Prisma CLI Version   : prisma2@2.0.0-alpha.473
+// @prisma/cli          : 2.0.0-alpha.473
 // Current platform     : darwin
 // Query Engine         : version (at /.../.../, resolved by PRISMA_QUERY_ENGINE_BINARY)
 // Migration Engine     : version (at /.../.../)

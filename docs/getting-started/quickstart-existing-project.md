@@ -8,7 +8,7 @@ If you don't have a database to try Prisma or just want to explore everything fr
 
 Follow these steps to use Prisma with your existing database. Note that these steps assume that you have an existing Node.js or TypeScript project (in case you don't, follow the [extended guide](#extended-guide) below):
 
-1. Install `prisma2` as a development dependency: `npm install prisma2 --save-dev`
+1. Install the Prisma 2 CLI as a development dependency: `npm install @prisma/cli --save-dev`
 1. Run `npx prisma2 init` to create an empty [Prisma schema](./prisma-schema-file.md)
 1. Set the `url` of the `datasource` block in the Prisma schema to your database connection URL
 1. Run `npx prisma2 introspect` to obtain your data model from the database schema
@@ -65,7 +65,7 @@ It also creates a [`.env`](https://github.com/motdotla/dotenv) file that you can
 # Prisma supports the native connection string format for Postgres, MySQL and SQLite.
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-DATABASE_URL="postgresql://johndoe:johndoe@localhost:5432/mydb?schema=public"
+DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
 ```
 
 Next, you need to provide the connection URL of your database as the value for the `DATABASE_URL` environment variable in the `.env` file. This is needed so that Prisma can introspect your database schema and generate Prisma Client.

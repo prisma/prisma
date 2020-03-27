@@ -392,7 +392,7 @@ function engineTypeToBinaryType(
   engineType: EngineType,
 ): keyof BinaryDownloadConfiguration {
   if (engineType === 'introspectionEngine') {
-    return 'introspection-engine' as any // TODO: Remove as any as soon as type added to @prisma/fetch-engine
+    return 'introspection-engine'
   }
 
   if (engineType === 'migrationEngine') {
