@@ -27,7 +27,7 @@ It is part of the [Prisma 2](https://www.github.com/prisma/prisma2) ecosystem. P
 The easiest way to get started with Prisma Client JS is by installing the Prisma 2 CLI and running the `init` command:
 
 ```sh
-npm install -g prisma2
+npm install -g @prisma/cli
 mkdir my-prisma-project && cd my-prisma-project
 prisma2 init
 ```
