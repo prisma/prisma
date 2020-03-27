@@ -1,7 +1,14 @@
 import { Command, format, HelpError, getSchemaPath, arg } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
-import { IntrospectionEngine, uriToCredentials, ConfigMetaFormat, RustPanic, ErrorArea } from '@prisma/sdk'
+import {
+  IntrospectionEngine,
+  IntrospectionWarnings,
+  uriToCredentials,
+  ConfigMetaFormat,
+  RustPanic,
+  ErrorArea,
+} from '@prisma/sdk'
 import { formatms } from '../util/formatms'
 import fs from 'fs'
 import { DataSource } from '@prisma/generator-helper'
@@ -100,8 +107,11 @@ export class Introspect implements Command {
 
     const before = Date.now()
     let introspectionSchema = ''
+    let introspectionWarnings: IntrospectionWarnings[]
     try {
-      introspectionSchema = await engine.introspect(schema)
+      const introspectionResult = await engine.introspect(schema)
+      introspectionSchema = introspectionResult.datamodel
+      introspectionWarnings = introspectionResult.warnings
     } catch (e) {
       if (e.code === 'P4001') {
         if (introspectionSchema.trim() === '') {
@@ -133,10 +143,38 @@ Then you can run ${chalk.green('prisma2 introspect')} again.
     } else {
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)
+
+      let introspectionWarningsMessage = ''
+      if (introspectionWarnings.length > 0) {
+        introspectionWarningsMessage = `\n*** WARNING ***\n`
+
+        for (const warning of introspectionWarnings) {
+          introspectionWarningsMessage += `\n${warning.message}\n`
+
+          if (warning.code === 1) {
+            introspectionWarningsMessage += warning.affected.map(it => `- "${it.model}"`).join('\n')
+          } else if (warning.code === 2) {
+            introspectionWarningsMessage += warning.affected
+              .map(it => `- Model: "${it.model}" Field: "${it.field}"`)
+              .join('\n')
+          } else if (warning.code === 3) {
+            introspectionWarningsMessage += warning.affected
+              .map(it => `- Model: "${it.model}" Field: "${it.field}" Raw Datatype: "${it.raw_datatype}"`)
+              .join('\n')
+          } else if (warning.code === 4) {
+            introspectionWarningsMessage += warning.affected
+              .map(it => `- Enum: "${it.enm}" Value: "${it.value}"`)
+              .join('\n')
+          }
+
+          introspectionWarningsMessage += `\n`
+        }
+      }
+
       log(`\n✔ Wrote Prisma data model into ${chalk.underline(
         path.relative(process.cwd(), schemaPath),
       )} in ${chalk.bold(formatms(Date.now() - before))}
-      
+      ${chalk.keyword('orange')(introspectionWarningsMessage)}
 Run ${chalk.green('prisma2 generate')} to generate Prisma Client.`)
     }
 
