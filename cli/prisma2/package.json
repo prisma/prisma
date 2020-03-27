@@ -1,8 +1,8 @@
 {
-  "name": "prisma2",
   "version": "2.0.0-alpha.968",
+  "name": "@prisma/cli",
   "main": "build/index.js",
-  "repository": "git@github.com:prisma/prisma2-cli.git",
+  "repository": "git@github.com:prisma/prisma2.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
   "engines": {
@@ -28,9 +28,11 @@
       "introspection-engine*"
     ]
   },
-  "bin": "build/index.js",
+  "bin": {
+    "prisma2": "build/index.js"
+  },
   "prisma": {
-    "version": "3c1162d96cd20ac7c93dee6df890072e8045d838"
+    "version": "8814060fa684793b73d07dbfccd4b7777b3361ae"
   },
   "devDependencies": {
     "@prisma/ci-info": "^2.1.1",

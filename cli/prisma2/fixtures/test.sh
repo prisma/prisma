@@ -4,7 +4,7 @@
 # Test version command
 #
 VERSION=$(node ./build/index.js --version)
-if [[ ${VERSION} != *"prisma2@"* ]]; then
+if [[ ${VERSION} != *"@prisma/cli"* ]]; then
   echo "prisma2 --version is broken"
   exit 1
 fi
