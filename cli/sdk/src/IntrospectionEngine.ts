@@ -46,6 +46,7 @@ export type IntrospectionWarnings =
   | IntrospectionWarningsMissingUnique
   | IntrospectionWarningsEmptyFieldName
   | IntrospectionWarningsUnsupportedType
+  | IntrospectionWarningsInvalidEnumName
 
 interface IntrospectionWarningsMissingUnique {
   code: 1
@@ -63,6 +64,12 @@ interface IntrospectionWarningsUnsupportedType {
   code: 3
   message: string
   affected: { model: string; field: string; raw_datatype: string }[]
+}
+
+interface IntrospectionWarningsInvalidEnumName {
+  code: 4
+  message: string
+  affected: { enm: string; value: string }[]
 }
 
 let messageId = 1
