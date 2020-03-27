@@ -6,7 +6,10 @@ export {
   highlightTS,
 } from './highlight/highlight'
 
-export { IntrospectionEngine } from './IntrospectionEngine'
+export {
+  IntrospectionEngine,
+  IntrospectionWarnings,
+} from './IntrospectionEngine'
 export { Generator } from './Generator'
 export { getGenerators, getGenerator, ProviderAliases } from './getGenerators'
 export {
