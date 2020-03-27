@@ -59,7 +59,7 @@ While it is recommended to [locally install](#local-installation-recommended) th
 Install with npm:
 
 ```
-npm install -g @prisma/client
+npm install -g @prisma/cli
 ```
 
 You can then invoke the globally installed CLI with the **`prisma2`** command like so:
