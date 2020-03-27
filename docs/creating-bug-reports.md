@@ -106,9 +106,18 @@ Please include any information about your environment and setup. Specifically it
 
 Here's an example of what this could look like in your bug report:
 
-- OS: Mac OS Cataline 10.15.1 
+- OS: Mac OS Catalina 10.15.1
 - Database: PostgreSQL v11
-- Prisma version: `prisma2@2.0.0-preview024, binary version: 377df4fe30aa992f13f1ba152cf83d5770bdbc85`
+- Prisma version:
+
+```
+@prisma/cli          : 2.0.0-preview025
+Current platform     : darwin
+Query Engine         : prisma 8814060fa684793b73d07dbfccd4b7777b3361ae (at /Users/.../node_modules/@prisma/cli/query-engine-darwin)
+Migration Engine     : migration-engine-cli 8814060fa684793b73d07dbfccd4b7777b3361ae (at /Users/.../node_modules/@prisma/cli/migration-engine-darwin)
+Introspection Engine : introspection-core 8814060fa684793b73d07dbfccd4b7777b3361ae (at /Users/.../node_modules/@prisma/cli/introspection-engine-darwin)
+```
+
 - Node.js version: `v12.2.0`
 
 ### Include relevant Prisma info (e.g. the Prisma schema, Prisma Client queries, ...)
@@ -116,5 +125,3 @@ Here's an example of what this could look like in your bug report:
 To help us reproduce your problem, it is helpful to include your Prisma schema in the bug report. **Please remove any database credentials before sharing your Prisma schema in a bug report**. If you're sure about which parts of the schema is causing the issue, please strip out the irrelevant parts of it and only show the parts that are related to the problem. If you're not sure, please include your entire schema.
 
 If you have an issue with Prisma Client, please also include which Prisma Client query is causing the issue.
-
-
