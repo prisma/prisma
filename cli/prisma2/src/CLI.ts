@@ -43,7 +43,7 @@ export class CLI implements Command {
     // check if we have that subcommand
     const cmdName = args._[0]
     if (cmdName === 'lift') {
-      throw new Error(`${chalk.red('prisma2 lift')} has been renamed to ${chalk.green('prisma2 migrate')}`)
+      throw new Error(`${chalk.red('prisma lift')} has been renamed to ${chalk.green('prisma migrate')}`)
     }
     const cmd = this.cmds[cmdName]
     if (cmd) {
@@ -88,7 +88,7 @@ export class CLI implements Command {
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma2 [command]
+      ${chalk.dim('$')} prisma [command]
 
     ${chalk.bold('Commands')}
 
@@ -103,13 +103,13 @@ export class CLI implements Command {
     ${chalk.bold('Examples')}
 
       Setup a new Prisma project
-      ${chalk.dim('$')} prisma2 init
+      ${chalk.dim('$')} prisma init
 
       Introspect an existing database
-      ${chalk.dim('$')} prisma2 introspect
+      ${chalk.dim('$')} prisma introspect
 
       Generate artifacts (e.g. Prisma Client)
-      ${chalk.dim('$')} prisma2 generate
+      ${chalk.dim('$')} prisma generate
   `)
 
   // static help template
@@ -120,7 +120,7 @@ export class CLI implements Command {
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma2 [command]
+      ${chalk.dim('$')} prisma [command]
 
     ${chalk.bold('Commands')}
 
@@ -137,15 +137,15 @@ export class CLI implements Command {
     ${chalk.bold('Examples')}
 
       Initialize files for a new Prisma project
-      ${chalk.dim('$')} prisma2 init
+      ${chalk.dim('$')} prisma init
 
       Introspect an existing database
-      ${chalk.dim('$')} prisma2 introspect
+      ${chalk.dim('$')} prisma introspect
 
       Generate artifacts (e.g. Prisma Client)
-      ${chalk.dim('$')} prisma2 generate
+      ${chalk.dim('$')} prisma generate
 
       Save your changes into a migration
-      ${chalk.dim('$')} prisma2 migrate save --experimental
+      ${chalk.dim('$')} prisma migrate save --experimental
   `)
 }

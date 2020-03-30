@@ -302,7 +302,7 @@ async function validateGenerators(generators: GeneratorConfig[]) {
   )} with ${chalk.green(
         "import { PrismaClient } from '@prisma/client'",
       )} in your code.
-  4. Run ${chalk.green('prisma2 generate')} again.
+  4. Run ${chalk.green('prisma generate')} again.
       `)
     }
     if (generator.provider === 'nexus-prisma') {
