@@ -27,6 +27,7 @@ export { RustPanic, ErrorArea } from './panic'
 export { link } from './link'
 export { sendPanic } from './sendPanic'
 export { maskSchema } from './utils/maskSchema'
+export { drawBox } from './drawBox'
 
 export { HelpError, unknownCommand } from './cli/Help'
 export {

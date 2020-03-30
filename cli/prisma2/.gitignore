@@ -20,6 +20,7 @@ tmp-postgresql
 pkg-build
 download-done
 prisma-client
+preinstall
 
 prisma
 .envrc
