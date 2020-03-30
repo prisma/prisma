@@ -32,13 +32,13 @@ export class Introspect implements Command {
     ${chalk.bold('Usage')}
 
     With an existing schema.prisma
-      ${chalk.dim('$')} prisma2 introspect
+      ${chalk.dim('$')} prisma introspect
 
     Or specify a schema:
-      ${chalk.dim('$')} prisma2 introspect --schema=./db/schema.prisma'
+      ${chalk.dim('$')} prisma introspect --schema=./db/schema.prisma'
 
     Instead of saving the result to the filesystem, you can also print it
-      ${chalk.dim('$')} prisma2 introspect --print'
+      ${chalk.dim('$')} prisma introspect --print'
 
   `)
   private constructor() {}
@@ -119,9 +119,9 @@ export class Introspect implements Command {
             url ? chalk.underline(url) : ''
           }
 
-${chalk.bold('prisma2 introspect')} could not create any models in your ${chalk.bold(
+${chalk.bold('prisma introspect')} could not create any models in your ${chalk.bold(
             'schema.prisma',
-          )} file and you will not be able to generate Prisma Client with the ${chalk.bold('prisma2 generate')} command.
+          )} file and you will not be able to generate Prisma Client with the ${chalk.bold('prisma generate')} command.
 
 ${chalk.bold('To fix this, you have two options:')}
 
@@ -130,7 +130,7 @@ ${chalk.bold('To fix this, you have two options:')}
             'schema.prisma',
           )} points to a database that is not empty (it must contain at least one table).
 
-Then you can run ${chalk.green('prisma2 introspect')} again. 
+Then you can run ${chalk.green('prisma introspect')} again. 
 `)
         }
       }
@@ -175,7 +175,7 @@ Then you can run ${chalk.green('prisma2 introspect')} again.
         path.relative(process.cwd(), schemaPath),
       )} in ${chalk.bold(formatms(Date.now() - before))}
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
-Run ${chalk.green('prisma2 generate')} to generate Prisma Client.`)
+Run ${chalk.green('prisma generate')} to generate Prisma Client.`)
     }
 
     engine.stop()

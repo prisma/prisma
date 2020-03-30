@@ -4,7 +4,7 @@ import { getConfig, getDMMF } from '@prisma/sdk'
 import fs from 'fs'
 
 /**
- * $ prisma2 validate
+ * $ prisma validate
  */
 export class Validate implements Command {
   public static new(): Validate {
@@ -18,10 +18,10 @@ export class Validate implements Command {
     ${chalk.bold('Usage')}
 
     With an existing schema.prisma:
-      ${chalk.dim('$')} prisma2 validate
+      ${chalk.dim('$')} prisma validate
 
     Or specify a schema:
-      ${chalk.dim('$')} prisma2 validate --schema=./schema.prisma
+      ${chalk.dim('$')} prisma validate --schema=./schema.prisma
 
   `)
   private constructor() {}

@@ -12,7 +12,7 @@ interface BinaryInfo {
 }
 
 /**
- * $ prisma2 version
+ * $ prisma version
  */
 export class Version implements Command {
   static new(): Version {
