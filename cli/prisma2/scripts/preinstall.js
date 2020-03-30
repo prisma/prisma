@@ -1,7 +1,9 @@
+const Debug = require('debug')
 const path = require('path')
 const globalDirs = require('global-dirs')
 const { drawBox } = require('@prisma/sdk/dist/drawBox')
 const isInstalledGlobally = require('is-installed-globally')
+const debug = Debug('preinstall')
 
 const BOLD = '\u001b[1m'
 const WHITE_BRIGHT = '\u001b[37;1m'
@@ -31,6 +33,7 @@ if (!isInstalledGlobally) {
 }
 
 const installedGlobally = prisma2IsInstalledGlobally()
+debug({ installedGlobally })
 if (!installedGlobally) {
   process.exit(0)
 }
