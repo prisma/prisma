@@ -22,7 +22,7 @@ async function main() {
     }
 
     if (installedGlobally) {
-      await run('prisma2', ['generate'])
+      await run('prisma', ['generate'])
       return
     }
   } catch (e) {
@@ -56,7 +56,7 @@ function getLocalPackagePath() {
 
 async function isInstalledGlobally() {
   try {
-    await exec('prisma2 -v')
+    await exec('prisma -v')
     return true
   } catch (e) {
     return false
@@ -71,8 +71,8 @@ if (!process.env.SKIP_GENERATE) {
           `${c.yellow('warning')} @prisma/client needs a ${c.bold(
             'schema.prisma',
           )} to function, but couldn't find it.
-        Please either create one manually or use ${c.bold('prisma2 init')}.
-        Once you created it, run ${c.bold('prisma2 generate')}.
+        Please either create one manually or use ${c.bold('prisma init')}.
+        Once you created it, run ${c.bold('prisma generate')}.
         To keep Prisma related things separate, we recommend creating it in a subfolder called ${c.underline(
           './prisma',
         )} like so: ${c.underline('./prisma/schema.prisma')}\n`,
