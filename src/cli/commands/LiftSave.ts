@@ -14,7 +14,7 @@ import { ExperimentalFlagError } from '../../utils/experimental'
 const writeFile = promisify(fs.writeFile)
 
 /**
- * $ prisma2 migrate save
+ * $ prisma migrate save
  */
 export class LiftSave implements Command {
   public static new(): LiftSave {
@@ -32,7 +32,7 @@ export class LiftSave implements Command {
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma2 migrate save [options] --experimental
+      ${chalk.dim('$')} prisma migrate save [options] --experimental
 
     ${chalk.bold('Options')}
 
@@ -44,10 +44,10 @@ export class LiftSave implements Command {
     ${chalk.bold('Examples')}
 
       Create a new migration
-      ${chalk.dim('$')} prisma2 migrate save --experimental
+      ${chalk.dim('$')} prisma migrate save --experimental
 
       Create a new migration by name
-      ${chalk.dim('$')} prisma2 migrate save --name "add unique to email" --experimental
+      ${chalk.dim('$')} prisma migrate save --name "add unique to email" --experimental
 
   `)
   private constructor() {}
@@ -107,7 +107,7 @@ export class LiftSave implements Command {
     if (preview) {
       lift.stop()
       return `\nRun ${chalk.greenBright(
-        'prisma2 migrate save --name MIGRATION_NAME --experimental',
+        'prisma migrate save --name MIGRATION_NAME --experimental',
       )} to create the migration\n`
     }
 
@@ -123,7 +123,7 @@ export class LiftSave implements Command {
 
     return `\nPrisma Migrate just created your migration ${printMigrationId(migrationId)} in\n\n${chalk.dim(
       printFiles(`migrations/${migrationId}`, files),
-    )}\n\nRun ${chalk.greenBright('prisma2 migrate up --experimental')} to apply the migration\n`
+    )}\n\nRun ${chalk.greenBright('prisma migrate up --experimental')} to apply the migration\n`
   }
 
   // get the name

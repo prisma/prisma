@@ -21,7 +21,7 @@ export class StudioCommand implements Command {
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma2 studio --experimental
+      ${chalk.dim('$')} prisma studio --experimental
 
     ${chalk.bold('Options')}
 
@@ -31,10 +31,10 @@ export class StudioCommand implements Command {
     ${chalk.bold('Examples')}
 
       Start Studio on the default port
-      ${chalk.dim('$')} prisma2 studio --experimental
+      ${chalk.dim('$')} prisma studio --experimental
 
       Start Studio on a custom port
-      ${chalk.dim('$')} prisma2 studio --port 5555 --experimental
+      ${chalk.dim('$')} prisma studio --port 5555 --experimental
   `)
 
   private constructor(private readonly providerAliases: ProviderAliases) {
