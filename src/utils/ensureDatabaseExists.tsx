@@ -154,8 +154,7 @@ const CreateDatabaseDialog: React.FC<DialogProps> = ({ connectionString, action,
       <Box flexDirection="column">
         {action === 'dev' ? (
           <Color>
-            You are trying to run <Color bold>prisma2 dev</Color> for {dbType} {schemaWord} <Color bold>{dbName}</Color>
-            .
+            You are trying to run <Color bold>prisma dev</Color> for {dbType} {schemaWord} <Color bold>{dbName}</Color>.
           </Color>
         ) : (
           <Color>

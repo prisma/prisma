@@ -250,7 +250,7 @@ export class Lift {
         throw new Error(
           `There's a merge conflict in the ${chalk.bold(
             'migrations/migrate.lock',
-          )} file. Please execute ${chalk.greenBright('prisma2 migrate fix')} to solve it`,
+          )} file. Please execute ${chalk.greenBright('prisma migrate fix')} to solve it`,
         )
       }
       return lockFile
@@ -446,10 +446,10 @@ export class Lift {
     const localWatchMigrations = await this.getLocalWatchMigrations()
     if (localWatchMigrations.length > 0) {
       throw new Error(
-        `Before running ${chalk.yellow('prisma2 migrate down --experimental')}, please save your ${chalk.bold(
+        `Before running ${chalk.yellow('prisma migrate down --experimental')}, please save your ${chalk.bold(
           'dev',
-        )} changes using ${chalk.bold.greenBright('prisma2 migrate save --experimental')} and ${chalk.bold.greenBright(
-          'prisma2 migrate up --experimental',
+        )} changes using ${chalk.bold.greenBright('prisma migrate save --experimental')} and ${chalk.bold.greenBright(
+          'prisma migrate up --experimental',
         )}`,
       )
     }
@@ -586,7 +586,7 @@ export class Lift {
 
     if (preview) {
       await progressRenderer.done()
-      return `\nTo apply the migrations, run ${chalk.greenBright('prisma2 migrate up --experimental')}\n`
+      return `\nTo apply the migrations, run ${chalk.greenBright('prisma migrate up --experimental')}\n`
     }
 
     for (let i = 0; i < migrationsToApply.length; i++) {
@@ -739,7 +739,7 @@ export class Lift {
       if (Array.isArray(stepsFileJson)) {
         throw new Error(
           `We changed the steps.json format - please delete your migrations folder and run ${chalk.greenBright(
-            'prisma2 migrate save --experimental',
+            'prisma migrate save --experimental',
           )} again`,
         )
       }
@@ -941,7 +941,7 @@ class ProgressRenderer {
 
     str += chalk.dim(
       `\n\nYou can get the detailed db changes with ${chalk.greenBright(
-        'prisma2 migrate up --experimental --verbose',
+        'prisma migrate up --experimental --verbose',
       )}\nOr read about them in the ./migrations/MIGRATION_ID/README.md`,
     )
 

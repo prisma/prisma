@@ -21,7 +21,7 @@ export class LiftCommand implements Command {
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma2 migrate [command] [options] --experimental
+      ${chalk.dim('$')} prisma migrate [command] [options] --experimental
 
     ${chalk.bold('Options')}
 
@@ -36,19 +36,19 @@ export class LiftCommand implements Command {
     ${chalk.bold('Examples')}
 
       Create new migration
-      ${chalk.dim('$')} prisma2 migrate save --experimental
+      ${chalk.dim('$')} prisma migrate save --experimental
 
       Migrate up to the latest datamodel
-      ${chalk.dim('$')} prisma2 migrate up --experimental
+      ${chalk.dim('$')} prisma migrate up --experimental
 
       Preview the next migration without migrating
-      ${chalk.dim('$')} prisma2 migrate up --preview --experimental
+      ${chalk.dim('$')} prisma migrate up --preview --experimental
 
       Rollback a migration
-      ${chalk.dim('$')} prisma2 migrate down 1 --experimental
+      ${chalk.dim('$')} prisma migrate down 1 --experimental
 
       Get more help on a migrate up
-      ${chalk.dim('$')} prisma2 migrate up -h --experimental
+      ${chalk.dim('$')} prisma migrate up -h --experimental
   `)
   private constructor(private readonly cmds: Commands) {}
 
@@ -74,11 +74,11 @@ export class LiftCommand implements Command {
     if (cmd) {
       const nextFreePort = await getNextFreePort(process.cwd())
       if (typeof nextFreePort !== 'number') {
-        const command = `prisma2 migrate ${argv.join(' ')}`
+        const command = `prisma migrate ${argv.join(' ')}`
         throw new Error(`Cannot run ${chalk.bold(command)} because there is a ${chalk.bold(
-          'prisma2 dev',
+          'prisma dev',
         )} command running in this directory.
-Please ${chalk.rgb(228, 155, 15)(`stop ${chalk.bold('prisma2 dev')} first`)}, then try ${chalk.greenBright.bold(
+Please ${chalk.rgb(228, 155, 15)(`stop ${chalk.bold('prisma dev')} first`)}, then try ${chalk.greenBright.bold(
           command,
         )} again`)
       }
