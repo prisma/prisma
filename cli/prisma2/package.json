@@ -1,7 +1,7 @@
 {
   "version": "2.0.0-alpha.968",
   "name": "@prisma/cli",
-  "description": "CLI for Prisma's open-source database toolkit. It replaces traditional ORMs and makes database access easy with an auto-generated query builder for TypeScript & Node.js.",
+  "description": "The Prisma command line interface (CLI) is the primary way to interact with your Prisma project from the command line. It can initialize new project assets, generate Prisma Client, and analyze existing database structures through introspection to automatically create your application models.",
   "keywords": ["prisma2", "prisma", "cli", "database", "sql", "postgresql", "mysql", "sqlite", "mariadb", "typescript"],
   "main": "build/index.js",
   "repository": "git@github.com:prisma/prisma2.git",
