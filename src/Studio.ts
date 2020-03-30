@@ -50,7 +50,7 @@ export class Studio {
 
       if (!firstExistingPath) {
         throw new Error(
-          `Could not find any Prisma2 query-engine binary for Studio. Looked in ${pathCandidates.join(', ')}`,
+          `Could not find any Prisma query-engine binary for Studio. Looked in ${pathCandidates.join(', ')}`,
         )
       }
 

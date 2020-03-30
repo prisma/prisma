@@ -158,7 +158,7 @@ class DevComponent extends Component<Props, State> {
           <Box flexDirection="column">
             <Box>
               <Color>
-                Changes in datamodel since last <Color bold>prisma2 migrate save</Color>
+                Changes in datamodel since last <Color bold>prisma migrate save</Color>
               </Color>
             </Box>
             <Box marginTop={1} marginLeft={2}>
@@ -238,7 +238,7 @@ class DevComponent extends Component<Props, State> {
                 <Color dim>
                   To save changes into a migration file, run{' '}
                   <Color bold dim green>
-                    prisma2 migrate save --experimental
+                    prisma migrate save --experimental
                   </Color>
                 </Color>
               </Box>
