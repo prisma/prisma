@@ -100,8 +100,12 @@ datasource pg {
   provider = "postgresql"
   url = "${connectionString}"
 }`
-  const introspectionSchema = (await engine.introspect(schema)).datamodel
-  snapshot(name, maskSchema(introspectionSchema))
+  const introspectionResult = await engine.introspect(schema)
+  const introspectionSchema = introspectionResult.datamodel
+
+  snapshot(`${name}_datamodel`, maskSchema(introspectionSchema))
+  snapshot(`${name}_warnings`, introspectionResult.warnings)
+
   await generate(t, introspectionSchema)
   const prismaClientPath = join(tmp, 'index.js')
   const prismaClientDeclarationPath = join(tmp, 'index.d.ts')
