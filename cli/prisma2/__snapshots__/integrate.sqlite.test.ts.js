@@ -1,28 +1,4 @@
-exports['const posts = await posts.findMany({ where: { created_at: { lte: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource sqlite {
-  provider = "sqlite"
-  url = "***"
-}
-
-model teams {
-  email String @unique
-  id    Int    @id
-  name  String @unique
-}
-
-model posts {
-  created_at DateTime @default(now())
-  id         Int      @default(autoincrement()) @id
-  title      String
-}
-`
-
-exports['teams.findOne({ where: { id: 2 } })'] = `
+exports['teams.findOne({ where: { id: 2 } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -39,7 +15,9 @@ model teams {
 }
 `
 
-exports['teams.findOne({ where: { id: 2 }, select: { name: true } })'] = `
+exports['teams.findOne({ where: { id: 2 } })_warnings'] = []
+
+exports['teams.findOne({ where: { id: 2 }, select: { name: true } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -57,7 +35,9 @@ model teams {
 }
 `
 
-exports['users.findOne({ where: { id: 1 }, include: { posts: true } })'] = `
+exports['teams.findOne({ where: { id: 2 }, select: { name: true } })_warnings'] = []
+
+exports['users.findOne({ where: { id: 1 }, include: { posts: true } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -88,7 +68,9 @@ model posts {
 }
 `
 
-exports['teams.create({ data: { name: \'c\' } })'] = `
+exports['users.findOne({ where: { id: 1 }, include: { posts: true } })_warnings'] = []
+
+exports['teams.create({ data: { name: \'c\' } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -105,7 +87,9 @@ model teams {
 }
 `
 
-exports['teams.create({ data: {} })'] = `
+exports['teams.create({ data: { name: \'c\' } })_warnings'] = []
+
+exports['teams.create({ data: {} })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -122,7 +106,9 @@ model teams {
 }
 `
 
-exports['teams.update({ where: { id: 1 }, data: { name: \'d\' }, })'] = `
+exports['teams.create({ data: {} })_warnings'] = []
+
+exports['teams.update({ where: { id: 1 }, data: { name: \'d\' }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -139,7 +125,9 @@ model teams {
 }
 `
 
-exports['teams.update({ where: { id: 1 }, data: { active: false }, })'] = `
+exports['teams.update({ where: { id: 1 }, data: { name: \'d\' }, })_warnings'] = []
+
+exports['teams.update({ where: { id: 1 }, data: { active: false }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -157,7 +145,9 @@ model teams {
 }
 `
 
-exports['teams.update({ where: { id: 1 }, data: { active: false }, select: { active: true }, })'] = `
+exports['teams.update({ where: { id: 1 }, data: { active: false }, })_warnings'] = []
+
+exports['teams.update({ where: { id: 1 }, data: { active: false }, select: { active: true }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -175,7 +165,9 @@ model teams {
 }
 `
 
-exports['teams.update({ where: { name: \'c\' }, data: { name: \'d\' }, })'] = `
+exports['teams.update({ where: { id: 1 }, data: { active: false }, select: { active: true }, })_warnings'] = []
+
+exports['teams.update({ where: { name: \'c\' }, data: { name: \'d\' }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -192,7 +184,9 @@ model teams {
 }
 `
 
-exports['teams.updateMany({ where: { name: \'c\' }, data: { name: \'d\' }, })'] = `
+exports['teams.update({ where: { name: \'c\' }, data: { name: \'d\' }, })_warnings'] = []
+
+exports['teams.updateMany({ where: { name: \'c\' }, data: { name: \'d\' }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -209,7 +203,9 @@ model teams {
 }
 `
 
-exports['await teams.updateMany({ where: { name: \'c\' }, data: { name: \'d\' }, })  client.teams.findMany();'] = `
+exports['teams.updateMany({ where: { name: \'c\' }, data: { name: \'d\' }, })_warnings'] = []
+
+exports['await teams.updateMany({ where: { name: \'c\' }, data: { name: \'d\' }, })  client.teams.findMany();_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -226,7 +222,9 @@ model teams {
 }
 `
 
-exports['users.findOne({ where: { email: \'ada@prisma.io\' } })'] = `
+exports['await teams.updateMany({ where: { name: \'c\' }, data: { name: \'d\' }, })  client.teams.findMany();_warnings'] = []
+
+exports['users.findOne({ where: { email: \'ada@prisma.io\' } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -249,7 +247,9 @@ model users {
 }
 `
 
-exports['users.findMany()'] = `
+exports['users.findOne({ where: { email: \'ada@prisma.io\' } })_warnings'] = []
+
+exports['users.findMany()_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -272,7 +272,9 @@ model users {
 }
 `
 
-exports['users.findMany({ where: { email: \'ada@prisma.io\' } })'] = `
+exports['users.findMany()_warnings'] = []
+
+exports['users.findMany({ where: { email: \'ada@prisma.io\' } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -295,7 +297,9 @@ model users {
 }
 `
 
-exports['users.findMany()2'] = `
+exports['users.findMany({ where: { email: \'ada@prisma.io\' } })_warnings'] = []
+
+exports['users.findMany()2_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -318,7 +322,9 @@ model users {
 }
 `
 
-exports['users.findOne({ where: { email: \'ada@prisma.io\' } }).posts()'] = `
+exports['users.findMany()2_warnings'] = []
+
+exports['users.findOne({ where: { email: \'ada@prisma.io\' } }).posts()_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -349,7 +355,9 @@ model posts {
 }
 `
 
-exports['posts.findMany({ where: { title: { contains: \'A\' }, published: true, }, })'] = `
+exports['users.findOne({ where: { email: \'ada@prisma.io\' } }).posts()_warnings'] = []
+
+exports['posts.findMany({ where: { title: { contains: \'A\' }, published: true, }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -373,7 +381,9 @@ model posts {
 }
 `
 
-exports['posts.findMany({ where: { OR: [{ title: { contains: \'A\' } }, { title: { contains: \'C\' } }], published: true, }, })'] = `
+exports['posts.findMany({ where: { title: { contains: \'A\' }, published: true, }, })_warnings'] = []
+
+exports['posts.findMany({ where: { OR: [{ title: { contains: \'A\' } }, { title: { contains: \'C\' } }], published: true, }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -397,7 +407,9 @@ model posts {
 }
 `
 
-exports['posts.upsert({ where: { id: 1 }, create: { title: \'D\', published: true }, update: { title: \'D\', published: true }, })'] = `
+exports['posts.findMany({ where: { OR: [{ title: { contains: \'A\' } }, { title: { contains: \'C\' } }], published: true, }, })_warnings'] = []
+
+exports['posts.upsert({ where: { id: 1 }, create: { title: \'D\', published: true }, update: { title: \'D\', published: true }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -421,7 +433,9 @@ model posts {
 }
 `
 
-exports['posts.upsert({ where: { id: 4 }, create: { title: \'D\', published: false }, update: { title: \'D\', published: true }, })'] = `
+exports['posts.upsert({ where: { id: 1 }, create: { title: \'D\', published: true }, update: { title: \'D\', published: true }, })_warnings'] = []
+
+exports['posts.upsert({ where: { id: 4 }, create: { title: \'D\', published: false }, update: { title: \'D\', published: true }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -445,7 +459,9 @@ model posts {
 }
 `
 
-exports['posts.findMany({ orderBy: { title: \'asc\', }, })'] = `
+exports['posts.upsert({ where: { id: 4 }, create: { title: \'D\', published: false }, update: { title: \'D\', published: true }, })_warnings'] = []
+
+exports['posts.findMany({ orderBy: { title: \'asc\', }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -469,7 +485,9 @@ model posts {
 }
 `
 
-exports['posts.findMany({ orderBy: { title: \'desc\', }, })'] = `
+exports['posts.findMany({ orderBy: { title: \'asc\', }, })_warnings'] = []
+
+exports['posts.findMany({ orderBy: { title: \'desc\', }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -493,7 +511,9 @@ model posts {
 }
 `
 
-exports['crons.findMany({ where: { job: { contains: \'j2\' } } })'] = `
+exports['posts.findMany({ orderBy: { title: \'desc\', }, })_warnings'] = []
+
+exports['crons.findMany({ where: { job: { contains: \'j2\' } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -517,7 +537,9 @@ model crons {
 }
 `
 
-exports['crons.findMany({ where: { job: { startsWith: \'j2\' } } })'] = `
+exports['crons.findMany({ where: { job: { contains: \'j2\' } } })_warnings'] = []
+
+exports['crons.findMany({ where: { job: { startsWith: \'j2\' } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -541,7 +563,9 @@ model crons {
 }
 `
 
-exports['crons.findMany({ where: { job: { endsWith: \'1\' } } })'] = `
+exports['crons.findMany({ where: { job: { startsWith: \'j2\' } } })_warnings'] = []
+
+exports['crons.findMany({ where: { job: { endsWith: \'1\' } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -565,7 +589,9 @@ model crons {
 }
 `
 
-exports['crons.findMany({ where: { job: { in: [\'j20\', \'j1\'] } } })'] = `
+exports['crons.findMany({ where: { job: { endsWith: \'1\' } } })_warnings'] = []
+
+exports['crons.findMany({ where: { job: { in: [\'j20\', \'j1\'] } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -589,7 +615,9 @@ model crons {
 }
 `
 
-exports['posts.findMany({ where: { created_at: { gte: new Date() } } })'] = `
+exports['crons.findMany({ where: { job: { in: [\'j20\', \'j1\'] } } })_warnings'] = []
+
+exports['const posts = await posts.findMany({ where: { created_at: { lte: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -613,7 +641,9 @@ model posts {
 }
 `
 
-exports['posts.findMany({ where: { created_at: { gt: new Date() } } })'] = `
+exports['const posts = await posts.findMany({ where: { created_at: { lte: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;_warnings'] = []
+
+exports['posts.findMany({ where: { created_at: { gte: new Date() } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -637,7 +667,9 @@ model posts {
 }
 `
 
-exports['const posts = await posts.findMany({ where: { created_at: { lt: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;'] = `
+exports['posts.findMany({ where: { created_at: { gte: new Date() } } })_warnings'] = []
+
+exports['posts.findMany({ where: { created_at: { gt: new Date() } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -661,7 +693,35 @@ model posts {
 }
 `
 
-exports['teams.update({ where: { token: 11 }, data: { token: 10 } })'] = `
+exports['posts.findMany({ where: { created_at: { gt: new Date() } } })_warnings'] = []
+
+exports['const posts = await posts.findMany({ where: { created_at: { lt: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model posts {
+  created_at DateTime @default(now())
+  id         Int      @default(autoincrement()) @id
+  title      String
+}
+`
+
+exports['const posts = await posts.findMany({ where: { created_at: { lt: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;_warnings'] = []
+
+exports['teams.update({ where: { token: 11 }, data: { token: 10 } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -678,7 +738,9 @@ model teams {
 }
 `
 
-exports['await events.findMany({ where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } })'] = `
+exports['teams.update({ where: { token: 11 }, data: { token: 10 } })_warnings'] = []
+
+exports['await events.findMany({ where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -701,7 +763,9 @@ model events {
 }
 `
 
-exports['events.findMany({ where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+exports['await events.findMany({ where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } })_warnings'] = []
+
+exports['events.findMany({ where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -724,7 +788,9 @@ model events {
 }
 `
 
-exports['events.findMany({ where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+exports['events.findMany({ where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })_warnings'] = []
+
+exports['events.findMany({ where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -747,7 +813,9 @@ model events {
 }
 `
 
-exports['events.findMany({ where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+exports['events.findMany({ where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })_warnings'] = []
+
+exports['events.findMany({ where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -770,7 +838,9 @@ model events {
 }
 `
 
-exports['events.findMany({ where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
+exports['events.findMany({ where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })_warnings'] = []
+
+exports['events.findMany({ where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -793,7 +863,34 @@ model events {
 }
 `
 
-exports['teams.findMany({ where: { id: { in: [] } } })'] = `
+exports['events.findMany({ where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })_warnings'] = []
+
+exports['events.findMany({ where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['events.findMany({ where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })_warnings'] = []
+
+exports['teams.findMany({ where: { id: { in: [] } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -811,7 +908,9 @@ model teams {
 }
 `
 
-exports['teams.findMany({ where: { id: { in: [] }, token: { in: [11, 22] } } })'] = `
+exports['teams.findMany({ where: { id: { in: [] } } })_warnings'] = []
+
+exports['teams.findMany({ where: { id: { in: [] }, token: { in: [11, 22] } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -829,7 +928,9 @@ model teams {
 }
 `
 
-exports['teams.findMany({ where: { token: { in: [11, 22] } } })'] = `
+exports['teams.findMany({ where: { id: { in: [] }, token: { in: [11, 22] } } })_warnings'] = []
+
+exports['teams.findMany({ where: { token: { in: [11, 22] } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -847,7 +948,9 @@ model teams {
 }
 `
 
-exports['teams.findMany({ where: { token: { notIn: [11, 22] } } })'] = `
+exports['teams.findMany({ where: { token: { in: [11, 22] } } })_warnings'] = []
+
+exports['teams.findMany({ where: { token: { notIn: [11, 22] } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -865,7 +968,9 @@ model teams {
 }
 `
 
-exports['teams.findMany({ where: { token: { notIn: [] } } })'] = `
+exports['teams.findMany({ where: { token: { notIn: [11, 22] } } })_warnings'] = []
+
+exports['teams.findMany({ where: { token: { notIn: [] } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -883,7 +988,9 @@ model teams {
 }
 `
 
-exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })'] = `
+exports['teams.findMany({ where: { token: { notIn: [] } } })_warnings'] = []
+
+exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -906,7 +1013,9 @@ model users {
 }
 `
 
-exports['exercises.findMany({ where: { distance: 12.213 } })'] = `
+exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })_warnings'] = []
+
+exports['exercises.findMany({ where: { distance: 12.213 } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -929,7 +1038,9 @@ model exercises {
 }
 `
 
-exports['exercises.findOne({ where: { distance: 12.213 } })'] = `
+exports['exercises.findMany({ where: { distance: 12.213 } })_warnings'] = []
+
+exports['exercises.findOne({ where: { distance: 12.213 } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -952,7 +1063,9 @@ model exercises {
 }
 `
 
-exports['exercises.findOne({ where: { distance: 12.3 } })'] = `
+exports['exercises.findOne({ where: { distance: 12.213 } })_warnings'] = []
+
+exports['exercises.findOne({ where: { distance: 12.3 } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -975,7 +1088,9 @@ model exercises {
 }
 `
 
-exports['migrate.create({ data: { version: 1 } })'] = `
+exports['exercises.findOne({ where: { distance: 12.3 } })_warnings'] = []
+
+exports['migrate.create({ data: { version: 1 } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -997,7 +1112,9 @@ model migrate {
 }
 `
 
-exports['variables.findOne({ where: { name_key: { key: \'b\', name: \'a\' } } })'] = `
+exports['migrate.create({ data: { version: 1 } })_warnings'] = []
+
+exports['variables.findOne({ where: { name_key: { key: \'b\', name: \'a\' } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1024,7 +1141,9 @@ model variables {
 }
 `
 
-exports['variables.update({ where: { name_key: { key: \'b\', name: \'a\' } }, data: { email: \'e\' }, })'] = `
+exports['variables.findOne({ where: { name_key: { key: \'b\', name: \'a\' } } })_warnings'] = []
+
+exports['variables.update({ where: { name_key: { key: \'b\', name: \'a\' } }, data: { email: \'e\' }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1051,7 +1170,9 @@ model variables {
 }
 `
 
-exports['variables.upsert({ where: { name_key: { key: \'b\', name: \'a\' } }, create: { name: \'1\', key: \'2\', value: \'3\', email: \'4\' }, update: { email: \'e\' }, })'] = `
+exports['variables.update({ where: { name_key: { key: \'b\', name: \'a\' } }, data: { email: \'e\' }, })_warnings'] = []
+
+exports['variables.upsert({ where: { name_key: { key: \'b\', name: \'a\' } }, create: { name: \'1\', key: \'2\', value: \'3\', email: \'4\' }, update: { email: \'e\' }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1078,7 +1199,9 @@ model variables {
 }
 `
 
-exports['variables.upsert({ where: { name_key: { key: \'d\', name: \'a\' } }, create: { name: \'1\', key: \'2\', value: \'3\', email: \'4\' }, update: { email: \'e\' }, })'] = `
+exports['variables.upsert({ where: { name_key: { key: \'b\', name: \'a\' } }, create: { name: \'1\', key: \'2\', value: \'3\', email: \'4\' }, update: { email: \'e\' }, })_warnings'] = []
+
+exports['variables.upsert({ where: { name_key: { key: \'d\', name: \'a\' } }, create: { name: \'1\', key: \'2\', value: \'3\', email: \'4\' }, update: { email: \'e\' }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1105,7 +1228,9 @@ model variables {
 }
 `
 
-exports['variables.delete({ where: { name_key: { key: \'b\', name: \'a\' } }, })'] = `
+exports['variables.upsert({ where: { name_key: { key: \'d\', name: \'a\' } }, create: { name: \'1\', key: \'2\', value: \'3\', email: \'4\' }, update: { email: \'e\' }, })_warnings'] = []
+
+exports['variables.delete({ where: { name_key: { key: \'b\', name: \'a\' } }, })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1132,7 +1257,9 @@ model variables {
 }
 `
 
-exports['variables.findOne({ where: { sqlite_autoindex_variables_1: { key: \'b\', name: \'a\' } } })'] = `
+exports['variables.delete({ where: { name_key: { key: \'b\', name: \'a\' } }, })_warnings'] = []
+
+exports['variables.findOne({ where: { sqlite_autoindex_variables_1: { key: \'b\', name: \'a\' } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1160,7 +1287,9 @@ model variables {
 }
 `
 
-exports['variables.findOne({ where: { sqlite_autoindex_variables_2: { value: \'c\', email: \'d\' } } })'] = `
+exports['variables.findOne({ where: { sqlite_autoindex_variables_1: { key: \'b\', name: \'a\' } } })_warnings'] = []
+
+exports['variables.findOne({ where: { sqlite_autoindex_variables_2: { value: \'c\', email: \'d\' } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1188,7 +1317,9 @@ model variables {
 }
 `
 
-exports['a.findOne({ where: { one_two: { one: 1, two: 2 } } })'] = `
+exports['variables.findOne({ where: { sqlite_autoindex_variables_2: { value: \'c\', email: \'d\' } } })_warnings'] = []
+
+exports['a.findOne({ where: { one_two: { one: 1, two: 2 } } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1221,7 +1352,9 @@ model b {
 }
 `
 
-exports['await teams.updateMany({ data: { name: \'b\' }, where: { name: null }, })  client.teams.findMany();'] = `
+exports['a.findOne({ where: { one_two: { one: 1, two: 2 } } })_warnings'] = []
+
+exports['await teams.updateMany({ data: { name: \'b\' }, where: { name: null }, })  client.teams.findMany();_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1238,25 +1371,4 @@ model teams {
 }
 `
 
-exports['events.findMany({ where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource sqlite {
-  provider = "sqlite"
-  url = "***"
-}
-
-model teams {
-  email String @unique
-  id    Int    @id
-  name  String @unique
-}
-
-model events {
-  id   Int       @default(autoincrement()) @id
-  time DateTime?
-}
-`
+exports['await teams.updateMany({ data: { name: \'b\' }, where: { name: null }, })  client.teams.findMany();_warnings'] = []
