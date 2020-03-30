@@ -63,7 +63,7 @@ interface IntrospectionWarningsEmptyFieldName {
 interface IntrospectionWarningsUnsupportedType {
   code: 3
   message: string
-  affected: { model: string; field: string; raw_datatype: string }[]
+  affected: { model: string; field: string; tpe: string }[]
 }
 
 interface IntrospectionWarningsInvalidEnumName {

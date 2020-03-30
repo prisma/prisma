@@ -159,7 +159,7 @@ Then you can run ${chalk.green('prisma introspect')} again.
               .join('\n')
           } else if (warning.code === 3) {
             introspectionWarningsMessage += warning.affected
-              .map(it => `- Model: "${it.model}" Field: "${it.field}" Raw Datatype: "${it.raw_datatype}"`)
+              .map(it => `- Model: "${it.model}" Field: "${it.field}" Raw Datatype: "${it.tpe}"`)
               .join('\n')
           } else if (warning.code === 4) {
             introspectionWarningsMessage += warning.affected
