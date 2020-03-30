@@ -29,6 +29,7 @@
     ]
   },
   "bin": {
+    "prisma": "build/index.js",
     "prisma2": "build/index.js"
   },
   "prisma": {
