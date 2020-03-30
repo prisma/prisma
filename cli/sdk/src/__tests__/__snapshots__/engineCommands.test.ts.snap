@@ -444,7 +444,71 @@ Object {
       Object {
         "fields": Array [
           Object {
-            "args": Array [],
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "AWhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "AOrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "AWhereUniqueInput",
+                },
+                "name": "after",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "AWhereUniqueInput",
+                },
+                "name": "before",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "first",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "last",
+              },
+            ],
             "name": "count",
             "outputType": Object {
               "isList": false,
