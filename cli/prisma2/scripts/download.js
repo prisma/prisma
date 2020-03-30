@@ -50,7 +50,7 @@ function cleanupLockFile() {
   }
 }
 
-main()
+main().catch(e => debug(e))
 
 // if we are in a Now context, ensure that `prisma2 generate` is in the postinstall hook
 if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
