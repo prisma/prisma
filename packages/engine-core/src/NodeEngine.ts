@@ -154,7 +154,7 @@ export class NodeEngine {
           )}. Possible binaryTargets: ${chalk.greenBright(
             knownPlatforms.join(', '),
           )} or a path to the query engine binary.
-You may have to run ${chalk.greenBright('prisma2 generate')} for your changes to take effect.`,
+You may have to run ${chalk.greenBright('prisma generate')} for your changes to take effect.`,
         )
       }
     } else {
@@ -261,7 +261,7 @@ Please create an issue at https://github.com/prisma/prisma-client-js/issues/new`
           )}" block in the "schema.prisma" file:
 ${chalk.greenBright(this.getFixedGenerator())}
 
-Then run "${chalk.greenBright('prisma2 generate')}" for your changes to take effect.
+Then run "${chalk.greenBright('prisma generate')}" for your changes to take effect.
 Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         }
       } else {
