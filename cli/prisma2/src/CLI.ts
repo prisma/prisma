@@ -29,6 +29,7 @@ export class CLI implements Command {
     }
 
     if (args['--version']) {
+      await this.downloadBinaries()
       return Version.new().parse(argv)
     }
 
@@ -49,18 +50,7 @@ export class CLI implements Command {
     if (cmd) {
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
       if (this.ensureBinaries.includes(cmdName)) {
-        const binaryPath = eval(`require('path').join(__dirname, '../')`)
-        const version = (pkg && pkg.prisma && pkg.prisma.version) || 'latest'
-        await download({
-          binaries: {
-            'query-engine': binaryPath,
-            'migration-engine': binaryPath,
-            'introspection-engine': binaryPath,
-          },
-          showProgress: true,
-          version,
-          failSilent: false,
-        })
+        this.downloadBinaries()
       }
 
       const argsForCmd = args['--experimental']
@@ -70,6 +60,21 @@ export class CLI implements Command {
     }
     // unknown command
     return unknownCommand(CLI.help, args._[0])
+  }
+
+  private async downloadBinaries() {
+    const binaryPath = eval(`require('path').join(__dirname, '../')`)
+    const version = (pkg && pkg.prisma && pkg.prisma.version) || 'latest'
+    await download({
+      binaries: {
+        'query-engine': binaryPath,
+        'migration-engine': binaryPath,
+        'introspection-engine': binaryPath,
+      },
+      showProgress: true,
+      version,
+      failSilent: false,
+    })
   }
 
   // help function
