@@ -9,7 +9,7 @@ import path from 'path'
 const pkg = eval(`require('../package.json')`)
 
 /**
- * $ prisma2 generate
+ * $ prisma generate
  */
 export class Generate implements Command {
   public static new(): Generate {
@@ -23,10 +23,10 @@ export class Generate implements Command {
     ${chalk.bold('Usage')}
 
     With an existing schema.prisma:
-      ${chalk.dim('$')} prisma2 generate
+      ${chalk.dim('$')} prisma generate
 
     Or specify a schema:
-      ${chalk.dim('$')} prisma2 generate --schema=./schema.prisma'
+      ${chalk.dim('$')} prisma generate --schema=./schema.prisma'
 
     ${chalk.bold('Flags')}
 
@@ -120,7 +120,7 @@ export class Generate implements Command {
 
     await this.runGenerate({ generators, watchMode })
 
-    const isJSClient = generators.find((g) => g.options && g.options.generator.provider === 'prisma-client-js')
+    const isJSClient = generators.find(g => g.options && g.options.generator.provider === 'prisma-client-js')
 
     if (watchMode) {
       logUpdate(watchingText + '\n' + this.logText)
@@ -138,9 +138,7 @@ const prisma = new PrismaClient()`)}
 \`\`\`
 
 Explore the full API: ${link('http://pris.ly/d/client')}`
-      logUpdate(
-        this.logText + (isJSClient ? hint : ''),
-      )
+      logUpdate(this.logText + (isJSClient ? hint : ''))
     }
 
     return ''

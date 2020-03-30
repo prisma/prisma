@@ -38,7 +38,7 @@ export class Init implements Command {
     
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma2 init
+      ${chalk.dim('$')} prisma init
   `)
 
   async parse(argv: string[]): Promise<any> {
@@ -113,8 +113,8 @@ Next steps:
 2. Set the ${chalk.green('DATABASE_URL')} in the ${chalk.green(
       '.env',
     )} file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started.
-3. Run ${chalk.green('prisma2 introspect')} to turn your database schema into a Prisma data model.
-4. Run ${chalk.green('prisma2 generate')} to install Prisma Client. You can then start querying your database.
+3. Run ${chalk.green('prisma introspect')} to turn your database schema into a Prisma data model.
+4. Run ${chalk.green('prisma generate')} to install Prisma Client. You can then start querying your database.
 
 More information in our documentation:
 ${link('https://pris.ly/d/getting-started')}
