@@ -99,8 +99,12 @@ datasource mysql {
   provider = "mysql"
   url = "${connectionString}"
 }`
-  const introspectionSchema = (await engine.introspect(schema)).datamodel
-  snapshot(name, maskSchema(introspectionSchema))
+  const introspectionResult = await engine.introspect(schema)
+  const introspectionSchema = introspectionResult.datamodel
+
+  snapshot(`${name}_datamodel`, maskSchema(introspectionSchema))
+  snapshot(`${name}_warnings`, introspectionResult.warnings)
+
   await generate(t, introspectionSchema)
   const prismaClientPath = join(tmp, 'index.js')
   const prismaClientDeclarationPath = join(tmp, 'index.d.ts')
@@ -1953,6 +1957,42 @@ function tests(): Test[] {
           name: 'b',
         },
       ],
+    },
+    {
+      up: `
+        CREATE TABLE \`column_name_that_becomes_empty_string\` (
+          \`field1\` int(11) NOT NULL AUTO_INCREMENT,
+          \`12345\` int(11) DEFAULT NULL,
+          PRIMARY KEY (\`field1\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+        
+        CREATE TABLE \`invalid_enum_value_name\` (
+          \`field1\` int(11) NOT NULL AUTO_INCREMENT,
+          \`here_be_enum\` enum('Y','N','123','$§!') DEFAULT NULL,
+          PRIMARY KEY (\`field1\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+        
+        CREATE TABLE \`no_unique_identifier\` (
+          \`field1\` int(11) DEFAULT NULL,
+          \`field2\` int(11) DEFAULT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+        CREATE TABLE \`unsupported_type\` (
+          \`field1\` int(11) NOT NULL AUTO_INCREMENT,
+          \`unsupported\` binary(50) DEFAULT NULL,
+          PRIMARY KEY (\`field1\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+      `,
+      down: `
+        drop table if exists column_name_that_becomes_empty_string cascade;
+        drop table if exists invalid_enum_value_name cascade;
+        drop table if exists no_unique_identifier cascade;
+        drop table if exists unsupported_type cascade;
+      `,
+      do: async client => {
+        return await client.column_name_that_becomes_empty_string.findMany({})
+      },
+      expect: [],
     },
   ]
 }
