@@ -28,6 +28,11 @@ function prisma2IsInstalledGlobally() {
 const b = str => BOLD + str + RESET
 const white = str => WHITE_BRIGHT + str + RESET
 
+// When running in npx, npm puts this package into a /_npx/ folder. Tested on Win, Mac, Linux
+if (__dirname.includes('_npx')) {
+  process.exit(0)
+}
+
 if (!isInstalledGlobally) {
   process.exit(0)
 }
@@ -49,7 +54,7 @@ Please uninstall ${white('prisma2')} globally first.
 Then install ${white('@prisma/cli')} to continue using ${b('Prisma 2.0')}:
 
    # Uninstall old CLI
-   ${white(prisma2IsInstalledGlobally.pkgManager === 'yarn' ? 'yarn remove -g prisma2' : 'npm uninstall -g prisma2')}
+   ${white(installedGlobally.pkgManager === 'yarn' ? 'yarn remove -g prisma2' : 'npm uninstall -g prisma2')}
 
    # Install new CLI
    ${white(`npm install @prisma/cli${isAlpha ? '@alpha' : ''} --save-dev`)}
