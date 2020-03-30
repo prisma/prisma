@@ -12,10 +12,10 @@ export type BoxOptions = {
 }
 
 const chars = {
-  topLeft: '╭',
-  topRight: '╮',
-  bottomRight: '╯',
-  bottomLeft: '╰',
+  topLeft: '┌',
+  topRight: '┐',
+  bottomRight: '┘',
+  bottomLeft: '└',
   vertical: '│',
   horizontal: '─',
 }
