@@ -32,7 +32,7 @@ process.env.NODE_ENV = 'production'
 //
 // Read .env file only if next to schema.prisma
 //
-// if the CLI is called witout any comand like `prisma2` we can ignore .env loading
+// if the CLI is called witout any comand like `prisma` we can ignore .env loading
 if (process.argv.length > 2) {
   let dotenvResult
 

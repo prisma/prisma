@@ -7,8 +7,8 @@ exports[`is schema and env written on disk replace:
 Next steps:
 1. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql or sqlite.
 2. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started.
-3. Run prisma2 introspect to turn your database schema into a Prisma data model.
-4. Run prisma2 generate to install Prisma Client. You can then start querying your database.
+3. Run prisma introspect to turn your database schema into a Prisma data model.
+4. Run prisma generate to install Prisma Client. You can then start querying your database.
 
 More information in our documentation:
 https://pris.ly/d/getting-started
@@ -20,8 +20,8 @@ https://pris.ly/d/getting-started
 Next steps:
 1. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql or sqlite.
 2. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started.
-3. Run prisma2 introspect to turn your database schema into a Prisma data model.
-4. Run prisma2 generate to install Prisma Client. You can then start querying your database.
+3. Run prisma introspect to turn your database schema into a Prisma data model.
+4. Run prisma generate to install Prisma Client. You can then start querying your database.
 
 More information in our documentation:
 https://pris.ly/d/getting-started

@@ -35,7 +35,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   )} with ${chalk.green(
       "import { PrismaClient } from '@prisma/client'",
     )} in your code.
-  4. Run ${chalk.green('prisma2 generate')} again.
+  4. Run ${chalk.green('prisma generate')} again.
       `)
   },
   'prisma-client-js': async (baseDir, version) => {
@@ -81,14 +81,14 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
           `Could not resolve @prisma/client despite the installation that we just tried.
 Please try to install it by hand with ${chalk.bold.greenBright(
             'npm install @prisma/client',
-          )} and rerun ${chalk.bold('prisma2 generate')} 🙏.`,
+          )} and rerun ${chalk.bold('prisma generate')} 🙏.`,
         )
       }
 
       console.info(
         `\n✔ Installed the ${chalk.bold.green(
           '@prisma/client',
-        )} and ${chalk.bold.green('prisma2')} packages in your project`,
+        )} and ${chalk.bold.green('prisma')} packages in your project`,
       )
     }
 
@@ -97,7 +97,7 @@ Please try to install it by hand with ${chalk.bold.greenBright(
         `Could not resolve @prisma/client. 
 Please try to install it with ${chalk.bold.greenBright(
           'npm install @prisma/client',
-        )} and rerun ${chalk.bold('prisma2 generate')} 🙏.`,
+        )} and rerun ${chalk.bold('prisma generate')} 🙏.`,
       )
     }
 
