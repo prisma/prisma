@@ -27,7 +27,6 @@ function isPackageInstalledGlobally(name) {
 
 function prismaIsInstalledGlobally() {
   const prismaInstalledGlobally = isPackageInstalledGlobally('prisma')
-  console.log({ prismaInstalledGlobally })
   if (prismaInstalledGlobally) {
     return {
       ...prismaInstalledGlobally,
