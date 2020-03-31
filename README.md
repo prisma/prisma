@@ -126,7 +126,7 @@ After you change your data model, you'll need to manually re-generate Prisma Cli
 prisma generate
 ```
 
-Note that cecause the Prisma Client node module contains specific context about _your_ Prisma schema, it's sometimes referred to as a ["smart node module"](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/generating-prisma-client#how-prisma-client-compares-to-conventional-node-modules).
+Note that because the Prisma Client node module contains specific context about _your_ Prisma schema, it's sometimes referred to as a ["smart node module"](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/generating-prisma-client#how-prisma-client-compares-to-conventional-node-modules).
 
 #### Using Prisma Client to send queries to your database
 
