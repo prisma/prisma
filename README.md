@@ -1,4 +1,4 @@
-# Prisma 2.0
+# Prisma
 
 [Quickstart](https://www.prisma.io/docs/getting-started/quickstart) • [Website](https://www.prisma.io) • [Docs](https://www.prisma.io/docs/) • [Examples](https://github.com/prisma/prisma-examples/) • [Blog](https://www.prisma.io/blog) • [Slack](https://slack.prisma.io/) • [Twitter](https://twitter.com/prisma) • [Demo videos](https://www.youtube.com/watch?v=t0rYb6pGLKQ&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=2&t=0s)
 
