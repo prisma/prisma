@@ -40,8 +40,8 @@ The fastest way to get started with Prisma is by following the [**Quickstart (5 
 The Quickstart is based on a preconfigured SQLite database. You can also get started with your own database (PostgreSQL and MySQL) by following one of these guides:
 
 - [Add Prisma to an existing project](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project)
-- [Setup a new project with Prisma from scratch (SQL migrations + introspection)](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project)
-- [Setup a new project with Prisma from scratch (Prisma Migrate)](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project)
+- [Setup a new project with Prisma from scratch (SQL migrations + introspection)](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-sql)
+- [Setup a new project with Prisma from scratch (Prisma Migrate)](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-prisma-migrate)
 
 ## How does Prisma work
 
