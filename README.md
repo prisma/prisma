@@ -11,7 +11,7 @@
 
 Prisma Client JS is an **auto-generated database client** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or Knex.js.
 
-It is part of the [Prisma 2](https://www.github.com/prisma/prisma2) ecosystem. Prisma 2 provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
+It is part of the [Prisma 2](https://www.github.com/prisma/prisma) ecosystem. Prisma 2 provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the [Prisma 2 announcement](https://www.prisma.io/blog/announcing-prisma-2-zq1s745db8i5/).
 
 > Note that Prisma Client JS is currently running in Preview. A productionn-ready release is [planned for Q1 2020](https://www.prisma.io/blog/state-of-prisma-2-december-rcrwcqyu655e/).
 
@@ -19,7 +19,7 @@ It is part of the [Prisma 2](https://www.github.com/prisma/prisma2) ecosystem. P
 
 <p align="center">
   <!-- <a href="https://codesandbox.io/s/github/prisma-csb/prisma-client-demo-ts"><img src="https://svgur.com/i/CXj.svg" alt="CodeSandbox"></a> -->
-  <a href="https://www.github.com/prisma/prisma2"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
+  <a href="https://www.github.com/prisma/prisma"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
 </p>
 
 ## Getting started
@@ -29,10 +29,10 @@ The easiest way to get started with Prisma Client JS is by installing the Prisma
 ```sh
 npm install @prisma/cli --save-dev
 mkdir my-prisma-project && cd my-prisma-project
-npx prisma2 init
+npx prisma init
 ```
 
-Learn more about the `npx prisma2 init` flow [here](https://pris.ly/d/getting-started).
+Learn more about the `npx prisma init` flow [here](https://pris.ly/d/getting-started).
 
 ## Features
 
@@ -51,7 +51,7 @@ Learn more about the `npx prisma2 init` flow [here](https://pris.ly/d/getting-st
 
 ## Docs
 
-You can find comprehensive documentation for Prisma Client JS in the [Prisma 2 docs](https://github.com/prisma/prisma2).
+You can find comprehensive documentation for Prisma Client JS in the [Prisma 2 docs](https://github.com/prisma/prisma).
 
 ## API examples
 
@@ -66,39 +66,47 @@ async function main() {
   await prisma.connect()
 
   const userById = await prisma.users.findOne({ where: { id: 1 } })
-  const userByEmail = await prisma.users.findOne({ where: { email: "ada@prisma.io" }})
+  const userByEmail = await prisma.users.findOne({
+    where: { email: 'ada@prisma.io' },
+  })
 
   const userWithPosts = await prisma.users.findOne({
-    where: { email: "ada@prisma.io" },
+    where: { email: 'ada@prisma.io' },
     include: { posts: { first: 10 } },
   })
 
-  const newUser = await prisma.users.create({ data: {
-    name: "Alice",
-    email: "alice@prisma.io",
-  }})
+  const newUser = await prisma.users.create({
+    data: {
+      name: 'Alice',
+      email: 'alice@prisma.io',
+    },
+  })
 
-  const newUserWithPosts = await prisma.users.create({ data: {
-    email: "alice@prisma.io",
-    posts: {
-      create: [
-        { title: "Join us for Prisma Day. June 19, Berlin!" },
-        { title: "Follow Prisma on Twitter!" },
-      ]
-    }
-  }})
+  const newUserWithPosts = await prisma.users.create({
+    data: {
+      email: 'alice@prisma.io',
+      posts: {
+        create: [
+          { title: 'Join us for Prisma Day. June 19, Berlin!' },
+          { title: 'Follow Prisma on Twitter!' },
+        ],
+      },
+    },
+  })
 
   const updatedUser = await prisma.users.update({
-    where: { email: "alice@prisma.io" },
-    data: { role: "ADMIN" },
+    where: { email: 'alice@prisma.io' },
+    data: { role: 'ADMIN' },
   })
 }
 
-main().catch(e => {
-  console.error(e)
-}).finally(async () => {
-  await prisma.disconnect()
-})
+main()
+  .catch(e => {
+    console.error(e)
+  })
+  .finally(async () => {
+    await prisma.disconnect()
+  })
 ```
 
 <Details><Summary>Expand to the view the <strong>data model</strong> based on which the above Prisma Client JS API was generated</Summary>
@@ -128,11 +136,11 @@ model Post {
 }
 ```
 
-Learn more about the data model in the [docs](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md).
+Learn more about the data model in the [docs](https://github.com/prisma/prisma/blob/master/docs/data-modeling.md).
 
 </Details>
 
-You can learn more about Prisma Client's API features in the [API reference](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md).
+You can learn more about Prisma Client's API features in the [API reference](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md).
 
 ## The Prisma Client JS workflow
 
@@ -140,7 +148,7 @@ You can learn more about Prisma Client's API features in the [API reference](htt
 
 <img src="https://i.imgur.com/UcN3ENI.png" width="220px">
 
-Specify the connection details for your database as a _data source_ in your [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). The connection details might differ per database, but most commonly you'll provide the following:
+Specify the connection details for your database as a _data source_ in your [Prisma schema file](https://github.com/prisma/prisma/blob/master/docs/prisma-schema-file.md). The connection details might differ per database, but most commonly you'll provide the following:
 
 - Host: The IP address or domain name of the machine where your database server is running.
 - Port: The port on which your database server is listening.
@@ -163,7 +171,7 @@ generator client {
 
 ### 2. Define initial data model
 
-The [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Here is the schema file from above extended with a sample data model:
+The [data model definition](https://github.com/prisma/prisma/blob/master/docs/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Here is the schema file from above extended with a sample data model:
 
 ```prisma
 // schema.prisma
@@ -207,23 +215,23 @@ Read below to learn how you obtain it for your project.
 
 <img src="https://imgur.com/Zv1OmmM.png" width="355px">
 
-If you want to use Prisma Client JS with an existing database, you can [introspect](https://github.com/prisma/prisma2/blob/master/docs/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md). This generates a [data model](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) which is the foundation for the generated Prisma Client JS API.
+If you want to use Prisma Client JS with an existing database, you can [introspect](https://github.com/prisma/prisma/blob/master/docs/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma/blob/master/docs/prisma-2-cli.md). This generates a [data model](https://github.com/prisma/prisma/blob/master/docs/data-modeling.md#data-model-definition) which is the foundation for the generated Prisma Client JS API.
 
 #### Option B: Start from scratch (_greenfield_)
 
-When starting from scratch, you can simply write your own [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) inside your [schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). You can then use [Prisma Migrate](https://github.com/prisma/migrate) to migrate your database (Prisma Migrate maps your data model definition to the schema of the underlying database).
+When starting from scratch, you can simply write your own [data model definition](https://github.com/prisma/prisma/blob/master/docs/data-modeling.md#data-model-definition) inside your [schema file](https://github.com/prisma/prisma/blob/master/docs/prisma-schema-file.md). You can then use [Prisma Migrate](https://github.com/prisma/migrate) to migrate your database (Prisma Migrate maps your data model definition to the schema of the underlying database).
 
 ### 3. Generate Prisma Client JS
 
 <img src="https://imgur.com/TkEGEn6.png" width="453px">
 
-Generate your version of Prisma Client JS using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md):
+Generate your version of Prisma Client JS using the [Prisma 2 CLI](https://github.com/prisma/prisma/blob/master/docs/prisma-2-cli.md):
 
 ```sh
-npx prisma2 generate
+npx prisma generate
 ```
 
-Prisma Client JS is generated based on the [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) and provides a type-safe API with the following features:
+Prisma Client JS is generated based on the [data model definition](https://github.com/prisma/prisma/blob/master/docs/data-modeling.md#data-model-definition) and provides a type-safe API with the following features:
 
 - CRUD
 - Filter, sorting and (cursor) pagination
@@ -235,7 +243,7 @@ Prisma Client JS gets generated into your `node_modules` folder so you can impor
 
 ### 4. Build an app
 
-Similar to traditional ORMs, Prisma Client JS can be used with any of your Node.js or TypeScript applications. For example to implement REST, GraphQL or gRPC APIs. You can find reference examples for these use cases in the [`prisma-examples`](https://github.com/prisma/prisma-examples/tree/prisma2) repository.
+Similar to traditional ORMs, Prisma Client JS can be used with any of your Node.js or TypeScript applications. For example to implement REST, GraphQL or gRPC APIs. You can find reference examples for these use cases in the [`prisma-examples`](https://github.com/prisma/prisma-examples) repository.
 
 ### 5. Evolve your database and Prisma Client JS
 
@@ -246,8 +254,8 @@ As you build your app, you'll likely migrate your database to implement new feat
 If you're not using Prisma Migrate, you need to re-introspect your database (to update the generated datamodel) and re-generate Prisma Client JS after each schema migration:
 
 ```sh
-npx prisma2 introspect
-npx prisma2 generate
+npx prisma introspect
+npx prisma generate
 ```
 
 #### Option B: With Prisma Migrate
@@ -256,9 +264,9 @@ When using Prisma Migrate, you need to re-generate Prisma Client JS immediately 
 
 ```sh
 # adjust data model definition in schema.prisma
-npx prisma2 migrate save --experimental
-npx prisma2 migrate up --experimental
-npx prisma2 generate
+npx prisma migrate save --experimental
+npx prisma migrate up --experimental
+npx prisma generate
 ```
 
 ## Supported databases

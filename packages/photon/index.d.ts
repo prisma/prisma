@@ -10,7 +10,7 @@
  * ```
  *
  *
- * Read more in our [docs](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md).
+ * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md).
  */
 export declare var PrismaClient: any
 /**
@@ -25,7 +25,7 @@ export declare var PrismaClient: any
  * ```
  *
  *
- * Read more in our [docs](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md).
+ * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md).
  */
 export declare type PrismaClient = any
 
