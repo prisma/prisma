@@ -10,18 +10,39 @@ const WHITE_BRIGHT = '\u001b[37;1m'
 const RESET = '\u001b[0m'
 
 // returns { pkgManager: 'yarn' | 'npm', pkgPath: string } | null
-function prisma2IsInstalledGlobally() {
+function isPackageInstalledGlobally(name) {
   try {
-    const pkgPath = require.resolve(path.join(globalDirs.yarn.packages, 'prisma2/package.json'))
+    const pkgPath = require.resolve(path.join(globalDirs.yarn.packages, `${name}/package.json`))
     return { pkgManager: 'yarn', pkgPath }
   } catch (_) {
     try {
-      const pkgPath = require.resolve(path.join(globalDirs.npm.packages, 'prisma2/package.json'))
+      const pkgPath = require.resolve(path.join(globalDirs.npm.packages, `${name}/package.json`))
       return { pkgManager: 'npm', pkgPath }
     } catch (_) {
       //
     }
   }
+  return null
+}
+
+function prismaIsInstalledGlobally() {
+  const prismaInstalledGlobally = isPackageInstalledGlobally('prisma')
+  console.log({ prismaInstalledGlobally })
+  if (prismaInstalledGlobally) {
+    return {
+      ...prismaInstalledGlobally,
+      name: 'prisma',
+    }
+  }
+
+  const prisma2InstalledGlobally = isPackageInstalledGlobally('prisma2')
+  if (prisma2InstalledGlobally) {
+    return {
+      ...prisma2InstalledGlobally,
+      name: 'prisma2',
+    }
+  }
+
   return null
 }
 
@@ -37,7 +58,7 @@ if (!isInstalledGlobally) {
   process.exit(0)
 }
 
-const installedGlobally = prisma2IsInstalledGlobally()
+const installedGlobally = prismaIsInstalledGlobally()
 debug({ installedGlobally })
 if (!installedGlobally) {
   process.exit(0)
@@ -45,9 +66,11 @@ if (!installedGlobally) {
 
 const pkg = require(installedGlobally.pkgPath)
 const parts = pkg.version.split('-')
-const isAlpha = parts[1].split('.') === 'alpha'
+const isAlpha = parts.length > 1 ? parts[1].split('.') === 'alpha' : false
 
-const message = `
+let message
+if (installedGlobally.name === 'prisma2') {
+  message = `
 The package ${white('prisma2')} has been renamed to ${white('@prisma/cli')}.
 
 Please uninstall ${white('prisma2')} globally first.
@@ -64,6 +87,33 @@ Then install ${white('@prisma/cli')} to continue using ${b('Prisma 2.0')}:
 
 Learn more here: https://pris.ly/preview025
 `
+} else {
+  message = `
+You seem to have a global installation of Prisma 1 package ${white('prisma')}. 
+As Prisma 2 uses the same executable ${white('prisma')}, this would lead to a conflict.
+We created a new Prisma 1 package ${white('prisma1')} with the executable ${white('prisma1')}
+to work around this that you can keep using for Prisma 1.
+  
+   # Uninstall old Prisma 1 CLI
+   ${white(installedGlobally.pkgManager === 'yarn' ? 'yarn global remove prisma2' : 'npm uninstall -g prisma2')}
+
+   # Install new Prisma 1 CLI
+   ${white(installedGlobally.pkgManager === 'yarn' ? 'yarn global add prisma1' : 'npm install -g prisma1')}
+
+   # Use the Prisma 1 CLI
+   prisma1 --help
+
+Then you can install Prisma 2:
+
+   # Install Prisma 2 CLI
+   ${white(`npm install @prisma/cli${isAlpha ? '@alpha' : ''} --save-dev`)}
+   
+   # Invoke via npx
+   ${white('npx prisma --help')}
+
+Learn more here: https://pris.ly/prisma1
+`
+}
 
 console.error(drawBox({ str: message, verticalPadding: 1, horizontalPadding: 3 }))
 process.exit(1)
