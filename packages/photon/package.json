@@ -46,6 +46,7 @@
   },
   "files": [
     "runtime/*.js",
+    "runtime/*.js.map",
     "runtime/*.d.ts",
     "runtime/**/*.js",
     "runtime/**/*.d.ts",
