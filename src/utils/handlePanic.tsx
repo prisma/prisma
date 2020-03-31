@@ -90,7 +90,7 @@ const PanicDialog: React.FC<DialogProps> = ({ error, onDone, cliVersion, binaryV
                 <Box flexDirection="column">
                   <Box>
                     To help us still receive this error, please create an issue in{' '}
-                    <InkLink url="https://github.com/prisma/prisma2/issues/new" />
+                    <InkLink url="https://github.com/prisma/prisma/issues/new" />
                   </Box>
                 </Box>
               )}
@@ -102,7 +102,7 @@ const PanicDialog: React.FC<DialogProps> = ({ error, onDone, cliVersion, binaryV
                 <Box flexDirection="column">
                   <Box>
                     To help us even more, please create an issue at{' '}
-                    <InkLink url="https://github.com/prisma/prisma2/issues/new" />
+                    <InkLink url="https://github.com/prisma/prisma/issues/new" />
                   </Box>
                   <Box>
                     mentioning the{' '}

@@ -1,1 +1,1 @@
-Moved to https://github.com/prisma/prisma2/tree/master/docs
+Moved to https://github.com/prisma/prisma/tree/master/docs
