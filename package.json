@@ -1,6 +1,6 @@
 {
   "name": "@prisma/migrate",
-  "version": "2.0.0-alpha.1009",
+  "version": "2.0.0-alpha.1013",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/migrate.git",
@@ -43,8 +43,8 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/ink-components": "workspace:*",
-    "@prisma/studio-server": "0.218.0",
-    "@prisma/studio-types": "0.218.0",
+    "@prisma/studio-server": "0.219.0",
+    "@prisma/studio-types": "0.219.0",
     "ansi-escapes": "4.2.1",
     "cli-cursor": "3.1.0",
     "cli-truncate": "2.0.0",
