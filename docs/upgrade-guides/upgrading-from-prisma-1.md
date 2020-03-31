@@ -52,7 +52,7 @@ There are three ways of obtaining a Prisma schema based on an existing Prisma 1 
 - Using introspection against the existing database
 - Using the `prisma2 convert` command
 
-Note that [introspection is not yet available](https://github.com/prisma/prisma2/issues/781), so for the purpose of this upgrade guide you'll use the `prisma2 convert` command which converts a Prisma 1 data model to a Prisma schema file. Note that the resulting Prisma schema will not contain any data source and generator definitions yet, these must be added manually.
+Note that [introspection is not yet available](https://github.com/prisma/prisma/issues/781), so for the purpose of this upgrade guide you'll use the `prisma convert` command which converts a Prisma 1 data model to a Prisma schema file. Note that the resulting Prisma schema will not contain any data source and generator definitions yet, these must be added manually.
 
 ### 2.1. Convert the datamodel
 
@@ -62,9 +62,9 @@ Assuming your Prisma 1 datamodel is called `datamodel.prisma`, you can use the f
 cat datamodel.prisma | npx prisma2@2.0.0-preview017 convert > schema.prisma
 ```
 
-> **Note**: The `convert` command has been removed from Prisma 2 CLI in [2.0.0-preview018](https://github.com/prisma/prisma2/releases/tag/2.0.0-preview018) so you're using it based on an older CLI version.
+> **Note**: The `convert` command has been removed from Prisma 2 CLI in [2.0.0-preview018](https://github.com/prisma/prisma/releases/tag/2.0.0-preview018) so you're using it based on an older CLI version.
 
-Consider the [example datamodel](https://github.com/prisma/prisma-examples/blob/master/typescript/rest-express/prisma/datamodel.prisma):
+Consider the [example datamodel](https://github.com/prisma/prisma1-examples/blob/master/typescript/rest-express/prisma/datamodel.prisma):
 
 ```graphql
 type User {
@@ -106,7 +106,7 @@ model Post {
 }
 ```
 
-> **Note**: The `@unique` attributes on the `id` fields are [redundant](https://github.com/prisma/prisma2/issues/786) as uniqueness is already implied by the `@id` attribute. It also contains another bug where it [doesn't convert `@default` attributes](https://github.com/prisma/prisma2/issues/790), so you need to manually add the `@default(true)` to the `published` field in the Prisma schema.
+> **Note**: The `@unique` attributes on the `id` fields are [redundant](https://github.com/prisma/prisma/issues/786) as uniqueness is already implied by the `@id` attribute. It also contains another bug where it [doesn't convert `@default` attributes](https://github.com/prisma/prisma/issues/790), so you need to manually add the `@default(true)` to the `published` field in the Prisma schema.
 
 ### 2.2. Add the datasource
 
@@ -214,7 +214,7 @@ model Post {
 }
 ```
 
-Note that the code for Prisma Client JS [by default gets generated into `node_modules/@prisma/client`](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/codegen-and-node-setup.md) but can be customized via an `output` field on the `generator` block. You also need to install `@prisma/client` as another npm dependency in your project.
+Note that the code for Prisma Client JS [by default gets generated into `node_modules/@prisma/client`](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/codegen-and-node-setup.md) but can be customized via an `output` field on the `generator` block. You also need to install `@prisma/client` as another npm dependency in your project.
 
 ## 3. Adjust the application to use Prisma Client JS
 

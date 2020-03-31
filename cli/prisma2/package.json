@@ -17,7 +17,7 @@
     "query-builder"
   ],
   "main": "build/index.js",
-  "repository": "git@github.com:prisma/prisma2.git",
+  "repository": "git@github.com:prisma/prisma.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
   "engines": {

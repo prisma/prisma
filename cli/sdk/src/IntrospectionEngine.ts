@@ -456,6 +456,6 @@ function serializePanic(log) {
     )}`,
   )}
 
-Please create an issue in the ${chalk.bold('prisma2')} repo with the error 🙏:
-${chalk.underline('https://github.com/prisma/prisma2/issues/new')}\n`
+Please create an issue in the ${chalk.bold('prisma')} repo with the error 🙏:
+${chalk.underline('https://github.com/prisma/prisma/issues/new')}\n`
 }

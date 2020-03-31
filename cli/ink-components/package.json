@@ -3,7 +3,7 @@
   "version": "2.0.0-alpha.1009",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "repository": "git@github.com:prisma/prisma2.git",
+  "repository": "git@github.com:prisma/prisma.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
   "dependencies": {
