@@ -11,13 +11,13 @@
 
 <hr />
 
-**Prisma Migrate** is a powerful database schema migration tool. It uses a **declarative [data modelling](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md) syntax** to describe your database schema. Prisma Migrate also stores your entire **migration history** and easily lets you **revert and replay migrations**. When migrating your database with Prisma Migrate, you can run provide **before- and after-hooks** to execute scripts, e.g. to populate the database with required values during a migration.
+**Prisma Migrate** is a powerful database schema migration tool. It uses a **declarative [data modelling](https://github.com/prisma/prisma/blob/master/docs/data-modeling.md) syntax** to describe your database schema. Prisma Migrate also stores your entire **migration history** and easily lets you **revert and replay migrations**. When migrating your database with Prisma Migrate, you can run provide **before- and after-hooks** to execute scripts, e.g. to populate the database with required values during a migration.
 
-> **WARNING**: Prisma Migrate is currently in an **experimental** state. The version available has a number of [limitations](https://github.com/prisma/prisma2/blob/master/docs/limitations.md) that make it unsuitable for production workloads, including missing features, limited performance and stability issues.
+> **WARNING**: Prisma Migrate is currently in an **experimental** state. The version available has a number of [limitations](https://github.com/prisma/prisma/blob/master/docs/limitations.md) that make it unsuitable for production workloads, including missing features, limited performance and stability issues.
 
 <p align="center">
   <!-- <a href="https://codesandbox.io/s/github/prisma-csb/prisma-client-demo-ts"><img src="https://svgur.com/i/CXj.svg" alt="CodeSandbox"></a> -->
-  <a href="https://www.github.com/prisma/prisma2/"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
+  <a href="https://www.github.com/prisma/prisma/"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
 </p>
 
 ## Features
@@ -33,7 +33,7 @@
 
 ## Docs
 
-You can find comprehensive documentation for Prisma Migrate in the [Prisma 2 docs](https://github.com/prisma/prisma2/).
+You can find comprehensive documentation for Prisma Migrate in the [Prisma 2 docs](https://github.com/prisma/prisma/).
 
 ## The Prisma Migrate workflow
 
@@ -41,7 +41,7 @@ You can find comprehensive documentation for Prisma Migrate in the [Prisma 2 doc
 
 <img src="https://i.imgur.com/UcN3ENI.png" width="220px">
 
-Specify the connection details for your database as a _data source_ in your [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). The connection details might differ per database, but most commonly you'll provide the following:
+Specify the connection details for your database as a _data source_ in your [Prisma schema file](https://github.com/prisma/prisma/blob/master/docs/prisma-schema-file.md). The connection details might differ per database, but most commonly you'll provide the following:
 
 - Host: The IP address or domain name of the machine where your database server is running.
 - Port: The port on which your database server is listening.
@@ -64,7 +64,7 @@ generator client {
 
 ### 2. Define initial data model
 
-The [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Here is the project file from above extended with a sample data model:
+The [data model definition](https://github.com/prisma/prisma/blob/master/docs/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Here is the project file from above extended with a sample data model:
 
 ```prisma
 // schema.prisma
@@ -106,11 +106,11 @@ enum Role {
 
 <img src="https://imgur.com/Zv1OmmM.png" width="355px">
 
-If you want to use Prisma Migrate with an existing database, you can [introspect](https://github.com/prisma/prisma2/blob/master/docs/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma2/blob/master/docs/prisma-2-cli.md). This generates a declarative [data model](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) which provides the foundation for future migrations.
+If you want to use Prisma Migrate with an existing database, you can [introspect](https://github.com/prisma/prisma/blob/master/docs/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma/blob/master/docs/prisma-2-cli.md). This generates a declarative [data model](https://github.com/prisma/prisma/blob/master/docs/data-modeling.md#data-model-definition) which provides the foundation for future migrations.
 
 #### Option B: Start from scratch
 
-When starting from scratch, you can write your own [data model definition](https://github.com/prisma/prisma2/blob/master/docs/data-modeling.md#data-model-definition) inside your [Prisma schema file](https://github.com/prisma/prisma2/blob/master/docs/prisma-schema-file.md). You can then use the Prisma Migrate CLI commands to migrate your database (Prisma Migrate maps your data model definition to the schema of the underlying database).
+When starting from scratch, you can write your own [data model definition](https://github.com/prisma/prisma/blob/master/docs/data-modeling.md#data-model-definition) inside your [Prisma schema file](https://github.com/prisma/prisma/blob/master/docs/prisma-schema-file.md). You can then use the Prisma Migrate CLI commands to migrate your database (Prisma Migrate maps your data model definition to the schema of the underlying database).
 
 ### 3. Adjust the data model
 
@@ -119,10 +119,10 @@ When starting from scratch, you can write your own [data model definition](https
 Instead of sending SQL migration statements to the database, you need to adjust the data model file to describe your desired database schema. You can express any schema migration you like using the new data model, this includes for example adding a new model, removing a model or updating the fields of a model. You can
 also add indexes or validation constraints in the data model.
 
-You can create a new migration for your change by running `prisma2 migrate save`:
+You can create a new migration for your change by running `prisma migrate save`:
 
 ```bash
-prisma2 migrate save --name "add-comment-model" --experimental
+prisma migrate save --name "add-comment-model" --experimental
 ```
 
 ### 4. Migrate your database (apply data model changes)
@@ -132,7 +132,7 @@ prisma2 migrate save --name "add-comment-model" --experimental
 Once you're happy with the changes, you can use the Prisma CLI to migrate your database (i.e. map the adjusted data model to your database). Prisma Migrate's migration engine will generate the corresponding SQL statements and send them to the database for you.
 
 ```bash
-prisma2 migrate up --experimental
+prisma migrate up --experimental
 ```
 
 ## Supported databases
