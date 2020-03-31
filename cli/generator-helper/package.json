@@ -1,11 +1,11 @@
 {
   "name": "@prisma/generator-helper",
-  "version": "2.0.0-alpha.977",
+  "version": "2.0.0-alpha.1013",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "Apache-2.0",
-  "repository": "git@github.com:prisma/prisma2.git",
+  "repository": "git@github.com:prisma/prisma.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "dependencies": {
     "@types/cross-spawn": "^6.0.1",

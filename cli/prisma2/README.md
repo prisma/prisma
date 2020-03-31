@@ -1,10 +1,10 @@
 # Prisma 2 CLI
 
-Learn more about Prisma 2 in the [docs](https://github.com/prisma/prisma2).
+Learn more about Prisma 2 in the [docs](https://github.com/prisma/prisma).
 
 ## Getting started
 
-Check out the [**"Getting Started"-guide**](https://github.com/prisma/prisma2/blob/master/docs/getting-started.md) to get started with Prisma 2.
+Check out the [**"Getting Started"-guide**](https://github.com/prisma/prisma/blob/master/docs/getting-started.md) to get started with Prisma 2.
 
 ## Installation
 
@@ -24,32 +24,32 @@ yarn add @prisma/cli --dev
 
 ## General
 
-### `prisma2 init`
+### `prisma init`
 
 Sets up a `prisma/schema.prisma` file in the current directory.
 
-### `prisma2 generate`
+### `prisma generate`
 
 Invokes the generators specified in the Prisma project file.
 
-### `prisma2 generate --watch`
+### `prisma generate --watch`
 
 Watches the Prisma project file and runs `generate` when the file changes.
 
-### `prisma2 introspect`
+### `prisma introspect`
 
 Introspects the database and generates a data model from it.
 
 ## Migrate
 
-### `prisma2 migrate save --experimental`
+### `prisma migrate save --experimental`
 
 Creates a new migration folder based on current data model changes.
 
-### `prisma2 migrate up --experimental`
+### `prisma migrate up --experimental`
 
 Apply any migrations that have not been applied yet.
 
-### `prisma2 migrate down --experimental`
+### `prisma migrate down --experimental`
 
 Undo migrations.
