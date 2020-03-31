@@ -78,6 +78,8 @@ In this schema, you configure three things:
 - **Generator**: Indicates that you want to genenerate Prisma Client
 - **Data model**: Defines your application models
 
+---
+
 ### The Prisma data model
 
 On this page, the focus is on the data model. You can learn more about [Data sources](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-sources) and [Generators](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/generators) on the respective docs pages.
@@ -97,6 +99,8 @@ There are two major workflows for "getting" a data model into your Prisma schema
 - Manually writing the data model and mapping it to the database with [Prisma Migrate](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-migrate)
 
 Once the data model is defined, you can [generate Prisma Client](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/generating-prisma-client) which will expose CRUD and more queries for the defined models. If you're using TypeScript, you'll get full type-safety for all queries (even when only retrieving the subsets of a model's fields). 
+
+---
 
 ### Accessing your database with Prisma Client
 
