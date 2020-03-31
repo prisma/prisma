@@ -1,6 +1,6 @@
 ![Prisma](https://i.imgur.com/SFzi1NE.png)
 
-<span align="center">
+<div align="center">
   <h1>Prisma</h1>
   <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
   <a href="https://www.prisma.io/">Website</a>
@@ -10,7 +10,7 @@
   <a href="https://slack.prisma.io/">Slack</a>
   <a href="https://twitter.com/prisma">Twitter</a>
   <a href="https://www.youtube.com/watch?v=t0rYb6pGLKQ&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=2&t=0s">Demo videos</a>
-</span>
+</div>
 
 ## What is Prisma?
 
