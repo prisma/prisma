@@ -1,4 +1,4 @@
-# Prisma CLI architecture
+# Prisma CLI architecture (Not up-to-date)
 
 ```
 

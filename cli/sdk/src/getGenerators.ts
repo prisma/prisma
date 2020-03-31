@@ -370,7 +370,7 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
     ${chalk.gray(
       `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
     Read more about deploying Prisma Client: ${chalk.underline(
-      'https://github.com/prisma/prisma2/blob/master/docs/core/generators/prisma-client-js.md',
+      'https://github.com/prisma/prisma/blob/master/docs/core/generators/prisma-client-js.md',
     )}`,
     )}\n`)
         } else {
