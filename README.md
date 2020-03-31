@@ -6,9 +6,11 @@
 
 Prisma is a **database toolkit** that consists of these tools:
 
-- [**Prisma Client**](https://github.com/prisma/prisma-client-js): Type-safe and auto-generated query builder for Node.js and TypeScript
-- [**Prisma Migrate**](https://github.com/prisma/migrate): Declarative data modeling and migrations
-- [**Studio**](https://github.com/prisma/studio): Admin UI to support various database workflows
+- [**Prisma Client**](https://github.com/prisma/prisma-client-js): Auto-generated and type-safe query builder for Node.js & TypeScript
+- [**Prisma Migrate**](https://github.com/prisma/migrate) (_experimental_): Declarative data modeling & migration system
+- [**Studio**](https://github.com/prisma/studio): GUI to view and edit data in your database
+
+Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](./prisma-in-your-stack/rest), a [GraphQL API](./prisma-in-your-stack/graphql) a gRPC API or anything else that needs a database.
 
 ## Getting started
 
@@ -194,13 +196,13 @@ Prisma has a large and supportive [community](https://www.prisma.io/community) o
 
 You can ask questions and initiate [discussions](https://github.com/prisma/prisma2/discussions/) about Prisma-related topics in the `prisma` repository on GitHub.
 
-[**Ask a question**](https://github.com/prisma/prisma2/discussions/new)
+👉 [**Ask a question**](https://github.com/prisma/prisma2/discussions/new)
 
 ### Create a bug report for Prisma
 
-If you see an error message or run into an issue, please make sure to create a bug report! You can find [best practices for creating bug reports](./more/creating-bug-reports) (like including additional debugging output) in these docs.
+If you see an error message or run into an issue, please make sure to create a bug report! You can find best practices for creating bug reports (like including additional debugging output) in the [docs](](./more/creating-bug-reports)).
 
-[**Create bug report**](https://github.com/prisma/prisma/issues/new?assignees=&labels=&template=bug_report.md&title=)
+👉 [**Create bug report**](https://github.com/prisma/prisma/issues/new?assignees=&labels=&template=bug_report.md&title=)
 
 
 ### Submit a feature request
@@ -209,7 +211,7 @@ If Prisma currently doesn't have a certain, be sure to check out the [roadmap](.
 
 If the feature on the roadmap is linked to a GitHub issue, please make sure to leave a +1 on the issue and ideally a comment with your thoughts about the feature!
 
-[**Submit feature request**](https://github.com/prisma/prisma2/issues/new?assignees=&labels=&template=feature_request.md&title=)
+👉 [**Submit feature request**](https://github.com/prisma/prisma2/issues/new?assignees=&labels=&template=feature_request.md&title=)
 
 ## Contributing
 
