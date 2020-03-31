@@ -29,6 +29,8 @@ Prisma is a **database toolkit** that consists of these tools:
 
 Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/prisma-in-your-stack/graphql) a gRPC API or anything else that needs a database.
 
+> **Are you looking for Prisma 1? The Prisma 1 repository has been renamed to [`prisma/prisma1`](https://github.com/prisma/prisma)**
+
 ## Getting started
 
 The fastest way to get started with Prisma is by following the [**Quickstart (5 min)**](https://www.prisma.io/docs/getting-started/quickstart).
