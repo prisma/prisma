@@ -95,7 +95,7 @@ To keep using Prisma 1, install the new package ${white('prisma1')} that we crea
 It exposes the executable ${white('prisma1')}.
   
    # Uninstall old Prisma 1 CLI
-   ${white(installedGlobally.pkgManager === 'yarn' ? 'yarn global remove prisma2' : 'npm uninstall -g prisma2')}
+   ${white(installedGlobally.pkgManager === 'yarn' ? 'yarn global remove prisma' : 'npm uninstall -g prisma')}
 
    # Install new Prisma 1 CLI
    ${white(installedGlobally.pkgManager === 'yarn' ? 'yarn global add prisma1' : 'npm install -g prisma1')}
