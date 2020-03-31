@@ -3,12 +3,19 @@
 <div align="center">
   <h1>Prisma</h1>
   <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.prisma.io/">Website</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.prisma.io/docs/">Docs</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://github.com/prisma/prisma-examples/">Examples</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.prisma.io/blog">Blog</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://slack.prisma.io/">Slack</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://twitter.com/prisma">Twitter</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.youtube.com/watch?v=t0rYb6pGLKQ&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=2&t=0s">Demo videos</a>
 </div>
 
