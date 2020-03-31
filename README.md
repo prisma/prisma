@@ -10,19 +10,19 @@ Prisma is a **database toolkit** that consists of these tools:
 - [**Prisma Migrate**](https://github.com/prisma/migrate) (_experimental_): Declarative data modeling & migration system
 - [**Studio**](https://github.com/prisma/studio): GUI to view and edit data in your database
 
-Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](./prisma-in-your-stack/rest), a [GraphQL API](./prisma-in-your-stack/graphql) a gRPC API or anything else that needs a database.
+Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/prisma-in-your-stack/graphql) a gRPC API or anything else that needs a database.
 
 ## Getting started
 
 The fastest way to get started with Prisma is by following the [**Quickstart (5 min)**](https://www.prisma.io/docs/getting-started/quickstart).
 
-The Quicksart is based on SQLite. You can also get started with your own database (PostgreSQL and MySQL) by following one of these guides:
+The Quickstart is based on a preconfigured SQLite database. You can also get started with your own database (PostgreSQL and MySQL) by following one of these guides:
 
 - [Add Prisma to an existing project](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project)
 - [Setup a new project with Prisma from scratch (SQL migrations + introspection)](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project)
 - [Setup a new project with Prisma from scratch (Prisma Migrate)](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project)
 
-## How does Prisma work?
+## How does Prisma work
 
 ### The Prisma schema
 
@@ -200,14 +200,14 @@ You can ask questions and initiate [discussions](https://github.com/prisma/prism
 
 ### Create a bug report for Prisma
 
-If you see an error message or run into an issue, please make sure to create a bug report! You can find best practices for creating bug reports (like including additional debugging output) in the [docs](](./more/creating-bug-reports)).
+If you see an error message or run into an issue, please make sure to create a bug report! You can find best practices for creating bug reports (like including additional debugging output) in the [docs](https://www.prisma.io/docs/more/creating-bug-reports)).
 
 👉 [**Create bug report**](https://github.com/prisma/prisma/issues/new?assignees=&labels=&template=bug_report.md&title=)
 
 
 ### Submit a feature request
 
-If Prisma currently doesn't have a certain, be sure to check out the [roadmap](./more/roadmap) to see if this is already planned for the future.
+If Prisma currently doesn't have a certain, be sure to check out the [roadmap](https://www.prisma.io/docs/more/roadmap) to see if this is already planned for the future.
 
 If the feature on the roadmap is linked to a GitHub issue, please make sure to leave a +1 on the issue and ideally a comment with your thoughts about the feature!
 
