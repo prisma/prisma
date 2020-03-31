@@ -1,6 +1,16 @@
-# Prisma
+![Prisma](https://i.imgur.com/SFzi1NE.png)
 
-[Quickstart](https://www.prisma.io/docs/getting-started/quickstart) • [Website](https://www.prisma.io) • [Docs](https://www.prisma.io/docs/) • [Examples](https://github.com/prisma/prisma-examples/) • [Blog](https://www.prisma.io/blog) • [Slack](https://slack.prisma.io/) • [Twitter](https://twitter.com/prisma) • [Demo videos](https://www.youtube.com/watch?v=t0rYb6pGLKQ&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=2&t=0s)
+<span align="center">
+  <h1>Prisma</h1>
+  <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
+  <a href="https://www.prisma.io/">Website</a>
+  <a href="https://www.prisma.io/docs/">Docs</a>
+  <a href="https://github.com/prisma/prisma-examples/">Examples</a>
+  <a href="https://www.prisma.io/blog">Blog</a>
+  <a href="https://slack.prisma.io/">Slack</a>
+  <a href="https://twitter.com/prisma">Twitter</a>
+  <a href="https://www.youtube.com/watch?v=t0rYb6pGLKQ&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=2&t=0s">Demo videos</a>
+</span>
 
 ## What is Prisma?
 
