@@ -45,6 +45,8 @@ The Quickstart is based on a preconfigured SQLite database. You can also get sta
 
 ## How does Prisma work
 
+This section provides a high-level overview of how Prisma works and its most important technical components. For a more thorough introduction, visit the [Prisma documentation](prisma.io/docs).
+
 ### The Prisma schema
 
 Every project that uses a tool from the Prisma toolkit starts with a [Prisma schema file](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/prisma-schema-file). The Prisma schema allows developers to define their _application models_ in an intuitive data modeling language. It also contains the connection to a database and defines a _generator_:
