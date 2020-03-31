@@ -1,6 +1,6 @@
 # @prisma/client
 
-This package is being used by `prisma2`.
+This package is being used by `@prisma/cli`.
 
 ## Contributing
 
@@ -11,7 +11,7 @@ This package is being used by `prisma2`.
 3. `yarn`
 4. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
 5. `cd fixtures/blog`
-6. `prisma2 migrate save --name init --experimental && prisma2 migrate up --experimental`
+6. `prisma migrate save --name init --experimental && prisma migrate up --experimental`
 7. `ts-node main.ts`
 
 ### Working on code generation

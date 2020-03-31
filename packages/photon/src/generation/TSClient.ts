@@ -366,7 +366,7 @@ class PrismaClientClass implements Generatable {
  * \`\`\`
  *
  * 
- * Read more in our [docs](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md).
+ * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md).
  */`
   }
   public toTS() {
@@ -502,7 +502,7 @@ ${indent(this.jsDoc, tab)}
    * const result = await prisma.raw\`SELECT * FROM User WHERE id = \${userId};\`
   * \`\`\`
   * 
-  * Read more in our [docs](https://github.com/prisma/prisma2/blob/master/docs/prisma-client-js/api.md#raw-database-access).
+  * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md#raw-database-access).
   */
   raw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<T>;
 
