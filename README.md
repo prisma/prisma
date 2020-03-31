@@ -26,7 +26,7 @@ The Quickstart is based on a preconfigured SQLite database. You can also get sta
 
 ### The Prisma schema
 
-Every project that use a tool from the Prisma toolkit starts with a [Prisma schema file](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/prisma-schema-file). The Prisma schema allows developers to define their _application models_ in an intuitive data modeling language. It also contains the connection to a database and defines a _generator_:
+Every project that uses a tool from the Prisma toolkit starts with a [Prisma schema file](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/prisma-schema-file). The Prisma schema allows developers to define their _application models_ in an intuitive data modeling language. It also contains the connection to a database and defines a _generator_:
 
 ```prisma
 datasource db {
