@@ -104,7 +104,7 @@ There are two major workflows for "getting" a data model into your Prisma schema
 - Generate the data model from [introspecting](https://www.prisma.io/docs/reference/tools-and-interfaces/introspection) a database
 - Manually writing the data model and mapping it to the database with [Prisma Migrate](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-migrate)
 
-Once the data model is defined, you can [generate Prisma Client](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/generating-prisma-client) which will expose CRUD and more queries for the defined models. If you're using TypeScript, you'll get full type-safety for all queries (even when only retrieving the subsets of a model's fields). 
+Once the data model is defined, you can [generate Prisma Client](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/generating-prisma-client) which will expose CRUD and more queries for the defined models. If you're using TypeScript, you'll get full type-safety for all queries (even when only retrieving the subsets of a model's fields).
 
 ---
 
@@ -118,7 +118,7 @@ The first step when using Prisma Client is installing its npm package:
 npm install @prisma/client
 ```
 
-Note that the installation of this package invokes the `prisma generate` command which reads your Prisma schema and _generates_ the Prisma Client code. The code will be located in `node_modules/@prisma/client`. 
+Note that the installation of this package invokes the `prisma generate` command which reads your Prisma schema and _generates_ the Prisma Client code. The code will be located in `node_modules/@prisma/client`.
 
 After you change your data model, you'll need to manually re-generate Prisma Client to ensure the code inside `node_modules/@prisma/client` get updated:
 
@@ -128,7 +128,7 @@ prisma generate
 
 Note that cecause the Prisma Client node module contains specific context about _your_ Prisma schema, it's sometimes referred to as a ["smart node module"](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/generating-prisma-client#how-prisma-client-compares-to-conventional-node-modules).
 
-#### Using Prisma Client to send queries to your database 
+#### Using Prisma Client to send queries to your database
 
 Once Prisma Client was generated, you can import in your code and send queries to your database. This is what the setup code looks like.
 
@@ -177,8 +177,8 @@ const allUsers = await prisma.user.findMany({
 const filteredPosts = await prisma.post.findMany({
   where: {
     OR: [
-      { title: { contains: "prisma" } },
-      { content: { contains: "prisma" } },
+      { title: { contains: 'prisma' } },
+      { content: { contains: 'prisma' } },
     ],
   },
 })
@@ -190,10 +190,10 @@ const filteredPosts = await prisma.post.findMany({
 // Run inside `async` function
 const user = await prisma.user.create({
   data: {
-    name: "Alice",
-    email: "alice@prisma.io",
+    name: 'Alice',
+    email: 'alice@prisma.io',
     posts: {
-      create: { title: "Join us for Prisma Day 2020" },
+      create: { title: 'Join us for Prisma Day 2020' },
     },
   },
 })
@@ -215,15 +215,15 @@ Note that when using TypeScript, the result of this query will be _statically ty
 
 ## Community
 
-Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers. You can join us on [Slack](https://slack.prisma.io) and here on [GitHub](https://github.com/prisma/prisma2/discussions).
+Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers. You can join us on [Slack](https://slack.prisma.io) and here on [GitHub](https://github.com/prisma/prisma/discussions).
 
 ## Support
 
 ### Ask a question about Prisma
 
-You can ask questions and initiate [discussions](https://github.com/prisma/prisma2/discussions/) about Prisma-related topics in the `prisma` repository on GitHub.
+You can ask questions and initiate [discussions](https://github.com/prisma/prisma/discussions/) about Prisma-related topics in the `prisma` repository on GitHub.
 
-👉 [**Ask a question**](https://github.com/prisma/prisma2/discussions/new)
+👉 [**Ask a question**](https://github.com/prisma/prisma/discussions/new)
 
 ### Create a bug report for Prisma
 
@@ -231,21 +231,20 @@ If you see an error message or run into an issue, please make sure to create a b
 
 👉 [**Create bug report**](https://github.com/prisma/prisma/issues/new?assignees=&labels=&template=bug_report.md&title=)
 
-
 ### Submit a feature request
 
 If Prisma currently doesn't have a certain, be sure to check out the [roadmap](https://www.prisma.io/docs/more/roadmap) to see if this is already planned for the future.
 
 If the feature on the roadmap is linked to a GitHub issue, please make sure to leave a +1 on the issue and ideally a comment with your thoughts about the feature!
 
-👉 [**Submit feature request**](https://github.com/prisma/prisma2/issues/new?assignees=&labels=&template=feature_request.md&title=)
+👉 [**Submit feature request**](https://github.com/prisma/prisma/issues/new?assignees=&labels=&template=feature_request.md&title=)
 
 ## Contributing
 
-Read more about how to contribute to Prisma [here](https://github.com/prisma/prisma2/blob/master/CONTRIBUTING.md)
+Read more about how to contribute to Prisma [here](https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md)
 
 ## Build Status
 
 [![Build status](https://badge.buildkite.com/590e1981074b70961362481ad8319a831b44a38c5d468d6408.svg)](https://buildkite.com/prisma/prisma2-test)
 
- [![Actions Status](https://github.com/prisma/prisma2-e2e-tests/workflows/test/badge.svg)](https://github.com/prisma/prisma2-e2e-tests/actions)
+[![Actions Status](https://github.com/prisma/prisma2-e2e-tests/workflows/test/badge.svg)](https://github.com/prisma/prisma2-e2e-tests/actions)
