@@ -962,10 +962,14 @@ export function selectionToFields(
 
       return acc
     }
+
     if (
       typeof value !== 'boolean' &&
       field.outputType.kind === 'scalar' &&
-      field.name !== 'executeRaw'
+      field.name !== 'executeRaw' &&
+      outputType.name === 'Query' &&
+      name.startsWith('aggregate') &&
+      field.name !== 'count' // TODO: Find a cleaner solution
     ) {
       acc.push(
         new Field({
