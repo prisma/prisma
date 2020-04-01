@@ -18,6 +18,7 @@ import {
   unpack,
   transformDocument,
   PrismaClientValidationError,
+  Args,
 } from './query'
 import debugLib from 'debug'
 const debug = debugLib('prisma-client')
@@ -550,28 +551,47 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
   return NewPrismaClient
 }
 
-class PrismaClientFetcher {
+export class PrismaClientFetcher {
   prisma: any
   debug: boolean
   hooks: any
-  dataloader: Dataloader
+  dataloader: Dataloader<{ document: Document }>
   constructor(prisma, enableDebug = false, hooks?: any) {
     this.prisma = prisma
     this.debug = enableDebug
     this.hooks = hooks
-    this.dataloader = new Dataloader(async requests => {
-      // TODO: More elaborate logic to only batch certain queries together
-      // We should e.g. make sure, that findOne queries are batched together
-      await this.prisma.connect()
-      const queries = requests.map(r => String(r.document))
+    this.dataloader = new Dataloader({
+      batchLoader: async requests => {
+        await this.prisma.connect()
+        const queries = requests.map(r => String(r.document))
 
-      // only batch if necessary
-      if (queries.length === 1) {
-        const result = await this.prisma.engine.request(queries[0])
-        return [result]
-      } else {
         return this.prisma.engine.requestBatch(queries)
-      }
+      },
+      singleLoader: async request => {
+        const query = String(request.document)
+        await this.prisma.connect()
+        return this.prisma.engine.request(query)
+      },
+      batchBy: request => {
+        if (!request.document.children[0].name.startsWith('findOne')) {
+          return null
+        }
+
+        const selectionSet = request.document.children[0]
+          .children!.map(String)
+          .join(',')
+
+        const args = request.document.children[0].args?.args
+          .map(a => {
+            if (a.value instanceof Args) {
+              return a.key + '-' + a.value.args.map(a => a.key).join(',')
+            }
+            return a.key
+          })
+          .join(',')
+
+        return `${request.document.children[0].name}|${args}|${selectionSet}`
+      },
     })
   }
   async request({
