@@ -999,7 +999,10 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
   /**
    * 
    */
-  count(): Promise<number>
+  count(args?: Omit<${getModelArgName(
+    name,
+    DMMF.ModelAction.findMany,
+  )}, 'select' | 'include'>): Promise<number>
 }
 
 export declare class ${name}Client<T> implements Promise<T> {

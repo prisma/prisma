@@ -3,7 +3,7 @@ import { PrismaClient } from './@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  const count = await (prisma.user as any).count({
+  const count = await prisma.user.count({
     where: {
       name: 'Bob',
     },
