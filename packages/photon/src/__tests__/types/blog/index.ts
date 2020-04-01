@@ -109,6 +109,12 @@ async function main() {
     },
   })
 
+  const count: number = await prisma.post.count({
+    where: {
+      published: false,
+    },
+  })
+
   const disconnect: Promise<void> = prisma.disconnect()
 }
 
