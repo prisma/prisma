@@ -45,7 +45,7 @@ The Quickstart is based on a preconfigured SQLite database. You can also get sta
 
 ## How does Prisma work
 
-This section provides a high-level overview of how Prisma works and its most important technical components. For a more thorough introduction, visit the [Prisma documentation](prisma.io/docs).
+This section provides a high-level overview of how Prisma works and its most important technical components. For a more thorough introduction, visit the [Prisma documentation](https://www.prisma.io/docs/).
 
 ### The Prisma schema
 
