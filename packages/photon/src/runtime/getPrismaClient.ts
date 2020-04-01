@@ -529,12 +529,14 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           {},
         )
 
-        delegate.count = () =>
+        delegate.count = args =>
           clients[mapping.model]({
             operation: 'query',
             actionName: 'count',
             rootField: mapping.aggregate,
-            args: {},
+            args: {
+              select: { count: args },
+            },
             dataPath: ['count'],
           })
 
