@@ -91,10 +91,11 @@ export const printStack = ({
           if (!theLine || theLine.trim() === '') {
             callsiteStr = ':'
           } else {
-            const prismaClientRegex = /(=|return)*\s+(await)?\s*(.*\()/
+            // Why even all this effort? Because if a user calls the client instance "db", we want to be able to also say "db.user.findMany"
+            const prismaClientRegex = /(\S+(create|updateMany|deleteMany|update|delete|findMany|findOne)\()/
             const match = theLine.match(prismaClientRegex)
             if (match) {
-              functionName = `${match[3]})`
+              functionName = `${match[1]})`
             }
             const slicePoint = theLine.indexOf('{')
             const highlightedLines = highlightTS(
