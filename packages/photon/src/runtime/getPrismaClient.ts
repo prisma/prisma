@@ -534,9 +534,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             operation: 'query',
             actionName: 'count',
             rootField: mapping.aggregate,
-            args: {
-              select: { count: args },
-            },
+            args: args
+              ? {
+                  select: { count: args },
+                }
+              : undefined,
             dataPath: ['count'],
           })
 
