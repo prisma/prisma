@@ -1,7 +1,7 @@
 import { Command, arg, format, HelpError, getSchemaPath, isError } from '@prisma/sdk'
 import chalk from 'chalk'
 import logUpdate from 'log-update'
-import { missingGeneratorMessage, getGenerators, highlightTS, link } from '@prisma/sdk'
+import { missingGeneratorMessage, getGenerators, highlightTS, link, Generator } from '@prisma/sdk'
 import { formatms } from './utils/formatms'
 import { simpleDebounce } from './utils/simpleDebounce'
 import fs from 'fs'
@@ -35,23 +35,29 @@ export class Generate implements Command {
 
   private logText = ''
 
-  private runGenerate = simpleDebounce(async ({ generators, watchMode }) => {
-    const message: string[] = []
+  private runGenerate = simpleDebounce(
+    async ({ generators, watchMode }: { generators: Generator[]; watchMode: Boolean }) => {
+      const message: string[] = []
 
-    for (const generator of generators) {
-      const toStr = generator.options!.generator.output!
-        ? chalk.dim(` to .${path.sep}${path.relative(process.cwd(), generator.options!.generator.output!)}`)
-        : ''
-      const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
-      const before = Date.now()
-      await generator.generate()
-      generator.stop()
-      const after = Date.now()
-      message.push(`✔ Generated ${chalk.bold(name!)}${toStr} in ${formatms(after - before)}\n`)
-    }
+      for (const generator of generators) {
+        const toStr = generator.options!.generator.output!
+          ? chalk.dim(` to .${path.sep}${path.relative(process.cwd(), generator.options!.generator.output!)}`)
+          : ''
+        const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
+        const before = Date.now()
+        try {
+          await generator.generate()
+          const after = Date.now()
+          message.push(`✔ Generated ${chalk.bold(name!)}${toStr} in ${formatms(after - before)}\n`)
+          generator.stop()
+        } catch (err) {
+          message.push(err.message)
+        }
+      }
 
-    this.logText += message.join('\n')
-  })
+      this.logText += message.join('\n')
+    },
+  )
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
@@ -71,7 +77,7 @@ export class Generate implements Command {
       return this.help()
     }
 
-    const watchMode = args['--watch']
+    const watchMode = args['--watch'] || false
 
     const schemaPath = await getSchemaPath(args['--schema'])
     if (!schemaPath) {
@@ -82,48 +88,71 @@ export class Generate implements Command {
       )
     }
 
-    const generators = await getGenerators({
-      schemaPath,
-      printDownloadProgress: !watchMode,
-      version: pkg.prisma.version,
-      cliVersion: pkg.version,
-    })
+    let isJSClient
+    let generators: Generator[] | undefined
+    try {
+      generators = await getGenerators({
+        schemaPath,
+        printDownloadProgress: !watchMode,
+        version: pkg.prisma.version,
+        cliVersion: pkg.version,
+      })
 
-    if (generators.length === 0) {
-      console.error(missingGeneratorMessage)
+      if (!generators || generators.length === 0) {
+        this.logText += `${missingGeneratorMessage}\n`
+      } else {
+        // Only used for CLI output, ie Go client doesn't want JS example output
+        isJSClient = generators.find(g => g.options && g.options.generator.provider === 'prisma-client-js')
+
+        try {
+          await this.runGenerate({ generators, watchMode })
+        } catch (errRunGenerate) {
+          this.logText += `${errRunGenerate.message}\n\n`
+        }
+      }
+    } catch (errGetGenerators) {
+      if (watchMode) {
+        this.logText += `${errGetGenerators.message}\n\n`
+      } else {
+        throw errGetGenerators
+      }
     }
 
     const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(schemaPath)}\n`
 
     if (watchMode) {
-      logUpdate(watchingText)
+      logUpdate(watchingText + '\n' + this.logText)
 
       fs.watch(schemaPath, async eventType => {
         if (eventType === 'change') {
-          const generators = await getGenerators({
-            schemaPath,
-            printDownloadProgress: !watchMode,
-            version: pkg.prisma.version,
-            cliVersion: pkg.version,
-          })
+          let generatorsWatch: Generator[] | undefined
+          try {
+            generatorsWatch = await getGenerators({
+              schemaPath,
+              printDownloadProgress: !watchMode,
+              version: pkg.prisma.version,
+              cliVersion: pkg.version,
+            })
 
-          if (generators.length === 0) {
-            console.error(missingGeneratorMessage)
+            if (!generatorsWatch || generatorsWatch.length === 0) {
+              this.logText += `${missingGeneratorMessage}\n`
+            } else {
+              logUpdate(`\n${chalk.green('Building...')}\n\n${this.logText}`)
+              try {
+                await this.runGenerate({ generators: generatorsWatch, watchMode })
+                logUpdate(watchingText + '\n' + this.logText)
+              } catch (errRunGenerate) {
+                this.logText += `${errRunGenerate.message}\n\n`
+                logUpdate(watchingText + '\n' + this.logText)
+              }
+            }
+            // logUpdate(watchingText + '\n' + this.logText)
+          } catch (errGetGenerators) {
+            this.logText += `${errGetGenerators.message}\n\n`
+            logUpdate(watchingText + '\n' + this.logText)
           }
-
-          logUpdate(`\n${chalk.green('Building...')}\n\n${this.logText}`)
-          await this.runGenerate({ generators, watchMode })
-          logUpdate(watchingText + '\n' + this.logText)
         }
       })
-    }
-
-    await this.runGenerate({ generators, watchMode })
-
-    const isJSClient = generators.find(g => g.options && g.options.generator.provider === 'prisma-client-js')
-
-    if (watchMode) {
-      logUpdate(watchingText + '\n' + this.logText)
       await new Promise(r => null)
     } else {
       const hint = `
@@ -138,7 +167,7 @@ const prisma = new PrismaClient()`)}
 \`\`\`
 
 Explore the full API: ${link('http://pris.ly/d/client')}`
-      logUpdate(this.logText + (isJSClient ? hint : ''))
+      logUpdate('\n' + this.logText + (isJSClient ? hint : ''))
     }
 
     return ''
