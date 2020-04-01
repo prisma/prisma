@@ -4,7 +4,9 @@ about: Create a bug report to help us improve Prisma
 title: ''
 labels: ''
 assignees: ''
----<!-- 
+---
+
+<!-- 
 Thanks for helping us improve Prisma! 🙏 Please follow the sections in the template and provide as much information as possible about your problem, e.g. by setting the `DEBUG="*"` environment variable and enabling additional logging output in Prisma Client.
 
 Learn more about writing proper bug reports here: https://pris.ly/d/bug-reports
