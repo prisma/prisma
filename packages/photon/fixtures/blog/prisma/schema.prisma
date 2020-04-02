@@ -4,7 +4,8 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
 }
 
 model User {
@@ -22,9 +23,10 @@ model Post {
   published Boolean
   title     String
   content   String?
-  author    User?
+  author    User?    @relation(references: [id])
 }
 
 enum Tree {
-  OAK DOUGLAS
+  OAK
+  DOUGLAS
 }
