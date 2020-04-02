@@ -111,75 +111,75 @@ describe('download', () => {
         },
         Object {
           "name": "introspection-engine-darwin",
-          "size": 10818024,
+          "size": 11090832,
         },
         Object {
           "name": "introspection-engine-debian-openssl-1.0.x",
-          "size": 13686432,
+          "size": 13999072,
         },
         Object {
           "name": "introspection-engine-debian-openssl-1.1.x",
-          "size": 13672616,
+          "size": 13972712,
         },
         Object {
           "name": "introspection-engine-rhel-openssl-1.0.x",
-          "size": 13727413,
+          "size": 14039682,
         },
         Object {
           "name": "introspection-engine-rhel-openssl-1.1.x",
-          "size": 13714821,
+          "size": 14019211,
         },
         Object {
           "name": "introspection-engine-windows.exe",
-          "size": 22851591,
+          "size": 23002804,
         },
         Object {
           "name": "migration-engine-darwin",
-          "size": 14451544,
+          "size": 14750152,
         },
         Object {
           "name": "migration-engine-debian-openssl-1.0.x",
-          "size": 17538960,
+          "size": 17889208,
         },
         Object {
           "name": "migration-engine-debian-openssl-1.1.x",
-          "size": 17529464,
+          "size": 17861560,
         },
         Object {
           "name": "migration-engine-rhel-openssl-1.0.x",
-          "size": 17592124,
+          "size": 17946296,
         },
         Object {
           "name": "migration-engine-rhel-openssl-1.1.x",
-          "size": 17588083,
+          "size": 17924474,
         },
         Object {
           "name": "migration-engine-windows.exe",
-          "size": 27487354,
+          "size": 27743315,
         },
         Object {
           "name": "query-engine-darwin",
-          "size": 16302864,
+          "size": 16480952,
         },
         Object {
           "name": "query-engine-debian-openssl-1.0.x",
-          "size": 19595240,
+          "size": 19818032,
         },
         Object {
           "name": "query-engine-debian-openssl-1.1.x",
-          "size": 19576464,
+          "size": 19791296,
         },
         Object {
           "name": "query-engine-rhel-openssl-1.0.x",
-          "size": 19635768,
+          "size": 19858342,
         },
         Object {
           "name": "query-engine-rhel-openssl-1.1.x",
-          "size": 19622446,
+          "size": 19837433,
         },
         Object {
           "name": "query-engine-windows.exe",
-          "size": 29855371,
+          "size": 30064710,
         },
       ]
     `)
