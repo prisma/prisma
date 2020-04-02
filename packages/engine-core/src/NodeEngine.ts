@@ -24,6 +24,7 @@ import bent from 'bent'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
+const readdir = promisify(fs.readdir)
 
 export interface DatasourceOverwrite {
   name: string
@@ -233,6 +234,8 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       const pinnedStr = this.incorrectlyPinnedPlatform
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.incorrectlyPinnedPlatform}`)}\n`
         : ''
+
+      const dir = path.dirname(prismaPath)
       let errorText = `Query engine binary for current platform "${chalk.bold(
         platform,
       )}" could not be found.${pinnedStr}
@@ -244,11 +247,17 @@ This probably happens, because you built Prisma Client on a different platform.
         // The user already added it, but it still doesn't work 🤷‍♀️
         // That means, that some build system just deleted the files 🤔
         if (this.generator.binaryTargets.includes(this.platform) || this.generator.binaryTargets.includes('native')) {
-          errorText += `\n\nYou already added the platform${
-            this.generator.binaryTargets.length > 1 ? 's' : ''
-          } ${this.generator.binaryTargets.map(t => `"${chalk.bold(t)}"`).join(', ')} to the "${chalk.underline(
-            'generator',
-          )}" block
+          let files = []
+          if (fs.existsSync(dir)) {
+            files = await readdir(dir)
+          }
+
+          errorText += `\n\nFiles in ${dir}:
+
+${files.map(f => `  ${f}`).join('\n')}\n
+You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''} ${this.generator.binaryTargets
+            .map(t => `"${chalk.bold(t)}"`)
+            .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
 
