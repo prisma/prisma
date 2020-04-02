@@ -63,16 +63,8 @@ export async function getCacheDir(channel: string, version: string, platform: st
   return cacheDir
 }
 
-function rewriteKind(kind: string) {
-  if (kind === 'query-engine') {
-    return 'prisma'
-  }
-
-  return kind
-}
-
 export function getDownloadUrl(channel: string, version: string, platform: string, binaryName: string) {
   const extension = platform === 'windows' ? '.exe.gz' : '.gz'
   const baseUrl = process.env.PRISMA_BINARIES_MIRROR || 'https://binaries.prisma.sh'
-  return `${baseUrl}/${channel}/${version}/${platform}/${rewriteKind(binaryName)}${extension}`
+  return `${baseUrl}/${channel}/${version}/${platform}/${binaryName}${extension}`
 }
