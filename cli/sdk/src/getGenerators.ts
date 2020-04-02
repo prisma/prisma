@@ -27,6 +27,7 @@ import { flatMap } from './utils/flatMap'
 import Debug from 'debug'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
 const debug = Debug('getGenerators')
+const defaultEngineVersion = eval(`require('../package.json').prisma.version`)
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
 
@@ -176,7 +177,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           dmmf,
           otherGenerators: skipIndex(generatorConfigs, index),
           schemaPath,
-          version: version || 'latest',
+          version: version || defaultEngineVersion,
         }
 
         // we set the options here a bit later after instantiating the Generator,
@@ -222,7 +223,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
         typeof printDownloadProgress === 'boolean'
           ? printDownloadProgress
           : true,
-      version: version || 'latest',
+      version: version || defaultEngineVersion,
       skipDownload,
     }
 
