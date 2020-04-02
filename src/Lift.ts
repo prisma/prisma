@@ -712,6 +712,7 @@ export class Lift {
         '!dev',
       ],
       {
+        // @ts-ignore
         cwd: migrationsDir,
       },
     ).then(files =>
