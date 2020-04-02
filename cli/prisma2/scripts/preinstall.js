@@ -48,28 +48,29 @@ function prismaIsInstalledGlobally() {
 const b = str => BOLD + str + RESET
 const white = str => WHITE_BRIGHT + str + RESET
 
-// When running in npx, npm puts this package into a /_npx/ folder. Tested on Win, Mac, Linux
-if (__dirname.includes('_npx')) {
-  process.exit(0)
-}
+function main() {
+  // When running in npx, npm puts this package into a /_npx/ folder. Tested on Win, Mac, Linux
+  if (__dirname.includes('_npx')) {
+    process.exit(0)
+  }
 
-if (!isInstalledGlobally) {
-  process.exit(0)
-}
+  if (!isInstalledGlobally) {
+    process.exit(0)
+  }
 
-const installedGlobally = prismaIsInstalledGlobally()
-debug({ installedGlobally })
-if (!installedGlobally) {
-  process.exit(0)
-}
+  const installedGlobally = prismaIsInstalledGlobally()
+  debug({ installedGlobally })
+  if (!installedGlobally) {
+    process.exit(0)
+  }
 
-const pkg = require(installedGlobally.pkgPath)
-const parts = pkg.version.split('-')
-const isAlpha = parts.length > 1 ? parts[1].split('.') === 'alpha' : false
+  const pkg = require(installedGlobally.pkgPath)
+  const parts = pkg.version.split('-')
+  const isAlpha = parts.length > 1 ? parts[1].split('.') === 'alpha' : false
 
-let message
-if (installedGlobally.name === 'prisma2') {
-  message = `
+  let message
+  if (installedGlobally.name === 'prisma2') {
+    message = `
 The package ${white('prisma2')} has been renamed to ${white('@prisma/cli')}.
 
 Please uninstall ${white('prisma2')} globally first.
@@ -86,8 +87,8 @@ Then install ${white('@prisma/cli')} to continue using ${b('Prisma 2.0')}:
 
 Learn more here: https://pris.ly/preview025
 `
-} else {
-  message = `
+  } else {
+    message = `
 You seem to have a global installation of Prisma 1 package ${white('prisma')}. 
 As Prisma 2 uses the same executable ${white('prisma')}, this would lead to a conflict.
 
@@ -113,7 +114,14 @@ Then you can install Prisma 2:
 
 Learn more here: https://pris.ly/prisma1
 `
+  }
+
+  console.error(drawBox({ str: message, verticalPadding: 1, horizontalPadding: 3 }))
+  process.exit(1)
 }
 
-console.error(drawBox({ str: message, verticalPadding: 1, horizontalPadding: 3 }))
-process.exit(1)
+try {
+  main()
+} catch (e) {
+  debug(e)
+}
