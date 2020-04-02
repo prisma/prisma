@@ -2145,6 +2145,41 @@ function tests(): Test[] {
         },
       ],
     },
+    {
+      up: `
+        CREATE TABLE column_name_that_becomes_empty_string (
+          field1 serial primary key not null,
+          "12345" int DEFAULT NULL
+        );
+        
+        create type invalid_enum as enum ('Y','N','123','$§!');
+
+        CREATE TABLE invalid_enum_value_name (
+          field1 serial primary key not null,
+          here_be_enum invalid_enum DEFAULT NULL
+        );
+        
+        CREATE TABLE no_unique_identifier (
+          field1 int DEFAULT NULL,
+          field2 int DEFAULT NULL
+        );
+
+        CREATE TABLE unsupported_type (
+          field1 serial primary key not null,
+          unsupported polygon DEFAULT NULL
+        );
+      `,
+      down: `
+        drop table if exists column_name_that_becomes_empty_string cascade;
+        drop table if exists invalid_enum_value_name cascade;
+        drop table if exists no_unique_identifier cascade;
+        drop table if exists unsupported_type cascade;
+      `,
+      do: async client => {
+        return await client.column_name_that_becomes_empty_string.findMany({})
+      },
+      expect: [],
+    },
   ]
 }
 
