@@ -1787,6 +1787,34 @@ function tests(): Test[] {
         },
       ],
     },
+    {
+      up: `
+        CREATE TABLE \`column_name_that_becomes_empty_string\` (
+          \`field1\` integer primary key not null,
+          \`12345\` integer DEFAULT NULL
+        );
+        
+        CREATE TABLE \`no_unique_identifier\` (
+          \`field1\` integer key not null,
+          \`field2\` integer DEFAULT NULL
+        );
+
+        CREATE TABLE \`unsupported_type\` (
+          \`field1\` integer primary key not null,
+          \`unsupported\` binary(50) DEFAULT NULL
+        );
+      `,
+      down: `
+        drop table if exists column_name_that_becomes_empty_string;
+        drop table if exists invalid_enum_value_name;
+        drop table if exists no_unique_identifier;
+        drop table if exists unsupported_type;
+      `,
+      do: async client => {
+        return await client.column_name_that_becomes_empty_string.findMany({})
+      },
+      expect: [],
+    },
   ]
 }
 
