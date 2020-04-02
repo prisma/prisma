@@ -1,3 +1,92 @@
+exports['await column_name_that_becomes_empty_string.findMany({})_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model column_name_that_becomes_empty_string {
+  // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  // 12345 Int? @map("12345")
+  field1   Int  @default(autoincrement()) @id
+}
+
+model invalid_enum_value_name {
+  field1       Int           @default(autoincrement()) @id
+  here_be_enum invalid_enum?
+}
+
+// The underlying table does not contain a unique identifier and can therefore currently not be handled.
+// model no_unique_identifier {
+  // field1 Int?
+  // field2 Int?
+// }
+
+model unsupported_type {
+  field1         Int        @default(autoincrement()) @id
+  // This type is currently not supported.
+  // unsupported geometric?
+}
+
+enum invalid_enum {
+  // $§! @map("$§!")
+  // 123 @map("123")
+  N
+  Y
+}
+`
+
+exports['await column_name_that_becomes_empty_string.findMany({})_warnings'] = [
+  {
+    "code": 1,
+    "message": "These models do not have a unique identifier or id and are therefore commented out.",
+    "affected": [
+      {
+        "model": "no_unique_identifier"
+      }
+    ]
+  },
+  {
+    "code": 2,
+    "message": "These fields were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
+    "affected": [
+      {
+        "model": "column_name_that_becomes_empty_string",
+        "field": "12345"
+      }
+    ]
+  },
+  {
+    "code": 3,
+    "message": "These fields were commented out because we currently do not support their types.",
+    "affected": [
+      {
+        "model": "unsupported_type",
+        "field": "unsupported",
+        "tpe": "geometric"
+      }
+    ]
+  },
+  {
+    "code": 4,
+    "message": "These enum values were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
+    "affected": [
+      {
+        "enm": "invalid_enum",
+        "value": "$§!"
+      },
+      {
+        "enm": "invalid_enum",
+        "value": "123"
+      }
+    ]
+  }
+]
+
 exports['teams.findOne({ where: { id: 2 } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
@@ -1069,6 +1158,25 @@ model teams {
 
 exports['teams.findMany({ where: { token: { notIn: [] } } })_warnings'] = []
 
+exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model users {
+  email String @unique
+  id    Int    @default(autoincrement()) @id
+}
+`
+
+exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })_warnings'] = []
+
 exports['exercises.findMany({ where: { distance: 12.213 } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
@@ -1354,22 +1462,3 @@ model teams {
 `
 
 exports['await teams.updateMany({ data: { name: \'b\' }, where: { name: null }, })  client.teams.findMany();_warnings'] = []
-
-exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model users {
-  email String @unique
-  id    Int    @default(autoincrement()) @id
-}
-`
-
-exports['users.findMany({ where: { email: \'MAX@PRISMA.IO\' } })_warnings'] = []
