@@ -50,14 +50,18 @@ export class LiftDown implements Command {
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
     // parse the arguments according to the spec
-    const args = arg(argv, {
-      '--help': Boolean,
-      '-h': '--help',
-      '--preview': Boolean,
-      '-p': '--preview',
-      '--experimental': Boolean,
-      '--schema': String,
-    })
+    const args = arg(
+      argv,
+      {
+        '--help': Boolean,
+        '-h': '--help',
+        '--preview': Boolean,
+        '-p': '--preview',
+        '--experimental': Boolean,
+        '--schema': String,
+      },
+      false,
+    )
 
     if (isError(args)) {
       return this.help(args.message)
