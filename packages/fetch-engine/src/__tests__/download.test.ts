@@ -5,7 +5,7 @@ import { getPlatform } from '@prisma/get-platform'
 import { cleanupCache } from '../cleanupCache'
 import del from 'del'
 
-jest.setTimeout(20000)
+jest.setTimeout(30000)
 
 describe('download', () => {
   beforeAll(async () => {
@@ -26,14 +26,16 @@ describe('download', () => {
         'introspection-engine': __dirname,
         'migration-engine': __dirname,
       },
-      version: 'a78fee833bcf4e202645e7cc7df5c3839f658e6a',
+      version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
     })
 
-    expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(`"prisma a78fee833bcf4e202645e7cc7df5c3839f658e6a"`)
+    expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(`"prisma 89d2f3b0657ca867ba684e9fc85643713c21ab3e"`)
     expect(await getVersion(introspectionEnginePath)).toMatchInlineSnapshot(
-      `"a78fee833bcf4e202645e7cc7df5c3839f658e6a"`,
+      `"introspection-core 89d2f3b0657ca867ba684e9fc85643713c21ab3e"`,
     )
-    expect(await getVersion(migrationEnginePath)).toMatchInlineSnapshot(`"a78fee833bcf4e202645e7cc7df5c3839f658e6a"`)
+    expect(await getVersion(migrationEnginePath)).toMatchInlineSnapshot(
+      `"migration-engine-cli 89d2f3b0657ca867ba684e9fc85643713c21ab3e"`,
+    )
   })
 
   test('auto heal corrupt binary', async () => {
@@ -52,7 +54,7 @@ describe('download', () => {
       binaries: {
         'query-engine': baseDir,
       },
-      version: 'd20d1e6b1525ae45e3cc39784ad16c97d463f61c',
+      version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
     })
 
     fs.writeFileSync(targetPath, 'incorrect-binary')
@@ -62,7 +64,7 @@ describe('download', () => {
       binaries: {
         'query-engine': baseDir,
       },
-      version: 'd20d1e6b1525ae45e3cc39784ad16c97d463f61c',
+      version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
     })
 
     expect(fs.existsSync(targetPath)).toBe(true)
@@ -76,7 +78,7 @@ describe('download', () => {
         binaries: {
           'query-engine': __dirname,
         },
-        version: 'd20d1e6b1525ae45e3cc39784ad16c97d463f61c',
+        version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
         binaryTargets: ['darwin', 'marvin'] as any,
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`"Unknown binaryTargets marvin"`)
@@ -98,7 +100,7 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
       ],
-      version: 'd20d1e6b1525ae45e3cc39784ad16c97d463f61c',
+      version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
     })
     const files = getFiles(baseDir)
     expect(files).toMatchInlineSnapshot(`
@@ -197,7 +199,7 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
       ],
-      version: 'd20d1e6b1525ae45e3cc39784ad16c97d463f61c',
+      version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
     })
     const after = Date.now()
     // cache should take less than 2s
@@ -218,7 +220,7 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
       ],
-      version: 'd20d1e6b1525ae45e3cc39784ad16c97d463f61c',
+      version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
     })
     const after2 = Date.now()
     // if binaries are already there, it should take less than 100ms to check all of them
