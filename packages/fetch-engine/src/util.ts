@@ -6,6 +6,8 @@ import fs from 'fs'
 import { promisify } from 'util'
 import path from 'path'
 import { getProxyAgent } from './getProxyAgent'
+import Debug from 'debug'
+const debug = Debug('cache-dir')
 
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
@@ -30,7 +32,7 @@ export async function getRemoteLastModified(url: string): Promise<Date> {
   return new Date(response.headers.get('last-modified'))
 }
 
-export async function getRootCacheDir(): Promise<string> {
+export async function getRootCacheDir(): Promise<string | null> {
   if (os.platform() === 'win32') {
     const cacheDir = await findCacheDir({ name: 'prisma', create: true })
     if (cacheDir) {
@@ -43,24 +45,20 @@ export async function getRootCacheDir(): Promise<string> {
   return path.join(os.homedir(), '.cache/prisma')
 }
 
-export async function getCacheDir(
-  channel: string,
-  version: string,
-  platform: string,
-  failSilent: boolean,
-): Promise<string | null> {
+export async function getCacheDir(channel: string, version: string, platform: string): Promise<string | null> {
   const rootCacheDir = await getRootCacheDir()
+  if (!rootCacheDir) {
+    return null
+  }
   const cacheDir = path.join(rootCacheDir, channel, version, platform)
   try {
     if (!fs.existsSync(cacheDir)) {
       await makeDir(cacheDir)
     }
   } catch (e) {
-    if (failSilent) {
-      return null
-    } else {
-      throw e
-    }
+    debug('The following error is being caught and just there for debugging:')
+    debug(e)
+    return null
   }
   return cacheDir
 }

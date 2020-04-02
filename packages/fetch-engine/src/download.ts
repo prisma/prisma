@@ -286,10 +286,9 @@ type GetCachedBinaryOptions = BinaryDownloadJob & {
 async function getCachedBinaryPath({
   version,
   binaryTarget,
-  failSilent,
   binaryName,
 }: GetCachedBinaryOptions): Promise<string | null> {
-  const cacheDir = await getCacheDir(channel, version, binaryTarget, failSilent)
+  const cacheDir = await getCacheDir(channel, version, binaryTarget)
   if (!cacheDir) {
     return null
   }
@@ -393,7 +392,11 @@ async function downloadBinary(options: DownloadBinaryOptions) {
 
 async function saveFileToCache(job: BinaryDownloadJob, version: string, lastModified: string): Promise<void> {
   // always fail silent, as the cache is optional
-  const cacheDir = await getCacheDir(channel, version, job.binaryTarget, true)
+  const cacheDir = await getCacheDir(channel, version, job.binaryTarget)
+  if (!cacheDir) {
+    return
+  }
+
   const cachedTargetPath = path.join(cacheDir, job.binaryName)
   const cachedLastModifiedPath = path.join(cacheDir, 'lastModified-' + job.binaryName)
 
