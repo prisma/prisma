@@ -9,6 +9,15 @@ import { promisify } from 'util'
 const exists = promisify(fs.exists)
 
 async function getMigrationEnginePath(): Promise<string> {
+  if (process.env.PRISMA_MIGRATION_ENGINE_BINARY) {
+    if (!(await exists(process.env.PRISMA_MIGRATION_ENGINE_BINARY))) {
+      throw new Error(
+        `PRISMA_MIGRATION_ENGINE_BINARY provided, but can't find binary at ${process.env.PRISMA_MIGRATION_ENGINE_BINARY}`,
+      )
+    }
+    return process.env.PRISMA_MIGRATION_ENGINE_BINARY
+  }
+
   // tslint:disable-next-line
   const dir = eval('__dirname')
   const platform = await getPlatform()
