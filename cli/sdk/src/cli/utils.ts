@@ -14,9 +14,10 @@ export function format(input: string = ''): string {
 export function arg<T extends Arg.Spec>(
   argv: string[],
   spec: T,
+  stopAtPositional: true | false = true,
 ): Arg.Result<T> | Error {
   try {
-    return Arg(spec, { argv, stopAtPositional: false })
+    return Arg(spec, { argv, stopAtPositional })
   } catch (err) {
     return err
   }
