@@ -11,9 +11,12 @@ export function format(input: string = ''): string {
 /**
  * Wrap arg to return an error instead of throwing
  */
-export function arg<T extends Arg.Spec>(argv: string[], spec: T): Arg.Result<T> | Error {
+export function arg<T extends Arg.Spec>(
+  argv: string[],
+  spec: T,
+): Arg.Result<T> | Error {
   try {
-    return Arg(spec, { argv, stopAtPositional: true })
+    return Arg(spec, { argv, stopAtPositional: false })
   } catch (err) {
     return err
   }
