@@ -8,6 +8,7 @@ import Debug from 'debug'
 import makeDir from 'make-dir'
 import execa from 'execa'
 import pFilter from 'p-filter'
+import hasha from 'hasha'
 
 // Utils
 import { getBar } from './log'
@@ -15,7 +16,7 @@ import plusxSync from './chmod'
 import { copy } from './copy'
 import { getPlatform, Platform, platforms } from '@prisma/get-platform'
 import { downloadZip } from './downloadZip'
-import { getCacheDir, getLocalLastModified, getRemoteLastModified, getDownloadUrl } from './util'
+import { getCacheDir, getDownloadUrl } from './util'
 import { cleanupCache } from './cleanupCache'
 import { flatMap } from './flatMap'
 import { getLatestAlphaTag } from './getLatestAlphaTag'
@@ -23,7 +24,7 @@ import { getLatestAlphaTag } from './getLatestAlphaTag'
 const debug = Debug('download')
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
-const stat = promisify(fs.stat)
+const readFile = promisify(fs.readFile)
 
 const channel = 'master'
 export interface BinaryDownloadConfiguration {
@@ -198,15 +199,6 @@ function binaryJobsToBinaryPaths(jobs: BinaryDownloadJob[]): BinaryPaths {
   }, {} as BinaryPaths)
 }
 
-async function fileSize(name: string): Promise<number | null> {
-  try {
-    const statResult = await stat(name)
-    return statResult.size
-  } catch (e) {
-    return null
-  }
-}
-
 async function binaryNeedsToBeDownloaded(
   job: BinaryDownloadJob,
   nativePlatform: string,
@@ -216,7 +208,7 @@ async function binaryNeedsToBeDownloaded(
   // 1. Check if file exists
   const fileExists = await exists(job.targetFilePath)
 
-  // 2. If exists, check, if cached file exists and is up to date and has same file size as file.
+  // 2. If exists, check, if cached file exists and is up to date and has same hash as file.
   // If not, copy cached file over
   const cachedFile = await getCachedBinaryPath({
     ...job,
@@ -224,17 +216,36 @@ async function binaryNeedsToBeDownloaded(
     failSilent,
   })
 
+  debug({ fileExists, cachedFile })
+
   if (cachedFile) {
     debug({ cachedFile })
-    if (!fileExists) {
-      await copy(cachedFile, job.targetFilePath)
-      return false
-    }
-    const [cachedFileSize, targetFileSize] = await Promise.all([fileSize(cachedFile), fileSize(job.targetFilePath)])
-    debug({ cachedFileSize, targetFileSize })
-    if (cachedFileSize && targetFileSize && cachedFileSize !== targetFileSize) {
-      await copy(cachedFile, job.targetFilePath)
-      return false
+    const sha256FilePath = cachedFile + '.sha256'
+    if (await exists(sha256FilePath)) {
+      const sha256File = await readFile(sha256FilePath, 'utf-8')
+      const sha256Cache = await hasha.fromFile(cachedFile, { algorithm: 'sha256' })
+      debug({ sha256File, sha256Cache, cachedFile, sha256FilePath })
+      if (sha256File === sha256Cache) {
+        if (!fileExists) {
+          await copy(cachedFile, job.targetFilePath)
+        }
+        const targetSha256 = await hasha.fromFile(job.targetFilePath, { algorithm: 'sha256' })
+        debug({ targetSha256 })
+        if (sha256File !== targetSha256) {
+          debug(`sha256 of target file is incorrect, therefore it's corrupt and we need to copy it over again.`)
+          await copy(cachedFile, job.targetFilePath)
+        } else {
+          debug(`sha256 of target is correct, so there's nothing to do :)`)
+        }
+        return false
+      } else {
+        debug(`Cached sha256 is not correct!`)
+        debug(`Took it from ${sha256FilePath}`)
+        return true
+      }
+    } else {
+      debug(`No sha256 exists for ${cachedFile}. Looked at ${sha256FilePath}`)
+      return true
     }
   }
 
@@ -305,20 +316,8 @@ async function getCachedBinaryPath({
     return cachedTargetPath
   }
 
-  const cachedLastModifiedPath = path.join(cacheDir, 'lastModified-' + binaryName)
-
-  const [cachedPrismaExists, localLastModified] = await Promise.all([
-    exists(cachedTargetPath),
-    getLocalLastModified(cachedLastModifiedPath),
-  ])
-
-  const downloadUrl = getDownloadUrl(channel, version, binaryTarget, binaryName)
-
-  if (cachedPrismaExists && localLastModified) {
-    const remoteLastModified = await getRemoteLastModified(downloadUrl)
-    if (localLastModified >= remoteLastModified) {
-      return cachedTargetPath
-    }
+  if (await exists(cachedTargetPath)) {
+    return cachedTargetPath
   }
 
   return null
@@ -352,7 +351,7 @@ type DownloadBinaryOptions = BinaryDownloadJob & {
   failSilent?: boolean
 }
 async function downloadBinary(options: DownloadBinaryOptions) {
-  const { version, progressCb, failSilent, targetFilePath, binaryTarget, binaryName } = options
+  const { version, progressCb, targetFilePath, binaryTarget, binaryName } = options
   const downloadUrl = getDownloadUrl(channel, version, binaryTarget, binaryName)
 
   const targetDir = path.dirname(targetFilePath)
@@ -377,7 +376,7 @@ async function downloadBinary(options: DownloadBinaryOptions) {
   }
 
   debug(`Downloading zip`)
-  const lastModified = await downloadZip(downloadUrl, targetFilePath, progressCb)
+  const { sha256, zippedSha256 } = await downloadZip(downloadUrl, targetFilePath, progressCb)
   if (progressCb) {
     progressCb(1)
   }
@@ -387,10 +386,15 @@ async function downloadBinary(options: DownloadBinaryOptions) {
   }
 
   // Cache result
-  await saveFileToCache(options, version, lastModified)
+  await saveFileToCache(options, version, sha256, zippedSha256)
 }
 
-async function saveFileToCache(job: BinaryDownloadJob, version: string, lastModified: string): Promise<void> {
+async function saveFileToCache(
+  job: BinaryDownloadJob,
+  version: string,
+  sha256: string,
+  zippedSha256: string,
+): Promise<void> {
   // always fail silent, as the cache is optional
   const cacheDir = await getCacheDir(channel, version, job.binaryTarget)
   if (!cacheDir) {
@@ -398,11 +402,13 @@ async function saveFileToCache(job: BinaryDownloadJob, version: string, lastModi
   }
 
   const cachedTargetPath = path.join(cacheDir, job.binaryName)
-  const cachedLastModifiedPath = path.join(cacheDir, 'lastModified-' + job.binaryName)
+  const cachedSha256Path = path.join(cacheDir, job.binaryName + '.sha256')
+  const cachedSha256ZippedPath = path.join(cacheDir, job.binaryName + '.gz.sha256')
 
   try {
     await copy(job.targetFilePath, cachedTargetPath)
-    await writeFile(cachedLastModifiedPath, lastModified)
+    await writeFile(cachedSha256Path, sha256)
+    await writeFile(cachedSha256ZippedPath, zippedSha256)
   } catch (e) {
     debug(e)
     // let this fail silently - the CI system may have reached the file size limit
