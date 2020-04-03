@@ -26,15 +26,15 @@ describe('download', () => {
         'introspection-engine': __dirname,
         'migration-engine': __dirname,
       },
-      version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
+      version: '1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3',
     })
 
-    expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(`"prisma 89d2f3b0657ca867ba684e9fc85643713c21ab3e"`)
+    expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(`"prisma 1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3"`)
     expect(await getVersion(introspectionEnginePath)).toMatchInlineSnapshot(
-      `"introspection-core 89d2f3b0657ca867ba684e9fc85643713c21ab3e"`,
+      `"introspection-core 1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3"`,
     )
     expect(await getVersion(migrationEnginePath)).toMatchInlineSnapshot(
-      `"migration-engine-cli 89d2f3b0657ca867ba684e9fc85643713c21ab3e"`,
+      `"migration-engine-cli 1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3"`,
     )
   })
 
@@ -54,7 +54,7 @@ describe('download', () => {
       binaries: {
         'query-engine': baseDir,
       },
-      version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
+      version: '1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3',
     })
 
     fs.writeFileSync(targetPath, 'incorrect-binary')
@@ -64,7 +64,7 @@ describe('download', () => {
       binaries: {
         'query-engine': baseDir,
       },
-      version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
+      version: '1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3',
     })
 
     expect(fs.existsSync(targetPath)).toBe(true)
@@ -78,7 +78,7 @@ describe('download', () => {
         binaries: {
           'query-engine': __dirname,
         },
-        version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
+        version: '1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3',
         binaryTargets: ['darwin', 'marvin'] as any,
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`"Unknown binaryTargets marvin"`)
@@ -100,7 +100,7 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
       ],
-      version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
+      version: '1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3',
     })
     const files = getFiles(baseDir)
     expect(files).toMatchInlineSnapshot(`
@@ -111,75 +111,75 @@ describe('download', () => {
         },
         Object {
           "name": "introspection-engine-darwin",
-          "size": 11090832,
+          "size": 11217352,
         },
         Object {
           "name": "introspection-engine-debian-openssl-1.0.x",
-          "size": 13999072,
+          "size": 14144184,
         },
         Object {
           "name": "introspection-engine-debian-openssl-1.1.x",
-          "size": 13972712,
+          "size": 14117656,
         },
         Object {
           "name": "introspection-engine-rhel-openssl-1.0.x",
-          "size": 14039682,
+          "size": 14184811,
         },
         Object {
           "name": "introspection-engine-rhel-openssl-1.1.x",
-          "size": 14019211,
+          "size": 14164268,
         },
         Object {
           "name": "introspection-engine-windows.exe",
-          "size": 23002804,
+          "size": 23438433,
         },
         Object {
           "name": "migration-engine-darwin",
-          "size": 14750152,
+          "size": 14817144,
         },
         Object {
           "name": "migration-engine-debian-openssl-1.0.x",
-          "size": 17889208,
+          "size": 17972920,
         },
         Object {
           "name": "migration-engine-debian-openssl-1.1.x",
-          "size": 17861560,
+          "size": 17946184,
         },
         Object {
           "name": "migration-engine-rhel-openssl-1.0.x",
-          "size": 17946296,
+          "size": 18030001,
         },
         Object {
           "name": "migration-engine-rhel-openssl-1.1.x",
-          "size": 17924474,
+          "size": 18009213,
         },
         Object {
           "name": "migration-engine-windows.exe",
-          "size": 27743315,
+          "size": 28021828,
         },
         Object {
           "name": "query-engine-darwin",
-          "size": 16480952,
+          "size": 16575264,
         },
         Object {
           "name": "query-engine-debian-openssl-1.0.x",
-          "size": 19818032,
+          "size": 19918856,
         },
         Object {
           "name": "query-engine-debian-openssl-1.1.x",
-          "size": 19791296,
+          "size": 19897512,
         },
         Object {
           "name": "query-engine-rhel-openssl-1.0.x",
-          "size": 19858342,
+          "size": 19963237,
         },
         Object {
           "name": "query-engine-rhel-openssl-1.1.x",
-          "size": 19837433,
+          "size": 19943763,
         },
         Object {
           "name": "query-engine-windows.exe",
-          "size": 30064710,
+          "size": 30330977,
         },
       ]
     `)
@@ -199,12 +199,12 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
       ],
-      version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
+      version: '1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3',
     })
     const after = Date.now()
     // cache should take less than 2s
     // value on Mac: 1440
-    expect(after - before).toBeLessThan(2000)
+    expect(after - before).toBeLessThan(3000)
     const before2 = Date.now()
     await download({
       binaries: {
@@ -220,12 +220,12 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
       ],
-      version: '89d2f3b0657ca867ba684e9fc85643713c21ab3e',
+      version: '1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3',
     })
     const after2 = Date.now()
     // if binaries are already there, it should take less than 100ms to check all of them
     // value on Mac: 33ms
-    expect(after2 - before2).toBeLessThan(1000)
+    expect(after2 - before2).toBeLessThan(2000)
   })
 })
 

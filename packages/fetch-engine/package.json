@@ -24,6 +24,7 @@
     "debug": "^4.1.1",
     "execa": "~3.4.0",
     "find-cache-dir": "^3.2.0",
+    "hasha": "^5.2.0",
     "htmlparser2": "^4.0.0",
     "http-proxy-agent": "^2.1.0",
     "https-proxy-agent": "^3.0.1",

@@ -1,36 +1,10 @@
 import os from 'os'
 import makeDir from 'make-dir'
-import fetch from 'node-fetch'
 import findCacheDir from 'find-cache-dir'
 import fs from 'fs'
-import { promisify } from 'util'
 import path from 'path'
-import { getProxyAgent } from './getProxyAgent'
 import Debug from 'debug'
 const debug = Debug('cache-dir')
-
-const exists = promisify(fs.exists)
-const readFile = promisify(fs.readFile)
-
-export async function getLocalLastModified(filePath: string): Promise<Date | null> {
-  const fileExists = await exists(filePath)
-  if (!fileExists) {
-    return null
-  }
-  const file = await readFile(filePath, 'utf-8')
-  if (!file || file.length === 0) {
-    return null
-  }
-  return new Date(file)
-}
-
-export async function getRemoteLastModified(url: string): Promise<Date> {
-  const response = await fetch(url, {
-    method: 'HEAD',
-    agent: getProxyAgent(url),
-  })
-  return new Date(response.headers.get('last-modified'))
-}
 
 export async function getRootCacheDir(): Promise<string | null> {
   if (os.platform() === 'win32') {
