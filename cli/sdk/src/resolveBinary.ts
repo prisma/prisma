@@ -82,7 +82,7 @@ async function maybeCopyToTmp(file: string): Promise<string> {
   // to make this work, we need to copy the binary to /tmp and execute it from there
 
   const dir = eval('__dirname')
-  if (dir.startsWith('/snapshot/prisma2')) {
+  if (dir.startsWith('/snapshot/')) {
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await makeDir(targetDir)
     const target = path.join(targetDir, path.basename(file))

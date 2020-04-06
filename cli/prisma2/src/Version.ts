@@ -23,8 +23,7 @@ export class Version implements Command {
   private constructor() {}
   async parse(argv: string[]) {
     const platform = await getPlatform()
-    const parentDir = fs.readdirSync(path.join(__dirname, '../'))
-    debug({ parentDir })
+    debug({ __dirname })
 
     const introspectionEngine = await this.resolveEngine(
       'introspection-engine',
