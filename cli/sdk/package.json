@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@types/jest": "24.0.22",
-    "@types/node": "^12.12.32",
+    "@types/node": "^12.12.34",
     "@types/tar": "^4.0.3",
     "@typescript-eslint/eslint-plugin": "^2.25.0",
     "@typescript-eslint/parser": "^2.25.0",
@@ -61,6 +61,7 @@
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
     "tar": "^5.0.5",
+    "temp-dir": "^2.0.0",
     "temp-write": "^4.0.0",
     "tempy": "^0.3.0",
     "terminal-link": "^2.1.1",

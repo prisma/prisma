@@ -1,3 +1,5 @@
+export { resolveBinary } from './resolveBinary'
+
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
 
 export {

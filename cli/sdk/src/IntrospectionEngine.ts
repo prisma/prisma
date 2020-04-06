@@ -5,11 +5,10 @@ import byline from './utils/byline'
 const debugRpc = debugLib('IntrospectionEngine:rpc')
 const debugStderr = debugLib('IntrospectionEngine:stderr')
 const debugStdin = debugLib('IntrospectionEngine:stdin')
-import { getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import { now } from './utils/now'
-import path from 'path'
 import { RustPanic, ErrorArea } from './panic'
+import { resolveBinary } from './resolveBinary'
 
 export interface IntrospectionEngineOptions {
   binaryPath?: string
@@ -76,7 +75,6 @@ let messageId = 1
 
 /* tslint:disable */
 export class IntrospectionEngine {
-  private binaryPath?: string
   private debug: boolean
   private cwd: string
   private child?: ChildProcess
@@ -88,14 +86,11 @@ export class IntrospectionEngine {
   private lastUrl?: string
   public isRunning: boolean = false
   constructor(
-    { binaryPath, debug, cwd }: IntrospectionEngineOptions = {
-      binaryPath: process.env.PRISMA_INTROSPECTION_ENGINE_BINARY, // ncc go home
+    { debug, cwd }: IntrospectionEngineOptions = {
       debug: false,
       cwd: process.cwd(),
     },
   ) {
-    this.binaryPath =
-      process.env.PRISMA_INTROSPECTION_ENGINE_BINARY || binaryPath
     if (debug) {
       debugLib.enable('IntrospectionEngine*')
     }
@@ -183,30 +178,11 @@ export class IntrospectionEngine {
 
     return this.initPromise!
   }
-  private async getBinaryPath() {
-    if (this.binaryPath) {
-      return path.resolve(process.cwd(), this.binaryPath)
-    }
-
-    const platform = await getPlatform()
-    const extension = platform === 'windows' ? '.exe' : ''
-
-    this.binaryPath = path.join(
-      eval(`require('path').join(__dirname, '../')`),
-      `introspection-engine-${platform}${extension}`,
-    )
-    if (!fs.existsSync(this.binaryPath)) {
-      throw new Error(
-        `Expected introspection engine at ${this.binaryPath} does not exist.`,
-      )
-    }
-    return this.binaryPath
-  }
   private internalInit(): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
         const { PWD, ...env } = process.env
-        const binaryPath = await this.getBinaryPath()
+        const binaryPath = await resolveBinary('introspection-engine')
         debugRpc('starting introspection engine with binary: ' + binaryPath)
         this.child = spawn(binaryPath, {
           stdio: ['pipe', 'pipe', 'pipe'],
