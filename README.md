@@ -30,7 +30,7 @@
 
 ## Documentation
 
-You can find the documentation for Prisma Migrate in the [Prisma documentation](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-prisma-migrate). Here are the most relevant pages from the docs:
+You can find more info about Prisma Migrate in the [Prisma documentation](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-prisma-migrate). Here are the most relevant pages from the docs:
 
 - [Introduction to Prisma Migrate](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-migrate)
 - [Setup a new project from scratch with Prisma Migrate](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-prisma-migrate) (15 min)
