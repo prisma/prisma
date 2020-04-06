@@ -6,11 +6,9 @@ import byline from './utils/byline'
 const debugRpc = debugLib('LiftEngine:rpc')
 const debugStderr = debugLib('LiftEngine:stderr')
 const debugStdin = debugLib('LiftEngine:stdin')
-import { getPlatform } from '@prisma/get-platform'
-import path from 'path'
 import fs from 'fs'
 import { now } from './utils/now'
-import { RustPanic, ErrorArea } from '@prisma/sdk'
+import { RustPanic, ErrorArea, resolveBinary } from '@prisma/sdk'
 
 export interface LiftEngineOptions {
   projectDir: string
@@ -48,14 +46,8 @@ export class LiftEngine {
   private lastRequest?: any
   private lastError?: any
   private initPromise?: Promise<void>
-  constructor({
-    projectDir,
-    binaryPath = process.env.PRISMA_MIGRATION_ENGINE_BINARY, // ncc go home
-    debug = false,
-    schemaPath,
-  }: LiftEngineOptions) {
+  constructor({ projectDir, debug = false, schemaPath }: LiftEngineOptions) {
     this.projectDir = projectDir
-    this.binaryPath = process.env.PRISMA_MIGRATION_ENGINE_BINARY || binaryPath
     this.schemaPath = schemaPath
     if (debug) {
       debugLib.enable('LiftEngine*')
@@ -131,28 +123,11 @@ export class LiftEngine {
 
     return this.initPromise!
   }
-  private async getBinaryPath() {
-    if (this.binaryPath) {
-      return path.resolve(process.cwd(), this.binaryPath)
-    }
-
-    const platform = await getPlatform()
-    const extension = platform === 'windows' ? '.exe' : ''
-
-    this.binaryPath = path.join(
-      eval(`require('path').join(__dirname, '../')`),
-      `migration-engine-${platform}${extension}`,
-    )
-    if (!fs.existsSync(this.binaryPath)) {
-      throw new Error(`Expected migration engine at ${this.binaryPath} does not exist.`)
-    }
-    return this.binaryPath
-  }
   private internalInit(): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
         const { PWD, ...rest } = process.env
-        const binaryPath = await this.getBinaryPath()
+        const binaryPath = await resolveBinary('migration-engine')
         debugRpc('starting migration engine with binary: ' + binaryPath)
         this.child = spawn(binaryPath, ['-d', this.schemaPath], {
           cwd: this.projectDir,

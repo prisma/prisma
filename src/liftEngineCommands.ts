@@ -1,4 +1,4 @@
-import { getSchemaDir } from '@prisma/sdk'
+import { getSchemaDir, resolveBinary } from '@prisma/sdk'
 import { getPlatform } from '@prisma/get-platform'
 import { uriToCredentials } from '@prisma/sdk'
 import execa from 'execa'
@@ -7,24 +7,6 @@ import path from 'path'
 import { promisify } from 'util'
 
 const exists = promisify(fs.exists)
-
-async function getMigrationEnginePath(): Promise<string> {
-  if (process.env.PRISMA_MIGRATION_ENGINE_BINARY) {
-    if (!(await exists(process.env.PRISMA_MIGRATION_ENGINE_BINARY))) {
-      throw new Error(
-        `PRISMA_MIGRATION_ENGINE_BINARY provided, but can't find binary at ${process.env.PRISMA_MIGRATION_ENGINE_BINARY}`,
-      )
-    }
-    return process.env.PRISMA_MIGRATION_ENGINE_BINARY
-  }
-
-  // tslint:disable-next-line
-  const dir = eval('__dirname')
-  const platform = await getPlatform()
-  const extension = platform === 'windows' ? '.exe' : ''
-  const relative = `../migration-engine-${platform}${extension}`
-  return path.join(dir, relative)
-}
 
 // https://github.com/prisma/specs/tree/master/errors#common
 export type DatabaseErrorCodes = 'P1000' | 'P1001' | 'P1002' | 'P1003' | 'P1009' | 'P1010'
@@ -62,7 +44,7 @@ export async function canConnectToDatabase(
     }
   }
 
-  migrationEnginePath = migrationEnginePath || (await getMigrationEnginePath())
+  migrationEnginePath = migrationEnginePath || (await resolveBinary('migration-engine'))
   try {
     await execa(migrationEnginePath, ['cli', '--datasource', connectionString, 'can-connect-to-database'], {
       cwd,
@@ -99,7 +81,7 @@ export async function createDatabase(
   if (dbExists === true) {
     return
   }
-  migrationEnginePath = migrationEnginePath || (await getMigrationEnginePath())
+  migrationEnginePath = migrationEnginePath || (await resolveBinary('migration-engine'))
   await execa(migrationEnginePath, ['cli', '--datasource', connectionString, 'create-database'], {
     cwd,
     env: {
