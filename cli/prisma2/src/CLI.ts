@@ -47,10 +47,11 @@ export class CLI implements Command {
       throw new Error(`${chalk.red('prisma lift')} has been renamed to ${chalk.green('prisma migrate')}`)
     }
     const cmd = this.cmds[cmdName]
+    console.log({ cmdName, ensureBinaries: this.ensureBinaries })
     if (cmd) {
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
       if (this.ensureBinaries.includes(cmdName)) {
-        this.downloadBinaries()
+        await this.downloadBinaries()
       }
 
       const argsForCmd = args['--experimental']
