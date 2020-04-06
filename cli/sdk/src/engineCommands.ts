@@ -7,6 +7,7 @@ import tmpWrite from 'temp-write'
 import fs from 'fs'
 import { promisify } from 'util'
 import Debug from 'debug'
+import { resolveBinary } from './resolveBinary'
 const debug = Debug('engineCommands')
 
 const unlink = promisify(fs.unlink)
@@ -34,58 +35,6 @@ path.join(__dirname, '../introspection-engine-rhel-openssl-1.0.x')
 path.join(__dirname, '../query-engine-rhel-openssl-1.0.x')
 path.join(__dirname, '../introspection-engine-rhel-openssl-1.0.x')
 
-/**
- * Dynamic path resolution
- */
-async function getPrismaPath(): Promise<string> {
-  // tslint:disable-next-line
-  if (process.env.PRISMA_QUERY_ENGINE_BINARY) {
-    if (!fs.existsSync(process.env.PRISMA_QUERY_ENGINE_BINARY)) {
-      throw new Error(
-        `Env var PRISMA_QUERY_ENGINE_BINARY is provided but provided path ${process.env.PRISMA_QUERY_ENGINE_BINARY} can't be resolved.`,
-      )
-    }
-    return process.env.PRISMA_QUERY_ENGINE_BINARY
-  }
-  const dir = eval('__dirname')
-  const platform = await getPlatform()
-  const extension = platform === 'windows' ? '.exe' : ''
-  const binaryName = `query-engine-${platform}${extension}`
-  let prismaPath = path.join(dir, '..', binaryName)
-  if (fs.existsSync(prismaPath)) {
-    return prismaPath
-  }
-  // for pkg
-  prismaPath = path.join(dir, '../..', binaryName)
-  if (fs.existsSync(prismaPath)) {
-    return prismaPath
-  }
-
-  prismaPath = path.join(__dirname, '..', binaryName)
-  if (fs.existsSync(prismaPath)) {
-    return prismaPath
-  }
-
-  prismaPath = path.join(__dirname, '../..', binaryName)
-  if (fs.existsSync(prismaPath)) {
-    return prismaPath
-  }
-
-  // needed to come from @prisma/client/generator-build to @prisma/client/runtime
-  prismaPath = path.join(__dirname, '../runtime', binaryName)
-  if (fs.existsSync(prismaPath)) {
-    return prismaPath
-  }
-
-  throw new Error(
-    `Could not find query-engine binary. Searched in ${path.join(
-      dir,
-      '..',
-      binaryName,
-    )} and ${path.join(dir, '../..', binaryName)}`,
-  )
-}
-
 export type GetDMMFOptions = {
   datamodel?: string
   cwd?: string
@@ -102,7 +51,7 @@ export async function getDMMF({
   retry = 4,
 }: GetDMMFOptions): Promise<DMMF.Document> {
   debug(`getDMMF, override prismaPath = ${prismaPath}`)
-  prismaPath = prismaPath || (await getPrismaPath())
+  prismaPath = prismaPath || (await resolveBinary('query-engine'))
   let result
   try {
     let tempDatamodelPath: string | undefined = datamodelPath
@@ -214,7 +163,7 @@ export async function getConfig({
   datamodelPath,
 }: GetDMMFOptions): Promise<ConfigMetaFormat> {
   debug(`getConfig, override prismaPath = ${prismaPath}`)
-  prismaPath = prismaPath || (await getPrismaPath())
+  prismaPath = prismaPath || (await resolveBinary('query-engine'))
 
   let tempDatamodelPath: string | undefined = datamodelPath
   if (!tempDatamodelPath) {
@@ -229,19 +178,15 @@ export async function getConfig({
   }
 
   try {
-    const result = await execa(
-      prismaPath,
-      ['cli', 'get-config'],
-      {
-        cwd,
-        env: {
-          ...process.env,
-          PRISMA_DML_PATH: tempDatamodelPath,
-          RUST_BACKTRACE: '1',
-        },
-        maxBuffer: MAX_BUFFER,
+    const result = await execa(prismaPath, ['cli', 'get-config'], {
+      cwd,
+      env: {
+        ...process.env,
+        PRISMA_DML_PATH: tempDatamodelPath,
+        RUST_BACKTRACE: '1',
       },
-    )
+      maxBuffer: MAX_BUFFER,
+    })
 
     if (!datamodelPath) {
       await unlink(tempDatamodelPath)
@@ -260,7 +205,7 @@ export async function getConfig({
 }
 
 export async function getVersion(enginePath?: string): Promise<string> {
-  enginePath = enginePath || (await getPrismaPath())
+  enginePath = enginePath || (await resolveBinary('query-engine'))
 
   debug(`Getting version of ${enginePath}`)
   const result = await execa(enginePath, ['--version'], {

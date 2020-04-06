@@ -1,9 +1,11 @@
-import { Command, getVersion } from '@prisma/sdk'
+import { Command, getVersion, resolveBinary } from '@prisma/sdk'
 import { getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
 import { getBinaryName } from '@prisma/fetch-engine'
 const packageJson = require('../package.json')
+import Debug from 'debug'
+const debug = Debug('version')
 
 interface BinaryInfo {
   path: string
@@ -21,6 +23,9 @@ export class Version implements Command {
   private constructor() {}
   async parse(argv: string[]) {
     const platform = await getPlatform()
+    const parentDir = fs.readdirSync(path.join(__dirname, '../'))
+    debug({ parentDir })
+
     const introspectionEngine = await this.resolveEngine(
       'introspection-engine',
       'PRISMA_INTROSPECTION_ENGINE_BINARY',
@@ -50,7 +55,7 @@ export class Version implements Command {
       return { version, path: pathFromEnv!, fromEnvVar: envVar }
     }
 
-    const binaryPath = path.join(__dirname, `../${getBinaryName(binaryName, platform)}`)
+    const binaryPath = await resolveBinary(binaryName as any)
     const version = await getVersion(binaryPath)
     return { path: binaryPath, version }
   }
