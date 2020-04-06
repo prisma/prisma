@@ -11,6 +11,7 @@ download({
   binaries: {
     'query-engine': runtimePath,
     'introspection-engine': runtimePath,
+    'migration-engine': runtimePath,
   },
   showProgress: true,
   printVersion: true,
