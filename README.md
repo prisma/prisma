@@ -24,7 +24,7 @@
 
 **Prisma Migrate** is a powerful database schema migration tool. It uses a **declarative [data modeling](https://www.prisma.io/docs/understand-prisma/data-modeling) syntax** to describe your database schema. Prisma Migrate also stores your **migration history** and easily lets you **revert and replay migrations**. When migrating your database with Prisma Migrate, you can run provide **before- and after-hooks** to execute scripts, e.g. to populate the database with required values during a migration.
 
-> **WARNING**: Prisma Migrate is currently in an **experimental** state and therefore should not be used in production environments. Please help up improve Prisma Migrate by creating [issues](https://github.com/prisma/migrate/issues/new/choose) and sharing your [feedback](https://slack.prisma.io/) with us.
+> **WARNING**: Prisma Migrate is currently in an **experimental** state and therefore should not be used in production environments. Please help up improve Prisma Migrate by creating [issues](https://github.com/prisma/migrate/issues/new/choose) and sharing your [feedback](https://slack.prisma.io/) with us. You can also follow the [technical specification](https://github.com/prisma/specs) to get an overview of what is planned for Prisma Migrate.
 
 ## Documentation
 
