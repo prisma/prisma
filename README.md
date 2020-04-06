@@ -1,8 +1,8 @@
 <br />
-<p><h3 align="center">Query builder for TypeScript & Node.js (ORM replacement)</h3></p>
 
 <div align="center">
   <h1>Prisma Client JS</h1>
+  <p><h3 align="center">Query builder for TypeScript & Node.js (ORM replacement)</h3></p>
   <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.prisma.io/">Website</a>
