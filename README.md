@@ -1,158 +1,46 @@
-<p align="center"><a href="https://lift.prisma.io/"><img src="logo.svg" alt="Prisma" height="40px"></a></p>
-
 <br />
 
-<!--<p><h1 align="center">Prisma Migrate</h1></p>-->
-<p><h3 align="center">Declarative data modeling & database migrations</h3></p>
+<div align="center">
+  <h1>Prisma Migrate</h1>
+  <p><h3 align="center">Declarative data modeling & schema migrations</h3></p>
+  <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://www.prisma.io/">Website</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://www.prisma.io/docs/">Docs</a>
+    <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model">Data model</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://github.com/prisma/prisma-examples/tree/master/experimental">Examples</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://www.prisma.io/blog">Blog</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://slack.prisma.io/">Slack</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://twitter.com/prisma">Twitter</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://www.youtube.com/watch?v=0RhtQgIs-TE&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=1">Demo videos</a>
+</div>
 
-<p align="center">
-  <a href="#getting-started">Get started</a> • <a href="#features">Features</a> • <a href="#docs">Docs</a> • <a href="#the-prisma-migrate-workflow">Workflow</a> • <a href="#supported-databases">Supported databases</a>
-</p>
+<hr>
 
-<hr />
+**Prisma Migrate** is a powerful database schema migration tool. It uses a **declarative [data modeling](https://www.prisma.io/docs/understand-prisma/data-modeling) syntax** to describe your database schema. Prisma Migrate also stores your **migration history** and easily lets you **revert and replay migrations**. When migrating your database with Prisma Migrate, you can run provide **before- and after-hooks** to execute scripts, e.g. to populate the database with required values during a migration.
 
-**Prisma Migrate** is a powerful database schema migration tool. It uses a **declarative [data modelling](https://github.com/prisma/prisma/blob/master/docs/data-modeling.md) syntax** to describe your database schema. Prisma Migrate also stores your entire **migration history** and easily lets you **revert and replay migrations**. When migrating your database with Prisma Migrate, you can run provide **before- and after-hooks** to execute scripts, e.g. to populate the database with required values during a migration.
+> **WARNING**: Prisma Migrate is currently in an **experimental** state and therefore should not be used in production environments. Please help up improve Prisma Migrate by creating [issues](https://github.com/prisma/migrate/issues/new/choose) and sharing your [feedback](https://slack.prisma.io/) with us.
 
-> **WARNING**: Prisma Migrate is currently in an **experimental** state. The version available has a number of [limitations](https://github.com/prisma/prisma/blob/master/docs/limitations.md) that make it unsuitable for production workloads, including missing features, limited performance and stability issues.
+## Documentation
 
-<p align="center">
-  <!-- <a href="https://codesandbox.io/s/github/prisma-csb/prisma-client-demo-ts"><img src="https://svgur.com/i/CXj.svg" alt="CodeSandbox"></a> -->
-  <a href="https://www.github.com/prisma/prisma/"><img src="https://svgur.com/i/CXT.svg" alt="Docs"></a>
-</p>
+You can find the documentation for Prisma Migrate in the [Prisma documentation](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-prisma-migrate). Here are the most relevant pages from the docs:
 
-## Features
-
-- Declarative data modelling syntax
-- Supports relational and document databases (more coming soon)
-- Keeps a migration history
-- Before- and after hooks to run scripts for complex migrations
-- Simple defaults, optional complexity for advanced use cases
-- Revert and replay migrations
-- Works with existing databases using schema introspection
-- CLI to support all major workflows
-
-## Docs
-
-You can find comprehensive documentation for Prisma Migrate in the [Prisma 2 docs](https://github.com/prisma/prisma/).
-
-## The Prisma Migrate workflow
-
-### 1. Configure database access
-
-<img src="https://i.imgur.com/UcN3ENI.png" width="220px">
-
-Specify the connection details for your database as a _data source_ in your [Prisma schema file](https://github.com/prisma/prisma/blob/master/docs/prisma-schema-file.md). The connection details might differ per database, but most commonly you'll provide the following:
-
-- Host: The IP address or domain name of the machine where your database server is running.
-- Port: The port on which your database server is listening.
-- User & password: Credentials for your database server.
-
-Here is an example project file that connects to a local PostgreSQL database:
-
-```prisma
-// schema.prisma
-
-datasource postgres {
-  url      = "postgresql://user:password@localhost:5432"
-  provider = "postgres"
-}
-
-generator client {
-  provider = 'prisma-client-js'
-}
-```
-
-### 2. Define initial data model
-
-The [data model definition](https://github.com/prisma/prisma/blob/master/docs/data-modeling.md#data-model-definition) is a declarative and human-readable representation of your database schema. Here is the project file from above extended with a sample data model:
-
-```prisma
-// schema.prisma
-
-datasource postgres {
-  url      = "postgresql://user:password@localhost:5432"
-  provider = "postgres"
-}
-
-generator client {
-  provider = 'prisma-client-js'
-}
-
-model User {
-  id        Int      @id
-  createdAt DateTime @default(now())
-  email     String   @unique
-  name      String?
-  role      Role     @default(USER)
-  posts     Post[]
-}
-
-model Post {
-  id         Int        @id
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  author     User
-  title      String
-  published  Boolean    @default(false)
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-```
-
-#### Option A: Starting with an existing database
-
-<img src="https://imgur.com/Zv1OmmM.png" width="355px">
-
-If you want to use Prisma Migrate with an existing database, you can [introspect](https://github.com/prisma/prisma/blob/master/docs/introspection.md) your database schema using the [Prisma 2 CLI](https://github.com/prisma/prisma/blob/master/docs/prisma-2-cli.md). This generates a declarative [data model](https://github.com/prisma/prisma/blob/master/docs/data-modeling.md#data-model-definition) which provides the foundation for future migrations.
-
-#### Option B: Start from scratch
-
-When starting from scratch, you can write your own [data model definition](https://github.com/prisma/prisma/blob/master/docs/data-modeling.md#data-model-definition) inside your [Prisma schema file](https://github.com/prisma/prisma/blob/master/docs/prisma-schema-file.md). You can then use the Prisma Migrate CLI commands to migrate your database (Prisma Migrate maps your data model definition to the schema of the underlying database).
-
-### 3. Adjust the data model
-
-<img src="https://imgur.com/jQt0PbQ.png" width="387px">
-
-Instead of sending SQL migration statements to the database, you need to adjust the data model file to describe your desired database schema. You can express any schema migration you like using the new data model, this includes for example adding a new model, removing a model or updating the fields of a model. You can
-also add indexes or validation constraints in the data model.
-
-You can create a new migration for your change by running `prisma migrate save`:
-
-```bash
-prisma migrate save --name "add-comment-model" --experimental
-```
-
-### 4. Migrate your database (apply data model changes)
-
-<img src="https://imgur.com/iUCAStQ.png" width="392px">
-
-Once you're happy with the changes, you can use the Prisma CLI to migrate your database (i.e. map the adjusted data model to your database). Prisma Migrate's migration engine will generate the corresponding SQL statements and send them to the database for you.
-
-```bash
-prisma migrate up --experimental
-```
-
-## Supported databases
-
-Prisma Client JS can be used with the following databases:
-
-- MySQL
-- PostgreSQL
-- MongoDB (_coming very soon_)
-
-More databases that will be supported in the future are:
-
-- MS SQL
-- Oracle
-- Neo4J
-- FaunaDB
-- ...
+- [Introduction to Prisma Migrate](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-migrate)
+- [Setup a new project from scratch with Prisma Migrate](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-prisma-migrate) (15 min)
+- [Prisma schema file](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/prisma-schema-file)
+- [Data model](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model)
+- [Models](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/models)
+- [Relations](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/relations)
 
 ## Contributing
 
-Read more about how to contribute to Prisma Migrate [here](https://github.com/prisma/migrate/blob/master/CONTRIBUTING.md)
+Read more about how to contribute to Prisma Migrate [here](https://github.com/prisma/migrate/blob/master/CONTRIBUTING.md).
 
 [![Build status](https://badge.buildkite.com/9caba29c5511a465e0cbf0f6b2f62173145d3dd90cf56c4daf.svg)](https://buildkite.com/prisma/migrate)
