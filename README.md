@@ -8,6 +8,8 @@
   <a href="https://www.prisma.io/">Website</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.prisma.io/docs/">Docs</a>
+    <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/api/">API Reference</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://github.com/prisma/prisma-examples/">Examples</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
