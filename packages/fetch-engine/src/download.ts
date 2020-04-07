@@ -206,7 +206,7 @@ async function binaryNeedsToBeDownloaded(
   failSilent: boolean,
 ): Promise<boolean> {
   // 1. Check if file exists
-  const fileExists = await exists(job.targetFilePath)
+  const targetExists = await exists(job.targetFilePath)
 
   // 2. If exists, check, if cached file exists and is up to date and has same hash as file.
   // If not, copy cached file over
@@ -216,7 +216,7 @@ async function binaryNeedsToBeDownloaded(
     failSilent,
   })
 
-  debug({ fileExists, cachedFile })
+  debug({ fileExists: targetExists, cachedFile })
 
   if (cachedFile) {
     debug({ cachedFile })
@@ -226,7 +226,7 @@ async function binaryNeedsToBeDownloaded(
       const sha256Cache = await hasha.fromFile(cachedFile, { algorithm: 'sha256' })
       debug({ sha256File, sha256Cache, cachedFile, sha256FilePath })
       if (sha256File === sha256Cache) {
-        if (!fileExists) {
+        if (!targetExists) {
           await copy(cachedFile, job.targetFilePath)
         }
         const targetSha256 = await hasha.fromFile(job.targetFilePath, { algorithm: 'sha256' })
@@ -250,7 +250,7 @@ async function binaryNeedsToBeDownloaded(
   }
 
   // If there is no cache and the file doesn't exist, we for sure need to download it
-  if (!fileExists) {
+  if (!targetExists) {
     return true
   }
 
