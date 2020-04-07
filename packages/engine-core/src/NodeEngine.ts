@@ -67,14 +67,6 @@ export type Deferred = {
 
 const children: ChildProcessWithoutNullStreams[] = []
 
-process.on('beforeExit', () => {
-  for (const child of children) {
-    if (!child.killed) {
-      child.kill()
-    }
-  }
-})
-
 export class NodeEngine {
   private logEmitter: EventEmitter
   private showColors: boolean
@@ -254,9 +246,9 @@ This probably happens, because you built Prisma Client on a different platform.
 
           errorText += `\n\nFiles in ${dir}:
 
-${files.map(f => `  ${f}`).join('\n')}\n
+${files.map((f) => `  ${f}`).join('\n')}\n
 You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''} ${this.generator.binaryTargets
-            .map(t => `"${chalk.bold(t)}"`)
+            .map((t) => `"${chalk.bold(t)}"`)
             .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
@@ -373,7 +365,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         children.push(this.child)
 
-        byline(this.child.stderr).on('data', msg => {
+        byline(this.child.stderr).on('data', (msg) => {
           const data = String(msg)
           debug('stderr', data)
           try {
@@ -393,7 +385,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           }
         })
 
-        byline(this.child.stdout).on('data', msg => {
+        byline(this.child.stdout).on('data', (msg) => {
           const data = String(msg)
           try {
             const json = JSON.parse(data)
@@ -456,7 +448,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
           }
         })
 
-        this.child.on('error', err => {
+        this.child.on('error', (err) => {
           this.lastError = {
             message: err.message,
             backtrace: 'Could not start query engine',
@@ -540,13 +532,13 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
    */
   protected getFreePort(): Promise<number> {
     return new Promise((resolve, reject) => {
-      const server = net.createServer(s => s.end(''))
+      const server = net.createServer((s) => s.end(''))
       server.unref()
       server.on('error', reject)
       server.listen(0, () => {
         const address = server.address()
         const port = typeof address === 'string' ? parseInt(address.split(':').slice(-1)[0], 10) : address.port
-        server.close(e => {
+        server.close((e) => {
           if (e) {
             reject(e)
           }
@@ -563,7 +555,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
   protected trimPort(str: string) {
     return str
       .split('\n')
-      .filter(l => !l.startsWith('port:'))
+      .filter((l) => !l.startsWith('port:'))
       .join('\n')
   }
 
@@ -584,7 +576,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
     this.currentRequestPromise = post('/', body)
 
     return this.currentRequestPromise
-      .then(data => {
+      .then((data) => {
         if (data.errors) {
           if (data.errors.length === 1) {
             throw this.graphQLToJSError(data.errors[0])
@@ -594,7 +586,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
 
         return data
       })
-      .catch(error => {
+      .catch((error) => {
         debug({ error })
         if (this.currentRequestPromise.isCanceled && this.lastError) {
           // TODO: Replace these errors with known or unknown request errors
@@ -631,16 +623,16 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
 
     const variables = {}
     const body = {
-      batch: queries.map(query => ({ query, variables })),
+      batch: queries.map((query) => ({ query, variables })),
     }
 
     const post = bent(this.url, 'POST', 'json', 200)
     this.currentRequestPromise = post('/', body)
 
     return this.currentRequestPromise
-      .then(data => {
+      .then((data) => {
         if (Array.isArray(data)) {
-          return data.map(result => {
+          return data.map((result) => {
             if (result.errors) {
               return this.graphQLToJSError(result.errors[0])
             }
@@ -653,7 +645,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
           throw new Error(JSON.stringify(data))
         }
       })
-      .catch(error => {
+      .catch((error) => {
         debug({ error })
         if (this.currentRequestPromise.isCanceled && this.lastError) {
           // TODO: Replace these errors with known or unknown request errors
@@ -693,3 +685,22 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
     return new PrismaClientUnknownRequestError(error.user_facing_error.message)
   }
 }
+
+function exitHandler(exit: boolean = false) {
+  return () => {
+    for (const child of children) {
+      if (!child.killed) {
+        child.kill()
+      }
+    }
+    if (exit) {
+      process.exit()
+    }
+  }
+}
+
+process.on('beforeExit', exitHandler())
+process.on('exit', exitHandler())
+process.on('SIGINT', exitHandler(true))
+process.on('SIGUSR1', exitHandler(true))
+process.on('SIGUSR2', exitHandler(true))
