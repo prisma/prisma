@@ -17,21 +17,21 @@ describe('no args', () => {
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless'))
       .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.user()\` invocation:
+"
+Invalid \`prisma.user()\` invocation:
 
-      {
-      + where: {
-      +   id?: Int,
-      +   email?: String
-      + }
-      }
+{
++ where: {
++   id?: Int,
++   email?: String
++ }
+}
 
-      Argument where is missing.
+Argument where is missing.
 
-      Note: Lines with + are required
-      "
-    `)
+Note: Lines with + are required
+"
+`)
   })
 
   test('findMany', () => {
@@ -86,24 +86,24 @@ describe('no args', () => {
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless'))
       .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.user()\` invocation:
+"
+Invalid \`prisma.user()\` invocation:
 
-      {
-      + data: {
-      +   id: Int,
-      +   name: String,
-      +   email: String,
-      +   likedArticles?: ArticleCreateManyWithoutLikedByInput,
-      +   persona: PersonaCreateOneWithoutUserInput
-      + }
-      }
+{
++ data: {
++   id: Int,
++   name: String,
++   email: String,
++   likedArticles?: ArticleCreateManyWithoutLikedByInput,
++   persona: PersonaCreateOneWithoutUserInput
++ }
+}
 
-      Argument data is missing.
+Argument data is missing.
 
-      Note: Lines with + are required
-      "
-    `)
+Note: Lines with + are required
+"
+`)
   })
   test('deleteMany', () => {
     const document = makeDocument({
@@ -130,21 +130,21 @@ describe('no args', () => {
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless'))
       .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.user()\` invocation:
+"
+Invalid \`prisma.user()\` invocation:
 
-      {
-      + where: {
-      +   id?: Int,
-      +   email?: String
-      + }
-      }
+{
++ where: {
++   id?: Int,
++   email?: String
++ }
+}
 
-      Argument where is missing.
+Argument where is missing.
 
-      Note: Lines with + are required
-      "
-    `)
+Note: Lines with + are required
+"
+`)
   })
   test('updateMany', () => {
     const document = makeDocument({
@@ -155,32 +155,32 @@ describe('no args', () => {
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless'))
       .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.user()\` invocation:
+"
+Invalid \`prisma.user()\` invocation:
 
-      {
-      + data: {
-      +   id?: Int,
-      +   name?: String,
-      +   email?: String
-      + },
-      ? where?: {
-      ?   id?: Int,
-      ?   name?: String,
-      ?   email?: String,
-      ?   likedArticles?: ArticleFilter,
-      ?   AND?: UserWhereInput,
-      ?   OR?: UserWhereInput,
-      ?   NOT?: UserWhereInput,
-      ?   persona?: PersonaWhereInput
-      ? }
-      }
+{
++ data: {
++   id?: Int,
++   name?: String,
++   email?: String
++ },
+? where?: {
+?   id?: Int,
+?   name?: String,
+?   email?: String,
+?   likedArticles?: ArticleFilter,
+?   AND?: UserWhereInput,
+?   OR?: UserWhereInput,
+?   NOT?: UserWhereInput,
+?   persona?: PersonaWhereInput
+? }
+}
 
-      Argument data is missing.
+Argument data is missing.
 
-      Note: Lines with + are required, lines with ? are optional.
-      "
-    `)
+Note: Lines with + are required, lines with ? are optional.
+"
+`)
   })
   test('upsertOne', () => {
     const document = makeDocument({
@@ -191,37 +191,37 @@ describe('no args', () => {
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless'))
       .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.user()\` invocation:
+"
+Invalid \`prisma.user()\` invocation:
 
-      {
-      + where: {
-      +   id?: Int,
-      +   email?: String
-      + },
-      + create: {
-      +   id: Int,
-      +   name: String,
-      +   email: String,
-      +   likedArticles?: ArticleCreateManyWithoutLikedByInput,
-      +   persona: PersonaCreateOneWithoutUserInput
-      + },
-      + update: {
-      +   id?: Int,
-      +   name?: String,
-      +   email?: String,
-      +   likedArticles?: ArticleUpdateManyWithoutLikedByInput,
-      +   persona?: PersonaUpdateOneRequiredWithoutUserInput
-      + }
-      }
+{
++ where: {
++   id?: Int,
++   email?: String
++ },
++ create: {
++   id: Int,
++   name: String,
++   email: String,
++   likedArticles?: ArticleCreateManyWithoutLikedByInput,
++   persona: PersonaCreateOneWithoutUserInput
++ },
++ update: {
++   id?: Int,
++   name?: String,
++   email?: String,
++   likedArticles?: ArticleUpdateManyWithoutLikedByInput,
++   persona?: PersonaUpdateOneRequiredWithoutUserInput
++ }
+}
 
-      Argument where is missing.
-      Argument create is missing.
-      Argument update is missing.
+Argument where is missing.
+Argument create is missing.
+Argument update is missing.
 
-      Note: Lines with + are required
-      "
-    `)
+Note: Lines with + are required
+"
+`)
   })
   test('nested create', () => {
     const document = makeDocument({
@@ -247,24 +247,24 @@ describe('no args', () => {
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless'))
       .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.user()\` invocation:
+"
+Invalid \`prisma.user()\` invocation:
 
-      {
-        data: {
-          likedArticles: {
-            connect: {
-      ?       id?: Int,
-      ?       url?: String
-            }
-          }
-        }
+{
+  data: {
+    likedArticles: {
+      connect: {
+?       id?: Int,
+?       url?: String
       }
+    }
+  }
+}
 
-      Argument data.likedArticles.connect of type ArticleWhereUniqueInput needs at least one argument. Available args are listed in green.
+Argument data.likedArticles.connect of type ArticleWhereUniqueInput needs at least one argument. Available args are listed in green.
 
-      Note: Lines with ? are optional.
-      "
-    `)
+Note: Lines with ? are optional.
+"
+`)
   })
 })
