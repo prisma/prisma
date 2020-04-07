@@ -1,4 +1,4 @@
-import { Command, getVersion, resolveBinary } from '@prisma/sdk'
+import { Command, getVersion, resolveBinary, arg } from '@prisma/sdk'
 import { getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
@@ -22,6 +22,9 @@ export class Version implements Command {
   }
   private constructor() {}
   async parse(argv: string[]) {
+    const args = arg(argv, {
+      '--json': Boolean,
+    })
     const platform = await getPlatform()
     debug({ __dirname })
 
@@ -41,7 +44,7 @@ export class Version implements Command {
       ['Introspection Engine', this.printBinaryInfo(introspectionEngine)],
     ]
 
-    return this.printTable(rows)
+    return this.printTable(rows, args['--json'])
   }
   private printBinaryInfo({ path, version, fromEnvVar }: BinaryInfo): string {
     const resolved = fromEnvVar ? `, resolved by ${fromEnvVar}` : ''
@@ -58,10 +61,21 @@ export class Version implements Command {
     const version = await getVersion(binaryPath)
     return { path: binaryPath, version }
   }
-  private printTable(rows: string[][]) {
+  private printTable(rows: string[][], json: boolean = false) {
+    if (json) {
+      const result = rows.reduce((acc, [name, value]) => {
+        acc[slugify(name)] = value
+        return acc
+      }, {})
+      return JSON.stringify(result, null, 2)
+    }
     const maxPad = rows.reduce((acc, curr) => Math.max(acc, curr[0].length), 0)
     return rows.map(([left, right]) => `${left.padEnd(maxPad)} : ${right}`).join('\n')
   }
+}
+
+function slugify(str: string): string {
+  return str.toString().toLowerCase().replace(/\s+/g, '-')
 }
 
 // @prisma/cli          : 2.0.0-alpha.473
