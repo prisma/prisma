@@ -156,6 +156,7 @@ describe('batching', () => {
           published
           title
           content
+          authorId
         }
       }",
         "query {

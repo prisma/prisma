@@ -8,11 +8,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
-/// User model comment
+// / User model comment
 model User {
   id    String  @default(uuid()) @id
   email String  @unique
-  /// name comment
+  // / name comment
   name  String?
   posts Post[]
 }
@@ -24,5 +24,6 @@ model Post {
   published Boolean
   title     String
   content   String?
-  author    User?
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id])
 }

@@ -4,40 +4,29 @@ datasource my_db {
 }
 
 model User {
-  id           String     @id @default(cuid())
-  name         String
-  email        String     @unique
-  status       String
-  permissions  Permission
-  favoriteTree Tree
-  location     Location?
-  posts        Post[]
+  email        String    @default("") @unique
+  favoriteTree String    @default("ARBORVITAE")
+  id           String    @id
+  location     Int?
+  name         String    @default("")
+  permissions  String    @default("ADMIN")
+  status       String    @default("")
+  Location     Location? @relation(fields: [location], references: [id])
+  Post         Post[]
 }
 
 model Post {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(dbgenerated())
+  email     String   @default("") @unique
+  id        String   @id
+  name      String   @default("")
+  updatedAt DateTime @default(dbgenerated())
+  user      String?
+  User      User?    @relation(fields: [user], references: [id])
 }
 
 model Location {
-  id   Int    @id
-  city String
-}
-
-enum Tree {
-  ARBORVITAE
-  YELLOWBIRCH
-  BLACKASH
-  DOUGLASFIR
-  OAK
-}
-
-enum Permission {
-  ADMIN
-  USER
-  OWNER
-  COLLABORATOR
+  city String @default("")
+  id   Int    @default(autoincrement()) @id
+  User User[]
 }

@@ -920,24 +920,25 @@ describe('select validation', () => {
     })
 
     expect(String(document)).toMatchInlineSnapshot(`
-"query {
-  findManyPost {
-    author {
-      id
-      email
-      name
-      posts {
-        id
-        createdAt
-        updatedAt
-        published
-        title
-        content
-      }
-    }
-  }
-}"
-`)
+      "query {
+        findManyPost {
+          author {
+            id
+            email
+            name
+            posts {
+              id
+              createdAt
+              updatedAt
+              published
+              title
+              content
+              authorId
+            }
+          }
+        }
+      }"
+    `)
     expect(() => document.validate(ast)).not.toThrow()
   })
 })

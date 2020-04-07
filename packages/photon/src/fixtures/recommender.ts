@@ -11,7 +11,8 @@ model Article {
 
 model Link {
   id Int @id
-  article Article
+  articleId Int
+  article Article @relation(fields: [articleId])
   postedAt DateTime
 }
 
@@ -20,7 +21,8 @@ model User {
   name          String
   email         String    @unique
   likedArticles Article[]
-  persona Persona
+  personaId Int
+  persona Persona @relation(fields: [personaId])
 }
 
 model Persona {

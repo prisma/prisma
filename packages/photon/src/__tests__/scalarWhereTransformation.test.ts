@@ -102,6 +102,7 @@ describe('scalar where transformation', () => {
           nicknames
           permissions
           favoriteTree
+          locationId
           someFloats
         }
       }"
@@ -142,6 +143,7 @@ describe('scalar where transformation', () => {
           nicknames
           permissions
           favoriteTree
+          locationId
           someFloats
         }
       }"
@@ -322,6 +324,7 @@ type UUIDFilter {
           nicknames
           permissions
           favoriteTree
+          locationId
           someFloats
         }
       }"

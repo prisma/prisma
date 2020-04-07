@@ -7,17 +7,20 @@ datasource db {
 model Album {
   id Int @id @map("AlbumId")
   Title String
-  Artist Artist @map("ArtistId")
+  ArtistId Int
+  Artist Artist @relation(fields: [ArtistId])
   Tracks Track[]
 }
 
 model Track {
   id Int @id @map("TrackId")
   Name String
-  Album Album? @map("AlbumId")
+  Album Album? @relation(fields: [AlbumId])
   AlbumId Int?
-  Mediamodel Mediamodel @map("MediamodelId")
-  Genre Genre? @map("GenreId")
+  Mediamodel Mediamodel @relation(fields: [MediamodelId])
+  MediamodelId Int
+  Genre Genre? @relation(fields: [GenreId])
+  GenreId Int?
   Composer String?
   Milliseconds Int
   UnitPrice Float
@@ -55,7 +58,8 @@ model Customer {
   Phone String?
   Fax String?
   Email String
-  SupportRep Employee? @map("SupportRepId")
+  SupportRep Employee? @relation(fields: [SupportRepId])
+  SupportRepId Int?
   Invoices Invoice[]
 }
 
@@ -79,7 +83,8 @@ model Employee {
 
 model Invoice {
   id Int @id @map("InvoiceId")
-  Customer Customer @map("CustomerId")
+  Customer Customer @relation(fields: [CustomerId])
+  CustomerId Int
   InvoiceDate DateTime
   BillingAddress String?
   BillingCity String?
@@ -92,8 +97,10 @@ model Invoice {
 
 model InvoiceLine {
   id Int @id @map("InvoiceLineId")
-  Invoice Invoice @map("InvoiceId")
-  Track Track @map("TrackId")
+  Invoice Invoice @relation(fields: [InvoiceId])
+  InvoiceId Int
+  Track Track @relation(fields: [TrackId])
+  TrackId Int
   UnitPrice Float
   Quantity Int
 }
@@ -106,7 +113,9 @@ model Playlist {
 
 model PlaylistTrack {
   id Int @id
-  Playlist Playlist @map("PlaylistId")
-  Track Track @map("TrackId")
+  Playlist Playlist @relation(fields: [PlaylistId])
+  PlaylistId Int
+  Track Track @relation(fields: [TrackId])
+  TrackId Int
 }
 `
