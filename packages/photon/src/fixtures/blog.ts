@@ -26,7 +26,8 @@ model Post {
   published Boolean
   title     String
   content   String?
-  author    User?
+  authorId  String?
+  author    User? @relation(fields: [authorId])
 }
 
 enum Role {

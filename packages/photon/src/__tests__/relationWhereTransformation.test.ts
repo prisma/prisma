@@ -47,25 +47,28 @@ describe('relation where transformation', () => {
 
     expect(() => document.validate(select, false, 'users'))
       .toThrowErrorMatchingInlineSnapshot(`
-"
-Invalid \`prisma.users()\` invocation:
+      "
+      Invalid \`prisma.users()\` invocation:
 
-{
-  where: {
-    Albums: {
-      some: {
-        Tracks: {
-          some: {
-            AND: {
-              UnitPrice: 5,
-              Playlists: {
+      {
+        where: {
+          Albums: {
+            some: {
+              Tracks: {
                 some: {
-                  Tracks: {
-                  ~~~~~~
-                    some: {
-                      Name: '',
-                      Genre: {
-                        id: 5
+                  AND: {
+                    UnitPrice: 5,
+                    Playlists: {
+                      some: {
+                        Tracks: {
+                        ~~~~~~
+                          some: {
+                            Name: '',
+                            Genre: {
+                              id: 5
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -75,22 +78,21 @@ Invalid \`prisma.users()\` invocation:
           }
         }
       }
-    }
-  }
-}
 
-Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
-type PlaylistTrackWhereInput {
-  id?: Int | IntFilter
-  AND?: PlaylistTrackWhereInput
-  OR?: PlaylistTrackWhereInput
-  NOT?: PlaylistTrackWhereInput
-  Playlist?: PlaylistWhereInput
-  Track?: TrackWhereInput
-}
+      Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
+      type PlaylistTrackWhereInput {
+        id?: Int | IntFilter
+        PlaylistId?: Int | IntFilter
+        TrackId?: Int | IntFilter
+        AND?: PlaylistTrackWhereInput
+        OR?: PlaylistTrackWhereInput
+        NOT?: PlaylistTrackWhereInput
+        Playlist?: PlaylistWhereInput
+        Track?: TrackWhereInput
+      }
 
-"
-`)
+      "
+    `)
   })
 
   test('throw correctly for incorrect deep scalar', () => {
@@ -129,25 +131,28 @@ type PlaylistTrackWhereInput {
     })
     expect(() => document.validate(select, false, 'users'))
       .toThrowErrorMatchingInlineSnapshot(`
-"
-Invalid \`prisma.users()\` invocation:
+      "
+      Invalid \`prisma.users()\` invocation:
 
-{
-  where: {
-    Albums: {
-      some: {
-        Tracks: {
-          some: {
-            AND: {
-              UnitPrice: 5,
-              Playlists: {
+      {
+        where: {
+          Albums: {
+            some: {
+              Tracks: {
                 some: {
-                  Tracks: {
-                  ~~~~~~
-                    some: {
-                      Name: '',
-                      Genre: {
-                        id: '5'
+                  AND: {
+                    UnitPrice: 5,
+                    Playlists: {
+                      some: {
+                        Tracks: {
+                        ~~~~~~
+                          some: {
+                            Name: '',
+                            Genre: {
+                              id: '5'
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -157,22 +162,21 @@ Invalid \`prisma.users()\` invocation:
           }
         }
       }
-    }
-  }
-}
 
-Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
-type PlaylistTrackWhereInput {
-  id?: Int | IntFilter
-  AND?: PlaylistTrackWhereInput
-  OR?: PlaylistTrackWhereInput
-  NOT?: PlaylistTrackWhereInput
-  Playlist?: PlaylistWhereInput
-  Track?: TrackWhereInput
-}
+      Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
+      type PlaylistTrackWhereInput {
+        id?: Int | IntFilter
+        PlaylistId?: Int | IntFilter
+        TrackId?: Int | IntFilter
+        AND?: PlaylistTrackWhereInput
+        OR?: PlaylistTrackWhereInput
+        NOT?: PlaylistTrackWhereInput
+        Playlist?: PlaylistWhereInput
+        Track?: TrackWhereInput
+      }
 
-"
-`)
+      "
+    `)
   })
   test('throw correctly for deep at least one error', () => {
     const select = {
@@ -208,24 +212,27 @@ type PlaylistTrackWhereInput {
     })
     expect(() => document.validate(select, false, 'artists'))
       .toThrowErrorMatchingInlineSnapshot(`
-"
-Invalid \`prisma.artists()\` invocation:
+      "
+      Invalid \`prisma.artists()\` invocation:
 
-{
-  where: {
-    Albums: {
-      some: {
-        Tracks: {
-          some: {
-            AND: {
-              UnitPrice: 5,
-              Playlists: {
+      {
+        where: {
+          Albums: {
+            some: {
+              Tracks: {
                 some: {
-                  Tracks: {
-                  ~~~~~~
-                    some: {
-                      Name: '',
-                      Genre: {}
+                  AND: {
+                    UnitPrice: 5,
+                    Playlists: {
+                      some: {
+                        Tracks: {
+                        ~~~~~~
+                          some: {
+                            Name: '',
+                            Genre: {}
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -234,21 +241,20 @@ Invalid \`prisma.artists()\` invocation:
           }
         }
       }
-    }
-  }
-}
 
-Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
-type PlaylistTrackWhereInput {
-  id?: Int | IntFilter
-  AND?: PlaylistTrackWhereInput
-  OR?: PlaylistTrackWhereInput
-  NOT?: PlaylistTrackWhereInput
-  Playlist?: PlaylistWhereInput
-  Track?: TrackWhereInput
-}
+      Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
+      type PlaylistTrackWhereInput {
+        id?: Int | IntFilter
+        PlaylistId?: Int | IntFilter
+        TrackId?: Int | IntFilter
+        AND?: PlaylistTrackWhereInput
+        OR?: PlaylistTrackWhereInput
+        NOT?: PlaylistTrackWhereInput
+        Playlist?: PlaylistWhereInput
+        Track?: TrackWhereInput
+      }
 
-"
-`)
+      "
+    `)
   })
 })

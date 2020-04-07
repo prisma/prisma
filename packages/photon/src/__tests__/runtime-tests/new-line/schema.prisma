@@ -9,18 +9,23 @@ generator client {
   provider = "prisma-client-js"
 }
 
-/// Role enum comment
-/// Multiline
+// / Role enum comment
+// / Multiline
+// USER = "User"
+// ADMIN = "Admin" ADMIN
 enum Role {
-  // USER = "User"
   USER
-  // ADMIN = "Admin" ADMIN
 }
 
-/// User model comment
+// / User model comment
+// address     Address
+// address2 embed {
+// street  String
+// zipCode String
+// }
 model User {
-  /// User model field comment
-  id      Int     @id @default(autoincrement())
+  // / User model field comment
+  id      Int     @default(autoincrement()) @id
   email   String  @unique
   name    String?
   age     Int
@@ -29,20 +34,11 @@ model User {
   posts   Post[]
   // maybePosts  Post[]?
   role    Role
-  // address     Address
-  // address2 embed {
-  //   street  String
-  //   zipCode String
-  // }
 }
 
-// embed Address {
-//   street  String
-//   zipCode String
-// }
-
 enum PostKind {
-  BLOG ADVERT
+  BLOG
+  ADVERT
 }
 
 model Post {
@@ -52,7 +48,8 @@ model Post {
   published Boolean
   title     String
   content   String?
-  author    User
+  authorId  Int
+  author    User      @relation(fields: [authorId], references: [id])
   // coAuthor  User?
   kind      PostKind?
 }

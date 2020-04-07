@@ -13,6 +13,7 @@ exports[`include validation allow deep include without another include 1`] = `
       published
       title
       content
+      authorId
     }
   }
 }"
@@ -27,6 +28,7 @@ exports[`include validation allow include statement with only false properties 1
     published
     title
     content
+    authorId
     author {
       id
       email
@@ -53,6 +55,7 @@ exports[`include validation deep include query 1`] = `
     published
     title
     content
+    authorId
     author {
       id
       email
@@ -64,6 +67,7 @@ exports[`include validation deep include query 1`] = `
         published
         title
         content
+        authorId
       }
     }
   }

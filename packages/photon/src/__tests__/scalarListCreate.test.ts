@@ -62,6 +62,7 @@ describe('scalar where transformation', () => {
           nicknames
           permissions
           favoriteTree
+          locationId
           someFloats
         }
       }"

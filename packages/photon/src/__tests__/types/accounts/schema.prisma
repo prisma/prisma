@@ -7,35 +7,36 @@ datasource db {
   url      = "file:dev.db"
 }
 
-type CUID = String @id @default(cuid())
-
-
 model UserTest {
-  id                  CUID
-  role                UserRole            @default(USER)
-  username            String              @unique
-  globalConfiguration GlobalConfiguration
+  id                    String              @default(cuid()) @id
+  role                  UserRole            @default(USER)
+  username              String              @unique
+  globalConfigurationId String
+  globalConfiguration   GlobalConfiguration @relation(fields: [globalConfigurationId], references: [id])
 }
 
 model GlobalConfiguration {
-  id       CUID
-  user     User
-  accounts Account[]
-
+  id        String     @default(cuid()) @id
+  user      User       @relation(fields: [id], references: [id])
+  accounts  Account[]
+  userTests UserTest[]
 }
 
 model AccountData {
-  id     CUID
-  config AccountConfiguration
+  id     String               @default(cuid()) @id
+  config AccountConfiguration @relation(fields: [id])
 }
 
 model RandomModel {
-  id CUID
+  id                     String                @default(cuid()) @id
+  accountConfigurationId String?
+  accountConfiguration   AccountConfiguration? @relation(fields: [accountConfigurationId], references: [id])
 }
 
 model User {
-  id   CUID
-  name String
+  id                   String                @default(cuid()) @id
+  name                 String
+  globalConfigurations GlobalConfiguration[]
 }
 
 enum UserRole {
@@ -44,15 +45,17 @@ enum UserRole {
 }
 
 model Account {
-  id     CUID
-  acc    String
-  config AccountConfiguration
-
+  id                    String               @default(cuid()) @id
+  acc                   String
+  config                AccountConfiguration @relation(fields: [id], references: [id])
+  globalConfigurationId String?
+  globalConfiguration   GlobalConfiguration? @relation(fields: [globalConfigurationId], references: [id])
 }
 
 model AccountConfiguration {
-  id     CUID
-  config String
-  data   AccountData?
-  list   RandomModel[]
+  id       String        @default(cuid()) @id
+  config   String
+  data     AccountData?  @relation(references: [id])
+  list     RandomModel[]
+  accounts Account[]
 }

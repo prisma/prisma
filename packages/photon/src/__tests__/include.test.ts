@@ -103,22 +103,23 @@ describe('include validation', () => {
     })
 
     expect(String(document)).toMatchInlineSnapshot(`
-"query {
-  findManyUser {
-    id
-    email
-    name
-    posts {
-      id
-      createdAt
-      updatedAt
-      published
-      title
-      content
-    }
-  }
-}"
-`)
+      "query {
+        findManyUser {
+          id
+          email
+          name
+          posts {
+            id
+            createdAt
+            updatedAt
+            published
+            title
+            content
+            authorId
+          }
+        }
+      }"
+    `)
     expect(() => document.validate(ast)).not.toThrow()
   })
 
@@ -235,17 +236,17 @@ describe('include validation', () => {
     })
 
     expect(String(document)).toMatchInlineSnapshot(`
-"query {
-  findManyUser {
-    id
-    email
-    name
-    posts(first: 20) {
-      id
-    }
-  }
-}"
-`)
+      "query {
+        findManyUser {
+          id
+          email
+          name
+          posts(first: 20) {
+            id
+          }
+        }
+      }"
+    `)
     expect(() => document.validate(ast)).not.toThrow()
   })
 
@@ -272,30 +273,31 @@ describe('include validation', () => {
     })
 
     expect(String(document)).toMatchInlineSnapshot(`
-"query {
-  findManyUser {
-    id
-    email
-    name
-    posts(first: 20) {
-      id
-      author {
-        id
-        email
-        name
-        posts {
+      "query {
+        findManyUser {
           id
-          createdAt
-          updatedAt
-          published
-          title
-          content
+          email
+          name
+          posts(first: 20) {
+            id
+            author {
+              id
+              email
+              name
+              posts {
+                id
+                createdAt
+                updatedAt
+                published
+                title
+                content
+                authorId
+              }
+            }
+          }
         }
-      }
-    }
-  }
-}"
-`)
+      }"
+    `)
     expect(() => document.validate(ast)).not.toThrow()
   })
 })

@@ -63,6 +63,7 @@ describe('minimal where transformation', () => {
           id
           name
           email
+          personaId
         }
       }"
     `)

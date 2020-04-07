@@ -12,7 +12,8 @@ export const enums = /* GraphQL */ `
     nicknames String[]
     permissions Permission[]
     favoriteTree Tree
-    location Location
+    locationId Int
+    location Location @relation(fields: [locationId])
     posts Post[]
     someFloats Float[]
   }
@@ -23,6 +24,8 @@ export const enums = /* GraphQL */ `
     email String @unique
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    userId String
+    user User @relation(fields: [userId])
   }
 
   model Test {

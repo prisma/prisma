@@ -35,6 +35,7 @@ describe('at least one validation', () => {
           nicknames
           permissions
           favoriteTree
+          locationId
           someFloats
         }
       }"

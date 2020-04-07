@@ -34,6 +34,7 @@ describe('where transformation', () => {
           nicknames
           permissions
           favoriteTree
+          locationId
           someFloats
         }
       }"
@@ -48,6 +49,7 @@ describe('where transformation', () => {
           nicknames
           permissions
           favoriteTree
+          locationId
           someFloats
         }
       }"
@@ -80,6 +82,7 @@ describe('where transformation', () => {
           nicknames
           permissions
           favoriteTree
+          locationId
           someFloats
         }
       }"
@@ -94,6 +97,7 @@ describe('where transformation', () => {
           nicknames
           permissions
           favoriteTree
+          locationId
           someFloats
         }
       }"
@@ -120,6 +124,8 @@ describe('where transformation', () => {
           email?: OrderByArg
           status?: OrderByArg
           favoriteTree?: OrderByArg
+          locationId?: OrderByArg
+          location?: OrderByArg
         }
 
         "
@@ -147,6 +153,7 @@ describe('where transformation', () => {
           nicknames
           permissions
           favoriteTree
+          locationId
           someFloats
         }
       }"
@@ -175,6 +182,7 @@ describe('where transformation', () => {
           nicknames
           permissions
           favoriteTree
+          locationId
           someFloats
         }
       }"
