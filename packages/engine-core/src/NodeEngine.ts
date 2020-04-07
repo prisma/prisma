@@ -393,7 +393,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             if (
               this.engineStartDeferred &&
               json.level === 'INFO' &&
-              json.target === 'prisma::server' &&
+              json.target === 'query_engine::server' &&
               json.fields?.message.startsWith('Started http server')
             ) {
               this.engineStartDeferred.resolve()
