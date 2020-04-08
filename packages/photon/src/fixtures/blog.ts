@@ -30,6 +30,11 @@ model Post {
   author    User? @relation(fields: [authorId])
 }
 
+model NoRelations {
+  id String @id @default(cuid())
+  name String
+}
+
 enum Role {
   USER
   ADMIN

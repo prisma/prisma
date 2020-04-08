@@ -1,4 +1,10 @@
-import { PrismaClient, Post, User, prismaVersion } from '@prisma/client'
+import {
+  PrismaClient,
+  Post,
+  User,
+  prismaVersion,
+  FindManyMachineDataArgs,
+} from '@prisma/client'
 
 // tslint:disable
 
@@ -116,6 +122,11 @@ async function main() {
   })
 
   const disconnect: Promise<void> = prisma.disconnect()
+
+  // Trick to define a "positive" test, if "include" is NOT in "FindManyMachineDataArgs"
+  type X = keyof FindManyMachineDataArgs
+  type Y = 'include' extends X ? number : string
+  const y: Y = 'string'
 }
 
 main().catch(e => {

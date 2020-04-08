@@ -13,11 +13,9 @@ async function main() {
   //   },
   // })
 
-  const result = await prisma.users({
-    where: {
-      favoriteTree: {
-        in: ['ARBORVITAE'],
-      },
+  const result = await prisma.withoutRelation.findMany({
+    include: {
+      asd: true,
     },
   })
   console.log(result)

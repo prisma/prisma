@@ -703,7 +703,23 @@ export class Model implements Generatable {
       return ''
     }
 
-    const scalarFields = model.fields.filter(f => f.kind !== 'object')
+    const hasRelationField = model.fields.some(f => f.kind === 'object')
+
+    const includeType = hasRelationField
+      ? `\nexport type ${getIncludeName(model.name)} = {
+${indent(
+  outputType.fields
+    .filter(f => f.outputType.kind === 'object')
+    .map(
+      f =>
+        `${f.name}?: boolean` +
+        (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
+    )
+    .join('\n'),
+  tab,
+)}
+}\n`
+      : ''
 
     return `
 /**
@@ -732,21 +748,7 @@ ${indent(
   tab,
 )}
 }
-
-export type ${getIncludeName(model.name)} = {
-${indent(
-  outputType.fields
-    .filter(f => f.outputType.kind === 'object')
-    .map(
-      f =>
-        `${f.name}?: boolean` +
-        (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
-    )
-    .join('\n'),
-  tab,
-)}
-}
-
+${includeType}
 ${new PayloadType(this.outputType!).toTS()}
 
 ${new ModelDelegate(this.outputType!, this.dmmf).toTS()}
@@ -1305,7 +1307,12 @@ export class ArgsType implements Generatable {
         ],
         comment: `Select specific fields to fetch from the ${name}`,
       },
-      {
+    ]
+
+    const hasRelationField = this.model.fields.some(f => f.kind === 'object')
+
+    if (hasRelationField) {
+      bothArgsOptional.push({
         name: 'include',
         inputType: [
           {
@@ -1316,9 +1323,10 @@ export class ArgsType implements Generatable {
           },
         ],
         comment: `Choose, which related nodes to fetch as well.`,
-      },
-      ...args,
-    ]
+      })
+    }
+
+    bothArgsOptional.push(...args)
 
     return `
 /**
