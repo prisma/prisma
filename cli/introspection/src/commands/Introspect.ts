@@ -103,7 +103,7 @@ export class Introspect implements Command {
       !args['--url'] && schemaPath
         ? ` based on datasource defined in ${chalk.underline(path.relative(process.cwd(), schemaPath))}`
         : ''
-    log(`Introspecting${basedOn} …`)
+    log(`\nIntrospecting${basedOn} …`)
 
     const before = Date.now()
     let introspectionSchema = ''
