@@ -901,7 +901,7 @@ const ${lowerCase(mapping.model)} = await ${method}({
     // ... provide filter here
   },
   data: {
-    // ... provider data here
+    // ... provide data here
   }
 })
 `
@@ -919,7 +919,7 @@ const ${lowerCase(mapping.model)} = await ${method}({
     // ... provide filter here
   },
   data: {
-    // ... provider data here
+    // ... provide data here
   }
 })
 `
