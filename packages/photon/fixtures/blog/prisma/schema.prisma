@@ -23,7 +23,8 @@ model Post {
   published Boolean
   title     String
   content   String?
-  author    User?    @relation(references: [id])
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id])
 }
 
 enum Tree {
