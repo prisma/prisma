@@ -15,23 +15,9 @@ describe('no args', () => {
       rootTypeName: 'query',
       rootField: 'findOneUser',
     })
-    expect(() => document.validate(undefined, false, 'user', 'colorless'))
-      .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.user()\` invocation:
-
-      {
-      + where: {
-      +   id?: Int,
-      +   email?: String
-      + }
-      }
-
-      Argument where is missing.
-
-      Note: Lines with + are required
-      "
-    `)
+    expect(() =>
+      document.validate(undefined, false, 'user', 'colorless'),
+    ).toThrowErrorMatchingSnapshot()
   })
 
   test('findMany', () => {
@@ -86,26 +72,9 @@ describe('no args', () => {
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
     })
-    expect(() => document.validate(undefined, false, 'user', 'colorless'))
-      .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.user()\` invocation:
-
-      {
-      + data: {
-      +   id: Int,
-      +   name: String,
-      +   email: String,
-      +   likedArticles?: ArticleCreateManyWithoutLikedByInput,
-      +   persona: PersonaCreateOneWithoutUserInput
-      + }
-      }
-
-      Argument data is missing.
-
-      Note: Lines with + are required
-      "
-    `)
+    expect(() =>
+      document.validate(undefined, false, 'user', 'colorless'),
+    ).toThrowErrorMatchingSnapshot()
   })
   test('deleteMany', () => {
     const document = makeDocument({
@@ -130,23 +99,9 @@ describe('no args', () => {
       rootTypeName: 'mutation',
       rootField: 'deleteOneUser',
     })
-    expect(() => document.validate(undefined, false, 'user', 'colorless'))
-      .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.user()\` invocation:
-
-      {
-      + where: {
-      +   id?: Int,
-      +   email?: String
-      + }
-      }
-
-      Argument where is missing.
-
-      Note: Lines with + are required
-      "
-    `)
+    expect(() =>
+      document.validate(undefined, false, 'user', 'colorless'),
+    ).toThrowErrorMatchingSnapshot()
   })
   test('updateMany', () => {
     const document = makeDocument({
@@ -155,35 +110,9 @@ describe('no args', () => {
       rootTypeName: 'mutation',
       rootField: 'updateManyUser',
     })
-    expect(() => document.validate(undefined, false, 'user', 'colorless'))
-      .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.user()\` invocation:
-
-      {
-      + data: {
-      +   id?: Int,
-      +   name?: String,
-      +   email?: String
-      + },
-      ? where?: {
-      ?   id?: Int,
-      ?   name?: String,
-      ?   email?: String,
-      ?   likedArticles?: ArticleFilter,
-      ?   personaId?: Int,
-      ?   AND?: UserWhereInput,
-      ?   OR?: UserWhereInput,
-      ?   NOT?: UserWhereInput,
-      ?   persona?: PersonaWhereInput
-      ? }
-      }
-
-      Argument data is missing.
-
-      Note: Lines with + are required, lines with ? are optional.
-      "
-    `)
+    expect(() =>
+      document.validate(undefined, false, 'user', 'colorless'),
+    ).toThrowErrorMatchingSnapshot()
   })
   test('upsertOne', () => {
     const document = makeDocument({
@@ -192,39 +121,9 @@ describe('no args', () => {
       rootTypeName: 'mutation',
       rootField: 'upsertOneUser',
     })
-    expect(() => document.validate(undefined, false, 'user', 'colorless'))
-      .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.user()\` invocation:
-
-      {
-      + where: {
-      +   id?: Int,
-      +   email?: String
-      + },
-      + create: {
-      +   id: Int,
-      +   name: String,
-      +   email: String,
-      +   likedArticles?: ArticleCreateManyWithoutLikedByInput,
-      +   persona: PersonaCreateOneWithoutUserInput
-      + },
-      + update: {
-      +   id?: Int,
-      +   name?: String,
-      +   email?: String,
-      +   likedArticles?: ArticleUpdateManyWithoutLikedByInput,
-      +   persona?: PersonaUpdateOneRequiredWithoutUserInput
-      + }
-      }
-
-      Argument where is missing.
-      Argument create is missing.
-      Argument update is missing.
-
-      Note: Lines with + are required
-      "
-    `)
+    expect(() =>
+      document.validate(undefined, false, 'user', 'colorless'),
+    ).toThrowErrorMatchingSnapshot()
   })
   test('nested create', () => {
     const document = makeDocument({
@@ -248,26 +147,8 @@ describe('no args', () => {
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
     })
-    expect(() => document.validate(undefined, false, 'user', 'colorless'))
-      .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.user()\` invocation:
-
-      {
-        data: {
-          likedArticles: {
-            connect: {
-      ?       id?: Int,
-      ?       url?: String
-            }
-          }
-        }
-      }
-
-      Argument data.likedArticles.connect of type ArticleWhereUniqueInput needs at least one argument. Available args are listed in green.
-
-      Note: Lines with ? are optional.
-      "
-    `)
+    expect(() =>
+      document.validate(undefined, false, 'user', 'colorless'),
+    ).toThrowErrorMatchingSnapshot()
   })
 })
