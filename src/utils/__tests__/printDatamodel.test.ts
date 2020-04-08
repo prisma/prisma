@@ -51,16 +51,7 @@ model Post {
 test('basic diff', () => {
   const diff = printDatamodelDiff(datamodelA, datamodelB)
   // console.log(diff)
-  expect(diff).toMatchInlineSnapshot(`
-    "model Blog {
-      id Int @id
-      [1;31;48;5;52mname[m String
-      [1;32;48;5;22mthis[m String
-      viewCount Int
-      posts Post[]
-      authors Author[]
-    }"
-  `)
+  expect(diff).toMatchSnapshot()
 })
 
 test('rename field', () => {
@@ -82,16 +73,7 @@ test('rename field', () => {
 
   const diff = printDatamodelDiff(before, after)
   // console.log(diff)
-  expect(diff).toMatchInlineSnapshot(`
-    "model Blog {
-      id [1;31;48;5;52mInt[m @id
-      id [1;32;48;5;22mString[m @id
-      name String
-      viewCount Int
-      posts Post[]
-      authors Author[]
-    }"
-  `)
+  expect(diff).toMatchSnapshot()
 })
 
 test('add model', () => {
@@ -122,23 +104,7 @@ model Blog2 {
 
   const diff = printDatamodelDiff(before, after)
   // console.log(diff)
-  expect(diff).toMatchInlineSnapshot(`
-    "model Blog {
-      id [1;31;48;5;52mInt[m @id
-      id [1;32;48;5;22mString[m @id
-      name String
-      viewCount Int
-      posts Post[]
-      authors Author[]
-    }
-    model Blog2 {
-      id String @id
-      name String
-      viewCount Int
-      posts Post[]
-      authors Author[]
-    }"
-  `)
+  expect(diff).toMatchSnapshot()
 })
 
 test('copy model', () => {
@@ -175,15 +141,7 @@ model Blog2 {
 `
   const diff = printDatamodelDiff(datamodelA, datamodelC)
   // console.log(diff)
-  expect(diff).toMatchInlineSnapshot(`
-    "model Blog2 {
-      id Int @id
-      name String
-      viewCount Int
-      posts Post[]
-      authors Author[]
-    }"
-  `)
+  expect(diff).toMatchSnapshot()
 })
 
 test('add post4', () => {
@@ -242,12 +200,7 @@ model Post5 {
 
   const diff = printDatamodelDiff(newBefore, newAfter)
   // console.log(diff)
-  expect(diff).toMatchInlineSnapshot(`
-    "model Post5 {
-      id Int @id
-      anotherString String?
-    }"
-  `)
+  expect(diff).toMatchSnapshot()
 })
 
 test('add comments', () => {
@@ -309,29 +262,7 @@ model Comment {
 
   const diff = printDatamodelDiff(nikoBefore, nikoAfter)
   // console.log(diff)
-  expect(diff).toMatchInlineSnapshot(`
-    "model Author {
-      id Int @id
-      name String?
-      posts Post[]
-      blog Blog
-      comments Comment[]
-    }
-
-    model Post {
-      id Int @id
-      title String
-      tags String[]
-      blog Blog
-      comments Comment[]
-    }
-    model Comment {
-      id Int @id
-      text String
-      writtenBy Author
-      post Post
-    }"
-  `)
+  expect(diff).toMatchSnapshot()
 })
 
 test('add fullName', () => {
@@ -373,14 +304,7 @@ model User {
   `
 
   const diff = printDatamodelDiff(before, after)
-  expect(diff).toMatchInlineSnapshot(`
-    "model User {
-      id Int @id
-      firstName String
-      lastName String
-      fullName String?
-    }"
-  `)
+  expect(diff).toMatchSnapshot()
   // console.log(diff)
 })
 
@@ -402,15 +326,7 @@ model User {
   `
 
   const diff = printDatamodelDiff(before, after)
-  expect(diff).toMatchInlineSnapshot(`
-    "model User {
-      id Int @id
-      firstName String
-      lastName String
-      fullName String[1;31;48;5;52m?[m
-      fullName String
-    }"
-  `)
+  expect(diff).toMatchSnapshot()
   // console.log(diff)
 })
 
@@ -432,15 +348,7 @@ model User {
   `
 
   const diff = printDatamodelDiff(before, after)
-  expect(diff).toMatchInlineSnapshot(`
-"model User {
-  id Int @id
-  firstName String
-  lastName String
-  fullName String[1;31;48;5;52m?[m
-  fullName String
-}"
-`)
+  expect(diff).toMatchSnapshot()
   // console.log(diff)
 })
 
@@ -461,14 +369,6 @@ test('ignore spacing', () => {
 }`
 
   const diff = printDatamodelDiff(before, after)
-  expect(diff).toMatchInlineSnapshot(`
-"model User {
-  id Int @id
-  firstName String
-  lastName String
-  [1;31;48;5;52mfullName[m String
-  [1;32;48;5;22mfullNameWithAVeryLongName[m String
-}"
-`)
+  expect(diff).toMatchSnapshot()
   // console.log(diff)
 })
