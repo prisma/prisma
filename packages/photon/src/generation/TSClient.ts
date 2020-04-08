@@ -20,7 +20,6 @@ import {
   getPayloadName,
   getSelectName,
   getSelectReturnType,
-  isQueryAction,
   Projection,
   getArgName,
 } from './utils'
@@ -531,53 +530,6 @@ get ${methodName}(): ${m.model}Delegate;`
   }
 }
 
-class QueryPayloadType implements Generatable {
-  constructor(protected readonly type: OutputType) {}
-  public toTS() {
-    const { type } = this
-    const { name } = type
-
-    const relationFields = type.fields.filter(
-      f => f.outputType.kind === 'object' && f.name !== 'node',
-    )
-    const relationFieldConditions =
-      relationFields.length === 0
-        ? ''
-        : `\n${relationFields
-            .map(f =>
-              indent(
-                `: P extends '${f.name}'\n? ${this.wrapArray(
-                  f,
-                  `${getPayloadName(
-                    (f.outputType.type as DMMF.OutputType).name,
-                  )}<Extract${getModelArgName(
-                    (f.outputType.type as DMMF.OutputType).name,
-                    f.outputType.isList
-                      ? DMMF.ModelAction.findMany
-                      : DMMF.ModelAction.findOne,
-                  )}<S[P]>>`,
-                )}`,
-                8,
-              ),
-            )
-            .join('\n')}`
-
-    return `\
-type ${getPayloadName(name)}<S extends ${name}Args> = S extends ${name}Args
-  ? {
-      [P in keyof S] ${relationFieldConditions}
-        : never
-    } : never
-  `
-  }
-  protected wrapArray(field: DMMF.SchemaField, str: string) {
-    if (field.outputType.isList) {
-      return `Array<${str}>`
-    }
-    return str
-  }
-}
-
 class PayloadType implements Generatable {
   constructor(protected readonly type: OutputType) {}
 
@@ -755,48 +707,6 @@ ${new ModelDelegate(this.outputType!, this.dmmf).toTS()}
 
 // Custom InputTypes
 ${this.argsTypes.map(TS).join('\n')}
-`
-  }
-}
-
-export class Query implements Generatable {
-  constructor(
-    protected readonly dmmf: DMMFClass,
-    protected readonly operation: 'query' | 'mutation',
-  ) {}
-  public toTS() {
-    const { dmmf, operation } = this
-    const queryName = capitalize(operation)
-    const mappings = dmmf.mappings.map(mapping => ({
-      name: mapping.model,
-      mapping: Object.entries(mapping).filter(([key]) =>
-        isQueryAction(key as DMMF.ModelAction, operation),
-      ),
-    }))
-    const queryType = operation === 'query' ? dmmf.queryType : dmmf.mutationType
-    const outputType = new OutputType(queryType)
-    return `\
-/**
- * ${queryName}
- */
-
-export type ${queryName}Args = {
-${indent(
-  flatMap(mappings, ({ name, mapping }) =>
-    mapping
-      .filter(([action, field]) => field)
-      .map(
-        ([action, field]) =>
-          `${field}?: ${getModelArgName(name, action as DMMF.ModelAction)}`,
-      ),
-  ).join('\n'),
-  tab,
-)}
-}
-
-${new QueryPayloadType(outputType).toTS()}
-
-${new QueryDelegate(outputType).toTS()}
 `
   }
 }
@@ -1069,78 +979,6 @@ ${f.name}<T extends ${getFieldArgName(
    */
   finally(onfinally?: (() => void) | undefined | null): Promise<T>;
 }`
-  }
-}
-
-export class QueryDelegate implements Generatable {
-  constructor(protected readonly outputType: OutputType) {}
-  public toTS() {
-    const name = this.outputType.name
-    return `\
-interface ${name}Delegate {
-  <T extends ${name}Args>(args: Subset<T,${name}Args>): Promise<${getPayloadName(
-      name,
-    )}<T>>
-}
-function ${name}Delegate(dmmf: DMMFClass, fetcher: PrismaClientFetcher): ${name}Delegate {
-  const ${name} = <T extends ${name}Args>(args: ${name}Args) => new ${name}Client<T>(dmmf, fetcher, args, [])
-  return ${name}
-}
-
-class ${name}Client<T extends ${name}Args, U = ${getPayloadName(
-      name,
-    )}<T>> implements Promise<U> {
-  constructor(private readonly dmmf: DMMFClass, private readonly fetcher: PrismaClientFetcher, private readonly args: ${name}Args, private readonly _dataPath: []) {}
-
-  readonly [Symbol.toStringTag]: 'Promise'
-
-  protected get document() {
-    const rootField = Object.keys(this.args)[0]
-    const document = makeDocument({
-      dmmf: this.dmmf,
-      rootField,
-      rootTypeName: 'query',
-      // @ts-ignore
-      select: this.args[rootField]
-    })
-    // @ts-ignore
-    document.validate(this.args[rootField], true)
-    return document
-  }
-
-  /**
-   * Attaches callbacks for the resolution and/or rejection of the Promise.
-   * @param onfulfilled The callback to execute when the Promise is resolved.
-   * @param onrejected The callback to execute when the Promise is rejected.
-   * @returns A Promise for the completion of which ever callback is executed.
-   */
-  then<TResult1 = U, TResult2 = never>(
-    onfulfilled?: ((value: U) => TResult1 | Promise<TResult1>) | undefined | null,
-    onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null,
-  ): Promise<TResult1 | TResult2> {
-    return this.fetcher.request<U>({
-      document: this.document,
-      dataPath: this._dataPath,
-      typeName: '${name}'
-    }).then(onfulfilled, onrejected)
-  }
-
-  /**
-   * Attaches a callback for only the rejection of the Promise.
-   * @param onrejected The callback to execute when the Promise is rejected.
-   * @returns A Promise for the completion of the callback.
-   */
-  catch<TResult = never>(
-    onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null,
-  ): Promise<U | TResult> {
-    return this.fetcher.request<U>({
-      document: this.document,
-      dataPath: this._dataPath,
-      typeName: '${name}'
-    }).catch(onrejected)
-  }
-}
-    `
   }
 }
 
