@@ -13,27 +13,24 @@ const stat = promisify(fs.stat)
 export async function cleanupCache(n: number = 5) {
   try {
     const rootCacheDir = await getRootCacheDir()
-    const channels = ['master', 'alpha']
+    const channel = 'master'
+    const cacheDir = path.join(rootCacheDir, channel)
+    const dirs = await readdir(cacheDir)
+    const dirsWithMeta = await Promise.all(
+      dirs.map(async dirName => {
+        const dir = path.join(cacheDir, dirName)
+        const statResult = await stat(dir)
 
-    for (const channel of channels) {
-      const cacheDir = path.join(rootCacheDir, channel)
-      const dirs = await readdir(cacheDir)
-      const dirsWithMeta = await Promise.all(
-        dirs.map(async dirName => {
-          const dir = path.join(cacheDir, dirName)
-          const statResult = await stat(dir)
-
-          return {
-            dir,
-            created: statResult.birthtime,
-          }
-        }),
-      )
-      dirsWithMeta.sort((a, b) => (a.created < b.created ? 1 : -1))
-      const dirsToRemove = dirsWithMeta.slice(n)
-      await pMap(dirsToRemove, dir => del(dir.dir), { concurrency: 20 })
-    }
+        return {
+          dir,
+          created: statResult.birthtime,
+        }
+      }),
+    )
+    dirsWithMeta.sort((a, b) => (a.created < b.created ? 1 : -1))
+    const dirsToRemove = dirsWithMeta.slice(n)
+    await pMap(dirsToRemove, dir => del(dir.dir), { concurrency: 20 })
   } catch (e) {
-    debug(e)
+    // fail silently
   }
 }
