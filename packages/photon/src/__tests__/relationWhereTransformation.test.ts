@@ -45,54 +45,9 @@ describe('relation where transformation', () => {
       rootField: 'findManyArtist',
     })
 
-    expect(() => document.validate(select, false, 'users'))
-      .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.users()\` invocation:
-
-      {
-        where: {
-          Albums: {
-            some: {
-              Tracks: {
-                some: {
-                  AND: {
-                    UnitPrice: 5,
-                    Playlists: {
-                      some: {
-                        Tracks: {
-                        ~~~~~~
-                          some: {
-                            Name: '',
-                            Genre: {
-                              id: 5
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
-      type PlaylistTrackWhereInput {
-        id?: Int | IntFilter
-        PlaylistId?: Int | IntFilter
-        TrackId?: Int | IntFilter
-        AND?: PlaylistTrackWhereInput
-        OR?: PlaylistTrackWhereInput
-        NOT?: PlaylistTrackWhereInput
-        Playlist?: PlaylistWhereInput
-        Track?: TrackWhereInput
-      }
-
-      "
-    `)
+    expect(() =>
+      document.validate(select, false, 'users'),
+    ).toThrowErrorMatchingSnapshot()
   })
 
   test('throw correctly for incorrect deep scalar', () => {
@@ -129,54 +84,9 @@ describe('relation where transformation', () => {
       rootTypeName: 'query',
       rootField: 'findManyArtist',
     })
-    expect(() => document.validate(select, false, 'users'))
-      .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.users()\` invocation:
-
-      {
-        where: {
-          Albums: {
-            some: {
-              Tracks: {
-                some: {
-                  AND: {
-                    UnitPrice: 5,
-                    Playlists: {
-                      some: {
-                        Tracks: {
-                        ~~~~~~
-                          some: {
-                            Name: '',
-                            Genre: {
-                              id: '5'
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
-      type PlaylistTrackWhereInput {
-        id?: Int | IntFilter
-        PlaylistId?: Int | IntFilter
-        TrackId?: Int | IntFilter
-        AND?: PlaylistTrackWhereInput
-        OR?: PlaylistTrackWhereInput
-        NOT?: PlaylistTrackWhereInput
-        Playlist?: PlaylistWhereInput
-        Track?: TrackWhereInput
-      }
-
-      "
-    `)
+    expect(() =>
+      document.validate(select, false, 'users'),
+    ).toThrowErrorMatchingSnapshot()
   })
   test('throw correctly for deep at least one error', () => {
     const select = {
@@ -210,51 +120,8 @@ describe('relation where transformation', () => {
       rootTypeName: 'query',
       rootField: 'findManyArtist',
     })
-    expect(() => document.validate(select, false, 'artists'))
-      .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.artists()\` invocation:
-
-      {
-        where: {
-          Albums: {
-            some: {
-              Tracks: {
-                some: {
-                  AND: {
-                    UnitPrice: 5,
-                    Playlists: {
-                      some: {
-                        Tracks: {
-                        ~~~~~~
-                          some: {
-                            Name: '',
-                            Genre: {}
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
-      type PlaylistTrackWhereInput {
-        id?: Int | IntFilter
-        PlaylistId?: Int | IntFilter
-        TrackId?: Int | IntFilter
-        AND?: PlaylistTrackWhereInput
-        OR?: PlaylistTrackWhereInput
-        NOT?: PlaylistTrackWhereInput
-        Playlist?: PlaylistWhereInput
-        Track?: TrackWhereInput
-      }
-
-      "
-    `)
+    expect(() =>
+      document.validate(select, false, 'artists'),
+    ).toThrowErrorMatchingSnapshot()
   })
 })
