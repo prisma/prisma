@@ -4,27 +4,36 @@ datasource my_db {
 }
 
 model User {
-  id           String     @id @default(cuid())
+  id           String     @default(cuid()) @id
   name         String
   email        String     @unique
   status       String
   permissions  Permission
   favoriteTree Tree
-  location     Location?
+  locationId   Int?
+  location     Location?  @relation(fields: [locationId], references: [id])
   posts        Post[]
 }
 
 model Post {
-  id        String   @id @default(cuid())
+  id        String   @default(cuid()) @id
   name      String
   email     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
 }
 
 model Location {
+  id    Int    @id
+  city  String
+  users User[]
+}
+
+model WithoutRelation {
   id   Int    @id
-  city String
+  name String
 }
 
 enum Tree {

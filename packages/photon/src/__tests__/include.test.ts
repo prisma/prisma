@@ -66,6 +66,88 @@ describe('include validation', () => {
     }
   })
 
+  test('allow normal findMany without include for empty model', () => {
+    const ast = {}
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'query',
+      rootField: 'findManyNoRelations',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    document.validate(ast, false)
+  })
+
+  test('enforce no include, if no relation', () => {
+    const ast = {
+      include: {},
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'query',
+      rootField: 'findManyNoRelations',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    try {
+      document.validate(ast, false)
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        "
+        Invalid \`prisma.findManyNoRelations()\` invocation:
+
+        {
+          include: {}
+        }
+
+
+        NoRelations does not have any relation and therefore can't have an \`include\` statement.
+        "
+      `)
+    }
+  })
+
+  test('enforce empty include, if no relation', () => {
+    const ast = {
+      include: {
+        asd: true,
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'query',
+      rootField: 'findManyNoRelations',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    try {
+      document.validate(ast, false)
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        "
+        Invalid \`prisma.asd()\` invocation:
+
+        {
+          include: {
+            asd: true
+            ~~~
+          }
+        }
+
+
+        Unknown field \`asd\` for include statement on model NoRelations.
+        This model has no relations, so you can't use include with it.
+        "
+      `)
+    }
+  })
+
   // Why do we allow it with include but not with select?
   // Very simple, because with select a statement with only false properties is useless
   // Why do we throw for an empty object? Also very simple: We want to help people to explore

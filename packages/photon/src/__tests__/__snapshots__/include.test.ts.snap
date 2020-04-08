@@ -38,6 +38,15 @@ exports[`include validation allow include statement with only false properties 1
 }"
 `;
 
+exports[`include validation allow normal findMany without include for empty model 1`] = `
+"query {
+  findManyNoRelations {
+    id
+    name
+  }
+}"
+`;
+
 exports[`include validation catch unknown field name 1`] = `
 "query {
   mauthor {
@@ -77,6 +86,22 @@ exports[`include validation deep include query 1`] = `
 exports[`include validation dont allow empty include statements 1`] = `
 "query {
   findManyPost {
+    include # INVALID_FIELD
+  }
+}"
+`;
+
+exports[`include validation enforce empty include, if no relation 1`] = `
+"query {
+  asd {
+    asd # INVALID_FIELD
+  }
+}"
+`;
+
+exports[`include validation enforce no include, if no relation 1`] = `
+"query {
+  findManyNoRelations {
     include # INVALID_FIELD
   }
 }"

@@ -220,7 +220,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
         ) // if no callsite is provided, just render the minimal error
         .join('\n')}
 ${fieldErrors
-  .map(e => this.printFieldError(e, errorFormat === 'minimal'))
+  .map(e => this.printFieldError(e, missingItems, errorFormat === 'minimal'))
   .join('\n')}`
 
       if (errorFormat === 'minimal') {
@@ -264,6 +264,7 @@ ${errorMessages}${missingArgsLegend}\n`
   }
   protected printFieldError = (
     { error, path }: FieldError,
+    missingItems: MissingItem[],
     minimal: boolean,
   ) => {
     if (error.type === 'emptySelect') {
@@ -277,6 +278,13 @@ ${errorMessages}${missingArgsLegend}\n`
       )} must not be empty.${additional}`
     }
     if (error.type === 'emptyInclude') {
+      if (missingItems.length === 0) {
+        return `${chalk.bold(
+          getOutputTypeName(error.field.outputType.type),
+        )} does not have any relation and therefore can't have an ${chalk.redBright(
+          '`include`',
+        )} statement.`
+      }
       const additional = minimal
         ? ''
         : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
@@ -308,6 +316,10 @@ ${errorMessages}${missingArgsLegend}\n`
       const wording = error.isIncludeScalar ? 'Invalid scalar' : 'Unknown'
       const additional = minimal
         ? ''
+        : error.isInclude && missingItems.length === 0
+        ? `\nThis model has no relations, so you can't use ${chalk.redBright(
+            'include',
+          )} with it.`
         : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
       let str = `${wording} field ${chalk.redBright(
         `\`${error.providedName}\``,
@@ -1030,6 +1042,7 @@ export function selectionToFields(
         )
       } else if (value.include) {
         const keys = Object.keys(value.include)
+
         if (keys.length === 0) {
           acc.push(
             new Field({
