@@ -4,16 +4,53 @@ const prisma = new PrismaClient()
 
 async function main() {
   const users = await prisma.user.findMany({
-    first: 1,
     include: {
-      muser: true,
+      posts: {
+        include: {
+          author: true,
+        },
+        orderBy: {
+          title: 'asc',
+        },
+      },
     },
   })
 
-  console.log(users)
+  console.log(users[0].posts[0].author?.id)
 
-  process.exit()
   // prisma.disconnect()
+
+  const user = await prisma.post.findOne({
+    include: {
+      author: true,
+    },
+    where: {
+      id: '',
+    },
+  })
+
+  const x = await prisma.post.create({
+    data: {
+      id: '',
+      published: true,
+      title: '',
+      content: '',
+    },
+    include: {
+      author: {
+        include: {
+          posts: {
+            orderBy: {
+              content: 'asc',
+            },
+            include: {
+              author: true,
+            },
+          },
+        },
+      },
+    },
+  })
 }
 
 main().catch(e => {

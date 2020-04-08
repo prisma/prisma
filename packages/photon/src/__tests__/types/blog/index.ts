@@ -127,6 +127,22 @@ async function main() {
   type X = keyof FindManyMachineDataArgs
   type Y = 'include' extends X ? number : string
   const y: Y = 'string'
+
+  // Test for https://github.com/prisma/prisma-client-js/issues/615
+  const users = await prisma.user.findMany({
+    include: {
+      posts: {
+        include: {
+          author: true,
+        },
+        orderBy: {
+          title: 'asc',
+        },
+      },
+    },
+  })
+
+  const id = users[0].posts[0].author?.id
 }
 
 main().catch(e => {
