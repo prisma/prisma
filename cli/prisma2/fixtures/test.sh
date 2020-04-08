@@ -10,6 +10,25 @@ if [[ ${VERSION} != *"@prisma/cli"* ]]; then
 fi
 
 #
+# Test introspection output with warnings
+#
+cd fixtures/introspection-warnings
+INTROSPECTION=$(node ../../build/index.js introspect --url="file:./warnings.db")
+if [[ ${INTROSPECTION} != *"column_name_that_becomes_empty_string"* ]]; then
+  echo "prisma introspect column_name_that_becomes_empty_string is broken"
+  exit 1
+fi
+if [[ ${INTROSPECTION} != *"no_unique_identifier"* ]]; then
+  echo "prisma introspect no_unique_identifier is broken"
+  exit 1
+fi
+if [[ ${INTROSPECTION} != *"unsupported_type"* ]]; then
+  echo "prisma introspect unsupported_type is broken"
+  exit 1
+fi
+cd ../../
+
+#
 # Test generate output command
 #
 cd fixtures/project/subdir
