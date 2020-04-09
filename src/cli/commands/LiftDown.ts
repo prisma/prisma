@@ -29,12 +29,8 @@ export class LiftDown implements Command {
     ${chalk.bold('Options')}
 
       -h, --help       Displays this help message
-      -p, --preview    Preview the migration changes
 
     ${chalk.bold('Examples')}
-
-      Preview a migration without migrating
-      ${chalk.dim('$')} prisma migrate down --preview --experimental
 
       Rollback a migration
       ${chalk.dim('$')} prisma migrate down 1 --experimental
