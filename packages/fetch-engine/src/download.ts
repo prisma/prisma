@@ -70,6 +70,12 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   // get platform
   const platform = await getPlatform()
 
+  if (platform === 'musl') {
+    throw new Error('Precompiled binaries are not available for Alpine.')
+  } else if (platform === 'arm') {
+    throw new Error('Precompiled binaries are not available for ARM.')
+  }
+
   // no need to do anything, if there are no binaries
   if (!options.binaries || Object.values(options.binaries).length === 0) {
     return {}
