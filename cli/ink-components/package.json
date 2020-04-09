@@ -7,13 +7,13 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
   "dependencies": {
-    "chalk": "^4.0.0",
+    "chalk": "^3.0.0",
     "cli-truncate": "2.0.0",
     "debug": "^4.1.1",
-    "figures": "^3.2.0",
+    "figures": "^3.1.0",
     "ink-spinner": "^3.0.1",
     "string-width": "^4.2.0",
-    "terminal-link": "^2.1.1"
+    "terminal-link": "^2.0.0"
   },
   "scripts": {
     "build": "tsc -d",
