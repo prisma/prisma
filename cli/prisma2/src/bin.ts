@@ -45,21 +45,21 @@ if (process.argv.length > 2) {
 
     if (fs.existsSync(args['--schema']) && fs.existsSync(dotenvFilepath)) {
       dotenvResult = dotenv.config({ path: dotenvFilepath })
-      debug('.env loaded from provided --schema directory')
+      console.log(chalk.dim('Environment variables loaded from provided --schema directory'))
     } else {
-      debug('.env not loaded (--schema was provided)')
+      debug('Environment variables not loaded (--schema was provided)')
     }
   } // Check current directory
   else if (fs.existsSync('schema.prisma') && fs.existsSync('.env')) {
     dotenvResult = dotenv.config()
-    debug('.env loaded from current directory')
+    console.log(chalk.dim('Environment variables loaded from current directory'))
   } // Check ./prisma directory
   else if (fs.existsSync('prisma/schema.prisma') && fs.existsSync('prisma/.env')) {
     dotenvResult = dotenv.config({ path: 'prisma/.env' })
-    debug('.env loaded from ./prisma/.env')
+    console.log(chalk.dim('Environment variables loaded from ./prisma/.env'))
   } // We didn't find a .env file next to the prisma.schema file.
   else {
-    debug('.env not loaded')
+    debug('Environment variables not loaded')
   }
   // Print the error if any (if internal dotenv readFileSync throws)
   if (dotenvResult && dotenvResult.error) {
