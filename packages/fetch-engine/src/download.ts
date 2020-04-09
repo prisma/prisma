@@ -14,7 +14,7 @@ import hasha from 'hasha'
 import { getBar } from './log'
 import plusxSync from './chmod'
 import { copy } from './copy'
-import { getPlatform, Platform, platforms } from '@prisma/get-platform'
+import { getPlatform, Platform, platforms, getos } from '@prisma/get-platform'
 import { downloadZip } from './downloadZip'
 import { getCacheDir, getDownloadUrl } from './util'
 import { cleanupCache } from './cleanupCache'
@@ -69,6 +69,13 @@ type BinaryDownloadJob = {
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   // get platform
   const platform = await getPlatform()
+  const os = await getos()
+
+  if (os.distro === 'musl') {
+    throw new Error('Precompiled binaries are not available for Alpine.')
+  } else if (os.distro === 'arm') {
+    throw new Error('Precompiled binaries are not available for ARM.')
+  }
 
   // no need to do anything, if there are no binaries
   if (!options.binaries || Object.values(options.binaries).length === 0) {

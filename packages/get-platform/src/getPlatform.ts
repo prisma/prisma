@@ -12,7 +12,7 @@ const exists = promisify(fs.exists)
 export type GetOSResult = {
   platform: NodeJS.Platform
   libssl?: string
-  distro?: 'rhel' | 'debian'
+  distro?: 'rhel' | 'debian' | 'musl' | 'arm'
 }
 
 export async function getos(): Promise<GetOSResult> {
@@ -41,6 +41,10 @@ export function parseDistro(input: string): GetOSResult['distro'] {
   const idLike =
     (idLikeMatch && idLikeMatch[1] && idLikeMatch[1].toLowerCase()) || ''
 
+  if (id === 'raspbian') {
+    return 'arm'
+  }
+
   if (
     idLike.includes('centos') ||
     idLike.includes('fedora') ||
@@ -64,15 +68,17 @@ export function parseDistro(input: string): GetOSResult['distro'] {
 export async function resolveDistro(): Promise<
   undefined | GetOSResult['distro']
 > {
+  // https://github.com/retrohacker/getos/blob/master/os.json
   const osReleaseFile = '/etc/os-release'
+  const alpineReleaseFile = '/etc/alpine-release'
 
-  if (!(await exists(osReleaseFile))) {
+  if (await exists(alpineReleaseFile)) {
+    return 'musl'
+  } else if (await exists(osReleaseFile)) {
+    return parseDistro(await readFile(osReleaseFile, 'utf-8'))
+  } else {
     return
   }
-
-  const file = await readFile(osReleaseFile, 'utf-8')
-
-  return parseDistro(file)
 }
 
 export function parseOpenSSLVersion(input: string): string | undefined {
@@ -115,7 +121,7 @@ export async function getOpenSSLVersion(): Promise<string | undefined> {
 }
 
 async function gracefulExec(cmd: string): Promise<string | undefined> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     try {
       exec(cmd, (err, stdout, stderr) => {
         resolve(String(stdout))
