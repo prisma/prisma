@@ -70,7 +70,7 @@
     "@types/mysql2": "github:types/mysql2",
     "@types/pg": "^7.14.3",
     "@types/sqlite3": "^3.1.6",
-    "@zeit/ncc": "0.21.0",
+    "@zeit/ncc": "0.22.1",
     "checkpoint-client": "^1.0.7",
     "dotenv": "^8.2.0",
     "global-dirs": "^2.0.1",
