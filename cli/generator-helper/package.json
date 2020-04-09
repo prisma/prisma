@@ -9,7 +9,7 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "dependencies": {
     "@types/cross-spawn": "^6.0.1",
-    "chalk": "^3.0.0",
+    "chalk": "^4.0.0",
     "cross-spawn": "^7.0.2",
     "debug": "4.1.1",
     "isbinaryfile": "^4.0.6"
