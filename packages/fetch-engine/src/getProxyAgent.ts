@@ -78,7 +78,9 @@ function getProxyFromURI(uri) {
   return null
 }
 
-export function getProxyAgent(url: string): HttpAgent | HttpsAgent | undefined {
+export function getProxyAgent(
+  url: string,
+): HttpProxyAgent.HttpProxyAgent | HttpsProxyAgent.HttpsProxyAgent | undefined {
   const uri = Url.parse(url)
   const proxy = getProxyFromURI(uri)
   if (!proxy) {
@@ -86,11 +88,11 @@ export function getProxyAgent(url: string): HttpAgent | HttpsAgent | undefined {
   }
 
   if (uri.protocol === 'http:') {
-    return new HttpProxyAgent(proxy) as HttpAgent
+    return HttpProxyAgent(proxy)
   }
 
   if (uri.protocol === 'https:') {
-    return new HttpsProxyAgent(proxy) as HttpsAgent
+    return HttpsProxyAgent(proxy)
   }
 
   return undefined
