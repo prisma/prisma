@@ -21,7 +21,7 @@
     "@types/node": "^12.12.35",
     "@types/prompts": "^2.0.3",
     "@types/react": "16.9.11",
-    "@zeit/ncc": "0.18.5",
+    "@zeit/ncc": "0.22.1",
     "del": "^5.1.0",
     "husky": "^4.2.3",
     "jest": "^25.3.0",
