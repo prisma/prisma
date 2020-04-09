@@ -15,10 +15,10 @@ export { Sentry }
 import debugLib from 'debug'
 
 const debug = debugLib('prisma')
-process.on('uncaughtException', e => {
+process.on('uncaughtException', (e) => {
   debug(e)
 })
-process.on('unhandledRejection', e => {
+process.on('unhandledRejection', (e) => {
   debug(e)
 })
 
@@ -156,15 +156,15 @@ process.on('SIGINT', () => {
  */
 if (require.main === module) {
   main()
-    .then(code => {
+    .then((code) => {
       if (code !== 0) {
         process.exit(code)
       }
     })
-    .catch(err => {
+    .catch((err) => {
       function handleIndividualError(error) {
         if (error.rustStack) {
-          handlePanic(error, packageJson.name, packageJson.version).catch(e => {
+          handlePanic(error, packageJson.version, packageJson.prisma.version).catch((e) => {
             if (debugLib.enabled('prisma')) {
               console.error(chalk.redBright.bold('Error: ') + e.stack)
             } else {
