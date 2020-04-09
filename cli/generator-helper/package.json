@@ -10,9 +10,9 @@
   "dependencies": {
     "@types/cross-spawn": "^6.0.1",
     "chalk": "^3.0.0",
-    "cross-spawn": "^7.0.1",
+    "cross-spawn": "^7.0.2",
     "debug": "4.1.1",
-    "isbinaryfile": "^4.0.2"
+    "isbinaryfile": "^4.0.6"
   },
   "scripts": {
     "build": "tsc -d",
@@ -35,12 +35,12 @@
     ]
   },
   "devDependencies": {
-    "@types/jest": "24.0.22",
-    "@types/node": "^12.12.31",
-    "jest": "^25.2.0",
-    "prettier": "^1.19.1",
-    "ts-jest": "^25.2.1",
-    "ts-node": "^8.8.1",
+    "@types/jest": "25.2.1",
+    "@types/node": "^12.12.35",
+    "jest": "^25.3.0",
+    "prettier": "^2.0.4",
+    "ts-jest": "^25.3.1",
+    "ts-node": "^8.8.2",
     "typescript": "^3.8.3"
   }
 }
