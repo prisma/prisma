@@ -1,6 +1,5 @@
 import { RustLog, PanicLogFields, RustError, isRustError } from './log'
 import chalk from 'chalk'
-import camelCase from 'camelcase'
 
 export class PrismaQueryEngineError extends Error {
   /**

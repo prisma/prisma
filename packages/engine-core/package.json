@@ -7,11 +7,11 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@prisma/fetch-engine": "workspace:*",
-    "@types/jest": "24.0.22",
-    "@types/node": "^12.12.31",
+    "@types/jest": "25.2.1",
+    "@types/node": "^12.12.35",
     "del-cli": "^3.0.0",
-    "jest": "^25.2.0",
-    "ts-jest": "^25.2.1",
+    "jest": "^25.3.0",
+    "ts-jest": "^25.3.1",
     "typescript": "^3.8.3"
   },
   "scripts": {
@@ -22,8 +22,7 @@
   "dependencies": {
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "bent": "^7.0.6",
-    "camelcase": "^5.3.1",
+    "bent": "^7.1.2",
     "chalk": "^3.0.0",
     "cross-fetch": "^3.0.4",
     "debug": "^4.1.1",
