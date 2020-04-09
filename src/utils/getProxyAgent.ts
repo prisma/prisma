@@ -84,13 +84,11 @@ export function getProxyAgent(url: string): HttpAgent | HttpsAgent | undefined {
     return undefined
   }
 
-  const proxyUri = Url.parse(proxy)
-
-  if (proxyUri.protocol === 'http:') {
+  if (uri.protocol === 'http:') {
     return new HttpProxyAgent(proxy) as HttpAgent
   }
 
-  if (proxyUri.protocol === 'https:') {
+  if (uri.protocol === 'https:') {
     return new HttpsProxyAgent(proxy) as HttpsAgent
   }
 
