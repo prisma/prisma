@@ -176,7 +176,7 @@ type RawPackages = { [packageName: string]: RawPackage }
 
 export async function getPackages(): Promise<RawPackages> {
   const packagePaths = await globby(
-    ['packages/**/package.json'],
+    ['packages/*/package.json'],
     {
       ignore: ['**/node_modules/**', '**/examples/**', '**/fixtures/**'],
     } as any, // TODO: Apparently upgrading to ts 3.7.2 broke this
