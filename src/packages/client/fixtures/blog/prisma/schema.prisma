@@ -1,0 +1,33 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+model User {
+  id                String  @default(cuid()) @id
+  email             String  @unique
+  name              String?
+  posts             Post[]
+  treeHouseMaterial Tree?
+}
+
+model Post {
+  id        String   @default(cuid()) @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id])
+}
+
+enum Tree {
+  OAK
+  DOUGLAS
+}

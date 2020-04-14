@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "lib": ["esnext"],
+    "module": "commonjs",
+    "target": "es2018",
+    "strict": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true,
+    "incremental": true
+  },
+  "exclude": [
+    "archive",
+    "dist",
+    "build",
+    "cli",
+    "fixtures",
+    "runtime",
+    "browser-runtime",
+    "generator",
+    "src/__tests__/generation/node_modules",
+    "src/__tests__/types",
+    "generator-build",
+    "sandbox"
+  ]
+}

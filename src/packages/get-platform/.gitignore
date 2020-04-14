@@ -1,14 +1,8 @@
 node_modules
-
-yarn-error.log
-dist
-build
-examples
-tmp
-pnpm-debug.log
-sandbox
 .DS_Store
 query-engine*
+yarn-error.log
+pnpm-debug.log
 
 *.db
 

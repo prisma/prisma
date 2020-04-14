@@ -1,0 +1,23 @@
+{
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended", "tslint-config-prettier"],
+  "jsRules": {},
+  "rules": {
+    "interface-name": null,
+    "object-literal-sort-keys": null,
+    "max-classes-per-file": null,
+    "no-namespace": null,
+    "no-console": null,
+    "no-var-requires": null,
+    "forin": null
+  },
+  "rulesDirectory": [],
+  "linterOptions": {
+    "exclude": [
+      "src/fixtures",
+      "src/__tests__",
+      "src/__tests__/generation/node_modules",
+      "src/__tests__/types/types.test.ts"
+    ]
+  }
+}

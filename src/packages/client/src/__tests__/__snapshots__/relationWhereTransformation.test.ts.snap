@@ -1,0 +1,143 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`relation where transformation throw correctly for deep at least one error 1`] = `
+"
+Invalid \`prisma.artists()\` invocation:
+
+{
+  where: {
+    Albums: {
+      some: {
+        Tracks: {
+          some: {
+            AND: {
+              UnitPrice: 5,
+              Playlists: {
+                some: {
+                  Tracks: {
+                  ~~~~~~
+                    some: {
+                      Name: '',
+                      Genre: {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
+type PlaylistTrackWhereInput {
+  id?: Int | IntFilter
+  PlaylistId?: Int | IntFilter
+  TrackId?: Int | IntFilter
+  AND?: PlaylistTrackWhereInput
+  OR?: PlaylistTrackWhereInput
+  NOT?: PlaylistTrackWhereInput
+  Playlist?: PlaylistWhereInput
+  Track?: TrackWhereInput
+}
+
+"
+`;
+
+exports[`relation where transformation throw correctly for incorrect deep scalar 1`] = `
+"
+Invalid \`prisma.users()\` invocation:
+
+{
+  where: {
+    Albums: {
+      some: {
+        Tracks: {
+          some: {
+            AND: {
+              UnitPrice: 5,
+              Playlists: {
+                some: {
+                  Tracks: {
+                  ~~~~~~
+                    some: {
+                      Name: '',
+                      Genre: {
+                        id: '5'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
+type PlaylistTrackWhereInput {
+  id?: Int | IntFilter
+  PlaylistId?: Int | IntFilter
+  TrackId?: Int | IntFilter
+  AND?: PlaylistTrackWhereInput
+  OR?: PlaylistTrackWhereInput
+  NOT?: PlaylistTrackWhereInput
+  Playlist?: PlaylistWhereInput
+  Track?: TrackWhereInput
+}
+
+"
+`;
+
+exports[`relation where transformation transform correctly 1`] = `
+"
+Invalid \`prisma.users()\` invocation:
+
+{
+  where: {
+    Albums: {
+      some: {
+        Tracks: {
+          some: {
+            AND: {
+              UnitPrice: 5,
+              Playlists: {
+                some: {
+                  Tracks: {
+                  ~~~~~~
+                    some: {
+                      Name: '',
+                      Genre: {
+                        id: 5
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
+type PlaylistTrackWhereInput {
+  id?: Int | IntFilter
+  PlaylistId?: Int | IntFilter
+  TrackId?: Int | IntFilter
+  AND?: PlaylistTrackWhereInput
+  OR?: PlaylistTrackWhereInput
+  NOT?: PlaylistTrackWhereInput
+  Playlist?: PlaylistWhereInput
+  Track?: TrackWhereInput
+}
+
+"
+`;

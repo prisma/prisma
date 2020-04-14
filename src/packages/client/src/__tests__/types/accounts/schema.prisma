@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model UserTest {
+  id                    String              @default(cuid()) @id
+  role                  UserRole            @default(USER)
+  username              String              @unique
+  globalConfigurationId String
+  globalConfiguration   GlobalConfiguration @relation(fields: [globalConfigurationId], references: [id])
+}
+
+model GlobalConfiguration {
+  id        String     @default(cuid()) @id
+  user      User       @relation(fields: [id], references: [id])
+  accounts  Account[]
+  userTests UserTest[]
+}
+
+model AccountData {
+  id     String               @default(cuid()) @id
+  config AccountConfiguration @relation(fields: [id])
+}
+
+model RandomModel {
+  id                     String                @default(cuid()) @id
+  accountConfigurationId String?
+  accountConfiguration   AccountConfiguration? @relation(fields: [accountConfigurationId], references: [id])
+}
+
+model User {
+  id                   String                @default(cuid()) @id
+  name                 String
+  globalConfigurations GlobalConfiguration[]
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model Account {
+  id                    String               @default(cuid()) @id
+  acc                   String
+  config                AccountConfiguration @relation(fields: [id], references: [id])
+  globalConfigurationId String?
+  globalConfiguration   GlobalConfiguration? @relation(fields: [globalConfigurationId], references: [id])
+}
+
+model AccountConfiguration {
+  id       String        @default(cuid()) @id
+  config   String
+  data     AccountData?  @relation(references: [id])
+  list     RandomModel[]
+  accounts Account[]
+}
