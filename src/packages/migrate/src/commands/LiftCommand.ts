@@ -1,6 +1,6 @@
 import { arg, Command, Commands, format, HelpError, isError, unknownCommand } from '@prisma/sdk'
 import chalk from 'chalk'
-import { getNextFreePort } from '../../utils/occupyPath'
+import { getNextFreePort } from '../utils/occupyPath'
 
 /**
  * Migrate command

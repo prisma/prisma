@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-process.on('uncaughtException', e => {
+process.on('uncaughtException', (e) => {
   console.log(e)
 })
 process.on('unhandledRejection', (e, promise) => {
@@ -13,12 +13,12 @@ process.env.NODE_NO_WARNINGS = '1'
  * Dependencies
  */
 import { HelpError, isError } from '@prisma/sdk'
-import { LiftCommand } from './cli/commands/LiftCommand'
-import { LiftDown } from './cli/commands/LiftDown'
-import { LiftSave } from './cli/commands/LiftSave'
-import { LiftTmpPrepare } from './cli/commands/LiftTmpPrepare'
-import { LiftUp } from './cli/commands/LiftUp'
-import { StudioCommand } from './cli/commands/StudioCommand'
+import { LiftCommand } from './commands/LiftCommand'
+import { LiftDown } from './commands/LiftDown'
+import { LiftSave } from './commands/LiftSave'
+import { LiftTmpPrepare } from './commands/LiftTmpPrepare'
+import { LiftUp } from './commands/LiftUp'
+import { StudioCommand } from './commands/StudioCommand'
 import { handlePanic } from './utils/handlePanic'
 import { ProviderAliases } from '@prisma/sdk'
 import path from 'path'
@@ -66,12 +66,12 @@ process.on('SIGINT', () => {
  * Run our program
  */
 main()
-  .then(code => {
+  .then((code) => {
     if (code !== 0) {
       process.exit(code)
     }
   })
-  .catch(err => {
+  .catch((err) => {
     if (err.rustStack) {
       // console.error(err.rustStack)
       // console.error(err.stack)
