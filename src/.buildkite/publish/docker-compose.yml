@@ -1,9 +1,9 @@
-version: "3.7"
+version: '3.7'
 services:
   app:
     image: node:10
     volumes:
-      - ../../:/app
+      - ../../../:/app
     working_dir: /app
     command: /app/src/.buildkite/publish/run.sh
     environment:
