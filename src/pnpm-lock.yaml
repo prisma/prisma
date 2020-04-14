@@ -13698,6 +13698,7 @@ packages:
     dev: true
     name: '@types/mysql'
     resolution:
+      registry: 'https://registry.npmjs.org/'
       tarball: 'https://codeload.github.com/types/mysql/tar.gz/41e381415afbb79452c0501ca3cf220c2cd390bc'
     version: 2.0.0
   github.com/types/mysql2/b549352cda0b83fe8c4f4c11a1b4beb0b0cb0f5d:
