@@ -13,7 +13,7 @@ services:
     depends_on:
       - postgres
       - mysql
-      - mariadb
+      # - mariadb
 
   postgres:
     image: postgres:10.3
@@ -35,18 +35,18 @@ services:
     volumes:
       - mysql:/var/lib/mysql
 
-  mariadb:
-    image: mariadb:10.4
-    restart: always
-    environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=tests
-      - MYSQL_USER=prisma
-      - MYSQL_PASSWORD=prisma
-    volumes:
-      - mariadb:/var/lib/mysql
+  # mariadb:
+  #   image: mariadb:10.4
+  #   restart: always
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=root
+  #     - MYSQL_DATABASE=tests
+  #     - MYSQL_USER=prisma
+  #     - MYSQL_PASSWORD=prisma
+  #   volumes:
+  #     - mariadb:/var/lib/mysql
 
 volumes:
   postgres:
   mysql:
-  mariadb:
+  # mariadb:

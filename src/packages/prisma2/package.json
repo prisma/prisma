@@ -106,7 +106,7 @@
     "test-mariadb": "./node_modules/.bin/mocha src/__tests__/integrate.mariadb.test.ts --require ts-mocha src/__tests__/integrate.mariadb.test.ts --timeout 10s",
     "test-mysql": "./node_modules/.bin/mocha src/__tests__/integrate.mysql.test.ts --require ts-mocha src/__tests__/integrate.mysql.test.ts --timeout 10s",
     "test-postgresql": "./node_modules/.bin/mocha src/__tests__/integrate.postgresql.test.ts --require ts-mocha src/__tests__/integrate.postgresql.test.ts --timeout 10s",
-    "test": "./node_modules/.bin/packwatch && ./fixtures/test.sh && pnpm run test-postgresql && pnpm run test-sqlite && pnpm run test-mysql && pnpm run test-mariadb",
+    "test": "./node_modules/.bin/packwatch && ./fixtures/test.sh && pnpm run test-postgresql && pnpm run test-sqlite && pnpm run test-mysql",
     "test:debug": "./node_modules/.bin/mocha --inspect-brk src/__tests__/integrate.* --require ts-mocha src/__tests__/integrate.* --timeout 10s",
     "test:mocha": "./node_modules/.bin/mocha src/__tests__/integrate.* --require ts-mocha src/__tests__/integrate.* --timeout 10s",
     "test:update-snapshots": "SNAPSHOT_UPDATE=1 ./node_modules/.bin/mocha src/__tests__/integrate.* --require ts-mocha src/__tests__/integrate.* --timeout 10s",
