@@ -20,7 +20,7 @@ export type Commit = {
 }
 
 async function getLatestChanges(): Promise<string[]> {
-  return getChangesFromCommit(await getLatestCommit('src/'))
+  return getChangesFromCommit(await getLatestCommit(''))
 }
 
 async function getChangesFromCommit(commit: Commit): Promise<string[]> {
