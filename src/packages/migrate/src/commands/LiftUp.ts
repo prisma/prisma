@@ -1,8 +1,8 @@
 import { arg, Command, format, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
-import { Lift, UpOptions } from '../../Lift'
-import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
-import { ExperimentalFlagError } from '../../utils/experimental'
+import { Lift, UpOptions } from '../Lift'
+import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { ExperimentalFlagError } from '../utils/experimental'
 
 export class LiftUp implements Command {
   public static new(): LiftUp {

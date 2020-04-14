@@ -4,12 +4,12 @@ import fs from 'fs'
 import path from 'path'
 import prompt from 'prompts'
 import { promisify } from 'util'
-import { Lift } from '../../Lift'
-import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
-import { printFiles } from '../../utils/printFiles'
-import { printMigrationId } from '../../utils/printMigrationId'
-import { serializeFileMap } from '../../utils/serializeFileMap'
-import { ExperimentalFlagError } from '../../utils/experimental'
+import { Lift } from '../Lift'
+import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { printFiles } from '../utils/printFiles'
+import { printMigrationId } from '../utils/printMigrationId'
+import { serializeFileMap } from '../utils/serializeFileMap'
+import { ExperimentalFlagError } from '../utils/experimental'
 
 const writeFile = promisify(fs.writeFile)
 

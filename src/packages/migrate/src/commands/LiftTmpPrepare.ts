@@ -1,9 +1,9 @@
 import { arg, Command, format, HelpError } from '@prisma/sdk'
 import chalk from 'chalk'
 import Debug from 'debug'
-import { Lift } from '../../Lift'
-import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
-import { occupyPath } from '../../utils/occupyPath'
+import { Lift } from '../Lift'
+import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { occupyPath } from '../utils/occupyPath'
 const debug = Debug('tmp-prepare')
 
 /**

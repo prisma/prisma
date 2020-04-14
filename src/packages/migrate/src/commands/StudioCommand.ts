@@ -2,9 +2,9 @@ import { arg, Command, Dictionary, format, HelpError, isError } from '@prisma/sd
 import chalk from 'chalk'
 import open from 'open'
 
-import { Studio } from '../../Studio'
+import { Studio } from '../Studio'
 import { ProviderAliases } from '@prisma/sdk'
-import { ExperimentalFlagError } from '../../utils/experimental'
+import { ExperimentalFlagError } from '../utils/experimental'
 
 export class StudioCommand implements Command {
   public static new(providerAliases: ProviderAliases): StudioCommand {
