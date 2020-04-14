@@ -1,0 +1,14 @@
+datasource my_db {
+  provider = "sqlite"
+  url      = "file:dev7.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "@prisma/client"
+}
+
+model Blog {
+  id          Int @id
+  viewCount20 Int
+}

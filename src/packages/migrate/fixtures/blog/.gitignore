@@ -1,0 +1,4 @@
+migrations
+failed*.md
+@prisma
+out.json
