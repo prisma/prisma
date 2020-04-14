@@ -2,6 +2,8 @@
 
 set -ex
 
+cd src
+
 npm i -g pnpm
 pnpm i --no-prefer-frozen-lockfile
 
