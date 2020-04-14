@@ -9,4 +9,4 @@ if [ "$DEVELOPMENT_ENVIRONMENT_COMMIT" ]; then
 fi
 
 
-buildkite-agent pipeline upload .buildkite/publish/publish.yml
+buildkite-agent pipeline upload src/.buildkite/publish/publish.yml
