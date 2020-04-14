@@ -1,0 +1,12 @@
+node_modules
+.DS_Store
+query-engine*
+yarn-error.log
+pnpm-debug.log
+
+*.db
+
+dist/
+
+copy-photon.sh
+*.tsbuildinfo
