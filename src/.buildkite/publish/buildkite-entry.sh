@@ -8,5 +8,4 @@ if [ "$DEVELOPMENT_ENVIRONMENT_COMMIT" ]; then
   git checkout $DEVELOPMENT_ENVIRONMENT_COMMIT
 fi
 
-
 buildkite-agent pipeline upload src/.buildkite/publish/publish.yml

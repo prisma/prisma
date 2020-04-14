@@ -2,6 +2,8 @@
 
 set -ex
 
+cd src
+
 if [ "$DEVELOPMENT_ENVIRONMENT_COMMIT" ]; then
   git stash
   git checkout $DEVELOPMENT_ENVIRONMENT_COMMIT
@@ -14,9 +16,9 @@ pnpm i --no-prefer-frozen-lockfile
 
 pnpm run setup
 
-cd prisma/cli/prisma2
-pnpm i sqlite3@4.1.1 --unsafe-perm
-cd ../../..
+cd packages/prisma2
+pnpm i sqlite3@4.1 --unsafe-perm
+cd ../..
 
 pnpm run test
 
