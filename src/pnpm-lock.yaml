@@ -204,7 +204,6 @@ importers:
       '@types/progress': 2.0.3
       del: 5.1.0
       jest: 25.3.0
-      ncc: 0.3.6
       prettier: 2.0.4
       ts-jest: 25.3.1_jest@25.3.0
       typescript: 3.8.3
@@ -226,7 +225,6 @@ importers:
       https-proxy-agent: ^5.0.0
       jest: ^25.3.0
       make-dir: ^3.0.2
-      ncc: ^0.3.6
       node-fetch: ^2.6.0
       p-filter: ^2.1.0
       p-map: ^4.0.0
@@ -4771,12 +4769,6 @@ packages:
       node: '>=0.1.90'
     resolution:
       integrity: sha1-BDP0TYCWgP3rYO0mDxsMJi6CpAs=
-  /colors/1.2.3:
-    dev: true
-    engines:
-      node: '>=0.1.90'
-    resolution:
-      integrity: sha512-qTfM2pNFeMZcLvf/RbrVAzDEVttZjFhaApfx9dplNjvHSX88Ui66zBRb/4YGob/xUWxDceirgoC1lT676asfCQ==
   /combined-stream/1.0.8:
     dependencies:
       delayed-stream: 1.0.0
@@ -5327,10 +5319,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-hBSVCvSmWC+QypYObzwGOd9wqdDpOt+0wl0KbU+R+uuZBS1jN8VsD1ss3irQDknRj5NvxiTF6oj/nDRnN/UQNw==
-  /dateformat/3.0.3:
-    dev: true
-    resolution:
-      integrity: sha512-jyCETtSl3VMZMWeRo7iY1FL19ges1t55hMo5yaam4Jrsm5EPL89UQkoQRyiI+Yf4k8r2ZpdngkV8hr1lIdjb3Q==
   /debug/2.6.9:
     dependencies:
       ms: 2.0.0
@@ -9386,15 +9374,6 @@ packages:
     dev: true
     resolution:
       integrity: sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=
-  /ncc/0.3.6:
-    dependencies:
-      mkdirp: 0.5.5
-      rimraf: 2.7.1
-      tracer: 0.8.15
-      ws: 2.3.1
-    dev: true
-    resolution:
-      integrity: sha1-EbR6+XPX8jdK9GvA2FMzZqzJCOs=
   /ncp/2.0.0:
     dev: true
     hasBin: true
@@ -11443,10 +11422,6 @@ packages:
       npm: '>=2.0.0'
     resolution:
       integrity: sha512-WfQI+1gohdf0Dai/Bbmk5L5ItH5tYqm3ki2c5GdWhKjalzjg93N3avFjVStyZZz+A2Em+ZxKH5bNghw9UeylGQ==
-  /safe-buffer/5.0.1:
-    dev: true
-    resolution:
-      integrity: sha1-0mPKVGls2KMGtcplUekt5XkY++c=
   /safe-buffer/5.1.2:
     resolution:
       integrity: sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==
@@ -12623,12 +12598,6 @@ packages:
     dev: true
     resolution:
       integrity: sha1-QFQRqOfmM5/mTbmiNN4R3DHgK9Q=
-  /tinytim/0.1.1:
-    dev: true
-    engines:
-      node: '>= 0.2.0'
-    resolution:
-      integrity: sha1-yWih5VWa2VUyJO92J7qzTjyu+Kg=
   /tmp/0.0.33:
     dependencies:
       os-tmpdir: 1.0.2
@@ -12719,17 +12688,6 @@ packages:
     dev: true
     resolution:
       integrity: sha1-qLE/1r/SSJUZZ0zN5VujaTtwbQk=
-  /tracer/0.8.15:
-    dependencies:
-      colors: 1.2.3
-      dateformat: 3.0.3
-      mkdirp: 0.5.5
-      tinytim: 0.1.1
-    dev: true
-    engines:
-      node: '>= 0.10.0'
-    resolution:
-      integrity: sha512-ZQzlhd6zZFIpAhACiZkxLjl65XqVwi8t8UEBVGRIHAQN6nj55ftJWiFell+WSqWCP/vEycrIbUSuiyMwul+TFw==
   /trim-newlines/2.0.0:
     dev: true
     engines:
@@ -12995,10 +12953,6 @@ packages:
     dev: true
     resolution:
       integrity: sha1-SDEm4Rd03y9xuLY53NeZw3YWK4I=
-  /ultron/1.1.1:
-    dev: true
-    resolution:
-      integrity: sha512-UIEXBNeYmKptWH6z8ZnqTeS8fV74zG0/eRU9VGkpzz+LIJNs8W/zM/L+7ctCkRrgbNnnR0xxw4bKOr0cW0N0Og==
   /uncss/0.17.3:
     dependencies:
       commander: 2.20.3
@@ -13557,13 +13511,6 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha512-/lg70HAjtkUgWPVZhZcm+T4hkL8Zbtp1nFNOn3lRrxnlv50SRBv7cR7RqR+GMsd3hUXy9hWBo4CHTbFTcOYwig==
-  /ws/2.3.1:
-    dependencies:
-      safe-buffer: 5.0.1
-      ultron: 1.1.1
-    dev: true
-    resolution:
-      integrity: sha1-a5Sz5EfLajY/eF6vlK9jWejoHIA=
   /ws/5.2.2:
     dependencies:
       async-limiter: 1.0.1

@@ -13,7 +13,6 @@
     "@types/progress": "^2.0.3",
     "del": "^5.1.0",
     "jest": "^25.3.0",
-    "ncc": "^0.3.6",
     "prettier": "^2.0.4",
     "ts-jest": "^25.3.1",
     "typescript": "^3.8.3"
