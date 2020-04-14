@@ -1,0 +1,65 @@
+version: '3.7'
+services:
+  app:
+    image: node:10
+    volumes:
+      - ../../:/app
+    working_dir: /app
+    command: /app/.buildkite/publish/run.sh
+    environment:
+      - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres/
+      - TEST_MYSQL_URI=mysql://prisma:prisma@mysql:3306/tests
+      - TEST_MARIADB_URI=mysql://prisma:prisma@mariadb:3306/tests
+      - NPM_TOKEN
+      - GITHUB_TOKEN
+      - UPDATE_STUDIO
+      - BUILDKITE
+      - BUILDKITE_TAG
+      - PUBLISH_BUILD=true
+      - REDIS_URL
+      - MIGRATE_COMMIT
+      - PRISMA_CLIENT_JS_COMMIT
+      - PRISMA2_COMMIT
+      - DEVELOPMENT_ENVIRONMENT_COMMIT
+      - PATCH_BRANCH
+      - DRY_RUN
+    depends_on:
+      - postgres
+      - mysql
+      - mariadb
+
+  postgres:
+    image: postgres:10.3
+    restart: always
+    environment:
+      - POSTGRES_USER=prisma
+      - POSTGRES_PASSWORD=prisma
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=tests
+      - MYSQL_USER=prisma
+      - MYSQL_PASSWORD=prisma
+    volumes:
+      - mysql:/var/lib/mysql
+
+  mariadb:
+    image: mariadb:10.4
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=tests
+      - MYSQL_USER=prisma
+      - MYSQL_PASSWORD=prisma
+    volumes:
+      - mariadb:/var/lib/mysql
+
+volumes:
+  postgres:
+  mysql:
+  mariadb:
