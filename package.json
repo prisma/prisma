@@ -1,9 +1,0 @@
-{
-  "private": true,
-  "devDependencies": {
-    "husky": "2.4.0"
-  },
-  "dependencies": {
-    "stacktrace-parser": "^0.1.8"
-  }
-}
