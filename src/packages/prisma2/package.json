@@ -49,7 +49,7 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3"
+    "version": "a73c80ce622436858cc57357a7b573411f7ab25f"
   },
   "devDependencies": {
     "@prisma/ci-info": "^2.1.1",
