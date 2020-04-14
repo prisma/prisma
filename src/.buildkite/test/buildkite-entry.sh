@@ -1,1 +1,1 @@
-buildkite-agent pipeline upload .buildkite/test/test.yml
+buildkite-agent pipeline upload src/.buildkite/test/test.yml
