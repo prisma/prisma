@@ -1,6 +1,0 @@
-steps:
-  - label: ':coverage: Test Prisma Migrate'
-    trigger: 'prisma2-test'
-  - label: ':flashlight: Publish Prisma Migrate'
-    trigger: 'prisma2-publish'
-  - wait
