@@ -1,0 +1,55 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+type Numeric = Float
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// / Role enum comment
+// / Multiline
+// USER = "User"
+// ADMIN = "Admin" ADMIN
+enum Role {
+  USER
+}
+
+// / User model comment
+// address     Address
+// address2 embed {
+// street  String
+// zipCode String
+// }
+model User {
+  // / User model field comment
+  id      Int     @default(autoincrement()) @id
+  email   String  @unique
+  name    String?
+  age     Int
+  balance Numeric
+  amount  Float
+  posts   Post[]
+  // maybePosts  Post[]?
+  role    Role
+}
+
+enum PostKind {
+  BLOG
+  ADVERT
+}
+
+model Post {
+  uuid      String    @default(cuid()) @id
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  authorId  Int
+  author    User      @relation(fields: [authorId], references: [id])
+  // coAuthor  User?
+  kind      PostKind?
+}

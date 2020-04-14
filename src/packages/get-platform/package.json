@@ -1,0 +1,26 @@
+{
+  "name": "@prisma/get-platform",
+  "version": "2.0.0-alpha.1016",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "author": "Tim Suchanek <suchanek@prisma.io>",
+  "devDependencies": {
+    "@types/jest": "^25.2.1",
+    "@types/node": "^12.12.35",
+    "jest": "^25.3.0",
+    "ts-jest": "^25.3.1",
+    "typescript": "^3.8.3"
+  },
+  "scripts": {
+    "build": "tsc -d",
+    "prepublishOnly": "pnpm run build && npm run test",
+    "test": "jest"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "debug": "^4.1.1"
+  }
+}

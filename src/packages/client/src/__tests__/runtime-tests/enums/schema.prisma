@@ -1,0 +1,32 @@
+datasource my_db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model User {
+  email        String    @default("") @unique
+  favoriteTree String    @default("ARBORVITAE")
+  id           String    @id
+  location     Int?
+  name         String    @default("")
+  permissions  String    @default("ADMIN")
+  status       String    @default("")
+  Location     Location? @relation(fields: [location], references: [id])
+  Post         Post[]
+}
+
+model Post {
+  createdAt DateTime @default(dbgenerated())
+  email     String   @default("") @unique
+  id        String   @id
+  name      String   @default("")
+  updatedAt DateTime @default(dbgenerated())
+  user      String?
+  User      User?    @relation(fields: [user], references: [id])
+}
+
+model Location {
+  city String @default("")
+  id   Int    @default(autoincrement()) @id
+  User User[]
+}

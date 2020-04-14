@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "lib": ["esnext"],
+    "module": "commonjs",
+    "target": "es2018",
+    "strict": false,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "incremental": true
+  },
+  "exclude": ["dist", "build", "scripts", "sandbox"]
+}

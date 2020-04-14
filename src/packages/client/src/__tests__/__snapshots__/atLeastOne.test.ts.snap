@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`at least one validation valid query 1`] = `
+"query {
+  findManyUser(where: {
+    email: \\"\\"
+  }) {
+    id
+    name
+    email
+    status
+    nicknames
+    permissions
+    favoriteTree
+    locationId
+    someFloats
+  }
+}"
+`;
