@@ -1,7 +1,7 @@
 steps:
-  - label: ':coverage: Test'
+  - label: ":coverage: Test"
     plugins:
       - docker-compose#v3.0.3:
-          config: .buildkite/test/docker-compose.yml
+          config: src/.buildkite/test/docker-compose.yml
           run: app
   - wait
