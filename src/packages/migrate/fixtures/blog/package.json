@@ -1,0 +1,11 @@
+{
+  "name": "blog",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "ts-node": "^8.3.0"
+  }
+}

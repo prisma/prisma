@@ -1,0 +1,103 @@
+{
+  "name": "@prisma/migrate",
+  "version": "2.0.0-alpha.1016",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": "git@github.com:prisma/migrate.git",
+  "author": "Tim Suchanek <suchanek@prisma.io>",
+  "license": "Apache-2.0",
+  "prisma": {
+    "version": "latest"
+  },
+  "devDependencies": {
+    "@prisma/client": "workspace:*",
+    "@prisma/generator-helper": "workspace:*",
+    "@prisma/sdk": "workspace:*",
+    "@types/charm": "1.0.1",
+    "@types/debug": "4.1.5",
+    "@types/diff": "4.0.2",
+    "@types/fs-extra": "8.1.0",
+    "@types/jest": "25.2.1",
+    "@types/node": "^12.12.35",
+    "@types/prompts": "^2.0.3",
+    "@types/react": "16.9.11",
+    "@zeit/ncc": "0.22.1",
+    "del": "^5.1.0",
+    "husky": "^4.2.4",
+    "jest": "^25.3.0",
+    "lint-staged": "^10.1.3",
+    "make-dir": "^3.0.2",
+    "mz": "2.7.0",
+    "pkg-up": "3.1.0",
+    "prettier": "^2.0.4",
+    "react": "16.11.0",
+    "ts-jest": "^25.3.1",
+    "tslint": "^5.20.1",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.8.3"
+  },
+  "peerDependencies": {
+    "@prisma/generator-helper": "*",
+    "@prisma/sdk": "*"
+  },
+  "dependencies": {
+    "@prisma/fetch-engine": "workspace:*",
+    "@prisma/get-platform": "workspace:*",
+    "@prisma/ink-components": "workspace:*",
+    "@prisma/studio-server": "0.220.0",
+    "@prisma/studio-types": "0.220.0",
+    "ansi-escapes": "^4.3.1",
+    "cli-cursor": "3.1.0",
+    "dashify": "2.0.0",
+    "debug": "4.1.1",
+    "diff": "4.0.2",
+    "execa": "^4.0.0",
+    "figures": "^3.2.0",
+    "get-port": "^5.1.1",
+    "git-user-email": "0.2.2",
+    "git-user-name": "2.0.0",
+    "globby": "^11.0.0",
+    "http-proxy-agent": "^4.0.1",
+    "https-proxy-agent": "^5.0.0",
+    "indent-string": "4.0.0",
+    "ink": "2.5.0",
+    "ink-link": "1.0.0",
+    "ink-spinner": "3.0.1",
+    "is-ci": "^2.0.0",
+    "log-update": "^4.0.0",
+    "open": "^7.0.3",
+    "p-map": "^4.0.0",
+    "prompts": "^2.3.2",
+    "ps-tree": "1.2.0",
+    "rimraf": "^3.0.2",
+    "string-width": "^4.2.0",
+    "strip-ansi": "^6.0.0",
+    "strip-indent": "^3.0.0",
+    "supports-hyperlinks": "^2.1.0"
+  },
+  "scripts": {
+    "install": "node scripts/download.js",
+    "download": "node scripts/download.js",
+    "run": "node dist/bin.js",
+    "precommit": "lint-staged && jest",
+    "lint": "prettier --write src/*.{ts,tsx,js,jsx,md,graphql} src/**/*.{ts,tsx,js,jsx,md,graphql} && tsc",
+    "test": "jest",
+    "build": "tsc -d && cp src/GeneratorWorker.js dist/GeneratorWorker.js",
+    "ncc": "ncc build dist/index.js -o build",
+    "ncc:req": "ncc build fixtures/req.js -o build",
+    "build-cli": "pnpm run build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js'",
+    "prepublishOnly": "pnpm run build"
+  },
+  "files": [
+    "dist",
+    "download.js",
+    "scripts/download.js"
+  ],
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "tslint --project tsconfig.json -c tslint.json --fix",
+      "prettier --write",
+      "git add"
+    ]
+  }
+}
