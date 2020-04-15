@@ -5,9 +5,9 @@ import { getNextFreePort } from '../utils/occupyPath'
 /**
  * Migrate command
  */
-export class LiftCommand implements Command {
-  public static new(cmds: Commands): LiftCommand {
-    return new LiftCommand(cmds)
+export class MigrateCommand implements Command {
+  public static new(cmds: Commands): MigrateCommand {
+    return new MigrateCommand(cmds)
   }
 
   // static help template
@@ -89,13 +89,13 @@ Please ${chalk.rgb(228, 155, 15)(`stop ${chalk.bold('prisma dev')} first`)}, the
       return cmd.parse(argsForCmd)
     }
 
-    return unknownCommand(LiftCommand.help, args._[0])
+    return unknownCommand(MigrateCommand.help, args._[0])
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftCommand.help}`)
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateCommand.help}`)
     }
-    return LiftCommand.help
+    return MigrateCommand.help
   }
 }
