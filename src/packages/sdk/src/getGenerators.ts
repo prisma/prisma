@@ -194,13 +194,13 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     )
 
     // 2. Download all binaries and binary targets needed
-    const binaries = flatMap(generators, g =>
+    const binaries = flatMap(generators, (g) =>
       g.manifest ? g.manifest.requiresEngines || [] : [],
     )
 
     let binaryTargets = unique(
-      flatMap(generatorConfigs, g => g.binaryTargets || []),
-    ).map(t => (t === 'native' ? platform : t))
+      flatMap(generatorConfigs, (g) => g.binaryTargets || []),
+    ).map((t) => (t === 'native' ? platform : t))
 
     if (binaryTargets.length === 0) {
       binaryTargets = [platform]
@@ -209,6 +209,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     if (process.env.NETLIFY && !binaryTargets.includes('rhel-openssl-1.0.x')) {
       binaryTargets.push('rhel-openssl-1.0.x')
     }
+    debug({ binaryTargets })
 
     const binariesConfig: BinaryDownloadConfiguration = binaries.reduce(
       (acc, curr) => {
@@ -250,7 +251,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     return generators
   } catch (e) {
     // make sure all generators that are already running are being stopped
-    runningGenerators.forEach(g => g.stop())
+    runningGenerators.forEach((g) => g.stop())
     throw e
   }
 }
@@ -352,7 +353,7 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
           ? generator.binaryTargets
           : ['native']
 
-      const resolvedBinaryTargets = binaryTargets.map(p =>
+      const resolvedBinaryTargets = binaryTargets.map((p) =>
         p === 'native' ? platform : p,
       )
 
