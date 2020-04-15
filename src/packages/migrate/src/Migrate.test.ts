@@ -1,11 +1,14 @@
 import assert from 'assert'
 import del from 'del'
 import mkdir from 'make-dir'
-import { writeFile } from 'mz/fs'
+import fs from 'fs'
+import { promisify } from 'util'
 import { dirname, join } from 'path'
 import pkgup from 'pkg-up'
 import dedent from 'strip-indent'
 import { Migrate } from './Migrate'
+
+const writeFile = promisify(fs.writeFile)
 
 describe('migrate.create', () => {
   createTests().map((t) => {
