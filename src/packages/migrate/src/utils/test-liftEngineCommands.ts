@@ -1,4 +1,4 @@
-import { canConnectToDatabase, createDatabase } from '../liftEngineCommands'
+import { canConnectToDatabase, createDatabase } from '../MigrateEngineCommands'
 
 async function main2() {
   const result = await createDatabase(process.env.TEST_CONNECTION_STRING!)
