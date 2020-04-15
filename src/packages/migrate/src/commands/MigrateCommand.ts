@@ -21,7 +21,11 @@ export class MigrateCommand implements Command {
 
     ${chalk.bold('Usage')}
 
+      With an existing schema.prisma:
       ${chalk.dim('$')} prisma migrate [command] [options] --experimental
+
+      Or specify a schema:
+      ${chalk.dim('$')} prisma migrate [command] [options] --experimental --schema=./schema.prisma
 
     ${chalk.bold('Options')}
 
