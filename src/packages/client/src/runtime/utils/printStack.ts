@@ -120,14 +120,16 @@ export const printStack = ({
                 )
                 .map((l, i, arr) =>
                   i === arr.length - 1
-                    ? `${chalk.red.bold('→')} ${l}`
+                    ? `${chalk.red.bold('→')} ${chalk.dim(l)}`
                     : chalk.dim('  ' + l),
                 )
-                .join('\n') +
-              '\n\n'
+                .join('\n')
+            if (!match) {
+              prevLines += '\n\n'
+            }
             afterLines = ')'
             indentValue =
-              String(lineNumber + start + 1).length + getIndent(theLine) + 1
+              String(lineNumber + start + 1).length + getIndent(theLine) + 1 + (match ? 2 : 0)
           }
         }
       }
@@ -154,10 +156,13 @@ It occured in the ${chalk.bold(
         `\`${functionName}\``,
       )} invocation${callsiteStr}`)
     : chalk.red(
-        `Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`,
+        `Invalid ${chalk.bold(
+          `\`${functionName}\``,
+        )} invocation${callsiteStr}`,
       )
 
   const stackStr = `\n${introText}
 ${prevLines}${chalk.reset()}`
+
   return { indent: indentValue, stack: stackStr, afterLines, lastErrorHeight }
 }

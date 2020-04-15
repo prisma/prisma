@@ -52,12 +52,13 @@ ${indent(this.children.map(String).join('\n'), tab)}
     isTopLevelQuery: boolean = false,
     originalMethod?: string,
     errorFormat?: 'pretty' | 'minimal' | 'colorless',
+    validationCallsite?: any,
   ) {
     if (!select) {
       select = {}
     }
     const invalidChildren = this.children.filter(
-      child => child.hasInvalidChild || child.hasInvalidArg,
+      (child) => child.hasInvalidChild || child.hasInvalidArg,
     )
     if (invalidChildren.length === 0) {
       return
@@ -75,13 +76,13 @@ ${indent(this.children.map(String).join('\n'), tab)}
     for (const child of invalidChildren) {
       const errors = child.collectErrors(prefix)
       fieldErrors.push(
-        ...errors.fieldErrors.map(e => ({
+        ...errors.fieldErrors.map((e) => ({
           ...e,
           path: isTopLevelQuery ? e.path : e.path.slice(1),
         })),
       )
       argErrors.push(
-        ...errors.argErrors.map(e => ({
+        ...errors.argErrors.map((e) => ({
           ...e,
           path: isTopLevelQuery ? e.path : e.path.slice(1),
         })),
@@ -101,10 +102,10 @@ ${indent(this.children.map(String).join('\n'), tab)}
         const fieldType = fieldError.error.outputType
         const { isInclude } = fieldError.error
         fieldType.fields
-          .filter(field =>
+          .filter((field) =>
             isInclude ? field.outputType.kind === 'object' : true,
           )
-          .forEach(field => {
+          .forEach((field) => {
             const splittedPath = path.split('.')
             missingItems.push({
               path: `${splittedPath
@@ -133,12 +134,12 @@ ${indent(this.children.map(String).join('\n'), tab)}
         const fieldType = fieldError.error.field.outputType
           .type as DMMF.OutputType
         fieldType.fields
-          .filter(field =>
+          .filter((field) =>
             fieldError.error.type === 'emptyInclude'
               ? field.outputType.kind === 'object'
               : true,
           )
-          .forEach(field => {
+          .forEach((field) => {
             missingItems.push({
               path: `${selectPath}.${field.name}`,
               type: 'true',
@@ -162,7 +163,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
           argError.error.missingType.length === 1
             ? argError.error.missingType[0].type
             : argError.error.missingType
-                .map(t => getInputTypeName(t.type))
+                .map((t) => getInputTypeName(t.type))
                 .join(' | ')
         missingItems.push({
           path,
@@ -174,10 +175,11 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
     const renderErrorStr = (callsite?: string) => {
       const hasRequiredMissingArgsErrors = argErrors.some(
-        e => e.error.type === 'missingArg' && e.error.missingType[0].isRequired,
+        (e) =>
+          e.error.type === 'missingArg' && e.error.missingType[0].isRequired,
       )
       const hasOptionalMissingArgsErrors = argErrors.some(
-        e =>
+        (e) =>
           e.error.type === 'missingArg' && !e.error.missingType[0].isRequired,
       )
       const hasMissingArgsErrors =
@@ -208,10 +210,10 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
       const errorMessages = `${argErrors
         .filter(
-          e =>
+          (e) =>
             e.error.type !== 'missingArg' || e.error.missingType[0].isRequired,
         )
-        .map(e =>
+        .map((e) =>
           this.printArgError(
             e,
             hasMissingArgsErrors,
@@ -220,7 +222,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
         ) // if no callsite is provided, just render the minimal error
         .join('\n')}
 ${fieldErrors
-  .map(e => this.printFieldError(e, missingItems, errorFormat === 'minimal'))
+  .map((e) => this.printFieldError(e, missingItems, errorFormat === 'minimal'))
   .join('\n')}`
 
       if (errorFormat === 'minimal') {
@@ -251,7 +253,9 @@ ${errorMessages}${missingArgsLegend}\n`
     }
     // end renderErrorStr definition
 
-    const error = new PrismaClientValidationError(renderErrorStr())
+    const error = new PrismaClientValidationError(
+      renderErrorStr(validationCallsite),
+    )
 
     // @ts-ignore
     if (process.env.NODE_ENV !== 'production') {
@@ -423,7 +427,7 @@ ${errorMessages}${missingArgsLegend}\n`
         )}.
 → Possible values: ${(error.requiredType.bestFittingType
           .type as DMMF.Enum).values
-          .map(v =>
+          .map((v) =>
             chalk.greenBright(
               `${stringifyGraphQLType(
                 error.requiredType.bestFittingType.type,
@@ -439,7 +443,7 @@ ${errorMessages}${missingArgsLegend}\n`
           ':\n' + stringifyInputType(error.requiredType.bestFittingType.type)
       }
       let expected = `${error.requiredType.inputType
-        .map(t =>
+        .map((t) =>
           chalk.greenBright(
             wrapWithList(
               stringifyGraphQLType(t.type),
@@ -450,7 +454,7 @@ ${errorMessages}${missingArgsLegend}\n`
         .join(' or ')}${typeStr}`
       const inputType: null | DMMF.SchemaArgInputType =
         (error.requiredType.inputType.length === 2 &&
-          error.requiredType.inputType.find(t => isInputArgType(t.type))) ||
+          error.requiredType.inputType.find((t) => isInputArgType(t.type))) ||
         null
       if (inputType) {
         expected += `\n` + stringifyInputType(inputType.type, true)
@@ -496,7 +500,7 @@ ${errorMessages}${missingArgsLegend}\n`
       )} needs ${chalk.greenBright(
         'exactly one',
       )} argument, but you provided ${error.providedKeys
-        .map(key => chalk.redBright(key))
+        .map((key) => chalk.redBright(key))
         .join(' and ')}.${additional}`
     }
   }
@@ -558,7 +562,7 @@ export class Field {
     this.error = error
     this.schemaField = schemaField
     this.hasInvalidChild = children
-      ? children.some(child =>
+      ? children.some((child) =>
           Boolean(child.error || child.hasInvalidArg || child.hasInvalidChild),
         )
       : false
@@ -606,13 +610,13 @@ ${indent(this.children.map(String).join('\n'), tab)}
         const errors = child.collectErrors(prefix)
         // Field -> Field always goes through a 'select'
         fieldErrors.push(
-          ...errors.fieldErrors.map(e => ({
+          ...errors.fieldErrors.map((e) => ({
             ...e,
             path: [this.name, prefix, ...e.path],
           })),
         )
         argErrors.push(
-          ...errors.argErrors.map(e => ({
+          ...errors.argErrors.map((e) => ({
             ...e,
             path: [this.name, prefix, ...e.path],
           })),
@@ -625,7 +629,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
       argErrors.push(
         ...this.args
           .collectErrors()
-          .map(e => ({ ...e, path: [this.name, ...e.path] })),
+          .map((e) => ({ ...e, path: [this.name, ...e.path] })),
       )
     }
 
@@ -641,15 +645,17 @@ export class Args {
   public readonly hasInvalidArg: boolean
   constructor(args: Arg[] = []) {
     this.args = args
-    this.hasInvalidArg = args ? args.some(arg => Boolean(arg.hasError)) : false
+    this.hasInvalidArg = args
+      ? args.some((arg) => Boolean(arg.hasError))
+      : false
   }
   public toString() {
     if (this.args.length === 0) {
       return ''
     }
     return `${this.args
-      .map(arg => arg.toString())
-      .filter(a => a)
+      .map((arg) => arg.toString())
+      .filter((a) => a)
       .join('\n')}`
   }
   public collectErrors(): ArgError[] {
@@ -657,7 +663,7 @@ export class Args {
       return []
     }
 
-    return flatMap(this.args, arg => arg.collectErrors())
+    return flatMap(this.args, (arg) => arg.collectErrors())
   }
 }
 
@@ -723,7 +729,7 @@ export class Arg {
       Boolean(error) ||
       (value instanceof Args ? value.hasInvalidArg : false) ||
       (Array.isArray(value) &&
-        value.some(v => (v instanceof Args ? v.hasInvalidArg : false)))
+        value.some((v) => (v instanceof Args ? v.hasInvalidArg : false)))
   }
   public _toString(value: ArgValue, key: string): string | undefined {
     if (typeof value === 'undefined') {
@@ -737,10 +743,10 @@ ${indent(value.toString(), 2)}
     }
 
     if (Array.isArray(value)) {
-      const isScalar = !(value as any[]).some(v => typeof v === 'object')
+      const isScalar = !(value as any[]).some((v) => typeof v === 'object')
       return `${key}: [${isScalar ? '' : '\n'}${indent(
         (value as any[])
-          .map(nestedValue => {
+          .map((nestedValue) => {
             if (nestedValue instanceof Args) {
               return `{\n${indent(nestedValue.toString(), tab)}\n}`
             }
@@ -778,7 +784,7 @@ ${indent(value.toString(), 2)}
             return []
           }
 
-          return val.collectErrors().map(e => {
+          return val.collectErrors().map((e) => {
             return { ...e, path: [this.key, index, ...e.path] }
           })
         }) as any[]),
@@ -790,7 +796,7 @@ ${indent(value.toString(), 2)}
       errors.push(
         ...this.value
           .collectErrors()
-          .map(e => ({ ...e, path: [this.key, ...e.path] })),
+          .map((e) => ({ ...e, path: [this.key, ...e.path] })),
       )
     }
 
@@ -850,16 +856,16 @@ export function makeDocument({
 export function transformDocument(document: Document): Document {
   function transformWhereArgs(args: Args) {
     return new Args(
-      flatMap(args.args, ar => {
+      flatMap(args.args, (ar) => {
         if (isArgsArray(ar.value)) {
           // long variable name to prevent shadowing
-          const value = ar.value.map(argsInstance => {
+          const value = ar.value.map((argsInstance) => {
             return transformWhereArgs(argsInstance)
           })
           return [new Arg({ ...ar, value })]
         } else if (ar.value instanceof Args) {
           if (ar.schemaArg && !ar.schemaArg.isRelationFilter) {
-            return ar.value.args.map(a => {
+            return ar.value.args.map((a) => {
               return new Arg({
                 key: getFilterArgName(ar.key, a.key),
                 value: a.value,
@@ -906,7 +912,7 @@ export function transformDocument(document: Document): Document {
           if (argType.isWhereType && schemaArg) {
             let value = arg.value
             if (isArgsArray(arg.value)) {
-              value = arg.value.map(val => transformWhereArgs(val))
+              value = arg.value.map((val) => transformWhereArgs(val))
             } else if (arg.value instanceof Args) {
               value = transformWhereArgs(arg.value)
             }
@@ -922,7 +928,7 @@ export function transformDocument(document: Document): Document {
 
 function isArgsArray(input: any): input is Args[] {
   if (Array.isArray(input)) {
-    return input.every(arg => arg instanceof Args)
+    return input.every((arg) => arg instanceof Args)
   }
 
   return false
@@ -951,7 +957,7 @@ export function selectionToFields(
 ): Field[] {
   const outputType = schemaField.outputType.type as DMMF.OutputType
   return Object.entries(selection).reduce((acc, [name, value]: any) => {
-    const field = outputType.fields.find(f => f.name === name)
+    const field = outputType.fields.find((f) => f.name === name)
     if (!field) {
       // if the field name is incorrect, we ignore the args and child fields altogether
       acc.push(
@@ -965,7 +971,7 @@ export function selectionToFields(
             providedName: name,
             didYouMean: getSuggestion(
               name,
-              outputType.fields.map(f => f.name),
+              outputType.fields.map((f) => f.name),
             ),
             outputType,
           },
@@ -1070,13 +1076,13 @@ export function selectionToFields(
         if (field.outputType.kind === 'object') {
           const fieldOutputType = field.outputType.type as DMMF.OutputType
           const allowedKeys = fieldOutputType.fields
-            .filter(f => f.outputType.kind === 'object')
-            .map(f => f.name)
-          const invalidKeys = keys.filter(key => !allowedKeys.includes(key))
+            .filter((f) => f.outputType.kind === 'object')
+            .map((f) => f.name)
+          const invalidKeys = keys.filter((key) => !allowedKeys.includes(key))
           if (invalidKeys.length > 0) {
             acc.push(
               ...invalidKeys.map(
-                invalidKey =>
+                (invalidKey) =>
                   new Field({
                     name: invalidKey,
                     children: [
@@ -1092,7 +1098,7 @@ export function selectionToFields(
                             getSuggestion(invalidKey, allowedKeys) || undefined,
                           isInclude: true,
                           isIncludeScalar: fieldOutputType.fields.some(
-                            f => f.name === invalidKey,
+                            (f) => f.name === invalidKey,
                           ),
                         },
                       }),
@@ -1127,7 +1133,7 @@ export function selectionToFields(
         }
 
         // check if there is at least one truthy value
-        const truthyValues = values.filter(v => v)
+        const truthyValues = values.filter((v) => v)
         if (truthyValues.length === 0) {
           acc.push(
             new Field({
@@ -1282,7 +1288,7 @@ function hasCorrectScalarType(
   return false
 }
 
-const cleanObject = obj => filterObject(obj, (k, v) => v !== undefined)
+const cleanObject = (obj) => filterObject(obj, (k, v) => v !== undefined)
 
 function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   const argInputType = arg.inputType[0]
@@ -1316,7 +1322,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
 
   // then the first
   if (!argInputType.isList) {
-    const args = arg.inputType.map(t => {
+    const args = arg.inputType.map((t) => {
       if (isInputArgType(t.type)) {
         if (typeof value !== 'object') {
           return getInvalidTypeArg(key, value, arg, t)
@@ -1372,7 +1378,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     }
 
     // do we have more then one, but does it fit one of the args? Then let's just take that one arg
-    const argWithoutError = args.find(a => !a.hasError)
+    const argWithoutError = args.find((a) => !a.hasError)
     if (argWithoutError) {
       return argWithoutError
     }
@@ -1394,7 +1400,9 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
      * take the arg with the minimum amount of errors
      */
     if (args.length > 1) {
-      const argsWithSameKind = args.filter(a => hasSameKind(a.argType!, value))
+      const argsWithSameKind = args.filter((a) =>
+        hasSameKind(a.argType!, value),
+      )
       const argsToFilter = argsWithSameKind.length > 0 ? argsWithSameKind : args
 
       const argWithMinimumErrors = argsToFilter.reduce<{
@@ -1439,7 +1447,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
 
   const inputType = argInputType.type as DMMF.InputType
   const hasAtLeastOneError = inputType.atLeastOne
-    ? value.some(v => !v || Object.keys(cleanObject(v)).length === 0)
+    ? value.some((v) => !v || Object.keys(cleanObject(v)).length === 0)
     : false
   const err: AtLeastOneError | undefined = hasAtLeastOneError
     ? {
@@ -1450,7 +1458,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     : undefined
   return new Arg({
     key,
-    value: value.map(v => {
+    value: value.map((v) => {
       if (typeof v !== 'object' || !value) {
         return getInvalidTypeArg(key, v, arg, argInputType)
       }
@@ -1505,16 +1513,16 @@ function objectToArgs(
   const obj = cleanObject(initialObj)
   const { fields: args } = inputType
   const requiredArgs: any = args
-    .filter(arg => arg.inputType.some(t => t.isRequired))
-    .map(arg => [arg.name, undefined])
-  const entries = unionBy(Object.entries(obj || {}), requiredArgs, a => a[0])
+    .filter((arg) => arg.inputType.some((t) => t.isRequired))
+    .map((arg) => [arg.name, undefined])
+  const entries = unionBy(Object.entries(obj || {}), requiredArgs, (a) => a[0])
   const argsList = entries.reduce((acc, [argName, value]: any) => {
-    const schemaArg = args.find(a => a.name === argName)
+    const schemaArg = args.find((a) => a.name === argName)
     if (!schemaArg) {
       const didYouMeanField =
         typeof value === 'boolean' &&
         outputType &&
-        outputType.fields.some(f => f.name === argName)
+        outputType.fields.some((f) => f.name === argName)
           ? argName
           : null
       acc.push(
@@ -1528,7 +1536,10 @@ function objectToArgs(
             didYouMeanField,
             didYouMeanArg:
               (!didYouMeanField &&
-                getSuggestion(argName, [...args.map(a => a.name), 'select'])) ||
+                getSuggestion(argName, [
+                  ...args.map((a) => a.name),
+                  'select',
+                ])) ||
               undefined,
             originalType: inputType,
             possibilities,
@@ -1550,13 +1561,13 @@ function objectToArgs(
   // Also show optional neighbour args, if there is any arg missing
   if (
     (entries.length === 0 && inputType.atLeastOne) ||
-    argsList.find(arg => arg.error && arg.error.type === 'missingArg')
+    argsList.find((arg) => arg.error && arg.error.type === 'missingArg')
   ) {
     const optionalMissingArgs = inputType.fields.filter(
-      arg => !entries.some(([entry]) => entry === arg.name),
+      (arg) => !entries.some(([entry]) => entry === arg.name),
     )
     argsList.push(
-      ...optionalMissingArgs.map(arg => {
+      ...optionalMissingArgs.map((arg) => {
         const argInputType = arg.inputType[0]
         return new Arg({
           key: arg.name,
@@ -1640,7 +1651,7 @@ export function mapDates({ field, data }: MapDatesOptions): any {
 
     if (child.schemaField && child.schemaField.outputType.kind === 'object') {
       if (Array.isArray(data)) {
-        data.forEach(entry =>
+        data.forEach((entry) =>
           mapDates({ field: child, data: entry[child.name] }),
         )
       } else {
@@ -1655,7 +1666,7 @@ export function mapDates({ field, data }: MapDatesOptions): any {
 export function getField(document: Document, path: string[]): Field {
   const todo = path.slice() // let's create a copy to not fiddle with the input argument
   const firstElement = todo.shift()
-  let pointer = document.children.find(c => c.name === firstElement)
+  let pointer = document.children.find((c) => c.name === firstElement)
 
   if (!pointer) {
     throw new Error(
@@ -1670,7 +1681,7 @@ export function getField(document: Document, path: string[]): Field {
         `Can't get children for field ${pointer} with child ${key}`,
       )
     }
-    const child = pointer!.children.find(c => c.name === key)
+    const child = pointer!.children.find((c) => c.name === key)
     if (!child) {
       throw new Error(`Can't find child ${key} of field ${pointer}`)
     }
