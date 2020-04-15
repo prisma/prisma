@@ -228,25 +228,27 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
         : ''
 
       const dir = path.dirname(prismaPath)
+      const dirExists = fs.existsSync(dir)
+      let files = []
+      if (dirExists) {
+        files = await readdir(dir)
+      }
       let errorText = `Query engine binary for current platform "${chalk.bold(
         platform,
       )}" could not be found.${pinnedStr}
 This probably happens, because you built Prisma Client on a different platform.
-(Prisma Client looked in "${chalk.underline(prismaPath)}")`
+(Prisma Client looked in "${chalk.underline(prismaPath)}")
+
+Files in ${dir}:
+
+${files.map((f) => `  ${f}`).join('\n')}\n`
 
       // The generator should always be there during normal usage
       if (this.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️
         // That means, that some build system just deleted the files 🤔
         if (this.generator.binaryTargets.includes(this.platform) || this.generator.binaryTargets.includes('native')) {
-          let files = []
-          if (fs.existsSync(dir)) {
-            files = await readdir(dir)
-          }
-
-          errorText += `\n\nFiles in ${dir}:
-
-${files.map((f) => `  ${f}`).join('\n')}\n
+          errorText += `
 You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''} ${this.generator.binaryTargets
             .map((t) => `"${chalk.bold(t)}"`)
             .join(', ')} to the "${chalk.underline('generator')}" block
