@@ -152,7 +152,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
 
       let predefinedDatasources = config.sqliteDatasourceOverrides ?? []
-      predefinedDatasources = predefinedDatasources.map(d => ({
+      predefinedDatasources = predefinedDatasources.map((d) => ({
         name: d.name,
         url: 'file:' + path.resolve(config.dirname, d.url),
       }))
@@ -164,7 +164,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       const datasources = mergeBy(
         predefinedDatasources,
         inputDatasources,
-        source => source.name,
+        (source) => source.name,
       )
 
       const engineConfig = internal.engine || {}
@@ -207,7 +207,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           Boolean(
             typeof options.log === 'string'
               ? options.log === 'query'
-              : options.log.find(o =>
+              : options.log.find((o) =>
                   typeof o === 'string' ? o === 'query' : o.level === 'query',
                 ),
           ),
@@ -229,7 +229,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               ? log.level
               : null
           if (level) {
-            this.on(level, event => {
+            this.on(level, (event) => {
               const colorMap = {
                 query: 'blue',
                 info: 'cyan',
@@ -259,7 +259,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return {}
     }
     on(eventType: any, callback: (event: any) => void) {
-      this.engine.on(eventType, event => {
+      this.engine.on(eventType, (event) => {
         const fields = event.fields
         if (eventType === 'query') {
           callback({
@@ -384,21 +384,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             select: args,
           })
 
-          try {
-            document.validate(
-              args,
-              false,
-              `${lowerCaseModel}.${actionName}`,
-              /* errorFormat */ undefined,
-            )
-          } catch (e) {
-            const { stack } = printStack({
-              callsite,
-              originalMethod: clientMethod,
-              onUs: false,
-            })
-            throw new PrismaClientValidationError(stack + e.message)
-          }
+          document.validate(
+            args,
+            false,
+            `${lowerCaseModel}.${actionName}`,
+            /* errorFormat */ undefined,
+            callsite,
+          )
 
           document = transformDocument(document)
 
@@ -438,7 +430,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
               return requestPromise.then(onfulfilled, onrejected)
             },
-            catch: onrejected => {
+            catch: (onrejected) => {
               if (!requestPromise) {
                 requestPromise = this.fetcher.request({
                   document,
@@ -454,7 +446,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
               return requestPromise.catch(onrejected)
             },
-            finally: onfinally => {
+            finally: (onfinally) => {
               if (!requestPromise) {
                 requestPromise = this.fetcher.request({
                   document,
@@ -474,8 +466,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           }
 
           // add relation fields
-          for (const field of model.fields.filter(f => f.kind === 'object')) {
-            clientImplementation[field.name] = fieldArgs => {
+          for (const field of model.fields.filter((f) => f.kind === 'object')) {
+            clientImplementation[field.name] = (fieldArgs) => {
               const prefix = dataPath.includes('select')
                 ? 'select'
                 : dataPath.includes('include')
@@ -516,7 +508,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           (acc, [actionName, rootField]) => {
             if (!denyList[actionName]) {
               const operation = getOperation(actionName as any)
-              acc[actionName] = args =>
+              acc[actionName] = (args) =>
                 clients[mapping.model]({
                   operation,
                   actionName,
@@ -530,7 +522,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           {},
         )
 
-        delegate.count = args =>
+        delegate.count = (args) =>
           clients[mapping.model]({
             operation: 'query',
             actionName: 'count',
@@ -561,18 +553,18 @@ export class PrismaClientFetcher {
     this.debug = enableDebug
     this.hooks = hooks
     this.dataloader = new Dataloader({
-      batchLoader: async requests => {
+      batchLoader: async (requests) => {
         await this.prisma.connect()
-        const queries = requests.map(r => String(r.document))
+        const queries = requests.map((r) => String(r.document))
 
         return this.prisma.engine.requestBatch(queries)
       },
-      singleLoader: async request => {
+      singleLoader: async (request) => {
         const query = String(request.document)
         await this.prisma.connect()
         return this.prisma.engine.request(query)
       },
-      batchBy: request => {
+      batchBy: (request) => {
         if (!request.document.children[0].name.startsWith('findOne')) {
           return null
         }
@@ -582,9 +574,9 @@ export class PrismaClientFetcher {
           .join(',')
 
         const args = request.document.children[0].args?.args
-          .map(a => {
+          .map((a) => {
             if (a.value instanceof Args) {
-              return a.key + '-' + a.value.args.map(a => a.key).join(',')
+              return a.key + '-' + a.value.args.map((a) => a.key).join(',')
             }
             return a.key
           })
@@ -702,7 +694,7 @@ export class PrismaClientFetcher {
     if (rootField) {
       getPath.push(rootField)
     }
-    getPath.push(...path.filter(p => p !== 'select' && p !== 'include'))
+    getPath.push(...path.filter((p) => p !== 'select' && p !== 'include'))
     return unpack({ document, data, path: getPath })
   }
 }
