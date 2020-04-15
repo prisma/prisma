@@ -5,6 +5,9 @@ import { GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
 import fs from 'fs'
 import { isBinaryFile } from 'isbinaryfile'
 import chalk from 'chalk'
+import path from 'path'
+import Debug from 'debug'
+const debug = Debug('GeneratorProcess')
 
 let globalMessageId = 1
 
@@ -45,30 +48,25 @@ export class GeneratorProcess {
     return new Promise(async (resolve, reject) => {
       let isBinary = true
 
-      let command = this.executablePath
-      let args: string[] = []
+      const { command, args } = getCommandAndArgs(this.executablePath)
 
-      if (this.executablePath.includes(' ')) {
-        const arr = this.executablePath.split(' ')
-        command = arr.shift()!
-        args = arr
-      } else {
-        isBinary = await isBinaryFile(this.executablePath)
-      }
+      isBinary = await isBinaryFile(this.executablePath)
 
-      this.child = spawn(
-        isBinary ? command : process.execPath,
-        isBinary ? args : ['--max-old-space-size=8096', command],
-        {
-          stdio: ['pipe', 'inherit', 'pipe'],
-        },
-      )
+      const spawnCommand = isBinary ? command : process.execPath
+      const spawnArgs = isBinary ? args : ['--max-old-space-size=8096', command]
 
-      this.child.on('exit', code => {
+      debug({ isBinary, command, args, spawnCommand, spawnArgs })
+
+      this.child = spawn(spawnCommand, spawnArgs, {
+        stdio: ['pipe', 'inherit', 'pipe'],
+      })
+
+      this.child.on('exit', (code) => {
         this.exitCode = code
       })
 
-      this.child.on('error', err => {
+      this.child.on('error', (err) => {
+        debug(err)
         if (err.message.includes('EACCES')) {
           reject(
             new Error(
@@ -82,7 +80,7 @@ export class GeneratorProcess {
         }
       })
 
-      byline(this.child!.stderr).on('data', line => {
+      byline(this.child!.stderr).on('data', (line) => {
         const response = String(line)
         this.stderrLogs += response + '\n'
         let data
@@ -196,4 +194,18 @@ function hasChmodX(file: string): boolean {
   // tslint:disable-next-line
   const newMode = s.mode | 64 | 8 | 1
   return s.mode === newMode
+}
+
+function getCommandAndArgs(str: string): { command: string; args: string[] } {
+  const lastSlash = str.lastIndexOf(path.delimiter)
+  const arr = str.slice(lastSlash).split(' ')
+
+  if (arr.length === 1) {
+    return { command: str, args: [] }
+  }
+
+  return {
+    command: str.slice(0, lastSlash) + arr[0],
+    args: arr.slice(1),
+  }
 }
