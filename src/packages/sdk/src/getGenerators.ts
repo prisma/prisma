@@ -206,6 +206,10 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
       binaryTargets = [platform]
     }
 
+    if (process.env.NETLIFY && !binaryTargets.includes('rhel-openssl-1.0.x')) {
+      binaryTargets.push('rhel-openssl-1.0.x')
+    }
+
     const binariesConfig: BinaryDownloadConfiguration = binaries.reduce(
       (acc, curr) => {
         acc[engineTypeToBinaryType(curr)] = eval(
