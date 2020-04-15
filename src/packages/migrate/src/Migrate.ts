@@ -20,7 +20,7 @@ import { promisify } from 'util'
 import { highlightDatamodel, maskSchema } from '@prisma/sdk'
 import { blue } from '@prisma/sdk/dist/highlight/theme'
 import { DevComponentRenderer } from './ink/DevComponentRenderer'
-import { LiftEngine } from './LiftEngine'
+import { MigrateEngine } from './MigrateEngine'
 import { Studio } from './Studio'
 import { EngineResults, FileMap, LocalMigration, LocalMigrationWithDatabaseSteps, LockFile, Migration } from './types'
 import { exit } from './utils/exit'
@@ -36,7 +36,7 @@ import { printMigrationReadme } from './utils/printMigrationReadme'
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { flatMap } from './utils/flatMap'
-const debug = debugLib('Lift')
+const debug = debugLib('Migrate')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
 const del = promisify(rimraf)
@@ -68,11 +68,11 @@ interface MigrationFileMapOptions {
 }
 const brightGreen = chalk.rgb(127, 224, 152)
 
-export class Lift {
+export class Migrate {
   get devMigrationsDir() {
     return path.join(path.dirname(this.schemaPath), 'migrations/dev')
   }
-  public engine: LiftEngine
+  public engine: MigrateEngine
 
   // tslint:disable
   public watchUp = simpleDebounce(
@@ -136,17 +136,17 @@ export class Lift {
           cliVersion: packageJson.version,
         })
 
-        const newGenerators = generators.map(gen => ({
+        const newGenerators = generators.map((gen) => ({
           name: (gen.manifest ? gen.manifest.prettyName : gen.options!.generator.provider) || 'Generator',
           generatedIn: undefined,
           generating: false,
         }))
 
         const addedGenerators = newGenerators.filter(
-          g => renderer && !renderer.state.generators.some(gg => gg.name === g.name),
+          (g) => renderer && !renderer.state.generators.some((gg) => gg.name === g.name),
         )
         const removedGenerators =
-          (renderer && renderer.state.generators.filter(g => newGenerators.some(gg => gg.name === g.name))) || []
+          (renderer && renderer.state.generators.filter((g) => newGenerators.some((gg) => gg.name === g.name))) || []
 
         if (
           (renderer && renderer.state.generators.length !== newGenerators.length) ||
@@ -204,7 +204,7 @@ export class Lift {
   private schemaPath: string
   constructor(schemaPath?: string) {
     this.schemaPath = this.getSchemaPath(schemaPath)
-    this.engine = new LiftEngine({ projectDir: path.dirname(this.schemaPath), schemaPath: this.schemaPath })
+    this.engine = new MigrateEngine({ projectDir: path.dirname(this.schemaPath), schemaPath: this.schemaPath })
   }
 
   public getSchemaPath(schemaPathFromOptions?): string {
@@ -260,7 +260,7 @@ export class Lift {
   public async createMigration(migrationId: string): Promise<LocalMigrationWithDatabaseSteps | undefined> {
     const { migrationsToApply, sourceConfig } = await this.getMigrationsToApply()
 
-    const assumeToBeApplied = flatMap(migrationsToApply, m => m.datamodelSteps)
+    const assumeToBeApplied = flatMap(migrationsToApply, (m) => m.datamodelSteps)
 
     const datamodel = await this.getDatamodel()
     const { datamodelSteps, databaseSteps, warnings } = await this.engine.inferMigrationSteps({
@@ -364,7 +364,7 @@ export class Lift {
         studioPort: this.studioPort,
         datamodelBefore: this.datamodelBeforeWatch,
         datamodelAfter: datamodel,
-        generators: generators.map(gen => ({
+        generators: generators.map((gen) => ({
           name: (gen.manifest ? gen.manifest.prettyName : gen.options!.generator.provider) || 'Generator',
           generatedIn: undefined,
           generating: false,
@@ -397,14 +397,14 @@ export class Lift {
       await this.up({
         short: true,
         autoApprove: options.autoApprove,
-        onWarnings: async warnings => renderer.promptForWarnings(warnings),
+        onWarnings: async (warnings) => renderer.promptForWarnings(warnings),
       })
       // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
       options.clear = false
       renderer.setState({ migrating: false })
     }
 
-    options.onWarnings = warnings => renderer.promptForWarnings(warnings)
+    options.onWarnings = (warnings) => renderer.promptForWarnings(warnings)
 
     const localMigrations = await this.getLocalMigrations()
     const watchMigrations = await this.getLocalWatchMigrations()
@@ -549,7 +549,7 @@ export class Lift {
     const firstMigrationToApplyIndex = localMigrations.indexOf(migrationsToApply[0])
     const migrationsWithDbSteps = await this.getDatabaseSteps(localMigrations, firstMigrationToApplyIndex, sourceConfig)
 
-    const warnings = flatMap(migrationsWithDbSteps, m => m.warnings)
+    const warnings = flatMap(migrationsWithDbSteps, (m) => m.warnings)
 
     if (warnings.length > 0 && !autoApprove) {
       if (onWarnings && typeof onWarnings === 'function' && !autoApprove) {
@@ -596,7 +596,7 @@ export class Lift {
         steps: datamodelSteps,
         sourceConfig,
       })
-      await new Promise(r => setTimeout(r, 50))
+      await new Promise((r) => setTimeout(r, 50))
       // needed for the ProgressRenderer
       // and for verbose printing
       migrationsWithDbSteps[i].databaseSteps = result.databaseSteps
@@ -624,7 +624,7 @@ export class Lift {
           cliCursor.show()
           throw new Error(`Failed to roll back migration. ${JSON.stringify(progress)}`)
         }
-        await new Promise(r => setTimeout(r, 1500))
+        await new Promise((r) => setTimeout(r, 1500))
       }
 
       if (migrationToApply.afterFilePath) {
@@ -638,14 +638,14 @@ export class Lift {
             FORCE_COLOR: '1',
           },
         })
-        child.on('error', e => {
+        child.on('error', (e) => {
           console.error(e)
         })
-        child.stderr.on('data', d => {
+        child.stderr.on('data', (d) => {
           console.log(`stderr ${d.toString()}`)
         })
         progressRenderer.showLogs(path.basename(after), child.stdout)
-        await new Promise(r => {
+        await new Promise((r) => {
           child.on('close', () => {
             r()
           })
@@ -715,9 +715,9 @@ export class Lift {
         // @ts-ignore
         cwd: migrationsDir,
       },
-    ).then(files =>
+    ).then((files) =>
       Promise.all(
-        files.map(async fileName => ({
+        files.map(async (fileName) => ({
           fileName: fileName.split('/')[1],
           migrationId: fileName.split('/')[0],
           file: await readFile(path.join(migrationsDir, fileName), 'utf-8'),
@@ -727,13 +727,13 @@ export class Lift {
 
     migrationSteps.sort((a, b) => (a.migrationId < b.migrationId ? -1 : 1))
 
-    const groupedByMigration = groupBy<any>(migrationSteps, step => step.migrationId) // todo fix types
+    const groupedByMigration = groupBy<any>(migrationSteps, (step) => step.migrationId) // todo fix types
 
     return Object.entries(groupedByMigration).map(([migrationId, files]) => {
-      const stepsFile = files.find(f => f.fileName === 'steps.json')!
-      const datamodelFile = files.find(f => f.fileName === 'datamodel.prisma' || f.fileName === 'schema.prisma')!
-      const afterFile = files.find(f => f.fileName === 'after.sh' || f.fileName === 'after.ts')
-      const beforeFile = files.find(f => f.fileName === 'before.sh' || f.fileName === 'before.ts')
+      const stepsFile = files.find((f) => f.fileName === 'steps.json')!
+      const datamodelFile = files.find((f) => f.fileName === 'datamodel.prisma' || f.fileName === 'schema.prisma')!
+      const afterFile = files.find((f) => f.fileName === 'after.sh' || f.fileName === 'after.ts')
+      const beforeFile = files.find((f) => f.fileName === 'before.sh' || f.fileName === 'before.ts')
       const stepsFileJson = JSON.parse(stepsFile.file)
       if (Array.isArray(stepsFileJson)) {
         throw new Error(
@@ -771,7 +771,7 @@ export class Lift {
             warnings: [],
           }
         }
-        const stepsUntilNow = index > 0 ? flatMap(localMigrations.slice(0, index), m => m.datamodelSteps) : []
+        const stepsUntilNow = index > 0 ? flatMap(localMigrations.slice(0, index), (m) => m.datamodelSteps) : []
         const input = {
           assumeToBeApplied: stepsUntilNow,
           stepsToApply: migration.datamodelSteps,
@@ -801,11 +801,11 @@ export class Lift {
 
     const sourceConfig = await this.getSourceConfig()
     const appliedRemoteMigrations = await this.engine.listAppliedMigrations({ sourceConfig })
-    const appliedRemoteMigrationsWithoutWatch = appliedRemoteMigrations.filter(m => !isWatchMigrationName(m.id))
+    const appliedRemoteMigrationsWithoutWatch = appliedRemoteMigrations.filter((m) => !isWatchMigrationName(m.id))
 
     if (appliedRemoteMigrationsWithoutWatch.length > localMigrations.length) {
-      const localMigrationIds = localMigrations.map(m => m.id)
-      const remoteMigrationIds = appliedRemoteMigrationsWithoutWatch.map(m => m.id)
+      const localMigrationIds = localMigrations.map((m) => m.id)
+      const remoteMigrationIds = appliedRemoteMigrationsWithoutWatch.map((m) => m.id)
 
       throw new Error(
         `There are more migrations in the database than locally. This must not happen. Local migration ids: ${localMigrationIds.join(
@@ -872,7 +872,7 @@ class ProgressRenderer {
   public showLogs(name, stream: Readable) {
     this.logsName = name
     this.logsString = ''
-    stream.on('data', data => {
+    stream.on('data', (data) => {
       this.logsString += data.toString()
       this.render()
     })
@@ -885,7 +885,7 @@ class ProgressRenderer {
     const maxMigrationLength = this.migrations.reduce((acc, curr) => Math.max(curr.id.length, acc), 0)
     let maxStepLength = 0
     const rows = this.migrations
-      .map(m => {
+      .map((m) => {
         const steps = printDatabaseStepsOverview(m.databaseSteps)
         maxStepLength = Math.max(stripAnsi(steps).length, maxStepLength)
         let scripts = ''

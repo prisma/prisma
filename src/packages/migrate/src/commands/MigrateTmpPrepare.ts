@@ -1,7 +1,7 @@
 import { arg, Command, format, HelpError } from '@prisma/sdk'
 import chalk from 'chalk'
 import Debug from 'debug'
-import { Lift } from '../Lift'
+import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { occupyPath } from '../utils/occupyPath'
 const debug = Debug('tmp-prepare')
@@ -9,9 +9,9 @@ const debug = Debug('tmp-prepare')
 /**
  * $ prisma tmp-prepare
  */
-export class LiftTmpPrepare implements Command {
-  public static new(): LiftTmpPrepare {
-    return new LiftTmpPrepare()
+export class MigrateTmpPrepare implements Command {
+  public static new(): MigrateTmpPrepare {
+    return new MigrateTmpPrepare()
   }
 
   // static help template
@@ -30,21 +30,21 @@ export class LiftTmpPrepare implements Command {
     await occupyPath(process.cwd())
     debug('occupied path')
 
-    const lift = new Lift()
-    debug('initialized lift')
+    const migrate = new Migrate()
+    debug('initialized migrate')
     await ensureDatabaseExists('dev', false, true)
 
-    await lift.up({
+    await migrate.up({
       short: true,
       autoApprove: true,
     })
 
-    await lift.watchUp({
+    await migrate.watchUp({
       providerAliases: {},
       autoApprove: true,
     })
 
-    lift.stop()
+    migrate.stop()
 
     console.log('Done executing tmp prepare')
     process.exit(0)
@@ -55,8 +55,8 @@ export class LiftTmpPrepare implements Command {
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftTmpPrepare.help}`)
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateTmpPrepare.help}`)
     }
-    return LiftTmpPrepare.help
+    return MigrateTmpPrepare.help
   }
 }

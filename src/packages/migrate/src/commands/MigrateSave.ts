@@ -4,7 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import prompt from 'prompts'
 import { promisify } from 'util'
-import { Lift } from '../Lift'
+import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { printFiles } from '../utils/printFiles'
 import { printMigrationId } from '../utils/printMigrationId'
@@ -16,9 +16,9 @@ const writeFile = promisify(fs.writeFile)
 /**
  * $ prisma migrate save
  */
-export class LiftSave implements Command {
-  public static new(): LiftSave {
-    return new LiftSave()
+export class MigrateSave implements Command {
+  public static new(): MigrateSave {
+    return new MigrateSave()
   }
 
   // static help template
@@ -83,18 +83,18 @@ export class LiftSave implements Command {
     const preview = args['--preview'] || false
     await ensureDatabaseExists('create', true, args['--create-db'], args['--schema'])
 
-    const lift = new Lift(args['--schema'])
+    const migrate = new Migrate(args['--schema'])
 
-    const migration = await lift.createMigration('DUMMY_NAME')
+    const migration = await migrate.createMigration('DUMMY_NAME')
 
     if (!migration) {
-      lift.stop()
+      migrate.stop()
       return `Everything up-to-date\n` // TODO: find better wording
     }
 
     const name = preview ? args['--name'] : await this.name(args['--name'])
 
-    const { files, newLockFile, migrationId } = await lift.save(migration, name, preview)
+    const { files, newLockFile, migrationId } = await migrate.save(migration, name, preview)
 
     if (migration.warnings && migration.warnings.length > 0) {
       console.log(chalk.bold(`\n\n⚠️  There might be data loss when applying the migration:\n`))
@@ -105,7 +105,7 @@ export class LiftSave implements Command {
     }
 
     if (preview) {
-      lift.stop()
+      migrate.stop()
       return `\nRun ${chalk.greenBright(
         'prisma migrate save --name MIGRATION_NAME --experimental',
       )} to create the migration\n`
@@ -119,7 +119,7 @@ export class LiftSave implements Command {
     const lockFilePath = path.join(schemaDir, 'migrations', 'migrate.lock')
     await writeFile(lockFilePath, newLockFile)
 
-    lift.stop()
+    migrate.stop()
 
     return `\nPrisma Migrate just created your migration ${printMigrationId(migrationId)} in\n\n${chalk.dim(
       printFiles(`migrations/${migrationId}`, files),
@@ -145,8 +145,8 @@ export class LiftSave implements Command {
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftSave.help}`)
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateSave.help}`)
     }
-    return LiftSave.help
+    return MigrateSave.help
   }
 }
