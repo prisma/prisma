@@ -138,38 +138,47 @@ Then you can run ${chalk.green('prisma introspect')} again.
       throw e
     }
 
+    function getWarningMessage(warnings: IntrospectionWarnings[]) {
+      if (warnings.length > 0) {
+        let message = `\n*** WARNING ***\n`
+
+        for (const warning of warnings) {
+          message += `\n${warning.message}\n`
+
+          if (warning.code === 1) {
+            message += warning.affected.map((it) => `- "${it.model}"`).join('\n')
+          } else if (warning.code === 2) {
+            const modelsGrouped: { [key: string]: string[] } = warning.affected.reduce((acc, it) => {
+              if (!acc[it.model]) {
+                acc[it.model] = []
+              }
+              acc[it.model].push(it.field)
+              return acc
+            }, {})
+            message += Object.entries(modelsGrouped)
+              .map(([model, fields]) => `- Model: "${model}"\n  Field(s): "${fields.join('", "')}"`)
+              .join('\n')
+          } else if (warning.code === 3) {
+            message += warning.affected
+              .map((it) => `- Model: "${it.model}" Field: "${it.field}" Raw Datatype: "${it.tpe}"`)
+              .join('\n')
+          } else if (warning.code === 4) {
+            message += warning.affected.map((it) => `- Enum: "${it.enm}" Value: "${it.value}"`).join('\n')
+          }
+
+          message += `\n`
+        }
+        return message
+      }
+    }
+
+    const introspectionWarningsMessage = getWarningMessage(introspectionWarnings)
+
     if (args['--print']) {
       console.log(introspectionSchema)
     } else {
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)
-
-      let introspectionWarningsMessage = ''
-      if (introspectionWarnings.length > 0) {
-        introspectionWarningsMessage = `\n*** WARNING ***\n`
-
-        for (const warning of introspectionWarnings) {
-          introspectionWarningsMessage += `\n${warning.message}\n`
-
-          if (warning.code === 1) {
-            introspectionWarningsMessage += warning.affected.map(it => `- "${it.model}"`).join('\n')
-          } else if (warning.code === 2) {
-            introspectionWarningsMessage += warning.affected
-              .map(it => `- Model: "${it.model}" Field: "${it.field}"`)
-              .join('\n')
-          } else if (warning.code === 3) {
-            introspectionWarningsMessage += warning.affected
-              .map(it => `- Model: "${it.model}" Field: "${it.field}" Raw Datatype: "${it.tpe}"`)
-              .join('\n')
-          } else if (warning.code === 4) {
-            introspectionWarningsMessage += warning.affected
-              .map(it => `- Enum: "${it.enm}" Value: "${it.value}"`)
-              .join('\n')
-          }
-
-          introspectionWarningsMessage += `\n`
-        }
-      }
 
       log(`\n✔ Wrote Prisma data model into ${chalk.underline(
         path.relative(process.cwd(), schemaPath),
