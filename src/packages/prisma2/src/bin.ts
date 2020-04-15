@@ -71,7 +71,15 @@ if (process.argv.length > 2) {
  * Dependencies
  */
 import { isError, HelpError } from '@prisma/sdk'
-import { LiftCommand, LiftSave, LiftUp, LiftDown, LiftTmpPrepare, StudioCommand, handlePanic } from '@prisma/migrate'
+import {
+  MigrateCommand,
+  MigrateSave,
+  MigrateUp,
+  MigrateDown,
+  MigrateTmpPrepare,
+  StudioCommand,
+  handlePanic,
+} from '@prisma/migrate'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
 import { Dev } from './Dev'
@@ -104,12 +112,12 @@ async function main(): Promise<number> {
   const cli = CLI.new(
     {
       init: Init.new(),
-      migrate: LiftCommand.new({
-        save: LiftSave.new(),
-        up: LiftUp.new(),
-        down: LiftDown.new(),
+      migrate: MigrateCommand.new({
+        save: MigrateSave.new(),
+        up: MigrateUp.new(),
+        down: MigrateDown.new(),
       }),
-      'tmp-prepare': LiftTmpPrepare.new(),
+      'tmp-prepare': MigrateTmpPrepare.new(),
       introspect: Introspect.new(),
       dev: Dev.new(),
       studio: StudioCommand.new(aliases),

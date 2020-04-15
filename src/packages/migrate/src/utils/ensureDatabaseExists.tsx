@@ -9,14 +9,14 @@ import Spinner from 'ink-spinner'
 const AnySpinner: any = Spinner
 import React, { useState } from 'react'
 import { createDatabase } from '..'
-import { canConnectToDatabase } from '../liftEngineCommands'
+import { canConnectToDatabase } from '../MigrateEngineCommands'
 import { Link } from './Link'
 import { DatabaseCredentials, uriToCredentials } from '@prisma/sdk'
 
-export type LiftAction = 'create' | 'apply' | 'unapply' | 'dev'
+export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev'
 
 export async function ensureDatabaseExists(
-  action: LiftAction,
+  action: MigrateAction,
   killInk: boolean,
   forceCreate: boolean = false,
   schemaPath?: string,
@@ -26,7 +26,7 @@ export async function ensureDatabaseExists(
   const activeDatasource =
     config.datasources.length === 1
       ? config.datasources[0]
-      : config.datasources.find(d => d.config.enabled === 'true') || config.datasources[0]
+      : config.datasources.find((d) => d.config.enabled === 'true') || config.datasources[0]
 
   if (!activeDatasource) {
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
@@ -58,14 +58,14 @@ export async function ensureDatabaseExists(
 
 export async function interactivelyCreateDatabase(
   connectionString: string,
-  action: LiftAction,
+  action: MigrateAction,
   schemaDir: string,
 ): Promise<void> {
   await askToCreateDb(connectionString, action, schemaDir)
 }
 
-export async function askToCreateDb(connectionString: string, action: LiftAction, schemaDir: string): Promise<void> {
-  return new Promise(resolve => {
+export async function askToCreateDb(connectionString: string, action: MigrateAction, schemaDir: string): Promise<void> {
+  return new Promise((resolve) => {
     let app: Instance | undefined
 
     const onDone = () => {
@@ -119,7 +119,7 @@ export class App extends React.Component<any, AppState> {
 
 interface DialogProps {
   connectionString: string
-  action: LiftAction
+  action: MigrateAction
   onDone: () => void
   schemaDir: string
 }

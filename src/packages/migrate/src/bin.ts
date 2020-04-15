@@ -13,11 +13,11 @@ process.env.NODE_NO_WARNINGS = '1'
  * Dependencies
  */
 import { HelpError, isError } from '@prisma/sdk'
-import { LiftCommand } from './commands/LiftCommand'
-import { LiftDown } from './commands/LiftDown'
-import { LiftSave } from './commands/LiftSave'
-import { LiftTmpPrepare } from './commands/LiftTmpPrepare'
-import { LiftUp } from './commands/LiftUp'
+import { MigrateCommand } from './commands/MigrateCommand'
+import { MigrateDown } from './commands/MigrateDown'
+import { MigrateSave } from './commands/MigrateSave'
+import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
+import { MigrateUp } from './commands/MigrateUp'
 import { StudioCommand } from './commands/StudioCommand'
 import { handlePanic } from './utils/handlePanic'
 import { ProviderAliases } from '@prisma/sdk'
@@ -38,11 +38,11 @@ const providerAliases: ProviderAliases = {
  */
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
-  const cli = LiftCommand.new({
-    save: LiftSave.new(),
-    up: LiftUp.new(),
-    down: LiftDown.new(),
-    ['tmp-prepare']: LiftTmpPrepare.new(),
+  const cli = MigrateCommand.new({
+    save: MigrateSave.new(),
+    up: MigrateUp.new(),
+    down: MigrateDown.new(),
+    ['tmp-prepare']: MigrateTmpPrepare.new(),
     studio: StudioCommand.new(providerAliases),
   })
   // parse the arguments

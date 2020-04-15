@@ -1,12 +1,12 @@
 import { arg, Command, format, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
-import { Lift, UpOptions } from '../Lift'
+import { Migrate, UpOptions } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { ExperimentalFlagError } from '../utils/experimental'
 
-export class LiftUp implements Command {
-  public static new(): LiftUp {
-    return new LiftUp()
+export class MigrateUp implements Command {
+  public static new(): MigrateUp {
+    return new MigrateUp()
   }
 
   // static help template
@@ -86,7 +86,7 @@ export class LiftUp implements Command {
       throw new ExperimentalFlagError()
     }
 
-    const lift = new Lift(args['--schema'])
+    const migrate = new Migrate(args['--schema'])
 
     const options: UpOptions = {
       preview: args['--preview'],
@@ -108,16 +108,16 @@ export class LiftUp implements Command {
 
     await ensureDatabaseExists('apply', true, args['--create-db'], args['--schema'])
 
-    const result = await lift.up(options)
-    lift.stop()
+    const result = await migrate.up(options)
+    migrate.stop()
     return result
   }
 
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${LiftUp.help}`)
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateUp.help}`)
     }
-    return LiftUp.help
+    return MigrateUp.help
   }
 }

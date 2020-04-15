@@ -5,13 +5,13 @@ import { writeFile } from 'mz/fs'
 import { dirname, join } from 'path'
 import pkgup from 'pkg-up'
 import dedent from 'strip-indent'
-import { Lift } from './Lift'
+import { Migrate } from './Migrate'
 
-describe('lift.create', () => {
-  createTests().map(t => {
+describe('migrate.create', () => {
+  createTests().map((t) => {
     test(t.name, async () => {
       const pkg = dirname((await pkgup({ cwd: __dirname })) || __filename)
-      const root = join(pkg, 'tmp', 'lift-' + Date.now())
+      const root = join(pkg, 'tmp', 'migrate-' + Date.now())
       const schemaPath = join(root, Object.keys(t.fs)[0])
       await writeFiles(root, t.fs)
       await t.fn(schemaPath)
@@ -56,9 +56,9 @@ function createTests() {
         'db/.keep': ``,
       },
       fn: async (schemaPath: string) => {
-        const lift = new Lift(schemaPath)
-        const migration = await lift.createMigration('setup')
-        const result = await lift.save(migration!, 'setup')
+        const migrate = new Migrate(schemaPath)
+        const migration = await migrate.createMigration('setup')
+        const result = await migrate.save(migration!, 'setup')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }
@@ -86,9 +86,9 @@ function createTests() {
         'db/.keep': ``,
       },
       fn: async (schemaPath: string) => {
-        const lift = new Lift(schemaPath)
-        const migration = await lift.createMigration('initial setup')
-        const result = await lift.save(migration!, 'initial setup')
+        const migrate = new Migrate(schemaPath)
+        const migration = await migrate.createMigration('initial setup')
+        const result = await migrate.save(migration!, 'initial setup')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }
@@ -116,9 +116,9 @@ function createTests() {
         'db/.keep': ``,
       },
       fn: async (schemaPath: string) => {
-        const lift = new Lift(schemaPath)
-        const migration = await lift.createMigration('initial setup')
-        const result = await lift.save(migration!, 'initial setup')
+        const migrate = new Migrate(schemaPath)
+        const migration = await migrate.createMigration('initial setup')
+        const result = await migrate.save(migration!, 'initial setup')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }
@@ -146,9 +146,9 @@ function createTests() {
         'db/.keep': ``,
       },
       fn: async (schemaPath: string) => {
-        const lift = new Lift(schemaPath)
-        const migration = await lift.createMigration('setup')
-        const result = await lift.save(migration!, 'setup')
+        const migrate = new Migrate(schemaPath)
+        const migration = await migrate.createMigration('setup')
+        const result = await migrate.save(migration!, 'setup')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }
@@ -176,9 +176,9 @@ function createTests() {
         'db/.keep': ``,
       },
       fn: async (schemaPath: string) => {
-        const lift = new Lift(schemaPath)
-        const migration = await lift.createMigration('setup')
-        const result = await lift.save(migration!, 'setup')
+        const migrate = new Migrate(schemaPath)
+        const migration = await migrate.createMigration('setup')
+        const result = await migrate.save(migration!, 'setup')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn\'t be undefined`)
         }

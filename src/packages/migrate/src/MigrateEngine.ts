@@ -3,14 +3,14 @@ import { ChildProcess, spawn } from 'child_process'
 import debugLib from 'debug'
 import { EngineArgs, EngineResults } from './types'
 import byline from './utils/byline'
-const debugRpc = debugLib('LiftEngine:rpc')
-const debugStderr = debugLib('LiftEngine:stderr')
-const debugStdin = debugLib('LiftEngine:stdin')
+const debugRpc = debugLib('MigrateEngine:rpc')
+const debugStderr = debugLib('MigrateEngine:stderr')
+const debugStdin = debugLib('MigrateEngine:stdin')
 import fs from 'fs'
 import { now } from './utils/now'
 import { RustPanic, ErrorArea, resolveBinary } from '@prisma/sdk'
 
-export interface LiftEngineOptions {
+export interface MigrateEngineOptions {
   projectDir: string
   schemaPath: string
   binaryPath?: string
@@ -35,7 +35,7 @@ export class EngineError extends Error {
 let messageId = 1
 
 /* tslint:disable */
-export class LiftEngine {
+export class MigrateEngine {
   private binaryPath?: string
   private projectDir: string
   private debug: boolean
@@ -46,11 +46,11 @@ export class LiftEngine {
   private lastRequest?: any
   private lastError?: any
   private initPromise?: Promise<void>
-  constructor({ projectDir, debug = false, schemaPath }: LiftEngineOptions) {
+  constructor({ projectDir, debug = false, schemaPath }: MigrateEngineOptions) {
     this.projectDir = projectDir
     this.schemaPath = schemaPath
     if (debug) {
-      debugLib.enable('LiftEngine*')
+      debugLib.enable('MigrateEngine*')
     }
     this.debug = debug
   }
@@ -75,7 +75,7 @@ export class LiftEngine {
   // Helper function, oftentimes we just want the applied migrations
   public async listAppliedMigrations(args: EngineArgs.ListMigrations): Promise<EngineResults.ListMigrations> {
     const migrations = await this.runCommand(this.getRPCPayload('listMigrations', args))
-    return migrations.filter(m => m.status === 'MigrationSuccess')
+    return migrations.filter((m) => m.status === 'MigrationSuccess')
   }
   public migrationProgess(args: EngineArgs.MigrationProgress): Promise<EngineResults.MigrationProgress> {
     return this.runCommand(this.getRPCPayload('migrationProgress', args))
@@ -140,7 +140,7 @@ export class LiftEngine {
           },
         })
 
-        this.child.on('error', err => {
+        this.child.on('error', (err) => {
           console.error('[migration-engine] error: %s', err)
           reject(err)
           this.rejectAll(err)
@@ -171,11 +171,11 @@ export class LiftEngine {
           }
         })
 
-        this.child.stdin!.on('error', err => {
+        this.child.stdin!.on('error', (err) => {
           debugStdin(err)
         })
 
-        byline(this.child.stderr).on('data', data => {
+        byline(this.child.stderr).on('data', (data) => {
           const msg = String(data)
           this.messages.push(msg)
           debugStderr(msg)
@@ -192,7 +192,7 @@ export class LiftEngine {
           }
         })
 
-        byline(this.child.stdout).on('data', line => {
+        byline(this.child.stdout).on('data', (line) => {
           this.handleResponse(String(line))
         })
 
