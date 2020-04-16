@@ -1,3 +1,5 @@
+const prefixZero = (value: number) => ('0' + value).slice(-2)
+
 export function now() {
   const now = new Date()
   return `${now.getFullYear()}${prefixZero(now.getMonth() + 1)}${prefixZero(
@@ -20,8 +22,6 @@ export function timestampToDate(timestamp: string): Date | undefined {
 
   return new Date(year, month - 1, date, hours, minutes, seconds)
 }
-
-const prefixZero = (value: number) => ('0' + value).slice(-2)
 
 export function renderDate(date: Date) {
   if (date.getDate() !== new Date().getDate()) {

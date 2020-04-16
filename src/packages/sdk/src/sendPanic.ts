@@ -100,7 +100,7 @@ function getCommand(): string {
 }
 
 async function uploadZip(zip: Buffer, url: string) {
-  return fetch(url, {
+  return await fetch(url, {
     method: 'PUT',
     agent: getProxyAgent(url),
     headers: {
@@ -208,7 +208,7 @@ async function request(query: string, variables: any): Promise<any> {
     query,
     variables,
   })
-  return fetch(url, {
+  return await fetch(url, {
     method: 'POST',
     agent: getProxyAgent(url),
     body,

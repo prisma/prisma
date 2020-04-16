@@ -84,7 +84,7 @@ export class IntrospectionEngine {
   private lastError?: any
   private initPromise?: Promise<void>
   private lastUrl?: string
-  public isRunning: boolean = false
+  public isRunning = false
   constructor(
     { debug, cwd }: IntrospectionEngineOptions = {
       debug: false,
@@ -196,13 +196,13 @@ export class IntrospectionEngine {
 
         this.isRunning = true
 
-        this.child.on('error', err => {
+        this.child.on('error', (err) => {
           console.error('[introspection-engine] error: %s', err)
           reject(err)
           this.rejectAll(err)
         })
 
-        this.child.stdin?.on('error', err => {
+        this.child.stdin?.on('error', (err) => {
           console.error(err)
         })
 
@@ -256,11 +256,11 @@ export class IntrospectionEngine {
           }
         })
 
-        this.child.stdin!.on('error', err => {
+        this.child.stdin!.on('error', (err) => {
           debugStdin(err)
         })
 
-        byline(this.child.stderr).on('data', data => {
+        byline(this.child.stderr).on('data', (data) => {
           const msg = String(data)
           this.messages.push(msg)
           debugStderr(msg)
@@ -277,7 +277,7 @@ export class IntrospectionEngine {
           }
         })
 
-        byline(this.child.stdout).on('data', line => {
+        byline(this.child.stdout).on('data', (line) => {
           this.handleResponse(String(line))
         })
 

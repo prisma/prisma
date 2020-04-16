@@ -4,7 +4,7 @@ import Arg from 'arg'
 /**
  * format
  */
-export function format(input: string = ''): string {
+export function format(input = ''): string {
   return dedent(input).trimRight() + '\n'
 }
 
