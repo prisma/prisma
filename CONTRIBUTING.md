@@ -13,8 +13,7 @@ pnpm run setup
 Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org/)
 
 ### Developing Prisma Client JS
-2. `cd src/prisma-client-js/packages/photon`
-3. `yarn`
+2. `cd src/prisma-client-js/packages/client`
 4. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
 5. `cd fixtures/blog`
 6. `prisma migrate save --name init --experimental && prisma migrate up --experimental`
