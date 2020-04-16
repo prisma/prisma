@@ -27,8 +27,3 @@ model Post {
   authorId  String?
   author    User? @relation(fields: [authorId])
 }
-
-enum Role {
-  USER
-  ADMIN
-}
