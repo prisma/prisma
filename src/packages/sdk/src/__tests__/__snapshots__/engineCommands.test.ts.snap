@@ -873,6 +873,17 @@ error: Expected a function value, but received string value \\"\\".
 16 |       permissions  Permission @default()
 17 |       permissions  Permission @default(\\"\\")
    | 
+error: Error validating: You defined the enum \`Permission\`. But the current connector does not support enums.
+  -->  schema.prisma:30
+   | 
+29 |     
+30 |     enum Permission {
+31 |       ADMIN
+32 |       USER
+33 |       OWNER
+34 |       COLLABORATOR
+35 |     }
+   | 
 
-Validation Error Count: 5"
+Validation Error Count: 6"
 `;
