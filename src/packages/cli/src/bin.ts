@@ -1,6 +1,5 @@
 #!/usr/bin/env ts-node
 
-import * as Sentry from '@sentry/node'
 import fs from 'fs'
 import path from 'path'
 import dotenv from 'dotenv'
@@ -9,7 +8,6 @@ import { arg } from '@prisma/sdk'
 const packageJson = require('../package.json')
 
 export { byline } from '@prisma/migrate'
-export { Sentry }
 
 // do this before facebook's yoga
 import debugLib from 'debug'

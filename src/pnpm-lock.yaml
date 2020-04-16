@@ -73,7 +73,6 @@ importers:
       pkg-up: 3.1.0
       resolve-pkg: 2.0.0
       rimraf: 3.0.2
-      serialize-error: 5.0.0
       snap-shot-it: 7.9.3
       sqlite-async: 1.0.12
       sqlite3: 4.1.1
@@ -118,11 +117,10 @@ importers:
       open: ^7.0.3
       packwatch: ^2.0.0
       pg: 8.0.0
-      pkg: ^4.4.6
+      pkg: ^4.4.7
       pkg-up: 3.1.0
       resolve-pkg: ^2.0.0
       rimraf: ^3.0.2
-      serialize-error: ^5.0.0
       snap-shot-it: 7.9.3
       sqlite-async: ~1.0.12
       sqlite3: 4.1.1
@@ -11551,14 +11549,6 @@ packages:
     dev: true
     resolution:
       integrity: sha1-1WgS4cAXpuTnw+Ojeh2m143TyT4=
-  /serialize-error/5.0.0:
-    dependencies:
-      type-fest: 0.8.1
-    dev: true
-    engines:
-      node: '>=8'
-    resolution:
-      integrity: sha512-/VtpuyzYf82mHYTtI4QKtwHa79vAdU5OQpNPAmE/0UDdlGT0ZxHwC+J6gXkw29wwoVI8fMPsfcVHOwXtUQYYQA==
   /serialize-javascript/2.1.2:
     dev: true
     resolution:
@@ -13710,5 +13700,6 @@ packages:
     dev: true
     name: '@types/mysql2'
     resolution:
+      registry: 'https://registry.npmjs.org/'
       tarball: 'https://codeload.github.com/types/mysql2/tar.gz/b549352cda0b83fe8c4f4c11a1b4beb0b0cb0f5d'
     version: 1.0.0
