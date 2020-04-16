@@ -607,10 +607,7 @@ async function tagEnginesRepo(dryRun = false) {
   await run('.', `git config --global user.name "prisma-bot"`, dryRun)
 
   /** Get version */
-  const prisma2Path = path.resolve(
-    process.cwd(),
-    './packages/prisma2/package.json',
-  )
+  const prisma2Path = path.resolve(process.cwd(), './packages/cli/package.json')
   const pkg = JSON.parse(await fs.readFile(prisma2Path, 'utf-8'))
   const engineVersion = pkg.prisma.version
   const packageVersion = pkg.version
