@@ -27,7 +27,6 @@ export class GeneratorProcess {
   private exitCode: number | null = null
   private stderrLogs: string = ''
   private initPromise?: Promise<void>
-  private initialized: boolean = false
   constructor(private executablePath: string) {
     // executablePath can be passed like this
     // "/Users/prisma/go/bin/photongo" as a path to the executable (no options)
@@ -102,7 +101,6 @@ export class GeneratorProcess {
             ),
           )
         } else {
-          this.initialized = true
           resolve()
         }
       }, 200)
