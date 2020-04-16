@@ -625,58 +625,29 @@ export class PrismaClientFetcher {
       collectTimestamps && collectTimestamps.record('Post-unpack')
       return unpackResult
     } catch (e) {
+      let message = e.message
       if (callsite) {
         const { stack } = printStack({
           callsite,
           originalMethod: clientMethod,
           onUs: e.isPanic,
         })
-        const message = stack + e.message
-        if (e.code) {
-          throw new PrismaClientKnownRequestError(
-            this.sanitizeMessage(message),
-            e.code,
-            e.meta,
-          )
-        }
-        if (e instanceof PrismaClientUnknownRequestError) {
-          throw new PrismaClientUnknownRequestError(
-            this.sanitizeMessage(message),
-          )
-        } else if (e instanceof PrismaClientInitializationError) {
-          throw new PrismaClientInitializationError(
-            this.sanitizeMessage(message),
-          )
-        } else if (e instanceof PrismaClientRustPanicError) {
-          throw new PrismaClientRustPanicError(this.sanitizeMessage(message))
-        }
-        throw new PrismaClientUnknownRequestError(message)
-      } else {
-        if (e.code) {
-          throw new PrismaClientKnownRequestError(
-            this.sanitizeMessage(e.message),
-            e.code,
-            e.meta,
-          )
-        }
-        if (e.isPanic) {
-          throw new PrismaClientRustPanicError(e.message)
-        } else {
-          if (e instanceof PrismaClientUnknownRequestError) {
-            throw new PrismaClientUnknownRequestError(
-              this.sanitizeMessage(e.message),
-            )
-          } else if (e instanceof PrismaClientInitializationError) {
-            throw new PrismaClientInitializationError(
-              this.sanitizeMessage(e.message),
-            )
-          } else if (e instanceof PrismaClientRustPanicError) {
-            throw new PrismaClientRustPanicError(
-              this.sanitizeMessage(e.message),
-            )
-          }
-        }
+        message = stack + e.message
       }
+
+      message = this.sanitizeMessage(message)
+      if (e.code) {
+        throw new PrismaClientKnownRequestError(message, e.code, e.meta)
+      } else if (e.isPanic) {
+        throw new PrismaClientRustPanicError(message)
+      } else if (e instanceof PrismaClientUnknownRequestError) {
+        throw new PrismaClientUnknownRequestError(message)
+      } else if (e instanceof PrismaClientInitializationError) {
+        throw new PrismaClientInitializationError(message)
+      } else if (e instanceof PrismaClientRustPanicError) {
+        throw new PrismaClientRustPanicError(message)
+      }
+
       throw e
     }
   }
