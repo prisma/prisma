@@ -465,6 +465,7 @@ function validateDmmfAgainstDenylists(prismaClientDmmf) {
         `${m.name}Client`,
         `${m.name}Delegate`,
         `${m.name}GetPayload`,
+        `${m.name}Filter`,
 
         `${m.name}Args`,
         `${m.name}ArgsFilter`,
