@@ -453,7 +453,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   clientMethod,
                   typeName: mapping.model,
                   dataPath,
-                  isList: true,
+                  isList,
                   rootField,
                   collectTimestamps,
                   callsite,
