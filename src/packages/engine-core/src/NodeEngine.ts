@@ -583,7 +583,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
           if (data.errors.length === 1) {
             throw this.graphQLToJSError(data.errors[0])
           }
-          throw new Error(JSON.stringify(data.errorrs))
+          throw new Error(JSON.stringify(data.errors))
         }
 
         return data
