@@ -29,30 +29,24 @@ async function main() {
     },
   })
 
-  const x = await prisma.post.create({
+  const x = await prisma.post.update({
+    where: {
+      id: '',
+    },
     data: {
       id: '',
       published: true,
-      title: '',
-      content: '',
+      title: null,
     },
-    include: {
-      author: {
-        include: {
-          posts: {
-            orderBy: {
-              content: 'asc',
-            },
-            include: {
-              author: true,
-            },
-          },
-        },
-      },
+  })
+
+  prisma.post.findMany({
+    where: {
+      title: null,
     },
   })
 }
 
-main().catch(e => {
+main().catch((e) => {
   console.error(e)
 })
