@@ -9,7 +9,7 @@ import path from 'path'
 import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
 import * as checkpoint from 'checkpoint-client'
-import { maskSchema } from './utils/maskSchema'
+import { maskSchema, mapScalarValues } from './utils/maskSchema'
 import { RustPanic, ErrorArea } from './panic'
 import { getProxyAgent } from '@prisma/fetch-engine'
 import { IntrospectionEngine } from './IntrospectionEngine'
@@ -52,6 +52,17 @@ export async function sendPanic(
       }
     }
 
+    const liftRequest = error.request
+      ? JSON.stringify(
+          mapScalarValues(error.request, (value) => {
+            if (typeof value === 'string') {
+              return maskSchema(value)
+            }
+            return value
+          }),
+        )
+      : undefined
+
     const signedUrl = await createErrorReport({
       area: error.area,
       kind: ErrorKind.RUST_PANIC,
@@ -62,7 +73,7 @@ export async function sendPanic(
       rustStackTrace: error.rustStack,
       operatingSystem: `${os.arch()} ${os.platform()} ${os.release()}`,
       platform: await getPlatform(),
-      liftRequest: JSON.stringify(error.request),
+      liftRequest,
       schemaFile: maskedSchema,
       fingerprint: checkpoint.signature.sync(),
       sqlDump,
@@ -109,7 +120,7 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
   const zip = archiver('zip', { zlib: { level: 9 } })
 
   zip.pipe(outputFile)
-  
+
   // add schema file
   const schemaFile = maskSchema(fs.readFileSync(error.schemaPath, 'utf-8'))
   zip.append(schemaFile, { name: path.basename(error.schemaPath) })
@@ -121,7 +132,10 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
 
     for (const filePath of filePaths) {
       let file = fs.readFileSync(path.resolve(schemaDir, filePath), 'utf-8')
-      if (filePath.endsWith('schema.prisma') || filePath.endsWith(path.basename(error.schemaPath))) {
+      if (
+        filePath.endsWith('schema.prisma') ||
+        filePath.endsWith(path.basename(error.schemaPath))
+      ) {
         // Remove credentials from schema datasource url
         file = maskSchema(file)
       }
@@ -137,7 +151,7 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
       resolve(buffer)
     })
 
-    zip.on('error', err => {
+    zip.on('error', (err) => {
       reject(err)
     })
   })
@@ -203,8 +217,8 @@ async function request(query: string, variables: any): Promise<any> {
       'Content-Type': 'application/json',
     },
   })
-    .then(res => res.json())
-    .then(res => {
+    .then((res) => res.json())
+    .then((res) => {
       if (res.errors) {
         throw new Error(JSON.stringify(res.errors))
       }
