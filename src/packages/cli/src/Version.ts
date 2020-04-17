@@ -19,7 +19,7 @@ export class Version implements Command {
     return new Version()
   }
 
-  async parse(argv: string[]) {
+  async parse(argv: string[]): Promise<string> {
     const args = arg(argv, {
       '--json': Boolean,
     })
@@ -31,8 +31,16 @@ export class Version implements Command {
       'PRISMA_INTROSPECTION_ENGINE_BINARY',
       platform,
     )
-    const migrationEngine = await this.resolveEngine('migration-engine', 'PRISMA_MIGRATION_ENGINE_BINARY', platform)
-    const queryEngine = await this.resolveEngine('query-engine', 'PRISMA_QUERY_ENGINE_BINARY', platform)
+    const migrationEngine = await this.resolveEngine(
+      'migration-engine',
+      'PRISMA_MIGRATION_ENGINE_BINARY',
+      platform,
+    )
+    const queryEngine = await this.resolveEngine(
+      'query-engine',
+      'PRISMA_QUERY_ENGINE_BINARY',
+      platform,
+    )
 
     const rows = [
       [packageJson.name, packageJson.version],
@@ -50,19 +58,23 @@ export class Version implements Command {
     return `${version} (at ${path}${resolved})`
   }
 
-  private async resolveEngine(binaryName: string, envVar: string, platform: string): Promise<BinaryInfo> {
+  private async resolveEngine(
+    binaryName: string,
+    envVar: string,
+    platform: string, // eslint-disable-line @typescript-eslint/no-unused-vars
+  ): Promise<BinaryInfo> {
     const pathFromEnv = process.env[envVar]
-    if (pathFromEnv && fs.existsSync(pathFromEnv!)) {
+    if (pathFromEnv && fs.existsSync(pathFromEnv)) {
       const version = await getVersion(pathFromEnv)
-      return { version, path: pathFromEnv!, fromEnvVar: envVar }
+      return { version, path: pathFromEnv, fromEnvVar: envVar }
     }
 
-    const binaryPath = await resolveBinary(binaryName as any)
+    const binaryPath = await resolveBinary(binaryName as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     const version = await getVersion(binaryPath)
     return { path: binaryPath, version }
   }
 
-  private printTable(rows: string[][], json = false) {
+  private printTable(rows: string[][], json = false): string {
     if (json) {
       const result = rows.reduce((acc, [name, value]) => {
         acc[slugify(name)] = value
@@ -71,7 +83,9 @@ export class Version implements Command {
       return JSON.stringify(result, null, 2)
     }
     const maxPad = rows.reduce((acc, curr) => Math.max(acc, curr[0].length), 0)
-    return rows.map(([left, right]) => `${left.padEnd(maxPad)} : ${right}`).join('\n')
+    return rows
+      .map(([left, right]) => `${left.padEnd(maxPad)} : ${right}`)
+      .join('\n')
   }
 }
 
