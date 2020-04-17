@@ -1,5 +1,6 @@
 import { DatabaseStep } from './types'
 
+/* eslint-disable @typescript-eslint/camelcase */
 export const exampleDbSteps: DatabaseStep[] = [
   {
     RawSql: 'PRAGMA foreign_keys=OFF;',
@@ -54,7 +55,8 @@ export const exampleDbSteps: DatabaseStep[] = [
   },
   {
     raw: '',
-    RawSql: 'INSERT INTO new_Post (id,title,text,blog) SELECT id,title,text,blog from Post',
+    RawSql:
+      'INSERT INTO new_Post (id,title,text,blog) SELECT id,title,text,blog from Post',
   },
   {
     raw: '',
@@ -78,3 +80,4 @@ export const exampleDbSteps: DatabaseStep[] = [
     RawSql: 'PRAGMA foreign_keys=ON;',
   },
 ]
+/* eslint-enable @typescript-eslint/camelcase */

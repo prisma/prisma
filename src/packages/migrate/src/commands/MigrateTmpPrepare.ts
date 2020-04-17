@@ -22,7 +22,6 @@ export class MigrateTmpPrepare implements Command {
 
       ${chalk.dim('$')} prisma migrate tmp-prepare
   `)
-  private constructor() {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
@@ -55,7 +54,9 @@ export class MigrateTmpPrepare implements Command {
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateTmpPrepare.help}`)
+      return new HelpError(
+        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateTmpPrepare.help}`,
+      )
     }
     return MigrateTmpPrepare.help
   }

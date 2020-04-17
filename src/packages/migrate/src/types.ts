@@ -1,5 +1,3 @@
-import { GeneratorDefinition } from '@prisma/sdk'
-
 export type DatamodelStep = CreateModelStep | CreateFieldStep
 
 export interface CreateModelStep {
@@ -45,6 +43,7 @@ export interface RelationFieldType {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EngineArgs {
   /**
    * These RPCs need a sourceConfig, therefore a db connection to function
@@ -84,6 +83,7 @@ export namespace EngineArgs {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EngineResults {
   export interface InferMigrationSteps {
     datamodelSteps: DatamodelStep[]
@@ -222,4 +222,8 @@ export interface CreateColumn {
   }
 }
 
-export type DatabaseStep = RawSqlStep | DropTableStep | RenameTableStep | CreateTableStep
+export type DatabaseStep =
+  | RawSqlStep
+  | DropTableStep
+  | RenameTableStep
+  | CreateTableStep
