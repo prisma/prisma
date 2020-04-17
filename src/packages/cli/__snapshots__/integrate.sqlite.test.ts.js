@@ -1,78 +1,3 @@
-exports['await column_name_that_becomes_empty_string.findMany({})_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource sqlite {
-  provider = "sqlite"
-  url = "***"
-}
-
-model teams {
-  email String @unique
-  id    Int    @id
-  name  String @unique
-}
-
-model column_name_that_becomes_empty_string {
-  // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
-  // 12345 Int? @map("12345")
-  field1   Int  @default(autoincrement()) @id
-}
-
-// The underlying table does not contain a unique identifier and can therefore currently not be handled.
-// model no_unique_identifier {
-  // This type is currently not supported.
-  // field1 integer key
-  // field2 Int?
-// }
-
-model unsupported_type {
-  field1         Int         @default(autoincrement()) @id
-  // This type is currently not supported.
-  // unsupported binary(50)?
-}
-`
-
-exports['await column_name_that_becomes_empty_string.findMany({})_warnings'] = [
-  {
-    "code": 1,
-    "message": "These models do not have a unique identifier or id and are therefore commented out.",
-    "affected": [
-      {
-        "model": "no_unique_identifier"
-      }
-    ]
-  },
-  {
-    "code": 2,
-    "message": "These fields were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
-    "affected": [
-      {
-        "model": "column_name_that_becomes_empty_string",
-        "field": "12345"
-      }
-    ]
-  },
-  {
-    "code": 3,
-    "message": "These fields were commented out because we currently do not support their types.",
-    "affected": [
-      {
-        "model": "no_unique_identifier",
-        "field": "field1",
-        "tpe": "integer key"
-      },
-      {
-        "model": "unsupported_type",
-        "field": "unsupported",
-        "tpe": "binary(50)"
-      }
-    ]
-  }
-]
-
 exports['teams.findOne({ where: { id: 2 } })_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
@@ -692,7 +617,7 @@ model crons {
 
 exports['crons.findMany({ where: { job: { in: [\'j20\', \'j1\'] } } })_warnings'] = []
 
-exports['const posts = await posts.findMany({ where: { created_at: { lte: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;_datamodel'] = `
+exports['const posts = await posts.findMany({ where: { created_at: { lte: new Date() } } }) posts.forEach((post) => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -716,7 +641,7 @@ model posts {
 }
 `
 
-exports['const posts = await posts.findMany({ where: { created_at: { lte: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;_warnings'] = []
+exports['const posts = await posts.findMany({ where: { created_at: { lte: new Date() } } }) posts.forEach((post) => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;_warnings'] = []
 
 exports['posts.findMany({ where: { created_at: { gte: new Date() } } })_datamodel'] = `
 generator client {
@@ -770,7 +695,7 @@ model posts {
 
 exports['posts.findMany({ where: { created_at: { gt: new Date() } } })_warnings'] = []
 
-exports['const posts = await posts.findMany({ where: { created_at: { lt: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;_datamodel'] = `
+exports['const posts = await posts.findMany({ where: { created_at: { lt: new Date() } } }) posts.forEach((post) => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -794,7 +719,7 @@ model posts {
 }
 `
 
-exports['const posts = await posts.findMany({ where: { created_at: { lt: new Date() } } }) posts.forEach(post => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;_warnings'] = []
+exports['const posts = await posts.findMany({ where: { created_at: { lt: new Date() } } }) posts.forEach((post) => { assert_1.default.ok(post.created_at instanceof Date); delete post.created_at; });  posts;_warnings'] = []
 
 exports['teams.update({ where: { token: 11 }, data: { token: 10 } })_datamodel'] = `
 generator client {
@@ -1447,3 +1372,78 @@ model teams {
 `
 
 exports['await teams.updateMany({ data: { name: \'b\' }, where: { name: null }, })  client.teams.findMany();_warnings'] = []
+
+exports['await column_name_that_becomes_empty_string.findMany({})_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url = "***"
+}
+
+model teams {
+  email String @unique
+  id    Int    @id
+  name  String @unique
+}
+
+model column_name_that_becomes_empty_string {
+  // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  // 12345 Int? @map("12345")
+  field1   Int  @default(autoincrement()) @id
+}
+
+// The underlying table does not contain a unique identifier and can therefore currently not be handled.
+// model no_unique_identifier {
+  // This type is currently not supported.
+  // field1 integer key
+  // field2 Int?
+// }
+
+model unsupported_type {
+  field1         Int         @default(autoincrement()) @id
+  // This type is currently not supported.
+  // unsupported binary(50)?
+}
+`
+
+exports['await column_name_that_becomes_empty_string.findMany({})_warnings'] = [
+  {
+    "code": 1,
+    "message": "These models do not have a unique identifier or id and are therefore commented out.",
+    "affected": [
+      {
+        "model": "no_unique_identifier"
+      }
+    ]
+  },
+  {
+    "code": 2,
+    "message": "These fields were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
+    "affected": [
+      {
+        "model": "column_name_that_becomes_empty_string",
+        "field": "12345"
+      }
+    ]
+  },
+  {
+    "code": 3,
+    "message": "These fields were commented out because we currently do not support their types.",
+    "affected": [
+      {
+        "model": "no_unique_identifier",
+        "field": "field1",
+        "tpe": "integer key"
+      },
+      {
+        "model": "unsupported_type",
+        "field": "unsupported",
+        "tpe": "binary(50)"
+      }
+    ]
+  }
+]

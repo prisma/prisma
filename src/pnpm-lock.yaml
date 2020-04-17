@@ -14,7 +14,7 @@ importers:
       p-reduce: 2.1.0
       redis: 3.0.2
       redis-lock: 0.1.4
-      semver: 7.3.0
+      semver: 7.3.2
       ts-node: 8.8.2_typescript@3.8.3
       typescript: 3.8.3
     specifiers:
@@ -33,6 +33,103 @@ importers:
       redis-lock: ^0.1.4
       semver: ^7.2.1
       ts-node: ^8.8.2
+      typescript: ^3.8.3
+  packages/cli:
+    devDependencies:
+      '@prisma/ci-info': 2.1.1
+      '@prisma/client': 'link:../client'
+      '@prisma/fetch-engine': 'link:../fetch-engine'
+      '@prisma/generator-helper': 'link:../generator-helper'
+      '@prisma/get-platform': 'link:../get-platform'
+      '@prisma/introspection': 'link:../introspection'
+      '@prisma/migrate': 'link:../migrate'
+      '@prisma/sdk': 'link:../sdk'
+      '@prisma/studio': 0.220.0
+      '@prisma/studio-server': 0.220.0
+      '@prisma/studio-transports': 0.220.0
+      '@prisma/studio-types': 0.220.0
+      '@sentry/node': 5.12.4
+      '@types/debug': 4.1.5
+      '@types/mocha': 5.2.7
+      '@types/mysql2': github.com/types/mysql2/b549352cda0b83fe8c4f4c11a1b4beb0b0cb0f5d
+      '@types/pg': 7.14.3
+      '@types/sqlite3': 3.1.6
+      '@zeit/ncc': 0.22.1
+      checkpoint-client: 1.0.7
+      dotenv: 8.2.0
+      global-dirs: 2.0.1
+      is-installed-globally: 0.3.2
+      jest: 25.3.0
+      log-update: 4.0.0
+      make-dir: 3.0.2
+      mariadb: 2.3.1
+      mocha: 6.2.2
+      mysql2: 2.1.0
+      mz: 2.7.0
+      open: 7.0.3
+      packwatch: 2.0.0
+      pg: 8.0.0_pg@8.0.0
+      pkg: 4.4.7
+      pkg-up: 3.1.0
+      resolve-pkg: 2.0.0
+      rimraf: 3.0.2
+      snap-shot-it: 7.9.3
+      sqlite-async: 1.0.12
+      sqlite3: 4.1.1
+      strip-ansi: 6.0.0
+      strip-indent: 3.0.0
+      terminal-link: 2.1.1
+      tmp: 0.1.0
+      ts-jest: 25.3.1_jest@25.3.0
+      ts-mocha: 6.0.0_mocha@6.2.2
+      typescript: 3.8.3
+    specifiers:
+      '@prisma/ci-info': ^2.1.1
+      '@prisma/client': 'workspace:*'
+      '@prisma/fetch-engine': 'workspace:*'
+      '@prisma/generator-helper': 'workspace:*'
+      '@prisma/get-platform': 'workspace:*'
+      '@prisma/introspection': 'workspace:*'
+      '@prisma/migrate': 'workspace:*'
+      '@prisma/sdk': 'workspace:*'
+      '@prisma/studio': 0.220.0
+      '@prisma/studio-server': 0.220.0
+      '@prisma/studio-transports': 0.220.0
+      '@prisma/studio-types': 0.220.0
+      '@sentry/node': 5.12.4
+      '@types/debug': ^4.1.5
+      '@types/mocha': ^5.2.7
+      '@types/mysql2': 'github:types/mysql2'
+      '@types/pg': ^7.14.3
+      '@types/sqlite3': ^3.1.6
+      '@zeit/ncc': 0.22.1
+      checkpoint-client: ^1.0.7
+      dotenv: ^8.2.0
+      global-dirs: ^2.0.1
+      is-installed-globally: ^0.3.2
+      jest: ^25.3.0
+      log-update: 4.0.0
+      make-dir: ^3.0.2
+      mariadb: ^2.3.1
+      mocha: 6.2.2
+      mysql2: ^2.1.0
+      mz: 2.7.0
+      open: ^7.0.3
+      packwatch: ^2.0.0
+      pg: 8.0.0
+      pkg: ^4.4.7
+      pkg-up: 3.1.0
+      resolve-pkg: ^2.0.0
+      rimraf: ^3.0.2
+      snap-shot-it: 7.9.3
+      sqlite-async: ~1.0.12
+      sqlite3: 4.1.1
+      strip-ansi: ^6.0.0
+      strip-indent: 3.0.0
+      terminal-link: ^2.1.1
+      tmp: ^0.1.0
+      ts-jest: ^25.3.1
+      ts-mocha: 6.0.0
       typescript: ^3.8.3
   packages/client:
     devDependencies:
@@ -428,11 +525,11 @@ importers:
       '@prisma/sdk': 'workspace:*'
       '@prisma/studio-server': 0.220.0
       '@prisma/studio-types': 0.220.0
-      '@types/charm': 1.0.1
-      '@types/debug': 4.1.5
-      '@types/diff': 4.0.2
-      '@types/fs-extra': 8.1.0
-      '@types/jest': 25.2.1
+      '@types/charm': ^1.0.1
+      '@types/debug': ^4.1.5
+      '@types/diff': ^4.0.2
+      '@types/fs-extra': ^8.1.0
+      '@types/jest': ^25.2.1
       '@types/node': ^12.12.35
       '@types/prompts': ^2.0.3
       '@types/react': 16.9.11
@@ -440,19 +537,19 @@ importers:
       ansi-escapes: ^4.3.1
       cli-cursor: 3.1.0
       dashify: 2.0.0
-      debug: 4.1.1
+      debug: ^4.1.1
       del: ^5.1.0
       diff: 4.0.2
       execa: ^4.0.0
       figures: ^3.2.0
       get-port: ^5.1.1
-      git-user-email: 0.2.2
-      git-user-name: 2.0.0
+      git-user-email: ^0.2.2
+      git-user-name: ^2.0.0
       globby: ^11.0.0
       http-proxy-agent: ^4.0.1
       https-proxy-agent: ^5.0.0
       husky: ^4.2.4
-      indent-string: 4.0.0
+      indent-string: ^4.0.0
       ink: 2.5.0
       ink-link: 1.0.0
       ink-spinner: 3.0.1
@@ -463,7 +560,7 @@ importers:
       make-dir: ^3.0.2
       open: ^7.0.3
       p-map: ^4.0.0
-      pkg-up: 3.1.0
+      pkg-up: ^3.1.0
       prettier: ^2.0.4
       prompts: ^2.3.2
       ps-tree: 1.2.0
@@ -476,105 +573,6 @@ importers:
       ts-jest: ^25.3.1
       tslint: ^5.20.1
       tslint-config-prettier: ^1.18.0
-      typescript: ^3.8.3
-  packages/prisma2:
-    devDependencies:
-      '@prisma/ci-info': 2.1.1
-      '@prisma/client': 'link:../client'
-      '@prisma/fetch-engine': 'link:../fetch-engine'
-      '@prisma/generator-helper': 'link:../generator-helper'
-      '@prisma/get-platform': 'link:../get-platform'
-      '@prisma/introspection': 'link:../introspection'
-      '@prisma/migrate': 'link:../migrate'
-      '@prisma/sdk': 'link:../sdk'
-      '@prisma/studio': 0.220.0
-      '@prisma/studio-server': 0.220.0
-      '@prisma/studio-transports': 0.220.0
-      '@prisma/studio-types': 0.220.0
-      '@sentry/node': 5.12.4
-      '@types/debug': 4.1.5
-      '@types/mocha': 5.2.7
-      '@types/mysql2': github.com/types/mysql2/b549352cda0b83fe8c4f4c11a1b4beb0b0cb0f5d
-      '@types/pg': 7.14.3
-      '@types/sqlite3': 3.1.6
-      '@zeit/ncc': 0.22.1
-      checkpoint-client: 1.0.7
-      dotenv: 8.2.0
-      global-dirs: 2.0.1
-      is-installed-globally: 0.3.2
-      jest: 25.3.0
-      log-update: 4.0.0
-      make-dir: 3.0.2
-      mariadb: 2.3.1
-      mocha: 6.2.2
-      mysql2: 2.1.0
-      mz: 2.7.0
-      open: 7.0.3
-      packwatch: 2.0.0
-      pg: 8.0.0_pg@8.0.0
-      pkg: 4.4.7
-      pkg-up: 3.1.0
-      resolve-pkg: 2.0.0
-      rimraf: 3.0.2
-      serialize-error: 5.0.0
-      snap-shot-it: 7.9.3
-      sqlite-async: 1.0.12
-      sqlite3: 4.1.1
-      strip-ansi: 6.0.0
-      strip-indent: 3.0.0
-      terminal-link: 2.1.1
-      tmp: 0.1.0
-      ts-jest: 25.3.1_jest@25.3.0
-      ts-mocha: 6.0.0_mocha@6.2.2
-      typescript: 3.8.3
-    specifiers:
-      '@prisma/ci-info': ^2.1.1
-      '@prisma/client': 'workspace:*'
-      '@prisma/fetch-engine': 'workspace:*'
-      '@prisma/generator-helper': 'workspace:*'
-      '@prisma/get-platform': 'workspace:*'
-      '@prisma/introspection': 'workspace:*'
-      '@prisma/migrate': 'workspace:*'
-      '@prisma/sdk': 'workspace:*'
-      '@prisma/studio': 0.220.0
-      '@prisma/studio-server': 0.220.0
-      '@prisma/studio-transports': 0.220.0
-      '@prisma/studio-types': 0.220.0
-      '@sentry/node': 5.12.4
-      '@types/debug': ^4.1.5
-      '@types/mocha': ^5.2.7
-      '@types/mysql2': 'github:types/mysql2'
-      '@types/pg': ^7.14.3
-      '@types/sqlite3': ^3.1.6
-      '@zeit/ncc': 0.22.1
-      checkpoint-client: ^1.0.7
-      dotenv: ^8.2.0
-      global-dirs: ^2.0.1
-      is-installed-globally: ^0.3.2
-      jest: ^25.3.0
-      log-update: 4.0.0
-      make-dir: ^3.0.2
-      mariadb: ^2.3.1
-      mocha: 6.2.2
-      mysql2: ^2.1.0
-      mz: 2.7.0
-      open: ^7.0.3
-      packwatch: ^2.0.0
-      pg: 8.0.0
-      pkg: ^4.4.6
-      pkg-up: 3.1.0
-      resolve-pkg: ^2.0.0
-      rimraf: ^3.0.2
-      serialize-error: ^5.0.0
-      snap-shot-it: 7.9.3
-      sqlite-async: ~1.0.12
-      sqlite3: 4.1.1
-      strip-ansi: ^6.0.0
-      strip-indent: 3.0.0
-      terminal-link: ^2.1.1
-      tmp: ^0.1.0
-      ts-jest: ^25.3.1
-      ts-mocha: 6.0.0
       typescript: ^3.8.3
   packages/sdk:
     dependencies:
@@ -9322,7 +9320,7 @@ packages:
       lru-cache: 5.1.1
       named-placeholders: 1.1.2
       seq-queue: 0.0.5
-      sqlstring: 2.3.1
+      sqlstring: 2.3.2
     dev: true
     engines:
       node: '>= 8.0'
@@ -10235,7 +10233,7 @@ packages:
       multistream: 2.1.1
       pkg-fetch: 2.6.6
       progress: 2.0.3
-      resolve: 1.15.1
+      resolve: 1.16.0
       stream-meter: 1.0.4
     dev: true
     hasBin: true
@@ -11310,6 +11308,12 @@ packages:
       path-parse: 1.0.6
     resolution:
       integrity: sha512-84oo6ZTtoTUpjgNEr5SJyzQhzL72gaRodsSfyxC/AXRvwu0Yse9H8eF9IpGo7b8YetZhlI6v7ZQ6bKBFV/6S7w==
+  /resolve/1.16.0:
+    dependencies:
+      path-parse: 1.0.6
+    dev: true
+    resolution:
+      integrity: sha512-LarL/PIKJvc09k1jaeT4kQb/8/7P+qV4qSnN2K80AES+OHdfZELAKVOBjxsvtToT/uLOfFbvYvKfZmV8cee7nA==
   /restore-cursor/2.0.0:
     dependencies:
       onetime: 2.0.1
@@ -11515,13 +11519,13 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-+GB6zVA9LWh6zovYQLALHwv5rb2PHGlJi3lfiqIHxR0uuwCgefcOJc59v9fv1w8GbStwxuuqqAjI9NMAOOgq1A==
-  /semver/7.3.0:
+  /semver/7.3.2:
     dev: true
     engines:
       node: '>=10'
     hasBin: true
     resolution:
-      integrity: sha512-uyvgU/igkrMgNHwLgXvlpD9jEADbJhB0+JXSywoO47JgJ6c16iau9F9cjtc/E5o0PoqRYTiTIAPRKaYe84z6eQ==
+      integrity: sha512-OrOb32TeeambH6UrhtShmF7CRDqhL6/5XpPNp2DuRH6+9QLw/orhp72j87v8Qa1ScDkvrrBNpZcDejAirJmfXQ==
   /send/0.17.1:
     dependencies:
       debug: 2.6.9
@@ -11545,14 +11549,6 @@ packages:
     dev: true
     resolution:
       integrity: sha1-1WgS4cAXpuTnw+Ojeh2m143TyT4=
-  /serialize-error/5.0.0:
-    dependencies:
-      type-fest: 0.8.1
-    dev: true
-    engines:
-      node: '>=8'
-    resolution:
-      integrity: sha512-/VtpuyzYf82mHYTtI4QKtwHa79vAdU5OQpNPAmE/0UDdlGT0ZxHwC+J6gXkw29wwoVI8fMPsfcVHOwXtUQYYQA==
   /serialize-javascript/2.1.2:
     dev: true
     resolution:
@@ -11914,12 +11910,12 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-CvT5XY+MWnn0HkbwVKJAyWEMfzpAPwnTiB3TobA5Mri44SrTovmmh499NPQP+gatkeOipqPlBLel7rn4E/PCQg==
-  /sqlstring/2.3.1:
+  /sqlstring/2.3.2:
     dev: true
     engines:
       node: '>= 0.6'
     resolution:
-      integrity: sha1-R1OT/56RR5rqYtyvDKPRSYOn+0A=
+      integrity: sha512-vF4ZbYdKS8OnoJAWBmMxCQDkiEBkGQYU7UZPtL8flbDRSNkhaXvRJ279ZtI6M+zDaQovVU4tuRgzK5fVhvFAhg==
   /sshpk/1.16.1:
     dependencies:
       asn1: 0.2.4
@@ -12710,7 +12706,7 @@ packages:
       make-error: 1.3.6
       micromatch: 4.0.2
       mkdirp: 1.0.4
-      resolve: 1.15.1
+      resolve: 1.16.0
       semver: 6.3.0
       yargs-parser: 18.1.2
     dev: true

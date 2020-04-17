@@ -16,7 +16,7 @@ pnpm i --no-prefer-frozen-lockfile
 
 pnpm run setup
 
-cd packages/prisma2
+cd packages/cli
 pnpm i sqlite3@4.1 --unsafe-perm
 cd ../..
 

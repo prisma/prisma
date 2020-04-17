@@ -1,6 +1,5 @@
 #!/usr/bin/env ts-node
 
-import * as Sentry from '@sentry/node'
 import fs from 'fs'
 import path from 'path'
 import dotenv from 'dotenv'
@@ -9,7 +8,6 @@ import { arg } from '@prisma/sdk'
 const packageJson = require('../package.json')
 
 export { byline } from '@prisma/migrate'
-export { Sentry }
 
 // do this before facebook's yoga
 import debugLib from 'debug'
@@ -28,6 +26,19 @@ process.env.NODE_NO_WARNINGS = '1'
 
 // react: psst 🙊
 process.env.NODE_ENV = 'production'
+
+debug({ argv: process.argv })
+
+if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
+  console.log(
+    chalk.yellow('deprecated') +
+      `  The ${chalk.redBright('prisma2')} command is deprecated and has been renamed to ${chalk.greenBright(
+        'prisma',
+      )}.\nPlease execute ${chalk.bold.greenBright(
+        'prisma' + (process.argv.length > 2 ? ' ' + process.argv.slice(2).join(' ') : ''),
+      )} instead.\n`,
+  )
+}
 
 //
 // Read .env file only if next to schema.prisma

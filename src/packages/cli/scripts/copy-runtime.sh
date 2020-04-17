@@ -23,4 +23,3 @@ cp -R "$(./scripts/resolve.js @prisma/studio)/build/" build/public
 
 rm -rf build/prisma
 rm -rf build/runtime/prisma
-cp src/capture-worker.js build/dist/capture-worker.js

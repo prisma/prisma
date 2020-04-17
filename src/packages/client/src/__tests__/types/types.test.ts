@@ -17,7 +17,7 @@ describe('valid types', () => {
   for (const dir of subDirs) {
     const testName = path.basename(dir)
 
-    test(`can compile ${testName} example`, async () => {
+    test(testName, async () => {
       await generateInFolder({
         projectDir: dir,
         useLocalRuntime: false,
@@ -32,8 +32,8 @@ describe('valid types', () => {
 function getSubDirs(dir: string): string[] {
   const files = fs.readdirSync(dir)
   return files
-    .map(file => path.join(dir, file))
-    .filter(file => fs.lstatSync(file).isDirectory())
+    .map((file) => path.join(dir, file))
+    .filter((file) => fs.lstatSync(file).isDirectory())
 }
 
 function compileFile(filePath: string): void {
