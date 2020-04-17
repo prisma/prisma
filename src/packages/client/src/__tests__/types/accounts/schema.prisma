@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:dev.db"
+  provider = "postgres"
+  url      = env("SOME_URL")
 }
 
 model UserTest {
@@ -24,7 +24,7 @@ model GlobalConfiguration {
 
 model AccountData {
   id     String               @default(cuid()) @id
-  config AccountConfiguration @relation(fields: [id])
+  config AccountConfiguration @relation(fields: [id], references: [id])
 }
 
 model RandomModel {
@@ -55,7 +55,7 @@ model Account {
 model AccountConfiguration {
   id       String        @default(cuid()) @id
   config   String
-  data     AccountData?  @relation(references: [id])
+  data     AccountData?
   list     RandomModel[]
   accounts Account[]
 }

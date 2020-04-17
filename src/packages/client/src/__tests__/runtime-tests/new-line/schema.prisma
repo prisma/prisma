@@ -13,16 +13,13 @@ generator client {
 // / Multiline
 // USER = "User"
 // ADMIN = "Admin" ADMIN
-enum Role {
-  USER
-}
-
 // / User model comment
 // address     Address
 // address2 embed {
 // street  String
 // zipCode String
 // }
+// maybePosts  Post[]?
 model User {
   // / User model field comment
   id      Int     @default(autoincrement()) @id
@@ -32,24 +29,16 @@ model User {
   balance Numeric
   amount  Float
   posts   Post[]
-  // maybePosts  Post[]?
-  role    Role
 }
 
-enum PostKind {
-  BLOG
-  ADVERT
-}
-
+// coAuthor  User?
 model Post {
-  uuid      String    @default(cuid()) @id
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  uuid      String   @default(cuid()) @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   published Boolean
   title     String
   content   String?
   authorId  Int
-  author    User      @relation(fields: [authorId], references: [id])
-  // coAuthor  User?
-  kind      PostKind?
+  author    User     @relation(fields: [authorId], references: [id])
 }
