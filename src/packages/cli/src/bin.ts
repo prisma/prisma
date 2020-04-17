@@ -34,7 +34,7 @@ if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
     chalk.yellow('deprecated') +
       `  The ${chalk.redBright('prisma2')} command is deprecated and has been renamed to ${chalk.greenBright(
         'prisma',
-      )}.\nPlease call ${chalk.bold.greenBright(
+      )}.\nPlease execute ${chalk.bold.greenBright(
         'prisma' + (process.argv.length > 2 ? ' ' + process.argv.slice(2).join(' ') : ''),
       )} instead.\n`,
   )
