@@ -18,18 +18,18 @@ export class BrowserEngine {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async start() {}
+  async start(): Promise<void> {}
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async stop() {}
+  async stop(): Promise<void> {}
 
   defaultFetcher = async ({
     query,
-    typeName,
+    typeName, // eslint-disable-line @typescript-eslint/no-unused-vars
   }: {
     query: string
     typeName?: string
-  }) => {
+  }): Promise<any> => {
     return fetch(this.url, {
       method: 'POST',
       headers: {
@@ -73,12 +73,18 @@ export class BrowserEngine {
     })
   }
 
-  handleErrors({ errors, query }: { errors?: any; query: string }) {
+  handleErrors({
+    errors,
+    query, // eslint-disable-line @typescript-eslint/no-unused-vars
+  }: {
+    errors?: any
+    query: string
+  }): void {
     const stringified = errors ? JSON.stringify(errors, null, 2) : null
     const message =
       stringified.length > 0
         ? stringified
-        : `Error in prisma.\$\{rootField || 'query'}`
+        : `Error in prisma.\$\{rootField || 'query'}` // eslint-disable-line no-useless-escape
     throw new Error(message)
   }
 }

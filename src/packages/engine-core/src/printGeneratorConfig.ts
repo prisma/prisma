@@ -7,7 +7,7 @@ export function printGeneratorConfig(config: GeneratorConfig): string {
 
 export class GeneratorConfigClass {
   constructor(private readonly config: GeneratorConfig) {}
-  toString() {
+  toString(): string {
     const { config } = this
     // parse & stringify trims out all the undefined values
     const obj = JSON.parse(
@@ -23,18 +23,21 @@ ${indent(printDatamodelObject(obj), 2)}
   }
 }
 
-export function printDatamodelObject(obj) {
-  const maxLength = Object.keys(obj).reduce((max, curr) => Math.max(max, curr.length), 0)
+export function printDatamodelObject(obj): string {
+  const maxLength = Object.keys(obj).reduce(
+    (max, curr) => Math.max(max, curr.length),
+    0,
+  )
   return Object.entries(obj)
     .map(([key, value]) => `${key.padEnd(maxLength)} = ${niceStringify(value)}`)
     .join('\n')
 }
 
-function niceStringify(value) {
+function niceStringify(value): any {
   return JSON.parse(
     JSON.stringify(value, (_, value) => {
       if (Array.isArray(value)) {
-        return `[${value.map(element => JSON.stringify(element)).join(', ')}]`
+        return `[${value.map((element) => JSON.stringify(element)).join(', ')}]`
       }
       return JSON.stringify(value)
     }),

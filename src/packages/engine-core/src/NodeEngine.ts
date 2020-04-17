@@ -173,11 +173,11 @@ You may have to run ${chalk.greenBright(
     return process.cwd()
   }
 
-  on(event: 'query' | 'info' | 'warn', listener: (log: RustLog) => any) {
+  on(event: 'query' | 'info' | 'warn', listener: (log: RustLog) => any): void {
     this.logEmitter.on(event, listener)
   }
 
-  async getPlatform() {
+  async getPlatform(): Promise<Platform> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     if (this.platformPromise) {
       return this.platformPromise
@@ -201,14 +201,15 @@ You may have to run ${chalk.greenBright(
     return queryEnginePath
   }
 
-  private handlePanic(log: RustLog) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private handlePanic(log: RustLog): void {
     this.child.kill()
     if (this.currentRequestPromise) {
-      ;(this.currentRequestPromise as any).cancel() // eslint-disable-line no-extra-semi
+      this.currentRequestPromise.cancel()
     }
   }
 
-  private async resolvePrismaPath() {
+  private async resolvePrismaPath(): Promise<string> {
     if (this.prismaPath) {
       return this.prismaPath
     }
@@ -232,7 +233,7 @@ You may have to run ${chalk.greenBright(
   }
 
   // get prisma path
-  private async getPrismaPath() {
+  private async getPrismaPath(): Promise<string> {
     const prismaPath = await this.resolvePrismaPath()
     const platform = await this.getPlatform()
     // If path to query engine doesn't exist, throw
@@ -318,12 +319,12 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     return prismaPath
   }
 
-  private getFixedGenerator() {
+  private getFixedGenerator(): string {
     const fixedGenerator = {
       ...this.generator,
       binaryTargets: fixPlatforms(
         this.generator.binaryTargets as Platform[],
-        this.platform!,
+        this.platform,
       ),
     }
 
@@ -350,6 +351,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   }
 
   private internalStart(): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
         this.port = await this.getFreePort()
@@ -450,7 +452,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           }
         })
 
-        this.child.on('exit', (code, signal) => {
+        this.child.on('exit', (code): void => {
           this.exitCode = code
           if (code !== 0 && this.engineStartDeferred) {
             const err = new PrismaClientInitializationError(this.stderrLogs)
@@ -491,7 +493,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
           }
         })
 
-        this.child.on('error', (err) => {
+        this.child.on('error', (err): void => {
           this.lastError = {
             message: err.message,
             backtrace: 'Could not start query engine',
@@ -500,7 +502,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
           reject(err)
         })
 
-        this.child.on('close', (code, signal) => {
+        this.child.on('close', (code, signal): void => {
           if (code === null && signal === 'SIGABRT' && this.child) {
             console.error(`${chalk.bold.red(`Error in Prisma Client:`)}${
               this.stderrLogs
@@ -556,7 +558,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
     })
   }
 
-  fail = async (e, why) => {
+  fail = async (e, why): Promise<void> => {
     debug(e, why)
     await this.stop()
   }
@@ -564,7 +566,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
   /**
    * If Prisma runs, stop it
    */
-  async stop() {
+  async stop(): Promise<void> {
     await this.start()
     if (this.currentRequestPromise) {
       try {
@@ -610,7 +612,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
    * Make sure that our internal port is not conflicting with the prisma.yml's port
    * @param str config
    */
-  protected trimPort(str: string) {
+  protected trimPort(str: string): string {
     return str
       .split('\n')
       .filter((l) => !l.startsWith('port:'))
