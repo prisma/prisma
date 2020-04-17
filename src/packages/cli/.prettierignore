@@ -1,0 +1,9 @@
+node_modules
+build
+dist
+download-build
+nexus_prisma_ncc_build
+__snapshots__
+preinstall
+prisma-client
+runtime
