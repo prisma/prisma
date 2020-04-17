@@ -1,4 +1,4 @@
-import htmlparser from 'htmlparser2'
+const htmlparser = require('htmlparser2') // eslint-disable-line @typescript-eslint/no-var-requires
 import fetch from 'node-fetch'
 import { getProxyAgent } from './getProxyAgent'
 
@@ -43,8 +43,6 @@ async function getObjects(
     const parser = new htmlparser.Parser(
       new htmlparser.DomHandler((err, result) => {
         const bucketTag = result.find(
-          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-          // @ts-ignore
           (child) => child.name === 'listbucketresult',
         )
         if (!bucketTag) {
@@ -57,8 +55,6 @@ async function getObjects(
         const isTruncated = getKey(bucketTag, 'istruncated')
         const nextContinuationToken = getKey(bucketTag, 'nextcontinuationtoken')
         resolve({
-          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-          // @ts-ignore
           objects: bucketTag.children
             .filter((c) => c.name === 'contents')
             .map((child) => {
