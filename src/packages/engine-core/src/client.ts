@@ -7,12 +7,12 @@ export class Client {
     this.session = http2.connect(url, {})
 
     // necessary to disable Node.js' error handling and us handle the error in .on('error') of the session
-    this.session.on('error', (e) => {}) // eslint-disable-line @typescript-eslint/no-empty-function
+    this.session.on('error', () => {}) // eslint-disable-line @typescript-eslint/no-empty-function
   }
-  close() {
+  close(): void {
     this.session.destroy()
   }
-  request(body: any) {
+  request(body: any): Promise<unknown> {
     return new Promise((resolve, reject) => {
       try {
         let rejected = false

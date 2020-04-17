@@ -3,7 +3,7 @@ import { Platform } from '@prisma/get-platform'
 import Debug from 'debug'
 const debug = Debug('plusX')
 
-export function plusX(file) {
+export function plusX(file): void {
   const s = fs.statSync(file)
   const newMode = s.mode | 64 | 8 | 1
   if (s.mode === newMode) {
@@ -15,7 +15,10 @@ export function plusX(file) {
   fs.chmodSync(file, base8)
 }
 
-export function fixPlatforms(platforms: Array<Platform | string>, platform: Platform | string) {
+export function fixPlatforms(
+  platforms: Array<Platform | string>,
+  platform: Platform | string,
+): string[] {
   platforms = platforms || []
   if (!platforms.includes('native')) {
     return ['native', ...platforms]
