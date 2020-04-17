@@ -51,6 +51,7 @@ export interface BuildClientResult {
   prismaClientDmmf: PrismaClientDMMF.Document
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function buildClient({
   datamodel,
   schemaDir = process.cwd(),
