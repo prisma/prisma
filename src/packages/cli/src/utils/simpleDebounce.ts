@@ -2,6 +2,7 @@
 // and the last invocation doesn't get lost (tail behavior of debounce)
 // mostly designed for watch mode, where it's fine if something fails, we just try catch it
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function simpleDebounce<T extends Function>(fn: T): T {
   let executing = false
   let pendingExecution: any = null
@@ -20,3 +21,4 @@ export function simpleDebounce<T extends Function>(fn: T): T {
     executing = false
   }) as any
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */

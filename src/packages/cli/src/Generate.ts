@@ -1,7 +1,20 @@
-import { Command, arg, format, HelpError, getSchemaPath, isError } from '@prisma/sdk'
+import {
+  Command,
+  arg,
+  format,
+  HelpError,
+  getSchemaPath,
+  isError,
+} from '@prisma/sdk'
 import chalk from 'chalk'
 import logUpdate from 'log-update'
-import { missingGeneratorMessage, getGenerators, highlightTS, link, Generator } from '@prisma/sdk'
+import {
+  missingGeneratorMessage,
+  getGenerators,
+  highlightTS,
+  link,
+  Generator,
+} from '@prisma/sdk'
 import { formatms } from './utils/formatms'
 import { simpleDebounce } from './utils/simpleDebounce'
 import fs from 'fs'
@@ -36,19 +49,30 @@ export class Generate implements Command {
   private logText = ''
 
   private runGenerate = simpleDebounce(
-    async ({ generators, watchMode }: { generators: Generator[]; watchMode: boolean }) => {
+    async ({ generators }: { generators: Generator[] }) => {
       const message: string[] = []
 
       for (const generator of generators) {
         const toStr = generator.options!.generator.output!
-          ? chalk.dim(` to .${path.sep}${path.relative(process.cwd(), generator.options!.generator.output!)}`)
+          ? chalk.dim(
+              ` to .${path.sep}${path.relative(
+                process.cwd(),
+                generator.options!.generator.output!,
+              )}`,
+            )
           : ''
-        const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
+        const name = generator.manifest
+          ? generator.manifest.prettyName
+          : generator.options!.generator.provider
         const before = Date.now()
         try {
           await generator.generate()
           const after = Date.now()
-          message.push(`✔ Generated ${chalk.bold(name!)}${toStr} in ${formatms(after - before)}\n`)
+          message.push(
+            `✔ Generated ${chalk.bold(name!)}${toStr} in ${formatms(
+              after - before,
+            )}\n`,
+          )
           generator.stop()
         } catch (err) {
           message.push(err.message)
@@ -84,7 +108,9 @@ export class Generate implements Command {
       throw new Error(
         `Either provide ${chalk.greenBright(
           '--schema',
-        )} or make sure that you are in a folder with a ${chalk.greenBright('schema.prisma')} file.`,
+        )} or make sure that you are in a folder with a ${chalk.greenBright(
+          'schema.prisma',
+        )} file.`,
       )
     }
 
@@ -102,10 +128,13 @@ export class Generate implements Command {
         this.logText += `${missingGeneratorMessage}\n`
       } else {
         // Only used for CLI output, ie Go client doesn't want JS example output
-        isJSClient = generators.find((g) => g.options && g.options.generator.provider === 'prisma-client-js')
+        isJSClient = generators.find(
+          (g) =>
+            g.options && g.options.generator.provider === 'prisma-client-js',
+        )
 
         try {
-          await this.runGenerate({ generators, watchMode })
+          await this.runGenerate({ generators })
         } catch (errRunGenerate) {
           this.logText += `${errRunGenerate.message}\n\n`
         }
@@ -118,7 +147,9 @@ export class Generate implements Command {
       }
     }
 
-    const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(schemaPath)}\n`
+    const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(
+      schemaPath,
+    )}\n`
 
     if (watchMode) {
       logUpdate(watchingText + '\n' + this.logText)
@@ -139,7 +170,9 @@ export class Generate implements Command {
             } else {
               logUpdate(`\n${chalk.green('Building...')}\n\n${this.logText}`)
               try {
-                await this.runGenerate({ generators: generatorsWatch, watchMode })
+                await this.runGenerate({
+                  generators: generatorsWatch,
+                })
                 logUpdate(watchingText + '\n' + this.logText)
               } catch (errRunGenerate) {
                 this.logText += `${errRunGenerate.message}\n\n`
@@ -153,7 +186,7 @@ export class Generate implements Command {
           }
         }
       })
-      await new Promise((r) => null)
+      await new Promise((_) => null) // eslint-disable-line @typescript-eslint/no-unused-vars
     } else {
       const hint = `
 You can now start using Prisma Client in your code:
@@ -176,7 +209,9 @@ Explore the full API: ${link('http://pris.ly/d/client')}`
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Generate.help}`)
+      return new HelpError(
+        `\n${chalk.bold.red(`!`)} ${error}\n${Generate.help}`,
+      )
     }
     return Generate.help
   }

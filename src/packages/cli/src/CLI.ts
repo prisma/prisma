@@ -1,5 +1,13 @@
 import chalk from 'chalk'
-import { Command, Commands, arg, isError, format, HelpError, unknownCommand } from '@prisma/sdk'
+import {
+  Command,
+  Commands,
+  arg,
+  isError,
+  format,
+  HelpError,
+  unknownCommand,
+} from '@prisma/sdk'
 import { Version } from './Version'
 import { download } from '@prisma/fetch-engine'
 import { link } from '@prisma/sdk'
@@ -12,7 +20,10 @@ export class CLI implements Command {
   static new(cmds: Commands, ensureBinaries: string[]): CLI {
     return new CLI(cmds, ensureBinaries)
   }
-  private constructor(private readonly cmds: Commands, private readonly ensureBinaries: string[]) {}
+  private constructor(
+    private readonly cmds: Commands,
+    private readonly ensureBinaries: string[],
+  ) {}
 
   async parse(argv: string[]): Promise<string | Error> {
     // parse the args according to the following spec
@@ -44,7 +55,11 @@ export class CLI implements Command {
     // check if we have that subcommand
     const cmdName = args._[0]
     if (cmdName === 'lift') {
-      throw new Error(`${chalk.red('prisma lift')} has been renamed to ${chalk.green('prisma migrate')}`)
+      throw new Error(
+        `${chalk.red('prisma lift')} has been renamed to ${chalk.green(
+          'prisma migrate',
+        )}`,
+      )
     }
     const cmd = this.cmds[cmdName]
     if (cmd) {
@@ -62,7 +77,7 @@ export class CLI implements Command {
     return unknownCommand(CLI.help, args._[0])
   }
 
-  private async downloadBinaries() {
+  private async downloadBinaries(): Promise<void> {
     const binaryPath = eval(`require('path').join(__dirname, '../')`)
     const version = (pkg && pkg.prisma && pkg.prisma.version) || 'latest'
     await download({
@@ -89,7 +104,9 @@ export class CLI implements Command {
   private static help = format(`
     ${
       process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
-    }Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
+    }Prisma is a modern DB toolkit to query, migrate and model your database (${link(
+    'https://prisma.io',
+  )})
 
     ${chalk.bold('Usage')}
 
@@ -121,7 +138,9 @@ export class CLI implements Command {
   private static experimentalHelp = format(`
     ${
       process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
-    }Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
+    }Prisma is a modern DB toolkit to query, migrate and model your database (${link(
+    'https://prisma.io',
+  )})
 
     ${chalk.bold('Usage')}
 
