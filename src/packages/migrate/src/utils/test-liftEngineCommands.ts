@@ -1,9 +1,12 @@
-import { canConnectToDatabase, createDatabase } from '../MigrateEngineCommands'
+import {
+  canConnectToDatabase,
+  //  createDatabase
+} from '../MigrateEngineCommands'
 
-async function main2() {
-  const result = await createDatabase(process.env.TEST_CONNECTION_STRING!)
-  console.log(result)
-}
+// async function main2() {
+//   const result = await createDatabase(process.env.TEST_CONNECTION_STRING!)
+//   console.log(result)
+// }
 
 async function main() {
   const result = await canConnectToDatabase(process.env.TEST_CONNECTION_STRING!)
