@@ -36,34 +36,8 @@ after(async () => {
   engine.stop()
 })
 
-const nameCache = {}
-
-const prettyName = (fn: any): string => {
-  const fnstr = fn.toString()
-  const from = fnstr.indexOf('{')
-  const to = fnstr.lastIndexOf('}')
-  const sig = fnstr.slice(from + 1, to)
-  const name = sig
-    .replace(/\s{2,}/g, ' ')
-    .replace('client.', '')
-    .replace('return', '')
-    .replace(/\n/g, ' ')
-    .replace(/\t/g, ' ')
-    .replace(/\r/g, ' ')
-    .replace(';', '')
-    .trim()
-
-  if (nameCache[name]) {
-    return name + 2
-  }
-
-  nameCache[name] = true
-
-  return name
-}
-
 tests().map((t: Test) => {
-  const name = prettyName(t.do)
+  const name = t.name
 
   // if (!t.run) {
   //   it.skip(name)
@@ -145,9 +119,9 @@ async function generate(test: Test, datamodel: string) {
 }
 
 type Test = {
-  title?: string
   todo?: boolean
   run?: boolean
+  name: string
   up: string
   down: string
   do: (client: any) => Promise<any>
@@ -157,6 +131,7 @@ type Test = {
 function tests(): Test[] {
   return [
     {
+      name: 'findOne where PK',
       up: `
         create table teams (
           id int primary key not null,
@@ -168,7 +143,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.findOne({ where: { id: 2 } })
       },
       expect: {
@@ -177,6 +152,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where PK with select',
       up: `
         create table teams (
           id int primary key not null,
@@ -189,7 +165,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.findOne({ where: { id: 2 }, select: { name: true } })
       },
       expect: {
@@ -197,6 +173,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where PK with include',
       up: `
         create table users (
           id serial primary key not null,
@@ -218,7 +195,7 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findOne({ where: { id: 1 }, include: { posts: true } })
       },
       expect: {
@@ -239,6 +216,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'create with data',
       up: `
         create table teams (
           id serial primary key not null,
@@ -248,7 +226,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.create({ data: { name: 'c' } })
       },
       expect: {
@@ -257,6 +235,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'create with empty data and SQL default',
       up: `
         create table teams (
           id serial primary key not null,
@@ -266,7 +245,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.create({ data: {} })
       },
       expect: {
@@ -276,6 +255,7 @@ function tests(): Test[] {
     },
     {
       todo: true,
+      name: 'create with empty data and serial',
       up: `
         create table teams (
           id serial primary key not null
@@ -284,7 +264,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.create({ data: {} })
       },
       expect: {
@@ -293,6 +273,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update where with numeric data',
       up: `
         create table teams (
           id serial primary key not null,
@@ -303,7 +284,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.update({
           where: { id: 1 },
           data: { name: 'd' },
@@ -315,6 +296,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update where with boolean data',
       up: `
         create table teams (
           id serial primary key not null,
@@ -326,7 +308,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.update({
           where: { id: 1 },
           data: { active: false },
@@ -339,6 +321,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update where with boolean data and select',
       up: `
         create table teams (
           id serial primary key not null,
@@ -350,7 +333,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.update({
           where: { id: 1 },
           data: { active: false },
@@ -362,6 +345,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update where with string data',
       up: `
         create table teams (
           id serial primary key not null,
@@ -372,7 +356,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.update({
           where: { name: 'c' },
           data: { name: 'd' },
@@ -384,6 +368,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'updateMany where with string data - check returned count',
       up: `
         create table teams (
           id serial primary key not null,
@@ -395,7 +380,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.updateMany({
           where: { name: 'c' },
           data: { name: 'd' },
@@ -406,6 +391,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'updateMany where with string data - check findMany',
       up: `
         create table teams (
           id serial primary key not null,
@@ -417,7 +403,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         await client.teams.updateMany({
           where: { name: 'c' },
           data: { name: 'd' },
@@ -436,6 +422,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findOne where unique',
       up: `
         create table users (
           id serial primary key not null,
@@ -446,7 +433,7 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findOne({ where: { email: 'ada@prisma.io' } })
       },
       expect: {
@@ -455,6 +442,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where composite unique',
       up: `
         create table users (
           id serial primary key not null,
@@ -467,7 +455,7 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findOne({ where: { users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' } } })
       },
       expect: {
@@ -477,6 +465,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update where composite unique',
       up: `
         create table users (
           id serial primary key not null,
@@ -489,7 +478,7 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.update({
           where: { users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' } },
           data: { name: 'Marco' },
@@ -502,6 +491,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'delete where composite unique',
       up: `
         create table users (
           id serial primary key not null,
@@ -514,7 +504,7 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.delete({
           where: { users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' } },
         })
@@ -526,6 +516,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findMany - email text',
       up: `
         create table users (
           id serial primary key not null,
@@ -537,7 +528,7 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findMany()
       },
       expect: [
@@ -552,6 +543,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where unique',
       up: `
         create table users (
           id serial primary key not null,
@@ -562,7 +554,7 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findMany({ where: { email: 'ada@prisma.io' } })
       },
       expect: [
@@ -573,6 +565,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany - email varchar(50) not null unique',
       up: `
         create table users (
           id serial primary key not null,
@@ -584,7 +577,7 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findMany()
       },
       expect: [
@@ -599,6 +592,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findOne where unique with foreign key and unpack',
       up: `
         create table users (
           id serial primary key not null,
@@ -620,7 +614,7 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findOne({ where: { email: 'ada@prisma.io' } }).posts()
       },
       expect: [
@@ -637,6 +631,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where contains and boolean',
       up: `
         create table posts (
           id serial primary key not null,
@@ -650,7 +645,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.findMany({
           where: {
             title: { contains: 'A' },
@@ -667,6 +662,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where OR[contains, contains] ',
       up: `
         create table posts (
           id serial primary key not null,
@@ -680,7 +676,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.findMany({
           where: {
             OR: [{ title: { contains: 'A' } }, { title: { contains: 'C' } }],
@@ -702,6 +698,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'upsert (update)',
       up: `
         create table posts (
           id serial primary key not null,
@@ -715,7 +712,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.upsert({
           where: { id: 1 },
           create: { title: 'D', published: true },
@@ -729,6 +726,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'upsert (create)',
       up: `
         create table posts (
           id serial primary key not null,
@@ -742,7 +740,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.upsert({
           where: { id: 4 },
           create: { title: 'D', published: false },
@@ -756,6 +754,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findMany orderBy asc',
       up: `
         create table posts (
           id serial primary key not null,
@@ -769,7 +768,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.findMany({
           orderBy: {
             title: 'asc',
@@ -795,6 +794,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany orderBy desc',
       up: `
         create table posts (
           id serial primary key not null,
@@ -808,7 +808,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.findMany({
           orderBy: {
             title: 'desc',
@@ -834,6 +834,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany - default enum',
       up: `
         create table posts (
           id serial primary key not null,
@@ -847,7 +848,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.findMany()
       },
       expect: [
@@ -870,6 +871,7 @@ function tests(): Test[] {
     },
     {
       todo: true,
+      name: 'create with data - not null enum',
       up: `
         create table posts (
           id serial primary key not null,
@@ -883,12 +885,13 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.create({ data: { title: 'D' } })
       },
       expect: {},
     },
     {
+      name: 'update with data - not null enum',
       up: `
         create table posts (
           id serial primary key not null,
@@ -902,7 +905,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.update({
           where: { id: 1 },
           data: { published: 'PUBLISHED' },
@@ -915,6 +918,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'updateMany with data - not null enum - check count',
       up: `
         create table posts (
           id serial primary key not null,
@@ -928,7 +932,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.updateMany({
           data: { published: 'PUBLISHED' },
         })
@@ -938,6 +942,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update with data - not null enum - check findMany',
       up: `
         create table posts (
           id serial primary key not null,
@@ -951,7 +956,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         await client.posts.updateMany({
           data: { published: 'PUBLISHED' },
         })
@@ -976,6 +981,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'deleteMany where enum - check count',
       up: `
         create table posts (
           id serial primary key not null,
@@ -989,7 +995,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return await client.posts.deleteMany({
           where: { published: 'DRAFT' },
         })
@@ -999,6 +1005,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'deleteMany where enum - check findMany',
       up: `
         create table posts (
           id serial primary key not null,
@@ -1012,7 +1019,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         await client.posts.deleteMany({
           where: { published: 'DRAFT' },
         })
@@ -1027,6 +1034,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where contains',
       up: `
         create table crons (
           id serial not null primary key,
@@ -1040,7 +1048,7 @@ function tests(): Test[] {
       down: `
         drop table if exists crons cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.crons.findMany({ where: { job: { contains: 'j2' } } })
       },
       expect: [
@@ -1057,6 +1065,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where startsWith',
       up: `
         create table crons (
           id serial not null primary key,
@@ -1070,7 +1079,7 @@ function tests(): Test[] {
       down: `
         drop table if exists crons cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.crons.findMany({ where: { job: { startsWith: 'j2' } } })
       },
       expect: [
@@ -1087,6 +1096,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where endsWith',
       up: `
         create table crons (
           id serial not null primary key,
@@ -1100,7 +1110,7 @@ function tests(): Test[] {
       down: `
         drop table if exists crons cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.crons.findMany({ where: { job: { endsWith: '1' } } })
       },
       expect: [
@@ -1117,6 +1127,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where in[string]',
       up: `
         create table crons (
           id serial not null primary key,
@@ -1130,7 +1141,7 @@ function tests(): Test[] {
       down: `
         drop table if exists crons cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.crons.findMany({ where: { job: { in: ['j20', 'j1'] } } })
       },
       expect: [
@@ -1147,6 +1158,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findOne where in[]',
       todo: true,
       up: `
         create table crons (
@@ -1161,7 +1173,7 @@ function tests(): Test[] {
       down: `
         drop table if exists crons cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.crons.findOne({ where: { job: { in: ['j20', 'j1'] } } })
       },
       expect: [
@@ -1178,6 +1190,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where datetime lte - check instanceof Date',
       up: `
         create table posts (
           id serial primary key not null,
@@ -1191,9 +1204,9 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         const posts = await client.posts.findMany({ where: { created_at: { lte: new Date() } } })
-        posts.forEach(post => {
+        posts.forEach((post) => {
           assert.ok(post.created_at instanceof Date)
           delete post.created_at
         })
@@ -1215,6 +1228,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where timestamp gte than now',
       up: `
         create table posts (
           id serial primary key not null,
@@ -1228,12 +1242,13 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.findMany({ where: { created_at: { gte: new Date() } } })
       },
       expect: [],
     },
     {
+      name: 'findMany where timestamp gt than now',
       up: `
         create table posts (
           id serial primary key not null,
@@ -1247,12 +1262,13 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.findMany({ where: { created_at: { gt: new Date() } } })
       },
       expect: [],
     },
     {
+      name: 'findMany where timestamp lt than now',
       up: `
         create table posts (
           id serial primary key not null,
@@ -1266,9 +1282,9 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         const posts = await client.posts.findMany({ where: { created_at: { lt: new Date() } } })
-        posts.forEach(post => {
+        posts.forEach((post) => {
           assert.ok(post.created_at instanceof Date)
           delete post.created_at
         })
@@ -1290,6 +1306,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'update where integer data',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1300,7 +1317,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.update({ where: { token: 11 }, data: { token: 10 } })
       },
       expect: {
@@ -1309,6 +1326,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findMany where datetime exact',
       up: `
         create table events (
           id serial not null primary key,
@@ -1319,7 +1337,7 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.events.findMany({ where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } })
       },
       expect: [
@@ -1330,6 +1348,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where datetime gt',
       up: `
         create table events (
           id serial not null primary key,
@@ -1340,12 +1359,13 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.events.findMany({ where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
       },
       expect: [],
     },
     {
+      name: 'findMany where datetime gte',
       up: `
         create table events (
           id serial not null primary key,
@@ -1356,7 +1376,7 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.events.findMany({ where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
       },
       expect: [
@@ -1367,6 +1387,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where datetime lt',
       up: `
         create table events (
           id serial not null primary key,
@@ -1377,12 +1398,13 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.events.findMany({ where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
       },
       expect: [],
     },
     {
+      name: 'findMany where datetime lte',
       up: `
         create table events (
           id serial not null primary key,
@@ -1393,7 +1415,7 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.events.findMany({ where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
       },
       expect: [
@@ -1404,6 +1426,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where datetime not',
       up: `
         create table events (
           id serial not null primary key,
@@ -1414,12 +1437,13 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.events.findMany({ where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
       },
       expect: [],
     },
     {
+      name: 'findMany where null',
       up: `
         create table events (
           id serial not null primary key,
@@ -1432,7 +1456,7 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.events.findMany({ where: { time: null } })
       },
       expect: [
@@ -1451,6 +1475,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where empty in[]',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1463,12 +1488,13 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.findMany({ where: { id: { in: [] } } })
       },
       expect: [],
     },
     {
+      name: 'findMany where id empty in[] and token in[]',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1481,12 +1507,13 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.findMany({ where: { id: { in: [] }, token: { in: [11, 22] } } })
       },
       expect: [],
     },
     {
+      name: 'findMany where in[integer]',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1499,7 +1526,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.findMany({ where: { token: { in: [11, 22] } } })
       },
       expect: [
@@ -1516,6 +1543,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where notIn[]',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1528,12 +1556,13 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.findMany({ where: { token: { notIn: [11, 22] } } })
       },
       expect: [],
     },
     {
+      name: 'findMany where empty notIn[]',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1546,7 +1575,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.findMany({ where: { token: { notIn: [] } } })
       },
       expect: [
@@ -1564,6 +1593,7 @@ function tests(): Test[] {
     },
     {
       todo: true,
+      name: 'findMany where null',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1583,7 +1613,7 @@ function tests(): Test[] {
         drop table if exists users cascade;
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findMany({ where: { team_id: null } })
       },
       expect: [
@@ -1594,6 +1624,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where - case insensitive field',
       up: `
         create table users (
           id serial primary key not null,
@@ -1604,7 +1635,7 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findMany({ where: { email: 'MAX@PRISMA.IO' } })
       },
       expect: [
@@ -1615,6 +1646,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where decimal',
       up: `
         create table exercises (
           id serial primary key not null,
@@ -1625,7 +1657,7 @@ function tests(): Test[] {
       down: `
         drop table if exists exercises cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.exercises.findMany({ where: { distance: 12.213 } })
       },
       expect: [
@@ -1636,6 +1668,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findOne where decimal',
       up: `
         create table exercises (
           id serial primary key not null,
@@ -1646,7 +1679,7 @@ function tests(): Test[] {
       down: `
         drop table if exists exercises cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.exercises.findOne({ where: { distance: 12.213 } })
       },
       expect: {
@@ -1657,6 +1690,7 @@ function tests(): Test[] {
     {
       todo: true,
       // null
+      name: 'findOne where decimal - default value',
       up: `
         create table exercises (
           id serial primary key not null,
@@ -1668,7 +1702,7 @@ function tests(): Test[] {
       down: `
         drop table if exists exercises cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.exercises.findOne({ where: { distance: 12.3 } })
       },
       expect: {
@@ -1677,6 +1711,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'create bigint data',
       up: `
         create table migrate (
           version bigint not null primary key
@@ -1685,7 +1720,7 @@ function tests(): Test[] {
       down: `
         drop table if exists migrate cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.migrate.create({ data: { version: 1 } })
       },
       expect: {
@@ -1693,6 +1728,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where composite PK',
       up: `
         create table variables (
           name varchar(50) not null,
@@ -1706,7 +1742,7 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.variables.findOne({ where: { name_key: { key: 'b', name: 'a' } } })
       },
       expect: {
@@ -1717,6 +1753,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update where composite PK',
       up: `
         create table variables (
           name varchar(50) not null,
@@ -1730,7 +1767,7 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.variables.update({
           where: { name_key: { key: 'b', name: 'a' } },
           data: { email: 'e' },
@@ -1744,6 +1781,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'upsert where composite PK - update',
       up: `
         create table variables (
           name varchar(50) not null,
@@ -1757,7 +1795,7 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.variables.upsert({
           where: { name_key: { key: 'b', name: 'a' } },
           create: { name: '1', key: '2', value: '3', email: '4' },
@@ -1772,6 +1810,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'upsert where composite PK - create',
       up: `
         create table variables (
           name varchar(50) not null,
@@ -1785,7 +1824,7 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.variables.upsert({
           where: { name_key: { key: 'd', name: 'a' } },
           create: { name: '1', key: '2', value: '3', email: '4' },
@@ -1800,6 +1839,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'delete where composite PK',
       up: `
         create table variables (
           name varchar(50) not null,
@@ -1813,7 +1853,7 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.variables.delete({
           where: { name_key: { key: 'b', name: 'a' } },
         })
@@ -1826,6 +1866,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where unique composite',
       up: `
         create table variables (
           id serial primary key not null,
@@ -1840,7 +1881,7 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.variables.findOne({ where: { variables_name_key_key: { key: 'b', name: 'a' } } })
       },
       expect: {
@@ -1852,6 +1893,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where unique composite (PK is a composite)',
       up: `
         create table variables (
           name varchar(50) not null,
@@ -1866,7 +1908,7 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.variables.findOne({ where: { variables_value_email_key: { value: 'c', email: 'd' } } })
       },
       expect: {
@@ -1877,6 +1919,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where composite PK with foreign key',
       up: `
           create table a (
             one integer not null,
@@ -1896,7 +1939,7 @@ function tests(): Test[] {
         drop table if exists b cascade;
         drop table if exists a cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.a.findOne({ where: { one_two: { one: 1, two: 2 } } })
       },
       expect: {
@@ -1906,6 +1949,7 @@ function tests(): Test[] {
     },
     {
       todo: true,
+      name: 'findOne - list all possible datatypes',
       up: `
         create table crazy (
           c1 bigint,
@@ -1916,7 +1960,7 @@ function tests(): Test[] {
       down: `
         drop table if exists crazy cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.crazy.findOne({ where: { value_email: { value: 'c', email: 'd' } } })
       },
       expect: {
@@ -1924,6 +1968,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'updateMany where null - check findMany',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1936,7 +1981,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         await client.teams.updateMany({
           data: { name: 'b' },
           where: { name: null },
@@ -1959,6 +2004,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany on column_name_that_becomes_empty_string',
       up: `
         CREATE TABLE \`column_name_that_becomes_empty_string\` (
           \`field1\` int(11) NOT NULL AUTO_INCREMENT,
@@ -1989,7 +2035,7 @@ function tests(): Test[] {
         drop table if exists no_unique_identifier cascade;
         drop table if exists unsupported_type cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return await client.column_name_that_becomes_empty_string.findMany({})
       },
       expect: [],
@@ -2002,7 +2048,7 @@ export function maskSchema(schema: string): string {
   const outputRegex = /output\s*=\s*.+/
   return schema
     .split('\n')
-    .map(line => {
+    .map((line) => {
       const urlMatch = urlRegex.exec(line)
       if (urlMatch) {
         return `${line.slice(0, urlMatch.index)}url = "***"`
