@@ -525,11 +525,11 @@ importers:
       '@prisma/sdk': 'workspace:*'
       '@prisma/studio-server': 0.220.0
       '@prisma/studio-types': 0.220.0
-      '@types/charm': 1.0.1
-      '@types/debug': 4.1.5
-      '@types/diff': 4.0.2
-      '@types/fs-extra': 8.1.0
-      '@types/jest': 25.2.1
+      '@types/charm': ^1.0.1
+      '@types/debug': ^4.1.5
+      '@types/diff': ^4.0.2
+      '@types/fs-extra': ^8.1.0
+      '@types/jest': ^25.2.1
       '@types/node': ^12.12.35
       '@types/prompts': ^2.0.3
       '@types/react': 16.9.11
@@ -537,19 +537,19 @@ importers:
       ansi-escapes: ^4.3.1
       cli-cursor: 3.1.0
       dashify: 2.0.0
-      debug: 4.1.1
+      debug: ^4.1.1
       del: ^5.1.0
       diff: 4.0.2
       execa: ^4.0.0
       figures: ^3.2.0
       get-port: ^5.1.1
-      git-user-email: 0.2.2
-      git-user-name: 2.0.0
+      git-user-email: ^0.2.2
+      git-user-name: ^2.0.0
       globby: ^11.0.0
       http-proxy-agent: ^4.0.1
       https-proxy-agent: ^5.0.0
       husky: ^4.2.4
-      indent-string: 4.0.0
+      indent-string: ^4.0.0
       ink: 2.5.0
       ink-link: 1.0.0
       ink-spinner: 3.0.1
@@ -560,7 +560,7 @@ importers:
       make-dir: ^3.0.2
       open: ^7.0.3
       p-map: ^4.0.0
-      pkg-up: 3.1.0
+      pkg-up: ^3.1.0
       prettier: ^2.0.4
       prompts: ^2.3.2
       ps-tree: 1.2.0
@@ -13692,6 +13692,7 @@ packages:
     dev: true
     name: '@types/mysql'
     resolution:
+      registry: 'https://registry.npmjs.org/'
       tarball: 'https://codeload.github.com/types/mysql/tar.gz/41e381415afbb79452c0501ca3cf220c2cd390bc'
     version: 2.0.0
   github.com/types/mysql2/b549352cda0b83fe8c4f4c11a1b4beb0b0cb0f5d:
