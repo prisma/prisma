@@ -12,7 +12,7 @@ model Article {
 model Link {
   id Int @id
   articleId Int
-  article Article @relation(fields: [articleId])
+  article Article @relation(fields: [articleId], references: [id])
   postedAt DateTime
 }
 
