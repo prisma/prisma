@@ -34,10 +34,10 @@ export function parseDistro(input: string): GetOSResult['distro'] {
   const idRegex = /^ID="?([^"\n]*)"?$/im
   const idLikeRegex = /^ID_LIKE="?([^"\n]*)"?$/im
 
-  const idMatch = input.match(idRegex)
+  const idMatch = idRegex.exec(input)
   const id = (idMatch && idMatch[1] && idMatch[1].toLowerCase()) || ''
 
-  const idLikeMatch = input.match(idLikeRegex)
+  const idLikeMatch = idLikeRegex.exec(input)
   const idLike =
     (idLikeMatch && idLikeMatch[1] && idLikeMatch[1].toLowerCase()) || ''
 
@@ -123,7 +123,7 @@ export async function getOpenSSLVersion(): Promise<string | undefined> {
 async function gracefulExec(cmd: string): Promise<string | undefined> {
   return new Promise((resolve) => {
     try {
-      exec(cmd, (err, stdout, stderr) => {
+      exec(cmd, (err, stdout) => {
         resolve(String(stdout))
       })
     } catch (e) {
