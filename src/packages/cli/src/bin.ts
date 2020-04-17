@@ -5,7 +5,7 @@ import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
 import { arg } from '@prisma/sdk'
-const packageJson = require('../package.json')
+const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 export { byline } from '@prisma/migrate'
 

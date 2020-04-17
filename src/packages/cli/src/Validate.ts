@@ -24,7 +24,6 @@ export class Validate implements Command {
       ${chalk.dim('$')} prisma validate --schema=./schema.prisma
 
   `)
-  private constructor() {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {

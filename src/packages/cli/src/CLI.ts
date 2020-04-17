@@ -3,7 +3,7 @@ import { Command, Commands, arg, isError, format, HelpError, unknownCommand } fr
 import { Version } from './Version'
 import { download } from '@prisma/fetch-engine'
 import { link } from '@prisma/sdk'
-const pkg = require('../package.json')
+const pkg = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 /**
  * CLI command

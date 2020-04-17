@@ -36,7 +36,7 @@ export class Generate implements Command {
   private logText = ''
 
   private runGenerate = simpleDebounce(
-    async ({ generators, watchMode }: { generators: Generator[]; watchMode: Boolean }) => {
+    async ({ generators, watchMode }: { generators: Generator[]; watchMode: boolean }) => {
       const message: string[] = []
 
       for (const generator of generators) {
@@ -102,7 +102,7 @@ export class Generate implements Command {
         this.logText += `${missingGeneratorMessage}\n`
       } else {
         // Only used for CLI output, ie Go client doesn't want JS example output
-        isJSClient = generators.find(g => g.options && g.options.generator.provider === 'prisma-client-js')
+        isJSClient = generators.find((g) => g.options && g.options.generator.provider === 'prisma-client-js')
 
         try {
           await this.runGenerate({ generators, watchMode })
@@ -123,7 +123,7 @@ export class Generate implements Command {
     if (watchMode) {
       logUpdate(watchingText + '\n' + this.logText)
 
-      fs.watch(schemaPath, async eventType => {
+      fs.watch(schemaPath, async (eventType) => {
         if (eventType === 'change') {
           let generatorsWatch: Generator[] | undefined
           try {
@@ -153,7 +153,7 @@ export class Generate implements Command {
           }
         }
       })
-      await new Promise(r => null)
+      await new Promise((r) => null)
     } else {
       const hint = `
 You can now start using Prisma Client in your code:

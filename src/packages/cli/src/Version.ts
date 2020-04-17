@@ -1,9 +1,7 @@
 import { Command, getVersion, resolveBinary, arg } from '@prisma/sdk'
 import { getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
-import path from 'path'
-import { getBinaryName } from '@prisma/fetch-engine'
-const packageJson = require('../package.json')
+const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 import Debug from 'debug'
 const debug = Debug('version')
 
@@ -20,7 +18,7 @@ export class Version implements Command {
   static new(): Version {
     return new Version()
   }
-  private constructor() {}
+
   async parse(argv: string[]) {
     const args = arg(argv, {
       '--json': Boolean,
@@ -46,10 +44,12 @@ export class Version implements Command {
 
     return this.printTable(rows, args['--json'])
   }
+
   private printBinaryInfo({ path, version, fromEnvVar }: BinaryInfo): string {
     const resolved = fromEnvVar ? `, resolved by ${fromEnvVar}` : ''
     return `${version} (at ${path}${resolved})`
   }
+
   private async resolveEngine(binaryName: string, envVar: string, platform: string): Promise<BinaryInfo> {
     const pathFromEnv = process.env[envVar]
     if (pathFromEnv && fs.existsSync(pathFromEnv!)) {
@@ -61,7 +61,8 @@ export class Version implements Command {
     const version = await getVersion(binaryPath)
     return { path: binaryPath, version }
   }
-  private printTable(rows: string[][], json: boolean = false) {
+
+  private printTable(rows: string[][], json = false) {
     if (json) {
       const result = rows.reduce((acc, [name, value]) => {
         acc[slugify(name)] = value

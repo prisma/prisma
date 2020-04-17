@@ -5,7 +5,8 @@ export class Dev implements Command {
   static new(): Dev {
     return new Dev()
   }
-  private constructor() {}
+
+  // eslint-disable-next-line @typescript-eslint/require-await
   async parse(argv: string[]) {
     return format(`
       ${chalk.redBright('Prisma CLI does not include a `dev` command any more right now.')}
