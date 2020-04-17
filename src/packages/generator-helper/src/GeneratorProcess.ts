@@ -187,12 +187,12 @@ export class GeneratorProcess {
   }
 }
 
-function hasChmodX(file: string): boolean {
-  const s = fs.statSync(file)
-  // tslint:disable-next-line
-  const newMode = s.mode | 64 | 8 | 1
-  return s.mode === newMode
-}
+// function hasChmodX(file: string): boolean {
+//   const s = fs.statSync(file)
+//   // tslint:disable-next-line
+//   const newMode = s.mode | 64 | 8 | 1
+//   return s.mode === newMode
+// }
 
 function getCommandAndArgs(str: string): { command: string; args: string[] } {
   const lastSlash = str.lastIndexOf(path.delimiter)
