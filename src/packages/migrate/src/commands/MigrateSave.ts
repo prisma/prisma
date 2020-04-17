@@ -1,4 +1,12 @@
-import { arg, Command, format, getSchema, getSchemaDir, HelpError, isError } from '@prisma/sdk'
+import {
+  arg,
+  Command,
+  format,
+  getSchema,
+  getSchemaDir,
+  HelpError,
+  isError,
+} from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
@@ -28,7 +36,9 @@ export class MigrateSave implements Command {
     ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in an experimental state.",
   )}
-    ${chalk.dim('When using any of the commands below you need to explicitly opt-in via the --experimental flag.')}
+    ${chalk.dim(
+      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
+    )}
 
     ${chalk.bold('Usage')}
 
@@ -47,10 +57,11 @@ export class MigrateSave implements Command {
       ${chalk.dim('$')} prisma migrate save --experimental
 
       Create a new migration by name
-      ${chalk.dim('$')} prisma migrate save --name "add unique to email" --experimental
+      ${chalk.dim(
+        '$',
+      )} prisma migrate save --name "add unique to email" --experimental
 
   `)
-  private constructor() {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
@@ -81,7 +92,12 @@ export class MigrateSave implements Command {
     }
 
     const preview = args['--preview'] || false
-    await ensureDatabaseExists('create', true, args['--create-db'], args['--schema'])
+    await ensureDatabaseExists(
+      'create',
+      true,
+      args['--create-db'],
+      args['--schema'],
+    )
 
     const migrate = new Migrate(args['--schema'])
 
@@ -94,10 +110,18 @@ export class MigrateSave implements Command {
 
     const name = preview ? args['--name'] : await this.name(args['--name'])
 
-    const { files, newLockFile, migrationId } = await migrate.save(migration, name, preview)
+    const { files, newLockFile, migrationId } = await migrate.save(
+      migration,
+      name,
+      preview,
+    )
 
     if (migration.warnings && migration.warnings.length > 0) {
-      console.log(chalk.bold(`\n\n⚠️  There might be data loss when applying the migration:\n`))
+      console.log(
+        chalk.bold(
+          `\n\n⚠️  There might be data loss when applying the migration:\n`,
+        ),
+      )
       for (const warning of migration.warnings) {
         console.log(chalk(`  • ${warning.description}`))
       }
@@ -121,9 +145,13 @@ export class MigrateSave implements Command {
 
     migrate.stop()
 
-    return `\nPrisma Migrate just created your migration ${printMigrationId(migrationId)} in\n\n${chalk.dim(
+    return `\nPrisma Migrate just created your migration ${printMigrationId(
+      migrationId,
+    )} in\n\n${chalk.dim(
       printFiles(`migrations/${migrationId}`, files),
-    )}\n\nRun ${chalk.greenBright('prisma migrate up --experimental')} to apply the migration\n`
+    )}\n\nRun ${chalk.greenBright(
+      'prisma migrate up --experimental',
+    )} to apply the migration\n`
   }
 
   // get the name
@@ -145,7 +173,9 @@ export class MigrateSave implements Command {
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateSave.help}`)
+      return new HelpError(
+        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateSave.help}`,
+      )
     }
     return MigrateSave.help
   }

@@ -16,7 +16,9 @@ export class MigrateUp implements Command {
     ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in an experimental state.",
   )}
-    ${chalk.dim('When using any of the commands below you need to explicitly opt-in via the --experimental flag.')}
+    ${chalk.dim(
+      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
+    )}
 
     ${chalk.bold('Usage')}
 
@@ -36,7 +38,9 @@ export class MigrateUp implements Command {
     ${chalk.bold('Examples')}
 
       Create a new migration, then migrate up
-      ${chalk.dim('$')} prisma migrate save --name "add unique to email" --experimental
+      ${chalk.dim(
+        '$',
+      )} prisma migrate save --name "add unique to email" --experimental
       ${chalk.dim('$')} prisma migrate up --experimental
 
       Preview a migration without migrating
@@ -51,7 +55,6 @@ export class MigrateUp implements Command {
       Go up by to a migration by name
       ${chalk.dim('$')} prisma migrate up "add first_name field" --experimental
   `)
-  private constructor() {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
@@ -106,7 +109,12 @@ export class MigrateUp implements Command {
       }
     }
 
-    await ensureDatabaseExists('apply', true, args['--create-db'], args['--schema'])
+    await ensureDatabaseExists(
+      'apply',
+      true,
+      args['--create-db'],
+      args['--schema'],
+    )
 
     const result = await migrate.up(options)
     migrate.stop()
@@ -116,7 +124,9 @@ export class MigrateUp implements Command {
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateUp.help}`)
+      return new HelpError(
+        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateUp.help}`,
+      )
     }
     return MigrateUp.help
   }

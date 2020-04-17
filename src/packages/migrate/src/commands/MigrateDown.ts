@@ -16,11 +16,15 @@ export class MigrateDown implements Command {
     ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in an experimental state.",
   )}
-    ${chalk.dim('When using any of the commands below you need to explicitly opt-in via the --experimental flag.')}
+    ${chalk.dim(
+      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
+    )}
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma migrate down [<dec|name|timestamp>] --experimental
+      ${chalk.dim(
+        '$',
+      )} prisma migrate down [<dec|name|timestamp>] --experimental
 
     ${chalk.bold('Arguments')}
 
@@ -39,9 +43,10 @@ export class MigrateDown implements Command {
       ${chalk.dim('$')} prisma migrate down 20190605204907 --experimental
 
       Go down to a migration by name
-      ${chalk.dim('$')} prisma migrate down "add first_name field" --experimental
+      ${chalk.dim(
+        '$',
+      )} prisma migrate down "add first_name field" --experimental
   `)
-  private constructor() {}
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
@@ -98,7 +103,9 @@ export class MigrateDown implements Command {
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateDown.help}`)
+      return new HelpError(
+        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateDown.help}`,
+      )
     }
     return MigrateDown.help
   }

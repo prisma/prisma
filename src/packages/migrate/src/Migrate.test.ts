@@ -12,6 +12,7 @@ const writeFile = promisify(fs.writeFile)
 
 describe('migrate.create', () => {
   createTests().map((t) => {
+    // eslint-disable-next-line jest/expect-expect
     test(t.name, async () => {
       const pkg = dirname((await pkgup({ cwd: __dirname })) || __filename)
       const root = join(pkg, 'tmp', 'migrate-' + Date.now())
@@ -24,7 +25,7 @@ describe('migrate.create', () => {
 })
 
 // create a temporary set of files
-export default async function writeFiles(
+async function writeFiles(
   root: string,
   files: {
     [name: string]: any
