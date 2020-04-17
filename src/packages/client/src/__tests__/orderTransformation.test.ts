@@ -125,7 +125,6 @@ describe('where transformation', () => {
           status?: OrderByArg
           favoriteTree?: OrderByArg
           locationId?: OrderByArg
-          location?: OrderByArg
         }
 
         "
