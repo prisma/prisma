@@ -81,12 +81,12 @@ export function getDefaultArgName(
   modelName: string,
   action: DMMF.ModelAction,
 ) {
-  const mapping = dmmf.mappings.find(m => m.model === modelName)!
+  const mapping = dmmf.mappings.find((m) => m.model === modelName)!
 
   const fieldName = mapping[action]
   const operation = getOperation(action)
   const queryType = operation === 'query' ? dmmf.queryType : dmmf.mutationType
-  const field = queryType.fields.find(f => f.name === fieldName)!
+  const field = queryType.fields.find((f) => f.name === fieldName)!
   return (field.args[0].inputType[0].type as DMMF.InputType).name
 }
 
@@ -114,7 +114,7 @@ export function renderInitialClientArgs(
   return `
   dmmf,
   fetcher,
-  '${getOperation(actionName as DMMF.ModelAction)}',
+  '${getOperation(actionName)}',
   '${fieldName}',
   '${mapping.plural}.${actionName}',
   args || {},
@@ -159,7 +159,7 @@ export function getSelectReturnType({
   actionName,
   renderPromise = true,
   hideCondition = false,
-  isField = false,
+  isField = false, // eslint-disable-line @typescript-eslint/no-unused-vars
 }: SelectReturnTypeOptions) {
   const isList = actionName === DMMF.ModelAction.findMany
 
