@@ -1,4 +1,4 @@
-import { arg, Command, Dictionary, format, HelpError, isError } from '@prisma/sdk'
+import { arg, Command, format, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
 import open from 'open'
 
@@ -17,7 +17,9 @@ export class StudioCommand implements Command {
     ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's studio functionality is currently in an experimental state.",
   )}
-    ${chalk.dim('When using any of the commands below you need to explicitly opt-in via the --experimental flag.')}
+    ${chalk.dim(
+      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
+    )}
 
     ${chalk.bold('Usage')}
 
@@ -85,7 +87,9 @@ export class StudioCommand implements Command {
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${StudioCommand.help}`)
+      return new HelpError(
+        `\n${chalk.bold.red(`!`)} ${error}\n${StudioCommand.help}`,
+      )
     }
 
     return StudioCommand.help

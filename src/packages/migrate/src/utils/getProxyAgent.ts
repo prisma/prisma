@@ -1,6 +1,4 @@
-import { Agent as HttpAgent } from 'http'
 import HttpProxyAgent from 'http-proxy-agent'
-import { Agent as HttpsAgent } from 'https'
 import HttpsProxyAgent from 'https-proxy-agent'
 import Url from 'url'
 
@@ -28,9 +26,11 @@ function uriInNoProxy(uri, noProxy) {
   const noProxyList = noProxy.split(',')
 
   // iterate through the noProxyList until it finds a match.
-  return noProxyList.map(parseNoProxyZone).some(noProxyZone => {
+  return noProxyList.map(parseNoProxyZone).some((noProxyZone) => {
     const isMatchedAt = hostname.indexOf(noProxyZone.hostname)
-    const hostnameMatched = isMatchedAt > -1 && isMatchedAt === hostname.length - noProxyZone.hostname.length
+    const hostnameMatched =
+      isMatchedAt > -1 &&
+      isMatchedAt === hostname.length - noProxyZone.hostname.length
 
     if (noProxyZone.hasPort) {
       return port === noProxyZone.port && hostnameMatched
@@ -67,7 +67,11 @@ function getProxyFromURI(uri) {
 
   if (uri.protocol === 'https:') {
     return (
-      process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy || null
+      process.env.HTTPS_PROXY ||
+      process.env.https_proxy ||
+      process.env.HTTP_PROXY ||
+      process.env.http_proxy ||
+      null
     )
   }
 

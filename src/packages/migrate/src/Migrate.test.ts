@@ -64,7 +64,7 @@ function createTests() {
         const migration = await migrate.createMigration('setup')
         const result = await migrate.save(migration!, 'setup')
         if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn\'t be undefined`)
+          return assert.fail(`result shouldn't be undefined`)
         }
         assert.ok(result.migrationId.includes('-setup'))
         assert.ok(result.newLockFile)
@@ -94,7 +94,7 @@ function createTests() {
         const migration = await migrate.createMigration('initial setup')
         const result = await migrate.save(migration!, 'initial setup')
         if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn\'t be undefined`)
+          return assert.fail(`result shouldn't be undefined`)
         }
         assert.ok(result.migrationId.includes(`-initial-setup`))
         assert.ok(result.newLockFile)
@@ -124,7 +124,7 @@ function createTests() {
         const migration = await migrate.createMigration('initial setup')
         const result = await migrate.save(migration!, 'initial setup')
         if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn\'t be undefined`)
+          return assert.fail(`result shouldn't be undefined`)
         }
         assert.ok(result.migrationId.includes(`-initial-setup`))
         assert.ok(result.newLockFile)
@@ -154,7 +154,7 @@ function createTests() {
         const migration = await migrate.createMigration('setup')
         const result = await migrate.save(migration!, 'setup')
         if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn\'t be undefined`)
+          return assert.fail(`result shouldn't be undefined`)
         }
         assert.ok(result.migrationId.includes('-setup'))
         assert.ok(result.newLockFile)
@@ -184,7 +184,7 @@ function createTests() {
         const migration = await migrate.createMigration('setup')
         const result = await migrate.save(migration!, 'setup')
         if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn\'t be undefined`)
+          return assert.fail(`result shouldn't be undefined`)
         }
         assert.ok(result.migrationId.includes('-setup'))
         assert.ok(result.newLockFile)

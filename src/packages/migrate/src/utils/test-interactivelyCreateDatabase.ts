@@ -1,4 +1,7 @@
-import { askToCreateDb, interactivelyCreateDatabase } from './ensureDatabaseExists'
+import {
+  askToCreateDb,
+  // interactivelyCreateDatabase
+} from './ensureDatabaseExists'
 
 async function main() {
   // const result = await interactivelyCreateDatabase('file:dev7.db', 'apply')
