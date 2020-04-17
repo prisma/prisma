@@ -78,11 +78,11 @@ describe('generatorHandler', () => {
       path.join(__dirname, 'failing-executable'),
     )
     await generator.init()
-    expect(generator.getManifest()).rejects.toThrow()
-    expect(generator.generate(stubOptions)).rejects.toThrow()
+    await expect(generator.getManifest()).rejects.toThrow()
+    await expect(generator.generate(stubOptions)).rejects.toThrow()
     generator.stop()
   })
-  test('non existent executable', async () => {
+  test('non existent executable', () => {
     expect(
       () => new GeneratorProcess('this-is-a-random-path'),
     ).toThrowErrorMatchingInlineSnapshot(

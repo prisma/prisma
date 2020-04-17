@@ -25,7 +25,7 @@ export class GeneratorProcess {
   child?: ChildProcessByStdio<any, any, any>
   listeners: { [key: string]: (result: any, err?: Error) => void } = {}
   private exitCode: number | null = null
-  private stderrLogs: string = ''
+  private stderrLogs = ''
   private initPromise?: Promise<void>
   constructor(private executablePath: string) {
     // executablePath can be passed like this
