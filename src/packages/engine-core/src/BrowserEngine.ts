@@ -16,11 +16,20 @@ export class BrowserEngine {
   constructor({ fetcher }: EngineConfig) {
     this.fetcher = fetcher || this.defaultFetcher
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   async start() {}
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   async stop() {}
 
-  defaultFetcher = async ({ query, typeName }: { query: string; typeName?: string }) => {
+  defaultFetcher = async ({
+    query,
+    typeName,
+  }: {
+    query: string
+    typeName?: string
+  }) => {
     return fetch(this.url, {
       method: 'POST',
       headers: {
@@ -28,9 +37,9 @@ export class BrowserEngine {
       },
       body: JSON.stringify({ query, variables: {}, operationName: '' }),
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
-          return response.text().then(body => {
+          return response.text().then((body) => {
             const { status, statusText } = response
             this.handleErrors({
               errors: {
@@ -45,13 +54,13 @@ export class BrowserEngine {
           return response.json()
         }
       })
-      .catch(errors => {
+      .catch((errors) => {
         return this.handleErrors({ errors, query })
       })
   }
 
   async request<T>(query: string, typeName?: string): Promise<T> {
-    return this.fetcher({ query, typeName }).then(result => {
+    return this.fetcher({ query, typeName }).then((result) => {
       const { data } = result
       const errors = result.error || result.errors
       if (errors) {
@@ -66,7 +75,10 @@ export class BrowserEngine {
 
   handleErrors({ errors, query }: { errors?: any; query: string }) {
     const stringified = errors ? JSON.stringify(errors, null, 2) : null
-    const message = stringified.length > 0 ? stringified : `Error in prisma.\$\{rootField || 'query'}`
+    const message =
+      stringified.length > 0
+        ? stringified
+        : `Error in prisma.\$\{rootField || 'query'}`
     throw new Error(message)
   }
 }

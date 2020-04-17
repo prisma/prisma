@@ -65,7 +65,10 @@ export class PrismaClientInitializationError extends Error {
   }
 }
 
-function mapKeys<T extends object>(obj: T, mapper: (key: keyof T) => string): any {
+function mapKeys<T extends object>(
+  obj: T,
+  mapper: (key: keyof T) => string,
+): any {
   return Object.entries(obj).reduce((acc, [key, value]) => {
     acc[mapper(key as keyof T)] = value
     return acc
@@ -73,7 +76,7 @@ function mapKeys<T extends object>(obj: T, mapper: (key: keyof T) => string): an
 }
 
 function serializeError(log) {
-  let { target, level, ...rest } = log
+  const { target, level, ...rest } = log
   const message = log.message || (log.fields && log.fields.message)
 
   if (target === 'datamodel') {
@@ -88,7 +91,9 @@ function serializeError(log) {
 function serializePanic(log: RustLog) {
   const fields: PanicLogFields = log.fields as PanicLogFields
   return `${chalk.red.bold('Reason: ')}${chalk.red(
-    `${fields.reason} in ${chalk.underline(`${fields.file}:${fields.line}:${fields.column}`)}`,
+    `${fields.reason} in ${chalk.underline(
+      `${fields.file}:${fields.line}:${fields.column}`,
+    )}`,
   )}
 
 Please create an issue in the ${chalk.bold('prisma-client-js')} repo with

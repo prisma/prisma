@@ -1,0 +1,4 @@
+node_modules
+dist
+src/byline.ts
+src/__test__
