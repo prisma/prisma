@@ -41,9 +41,11 @@ export class Introspect implements Command {
       ${chalk.dim('$')} prisma introspect --print'
 
   `)
-  private constructor() {}
+
   private printUrlAsDatasource(url: string): string {
-    const connectorType = databaseTypeToConnectorType(uriToCredentials(url).type)
+    const connectorType = databaseTypeToConnectorType(
+      uriToCredentials(url).type,
+    )
 
     return printDatasources([
       {
@@ -56,7 +58,10 @@ export class Introspect implements Command {
   }
 
   // parse arguments
-  public async parse(argv: string[], minimalOutput = false): Promise<string | Error> {
+  public async parse(
+    argv: string[],
+    minimalOutput = false,
+  ): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -79,13 +84,15 @@ export class Introspect implements Command {
       return this.help()
     }
 
-    let url: string | undefined = args['--url']
+    const url: string | undefined = args['--url']
     let schemaPath = await getSchemaPath(args['--schema'])
     if (!url && !schemaPath) {
       throw new Error(
         `Either provide ${chalk.greenBright(
           '--schema',
-        )} or make sure that you are in a folder with a ${chalk.greenBright('schema.prisma')} file.`,
+        )} or make sure that you are in a folder with a ${chalk.greenBright(
+          'schema.prisma',
+        )} file.`,
       )
     }
     // TS at its limits 🤷‍♀️
@@ -101,7 +108,9 @@ export class Introspect implements Command {
 
     const basedOn =
       !args['--url'] && schemaPath
-        ? ` based on datasource defined in ${chalk.underline(path.relative(process.cwd(), schemaPath))}`
+        ? ` based on datasource defined in ${chalk.underline(
+            path.relative(process.cwd(), schemaPath),
+          )}`
         : ''
     log(`\nIntrospecting${basedOn} …`)
 
@@ -115,18 +124,24 @@ export class Introspect implements Command {
     } catch (e) {
       if (e.code === 'P4001') {
         if (introspectionSchema.trim() === '') {
-          throw new Error(`\n${chalk.red.bold('P4001 ')}${chalk.red('The introspected database was empty:')} ${
-            url ? chalk.underline(url) : ''
-          }
+          throw new Error(`\n${chalk.red.bold('P4001 ')}${chalk.red(
+            'The introspected database was empty:',
+          )} ${url ? chalk.underline(url) : ''}
 
-${chalk.bold('prisma introspect')} could not create any models in your ${chalk.bold(
+${chalk.bold(
+  'prisma introspect',
+)} could not create any models in your ${chalk.bold(
             'schema.prisma',
-          )} file and you will not be able to generate Prisma Client with the ${chalk.bold('prisma generate')} command.
+          )} file and you will not be able to generate Prisma Client with the ${chalk.bold(
+            'prisma generate',
+          )} command.
 
 ${chalk.bold('To fix this, you have two options:')}
 
 - manually create a table in your database (using SQL).
-- make sure the database connection URL inside the ${chalk.bold('datasource')} block in ${chalk.bold(
+- make sure the database connection URL inside the ${chalk.bold(
+            'datasource',
+          )} block in ${chalk.bold(
             'schema.prisma',
           )} points to a database that is not empty (it must contain at least one table).
 
@@ -146,9 +161,13 @@ Then you can run ${chalk.green('prisma introspect')} again.
           message += `\n${warning.message}\n`
 
           if (warning.code === 1) {
-            message += warning.affected.map((it) => `- "${it.model}"`).join('\n')
+            message += warning.affected
+              .map((it) => `- "${it.model}"`)
+              .join('\n')
           } else if (warning.code === 2) {
-            const modelsGrouped: { [key: string]: string[] } = warning.affected.reduce((acc, it) => {
+            const modelsGrouped: {
+              [key: string]: string[]
+            } = warning.affected.reduce((acc, it) => {
               if (!acc[it.model]) {
                 acc[it.model] = []
               }
@@ -156,14 +175,22 @@ Then you can run ${chalk.green('prisma introspect')} again.
               return acc
             }, {})
             message += Object.entries(modelsGrouped)
-              .map(([model, fields]) => `- Model: "${model}"\n  Field(s): "${fields.join('", "')}"`)
+              .map(
+                ([model, fields]) =>
+                  `- Model: "${model}"\n  Field(s): "${fields.join('", "')}"`,
+              )
               .join('\n')
           } else if (warning.code === 3) {
             message += warning.affected
-              .map((it) => `- Model: "${it.model}" Field: "${it.field}" Raw Datatype: "${it.tpe}"`)
+              .map(
+                (it) =>
+                  `- Model: "${it.model}" Field: "${it.field}" Raw Datatype: "${it.tpe}"`,
+              )
               .join('\n')
           } else if (warning.code === 4) {
-            message += warning.affected.map((it) => `- Enum: "${it.enm}" Value: "${it.value}"`).join('\n')
+            message += warning.affected
+              .map((it) => `- Enum: "${it.enm}" Value: "${it.value}"`)
+              .join('\n')
           }
 
           message += `\n`
@@ -172,7 +199,9 @@ Then you can run ${chalk.green('prisma introspect')} again.
       }
     }
 
-    const introspectionWarningsMessage = getWarningMessage(introspectionWarnings)
+    const introspectionWarningsMessage = getWarningMessage(
+      introspectionWarnings,
+    )
 
     if (args['--print']) {
       console.log(introspectionSchema)
@@ -196,7 +225,9 @@ Run ${chalk.green('prisma generate')} to generate Prisma Client.`)
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Introspect.help}`)
+      return new HelpError(
+        `\n${chalk.bold.red(`!`)} ${error}\n${Introspect.help}`,
+      )
     }
     return Introspect.help
   }

@@ -27,10 +27,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/* tslint:disable */
-
 function isSpecificValue(val) {
-  return val instanceof Buffer || val instanceof Date || val instanceof RegExp ? true : false
+  return val instanceof Buffer || val instanceof Date || val instanceof RegExp
+    ? true
+    : false
 }
 
 function cloneSpecificValue(val) {
@@ -52,7 +52,7 @@ function cloneSpecificValue(val) {
  */
 function deepCloneArray(arr) {
   const clone: any = []
-  arr.forEach(function(item, index) {
+  arr.forEach(function (item, index) {
     if (typeof item === 'object' && item !== null) {
       if (Array.isArray(item)) {
         clone[index] = deepCloneArray(item)
@@ -81,7 +81,7 @@ function safeGetProperty(object, property) {
  * object as first argument, like this:
  *   deepExtend({}, yourObj_1, [yourObj_N]);
  */
-export const deepExtend = function(target, ...args) {
+export const deepExtend = function (target, ...args) {
   if (!target || typeof target !== 'object') {
     return false
   }
@@ -125,7 +125,11 @@ export const deepExtend = function(target, ...args) {
         continue
 
         // overwrite by new value if source isn't object or array
-      } else if (typeof src !== 'object' || src === null || Array.isArray(src)) {
+      } else if (
+        typeof src !== 'object' ||
+        src === null ||
+        Array.isArray(src)
+      ) {
         target[key] = deepExtend({}, val)
         continue
 
@@ -139,5 +143,3 @@ export const deepExtend = function(target, ...args) {
 
   return target
 }
-
-// @ts-ignore-end
