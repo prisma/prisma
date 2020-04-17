@@ -80,10 +80,6 @@ async function ensurePostInstall() {
   }
 }
 
-function readJson(filePath) {
-  return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
-}
-
 function addPostInstallHook(pkgPath) {
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
   // only update package.json if @prisma/cli is a dependency or devDependency
