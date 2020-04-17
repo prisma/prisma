@@ -229,7 +229,7 @@ export class TSClient implements Generatable {
 ${
   this.options.platforms
     ? this.options.platforms
-        .map(p => `path.join(__dirname, 'runtime/query-engine-${p}');`)
+        .map((p) => `path.join(__dirname, 'runtime/query-engine-${p}');`)
         .join('\n')
     : ''
 }
@@ -246,7 +246,7 @@ path.join(__dirname, 'schema.prisma');
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 function makeEnum(x) { return x; }
 
-${this.dmmf.schema.enums.map(type => new Enum(type).toJS()).join('\n\n')}
+${this.dmmf.schema.enums.map((type) => new Enum(type).toJS()).join('\n\n')}
 
 
 /**
@@ -296,10 +296,10 @@ ${/*new Query(this.dmmf, 'query')*/ ''}
 // Based on
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 
-${this.dmmf.schema.enums.map(type => new Enum(type).toTS()).join('\n\n')}
+${this.dmmf.schema.enums.map((type) => new Enum(type).toTS()).join('\n\n')}
 
 ${Object.values(this.dmmf.modelMap)
-  .map(model => new Model(model, this.dmmf).toTS())
+  .map((model) => new Model(model, this.dmmf).toTS())
   .join('\n')}
 
 /**
@@ -307,7 +307,7 @@ ${Object.values(this.dmmf.modelMap)
  */
 
 ${this.dmmf.inputTypes
-  .map(inputType => new InputType(inputType).toTS())
+  .map((inputType) => new InputType(inputType).toTS())
   .join('\n')}
 
 /**
@@ -332,7 +332,7 @@ class Datasources implements Generatable {
   public toTS() {
     const sources = this.internalDatasources
     return `export type Datasources = {
-${indent(sources.map(s => `${s.name}?: string`).join('\n'), 2)}
+${indent(sources.map((s) => `${s.name}?: string`).join('\n'), 2)}
 }`
   }
 }
@@ -507,8 +507,8 @@ ${indent(this.jsDoc, tab)}
 
 ${indent(
   dmmf.mappings
-    .filter(m => m.findMany)
-    .map(m => {
+    .filter((m) => m.findMany)
+    .map((m) => {
       const methodName = lowerCase(m.model)
       return `\
 /**
@@ -562,7 +562,7 @@ export type ${getPayloadName(name)}<
   private renderRelations(projection: Projection) {
     const { type } = this
     // TODO: can be optimized, we're calling the filter two times
-    const relations = type.fields.filter(f => f.outputType.kind === 'object')
+    const relations = type.fields.filter((f) => f.outputType.kind === 'object')
     if (relations.length === 0 && projection === Projection.include) {
       return ''
     }
@@ -576,7 +576,7 @@ export type ${getPayloadName(name)}<
 ${indent(
   relations
     .map(
-      f => `P extends '${f.name}'
+      (f) => `P extends '${f.name}'
 ? ${this.wrapType(
         f,
         `${getPayloadName(
@@ -613,7 +613,7 @@ export class Model implements Generatable {
   ) {
     const outputType = dmmf.outputTypeMap[model.name]
     this.outputType = new OutputType(outputType)
-    this.mapping = dmmf.mappings.find(m => m.model === model.name)!
+    this.mapping = dmmf.mappings.find((m) => m.model === model.name)!
   }
   protected get argsTypes() {
     const { mapping, model } = this
@@ -655,15 +655,15 @@ export class Model implements Generatable {
       return ''
     }
 
-    const hasRelationField = model.fields.some(f => f.kind === 'object')
+    const hasRelationField = model.fields.some((f) => f.kind === 'object')
 
     const includeType = hasRelationField
       ? `\nexport type ${getIncludeName(model.name)} = {
 ${indent(
   outputType.fields
-    .filter(f => f.outputType.kind === 'object')
+    .filter((f) => f.outputType.kind === 'object')
     .map(
-      f =>
+      (f) =>
         `${f.name}?: boolean` +
         (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
     )
@@ -681,8 +681,8 @@ ${indent(
 export type ${model.name} = {
 ${indent(
   model.fields
-    .filter(f => f.kind !== 'object')
-    .map(field => new OutputField(field).toTS())
+    .filter((f) => f.kind !== 'object')
+    .map((field) => new OutputField(field).toTS())
     .join('\n'),
   tab,
 )}
@@ -692,7 +692,7 @@ export type ${getSelectName(model.name)} = {
 ${indent(
   outputType.fields
     .map(
-      f =>
+      (f) =>
         `${f.name}?: boolean` +
         (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
     )
@@ -718,7 +718,7 @@ function getMethodJSDocBody(
 ): string {
   const singular = capitalize(mapping.model)
   const plural = capitalize(mapping.plural)
-  const firstScalar = model.fields.find(f => f.kind === 'scalar')
+  const firstScalar = model.fields.find((f) => f.kind === 'scalar')
   const method = `prisma.${lowerCase(mapping.model)}.${action}`
 
   switch (action) {
@@ -868,7 +868,7 @@ function getMethodJSDoc(
 function wrapComment(str: string): string {
   return `/**\n${str
     .split('\n')
-    .map(l => ' * ' + l)
+    .map((l) => ' * ' + l)
     .join('\n')}\n**/`
 }
 
@@ -880,7 +880,7 @@ export class ModelDelegate implements Generatable {
   public toTS() {
     const { fields, name } = this.outputType
     // TODO: Turn O(n^2) to O(n)
-    const mapping = this.dmmf.mappings.find(m => m.model === name)!
+    const mapping = this.dmmf.mappings.find((m) => m.model === name)!
     if (!mapping) {
       return ''
     }
@@ -935,8 +935,8 @@ export declare class ${name}Client<T> implements Promise<T> {
   readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 ${indent(
   fields
-    .filter(f => f.outputType.kind === 'object')
-    .map(f => {
+    .filter((f) => f.outputType.kind === 'object')
+    .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
 ${f.name}<T extends ${getFieldArgName(
@@ -992,7 +992,7 @@ export class InputField implements Generatable {
     let fieldType
     let hasNull = false
     if (Array.isArray(field.inputType)) {
-      fieldType = flatMap(field.inputType, t => {
+      fieldType = flatMap(field.inputType, (t) => {
         const type =
           typeof t.type === 'string'
             ? GraphQLScalarToJSTypeTable[t.type] || t.type
@@ -1047,7 +1047,7 @@ export class OutputType implements Generatable {
 export type ${type.name} = {
 ${indent(
   type.fields
-    .map(field => new OutputField({ ...field, ...field.outputType }).toTS())
+    .map((field) => new OutputField({ ...field, ...field.outputType }).toTS())
     .join('\n'),
   tab,
 )}
@@ -1070,12 +1070,13 @@ export class MinimalArgsType implements Generatable {
  * ${name} ${action ? action : 'without action'}
  */
 export type ${getModelArgName(name, action)} = {
-${indent(args.map(arg => new InputField(arg).toTS()).join('\n'), tab)}
+${indent(args.map((arg) => new InputField(arg).toTS()).join('\n'), tab)}
 }
 `
   }
 }
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const topLevelArgsJsDocs = {
   findOne: {
     where: (singular, plural) => `Filter, which ${singular} to fetch.`,
@@ -1111,6 +1112,7 @@ const topLevelArgsJsDocs = {
     where: (singular, plural) => `Filter which ${singular} to delete.`,
   },
 }
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 export class ArgsType implements Generatable {
   constructor(
@@ -1125,7 +1127,7 @@ export class ArgsType implements Generatable {
     const singular = name
     const plural = pluralize(name)
 
-    args.forEach(arg => {
+    args.forEach((arg) => {
       if (action && topLevelArgsJsDocs[action][arg.name]) {
         const comment = topLevelArgsJsDocs[action][arg.name](singular, plural)
         arg.comment = comment
@@ -1147,7 +1149,7 @@ export class ArgsType implements Generatable {
       },
     ]
 
-    const hasRelationField = this.model.fields.some(f => f.kind === 'object')
+    const hasRelationField = this.model.fields.some((f) => f.kind === 'object')
 
     if (hasRelationField) {
       bothArgsOptional.push({
@@ -1172,7 +1174,7 @@ export class ArgsType implements Generatable {
  */
 export type ${getModelArgName(name, action)} = {
 ${indent(
-  bothArgsOptional.map(arg => new InputField(arg).toTS()).join('\n'),
+  bothArgsOptional.map((arg) => new InputField(arg).toTS()).join('\n'),
   tab,
 )}
 }
@@ -1184,12 +1186,12 @@ export class InputType implements Generatable {
   constructor(protected readonly type: DMMF.InputType) {}
   public toTS() {
     const { type } = this
-    const fields = uniqueBy(type.fields, f => f.name)
+    const fields = uniqueBy(type.fields, (f) => f.name)
     // TO DISCUSS: Should we rely on TypeScript's error messages?
     const body = `{
 ${indent(
   fields
-    .map(arg =>
+    .map((arg) =>
       new InputField(arg /*, type.atLeastOne && !type.atMostOne*/).toTS(),
     )
     .join('\n'),
@@ -1206,14 +1208,14 @@ export class Enum implements Generatable {
   public toJS() {
     const { type } = this
     return `exports.${type.name} = makeEnum({
-${indent(type.values.map(v => `${v}: '${v}'`).join(',\n'), tab)}
+${indent(type.values.map((v) => `${v}: '${v}'`).join(',\n'), tab)}
 });`
   }
   public toTS() {
     const { type } = this
 
     return `export declare const ${type.name}: {
-${indent(type.values.map(v => `${v}: '${v}'`).join(',\n'), tab)}
+${indent(type.values.map((v) => `${v}: '${v}'`).join(',\n'), tab)}
 };
 
 export declare type ${type.name} = (typeof ${type.name})[keyof typeof ${
