@@ -2,7 +2,7 @@ const htmlparser = require('htmlparser2') // eslint-disable-line @typescript-esl
 import fetch from 'node-fetch'
 import { getProxyAgent } from './getProxyAgent'
 
-export async function getLatestAlphaTag() {
+export async function getLatestAlphaTag(): Promise<any> {
   const objects = []
   let isTruncated = false
   let nextContinuationToken: string | undefined = undefined
@@ -21,7 +21,7 @@ export async function getLatestAlphaTag() {
   return findLatestAlphaTag(objects)
 }
 
-function getUrl(nextContinuationToken?: string) {
+function getUrl(nextContinuationToken?: string): string {
   const prefix = process.env.PATCH_BRANCH ?? `master`
   let url = `https://prisma-builds.s3-eu-west-1.amazonaws.com/?list-type=2&prefix=${prefix}`
 
@@ -73,7 +73,7 @@ async function getObjects(
   })
 }
 
-function findLatestAlphaTag(objects) {
+function findLatestAlphaTag(objects): any {
   // look for the darwin build, as it always finishes last
   objects = objects.filter((o) => o.key.includes('darwin'))
   objects.sort((a, b) => {
@@ -90,7 +90,7 @@ function findLatestAlphaTag(objects) {
   return objects[0].key.split('/')[1]
 }
 
-function getKey(parentTag, key) {
+function getKey(parentTag, key): any {
   if (!parentTag) {
     return null
   }
@@ -102,7 +102,7 @@ function getKey(parentTag, key) {
   return null
 }
 
-function serializeTag(tag) {
+function serializeTag(tag): any {
   if (tag.children) {
     return tag.children
       .map((c) => {
@@ -119,7 +119,7 @@ function serializeTag(tag) {
   return null
 }
 
-function serializeData(data) {
+function serializeData(data): boolean {
   if (data === 'false') {
     return false
   }

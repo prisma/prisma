@@ -4,13 +4,13 @@ import { getRootCacheDir } from './util'
 import rimraf from 'rimraf'
 import { promisify } from 'util'
 import pMap from 'p-map'
-import Debug from 'debug'
-const debug = Debug('cleanupCache')
+// import Debug from 'debug'
+// const debug = Debug('cleanupCache')
 const del = promisify(rimraf)
 const readdir = promisify(fs.readdir)
 const stat = promisify(fs.stat)
 
-export async function cleanupCache(n = 5) {
+export async function cleanupCache(n = 5): Promise<void> {
   try {
     const rootCacheDir = await getRootCacheDir()
     const channel = 'master'

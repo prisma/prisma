@@ -98,7 +98,7 @@ describe('download', () => {
           'query-engine': __dirname,
         },
         version: '1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3',
-        binaryTargets: ['darwin', 'marvin'] as any,
+        binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Unknown binaryTargets marvin"`,
