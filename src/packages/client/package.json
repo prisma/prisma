@@ -27,7 +27,6 @@
     "download": "node scripts/download.js",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
-    "precommit": "lint-staged && jest",
     "ncc:runtime": "node scripts/build-runtime.js",
     "cleanup": "rm -f index.d.ts && cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts",
     "ncc:generator": "rm -rf generator-build && ncc build dist/generator.js -o generator-build --minify --source-map && rm -f generator-build/index.js.bak && chmod +x generator-build/index.js",
