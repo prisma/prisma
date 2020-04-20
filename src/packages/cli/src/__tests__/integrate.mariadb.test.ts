@@ -11,9 +11,8 @@ import mariadb from 'mariadb'
 import { getLatestAlphaTag } from '@prisma/fetch-engine'
 import { uriToCredentials } from '@prisma/sdk'
 
-let connectionString = process.env.TEST_MARIADB_URI || 'mysql://root:password@localhost:3306/prisma-dev'
+let connectionString = process.env.TEST_MARIADB_URI || 'mysql://prisma:prisma@localhost:4306/tests'
 const credentials = uriToCredentials(connectionString)
-
 process.env.SKIP_GENERATE = 'true'
 
 const pkg = pkgup.sync() || __dirname
@@ -43,34 +42,8 @@ after(async () => {
   engine.stop()
 })
 
-const nameCache = {}
-
-const prettyName = (fn: any): string => {
-  const fnstr = fn.toString()
-  const from = fnstr.indexOf('{')
-  const to = fnstr.lastIndexOf('}')
-  const sig = fnstr.slice(from + 1, to)
-  const name = sig
-    .replace(/\s{2,}/g, ' ')
-    .replace('client.', '')
-    .replace('return', '')
-    .replace(/\n/g, ' ')
-    .replace(/\t/g, ' ')
-    .replace(/\r/g, ' ')
-    .replace(';', '')
-    .trim()
-
-  if (nameCache[name]) {
-    return name + 2
-  }
-
-  nameCache[name] = true
-
-  return name
-}
-
 tests().map((t: Test) => {
-  const name = prettyName(t.do)
+  const name = t.name
 
   // if (!t.run) {
   //   it.skip(name)
@@ -152,9 +125,9 @@ async function generate(test: Test, datamodel: string) {
 }
 
 type Test = {
-  title?: string
   todo?: boolean
   run?: boolean
+  name: string
   up: string
   down: string
   do: (client: any) => Promise<any>
@@ -164,6 +137,7 @@ type Test = {
 function tests(): Test[] {
   return [
     {
+      name: 'findOne where PK',
       up: `
         create table teams (
           id int primary key not null,
@@ -184,6 +158,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where PK with select',
       up: `
         create table teams (
           id int primary key not null,
@@ -204,6 +179,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where PK with include',
       up: `
         create table users (
           id serial primary key not null,
@@ -246,6 +222,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'create with data',
       up: `
         create table teams (
           id serial primary key not null,
@@ -264,6 +241,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'create with empty data and SQL default',
       up: `
         create table teams (
           id serial primary key not null,
@@ -283,6 +261,7 @@ function tests(): Test[] {
     },
     {
       todo: true,
+      name: 'create with empty data and serial',
       up: `
         create table teams (
           id serial primary key not null
@@ -300,6 +279,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update where with numeric data',
       up: `
         create table teams (
           id serial primary key not null,
@@ -322,6 +302,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update where with boolean data',
       up: `
         create table teams (
           id serial primary key not null,
@@ -346,6 +327,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update where with boolean data and select',
       up: `
         create table teams (
           id serial primary key not null,
@@ -369,6 +351,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update where with string data',
       up: `
         create table teams (
           id serial primary key not null,
@@ -391,6 +374,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'updateMany where with string data - check returned count',
       up: `
         create table teams (
           id serial primary key not null,
@@ -413,6 +397,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'updateMany where with string data - check findMany',
       up: `
         create table teams (
           id serial primary key not null,
@@ -443,6 +428,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findOne where unique',
       up: `
         create table users (
           id serial primary key not null,
@@ -462,6 +448,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where composite unique',
       up: `
         create table users (
           id serial primary key not null,
@@ -484,6 +471,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update where composite unique',
       up: `
         create table users (
           id serial primary key not null,
@@ -509,6 +497,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'delete where composite unique',
       up: `
         create table users (
           id serial primary key not null,
@@ -533,6 +522,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findMany - email text',
       up: `
         create table users (
           id serial primary key not null,
@@ -559,6 +549,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where unique',
       up: `
         create table users (
           id serial primary key not null,
@@ -580,6 +571,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany - email varchar(50) not null unique',
       up: `
         create table users (
           id serial primary key not null,
@@ -606,6 +598,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findOne where unique with foreign key and unpack',
       up: `
         create table users (
           id serial primary key not null,
@@ -644,6 +637,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where contains and boolean',
       up: `
         create table posts (
           id serial primary key not null,
@@ -674,6 +668,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where OR[contains, contains] ',
       up: `
         create table posts (
           id serial primary key not null,
@@ -709,6 +704,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'upsert (update)',
       up: `
         create table posts (
           id serial primary key not null,
@@ -736,6 +732,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'upsert (create)',
       up: `
         create table posts (
           id serial primary key not null,
@@ -763,6 +760,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findMany orderBy asc',
       up: `
         create table posts (
           id serial primary key not null,
@@ -802,6 +800,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany orderBy desc',
       up: `
         create table posts (
           id serial primary key not null,
@@ -841,6 +840,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany - default enum',
       up: `
         create table posts (
           id serial primary key not null,
@@ -877,6 +877,7 @@ function tests(): Test[] {
     },
     {
       todo: true,
+      name: 'create with data - not null enum',
       up: `
         create table posts (
           id serial primary key not null,
@@ -896,6 +897,7 @@ function tests(): Test[] {
       expect: {},
     },
     {
+      name: 'update with data - not null enum',
       up: `
         create table posts (
           id serial primary key not null,
@@ -922,6 +924,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'updateMany with data - not null enum - check count',
       up: `
         create table posts (
           id serial primary key not null,
@@ -945,6 +948,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update with data - not null enum - check findMany',
       up: `
         create table posts (
           id serial primary key not null,
@@ -983,6 +987,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'deleteMany where enum - check count',
       up: `
         create table posts (
           id serial primary key not null,
@@ -1006,6 +1011,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'deleteMany where enum - check findMany',
       up: `
         create table posts (
           id serial primary key not null,
@@ -1034,6 +1040,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where contains',
       up: `
         create table crons (
           id serial not null primary key,
@@ -1064,6 +1071,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where startsWith',
       up: `
         create table crons (
           id serial not null primary key,
@@ -1094,6 +1102,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where endsWith',
       up: `
         create table crons (
           id serial not null primary key,
@@ -1124,6 +1133,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where in[string]',
       up: `
         create table crons (
           id serial not null primary key,
@@ -1154,6 +1164,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findOne where in[]',
       todo: true,
       up: `
         create table crons (
@@ -1185,6 +1196,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where datetime lte - check instanceof Date',
       up: `
         create table posts (
           id serial primary key not null,
@@ -1222,6 +1234,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where timestamp gte than now',
       up: `
         create table posts (
           id serial primary key not null,
@@ -1241,6 +1254,7 @@ function tests(): Test[] {
       expect: [],
     },
     {
+      name: 'findMany where timestamp gt than now',
       up: `
         create table posts (
           id serial primary key not null,
@@ -1260,6 +1274,7 @@ function tests(): Test[] {
       expect: [],
     },
     {
+      name: 'findMany where timestamp lt than now',
       up: `
         create table posts (
           id serial primary key not null,
@@ -1297,6 +1312,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'update where integer data',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1316,6 +1332,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findMany where datetime exact',
       up: `
         create table events (
           id serial not null primary key,
@@ -1337,6 +1354,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where datetime gt',
       up: `
         create table events (
           id serial not null primary key,
@@ -1353,6 +1371,7 @@ function tests(): Test[] {
       expect: [],
     },
     {
+      name: 'findMany where datetime gte',
       up: `
         create table events (
           id serial not null primary key,
@@ -1374,6 +1393,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where datetime lt',
       up: `
         create table events (
           id serial not null primary key,
@@ -1390,6 +1410,7 @@ function tests(): Test[] {
       expect: [],
     },
     {
+      name: 'findMany where datetime lte',
       up: `
         create table events (
           id serial not null primary key,
@@ -1411,6 +1432,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where datetime not',
       up: `
         create table events (
           id serial not null primary key,
@@ -1427,6 +1449,7 @@ function tests(): Test[] {
       expect: [],
     },
     {
+      name: 'findMany where null',
       up: `
         create table events (
           id serial not null primary key,
@@ -1458,6 +1481,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where empty in[]',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1476,6 +1500,7 @@ function tests(): Test[] {
       expect: [],
     },
     {
+      name: 'findMany where id empty in[] and token in[]',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1494,6 +1519,7 @@ function tests(): Test[] {
       expect: [],
     },
     {
+      name: 'findMany where in[integer]',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1523,6 +1549,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where notIn[]',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1541,6 +1568,7 @@ function tests(): Test[] {
       expect: [],
     },
     {
+      name: 'findMany where empty notIn[]',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1571,6 +1599,7 @@ function tests(): Test[] {
     },
     {
       todo: true,
+      name: 'findMany where null',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1601,6 +1630,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where - case insensitive field',
       up: `
         create table users (
           id serial primary key not null,
@@ -1622,6 +1652,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany where decimal',
       up: `
         create table exercises (
           id serial primary key not null,
@@ -1643,6 +1674,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findOne where decimal',
       up: `
         create table exercises (
           id serial primary key not null,
@@ -1664,6 +1696,7 @@ function tests(): Test[] {
     {
       todo: true,
       // null
+      name: 'findOne where decimal - default value',
       up: `
         create table exercises (
           id serial primary key not null,
@@ -1684,6 +1717,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'create bigint data',
       up: `
         create table migrate (
           version bigint not null primary key
@@ -1700,6 +1734,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where composite PK',
       up: `
         create table variables (
           name varchar(50) not null,
@@ -1724,6 +1759,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'update where composite PK',
       up: `
         create table variables (
           name varchar(50) not null,
@@ -1751,6 +1787,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'upsert where composite PK - update',
       up: `
         create table variables (
           name varchar(50) not null,
@@ -1779,6 +1816,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'upsert where composite PK - create',
       up: `
         create table variables (
           name varchar(50) not null,
@@ -1807,6 +1845,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'delete where composite PK',
       up: `
         create table variables (
           name varchar(50) not null,
@@ -1833,6 +1872,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where unique composite',
       up: `
         create table variables (
           id serial primary key not null,
@@ -1859,6 +1899,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where unique composite (PK is a composite)',
       up: `
         create table variables (
           name varchar(50) not null,
@@ -1884,6 +1925,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'findOne where composite PK with foreign key',
       up: `
           create table a (
             one integer not null,
@@ -1913,6 +1955,7 @@ function tests(): Test[] {
     },
     {
       todo: true,
+      name: 'findOne - list all possible datatypes',
       up: `
         create table crazy (
           c1 bigint,
@@ -1931,6 +1974,7 @@ function tests(): Test[] {
       },
     },
     {
+      name: 'updateMany where null - check findMany',
       up: `
         create table teams (
           id serial primary key not null,
@@ -1966,6 +2010,7 @@ function tests(): Test[] {
       ],
     },
     {
+      name: 'findMany on column_name_that_becomes_empty_string',
       up: `
         CREATE TABLE \`column_name_that_becomes_empty_string\` (
           \`field1\` int(11) NOT NULL AUTO_INCREMENT,
