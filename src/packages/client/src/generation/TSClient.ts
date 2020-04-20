@@ -550,7 +550,7 @@ export type ${getPayloadName(name)}<
   ? ${name}
   : S extends undefined
   ? never
-  : S extends ${getModelArgName(name, DMMF.ModelAction.findMany)}
+  : S extends ${argsName}
   ? 'include' extends U
     ? ${name} ${include.length > 0 ? ` & ${include}` : ''}
   : 'select' extends U
