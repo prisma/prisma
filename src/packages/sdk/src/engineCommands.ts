@@ -1,4 +1,3 @@
-import { getPlatform } from '@prisma/get-platform'
 import chalk from 'chalk'
 import execa from 'execa'
 import path from 'path'
@@ -70,7 +69,7 @@ export async function getDMMF({
       cwd,
       env: {
         ...process.env,
-        PRISMA_DML_PATH: tempDatamodelPath!,
+        PRISMA_DML_PATH: tempDatamodelPath,
         RUST_BACKTRACE: '1',
         ...(process.env.NO_COLOR ? {} : { CLICOLOR_FORCE: '1' }),
       },
@@ -84,12 +83,12 @@ export async function getDMMF({
     )
 
     if (!datamodelPath) {
-      await unlink(tempDatamodelPath!)
+      await unlink(tempDatamodelPath)
     }
 
     if (result.stdout.includes('Please wait until the') && retry > 0) {
       debug('Retrying after "Please wait until"')
-      await new Promise(r => setTimeout(r, 5000))
+      await new Promise((r) => setTimeout(r, 5000))
       return getDMMF({
         datamodel,
         cwd,
@@ -110,7 +109,7 @@ export async function getDMMF({
       e.message.includes('Command failed with exit code 26 (ETXTBSY)') &&
       retry > 0
     ) {
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 500))
       debug('Retrying after ETXTBSY')
       return getDMMF({
         datamodel,
