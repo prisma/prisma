@@ -4,7 +4,7 @@ This is only intended to be run in a development environment where ports 3306 / 
 
 If they are already used make sure to change the ports like this
 
-```xml
+```yaml
 ports:
     - '3307:3306 # only change the first number
 ```
