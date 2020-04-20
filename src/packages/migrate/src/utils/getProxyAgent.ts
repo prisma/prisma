@@ -1,17 +1,21 @@
-import { Agent as HttpAgent } from 'http'
 import HttpProxyAgent from 'http-proxy-agent'
-import { Agent as HttpsAgent } from 'https'
 import HttpsProxyAgent from 'https-proxy-agent'
 import Url from 'url'
 
 // code from https://raw.githubusercontent.com/request/request/5ba8eb44da7cd639ca21070ea9be20d611b85f66/lib/getProxyFromURI.js
 
-function formatHostname(hostname) {
+function formatHostname(hostname): string {
   // canonicalize the hostname, so that 'oogle.com' won't match 'google.com'
   return hostname.replace(/^\.*/, '.').toLowerCase()
 }
 
-function parseNoProxyZone(zone) {
+function parseNoProxyZone(
+  zone,
+): {
+  hostname: string
+  port: any
+  hasPort: boolean
+} {
   zone = zone.trim().toLowerCase()
 
   const zoneParts = zone.split(':', 2)
@@ -22,15 +26,17 @@ function parseNoProxyZone(zone) {
   return { hostname: zoneHost, port: zonePort, hasPort }
 }
 
-function uriInNoProxy(uri, noProxy) {
+function uriInNoProxy(uri, noProxy): boolean {
   const port = uri.port || (uri.protocol === 'https:' ? '443' : '80')
   const hostname = formatHostname(uri.hostname)
   const noProxyList = noProxy.split(',')
 
   // iterate through the noProxyList until it finds a match.
-  return noProxyList.map(parseNoProxyZone).some(noProxyZone => {
+  return noProxyList.map(parseNoProxyZone).some((noProxyZone) => {
     const isMatchedAt = hostname.indexOf(noProxyZone.hostname)
-    const hostnameMatched = isMatchedAt > -1 && isMatchedAt === hostname.length - noProxyZone.hostname.length
+    const hostnameMatched =
+      isMatchedAt > -1 &&
+      isMatchedAt === hostname.length - noProxyZone.hostname.length
 
     if (noProxyZone.hasPort) {
       return port === noProxyZone.port && hostnameMatched
@@ -40,7 +46,7 @@ function uriInNoProxy(uri, noProxy) {
   })
 }
 
-function getProxyFromURI(uri) {
+function getProxyFromURI(uri): string | null {
   // Decide the proper request proxy to use based on the request URI object and the
   // environmental variables (NO_PROXY, HTTP_PROXY, etc.)
   // respect NO_PROXY environment variables (see: http://lynx.isc.org/current/breakout/lynx_help/keystrokes/environments.html)
@@ -67,7 +73,11 @@ function getProxyFromURI(uri) {
 
   if (uri.protocol === 'https:') {
     return (
-      process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy || null
+      process.env.HTTPS_PROXY ||
+      process.env.https_proxy ||
+      process.env.HTTP_PROXY ||
+      process.env.http_proxy ||
+      null
     )
   }
 

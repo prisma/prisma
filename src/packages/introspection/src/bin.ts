@@ -3,7 +3,7 @@
 /**
  * Dependencies
  */
-import { isError, HelpError, arg } from '@prisma/sdk'
+import { isError, arg } from '@prisma/sdk'
 import { Init } from './commands/Init'
 import { Introspect } from './commands/Introspect'
 
@@ -29,7 +29,11 @@ async function main(): Promise<number> {
     const result = await commands[args._[0]].parse(process.argv.slice(3))
     console.log(result)
   } else {
-    console.error(`Command not found: ${args._[0]}. Available commands: ${Object.keys(commands).join(', ')}`)
+    console.error(
+      `Command not found: ${args._[0]}. Available commands: ${Object.keys(
+        commands,
+      ).join(', ')}`,
+    )
     return 1
   }
 
@@ -39,16 +43,16 @@ async function main(): Promise<number> {
  * Run our program
  */
 main()
-  .then(code => {
+  .then((code) => {
     if (code !== 0) {
       process.exit(code)
     }
   })
-  .catch(err => {
+  .catch((err) => {
     console.error(err)
     process.exit(1)
   })
 
-process.on('unhandledRejection', e => {
+process.on('unhandledRejection', (e) => {
   console.error(e)
 })

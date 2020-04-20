@@ -1,4 +1,4 @@
-import { arg, Command, format, HelpError } from '@prisma/sdk'
+import { Command, format, HelpError } from '@prisma/sdk'
 import chalk from 'chalk'
 import Debug from 'debug'
 import { Migrate } from '../Migrate'
@@ -22,9 +22,9 @@ export class MigrateTmpPrepare implements Command {
 
       ${chalk.dim('$')} prisma migrate tmp-prepare
   `)
-  private constructor() {}
 
   // parse arguments
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async parse(argv: string[]): Promise<string | Error> {
     debug('running tmp-prepare')
     await occupyPath(process.cwd())
@@ -55,7 +55,9 @@ export class MigrateTmpPrepare implements Command {
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateTmpPrepare.help}`)
+      return new HelpError(
+        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateTmpPrepare.help}`,
+      )
     }
     return MigrateTmpPrepare.help
   }

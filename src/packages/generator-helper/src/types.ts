@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace DMMF {
   export interface Document {
     datamodel: Datamodel
@@ -130,6 +131,7 @@ export namespace DMMF {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace JsonRPC {
   export type Request = {
     jsonrpc: '2.0'

@@ -1,4 +1,4 @@
-export function formatms(ms: number) {
+export function formatms(ms: number): string {
   if (ms < 1000) {
     return `${ms}ms`
   }

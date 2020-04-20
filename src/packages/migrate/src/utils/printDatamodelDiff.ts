@@ -5,23 +5,41 @@ import { strongGreen, strongRed } from './customColors'
 import stripAnsi from 'strip-ansi'
 
 // TODO diff on trimmed text
-export function printDatamodelDiff(rawDatamodelA: string, rawDatamodelB?: string) {
-  const datamodelA = trimWholeBlocks(rawDatamodelA, ['source', 'datasource', 'generator'])
+export function printDatamodelDiff(
+  rawDatamodelA: string,
+  rawDatamodelB?: string,
+): any {
+  const datamodelA = trimWholeBlocks(rawDatamodelA, [
+    'source',
+    'datasource',
+    'generator',
+  ])
   if (!rawDatamodelB) {
     return highlightDatamodel(datamodelA)
   }
-  const datamodelB = trimWholeBlocks(rawDatamodelB, ['source', 'datasource', 'generator'])
-  let result = fixCurly(diffLines(normalizeText(datamodelA), normalizeText(datamodelB)))
-  result = result.map(diff => ({ ...diff, value: trimNewLine(diff.value) }))
+  const datamodelB = trimWholeBlocks(rawDatamodelB, [
+    'source',
+    'datasource',
+    'generator',
+  ])
+  let result = fixCurly(
+    diffLines(normalizeText(datamodelA), normalizeText(datamodelB)),
+  )
+  result = result.map((diff) => ({ ...diff, value: trimNewLine(diff.value) }))
   const diff = result
     .map((change, index, changes) => {
       if (change.added) {
-        if (change.value.split('\n').length <= 2 && index > 0 && changes[index - 1] && changes[index - 1].removed) {
+        if (
+          change.value.split('\n').length <= 2 &&
+          index > 0 &&
+          changes[index - 1] &&
+          changes[index - 1].removed
+        ) {
           const charChanges = diffWords(changes[index - 1].value, change.value)
 
           if (charChanges.length < change.value.length - 4) {
             return charChanges
-              .map(charChange => {
+              .map((charChange) => {
                 if (charChange.added) {
                   return strongGreen(charChange.value)
                 }
@@ -48,7 +66,7 @@ export function printDatamodelDiff(rawDatamodelA: string, rawDatamodelB?: string
 
           if (charChanges.length < change.value.length - 3) {
             return charChanges
-              .map(charChange => {
+              .map((charChange) => {
                 if (charChange.removed) {
                   return strongRed(charChange.value)
                 }
@@ -71,7 +89,7 @@ export function printDatamodelDiff(rawDatamodelA: string, rawDatamodelB?: string
 }
 
 // trims to consecutive empty lines from a string
-function trimMultiEmptyLines(str: string) {
+function trimMultiEmptyLines(str: string): string {
   const lines = str.split('\n')
   const newLines: string[] = []
 
@@ -93,15 +111,15 @@ function trimMultiEmptyLines(str: string) {
   return newLines.join('\n')
 }
 
-export function trimNewLine(str: string) {
+export function trimNewLine(str: string): string {
   if (str === '') {
     return str
   }
   let newStr = str
-  if (newStr[0].match(/\r?\n|\r/)) {
+  if (/\r?\n|\r/.exec(newStr[0])) {
     newStr = newStr.slice(1)
   }
-  if (newStr.length > 0 && newStr[newStr.length - 1].match(/\r?\n|\r/)) {
+  if (newStr.length > 0 && /\r?\n|\r/.exec(newStr[newStr.length - 1])) {
     newStr = newStr.slice(0, newStr.length - 1)
   }
   return newStr
@@ -112,7 +130,10 @@ type Position = {
   end: number
 }
 
-function trimWholeBlocks(str: string, blocks = ['model', 'enum', 'datasource', 'generator']) {
+function trimWholeBlocks(
+  str: string,
+  blocks = ['model', 'enum', 'datasource', 'generator'],
+): string {
   const lines = str.split('\n')
   if (lines.length <= 2) {
     return str
@@ -125,7 +146,7 @@ function trimWholeBlocks(str: string, blocks = ['model', 'enum', 'datasource', '
     const trimmed = line.trim()
     // TODO: add support for enum etc
     // maybe just by removing the startsWith
-    if (blocks.some(b => line.startsWith(b)) && line.endsWith('{')) {
+    if (blocks.some((b) => line.startsWith(b)) && line.endsWith('{')) {
       blockOpen = true
       currentStart = index
     }
@@ -155,7 +176,7 @@ function trimWholeBlocks(str: string, blocks = ['model', 'enum', 'datasource', '
 }
 
 // filter unnecessary space changes
-function normalizeText(str: string) {
+function normalizeText(str: string): string {
   return (
     str
       .split('\n')
@@ -177,24 +198,32 @@ function normalizeText(str: string) {
   )
 }
 
-function removeSpacing(line: string) {
+function removeSpacing(line: string): string {
   return removeDirectiveSpacing(removeValueSpacing(line))
 }
 
-function removeValueSpacing(line: string) {
+function removeValueSpacing(line: string): string {
   const match = /\b(\s+)\w+/g.exec(line)
 
   if (match && match[1].length > 1) {
-    return line.slice(0, match.index) + ' ' + line.slice(match.index + match[1].length)
+    return (
+      line.slice(0, match.index) +
+      ' ' +
+      line.slice(match.index + match[1].length)
+    )
   }
   return line
 }
 
-function removeDirectiveSpacing(line: string) {
+function removeDirectiveSpacing(line: string): string {
   const match = /(\s+)@/g.exec(line)
 
   if (match && match[1].length > 1) {
-    return line.slice(0, match.index) + ' ' + line.slice(match.index + match[1].length)
+    return (
+      line.slice(0, match.index) +
+      ' ' +
+      line.slice(match.index + match[1].length)
+    )
   }
   return line
 }
@@ -205,16 +234,21 @@ function fixCurly(changes: Change[]): Change[] {
 
 function fixCurlyAdded(changes: Change[]): Change[] {
   changes.forEach((change, index) => {
-    if (!change.added && !change.removed && change.value.trim() === '}' && index > 0 && changes[index - 1].added) {
-      const correspondingIndex = changes.slice(0, index).findIndex(c => {
+    if (
+      !change.added &&
+      !change.removed &&
+      change.value.trim() === '}' &&
+      index > 0 &&
+      changes[index - 1].added
+    ) {
+      const correspondingIndex = changes.slice(0, index).findIndex((c) => {
         if (!c.added) {
           return false
         }
-        let sawOpen = false
         let hasCloseBeforeOpen = false
         const lines = c.value.split('\n')
         for (const line of lines) {
-          if (!sawOpen && line.trim() === '}') {
+          if (line.trim() === '}') {
             hasCloseBeforeOpen = true
             break
           }
@@ -229,7 +263,7 @@ function fixCurlyAdded(changes: Change[]): Change[] {
         // 2. get rid of the unnecessary } in the corresponding block we just found
         // and turn it into a normal curly
         const lines = correspondingChange.value.split('\n')
-        const indexOfWrongCurly = lines.findIndex(l => l.trim() === '}')
+        const indexOfWrongCurly = lines.findIndex((l) => l.trim() === '}')
         const newChanges: Change[] = [
           {
             value: lines.slice(0, indexOfWrongCurly).join('\n'),
@@ -247,21 +281,26 @@ function fixCurlyAdded(changes: Change[]): Change[] {
       }
     }
   })
-  return changes.filter(change => change.value !== '')
+  return changes.filter((change) => change.value !== '')
 }
 
 function fixCurlyRemoved(changes: Change[]): Change[] {
   changes.forEach((change, index) => {
-    if (!change.added && !change.removed && change.value.trim() === '}' && index > 0 && changes[index - 1].removed) {
-      const correspondingIndex = changes.slice(0, index).findIndex(c => {
+    if (
+      !change.added &&
+      !change.removed &&
+      change.value.trim() === '}' &&
+      index > 0 &&
+      changes[index - 1].removed
+    ) {
+      const correspondingIndex = changes.slice(0, index).findIndex((c) => {
         if (!c.removed) {
           return false
         }
-        let sawOpen = false
         let hasCloseBeforeOpen = false
         const lines = c.value.split('\n')
         for (const line of lines) {
-          if (!sawOpen && line.trim() === '}') {
+          if (line.trim() === '}') {
             hasCloseBeforeOpen = true
             break
           }
@@ -276,7 +315,7 @@ function fixCurlyRemoved(changes: Change[]): Change[] {
         // 2. get rid of the unnecessary } in the corresponding block we just found
         // and turn it into a normal curly
         const lines = correspondingChange.value.split('\n')
-        const indexOfWrongCurly = lines.findIndex(l => l.trim() === '}')
+        const indexOfWrongCurly = lines.findIndex((l) => l.trim() === '}')
         const newChanges: Change[] = [
           {
             value: lines.slice(0, indexOfWrongCurly).join('\n'),
@@ -294,7 +333,7 @@ function fixCurlyRemoved(changes: Change[]): Change[] {
       }
     }
   })
-  return changes.filter(change => change.value !== '')
+  return changes.filter((change) => change.value !== '')
 }
 
 // // jsdiff spreads the } curly braces all over the place

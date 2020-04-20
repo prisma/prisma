@@ -27,19 +27,11 @@
     "download": "node scripts/download.js",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
-    "precommit": "lint-staged && jest",
     "ncc:runtime": "node scripts/build-runtime.js",
     "cleanup": "rm -f index.d.ts && cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts",
     "ncc:generator": "rm -rf generator-build && ncc build dist/generator.js -o generator-build --minify --source-map && rm -f generator-build/index.js.bak && chmod +x generator-build/index.js",
     "prepare": "pnpm run cleanup && cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts && node scripts/download.js || echo \"\"",
     "prepublishOnly": "pnpm run build"
-  },
-  "lint-staged": {
-    "src/**/*.{ts,tsx}": [
-      "tslint --project tsconfig.json -c tslint.json --fix",
-      "prettier --write",
-      "git add"
-    ]
   },
   "prisma": {
     "version": "latest"
@@ -71,18 +63,26 @@
     "@types/node": "12.12.35",
     "@types/node-fetch": "^2.5.5",
     "@types/pg": "^7.14.3",
+    "@typescript-eslint/eslint-plugin": "^2.28.0",
+    "@typescript-eslint/parser": "^2.28.0",
     "@zeit/ncc": "0.22.1",
     "arg": "^4.1.3",
     "benchmark": "^2.1.4",
     "chalk": "^3.0.0",
     "del": "^5.1.0",
     "dotenv": "^8.2.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-eslint-comments": "^3.1.2",
+    "eslint-plugin-jest": "^23.8.2",
+    "eslint-plugin-prettier": "^3.1.3",
     "execa": "^4.0.0",
     "fast-clone": "^1.5.13",
     "fast-copy": "^2.0.5",
     "flat-map-polyfill": "^0.3.8",
     "fs-monkey": "^0.3.3",
     "get-own-enumerable-property-symbols": "^3.0.2",
+    "husky": "^4.2.5",
     "indent-string": "^4.0.0",
     "is-obj": "^2.0.0",
     "is-regexp": "^2.1.0",
@@ -106,8 +106,6 @@
     "ts-jest": "^25.3.1",
     "ts-loader": "^6.2.2",
     "ts-node": "^8.8.2",
-    "tslint": "^5.20.1",
-    "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.8.3",
     "webpack": "5.0.0-alpha.14",
     "webpack-bundle-analyzer": "^3.6.1",
@@ -120,5 +118,19 @@
     "@prisma/cli": {
       "optional": true
     }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts,css,json,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.{js,ts}": [
+      "eslint"
+    ]
   }
 }

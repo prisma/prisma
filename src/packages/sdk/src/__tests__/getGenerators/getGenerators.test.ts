@@ -1,5 +1,5 @@
 import path from 'path'
-import { getGenerators, getGenerator } from '../../getGenerators'
+import { getGenerators } from '../../getGenerators'
 import { pick } from '../../pick'
 import { omit } from '../../omit'
 
@@ -19,7 +19,7 @@ describe('getGenerators', () => {
       providerAliases: aliases,
     })
 
-    expect(generators.map(g => g.manifest)).toMatchInlineSnapshot(`
+    expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
       Array [
         Object {
           "defaultOutput": "default-output",
@@ -81,7 +81,7 @@ describe('getGenerators', () => {
       },
     }
 
-    expect(
+    await expect(
       getGenerators({
         schemaPath: path.join(__dirname, 'invalid-platforms-schema.prisma'),
         providerAliases: aliases,
@@ -97,7 +97,7 @@ describe('getGenerators', () => {
       },
     }
 
-    expect(
+    await expect(
       getGenerators({
         schemaPath: path.join(__dirname, 'invalid-binary-target-schema.prisma'),
         providerAliases: aliases,

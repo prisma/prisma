@@ -6,7 +6,6 @@ import { performance } from 'perf_hooks'
 import { generateClient } from '../generation/generateClient'
 import { getPackedPackage } from '@prisma/sdk'
 import Debug from 'debug'
-import makeDir from 'make-dir'
 const debug = Debug('generateInFolder')
 
 export interface GenerateInFolderOptions {
@@ -79,7 +78,7 @@ export async function generateInFolder({
   return time
 }
 
-function getSchemaPath(projectDir: string) {
+function getSchemaPath(projectDir: string): string {
   if (fs.existsSync(path.join(projectDir, 'schema.prisma'))) {
     return path.join(projectDir, 'schema.prisma')
   }

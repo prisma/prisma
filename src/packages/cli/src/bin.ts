@@ -5,7 +5,7 @@ import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
 import { arg } from '@prisma/sdk'
-const packageJson = require('../package.json')
+const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 export { byline } from '@prisma/migrate'
 
@@ -32,10 +32,15 @@ debug({ argv: process.argv })
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
     chalk.yellow('deprecated') +
-      `  The ${chalk.redBright('prisma2')} command is deprecated and has been renamed to ${chalk.greenBright(
+      `  The ${chalk.redBright(
+        'prisma2',
+      )} command is deprecated and has been renamed to ${chalk.greenBright(
         'prisma',
       )}.\nPlease execute ${chalk.bold.greenBright(
-        'prisma' + (process.argv.length > 2 ? ' ' + process.argv.slice(2).join(' ') : ''),
+        'prisma' +
+          (process.argv.length > 2
+            ? ' ' + process.argv.slice(2).join(' ')
+            : ''),
       )} instead.\n`,
   )
 }
@@ -56,16 +61,25 @@ if (process.argv.length > 2) {
 
     if (fs.existsSync(args['--schema']) && fs.existsSync(dotenvFilepath)) {
       dotenvResult = dotenv.config({ path: dotenvFilepath })
-      console.log(chalk.dim('Environment variables loaded from provided --schema directory'))
+      console.log(
+        chalk.dim(
+          'Environment variables loaded from provided --schema directory',
+        ),
+      )
     } else {
       debug('Environment variables not loaded (--schema was provided)')
     }
   } // Check current directory
   else if (fs.existsSync('schema.prisma') && fs.existsSync('.env')) {
     dotenvResult = dotenv.config()
-    console.log(chalk.dim('Environment variables loaded from current directory'))
+    console.log(
+      chalk.dim('Environment variables loaded from current directory'),
+    )
   } // Check ./prisma directory
-  else if (fs.existsSync('prisma/schema.prisma') && fs.existsSync('prisma/.env')) {
+  else if (
+    fs.existsSync('prisma/schema.prisma') &&
+    fs.existsSync('prisma/.env')
+  ) {
     dotenvResult = dotenv.config({ path: 'prisma/.env' })
     console.log(chalk.dim('Environment variables loaded from ./prisma/.env'))
   } // We didn't find a .env file next to the prisma.schema file.
@@ -105,7 +119,9 @@ import ci from '@prisma/ci-info'
 // as they have to ship their own version of @prisma/client
 const aliases: ProviderAliases = {
   'prisma-client-js': {
-    generatorPath: eval(`require('path').join(__dirname, '../prisma-client/generator-build/index.js')`), // all evals are here for ncc
+    generatorPath: eval(
+      `require('path').join(__dirname, '../prisma-client/generator-build/index.js')`,
+    ), // all evals are here for ncc
     outputPath: eval(`require('path').join(__dirname, '../prisma-client/')`),
   },
 }
@@ -136,7 +152,17 @@ async function main(): Promise<number> {
       version: Version.new(),
       validate: Validate.new(),
     },
-    ['version', 'init', 'migrate', 'tmp-prepare', 'introspect', 'dev', 'studio', 'generate', 'validate'],
+    [
+      'version',
+      'init',
+      'migrate',
+      'tmp-prepare',
+      'introspect',
+      'dev',
+      'studio',
+      'generate',
+      'validate',
+    ],
   )
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))
@@ -181,9 +207,13 @@ if (require.main === module) {
       }
     })
     .catch((err) => {
-      function handleIndividualError(error) {
+      function handleIndividualError(error): void {
         if (error.rustStack) {
-          handlePanic(error, packageJson.version, packageJson.prisma.version).catch((e) => {
+          handlePanic(
+            error,
+            packageJson.version,
+            packageJson.prisma.version,
+          ).catch((e) => {
             if (debugLib.enabled('prisma')) {
               console.error(chalk.redBright.bold('Error: ') + e.stack)
             } else {

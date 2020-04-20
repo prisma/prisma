@@ -18,13 +18,19 @@ export type DownloadResult = {
   zippedSha256: string
 }
 
-async function fetchSha256(url: string): Promise<{ sha256: string; zippedSha256: string }> {
+async function fetchSha256(
+  url: string,
+): Promise<{ sha256: string; zippedSha256: string }> {
   // We get a string like this:
   // "3c82ee6cd9fedaec18a5e7cd3fc41f8c6b3dd32575dc13443d96aab4bd018411  query-engine.gz\n"
   // So we split it by whitespace and just get the hash, as that's what we're interested in
   const [zippedSha256, sha256] = [
-    (await fetch(`${url}.sha256`).then(res => res.text())).split(/\s+/)[0],
-    (await fetch(`${url.slice(0, url.length - 3)}.sha256`).then(res => res.text())).split(/\s+/)[0],
+    (await fetch(`${url}.sha256`).then((res) => res.text())).split(/\s+/)[0],
+    (
+      await fetch(`${url.slice(0, url.length - 3)}.sha256`).then((res) =>
+        res.text(),
+      )
+    ).split(/\s+/)[0],
   ]
 
   return { sha256, zippedSha256 }
@@ -33,7 +39,7 @@ async function fetchSha256(url: string): Promise<{ sha256: string; zippedSha256:
 export async function downloadZip(
   url: string,
   target: string,
-  progressCb?: (progress: number) => any,
+  progressCb?: (progress: number) => void,
 ): Promise<DownloadResult> {
   const tmpDir = tempy.directory()
   const partial = path.join(tmpDir, 'partial')
@@ -41,7 +47,10 @@ export async function downloadZip(
   const result = await retry(
     async () => {
       try {
-        const resp = await fetch(url, { compress: false, agent: getProxyAgent(url) })
+        const resp = await fetch(url, {
+          compress: false,
+          agent: getProxyAgent(url),
+        })
 
         if (resp.status !== 200) {
           throw new Error(resp.statusText + ' ' + url)
@@ -51,10 +60,11 @@ export async function downloadZip(
         const size = parseFloat(resp.headers.get('content-length'))
         const ws = fs.createWriteStream(partial)
 
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
         return await new Promise(async (resolve, reject) => {
           let bytesRead = 0
 
-          resp.body.on('error', reject).on('data', chunk => {
+          resp.body.on('error', reject).on('data', (chunk) => {
             bytesRead += chunk.length
 
             if (size && progressCb) {
@@ -67,8 +77,12 @@ export async function downloadZip(
           gunzip.on('error', reject)
 
           const zipStream = resp.body.pipe(gunzip)
-          const zippedHashPromise = hasha.fromStream(resp.body, { algorithm: 'sha256' })
-          const hashPromise = hasha.fromStream(zipStream, { algorithm: 'sha256' })
+          const zippedHashPromise = hasha.fromStream(resp.body, {
+            algorithm: 'sha256',
+          })
+          const hashPromise = hasha.fromStream(zipStream, {
+            algorithm: 'sha256',
+          })
           zipStream.pipe(ws)
 
           ws.on('error', reject).on('close', () => {
@@ -79,11 +93,15 @@ export async function downloadZip(
           const zippedHash = await zippedHashPromise
 
           if (zippedHash !== zippedSha256) {
-            throw new Error(`sha256 of ${url} (zipped) should be ${zippedSha256} but is ${zippedHash}`)
+            throw new Error(
+              `sha256 of ${url} (zipped) should be ${zippedSha256} but is ${zippedHash}`,
+            )
           }
 
           if (hash !== sha256) {
-            throw new Error(`sha256 of ${url} (uzipped) should be ${sha256} but is ${hash}`)
+            throw new Error(
+              `sha256 of ${url} (uzipped) should be ${sha256} but is ${hash}`,
+            )
           }
 
           debug(`sha-256 are correct
@@ -96,8 +114,8 @@ unzipped: ${sha256}`)
     },
     {
       retries: 2,
-      onFailedAttempt: err => debug(err),
-    } as any,
+      onFailedAttempt: (err) => debug(err),
+    },
   )
   fs.copyFileSync(partial, target)
 
