@@ -208,14 +208,14 @@ export class IntrospectionEngine {
             console.error(err)
           })
 
-          this.child.on('exit', (code, signal) => {
+          this.child.on('exit', async (code, signal) => {
             // handle panics
             this.isRunning = false
             if (code === 255 && this.lastError && this.lastError.is_panic) {
-              let sqlDump
+              let sqlDump: string | undefined
               if (this.lastUrl) {
                 try {
-                  sqlDump = this.getDatabaseDescription(this.lastUrl)
+                  sqlDump = await this.getDatabaseDescription(this.lastUrl)
                 } catch (e) {} // eslint-disable-line no-empty
               }
               const err = new RustPanic(
@@ -316,7 +316,7 @@ export class IntrospectionEngine {
               const message =
                 response.error.data?.error?.message ?? response.error.message
               // Handle error and displays the interactive dialog to send panic error
-              let sqlDump
+              let sqlDump: string | undefined
               if (this.lastUrl) {
                 try {
                   sqlDump = await this.getDatabaseDescription(this.lastUrl)
