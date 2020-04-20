@@ -99,7 +99,7 @@ function getCommand(): string {
   return process.argv.slice(2).join(' ')
 }
 
-async function uploadZip(zip: Buffer, url: string) {
+async function uploadZip(zip: Buffer, url: string): Promise<any> {
   return await fetch(url, {
     method: 'PUT',
     agent: getProxyAgent(url),
@@ -114,7 +114,7 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
   if (!error.schemaPath) {
     throw new Error(`Can't make zip without schema path`)
   }
-  const schemaDir = path.dirname(error.schemaPath!)
+  const schemaDir = path.dirname(error.schemaPath)
   const tmpFileObj = tmp.fileSync()
   const outputFile = fs.createWriteStream(tmpFileObj.name)
   const zip = archiver('zip', { zlib: { level: 9 } })

@@ -97,13 +97,13 @@ export class IntrospectionEngine {
     this.debug = Boolean(debug)
     this.cwd = cwd || process.cwd()
   }
-  public stop() {
+  public stop(): void {
     if (this.child) {
       this.child.kill()
       this.isRunning = false
     }
   }
-  private rejectAll(err: any) {
+  private rejectAll(err: any): void {
     Object.entries(this.listeners).map(([id, listener]) => {
       listener(null, err)
       delete this.listeners[id]
@@ -112,7 +112,7 @@ export class IntrospectionEngine {
   private registerCallback(
     id: number,
     callback: (result: any, err?: Error) => any,
-  ) {
+  ): void {
     this.listeners[id] = callback
   }
   public getDatabaseDescription(schema: string): Promise<string> {
@@ -138,7 +138,7 @@ export class IntrospectionEngine {
       this.getRPCPayload('getDatabaseMetadata', { schema }),
     )
   }
-  private handleResponse(response: any) {
+  private handleResponse(response: any): void {
     let result
     try {
       result = JSON.parse(response)
@@ -176,118 +176,121 @@ export class IntrospectionEngine {
       this.initPromise = this.internalInit()
     }
 
-    return this.initPromise!
+    return this.initPromise
   }
   private internalInit(): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const { PWD, ...env } = process.env
-        const binaryPath = await resolveBinary('introspection-engine')
-        debugRpc('starting introspection engine with binary: ' + binaryPath)
-        this.child = spawn(binaryPath, {
-          stdio: ['pipe', 'pipe', 'pipe'],
-          env: {
-            ...env,
-            // RUST_LOG: 'info',
-            // RUST_BACKTRACE: '1',
-          },
-          cwd: this.cwd,
-        })
+    return new Promise(
+      async (resolve, reject): Promise<void> => {
+        try {
+          const { PWD, ...env } = process.env
+          const binaryPath = await resolveBinary('introspection-engine')
+          debugRpc('starting introspection engine with binary: ' + binaryPath)
+          this.child = spawn(binaryPath, {
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: {
+              ...env,
+              // RUST_LOG: 'info',
+              // RUST_BACKTRACE: '1',
+            },
+            cwd: this.cwd,
+          })
 
-        this.isRunning = true
+          this.isRunning = true
 
-        this.child.on('error', (err) => {
-          console.error('[introspection-engine] error: %s', err)
-          reject(err)
-          this.rejectAll(err)
-        })
-
-        this.child.stdin?.on('error', (err) => {
-          console.error(err)
-        })
-
-        this.child.on('exit', (code, signal) => {
-          // handle panics
-          this.isRunning = false
-          if (code === 255 && this.lastError && this.lastError.is_panic) {
-            let sqlDump
-            if (this.lastUrl) {
-              try {
-                sqlDump = this.getDatabaseDescription(this.lastUrl)
-              } catch (e) {}
-            }
-            const err = new RustPanic(
-              this.lastError.message,
-              this.lastError.backtrace,
-              this.lastRequest,
-              ErrorArea.INTROSPECTION_CLI,
-              /* schemaPath */ undefined,
-              /* schema */ undefined,
-              sqlDump,
-            )
-            this.rejectAll(err)
+          this.child.on('error', (err) => {
+            console.error('[introspection-engine] error: %s', err)
             reject(err)
-            return
-          }
-          const messages = this.messages.join('\n')
-          let err: any
-          if (code !== 0 || messages.includes('panicked at')) {
-            let errorMessage =
-              chalk.red.bold('Error in introspection engine: ') + messages
-            if (messages.includes('\u001b[1;94m-->\u001b[0m')) {
-              errorMessage = `${chalk.red.bold('Schema parsing\n')}` + messages
-            } else if (this.lastError && this.lastError.msg === 'PANIC') {
-              errorMessage = serializePanic(this.lastError)
-              err = new IntrospectionPanic(
-                errorMessage,
-                messages,
-                this.lastRequest,
-              )
-            } else if (messages.includes('panicked at')) {
-              err = new IntrospectionPanic(
-                errorMessage,
-                messages,
-                this.lastRequest,
-              )
-            }
-            err = err || new Error(errorMessage)
             this.rejectAll(err)
-            reject(err)
-          }
-        })
+          })
 
-        this.child.stdin!.on('error', (err) => {
-          debugStdin(err)
-        })
+          this.child.stdin?.on('error', (err) => {
+            console.error(err)
+          })
 
-        byline(this.child.stderr).on('data', (data) => {
-          const msg = String(data)
-          this.messages.push(msg)
-          debugStderr(msg)
-          try {
-            const json = JSON.parse(msg)
-            if (json.backtrace) {
-              this.lastError = json
+          this.child.on('exit', (code, signal) => {
+            // handle panics
+            this.isRunning = false
+            if (code === 255 && this.lastError && this.lastError.is_panic) {
+              let sqlDump
+              if (this.lastUrl) {
+                try {
+                  sqlDump = this.getDatabaseDescription(this.lastUrl)
+                } catch (e) {} // eslint-disable-line no-empty
+              }
+              const err = new RustPanic(
+                this.lastError.message,
+                this.lastError.backtrace,
+                this.lastRequest,
+                ErrorArea.INTROSPECTION_CLI,
+                /* schemaPath */ undefined,
+                /* schema */ undefined,
+                sqlDump,
+              )
+              this.rejectAll(err)
+              reject(err)
+              return
             }
-            if (json.level === 'ERRO') {
-              this.lastError = json
+            const messages = this.messages.join('\n')
+            let err: any
+            if (code !== 0 || messages.includes('panicked at')) {
+              let errorMessage =
+                chalk.red.bold('Error in introspection engine: ') + messages
+              if (messages.includes('\u001b[1;94m-->\u001b[0m')) {
+                errorMessage =
+                  `${chalk.red.bold('Schema parsing\n')}` + messages
+              } else if (this.lastError && this.lastError.msg === 'PANIC') {
+                errorMessage = serializePanic(this.lastError)
+                err = new IntrospectionPanic(
+                  errorMessage,
+                  messages,
+                  this.lastRequest,
+                )
+              } else if (messages.includes('panicked at')) {
+                err = new IntrospectionPanic(
+                  errorMessage,
+                  messages,
+                  this.lastRequest,
+                )
+              }
+              err = err || new Error(errorMessage)
+              this.rejectAll(err)
+              reject(err)
             }
-          } catch (e) {
-            //
-          }
-        })
+          })
 
-        byline(this.child.stdout).on('data', (line) => {
-          this.handleResponse(String(line))
-        })
+          this.child.stdin!.on('error', (err) => {
+            debugStdin(err)
+          })
 
-        setImmediate(() => {
-          resolve()
-        })
-      } catch (e) {
-        reject(e)
-      }
-    })
+          byline(this.child.stderr).on('data', (data) => {
+            const msg = String(data)
+            this.messages.push(msg)
+            debugStderr(msg)
+            try {
+              const json = JSON.parse(msg)
+              if (json.backtrace) {
+                this.lastError = json
+              }
+              if (json.level === 'ERRO') {
+                this.lastError = json
+              }
+            } catch (e) {
+              //
+            }
+          })
+
+          byline(this.child.stdout).on('data', (line) => {
+            this.handleResponse(String(line))
+          })
+
+          setImmediate(() => {
+            resolve()
+          })
+        } catch (e) {
+          reject(e)
+        }
+      },
+    )
   }
   private async runCommand(request: RPCPayload): Promise<any> {
     await this.init()
@@ -316,7 +319,7 @@ export class IntrospectionEngine {
               if (this.lastUrl) {
                 try {
                   sqlDump = await this.getDatabaseDescription(this.lastUrl)
-                } catch (e) {}
+                } catch (e) {} // eslint-disable-line no-empty
               }
               reject(
                 new RustPanic(
@@ -423,7 +426,7 @@ Please put that file into a gist and post it in Slack.
   }
 }
 
-function serializePanic(log) {
+function serializePanic(log): string {
   return `${chalk.red.bold(
     'Error in introspection engine.\nReason: ',
   )}${chalk.red(

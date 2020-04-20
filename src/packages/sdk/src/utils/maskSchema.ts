@@ -12,7 +12,7 @@ export function maskSchema(schema: string): string {
     .join('\n')
 }
 
-export function mapScalarValues(obj: any, mapper: (value: any) => any) {
+export function mapScalarValues(obj: any, mapper: (value: any) => any): {} {
   const result = {}
   for (const key in obj) {
     if (typeof obj[key] === 'object') {

@@ -1,6 +1,6 @@
-const prefixZero = (value: number) => ('0' + value).slice(-2)
+const prefixZero = (value: number): string => ('0' + value).slice(-2)
 
-export function now() {
+export function now(): string {
   const now = new Date()
   return `${now.getFullYear()}${prefixZero(now.getMonth() + 1)}${prefixZero(
     now.getDate(),
@@ -23,7 +23,7 @@ export function timestampToDate(timestamp: string): Date | undefined {
   return new Date(year, month - 1, date, hours, minutes, seconds)
 }
 
-export function renderDate(date: Date) {
+export function renderDate(date: Date): string {
   if (date.getDate() !== new Date().getDate()) {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString()
   }
