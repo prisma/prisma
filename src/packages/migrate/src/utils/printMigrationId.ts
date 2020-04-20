@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 
-export function printMigrationId(migrationId: string) {
+export function printMigrationId(migrationId: string): string {
   const words = migrationId.split('-')
   if (words.length === 1) {
     return chalk.cyan.bold(migrationId)

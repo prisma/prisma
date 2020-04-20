@@ -1,8 +1,8 @@
 import psTree from 'ps-tree'
 
-export async function exit() {
+export async function exit(): Promise<void> {
   const children = await getChildProcesses()
-  children.forEach(child => {
+  children.forEach((child) => {
     process.kill(Number(child.PID))
   })
   process.exit()

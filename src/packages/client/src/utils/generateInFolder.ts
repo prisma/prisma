@@ -78,7 +78,7 @@ export async function generateInFolder({
   return time
 }
 
-function getSchemaPath(projectDir: string) {
+function getSchemaPath(projectDir: string): string {
   if (fs.existsSync(path.join(projectDir, 'schema.prisma'))) {
     return path.join(projectDir, 'schema.prisma')
   }

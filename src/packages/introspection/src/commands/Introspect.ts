@@ -5,13 +5,9 @@ import {
   IntrospectionEngine,
   IntrospectionWarnings,
   uriToCredentials,
-  ConfigMetaFormat,
-  RustPanic,
-  ErrorArea,
 } from '@prisma/sdk'
 import { formatms } from '../util/formatms'
 import fs from 'fs'
-import { DataSource } from '@prisma/generator-helper'
 import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 import { printDatasources } from '../prompt/utils/printDatasources'
 import Debug from 'debug'
@@ -58,10 +54,7 @@ export class Introspect implements Command {
   }
 
   // parse arguments
-  public async parse(
-    argv: string[],
-    minimalOutput = false,
-  ): Promise<string | Error> {
+  public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -70,7 +63,7 @@ export class Introspect implements Command {
       '--schema': String,
     })
 
-    const log = (...messages) => {
+    const log = (...messages): void => {
       if (!args['--print']) {
         console.log(...messages)
       }
@@ -153,7 +146,9 @@ Then you can run ${chalk.green('prisma introspect')} again.
       throw e
     }
 
-    function getWarningMessage(warnings: IntrospectionWarnings[]) {
+    function getWarningMessage(
+      warnings: IntrospectionWarnings[],
+    ): string | undefined {
       if (warnings.length > 0) {
         let message = `\n*** WARNING ***\n`
 

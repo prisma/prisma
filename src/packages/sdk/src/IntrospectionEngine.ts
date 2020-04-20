@@ -180,6 +180,7 @@ export class IntrospectionEngine {
   }
   private internalInit(): Promise<void> {
     return new Promise(
+      // eslint-disable-next-line no-async-promise-executor, @typescript-eslint/no-misused-promises
       async (resolve, reject): Promise<void> => {
         try {
           const { PWD, ...env } = process.env

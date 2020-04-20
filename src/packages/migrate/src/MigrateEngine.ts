@@ -54,7 +54,7 @@ export class MigrateEngine {
     }
     this.debug = debug
   }
-  public stop() {
+  public stop(): void {
     this.child!.kill()
   }
   public applyMigration(
@@ -96,7 +96,7 @@ export class MigrateEngine {
   ): Promise<EngineResults.MigrationProgress> {
     return this.runCommand(this.getRPCPayload('migrationProgress', args))
   }
-  private rejectAll(err: any) {
+  private rejectAll(err: any): void {
     Object.entries(this.listeners).map(([id, listener]) => {
       listener(null, err)
       delete this.listeners[id]
@@ -105,10 +105,10 @@ export class MigrateEngine {
   private registerCallback(
     id: number,
     callback: (result: any, err?: Error) => any,
-  ) {
+  ): void {
     this.listeners[id] = callback
   }
-  private handleResponse(response: any) {
+  private handleResponse(response: any): void {
     let result
     try {
       result = JSON.parse(response)
@@ -145,6 +145,7 @@ export class MigrateEngine {
     return this.initPromise
   }
   private internalInit(): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
         const { PWD, ...rest } = process.env
@@ -329,7 +330,7 @@ Please put that file into a gist and post it in Slack.
   }
 }
 
-function serializePanic(log) {
+function serializePanic(log): string {
   return `${chalk.red.bold('Error in migration engine.\nReason: ')}${chalk.red(
     `${log.message}`,
   )}

@@ -8,7 +8,7 @@ import stripAnsi from 'strip-ansi'
 export function printDatamodelDiff(
   rawDatamodelA: string,
   rawDatamodelB?: string,
-) {
+): any {
   const datamodelA = trimWholeBlocks(rawDatamodelA, [
     'source',
     'datasource',
@@ -89,7 +89,7 @@ export function printDatamodelDiff(
 }
 
 // trims to consecutive empty lines from a string
-function trimMultiEmptyLines(str: string) {
+function trimMultiEmptyLines(str: string): string {
   const lines = str.split('\n')
   const newLines: string[] = []
 
@@ -111,7 +111,7 @@ function trimMultiEmptyLines(str: string) {
   return newLines.join('\n')
 }
 
-export function trimNewLine(str: string) {
+export function trimNewLine(str: string): string {
   if (str === '') {
     return str
   }
@@ -133,7 +133,7 @@ type Position = {
 function trimWholeBlocks(
   str: string,
   blocks = ['model', 'enum', 'datasource', 'generator'],
-) {
+): string {
   const lines = str.split('\n')
   if (lines.length <= 2) {
     return str
@@ -176,7 +176,7 @@ function trimWholeBlocks(
 }
 
 // filter unnecessary space changes
-function normalizeText(str: string) {
+function normalizeText(str: string): string {
   return (
     str
       .split('\n')
@@ -198,11 +198,11 @@ function normalizeText(str: string) {
   )
 }
 
-function removeSpacing(line: string) {
+function removeSpacing(line: string): string {
   return removeDirectiveSpacing(removeValueSpacing(line))
 }
 
-function removeValueSpacing(line: string) {
+function removeValueSpacing(line: string): string {
   const match = /\b(\s+)\w+/g.exec(line)
 
   if (match && match[1].length > 1) {
@@ -215,7 +215,7 @@ function removeValueSpacing(line: string) {
   return line
 }
 
-function removeDirectiveSpacing(line: string) {
+function removeDirectiveSpacing(line: string): string {
   const match = /(\s+)@/g.exec(line)
 
   if (match && match[1].length > 1) {

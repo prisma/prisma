@@ -18,7 +18,7 @@ export function printMigrationReadme({
   datamodelA,
   datamodelB,
   databaseSteps,
-}: MigrationReadmeInput) {
+}: MigrationReadmeInput): string {
   const user = getUserName()
   const email = getEmail()
   let byStr = ''
@@ -31,7 +31,9 @@ export function printMigrationReadme({
   return `\
 # Migration \`${migrationId}\`
 
-This migration has been generated${byStr} at ${new Date().toLocaleString('en-US')}.
+This migration has been generated${byStr} at ${new Date().toLocaleString(
+    'en-US',
+  )}.
 You can check out the [state of the schema](./schema.prisma) after the migration.
 
 ## Database Steps
@@ -76,18 +78,23 @@ main()
 `
 }
 
-function makePatch({ datamodelA, datamodelB, migrationId, lastMigrationId }: MigrationReadmeInput) {
+function makePatch({
+  datamodelA,
+  datamodelB,
+  migrationId,
+  lastMigrationId,
+}: MigrationReadmeInput): string {
   const patch = createPatch('datamodel.dml', datamodelA, datamodelB)
   const header = `diff --git schema.prisma schema.prisma
 migration ${lastMigrationId}..${migrationId}\n`
   return header + filterUselessLines(patch)
 }
 
-function filterUselessLines(patch: string) {
+function filterUselessLines(patch: string): string {
   return patch
     .split('\n')
     .slice(2)
-    .filter(line => {
+    .filter((line) => {
       if (line.startsWith('\\ No newline')) {
         return false
       }

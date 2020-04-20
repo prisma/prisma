@@ -28,7 +28,7 @@ describe('migrate.create', () => {
 async function writeFiles(
   root: string,
   files: {
-    [name: string]: any
+    [name: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
   },
 ): Promise<string> {
   for (const name in files) {
@@ -41,6 +41,7 @@ async function writeFiles(
 }
 
 // create file tests
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function createTests() {
   return [
     {
@@ -59,7 +60,7 @@ function createTests() {
         `,
         'db/.keep': ``,
       },
-      fn: async (schemaPath: string) => {
+      fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('setup')
         const result = await migrate.save(migration!, 'setup')
@@ -89,7 +90,7 @@ function createTests() {
         `,
         'db/.keep': ``,
       },
-      fn: async (schemaPath: string) => {
+      fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('initial setup')
         const result = await migrate.save(migration!, 'initial setup')
@@ -119,7 +120,7 @@ function createTests() {
         `,
         'db/.keep': ``,
       },
-      fn: async (schemaPath: string) => {
+      fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('initial setup')
         const result = await migrate.save(migration!, 'initial setup')
@@ -149,7 +150,7 @@ function createTests() {
         `,
         'db/.keep': ``,
       },
-      fn: async (schemaPath: string) => {
+      fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('setup')
         const result = await migrate.save(migration!, 'setup')
@@ -179,7 +180,7 @@ function createTests() {
         `,
         'db/.keep': ``,
       },
-      fn: async (schemaPath: string) => {
+      fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('setup')
         const result = await migrate.save(migration!, 'setup')

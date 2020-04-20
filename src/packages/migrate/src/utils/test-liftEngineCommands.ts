@@ -8,7 +8,7 @@ import {
 //   console.log(result)
 // }
 
-async function main() {
+async function main(): Promise<void> {
   const result = await canConnectToDatabase(process.env.TEST_CONNECTION_STRING!)
   console.log(result)
 }

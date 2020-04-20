@@ -60,6 +60,7 @@ export async function downloadZip(
         const size = parseFloat(resp.headers.get('content-length'))
         const ws = fs.createWriteStream(partial)
 
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
         return await new Promise(async (resolve, reject) => {
           let bytesRead = 0
 

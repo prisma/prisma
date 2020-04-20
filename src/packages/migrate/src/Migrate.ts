@@ -88,7 +88,7 @@ interface MigrationFileMapOptions {
 const brightGreen = chalk.rgb(127, 224, 152)
 
 export class Migrate {
-  get devMigrationsDir() {
+  get devMigrationsDir(): string {
     return path.join(path.dirname(this.schemaPath), 'migrations/dev')
   }
   public engine: MigrateEngine
@@ -280,7 +280,9 @@ export class Migrate {
     return this.getDatamodel()
   }
 
-  public async recreateStudioServer(providerAliases: ProviderAliases) {
+  public async recreateStudioServer(
+    providerAliases: ProviderAliases,
+  ): Promise<string | undefined> {
     try {
       if (this.studioServer) {
         return await this.studioServer.restart(providerAliases)
@@ -366,7 +368,7 @@ export class Migrate {
     }
   }
 
-  public getMigrationId(name?: string) {
+  public getMigrationId(name?: string): string {
     const timestamp = now()
     return timestamp + (name ? `-${dashify(name)}` : '')
   }
@@ -468,7 +470,7 @@ export class Migrate {
     })
 
     // silent everyone else. this is not a democracy 👹
-    console.log = (...args) => {
+    console.log = (...args): void => {
       debug(...args)
     }
 
@@ -487,14 +489,16 @@ export class Migrate {
       await this.up({
         short: true,
         autoApprove: options.autoApprove,
-        onWarnings: async (warnings) => renderer.promptForWarnings(warnings),
+        onWarnings: async (warnings): Promise<boolean> =>
+          renderer.promptForWarnings(warnings),
       })
       // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
       options.clear = false
       renderer.setState({ migrating: false })
     }
 
-    options.onWarnings = (warnings) => renderer.promptForWarnings(warnings)
+    options.onWarnings = (warnings): Promise<boolean> =>
+      renderer.promptForWarnings(warnings)
 
     const localMigrations = await this.getLocalMigrations()
     const watchMigrations = await this.getLocalWatchMigrations()
@@ -817,7 +821,7 @@ export class Migrate {
     } in ${formatms(Date.now() - before)}.\n`
   }
 
-  public stop() {
+  public stop(): void {
     this.engine.stop()
   }
 
@@ -845,7 +849,9 @@ export class Migrate {
     }
   }
 
-  private async persistWatchMigration(options: MigrationFileMapOptions) {
+  private async persistWatchMigration(
+    options: MigrationFileMapOptions,
+  ): Promise<void> {
     const fileMap = this.getMigrationFileMap(options)
     await serializeFileMap(
       fileMap,
@@ -1050,12 +1056,12 @@ class ProgressRenderer {
     this.silent = silent
   }
 
-  public setMigrations(migrations: LocalMigrationWithDatabaseSteps[]) {
+  public setMigrations(migrations: LocalMigrationWithDatabaseSteps[]): void {
     this.migrations = migrations
     this.render()
   }
 
-  public setProgress(index: number, progressPercentage: number) {
+  public setProgress(index: number, progressPercentage: number): void {
     const progress = Math.min(
       Math.floor(progressPercentage * this.statusWidth),
       this.statusWidth,
@@ -1066,7 +1072,7 @@ class ProgressRenderer {
     this.render()
   }
 
-  public showLogs(name, stream: Readable) {
+  public showLogs(name, stream: Readable): void {
     this.logsName = name
     this.logsString = ''
     stream.on('data', (data) => {
@@ -1075,7 +1081,7 @@ class ProgressRenderer {
     })
   }
 
-  public render() {
+  public render(): void {
     if (this.silent) {
       return
     }
@@ -1184,7 +1190,7 @@ class ProgressRenderer {
     logUpdate(str)
   }
 
-  public done() {
+  public done(): void {
     cliCursor.show()
   }
 }

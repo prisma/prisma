@@ -51,7 +51,7 @@ const commonCodeJS = ({
   runtimePath,
   engineVersion,
   clientVersion,
-}: CommonCodeParams) => `
+}: CommonCodeParams): string => `
 Object.defineProperty(exports, "__esModule", { value: true });
 
 const {
@@ -88,7 +88,7 @@ const commonCodeTS = ({
   runtimePath,
   engineVersion,
   clientVersion,
-}: CommonCodeParams) => `import {
+}: CommonCodeParams): string => `import {
   DMMF,
   DMMFClass,
   Engine,
@@ -202,7 +202,7 @@ export class TSClient implements Generatable {
     this.dmmfString = escapeJson(JSON.stringify(options.document))
     this.dmmf = new DMMFClass(klona(options.document))
   }
-  public toJS() {
+  public toJS(): string {
     // 'document' is being printed into the file as "dmmf"
     const {
       generator,
@@ -270,7 +270,7 @@ config.dirname = __dirname
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient`
   }
-  public toTS() {
+  public toTS(): string {
     return `${commonCodeTS(this.options)}
 
 /**
@@ -329,7 +329,7 @@ export {};
 
 class Datasources implements Generatable {
   constructor(protected readonly internalDatasources: InternalDatasource[]) {}
-  public toTS() {
+  public toTS(): string {
     const sources = this.internalDatasources
     return `export type Datasources = {
 ${indent(sources.map((s) => `${s.name}?: string`).join('\n'), 2)}
@@ -347,7 +347,7 @@ class PrismaClientClass implements Generatable {
     protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[],
     protected readonly cwd?: string,
   ) {}
-  private get jsDoc() {
+  private get jsDoc(): string {
     const { dmmf } = this
 
     const example = dmmf.mappings[0]
@@ -368,7 +368,7 @@ class PrismaClientClass implements Generatable {
  * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md).
  */`
   }
-  public toTS() {
+  public toTS(): string {
     const { dmmf } = this
 
     return `
@@ -533,7 +533,7 @@ get ${methodName}(): ${m.model}Delegate;`
 class PayloadType implements Generatable {
   constructor(protected readonly type: OutputType) {}
 
-  public toTS() {
+  public toTS(): string {
     const { type } = this
     const { name } = type
 
@@ -559,7 +559,7 @@ export type ${getPayloadName(name)}<
 : ${name}
 `
   }
-  private renderRelations(projection: Projection) {
+  private renderRelations(projection: Projection): string {
     const { type } = this
     // TODO: can be optimized, we're calling the filter two times
     const relations = type.fields.filter((f) => f.outputType.kind === 'object')
@@ -589,7 +589,7 @@ ${indent(
 )} never
     }`
   }
-  private wrapType(field: DMMF.SchemaField, str: string) {
+  private wrapType(field: DMMF.SchemaField, str: string): string {
     const { outputType } = field
     if (outputType.isRequired && !outputType.isList) {
       return str
@@ -615,7 +615,7 @@ export class Model implements Generatable {
     this.outputType = new OutputType(outputType)
     this.mapping = dmmf.mappings.find((m) => m.model === model.name)!
   }
-  protected get argsTypes() {
+  protected get argsTypes(): Generatable[] {
     const { mapping, model } = this
     if (!mapping) {
       return []
@@ -648,7 +648,7 @@ export class Model implements Generatable {
 
     return argsTypes
   }
-  public toTS() {
+  public toTS(): string {
     const { model, outputType } = this
 
     if (!outputType) {
@@ -877,7 +877,7 @@ export class ModelDelegate implements Generatable {
     protected readonly outputType: OutputType,
     protected readonly dmmf: DMMFClass,
   ) {}
-  public toTS() {
+  public toTS(): string {
     const { fields, name } = this.outputType
     // TODO: Turn O(n^2) to O(n)
     const mapping = this.dmmf.mappings.find((m) => m.model === name)!
@@ -897,7 +897,7 @@ export interface ${name}Delegate {
 ${indent(
   actions
     .map(
-      ([actionName]: [any, any]) =>
+      ([actionName]: [any, any]): string =>
         `${getMethodJSDoc(actionName, mapping, model)}
 ${actionName}<T extends ${getModelArgName(name, actionName)}>(
   args${
@@ -987,7 +987,7 @@ export class InputField implements Generatable {
     protected readonly field: DMMF.SchemaArg,
     protected readonly prefixFilter = false,
   ) {}
-  public toTS() {
+  public toTS(): string {
     const { field } = this
     let fieldType
     let hasNull = false
@@ -1018,7 +1018,7 @@ export class InputField implements Generatable {
 
 export class OutputField implements Generatable {
   constructor(protected readonly field: BaseField) {}
-  public toTS() {
+  public toTS(): string {
     const { field } = this
     // ENUMTODO
     let fieldType =
@@ -1041,7 +1041,7 @@ export class OutputType implements Generatable {
     this.name = type.name
     this.fields = type.fields
   }
-  public toTS() {
+  public toTS(): string {
     const { type } = this
     return `
 export type ${type.name} = {
@@ -1061,7 +1061,7 @@ export class MinimalArgsType implements Generatable {
     protected readonly model: DMMF.Model,
     protected readonly action?: DMMF.ModelAction,
   ) {}
-  public toTS() {
+  public toTS(): string {
     const { action, args } = this
     const { name } = this.model
 
@@ -1079,37 +1079,39 @@ ${indent(args.map((arg) => new InputField(arg).toTS()).join('\n'), tab)}
 /* eslint-disable @typescript-eslint/no-unused-vars */
 const topLevelArgsJsDocs = {
   findOne: {
-    where: (singular, plural) => `Filter, which ${singular} to fetch.`,
+    where: (singular, plural): string => `Filter, which ${singular} to fetch.`,
   },
   findMany: {
-    where: (singular, plural) => `Filter, which ${plural} to fetch.`,
-    orderBy: (singular, plural) =>
+    where: (singular, plural): string => `Filter, which ${plural} to fetch.`,
+    orderBy: (singular, plural): string =>
       `Determine the order of the ${plural} to fetch.`,
-    skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
-    after: (singular, plural) =>
+    skip: (singular, plural): string => `Skip the first \`n\` ${plural}.`,
+    after: (singular, plural): string =>
       `Get all ${plural} that come after the ${singular} you provide with the current order.`,
-    before: (singular, plural) =>
+    before: (singular, plural): string =>
       `Get all ${plural} that come before the ${singular} you provide with the current order.`,
-    first: (singular, plural) => `Get the first \`n\` ${plural}.`,
-    last: (singular, plural) => `Get the last \`n\` ${plural}.`,
+    first: (singular, plural): string => `Get the first \`n\` ${plural}.`,
+    last: (singular, plural): string => `Get the last \`n\` ${plural}.`,
   },
   create: {
-    data: (singular, plural) => `The data needed to create a ${singular}.`,
+    data: (singular, plural): string =>
+      `The data needed to create a ${singular}.`,
   },
   update: {
-    data: (singular, plural) => `The data needed to update a ${singular}.`,
-    where: (singular, plural) => `Choose, which ${singular} to update.`,
+    data: (singular, plural): string =>
+      `The data needed to update a ${singular}.`,
+    where: (singular, plural): string => `Choose, which ${singular} to update.`,
   },
   upsert: {
-    where: (singular, plural) =>
+    where: (singular, plural): string =>
       `The filter to search for the ${singular} to update in case it exists.`,
-    create: (singular, plural) =>
+    create: (singular, plural): string =>
       `In case the ${singular} found by the \`where\` argument doesn't exist, create a new ${singular} with this data.`,
-    update: (singular, plural) =>
+    update: (singular, plural): string =>
       `In case the ${singular} was found with the provided \`where\` argument, update it with this data.`,
   },
   delete: {
-    where: (singular, plural) => `Filter which ${singular} to delete.`,
+    where: (singular, plural): string => `Filter which ${singular} to delete.`,
   },
 }
 /* eslint-enable @typescript-eslint/no-unused-vars */
@@ -1120,7 +1122,7 @@ export class ArgsType implements Generatable {
     protected readonly model: DMMF.Model,
     protected readonly action?: DMMF.ModelAction,
   ) {}
-  public toTS() {
+  public toTS(): string {
     const { action, args } = this
     const { name } = this.model
 
@@ -1184,7 +1186,7 @@ ${indent(
 
 export class InputType implements Generatable {
   constructor(protected readonly type: DMMF.InputType) {}
-  public toTS() {
+  public toTS(): string {
     const { type } = this
     const fields = uniqueBy(type.fields, (f) => f.name)
     // TO DISCUSS: Should we rely on TypeScript's error messages?
@@ -1205,13 +1207,13 @@ export type ${type.name} = ${body}`
 
 export class Enum implements Generatable {
   constructor(protected readonly type: DMMF.Enum) {}
-  public toJS() {
+  public toJS(): string {
     const { type } = this
     return `exports.${type.name} = makeEnum({
 ${indent(type.values.map((v) => `${v}: '${v}'`).join(',\n'), tab)}
 });`
   }
-  public toTS() {
+  public toTS(): string {
     const { type } = this
 
     return `export declare const ${type.name}: {
