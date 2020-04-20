@@ -1,6 +1,11 @@
 import fs from 'fs'
 import path from 'path'
-import { download, getBinaryName, checkVersionCommand, getVersion } from '../download'
+import {
+  download,
+  getBinaryName,
+  checkVersionCommand,
+  getVersion,
+} from '../download'
 import { getPlatform } from '@prisma/get-platform'
 import { cleanupCache } from '../cleanupCache'
 import del from 'del'
@@ -16,9 +21,18 @@ describe('download', () => {
 
   test('basic download', async () => {
     const platform = await getPlatform()
-    const queryEnginePath = path.join(__dirname, getBinaryName('query-engine', platform))
-    const introspectionEnginePath = path.join(__dirname, getBinaryName('introspection-engine', platform))
-    const migrationEnginePath = path.join(__dirname, getBinaryName('migration-engine', platform))
+    const queryEnginePath = path.join(
+      __dirname,
+      getBinaryName('query-engine', platform),
+    )
+    const introspectionEnginePath = path.join(
+      __dirname,
+      getBinaryName('introspection-engine', platform),
+    )
+    const migrationEnginePath = path.join(
+      __dirname,
+      getBinaryName('migration-engine', platform),
+    )
 
     await download({
       binaries: {
@@ -29,7 +43,9 @@ describe('download', () => {
       version: '1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3',
     })
 
-    expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(`"prisma 1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3"`)
+    expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(
+      `"prisma 1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3"`,
+    )
     expect(await getVersion(introspectionEnginePath)).toMatchInlineSnapshot(
       `"introspection-core 1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3"`,
     )
@@ -41,7 +57,10 @@ describe('download', () => {
   test('auto heal corrupt binary', async () => {
     const platform = await getPlatform()
     const baseDir = path.join(__dirname, 'corruption')
-    const targetPath = path.join(baseDir, getBinaryName('query-engine', platform))
+    const targetPath = path.join(
+      baseDir,
+      getBinaryName('query-engine', platform),
+    )
     if (fs.existsSync(targetPath)) {
       try {
         fs.unlinkSync(targetPath)
@@ -73,15 +92,17 @@ describe('download', () => {
   })
 
   test('handle non-existent binary target', async () => {
-    expect(
+    await expect(
       download({
         binaries: {
           'query-engine': __dirname,
         },
         version: '1743b1e3c8fbe24cb345528ab0cf3013cdc36fa3',
-        binaryTargets: ['darwin', 'marvin'] as any,
+        binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       }),
-    ).rejects.toThrowErrorMatchingInlineSnapshot(`"Unknown binaryTargets marvin"`)
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Unknown binaryTargets marvin"`,
+    )
   })
 
   test('download all binaries & cache them', async () => {
@@ -231,7 +252,7 @@ describe('download', () => {
 
 function getFiles(dir: string): Array<{ name: string; size: number }> {
   const files = fs.readdirSync(dir, 'utf8')
-  return files.map(name => {
+  return files.map((name) => {
     const size = fs.statSync(path.join(dir, name)).size
 
     return { name, size }

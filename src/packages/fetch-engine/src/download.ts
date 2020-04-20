@@ -37,7 +37,7 @@ export interface DownloadOptions {
   binaries: BinaryDownloadConfiguration
   binaryTargets?: Platform[]
   showProgress?: boolean
-  progressCb?: (progress: number) => any
+  progressCb?: (progress: number) => void
   version?: string
   skipDownload?: boolean
   failSilent?: boolean
@@ -83,7 +83,9 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   }
 
   if (options.binaryTargets && Array.isArray(options.binaryTargets)) {
-    const unknownTargets = options.binaryTargets.filter(t => !platforms.includes(t))
+    const unknownTargets = options.binaryTargets.filter(
+      (t) => !platforms.includes(t),
+    )
     if (unknownTargets.length > 0) {
       throw new Error(`Unknown binaryTargets ${unknownTargets.join(', ')}`)
     }
@@ -94,21 +96,25 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     binaryTargets: [platform],
     version: 'latest',
     ...options,
-    binaries: mapKeys(options.binaries, key => engineTypeToBinaryType(key, platform)), // just necessary to support both camelCase and hyphen-case
+    binaries: mapKeys(options.binaries, (key) =>
+      engineTypeToBinaryType(key, platform),
+    ), // just necessary to support both camelCase and hyphen-case
   }
 
-  const binaryJobs: Array<BinaryDownloadJob> = flatMap(Object.entries(options.binaries), ([binaryName, targetFolder]) =>
-    options.binaryTargets.map(binaryTarget => {
-      const fileName = getBinaryName(binaryName, binaryTarget)
-      return {
-        binaryName,
-        targetFolder,
-        binaryTarget,
-        fileName,
-        targetFilePath: path.join(targetFolder, fileName),
-        envVarPath: getBinaryEnvVarPath(binaryName),
-      }
-    }),
+  const binaryJobs: Array<BinaryDownloadJob> = flatMap(
+    Object.entries(options.binaries),
+    ([binaryName, targetFolder]) =>
+      options.binaryTargets.map((binaryTarget) => {
+        const fileName = getBinaryName(binaryName, binaryTarget)
+        return {
+          binaryName,
+          targetFolder,
+          binaryTarget,
+          fileName,
+          targetFilePath: path.join(targetFolder, fileName),
+          envVarPath: getBinaryEnvVarPath(binaryName),
+        }
+      }),
   )
 
   if (options.version === 'latest') {
@@ -120,8 +126,13 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   }
 
   // filter out files, which don't yet exist or have to be created
-  const binariesToDownload = await pFilter(binaryJobs, async job => {
-    const needsToBeDownloaded = await binaryNeedsToBeDownloaded(job, platform, options.version, options.failSilent)
+  const binariesToDownload = await pFilter(binaryJobs, async (job) => {
+    const needsToBeDownloaded = await binaryNeedsToBeDownloaded(
+      job,
+      platform,
+      options.version,
+      options.failSilent,
+    )
     debug({ needsToBeDownloaded })
     return !job.envVarPath && (options.ignoreCache || needsToBeDownloaded)
   })
@@ -130,7 +141,9 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     const cleanupPromise = cleanupCache() // already start cleaning up while we download
 
     let finishBar: undefined | (() => void)
-    let setProgress: undefined | ((sourcePath: string) => (progress: number) => void)
+    let setProgress:
+      | undefined
+      | ((sourcePath: string) => (progress: number) => void)
 
     if (options.showProgress) {
       const collectiveBar = getCollectiveBar(options)
@@ -139,7 +152,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     }
 
     await Promise.all(
-      binariesToDownload.map(job =>
+      binariesToDownload.map((job) =>
         downloadBinary({
           ...job,
           version: options.version,
@@ -164,12 +177,18 @@ function getCollectiveBar(
   finishBar: () => void
   setProgress: (sourcePath: string) => (progress: number) => void
 } {
-  const bar = getBar(`Downloading Prisma engines for ${options.binaryTargets.map(p => chalk.bold(p)).join(' and ')}`)
+  const bar = getBar(
+    `Downloading Prisma engines for ${options.binaryTargets
+      .map((p) => chalk.bold(p))
+      .join(' and ')}`,
+  )
 
   const progressMap: { [key: string]: number } = {}
   // Object.values is faster than Object.keys
-  const numDownloads = Object.values(options.binaries).length * Object.values(options.binaryTargets).length
-  const setProgress = (sourcePath: string) => progress => {
+  const numDownloads =
+    Object.values(options.binaries).length *
+    Object.values(options.binaryTargets).length
+  const setProgress = (sourcePath: string) => (progress): void => {
     progressMap[sourcePath] = progress
     const progressValues = Object.values(progressMap)
     const totalProgress =
@@ -186,7 +205,7 @@ function getCollectiveBar(
 
   return {
     setProgress,
-    finishBar: () => {
+    finishBar: (): void => {
       bar.update(1)
       bar.terminate()
     },
@@ -230,16 +249,22 @@ async function binaryNeedsToBeDownloaded(
     const sha256FilePath = cachedFile + '.sha256'
     if (await exists(sha256FilePath)) {
       const sha256File = await readFile(sha256FilePath, 'utf-8')
-      const sha256Cache = await hasha.fromFile(cachedFile, { algorithm: 'sha256' })
+      const sha256Cache = await hasha.fromFile(cachedFile, {
+        algorithm: 'sha256',
+      })
       debug({ sha256File, sha256Cache, cachedFile, sha256FilePath })
       if (sha256File === sha256Cache) {
         if (!targetExists) {
           await copy(cachedFile, job.targetFilePath)
         }
-        const targetSha256 = await hasha.fromFile(job.targetFilePath, { algorithm: 'sha256' })
+        const targetSha256 = await hasha.fromFile(job.targetFilePath, {
+          algorithm: 'sha256',
+        })
         debug({ targetSha256 })
         if (sha256File !== targetSha256) {
-          debug(`sha256 of target file is incorrect, therefore it's corrupt and we need to copy it over again.`)
+          debug(
+            `sha256 of target file is incorrect, therefore it's corrupt and we need to copy it over again.`,
+          )
           await copy(cachedFile, job.targetFilePath)
         } else {
           debug(`sha256 of target is correct, so there's nothing to do :)`)
@@ -279,7 +304,9 @@ export async function getVersion(enginePath: string): Promise<string> {
   return result.stdout
 }
 
-export async function checkVersionCommand(enginePath: string): Promise<boolean> {
+export async function checkVersionCommand(
+  enginePath: string,
+): Promise<boolean> {
   try {
     const version = await getVersion(enginePath)
 
@@ -336,15 +363,17 @@ export function getBinaryEnvVarPath(binaryName: string): string | null {
     const envVarPath = path.resolve(process.cwd(), process.env[envVar])
     if (!fs.existsSync(envVarPath)) {
       throw new Error(
-        `Env var ${chalk.bold(envVar)} is provided but provided path ${chalk.underline(
+        `Env var ${chalk.bold(
+          envVar,
+        )} is provided but provided path ${chalk.underline(
           process.env[envVar],
         )} can't be resolved.`,
       )
     }
     debug(
-      `Using env var ${chalk.bold(envVar)} for binary ${chalk.bold(binaryName)}, which points to ${chalk.underline(
-        process.env[envVar],
-      )}`,
+      `Using env var ${chalk.bold(envVar)} for binary ${chalk.bold(
+        binaryName,
+      )}, which points to ${chalk.underline(process.env[envVar])}`,
     )
     return envVarPath
   }
@@ -354,11 +383,17 @@ export function getBinaryEnvVarPath(binaryName: string): string | null {
 
 type DownloadBinaryOptions = BinaryDownloadJob & {
   version: string
-  progressCb?: (progress: number) => any
+  progressCb?: (progress: number) => void
   failSilent?: boolean
 }
-async function downloadBinary(options: DownloadBinaryOptions) {
-  const { version, progressCb, targetFilePath, binaryTarget, binaryName } = options
+async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
+  const {
+    version,
+    progressCb,
+    targetFilePath,
+    binaryTarget,
+    binaryName,
+  } = options
   const downloadUrl = getDownloadUrl(channel, version, binaryTarget, binaryName)
 
   const targetDir = path.dirname(targetFilePath)
@@ -383,7 +418,11 @@ async function downloadBinary(options: DownloadBinaryOptions) {
   }
 
   debug(`Downloading zip`)
-  const { sha256, zippedSha256 } = await downloadZip(downloadUrl, targetFilePath, progressCb)
+  const { sha256, zippedSha256 } = await downloadZip(
+    downloadUrl,
+    targetFilePath,
+    progressCb,
+  )
   if (progressCb) {
     progressCb(1)
   }
@@ -410,7 +449,10 @@ async function saveFileToCache(
 
   const cachedTargetPath = path.join(cacheDir, job.binaryName)
   const cachedSha256Path = path.join(cacheDir, job.binaryName + '.sha256')
-  const cachedSha256ZippedPath = path.join(cacheDir, job.binaryName + '.gz.sha256')
+  const cachedSha256ZippedPath = path.join(
+    cacheDir,
+    job.binaryName + '.gz.sha256',
+  )
 
   try {
     await copy(job.targetFilePath, cachedTargetPath)
@@ -422,7 +464,10 @@ async function saveFileToCache(
   }
 }
 
-function engineTypeToBinaryType(engineType: string, binaryTarget: string): string {
+function engineTypeToBinaryType(
+  engineType: string,
+  binaryTarget: string,
+): string {
   if (engineType === 'introspectionEngine') {
     return 'introspection-engine'
   }
@@ -442,7 +487,11 @@ function engineTypeToBinaryType(engineType: string, binaryTarget: string): strin
   return engineType
 }
 
-function mapKeys<T extends object>(obj: T, mapper: (key: keyof T) => string): any {
+function mapKeys<T extends object>(
+  obj: T,
+  mapper: (key: keyof T) => string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): any {
   return Object.entries(obj).reduce((acc, [key, value]) => {
     acc[mapper(key as keyof T)] = value
     return acc

@@ -6,8 +6,8 @@ export interface Handler {
   onManifest?(): GeneratorManifest
 }
 
-export function generatorHandler(handler: Handler) {
-  byline(process.stdin).on('data', async line => {
+export function generatorHandler(handler: Handler): void {
+  byline(process.stdin).on('data', async (line) => {
     const json = JSON.parse(String(line))
 
     if (json.method === 'generate' && json.params) {

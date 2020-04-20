@@ -20,7 +20,7 @@ const chars = {
   horizontal: '─',
 }
 
-function maxLineLength(str: string) {
+function maxLineLength(str: string): number {
   return (
     str.split('\n').reduce((max, curr) => Math.max(max, stringWidth(curr)), 0) +
     2
@@ -34,7 +34,7 @@ export function drawBox({
   str,
   horizontalPadding,
   verticalPadding,
-}: BoxOptions) {
+}: BoxOptions): string {
   horizontalPadding = horizontalPadding || 0
   verticalPadding = verticalPadding || 0
   width = width || maxLineLength(str) + horizontalPadding * 2
@@ -61,7 +61,7 @@ export function drawBox({
 
   const mappedLines = lines
     .slice(-height)
-    .map(l => {
+    .map((l) => {
       const lineWidth = Math.min(stringWidth(l), width)
       const paddingRight = Math.max(width - lineWidth - 2, 0)
       return `${chalk.grey(chars.vertical)}${' '.repeat(

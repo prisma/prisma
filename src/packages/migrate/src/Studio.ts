@@ -37,20 +37,30 @@ export class Studio {
       const pathCandidates = [
         // ncc go home
         // tslint:disable-next-line
-        eval(`require('path').join(__dirname, '../node_modules/@prisma/sdk/query-engine-${platform}${extension}')`), // for local dev
+        eval(
+          `require('path').join(__dirname, '../node_modules/@prisma/sdk/query-engine-${platform}${extension}')`,
+        ), // for local dev
         // tslint:disable-next-line
-        eval(`require('path').join(__dirname, '../query-engine-${platform}${extension}')`), // for production
+        eval(
+          `require('path').join(__dirname, '../query-engine-${platform}${extension}')`,
+        ), // for production
       ]
 
       const pathsExist = await Promise.all(
-        pathCandidates.map(async candidate => ({ exists: fs.existsSync(candidate), path: candidate })),
+        // eslint-disable-next-line @typescript-eslint/require-await
+        pathCandidates.map(async (candidate) => ({
+          exists: fs.existsSync(candidate),
+          path: candidate,
+        })),
       )
 
-      const firstExistingPath = pathsExist.find(p => p.exists)
+      const firstExistingPath = pathsExist.find((p) => p.exists)
 
       if (!firstExistingPath) {
         throw new Error(
-          `Could not find any Prisma query-engine binary for Studio. Looked in ${pathCandidates.join(', ')}`,
+          `Could not find any Prisma query-engine binary for Studio. Looked in ${pathCandidates.join(
+            ', ',
+          )}`,
         )
       }
 
@@ -102,7 +112,9 @@ export class Studio {
   private getSchemaPath(schemaPathFromOptions?): string {
     const schemaPath = getSchemaPathSync(schemaPathFromOptions)
     if (!schemaPath) {
-      throw new Error(`Could not find ${schemaPathFromOptions || 'schema.prisma'}`)
+      throw new Error(
+        `Could not find ${schemaPathFromOptions || 'schema.prisma'}`,
+      )
     }
 
     return schemaPath

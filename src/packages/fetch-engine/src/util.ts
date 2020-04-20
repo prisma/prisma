@@ -19,7 +19,11 @@ export async function getRootCacheDir(): Promise<string | null> {
   return path.join(os.homedir(), '.cache/prisma')
 }
 
-export async function getCacheDir(channel: string, version: string, platform: string): Promise<string | null> {
+export async function getCacheDir(
+  channel: string,
+  version: string,
+  platform: string,
+): Promise<string | null> {
   const rootCacheDir = await getRootCacheDir()
   if (!rootCacheDir) {
     return null
@@ -37,8 +41,14 @@ export async function getCacheDir(channel: string, version: string, platform: st
   return cacheDir
 }
 
-export function getDownloadUrl(channel: string, version: string, platform: string, binaryName: string) {
+export function getDownloadUrl(
+  channel: string,
+  version: string,
+  platform: string,
+  binaryName: string,
+): string {
   const extension = platform === 'windows' ? '.exe.gz' : '.gz'
-  const baseUrl = process.env.PRISMA_BINARIES_MIRROR || 'https://binaries.prisma.sh'
+  const baseUrl =
+    process.env.PRISMA_BINARIES_MIRROR || 'https://binaries.prisma.sh'
   return `${baseUrl}/${channel}/${version}/${platform}/${binaryName}${extension}`
 }

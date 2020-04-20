@@ -3,7 +3,7 @@ import path from 'path'
 import { promisify } from 'util'
 const exists = promisify(fs.exists)
 
-async function resolveNodeModulesBase(cwd: string) {
+async function resolveNodeModulesBase(cwd: string): Promise<string> {
   if (await exists(path.resolve(process.cwd(), 'prisma/schema.prisma'))) {
     return process.cwd()
   }
@@ -33,7 +33,9 @@ export type ResolveOutputOptions = {
   baseDir: string // normally `schemaDir`, the dir containing the schema.prisma file
 }
 
-export async function resolveOutput(options: ResolveOutputOptions) {
+export async function resolveOutput(
+  options: ResolveOutputOptions,
+): Promise<string> {
   const defaultOutput = stripRelativePath(options.defaultOutput)
   if (defaultOutput.startsWith('node_modules')) {
     const nodeModulesBase = await resolveNodeModulesBase(options.baseDir)
@@ -43,7 +45,7 @@ export async function resolveOutput(options: ResolveOutputOptions) {
   return path.resolve(options.baseDir, defaultOutput)
 }
 
-function stripRelativePath(pathString: string) {
+function stripRelativePath(pathString: string): string {
   if (pathString.startsWith('./')) {
     return pathString.slice(2)
   }

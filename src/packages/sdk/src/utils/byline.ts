@@ -18,9 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-// @ts-ignore
-
-var stream = require('stream'),
+const stream = require('stream'),
   util = require('util')
 
 // convinience API
@@ -29,7 +27,7 @@ export default function byline(readStream, options?: any) {
 }
 
 // basic API
-module.exports.createStream = function(readStream, options) {
+module.exports.createStream = function (readStream, options) {
   if (readStream) {
     return createLineStream(readStream, options)
   } else {
@@ -44,7 +42,7 @@ export function createLineStream(readStream, options) {
   if (!readStream.readable) {
     throw new Error('readStream must be readable')
   }
-  var ls = new LineStream(options)
+  const ls = new LineStream(options)
   readStream.pipe(ls)
   return ls
 }
@@ -67,7 +65,7 @@ function LineStream(this: any, options) {
   this._lastChunkEndedWithCR = false
 
   // take the source's encoding if we don't have one
-  this.on('pipe', function(this: any, src) {
+  this.on('pipe', function (this: any, src) {
     if (!this.encoding) {
       // but we can't do this for old-style streams
       if (src instanceof stream.Readable) {
@@ -78,7 +76,7 @@ function LineStream(this: any, options) {
 }
 util.inherits(LineStream, stream.Transform)
 
-LineStream.prototype._transform = function(chunk, encoding, done) {
+LineStream.prototype._transform = function (chunk, encoding, done) {
   // decode binary chunks as UTF-8
   encoding = encoding || 'utf8'
 
@@ -92,7 +90,7 @@ LineStream.prototype._transform = function(chunk, encoding, done) {
   }
   this._chunkEncoding = encoding
 
-  var lines = chunk.split(/\r\n|\r|\n/g)
+  const lines = chunk.split(/\r\n|\r|\n/g)
 
   // don't split CRLF which spans chunks
   if (this._lastChunkEndedWithCR && chunk[0] == '\n') {
@@ -109,16 +107,16 @@ LineStream.prototype._transform = function(chunk, encoding, done) {
   this._pushBuffer(encoding, 1, done)
 }
 
-LineStream.prototype._pushBuffer = function(encoding, keep, done) {
+LineStream.prototype._pushBuffer = function (encoding, keep, done) {
   // always buffer the last (possibly partial) line
   while (this._lineBuffer.length > keep) {
-    var line = this._lineBuffer.shift()
+    const line = this._lineBuffer.shift()
     // skip empty lines
     if (this._keepEmptyLines || line.length > 0) {
       if (!this.push(this._reencode(line, encoding))) {
         // when the high-water mark is reached, defer pushes until the next tick
-        var self = this
-        setImmediate(function() {
+        const self = this
+        setImmediate(function () {
           self._pushBuffer(encoding, keep, done)
         })
         return
@@ -128,12 +126,12 @@ LineStream.prototype._pushBuffer = function(encoding, keep, done) {
   done()
 }
 
-LineStream.prototype._flush = function(done) {
+LineStream.prototype._flush = function (done) {
   this._pushBuffer(this._chunkEncoding, 0, done)
 }
 
 // see Readable::push
-LineStream.prototype._reencode = function(line, chunkEncoding) {
+LineStream.prototype._reencode = function (line, chunkEncoding) {
   if (this.encoding && this.encoding != chunkEncoding) {
     return Buffer.from(line, chunkEncoding).toString(this.encoding)
   } else if (this.encoding) {

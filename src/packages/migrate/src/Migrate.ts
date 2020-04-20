@@ -1,4 +1,9 @@
-import { getSchemaPathSync, drawBox, getGenerators, ProviderAliases } from '@prisma/sdk'
+import {
+  getSchemaPathSync,
+  drawBox,
+  getGenerators,
+  ProviderAliases,
+} from '@prisma/sdk'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
 import cliCursor from 'cli-cursor'
@@ -22,15 +27,29 @@ import { blue } from '@prisma/sdk/dist/highlight/theme'
 import { DevComponentRenderer } from './ink/DevComponentRenderer'
 import { MigrateEngine } from './MigrateEngine'
 import { Studio } from './Studio'
-import { EngineResults, FileMap, LocalMigration, LocalMigrationWithDatabaseSteps, LockFile, Migration } from './types'
+import {
+  EngineResults,
+  FileMap,
+  LocalMigration,
+  LocalMigrationWithDatabaseSteps,
+  LockFile,
+  Migration,
+} from './types'
 import { exit } from './utils/exit'
 import { formatms } from './utils/formartms'
 import { groupBy } from './utils/groupBy'
 import { isWatchMigrationName } from './utils/isWatchMigrationName'
-import { deserializeLockFile, initLockFile, serializeLockFile } from './utils/LockFile'
+import {
+  deserializeLockFile,
+  initLockFile,
+  serializeLockFile,
+} from './utils/LockFile'
 import { now, timestampToDate } from './utils/now'
 import plusX from './utils/plusX'
-import { highlightMigrationsSQL, printDatabaseStepsOverview } from './utils/printDatabaseSteps'
+import {
+  highlightMigrationsSQL,
+  printDatabaseStepsOverview,
+} from './utils/printDatabaseSteps'
 import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import { printMigrationReadme } from './utils/printMigrationReadme'
 import { serializeFileMap } from './utils/serializeFileMap'
@@ -69,7 +88,7 @@ interface MigrationFileMapOptions {
 const brightGreen = chalk.rgb(127, 224, 152)
 
 export class Migrate {
-  get devMigrationsDir() {
+  get devMigrationsDir(): string {
     return path.join(path.dirname(this.schemaPath), 'migrations/dev')
   }
   public engine: MigrateEngine
@@ -77,18 +96,30 @@ export class Migrate {
   // tslint:disable
   public watchUp = simpleDebounce(
     async (
-      { preview, providerAliases, clear, onWarnings, autoApprove }: WatchOptions = { clear: true, providerAliases: {} },
+      {
+        preview,
+        providerAliases,
+        clear,
+        onWarnings,
+        autoApprove,
+      }: WatchOptions = { clear: true, providerAliases: {} },
       renderer?: DevComponentRenderer,
     ) => {
       debug('Running watchUp')
       renderer && renderer.setState({ error: undefined })
-      const datamodel = await this.getDatamodel()
+      const datamodel = this.getDatamodel()
       try {
         const watchMigrationName = `watch-${now()}`
         const migration = await this.createMigration(watchMigrationName)
         const existingWatchMigrations = await this.getLocalWatchMigrations()
 
-        if (migration && migration.warnings && migration.warnings.length > 0 && onWarnings && !autoApprove) {
+        if (
+          migration &&
+          migration.warnings &&
+          migration.warnings.length > 0 &&
+          onWarnings &&
+          !autoApprove
+        ) {
           // if (migration?.warnings && onWarnings) { As soon as ts-node uses TS 3.7
           const ok = await onWarnings(migration.warnings)
           if (!ok) {
@@ -109,11 +140,17 @@ export class Migrate {
           })
           debug(`Applied migration`)
           const lastWatchMigration =
-            existingWatchMigrations.length > 0 ? existingWatchMigrations[existingWatchMigrations.length - 1] : undefined
+            existingWatchMigrations.length > 0
+              ? existingWatchMigrations[existingWatchMigrations.length - 1]
+              : undefined
 
-          await this.persistWatchMigration({ migration, lastMigration: lastWatchMigration })
+          await this.persistWatchMigration({
+            migration,
+            lastMigration: lastWatchMigration,
+          })
           const after = Date.now()
-          renderer && renderer.setState({ migrating: false, migratedIn: after - before })
+          renderer &&
+            renderer.setState({ migrating: false, migratedIn: after - before })
           if (renderer) {
             this.recreateStudioServer(providerAliases)
           }
@@ -137,26 +174,37 @@ export class Migrate {
         })
 
         const newGenerators = generators.map((gen) => ({
-          name: (gen.manifest ? gen.manifest.prettyName : gen.options!.generator.provider) || 'Generator',
+          name:
+            (gen.manifest
+              ? gen.manifest.prettyName
+              : gen.options!.generator.provider) || 'Generator',
           generatedIn: undefined,
           generating: false,
         }))
 
         const addedGenerators = newGenerators.filter(
-          (g) => renderer && !renderer.state.generators.some((gg) => gg.name === g.name),
+          (g) =>
+            renderer &&
+            !renderer.state.generators.some((gg) => gg.name === g.name),
         )
         const removedGenerators =
-          (renderer && renderer.state.generators.filter((g) => newGenerators.some((gg) => gg.name === g.name))) || []
+          (renderer &&
+            renderer.state.generators.filter((g) =>
+              newGenerators.some((gg) => gg.name === g.name),
+            )) ||
+          []
 
         if (
-          (renderer && renderer.state.generators.length !== newGenerators.length) ||
+          (renderer &&
+            renderer.state.generators.length !== newGenerators.length) ||
           addedGenerators.length > 0 ||
           removedGenerators.length > 0
         ) {
           renderer && renderer.setState({ generators: newGenerators })
         }
 
-        const version = packageJson.name === '@prisma/cli' ? packageJson.version : null
+        const version =
+          packageJson.name === '@prisma/cli' ? packageJson.version : null
 
         for (let i = 0; i < generators.length; i++) {
           const generator = generators[i]
@@ -167,7 +215,9 @@ export class Migrate {
             generator.options?.generator.provider === 'prisma-client-js'
           ) {
             console.error(
-              `${chalk.bold(`@prisma/client@${generator.manifest?.version}`)} is not compatible with ${chalk.bold(
+              `${chalk.bold(
+                `@prisma/client@${generator.manifest?.version}`,
+              )} is not compatible with ${chalk.bold(
                 `@prisma/cli@${version}`,
               )}. Their versions need to be equal.`,
             )
@@ -198,19 +248,24 @@ export class Migrate {
     },
   )
   // tsline:enable
-  private datamodelBeforeWatch: string = ''
+  private datamodelBeforeWatch = ''
   private studioServer?: Studio
-  private studioPort: number = 5555
+  private studioPort = 5555
   private schemaPath: string
   constructor(schemaPath?: string) {
     this.schemaPath = this.getSchemaPath(schemaPath)
-    this.engine = new MigrateEngine({ projectDir: path.dirname(this.schemaPath), schemaPath: this.schemaPath })
+    this.engine = new MigrateEngine({
+      projectDir: path.dirname(this.schemaPath),
+      schemaPath: this.schemaPath,
+    })
   }
 
   public getSchemaPath(schemaPathFromOptions?): string {
     const schemaPath = getSchemaPathSync(schemaPathFromOptions)
     if (!schemaPath) {
-      throw new Error(`Could not find ${schemaPathFromOptions || 'schema.prisma'}`)
+      throw new Error(
+        `Could not find ${schemaPathFromOptions || 'schema.prisma'}`,
+      )
     }
 
     return schemaPath
@@ -225,13 +280,18 @@ export class Migrate {
     return this.getDatamodel()
   }
 
-  public async recreateStudioServer(providerAliases: ProviderAliases) {
+  public async recreateStudioServer(
+    providerAliases: ProviderAliases,
+  ): Promise<string | undefined> {
     try {
       if (this.studioServer) {
         return await this.studioServer.restart(providerAliases)
       }
 
-      this.studioServer = new Studio({ schemaPath: this.schemaPath, port: this.studioPort })
+      this.studioServer = new Studio({
+        schemaPath: this.schemaPath,
+        port: this.studioPort,
+      })
       await this.studioServer.start(providerAliases)
     } catch (e) {
       debug(e)
@@ -239,7 +299,11 @@ export class Migrate {
   }
 
   public async getLockFile(): Promise<LockFile> {
-    const lockFilePath = path.resolve(path.dirname(this.schemaPath), 'migrations', 'migrate.lock')
+    const lockFilePath = path.resolve(
+      path.dirname(this.schemaPath),
+      'migrations',
+      'migrate.lock',
+    )
     if (await exists(lockFilePath)) {
       const file = await readFile(lockFilePath, 'utf-8')
       const lockFile = deserializeLockFile(file)
@@ -248,7 +312,9 @@ export class Migrate {
         throw new Error(
           `There's a merge conflict in the ${chalk.bold(
             'migrations/migrate.lock',
-          )} file. Please execute ${chalk.greenBright('prisma migrate fix')} to solve it`,
+          )} file. Please execute ${chalk.greenBright(
+            'prisma migrate fix',
+          )} to solve it`,
         )
       }
       return lockFile
@@ -257,13 +323,25 @@ export class Migrate {
     return initLockFile()
   }
 
-  public async createMigration(migrationId: string): Promise<LocalMigrationWithDatabaseSteps | undefined> {
-    const { migrationsToApply, sourceConfig } = await this.getMigrationsToApply()
+  public async createMigration(
+    migrationId: string,
+  ): Promise<LocalMigrationWithDatabaseSteps | undefined> {
+    const {
+      migrationsToApply,
+      sourceConfig,
+    } = await this.getMigrationsToApply()
 
-    const assumeToBeApplied = flatMap(migrationsToApply, (m) => m.datamodelSteps)
+    const assumeToBeApplied = flatMap(
+      migrationsToApply,
+      (m) => m.datamodelSteps,
+    )
 
-    const datamodel = await this.getDatamodel()
-    const { datamodelSteps, databaseSteps, warnings } = await this.engine.inferMigrationSteps({
+    const datamodel = this.getDatamodel()
+    const {
+      datamodelSteps,
+      databaseSteps,
+      warnings,
+    } = await this.engine.inferMigrationSteps({
       sourceConfig,
       datamodel,
       migrationId,
@@ -290,7 +368,7 @@ export class Migrate {
     }
   }
 
-  public getMigrationId(name?: string) {
+  public getMigrationId(name?: string): string {
     const timestamp = now()
     return timestamp + (name ? `-${dashify(name)}` : '')
   }
@@ -305,14 +383,19 @@ export class Migrate {
     const lockFile = await this.getLockFile()
     const { datamodel } = migration
     const localMigrations = await this.getLocalMigrations()
-    const lastMigration = localMigrations.length > 0 ? localMigrations[localMigrations.length - 1] : undefined
+    const lastMigration =
+      localMigrations.length > 0
+        ? localMigrations[localMigrations.length - 1]
+        : undefined
 
     // TODO better printing of params
     const nameStr = name ? ` --name ${chalk.bold(name)}` : ''
     const previewStr = preview ? ` --preview` : ''
     console.log(`📼  migrate save${nameStr}${previewStr}`)
     if (lastMigration) {
-      const wording = preview ? `Potential datamodel changes:` : 'Local datamodel Changes:'
+      const wording = preview
+        ? `Potential datamodel changes:`
+        : 'Local datamodel Changes:'
       console.log(chalk.bold(`\n${wording}\n`))
     } else {
       console.log(brightGreen.bold('\nNew datamodel:\n'))
@@ -339,12 +422,18 @@ export class Migrate {
     return this.getLocalMigrations(this.devMigrationsDir)
   }
 
-  public async watch(options: WatchOptions = { preview: false, clear: true, providerAliases: {} }): Promise<string> {
+  public async watch(
+    options: WatchOptions = {
+      preview: false,
+      clear: true,
+      providerAliases: {},
+    },
+  ): Promise<string> {
     if (!options.clear) {
       options.clear = true
     }
 
-    const datamodel = await this.getDatamodel()
+    const datamodel = this.getDatamodel()
 
     const generators = await getGenerators({
       schemaPath: this.schemaPath,
@@ -365,7 +454,10 @@ export class Migrate {
         datamodelBefore: this.datamodelBeforeWatch,
         datamodelAfter: datamodel,
         generators: generators.map((gen) => ({
-          name: (gen.manifest ? gen.manifest.prettyName : gen.options!.generator.provider) || 'Generator',
+          name:
+            (gen.manifest
+              ? gen.manifest.prettyName
+              : gen.options!.generator.provider) || 'Generator',
           generatedIn: undefined,
           generating: false,
         })),
@@ -378,7 +470,7 @@ export class Migrate {
     })
 
     // silent everyone else. this is not a democracy 👹
-    console.log = (...args) => {
+    console.log = (...args): void => {
       debug(...args)
     }
 
@@ -397,29 +489,36 @@ export class Migrate {
       await this.up({
         short: true,
         autoApprove: options.autoApprove,
-        onWarnings: async (warnings) => renderer.promptForWarnings(warnings),
+        onWarnings: async (warnings): Promise<boolean> =>
+          renderer.promptForWarnings(warnings),
       })
       // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
       options.clear = false
       renderer.setState({ migrating: false })
     }
 
-    options.onWarnings = (warnings) => renderer.promptForWarnings(warnings)
+    options.onWarnings = (warnings): Promise<boolean> =>
+      renderer.promptForWarnings(warnings)
 
     const localMigrations = await this.getLocalMigrations()
     const watchMigrations = await this.getLocalWatchMigrations()
 
     let lastChanged: undefined | Date
     if (watchMigrations.length > 0) {
-      const timestamp = watchMigrations[watchMigrations.length - 1].id.split('-')[1]
+      const timestamp = watchMigrations[watchMigrations.length - 1].id.split(
+        '-',
+      )[1]
       lastChanged = timestampToDate(timestamp)
     } else if (localMigrations.length > 0) {
-      lastChanged = timestampToDate(localMigrations[localMigrations.length - 1].id.split('-')[0])
+      lastChanged = timestampToDate(
+        localMigrations[localMigrations.length - 1].id.split('-')[0],
+      )
     }
     renderer.setState({ lastChanged })
 
     if (localMigrations.length > 0) {
-      this.datamodelBeforeWatch = localMigrations[localMigrations.length - 1].datamodel
+      this.datamodelBeforeWatch =
+        localMigrations[localMigrations.length - 1].datamodel
       renderer.setState({
         datamodelBefore: this.datamodelBeforeWatch,
       })
@@ -444,37 +543,43 @@ export class Migrate {
     const localWatchMigrations = await this.getLocalWatchMigrations()
     if (localWatchMigrations.length > 0) {
       throw new Error(
-        `Before running ${chalk.yellow('prisma migrate down --experimental')}, please save your ${chalk.bold(
+        `Before running ${chalk.yellow(
+          'prisma migrate down --experimental',
+        )}, please save your ${chalk.bold(
           'dev',
-        )} changes using ${chalk.bold.greenBright('prisma migrate save --experimental')} and ${chalk.bold.greenBright(
-          'prisma migrate up --experimental',
-        )}`,
+        )} changes using ${chalk.bold.greenBright(
+          'prisma migrate save --experimental',
+        )} and ${chalk.bold.greenBright('prisma migrate up --experimental')}`,
       )
     }
-    const datamodel = await this.getDatamodel()
-    const appliedRemoteMigrations = await this.engine.listAppliedMigrations({ sourceConfig: datamodel })
+    const datamodel = this.getDatamodel()
+    const appliedRemoteMigrations = await this.engine.listAppliedMigrations({
+      sourceConfig: datamodel,
+    })
 
     // TODO cleanup
     let lastAppliedIndex = -1
-    const appliedMigrations = localMigrations.filter((localMigration, index) => {
-      const remoteMigration = appliedRemoteMigrations[index]
-      // if there is already a corresponding remote migration,
-      // we don't need to apply this migration
+    const appliedMigrations = localMigrations.filter(
+      (localMigration, index) => {
+        const remoteMigration = appliedRemoteMigrations[index]
+        // if there is already a corresponding remote migration,
+        // we don't need to apply this migration
 
-      if (remoteMigration) {
-        if (
-          localMigration.id !== remoteMigration.id &&
-          !isWatchMigrationName(remoteMigration.id) // it's fine to have the watch migration remotely
-        ) {
-          throw new Error(
-            `Local and remote migrations are not in lockstep. We have migration ${localMigration.id} locally and ${remoteMigration.id} remotely at the same position in the history.`,
-          )
+        if (remoteMigration) {
+          if (
+            localMigration.id !== remoteMigration.id &&
+            !isWatchMigrationName(remoteMigration.id) // it's fine to have the watch migration remotely
+          ) {
+            throw new Error(
+              `Local and remote migrations are not in lockstep. We have migration ${localMigration.id} locally and ${remoteMigration.id} remotely at the same position in the history.`,
+            )
+          }
+          lastAppliedIndex = index
+          return true
         }
-        lastAppliedIndex = index
-        return true
-      }
-      return false
-    })
+        return false
+      },
+    )
 
     if (lastAppliedIndex === -1) {
       return 'No migration to roll back'
@@ -482,7 +587,9 @@ export class Migrate {
 
     if (n && n > appliedMigrations.length) {
       throw new Error(
-        `You provided ${chalk.redBright(`n = ${chalk.bold(String(n))}`)}, but there are only ${
+        `You provided ${chalk.redBright(
+          `n = ${chalk.bold(String(n))}`,
+        )}, but there are only ${
           appliedMigrations.length
         } applied migrations that can be rolled back. Please provide ${chalk.green(
           String(appliedMigrations.length),
@@ -496,26 +603,42 @@ export class Migrate {
       const lastApplied = localMigrations[lastAppliedIndex]
       console.log(`Rolling back migration ${blue(lastApplied.id)}`)
 
-      const result = await this.engine.unapplyMigration({ sourceConfig: datamodel })
+      const result = await this.engine.unapplyMigration({
+        sourceConfig: datamodel,
+      })
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(`Errors during rollback: ${JSON.stringify(result.errors)}`)
+        throw new Error(
+          `Errors during rollback: ${JSON.stringify(result.errors)}`,
+        )
       }
 
       lastAppliedIndex--
     }
 
-    return `${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')} Done with ${chalk.bold(
-      'down',
-    )} in ${formatms(Date.now() - before)}`
+    return `${
+      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+    } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
-  public async up({ n, preview, short, verbose, autoApprove, onWarnings }: UpOptions = {}): Promise<string> {
+  public async up({
+    n,
+    preview,
+    short,
+    verbose,
+    autoApprove,
+    onWarnings,
+  }: UpOptions = {}): Promise<string> {
     await this.getLockFile()
     const before = Date.now()
 
     const migrationsToApplyResult = await this.getMigrationsToApply()
-    const { lastAppliedIndex, localMigrations, appliedRemoteMigrations, sourceConfig } = migrationsToApplyResult
+    const {
+      lastAppliedIndex,
+      localMigrations,
+      appliedRemoteMigrations,
+      sourceConfig,
+    } = migrationsToApplyResult
     let { migrationsToApply } = migrationsToApplyResult
 
     if (typeof n === 'number') {
@@ -524,7 +647,11 @@ export class Migrate {
 
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
-      console.log(`${process.platform === 'win32' ? '' : '🏋️‍  '}migrate up${previewStr}\n`)
+      console.log(
+        `${
+          process.platform === 'win32' ? '' : '🏋️‍  '
+        }migrate up${previewStr}\n`,
+      )
 
       if (migrationsToApply.length === 0) {
         return 'All migrations are already applied'
@@ -537,17 +664,30 @@ export class Migrate {
       if (lastUnappliedMigration.datamodel.length < 10000) {
         if (lastAppliedMigration) {
           console.log(chalk.bold('Changes to be applied:') + '\n')
-          console.log(printDatamodelDiff(lastAppliedMigration.datamodel, lastUnappliedMigration.datamodel))
+          console.log(
+            printDatamodelDiff(
+              lastAppliedMigration.datamodel,
+              lastUnappliedMigration.datamodel,
+            ),
+          )
         } else {
-          console.log(brightGreen.bold('Datamodel that will initialize the db:\n'))
+          console.log(
+            brightGreen.bold('Datamodel that will initialize the db:\n'),
+          )
           console.log(highlightDatamodel(lastUnappliedMigration.datamodel))
         }
       }
     }
 
     console.log(`\nChecking the datasource for potential data loss...`)
-    const firstMigrationToApplyIndex = localMigrations.indexOf(migrationsToApply[0])
-    const migrationsWithDbSteps = await this.getDatabaseSteps(localMigrations, firstMigrationToApplyIndex, sourceConfig)
+    const firstMigrationToApplyIndex = localMigrations.indexOf(
+      migrationsToApply[0],
+    )
+    const migrationsWithDbSteps = await this.getDatabaseSteps(
+      localMigrations,
+      firstMigrationToApplyIndex,
+      sourceConfig,
+    )
 
     const warnings = flatMap(migrationsWithDbSteps, (m) => m.warnings)
 
@@ -574,17 +714,26 @@ export class Migrate {
           await exit()
         }
       } else {
-        console.log(`As ${chalk.bold('--auto-approve')} is provided, the destructive changes are accepted.\n`)
+        console.log(
+          `As ${chalk.bold(
+            '--auto-approve',
+          )} is provided, the destructive changes are accepted.\n`,
+        )
       }
     }
 
-    const progressRenderer = new ProgressRenderer(migrationsWithDbSteps, short || false)
+    const progressRenderer = new ProgressRenderer(
+      migrationsWithDbSteps,
+      short || false,
+    )
 
     progressRenderer.render()
 
     if (preview) {
-      await progressRenderer.done()
-      return `\nTo apply the migrations, run ${chalk.greenBright('prisma migrate up --experimental')}\n`
+      progressRenderer.done()
+      return `\nTo apply the migrations, run ${chalk.greenBright(
+        'prisma migrate up --experimental',
+      )}\n`
     }
 
     for (let i = 0; i < migrationsToApply.length; i++) {
@@ -622,7 +771,9 @@ export class Migrate {
         }
         if (progress.status === 'RollbackFailure') {
           cliCursor.show()
-          throw new Error(`Failed to roll back migration. ${JSON.stringify(progress)}`)
+          throw new Error(
+            `Failed to roll back migration. ${JSON.stringify(progress)}`,
+          )
         }
         await new Promise((r) => setTimeout(r, 1500))
       }
@@ -655,7 +806,7 @@ export class Migrate {
         })
       }
     }
-    await progressRenderer.done()
+    progressRenderer.done()
 
     if (verbose) {
       console.log(chalk.bold(`\nSQL Commands:\n`))
@@ -663,21 +814,30 @@ export class Migrate {
       console.log('\n')
     }
 
-    return `\n${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')}  Done with ${
-      migrationsToApply.length
-    } migration${migrationsToApply.length > 1 ? 's' : ''} in ${formatms(Date.now() - before)}.\n`
+    return `\n${
+      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+    }  Done with ${migrationsToApply.length} migration${
+      migrationsToApply.length > 1 ? 's' : ''
+    } in ${formatms(Date.now() - before)}.\n`
   }
 
-  public stop() {
+  public stop(): void {
     this.engine.stop()
   }
 
-  private getMigrationFileMap({ migration, lastMigration }: MigrationFileMapOptions): FileMap {
+  private getMigrationFileMap({
+    migration,
+    lastMigration,
+  }: MigrationFileMapOptions): FileMap {
     // const { version } = packageJson
     const { datamodelSteps, datamodel } = migration
 
     return {
-      ['steps.json']: JSON.stringify({ version: '0.3.14-fixed', steps: datamodelSteps }, null, 2),
+      ['steps.json']: JSON.stringify(
+        { version: '0.3.14-fixed', steps: datamodelSteps },
+        null,
+        2,
+      ),
       ['schema.prisma']: maskSchema(datamodel),
       ['README.md']: printMigrationReadme({
         migrationId: migration.id,
@@ -689,9 +849,14 @@ export class Migrate {
     }
   }
 
-  private async persistWatchMigration(options: MigrationFileMapOptions) {
+  private async persistWatchMigration(
+    options: MigrationFileMapOptions,
+  ): Promise<void> {
     const fileMap = this.getMigrationFileMap(options)
-    await serializeFileMap(fileMap, path.join(this.devMigrationsDir, options.migration.id))
+    await serializeFileMap(
+      fileMap,
+      path.join(this.devMigrationsDir, options.migration.id),
+    )
   }
 
   private async getLocalMigrations(
@@ -712,7 +877,6 @@ export class Migrate {
         '!dev',
       ],
       {
-        // @ts-ignore
         cwd: migrationsDir,
       },
     ).then((files) =>
@@ -727,13 +891,23 @@ export class Migrate {
 
     migrationSteps.sort((a, b) => (a.migrationId < b.migrationId ? -1 : 1))
 
-    const groupedByMigration = groupBy<any>(migrationSteps, (step) => step.migrationId) // todo fix types
+    const groupedByMigration = groupBy<any>(
+      migrationSteps,
+      (step) => step.migrationId,
+    ) // todo fix types
 
     return Object.entries(groupedByMigration).map(([migrationId, files]) => {
       const stepsFile = files.find((f) => f.fileName === 'steps.json')!
-      const datamodelFile = files.find((f) => f.fileName === 'datamodel.prisma' || f.fileName === 'schema.prisma')!
-      const afterFile = files.find((f) => f.fileName === 'after.sh' || f.fileName === 'after.ts')
-      const beforeFile = files.find((f) => f.fileName === 'before.sh' || f.fileName === 'before.ts')
+      const datamodelFile = files.find(
+        (f) =>
+          f.fileName === 'datamodel.prisma' || f.fileName === 'schema.prisma',
+      )!
+      const afterFile = files.find(
+        (f) => f.fileName === 'after.sh' || f.fileName === 'after.ts',
+      )
+      const beforeFile = files.find(
+        (f) => f.fileName === 'before.sh' || f.fileName === 'before.ts',
+      )
       const stepsFileJson = JSON.parse(stepsFile.file)
       if (Array.isArray(stepsFileJson)) {
         throw new Error(
@@ -743,15 +917,21 @@ export class Migrate {
         )
       }
       if (!stepsFileJson.steps) {
-        throw new Error(`${stepsFile.fileName} is expected to have a .steps property`)
+        throw new Error(
+          `${stepsFile.fileName} is expected to have a .steps property`,
+        )
       }
 
       return {
         id: migrationId,
         datamodelSteps: stepsFileJson.steps,
         datamodel: datamodelFile.file,
-        afterFilePath: afterFile ? path.resolve(migrationsDir, migrationId, afterFile.fileName) : undefined,
-        beforeFilePath: beforeFile ? path.resolve(migrationsDir, migrationId, beforeFile.fileName) : undefined,
+        afterFilePath: afterFile
+          ? path.resolve(migrationsDir, migrationId, afterFile.fileName)
+          : undefined,
+        beforeFilePath: beforeFile
+          ? path.resolve(migrationsDir, migrationId, beforeFile.fileName)
+          : undefined,
       }
     })
   }
@@ -771,13 +951,19 @@ export class Migrate {
             warnings: [],
           }
         }
-        const stepsUntilNow = index > 0 ? flatMap(localMigrations.slice(0, index), (m) => m.datamodelSteps) : []
+        const stepsUntilNow =
+          index > 0
+            ? flatMap(localMigrations.slice(0, index), (m) => m.datamodelSteps)
+            : []
         const input = {
           assumeToBeApplied: stepsUntilNow,
           stepsToApply: migration.datamodelSteps,
           sourceConfig,
         }
-        const { databaseSteps, warnings } = await this.engine.calculateDatabaseSteps(input)
+        const {
+          databaseSteps,
+          warnings,
+        } = await this.engine.calculateDatabaseSteps(input)
         return {
           ...migration,
           databaseSteps,
@@ -799,13 +985,19 @@ export class Migrate {
   }> {
     const localMigrations = await this.getLocalMigrations()
 
-    const sourceConfig = await this.getSourceConfig()
-    const appliedRemoteMigrations = await this.engine.listAppliedMigrations({ sourceConfig })
-    const appliedRemoteMigrationsWithoutWatch = appliedRemoteMigrations.filter((m) => !isWatchMigrationName(m.id))
+    const sourceConfig = this.getSourceConfig()
+    const appliedRemoteMigrations = await this.engine.listAppliedMigrations({
+      sourceConfig,
+    })
+    const appliedRemoteMigrationsWithoutWatch = appliedRemoteMigrations.filter(
+      (m) => !isWatchMigrationName(m.id),
+    )
 
     if (appliedRemoteMigrationsWithoutWatch.length > localMigrations.length) {
       const localMigrationIds = localMigrations.map((m) => m.id)
-      const remoteMigrationIds = appliedRemoteMigrationsWithoutWatch.map((m) => m.id)
+      const remoteMigrationIds = appliedRemoteMigrationsWithoutWatch.map(
+        (m) => m.id,
+      )
 
       throw new Error(
         `There are more migrations in the database than locally. This must not happen. Local migration ids: ${localMigrationIds.join(
@@ -815,24 +1007,29 @@ export class Migrate {
     }
 
     let lastAppliedIndex = -1
-    const migrationsToApply = localMigrations.filter((localMigration, index) => {
-      const remoteMigration = appliedRemoteMigrationsWithoutWatch[index]
-      // if there is already a corresponding remote migration,
-      // we don't need to apply this migration
+    const migrationsToApply = localMigrations.filter(
+      (localMigration, index) => {
+        const remoteMigration = appliedRemoteMigrationsWithoutWatch[index]
+        // if there is already a corresponding remote migration,
+        // we don't need to apply this migration
 
-      if (remoteMigration) {
-        if (localMigration.id !== remoteMigration.id && !isWatchMigrationName(remoteMigration.id)) {
-          throw new Error(
-            `Local and remote migrations are not in lockstep. We have migration ${localMigration.id} locally and ${remoteMigration.id} remotely at the same position in the history.`,
-          )
+        if (remoteMigration) {
+          if (
+            localMigration.id !== remoteMigration.id &&
+            !isWatchMigrationName(remoteMigration.id)
+          ) {
+            throw new Error(
+              `Local and remote migrations are not in lockstep. We have migration ${localMigration.id} locally and ${remoteMigration.id} remotely at the same position in the history.`,
+            )
+          }
+          if (!isWatchMigrationName(remoteMigration.id)) {
+            lastAppliedIndex = index
+            return false
+          }
         }
-        if (!isWatchMigrationName(remoteMigration.id)) {
-          lastAppliedIndex = index
-          return false
-        }
-      }
-      return true
-    })
+        return true
+      },
+    )
 
     return {
       localMigrations,
@@ -851,25 +1048,31 @@ class ProgressRenderer {
   private logsString = ''
   private logsName?: string
   private silent: boolean
-  constructor(private migrations: LocalMigrationWithDatabaseSteps[], silent: boolean) {
+  constructor(
+    private migrations: LocalMigrationWithDatabaseSteps[],
+    silent: boolean,
+  ) {
     cliCursor.hide()
     this.silent = silent
   }
 
-  public setMigrations(migrations: LocalMigrationWithDatabaseSteps[]) {
+  public setMigrations(migrations: LocalMigrationWithDatabaseSteps[]): void {
     this.migrations = migrations
     this.render()
   }
 
-  public setProgress(index: number, progressPercentage: number) {
-    const progress = Math.min(Math.floor(progressPercentage * this.statusWidth), this.statusWidth)
+  public setProgress(index: number, progressPercentage: number): void {
+    const progress = Math.min(
+      Math.floor(progressPercentage * this.statusWidth),
+      this.statusWidth,
+    )
 
     this.currentIndex = index
     this.currentProgress = progress
     this.render()
   }
 
-  public showLogs(name, stream: Readable) {
+  public showLogs(name, stream: Readable): void {
     this.logsName = name
     this.logsString = ''
     stream.on('data', (data) => {
@@ -878,11 +1081,14 @@ class ProgressRenderer {
     })
   }
 
-  public render() {
+  public render(): void {
     if (this.silent) {
       return
     }
-    const maxMigrationLength = this.migrations.reduce((acc, curr) => Math.max(curr.id.length, acc), 0)
+    const maxMigrationLength = this.migrations.reduce(
+      (acc, curr) => Math.max(curr.id.length, acc),
+      0,
+    )
     let maxStepLength = 0
     const rows = this.migrations
       .map((m) => {
@@ -891,17 +1097,32 @@ class ProgressRenderer {
         let scripts = ''
         if (m.beforeFilePath || m.afterFilePath) {
           if (m.beforeFilePath && m.afterFilePath) {
-            const beforeStr = m.beforeFilePath ? `└─ ${path.basename(m.beforeFilePath)}\n` : ''
-            const afterStr = m.afterFilePath ? `\n└─ ${path.basename(m.afterFilePath)}` : ''
-            scripts = '\n' + indent(`${beforeStr}└─ ${blue('Datamodel migration')}${afterStr}`, 2)
+            const beforeStr = m.beforeFilePath
+              ? `└─ ${path.basename(m.beforeFilePath)}\n`
+              : ''
+            const afterStr = m.afterFilePath
+              ? `\n└─ ${path.basename(m.afterFilePath)}`
+              : ''
+            scripts =
+              '\n' +
+              indent(
+                `${beforeStr}└─ ${blue('Datamodel migration')}${afterStr}`,
+                2,
+              )
           } else {
-            const beforeStr = m.beforeFilePath ? `└─ ${path.basename(m.beforeFilePath)}\n` : ''
-            const afterStr = m.afterFilePath ? `└─ ${path.basename(m.afterFilePath)}` : ''
+            const beforeStr = m.beforeFilePath
+              ? `└─ ${path.basename(m.beforeFilePath)}\n`
+              : ''
+            const afterStr = m.afterFilePath
+              ? `└─ ${path.basename(m.afterFilePath)}`
+              : ''
             scripts = '\n' + indent(`${beforeStr}${afterStr}`, 2)
           }
         }
         return {
-          line: `${blue(m.id)}${' '.repeat(maxMigrationLength - m.id.length + 2)}${steps}`,
+          line: `${blue(m.id)}${' '.repeat(
+            maxMigrationLength - m.id.length + 2,
+          )}${steps}`,
           scripts,
         }
       })
@@ -910,8 +1131,18 @@ class ProgressRenderer {
         const paddingLeft = maxLength - stripAnsi(m.line).length + 2
         const newLine = m.line + ' '.repeat(paddingLeft) + '  '
 
-        if (this.currentIndex > index || (this.currentIndex === index && this.currentProgress === this.statusWidth)) {
-          return newLine + `Done ${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')}` + m.scripts
+        if (
+          this.currentIndex > index ||
+          (this.currentIndex === index &&
+            this.currentProgress === this.statusWidth)
+        ) {
+          return (
+            newLine +
+            `Done ${
+              process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+            }` +
+            m.scripts
+          )
         } else if (this.currentIndex === index) {
           return newLine + '\u25A0'.repeat(this.currentProgress) + m.scripts
         }
@@ -959,7 +1190,7 @@ class ProgressRenderer {
     logUpdate(str)
   }
 
-  public async done() {
+  public done(): void {
     cliCursor.show()
   }
 }

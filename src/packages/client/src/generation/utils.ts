@@ -8,11 +8,11 @@ export enum Projection {
   include = 'include',
 }
 
-export function getScalarsName(modelName: string) {
+export function getScalarsName(modelName: string): string {
   return `${modelName}Scalars`
 }
 
-export function getPayloadName(modelName: string) {
+export function getPayloadName(modelName: string): string {
   return `${modelName}GetPayload`
 }
 
@@ -20,15 +20,15 @@ export function getPayloadName(modelName: string) {
 //   return `Extract${modelName}${capitalize(projection)}`
 // }
 
-export function getSelectName(modelName: string) {
+export function getSelectName(modelName: string): string {
   return `${modelName}Select`
 }
 
-export function getIncludeName(modelName: string) {
+export function getIncludeName(modelName: string): string {
   return `${modelName}Include`
 }
 
-export function getDefaultName(modelName: string) {
+export function getDefaultName(modelName: string): string {
   return `${modelName}Default`
 }
 
@@ -80,13 +80,13 @@ export function getDefaultArgName(
   dmmf: DMMFClass,
   modelName: string,
   action: DMMF.ModelAction,
-) {
-  const mapping = dmmf.mappings.find(m => m.model === modelName)!
+): string {
+  const mapping = dmmf.mappings.find((m) => m.model === modelName)!
 
   const fieldName = mapping[action]
   const operation = getOperation(action)
   const queryType = operation === 'query' ? dmmf.queryType : dmmf.mutationType
-  const field = queryType.fields.find(f => f.name === fieldName)!
+  const field = queryType.fields.find((f) => f.name === fieldName)!
   return (field.args[0].inputType[0].type as DMMF.InputType).name
 }
 
@@ -114,7 +114,7 @@ export function renderInitialClientArgs(
   return `
   dmmf,
   fetcher,
-  '${getOperation(actionName as DMMF.ModelAction)}',
+  '${getOperation(actionName)}',
   '${fieldName}',
   '${mapping.plural}.${actionName}',
   args || {},
@@ -123,7 +123,7 @@ export function renderInitialClientArgs(
   measurePerformance\n`
 }
 
-export function getFieldTypeName(field: DMMF.SchemaField) {
+export function getFieldTypeName(field: DMMF.SchemaField): string {
   if (typeof field.outputType.type === 'string') {
     return field.outputType.type
   }
@@ -131,11 +131,15 @@ export function getFieldTypeName(field: DMMF.SchemaField) {
   return field.outputType.type.name
 }
 
-export function getType(name: string, isList: boolean, isOptional?: boolean) {
+export function getType(
+  name: string,
+  isList: boolean,
+  isOptional?: boolean,
+): string {
   return name + (isList ? '[]' : '') + (isOptional ? ' | null' : '')
 }
 
-export function getFieldType(field: DMMF.SchemaField) {
+export function getFieldType(field: DMMF.SchemaField): string {
   return getType(getFieldTypeName(field), field.outputType.isList)
 }
 
@@ -159,8 +163,8 @@ export function getSelectReturnType({
   actionName,
   renderPromise = true,
   hideCondition = false,
-  isField = false,
-}: SelectReturnTypeOptions) {
+  isField = false, // eslint-disable-line @typescript-eslint/no-unused-vars
+}: SelectReturnTypeOptions): string {
   const isList = actionName === DMMF.ModelAction.findMany
 
   if (actionName === 'deleteMany' || actionName === 'updateMany') {
@@ -200,11 +204,14 @@ export function isQueryAction(
   return operation === 'query' ? result : !result
 }
 
-export function capitalize(str: string) {
+export function capitalize(str: string): string {
   return str[0].toUpperCase() + str.slice(1)
 }
 
-export function indentAllButFirstLine(str: string, indentation: number) {
+export function indentAllButFirstLine(
+  str: string,
+  indentation: number,
+): string {
   const lines = str.split('\n')
 
   return lines[0] + '\n' + indent(lines.slice(1).join('\n'), indentation)
@@ -213,7 +220,7 @@ export function indentAllButFirstLine(str: string, indentation: number) {
 export function getRelativePathResolveStatement(
   outputDir: string,
   cwd?: string,
-) {
+): string {
   if (!cwd) {
     return 'undefined'
   }
@@ -222,7 +229,7 @@ export function getRelativePathResolveStatement(
   )})`
 }
 
-function flatten(array) {
+function flatten(array): any[] {
   return Array.prototype.concat.apply([], array)
 }
 

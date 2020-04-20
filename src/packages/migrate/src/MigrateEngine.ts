@@ -54,47 +54,68 @@ export class MigrateEngine {
     }
     this.debug = debug
   }
-  public stop() {
+  public stop(): void {
     this.child!.kill()
   }
-  public applyMigration(args: EngineArgs.ApplyMigration): Promise<EngineResults.ApplyMigration> {
+  public applyMigration(
+    args: EngineArgs.ApplyMigration,
+  ): Promise<EngineResults.ApplyMigration> {
     return this.runCommand(this.getRPCPayload('applyMigration', args))
   }
-  public unapplyMigration(args: EngineArgs.UnapplyMigration): Promise<EngineResults.UnapplyMigration> {
+  public unapplyMigration(
+    args: EngineArgs.UnapplyMigration,
+  ): Promise<EngineResults.UnapplyMigration> {
     return this.runCommand(this.getRPCPayload('unapplyMigration', args))
   }
-  public calculateDatamodel(args: EngineArgs.CalculateDatamodel): Promise<EngineResults.CalculateDatamodel> {
+  public calculateDatamodel(
+    args: EngineArgs.CalculateDatamodel,
+  ): Promise<EngineResults.CalculateDatamodel> {
     return this.runCommand(this.getRPCPayload('calculateDatamodel', args))
   }
-  public calculateDatabaseSteps(args: EngineArgs.CalculateDatabaseSteps): Promise<EngineResults.ApplyMigration> {
+  public calculateDatabaseSteps(
+    args: EngineArgs.CalculateDatabaseSteps,
+  ): Promise<EngineResults.ApplyMigration> {
     return this.runCommand(this.getRPCPayload('calculateDatabaseSteps', args))
   }
-  public inferMigrationSteps(args: EngineArgs.InferMigrationSteps): Promise<EngineResults.InferMigrationSteps> {
+  public inferMigrationSteps(
+    args: EngineArgs.InferMigrationSteps,
+  ): Promise<EngineResults.InferMigrationSteps> {
     return this.runCommand(this.getRPCPayload('inferMigrationSteps', args))
   }
   // Helper function, oftentimes we just want the applied migrations
-  public async listAppliedMigrations(args: EngineArgs.ListMigrations): Promise<EngineResults.ListMigrations> {
-    const migrations = await this.runCommand(this.getRPCPayload('listMigrations', args))
+  public async listAppliedMigrations(
+    args: EngineArgs.ListMigrations,
+  ): Promise<EngineResults.ListMigrations> {
+    const migrations = await this.runCommand(
+      this.getRPCPayload('listMigrations', args),
+    )
     return migrations.filter((m) => m.status === 'MigrationSuccess')
   }
-  public migrationProgess(args: EngineArgs.MigrationProgress): Promise<EngineResults.MigrationProgress> {
+  public migrationProgess(
+    args: EngineArgs.MigrationProgress,
+  ): Promise<EngineResults.MigrationProgress> {
     return this.runCommand(this.getRPCPayload('migrationProgress', args))
   }
-  private rejectAll(err: any) {
+  private rejectAll(err: any): void {
     Object.entries(this.listeners).map(([id, listener]) => {
       listener(null, err)
       delete this.listeners[id]
     })
   }
-  private registerCallback(id: number, callback: (result: any, err?: Error) => any) {
+  private registerCallback(
+    id: number,
+    callback: (result: any, err?: Error) => any,
+  ): void {
     this.listeners[id] = callback
   }
-  private handleResponse(response: any) {
+  private handleResponse(response: any): void {
     let result
     try {
       result = JSON.parse(response)
     } catch (e) {
-      console.error(`Could not parse migration engine response: ${response.slice(0, 200)}`)
+      console.error(
+        `Could not parse migration engine response: ${response.slice(0, 200)}`,
+      )
     }
     if (result) {
       // If the error happens before the JSON-RPC sever starts, the error doesn't have an id
@@ -121,9 +142,10 @@ export class MigrateEngine {
       this.initPromise = this.internalInit()
     }
 
-    return this.initPromise!
+    return this.initPromise
   }
   private internalInit(): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
         const { PWD, ...rest } = process.env
@@ -150,7 +172,8 @@ export class MigrateEngine {
           const messages = this.messages.join('\n')
           let err: any
           if (code !== 0 || messages.includes('panicking')) {
-            let errorMessage = chalk.red.bold('Error in migration engine: ') + messages
+            let errorMessage =
+              chalk.red.bold('Error in migration engine: ') + messages
             if (messages.includes('\u001b[1;94m-->\u001b[0m')) {
               errorMessage = `${chalk.red.bold('Schema parsing\n')}` + messages
             } else if (this.lastError && code === 255) {
@@ -163,7 +186,13 @@ export class MigrateEngine {
                 this.schemaPath,
               )
             } else if (messages.includes('panicked at') || code === 255) {
-              err = new RustPanic(errorMessage, messages, this.lastRequest, ErrorArea.LIFT_CLI, this.schemaPath)
+              err = new RustPanic(
+                errorMessage,
+                messages,
+                this.lastRequest,
+                ErrorArea.LIFT_CLI,
+                this.schemaPath,
+              )
             }
             err = err || new Error(errorMessage)
             this.rejectAll(err)
@@ -217,7 +246,9 @@ export class MigrateEngine {
           if (response.error) {
             if (response.error.data && response.error.data.message) {
               debugRpc(response)
-              const message = (response.error.data && response.error.data.message) || response.error.message
+              const message =
+                (response.error.data && response.error.data.message) ||
+                response.error.message
               reject(
                 new RustPanic(
                   message,
@@ -231,16 +262,26 @@ export class MigrateEngine {
               const text = this.persistError(request, this.messages.join('\n'))
               reject(
                 new Error(
-                  `${chalk.redBright('Error in RPC')}\n Request: ${JSON.stringify(
+                  `${chalk.redBright(
+                    'Error in RPC',
+                  )}\n Request: ${JSON.stringify(
                     request,
                     null,
                     2,
-                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${response.error.message}\n\n${text}\n`,
+                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${
+                    response.error.message
+                  }\n\n${text}\n`,
                 ),
               )
             }
           } else {
-            reject(new Error(`Got invalid RPC response without .result property: ${JSON.stringify(response)}`))
+            reject(
+              new Error(
+                `Got invalid RPC response without .result property: ${JSON.stringify(
+                  response,
+                )}`,
+              ),
+            )
           }
         }
       })
@@ -289,8 +330,10 @@ Please put that file into a gist and post it in Slack.
   }
 }
 
-function serializePanic(log) {
-  return `${chalk.red.bold('Error in migration engine.\nReason: ')}${chalk.red(`${log.message}`)}
+function serializePanic(log): string {
+  return `${chalk.red.bold('Error in migration engine.\nReason: ')}${chalk.red(
+    `${log.message}`,
+  )}
 
 Please create an issue in the ${chalk.bold('migrate')} repo with
 your \`schema.prisma\` and the prisma command you tried to use 🙏:

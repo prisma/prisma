@@ -105,11 +105,13 @@ describe('getDMMF', () => {
       COLLABORATOR
     }
     `
+    /* eslint-disable jest/no-try-expect */
     try {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
+    /* eslint-enable jest/no-try-expect */
   })
 })
 

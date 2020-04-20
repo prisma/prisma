@@ -1,5 +1,4 @@
 import { getSchemaDir, resolveBinary } from '@prisma/sdk'
-import { getPlatform } from '@prisma/get-platform'
 import { uriToCredentials } from '@prisma/sdk'
 import execa from 'execa'
 import fs from 'fs'
@@ -9,7 +8,13 @@ import { promisify } from 'util'
 const exists = promisify(fs.exists)
 
 // https://github.com/prisma/specs/tree/master/errors#common
-export type DatabaseErrorCodes = 'P1000' | 'P1001' | 'P1002' | 'P1003' | 'P1009' | 'P1010'
+export type DatabaseErrorCodes =
+  | 'P1000'
+  | 'P1001'
+  | 'P1002'
+  | 'P1003'
+  | 'P1009'
+  | 'P1010'
 
 export type ConnectionResult = true | ConnectionError
 
@@ -44,16 +49,21 @@ export async function canConnectToDatabase(
     }
   }
 
-  migrationEnginePath = migrationEnginePath || (await resolveBinary('migration-engine'))
+  migrationEnginePath =
+    migrationEnginePath || (await resolveBinary('migration-engine'))
   try {
-    await execa(migrationEnginePath, ['cli', '--datasource', connectionString, 'can-connect-to-database'], {
-      cwd,
-      env: {
-        ...process.env,
-        RUST_BACKTRACE: '1',
-        RUST_LOG: 'info',
+    await execa(
+      migrationEnginePath,
+      ['cli', '--datasource', connectionString, 'can-connect-to-database'],
+      {
+        cwd,
+        env: {
+          ...process.env,
+          RUST_BACKTRACE: '1',
+          RUST_LOG: 'info',
+        },
       },
-    })
+    )
 
     return true
   } catch (e) {
@@ -77,22 +87,34 @@ export async function createDatabase(
   cwd = process.cwd(),
   migrationEnginePath?: string,
 ): Promise<void> {
-  const dbExists = await canConnectToDatabase(connectionString, cwd, migrationEnginePath)
+  const dbExists = await canConnectToDatabase(
+    connectionString,
+    cwd,
+    migrationEnginePath,
+  )
   if (dbExists === true) {
     return
   }
-  migrationEnginePath = migrationEnginePath || (await resolveBinary('migration-engine'))
-  await execa(migrationEnginePath, ['cli', '--datasource', connectionString, 'create-database'], {
-    cwd,
-    env: {
-      ...process.env,
-      RUST_BACKTRACE: '1',
-      RUST_LOG: 'info',
+  migrationEnginePath =
+    migrationEnginePath || (await resolveBinary('migration-engine'))
+  await execa(
+    migrationEnginePath,
+    ['cli', '--datasource', connectionString, 'create-database'],
+    {
+      cwd,
+      env: {
+        ...process.env,
+        RUST_BACKTRACE: '1',
+        RUST_LOG: 'info',
+      },
     },
-  })
+  )
 }
 
-async function doesSqliteDbExist(connectionString: string, schemaDir?: string): Promise<boolean> {
+async function doesSqliteDbExist(
+  connectionString: string,
+  schemaDir?: string,
+): Promise<boolean> {
   let filePath = connectionString
 
   if (filePath.startsWith('file:')) {

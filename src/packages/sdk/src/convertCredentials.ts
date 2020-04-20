@@ -62,7 +62,7 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
   }
 
   // use a custom toString method, as we don't want escaping of query params
-  return url.toString(q =>
+  return url.toString((q) =>
     Object.entries(q)
       .map(([key, value]) => `${key}=${value}`)
       .join('&'),
@@ -76,7 +76,7 @@ export function uriToCredentials(
   const type = protocolToDatabaseType(uri.protocol)
 
   // needed, as the URL implementation adds empty strings
-  const exists = str => str && str.length > 0
+  const exists = (str): boolean => str && str.length > 0
 
   if (type === 'mongo') {
     return {

@@ -25,7 +25,7 @@ export class GeneratorProcess {
   child?: ChildProcessByStdio<any, any, any>
   listeners: { [key: string]: (result: any, err?: Error) => void } = {}
   private exitCode: number | null = null
-  private stderrLogs: string = ''
+  private stderrLogs = ''
   private initPromise?: Promise<void>
   constructor(private executablePath: string) {
     // executablePath can be passed like this
@@ -37,11 +37,11 @@ export class GeneratorProcess {
       )
     }
   }
-  async init() {
+  async init(): Promise<void> {
     if (!this.initPromise) {
       this.initPromise = this.initSingleton()
     }
-    return this.initPromise!
+    return this.initPromise
   }
   initSingleton(): Promise<void> {
     return new Promise(async (resolve, reject) => {
@@ -79,7 +79,7 @@ export class GeneratorProcess {
         }
       })
 
-      byline(this.child!.stderr).on('data', (line) => {
+      byline(this.child.stderr).on('data', (line) => {
         const response = String(line)
         this.stderrLogs += response + '\n'
         let data
@@ -106,7 +106,7 @@ export class GeneratorProcess {
       }, 200)
     })
   }
-  private handleResponse(data: any) {
+  private handleResponse(data: any): void {
     if (data.jsonrpc && data.id) {
       if (typeof data.id !== 'number') {
         throw new Error(`message.id has to be a number. Found value ${data.id}`)
@@ -129,16 +129,16 @@ export class GeneratorProcess {
   private registerListener(
     messageId: number,
     cb: (result: any, err?: Error) => void,
-  ) {
+  ): void {
     this.listeners[messageId] = cb
   }
-  private sendMessage(message: JsonRPC.Request) {
+  private sendMessage(message: JsonRPC.Request): void {
     this.child!.stdin.write(JSON.stringify(message) + '\n')
   }
-  private getMessageId() {
+  private getMessageId(): number {
     return globalMessageId++
   }
-  stop() {
+  stop(): void {
     if (!this.child!.killed) {
       this.child!.kill()
     }
@@ -187,12 +187,12 @@ export class GeneratorProcess {
   }
 }
 
-function hasChmodX(file: string): boolean {
-  const s = fs.statSync(file)
-  // tslint:disable-next-line
-  const newMode = s.mode | 64 | 8 | 1
-  return s.mode === newMode
-}
+// function hasChmodX(file: string): boolean {
+//   const s = fs.statSync(file)
+//   // tslint:disable-next-line
+//   const newMode = s.mode | 64 | 8 | 1
+//   return s.mode === newMode
+// }
 
 function getCommandAndArgs(str: string): { command: string; args: string[] } {
   const lastSlash = str.lastIndexOf(path.delimiter)

@@ -1,11 +1,11 @@
-export function generatorHandler(cb: (options: any) => any) {
+export function generatorHandler(cb: (options: any) => any): void {
   let input = ''
-  process.stdin.on('data', chunk => {
+  process.stdin.on('data', (chunk) => {
     input += chunk.toString()
   })
   process.stdin.on('end', () => {
     const options = JSON.parse(input)
     cb(options)
   })
-  process.stdin!.resume()
+  process.stdin.resume()
 }

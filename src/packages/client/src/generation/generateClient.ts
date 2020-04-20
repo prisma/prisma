@@ -51,6 +51,7 @@ export interface BuildClientResult {
   prismaClientDmmf: PrismaClientDMMF.Document
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function buildClient({
   datamodel,
   schemaDir = process.cwd(),
@@ -340,7 +341,7 @@ async function fileSize(name: string): Promise<number | null> {
   }
 }
 
-function validateDmmfAgainstDenylists(prismaClientDmmf) {
+function validateDmmfAgainstDenylists(prismaClientDmmf): Error[] | null {
   const errorArray = [] as Error[]
 
   const denylists = {

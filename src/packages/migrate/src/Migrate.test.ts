@@ -12,6 +12,7 @@ const writeFile = promisify(fs.writeFile)
 
 describe('migrate.create', () => {
   createTests().map((t) => {
+    // eslint-disable-next-line jest/expect-expect
     test(t.name, async () => {
       const pkg = dirname((await pkgup({ cwd: __dirname })) || __filename)
       const root = join(pkg, 'tmp', 'migrate-' + Date.now())
@@ -24,10 +25,10 @@ describe('migrate.create', () => {
 })
 
 // create a temporary set of files
-export default async function writeFiles(
+async function writeFiles(
   root: string,
   files: {
-    [name: string]: any
+    [name: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
   },
 ): Promise<string> {
   for (const name in files) {
@@ -40,6 +41,7 @@ export default async function writeFiles(
 }
 
 // create file tests
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function createTests() {
   return [
     {
@@ -58,12 +60,12 @@ function createTests() {
         `,
         'db/.keep': ``,
       },
-      fn: async (schemaPath: string) => {
+      fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('setup')
         const result = await migrate.save(migration!, 'setup')
         if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn\'t be undefined`)
+          return assert.fail(`result shouldn't be undefined`)
         }
         assert.ok(result.migrationId.includes('-setup'))
         assert.ok(result.newLockFile)
@@ -88,12 +90,12 @@ function createTests() {
         `,
         'db/.keep': ``,
       },
-      fn: async (schemaPath: string) => {
+      fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('initial setup')
         const result = await migrate.save(migration!, 'initial setup')
         if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn\'t be undefined`)
+          return assert.fail(`result shouldn't be undefined`)
         }
         assert.ok(result.migrationId.includes(`-initial-setup`))
         assert.ok(result.newLockFile)
@@ -118,12 +120,12 @@ function createTests() {
         `,
         'db/.keep': ``,
       },
-      fn: async (schemaPath: string) => {
+      fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('initial setup')
         const result = await migrate.save(migration!, 'initial setup')
         if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn\'t be undefined`)
+          return assert.fail(`result shouldn't be undefined`)
         }
         assert.ok(result.migrationId.includes(`-initial-setup`))
         assert.ok(result.newLockFile)
@@ -148,12 +150,12 @@ function createTests() {
         `,
         'db/.keep': ``,
       },
-      fn: async (schemaPath: string) => {
+      fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('setup')
         const result = await migrate.save(migration!, 'setup')
         if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn\'t be undefined`)
+          return assert.fail(`result shouldn't be undefined`)
         }
         assert.ok(result.migrationId.includes('-setup'))
         assert.ok(result.newLockFile)
@@ -178,12 +180,12 @@ function createTests() {
         `,
         'db/.keep': ``,
       },
-      fn: async (schemaPath: string) => {
+      fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('setup')
         const result = await migrate.save(migration!, 'setup')
         if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn\'t be undefined`)
+          return assert.fail(`result shouldn't be undefined`)
         }
         assert.ok(result.migrationId.includes('-setup'))
         assert.ok(result.newLockFile)

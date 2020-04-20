@@ -1,3 +1,3 @@
-export function isWatchMigrationName(name: string) {
+export function isWatchMigrationName(name: string): boolean {
   return name.startsWith('watch')
 }

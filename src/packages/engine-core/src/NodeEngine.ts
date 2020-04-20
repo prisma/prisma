@@ -82,16 +82,16 @@ export class NodeEngine {
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
    */
-  exiting: boolean = false
-  managementApiEnabled: boolean = false
+  exiting = false
+  managementApiEnabled = false
   datamodelJson?: string
   cwd: string
   datamodelPath: string
   prismaPath?: string
   url: string
-  ready: boolean = false
-  stderrLogs: string = ''
-  stdoutLogs: string = ''
+  ready = false
+  stderrLogs = ''
+  stdoutLogs = ''
   currentRequestPromise?: any
   cwdPromise: Promise<string>
   platformPromise: Promise<Platform>
@@ -140,14 +140,21 @@ export class NodeEngine {
     })
 
     if (this.platform) {
-      if (!knownPlatforms.includes(this.platform as Platform) && !fs.existsSync(this.platform)) {
+      if (
+        !knownPlatforms.includes(this.platform as Platform) &&
+        !fs.existsSync(this.platform)
+      ) {
         throw new PrismaClientInitializationError(
-          `Unknown ${chalk.red('PRISMA_QUERY_ENGINE_BINARY')} ${chalk.redBright.bold(
+          `Unknown ${chalk.red(
+            'PRISMA_QUERY_ENGINE_BINARY',
+          )} ${chalk.redBright.bold(
             this.platform,
           )}. Possible binaryTargets: ${chalk.greenBright(
             knownPlatforms.join(', '),
           )} or a path to the query engine binary.
-You may have to run ${chalk.greenBright('prisma generate')} for your changes to take effect.`,
+You may have to run ${chalk.greenBright(
+            'prisma generate',
+          )} for your changes to take effect.`,
         )
       }
     } else {
@@ -166,11 +173,12 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return process.cwd()
   }
 
-  on(event: 'query' | 'info' | 'warn', listener: (log: RustLog) => any) {
+  on(event: 'query' | 'info' | 'warn', listener: (log: RustLog) => any): void {
     this.logEmitter.on(event, listener)
   }
 
-  async getPlatform() {
+  async getPlatform(): Promise<Platform> {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     if (this.platformPromise) {
       return this.platformPromise
     }
@@ -180,7 +188,10 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return this.platformPromise
   }
 
-  private getQueryEnginePath(platform: string, prefix: string = __dirname): string {
+  private getQueryEnginePath(
+    platform: string,
+    prefix: string = __dirname,
+  ): string {
     let queryEnginePath = path.join(prefix, `query-engine-${platform}`)
 
     if (platform === 'windows') {
@@ -190,14 +201,15 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return queryEnginePath
   }
 
-  private handlePanic(log: RustLog) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private handlePanic(log: RustLog): void {
     this.child.kill()
     if (this.currentRequestPromise) {
-      ;(this.currentRequestPromise as any).cancel()
+      this.currentRequestPromise.cancel()
     }
   }
 
-  private async resolvePrismaPath() {
+  private async resolvePrismaPath(): Promise<string> {
     if (this.prismaPath) {
       return this.prismaPath
     }
@@ -211,20 +223,25 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
     const fileName = eval(`require('path').basename(__filename)`)
     if (fileName === 'NodeEngine.js') {
-      return this.getQueryEnginePath(this.platform, path.resolve(__dirname, `..`))
+      return this.getQueryEnginePath(
+        this.platform,
+        path.resolve(__dirname, `..`),
+      )
     } else {
       return this.getQueryEnginePath(this.platform)
     }
   }
 
   // get prisma path
-  private async getPrismaPath() {
+  private async getPrismaPath(): Promise<string> {
     const prismaPath = await this.resolvePrismaPath()
     const platform = await this.getPlatform()
     // If path to query engine doesn't exist, throw
     if (!(await exists(prismaPath))) {
       const pinnedStr = this.incorrectlyPinnedPlatform
-        ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.incorrectlyPinnedPlatform}`)}\n`
+        ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(
+            `${this.incorrectlyPinnedPlatform}`,
+          )}\n`
         : ''
 
       const dir = path.dirname(prismaPath)
@@ -247,9 +264,14 @@ ${files.map((f) => `  ${f}`).join('\n')}\n`
       if (this.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️
         // That means, that some build system just deleted the files 🤔
-        if (this.generator.binaryTargets.includes(this.platform) || this.generator.binaryTargets.includes('native')) {
+        if (
+          this.generator.binaryTargets.includes(this.platform) ||
+          this.generator.binaryTargets.includes('native')
+        ) {
           errorText += `
-You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''} ${this.generator.binaryTargets
+You already added the platform${
+            this.generator.binaryTargets.length > 1 ? 's' : ''
+          } ${this.generator.binaryTargets
             .map((t) => `"${chalk.bold(t)}"`)
             .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
@@ -259,12 +281,16 @@ Please create an issue at https://github.com/prisma/prisma-client-js/issues/new`
         } else {
           // If they didn't even have the current running platform in the schema.prisma file, it's easy
           // Just add it
-          errorText += `\n\nTo solve this problem, add the platform "${this.platform}" to the "${chalk.underline(
+          errorText += `\n\nTo solve this problem, add the platform "${
+            this.platform
+          }" to the "${chalk.underline(
             'generator',
           )}" block in the "schema.prisma" file:
 ${chalk.greenBright(this.getFixedGenerator())}
 
-Then run "${chalk.greenBright('prisma generate')}" for your changes to take effect.
+Then run "${chalk.greenBright(
+            'prisma generate',
+          )}" for your changes to take effect.
 Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         }
       } else {
@@ -275,10 +301,14 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     }
 
     if (this.incorrectlyPinnedPlatform) {
-      console.log(`${chalk.yellow('Warning:')} You pinned the platform ${chalk.bold(
+      console.log(`${chalk.yellow(
+        'Warning:',
+      )} You pinned the platform ${chalk.bold(
         this.incorrectlyPinnedPlatform,
       )}, but Prisma Client detects ${chalk.bold(await this.getPlatform())}.
-This means you should very likely pin the platform ${chalk.greenBright(await this.getPlatform())} instead.
+This means you should very likely pin the platform ${chalk.greenBright(
+        await this.getPlatform(),
+      )} instead.
 ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     }
 
@@ -289,10 +319,13 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     return prismaPath
   }
 
-  private getFixedGenerator() {
+  private getFixedGenerator(): string {
     const fixedGenerator = {
       ...this.generator,
-      binaryTargets: fixPlatforms(this.generator.binaryTargets as Platform[], this.platform!),
+      binaryTargets: fixPlatforms(
+        this.generator.binaryTargets as Platform[],
+        this.platform,
+      ),
     }
 
     return printGeneratorConfig(fixedGenerator)
@@ -310,6 +343,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
    * Starts the engine, returns the url that it runs on
    */
   async start(): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     if (!this.startPromise) {
       this.startPromise = this.internalStart()
     }
@@ -317,6 +351,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   }
 
   private internalStart(): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
         this.port = await this.getFreePort()
@@ -376,12 +411,17 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               debug(json)
               this.lastError = json
               if (this.engineStartDeferred) {
-                const err = new PrismaClientInitializationError(this.lastError.message)
+                const err = new PrismaClientInitializationError(
+                  this.lastError.message,
+                )
                 this.engineStartDeferred.reject(err)
               }
             }
           } catch (e) {
-            if (!data.includes('Printing to stderr') && !data.includes('Listening on ')) {
+            if (
+              !data.includes('Printing to stderr') &&
+              !data.includes('Listening on ')
+            ) {
               this.stderrLogs += '\n' + data
             }
           }
@@ -412,7 +452,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           }
         })
 
-        this.child.on('exit', (code, signal) => {
+        this.child.on('exit', (code): void => {
           this.exitCode = code
           if (code !== 0 && this.engineStartDeferred) {
             const err = new PrismaClientInitializationError(this.stderrLogs)
@@ -444,31 +484,42 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
               timestamp: new Date(),
               level: 'error',
               fields: {
-                message: (this.stderrLogs || '') + (this.stdoutLogs || '') + `\nExit code: ${code}`,
+                message:
+                  (this.stderrLogs || '') +
+                  (this.stdoutLogs || '') +
+                  `\nExit code: ${code}`,
               },
             }
           }
         })
 
-        this.child.on('error', (err) => {
+        this.child.on('error', (err): void => {
           this.lastError = {
             message: err.message,
             backtrace: 'Could not start query engine',
-            is_panic: false,
+            is_panic: false, // eslint-disable-line @typescript-eslint/camelcase
           }
           reject(err)
         })
 
-        this.child.on('close', (code, signal) => {
+        this.child.on('close', (code, signal): void => {
           if (code === null && signal === 'SIGABRT' && this.child) {
-            console.error(`${chalk.bold.red(`Error in Prisma Client:`)}${this.stderrLogs}
+            console.error(`${chalk.bold.red(`Error in Prisma Client:`)}${
+              this.stderrLogs
+            }
 
 This is a non-recoverable error which probably happens when the Prisma Query Engine has a stack overflow.
 Please create an issue in https://github.com/prisma/prisma-client-js describing the last Prisma Client query you called.`)
-          } else if (code === 255 && signal === null && this.lastErrorLog?.fields.message === 'PANIC') {
+          } else if (
+            code === 255 &&
+            signal === null &&
+            this.lastErrorLog?.fields.message === 'PANIC'
+          ) {
             console.error(`${chalk.bold.red(`Error in Prisma Client:`)}
 ${this.lastErrorLog.fields.message}: ${this.lastErrorLog.fields.reason} in
-${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErrorLog.fields.column}
+${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${
+              this.lastErrorLog.fields.column
+            }
 
 This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
 Please create an issue in https://github.com/prisma/prisma-client-js describing the last Prisma Client query you called.`)
@@ -476,11 +527,15 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
         })
 
         if (this.lastError) {
-          return reject(new PrismaClientInitializationError(getMessage(this.lastError)))
+          return reject(
+            new PrismaClientInitializationError(getMessage(this.lastError)),
+          )
         }
 
         if (this.lastErrorLog) {
-          return reject(new PrismaClientInitializationError(getMessage(this.lastErrorLog)))
+          return reject(
+            new PrismaClientInitializationError(getMessage(this.lastErrorLog)),
+          )
         }
 
         try {
@@ -488,7 +543,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
             this.engineStartDeferred = { resolve, reject }
           })
         } catch (err) {
-          await this.child.kill()
+          this.child.kill()
           throw err
         }
 
@@ -503,7 +558,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
     })
   }
 
-  fail = async (e, why) => {
+  fail = async (e, why): Promise<void> => {
     debug(e, why)
     await this.stop()
   }
@@ -511,7 +566,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
   /**
    * If Prisma runs, stop it
    */
-  async stop() {
+  async stop(): Promise<void> {
     await this.start()
     if (this.currentRequestPromise) {
       try {
@@ -524,7 +579,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
       debug(`Stopping Prisma engine`)
       this.exiting = true
       // this.client.close()
-      await this.child.kill()
+      this.child.kill()
       delete this.child
     }
   }
@@ -539,7 +594,10 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
       server.on('error', reject)
       server.listen(0, () => {
         const address = server.address()
-        const port = typeof address === 'string' ? parseInt(address.split(':').slice(-1)[0], 10) : address.port
+        const port =
+          typeof address === 'string'
+            ? parseInt(address.split(':').slice(-1)[0], 10)
+            : address.port
         server.close((e) => {
           if (e) {
             reject(e)
@@ -554,7 +612,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
    * Make sure that our internal port is not conflicting with the prisma.yml's port
    * @param str config
    */
-  protected trimPort(str: string) {
+  protected trimPort(str: string): string {
     return str
       .split('\n')
       .filter((l) => !l.startsWith('port:'))
@@ -565,7 +623,9 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
     await this.start()
 
     if (!this.child) {
-      throw new PrismaClientUnknownRequestError(`Can't perform request, as the Engine has already been stopped`)
+      throw new PrismaClientUnknownRequestError(
+        `Can't perform request, as the Engine has already been stopped`,
+      )
     }
 
     const variables = {}
@@ -595,18 +655,29 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
           if (this.lastError.is_panic) {
             throw new PrismaClientRustPanicError(getMessage(this.lastError))
           } else {
-            throw new PrismaClientUnknownRequestError(getMessage(this.lastError))
+            throw new PrismaClientUnknownRequestError(
+              getMessage(this.lastError),
+            )
           }
         }
         if (this.currentRequestPromise.isCanceled && this.lastErrorLog) {
-          throw new PrismaClientUnknownRequestError(getMessage(this.lastErrorLog))
+          throw new PrismaClientUnknownRequestError(
+            getMessage(this.lastErrorLog),
+          )
         }
-        if ((error.code && error.code === 'ECONNRESET') || error.code === 'ECONNREFUSED') {
+        if (
+          (error.code && error.code === 'ECONNRESET') ||
+          error.code === 'ECONNREFUSED'
+        ) {
           if (this.lastError) {
-            throw new PrismaClientUnknownRequestError(getMessage(this.lastError))
+            throw new PrismaClientUnknownRequestError(
+              getMessage(this.lastError),
+            )
           }
           if (this.lastErrorLog) {
-            throw new PrismaClientUnknownRequestError(getMessage(this.lastErrorLog))
+            throw new PrismaClientUnknownRequestError(
+              getMessage(this.lastErrorLog),
+            )
           }
           const logs = this.stderrLogs || this.stdoutLogs
           throw new PrismaClientUnknownRequestError(logs)
@@ -620,7 +691,9 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
     await this.start()
 
     if (!this.child) {
-      throw new PrismaClientUnknownRequestError(`Can't perform request, as the Engine has already been stopped`)
+      throw new PrismaClientUnknownRequestError(
+        `Can't perform request, as the Engine has already been stopped`,
+      )
     }
 
     const variables = {}
@@ -654,18 +727,29 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
           if (this.lastError.is_panic) {
             throw new PrismaClientRustPanicError(getMessage(this.lastError))
           } else {
-            throw new PrismaClientUnknownRequestError(getMessage(this.lastError))
+            throw new PrismaClientUnknownRequestError(
+              getMessage(this.lastError),
+            )
           }
         }
         if (this.currentRequestPromise.isCanceled && this.lastErrorLog) {
-          throw new PrismaClientUnknownRequestError(getMessage(this.lastErrorLog))
+          throw new PrismaClientUnknownRequestError(
+            getMessage(this.lastErrorLog),
+          )
         }
-        if ((error.code && error.code === 'ECONNRESET') || error.code === 'ECONNREFUSED') {
+        if (
+          (error.code && error.code === 'ECONNRESET') ||
+          error.code === 'ECONNREFUSED'
+        ) {
           if (this.lastError) {
-            throw new PrismaClientUnknownRequestError(getMessage(this.lastError))
+            throw new PrismaClientUnknownRequestError(
+              getMessage(this.lastError),
+            )
           }
           if (this.lastErrorLog) {
-            throw new PrismaClientUnknownRequestError(getMessage(this.lastErrorLog))
+            throw new PrismaClientUnknownRequestError(
+              getMessage(this.lastErrorLog),
+            )
           }
           const logs = this.stderrLogs || this.stdoutLogs
           throw new PrismaClientUnknownRequestError(logs)
@@ -675,7 +759,9 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
       })
   }
 
-  private graphQLToJSError(error: RequestError): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
+  private graphQLToJSError(
+    error: RequestError,
+  ): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
     if (error.user_facing_error.error_code) {
       return new PrismaClientKnownRequestError(
         error.user_facing_error.message,
@@ -688,7 +774,7 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
   }
 }
 
-function exitHandler(exit: boolean = false) {
+function exitHandler(exit = false) {
   return () => {
     for (const child of children) {
       if (!child.killed) {

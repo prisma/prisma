@@ -7,12 +7,12 @@ export class Client {
     this.session = http2.connect(url, {})
 
     // necessary to disable Node.js' error handling and us handle the error in .on('error') of the session
-    this.session.on('error', e => {})
+    this.session.on('error', () => {}) // eslint-disable-line @typescript-eslint/no-empty-function
   }
-  close() {
+  close(): void {
     this.session.destroy()
   }
-  request(body: any) {
+  request(body: any): Promise<unknown> {
     return new Promise((resolve, reject) => {
       try {
         let rejected = false
@@ -20,30 +20,33 @@ export class Client {
         const buffer = Buffer.from(JSON.stringify(body))
 
         const req = this.session.request({
-          [http2.constants.HTTP2_HEADER_METHOD]: http2.constants.HTTP2_METHOD_POST,
+          [http2.constants.HTTP2_HEADER_METHOD]:
+            http2.constants.HTTP2_METHOD_POST,
           [http2.constants.HTTP2_HEADER_PATH]: `/`,
           'Content-Type': 'application/json',
           'Content-Length': buffer.length,
         })
 
         req.setEncoding('utf8')
-        let data = []
+        const data = []
         let headers
 
-        req.on('error', e => {
+        req.on('error', (e) => {
           rejected = true
           if (e.code && e.code === 'ECONNREFUSED') {
-            reject(new Error(`Prisma Client could not connect to query engine.`))
+            reject(
+              new Error(`Prisma Client could not connect to query engine.`),
+            )
           } else {
             reject(e)
           }
         })
 
-        req.on('data', chunk => {
+        req.on('data', (chunk) => {
           data.push(chunk)
         })
 
-        req.on('response', res => {
+        req.on('response', (res) => {
           headers = res
           if (res[':status'] === 408) {
             rejected = true
@@ -58,7 +61,9 @@ export class Client {
             rejected = true
             reject(
               new PrismaQueryEngineError(
-                `Error in query engine response, status code ${res[':status']}${data ? ': ' + data : ''}`,
+                `Error in query engine response, status code ${res[':status']}${
+                  data ? ': ' + data : ''
+                }`,
                 res[':status'],
               ),
             )

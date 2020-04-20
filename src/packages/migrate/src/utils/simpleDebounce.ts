@@ -5,18 +5,18 @@
 export function simpleDebounce<T extends Function>(fn: T): T {
   let executing = false
   let pendingExecution: any = null
-  return <any>(async (...args) => {
+  return (async (...args) => {
     if (executing) {
       // if there are 2 executions 50ms apart, ignore the last one
       pendingExecution = args
       return null as any
     }
     executing = true
-    await fn(...args).catch(e => console.error(e))
+    await fn(...args).catch((e) => console.error(e))
     if (pendingExecution) {
-      await fn(...args).catch(e => console.error(e))
+      await fn(...args).catch((e) => console.error(e))
       pendingExecution = null
     }
     executing = false
-  })
+  }) as any
 }

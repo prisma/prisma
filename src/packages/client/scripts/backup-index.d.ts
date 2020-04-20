@@ -12,7 +12,7 @@
  *
  * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md).
  */
-export declare var PrismaClient: any
+export declare const PrismaClient: any
 /**
  * ##  Prisma Client ʲˢ
  *
@@ -29,7 +29,7 @@ export declare var PrismaClient: any
  */
 export declare type PrismaClient = any
 
-export declare var dmmf: any
+export declare const dmmf: any
 export declare type dmmf = any
 
 /**

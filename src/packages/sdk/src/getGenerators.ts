@@ -291,7 +291,9 @@ const oldToNewBinaryTargetsMapping = {
   'linux-musl-libssl1.1.0': 'debian-openssl1.1.x',
 }
 
-async function validateGenerators(generators: GeneratorConfig[]) {
+async function validateGenerators(
+  generators: GeneratorConfig[],
+): Promise<void> {
   const platform = await getPlatform()
 
   for (const generator of generators) {

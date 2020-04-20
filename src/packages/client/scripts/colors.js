@@ -1,11 +1,10 @@
 'use strict'
 
-const isObject = val =>
+const isObject = (val) =>
   val !== null && typeof val === 'object' && !Array.isArray(val)
-const identity = val => val
 
-/* eslint-disable no-control-regex */
 // this is a modified version of https://github.com/chalk/ansi-regex (MIT License)
+/* eslint-disable-next-line no-control-regex */
 const ANSI_REGEX = /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g
 
 const create = () => {
@@ -15,7 +14,7 @@ const create = () => {
     colors.enabled = process.env.FORCE_COLOR !== '0'
   }
 
-  const ansi = style => {
+  const ansi = (style) => {
     let open = (style.open = `\u001b[${style.codes[0]}m`)
     let close = (style.close = `\u001b[${style.codes[1]}m`)
     let regex = (style.regex = new RegExp(`\\u001b\\[${style.codes[1]}m`, 'g'))
@@ -62,7 +61,7 @@ const create = () => {
         colors.alias(name, value)
       },
       get() {
-        let color = input => style(input, color.stack)
+        let color = (input) => style(input, color.stack)
         Reflect.setPrototypeOf(color, colors)
         color.stack = this.stack ? this.stack.concat(name) : [name]
         return color
@@ -118,7 +117,7 @@ const create = () => {
   define('bgWhiteBright', [107, 49], 'bgBright')
 
   colors.ansiRegex = ANSI_REGEX
-  colors.hasColor = colors.hasAnsi = str => {
+  colors.hasColor = colors.hasAnsi = (str) => {
     colors.ansiRegex.lastIndex = 0
     return typeof str === 'string' && str !== '' && colors.ansiRegex.test(str)
   }
@@ -145,7 +144,7 @@ const create = () => {
         colors.alias(name, value)
       },
       get() {
-        let color = input => style(input, color.stack)
+        let color = (input) => style(input, color.stack)
         Reflect.setPrototypeOf(color, colors)
         color.stack = this.stack ? this.stack.concat(fn.stack) : fn.stack
         return color
@@ -153,7 +152,7 @@ const create = () => {
     })
   }
 
-  colors.theme = custom => {
+  colors.theme = (custom) => {
     if (!isObject(custom)) throw new TypeError('Expected theme to be an object')
     for (let name of Object.keys(custom)) {
       colors.alias(name, custom[name])
@@ -161,7 +160,7 @@ const create = () => {
     return colors
   }
 
-  colors.alias('unstyle', str => {
+  colors.alias('unstyle', (str) => {
     if (typeof str === 'string' && str !== '') {
       colors.ansiRegex.lastIndex = 0
       return str.replace(colors.ansiRegex, '')
@@ -169,7 +168,7 @@ const create = () => {
     return ''
   })
 
-  colors.alias('noop', str => str)
+  colors.alias('noop', (str) => str)
   colors.none = colors.clear = colors.noop
 
   colors.stripColor = colors.unstyle
