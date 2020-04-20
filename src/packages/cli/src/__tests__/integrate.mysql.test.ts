@@ -10,7 +10,7 @@ import snapshot from 'snap-shot-it'
 import mysql from 'mysql2/promise'
 import { getLatestAlphaTag } from '@prisma/fetch-engine'
 
-const connectionString = process.env.TEST_MYSQL_URI || 'mysql://root:password@localhost:3306/prisma-dev'
+const connectionString = process.env.TEST_MYSQL_URI || 'mysql://prisma:prisma@localhost:3306/tests'
 process.env.SKIP_GENERATE = 'true'
 
 const pkg = pkgup.sync() || __dirname

@@ -11,7 +11,7 @@ import snapshot from 'snap-shot-it'
 import { performance } from 'perf_hooks'
 import { getLatestAlphaTag } from '@prisma/fetch-engine'
 
-const connectionString = process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
+const connectionString = process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/'
 process.env.SKIP_GENERATE = 'true'
 
 const db = new Client({
