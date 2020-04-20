@@ -1,0 +1,52 @@
+version: '3.7'
+services:
+  # In Docker
+  # - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres/
+  # - TEST_MYSQL_URI=mysql://prisma:prisma@mysql:3306/tests
+  # - TEST_MARIADB_URI=mysql://prisma:prisma@mariadb:4306/tests
+  # Outside Docker
+  # - TEST_POSTGRES_URI=postgres://prisma:prisma@localhost:5432/
+  # - TEST_MYSQL_URI=mysql://prisma:prisma@localhost:3306/tests
+  # - TEST_MARIADB_URI=mysql://prisma:prisma@localhost:4306/tests
+
+  postgres:
+    image: postgres:10.3
+    restart: always
+    environment:
+      - POSTGRES_USER=prisma
+      - POSTGRES_PASSWORD=prisma
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=tests
+      - MYSQL_USER=prisma
+      - MYSQL_PASSWORD=prisma
+    volumes:
+      - mysql:/var/lib/mysql
+    ports:
+      - '3306:3306'
+
+  mariadb:
+    image: mariadb:10.4
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=tests
+      - MYSQL_USER=prisma
+      - MYSQL_PASSWORD=prisma
+    volumes:
+      - mariadb:/var/lib/mysql
+    ports:
+      - '4306:3306'
+
+volumes:
+  postgres:
+  mysql:
+  mariadb:
