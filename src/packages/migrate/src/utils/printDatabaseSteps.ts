@@ -6,11 +6,12 @@ import {
   // CreateTableStep,
   LocalMigrationWithDatabaseSteps,
 } from '../types'
-import chalk from 'chalk'
 import { darkBrightBlue } from '@prisma/sdk/dist//highlight/theme'
 import { highlightSql } from '@prisma/sdk'
 
-export function printDatabaseStepsOverview(databaseSteps: DatabaseStep[]) {
+export function printDatabaseStepsOverview(
+  databaseSteps: DatabaseStep[],
+): string {
   if (databaseSteps.length === 0) {
     return `No statements inferrable.`
   }
@@ -29,7 +30,7 @@ export function printDatabaseStepsOverview(databaseSteps: DatabaseStep[]) {
 }
 export function highlightMigrationsSQL(
   migrations: LocalMigrationWithDatabaseSteps[],
-) {
+): any {
   return highlightSql(
     '-- Start Migrations\n\n' +
       migrations
@@ -43,7 +44,9 @@ export function highlightMigrationsSQL(
   )
 }
 
-export function printDetailedDatabaseSteps(databaseSteps: DatabaseStep[]) {
+export function printDetailedDatabaseSteps(
+  databaseSteps: DatabaseStep[],
+): string {
   return databaseSteps.map((step) => step.raw).join('\n\n')
 }
 

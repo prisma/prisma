@@ -129,14 +129,17 @@ export const printStack = ({
             }
             afterLines = ')'
             indentValue =
-              String(lineNumber + start + 1).length + getIndent(theLine) + 1 + (match ? 2 : 0)
+              String(lineNumber + start + 1).length +
+              getIndent(theLine) +
+              1 +
+              (match ? 2 : 0)
           }
         }
       }
     }
   }
 
-  function getIndent(line: string) {
+  function getIndent(line: string): number {
     let spaceCount = 0
     for (let i = 0; i < line.length; i++) {
       if (line.charAt(i) !== ' ') {
@@ -156,9 +159,7 @@ It occured in the ${chalk.bold(
         `\`${functionName}\``,
       )} invocation${callsiteStr}`)
     : chalk.red(
-        `Invalid ${chalk.bold(
-          `\`${functionName}\``,
-        )} invocation${callsiteStr}`,
+        `Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`,
       )
 
   const stackStr = `\n${introText}

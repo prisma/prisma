@@ -1,5 +1,4 @@
 import { join } from 'path'
-import mkdir from 'make-dir'
 import { promisify } from 'util'
 import fs from 'fs'
 import rimraf from 'rimraf'

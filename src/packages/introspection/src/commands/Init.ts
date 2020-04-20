@@ -4,7 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
 import { printError } from '../prompt/utils/print'
-import { highlightTS, link } from '@prisma/sdk'
+import { link } from '@prisma/sdk'
 
 export const defaultSchema = `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema

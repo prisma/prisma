@@ -124,7 +124,7 @@ function getLongestLine(str: string): number {
   return str.split('\n').reduce((max, curr) => (curr.length > max ? curr.length : max), 0)
 }
 
-function prefixLines(str: string, indent: string, prefix: string) {
+function prefixLines(str: string, indent: string, prefix: string): string
   return str
     .split('\n')
     .map((line, index, arr) =>

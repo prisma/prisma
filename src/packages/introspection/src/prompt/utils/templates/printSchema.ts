@@ -6,7 +6,7 @@ export const printSchema = ({
 }: {
   usePhoton: boolean
   credentials: DatabaseCredentials
-}) => `${printCredentials(credentials)}
+}): string => `${printCredentials(credentials)}
 ${
   usePhoton
     ? `
@@ -33,12 +33,14 @@ model Post {
   author    User?
 }`
 
-const printCredentials = (credentials: DatabaseCredentials) => `datasource db {
+const printCredentials = (
+  credentials: DatabaseCredentials,
+): string => `datasource db {
   provider = "${prettyPrintType(credentials.type)}"
   url      = "${credentialsToUri(credentials)}"
 }`
 
-function prettyPrintType(type) {
+function prettyPrintType(type): any {
   if (type === 'postgres') {
     return 'postgresql'
   }

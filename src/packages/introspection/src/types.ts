@@ -1,5 +1,4 @@
 import { DatabaseCredentials } from '@prisma/sdk'
-import { ConnectorType } from '@prisma/generator-helper'
 
 export interface IntrospectionResult {
   sdl: string

@@ -21,8 +21,8 @@ const portList = [
   ...ports,
 ]
 
-const isPortFree = (port: number) =>
-  new Promise(resolve => {
+const isPortFree = (port: number): Promise<unknown> =>
+  new Promise((resolve) => {
     const server = net.createServer()
     server.on('error', () => resolve(false))
     server.listen(port, () => {
@@ -33,7 +33,7 @@ const isPortFree = (port: number) =>
   })
 
 const fetchPath = (port: number): Promise<string | null> =>
-  new Promise(resolve => {
+  new Promise((resolve) => {
     let resolved = false
     const client = new net.Socket()
 
@@ -43,7 +43,7 @@ const fetchPath = (port: number): Promise<string | null> =>
       resolve(null)
     })
 
-    client.on('data', data => {
+    client.on('data', (data) => {
       try {
         const result = JSON.parse(data.toString())
         if (result && result.prismaProjectPath) {
@@ -66,36 +66,46 @@ const fetchPath = (port: number): Promise<string | null> =>
   })
 
 function startServer(projectPath: string, port: number): () => void {
-  const server = net.createServer(socket => {
+  const server = net.createServer((socket) => {
     socket.write(JSON.stringify({ prismaProjectPath: projectPath }))
     socket.pipe(socket)
   })
 
   server.listen(port)
 
-  return () => {
+  return (): void => {
     server.close()
   }
 }
 
 // checks if dev command is running in projectPath
 // and returns next free port if not the case
-export async function getNextFreePort(projectPath: string): Promise<number | undefined> {
-  const portOccupancy = await pMap(portList, async port => ({ port, free: await isPortFree(port) }), {
-    concurrency: 15,
-  })
-  const usedPorts = portOccupancy.filter(o => !o.free)
-  const nextFreePort = portOccupancy.find(p => p.free)
+export async function getNextFreePort(
+  projectPath: string,
+): Promise<number | undefined> {
+  const portOccupancy = await pMap(
+    portList,
+    async (port) => ({ port, free: await isPortFree(port) }),
+    {
+      concurrency: 15,
+    },
+  )
+  const usedPorts = portOccupancy.filter((o) => !o.free)
+  const nextFreePort = portOccupancy.find((p) => p.free)
 
   if (usedPorts.length === portList.length || !nextFreePort) {
     throw new Error(
-      `prisma migrate could not start, as all port of ${portList.join(', ')} are used. Please free one of them.`,
+      `prisma migrate could not start, as all port of ${portList.join(
+        ', ',
+      )} are used. Please free one of them.`,
     )
   }
 
   // of the used ports, check if they are running prisma dev and if they can tell us what path they're running on
-  const potentialPaths = await Promise.all(usedPorts.map(usedPort => fetchPath(usedPort.port)))
-  const paths = potentialPaths.filter(p => p)
+  const potentialPaths = await Promise.all(
+    usedPorts.map((usedPort) => fetchPath(usedPort.port)),
+  )
+  const paths = potentialPaths.filter((p) => p)
   if (paths.includes(projectPath)) {
     return undefined
   }
@@ -108,7 +118,9 @@ export async function occupyPath(projectPath: string): Promise<() => void> {
   const nextFreePort = await getNextFreePort(projectPath)
   if (typeof nextFreePort !== 'number') {
     throw new Error(
-      `There is already another ${chalk.bold('prisma dev')} command running in ${chalk.underline(projectPath)}`,
+      `There is already another ${chalk.bold(
+        'prisma dev',
+      )} command running in ${chalk.underline(projectPath)}`,
     )
   }
 

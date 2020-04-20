@@ -341,7 +341,7 @@ async function fileSize(name: string): Promise<number | null> {
   }
 }
 
-function validateDmmfAgainstDenylists(prismaClientDmmf) {
+function validateDmmfAgainstDenylists(prismaClientDmmf): Error[] | null {
   const errorArray = [] as Error[]
 
   const denylists = {

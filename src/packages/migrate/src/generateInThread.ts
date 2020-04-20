@@ -19,24 +19,28 @@ export type GeneratorWorkerJob = {
 //     otherGenerators,
 //   },
 // }),
-export async function generateInThread(options: GeneratorWorkerJob): Promise<string> {
-  const workerPath = eval(`require('path').join(__dirname, 'GeneratorWorker.js')`) // ncc, leave us alone
+export async function generateInThread(
+  options: GeneratorWorkerJob,
+): Promise<string> {
+  const workerPath = eval(
+    `require('path').join(__dirname, 'GeneratorWorker.js')`,
+  ) // ncc, leave us alone
   await ensureWorker(workerPath)
   return new Promise((resolve, reject) => {
     const child = fork(workerPath, [], {
       silent: true,
     })
     child.send(JSON.stringify(options))
-    child.on('error', e => {
+    child.on('error', (e) => {
       reject(e)
     })
-    child.on('message', msg => {
+    child.on('message', (msg) => {
       const data = JSON.parse(msg)
       if (data.error) {
         reject(data.error)
       }
     })
-    child.on('close', code => {
+    child.on('close', (code) => {
       if (code === 0) {
         resolve('')
       } else {
@@ -46,7 +50,7 @@ export async function generateInThread(options: GeneratorWorkerJob): Promise<str
   })
 }
 
-async function ensureWorker(workerPath: string) {
+async function ensureWorker(workerPath: string): Promise<void> {
   if (await exists(workerPath)) {
     return
   }

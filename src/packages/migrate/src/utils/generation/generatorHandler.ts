@@ -1,4 +1,4 @@
-export function generatorHandler(cb: (options: any) => any) {
+export function generatorHandler(cb: (options: any) => any): void {
   let input = ''
   process.stdin.on('data', (chunk) => {
     input += chunk.toString()
