@@ -1,5 +1,8 @@
 import fs from 'fs'
 import { Platform } from '@prisma/get-platform'
+import terminalLink from 'terminal-link'
+import newGithubIssueUrl from 'new-github-issue-url'
+import chalk from 'chalk'
 import Debug from 'debug'
 const debug = Debug('plusX')
 
@@ -25,4 +28,32 @@ export function fixPlatforms(
   }
 
   return [...platforms, platform]
+}
+
+export function link(url: string): string {
+  return terminalLink(url, url, {
+    fallback: (url) => chalk.underline(url),
+  })
+}
+
+export function getGithubIssueUrl({
+  title,
+  user = 'prisma',
+  repo = 'prisma-client-js',
+  template = 'bug_report.md',
+  body,
+}: {
+  title: string
+  user?: string
+  repo?: string
+  template?: string
+  body?: string
+}): string {
+  return newGithubIssueUrl({
+    user,
+    repo,
+    template,
+    title,
+    body,
+  })
 }
