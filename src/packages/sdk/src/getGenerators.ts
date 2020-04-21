@@ -104,6 +104,7 @@ export async function getGenerators({
     datamodel,
     datamodelPath: schemaPath,
     prismaPath,
+    ignoreEnvVarErrors: true,
   })
 
   const generatorConfigs = overrideGenerators || config.generators

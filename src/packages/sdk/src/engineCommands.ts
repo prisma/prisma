@@ -155,12 +155,22 @@ export async function getDMMF({
   }
 }
 
+export type GetConfigOptions = {
+  datamodel?: string
+  cwd?: string
+  prismaPath?: string
+  datamodelPath?: string
+  retry?: number
+  ignoreEnvVarErrors?: boolean
+}
+
 export async function getConfig({
   datamodel,
   cwd = process.cwd(),
   prismaPath,
   datamodelPath,
-}: GetDMMFOptions): Promise<ConfigMetaFormat> {
+  ignoreEnvVarErrors,
+}: GetConfigOptions): Promise<ConfigMetaFormat> {
   debug(`getConfig, override prismaPath = ${prismaPath}`)
   prismaPath = prismaPath || (await resolveBinary('query-engine'))
 
@@ -176,8 +186,10 @@ export async function getConfig({
     }
   }
 
+  const args = ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
+
   try {
-    const result = await execa(prismaPath, ['cli', 'get-config'], {
+    const result = await execa(prismaPath, ['cli', 'get-config', ...args], {
       cwd,
       env: {
         ...process.env,
