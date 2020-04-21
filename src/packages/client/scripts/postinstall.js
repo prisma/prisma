@@ -1,7 +1,5 @@
 const childProcess = require('child_process')
-const {
-  promisify
-} = require('util')
+const { promisify } = require('util')
 const exec = promisify(childProcess.exec)
 const c = require('./colors')
 
@@ -26,7 +24,7 @@ async function main() {
       return
     }
   } catch (e) {
-    // if exit code = 1 do not print 
+    // if exit code = 1 do not print
     if (e && e !== 1) {
       console.error(e)
     }
@@ -34,7 +32,9 @@ async function main() {
 
   if (!localPath && !installedGlobally) {
     console.error(
-      `${c.yellow('warning')} In order to use "@prisma/client", please install @prisma/cli. You can install it with "npm add -D @prisma/cli".`
+      `${c.yellow(
+        'warning',
+      )} In order to use "@prisma/client", please install @prisma/cli. You can install it with "npm add -D @prisma/cli".`,
     )
   }
 }
@@ -56,15 +56,24 @@ function getLocalPackagePath() {
 
 async function isInstalledGlobally() {
   try {
-    await exec('prisma -v')
-    return true
+    const result = await exec('prisma -v')
+    if (result.stdout.includes('@prisma/cli')) {
+      return true
+    } else {
+      console.error(`${c.yellow('warning')} You still have the ${c.bold(
+        'prisma',
+      )} cli (Prisma 1) installed globally.
+Please uninstall it with either ${c.green('npm remove -g prisma')} or ${c.green(
+        'yarn global remove prisma',
+      )}.`)
+    }
   } catch (e) {
     return false
   }
 }
 
 if (!process.env.SKIP_GENERATE) {
-  main().catch(e => {
+  main().catch((e) => {
     if (e.stderr) {
       if (e.stderr.includes(`Can't find schema.prisma`)) {
         console.error(
@@ -96,7 +105,7 @@ function run(cmd, params) {
     child.on('close', () => {
       resolve()
     })
-    child.on('exit', code => {
+    child.on('exit', (code) => {
       if (code === 0) {
         resolve()
       } else {
