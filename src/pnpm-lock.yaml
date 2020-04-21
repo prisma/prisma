@@ -54,12 +54,21 @@ importers:
       '@types/mysql2': github.com/types/mysql2/b549352cda0b83fe8c4f4c11a1b4beb0b0cb0f5d
       '@types/pg': 7.14.3
       '@types/sqlite3': 3.1.6
+      '@typescript-eslint/eslint-plugin': 2.28.0_7d9b020b8616a35b73d4b597f43d4d93
+      '@typescript-eslint/parser': 2.28.0_eslint@6.8.0+typescript@3.8.3
       '@zeit/ncc': 0.22.1
       checkpoint-client: 1.0.7
       dotenv: 8.2.0
+      eslint: 6.8.0
+      eslint-config-prettier: 6.10.1_eslint@6.8.0
+      eslint-plugin-eslint-comments: 3.1.2_eslint@6.8.0
+      eslint-plugin-jest: 23.8.2_eslint@6.8.0+typescript@3.8.3
+      eslint-plugin-prettier: 3.1.3_eslint@6.8.0
       global-dirs: 2.0.1
+      husky: 4.2.5
       is-installed-globally: 0.3.2
       jest: 25.3.0
+      lint-staged: 10.1.3
       log-update: 4.0.0
       make-dir: 3.0.2
       mariadb: 2.3.1
@@ -102,12 +111,21 @@ importers:
       '@types/mysql2': 'github:types/mysql2'
       '@types/pg': ^7.14.3
       '@types/sqlite3': ^3.1.6
+      '@typescript-eslint/eslint-plugin': ^2.28.0
+      '@typescript-eslint/parser': ^2.28.0
       '@zeit/ncc': 0.22.1
       checkpoint-client: ^1.0.7
       dotenv: ^8.2.0
+      eslint: ^6.8.0
+      eslint-config-prettier: ^6.10.1
+      eslint-plugin-eslint-comments: ^3.1.2
+      eslint-plugin-jest: ^23.8.2
+      eslint-plugin-prettier: ^3.1.3
       global-dirs: ^2.0.1
+      husky: ^4.2.5
       is-installed-globally: ^0.3.2
       jest: ^25.3.0
+      lint-staged: ^10.1.3
       log-update: 4.0.0
       make-dir: ^3.0.2
       mariadb: ^2.3.1
@@ -146,18 +164,26 @@ importers:
       '@types/node': 12.12.35
       '@types/node-fetch': 2.5.6
       '@types/pg': 7.14.3
+      '@typescript-eslint/eslint-plugin': 2.28.0_7d9b020b8616a35b73d4b597f43d4d93
+      '@typescript-eslint/parser': 2.28.0_eslint@6.8.0+typescript@3.8.3
       '@zeit/ncc': 0.22.1
       arg: 4.1.3
       benchmark: 2.1.4
       chalk: 3.0.0
       del: 5.1.0
       dotenv: 8.2.0
+      eslint: 6.8.0
+      eslint-config-prettier: 6.10.1_eslint@6.8.0
+      eslint-plugin-eslint-comments: 3.1.2_eslint@6.8.0
+      eslint-plugin-jest: 23.8.2_eslint@6.8.0+typescript@3.8.3
+      eslint-plugin-prettier: 3.1.3_eslint@6.8.0+prettier@2.0.4
       execa: 4.0.0
       fast-clone: 1.5.13
       fast-copy: 2.0.5
       flat-map-polyfill: 0.3.8
       fs-monkey: 0.3.3
       get-own-enumerable-property-symbols: 3.0.2
+      husky: 4.2.5
       indent-string: 4.0.0
       is-obj: 2.0.0
       is-regexp: 2.1.0
@@ -181,8 +207,6 @@ importers:
       ts-jest: 25.3.1_jest@25.3.0
       ts-loader: 6.2.2_typescript@3.8.3
       ts-node: 8.8.2_typescript@3.8.3
-      tslint: 5.20.1_typescript@3.8.3
-      tslint-config-prettier: 1.18.0
       typescript: 3.8.3
       webpack: 5.0.0-alpha.14_webpack@5.0.0-alpha.14
       webpack-bundle-analyzer: 3.7.0
@@ -201,18 +225,26 @@ importers:
       '@types/node': 12.12.35
       '@types/node-fetch': ^2.5.5
       '@types/pg': ^7.14.3
+      '@typescript-eslint/eslint-plugin': ^2.28.0
+      '@typescript-eslint/parser': ^2.28.0
       '@zeit/ncc': 0.22.1
       arg: ^4.1.3
       benchmark: ^2.1.4
       chalk: ^3.0.0
       del: ^5.1.0
       dotenv: ^8.2.0
+      eslint: ^6.8.0
+      eslint-config-prettier: ^6.10.1
+      eslint-plugin-eslint-comments: ^3.1.2
+      eslint-plugin-jest: ^23.8.2
+      eslint-plugin-prettier: ^3.1.3
       execa: ^4.0.0
       fast-clone: ^1.5.13
       fast-copy: ^2.0.5
       flat-map-polyfill: ^0.3.8
       fs-monkey: ^0.3.3
       get-own-enumerable-property-symbols: ^3.0.2
+      husky: ^4.2.5
       indent-string: ^4.0.0
       is-obj: ^2.0.0
       is-regexp: ^2.1.0
@@ -236,8 +268,6 @@ importers:
       ts-jest: ^25.3.1
       ts-loader: ^6.2.2
       ts-node: ^8.8.2
-      tslint: ^5.20.1
-      tslint-config-prettier: ^1.18.0
       typescript: ^3.8.3
       webpack: 5.0.0-alpha.14
       webpack-bundle-analyzer: ^3.6.1
@@ -255,8 +285,17 @@ importers:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@types/jest': 25.2.1
       '@types/node': 12.12.35
+      '@typescript-eslint/eslint-plugin': 2.28.0_7d9b020b8616a35b73d4b597f43d4d93
+      '@typescript-eslint/parser': 2.28.0_eslint@6.8.0+typescript@3.8.3
       del-cli: 3.0.0
+      eslint: 6.8.0
+      eslint-config-prettier: 6.10.1_eslint@6.8.0
+      eslint-plugin-eslint-comments: 3.1.2_eslint@6.8.0
+      eslint-plugin-jest: 23.8.2_eslint@6.8.0+typescript@3.8.3
+      eslint-plugin-prettier: 3.1.3_eslint@6.8.0
+      husky: 4.2.5
       jest: 25.3.0
+      lint-staged: 10.1.3
       ts-jest: 25.3.1_jest@25.3.0
       typescript: 3.8.3
     specifiers:
@@ -265,13 +304,22 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@types/jest': 25.2.1
       '@types/node': ^12.12.35
+      '@typescript-eslint/eslint-plugin': ^2.28.0
+      '@typescript-eslint/parser': ^2.28.0
       bent: ^7.1.2
       chalk: ^3.0.0
       cross-fetch: ^3.0.4
       debug: ^4.1.1
       del-cli: ^3.0.0
+      eslint: ^6.8.0
+      eslint-config-prettier: ^6.10.1
+      eslint-plugin-eslint-comments: ^3.1.2
+      eslint-plugin-jest: ^23.8.2
+      eslint-plugin-prettier: ^3.1.3
+      husky: ^4.2.5
       indent-string: ^4.0.0
       jest: ^25.3.0
+      lint-staged: ^10.1.3
       ts-jest: ^25.3.1
       typescript: ^3.8.3
   packages/fetch-engine:
@@ -299,8 +347,17 @@ importers:
       '@types/node': 12.12.35
       '@types/node-fetch': 2.5.6
       '@types/progress': 2.0.3
+      '@typescript-eslint/eslint-plugin': 2.28.0_7d9b020b8616a35b73d4b597f43d4d93
+      '@typescript-eslint/parser': 2.28.0_eslint@6.8.0+typescript@3.8.3
       del: 5.1.0
+      eslint: 6.8.0
+      eslint-config-prettier: 6.10.1_eslint@6.8.0
+      eslint-plugin-eslint-comments: 3.1.2_eslint@6.8.0
+      eslint-plugin-jest: 23.8.2_eslint@6.8.0+typescript@3.8.3
+      eslint-plugin-prettier: 3.1.3_eslint@6.8.0+prettier@2.0.4
+      husky: 4.2.5
       jest: 25.3.0
+      lint-staged: 10.1.6
       prettier: 2.0.4
       ts-jest: 25.3.1_jest@25.3.0
       typescript: 3.8.3
@@ -311,16 +368,25 @@ importers:
       '@types/node': ^12.12.35
       '@types/node-fetch': ^2.5.5
       '@types/progress': ^2.0.3
+      '@typescript-eslint/eslint-plugin': ^2.28.0
+      '@typescript-eslint/parser': ^2.28.0
       chalk: ^4.0.0
       debug: ^4.1.1
       del: ^5.1.0
+      eslint: ^6.8.0
+      eslint-config-prettier: ^6.10.1
+      eslint-plugin-eslint-comments: ^3.1.2
+      eslint-plugin-jest: ^23.8.2
+      eslint-plugin-prettier: ^3.1.3
       execa: ^4.0.0
       find-cache-dir: ^3.3.1
       hasha: ^5.2.0
       htmlparser2: ^4.1.0
       http-proxy-agent: ^4.0.1
       https-proxy-agent: ^5.0.0
+      husky: ^4.2.5
       jest: ^25.3.0
+      lint-staged: ^10.1.4
       make-dir: ^3.0.2
       node-fetch: ^2.6.0
       p-filter: ^2.1.0
@@ -342,7 +408,16 @@ importers:
     devDependencies:
       '@types/jest': 25.2.1
       '@types/node': 12.12.35
+      '@typescript-eslint/eslint-plugin': 2.28.0_7d9b020b8616a35b73d4b597f43d4d93
+      '@typescript-eslint/parser': 2.28.0_eslint@6.8.0+typescript@3.8.3
+      eslint: 6.8.0
+      eslint-config-prettier: 6.10.1_eslint@6.8.0
+      eslint-plugin-eslint-comments: 3.1.2_eslint@6.8.0
+      eslint-plugin-jest: 23.8.2_eslint@6.8.0+typescript@3.8.3
+      eslint-plugin-prettier: 3.1.3_eslint@6.8.0+prettier@2.0.4
+      husky: 4.2.5
       jest: 25.3.0
+      lint-staged: 10.1.6
       prettier: 2.0.4
       ts-jest: 25.3.1_jest@25.3.0
       ts-node: 8.8.2_typescript@3.8.3
@@ -351,11 +426,20 @@ importers:
       '@types/cross-spawn': ^6.0.1
       '@types/jest': 25.2.1
       '@types/node': ^12.12.35
+      '@typescript-eslint/eslint-plugin': ^2.28.0
+      '@typescript-eslint/parser': ^2.28.0
       chalk: ^3.0.0
       cross-spawn: ^7.0.2
       debug: 4.1.1
+      eslint: ^6.8.0
+      eslint-config-prettier: ^6.10.1
+      eslint-plugin-eslint-comments: ^3.1.2
+      eslint-plugin-jest: ^23.8.2
+      eslint-plugin-prettier: ^3.1.3
+      husky: ^4.2.5
       isbinaryfile: ^4.0.6
       jest: ^25.3.0
+      lint-staged: ^10.1.4
       prettier: ^2.0.4
       ts-jest: ^25.3.1
       ts-node: ^8.8.2
@@ -366,14 +450,32 @@ importers:
     devDependencies:
       '@types/jest': 25.2.1
       '@types/node': 12.12.35
+      '@typescript-eslint/eslint-plugin': 2.28.0_7d9b020b8616a35b73d4b597f43d4d93
+      '@typescript-eslint/parser': 2.28.0_eslint@6.8.0+typescript@3.8.3
+      eslint: 6.8.0
+      eslint-config-prettier: 6.10.1_eslint@6.8.0
+      eslint-plugin-eslint-comments: 3.1.2_eslint@6.8.0
+      eslint-plugin-jest: 23.8.2_eslint@6.8.0+typescript@3.8.3
+      eslint-plugin-prettier: 3.1.3_eslint@6.8.0
+      husky: 4.2.5
       jest: 25.3.0
+      lint-staged: 10.1.6
       ts-jest: 25.3.1_jest@25.3.0
       typescript: 3.8.3
     specifiers:
       '@types/jest': ^25.2.1
       '@types/node': ^12.12.35
+      '@typescript-eslint/eslint-plugin': ^2.28.0
+      '@typescript-eslint/parser': ^2.28.0
       debug: ^4.1.1
+      eslint: ^6.8.0
+      eslint-config-prettier: ^6.10.1
+      eslint-plugin-eslint-comments: ^3.1.2
+      eslint-plugin-jest: ^23.8.2
+      eslint-plugin-prettier: ^3.1.3
+      husky: ^4.2.5
       jest: ^25.3.0
+      lint-staged: ^10.1.4
       ts-jest: ^25.3.1
       typescript: ^3.8.3
   packages/ink-components:
@@ -424,8 +526,17 @@ importers:
       '@types/mysql': 2.15.9
       '@types/node': 12.12.35
       '@types/pg': 7.14.3
+      '@typescript-eslint/eslint-plugin': 2.28.0_7d9b020b8616a35b73d4b597f43d4d93
+      '@typescript-eslint/parser': 2.28.0_eslint@6.8.0+typescript@3.8.3
+      eslint: 6.8.0
+      eslint-config-prettier: 6.10.1_eslint@6.8.0
+      eslint-plugin-eslint-comments: 3.1.2_eslint@6.8.0
+      eslint-plugin-jest: 23.8.2_eslint@6.8.0+typescript@3.8.3
+      eslint-plugin-prettier: 3.1.3_eslint@6.8.0+prettier@2.0.4
+      husky: 4.2.5
       indent-string: 4.0.0
       jest: 25.3.0
+      lint-staged: 10.1.6
       prettier: 2.0.4
       rimraf: 3.0.2
       ts-jest: 25.3.1_jest@25.3.0
@@ -445,10 +556,19 @@ importers:
       '@types/mysql': ^2.15.9
       '@types/node': ^12.12.35
       '@types/pg': ^7.14.3
+      '@typescript-eslint/eslint-plugin': ^2.28.0
+      '@typescript-eslint/parser': ^2.28.0
       chalk: ^3.0.0
+      eslint: ^6.8.0
+      eslint-config-prettier: ^6.10.1
+      eslint-plugin-eslint-comments: ^3.1.2
+      eslint-plugin-jest: ^23.8.2
+      eslint-plugin-prettier: ^3.1.3
       execa: ^4.0.0
+      husky: ^4.2.5
       indent-string: ^4.0.0
       jest: ^25.3.0
+      lint-staged: ^10.1.4
       make-dir: ^3.0.2
       prettier: ^2.0.4
       rimraf: ^3.0.2
@@ -503,18 +623,23 @@ importers:
       '@types/node': 12.12.35
       '@types/prompts': 2.0.5
       '@types/react': 16.9.11
+      '@typescript-eslint/eslint-plugin': 2.28.0_7d9b020b8616a35b73d4b597f43d4d93
+      '@typescript-eslint/parser': 2.28.0_eslint@6.8.0+typescript@3.8.3
       '@zeit/ncc': 0.22.1
       del: 5.1.0
+      eslint: 6.8.0
+      eslint-config-prettier: 6.10.1_eslint@6.8.0
+      eslint-plugin-eslint-comments: 3.1.2_eslint@6.8.0
+      eslint-plugin-jest: 23.8.2_eslint@6.8.0+typescript@3.8.3
+      eslint-plugin-prettier: 3.1.3_eslint@6.8.0+prettier@2.0.4
       husky: 4.2.5
       jest: 25.3.0
-      lint-staged: 10.1.3
+      lint-staged: 10.1.6
       make-dir: 3.0.2
       pkg-up: 3.1.0
       prettier: 2.0.4
       react: 16.11.0
       ts-jest: 25.3.1_jest@25.3.0
-      tslint: 5.20.1_typescript@3.8.3
-      tslint-config-prettier: 1.18.0
       typescript: 3.8.3
     specifiers:
       '@prisma/client': 'workspace:*'
@@ -533,6 +658,8 @@ importers:
       '@types/node': ^12.12.35
       '@types/prompts': ^2.0.3
       '@types/react': 16.9.11
+      '@typescript-eslint/eslint-plugin': ^2.28.0
+      '@typescript-eslint/parser': ^2.28.0
       '@zeit/ncc': 0.22.1
       ansi-escapes: ^4.3.1
       cli-cursor: 3.1.0
@@ -540,6 +667,11 @@ importers:
       debug: ^4.1.1
       del: ^5.1.0
       diff: 4.0.2
+      eslint: ^6.8.0
+      eslint-config-prettier: ^6.10.1
+      eslint-plugin-eslint-comments: ^3.1.2
+      eslint-plugin-jest: ^23.8.2
+      eslint-plugin-prettier: ^3.1.3
       execa: ^4.0.0
       figures: ^3.2.0
       get-port: ^5.1.1
@@ -548,14 +680,14 @@ importers:
       globby: ^11.0.0
       http-proxy-agent: ^4.0.1
       https-proxy-agent: ^5.0.0
-      husky: ^4.2.4
+      husky: ^4.2.5
       indent-string: ^4.0.0
       ink: 2.5.0
       ink-link: 1.0.0
       ink-spinner: 3.0.1
       is-ci: ^2.0.0
       jest: ^25.3.0
-      lint-staged: ^10.1.3
+      lint-staged: ^10.1.4
       log-update: ^4.0.0
       make-dir: ^3.0.2
       open: ^7.0.3
@@ -571,8 +703,6 @@ importers:
       strip-indent: ^3.0.0
       supports-hyperlinks: ^2.1.0
       ts-jest: ^25.3.1
-      tslint: ^5.20.1
-      tslint-config-prettier: ^1.18.0
       typescript: ^3.8.3
   packages/sdk:
     dependencies:
@@ -613,6 +743,9 @@ importers:
       '@typescript-eslint/parser': 2.28.0_eslint@6.8.0+typescript@3.8.3
       eslint: 6.8.0
       eslint-config-prettier: 6.10.1_eslint@6.8.0
+      eslint-plugin-eslint-comments: 3.1.2_eslint@6.8.0
+      eslint-plugin-jest: 23.8.2_eslint@6.8.0+typescript@3.8.3
+      eslint-plugin-prettier: 3.1.3_eslint@6.8.0+prettier@2.0.4
       husky: 4.2.5
       jest: 25.3.0
       lint-staged: 10.1.3
@@ -629,8 +762,8 @@ importers:
       '@types/jest': 25.2.1
       '@types/node': ^12.12.35
       '@types/tar': ^4.0.3
-      '@typescript-eslint/eslint-plugin': ^2.27.0
-      '@typescript-eslint/parser': ^2.27.0
+      '@typescript-eslint/eslint-plugin': ^2.28.0
+      '@typescript-eslint/parser': ^2.28.0
       archiver: ^3.1.1
       arg: ^4.1.3
       chalk: 3.0.0
@@ -638,6 +771,9 @@ importers:
       cli-truncate: ^2.1.0
       eslint: ^6.8.0
       eslint-config-prettier: ^6.10.1
+      eslint-plugin-eslint-comments: ^3.1.2
+      eslint-plugin-jest: ^23.8.2
+      eslint-plugin-prettier: ^3.1.3
       execa: ^4.0.0
       globby: ^9.2.0
       has-yarn: ^2.1.0
@@ -4317,12 +4453,6 @@ packages:
       ieee754: 1.1.13
     resolution:
       integrity: sha512-9FTEDjLjwoAkEwyMGDjYJQN2gfRgOKBKRfiglhvibGbpeeU/pQn1bJxQqm32OD/AIeEuHxU9roxXxg34Byp/Ww==
-  /builtin-modules/1.1.1:
-    dev: true
-    engines:
-      node: '>=0.10.0'
-    resolution:
-      integrity: sha1-Jw8HbFpywC9bZaR9+Uxf46J4iS8=
   /builtin-modules/3.1.0:
     engines:
       node: '>=6'
@@ -4807,6 +4937,12 @@ packages:
       node: '>= 6'
     resolution:
       integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==
+  /commander/5.0.0:
+    dev: true
+    engines:
+      node: '>= 6'
+    resolution:
+      integrity: sha512-JrDGPAKjMGSP1G0DUoaceEJ3DZgAfr/q6X7FVk4+U5KxUSKviYGM2k6zWkfyyBHy5rAtzgYJFa1ro2O9PtoxwQ==
   /common-tags/1.8.0:
     dev: true
     engines:
@@ -5853,6 +5989,55 @@ packages:
       eslint: '>=3.14.1'
     resolution:
       integrity: sha512-svTy6zh1ecQojvpbJSgH3aei/Rt7C6i090l5f2WQ4aB05lYHeZIR1qL4wZyyILTbtmnbHP5Yn8MrsOJMGa8RkQ==
+  /eslint-plugin-eslint-comments/3.1.2_eslint@6.8.0:
+    dependencies:
+      escape-string-regexp: 1.0.5
+      eslint: 6.8.0
+      ignore: 5.1.4
+    dev: true
+    engines:
+      node: '>=6.5.0'
+    peerDependencies:
+      eslint: '>=4.19.1'
+    resolution:
+      integrity: sha512-QexaqrNeteFfRTad96W+Vi4Zj1KFbkHHNMMaHZEYcovKav6gdomyGzaxSDSL3GoIyUOo078wRAdYlu1caiauIQ==
+  /eslint-plugin-jest/23.8.2_eslint@6.8.0+typescript@3.8.3:
+    dependencies:
+      '@typescript-eslint/experimental-utils': 2.28.0_eslint@6.8.0+typescript@3.8.3
+      eslint: 6.8.0
+    dev: true
+    engines:
+      node: '>=8'
+    peerDependencies:
+      eslint: '>=5'
+      typescript: '*'
+    resolution:
+      integrity: sha512-xwbnvOsotSV27MtAe7s8uGWOori0nUsrXh2f1EnpmXua8sDfY6VZhHAhHg2sqK7HBNycRQExF074XSZ7DvfoFg==
+  /eslint-plugin-prettier/3.1.3_eslint@6.8.0:
+    dependencies:
+      eslint: 6.8.0
+      prettier-linter-helpers: 1.0.0
+    dev: true
+    engines:
+      node: '>=6.0.0'
+    peerDependencies:
+      eslint: '>= 5.0.0'
+      prettier: '>= 1.13.0'
+    resolution:
+      integrity: sha512-+HG5jmu/dN3ZV3T6eCD7a4BlAySdN7mLIbJYo0z1cFQuI+r2DiTJEFeF68ots93PsnrMxbzIZ2S/ieX+mkrBeQ==
+  /eslint-plugin-prettier/3.1.3_eslint@6.8.0+prettier@2.0.4:
+    dependencies:
+      eslint: 6.8.0
+      prettier: 2.0.4
+      prettier-linter-helpers: 1.0.0
+    dev: true
+    engines:
+      node: '>=6.0.0'
+    peerDependencies:
+      eslint: '>= 5.0.0'
+      prettier: '>= 1.13.0'
+    resolution:
+      integrity: sha512-+HG5jmu/dN3ZV3T6eCD7a4BlAySdN7mLIbJYo0z1cFQuI+r2DiTJEFeF68ots93PsnrMxbzIZ2S/ieX+mkrBeQ==
   /eslint-scope/4.0.3:
     dependencies:
       esrecurse: 4.2.1
@@ -6243,6 +6428,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-8UEa58QDLauDNfpbrX55Q9jrGHThw2ZMdOky5Gl1CDtVeJDPVrG4Jxx1N8jw2gkWaff5UUuX1KJd+9zGe2B+ZA==
+  /fast-diff/1.2.0:
+    dev: true
+    resolution:
+      integrity: sha512-xJuoT5+L99XlZ8twedaRf6Ax2TgQVxvgZOYoPKqZufmJib0tL2tegPBOZb1pVNgIhlqDlA0eO0c3wBvQcmzx4w==
   /fast-glob/2.2.7:
     dependencies:
       '@mrmlnc/readdir-enhanced': 2.2.1
@@ -8621,6 +8810,25 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-o2OkLxgVns5RwSC5QF7waeAjJA5nz5gnUfqL311LkZcFipKV7TztrSlhNUK5nQX9H0E5NELAdduMQ+M/JPT7RQ==
+  /lint-staged/10.1.6:
+    dependencies:
+      chalk: 4.0.0
+      commander: 5.0.0
+      cosmiconfig: 6.0.0
+      debug: 4.1.1
+      dedent: 0.7.0
+      execa: 4.0.0
+      listr: 0.14.3_listr@0.14.3
+      log-symbols: 3.0.0
+      micromatch: 4.0.2
+      normalize-path: 3.0.0
+      please-upgrade-node: 3.2.0
+      string-argv: 0.3.1
+      stringify-object: 3.3.0
+    dev: true
+    hasBin: true
+    resolution:
+      integrity: sha512-45zaGxf4XZuwdUk87yRFE/1b4vTZmH2UnYmUPmindsgdAljOFpWWb0yEjxngmqERUS/MGauJexFF6BjLVg9VMA==
   /listr-silent-renderer/1.1.1:
     dev: true
     engines:
@@ -10702,6 +10910,14 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-1PRWKwzjaW5BrFLQ4ALlemNdxtw=
+  /prettier-linter-helpers/1.0.0:
+    dependencies:
+      fast-diff: 1.2.0
+    dev: true
+    engines:
+      node: '>=6.0.0'
+    resolution:
+      integrity: sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==
   /prettier/2.0.4:
     dev: true
     engines:
@@ -12791,46 +13007,6 @@ packages:
   /tslib/1.11.1:
     resolution:
       integrity: sha512-aZW88SY8kQbU7gpV19lN24LtXh/yD4ZZg6qieAJDDg+YBsJcSmLGK9QpnUjAKVG/xefmvJGd1WUmfpT/g6AJGA==
-  /tslint-config-prettier/1.18.0:
-    dev: true
-    engines:
-      node: '>=4.0.0'
-    hasBin: true
-    resolution:
-      integrity: sha512-xPw9PgNPLG3iKRxmK7DWr+Ea/SzrvfHtjFt5LBl61gk2UBG/DB9kCXRjv+xyIU1rUtnayLeMUVJBcMX8Z17nDg==
-  /tslint/5.20.1_typescript@3.8.3:
-    dependencies:
-      '@babel/code-frame': 7.8.3
-      builtin-modules: 1.1.1
-      chalk: 2.4.2
-      commander: 2.20.3
-      diff: 4.0.2
-      glob: 7.1.6
-      js-yaml: 3.13.1
-      minimatch: 3.0.4
-      mkdirp: 0.5.5
-      resolve: 1.15.1
-      semver: 5.7.1
-      tslib: 1.11.1
-      tsutils: 2.29.0_typescript@3.8.3
-      typescript: 3.8.3
-    dev: true
-    engines:
-      node: '>=4.8.0'
-    hasBin: true
-    peerDependencies:
-      typescript: '>=2.3.0-dev || >=2.4.0-dev || >=2.5.0-dev || >=2.6.0-dev || >=2.7.0-dev || >=2.8.0-dev || >=2.9.0-dev || >=3.0.0-dev || >= 3.1.0-dev || >= 3.2.0-dev'
-    resolution:
-      integrity: sha512-EcMxhzCFt8k+/UP5r8waCf/lzmeSyVlqxqMEDQE7rWYiQky8KpIBz1JAoYXfROHrPZ1XXd43q8yQnULOLiBRQg==
-  /tsutils/2.29.0_typescript@3.8.3:
-    dependencies:
-      tslib: 1.11.1
-      typescript: 3.8.3
-    dev: true
-    peerDependencies:
-      typescript: '>=2.1.0 || >=2.1.0-dev || >=2.2.0-dev || >=2.3.0-dev || >=2.4.0-dev || >=2.5.0-dev || >=2.6.0-dev || >=2.7.0-dev || >=2.8.0-dev || >=2.9.0-dev || >= 3.0.0-dev || >= 3.1.0-dev'
-    resolution:
-      integrity: sha512-g5JVHCIJwzfISaXpXE1qvNalca5Jwob6FjI4AoPlqMusJ6ftFE7IkkFoMhVLRgK+4Kx3gkzb8UZK5t5yTTvEmA==
   /tsutils/3.17.1_typescript@3.8.3:
     dependencies:
       tslib: 1.11.1

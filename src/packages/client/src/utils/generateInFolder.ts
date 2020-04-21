@@ -32,7 +32,7 @@ export async function generateInFolder({
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const dmmf = await getDMMF({ datamodel })
-  const config = await getConfig({ datamodel })
+  const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
 
   const outputDir = transpile
     ? path.join(projectDir, 'node_modules/@prisma/client')
