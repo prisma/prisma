@@ -4,7 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
-import { arg } from '@prisma/sdk'
+import { arg, drawBox } from '@prisma/sdk'
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 export { byline } from '@prisma/migrate'
@@ -183,9 +183,14 @@ async function main(): Promise<number> {
   // if the result is cached and we're outdated, show this prompte
   if (checkResult.status === 'ok' && checkResult.data.outdated) {
     console.error(
-      `\n${chalk.blue('Update available')} ${packageJson.version} -> ${
-        checkResult.data.current_version
-      }\nRun ${chalk.bold(checkResult.data.install_command)} to update`,
+      drawBox({
+        height: 4,
+        width: 59,
+        str: `\n${chalk.blue('Update available')} ${packageJson.version} -> ${
+          checkResult.data.current_version
+        }\nRun ${chalk.bold(checkResult.data.install_command)} to update`,
+        horizontalPadding: 2,
+      }),
     )
   }
 
