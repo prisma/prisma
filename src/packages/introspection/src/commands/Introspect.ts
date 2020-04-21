@@ -194,9 +194,8 @@ Then you can run ${chalk.green('prisma introspect')} again.
       }
     }
 
-    const introspectionWarningsMessage = getWarningMessage(
-      introspectionWarnings,
-    )
+    const introspectionWarningsMessage =
+      getWarningMessage(introspectionWarnings) || ''
 
     if (args['--print']) {
       console.log(introspectionSchema)
