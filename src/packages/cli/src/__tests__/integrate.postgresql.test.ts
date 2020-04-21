@@ -10,7 +10,8 @@ import path from 'path'
 import snapshot from 'snap-shot-it'
 import { getLatestAlphaTag } from '@prisma/fetch-engine'
 
-const connectionString = process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/'
+const connectionString =
+  process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/'
 process.env.SKIP_GENERATE = 'true'
 
 const db = new Client({
@@ -22,8 +23,8 @@ const tmp = join(dirname(pkg), 'tmp-postgresql')
 const engine = new IntrospectionEngine()
 const latestAlphaPromise = getLatestAlphaTag()
 
-before(done => {
-  db.connect(err => done(err))
+before((done) => {
+  db.connect((err) => done(err))
 })
 
 beforeEach(async () => {
@@ -143,7 +144,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.findOne({ where: { id: 2 } })
       },
       expect: {
@@ -165,8 +166,11 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
-        return client.teams.findOne({ where: { id: 2 }, select: { name: true } })
+      do: async (client) => {
+        return client.teams.findOne({
+          where: { id: 2 },
+          select: { name: true },
+        })
       },
       expect: {
         name: 'b',
@@ -194,8 +198,11 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop table if exists users cascade;
       `,
-      do: async client => {
-        return client.users.findOne({ where: { id: 1 }, include: { posts: true } })
+      do: async (client) => {
+        return client.users.findOne({
+          where: { id: 1 },
+          include: { posts: true },
+        })
       },
       expect: {
         email: 'ada@prisma.io',
@@ -225,7 +232,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.create({ data: { name: 'c' } })
       },
       expect: {
@@ -244,7 +251,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.create({ data: {} })
       },
       expect: {
@@ -263,7 +270,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.create({ data: {} })
       },
       expect: {
@@ -283,7 +290,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.update({
           where: { id: 1 },
           data: { name: 'd' },
@@ -307,7 +314,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.update({
           where: { id: 1 },
           data: { active: false },
@@ -332,7 +339,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.update({
           where: { id: 1 },
           data: { active: false },
@@ -355,7 +362,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.update({
           where: { name: 'c' },
           data: { name: 'd' },
@@ -379,7 +386,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.updateMany({
           where: { name: 'c' },
           data: { name: 'd' },
@@ -402,7 +409,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         await client.teams.updateMany({
           where: { name: 'c' },
           data: { name: 'd' },
@@ -432,7 +439,7 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findOne({ where: { email: 'ada@prisma.io' } })
       },
       expect: {
@@ -454,8 +461,12 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
-        return client.users.findOne({ where: { users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' } } })
+      do: async (client) => {
+        return client.users.findOne({
+          where: {
+            users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' },
+          },
+        })
       },
       expect: {
         id: 1,
@@ -477,9 +488,11 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.update({
-          where: { users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' } },
+          where: {
+            users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' },
+          },
           data: { name: 'Marco' },
         })
       },
@@ -503,9 +516,11 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.delete({
-          where: { users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' } },
+          where: {
+            users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' },
+          },
         })
       },
       expect: {
@@ -527,7 +542,7 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findMany()
       },
       expect: [
@@ -553,7 +568,7 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findMany({ where: { email: 'ada@prisma.io' } })
       },
       expect: [
@@ -576,7 +591,7 @@ function tests(): Test[] {
       down: `
         drop table if exists users cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findMany()
       },
       expect: [
@@ -612,8 +627,10 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop table if exists users cascade;
       `,
-      do: async client => {
-        return client.users.findOne({ where: { email: 'ada@prisma.io' } }).posts()
+      do: async (client) => {
+        return client.users
+          .findOne({ where: { email: 'ada@prisma.io' } })
+          .posts()
       },
       expect: [
         {
@@ -643,7 +660,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.findMany({
           where: {
             title: { contains: 'A' },
@@ -674,7 +691,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.findMany({
           where: {
             OR: [{ title: { contains: 'A' } }, { title: { contains: 'C' } }],
@@ -710,7 +727,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.upsert({
           where: { id: 1 },
           create: { title: 'D', published: true },
@@ -738,7 +755,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.upsert({
           where: { id: 4 },
           create: { title: 'D', published: false },
@@ -766,7 +783,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.findMany({
           orderBy: {
             title: 'asc',
@@ -806,7 +823,7 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.findMany({
           orderBy: {
             title: 'desc',
@@ -848,7 +865,7 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.findMany()
       },
       expect: [
@@ -887,7 +904,7 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.create({ data: { title: 'D' } })
       },
       expect: {},
@@ -909,7 +926,7 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.update({
           where: { id: 1 },
           data: { published: 'PUBLISHED' },
@@ -938,7 +955,7 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.posts.updateMany({
           data: { published: 'PUBLISHED' },
         })
@@ -964,7 +981,7 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         await client.posts.updateMany({
           data: { published: 'PUBLISHED' },
         })
@@ -1005,7 +1022,7 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return await client.posts.deleteMany({
           where: { published: 'DRAFT' },
         })
@@ -1031,7 +1048,7 @@ function tests(): Test[] {
         drop table if exists posts cascade;
         drop type if exists posts_status cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         await client.posts.deleteMany({
           where: { published: 'DRAFT' },
         })
@@ -1060,7 +1077,7 @@ function tests(): Test[] {
       down: `
         drop table if exists crons cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.crons.findMany({ where: { job: { contains: 'j2' } } })
       },
       expect: [
@@ -1091,7 +1108,7 @@ function tests(): Test[] {
       down: `
         drop table if exists crons cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.crons.findMany({ where: { job: { startsWith: 'j2' } } })
       },
       expect: [
@@ -1122,7 +1139,7 @@ function tests(): Test[] {
       down: `
         drop table if exists crons cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.crons.findMany({ where: { job: { endsWith: '1' } } })
       },
       expect: [
@@ -1153,7 +1170,7 @@ function tests(): Test[] {
       down: `
         drop table if exists crons cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.crons.findMany({ where: { job: { in: ['j20', 'j1'] } } })
       },
       expect: [
@@ -1185,7 +1202,7 @@ function tests(): Test[] {
       down: `
         drop table if exists crons cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.crons.findOne({ where: { job: { in: ['j20', 'j1'] } } })
       },
       expect: [
@@ -1217,9 +1234,11 @@ function tests(): Test[] {
         drop table if exists posts cascade;
       `,
       // todo: true,
-      do: async client => {
-        const posts = await client.posts.findMany({ where: { created_at: { lte: new Date() } } })
-        posts.forEach(post => {
+      do: async (client) => {
+        const posts = await client.posts.findMany({
+          where: { created_at: { lte: new Date() } },
+        })
+        posts.forEach((post) => {
           assert.ok(post.created_at instanceof Date)
           delete post.created_at
         })
@@ -1255,8 +1274,10 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
-        return client.posts.findMany({ where: { created_at: { gte: new Date() } } })
+      do: async (client) => {
+        return client.posts.findMany({
+          where: { created_at: { gte: new Date() } },
+        })
       },
       expect: [],
     },
@@ -1275,8 +1296,10 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
-        return client.posts.findMany({ where: { created_at: { gt: new Date() } } })
+      do: async (client) => {
+        return client.posts.findMany({
+          where: { created_at: { gt: new Date() } },
+        })
       },
       expect: [],
     },
@@ -1295,9 +1318,11 @@ function tests(): Test[] {
       down: `
         drop table if exists posts cascade;
       `,
-      do: async client => {
-        const posts = await client.posts.findMany({ where: { created_at: { lt: new Date() } } })
-        posts.forEach(post => {
+      do: async (client) => {
+        const posts = await client.posts.findMany({
+          where: { created_at: { lt: new Date() } },
+        })
+        posts.forEach((post) => {
           assert.ok(post.created_at instanceof Date)
           delete post.created_at
         })
@@ -1330,8 +1355,11 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
-        return client.teams.update({ where: { token: 11 }, data: { token: 10 } })
+      do: async (client) => {
+        return client.teams.update({
+          where: { token: 11 },
+          data: { token: 10 },
+        })
       },
       expect: {
         id: 1,
@@ -1350,8 +1378,10 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
-        return client.events.findMany({ where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } })
+      do: async (client) => {
+        return client.events.findMany({
+          where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) },
+        })
       },
       expect: [
         {
@@ -1372,8 +1402,10 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
-        return client.events.findMany({ where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+      do: async (client) => {
+        return client.events.findMany({
+          where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
+        })
       },
       expect: [],
     },
@@ -1389,8 +1421,10 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
-        return client.events.findMany({ where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+      do: async (client) => {
+        return client.events.findMany({
+          where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
+        })
       },
       expect: [
         {
@@ -1411,8 +1445,10 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
-        return client.events.findMany({ where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+      do: async (client) => {
+        return client.events.findMany({
+          where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
+        })
       },
       expect: [],
     },
@@ -1428,8 +1464,10 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
-        return client.events.findMany({ where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+      do: async (client) => {
+        return client.events.findMany({
+          where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
+        })
       },
       expect: [
         {
@@ -1450,8 +1488,10 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
-        return client.events.findMany({ where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } } })
+      do: async (client) => {
+        return client.events.findMany({
+          where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
+        })
       },
       expect: [],
     },
@@ -1469,7 +1509,7 @@ function tests(): Test[] {
       down: `
         drop table if exists events cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.events.findMany({ where: { time: null } })
       },
       expect: [
@@ -1501,7 +1541,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.findMany({ where: { id: { in: [] } } })
       },
       expect: [],
@@ -1520,8 +1560,10 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
-        return client.teams.findMany({ where: { id: { in: [] }, token: { in: [11, 22] } } })
+      do: async (client) => {
+        return client.teams.findMany({
+          where: { id: { in: [] }, token: { in: [11, 22] } },
+        })
       },
       expect: [],
     },
@@ -1539,7 +1581,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.findMany({ where: { token: { in: [11, 22] } } })
       },
       expect: [
@@ -1569,7 +1611,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.findMany({ where: { token: { notIn: [11, 22] } } })
       },
       expect: [],
@@ -1588,7 +1630,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.teams.findMany({ where: { token: { notIn: [] } } })
       },
       expect: [
@@ -1626,7 +1668,7 @@ function tests(): Test[] {
         drop table if exists users cascade;
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findMany({ where: { team_id: null } })
       },
       expect: [
@@ -1651,7 +1693,7 @@ function tests(): Test[] {
         drop table if exists users cascade;
         drop extension if exists citext cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.users.findMany({ where: { email: 'MAX@PRISMA.IO' } })
       },
       expect: [
@@ -1673,7 +1715,7 @@ function tests(): Test[] {
       down: `
         drop table if exists exercises cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.exercises.findMany({ where: { distance: 12.213 } })
       },
       expect: [
@@ -1695,7 +1737,7 @@ function tests(): Test[] {
       down: `
         drop table if exists exercises cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.exercises.findOne({ where: { distance: 12.213 } })
       },
       expect: {
@@ -1716,7 +1758,7 @@ function tests(): Test[] {
       down: `
         drop table if exists exercises cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.exercises.findOne({ where: { distance: 12.3 } })
       },
       expect: {
@@ -1734,7 +1776,7 @@ function tests(): Test[] {
       down: `
         drop table if exists migrate cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.migrate.create({ data: { version: 1 } })
       },
       expect: {
@@ -1756,8 +1798,10 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
-        return client.variables.findOne({ where: { name_key: { key: 'b', name: 'a' } } })
+      do: async (client) => {
+        return client.variables.findOne({
+          where: { name_key: { key: 'b', name: 'a' } },
+        })
       },
       expect: {
         email: 'd',
@@ -1781,7 +1825,7 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.variables.update({
           where: { name_key: { key: 'b', name: 'a' } },
           data: { email: 'e' },
@@ -1809,7 +1853,7 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.variables.upsert({
           where: { name_key: { key: 'b', name: 'a' } },
           create: { name: '1', key: '2', value: '3', email: '4' },
@@ -1838,7 +1882,7 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.variables.upsert({
           where: { name_key: { key: 'd', name: 'a' } },
           create: { name: '1', key: '2', value: '3', email: '4' },
@@ -1867,7 +1911,7 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.variables.delete({
           where: { name_key: { key: 'b', name: 'a' } },
         })
@@ -1895,8 +1939,10 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
-        return client.variables.findOne({ where: { variables_name_key_key: { key: 'b', name: 'a' } } })
+      do: async (client) => {
+        return client.variables.findOne({
+          where: { variables_name_key_key: { key: 'b', name: 'a' } },
+        })
       },
       expect: {
         email: 'd',
@@ -1922,8 +1968,10 @@ function tests(): Test[] {
       down: `
         drop table if exists variables cascade;
       `,
-      do: async client => {
-        return client.variables.findOne({ where: { variables_value_email_key: { value: 'c', email: 'd' } } })
+      do: async (client) => {
+        return client.variables.findOne({
+          where: { variables_value_email_key: { value: 'c', email: 'd' } },
+        })
       },
       expect: {
         email: 'd',
@@ -1953,7 +2001,7 @@ function tests(): Test[] {
         drop table if exists a cascade;
         drop table if exists b cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         return client.a.findOne({ where: { one_two: { one: 1, two: 2 } } })
       },
       expect: {
@@ -2145,8 +2193,10 @@ function tests(): Test[] {
       down: `
         drop table if exists crazy cascade;
       `,
-      do: async client => {
-        return client.crazy.findOne({ where: { value_email: { value: 'c', email: 'd' } } })
+      do: async (client) => {
+        return client.crazy.findOne({
+          where: { value_email: { value: 'c', email: 'd' } },
+        })
       },
       expect: {
         // TODO
@@ -2166,7 +2216,7 @@ function tests(): Test[] {
       down: `
         drop table if exists teams cascade;
       `,
-      do: async client => {
+      do: async (client) => {
         await client.teams.updateMany({
           data: { name: 'b' },
           where: { name: null },
@@ -2218,8 +2268,9 @@ function tests(): Test[] {
         drop table if exists invalid_enum_value_name cascade;
         drop table if exists no_unique_identifier cascade;
         drop table if exists unsupported_type cascade;
+        drop type if exists invalid_enum; 
       `,
-      do: async client => {
+      do: async (client) => {
         return await client.column_name_that_becomes_empty_string.findMany({})
       },
       expect: [],
@@ -2232,7 +2283,7 @@ export function maskSchema(schema: string): string {
   const outputRegex = /output\s*=\s*.+/
   return schema
     .split('\n')
-    .map(line => {
+    .map((line) => {
       const urlMatch = urlRegex.exec(line)
       if (urlMatch) {
         return `${line.slice(0, urlMatch.index)}url = "***"`
