@@ -8,7 +8,10 @@ const writeFile = promisify(fs.writeFile)
 
 const madeDirs = {}
 
-export async function serializeFileMap(fileMap: FileMap, dir: string): Promise<void> {
+export async function serializeFileMap(
+  fileMap: FileMap,
+  dir: string,
+): Promise<void> {
   await makeDir(dir)
   await Promise.all(
     Object.entries(fileMap).map(async ([fileName, file]) => {

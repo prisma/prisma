@@ -55,9 +55,9 @@ describe('runtime works', () => {
 function getSubDirs(dir: string): string[] {
   const files = fs.readdirSync(dir)
   return files
-    .map(file => path.join(dir, file))
+    .map((file) => path.join(dir, file))
     .filter(
-      file =>
+      (file) =>
         fs.lstatSync(file).isDirectory() && !file.includes('__snapshots__'),
     )
 }

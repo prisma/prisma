@@ -48,6 +48,8 @@
   "scripts": {
     "build": "tsc -d",
     "prepublishOnly": "pnpm run build",
+    "format": "prettier --write .",
+    "lint": "eslint --fix --ext .js,.ts .",
     "test": "jest"
   },
   "files": [

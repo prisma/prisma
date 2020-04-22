@@ -65,7 +65,9 @@ export interface Log {
 
 export function convertLog(rustLog: RawRustLog): RustLog {
   const isQuery = isQueryLog(rustLog.fields)
-  const level: LogLevel = isQuery ? 'query' : (rustLog.level.toLowerCase() as LogLevel)
+  const level: LogLevel = isQuery
+    ? 'query'
+    : (rustLog.level.toLowerCase() as LogLevel)
   return {
     ...rustLog,
     level,

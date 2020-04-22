@@ -12,11 +12,11 @@ describe('batching', () => {
     const fetcher = new PrismaClientFetcher({
       connect: () => Promise.resolve(),
       engine: {
-        requestBatch: batch => {
+        requestBatch: (batch) => {
           batches.push(batch)
           return batch.map(() => ({ data: null }))
         },
-        request: request => {
+        request: (request) => {
           requests.push(request)
           return { data: null }
         },
@@ -95,11 +95,11 @@ describe('batching', () => {
     const fetcher = new PrismaClientFetcher({
       connect: () => Promise.resolve(),
       engine: {
-        requestBatch: batch => {
+        requestBatch: (batch) => {
           batches.push(batch)
           return batch.map(() => ({ data: null }))
         },
-        request: request => {
+        request: (request) => {
           requests.push(request)
           return { data: null }
         },
@@ -180,11 +180,11 @@ describe('batching', () => {
     const fetcher = new PrismaClientFetcher({
       connect: () => Promise.resolve(),
       engine: {
-        requestBatch: batch => {
+        requestBatch: (batch) => {
           batches.push(batch)
           return batch.map(() => ({ data: null }))
         },
-        request: request => {
+        request: (request) => {
           requests.push(request)
           return { data: null }
         },

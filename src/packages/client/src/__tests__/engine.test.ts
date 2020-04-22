@@ -9,7 +9,7 @@ describe('engine', () => {
     })
 
     await expect(
-      engine.start().catch(e => {
+      engine.start().catch((e) => {
         throw new Error(
           e.message.replace(/query-engine-.*\n/, 'query-engine\n'),
         )

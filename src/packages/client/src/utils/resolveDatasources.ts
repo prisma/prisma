@@ -7,7 +7,7 @@ export function resolveDatasources(
   outputDir: string,
   absolutePaths?: boolean,
 ): DataSource[] {
-  return datasources.map(datasource => {
+  return datasources.map((datasource) => {
     if (datasource.connectorType === 'sqlite') {
       if (datasource.url.fromEnvVar === null) {
         return {

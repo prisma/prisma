@@ -44,7 +44,7 @@ export default function charm() {
   }
 
   charm.once('^C', process.exit)
-  charm.once('end', function() {
+  charm.once('end', function () {
     if (input) {
       if (typeof input.fd === 'number' && tty.isatty(input.fd)) {
         if (process.stdin.setRawMode) {
@@ -64,7 +64,7 @@ export function Charm(this: any) {
   this.pending = []
 }
 
-Charm.prototype.write = function(buf) {
+Charm.prototype.write = function (buf) {
   var self = this
 
   if (self.pending.length) {
@@ -95,16 +95,16 @@ Charm.prototype.write = function(buf) {
   return self
 }
 
-Charm.prototype.destroy = function() {
+Charm.prototype.destroy = function () {
   this.end()
 }
 
-Charm.prototype.end = function(buf) {
+Charm.prototype.end = function (buf) {
   if (buf) this.write(buf)
   this.emit('end')
 }
 
-Charm.prototype.reset = function(cb) {
+Charm.prototype.reset = function (cb) {
   // resets the screen on iTerm, which appears
   // to lack support for the reset character.
   this.write(encode('[0m'))
@@ -114,21 +114,17 @@ Charm.prototype.reset = function(cb) {
   return this
 }
 
-Charm.prototype.position = function(x, y) {
+Charm.prototype.position = function (x, y) {
   // get/set absolute coordinates
   if (typeof x === 'function') {
     var cb = x
-    this.pending.push(function(buf) {
+    this.pending.push(function (buf) {
       if (
         buf[0] === 27 &&
         buf[1] === encode.ord('[') &&
         buf[buf.length - 1] === encode.ord('R')
       ) {
-        var pos = buf
-          .toString()
-          .slice(2, -1)
-          .split(';')
-          .map(Number)
+        var pos = buf.toString().slice(2, -1).split(';').map(Number)
         cb(pos[1], pos[0])
         return true
       }
@@ -140,7 +136,7 @@ Charm.prototype.position = function(x, y) {
   return this
 }
 
-Charm.prototype.move = function(x, y) {
+Charm.prototype.move = function (x, y) {
   // set relative coordinates
   var bufs = []
 
@@ -153,46 +149,46 @@ Charm.prototype.move = function(x, y) {
   return this
 }
 
-Charm.prototype.up = function(y) {
+Charm.prototype.up = function (y) {
   if (y === undefined) y = 1
   this.write(encode('[' + Math.floor(y) + 'A'))
   return this
 }
 
-Charm.prototype.down = function(y) {
+Charm.prototype.down = function (y) {
   if (y === undefined) y = 1
   this.write(encode('[' + Math.floor(y) + 'B'))
   return this
 }
 
-Charm.prototype.right = function(x) {
+Charm.prototype.right = function (x) {
   if (x === undefined) x = 1
   this.write(encode('[' + Math.floor(x) + 'C'))
   return this
 }
 
-Charm.prototype.left = function(x) {
+Charm.prototype.left = function (x) {
   if (x === undefined) x = 1
   this.write(encode('[' + Math.floor(x) + 'D'))
   return this
 }
 
-Charm.prototype.column = function(x) {
+Charm.prototype.column = function (x) {
   this.write(encode('[' + Math.floor(x) + 'G'))
   return this
 }
 
-Charm.prototype.push = function(withAttributes) {
+Charm.prototype.push = function (withAttributes) {
   this.write(encode(withAttributes ? '7' : '[s'))
   return this
 }
 
-Charm.prototype.pop = function(withAttributes) {
+Charm.prototype.pop = function (withAttributes) {
   this.write(encode(withAttributes ? '8' : '[u'))
   return this
 }
 
-Charm.prototype.erase = function(s) {
+Charm.prototype.erase = function (s) {
   if (s === 'end' || s === '$') {
     this.write(encode('[K'))
   } else if (s === 'start' || s === '^') {
@@ -211,7 +207,7 @@ Charm.prototype.erase = function(s) {
   return this
 }
 
-Charm.prototype.delete = function(s, n) {
+Charm.prototype.delete = function (s, n) {
   n = n || 1
 
   if (s === 'line') {
@@ -224,7 +220,7 @@ Charm.prototype.delete = function(s, n) {
   return this
 }
 
-Charm.prototype.insert = function(mode, n) {
+Charm.prototype.insert = function (mode, n) {
   n = n || 1
 
   if (mode === true) {
@@ -241,7 +237,7 @@ Charm.prototype.insert = function(mode, n) {
   return this
 }
 
-Charm.prototype.display = function(attr) {
+Charm.prototype.display = function (attr) {
   var c = {
     reset: 0,
     bright: 1,
@@ -258,7 +254,7 @@ Charm.prototype.display = function(attr) {
   return this
 }
 
-Charm.prototype.foreground = function(color) {
+Charm.prototype.foreground = function (color) {
   if (typeof color === 'number') {
     if (color < 0 || color >= 256) {
       this.emit('error', new Error('Color out of range: ' + color))
@@ -282,7 +278,7 @@ Charm.prototype.foreground = function(color) {
   return this
 }
 
-Charm.prototype.background = function(color) {
+Charm.prototype.background = function (color) {
   if (typeof color === 'number') {
     if (color < 0 || color >= 256) {
       this.emit('error', new Error('Color out of range: ' + color))
@@ -306,12 +302,12 @@ Charm.prototype.background = function(color) {
   return this
 }
 
-Charm.prototype.cursor = function(visible) {
+Charm.prototype.cursor = function (visible) {
   this.write(encode(visible ? '[?25h' : '[?25l'))
   return this
 }
 
-var extractCodes = (exports.extractCodes = function(buf) {
+var extractCodes = (exports.extractCodes = function (buf) {
   var codes: any[] = []
   var start = -1
 

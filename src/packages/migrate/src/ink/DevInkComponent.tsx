@@ -109,7 +109,7 @@ class DevComponent extends Component<Props, State> {
     }
 
     if (key === 'd' || key === ARROW_LEFT || key === ARROW_RIGHT) {
-      this.setState(state => ({ ...state, showDiff: !state.showDiff }))
+      this.setState((state) => ({ ...state, showDiff: !state.showDiff }))
     }
 
     if (this.state.showDiff) {
@@ -142,7 +142,9 @@ class DevComponent extends Component<Props, State> {
           <Color bold red>
             Unexpected Error in dev command
           </Color>
-          <Color red>{this.state.error.stack || this.state.error.message}</Color>
+          <Color red>
+            {this.state.error.stack || this.state.error.message}
+          </Color>
         </Box>
       )
     }
@@ -154,11 +156,17 @@ class DevComponent extends Component<Props, State> {
       const { diff, rowCount } = this.diff
       const height = Math.max(this.height, rowCount + 5)
       return (
-        <Box flexDirection="column" marginTop={1} justifyContent="space-between" height={height}>
+        <Box
+          flexDirection="column"
+          marginTop={1}
+          justifyContent="space-between"
+          height={height}
+        >
           <Box flexDirection="column">
             <Box>
               <Color>
-                Changes in datamodel since last <Color bold>prisma migrate save</Color>
+                Changes in datamodel since last{' '}
+                <Color bold>prisma migrate save</Color>
               </Color>
             </Box>
             <Box marginTop={1} marginLeft={2}>
@@ -207,12 +215,22 @@ class DevComponent extends Component<Props, State> {
       )
     }
     return (
-      <Box flexDirection="column" marginTop={1} marginLeft={1} height={this.height} justifyContent="space-between">
+      <Box
+        flexDirection="column"
+        marginTop={1}
+        marginLeft={1}
+        height={this.height}
+        justifyContent="space-between"
+      >
         <Box flexDirection="column">
           <Box marginLeft={2} flexDirection="column">
-            <Color bold>Watching for changes in {this.props.relativeDatamodelPath}</Color>
+            <Color bold>
+              Watching for changes in {this.props.relativeDatamodelPath}
+            </Color>
             {this.props.lastChanged ? (
-              <Color dim>Last changed at {renderDate(this.props.lastChanged)}</Color>
+              <Color dim>
+                Last changed at {renderDate(this.props.lastChanged)}
+              </Color>
             ) : (
               <Color dim>No changes yet</Color>
             )}
@@ -225,12 +243,16 @@ class DevComponent extends Component<Props, State> {
             {this.props.migrating ? (
               <Color yellow>
                 <Spinner type="dots10" />{' '}
-                {warnings && warnings.length > 0 ? 'Waiting for confirmation...' : 'Migrating the database...'}
+                {warnings && warnings.length > 0
+                  ? 'Waiting for confirmation...'
+                  : 'Migrating the database...'}
               </Color>
             ) : (
               <Color green>
                 ✓ Database successfully migrated
-                {this.props.migratedIn ? <> in {formatms(this.props.migratedIn)}</> : null}
+                {this.props.migratedIn ? (
+                  <> in {formatms(this.props.migratedIn)}</>
+                ) : null}
               </Color>
             )}
             {this.diff.diff.trim() !== '' && (
@@ -250,13 +272,16 @@ class DevComponent extends Component<Props, State> {
           </Box>
           <Box marginTop={0}>
             {generators.length === 0 ? (
-              <Box height={missingGeneratorMessage.split('\n').length} marginLeft={4}>
+              <Box
+                height={missingGeneratorMessage.split('\n').length}
+                marginLeft={4}
+              >
                 {missingGeneratorMessage}
               </Box>
             ) : (
               <>
                 <Box flexDirection="column">
-                  {generators.map(gen =>
+                  {generators.map((gen) =>
                     gen.generating ? (
                       <Color yellow key={gen.name}>
                         <Spinner type="dots10" /> {gen.name}
@@ -274,7 +299,7 @@ class DevComponent extends Component<Props, State> {
                   )}
                 </Box>
                 <Box flexDirection="column" marginLeft={4}>
-                  {generators.map(gen =>
+                  {generators.map((gen) =>
                     gen.generating ? (
                       <Color dim key={gen.name}>
                         Generating...
@@ -296,10 +321,17 @@ class DevComponent extends Component<Props, State> {
         </Box>
         <Box flexDirection="column" marginLeft={2} marginTop={0}>
           {warnings && warnings.length > 0 && onSubmitWarningsPrompt ? (
-            <WarningsPrompt warnings={warnings} onSubmitWarningsPrompt={onSubmitWarningsPrompt} />
+            <WarningsPrompt
+              warnings={warnings}
+              onSubmitWarningsPrompt={onSubmitWarningsPrompt}
+            />
           ) : (
             <>
-              <Box marginTop={1} width={this.width} justifyContent="space-between">
+              <Box
+                marginTop={1}
+                width={this.width}
+                justifyContent="space-between"
+              >
                 <Box>
                   <Color bold>Studio endpoint: </Color>
                   {supportsHyperlinks.stdout ? (
@@ -307,7 +339,9 @@ class DevComponent extends Component<Props, State> {
                       http://localhost:{this.props.studioPort}/
                     </Link>
                   ) : (
-                    <Color underline>http://localhost:{this.props.studioPort}/</Color>
+                    <Color underline>
+                      http://localhost:{this.props.studioPort}/
+                    </Color>
                   )}
                 </Box>
               </Box>
@@ -330,7 +364,14 @@ export const DevInkComponent = (props: DevComponentProps) => (
   <StdinContext.Consumer>
     {({ stdin, setRawMode }) => (
       <StdoutContext.Consumer>
-        {({ stdout }) => <DevComponent stdout={stdout} stdin={stdin} setRawMode={setRawMode} {...props} />}
+        {({ stdout }) => (
+          <DevComponent
+            stdout={stdout}
+            stdin={stdin}
+            setRawMode={setRawMode}
+            {...props}
+          />
+        )}
       </StdoutContext.Consumer>
     )}
   </StdinContext.Consumer>
