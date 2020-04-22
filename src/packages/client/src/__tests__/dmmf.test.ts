@@ -17,7 +17,7 @@ enum PostKind {
 describe('dmmf', () => {
   test('dmmf enum filter', async () => {
     const dmmf = await getDMMF({ datamodel })
-    expect(dmmf.schema.inputTypes.find(i => i.name === 'PostKindFilter'))
+    expect(dmmf.schema.inputTypes.find((i) => i.name === 'PostKindFilter'))
       .toMatchInlineSnapshot(`
       Object {
         "atLeastOne": false,

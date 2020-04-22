@@ -4,7 +4,7 @@ const resolvePkg = require('resolve-pkg')
 
 function resolve(pkg) {
   const resolvedPath = resolvePkg(pkg, {
-    cwd: __dirname
+    cwd: __dirname,
   })
   if (resolvedPath) {
     return resolvedPath

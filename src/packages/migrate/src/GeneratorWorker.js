@@ -2,7 +2,7 @@
 //   packagePath: string
 //   config: GeneratorConfig
 // }
-process.on('message', async message => {
+process.on('message', async (message) => {
   const job /*: GeneratorWorkerJob*/ = JSON.parse(message)
   try {
     const package = require(job.packagePath)

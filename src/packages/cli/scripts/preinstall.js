@@ -12,11 +12,15 @@ const RESET = '\u001b[0m'
 // returns { pkgManager: 'yarn' | 'npm', pkgPath: string } | null
 function isPackageInstalledGlobally(name) {
   try {
-    const pkgPath = require.resolve(path.join(globalDirs.yarn.packages, `${name}/package.json`))
+    const pkgPath = require.resolve(
+      path.join(globalDirs.yarn.packages, `${name}/package.json`),
+    )
     return { pkgManager: 'yarn', pkgPath }
   } catch (_) {
     try {
-      const pkgPath = require.resolve(path.join(globalDirs.npm.packages, `${name}/package.json`))
+      const pkgPath = require.resolve(
+        path.join(globalDirs.npm.packages, `${name}/package.json`),
+      )
       return { pkgManager: 'npm', pkgPath }
     } catch (_) {
       //
@@ -45,8 +49,8 @@ function prismaIsInstalledGlobally() {
   return null
 }
 
-const b = str => BOLD + str + RESET
-const white = str => WHITE_BRIGHT + str + RESET
+const b = (str) => BOLD + str + RESET
+const white = (str) => WHITE_BRIGHT + str + RESET
 
 function main() {
   // When running in npx, npm puts this package into a /_npx/ folder. Tested on Win, Mac, Linux
@@ -77,7 +81,11 @@ Please uninstall ${white('prisma2')} globally first.
 Then install ${white('@prisma/cli')} to continue using ${b('Prisma 2.0')}:
 
    # Uninstall old CLI
-   ${white(installedGlobally.pkgManager === 'yarn' ? 'yarn global remove prisma2' : 'npm uninstall -g prisma2')}
+   ${white(
+     installedGlobally.pkgManager === 'yarn'
+       ? 'yarn global remove prisma2'
+       : 'npm uninstall -g prisma2',
+   )}
 
    # Install new CLI
    ${white(`npm install @prisma/cli${isAlpha ? '@alpha' : ''} --save-dev`)}
@@ -90,16 +98,28 @@ Learn more here: https://pris.ly/preview025
   } else {
     message = `
 You seem to have a global installation of Prisma 1 package ${white('prisma')}. 
-As Prisma 2 uses the same executable ${white('prisma')}, this would lead to a conflict.
+As Prisma 2 uses the same executable ${white(
+      'prisma',
+    )}, this would lead to a conflict.
 
-To keep using Prisma 1, install the new package ${white('prisma1')} that we created.
+To keep using Prisma 1, install the new package ${white(
+      'prisma1',
+    )} that we created.
 It exposes the executable ${white('prisma1')}.
   
    # Uninstall old Prisma 1 CLI
-   ${white(installedGlobally.pkgManager === 'yarn' ? 'yarn global remove prisma' : 'npm uninstall -g prisma')}
+   ${white(
+     installedGlobally.pkgManager === 'yarn'
+       ? 'yarn global remove prisma'
+       : 'npm uninstall -g prisma',
+   )}
 
    # Install new Prisma 1 CLI
-   ${white(installedGlobally.pkgManager === 'yarn' ? 'yarn global add prisma1' : 'npm install -g prisma1')}
+   ${white(
+     installedGlobally.pkgManager === 'yarn'
+       ? 'yarn global add prisma1'
+       : 'npm install -g prisma1',
+   )}
 
    # Use the Prisma 1 CLI
    ${white('prisma1 --help')}
@@ -116,7 +136,9 @@ Learn more here: https://pris.ly/prisma1
 `
   }
 
-  console.error(drawBox({ str: message, verticalPadding: 1, horizontalPadding: 3 }))
+  console.error(
+    drawBox({ str: message, verticalPadding: 1, horizontalPadding: 3 }),
+  )
   process.exit(1)
 }
 

@@ -1,6 +1,15 @@
 import { DMMF } from '@prisma/generator-helper'
 
-const modelOrder = ['User', 'Player', 'Customer', 'Product', 'Order', 'Article', 'Post', 'Message']
+const modelOrder = [
+  'User',
+  'Player',
+  'Customer',
+  'Product',
+  'Order',
+  'Article',
+  'Post',
+  'Message',
+]
 
 export function sortModels(models: DMMF.Model[]): DMMF.Model[] {
   return models.sort((a, b) => {

@@ -1,4 +1,12 @@
-import { arg, Command, Commands, format, HelpError, isError, unknownCommand } from '@prisma/sdk'
+import {
+  arg,
+  Command,
+  Commands,
+  format,
+  HelpError,
+  isError,
+  unknownCommand,
+} from '@prisma/sdk'
 import chalk from 'chalk'
 import { getNextFreePort } from '../utils/occupyPath'
 
@@ -12,12 +20,16 @@ export class MigrateCommand implements Command {
 
   // static help template
   private static help = format(`
-    ${process.platform === 'win32' ? '' : chalk.bold('🏋️  ')}Migrate your database with confidence
+    ${
+      process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
+    }Migrate your database with confidence
 
     ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in an experimental state.",
   )}
-    ${chalk.dim('When using any of the commands below you need to explicitly opt-in via the --experimental flag.')}
+    ${chalk.dim(
+      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
+    )}
 
     ${chalk.bold('Usage')}
 
@@ -25,7 +37,9 @@ export class MigrateCommand implements Command {
       ${chalk.dim('$')} prisma migrate [command] [options] --experimental
 
       Or specify a schema:
-      ${chalk.dim('$')} prisma migrate [command] [options] --experimental --schema=./schema.prisma
+      ${chalk.dim(
+        '$',
+      )} prisma migrate [command] [options] --experimental --schema=./schema.prisma
 
     ${chalk.bold('Options')}
 
@@ -79,12 +93,18 @@ export class MigrateCommand implements Command {
       const nextFreePort = await getNextFreePort(process.cwd())
       if (typeof nextFreePort !== 'number') {
         const command = `prisma migrate ${argv.join(' ')}`
-        throw new Error(`Cannot run ${chalk.bold(command)} because there is a ${chalk.bold(
+        throw new Error(`Cannot run ${chalk.bold(
+          command,
+        )} because there is a ${chalk.bold(
           'prisma dev',
         )} command running in this directory.
-Please ${chalk.rgb(228, 155, 15)(`stop ${chalk.bold('prisma dev')} first`)}, then try ${chalk.greenBright.bold(
-          command,
-        )} again`)
+Please ${chalk.rgb(
+          228,
+          155,
+          15,
+        )(
+          `stop ${chalk.bold('prisma dev')} first`,
+        )}, then try ${chalk.greenBright.bold(command)} again`)
       }
 
       const argsForCmd = args['--experimental']
@@ -98,7 +118,9 @@ Please ${chalk.rgb(228, 155, 15)(`stop ${chalk.bold('prisma dev')} first`)}, the
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateCommand.help}`)
+      return new HelpError(
+        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateCommand.help}`,
+      )
     }
     return MigrateCommand.help
   }

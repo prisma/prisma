@@ -5,11 +5,10 @@ const {
   prismaVersion,
 } = require('@prisma/client')
 const assert = require('assert')
-const {
-  Client
-} = require('pg')
+const { Client } = require('pg')
 
-const connectionString = process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
+const connectionString =
+  process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
 
 const db = new Client({
   connectionString,
@@ -50,7 +49,7 @@ module.exports = async () => {
     __internal: {
       measurePerformance: true,
       hooks: {
-        beforeRequest: request => requests.push(request),
+        beforeRequest: (request) => requests.push(request),
       },
     },
   })
@@ -74,7 +73,7 @@ module.exports = async () => {
   prisma.connect()
   await prisma.disconnect()
 
-  await new Promise(r => setTimeout(r, 200))
+  await new Promise((r) => setTimeout(r, 200))
   prisma.connect()
 
   const userPromise = prisma.user.findMany()
@@ -96,13 +95,13 @@ module.exports = async () => {
   }
 
   // Test raw``
-  const rawQueryTemplate = await prisma.raw `SELECT 1`
+  const rawQueryTemplate = await prisma.raw`SELECT 1`
   if (rawQueryTemplate[0]['?column?'] !== 1) {
     throw Error("prisma.raw`SELECT 1` result should be [ { '?column?': 1 } ]")
   }
 
   // Test raw`` with ${param}
-  const rawQueryTemplateWithParams = await prisma.raw `SELECT * FROM "public"."User" WHERE name = ${'Alice'}`;
+  const rawQueryTemplateWithParams = await prisma.raw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
   if (rawQueryTemplateWithParams[0].name !== 'Alice') {
     throw Error(
       "prisma.raw`SELECT * FROM User WHERE name = ${'Alice'}` result should be [{ email: 'a@a.de', id: '576eddf9-2434-421f-9a86-58bede16fd95', name: 'Alice' }]",

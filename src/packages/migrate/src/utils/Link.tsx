@@ -16,7 +16,7 @@ export interface Props {
   onSelect: () => void
 }
 
-export const Link: React.FC<Props> = props => {
+export const Link: React.FC<Props> = (props) => {
   const { tabIndex, kind, description } = props
 
   const [focussed, setFocussed] = useState(false)
@@ -51,7 +51,9 @@ export const Link: React.FC<Props> = props => {
           <Color bold dim={!focussed && backOrForward}>
             {showSymbol ? figures.pointer : ' '}
           </Color>{' '}
-          <Color {...{ bold: focussed || backOrForward }}>{props.label.padEnd(padding)}</Color>
+          <Color {...{ bold: focussed || backOrForward }}>
+            {props.label.padEnd(padding)}
+          </Color>
         </Box>
         <Color dim>{description || ''}</Color>
       </Color>

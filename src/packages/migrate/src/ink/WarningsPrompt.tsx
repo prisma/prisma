@@ -9,7 +9,10 @@ export interface WarningsPromptProps {
   onSubmitWarningsPrompt: (ok: boolean) => void
 }
 
-export const WarningsPrompt: React.FC<WarningsPromptProps> = ({ warnings, onSubmitWarningsPrompt }) => {
+export const WarningsPrompt: React.FC<WarningsPromptProps> = ({
+  warnings,
+  onSubmitWarningsPrompt,
+}) => {
   const [value, setValue] = useState('')
 
   const handleChange = (newValue: string) => {
@@ -32,8 +35,13 @@ export const WarningsPrompt: React.FC<WarningsPromptProps> = ({ warnings, onSubm
     <TabIndexProvider>
       <Box flexDirection="column">
         <Color bold>⚠️{'  '} There will be data loss:</Color>
-        <Box marginTop={1} marginBottom={1} marginLeft={2} flexDirection="column">
-          {warnings.map(warning => (
+        <Box
+          marginTop={1}
+          marginBottom={1}
+          marginLeft={2}
+          flexDirection="column"
+        >
+          {warnings.map((warning) => (
             <Box>• {warning.description}</Box>
           ))}
         </Box>
@@ -41,7 +49,9 @@ export const WarningsPrompt: React.FC<WarningsPromptProps> = ({ warnings, onSubm
           value={value}
           onChange={handleChange}
           onSubmit={() => handleChange('enter')}
-          label={'Are you sure you want to apply this change? ' + chalk.dim('y/N')}
+          label={
+            'Are you sure you want to apply this change? ' + chalk.dim('y/N')
+          }
           tabIndex={0}
         />
       </Box>
