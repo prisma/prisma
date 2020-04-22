@@ -109,7 +109,7 @@ Please try to install it with ${chalk.bold.greenBright(
 }
 
 async function installPackage(baseDir: string, pkg: string): Promise<void> {
-  const yarnUsed = hasYarn(baseDir)
+  const yarnUsed = hasYarn(baseDir) || hasYarn(path.join(baseDir, '..'))
 
   const cmdName = yarnUsed ? 'yarn add' : 'npm install'
 
