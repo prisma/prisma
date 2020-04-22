@@ -72,7 +72,7 @@ importers:
       log-update: 4.0.0
       make-dir: 3.0.2
       mariadb: 2.3.1
-      mocha: 6.2.2
+      mocha: 6.2.3
       mysql2: 2.1.0
       mz: 2.7.0
       open: 7.0.3
@@ -90,7 +90,7 @@ importers:
       terminal-link: 2.1.1
       tmp: 0.1.0
       ts-jest: 25.3.1_jest@25.3.0
-      ts-mocha: 6.0.0_mocha@6.2.2
+      ts-mocha: 6.0.0_mocha@6.2.3
       typescript: 3.8.3
     specifiers:
       '@prisma/ci-info': ^2.1.1
@@ -129,7 +129,7 @@ importers:
       log-update: 4.0.0
       make-dir: ^3.0.2
       mariadb: ^2.3.1
-      mocha: 6.2.2
+      mocha: ~6.2.3
       mysql2: ^2.1.0
       mz: 2.7.0
       open: ^7.0.3
@@ -139,7 +139,7 @@ importers:
       pkg-up: 3.1.0
       resolve-pkg: ^2.0.0
       rimraf: ^3.0.2
-      snap-shot-it: 7.9.3
+      snap-shot-it: ~7.9.3
       sqlite-async: ~1.0.12
       sqlite3: 4.1.1
       strip-ansi: ^6.0.0
@@ -212,7 +212,7 @@ importers:
       webpack-bundle-analyzer: 3.7.0
       webpack-cli: 4.0.0-alpha-4_webpack@5.0.0-alpha.14
     specifiers:
-      '@apexearth/copy': ^1.4.4
+      '@apexearth/copy': ^1.4.5
       '@prisma/engine-core': 'workspace:*'
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
@@ -754,7 +754,7 @@ importers:
       ts-node: 8.8.2_typescript@3.8.3
       typescript: 3.8.3
     specifiers:
-      '@apexearth/copy': ^1.4.4
+      '@apexearth/copy': ^1.4.5
       '@prisma/engine-core': 'workspace:*'
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
@@ -5463,7 +5463,7 @@ packages:
       integrity: sha512-OX8XqP7/1a9cqkxYw2yXss15f26NKWBpDXQd0/uK/KPqdQhxbPa994hnzjcE2VqQpDslf55723cKPUOGSmMY3g==
   /debug/3.2.6:
     dependencies:
-      ms: 2.1.1
+      ms: 2.1.2
     resolution:
       integrity: sha512-mel+jf7nrtEl5Pn1Qx46zARXKDpBbvzezse7p7LqINmdoIk8PYP5SySaxEmYv6TZ0JyEKA1hsCId6DIhgITtWQ==
   /debug/4.1.1:
@@ -9430,6 +9430,14 @@ packages:
     hasBin: true
     resolution:
       integrity: sha1-MAV0OOrGz3+MR2fzhkjWaX11yQM=
+  /mkdirp/0.5.4:
+    dependencies:
+      minimist: 1.2.5
+    deprecated: Legacy versions of mkdirp are no longer supported. Please update to mkdirp 1.x. (Note that the API surface has changed to use Promises in 1.x.)
+    dev: true
+    hasBin: true
+    resolution:
+      integrity: sha512-iG9AK/dJLtJ0XNgTuDbSyNS3zECqDlAhnQW4CsNxBG3LQJBbHmRX1egw39DmtOdCAqY+dKXV+sgPgilNWUKMVw==
   /mkdirp/0.5.5:
     dependencies:
       minimist: 1.2.5
@@ -9442,7 +9450,7 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
-  /mocha/6.2.2:
+  /mocha/6.2.3:
     dependencies:
       ansi-colors: 3.2.3
       browser-stdout: 1.3.1
@@ -9456,7 +9464,7 @@ packages:
       js-yaml: 3.13.1
       log-symbols: 2.2.0
       minimatch: 3.0.4
-      mkdirp: 0.5.1
+      mkdirp: 0.5.4
       ms: 2.1.1
       node-environment-flags: 1.0.5
       object.assign: 4.1.0
@@ -9464,15 +9472,15 @@ packages:
       supports-color: 6.0.0
       which: 1.3.1
       wide-align: 1.1.3
-      yargs: 13.3.0
-      yargs-parser: 13.1.1
+      yargs: 13.3.2
+      yargs-parser: 13.1.2
       yargs-unparser: 1.6.0
     dev: true
     engines:
       node: '>= 6.0.0'
     hasBin: true
     resolution:
-      integrity: sha512-FgDS9Re79yU1xz5d+C4rv1G7QagNGHZ+iXF81hO8zY35YZZcLEsJVfFolfsqKFWunATEvNzMK0r/CwWd/szO9A==
+      integrity: sha512-0R/3FvjIGH3eEuG17ccFPk117XL2rWxatr81a57D+r/x2uTYZRbdZ4oVidEUMh2W2TJDa7MdAb12Lm2/qrKajg==
   /moment-timezone/0.5.28:
     dependencies:
       moment: 2.24.0
@@ -12948,9 +12956,9 @@ packages:
       typescript: '*'
     resolution:
       integrity: sha512-HDo5kXZCBml3EUPcc7RlZOV/JGlLHwppTLEHb3SHnr5V7NXD4klMEkrhJe5wgRbaWsSXi+Y1SIBN/K9B6zWGWQ==
-  /ts-mocha/6.0.0_mocha@6.2.2:
+  /ts-mocha/6.0.0_mocha@6.2.3:
     dependencies:
-      mocha: 6.2.2
+      mocha: 6.2.3
       ts-node: 7.0.1
     dev: true
     engines:
@@ -13754,13 +13762,13 @@ packages:
     dev: true
     resolution:
       integrity: sha512-VCIyR1wJoEBZUqk5PA+oOBF6ypbwh5aNB3I50guxAL/quggdfs4TtNHQrSazFA3fYZ+tEqfs0zIGlv0c/rgjbQ==
-  /yargs-parser/13.1.1:
+  /yargs-parser/13.1.2:
     dependencies:
       camelcase: 5.3.1
       decamelize: 1.2.0
     dev: true
     resolution:
-      integrity: sha512-oVAVsHz6uFrg3XQheFII8ESO2ssAf9luWuAd6Wexsu4F3OtIW0o8IribPXYrD4WC24LWtPrJlGy87y5udK+dxQ==
+      integrity: sha512-3lbsNRf/j+A4QuSZfDRA7HRSfWrzO0YjqTJd5kjAq37Zep1CEgaYmrH9Q3GwPiB9cHyd1Y1UwggGhJGoxipbzg==
   /yargs-parser/15.0.1:
     dependencies:
       camelcase: 5.3.1
@@ -13781,13 +13789,13 @@ packages:
     dependencies:
       flat: 4.1.0
       lodash: 4.17.15
-      yargs: 13.3.0
+      yargs: 13.3.2
     dev: true
     engines:
       node: '>=6'
     resolution:
       integrity: sha512-W9tKgmSn0DpSatfri0nx52Joq5hVXgeLiqR/5G0sZNDoLZFOr/xjBUDcShCOGNsBnEMNo1KAMBkTej1Hm62HTw==
-  /yargs/13.3.0:
+  /yargs/13.3.2:
     dependencies:
       cliui: 5.0.0
       find-up: 3.0.0
@@ -13798,10 +13806,10 @@ packages:
       string-width: 3.1.0
       which-module: 2.0.0
       y18n: 4.0.0
-      yargs-parser: 13.1.1
+      yargs-parser: 13.1.2
     dev: true
     resolution:
-      integrity: sha512-2eehun/8ALW8TLoIl7MVaRUrg+yCnenu8B4kBlRxj3GJGDKU1Og7sMXPNm1BYyM1DOJmTZ4YeN/Nwxv+8XJsUA==
+      integrity: sha512-AX3Zw5iPruN5ie6xGRIDgqkT+ZhnRlZMLMHAs8tg7nRruy2Nb+i5o9bwghAogtM08q1dpr2LVoS8KSTMYpWXUw==
   /yargs/14.2.3:
     dependencies:
       cliui: 5.0.0

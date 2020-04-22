@@ -52,7 +52,7 @@
     "index.d.ts"
   ],
   "devDependencies": {
-    "@apexearth/copy": "^1.4.4",
+    "@apexearth/copy": "^1.4.5",
     "@prisma/engine-core": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
