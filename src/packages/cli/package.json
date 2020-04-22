@@ -119,6 +119,8 @@
     "test:mocha": "./node_modules/.bin/mocha src/__tests__/integrate.* --require ts-mocha src/__tests__/integrate.* --timeout 10s",
     "test:update-snapshots": "SNAPSHOT_UPDATE=1 ./node_modules/.bin/mocha src/__tests__/integrate.* --require ts-mocha src/__tests__/integrate.* --timeout 10s",
     "install": "node download-build/index.js",
+    "format": "prettier --write .",
+    "lint": "eslint --fix --ext .js,.ts .",
     "download": "rm -f download-done && node scripts/updateTag.js && node scripts/download.js || echo \"\"",
     "tsc": "tsc -d && bash scripts/copy-runtime-dist.sh",
     "ncc": "ncc build dist/bin.js -o build -m",
