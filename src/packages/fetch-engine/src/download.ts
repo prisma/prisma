@@ -72,9 +72,17 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const os = await getos()
 
   if (os.distro === 'musl') {
-    throw new Error('Precompiled binaries are not available for Alpine.')
+    console.error(
+      `${chalk.yellow(
+        'Warning',
+      )} Precompiled binaries are not available for Alpine.`,
+    )
   } else if (os.distro === 'arm') {
-    throw new Error('Precompiled binaries are not available for ARM.')
+    console.error(
+      `${chalk.yellow(
+        'Warning',
+      )} Precompiled binaries are not available for ARM.`,
+    )
   }
 
   // no need to do anything, if there are no binaries
