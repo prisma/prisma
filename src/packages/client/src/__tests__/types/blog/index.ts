@@ -145,6 +145,6 @@ async function main() {
   const id = users[0].posts[0].author?.id
 }
 
-main().catch(e => {
+main().catch((e) => {
   console.error(e)
 })

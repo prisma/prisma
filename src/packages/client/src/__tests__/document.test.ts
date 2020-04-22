@@ -52,17 +52,26 @@ test('document stringify', () => {
               value: [
                 new Args([
                   new Arg({ key: 'age_gt', value: 10123123123 }),
-                  new Arg({ key: 'email_endsWith', value: 'veryLongNameGoIntoaNewLineNow@gmail.com' }),
+                  new Arg({
+                    key: 'email_endsWith',
+                    value: 'veryLongNameGoIntoaNewLineNow@gmail.com',
+                  }),
                 ]),
                 new Args([
                   new Arg({ key: 'age_gt', value: 10123123123 }),
-                  new Arg({ key: 'email_endsWith', value: 'veryLongNameGoIntoaNewLineNow@gmail.com' }),
+                  new Arg({
+                    key: 'email_endsWith',
+                    value: 'veryLongNameGoIntoaNewLineNow@gmail.com',
+                  }),
                   new Arg({
                     key: 'OR',
                     value: [
                       new Args([
                         new Arg({ key: 'age_gt', value: 10123123123 }),
-                        new Arg({ key: 'email_endsWith', value: 'veryLongNameGoIntoaNewLineNow@gmail.com' }),
+                        new Arg({
+                          key: 'email_endsWith',
+                          value: 'veryLongNameGoIntoaNewLineNow@gmail.com',
+                        }),
                       ]),
                     ],
                   }),

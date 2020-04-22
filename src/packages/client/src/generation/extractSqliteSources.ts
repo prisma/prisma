@@ -13,7 +13,7 @@ export function extractSqliteSources(
   absolutePaths?: boolean,
 ): DatasourceOverwrite[] {
   const overrides: DatasourceOverwrite[] = []
-  const lines = datamodel.split('\n').filter(l => !l.trim().startsWith('//'))
+  const lines = datamodel.split('\n').filter((l) => !l.trim().startsWith('//'))
   const lineRegex = /\s*url\s+=\s*"(file:[^\/].*)"/
   const startRegex = /\s*datasource\s*(\w+)\s*{/
 
@@ -53,8 +53,9 @@ export function extractSqliteSources(
         })
       } else {
         throw new Error(
-          `Could not parse datamodel, line ${searchIndex +
-            1}: \`${startLine}\` is not parseable`,
+          `Could not parse datamodel, line ${
+            searchIndex + 1
+          }: \`${startLine}\` is not parseable`,
         )
       }
     }

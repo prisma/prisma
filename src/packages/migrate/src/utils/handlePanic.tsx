@@ -15,7 +15,11 @@ import { Link } from './Link'
 import { RustPanic, sendPanic } from '@prisma/sdk'
 import isCi from 'is-ci'
 
-export async function handlePanic(error: RustPanic, cliVersion: string, binaryVersion: string): Promise<boolean> {
+export async function handlePanic(
+  error: RustPanic,
+  cliVersion: string,
+  binaryVersion: string,
+): Promise<boolean> {
   return new Promise((resolve, reject) => {
     let app: Instance | undefined
 
@@ -35,7 +39,12 @@ export async function handlePanic(error: RustPanic, cliVersion: string, binaryVe
 
     app = render(
       <TabIndexProvider>
-        <PanicDialog error={error} onDone={onDone} cliVersion={cliVersion} binaryVersion={binaryVersion} />
+        <PanicDialog
+          error={error}
+          onDone={onDone}
+          cliVersion={cliVersion}
+          binaryVersion={binaryVersion}
+        />
       </TabIndexProvider>,
     )
   })
@@ -48,7 +57,12 @@ interface DialogProps {
   onDone: () => void
 }
 
-const PanicDialog: React.FC<DialogProps> = ({ error, onDone, cliVersion, binaryVersion }) => {
+const PanicDialog: React.FC<DialogProps> = ({
+  error,
+  onDone,
+  cliVersion,
+  binaryVersion,
+}) => {
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
   const [errorId, setErrorId] = useState<number | null>(null)
@@ -89,7 +103,8 @@ const PanicDialog: React.FC<DialogProps> = ({ error, onDone, cliVersion, binaryV
               {errorId && (
                 <Box flexDirection="column">
                   <Box>
-                    To help us still receive this error, please create an issue in{' '}
+                    To help us still receive this error, please create an issue
+                    in{' '}
                     <InkLink url="https://github.com/prisma/prisma/issues/new" />
                   </Box>
                 </Box>
@@ -128,12 +143,20 @@ const PanicDialog: React.FC<DialogProps> = ({ error, onDone, cliVersion, binaryV
               .slice(0, process.stdout.rows - 20)
               .join('\n')}
           </Color>
-          <Color bold>Please help us improve Prisma 2 by submitting an error report.</Color>
-          <Color bold>Error reports never contain personal or other sensitive information.</Color>
+          <Color bold>
+            Please help us improve Prisma 2 by submitting an error report.
+          </Color>
+          <Color bold>
+            Error reports never contain personal or other sensitive information.
+          </Color>
           <Color dim>
             Learn more: <InkLink url="https://pris.ly/d/telemetry" />
           </Color>
-          <BorderBox flexDirection="column" title={chalk.bold('Submit error report')} marginTop={1}>
+          <BorderBox
+            flexDirection="column"
+            title={chalk.bold('Submit error report')}
+            marginTop={1}
+          >
             {sending ? (
               <DummySelectable tabIndex={0}>
                 <Color cyan>
@@ -141,9 +164,19 @@ const PanicDialog: React.FC<DialogProps> = ({ error, onDone, cliVersion, binaryV
                 </Color>
               </DummySelectable>
             ) : (
-              <Link label="Yes" description={`Send error report once`} tabIndex={0} onSelect={() => onSubmit(true)} />
+              <Link
+                label="Yes"
+                description={`Send error report once`}
+                tabIndex={0}
+                onSelect={() => onSubmit(true)}
+              />
             )}
-            <Link label="No" description={`Don't send error report`} tabIndex={1} onSelect={() => onSubmit(false)} />
+            <Link
+              label="No"
+              description={`Don't send error report`}
+              tabIndex={1}
+              onSelect={() => onSubmit(false)}
+            />
           </BorderBox>
         </>
       )}

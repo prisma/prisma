@@ -47,7 +47,9 @@ export class Validate implements Command {
       throw new Error(
         `Either provide ${chalk.greenBright(
           '--schema',
-        )} or make sure that you are in a folder with a ${chalk.greenBright('schema.prisma')} file.`,
+        )} or make sure that you are in a folder with a ${chalk.greenBright(
+          'schema.prisma',
+        )} file.`,
       )
     }
 
@@ -67,7 +69,9 @@ export class Validate implements Command {
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Validate.help}`)
+      return new HelpError(
+        `\n${chalk.bold.red(`!`)} ${error}\n${Validate.help}`,
+      )
     }
     return Validate.help
   }

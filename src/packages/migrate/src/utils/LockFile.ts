@@ -7,7 +7,7 @@ const header = `# IF THERE'S A GIT CONFLICT IN THIS FILE, DON'T SOLVE IT MANUALL
 `
 
 export function deserializeLockFile(file: string): LockFile {
-  const lines = file.split('\n').filter(line => {
+  const lines = file.split('\n').filter((line) => {
     const trimmed = line.trim()
     return !trimmed.startsWith('#') && trimmed.length !== 0
   })

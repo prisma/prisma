@@ -3,11 +3,7 @@
     "enums": [
       {
         "name": "ENUM",
-        "values": [
-          "A",
-          "B",
-          "C"
-        ],
+        "values": ["A", "B", "C"],
         "dbName": null
       }
     ],
@@ -2349,12 +2345,7 @@
       },
       {
         "name": "AuthorOrderByInput",
-        "values": [
-          "id_ASC",
-          "id_DESC",
-          "name_ASC",
-          "name_DESC"
-        ]
+        "values": ["id_ASC", "id_DESC", "name_ASC", "name_DESC"]
       },
       {
         "name": "PostOrderByInput",

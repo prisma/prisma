@@ -1,6 +1,9 @@
 import { Dictionary } from '../types'
 
-export function groupBy<T>(arr: T[], iteratee: (element: T) => string): Dictionary<T[]> {
+export function groupBy<T>(
+  arr: T[],
+  iteratee: (element: T) => string,
+): Dictionary<T[]> {
   const dict: Dictionary<T[]> = {}
 
   for (const element of arr) {

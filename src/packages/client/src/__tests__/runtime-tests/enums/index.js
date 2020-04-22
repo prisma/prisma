@@ -13,13 +13,13 @@ module.exports = async () => {
 
   const queryEvents = []
 
-  prisma.on('query', e => queryEvents.push(e))
+  prisma.on('query', (e) => queryEvents.push(e))
 
   const result = await prisma.user.findMany({})
 
   await prisma.disconnect()
 
-  await new Promise(r => setTimeout(r, 100))
+  await new Promise((r) => setTimeout(r, 100))
 
   assert(queryEvents.length > 0)
 }

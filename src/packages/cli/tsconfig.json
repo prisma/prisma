@@ -13,5 +13,12 @@
     "skipLibCheck": true,
     "incremental": true
   },
-  "exclude": ["dist", "build", "runtime", "examples", "src/__tests__", "fixtures"]
+  "exclude": [
+    "dist",
+    "build",
+    "runtime",
+    "examples",
+    "src/__tests__",
+    "fixtures"
+  ]
 }

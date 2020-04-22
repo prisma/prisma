@@ -111,7 +111,7 @@ async function saveToDisc(source, map, assets, outputDir) {
 function fixCode(code) {
   return code
     .split('\n')
-    .map(line => {
+    .map((line) => {
       if (line.startsWith('NodeEngine.defaultPrismaPath = path.join(')) {
         return `NodeEngine.defaultPrismaPath = path.join(__dirname + '/prisma');`
       }
