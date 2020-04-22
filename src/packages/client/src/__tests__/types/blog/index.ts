@@ -143,6 +143,35 @@ async function main() {
   })
 
   const id = users[0].posts[0].author?.id
+
+  const like = await prisma.like.findOne({
+    where: {
+      userId_postId: {
+        postId: '',
+        userId: '',
+      },
+    },
+    include: { post: true },
+  })
+
+  like!.post
+
+  const like2 = await prisma.like.upsert({
+    where: {
+      userId_postId: {
+        userId: '',
+        postId: '',
+      },
+    },
+    create: {
+      post: { connect: { id: '' } },
+      user: { connect: { id: '' } },
+    },
+    update: {},
+    include: { post: true },
+  })
+
+  like2!.post
 }
 
 main().catch((e) => {

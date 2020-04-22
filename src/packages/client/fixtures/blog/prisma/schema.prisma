@@ -9,11 +9,10 @@ generator client {
 }
 
 model User {
-  id                String  @default(cuid()) @id
-  email             String  @unique
-  name              String?
-  posts             Post[]
-  treeHouseMaterial Tree?
+  id    String  @default(cuid()) @id
+  email String  @unique
+  name  String?
+  posts Post[]
 }
 
 model Post {
@@ -27,7 +26,12 @@ model Post {
   author    User?    @relation(fields: [authorId], references: [id])
 }
 
-enum Tree {
-  OAK
-  DOUGLAS
+model Like {
+  id     String @default(cuid()) @id
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
 }
