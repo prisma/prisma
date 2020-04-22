@@ -9,6 +9,8 @@
   "scripts": {
     "build": "tsc -d",
     "prepublishOnly": "pnpm run build && pnpm run test",
+    "format": "prettier --write .",
+    "lint": "eslint --fix --ext .js,.ts .",
     "postinstall": "node scripts/download.js",
     "download": "node scripts/updateTag.js && node scripts/download.js",
     "test": "jest"

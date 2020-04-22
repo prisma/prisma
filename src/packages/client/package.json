@@ -24,6 +24,8 @@
     "tsc": "tsc -d",
     "build": "pnpm run cleanup && pnpm run tsc && pnpm run ncc:runtime && pnpm run ncc:generator && cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts &&  cp scripts/any-index.js runtime/index.d.ts",
     "test": "./node_modules/.bin/packwatch && jest",
+    "format": "prettier --write .",
+    "lint": "eslint --fix --ext .js,.ts .",
     "download": "node scripts/download.js",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
