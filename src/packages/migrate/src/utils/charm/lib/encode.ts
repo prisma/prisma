@@ -3,7 +3,7 @@ export function encode(xs: any) {
     if (typeof s === 'string') {
       return s.split('').map(ord)
     } else if (Array.isArray(s)) {
-      return s.reduce(function(acc, c) {
+      return s.reduce(function (acc, c) {
         return acc.concat(bytes(c))
       }, [])
     }

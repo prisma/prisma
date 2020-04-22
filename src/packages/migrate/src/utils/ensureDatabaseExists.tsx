@@ -1,6 +1,10 @@
 import path from 'path'
 import { getSchema, getSchemaDir } from '@prisma/sdk'
-import { BorderBox, DummySelectable, TabIndexProvider } from '@prisma/ink-components'
+import {
+  BorderBox,
+  DummySelectable,
+  TabIndexProvider,
+} from '@prisma/ink-components'
 import { getConfig } from '@prisma/sdk'
 import ansiEscapes from 'ansi-escapes'
 import chalk from 'chalk'
@@ -26,7 +30,8 @@ export async function ensureDatabaseExists(
   const activeDatasource =
     config.datasources.length === 1
       ? config.datasources[0]
-      : config.datasources.find((d) => d.config.enabled === 'true') || config.datasources[0]
+      : config.datasources.find((d) => d.config.enabled === 'true') ||
+        config.datasources[0]
 
   if (!activeDatasource) {
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
@@ -34,7 +39,10 @@ export async function ensureDatabaseExists(
 
   const schemaDir = (await getSchemaDir(schemaPath))!
 
-  const canConnect = await canConnectToDatabase(activeDatasource.url.value, schemaDir)
+  const canConnect = await canConnectToDatabase(
+    activeDatasource.url.value,
+    schemaDir,
+  )
   if (canConnect === true) {
     return
   }
@@ -52,7 +60,11 @@ export async function ensureDatabaseExists(
   if (forceCreate) {
     await createDatabase(activeDatasource.url.value, schemaDir)
   } else {
-    await interactivelyCreateDatabase(activeDatasource.url.value, action, schemaDir)
+    await interactivelyCreateDatabase(
+      activeDatasource.url.value,
+      action,
+      schemaDir,
+    )
   }
 }
 
@@ -64,7 +76,11 @@ export async function interactivelyCreateDatabase(
   await askToCreateDb(connectionString, action, schemaDir)
 }
 
-export async function askToCreateDb(connectionString: string, action: MigrateAction, schemaDir: string): Promise<void> {
+export async function askToCreateDb(
+  connectionString: string,
+  action: MigrateAction,
+  schemaDir: string,
+): Promise<void> {
   return new Promise((resolve) => {
     let app: Instance | undefined
 
@@ -124,7 +140,12 @@ interface DialogProps {
   schemaDir: string
 }
 
-const CreateDatabaseDialog: React.FC<DialogProps> = ({ connectionString, action, onDone, schemaDir }) => {
+const CreateDatabaseDialog: React.FC<DialogProps> = ({
+  connectionString,
+  action,
+  onDone,
+  schemaDir,
+}) => {
   const [creating, setCreating] = useState(false)
   async function onSelect(shouldCreate: boolean) {
     if (shouldCreate) {
@@ -154,19 +175,26 @@ const CreateDatabaseDialog: React.FC<DialogProps> = ({ connectionString, action,
       <Box flexDirection="column">
         {action === 'dev' ? (
           <Color>
-            You are trying to run <Color bold>prisma dev</Color> for {dbType} {schemaWord} <Color bold>{dbName}</Color>.
+            You are trying to run <Color bold>prisma dev</Color> for {dbType}{' '}
+            {schemaWord} <Color bold>{dbName}</Color>.
           </Color>
         ) : (
           <Color>
-            You are trying to {action} a migration for {dbType} {schemaWord} <Color bold>{dbName}</Color>.
+            You are trying to {action} a migration for {dbType} {schemaWord}{' '}
+            <Color bold>{dbName}</Color>.
           </Color>
         )}
         <Color>
-          A {schemaWord} with that name doesn't exist at <Color bold>{getDbLocation(credentials)}</Color>.
+          A {schemaWord} with that name doesn't exist at{' '}
+          <Color bold>{getDbLocation(credentials)}</Color>.
         </Color>
         <Color>Do you want to create the {schemaWord}?</Color>
       </Box>
-      <BorderBox flexDirection="column" title={chalk.bold('Database options')} marginTop={1}>
+      <BorderBox
+        flexDirection="column"
+        title={chalk.bold('Database options')}
+        marginTop={1}
+      >
         {creating ? (
           <DummySelectable tabIndex={0}>
             <Color cyan>
@@ -176,12 +204,19 @@ const CreateDatabaseDialog: React.FC<DialogProps> = ({ connectionString, action,
         ) : (
           <Link
             label="Yes"
-            description={`Create new ${dbType} ${schemaWord} ${chalk.bold(dbName!)}`}
+            description={`Create new ${dbType} ${schemaWord} ${chalk.bold(
+              dbName!,
+            )}`}
             tabIndex={0}
             onSelect={() => onSelect(true)}
           />
         )}
-        <Link label="No" description={`Don't create the ${schemaWord}`} tabIndex={1} onSelect={() => onSelect(false)} />
+        <Link
+          label="No"
+          description={`Don't create the ${schemaWord}`}
+          tabIndex={1}
+          onSelect={() => onSelect(false)}
+        />
       </BorderBox>
     </Box>
   )

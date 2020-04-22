@@ -30,7 +30,7 @@ export default function byline(readStream, options?: any) {
 }
 
 // basic API
-module.exports.createStream = function(readStream, options) {
+module.exports.createStream = function (readStream, options) {
   if (readStream) {
     return createLineStream(readStream, options)
   } else {
@@ -68,7 +68,7 @@ function LineStream(this: any, options) {
   this._lastChunkEndedWithCR = false
 
   // take the source's encoding if we don't have one
-  this.on('pipe', function(this: any, src) {
+  this.on('pipe', function (this: any, src) {
     if (!this.encoding) {
       // but we can't do this for old-style streams
       if (src instanceof stream.Readable) {
@@ -79,7 +79,7 @@ function LineStream(this: any, options) {
 }
 util.inherits(LineStream, stream.Transform)
 
-LineStream.prototype._transform = function(chunk, encoding, done) {
+LineStream.prototype._transform = function (chunk, encoding, done) {
   // decode binary chunks as UTF-8
   encoding = encoding || 'utf8'
 
@@ -110,7 +110,7 @@ LineStream.prototype._transform = function(chunk, encoding, done) {
   this._pushBuffer(encoding, 1, done)
 }
 
-LineStream.prototype._pushBuffer = function(encoding, keep, done) {
+LineStream.prototype._pushBuffer = function (encoding, keep, done) {
   // always buffer the last (possibly partial) line
   while (this._lineBuffer.length > keep) {
     const line = this._lineBuffer.shift()
@@ -119,7 +119,7 @@ LineStream.prototype._pushBuffer = function(encoding, keep, done) {
       if (!this.push(this._reencode(line, encoding))) {
         // when the high-water mark is reached, defer pushes until the next tick
         const self = this
-        setImmediate(function() {
+        setImmediate(function () {
           self._pushBuffer(encoding, keep, done)
         })
         return
@@ -129,12 +129,12 @@ LineStream.prototype._pushBuffer = function(encoding, keep, done) {
   done()
 }
 
-LineStream.prototype._flush = function(done) {
+LineStream.prototype._flush = function (done) {
   this._pushBuffer(this._chunkEncoding, 0, done)
 }
 
 // see Readable::push
-LineStream.prototype._reencode = function(line, chunkEncoding) {
+LineStream.prototype._reencode = function (line, chunkEncoding) {
   if (this.encoding && this.encoding != chunkEncoding) {
     return Buffer.from(line, chunkEncoding).toString(this.encoding)
   } else if (this.encoding) {

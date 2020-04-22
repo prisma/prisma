@@ -2,7 +2,11 @@ import { Instance, render } from 'ink'
 import React from 'react'
 import { EngineResults } from '../types'
 import { exit } from '../utils/exit'
-import { DevComponentProps, DevInkComponent, GeneratorInfo } from './DevInkComponent'
+import {
+  DevComponentProps,
+  DevInkComponent,
+  GeneratorInfo,
+} from './DevInkComponent'
 
 export interface DevComponentOptions {
   port: number
@@ -34,9 +38,11 @@ export class DevComponentRenderer {
     this.state = { ...this.state, ...state }
     this.render()
   }
-  public promptForWarnings(warnings: EngineResults.Warning[]): Promise<boolean> {
+  public promptForWarnings(
+    warnings: EngineResults.Warning[],
+  ): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      this.warningsPromptCallback = async ok => {
+      this.warningsPromptCallback = async (ok) => {
         if (!ok) {
           await exit()
         } else {
@@ -49,9 +55,19 @@ export class DevComponentRenderer {
   }
   public render() {
     if (!this.app) {
-      return render(<DevInkComponent {...this.state} onSubmitWarningsPrompt={this.warningsPromptCallback} />)
+      return render(
+        <DevInkComponent
+          {...this.state}
+          onSubmitWarningsPrompt={this.warningsPromptCallback}
+        />,
+      )
     }
-    this.app.rerender(<DevInkComponent {...this.state} onSubmitWarningsPrompt={this.warningsPromptCallback} />)
+    this.app.rerender(
+      <DevInkComponent
+        {...this.state}
+        onSubmitWarningsPrompt={this.warningsPromptCallback}
+      />,
+    )
 
     return this.app
   }

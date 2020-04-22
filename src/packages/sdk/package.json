@@ -9,6 +9,8 @@
   "scripts": {
     "build": "tsc -d",
     "prepublishOnly": "pnpm run build && pnpm run test",
+    "format": "prettier --write .",
+    "lint": "eslint --fix --ext .js,.ts .",
     "postinstall": "node scripts/download.js",
     "download": "node scripts/updateTag.js && node scripts/download.js",
     "test": "jest"
@@ -40,7 +42,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@apexearth/copy": "^1.4.4",
+    "@apexearth/copy": "^1.4.5",
     "@prisma/engine-core": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",

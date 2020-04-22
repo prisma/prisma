@@ -156,7 +156,14 @@ export const dmmfDocument: any = {
     enums: [
       {
         name: 'PostOrderByInput',
-        values: ['id_ASC', 'id_DESC', 'title_ASC', 'title_DESC', 'content_ASC', 'content_DESC'],
+        values: [
+          'id_ASC',
+          'id_DESC',
+          'title_ASC',
+          'title_DESC',
+          'content_ASC',
+          'content_DESC',
+        ],
       },
       {
         name: 'ProfileOrderByInput',

@@ -13,7 +13,7 @@ module.exports = async () => {
     __internal: {
       measurePerformance: true,
       hooks: {
-        beforeRequest: request => requests.push(request),
+        beforeRequest: (request) => requests.push(request),
       },
     },
   })
@@ -43,7 +43,7 @@ module.exports = async () => {
   db.connect()
   await db.disconnect()
 
-  await new Promise(r => setTimeout(r, 200))
+  await new Promise((r) => setTimeout(r, 200))
   db.connect()
 
   const userPromise = db.user.findMany()

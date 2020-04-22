@@ -1,4 +1,3 @@
-
 Prisma Client JS is an **auto-generated query builder** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or SQL query builders like knex.js.
 
 It is part of the [Prisma](https://www.prisma.io/) ecosystem. Prisma provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the main [`prisma`](https://github.com/prisma/prisma/) repository or read the [documentation](https://www.prisma.io/docs/).

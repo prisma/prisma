@@ -1,6 +1,4 @@
-const {
-  download
-} = require('@prisma/fetch-engine')
+const { download } = require('@prisma/fetch-engine')
 const fs = require('fs')
 const path = require('path')
 const pkgUp = require('pkg-up')
@@ -16,8 +14,13 @@ const lockFile = path.join(binaryDir, 'download-lock')
 
 let createdLockFile = false
 async function main() {
-  if (fs.existsSync(lockFile) && JSON.parse(fs.readFileSync(lockFile) > Date.now() - 20000)) {
-    debug(`Lock file already exists, so we're skipping the download of the prisma binaries`)
+  if (
+    fs.existsSync(lockFile) &&
+    JSON.parse(fs.readFileSync(lockFile) > Date.now() - 20000)
+  ) {
+    debug(
+      `Lock file already exists, so we're skipping the download of the prisma binaries`,
+    )
   } else {
     createLockFile()
     await download({
@@ -29,7 +32,7 @@ async function main() {
       showProgress: true,
       version,
       failSilent: true,
-    }).catch(e => debug(e))
+    }).catch((e) => debug(e))
 
     cleanupLockFile()
   }
@@ -52,17 +55,19 @@ function cleanupLockFile() {
   }
 }
 
-main().catch(e => debug(e))
+main().catch((e) => debug(e))
 
 // if we are in a Now context, ensure that `prisma generate` is in the postinstall hook
 if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
-  ensurePostInstall().catch(e => {
+  ensurePostInstall().catch((e) => {
     debug(e)
   })
 }
 
 async function ensurePostInstall() {
-  const initPkgPath = eval(`require('path').resolve(process.env.INIT_CWD, 'package.json')`)
+  const initPkgPath = eval(
+    `require('path').resolve(process.env.INIT_CWD, 'package.json')`,
+  )
   if (fs.existsSync(initPkgPath)) {
     if (addPostInstallHook(initPkgPath)) {
       return
