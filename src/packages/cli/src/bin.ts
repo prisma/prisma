@@ -1,11 +1,14 @@
 #!/usr/bin/env ts-node
-
 import fs from 'fs'
+import { promisify } from 'util'
 import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
+import crypto from 'crypto'
 import { arg, drawBox } from '@prisma/sdk'
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+
+const exists = promisify(fs.exists)
 
 export { byline } from '@prisma/migrate'
 
@@ -175,9 +178,17 @@ async function main(): Promise<number> {
     return 1
   }
   console.log(result)
+
+  // Project hash is a SHA256 of the schemaPath
+  const projectHash = await getProjectHash()
+  // SHA256 of the cli path
+  const cliPathHash = await getCLIPathHash()
+
   // check prisma for updates
   const checkResult = await checkpoint.check({
     product: 'prisma',
+    cli_path_hash: cliPathHash,
+    project: projectHash,
     version: packageJson.version,
     disable: ci.isCI,
   })
@@ -196,6 +207,51 @@ async function main(): Promise<number> {
   }
 
   return 0
+}
+
+/**
+ * Get a unique identifier for the project by hashing
+ * the directory with `schema.prisma`
+ */
+async function getProjectHash(): Promise<string> {
+  const schemaPath = await getSchemaPath()
+
+  return crypto
+    .createHash('sha256')
+    .update(schemaPath)
+    .digest('hex')
+    .substring(0, 8)
+}
+/**
+ * Get a unique identifier for the CLI instllation path
+ * which can be either global or local (in project's node_modules)
+ */
+async function getCLIPathHash(): Promise<string> {
+  const cliPath = process.argv[1]
+  return crypto
+    .createHash('sha256')
+    .update(cliPath)
+    .digest('hex')
+    .substring(0, 8)
+}
+
+/**
+ * Get the path where `schema.prisma` lives
+ */
+async function getSchemaPath(): Promise<string> {
+  const cwd = process.cwd()
+  const prismaSchemaFile = 'schema.prisma'
+
+  if (await exists(path.join(cwd, prismaSchemaFile))) {
+    return cwd
+  }
+
+  if (await exists(path.join(cwd, 'prisma', prismaSchemaFile))) {
+    return path.normalize(path.join(cwd, 'prisma'))
+  }
+
+  // Default to cwd if prisma schema couldn't be found
+  return cwd
 }
 
 process.on('SIGINT', () => {
