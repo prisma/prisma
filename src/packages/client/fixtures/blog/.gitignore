@@ -2,3 +2,4 @@
 @prisma
 migrations
 .env*
+.prisma

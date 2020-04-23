@@ -55,7 +55,7 @@ export interface BuildClientResult {
 export async function buildClient({
   datamodel,
   schemaDir = process.cwd(),
-  runtimePath = './runtime',
+  runtimePath = '@prisma/client/runtime',
   browser = false,
   binaryPaths,
   outputDir,
@@ -113,7 +113,16 @@ export async function generateClient({
   clientVersion,
   engineVersion,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
-  runtimePath = runtimePath || './runtime'
+  runtimePath = runtimePath || '@prisma/client/runtime'
+  debug(`outputDir: ${outputDir}`)
+  const dotPrismaDir = path.join(outputDir, '../../.prisma/client')
+
+  // Cheap check, if people use custom dir
+  const finalOutputDir =
+    outputDir.includes(`${path.sep}node_modules${path.sep}`) || testMode
+      ? dotPrismaDir
+      : outputDir
+
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
     datamodelPath,
@@ -121,7 +130,7 @@ export async function generateClient({
     transpile,
     runtimePath,
     browser,
-    outputDir,
+    outputDir: finalOutputDir,
     generator,
     dmmf,
     datasources,
@@ -143,11 +152,12 @@ export async function generateClient({
     process.exit(1)
   }
 
-  debug(`makeDir: ${outputDir}`)
+  await makeDir(finalOutputDir)
   await makeDir(path.join(outputDir, 'runtime'))
+
   await Promise.all(
     Object.entries(fileMap).map(async ([fileName, file]) => {
-      const filePath = path.join(outputDir, fileName)
+      const filePath = path.join(finalOutputDir, fileName)
       // The deletion of the file is necessary, so VSCode
       // picks up the changes.
       if (await exists(filePath)) {
@@ -156,7 +166,7 @@ export async function generateClient({
       await writeFile(filePath, file)
     }),
   )
-  const inputDir = testMode
+  const runtimeSourceDir = testMode
     ? eval(`require('path').join(__dirname, '../../runtime')`) // tslint:disable-line
     : eval(`require('path').join(__dirname, '../runtime')`) // tslint:disable-line
 
@@ -166,11 +176,12 @@ export async function generateClient({
     !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)
   ) {
     // TODO: Windows, / is not working here...
-    const copyTarget = path.join(outputDir, '/runtime')
-    debug({ copyRuntime, outputDir, copyTarget, inputDir })
-    if (inputDir !== copyTarget) {
+    const copyTarget = path.join(outputDir, 'runtime')
+    await makeDir(copyTarget)
+    debug({ copyRuntime, outputDir, copyTarget, runtimeSourceDir })
+    if (runtimeSourceDir !== copyTarget) {
       await copy({
-        from: inputDir,
+        from: runtimeSourceDir,
         to: copyTarget,
         recursive: true,
         parallelJobs: process.platform === 'win32' ? 1 : 20,
@@ -188,7 +199,7 @@ export async function generateClient({
   if (transpile) {
     for (const filePath of Object.values(binaryPaths.queryEngine)) {
       const fileName = path.basename(filePath)
-      const target = path.join(outputDir, 'runtime', fileName)
+      const target = path.join(finalOutputDir, fileName)
       const before = Date.now()
       const [sourceFileSize, targetFileSize] = await Promise.all([
         fileSize(filePath),
@@ -232,13 +243,23 @@ export async function generateClient({
     }
   }
 
-  const datamodelTargetPath = path.join(outputDir, 'schema.prisma')
+  const datamodelTargetPath = path.join(finalOutputDir, 'schema.prisma')
   if (datamodelPath !== datamodelTargetPath) {
     await copyFile(datamodelPath, datamodelTargetPath)
   }
 
   if (transpile) {
     await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)
+  }
+
+  const proxyIndexJsPath = path.join(outputDir, 'index.js')
+  const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
+  if (!fs.existsSync(proxyIndexJsPath)) {
+    await copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
+  }
+
+  if (!fs.existsSync(proxyIndexDTSPath)) {
+    await copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
   }
 
   return { prismaClientDmmf, fileMap }

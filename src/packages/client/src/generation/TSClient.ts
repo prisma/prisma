@@ -229,7 +229,7 @@ export class TSClient implements Generatable {
 ${
   this.options.platforms
     ? this.options.platforms
-        .map((p) => `path.join(__dirname, 'runtime/query-engine-${p}');`)
+        .map((p) => `path.join(__dirname, 'query-engine-${p}');`)
         .join('\n')
     : ''
 }
