@@ -228,6 +228,13 @@ You may have to run ${chalk.greenBright(
         path.resolve(__dirname, `..`),
       )
     } else {
+      const dotPrismaPath = await this.getQueryEnginePath(
+        this.platform,
+        eval(`require('path').join(__dirname, '../../../.prisma/client')`),
+      )
+      if (fs.existsSync(dotPrismaPath)) {
+        return dotPrismaPath
+      }
       return this.getQueryEnginePath(this.platform)
     }
   }
