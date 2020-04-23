@@ -25,7 +25,7 @@ const isPortFree = (port: number): Promise<unknown> =>
   new Promise((resolve) => {
     const server = net.createServer()
     server.on('error', () => resolve(false))
-    server.listen(port, () => {
+    server.listen(port, '127.0.0.1', () => {
       server.close(() => {
         resolve(true)
       })
