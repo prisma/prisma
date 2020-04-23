@@ -39,13 +39,7 @@
     "version": "latest"
   },
   "files": [
-    "runtime/*.js",
-    "runtime/*.js.map",
-    "runtime/*.d.ts",
-    "runtime/**/*.js",
-    "runtime/**/*.d.ts",
-    "runtime/utils/*",
-    "runtime/dist/*",
+    "runtime",
     "scripts",
     "generator-build",
     "index.js",
