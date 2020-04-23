@@ -51,7 +51,6 @@ importers:
       '@sentry/node': 5.12.4
       '@types/debug': 4.1.5
       '@types/mocha': 5.2.7
-      '@types/mysql2': github.com/types/mysql2/b549352cda0b83fe8c4f4c11a1b4beb0b0cb0f5d
       '@types/pg': 7.14.3
       '@types/sqlite3': 3.1.6
       '@typescript-eslint/eslint-plugin': 2.28.0_7d9b020b8616a35b73d4b597f43d4d93
@@ -73,7 +72,6 @@ importers:
       make-dir: 3.0.2
       mariadb: 2.3.1
       mocha: 6.2.3
-      mysql2: 2.1.0
       mz: 2.7.0
       open: 7.0.3
       packwatch: 2.0.0
@@ -108,7 +106,6 @@ importers:
       '@sentry/node': 5.12.4
       '@types/debug': ^4.1.5
       '@types/mocha': ^5.2.7
-      '@types/mysql2': 'github:types/mysql2'
       '@types/pg': ^7.14.3
       '@types/sqlite3': ^3.1.6
       '@typescript-eslint/eslint-plugin': ^2.28.0
@@ -130,7 +127,6 @@ importers:
       make-dir: ^3.0.2
       mariadb: ^2.3.1
       mocha: ~6.2.3
-      mysql2: ^2.1.0
       mz: 2.7.0
       open: ^7.0.3
       packwatch: ^2.0.0
@@ -3855,10 +3851,6 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-9VGjrMsG1vePxcSweQsN20KY/c4zN0h9fLjqAbwbPfahM3t+NL+M9HC8xeXG2I8pX5NoamTGNuomEUFI7fcUjA==
-  /ansicolors/0.3.2:
-    dev: true
-    resolution:
-      integrity: sha1-ZlWX3oap/+Oqm/vmyuXG6kJrSXk=
   /any-observable/0.3.0:
     dev: true
     engines:
@@ -4590,14 +4582,6 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha512-mYQLZnx5Qt1JgB1WEiMCf2647plpGeQ2NMR/5L0HNZzGQo4fuSPnK+wjfPnKZV0aiJDgzmWqqkV/g7JD+DW0qw==
-  /cardinal/2.1.1:
-    dependencies:
-      ansicolors: 0.3.2
-      redeyed: 2.1.1
-    dev: true
-    hasBin: true
-    resolution:
-      integrity: sha1-fMEFXYItISlU0HsIXeolHMe8VQU=
   /caseless/0.12.0:
     resolution:
       integrity: sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
@@ -6819,12 +6803,6 @@ packages:
     dev: true
     resolution:
       integrity: sha1-LANAXHU4w51+s3sxcCLjJfsBi/c=
-  /generate-function/2.3.1:
-    dependencies:
-      is-property: 1.0.2
-    dev: true
-    resolution:
-      integrity: sha512-eeB5GfMNeevm/GRYq20ShmsaGcmI81kIX2K9XQx5miC8KdHaC6Jm0qQ8ZNeGOi7wYB8OsdxKs+Y2oVuTFuVwKQ==
   /gensync/1.0.0-beta.1:
     dev: true
     engines:
@@ -7980,10 +7958,6 @@ packages:
     dev: true
     resolution:
       integrity: sha1-eaKp7OfwlugPNtKy87wWwf9L8/o=
-  /is-property/1.0.2:
-    dev: true
-    resolution:
-      integrity: sha1-V/4cTkhHTt1lsJkR8msc1Ald2oQ=
   /is-redirect/1.0.0:
     dev: true
     engines:
@@ -9526,22 +9500,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==
-  /mysql2/2.1.0:
-    dependencies:
-      cardinal: 2.1.1
-      denque: 1.4.1
-      generate-function: 2.3.1
-      iconv-lite: 0.5.1
-      long: 4.0.0
-      lru-cache: 5.1.1
-      named-placeholders: 1.1.2
-      seq-queue: 0.0.5
-      sqlstring: 2.3.2
-    dev: true
-    engines:
-      node: '>= 8.0'
-    resolution:
-      integrity: sha512-9kGVyi930rG2KaHrz3sHwtc6K+GY9d8wWk1XRSYxQiunvGcn4DwuZxOwmK11ftuhhwrYDwGx9Ta4VBwznJn36A==
   /mz/2.7.0:
     dependencies:
       any-promise: 1.3.0
@@ -9549,14 +9507,6 @@ packages:
       thenify-all: 1.6.0
     resolution:
       integrity: sha512-z81GNO7nnYMEhrGh9LeymoE4+Yr0Wn5McHIZMK5cfQCl+NDX08sCZgUc9/6MHni9IWuFLm1Z3HTCXu2z9fN62Q==
-  /named-placeholders/1.1.2:
-    dependencies:
-      lru-cache: 4.1.5
-    dev: true
-    engines:
-      node: '>=6.0.0'
-    resolution:
-      integrity: sha512-wiFWqxoLL3PGVReSZpjLVxyJ1bRqe+KKJVbr4hGs1KWfTZTQyezHFBbuKj9hsizHyGV2ne7EMjHdxEGAybD5SA==
   /nan/2.14.0:
     dev: true
     resolution:
@@ -11273,12 +11223,6 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha1-wbIAe0LVfrE4kHmzyDM2OdXhzKo=
-  /redeyed/2.1.1:
-    dependencies:
-      esprima: 4.0.1
-    dev: true
-    resolution:
-      integrity: sha1-iYS1gV2ZyyIEacme7v/jiRPmzAs=
   /redis-commands/1.5.0:
     dev: true
     resolution:
@@ -11769,10 +11713,6 @@ packages:
       node: '>= 0.8.0'
     resolution:
       integrity: sha512-BsVKsiGcQMFwT8UxypobUKyv7irCNRHk1T0G680vk88yf6LBByGcZJOTJCrTP2xVN6yI+XjPJcNuE3V4fT9sAg==
-  /seq-queue/0.0.5:
-    dev: true
-    resolution:
-      integrity: sha1-1WgS4cAXpuTnw+Ojeh2m143TyT4=
   /serialize-javascript/2.1.2:
     dev: true
     resolution:
@@ -12134,12 +12074,6 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-CvT5XY+MWnn0HkbwVKJAyWEMfzpAPwnTiB3TobA5Mri44SrTovmmh499NPQP+gatkeOipqPlBLel7rn4E/PCQg==
-  /sqlstring/2.3.2:
-    dev: true
-    engines:
-      node: '>= 0.6'
-    resolution:
-      integrity: sha512-vF4ZbYdKS8OnoJAWBmMxCQDkiEBkGQYU7UZPtL8flbDRSNkhaXvRJ279ZtI6M+zDaQovVU4tuRgzK5fVhvFAhg==
   /sshpk/1.16.1:
     dependencies:
       asn1: 0.2.4
@@ -13872,19 +13806,3 @@ packages:
       node: '>= 6'
     resolution:
       integrity: sha512-EkXc2JGcKhO5N5aZ7TmuNo45budRaFGHOmz24wtJR7znbNqDPmdZtUauKX6et8KAVseAMBOyWJqEpXcHTBsh7Q==
-  github.com/types/mysql/41e381415afbb79452c0501ca3cf220c2cd390bc:
-    dev: true
-    name: '@types/mysql'
-    resolution:
-      registry: 'https://registry.npmjs.org/'
-      tarball: 'https://codeload.github.com/types/mysql/tar.gz/41e381415afbb79452c0501ca3cf220c2cd390bc'
-    version: 2.0.0
-  github.com/types/mysql2/b549352cda0b83fe8c4f4c11a1b4beb0b0cb0f5d:
-    dependencies:
-      '@types/mysql': github.com/types/mysql/41e381415afbb79452c0501ca3cf220c2cd390bc
-    dev: true
-    name: '@types/mysql2'
-    resolution:
-      registry: 'https://registry.npmjs.org/'
-      tarball: 'https://codeload.github.com/types/mysql2/tar.gz/b549352cda0b83fe8c4f4c11a1b4beb0b0cb0f5d'
-    version: 1.0.0
