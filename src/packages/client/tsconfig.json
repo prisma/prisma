@@ -24,6 +24,8 @@
     "src/__tests__/generation/node_modules",
     "src/__tests__/types",
     "generator-build",
-    "sandbox"
+    "sandbox",
+    "index.d.ts",
+    "scripts/backup-index.d.ts"
   ]
 }

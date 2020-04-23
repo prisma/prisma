@@ -1,4 +1,4 @@
-import { PrismaClient } from './@prisma/client'
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -16,35 +16,35 @@ async function main() {
     },
   })
 
-  console.log(users[0].posts[0].author?.id)
+  console.log(users)
 
-  // prisma.disconnect()
+  // // prisma.disconnect()
 
-  const user = await prisma.post.findOne({
-    include: {
-      author: true,
-    },
-    where: {
-      id: '',
-    },
-  })
+  // const user = await prisma.post.findOne({
+  //   include: {
+  //     author: true,
+  //   },
+  //   where: {
+  //     id: '',
+  //   },
+  // })
 
-  const x = await prisma.post.update({
-    where: {
-      id: '',
-    },
-    data: {
-      id: '',
-      published: true,
-      title: null,
-    },
-  })
+  // const x = await prisma.post.update({
+  //   where: {
+  //     id: '',
+  //   },
+  //   data: {
+  //     id: '',
+  //     published: true,
+  //     title: null,
+  //   },
+  // })
 
-  prisma.post.findMany({
-    where: {
-      title: null,
-    },
-  })
+  // prisma.post.findMany({
+  //   where: {
+  //     title: null,
+  //   },
+  // })
 }
 
 main().catch((e) => {
