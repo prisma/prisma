@@ -83,6 +83,12 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         'Warning',
       )} Precompiled binaries are not available for ARM.`,
     )
+  } else if (['freebsd', 'openbsd', 'netbsd'].includes(platform)) {
+    console.error(
+      `${chalk.yellow(
+        'Warning',
+      )} Precompiled binaries are not available for ${platform}.`,
+    )
   }
 
   // no need to do anything, if there are no binaries
