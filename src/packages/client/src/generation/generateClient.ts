@@ -117,7 +117,7 @@ export async function generateClient({
     `${path.sep}node_modules${path.sep}`,
   )
   runtimePath =
-    runtimePath || (isInNodeModules ? './runtime' : '@prisma/client/runtime')
+    runtimePath || (isInNodeModules ? '@prisma/client/runtime' : './runtime')
 
   debug(`outputDir: ${outputDir}`)
   const dotPrismaDir = path.join(outputDir, '../../.prisma/client')
