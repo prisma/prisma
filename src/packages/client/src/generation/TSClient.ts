@@ -235,7 +235,7 @@ ${
 }
 
 /**
- * Annotation for Zeit Now
+ * Annotation for Vercel
 **/
 path.join(__dirname, 'schema.prisma');
 
