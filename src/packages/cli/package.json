@@ -21,7 +21,8 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=10"
+    "node": ">=10",
+    "yarn": ">=1.20.0"
   },
   "files": [
     "build",
