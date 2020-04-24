@@ -6,6 +6,9 @@ export type Platform =
   | 'rhel-openssl-1.0.x'
   | 'rhel-openssl-1.1.x'
   | 'windows'
+  | 'freebsd'
+  | 'openbsd'
+  | 'netbsd'
 
 export const platforms = [
   'darwin',
