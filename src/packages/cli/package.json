@@ -22,7 +22,7 @@
   "license": "Apache-2.0",
   "engines": {
     "node": ">=10",
-    "yarn": ">=1.20.0"
+    "yarn": ">=1.19.0"
   },
   "files": [
     "build",
