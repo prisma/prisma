@@ -2,7 +2,6 @@ import tempy from 'tempy'
 import path from 'path'
 import copy from '@apexearth/copy'
 import execa from 'execa'
-import assert from 'assert'
 import snapshot from 'snap-shot-it'
 import 'ts-node/register'
 
@@ -25,5 +24,4 @@ it('should work with a custom output dir', async () => {
   const { main } = await import(path.join(target, 'main.ts'))
   const result = await main()
   snapshot(result)
-  assert(true)
 })
