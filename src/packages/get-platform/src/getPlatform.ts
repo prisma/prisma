@@ -146,6 +146,18 @@ export async function getPlatform(): Promise<Platform> {
     return 'windows'
   }
 
+  if (platform === 'freebsd') {
+    return 'freebsd'
+  }
+
+  if (platform === 'openbsd') {
+    return 'openbsd'
+  }
+
+  if (platform === 'netbsd') {
+    return 'netbsd'
+  }
+
   // when the platform is linux
   if (platform === 'linux' && distro && libssl) {
     return (distro + '-openssl-' + libssl) as Platform
