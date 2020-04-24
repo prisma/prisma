@@ -20,6 +20,10 @@
   "main": "index.js",
   "types": "index.d.ts",
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=10",
+    "yarn": ">=1.20.0"
+  },
   "scripts": {
     "tsc": "tsc -d",
     "build": "pnpm run cleanup && pnpm run tsc && pnpm run ncc:runtime && pnpm run ncc:generator && cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts &&  cp scripts/any-index.js runtime/index.d.ts",
