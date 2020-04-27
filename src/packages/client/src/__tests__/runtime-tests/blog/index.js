@@ -78,6 +78,25 @@ module.exports = async () => {
     )
   }
 
+  // Test raw`` with prisma.sql``
+  const rawQueryTemplateFromSqlTemplate = await db.raw(
+    db.sql`
+      SELECT ${db.sql.join([
+        db.sql.raw('email'),
+        db.sql.raw('id'),
+        db.sql.raw('name'),
+      ])}
+      FROM ${db.sql.raw('User')}
+      ${db.sql`WHERE name = ${'Alice'}`}
+      ${db.sql.empty}
+    `,
+  )
+  if (rawQueryTemplateFromSqlTemplate[0].name !== 'Alice') {
+    throw Error(
+      "prisma.raw(prisma.sql`SELECT * FROM ${db.sql.join([db.sql.raw('email'),db.sql.raw('id'),db.sql.raw('name')])} ${db.sql`WHERE name = ${'Alice'}`} ${db.sql.empty}` result should be [{ email: 'a@a.de', id: '576eddf9-2434-421f-9a86-58bede16fd95', name: 'Alice' }]",
+    )
+  }
+
   // Test validation errors
   let validationError
   try {
