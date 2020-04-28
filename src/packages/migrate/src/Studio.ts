@@ -2,6 +2,7 @@ import debugLib from 'debug'
 import fs from 'fs'
 import getPort from 'get-port'
 import path from 'path'
+import open from 'open'
 
 import { getSchemaPathSync } from '@prisma/sdk'
 import { getPlatform } from '@prisma/get-platform'
@@ -9,6 +10,7 @@ import { ProviderAliases } from '@prisma/sdk'
 
 export interface StudioOptions {
   schemaPath?: string
+  browser?: string
   port?: number
 }
 
@@ -17,11 +19,13 @@ const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
 export class Studio {
   private schemaPath: string
+  private browser?: string
   private instance?: any
   private port?: number
 
-  constructor({ schemaPath, port }: StudioOptions = {}) {
+  constructor({ schemaPath, browser, port }: StudioOptions = {}) {
     this.schemaPath = this.getSchemaPath(schemaPath)
+    this.browser = browser
     this.port = port
   }
 
@@ -48,13 +52,13 @@ export class Studio {
 
       const pathsExist = await Promise.all(
         // eslint-disable-next-line @typescript-eslint/require-await
-        pathCandidates.map(async (candidate) => ({
+        pathCandidates.map(async candidate => ({
           exists: fs.existsSync(candidate),
           path: candidate,
         })),
       )
 
-      const firstExistingPath = pathsExist.find((p) => p.exists)
+      const firstExistingPath = pathsExist.find(p => p.exists)
 
       if (!firstExistingPath) {
         throw new Error(
@@ -91,7 +95,20 @@ export class Studio {
 
       await this.instance.start()
 
-      return `Studio started at http://localhost:${this.port}`
+      const serverUrl = `http://localhost:${this.port}`
+      switch (this.browser) {
+        case 'none':
+        case 'NONE':
+          break
+        default:
+          await open(serverUrl, {
+            app: this.browser,
+            url: true,
+          }).catch(() => {}) // Ignore any errors
+          break
+      }
+
+      return `Studio started at ${serverUrl}`
     } catch (e) {
       debug(e)
     }
