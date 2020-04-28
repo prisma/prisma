@@ -150,6 +150,7 @@ export async function getGenerators({
         // resolve output path
         if (generator.output) {
           generator.output = path.resolve(baseDir, generator.output)
+          generator.isCustomOutput = true
           debug(`Resolving based on generator.output to ${generator.output}`)
         } else if (paths) {
           generator.output = paths.outputPath
