@@ -124,13 +124,14 @@ export async function generateClient({
   clientVersion,
   engineVersion,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
-  runtimePath =
-    runtimePath ||
-    (generator?.isCustomOutput ? './runtime' : '@prisma/client/runtime')
-
   const useDotPrisma =
     (!generator?.isCustomOutput || testMode) &&
-    !process.env.npm_config_user_agent?.startsWith('pnpm')
+    process.env.npm_lifecycle_event === 'postinstall'
+      ? !process.env.npm_config_user_agent?.startsWith('pnpm')
+      : true
+
+  runtimePath =
+    runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
   // Cheap check, if people use custom dir
   const finalOutputDir = useDotPrisma ? getDotPrismaDir(outputDir) : outputDir
