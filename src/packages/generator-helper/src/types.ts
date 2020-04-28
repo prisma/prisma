@@ -164,6 +164,7 @@ export type Dictionary<T> = { [key: string]: T }
 export interface GeneratorConfig {
   name: string
   output: string | null
+  isCustomOutput?: boolean
   provider: string
   config: Dictionary<string>
   binaryTargets: string[] // check if new commit is there

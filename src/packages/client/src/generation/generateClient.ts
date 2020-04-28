@@ -113,17 +113,16 @@ export async function generateClient({
   clientVersion,
   engineVersion,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
-  const isInNodeModules = outputDir.includes(
-    `${path.sep}node_modules${path.sep}`,
-  )
   runtimePath =
-    runtimePath || (isInNodeModules ? '@prisma/client/runtime' : './runtime')
+    runtimePath ||
+    (generator?.isCustomOutput ? './runtime' : '@prisma/client/runtime')
 
   debug(`outputDir: ${outputDir}`)
   const dotPrismaDir = path.join(outputDir, '../../.prisma/client')
 
   // Cheap check, if people use custom dir
-  const finalOutputDir = isInNodeModules || testMode ? dotPrismaDir : outputDir
+  const finalOutputDir =
+    !generator?.isCustomOutput || testMode ? dotPrismaDir : outputDir
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
