@@ -784,6 +784,11 @@ async function publishPackages(
     const repo = '.'
     // commit and push it :)
     // we try catch this, as this is not necessary for CI to succeed
+    await run(
+      repo,
+      `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
+      dryRun,
+    )
     await run(repo, `git pull origin master --no-edit`)
     try {
       const unsavedChanges = await getUnsavedChanges(repo)
