@@ -128,12 +128,13 @@ export async function generateClient({
     runtimePath ||
     (generator?.isCustomOutput ? './runtime' : '@prisma/client/runtime')
 
-  const dotPrismaDir = getDotPrismaDir(outputDir)
-  debug({ outputDir, dotPrismaDir })
+  const useDotPrisma =
+    (!generator?.isCustomOutput || testMode) &&
+    !process.env.npm_config_user_agent?.startsWith('pnpm')
 
   // Cheap check, if people use custom dir
-  const finalOutputDir =
-    !generator?.isCustomOutput || testMode ? dotPrismaDir : outputDir
+  const finalOutputDir = useDotPrisma ? getDotPrismaDir(outputDir) : outputDir
+  debug({ outputDir, finalOutputDir })
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
