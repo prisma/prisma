@@ -84,20 +84,32 @@ async function commitChanges(
   await run(dir, `git commit -am "${message}"`, dry)
 }
 
+async function pull(dir: string, dry = false): Promise<void> {
+  const branch = await getBranch(dir)
+  if (process.env.BUILDKITE) {
+    if (!process.env.GITHUB_TOKEN) {
+      throw new Error(`Missing env var GITHUB_TOKEN`)
+    }
+    await run(
+      dir,
+      `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
+      dry,
+    )
+  }
+  await run(dir, `git pull origin ${branch} --no-edit`)
+}
+
 async function push(dir: string, dry = false): Promise<void> {
   const branch = await getBranch(dir)
   if (process.env.BUILDKITE) {
     if (!process.env.GITHUB_TOKEN) {
       throw new Error(`Missing env var GITHUB_TOKEN`)
     }
-    const remotes = (await runResult(dir, `git remote`)).trim().split('\n')
-    if (!remotes.includes('origin-push')) {
-      await run(
-        dir,
-        `git remote add origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/${dir}.git`,
-        dry,
-      )
-    }
+    await run(
+      dir,
+      `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
+      dry,
+    )
     await run(dir, `git push --quiet --set-upstream origin-push ${branch}`, dry)
   } else {
     await run(dir, `git push origin ${branch}`, dry)
@@ -784,12 +796,7 @@ async function publishPackages(
     const repo = '.'
     // commit and push it :)
     // we try catch this, as this is not necessary for CI to succeed
-    await run(
-      repo,
-      `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
-      dryRun,
-    )
-    await run(repo, `git pull origin master --no-edit`)
+    await pull(repo, dryRun)
     try {
       const unsavedChanges = await getUnsavedChanges(repo)
       if (!unsavedChanges) {
