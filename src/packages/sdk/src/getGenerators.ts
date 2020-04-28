@@ -11,22 +11,25 @@ import {
   BinaryDownloadConfiguration,
   DownloadOptions,
 } from '@prisma/fetch-engine/dist/download'
-import { getConfig, getDMMF } from './engineCommands'
 import { download } from '@prisma/fetch-engine'
+import { getPlatform, Platform } from '@prisma/get-platform'
+import { printGeneratorConfig, fixPlatforms } from '@prisma/engine-core'
+
+import { getConfig, getDMMF } from './engineCommands'
 import { unique } from './unique'
 import { pick } from './pick'
 import { Generator } from './Generator'
 import { resolveOutput } from './resolveOutput'
-import { getPlatform, Platform } from '@prisma/get-platform'
-import { printGeneratorConfig, fixPlatforms } from '@prisma/engine-core'
 import {
   predefinedGeneratorResolvers,
   GeneratorPaths,
 } from './predefinedGeneratorResolvers'
 import { flatMap } from './utils/flatMap'
-import Debug from 'debug'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
+
+import Debug from 'debug'
 const debug = Debug('getGenerators')
+
 const defaultEngineVersion = eval(`require('../package.json').prisma.version`)
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
