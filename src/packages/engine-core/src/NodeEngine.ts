@@ -252,6 +252,13 @@ You may have to run ${chalk.greenBright(
       if (fs.existsSync(parentDirName)) {
         return parentDirName
       }
+      const datamodelDirName = await this.getQueryEnginePath(
+        this.platform,
+        path.dirname(this.datamodelPath),
+      )
+      if (fs.existsSync(datamodelDirName)) {
+        return datamodelDirName
+      }
       const cwdPath = await this.getQueryEnginePath(this.platform, this.cwd)
       if (fs.existsSync(cwdPath)) {
         return cwdPath

@@ -99,8 +99,8 @@ export async function buildClient({
 function getDotPrismaDir(outputDir: string): string {
   if (
     process.env.INIT_CWD &&
-    !process.cwd().includes('.pnpm') &&
-    process.env.npm_lifecycle_hook === 'postinstall'
+    process.env.npm_lifecycle_event === 'postinstall' &&
+    !process.env.PWD?.includes('.pnpm')
   ) {
     return path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
   }
@@ -125,14 +125,13 @@ export async function generateClient({
   clientVersion,
   engineVersion,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
-  const useDotPrisma =
-    !generator?.isCustomOutput || (testMode && !process.cwd().includes('.pnpm'))
+  const useDotPrisma = !generator?.isCustomOutput || testMode
 
   runtimePath =
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
   const finalOutputDir = useDotPrisma ? getDotPrismaDir(outputDir) : outputDir
-  debug({ outputDir, finalOutputDir })
+  debug({ useDotPrisma, outputDir, finalOutputDir })
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
@@ -258,6 +257,36 @@ export async function generateClient({
   if (datamodelPath !== datamodelTargetPath) {
     await copyFile(datamodelPath, datamodelTargetPath)
   }
+
+  const packageJsonTargetPath = path.join(finalOutputDir, 'package.json')
+  const pkgJson = JSON.stringify(
+    {
+      name: '.prisma/client',
+      main: 'index.js',
+      types: 'index.d.ts',
+    },
+    null,
+    2,
+  )
+  await writeFile(packageJsonTargetPath, pkgJson)
+
+  if (process.env.INIT_CWD) {
+    const backupPath = path.join(
+      process.env.INIT_CWD,
+      'node_modules/.prisma/client',
+    )
+    debug({ finalOutputDir, backupPath })
+    if (finalOutputDir !== backupPath) {
+      await copy({
+        from: finalOutputDir,
+        to: backupPath,
+        recursive: true,
+        parallelJobs: process.platform === 'win32' ? 1 : 20,
+        overwrite: true,
+      })
+    }
+  }
+  // }
 
   if (transpile) {
     await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)
