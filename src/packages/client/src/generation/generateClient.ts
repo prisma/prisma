@@ -96,6 +96,17 @@ export async function buildClient({
   }
 }
 
+function getDotPrismaDir(outputDir: string): string {
+  if (
+    process.env.INIT_CWD &&
+    !process.env.npm_config_user_agent?.startsWith('pnpm')
+  ) {
+    return path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
+  }
+
+  return path.join(outputDir, '../../.prisma/client')
+}
+
 export async function generateClient({
   datamodel,
   datamodelPath,
@@ -117,8 +128,8 @@ export async function generateClient({
     runtimePath ||
     (generator?.isCustomOutput ? './runtime' : '@prisma/client/runtime')
 
-  debug(`outputDir: ${outputDir}`)
-  const dotPrismaDir = path.join(outputDir, '../../.prisma/client')
+  const dotPrismaDir = getDotPrismaDir(outputDir)
+  debug({ outputDir, dotPrismaDir })
 
   // Cheap check, if people use custom dir
   const finalOutputDir =
