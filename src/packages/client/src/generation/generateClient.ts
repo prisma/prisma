@@ -99,7 +99,8 @@ export async function buildClient({
 function getDotPrismaDir(outputDir: string): string {
   if (
     process.env.INIT_CWD &&
-    !process.env.npm_config_user_agent?.startsWith('pnpm')
+    !process.cwd().includes('.pnpm') &&
+    process.env.npm_lifecycle_hook === 'postinstall'
   ) {
     return path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
   }
@@ -125,15 +126,11 @@ export async function generateClient({
   engineVersion,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   const useDotPrisma =
-    (!generator?.isCustomOutput || testMode) &&
-    process.env.npm_lifecycle_event === 'postinstall'
-      ? !process.env.npm_config_user_agent?.startsWith('pnpm')
-      : true
+    !generator?.isCustomOutput || (testMode && !process.cwd().includes('.pnpm'))
 
   runtimePath =
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
-  // Cheap check, if people use custom dir
   const finalOutputDir = useDotPrisma ? getDotPrismaDir(outputDir) : outputDir
   debug({ outputDir, finalOutputDir })
 
