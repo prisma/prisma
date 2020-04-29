@@ -68,6 +68,9 @@ const path = require('path')
 const fs = require('fs')
 const debug = debugLib('prisma-client')
 
+debug("Client Version ${engineVersion}")
+debug("Engine Version ${engineVersion}")
+
 /**
  * Query Engine version: ${engineVersion}
  * Prisma Client JS version: ${clientVersion}
