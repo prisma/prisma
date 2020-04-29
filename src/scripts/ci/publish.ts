@@ -93,7 +93,7 @@ async function push(dir: string, dry = false): Promise<void> {
       `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
       dry,
     )
-    await run(dir, `git push --quiet --set-upstream origin-push ${branch}`, dry)
+    await run(dir, `git push --quiet ${branch}`, dry)
   } else {
     await run(dir, `git push origin ${branch}`, dry)
   }
