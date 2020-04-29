@@ -13,12 +13,12 @@ pnpm run setup
 Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org/)
 
 ### Developing Prisma Client JS
-2. `cd src/prisma-client-js/packages/photon`
-3. `yarn`
-4. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
-5. `cd fixtures/blog`
-6. `prisma migrate save --name init --experimental && prisma migrate up --experimental`
-7. `ts-node main.ts`
+
+2. `cd src/packages/client`
+3. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
+4. `cd fixtures/blog`
+5. `prisma migrate save --name init --experimental && prisma migrate up --experimental`
+6. `ts-node main.ts`
 
 ### Working on code generation
 
@@ -60,8 +60,8 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 pnpm run download
 ```
 
-
 ### Running the CI system locally
+
 ```bash
 cd src/.buildkite/test
 docker-compose up -d
