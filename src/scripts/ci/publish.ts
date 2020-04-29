@@ -777,6 +777,8 @@ async function publishPackages(
       `git remote add origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
       dryRun,
     )
+    await run('.', `git fetch`, dryRun)
+    await run('.', `git branch --set-upstream-to origin-push master`, dryRun)
   }
 
   // for now only push when studio is being updated
@@ -784,8 +786,6 @@ async function publishPackages(
     const repo = '.'
     // commit and push it :)
     // we try catch this, as this is not necessary for CI to succeed
-    await run('.', `git branch --set-upstream-to origin-push master`, dryRun)
-    await run('.', `git fetch`, dryRun)
     await run('.', `git status`, dryRun)
     await pull(repo, dryRun)
     try {
