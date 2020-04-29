@@ -75,11 +75,11 @@ async function pull(dir: string, dry = false): Promise<void> {
     }
     await run(
       dir,
-      `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
+      `git remote set-url origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
       dry,
     )
   }
-  await run(dir, `git pull origin ${branch} --no-edit`)
+  await run(dir, `git pull origin-push ${branch} --no-edit`)
 }
 
 async function push(dir: string, dry = false): Promise<void> {
@@ -90,12 +90,12 @@ async function push(dir: string, dry = false): Promise<void> {
     }
     await run(
       dir,
-      `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
+      `git remote set-url origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
       dry,
     )
-    await run(dir, `git push --quiet --set-upstream origin ${branch}`, dry)
+    await run(dir, `git push --quiet --set-upstream origin-push ${branch}`, dry)
   } else {
-    await run(dir, `git push origin ${branch}`, dry)
+    await run(dir, `git push origin-push ${branch}`, dry)
   }
 }
 
@@ -785,6 +785,7 @@ async function publishPackages(
     // commit and push it :)
     // we try catch this, as this is not necessary for CI to succeed
     await run('.', `git branch --set-upstream-to origin-push master`, dryRun)
+    await run('.', `git fetch`, dryRun)
     await run('.', `git status`, dryRun)
     await pull(repo, dryRun)
     try {
