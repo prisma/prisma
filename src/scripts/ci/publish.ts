@@ -43,23 +43,6 @@ async function getUnsavedChanges(dir: string): Promise<string | null> {
   return result.trim() || null
 }
 
-// if the current branch is ahead, we need to push it
-async function getUnpushedCommitCount(dir: string): Promise<number> {
-  const result = await runResult(dir, `git status --porcelain=v2 --branch`)
-  const lines = result.split('\n')
-  const abLine = lines.find((l) => l.startsWith('# branch.ab'))
-
-  if (abLine) {
-    const regex = /branch\.ab\s\+(\d+)/
-    const match = regex.exec(abLine)
-    if (match) {
-      return Number(match[1])
-    }
-  }
-
-  return 0
-}
-
 async function getLatestCommit(dir: string): Promise<Commit> {
   const result = await runResult(
     dir,
@@ -809,21 +792,7 @@ async function publishPackages(
         console.log(`\nCommiting changes`)
         await commitChanges(repo, 'Bump Studio [skip ci]', dryRun)
       }
-      const unpushedCommitCount = await getUnpushedCommitCount(repo)
-      if (unpushedCommitCount === 0) {
-        console.log(
-          `${chalk.bold(
-            'Skipping',
-          )} pushing commits, as they're already pushed`,
-        )
-      } else {
-        console.log(
-          `There are ${unpushedCommitCount} unpushed local commits in ${chalk.cyanBright(
-            `./`,
-          )}`,
-        )
-        await push(repo, dryRun)
-      }
+      await push(repo, dryRun).catch(console.error)
     } catch (e) {
       console.error(e)
       console.error(`Ignoring this error, continuing`)
