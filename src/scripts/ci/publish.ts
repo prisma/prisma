@@ -73,13 +73,8 @@ async function pull(dir: string, dry = false): Promise<void> {
     if (!process.env.GITHUB_TOKEN) {
       throw new Error(`Missing env var GITHUB_TOKEN`)
     }
-    await run(
-      dir,
-      `git remote set-url origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
-      dry,
-    )
   }
-  await run(dir, `git pull origin-push ${branch} --no-edit`)
+  await run(dir, `git pull origin ${branch} --no-edit`)
 }
 
 async function push(dir: string, dry = false): Promise<void> {
@@ -88,14 +83,9 @@ async function push(dir: string, dry = false): Promise<void> {
     if (!process.env.GITHUB_TOKEN) {
       throw new Error(`Missing env var GITHUB_TOKEN`)
     }
-    await run(
-      dir,
-      `git remote set-url origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
-      dry,
-    )
-    await run(dir, `git push --quiet --set-upstream origin-push ${branch}`, dry)
+    await run(dir, `git push --quiet --set-upstream origin ${branch}`, dry)
   } else {
-    await run(dir, `git push origin-push ${branch}`, dry)
+    await run(dir, `git push origin ${branch}`, dry)
   }
 }
 
@@ -772,13 +762,7 @@ async function publishPackages(
   if (process.env.UPDATE_STUDIO) {
     await run('.', `git config --global user.email "prismabots@gmail.com"`)
     await run('.', `git config --global user.name "prisma-bot"`)
-    await run(
-      '.',
-      `git remote add origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
-      dryRun,
-    )
-    await run('.', `git fetch`, dryRun)
-    await run('.', `git branch --set-upstream-to origin-push master`, dryRun)
+    await run('.', `git checkout master`, dryRun)
   }
 
   // for now only push when studio is being updated
