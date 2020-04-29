@@ -40,6 +40,8 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   },
   'prisma-client-js': async (baseDir, version) => {
     let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
+    checkTypeScriptVersion()
+    checkYarnVersion()
 
     if (debugEnabled) {
       console.log({ prismaClientDir })
@@ -121,4 +123,108 @@ async function installPackage(baseDir: string, pkg: string): Promise<void> {
       SKIP_GENERATE: 'true',
     },
   })
+}
+
+/**
+ * Warn, if yarn is older than 1.19.2
+ */
+function checkYarnVersion() {
+  if (process.env.npm_config_user_agent) {
+    const match = parseUserAgentString(process.env.npm_config_user_agent)
+    if (match) {
+      const { agent, major, minor, patch } = match
+      if (agent === 'yarn' && major === 1) {
+        const currentYarnVersion = `${major}.${minor}.${patch}`
+        const minYarnVersion = '1.19.2'
+        if (semverLt(currentYarnVersion, minYarnVersion)) {
+          console.error(
+            `${chalk.yellow('warning')} Your ${chalk.bold(
+              'yarn',
+            )} has version ${currentYarnVersion}, which is outdated. Please update it to ${chalk.bold(
+              minYarnVersion,
+            )} or ${chalk.bold('newer')} in order to use Prisma.`,
+          )
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Returns true, if semver version `a` is lower than `b`
+ * Note: This obviously doesn't support the full semver spec.
+ * @param {string} a
+ * @param {string} b
+ */
+function semverLt(a, b) {
+  const [major1, minor1, patch1] = a.split('.')
+  const [major2, minor2, patch2] = b.split('.')
+
+  if (major1 < major2) {
+    return true
+  }
+
+  if (major1 > major2) {
+    return false
+  }
+
+  if (minor1 < minor2) {
+    return true
+  }
+
+  if (minor1 > minor2) {
+    return false
+  }
+
+  if (patch1 < patch2) {
+    return true
+  }
+
+  if (patch1 > patch2) {
+    return false
+  }
+
+  return false
+}
+
+function parseUserAgentString(str) {
+  const userAgentRegex = /(\w+)\/(\d+)\.(\d+)\.(\d+)/
+  const match = userAgentRegex.exec(str)
+  if (match) {
+    const agent = match[1]
+    const major = parseInt(match[2])
+    const minor = parseInt(match[3])
+    const patch = parseInt(match[4])
+    return { agent, major, minor, patch }
+  }
+  return null
+}
+
+/**
+ * Warn, if TypeScript is older than 3.8
+ */
+function checkTypeScriptVersion() {
+  const typeScriptVersion =
+    process.env.npm_package_devDependencies_typescript ||
+    process.env.npm_package_dependencies_typescript
+  if (typeScriptVersion) {
+    const regex = /.*?(\d+)\.(\d+)\.(\d+)/
+    const match = regex.exec(typeScriptVersion)
+    if (match) {
+      const major = parseInt(match[1])
+      const minor = parseInt(match[2])
+      const patch = parseInt(match[3])
+      const currentTypeScriptVersion = `${major}.${minor}.${patch}`
+      const minTypeScriptVersion = '3.8.0'
+      if (semverLt(currentTypeScriptVersion, minTypeScriptVersion)) {
+        console.error(
+          `${chalk.yellow(
+            'warning',
+          )} You have installed typescript@${currentTypeScriptVersion}. Please update it to ${chalk.bold(
+            'typescript@3.8.0',
+          )} or higher to use @prisma/client.`,
+        )
+      }
+    }
+  }
 }
