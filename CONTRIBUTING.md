@@ -14,7 +14,7 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 
 ### Developing Prisma Client JS
 
-2. `cd src/prisma-client-js/packages/client`
+2. `cd src/packages/client`
 3. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
 4. `cd fixtures/blog`
 5. `prisma migrate save --name init --experimental && prisma migrate up --experimental`
