@@ -13,6 +13,8 @@ download({
     'debian-openssl-1.1.x',
     'rhel-openssl-1.0.x',
     'rhel-openssl-1.1.x',
+    'musl-openssl-1.0.x',
+    'musl-openssl-1.1.x',
   ],
   showProgress: true,
 })
