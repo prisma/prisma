@@ -68,7 +68,6 @@ async function commitChanges(
 }
 
 async function pull(dir: string, dry = false): Promise<void> {
-  const branch = await getBranch(dir)
   if (process.env.BUILDKITE) {
     if (!process.env.GITHUB_TOKEN) {
       throw new Error(`Missing env var GITHUB_TOKEN`)
@@ -79,11 +78,10 @@ async function pull(dir: string, dry = false): Promise<void> {
       dry,
     )
   }
-  await run(dir, `git pull origin ${branch} --no-edit`)
+  await run(dir, `git pull origin --no-edit`)
 }
 
 async function push(dir: string, dry = false): Promise<void> {
-  const branch = await getBranch(dir)
   if (process.env.BUILDKITE) {
     if (!process.env.GITHUB_TOKEN) {
       throw new Error(`Missing env var GITHUB_TOKEN`)
@@ -93,9 +91,9 @@ async function push(dir: string, dry = false): Promise<void> {
       `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
       dry,
     )
-    await run(dir, `git push --quiet --set-upstream origin ${branch}`, dry)
+    await run(dir, `git push --quiet`, dry)
   } else {
-    await run(dir, `git push origin ${branch}`, dry)
+    await run(dir, `git push origin`, dry)
   }
 }
 
