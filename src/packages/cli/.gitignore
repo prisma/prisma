@@ -8,10 +8,7 @@ build
 .DS_Store
 download-build
 runtime
-nexus_prisma_ncc_build
-photogen_prisma_ncc_build
 examples
-prisma-test-utils_ncc
 !sqlite.test.db
 tmp
 tmp-sqlite
