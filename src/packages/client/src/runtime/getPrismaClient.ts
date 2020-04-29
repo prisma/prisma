@@ -17,7 +17,6 @@ import {
   makeDocument,
   unpack,
   transformDocument,
-  PrismaClientValidationError,
   Args,
 } from './query'
 import debugLib from 'debug'
@@ -388,7 +387,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             args,
             false,
             `${lowerCaseModel}.${actionName}`,
-            /* errorFormat */ undefined,
+            this.errorFormat,
             callsite,
           )
 
