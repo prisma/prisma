@@ -120,12 +120,15 @@ async function run(
   cwd: string,
   cmd: string,
   dry: boolean = false,
+  hidden: boolean = false,
 ): Promise<void> {
   const args = [chalk.underline('./' + cwd).padEnd(20), chalk.bold(cmd)]
   if (dry) {
     args.push(chalk.dim('(dry)'))
   }
-  console.log(...args)
+  if (!hidden) {
+    console.log(...args)
+  }
   if (dry) {
     return
   }
@@ -555,6 +558,7 @@ async function tagEnginesRepo(dryRun = false) {
       'prisma-engines',
       `git remote add origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma-engines.git`,
       dryRun,
+      true,
     )
   }
   await run(
@@ -763,6 +767,12 @@ async function publishPackages(
     await run('.', `git config --global user.email "prismabots@gmail.com"`)
     await run('.', `git config --global user.name "prisma-bot"`)
     await run('.', `git checkout master`, dryRun)
+    await run(
+      '.',
+      `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
+      dryRun,
+      true,
+    )
   }
 
   // for now only push when studio is being updated
