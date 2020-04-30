@@ -418,6 +418,10 @@ function engineTypeToBinaryType(
     return 'query-engine'
   }
 
+  if (engineType === 'prismaFmt') {
+    return 'prisma-fmt'
+  }
+
   throw new Error(`Could not convert engine type ${engineType}`)
 }
 
@@ -432,6 +436,10 @@ function binaryTypeToEngineType(binaryType: string): string {
 
   if (binaryType === 'query-engine') {
     return 'queryEngine'
+  }
+
+  if (binaryType === 'prisma-fmt') {
+    return 'prismaFmt'
   }
 
   throw new Error(`Could not convert binary type ${binaryType}`)

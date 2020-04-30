@@ -205,6 +205,7 @@ export type EngineType =
   | 'queryEngine'
   | 'migrationEngine'
   | 'introspectionEngine'
+  | 'prismaFmt'
 
 export type GeneratorManifest = {
   prettyName?: string

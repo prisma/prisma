@@ -2,6 +2,7 @@ node_modules
 migration-engine*
 query-engine*
 introspection-engine*
+prisma-fmt*
 yarn-error.log
 dist
 build
