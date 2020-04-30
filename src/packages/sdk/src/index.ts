@@ -20,6 +20,7 @@ export {
   GetDMMFOptions,
   ConfigMetaFormat,
   getVersion,
+  formatSchema,
 } from './engineCommands'
 export { getPackedPackage } from './getPackedPackage'
 export { GeneratorPaths } from './predefinedGeneratorResolvers'

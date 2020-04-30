@@ -31,6 +31,7 @@ export interface BinaryDownloadConfiguration {
   'query-engine'?: string
   'migration-engine'?: string
   'introspection-engine'?: string
+  'prisma-fmt'?: string
 }
 
 export interface DownloadOptions {
@@ -49,12 +50,14 @@ export type BinaryPaths = {
   'migration-engine'?: { [binaryTarget: string]: string } // key: target, value: path
   'query-engine'?: { [binaryTarget: string]: string }
   'introspection-engine'?: { [binaryTarget: string]: string }
+  'prisma-fmt'?: { [binaryTarget: string]: string }
 }
 
 const binaryToEnvVar = {
   'migration-engine': 'PRISMA_MIGRATION_ENGINE_BINARY',
   'query-engine': 'PRISMA_QUERY_ENGINE_BINARY',
   'introspection-engine': 'PRISMA_INTROSPECTION_ENGINE_BINARY',
+  'prisma-fmt': 'PRISMA_FMT_BINARY',
 }
 
 type BinaryDownloadJob = {
@@ -492,6 +495,10 @@ function engineTypeToBinaryType(
 
   if (engineType === 'queryEngine') {
     return 'query-engine'
+  }
+
+  if (engineType === 'prismaFmt') {
+    return 'prisma-fmt'
   }
 
   if (engineType === 'native') {

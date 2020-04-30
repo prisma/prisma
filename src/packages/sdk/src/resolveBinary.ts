@@ -16,11 +16,13 @@ export type EngineType =
   | 'query-engine'
   | 'migration-engine'
   | 'introspection-engine'
+  | 'prisma-fmt'
 
 const engineEnvVarMap = {
   'query-engine': 'PRISMA_QUERY_ENGINE_BINARY',
   'migration-engine': 'PRISMA_MIGRATION_ENGINE_BINARY',
   'introspection-engine': 'PRISMA_INTROSPECTION_ENGINE_BINARY',
+  'prisma-fmt': 'PRISMA_FMT_BINARY',
 }
 
 export async function resolveBinary(name: EngineType): Promise<string> {

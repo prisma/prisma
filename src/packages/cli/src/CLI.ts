@@ -153,6 +153,7 @@ export class CLI implements Command {
             generate   Generate artifacts (e.g. Prisma Client)
              migrate   Migrate your schema ${chalk.dim('(experimental)')}
               studio   Run Prisma Studio ${chalk.dim('(experimental)')}
+              format   Formats your schema
 
     ${chalk.bold('Flags')}
 

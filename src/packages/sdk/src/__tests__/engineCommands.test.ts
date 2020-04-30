@@ -1,4 +1,4 @@
-import { getDMMF, getConfig } from '../engineCommands'
+import { getDMMF, getConfig, formatSchema } from '../engineCommands'
 import stripAnsi from 'strip-ansi'
 import fs from 'fs'
 import path from 'path'
@@ -147,5 +147,55 @@ describe('getConfig', () => {
     })
 
     expect(config).toMatchSnapshot()
+  })
+})
+
+describe('format', () => {
+  test('valid blog schema', async () => {
+    const formatted = await formatSchema({
+      schemaPath: path.join(__dirname, 'fixtures/blog.prisma'),
+    })
+
+    expect(formatted).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = \\"sqlite\\"
+        url      = \\"file:dev.db\\"
+      }
+
+      generator client {
+        provider      = \\"prisma-client-js\\"
+        binaryTargets = [\\"native\\"]
+      }
+
+      model User {
+        id    String  @default(cuid()) @id
+        email String  @unique
+        name  String?
+        posts Post[]
+        Like  Like[]
+      }
+
+      model Post {
+        id        String   @default(cuid()) @id
+        createdAt DateTime @default(now())
+        updatedAt DateTime @updatedAt
+        published Boolean
+        title     String
+        content   String?
+        authorId  String?
+        author    User?    @relation(fields: [authorId], references: [id])
+        Like      Like[]
+      }
+
+      model Like {
+        id     String @default(cuid()) @id
+        userId String
+        user   User   @relation(fields: [userId], references: [id])
+        postId String
+        post   Post   @relation(fields: [postId], references: [id])
+
+        @@unique([userId, postId])
+      }"
+    `)
   })
 })

@@ -10,11 +10,11 @@ async function main() {
           author: true,
         },
         orderBy: {
-          title: 'asc',
+          title: 'aasc',
         },
       },
     },
-  })
+  } as any)
 
   console.log(users)
 

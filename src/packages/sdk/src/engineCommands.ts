@@ -215,6 +215,37 @@ export async function getConfig({
   }
 }
 
+type FormatOptions = {
+  schemaPath: string
+}
+
+export async function formatSchema({
+  schemaPath,
+}: FormatOptions): Promise<string> {
+  if (!fs.existsSync(schemaPath)) {
+    throw new Error(`Schema at ${schemaPath} does not exist.`)
+  }
+  const prismaFmtPath = await resolveBinary('prisma-fmt')
+  const showColors = !process.env.NO_COLOR && process.stdout.isTTY
+
+  const options = {
+    env: {
+      ...process.env,
+      RUST_BACKTRACE: '1',
+      ...(showColors ? { CLICOLOR_FORCE: '1' } : {}),
+    },
+    maxBuffer: MAX_BUFFER,
+  }
+
+  const result = await execa(
+    prismaFmtPath,
+    ['format', '-i', schemaPath],
+    options,
+  )
+
+  return result.stdout
+}
+
 export async function getVersion(enginePath?: string): Promise<string> {
   enginePath = enginePath || (await resolveBinary('query-engine'))
 

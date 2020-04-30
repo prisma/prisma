@@ -28,6 +28,7 @@ async function main() {
         'query-engine': binaryDir,
         'migration-engine': binaryDir,
         'introspection-engine': binaryDir,
+        'prisma-fmt': binaryDir,
       },
       showProgress: true,
       version,
