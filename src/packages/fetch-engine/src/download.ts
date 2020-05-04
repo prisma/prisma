@@ -168,16 +168,30 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       setProgress = collectiveBar.setProgress
     }
 
-    await Promise.all(
-      binariesToDownload.map((job) =>
-        downloadBinary({
+    // Node 14 for whatever reason can't handle concurrent writes
+    if (process.version.startsWith('v14')) {
+      for (const job of binariesToDownload) {
+        await downloadBinary({
           ...job,
           version: options.version,
           failSilent: options.failSilent,
           progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
-        }),
-      ),
-    )
+        })
+      }
+    } else {
+      await Promise.all(
+        binariesToDownload.map((job) =>
+          downloadBinary({
+            ...job,
+            version: options.version,
+            failSilent: options.failSilent,
+            progressCb: setProgress
+              ? setProgress(job.targetFilePath)
+              : undefined,
+          }),
+        ),
+      )
+    }
 
     await cleanupPromise // make sure, that cleanup finished
     if (finishBar) {
