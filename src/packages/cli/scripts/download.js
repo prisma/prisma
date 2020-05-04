@@ -41,7 +41,7 @@ async function main() {
 
 function createLockFile() {
   createdLockFile = true
-  fs.writeFileSync(lockFile, Date.now())
+  fs.writeFileSync(lockFile, Date.now().toString())
 }
 
 function cleanupLockFile() {
