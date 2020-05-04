@@ -117,6 +117,7 @@ export class CLI implements Command {
                 init   Setup Prisma for your app
           introspect   Get the datamodel of your database
             generate   Generate artifacts (e.g. Prisma Client)
+              format   Formats your schema
 
     ${chalk.bold('Flags')}
 
