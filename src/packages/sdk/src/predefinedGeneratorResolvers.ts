@@ -40,7 +40,6 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   },
   'prisma-client-js': async (baseDir, version) => {
     let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
-    checkTypeScriptVersion()
     checkYarnVersion()
 
     if (debugEnabled) {
@@ -198,33 +197,4 @@ function parseUserAgentString(str) {
     return { agent, major, minor, patch }
   }
   return null
-}
-
-/**
- * Warn, if TypeScript is older than 3.8
- */
-function checkTypeScriptVersion() {
-  const typeScriptVersion =
-    process.env.npm_package_devDependencies_typescript ||
-    process.env.npm_package_dependencies_typescript
-  if (typeScriptVersion) {
-    const regex = /.*?(\d+)\.(\d+)\.(\d+)/
-    const match = regex.exec(typeScriptVersion)
-    if (match) {
-      const major = parseInt(match[1])
-      const minor = parseInt(match[2])
-      const patch = parseInt(match[3])
-      const currentTypeScriptVersion = `${major}.${minor}.${patch}`
-      const minTypeScriptVersion = '3.8.0'
-      if (semverLt(currentTypeScriptVersion, minTypeScriptVersion)) {
-        console.error(
-          `${chalk.yellow(
-            'warning',
-          )} You have installed typescript@${currentTypeScriptVersion}. Please update it to ${chalk.bold(
-            'typescript@3.8.0',
-          )} or higher to use @prisma/client.`,
-        )
-      }
-    }
-  }
 }
