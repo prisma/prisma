@@ -27,8 +27,6 @@ process.env.NODE_NO_WARNINGS = '1'
 // react: psst 🙊
 process.env.NODE_ENV = 'production'
 
-debug({ argv: process.argv })
-
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
     chalk.yellow('deprecated') +

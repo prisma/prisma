@@ -35,6 +35,7 @@ import { printStack } from './utils/printStack'
 import stripAnsi from 'strip-ansi'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { InternalDatasource } from './utils/printDatasources'
+import { omit } from './utils/omit'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -214,7 +215,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         flags: options.forceTransactions ? ['--always-force-transactions'] : [],
       }
 
-      debug({ engineConfig: this.engineConfig })
+      const sanitizedEngineConfig = omit(this.engineConfig, [
+        'env',
+        'datasources',
+      ])
+      debug({ engineConfig: sanitizedEngineConfig })
 
       this.engine = new NodeEngine(this.engineConfig)
       this.fetcher = new PrismaClientFetcher(this, false, this.hooks)

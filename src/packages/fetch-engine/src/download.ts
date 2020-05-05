@@ -150,7 +150,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       options.version,
       options.failSilent,
     )
-    debug({ needsToBeDownloaded })
     return !job.envVarPath && (options.ignoreCache || needsToBeDownloaded)
   })
 
@@ -273,17 +272,13 @@ async function binaryNeedsToBeDownloaded(
     failSilent,
   })
 
-  debug({ fileExists: targetExists, cachedFile })
-
   if (cachedFile) {
-    debug({ cachedFile })
     const sha256FilePath = cachedFile + '.sha256'
     if (await exists(sha256FilePath)) {
       const sha256File = await readFile(sha256FilePath, 'utf-8')
       const sha256Cache = await hasha.fromFile(cachedFile, {
         algorithm: 'sha256',
       })
-      debug({ sha256File, sha256Cache, cachedFile, sha256FilePath })
       if (sha256File === sha256Cache) {
         if (!targetExists) {
           await copy(cachedFile, job.targetFilePath)
@@ -291,23 +286,15 @@ async function binaryNeedsToBeDownloaded(
         const targetSha256 = await hasha.fromFile(job.targetFilePath, {
           algorithm: 'sha256',
         })
-        debug({ targetSha256 })
         if (sha256File !== targetSha256) {
-          debug(
-            `sha256 of target file is incorrect, therefore it's corrupt and we need to copy it over again.`,
-          )
           await copy(cachedFile, job.targetFilePath)
         } else {
-          debug(`sha256 of target is correct, so there's nothing to do :)`)
         }
         return false
       } else {
-        debug(`Cached sha256 is not correct!`)
-        debug(`Took it from ${sha256FilePath}`)
         return true
       }
     } else {
-      debug(`No sha256 exists for ${cachedFile}. Looked at ${sha256FilePath}`)
       return true
     }
   }
@@ -320,7 +307,6 @@ async function binaryNeedsToBeDownloaded(
   // 3. If same platform, always check --version
   if (job.binaryTarget === nativePlatform) {
     const works = await checkVersionCommand(job.targetFilePath)
-    debug({ works })
     return !works
   }
 
@@ -329,8 +315,6 @@ async function binaryNeedsToBeDownloaded(
 
 export async function getVersion(enginePath: string): Promise<string> {
   const result = await execa(enginePath, ['--version'])
-
-  debug(`Getting version of ${enginePath}. Result: `, result)
 
   return result.stdout
 }
@@ -341,10 +325,8 @@ export async function checkVersionCommand(
   try {
     const version = await getVersion(enginePath)
 
-    debug(`Getting version of ${enginePath}. Result: `, version)
     return version.length > 0
   } catch (e) {
-    debug(`Version command does not work`, e)
     return false
   }
 }
@@ -448,7 +430,6 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
     progressCb(0)
   }
 
-  debug(`Downloading zip`)
   const { sha256, zippedSha256 } = await downloadZip(
     downloadUrl,
     targetFilePath,

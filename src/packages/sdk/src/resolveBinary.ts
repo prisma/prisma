@@ -88,7 +88,6 @@ async function maybeCopyToTmp(file: string): Promise<string> {
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await makeDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
-    debug({ file, target })
     const data = await readFile(file)
     await writeFile(target, data)
     // We have to read and write until https://github.com/zeit/pkg/issues/639

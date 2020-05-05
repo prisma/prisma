@@ -17,7 +17,6 @@ export class Generator {
   }
   async init(): Promise<void> {
     await this.generatorProcess.init()
-    this.debug(`Sending "getManifest" rpc to generator`)
     this.manifest = await this.generatorProcess.getManifest()
   }
   stop(): void {
@@ -29,7 +28,6 @@ export class Generator {
         `Please first run .setOptions() on the Generator to initialize the options`,
       )
     }
-    this.debug(`Sending "generate" rpc to generator`)
     return this.generatorProcess.generate(this.options)
   }
   setOptions(options: GeneratorOptions): void {

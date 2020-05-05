@@ -131,7 +131,6 @@ export async function generateClient({
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
   const finalOutputDir = useDotPrisma ? getDotPrismaDir(outputDir) : outputDir
-  debug({ useDotPrisma, outputDir, finalOutputDir })
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
@@ -188,7 +187,6 @@ export async function generateClient({
     // TODO: Windows, / is not working here...
     const copyTarget = path.join(outputDir, 'runtime')
     await makeDir(copyTarget)
-    debug({ copyRuntime, outputDir, copyTarget, runtimeSourceDir })
     if (runtimeSourceDir !== copyTarget) {
       await copy({
         from: runtimeSourceDir,
@@ -210,7 +208,6 @@ export async function generateClient({
     for (const filePath of Object.values(binaryPaths.queryEngine)) {
       const fileName = path.basename(filePath)
       const target = path.join(finalOutputDir, fileName)
-      const before = Date.now()
       const [sourceFileSize, targetFileSize] = await Promise.all([
         fileSize(filePath),
         fileSize(target),
@@ -218,7 +215,6 @@ export async function generateClient({
 
       // If the target doesn't exist yet, copy it
       if (!targetFileSize) {
-        debug(`Copying ${filePath} to ${target}`)
         await copyFile(filePath, target)
         continue
       }
@@ -229,7 +225,6 @@ export async function generateClient({
         sourceFileSize &&
         targetFileSize !== sourceFileSize
       ) {
-        debug(`Copying ${filePath} to ${target}`)
         await copyFile(filePath, target)
         continue
       }
@@ -240,14 +235,9 @@ export async function generateClient({
         getVersion(target).catch(() => null),
       ])
 
-      const after = Date.now()
       if (sourceVersion && targetVersion && sourceVersion === targetVersion) {
-        debug(`Getting hashes took ${after - before}ms`)
-        debug(
-          `Skipping ${filePath} to ${target} as both files have md5 hash ${sourceVersion}`,
-        )
+        // skip
       } else {
-        debug(`Copying ${filePath} to ${target}`)
         await copyFile(filePath, target)
       }
     }
@@ -275,7 +265,6 @@ export async function generateClient({
       process.env.INIT_CWD,
       'node_modules/.prisma/client',
     )
-    debug({ finalOutputDir, backupPath })
     if (finalOutputDir !== backupPath) {
       await copy({
         from: finalOutputDir,

@@ -45,12 +45,11 @@ export type GetDMMFOptions = {
 export async function getDMMF({
   datamodel,
   cwd = process.cwd(),
-  prismaPath,
+  prismaPath: queryEnginePath,
   datamodelPath,
   retry = 4,
 }: GetDMMFOptions): Promise<DMMF.Document> {
-  debug(`getDMMF, override prismaPath = ${prismaPath}`)
-  prismaPath = prismaPath || (await resolveBinary('query-engine'))
+  queryEnginePath = queryEnginePath || (await resolveBinary('query-engine'))
   let result
   try {
     let tempDatamodelPath: string | undefined = datamodelPath
@@ -77,7 +76,7 @@ export async function getDMMF({
     }
 
     result = await execa(
-      prismaPath,
+      queryEnginePath,
       ['--enable-raw-queries', 'cli', 'dmmf'],
       options,
     )
@@ -92,7 +91,7 @@ export async function getDMMF({
       return getDMMF({
         datamodel,
         cwd,
-        prismaPath,
+        prismaPath: queryEnginePath,
         datamodelPath,
         retry: retry - 1,
       })
@@ -114,7 +113,7 @@ export async function getDMMF({
       return getDMMF({
         datamodel,
         cwd,
-        prismaPath,
+        prismaPath: queryEnginePath,
         datamodelPath,
         retry: retry - 1,
       })
@@ -148,7 +147,7 @@ export async function getDMMF({
     }
     if (e.message.includes('in JSON at position')) {
       throw new Error(
-        `Problem while parsing the query engine response at ${prismaPath}. ${result.stdout}\n${e.stack}`,
+        `Problem while parsing the query engine response at ${queryEnginePath}. ${result.stdout}\n${e.stack}`,
       )
     }
     throw new Error(e)
@@ -167,12 +166,11 @@ export type GetConfigOptions = {
 export async function getConfig({
   datamodel,
   cwd = process.cwd(),
-  prismaPath,
+  prismaPath: queryEnginePath,
   datamodelPath,
   ignoreEnvVarErrors,
 }: GetConfigOptions): Promise<ConfigMetaFormat> {
-  debug(`getConfig, override prismaPath = ${prismaPath}`)
-  prismaPath = prismaPath || (await resolveBinary('query-engine'))
+  queryEnginePath = queryEnginePath || (await resolveBinary('query-engine'))
 
   let tempDatamodelPath: string | undefined = datamodelPath
   if (!tempDatamodelPath) {
@@ -189,15 +187,19 @@ export async function getConfig({
   const args = ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
 
   try {
-    const result = await execa(prismaPath, ['cli', 'get-config', ...args], {
-      cwd,
-      env: {
-        ...process.env,
-        PRISMA_DML_PATH: tempDatamodelPath,
-        RUST_BACKTRACE: '1',
+    const result = await execa(
+      queryEnginePath,
+      ['cli', 'get-config', ...args],
+      {
+        cwd,
+        env: {
+          ...process.env,
+          PRISMA_DML_PATH: tempDatamodelPath,
+          RUST_BACKTRACE: '1',
+        },
+        maxBuffer: MAX_BUFFER,
       },
-      maxBuffer: MAX_BUFFER,
-    })
+    )
 
     if (!datamodelPath) {
       await unlink(tempDatamodelPath)
@@ -249,7 +251,6 @@ export async function formatSchema({
 export async function getVersion(enginePath?: string): Promise<string> {
   enginePath = enginePath || (await resolveBinary('query-engine'))
 
-  debug(`Getting version of ${enginePath}`)
   const result = await execa(enginePath, ['--version'], {
     env: {
       ...process.env,

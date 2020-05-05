@@ -103,10 +103,6 @@ export async function downloadZip(
               `sha256 of ${url} (uzipped) should be ${sha256} but is ${hash}`,
             )
           }
-
-          debug(`sha-256 are correct
-zipped: ${zippedSha256}
-unzipped: ${sha256}`)
         })
       } finally {
         //
