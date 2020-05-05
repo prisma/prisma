@@ -661,6 +661,69 @@ describe('select validation', () => {
     expect(() => document.validate(ast)).not.toThrow()
   })
 
+  test('Allow different iso strings 1', () => {
+    const ast = {
+      data: {
+        title: 'Some title',
+        content: null,
+        published: false,
+        createdAt: '2020-05-05T16:28:33.983Z',
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'mutation',
+      rootField: 'createOnePost',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    expect(() => document.validate(ast)).not.toThrow()
+  })
+
+  test('Allow different iso strings 2', () => {
+    const ast = {
+      data: {
+        title: 'Some title',
+        content: null,
+        published: false,
+        createdAt: '2020-05-05T16:28:33.983+03:00',
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'mutation',
+      rootField: 'createOnePost',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    expect(() => document.validate(ast)).not.toThrow()
+  })
+
+  test('Allow different iso strings 2', () => {
+    const ast = {
+      data: {
+        title: 'Some title',
+        content: null,
+        published: false,
+        createdAt: '2020-05-05T16:28:33.983-02:00',
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'mutation',
+      rootField: 'createOnePost',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    expect(() => document.validate(ast)).not.toThrow()
+  })
+
   test('Allow uuid for string input', () => {
     const ast = {
       data: {
