@@ -22,6 +22,63 @@ exports[`select validation Allow deep select query 1`] = `
 }"
 `;
 
+exports[`select validation Allow different iso strings 1 1`] = `
+"mutation {
+  createOnePost(data: {
+    title: \\"Some title\\"
+    content: null
+    published: false
+    createdAt: \\"2020-05-05T16:28:33.983Z\\"
+  }) {
+    id
+    createdAt
+    updatedAt
+    published
+    title
+    content
+    authorId
+  }
+}"
+`;
+
+exports[`select validation Allow different iso strings 2 1`] = `
+"mutation {
+  createOnePost(data: {
+    title: \\"Some title\\"
+    content: null
+    published: false
+    createdAt: \\"2020-05-05T16:28:33.983+03:00\\"
+  }) {
+    id
+    createdAt
+    updatedAt
+    published
+    title
+    content
+    authorId
+  }
+}"
+`;
+
+exports[`select validation Allow different iso strings 2 2`] = `
+"mutation {
+  createOnePost(data: {
+    title: \\"Some title\\"
+    content: null
+    published: false
+    createdAt: \\"2020-05-05T16:28:33.983-02:00\\"
+  }) {
+    id
+    createdAt
+    updatedAt
+    published
+    title
+    content
+    authorId
+  }
+}"
+`;
+
 exports[`select validation Allow empty input array 1`] = `
 "query {
   findManyPost(where: {
