@@ -105,7 +105,6 @@ export class Migrate {
       }: WatchOptions = { clear: true, providerAliases: {} },
       renderer?: DevComponentRenderer,
     ) => {
-      debug('Running watchUp')
       renderer && renderer.setState({ error: undefined })
       const datamodel = this.getDatamodel()
       try {
@@ -349,13 +348,6 @@ export class Migrate {
     })
 
     if (datamodelSteps.length === 0) {
-      debug(`No datamodelSteps`)
-      debug(`No datamodelSteps`)
-      debug(`No datamodelSteps`)
-      debug(`No datamodelSteps`)
-      debug(`No datamodelSteps`)
-      debug(`No datamodelSteps`)
-      debug({ datamodelSteps, databaseSteps, warnings })
       return undefined
     }
 

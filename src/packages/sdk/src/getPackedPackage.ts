@@ -28,8 +28,6 @@ export async function getPackedPackage(
     resolvePkg(name, { cwd: __dirname }) ||
     resolvePkg(name, { cwd: target })
 
-  debug({ packageDir })
-
   if (!packageDir) {
     const pkg = await readPkgUp({
       cwd: target,

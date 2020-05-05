@@ -24,7 +24,6 @@ export class Version implements Command {
       '--json': Boolean,
     })
     const platform = await getPlatform()
-    debug({ __dirname })
 
     const introspectionEngine = await this.resolveEngine(
       'introspection-engine',

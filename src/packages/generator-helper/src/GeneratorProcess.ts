@@ -54,8 +54,6 @@ export class GeneratorProcess {
       const spawnCommand = isBinary ? command : process.execPath
       const spawnArgs = isBinary ? args : ['--max-old-space-size=8096', command]
 
-      debug({ isBinary, command, args, spawnCommand, spawnArgs })
-
       this.child = spawn(spawnCommand, spawnArgs, {
         stdio: ['pipe', 'inherit', 'pipe'],
       })

@@ -16,7 +16,9 @@ let createdLockFile = false
 async function main() {
   if (
     fs.existsSync(lockFile) &&
-    JSON.parse(fs.readFileSync(lockFile) > Date.now() - 20000)
+    JSON.parse(
+      parseInt(fs.readFileSync(lockFile, 'utf-8')) > Date.now() - 20000,
+    )
   ) {
     debug(
       `Lock file already exists, so we're skipping the download of the prisma binaries`,

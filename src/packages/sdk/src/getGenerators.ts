@@ -88,7 +88,6 @@ export async function getGenerators({
     }
 
     const binaryPathsWithEngineType = await download(downloadParams)
-    debug({ binaryPathsWithEngineType })
     prismaPath = binaryPathsWithEngineType['query-engine']![platform]
   }
 
@@ -139,7 +138,6 @@ export async function getGenerators({
             baseDir,
             cliVersion,
           )
-          debug(paths)
           generatorPath = paths.generatorPath
         }
 
@@ -151,10 +149,8 @@ export async function getGenerators({
         if (generator.output) {
           generator.output = path.resolve(baseDir, generator.output)
           generator.isCustomOutput = true
-          debug(`Resolving based on generator.output to ${generator.output}`)
         } else if (paths) {
           generator.output = paths.outputPath
-          debug(`Resolving based on paths to ${generator.output}`)
         } else {
           if (
             !generatorInstance.manifest ||
@@ -172,7 +168,6 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
             defaultOutput: generatorInstance.manifest.defaultOutput,
             baseDir,
           })
-          debug(`Resolving else to ${generator.output}`, { baseDir })
         }
 
         const options: GeneratorOptions = {
@@ -214,7 +209,6 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     if (process.env.NETLIFY && !binaryTargets.includes('rhel-openssl-1.0.x')) {
       binaryTargets.push('rhel-openssl-1.0.x')
     }
-    debug({ binaryTargets })
 
     const binariesConfig: BinaryDownloadConfiguration = binaries.reduce(
       (acc, curr) => {
