@@ -199,7 +199,7 @@ Then you can run ${chalk.green('prisma introspect')} again.
 
     if (args['--print']) {
       console.log(introspectionSchema)
-      introspectionWarnings && console.error(introspectionWarnings)
+      console.error(introspectionWarningsMessage)
     } else {
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)
