@@ -282,6 +282,10 @@ export const knownBinaryTargets: Platform[] = [
   'rhel-openssl-1.1.x',
   'linux-musl',
   'windows',
+  'freebsd',
+  'openbsd',
+  'netbsd',
+  'arm',
 ]
 
 const oldToNewBinaryTargetsMapping = {

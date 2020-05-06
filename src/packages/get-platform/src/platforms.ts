@@ -10,6 +10,7 @@ export type Platform =
   | 'freebsd'
   | 'openbsd'
   | 'netbsd'
+  | 'arm'
 
 export const platforms = [
   'darwin',
@@ -19,6 +20,10 @@ export const platforms = [
   'rhel-openssl-1.1.x',
   'linux-musl',
   'windows',
+  'freebsd',
+  'openbsd',
+  'netbsd',
+  'arm',
 ]
 
 export function mayBeCompatible(
