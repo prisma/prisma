@@ -70,6 +70,7 @@ describe('batching', () => {
           id
           email
           name
+          json
         }
       }",
           "query {
@@ -79,6 +80,7 @@ describe('batching', () => {
           id
           email
           name
+          json
         }
       }",
         ],
@@ -166,6 +168,7 @@ describe('batching', () => {
           id
           email
           name
+          json
         }
       }",
       ]
@@ -238,6 +241,7 @@ describe('batching', () => {
           id
           email
           name
+          json
         }
       }",
         "query {
@@ -247,6 +251,7 @@ describe('batching', () => {
           id
           email
           name
+          json
         }
       }",
       ]

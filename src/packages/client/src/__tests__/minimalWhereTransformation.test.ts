@@ -41,6 +41,7 @@ describe('minimal where transformation', () => {
           id
           email
           name
+          json
         }
       }"
     `)
@@ -71,6 +72,7 @@ describe('minimal where transformation', () => {
           id
           email
           name
+          json
         }
       }"
     `)
@@ -101,6 +103,7 @@ describe('minimal where transformation', () => {
           id
           email
           name
+          json
         }
       }"
     `)
