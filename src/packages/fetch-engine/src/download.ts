@@ -74,13 +74,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
   const os = await getos()
 
-  if (os.distro === 'musl') {
-    console.error(
-      `${chalk.yellow(
-        'Warning',
-      )} Precompiled binaries are not available for Alpine.`,
-    )
-  } else if (os.distro === 'arm') {
+  if (os.distro === 'arm') {
     console.error(
       `${chalk.yellow(
         'Warning',
@@ -168,29 +162,27 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     }
 
     // Node 14 for whatever reason can't handle concurrent writes
-    if (process.version.startsWith('v14')) {
-      for (const job of binariesToDownload) {
-        await downloadBinary({
+    // if (process.version.startsWith('v14')) {
+    //   for (const job of binariesToDownload) {
+    //     await downloadBinary({
+    //       ...job,
+    //       version: options.version,
+    //       failSilent: options.failSilent,
+    //       progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
+    //     })
+    //   }
+    // } else {
+    await Promise.all(
+      binariesToDownload.map((job) =>
+        downloadBinary({
           ...job,
           version: options.version,
           failSilent: options.failSilent,
           progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
-        })
-      }
-    } else {
-      await Promise.all(
-        binariesToDownload.map((job) =>
-          downloadBinary({
-            ...job,
-            version: options.version,
-            failSilent: options.failSilent,
-            progressCb: setProgress
-              ? setProgress(job.targetFilePath)
-              : undefined,
-          }),
-        ),
-      )
-    }
+        }),
+      ),
+    )
+    // }
 
     await cleanupPromise // make sure, that cleanup finished
     if (finishBar) {
@@ -276,14 +268,16 @@ async function binaryNeedsToBeDownloaded(
     const sha256FilePath = cachedFile + '.sha256'
     if (await exists(sha256FilePath)) {
       const sha256File = await readFile(sha256FilePath, 'utf-8')
-      const sha256Cache = await hasha.fromFile(cachedFile, {
+      // TODO: Use `fromFile` as soon as https://github.com/nodejs/node/issues/33263 is fixed
+      const sha256Cache = await hasha.fromFileSync(cachedFile, {
         algorithm: 'sha256',
       })
       if (sha256File === sha256Cache) {
         if (!targetExists) {
           await copy(cachedFile, job.targetFilePath)
         }
-        const targetSha256 = await hasha.fromFile(job.targetFilePath, {
+        // TODO: Use `fromFile` as soon as https://github.com/nodejs/node/issues/33263 is fixed
+        const targetSha256 = await hasha.fromFileSync(job.targetFilePath, {
           algorithm: 'sha256',
         })
         if (sha256File !== targetSha256) {

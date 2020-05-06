@@ -280,8 +280,7 @@ export const knownBinaryTargets: Platform[] = [
   'debian-openssl-1.1.x',
   'rhel-openssl-1.0.x',
   'rhel-openssl-1.1.x',
-  'musl-openssl-1.0.x',
-  'musl-openssl-1.1.x',
+  'linux-musl',
   'windows',
 ]
 
@@ -289,7 +288,6 @@ const oldToNewBinaryTargetsMapping = {
   'linux-glibc-libssl1.0.1': 'debian-openssl-1.0.x',
   'linux-glibc-libssl1.0.2': 'debian-openssl-1.0.x',
   'linux-glibc-libssl1.1.0': 'debian-openssl1.1.x',
-  'linux-musl-libssl1.1.0': 'debian-openssl1.1.x',
 }
 
 async function validateGenerators(
