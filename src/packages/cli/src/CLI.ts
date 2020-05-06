@@ -85,6 +85,7 @@ export class CLI implements Command {
         'query-engine': binaryPath,
         'migration-engine': binaryPath,
         'introspection-engine': binaryPath,
+        'prisma-fmt': binaryPath,
       },
       showProgress: true,
       version,
