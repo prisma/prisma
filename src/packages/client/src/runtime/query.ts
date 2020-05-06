@@ -681,6 +681,9 @@ function stringify(
   isJson?: boolean,
 ) {
   if (isJson) {
+    if (obj.values && obj.__prismaRawParamaters__) {
+      return JSON.stringify(obj.values)
+    }
     return JSON.stringify(JSON.stringify(obj))
   }
   if (obj === undefined) {

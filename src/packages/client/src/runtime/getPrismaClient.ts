@@ -331,7 +331,10 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           ...values,
         )
         query = queryInstance[sqlOutput]
-        parameters = JSON.stringify(queryInstance.values)
+        parameters = {
+          values: JSON.stringify(queryInstance.values),
+          __prismaRawParamaters__: true,
+        }
       } else {
         // Called with prisma.raw(string)
         query = stringOrTemplateStringsArray
