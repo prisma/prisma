@@ -44,6 +44,7 @@ export {
   Dictionary,
   CompiledGeneratorDefinition,
 } from './cli/types'
+export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { arg, format, isError } from './cli/utils'
 export {
   getSchemaPath,
