@@ -182,13 +182,13 @@ async function main(): Promise<number> {
   // Project hash is a SHA256 of the schemaPath
   const projectHash = await getProjectHash()
   // SHA256 of the cli path
-  const cliPathHash = await getCLIPathHash()
+  const cliPathHash = getCLIPathHash()
 
   // check prisma for updates
   const checkResult = await checkpoint.check({
     product: 'prisma',
     cli_path_hash: cliPathHash,
-    project: projectHash,
+    project_hash: projectHash,
     version: packageJson.version,
     disable: ci.isCI,
   })
@@ -222,11 +222,12 @@ async function getProjectHash(): Promise<string> {
     .digest('hex')
     .substring(0, 8)
 }
+
 /**
  * Get a unique identifier for the CLI installation path
  * which can be either global or local (in project's node_modules)
  */
-async function getCLIPathHash(): Promise<string> {
+function getCLIPathHash(): string {
   const cliPath = process.argv[1]
   return crypto
     .createHash('sha256')
