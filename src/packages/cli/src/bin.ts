@@ -4,11 +4,8 @@ import { promisify } from 'util'
 import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
-import crypto from 'crypto'
-import { arg, drawBox, getSchemaPath } from '@prisma/sdk'
+import { arg, drawBox, getCLIPathHash, getProjectHash } from '@prisma/sdk'
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
-
-const exists = promisify(fs.exists)
 
 export { byline } from '@prisma/migrate'
 
@@ -207,36 +204,6 @@ async function main(): Promise<number> {
   }
 
   return 0
-}
-
-/**
- * Get a unique identifier for the project by hashing
- * the directory with `schema.prisma`
- */
-async function getProjectHash(): Promise<string> {
-  const args = arg(process.argv.slice(3), { '--schema': String })
-
-  let projectPath = await getSchemaPath(args['--schema'])
-  projectPath = projectPath || process.cwd() // Default to cwd if the schema couldn't be found
-
-  return crypto
-    .createHash('sha256')
-    .update(projectPath)
-    .digest('hex')
-    .substring(0, 8)
-}
-
-/**
- * Get a unique identifier for the CLI installation path
- * which can be either global or local (in project's node_modules)
- */
-function getCLIPathHash(): string {
-  const cliPath = process.argv[1]
-  return crypto
-    .createHash('sha256')
-    .update(cliPath)
-    .digest('hex')
-    .substring(0, 8)
 }
 
 process.on('SIGINT', () => {
