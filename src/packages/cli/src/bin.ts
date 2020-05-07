@@ -223,7 +223,7 @@ async function getProjectHash(): Promise<string> {
     .substring(0, 8)
 }
 /**
- * Get a unique identifier for the CLI instllation path
+ * Get a unique identifier for the CLI installation path
  * which can be either global or local (in project's node_modules)
  */
 async function getCLIPathHash(): Promise<string> {
