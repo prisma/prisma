@@ -5,7 +5,7 @@ import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
 import crypto from 'crypto'
-import { arg, drawBox } from '@prisma/sdk'
+import { arg, drawBox, getSchemaPath } from '@prisma/sdk'
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 const exists = promisify(fs.exists)
@@ -214,11 +214,14 @@ async function main(): Promise<number> {
  * the directory with `schema.prisma`
  */
 async function getProjectHash(): Promise<string> {
-  const schemaPath = await getSchemaPath()
+  const args = arg(process.argv.slice(3), { '--schema': String })
+
+  let projectPath = await getSchemaPath(args['--schema'])
+  projectPath = projectPath || process.cwd() // Default to cwd if the schema couldn't be found
 
   return crypto
     .createHash('sha256')
-    .update(schemaPath)
+    .update(projectPath)
     .digest('hex')
     .substring(0, 8)
 }
@@ -234,25 +237,6 @@ function getCLIPathHash(): string {
     .update(cliPath)
     .digest('hex')
     .substring(0, 8)
-}
-
-/**
- * Get the path where `schema.prisma` lives
- */
-async function getSchemaPath(): Promise<string> {
-  const cwd = process.cwd()
-  const prismaSchemaFile = 'schema.prisma'
-
-  if (await exists(path.join(cwd, prismaSchemaFile))) {
-    return cwd
-  }
-
-  if (await exists(path.join(cwd, 'prisma', prismaSchemaFile))) {
-    return path.normalize(path.join(cwd, 'prisma'))
-  }
-
-  // Default to cwd if prisma schema couldn't be found
-  return cwd
 }
 
 process.on('SIGINT', () => {
