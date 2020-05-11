@@ -336,11 +336,17 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           values: JSON.stringify(queryInstance.values),
           __prismaRawParamaters__: true,
         }
-      } else if ("string" === typeof stringOrTemplateStringsArray) {
-        // Called with prisma.raw(string)
+      } else if ('string' === typeof stringOrTemplateStringsArray) {
+        // Called with prisma.raw(string) or prisma.raw(string, values)
         query = stringOrTemplateStringsArray
+        if (values.length) {
+          parameters = {
+            values: JSON.stringify(values),
+            __prismaRawParamaters__: true,
+          }
+        }
       } else {
-        // called with prisma.raw(prisma.sql\`\`)
+        // called with prisma.raw(sql\`\`)
         query = stringOrTemplateStringsArray[sqlOutput]
         parameters = {
           values: JSON.stringify(stringOrTemplateStringsArray.values),

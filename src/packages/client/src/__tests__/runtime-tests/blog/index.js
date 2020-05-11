@@ -68,6 +68,21 @@ module.exports = async () => {
     throw Error("prisma.raw('SELECT 1') result should be [ { '1': 1 } ]")
   }
 
+  // Test raw(string, values)
+  const rawQueryWithValues = await db.raw(
+    'SELECT $1 AS name, $2 AS id',
+    'Alice',
+    42,
+  )
+  if (
+    rawQueryWithValues[0].name !== 'Alice' ||
+    rawQueryWithValues[0].id !== 42
+  ) {
+    throw Error(
+      "prisma.raw('SELECT $1 AS name, $2 AS id', 'Alice', 42) result should be [ { name: 'Alice', id: 42 } ]",
+    )
+  }
+
   // Test raw``
   const rawQueryTemplate = await db.raw`SELECT 1`
   if (rawQueryTemplate[0]['1'] !== 1) {
