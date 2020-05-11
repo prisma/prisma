@@ -176,8 +176,8 @@ async function main(): Promise<number> {
   }
   console.log(result)
 
-  // Project hash is a SHA256 of the schemaPath
-  const projectHash = await getProjectHash()
+  // SHA256 identifier for the project based on the prisma schema path
+  const projectPathHash = await getProjectHash()
   // SHA256 of the cli path
   const cliPathHash = getCLIPathHash()
 
@@ -185,7 +185,7 @@ async function main(): Promise<number> {
   const checkResult = await checkpoint.check({
     product: 'prisma',
     cli_path_hash: cliPathHash,
-    project_hash: projectHash,
+    project_hash: projectPathHash,
     version: packageJson.version,
     disable: ci.isCI,
   })
