@@ -57,7 +57,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 2.28.0_7d9b020b8616a35b73d4b597f43d4d93
       '@typescript-eslint/parser': 2.28.0_eslint@6.8.0+typescript@3.8.3
       '@zeit/ncc': 0.22.1
-      checkpoint-client: 1.0.7
+      checkpoint-client: 1.1.0
       dotenv: 8.2.0
       eslint: 6.8.0
       eslint-config-prettier: 6.10.1_eslint@6.8.0
@@ -114,7 +114,7 @@ importers:
       '@typescript-eslint/eslint-plugin': ^2.28.0
       '@typescript-eslint/parser': ^2.28.0
       '@zeit/ncc': 0.22.1
-      checkpoint-client: ^1.0.7
+      checkpoint-client: ^1.1.0
       dotenv: ^8.2.0
       eslint: ^6.8.0
       eslint-config-prettier: ^6.10.1
@@ -4641,6 +4641,24 @@ packages:
       write-file-atomic: 3.0.1
     resolution:
       integrity: sha512-rZnQifWX+QjXZQFwsFYgITJDt8Llh3KHB+IEVXiDBF5+gE53agJZ8L7A1ZJeuV2K4LqyoEUbKduRt1/cVaJs6g==
+  /checkpoint-client/1.1.0:
+    dependencies:
+      '@rollup/plugin-commonjs': 11.0.1_rollup@1.29.0
+      '@rollup/plugin-json': 4.0.1_rollup@1.29.0
+      '@rollup/plugin-node-resolve': 7.0.0_rollup@1.29.0
+      '@rollup/plugin-sucrase': 3.0.0_rollup@1.29.0
+      cross-spawn: 7.0.1
+      env-paths: 2.2.0
+      fast-write-atomic: 0.2.1
+      make-dir: 3.0.0
+      ms: 2.1.2
+      node-fetch: 2.6.0
+      rollup: 1.29.0
+      uuid: 3.3.3
+      write-file-atomic: 3.0.1
+    dev: true
+    resolution:
+      integrity: sha512-Q+BuuQL5VHn8sxlOpEhvzsk0c+FsGVv+ULHcQ265gR0xjAgu/2JTcTg6Psv5/hva47hdXxmHmywTDwAagRTTZA==
   /chownr/1.1.4:
     resolution:
       integrity: sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==
