@@ -123,14 +123,6 @@ export interface GetPrismaClientOptions {
   internalDatasources: InternalDatasource[]
 }
 
-// Re-export sql-template-tag
-const sqlTemplateTagExport = (
-  ...args: Parameters<typeof sqlTemplateTag.sqltag>
-) => sqlTemplateTag.sqltag(...args)
-sqlTemplateTagExport.empty = sqlTemplateTag.empty
-sqlTemplateTagExport.join = sqlTemplateTag.join
-sqlTemplateTagExport.raw = sqlTemplateTag.raw
-
 // TODO: We **may** be able to get real types. However, we have both a bootstrapping
 // problem here, that we want to return a type that's not yet defined
 // and we're typecasting this anyway later
@@ -321,11 +313,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }
 
     /**
-     * Re-export of 'sql-template-tag'
-     */
-    sql = sqlTemplateTagExport
-
-    /**
      * Makes a raw query
      */
 
@@ -349,16 +336,16 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           values: JSON.stringify(queryInstance.values),
           __prismaRawParamaters__: true,
         }
-      } else if (stringOrTemplateStringsArray instanceof sqlTemplateTag.Sql) {
+      } else if ("string" === typeof stringOrTemplateStringsArray) {
+        // Called with prisma.raw(string)
+        query = stringOrTemplateStringsArray
+      } else {
         // called with prisma.raw(prisma.sql\`\`)
         query = stringOrTemplateStringsArray[sqlOutput]
         parameters = {
           values: JSON.stringify(stringOrTemplateStringsArray.values),
           __prismaRawParamaters__: true,
         }
-      } else {
-        // Called with prisma.raw(string)
-        query = stringOrTemplateStringsArray
       }
 
       const document = makeDocument({

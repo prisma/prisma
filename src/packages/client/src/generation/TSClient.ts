@@ -66,6 +66,7 @@ const {
 
 const path = require('path')
 const fs = require('fs')
+const sqltag = require('sql-template-tag')
 const debug = debugLib('prisma-client')
 
 debug("Client Version ${engineVersion}")
@@ -85,6 +86,15 @@ exports.PrismaClientUnknownRequestError = PrismaClientUnknownRequestError;
 exports.PrismaClientRustPanicError = PrismaClientRustPanicError;
 exports.PrismaClientInitializationError = PrismaClientInitializationError;
 exports.PrismaClientValidationError = PrismaClientValidationError;
+
+/**
+ * Re-export of sql-template-tag
+ */
+
+exports.sql = sqltag.sqltag
+exports.empty = sqltag.empty
+exports.join = sqltag.join
+exports.raw = sqltag.raw
 `
 
 const commonCodeTS = ({
@@ -107,6 +117,11 @@ export { PrismaClientUnknownRequestError }
 export { PrismaClientRustPanicError }
 export { PrismaClientInitializationError }
 export { PrismaClientValidationError }
+
+/**
+ * Re-export of sql-template-tag
+ */
+export { default as sql, empty, join, raw } from 'sql-template-tag';
 
 /**
  * Query Engine version: ${engineVersion}
