@@ -3,6 +3,10 @@ const {
   PrismaClientValidationError,
   PrismaClientKnownRequestError,
   prismaVersion,
+  sql,
+  raw,
+  join,
+  empty,
 } = require('@prisma/client')
 const assert = require('assert')
 
@@ -80,20 +84,16 @@ module.exports = async () => {
 
   // Test raw`` with prisma.sql``
   const rawQueryTemplateFromSqlTemplate = await db.raw(
-    db.sql`
-      SELECT ${db.sql.join([
-        db.sql.raw('email'),
-        db.sql.raw('id'),
-        db.sql.raw('name'),
-      ])}
-      FROM ${db.sql.raw('User')}
-      ${db.sql`WHERE name = ${'Alice'}`}
-      ${db.sql.empty}
+    sql`
+      SELECT ${join([raw('email'), raw('id'), raw('name')])}
+      FROM ${raw('User')}
+      ${sql`WHERE name = ${'Alice'}`}
+      ${empty}
     `,
   )
   if (rawQueryTemplateFromSqlTemplate[0].name !== 'Alice') {
     throw Error(
-      "prisma.raw(prisma.sql`SELECT * FROM ${db.sql.join([db.sql.raw('email'),db.sql.raw('id'),db.sql.raw('name')])} ${db.sql`WHERE name = ${'Alice'}`} ${db.sql.empty}` result should be [{ email: 'a@a.de', id: '576eddf9-2434-421f-9a86-58bede16fd95', name: 'Alice' }]",
+      "prisma.raw(prisma.sql`SELECT * FROM ${join([raw('email'),raw('id'),raw('name')])} ${sql`WHERE name = ${'Alice'}`} ${empty}` result should be [{ email: 'a@a.de', id: '576eddf9-2434-421f-9a86-58bede16fd95', name: 'Alice' }]",
     )
   }
 
