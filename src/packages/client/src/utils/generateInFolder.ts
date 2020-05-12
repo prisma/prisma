@@ -38,8 +38,6 @@ export async function generateInFolder({
     ? path.join(projectDir, 'node_modules/@prisma/client')
     : path.join(projectDir, '@prisma/client')
 
-  const dotPrismaDir = path.join(outputDir, '../../.prisma')
-
   if (transpile) {
     await getPackedPackage('@prisma/client', outputDir)
   }
@@ -63,7 +61,7 @@ export async function generateInFolder({
     outputDir,
     schemaDir: path.dirname(schemaPath),
     runtimePath: useLocalRuntime
-      ? path.relative(dotPrismaDir, path.join(__dirname, '../runtime'))
+      ? path.relative(outputDir, path.join(__dirname, '../runtime'))
       : undefined,
     transpile,
     testMode: true,

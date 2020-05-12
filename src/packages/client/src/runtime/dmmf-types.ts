@@ -77,6 +77,7 @@ export namespace DMMF {
 
   export interface SchemaArgInputType {
     isRequired: boolean
+    isNullable: boolean
     isList: boolean
     type: ArgType
     kind: FieldKind

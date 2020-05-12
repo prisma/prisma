@@ -63,6 +63,7 @@ export type InvalidArgError =
   | InvalidArgTypeError
   | AtLeastOneError
   | AtMostOneError
+  | InvalidNullArgError
 
 /**
  * This error occurs if the user provides an arg name that doens't exist
@@ -86,6 +87,17 @@ export interface MissingArgError {
   type: 'missingArg'
   missingName: string
   missingType: DMMF.SchemaArgInputType[] // note that this could be an object or scalar type. in the object case, we print the whole object type
+  atLeastOne: boolean
+  atMostOne: boolean
+}
+
+/**
+ * If a user incorrectly provided null where she shouldn't have
+ */
+export interface InvalidNullArgError {
+  type: 'invalidNullArg'
+  name: string
+  invalidType: DMMF.SchemaArgInputType[] // note that this could be an object or scalar type. in the object case, we print the whole object type
   atLeastOne: boolean
   atMostOne: boolean
 }
