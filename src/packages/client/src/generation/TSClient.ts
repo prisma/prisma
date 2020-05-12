@@ -1013,7 +1013,10 @@ export class InputField implements Generatable {
     if (fieldInputType.isList) {
       fieldType = `Enumerable<${fieldType}>`
     }
-    const nullableStr = !fieldInputType.isRequired && !hasNull ? ' | null' : ''
+    const nullableStr =
+      !fieldInputType.isRequired && !hasNull && fieldInputType.isNullable
+        ? ' | null'
+        : ''
     const jsdoc = field.comment ? wrapComment(field.comment) + '\n' : ''
     return `${jsdoc}${field.name}${optionalStr}: ${fieldType}${nullableStr}`
   }
