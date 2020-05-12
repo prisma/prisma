@@ -1350,6 +1350,13 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     })
   }
 
+  if (value === null && arg.inputType.length === 1) {
+    const t = arg.inputType[0]
+    if (isInputArgType(t.type) && t.type.isOrderType) {
+      return null
+    }
+  }
+
   // optimization of [0] and [1] as we know, that we only have max 2 input types
   // if null is provided but not allowed, let the user know in an error.
   const isNullable =
@@ -1359,24 +1366,23 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     arg.inputType[0].isRequired ||
     (arg.inputType.length > 1 ? arg.inputType[1].isRequired : false)
   if (value === null && !isNullable && !isRequired) {
-    return new Arg({
-      key,
-      value,
-      isEnum: argInputType.kind === 'enum',
-      error: {
-        type: 'invalidNullArg',
-        name: key,
-        invalidType: arg.inputType,
-        atLeastOne: false,
-        atMostOne: false,
-      },
-    })
-  }
-
-  if (value === null && arg.inputType.length === 1) {
-    const t = arg.inputType[0]
-    if (isInputArgType(t.type) && t.type.isOrderType) {
-      return null
+    // we don't need to execute this ternery if not necessary
+    const isAtLeastOne = isInputArgType(arg.inputType[0].type)
+      ? arg.inputType[0].type.atLeastOne
+      : false
+    if (!isAtLeastOne) {
+      return new Arg({
+        key,
+        value,
+        isEnum: argInputType.kind === 'enum',
+        error: {
+          type: 'invalidNullArg',
+          name: key,
+          invalidType: arg.inputType,
+          atLeastOne: false,
+          atMostOne: false,
+        },
+      })
     }
   }
 

@@ -134,7 +134,7 @@ export async function generateClient({
 
   if (testMode) {
     Debug.enable('generateClient')
-    debug({ finalOutputDir })
+    // debug({ finalOutputDir })
   }
 
   const { prismaClientDmmf, fileMap } = await buildClient({
