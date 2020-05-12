@@ -470,6 +470,19 @@ ${errorMessages}${missingArgsLegend}\n`
       )}, expected ${expected}`
     }
 
+    if (error.type === 'invalidNullArg') {
+      const forStr =
+        path.length === 1 && path[0] === error.name
+          ? ''
+          : ` for ${chalk.bold(`${path.join('.')}`)}`
+      const undefinedTip = ` Please use ${chalk.bold.greenBright(
+        'undefined',
+      )} instead.`
+      return `Argument ${chalk.greenBright(
+        error.name,
+      )}${forStr} must not be ${chalk.bold('null')}.${undefinedTip}`
+    }
+
     if (error.type === 'missingArg') {
       const forStr =
         path.length === 1 && path[0] === error.missingName
@@ -722,6 +735,7 @@ export class Arg {
   public readonly isEnum: boolean
   public readonly schemaArg?: DMMF.SchemaArg
   public readonly argType?: DMMF.ArgType
+  public readonly isNullable: boolean
 
   constructor({
     key,
@@ -737,6 +751,11 @@ export class Arg {
     this.isEnum = isEnum
     this.error = error
     this.schemaArg = schemaArg
+    this.isNullable =
+      schemaArg?.inputType.reduce<boolean>(
+        (isNullable, inputType) => isNullable && inputType.isNullable,
+        true,
+      ) || false
     this.hasError =
       Boolean(error) ||
       (value instanceof Args ? value.hasInvalidArg : false) ||
@@ -1325,6 +1344,29 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
         type: 'missingArg',
         missingName: key,
         missingType: arg.inputType,
+        atLeastOne: false,
+        atMostOne: false,
+      },
+    })
+  }
+
+  // optimization of [0] and [1] as we know, that we only have max 2 input types
+  // if null is provided but not allowed, let the user know in an error.
+  const isNullable =
+    arg.inputType[0].isNullable ||
+    (arg.inputType.length > 1 ? arg.inputType[1].isNullable : false)
+  const isRequired =
+    arg.inputType[0].isRequired ||
+    (arg.inputType.length > 1 ? arg.inputType[1].isRequired : false)
+  if (value === null && !isNullable && !isRequired) {
+    return new Arg({
+      key,
+      value,
+      isEnum: argInputType.kind === 'enum',
+      error: {
+        type: 'invalidNullArg',
+        name: key,
+        invalidType: arg.inputType,
         atLeastOne: false,
         atMostOne: false,
       },
