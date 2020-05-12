@@ -1,22 +1,35 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from './@prisma/client'
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+  errorFormat: 'pretty',
+})
 
 async function main() {
-  const users = await prisma.user.findMany({
-    include: {
-      posts: {
-        include: {
-          author: true,
-        },
-        orderBy: {
-          title: 'aasc',
-        },
-      },
-    },
-  } as any)
+  // const users = await prisma.user.findMany({
+  //   where: {
+  //     id: null,
+  //   },
+  //   include: {
+  //     posts: {
+  //       include: {
+  //         author: true,
+  //       },
+  //       orderBy: {
+  //         title: 'asc',
+  //       },
+  //     },
+  //   },
+  // })
 
-  console.log(users)
+  // console.log(users)
+
+  const result = await prisma.user.updateMany({
+    data: {
+      id: null,
+    },
+  })
+
+  console.log(result)
 
   // // prisma.disconnect()
 

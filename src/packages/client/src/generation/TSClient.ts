@@ -1013,7 +1013,10 @@ export class InputField implements Generatable {
     if (fieldInputType.isList) {
       fieldType = `Enumerable<${fieldType}>`
     }
-    const nullableStr = !fieldInputType.isRequired && !hasNull ? ' | null' : ''
+    const nullableStr =
+      !fieldInputType.isRequired && !hasNull && fieldInputType.isNullable
+        ? ' | null'
+        : ''
     const jsdoc = field.comment ? wrapComment(field.comment) + '\n' : ''
     return `${jsdoc}${field.name}${optionalStr}: ${fieldType}${nullableStr}`
   }
@@ -1148,6 +1151,7 @@ export class ArgsType implements Generatable {
             kind: 'object',
             isList: false,
             isRequired: false,
+            isNullable: true,
           },
         ],
         comment: `Select specific fields to fetch from the ${name}`,
@@ -1165,6 +1169,7 @@ export class ArgsType implements Generatable {
             kind: 'object',
             isList: false,
             isRequired: false,
+            isNullable: true,
           },
         ],
         comment: `Choose, which related nodes to fetch as well.`,
