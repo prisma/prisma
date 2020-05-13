@@ -133,7 +133,8 @@ describe('select validation', () => {
             name2: true,
             ~~~~~
         ?   posts?: true,
-        ?   email?: true
+        ?   email?: true,
+        ?   json?: true
           }
         }
 
@@ -143,6 +144,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -153,6 +155,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -164,6 +167,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -174,6 +178,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -185,6 +190,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -196,6 +202,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -206,6 +213,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -216,6 +224,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -226,6 +235,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -237,6 +247,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -301,7 +312,8 @@ describe('select validation', () => {
             name2: true,
             ~~~~~
         ?   posts?: true,
-        ?   email?: true
+        ?   email?: true,
+        ?   json?: true
           }
         }
 
@@ -311,6 +323,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -321,6 +334,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -332,6 +346,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -342,6 +357,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -353,6 +369,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -364,6 +381,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -374,6 +392,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -384,6 +403,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -394,6 +414,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -405,6 +426,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
+          json?: Json | NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -647,6 +669,69 @@ describe('select validation', () => {
         title: 'Some title',
         content: null,
         published: false,
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'mutation',
+      rootField: 'createOnePost',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    expect(() => document.validate(ast)).not.toThrow()
+  })
+
+  test('Allow different iso strings 1', () => {
+    const ast = {
+      data: {
+        title: 'Some title',
+        content: null,
+        published: false,
+        createdAt: '2020-05-05T16:28:33.983Z',
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'mutation',
+      rootField: 'createOnePost',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    expect(() => document.validate(ast)).not.toThrow()
+  })
+
+  test('Allow different iso strings 2', () => {
+    const ast = {
+      data: {
+        title: 'Some title',
+        content: null,
+        published: false,
+        createdAt: '2020-05-05T16:28:33.983+03:00',
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select: ast,
+      rootTypeName: 'mutation',
+      rootField: 'createOnePost',
+    })
+
+    expect(String(document)).toMatchSnapshot()
+    expect(() => document.validate(ast)).not.toThrow()
+  })
+
+  test('Allow different iso strings 2', () => {
+    const ast = {
+      data: {
+        title: 'Some title',
+        content: null,
+        published: false,
+        createdAt: '2020-05-05T16:28:33.983-02:00',
       },
     }
 
@@ -926,6 +1011,7 @@ describe('select validation', () => {
             id
             email
             name
+            json
             posts {
               id
               createdAt

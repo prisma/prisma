@@ -125,7 +125,11 @@ export function getGraphQLType(
     if (date.toString() === 'Invalid Date') {
       return 'String'
     }
-    if (date.toISOString() === value) {
+    if (
+      /\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/.test(
+        value,
+      )
+    ) {
       return 'DateTime'
     }
   }
@@ -159,7 +163,7 @@ export function getSuggestion(
       // heuristic to be not too strict, but allow some big mistakes (<= ~ 5)
       distance: Math.min(
         Math.floor(str.length) * 1.1,
-        ...possibilities.map(p => p.length * 3),
+        ...possibilities.map((p) => p.length * 3),
       ),
       str: null,
     },
@@ -183,14 +187,14 @@ export function stringifyInputType(
   } else {
     const body = indent(
       (input as DMMF.InputType).fields // TS doesn't discriminate based on existence of fields properly
-        .map(arg => {
+        .map((arg) => {
           const argInputType = arg.inputType[0]
           const key = `${arg.name}`
           const str = `${greenKeys ? chalk.green(key) : key}${
             argInputType.isRequired ? '' : '?'
           }: ${chalk.white(
             arg.inputType
-              .map(argType =>
+              .map((argType) =>
                 argIsInputType(argType.type)
                   ? argType.type.name
                   : wrapWithList(
@@ -262,7 +266,7 @@ export function inputTypeToJson(
   // it's very useful to show to the user, which options they actually have
   const showDeepType =
     isRequired &&
-    inputType.fields.every(arg => arg.inputType[0].kind === 'object') &&
+    inputType.fields.every((arg) => arg.inputType[0].kind === 'object') &&
     !inputType.isWhereType &&
     !inputType.atLeastOne
   if (nameOnly) {

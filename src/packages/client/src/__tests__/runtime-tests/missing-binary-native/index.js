@@ -9,8 +9,8 @@ module.exports = async () => {
   const platform = await getPlatform()
   const pkgJsonPath = require.resolve('@prisma/client/package.json')
   const binaryPath = path.join(
-    path.dirname(pkgJsonPath),
-    'runtime',
+    __dirname,
+    'node_modules/.prisma/client',
     `query-engine-${platform}`,
   )
   fs.unlinkSync(binaryPath)

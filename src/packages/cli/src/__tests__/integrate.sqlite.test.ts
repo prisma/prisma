@@ -7,7 +7,6 @@ import rimraf from 'rimraf'
 import fs from 'fs'
 import path from 'path'
 import snapshot from 'snap-shot-it'
-import { getLatestAlphaTag } from '@prisma/fetch-engine'
 import Database from 'sqlite-async'
 const prismaClientVersion = require('@prisma/client/package.json').version
 const engineVersion = require('../../package.json').prisma.version
@@ -17,7 +16,6 @@ process.env.SKIP_GENERATE = 'true'
 const pkg = pkgup.sync() || __dirname
 const tmp = join(dirname(pkg), 'tmp-sqlite')
 const engine = new IntrospectionEngine()
-const latestAlphaPromise = getLatestAlphaTag()
 
 const sqlitePath = join(tmp, './sqlite.db')
 const connectionString = `file:${sqlitePath}`
@@ -83,14 +81,6 @@ datasource sqlite {
 
   await generate(t, introspectionSchema)
   const prismaClientPath = join(tmp, 'index.js')
-  const prismaClientDeclarationPath = join(tmp, 'index.d.ts')
-  const existsPrismaClientPath = fs.existsSync(prismaClientPath)
-  const existsPrismaClientDeclarationPath = fs.existsSync(
-    prismaClientDeclarationPath,
-  )
-
-  assert(existsPrismaClientPath)
-  assert(existsPrismaClientDeclarationPath)
 
   // clear the require cache
   delete require.cache[prismaClientPath]
@@ -121,7 +111,7 @@ async function generate(test: Test, datamodel: string) {
     schemaPath,
     printDownloadProgress: false,
     baseDir: tmp,
-    version: await latestAlphaPromise,
+    version: engineVersion,
   })
 
   await generator.generate()

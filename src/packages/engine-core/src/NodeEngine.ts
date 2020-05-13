@@ -57,7 +57,12 @@ const knownPlatforms: Platform[] = [
   'debian-openssl-1.1.x',
   'rhel-openssl-1.0.x',
   'rhel-openssl-1.1.x',
+  'linux-musl',
   'windows',
+  'freebsd',
+  'openbsd',
+  'netbsd',
+  'arm',
 ]
 
 export type Deferred = {
@@ -228,7 +233,44 @@ You may have to run ${chalk.greenBright(
         path.resolve(__dirname, `..`),
       )
     } else {
-      return this.getQueryEnginePath(this.platform)
+      const dotPrismaPath = await this.getQueryEnginePath(
+        this.platform,
+        eval(`require('path').join(__dirname, '../../../.prisma/client')`),
+      )
+      debug({ dotPrismaPath })
+      if (fs.existsSync(dotPrismaPath)) {
+        return dotPrismaPath
+      }
+      const dirnamePath = await this.getQueryEnginePath(
+        this.platform,
+        eval('__dirname'),
+      )
+      debug({ dirnamePath })
+      if (fs.existsSync(dirnamePath)) {
+        return dirnamePath
+      }
+      const parentDirName = await this.getQueryEnginePath(
+        this.platform,
+        path.join(eval('__dirname'), '..'),
+      )
+      debug({ parentDirName })
+      if (fs.existsSync(parentDirName)) {
+        return parentDirName
+      }
+      const datamodelDirName = await this.getQueryEnginePath(
+        this.platform,
+        path.dirname(this.datamodelPath),
+      )
+      if (fs.existsSync(datamodelDirName)) {
+        return datamodelDirName
+      }
+      const cwdPath = await this.getQueryEnginePath(this.platform, this.cwd)
+      if (fs.existsSync(cwdPath)) {
+        return cwdPath
+      }
+      const prismaPath = await this.getQueryEnginePath(this.platform)
+      debug({ prismaPath })
+      return prismaPath
     }
   }
 

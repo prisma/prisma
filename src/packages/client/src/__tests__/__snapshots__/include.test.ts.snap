@@ -6,6 +6,7 @@ exports[`include validation allow deep include without another include 1`] = `
     id
     email
     name
+    json
     posts(first: 20) {
       id
       createdAt
@@ -33,6 +34,7 @@ exports[`include validation allow include statement with only false properties 1
       id
       email
       name
+      json
     }
   }
 }"
@@ -69,6 +71,7 @@ exports[`include validation deep include query 1`] = `
       id
       email
       name
+      json
       posts {
         id
         createdAt

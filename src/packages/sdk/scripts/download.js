@@ -12,6 +12,7 @@ download({
     'query-engine': runtimePath,
     'introspection-engine': runtimePath,
     'migration-engine': runtimePath,
+    'prisma-fmt': runtimePath,
   },
   showProgress: true,
   printVersion: true,

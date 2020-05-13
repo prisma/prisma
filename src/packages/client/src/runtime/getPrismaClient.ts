@@ -17,7 +17,6 @@ import {
   makeDocument,
   unpack,
   transformDocument,
-  PrismaClientValidationError,
   Args,
 } from './query'
 import debugLib from 'debug'
@@ -36,6 +35,7 @@ import { printStack } from './utils/printStack'
 import stripAnsi from 'strip-ansi'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { InternalDatasource } from './utils/printDatasources'
+import { omit } from './utils/omit'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -215,7 +215,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         flags: options.forceTransactions ? ['--always-force-transactions'] : [],
       }
 
-      debug({ engineConfig: this.engineConfig })
+      const sanitizedEngineConfig = omit(this.engineConfig, [
+        'env',
+        'datasources',
+      ])
+      debug({ engineConfig: sanitizedEngineConfig })
 
       this.engine = new NodeEngine(this.engineConfig)
       this.fetcher = new PrismaClientFetcher(this, false, this.hooks)
@@ -327,7 +331,10 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           ...values,
         )
         query = queryInstance[sqlOutput]
-        parameters = JSON.stringify(queryInstance.values)
+        parameters = {
+          values: JSON.stringify(queryInstance.values),
+          __prismaRawParamaters__: true,
+        }
       } else {
         // Called with prisma.raw(string)
         query = stringOrTemplateStringsArray
@@ -388,7 +395,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             args,
             false,
             `${lowerCaseModel}.${actionName}`,
-            /* errorFormat */ undefined,
+            this.errorFormat,
             callsite,
           )
 

@@ -1,12 +1,11 @@
-class PrismaClient {
-  constructor() {
-    throw new Error(
-      `@prisma/client did not initialize yet. Please run "prisma generate" and try to import it again.
-In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues/390.`,
-    )
-  }
-}
+const prisma = require('.prisma/client')
+const path = require('path')
 
-module.exports = {
-  PrismaClient,
-}
+module.exports = prisma
+
+/**
+ * Annotation for ncc/zeit
+ */
+path.join(__dirname, '../../.prisma/client/schema.prisma')
+path.join(__dirname, '../../../.prisma/client/schema.prisma')
+path.join(__dirname, '../../../../.prisma/client/schema.prisma')

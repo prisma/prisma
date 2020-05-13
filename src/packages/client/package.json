@@ -1,6 +1,6 @@
 {
   "name": "@prisma/client",
-  "version": "2.0.0-alpha.1016",
+  "version": "2.0.0-alpha.1205",
   "description": "Prisma Client is an auto-generated and type-safe query builder for Node.js & TypeScript that's tailored to your data.",
   "keywords": [
     "prisma2",
@@ -20,10 +20,13 @@
   "main": "index.js",
   "types": "index.d.ts",
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=10"
+  },
   "scripts": {
     "tsc": "tsc -d",
     "build": "pnpm run cleanup && pnpm run tsc && pnpm run ncc:runtime && pnpm run ncc:generator && cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts &&  cp scripts/any-index.js runtime/index.d.ts",
-    "test": "./node_modules/.bin/packwatch && jest",
+    "test": "jest",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
     "download": "node scripts/download.js",
@@ -39,13 +42,7 @@
     "version": "latest"
   },
   "files": [
-    "runtime/*.js",
-    "runtime/*.js.map",
-    "runtime/*.d.ts",
-    "runtime/**/*.js",
-    "runtime/**/*.d.ts",
-    "runtime/utils/*",
-    "runtime/dist/*",
+    "runtime",
     "scripts",
     "generator-build",
     "index.js",

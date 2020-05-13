@@ -68,6 +68,9 @@ const path = require('path')
 const fs = require('fs')
 const debug = debugLib('prisma-client')
 
+debug("Client Version ${engineVersion}")
+debug("Engine Version ${engineVersion}")
+
 /**
  * Query Engine version: ${engineVersion}
  * Prisma Client JS version: ${clientVersion}
@@ -229,13 +232,13 @@ export class TSClient implements Generatable {
 ${
   this.options.platforms
     ? this.options.platforms
-        .map((p) => `path.join(__dirname, 'runtime/query-engine-${p}');`)
+        .map((p) => `path.join(__dirname, 'query-engine-${p}');`)
         .join('\n')
     : ''
 }
 
 /**
- * Annotation for Zeit Now
+ * Annotation for Vercel
 **/
 path.join(__dirname, 'schema.prisma');
 
@@ -550,7 +553,7 @@ export type ${getPayloadName(name)}<
   ? ${name}
   : S extends undefined
   ? never
-  : S extends ${getModelArgName(name, DMMF.ModelAction.findMany)}
+  : S extends ${argsName} | ${getModelArgName(name, DMMF.ModelAction.findMany)}
   ? 'include' extends U
     ? ${name} ${include.length > 0 ? ` & ${include}` : ''}
   : 'select' extends U
@@ -1010,7 +1013,10 @@ export class InputField implements Generatable {
     if (fieldInputType.isList) {
       fieldType = `Enumerable<${fieldType}>`
     }
-    const nullableStr = !fieldInputType.isRequired && !hasNull ? ' | null' : ''
+    const nullableStr =
+      !fieldInputType.isRequired && !hasNull && fieldInputType.isNullable
+        ? ' | null'
+        : ''
     const jsdoc = field.comment ? wrapComment(field.comment) + '\n' : ''
     return `${jsdoc}${field.name}${optionalStr}: ${fieldType}${nullableStr}`
   }
@@ -1145,6 +1151,7 @@ export class ArgsType implements Generatable {
             kind: 'object',
             isList: false,
             isRequired: false,
+            isNullable: true,
           },
         ],
         comment: `Select specific fields to fetch from the ${name}`,
@@ -1162,6 +1169,7 @@ export class ArgsType implements Generatable {
             kind: 'object',
             isList: false,
             isRequired: false,
+            isNullable: true,
           },
         ],
         comment: `Choose, which related nodes to fetch as well.`,

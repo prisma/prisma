@@ -100,9 +100,6 @@ export async function getOpenSSLVersion(): Promise<string | undefined> {
     `),
   ])
 
-  debug({ version })
-  debug({ ls })
-
   if (version) {
     const v = parseOpenSSLVersion(version)
     if (v) {
@@ -136,14 +133,28 @@ async function gracefulExec(cmd: string): Promise<string | undefined> {
 export async function getPlatform(): Promise<Platform> {
   const { platform, libssl, distro } = await getos()
 
-  debug({ platform, libssl })
-
   if (platform === 'darwin') {
     return 'darwin'
   }
 
   if (platform === 'win32') {
     return 'windows'
+  }
+
+  if (platform === 'freebsd') {
+    return 'freebsd'
+  }
+
+  if (platform === 'openbsd') {
+    return 'openbsd'
+  }
+
+  if (platform === 'netbsd') {
+    return 'netbsd'
+  }
+
+  if (platform === 'linux' && distro === 'musl') {
+    return 'linux-musl'
   }
 
   // when the platform is linux

@@ -106,6 +106,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": true,
+              "isNullable": false,
               "isRequired": false,
               "kind": "object",
               "type": "AWhereInput",
@@ -115,6 +116,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": true,
+              "isNullable": false,
               "isRequired": false,
               "kind": "object",
               "type": "AWhereInput",
@@ -124,6 +126,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": true,
+              "isNullable": false,
               "isRequired": false,
               "kind": "object",
               "type": "AWhereInput",
@@ -133,6 +136,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "Int",
@@ -142,6 +146,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "Int",
@@ -151,6 +156,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": true,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "Int",
@@ -160,6 +166,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": true,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "Int",
@@ -169,6 +176,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "Int",
@@ -178,6 +186,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "Int",
@@ -187,6 +196,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "Int",
@@ -196,6 +206,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "Int",
@@ -205,6 +216,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -214,6 +226,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -223,6 +236,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": true,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -232,6 +246,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": true,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -241,6 +256,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -250,6 +266,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -259,6 +276,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -268,6 +286,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -277,6 +296,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -286,6 +306,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -295,6 +316,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -304,6 +326,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -313,6 +336,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -322,6 +346,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -336,6 +361,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "Int",
@@ -350,6 +376,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
@@ -359,6 +386,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "scalar",
               "type": "String",
@@ -373,6 +401,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "Int",
@@ -382,6 +411,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -396,6 +426,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "Int",
@@ -405,6 +436,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
@@ -423,6 +455,7 @@ Object {
             "name": "id",
             "outputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
@@ -433,6 +466,7 @@ Object {
             "name": "name",
             "outputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "scalar",
               "type": "String",
@@ -448,6 +482,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
                   "type": "AWhereInput",
@@ -457,6 +492,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "enum",
                   "type": "AOrderByInput",
@@ -466,6 +502,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "scalar",
                   "type": "Int",
@@ -475,6 +512,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
                   "type": "AWhereUniqueInput",
@@ -484,6 +522,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
                   "type": "AWhereUniqueInput",
@@ -493,6 +532,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "scalar",
                   "type": "Int",
@@ -502,6 +542,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "scalar",
                   "type": "Int",
@@ -512,6 +553,7 @@ Object {
             "name": "count",
             "outputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
@@ -527,6 +569,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
                   "type": "AWhereInput",
@@ -536,6 +579,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "enum",
                   "type": "AOrderByInput",
@@ -545,6 +589,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "scalar",
                   "type": "Int",
@@ -554,6 +599,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
                   "type": "AWhereUniqueInput",
@@ -563,6 +609,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
                   "type": "AWhereUniqueInput",
@@ -572,6 +619,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "scalar",
                   "type": "Int",
@@ -581,6 +629,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "scalar",
                   "type": "Int",
@@ -591,6 +640,7 @@ Object {
             "name": "findManyA",
             "outputType": Object {
               "isList": true,
+              "isNullable": false,
               "isRequired": true,
               "kind": "object",
               "type": "A",
@@ -601,6 +651,7 @@ Object {
             "name": "aggregateA",
             "outputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "object",
               "type": "AggregateA",
@@ -611,6 +662,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": true,
                   "kind": "object",
                   "type": "AWhereUniqueInput",
@@ -621,6 +673,7 @@ Object {
             "name": "findOneA",
             "outputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "object",
               "type": "A",
@@ -636,6 +689,7 @@ Object {
             "name": "count",
             "outputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
@@ -651,6 +705,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": true,
                   "kind": "object",
                   "type": "ACreateInput",
@@ -661,6 +716,7 @@ Object {
             "name": "createOneA",
             "outputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "object",
               "type": "A",
@@ -671,6 +727,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": true,
                   "kind": "object",
                   "type": "AWhereUniqueInput",
@@ -681,6 +738,7 @@ Object {
             "name": "deleteOneA",
             "outputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "object",
               "type": "A",
@@ -691,6 +749,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": true,
                   "kind": "object",
                   "type": "AUpdateInput",
@@ -700,6 +759,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": true,
                   "kind": "object",
                   "type": "AWhereUniqueInput",
@@ -710,6 +770,7 @@ Object {
             "name": "updateOneA",
             "outputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": false,
               "kind": "object",
               "type": "A",
@@ -720,6 +781,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": true,
                   "kind": "object",
                   "type": "AWhereUniqueInput",
@@ -729,6 +791,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": true,
                   "kind": "object",
                   "type": "ACreateInput",
@@ -738,6 +801,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": true,
                   "kind": "object",
                   "type": "AUpdateInput",
@@ -748,6 +812,7 @@ Object {
             "name": "upsertOneA",
             "outputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "object",
               "type": "A",
@@ -758,6 +823,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": true,
                   "kind": "object",
                   "type": "AUpdateManyMutationInput",
@@ -767,6 +833,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
                   "type": "AWhereInput",
@@ -777,6 +844,7 @@ Object {
             "name": "updateManyA",
             "outputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "object",
               "type": "BatchPayload",
@@ -787,6 +855,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
                   "type": "AWhereInput",
@@ -797,6 +866,7 @@ Object {
             "name": "deleteManyA",
             "outputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "object",
               "type": "BatchPayload",
@@ -807,6 +877,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": true,
                   "kind": "scalar",
                   "type": "String",
@@ -816,6 +887,7 @@ Object {
               Object {
                 "inputType": Object {
                   "isList": false,
+                  "isNullable": false,
                   "isRequired": false,
                   "kind": "scalar",
                   "type": "Json",
@@ -826,6 +898,7 @@ Object {
             "name": "executeRaw",
             "outputType": Object {
               "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "scalar",
               "type": "Json",

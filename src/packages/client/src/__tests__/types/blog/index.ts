@@ -4,6 +4,7 @@ import {
   User,
   prismaVersion,
   FindManyMachineDataArgs,
+  LikeUpdateManyArgs,
 } from '@prisma/client'
 
 // tslint:disable
@@ -143,6 +144,40 @@ async function main() {
   })
 
   const id = users[0].posts[0].author?.id
+
+  const like = await prisma.like.findOne({
+    where: {
+      userId_postId: {
+        postId: '',
+        userId: '',
+      },
+    },
+    include: { post: true },
+  })
+
+  like!.post
+
+  const like2 = await prisma.like.upsert({
+    where: {
+      userId_postId: {
+        userId: '',
+        postId: '',
+      },
+    },
+    create: {
+      post: { connect: { id: '' } },
+      user: { connect: { id: '' } },
+    },
+    update: {},
+    include: { post: true },
+  })
+
+  like2!.post
+
+  // make sure, that null is not allowed for this type
+  type LikeUpdateIdType = LikeUpdateManyArgs['data']['id']
+  type AllowsNull = null extends LikeUpdateIdType ? true : false
+  const allowsNull: AllowsNull = false
 }
 
 main().catch((e) => {

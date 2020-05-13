@@ -470,6 +470,19 @@ ${errorMessages}${missingArgsLegend}\n`
       )}, expected ${expected}`
     }
 
+    if (error.type === 'invalidNullArg') {
+      const forStr =
+        path.length === 1 && path[0] === error.name
+          ? ''
+          : ` for ${chalk.bold(`${path.join('.')}`)}`
+      const undefinedTip = ` Please use ${chalk.bold.greenBright(
+        'undefined',
+      )} instead.`
+      return `Argument ${chalk.greenBright(
+        error.name,
+      )}${forStr} must not be ${chalk.bold('null')}.${undefinedTip}`
+    }
+
     if (error.type === 'missingArg') {
       const forStr =
         path.length === 1 && path[0] === error.missingName
@@ -673,7 +686,19 @@ export class Args {
  * @param _
  * @param tab
  */
-function stringify(obj, _?: any, tabbing?: string | number, isEnum?: boolean) {
+function stringify(
+  obj,
+  _?: any,
+  tabbing?: string | number,
+  isEnum?: boolean,
+  isJson?: boolean,
+) {
+  if (isJson) {
+    if (obj.values && obj.__prismaRawParamaters__) {
+      return JSON.stringify(obj.values)
+    }
+    return JSON.stringify(JSON.stringify(obj))
+  }
   if (obj === undefined) {
     return null
   }
@@ -710,6 +735,7 @@ export class Arg {
   public readonly isEnum: boolean
   public readonly schemaArg?: DMMF.SchemaArg
   public readonly argType?: DMMF.ArgType
+  public readonly isNullable: boolean
 
   constructor({
     key,
@@ -725,6 +751,11 @@ export class Arg {
     this.isEnum = isEnum
     this.error = error
     this.schemaArg = schemaArg
+    this.isNullable =
+      schemaArg?.inputType.reduce<boolean>(
+        (isNullable, inputType) => isNullable && inputType.isNullable,
+        true,
+      ) || false
     this.hasError =
       Boolean(error) ||
       (value instanceof Args ? value.hasInvalidArg : false) ||
@@ -757,7 +788,13 @@ ${indent(value.toString(), 2)}
       )}${isScalar ? '' : '\n'}]`
     }
 
-    return `${key}: ${stringify(value, null, 2, this.isEnum)}`
+    return `${key}: ${stringify(
+      value,
+      null,
+      2,
+      this.isEnum,
+      this.argType === 'Json',
+    )}`
   }
   public toString() {
     return this._toString(this.value, this.key)
@@ -1320,6 +1357,35 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     }
   }
 
+  // optimization of [0] and [1] as we know, that we only have max 2 input types
+  // if null is provided but not allowed, let the user know in an error.
+  const isNullable =
+    arg.inputType[0].isNullable ||
+    (arg.inputType.length > 1 ? arg.inputType[1].isNullable : false)
+  const isRequired =
+    arg.inputType[0].isRequired ||
+    (arg.inputType.length > 1 ? arg.inputType[1].isRequired : false)
+  if (value === null && !isNullable && !isRequired) {
+    // we don't need to execute this ternery if not necessary
+    const isAtLeastOne = isInputArgType(arg.inputType[0].type)
+      ? arg.inputType[0].type.atLeastOne
+      : false
+    if (!isAtLeastOne) {
+      return new Arg({
+        key,
+        value,
+        isEnum: argInputType.kind === 'enum',
+        error: {
+          type: 'invalidNullArg',
+          name: key,
+          invalidType: arg.inputType,
+          atLeastOne: false,
+          atMostOne: false,
+        },
+      })
+    }
+  }
+
   // then the first
   if (!argInputType.isList) {
     const args = arg.inputType.map((t) => {
@@ -1610,7 +1676,8 @@ export function unpack({ document, path, data }: UnpackOptions): any {
 
   const field = getField(document, path)
 
-  return mapDates({ field, data: result })
+  const mappedData = mapDates({ field, data: result })
+  return mapJson({ field, data: mappedData })
 }
 
 export interface MapDatesOptions {
@@ -1656,6 +1723,51 @@ export function mapDates({ field, data }: MapDatesOptions): any {
         )
       } else {
         mapDates({ field: child, data: data[child.name] })
+      }
+    }
+  }
+
+  return data
+}
+
+export function mapJson({ field, data }: MapDatesOptions): any {
+  if (
+    !data ||
+    typeof data !== 'object' ||
+    !field.children ||
+    !field.schemaField
+  ) {
+    return data
+  }
+
+  for (const child of field.children) {
+    if (child.schemaField && child.schemaField.outputType.type === 'Json') {
+      if (Array.isArray(data)) {
+        for (const entry of data) {
+          // in the very unlikely case, that a field is not there in the result, ignore it
+          if (typeof entry[child.name] !== 'undefined') {
+            entry[child.name] = entry[child.name]
+              ? JSON.parse(entry[child.name])
+              : entry[child.name]
+          }
+        }
+      } else {
+        // same here, ignore it if it's undefined
+        if (typeof data[child.name] !== 'undefined') {
+          data[child.name] = data[child.name]
+            ? JSON.parse(data[child.name])
+            : data[child.name]
+        }
+      }
+    }
+
+    if (child.schemaField && child.schemaField.outputType.kind === 'object') {
+      if (Array.isArray(data)) {
+        data.forEach((entry) =>
+          mapJson({ field: child, data: entry[child.name] }),
+        )
+      } else {
+        mapJson({ field: child, data: data[child.name] })
       }
     }
   }

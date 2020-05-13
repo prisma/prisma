@@ -7,11 +7,13 @@ import rimraf from 'rimraf'
 import fs from 'fs'
 import path from 'path'
 import snapshot from 'snap-shot-it'
-import mysql from 'mysql2/promise'
+import mariadb from 'mariadb'
 import { getLatestAlphaTag } from '@prisma/fetch-engine'
+import { uriToCredentials } from '@prisma/sdk'
 
-const connectionString =
+let connectionString =
   process.env.TEST_MYSQL_URI || 'mysql://prisma:prisma@localhost:3306/tests'
+const credentials = uriToCredentials(connectionString)
 process.env.SKIP_GENERATE = 'true'
 
 const pkg = pkgup.sync() || __dirname
@@ -19,10 +21,14 @@ const tmp = join(dirname(pkg), 'tmp-mysql')
 const engine = new IntrospectionEngine()
 const latestAlphaPromise = getLatestAlphaTag()
 
-let db: mysql.Connection
+let db: mariadb.Connection
 before(async () => {
-  db = await mysql.createConnection({
-    uri: connectionString,
+  db = await mariadb.createConnection({
+    host: credentials.host,
+    port: credentials.port,
+    database: credentials.database,
+    user: credentials.user,
+    password: credentials.password,
     multipleStatements: true,
   })
 })

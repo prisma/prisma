@@ -16,11 +16,13 @@ export type EngineType =
   | 'query-engine'
   | 'migration-engine'
   | 'introspection-engine'
+  | 'prisma-fmt'
 
 const engineEnvVarMap = {
   'query-engine': 'PRISMA_QUERY_ENGINE_BINARY',
   'migration-engine': 'PRISMA_MIGRATION_ENGINE_BINARY',
   'introspection-engine': 'PRISMA_INTROSPECTION_ENGINE_BINARY',
+  'prisma-fmt': 'PRISMA_FMT_BINARY',
 }
 
 export async function resolveBinary(name: EngineType): Promise<string> {
@@ -86,7 +88,6 @@ async function maybeCopyToTmp(file: string): Promise<string> {
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await makeDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
-    debug({ file, target })
     const data = await readFile(file)
     await writeFile(target, data)
     // We have to read and write until https://github.com/zeit/pkg/issues/639

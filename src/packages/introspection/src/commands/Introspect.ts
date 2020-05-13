@@ -179,12 +179,12 @@ Then you can run ${chalk.green('prisma introspect')} again.
             message += warning.affected
               .map(
                 (it) =>
-                  `- Model: "${it.model}" Field: "${it.field}" Raw Datatype: "${it.tpe}"`,
+                  `- Model "${it.model}", field: "${it.field}", original data type: "${it.tpe}"`,
               )
               .join('\n')
           } else if (warning.code === 4) {
             message += warning.affected
-              .map((it) => `- Enum: "${it.enm}" Value: "${it.value}"`)
+              .map((it) => `- Enum "${it.enm}", value: "${it.value}"`)
               .join('\n')
           }
 
@@ -199,7 +199,7 @@ Then you can run ${chalk.green('prisma introspect')} again.
 
     if (args['--print']) {
       console.log(introspectionSchema)
-      introspectionWarnings && console.error(introspectionWarnings)
+      console.error(introspectionWarningsMessage)
     } else {
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)

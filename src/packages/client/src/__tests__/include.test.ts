@@ -190,6 +190,7 @@ describe('include validation', () => {
           id
           email
           name
+          json
           posts {
             id
             createdAt
@@ -323,6 +324,7 @@ describe('include validation', () => {
           id
           email
           name
+          json
           posts(first: 20) {
             id
           }
@@ -360,12 +362,14 @@ describe('include validation', () => {
           id
           email
           name
+          json
           posts(first: 20) {
             id
             author {
               id
               email
               name
+              json
               posts {
                 id
                 createdAt

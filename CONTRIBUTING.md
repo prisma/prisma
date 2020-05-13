@@ -13,11 +13,12 @@ pnpm run setup
 Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org/)
 
 ### Developing Prisma Client JS
-2. `cd src/prisma-client-js/packages/client`
-4. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
-5. `cd fixtures/blog`
-6. `prisma migrate save --name init --experimental && prisma migrate up --experimental`
-7. `ts-node main.ts`
+
+2. `cd src/packages/client`
+3. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
+4. `cd fixtures/blog`
+5. `prisma migrate save --name init --experimental && prisma migrate up --experimental`
+6. `ts-node main.ts`
 
 ### Working on code generation
 
@@ -59,10 +60,52 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 pnpm run download
 ```
 
-
 ### Running the CI system locally
+
 ```bash
 cd src/.buildkite/test
 docker-compose up -d
 docker-compose logs -f app
 ```
+
+### Git Commit Messages
+
+We structure our messages like this:
+
+```
+<type>(<package>): <subject>
+<BLANK LINE>
+<body>
+```
+
+Example
+
+```
+feature(client): new awesome feature
+
+Closes #111
+```
+
+List of types:
+
+- feat: A new feature
+- fix: A bug fix
+- docs: Documentation only changes
+- style: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+- refactor: A code change that neither fixes a bug nor adds a feature
+- perf: A code change that improves performance
+- test: Adding missing or correcting existing tests
+- chore: Changes to the build process or auxiliary tools and libraries such as documentation generation
+
+List of packages:
+
+- cli
+- client
+- engine-core
+- fetch-engine
+- generator-helper
+- get-platform
+- ink-components
+- migrate
+- sdk
+- introspection

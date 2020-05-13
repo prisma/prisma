@@ -74,6 +74,7 @@ export namespace DMMF {
     name: string
     inputType: {
       isRequired: boolean
+      isNullable: boolean
       isList: boolean
       type: ArgType
       kind: FieldKind
@@ -164,6 +165,7 @@ export type Dictionary<T> = { [key: string]: T }
 export interface GeneratorConfig {
   name: string
   output: string | null
+  isCustomOutput?: boolean
   provider: string
   config: Dictionary<string>
   binaryTargets: string[] // check if new commit is there
@@ -204,6 +206,7 @@ export type EngineType =
   | 'queryEngine'
   | 'migrationEngine'
   | 'introspectionEngine'
+  | 'prismaFmt'
 
 export type GeneratorManifest = {
   prettyName?: string
