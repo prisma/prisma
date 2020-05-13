@@ -7,7 +7,7 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
   "scripts": {
-    "build": "tsc -d && cp dist/debug* ./",
+    "build": "tsc -d",
     "prepublishOnly": "pnpm run build && pnpm run test",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
