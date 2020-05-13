@@ -4,7 +4,7 @@ import hasYarn from 'has-yarn'
 import execa from 'execa'
 import path from 'path'
 import fs from 'fs'
-import Debug from 'debug'
+import Debug from './debug'
 const debugEnabled = Debug.enabled('generator')
 
 export type GeneratorPaths = {

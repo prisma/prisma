@@ -3,7 +3,7 @@ import makeDir from 'make-dir'
 import findCacheDir from 'find-cache-dir'
 import fs from 'fs'
 import path from 'path'
-import Debug from 'debug'
+import Debug from '@prisma/sdk/debug'
 const debug = Debug('cache-dir')
 
 export async function getRootCacheDir(): Promise<string | null> {

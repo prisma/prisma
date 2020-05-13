@@ -19,8 +19,8 @@ import {
   transformDocument,
   Args,
 } from './query'
-import debugLib from 'debug'
-const debug = debugLib('prisma-client')
+import Debug from '@prisma/sdk/debug'
+const debug = Debug('prisma-client')
 import fs from 'fs'
 import chalk from 'chalk'
 import * as sqlTemplateTag from 'sql-template-tag'
@@ -144,7 +144,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
       const useDebug = internal.debug === true
       if (useDebug) {
-        debugLib.enable('prisma-client')
+        Debug.enable('prisma-client')
       }
 
       if (internal.hooks) {
@@ -401,7 +401,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
           document = transformDocument(document)
 
-          if (debugLib.enabled('prisma-client')) {
+          if (Debug.enabled('prisma-client')) {
             const query = String(document)
             debug(`Prisma Client call:`)
             debug(
