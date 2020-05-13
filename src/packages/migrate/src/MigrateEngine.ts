@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
-import Debug from '@prisma/sdk/debug'
+import Debug from '@prisma/debug'
 import { EngineArgs, EngineResults } from './types'
 import byline from './utils/byline'
 const debugRpc = Debug('MigrateEngine:rpc')

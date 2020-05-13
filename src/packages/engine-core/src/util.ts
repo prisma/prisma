@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { Platform } from '@prisma/get-platform'
-import Debug from '@prisma/sdk/debug'
+import Debug from '@prisma/debug'
 const debug = Debug('plusX')
 
 export function plusX(file): void {
