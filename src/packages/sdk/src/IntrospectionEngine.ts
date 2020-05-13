@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
-import Debug from './debug'
+import Debug from '@prisma/debug'
 import byline from './utils/byline'
 const debugRpc = Debug('IntrospectionEngine:rpc')
 const debugStderr = Debug('IntrospectionEngine:stderr')

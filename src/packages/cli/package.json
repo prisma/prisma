@@ -49,12 +49,13 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "0c2ec197653b278b2978845ef958db88824cd82e"
+    "version": "947599a1413bc514e275905d562b50200bac990b"
   },
   "devDependencies": {
     "@apexearth/copy": "^1.4.5",
     "@prisma/ci-info": "^2.1.1",
     "@prisma/client": "workspace:*",
+    "@prisma/debug": "workspace:^2.0.0-alpha.1205",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",

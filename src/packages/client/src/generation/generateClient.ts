@@ -5,7 +5,7 @@ import {
   DMMF,
   GeneratorConfig,
 } from '@prisma/generator-helper'
-import Debug from '@prisma/sdk/debug'
+import Debug from '@prisma/debug'
 import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'

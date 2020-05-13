@@ -1,4 +1,4 @@
-import Debug from '@prisma/sdk/debug'
+import Debug from '@prisma/debug'
 import fs from 'fs'
 import getPort from 'get-port'
 import path from 'path'

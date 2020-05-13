@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
+    "@prisma/debug": "workspace:^2.0.0-alpha.1205",
     "@prisma/fetch-engine": "workspace:*",
     "@types/jest": "25.2.1",
     "@types/node": "^12.12.35",
@@ -36,7 +37,6 @@
     "bent": "^7.1.2",
     "chalk": "^3.0.0",
     "cross-fetch": "^3.0.4",
-    "debug": "^4.1.1",
     "indent-string": "^4.0.0"
   },
   "files": [

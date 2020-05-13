@@ -19,7 +19,7 @@ import {
   transformDocument,
   Args,
 } from './query'
-import Debug from '@prisma/sdk/debug'
+import Debug from '@prisma/debug'
 const debug = Debug('prisma-client')
 import fs from 'fs'
 import chalk from 'chalk'
