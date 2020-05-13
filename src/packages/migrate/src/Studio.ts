@@ -1,4 +1,4 @@
-import debugLib from 'debug'
+import Debug from '@prisma/sdk/debug'
 import fs from 'fs'
 import getPort from 'get-port'
 import path from 'path'
@@ -14,7 +14,7 @@ export interface StudioOptions {
   port?: number
 }
 
-const debug = debugLib('Studio')
+const debug = Debug('Studio')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
 export class Studio {
@@ -52,13 +52,13 @@ export class Studio {
 
       const pathsExist = await Promise.all(
         // eslint-disable-next-line @typescript-eslint/require-await
-        pathCandidates.map(async candidate => ({
+        pathCandidates.map(async (candidate) => ({
           exists: fs.existsSync(candidate),
           path: candidate,
         })),
       )
 
-      const firstExistingPath = pathsExist.find(p => p.exists)
+      const firstExistingPath = pathsExist.find((p) => p.exists)
 
       if (!firstExistingPath) {
         throw new Error(

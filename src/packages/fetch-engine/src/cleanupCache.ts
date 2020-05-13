@@ -4,7 +4,7 @@ import { getRootCacheDir } from './util'
 import rimraf from 'rimraf'
 import { promisify } from 'util'
 import pMap from 'p-map'
-// import Debug from 'debug'
+// import Debug from '@prisma/sdk/debug'
 // const debug = Debug('cleanupCache')
 const del = promisify(rimraf)
 const readdir = promisify(fs.readdir)

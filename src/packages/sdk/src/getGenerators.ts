@@ -27,9 +27,6 @@ import {
 import { flatMap } from './utils/flatMap'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
 
-import Debug from 'debug'
-const debug = Debug('getGenerators')
-
 const defaultEngineVersion = eval(`require('../package.json').prisma.version`)
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }

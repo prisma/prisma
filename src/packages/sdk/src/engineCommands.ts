@@ -5,7 +5,7 @@ import { DMMF, DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import tmpWrite from 'temp-write'
 import fs from 'fs'
 import { promisify } from 'util'
-import Debug from 'debug'
+import Debug from './debug'
 import { resolveBinary } from './resolveBinary'
 const debug = Debug('engineCommands')
 

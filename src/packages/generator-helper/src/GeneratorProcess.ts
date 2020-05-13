@@ -6,7 +6,7 @@ import fs from 'fs'
 import { isBinaryFile } from 'isbinaryfile'
 import chalk from 'chalk'
 import path from 'path'
-import Debug from 'debug'
+import Debug from '@prisma/sdk/debug'
 const debug = Debug('GeneratorProcess')
 
 let globalMessageId = 1
