@@ -14,7 +14,7 @@ import fs from 'fs'
 import chalk from 'chalk'
 import { GeneratorConfig } from '@prisma/generator-helper'
 import { printGeneratorConfig } from './printGeneratorConfig'
-import { fixPlatforms, plusX } from './util'
+import { fixPlatforms, plusX, link, getGithubIssueUrl } from './util'
 import { promisify } from 'util'
 import EventEmitter from 'events'
 import { convertLog, RustLog, RustError } from './log'
@@ -557,14 +557,20 @@ Please create an issue in https://github.com/prisma/prisma-client-js describing 
             signal === null &&
             this.lastErrorLog?.fields.message === 'PANIC'
           ) {
-            console.error(`${chalk.bold.red(`Error in Prisma Client:`)}
+            const errorDescription = `${chalk.bold.red(
+              `Error in Prisma Client:`,
+            )}
 ${this.lastErrorLog.fields.message}: ${this.lastErrorLog.fields.reason} in
 ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${
               this.lastErrorLog.fields.column
-            }
+            }`
+            const url = getGithubIssueUrl({ title: errorDescription })
+            console.error(`${errorDescription}
 
 This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
-Please create an issue in https://github.com/prisma/prisma-client-js describing the last Prisma Client query you called.`)
+Please try again and set the environment variable \`DEBUG=*\` and use this link to create an issue ${link(
+              url,
+            )} describing the last Prisma Client query you called and include the logs.`)
           }
         })
 
