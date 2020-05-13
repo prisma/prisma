@@ -7,7 +7,7 @@ import { uniqueBy } from './utils/uniqueBy'
 function transformFieldKind(model: ExternalDMMF.Model): DMMF.Model {
   return {
     ...model,
-    fields: model.fields.map(field => ({
+    fields: model.fields.map((field) => ({
       ...field,
       kind: field.kind === 'relation' ? ('object' as any) : field.kind,
     })),
@@ -16,9 +16,9 @@ function transformFieldKind(model: ExternalDMMF.Model): DMMF.Model {
 
 function transformDatamodel(datamodel: ExternalDMMF.Datamodel): DMMF.Datamodel {
   return {
-    enums: datamodel.enums.map(enumValue => ({
+    enums: datamodel.enums.map((enumValue) => ({
       ...enumValue,
-      values: enumValue.values.map(v => v.name),
+      values: enumValue.values.map((v) => v.name),
     })),
     models: datamodel.models.map(transformFieldKind),
   }
@@ -42,13 +42,13 @@ export function externalToInternalDmmf(
 function transformSchema(schema: ExternalDMMF.Schema): DMMF.Schema {
   return {
     enums: schema.enums,
-    inputTypes: schema.inputTypes.map(t => ({
+    inputTypes: schema.inputTypes.map((t) => ({
       ...t,
-      fields: uniqueBy(transformArgs(t.fields), f => f.name),
+      fields: uniqueBy(transformArgs(t.fields), (f) => f.name),
     })),
-    outputTypes: schema.outputTypes.map(o => ({
+    outputTypes: schema.outputTypes.map((o) => ({
       ...o,
-      fields: o.fields.map(f => ({ ...f, args: transformArgs(f.args) })),
+      fields: o.fields.map((f) => ({ ...f, args: transformArgs(f.args) })),
     })),
   }
 }
@@ -64,6 +64,7 @@ function fixOrderByEnum(arg: ExternalDMMF.SchemaArg): ExternalDMMF.SchemaArg {
       inputType: {
         isList: arg.inputType.isList,
         isRequired: arg.inputType.isRequired,
+        isNullable: arg.inputType.isNullable,
         type: arg.inputType.type,
         kind: 'object',
       },
@@ -85,12 +86,12 @@ function getMappings(
   datamodel: DMMF.Datamodel,
 ): DMMF.Mapping[] {
   return mappings
-    .filter(mapping => {
-      const model = datamodel.models.find(m => m.name === mapping.model)
+    .filter((mapping) => {
+      const model = datamodel.models.find((m) => m.name === mapping.model)
       if (!model) {
         throw new Error(`Mapping without model ${mapping.model}`)
       }
-      return model.fields.some(f => f.kind !== 'object')
+      return model.fields.some((f) => f.kind !== 'object')
     })
     .map((mapping: any) => ({
       model: mapping.model,

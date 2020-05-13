@@ -5,6 +5,7 @@ test-dmmf.ts
 dmmf.json
 introspection-engine*
 migration-engine*
+prisma-fmt*
 write-test
 sandbox
 failed-*

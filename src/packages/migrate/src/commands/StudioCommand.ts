@@ -1,6 +1,5 @@
 import { arg, Command, format, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
-import open from 'open'
 
 import { Studio } from '../Studio'
 import { ProviderAliases } from '@prisma/sdk'
@@ -27,8 +26,9 @@ export class StudioCommand implements Command {
 
     ${chalk.bold('Options')}
 
-      -h, --help     Displays this help message
-      -p, --port     Port to start Studio on
+      -h, --help        Displays this help message
+      -p, --port        Port to start Studio on
+      -b, --browser     Browser to open Studio in
 
     ${chalk.bold('Examples')}
 
@@ -37,6 +37,16 @@ export class StudioCommand implements Command {
 
       Start Studio on a custom port
       ${chalk.dim('$')} prisma studio --port 5555 --experimental
+
+      Start Studio in a specific browser
+      ${chalk.dim(
+        '$',
+      )} prisma studio --port 5555 --browser firefox --experimental
+      ${chalk.dim('$')} BROWSER=firefox prisma studio --port 5555 --experimental
+
+      Start Studio without opening in a browser
+      ${chalk.dim('$')} prisma studio --port 5555 --browser none --experimental
+      ${chalk.dim('$')} BROWSER=none prisma studio --port 5555 --experimental
   `)
 
   private constructor(private readonly providerAliases: ProviderAliases) {
@@ -54,8 +64,10 @@ export class StudioCommand implements Command {
       '-h': '--help',
       '--port': Number,
       '-p': '--port',
-      '--experimental': Boolean,
+      '--browser': String,
+      '-b': '--browser',
       '--schema': String,
+      '--experimental': Boolean,
     })
 
     if (isError(args)) {
@@ -71,17 +83,15 @@ export class StudioCommand implements Command {
     }
 
     const port = args['--port'] || 5555
+    const browser = args['--browser'] || process.env.BROWSER
 
     const studio = new Studio({
       schemaPath: args['--schema'],
+      browser,
       port,
     })
 
-    const msg = await studio.start(this.providerAliases)
-
-    await open(`http://localhost:${port}`)
-
-    return msg
+    return studio.start(this.providerAliases)
   }
 
   // help message

@@ -85,6 +85,7 @@ export class CLI implements Command {
         'query-engine': binaryPath,
         'migration-engine': binaryPath,
         'introspection-engine': binaryPath,
+        'prisma-fmt': binaryPath,
       },
       showProgress: true,
       version,
@@ -117,6 +118,7 @@ export class CLI implements Command {
                 init   Setup Prisma for your app
           introspect   Get the datamodel of your database
             generate   Generate artifacts (e.g. Prisma Client)
+              format   Formats your schema
 
     ${chalk.bold('Flags')}
 
@@ -153,6 +155,7 @@ export class CLI implements Command {
             generate   Generate artifacts (e.g. Prisma Client)
              migrate   Migrate your schema ${chalk.dim('(experimental)')}
               studio   Run Prisma Studio ${chalk.dim('(experimental)')}
+              format   Formats your schema
 
     ${chalk.bold('Flags')}
 

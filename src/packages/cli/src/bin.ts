@@ -1,10 +1,10 @@
 #!/usr/bin/env ts-node
-
 import fs from 'fs'
+import { promisify } from 'util'
 import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
-import { arg, drawBox } from '@prisma/sdk'
+import { arg, drawBox, getCLIPathHash, getProjectHash } from '@prisma/sdk'
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 export { byline } from '@prisma/migrate'
@@ -26,8 +26,6 @@ process.env.NODE_NO_WARNINGS = '1'
 
 // react: psst 🙊
 process.env.NODE_ENV = 'production'
-
-debug({ argv: process.argv })
 
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
@@ -114,6 +112,7 @@ import { ProviderAliases } from '@prisma/sdk'
 import { Validate } from './Validate'
 import * as checkpoint from 'checkpoint-client'
 import ci from '@prisma/ci-info'
+import { Format } from './Format'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
 // as they have to ship their own version of @prisma/client
@@ -151,6 +150,7 @@ async function main(): Promise<number> {
       generate: Generate.new(),
       version: Version.new(),
       validate: Validate.new(),
+      format: Format.new(),
     },
     [
       'version',
@@ -162,6 +162,7 @@ async function main(): Promise<number> {
       'studio',
       'generate',
       'validate',
+      'format',
     ],
   )
   // parse the arguments
@@ -174,9 +175,17 @@ async function main(): Promise<number> {
     return 1
   }
   console.log(result)
+
+  // SHA256 identifier for the project based on the prisma schema path
+  const projectPathHash = await getProjectHash()
+  // SHA256 of the cli path
+  const cliPathHash = getCLIPathHash()
+
   // check prisma for updates
   const checkResult = await checkpoint.check({
     product: 'prisma',
+    cli_path_hash: cliPathHash,
+    project_hash: projectPathHash,
     version: packageJson.version,
     disable: ci.isCI,
   })

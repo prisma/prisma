@@ -31,6 +31,7 @@ export interface BinaryDownloadConfiguration {
   'query-engine'?: string
   'migration-engine'?: string
   'introspection-engine'?: string
+  'prisma-fmt'?: string
 }
 
 export interface DownloadOptions {
@@ -49,12 +50,14 @@ export type BinaryPaths = {
   'migration-engine'?: { [binaryTarget: string]: string } // key: target, value: path
   'query-engine'?: { [binaryTarget: string]: string }
   'introspection-engine'?: { [binaryTarget: string]: string }
+  'prisma-fmt'?: { [binaryTarget: string]: string }
 }
 
 const binaryToEnvVar = {
   'migration-engine': 'PRISMA_MIGRATION_ENGINE_BINARY',
   'query-engine': 'PRISMA_QUERY_ENGINE_BINARY',
   'introspection-engine': 'PRISMA_INTROSPECTION_ENGINE_BINARY',
+  'prisma-fmt': 'PRISMA_FMT_BINARY',
 }
 
 type BinaryDownloadJob = {
@@ -71,10 +74,18 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
   const os = await getos()
 
-  if (os.distro === 'musl') {
-    throw new Error('Precompiled binaries are not available for Alpine.')
-  } else if (os.distro === 'arm') {
-    throw new Error('Precompiled binaries are not available for ARM.')
+  if (os.distro === 'arm') {
+    console.error(
+      `${chalk.yellow(
+        'Warning',
+      )} Precompiled binaries are not available for ARM.`,
+    )
+  } else if (['freebsd', 'openbsd', 'netbsd'].includes(platform)) {
+    console.error(
+      `${chalk.yellow(
+        'Warning',
+      )} Precompiled binaries are not available for ${platform}.`,
+    )
   }
 
   // no need to do anything, if there are no binaries
@@ -133,7 +144,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       options.version,
       options.failSilent,
     )
-    debug({ needsToBeDownloaded })
     return !job.envVarPath && (options.ignoreCache || needsToBeDownloaded)
   })
 
@@ -151,6 +161,17 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       setProgress = collectiveBar.setProgress
     }
 
+    // Node 14 for whatever reason can't handle concurrent writes
+    // if (process.version.startsWith('v14')) {
+    //   for (const job of binariesToDownload) {
+    //     await downloadBinary({
+    //       ...job,
+    //       version: options.version,
+    //       failSilent: options.failSilent,
+    //       progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
+    //     })
+    //   }
+    // } else {
     await Promise.all(
       binariesToDownload.map((job) =>
         downloadBinary({
@@ -161,6 +182,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         }),
       ),
     )
+    // }
 
     await cleanupPromise // make sure, that cleanup finished
     if (finishBar) {
@@ -242,41 +264,31 @@ async function binaryNeedsToBeDownloaded(
     failSilent,
   })
 
-  debug({ fileExists: targetExists, cachedFile })
-
   if (cachedFile) {
-    debug({ cachedFile })
     const sha256FilePath = cachedFile + '.sha256'
     if (await exists(sha256FilePath)) {
       const sha256File = await readFile(sha256FilePath, 'utf-8')
-      const sha256Cache = await hasha.fromFile(cachedFile, {
+      // TODO: Use `fromFile` as soon as https://github.com/nodejs/node/issues/33263 is fixed
+      const sha256Cache = await hasha.fromFileSync(cachedFile, {
         algorithm: 'sha256',
       })
-      debug({ sha256File, sha256Cache, cachedFile, sha256FilePath })
       if (sha256File === sha256Cache) {
         if (!targetExists) {
           await copy(cachedFile, job.targetFilePath)
         }
-        const targetSha256 = await hasha.fromFile(job.targetFilePath, {
+        // TODO: Use `fromFile` as soon as https://github.com/nodejs/node/issues/33263 is fixed
+        const targetSha256 = await hasha.fromFileSync(job.targetFilePath, {
           algorithm: 'sha256',
         })
-        debug({ targetSha256 })
         if (sha256File !== targetSha256) {
-          debug(
-            `sha256 of target file is incorrect, therefore it's corrupt and we need to copy it over again.`,
-          )
           await copy(cachedFile, job.targetFilePath)
         } else {
-          debug(`sha256 of target is correct, so there's nothing to do :)`)
         }
         return false
       } else {
-        debug(`Cached sha256 is not correct!`)
-        debug(`Took it from ${sha256FilePath}`)
         return true
       }
     } else {
-      debug(`No sha256 exists for ${cachedFile}. Looked at ${sha256FilePath}`)
       return true
     }
   }
@@ -289,7 +301,6 @@ async function binaryNeedsToBeDownloaded(
   // 3. If same platform, always check --version
   if (job.binaryTarget === nativePlatform) {
     const works = await checkVersionCommand(job.targetFilePath)
-    debug({ works })
     return !works
   }
 
@@ -298,8 +309,6 @@ async function binaryNeedsToBeDownloaded(
 
 export async function getVersion(enginePath: string): Promise<string> {
   const result = await execa(enginePath, ['--version'])
-
-  debug(`Getting version of ${enginePath}. Result: `, result)
 
   return result.stdout
 }
@@ -310,10 +319,8 @@ export async function checkVersionCommand(
   try {
     const version = await getVersion(enginePath)
 
-    debug(`Getting version of ${enginePath}. Result: `, version)
     return version.length > 0
   } catch (e) {
-    debug(`Version command does not work`, e)
     return false
   }
 }
@@ -417,7 +424,6 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
     progressCb(0)
   }
 
-  debug(`Downloading zip`)
   const { sha256, zippedSha256 } = await downloadZip(
     downloadUrl,
     targetFilePath,
@@ -478,6 +484,10 @@ function engineTypeToBinaryType(
 
   if (engineType === 'queryEngine') {
     return 'query-engine'
+  }
+
+  if (engineType === 'prismaFmt') {
+    return 'prisma-fmt'
   }
 
   if (engineType === 'native') {

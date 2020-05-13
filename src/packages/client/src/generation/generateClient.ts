@@ -55,7 +55,7 @@ export interface BuildClientResult {
 export async function buildClient({
   datamodel,
   schemaDir = process.cwd(),
-  runtimePath = './runtime',
+  runtimePath = '@prisma/client/runtime',
   browser = false,
   binaryPaths,
   outputDir,
@@ -96,6 +96,18 @@ export async function buildClient({
   }
 }
 
+function getDotPrismaDir(outputDir: string): string {
+  if (
+    process.env.INIT_CWD &&
+    process.env.npm_lifecycle_event === 'postinstall' &&
+    !process.env.PWD?.includes('.pnpm')
+  ) {
+    return path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
+  }
+
+  return path.join(outputDir, '../../.prisma/client')
+}
+
 export async function generateClient({
   datamodel,
   datamodelPath,
@@ -113,7 +125,18 @@ export async function generateClient({
   clientVersion,
   engineVersion,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
-  runtimePath = runtimePath || './runtime'
+  const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
+
+  runtimePath =
+    runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
+
+  const finalOutputDir = useDotPrisma ? getDotPrismaDir(outputDir) : outputDir
+
+  if (testMode) {
+    Debug.enable('generateClient')
+    // debug({ finalOutputDir })
+  }
+
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
     datamodelPath,
@@ -121,7 +144,7 @@ export async function generateClient({
     transpile,
     runtimePath,
     browser,
-    outputDir,
+    outputDir: finalOutputDir,
     generator,
     dmmf,
     datasources,
@@ -143,11 +166,12 @@ export async function generateClient({
     process.exit(1)
   }
 
-  debug(`makeDir: ${outputDir}`)
+  await makeDir(finalOutputDir)
   await makeDir(path.join(outputDir, 'runtime'))
+
   await Promise.all(
     Object.entries(fileMap).map(async ([fileName, file]) => {
-      const filePath = path.join(outputDir, fileName)
+      const filePath = path.join(finalOutputDir, fileName)
       // The deletion of the file is necessary, so VSCode
       // picks up the changes.
       if (await exists(filePath)) {
@@ -156,7 +180,7 @@ export async function generateClient({
       await writeFile(filePath, file)
     }),
   )
-  const inputDir = testMode
+  const runtimeSourceDir = testMode
     ? eval(`require('path').join(__dirname, '../../runtime')`) // tslint:disable-line
     : eval(`require('path').join(__dirname, '../runtime')`) // tslint:disable-line
 
@@ -166,11 +190,11 @@ export async function generateClient({
     !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)
   ) {
     // TODO: Windows, / is not working here...
-    const copyTarget = path.join(outputDir, '/runtime')
-    debug({ copyRuntime, outputDir, copyTarget, inputDir })
-    if (inputDir !== copyTarget) {
+    const copyTarget = path.join(outputDir, 'runtime')
+    await makeDir(copyTarget)
+    if (runtimeSourceDir !== copyTarget) {
       await copy({
-        from: inputDir,
+        from: runtimeSourceDir,
         to: copyTarget,
         recursive: true,
         parallelJobs: process.platform === 'win32' ? 1 : 20,
@@ -188,8 +212,7 @@ export async function generateClient({
   if (transpile) {
     for (const filePath of Object.values(binaryPaths.queryEngine)) {
       const fileName = path.basename(filePath)
-      const target = path.join(outputDir, 'runtime', fileName)
-      const before = Date.now()
+      const target = path.join(finalOutputDir, fileName)
       const [sourceFileSize, targetFileSize] = await Promise.all([
         fileSize(filePath),
         fileSize(target),
@@ -197,7 +220,6 @@ export async function generateClient({
 
       // If the target doesn't exist yet, copy it
       if (!targetFileSize) {
-        debug(`Copying ${filePath} to ${target}`)
         await copyFile(filePath, target)
         continue
       }
@@ -208,7 +230,6 @@ export async function generateClient({
         sourceFileSize &&
         targetFileSize !== sourceFileSize
       ) {
-        debug(`Copying ${filePath} to ${target}`)
         await copyFile(filePath, target)
         continue
       }
@@ -219,26 +240,60 @@ export async function generateClient({
         getVersion(target).catch(() => null),
       ])
 
-      const after = Date.now()
       if (sourceVersion && targetVersion && sourceVersion === targetVersion) {
-        debug(`Getting hashes took ${after - before}ms`)
-        debug(
-          `Skipping ${filePath} to ${target} as both files have md5 hash ${sourceVersion}`,
-        )
+        // skip
       } else {
-        debug(`Copying ${filePath} to ${target}`)
         await copyFile(filePath, target)
       }
     }
   }
 
-  const datamodelTargetPath = path.join(outputDir, 'schema.prisma')
+  const datamodelTargetPath = path.join(finalOutputDir, 'schema.prisma')
   if (datamodelPath !== datamodelTargetPath) {
     await copyFile(datamodelPath, datamodelTargetPath)
   }
 
+  const packageJsonTargetPath = path.join(finalOutputDir, 'package.json')
+  const pkgJson = JSON.stringify(
+    {
+      name: '.prisma/client',
+      main: 'index.js',
+      types: 'index.d.ts',
+    },
+    null,
+    2,
+  )
+  await writeFile(packageJsonTargetPath, pkgJson)
+
+  if (process.env.INIT_CWD) {
+    const backupPath = path.join(
+      process.env.INIT_CWD,
+      'node_modules/.prisma/client',
+    )
+    if (finalOutputDir !== backupPath) {
+      await copy({
+        from: finalOutputDir,
+        to: backupPath,
+        recursive: true,
+        parallelJobs: process.platform === 'win32' ? 1 : 20,
+        overwrite: true,
+      })
+    }
+  }
+  // }
+
   if (transpile) {
     await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)
+  }
+
+  const proxyIndexJsPath = path.join(outputDir, 'index.js')
+  const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
+  if (!fs.existsSync(proxyIndexJsPath)) {
+    await copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
+  }
+
+  if (!fs.existsSync(proxyIndexDTSPath)) {
+    await copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
   }
 
   return { prismaClientDmmf, fileMap }

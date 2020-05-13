@@ -26,6 +26,7 @@ describe('dmmf', () => {
             "inputType": Array [
               Object {
                 "isList": false,
+                "isNullable": false,
                 "isRequired": false,
                 "kind": "enum",
                 "type": "PostKind",
@@ -38,12 +39,14 @@ describe('dmmf', () => {
             "inputType": Array [
               Object {
                 "isList": false,
+                "isNullable": false,
                 "isRequired": false,
                 "kind": "enum",
                 "type": "PostKind",
               },
               Object {
                 "isList": false,
+                "isNullable": false,
                 "isRequired": false,
                 "kind": "enum",
                 "type": "PostKindFilter",
@@ -56,6 +59,7 @@ describe('dmmf', () => {
             "inputType": Array [
               Object {
                 "isList": true,
+                "isNullable": false,
                 "isRequired": false,
                 "kind": "enum",
                 "type": "PostKind",
@@ -68,6 +72,7 @@ describe('dmmf', () => {
             "inputType": Array [
               Object {
                 "isList": true,
+                "isNullable": false,
                 "isRequired": false,
                 "kind": "enum",
                 "type": "PostKind",

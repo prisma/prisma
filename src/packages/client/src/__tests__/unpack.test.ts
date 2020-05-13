@@ -45,12 +45,7 @@ describe('unpack', () => {
   test('findOnePost', async () => {
     const document = makeDocument({
       dmmf,
-      select: {
-        // select: {
-        //   id: true,
-        //   posts: true,
-        // },
-      },
+      select: {},
       rootTypeName: 'query',
       rootField: 'findOnePost',
     })
@@ -73,8 +68,8 @@ describe('unpack', () => {
       data,
     })
 
-    expect(result.createdAt instanceof Date).toBe(true)
-    expect(result.updatedAt instanceof Date).toBe(true)
+    expect(result.createdAt).toBeInstanceOf(Date)
+    expect(result.updatedAt).toBeInstanceOf(Date)
 
     expect(result).toMatchInlineSnapshot(`
       Object {
@@ -130,8 +125,8 @@ describe('unpack', () => {
       data,
     })
 
-    expect(result[0].createdAt instanceof Date).toBe(true)
-    expect(result[0].updatedAt instanceof Date).toBe(true)
+    expect(result[0].createdAt).toBeInstanceOf(Date)
+    expect(result[0].updatedAt).toBeInstanceOf(Date)
 
     expect(result).toMatchInlineSnapshot(`
       Array [
@@ -178,6 +173,7 @@ describe('unpack', () => {
       findOneUser: {
         id: 'some-id',
         email: 'a@a.com',
+        json: '{"hello": "world"}',
         posts: [
           {
             id: 'some-id',
@@ -214,6 +210,9 @@ describe('unpack', () => {
       Object {
         "email": "a@a.com",
         "id": "some-id",
+        "json": Object {
+          "hello": "world",
+        },
         "posts": Array [
           Object {
             "createdAt": 2019-10-17T09:56:37.690Z,

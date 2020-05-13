@@ -3,10 +3,9 @@
 set -ex
 
 mkdir -p runtime
-mkdir -p nexus_prisma_ncc_build
-mkdir -p build/prisma-client-generator
 mkdir -p build/dist
 
+# mkdir -p build/prisma-client-generator
 # cp -R "$(./scripts/resolve.js @prisma/client)/runtime"/* build/runtime
 # cp -R "$(./scripts/resolve.js @prisma/client)/generator-build"/* build/prisma-client-generator
 

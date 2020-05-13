@@ -1,13 +1,20 @@
 const childProcess = require('child_process')
 const { promisify } = require('util')
-const exec = promisify(childProcess.exec)
+const fs = require('fs')
+const path = require('path')
 const c = require('./colors')
+
+const exec = promisify(childProcess.exec)
+const copyFile = promisify(fs.copyFile)
+const mkdir = promisify(fs.mkdir)
+const stat = promisify(fs.stat)
 
 async function main() {
   if (process.env.INIT_CWD) {
     process.chdir(process.env.INIT_CWD) // necessary, because npm chooses __dirname as process.cwd()
     // in the postinstall hook
   }
+  await ensureEmptyDotPrisma()
 
   const localPath = getLocalPackagePath()
   // Only execute if !localpath
@@ -116,4 +123,70 @@ function run(cmd, params) {
       reject()
     })
   })
+}
+
+async function ensureEmptyDotPrisma() {
+  try {
+    const dotPrismaClientDir = path.join(__dirname, '../../../.prisma/client')
+    await makeDir(dotPrismaClientDir)
+    const defaultIndexJsPath = path.join(dotPrismaClientDir, 'index.js')
+    const defaultIndexDTSPath = path.join(dotPrismaClientDir, 'index.d.ts')
+
+    if (!fs.existsSync(defaultIndexJsPath)) {
+      await copyFile(
+        path.join(__dirname, 'default-index.js'),
+        defaultIndexJsPath,
+      )
+    }
+
+    if (!fs.existsSync(defaultIndexDTSPath)) {
+      await copyFile(
+        path.join(__dirname, 'default-index.d.ts'),
+        defaultIndexDTSPath,
+      )
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+async function makeDir(input) {
+  const make = async (pth) => {
+    try {
+      await mkdir(pth)
+
+      return pth
+    } catch (error) {
+      if (error.code === 'EPERM') {
+        throw error
+      }
+
+      if (error.code === 'ENOENT') {
+        if (path.dirname(pth) === pth) {
+          throw permissionError(pth)
+        }
+
+        if (error.message.includes('null bytes')) {
+          throw error
+        }
+
+        await make(path.dirname(pth))
+
+        return make(pth)
+      }
+
+      try {
+        const stats = await stat(pth)
+        if (!stats.isDirectory()) {
+          throw new Error('The path is not a directory')
+        }
+      } catch (_) {
+        throw error
+      }
+
+      return pth
+    }
+  }
+
+  return make(path.resolve(input))
 }

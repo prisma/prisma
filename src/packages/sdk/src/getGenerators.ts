@@ -11,22 +11,25 @@ import {
   BinaryDownloadConfiguration,
   DownloadOptions,
 } from '@prisma/fetch-engine/dist/download'
-import { getConfig, getDMMF } from './engineCommands'
 import { download } from '@prisma/fetch-engine'
+import { getPlatform, Platform } from '@prisma/get-platform'
+import { printGeneratorConfig, fixPlatforms } from '@prisma/engine-core'
+
+import { getConfig, getDMMF } from './engineCommands'
 import { unique } from './unique'
 import { pick } from './pick'
 import { Generator } from './Generator'
 import { resolveOutput } from './resolveOutput'
-import { getPlatform, Platform } from '@prisma/get-platform'
-import { printGeneratorConfig, fixPlatforms } from '@prisma/engine-core'
 import {
   predefinedGeneratorResolvers,
   GeneratorPaths,
 } from './predefinedGeneratorResolvers'
 import { flatMap } from './utils/flatMap'
-import Debug from 'debug'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
+
+import Debug from 'debug'
 const debug = Debug('getGenerators')
+
 const defaultEngineVersion = eval(`require('../package.json').prisma.version`)
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
@@ -85,7 +88,6 @@ export async function getGenerators({
     }
 
     const binaryPathsWithEngineType = await download(downloadParams)
-    debug({ binaryPathsWithEngineType })
     prismaPath = binaryPathsWithEngineType['query-engine']![platform]
   }
 
@@ -136,7 +138,6 @@ export async function getGenerators({
             baseDir,
             cliVersion,
           )
-          debug(paths)
           generatorPath = paths.generatorPath
         }
 
@@ -147,10 +148,9 @@ export async function getGenerators({
         // resolve output path
         if (generator.output) {
           generator.output = path.resolve(baseDir, generator.output)
-          debug(`Resolving based on generator.output to ${generator.output}`)
+          generator.isCustomOutput = true
         } else if (paths) {
           generator.output = paths.outputPath
-          debug(`Resolving based on paths to ${generator.output}`)
         } else {
           if (
             !generatorInstance.manifest ||
@@ -168,7 +168,6 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
             defaultOutput: generatorInstance.manifest.defaultOutput,
             baseDir,
           })
-          debug(`Resolving else to ${generator.output}`, { baseDir })
         }
 
         const options: GeneratorOptions = {
@@ -210,7 +209,6 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     if (process.env.NETLIFY && !binaryTargets.includes('rhel-openssl-1.0.x')) {
       binaryTargets.push('rhel-openssl-1.0.x')
     }
-    debug({ binaryTargets })
 
     const binariesConfig: BinaryDownloadConfiguration = binaries.reduce(
       (acc, curr) => {
@@ -282,14 +280,18 @@ export const knownBinaryTargets: Platform[] = [
   'debian-openssl-1.1.x',
   'rhel-openssl-1.0.x',
   'rhel-openssl-1.1.x',
+  'linux-musl',
   'windows',
+  'freebsd',
+  'openbsd',
+  'netbsd',
+  'arm',
 ]
 
 const oldToNewBinaryTargetsMapping = {
   'linux-glibc-libssl1.0.1': 'debian-openssl-1.0.x',
   'linux-glibc-libssl1.0.2': 'debian-openssl-1.0.x',
   'linux-glibc-libssl1.1.0': 'debian-openssl1.1.x',
-  'linux-musl-libssl1.1.0': 'debian-openssl1.1.x',
 }
 
 async function validateGenerators(
@@ -412,6 +414,10 @@ function engineTypeToBinaryType(
     return 'query-engine'
   }
 
+  if (engineType === 'prismaFmt') {
+    return 'prisma-fmt'
+  }
+
   throw new Error(`Could not convert engine type ${engineType}`)
 }
 
@@ -426,6 +432,10 @@ function binaryTypeToEngineType(binaryType: string): string {
 
   if (binaryType === 'query-engine') {
     return 'queryEngine'
+  }
+
+  if (binaryType === 'prisma-fmt') {
+    return 'prismaFmt'
   }
 
   throw new Error(`Could not convert binary type ${binaryType}`)

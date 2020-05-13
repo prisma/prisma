@@ -5,7 +5,12 @@ export type Platform =
   | 'debian-openssl-1.1.x'
   | 'rhel-openssl-1.0.x'
   | 'rhel-openssl-1.1.x'
+  | 'linux-musl'
   | 'windows'
+  | 'freebsd'
+  | 'openbsd'
+  | 'netbsd'
+  | 'arm'
 
 export const platforms = [
   'darwin',
@@ -13,7 +18,12 @@ export const platforms = [
   'debian-openssl-1.1.x',
   'rhel-openssl-1.0.x',
   'rhel-openssl-1.1.x',
+  'linux-musl',
   'windows',
+  'freebsd',
+  'openbsd',
+  'netbsd',
+  'arm',
 ]
 
 export function mayBeCompatible(

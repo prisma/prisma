@@ -43,3 +43,13 @@ model MachineData {
   procCores Int
   ram       Int
 }
+
+model Like {
+  id     String @default(cuid()) @id
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
+}

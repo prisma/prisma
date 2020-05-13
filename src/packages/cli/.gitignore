@@ -2,16 +2,14 @@ node_modules
 migration-engine*
 query-engine*
 introspection-engine*
+prisma-fmt*
 yarn-error.log
 dist
 build
 .DS_Store
 download-build
 runtime
-nexus_prisma_ncc_build
-photogen_prisma_ncc_build
 examples
-prisma-test-utils_ncc
 !sqlite.test.db
 tmp
 tmp-sqlite

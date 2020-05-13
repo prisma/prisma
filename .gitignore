@@ -17,3 +17,4 @@ dist/
 copy-photon.sh
 *.tsbuildinfo
 .env*
+.prisma

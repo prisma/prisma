@@ -43,23 +43,6 @@ async function getUnsavedChanges(dir: string): Promise<string | null> {
   return result.trim() || null
 }
 
-// if the current branch is ahead, we need to push it
-async function getUnpushedCommitCount(dir: string): Promise<number> {
-  const result = await runResult(dir, `git status --porcelain=v2 --branch`)
-  const lines = result.split('\n')
-  const abLine = lines.find((l) => l.startsWith('# branch.ab'))
-
-  if (abLine) {
-    const regex = /branch\.ab\s\+(\d+)/
-    const match = regex.exec(abLine)
-    if (match) {
-      return Number(match[1])
-    }
-  }
-
-  return 0
-}
-
 async function getLatestCommit(dir: string): Promise<Commit> {
   const result = await runResult(
     dir,
@@ -78,14 +61,20 @@ async function getLatestCommit(dir: string): Promise<Commit> {
 
 async function commitChanges(
   dir: string,
-  messages: string[],
+  message: string,
   dry = false,
 ): Promise<void> {
-  await run(
-    dir,
-    `git commit -a ${messages.map((m) => `-m "${m}"`).join(' ')}`,
-    dry,
-  )
+  await run(dir, `git commit -am "${message}"`, dry)
+}
+
+async function pull(dir: string, dry = false): Promise<void> {
+  const branch = await getBranch(dir)
+  if (process.env.BUILDKITE) {
+    if (!process.env.GITHUB_TOKEN) {
+      throw new Error(`Missing env var GITHUB_TOKEN`)
+    }
+  }
+  await run(dir, `git pull origin ${branch} --no-edit`)
 }
 
 async function push(dir: string, dry = false): Promise<void> {
@@ -94,15 +83,7 @@ async function push(dir: string, dry = false): Promise<void> {
     if (!process.env.GITHUB_TOKEN) {
       throw new Error(`Missing env var GITHUB_TOKEN`)
     }
-    const remotes = (await runResult(dir, `git remote`)).trim().split('\n')
-    if (!remotes.includes('origin-push')) {
-      await run(
-        dir,
-        `git remote add origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/${dir}.git`,
-        dry,
-      )
-    }
-    await run(dir, `git push --quiet --set-upstream origin-push ${branch}`, dry)
+    await run(dir, `git push --quiet --set-upstream origin ${branch}`, dry)
   } else {
     await run(dir, `git push origin ${branch}`, dry)
   }
@@ -139,12 +120,15 @@ async function run(
   cwd: string,
   cmd: string,
   dry: boolean = false,
+  hidden: boolean = false,
 ): Promise<void> {
   const args = [chalk.underline('./' + cwd).padEnd(20), chalk.bold(cmd)]
   if (dry) {
     args.push(chalk.dim('(dry)'))
   }
-  console.log(...args)
+  if (!hidden) {
+    console.log(...args)
+  }
   if (dry) {
     return
   }
@@ -294,29 +278,6 @@ async function getNewPackageVersions(
     },
     {},
   )
-}
-
-function getCommitMessages(dir: string, packages: Packages): string[] {
-  const messages = Object.values(packages)
-    .sort((a, b) => {
-      if (['@prisma/client', 'prisma'].includes(a.name)) {
-        return -1
-      }
-
-      if (['@prisma/client', 'prisma'].includes(b.name)) {
-        return 1
-      }
-
-      return a.name < b.name ? -1 : 1
-    })
-    .filter((p) => p.path.startsWith(dir))
-    .map((p) => `${p.name}@${p.version}`)
-
-  if (messages.length > 0) {
-    messages[messages.length - 1] += ' [skip ci]'
-  }
-
-  return messages
 }
 
 export function getPublishOrder(packages: Packages): string[][] {
@@ -597,6 +558,7 @@ async function tagEnginesRepo(dryRun = false) {
       'prisma-engines',
       `git remote add origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma-engines.git`,
       dryRun,
+      true,
     )
   }
   await run(
@@ -804,47 +766,38 @@ async function publishPackages(
   if (process.env.UPDATE_STUDIO) {
     await run('.', `git config --global user.email "prismabots@gmail.com"`)
     await run('.', `git config --global user.name "prisma-bot"`)
+    await run('.', `git checkout master`, dryRun)
+    await run(
+      '.',
+      `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
+      dryRun,
+      true,
+    )
   }
 
   // for now only push when studio is being updated
   if (!process.env.BUILDKITE || process.env.UPDATE_STUDIO) {
     const repo = '.'
     // commit and push it :)
-    const messages = await getCommitMessages(repo, changedPackages)
-    if (messages.length > 0) {
-      // we try catch this, as this is not necessary for CI to succeed
-      await run(repo, `git pull origin master --no-edit`)
-      try {
-        const unsavedChanges = await getUnsavedChanges(repo)
-        if (!unsavedChanges) {
-          console.log(
-            `\n${chalk.bold(
-              'Skipping',
-            )} commiting changes, as they're already commited`,
-          )
-        } else {
-          console.log(`\nCommiting changes`)
-          await commitChanges(repo, messages, dryRun)
-        }
-        const unpushedCommitCount = await getUnpushedCommitCount(repo)
-        if (unpushedCommitCount === 0) {
-          console.log(
-            `${chalk.bold(
-              'Skipping',
-            )} pushing commits, as they're already pushed`,
-          )
-        } else {
-          console.log(
-            `There are ${unpushedCommitCount} unpushed local commits in ${chalk.cyanBright(
-              `./`,
-            )}`,
-          )
-          await push(repo, dryRun)
-        }
-      } catch (e) {
-        console.error(e)
-        console.error(`Ignoring this error, continuing`)
+    // we try catch this, as this is not necessary for CI to succeed
+    await run('.', `git status`, dryRun)
+    await pull(repo, dryRun)
+    try {
+      const unsavedChanges = await getUnsavedChanges(repo)
+      if (!unsavedChanges) {
+        console.log(
+          `\n${chalk.bold(
+            'Skipping',
+          )} commiting changes, as they're already commited`,
+        )
+      } else {
+        console.log(`\nCommiting changes`)
+        await commitChanges(repo, 'Bump Studio [skip ci]', dryRun)
       }
+      await push(repo, dryRun).catch(console.error)
+    } catch (e) {
+      console.error(e)
+      console.error(`Ignoring this error, continuing`)
     }
   }
 }

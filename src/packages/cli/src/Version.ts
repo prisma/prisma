@@ -24,7 +24,6 @@ export class Version implements Command {
       '--json': Boolean,
     })
     const platform = await getPlatform()
-    debug({ __dirname })
 
     const introspectionEngine = await this.resolveEngine(
       'introspection-engine',
@@ -41,6 +40,11 @@ export class Version implements Command {
       'PRISMA_QUERY_ENGINE_BINARY',
       platform,
     )
+    const fmtBinary = await this.resolveEngine(
+      'prisma-fmt',
+      'PRISMA_FMT_BINARY',
+      platform,
+    )
 
     const rows = [
       [packageJson.name, packageJson.version],
@@ -48,6 +52,7 @@ export class Version implements Command {
       ['Query Engine', this.printBinaryInfo(queryEngine)],
       ['Migration Engine', this.printBinaryInfo(migrationEngine)],
       ['Introspection Engine', this.printBinaryInfo(introspectionEngine)],
+      ['Format Binary', this.printBinaryInfo(fmtBinary)],
     ]
 
     return this.printTable(rows, args['--json'])

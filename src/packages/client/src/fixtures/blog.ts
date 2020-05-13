@@ -17,6 +17,7 @@ model User {
   /// name comment
   name  String?
   posts Post[]
+  json Json?
 }
 
 model Post {
