@@ -21,6 +21,7 @@ import { convertLog, RustLog, RustError } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
 import bent from 'bent'
+import { getLogs } from '@prisma/debug'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -564,7 +565,9 @@ ${this.lastErrorLog.fields.message}: ${this.lastErrorLog.fields.reason} in
 ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${
               this.lastErrorLog.fields.column
             }`
-            const url = getGithubIssueUrl({ title: errorDescription })
+            const logs = getLogs()
+            const body = `Hi Prisma Team! My Prisma Client just crashed. These are the logs: \`\`\`\n${logs}\`\`\``
+            const url = getGithubIssueUrl({ title: errorDescription, body })
             console.error(`${errorDescription}
 
 This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
