@@ -97,7 +97,7 @@ importers:
       '@apexearth/copy': ^1.4.5
       '@prisma/ci-info': ^2.1.1
       '@prisma/client': 'workspace:*'
-      '@prisma/debug': 'workspace:^2.0.0-alpha.1205'
+      '@prisma/debug': 'workspace:*'
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
@@ -216,7 +216,7 @@ importers:
       webpack-cli: 4.0.0-alpha-4_webpack@5.0.0-alpha.14
     specifiers:
       '@apexearth/copy': ^1.4.5
-      '@prisma/debug': 'workspace:^2.0.0-alpha.1205'
+      '@prisma/debug': 'workspace:*'
       '@prisma/engine-core': 'workspace:*'
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
