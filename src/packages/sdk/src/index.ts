@@ -11,6 +11,7 @@ export {
 export {
   IntrospectionEngine,
   IntrospectionWarnings,
+  IntrospectionSchemaVersion,
 } from './IntrospectionEngine'
 export { Generator } from './Generator'
 export { getGenerators, getGenerator, ProviderAliases } from './getGenerators'
