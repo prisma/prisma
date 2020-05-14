@@ -10,8 +10,6 @@ import { formatms } from '../util/formatms'
 import fs from 'fs'
 import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 import { printDatasources } from '../prompt/utils/printDatasources'
-import Debug from 'debug'
-const debug = Debug('Introspect')
 
 /**
  * $ prisma introspect

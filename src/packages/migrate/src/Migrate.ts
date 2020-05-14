@@ -8,7 +8,7 @@ import chalk from 'chalk'
 import { spawn } from 'child_process'
 import cliCursor from 'cli-cursor'
 import dashify from 'dashify'
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 import fs from 'fs'
 import getPort from 'get-port'
 import globby from 'globby'
@@ -55,7 +55,7 @@ import { printMigrationReadme } from './utils/printMigrationReadme'
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { flatMap } from './utils/flatMap'
-const debug = debugLib('Migrate')
+const debug = Debug('Migrate')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
 const del = promisify(rimraf)

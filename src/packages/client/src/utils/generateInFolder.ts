@@ -5,7 +5,7 @@ import path from 'path'
 import { performance } from 'perf_hooks'
 import { generateClient } from '../generation/generateClient'
 import { getPackedPackage } from '@prisma/sdk'
-import Debug from 'debug'
+import Debug from '@prisma/debug'
 const debug = Debug('generateInFolder')
 
 export interface GenerateInFolderOptions {

@@ -220,6 +220,7 @@ export class TSClient implements Generatable {
       sqliteDatasourceOverrides,
       relativePath: path.relative(outputDir, schemaDir),
       internalDatasources: datasources,
+      clientVersion: this.options.clientVersion,
     }
 
     return `${commonCodeJS(this.options)}

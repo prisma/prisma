@@ -4,6 +4,10 @@ import {
   RustError,
   isRustError,
 } from './log'
+import { getLogs } from '@prisma/debug'
+import { getGithubIssueUrl, link } from './util'
+import stripAnsi from 'strip-ansi'
+import os from 'os'
 // import chalk from 'chalk'
 
 export class PrismaQueryEngineError extends Error {
@@ -66,6 +70,51 @@ export class PrismaClientRustPanicError extends Error {
 
 export class PrismaClientInitializationError extends Error {
   constructor(message: string) {
+    super(message)
+  }
+}
+
+export interface QueryEngineErrorWithLinkInput {
+  version: string
+  platform: string
+  title: string
+  description?: string
+}
+
+export class QueryEngineErrorWithLink extends Error {
+  constructor({
+    version,
+    platform,
+    title,
+    description,
+  }: QueryEngineErrorWithLinkInput) {
+    const logs = getLogs()
+    const moreInfo = description ? `# Description\n${description}` : ''
+    const body = stripAnsi(
+      `Hi Prisma Team! My Prisma Client just crashed. This is the report:
+## Versions
+
+| Name     | Version            |
+|----------|--------------------|
+| Node     | ${process.version.padEnd(19)}| 
+| OS       | ${platform.padEnd(19)}|
+| Prisma   | ${version.padEnd(19)}|
+
+## Logs
+\`\`\`
+${logs}
+\`\`\`
+${moreInfo}`,
+    )
+
+    const url = getGithubIssueUrl({ title, body })
+    const message = `${title}
+
+This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
+If you want the Prisma team to look into it, please cmd+click on the link below 
+and press the "Submit new issue" button 🙏
+
+${link(url)}`
     super(message)
   }
 }

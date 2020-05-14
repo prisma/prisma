@@ -6,6 +6,7 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
+    "@prisma/debug": "workspace:*",
     "@types/fs-extra": "8.1.0",
     "@types/jest": "^25.2.1",
     "@types/node": "^12.12.35",
@@ -29,7 +30,6 @@
   "dependencies": {
     "@prisma/get-platform": "workspace:*",
     "chalk": "^4.0.0",
-    "debug": "^4.1.1",
     "execa": "^4.0.0",
     "find-cache-dir": "^3.3.1",
     "hasha": "^5.2.0",
