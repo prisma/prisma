@@ -24,7 +24,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@types/node": "12.12.39",
-    "@types/react": "16.9.11",
+    "@types/react": "16.9.35",
     "ink": "2.5.0",
     "react": "16.11.0",
     "typescript": "3.9.2"
