@@ -55,7 +55,7 @@
     "@apexearth/copy": "^1.4.5",
     "@prisma/ci-info": "^2.1.1",
     "@prisma/client": "workspace:*",
-    "@prisma/debug": "workspace:^2.0.0-alpha.1205",
+    "@prisma/debug": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
