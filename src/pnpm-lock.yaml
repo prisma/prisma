@@ -338,6 +338,7 @@ importers:
       husky: 4.2.5
       jest: 25.3.0
       lint-staged: 10.1.3
+      strip-ansi: 6.0.0
       ts-jest: 25.3.1_jest@25.3.0
       typescript: 3.8.3
     specifiers:
@@ -363,6 +364,7 @@ importers:
       jest: ^25.3.0
       lint-staged: ^10.1.3
       new-github-issue-url: ^0.2.1
+      strip-ansi: ^6.0.0
       terminal-link: ^2.1.1
       ts-jest: ^25.3.1
       typescript: ^3.8.3
