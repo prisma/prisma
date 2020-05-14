@@ -22,7 +22,7 @@
     "dist"
   ],
   "devDependencies": {
-    "@prisma/debug": "workspace:^2.0.0-alpha.1205",
+    "@prisma/debug": "workspace:*",
     "@types/node": "^12.12.31",
     "@types/react": "16.9.11",
     "ink": "2.5.0",
