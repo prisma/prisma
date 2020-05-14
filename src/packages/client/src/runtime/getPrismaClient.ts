@@ -121,6 +121,7 @@ export interface GetPrismaClientOptions {
   relativePath: string
   dirname: string
   internalDatasources: InternalDatasource[]
+  clientVersion?: string
 }
 
 // TODO: We **may** be able to get real types. However, we have both a bootstrapping
@@ -213,6 +214,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           ),
         env: envFile,
         flags: options.forceTransactions ? ['--always-force-transactions'] : [],
+        clientVersion: config.clientVersion,
       }
 
       const sanitizedEngineConfig = omit(this.engineConfig, [
@@ -238,6 +240,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 query: 'blue',
                 info: 'cyan',
                 warn: 'yellow',
+                error: 'red',
               }
               console.error(
                 chalk[colorMap[level]](`prisma:${level}`.padEnd(13)) +
