@@ -71,6 +71,12 @@ interface IntrospectionWarningsInvalidEnumName {
   affected: { enm: string; value: string }[]
 }
 
+export type IntrospectionSchemaVersion =
+  | 'Prisma2'
+  | 'Prisma1'
+  | 'Prisma11'
+  | 'NonPrisma'
+
 let messageId = 1
 
 /* tslint:disable */
@@ -122,7 +128,11 @@ export class IntrospectionEngine {
   }
   public introspect(
     schema: string,
-  ): Promise<{ datamodel: string; warnings: IntrospectionWarnings[] }> {
+  ): Promise<{
+    datamodel: string
+    warnings: IntrospectionWarnings[]
+    version: IntrospectionSchemaVersion
+  }> {
     this.lastUrl = schema
     return this.runCommand(this.getRPCPayload('introspect', { schema }))
   }
