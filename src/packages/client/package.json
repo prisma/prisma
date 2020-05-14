@@ -50,7 +50,7 @@
   ],
   "devDependencies": {
     "@apexearth/copy": "^1.4.5",
-    "@prisma/debug": "workspace:^2.0.0-alpha.1205",
+    "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
