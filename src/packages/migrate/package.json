@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@prisma/client": "workspace:*",
-    "@prisma/debug": "workspace:^2.0.0-alpha.1205",
+    "@prisma/debug": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/charm": "^1.0.1",
