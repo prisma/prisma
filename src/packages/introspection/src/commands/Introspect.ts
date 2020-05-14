@@ -209,7 +209,12 @@ Then you can run ${chalk.green('prisma introspect')} again.
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)
 
-      log(`\n✔ Wrote Prisma data model into ${chalk.underline(
+      const modelsCount = (introspectionSchema.match(/^\s*model\s+/gm) || [])
+        .length
+
+      log(`\n✔ Introspected ${modelsCount} ${
+        modelsCount > 1 ? 'models and wrote them' : 'model and wrote it'
+      } into ${chalk.underline(
         path.relative(process.cwd(), schemaPath),
       )} in ${chalk.bold(formatms(Date.now() - before))} ${chalk.dim(
         introspectionSchemaVersion || '',
