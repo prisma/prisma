@@ -77,14 +77,15 @@ Debug.enabled = (namespace: string): boolean => enabledNamespaces.has(namespace)
 
 export declare type Debugger = DebugLib.Debugger
 
-export function getLogs(numLines = 100): string {
+// https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
+// we need some space for other characters, so we go for 30k here
+export function getLogs(numChars = 30000): string {
   // flatmap on text level
-  const lines = cache
-    .map((c) => c.join('  '))
-    .join('\n')
-    .split('\n') // no this is not a no-op
-  if (lines.length <= numLines) {
-    return lines.join('\n')
+  let output = cache.map((c) => c.join('  ')).join('\n')
+
+  if (output.length < numChars) {
+    return output
   }
-  return lines.slice(-numLines).join('\n')
+
+  return output.slice(-numChars)
 }
