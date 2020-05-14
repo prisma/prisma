@@ -8,9 +8,7 @@ import copy from '@apexearth/copy'
 import makeDir from 'make-dir'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
-import Debug from 'debug'
 import readPkgUp from 'read-pkg-up'
-const debug = Debug('getPackedPackage')
 
 // why not directly use Sindre's 'del'? Because it's not ncc-able :/
 const del = promisify(rimraf)

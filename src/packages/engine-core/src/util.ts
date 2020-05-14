@@ -3,7 +3,7 @@ import { Platform } from '@prisma/get-platform'
 import terminalLink from 'terminal-link'
 import newGithubIssueUrl from 'new-github-issue-url'
 import chalk from 'chalk'
-import Debug from 'debug'
+import Debug from '@prisma/debug'
 const debug = Debug('plusX')
 
 export function plusX(file): void {

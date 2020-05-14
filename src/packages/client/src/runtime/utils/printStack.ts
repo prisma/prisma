@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import * as stackTraceParser from 'stacktrace-parser'
 import { highlightTS } from '../highlight/highlight'
 import { dedent } from './dedent'
-import Debug from 'debug'
+import Debug from '@prisma/debug'
 const debug = Debug('printStack')
 
 function renderN(n: number, max: number): string {

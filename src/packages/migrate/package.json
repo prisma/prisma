@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "@prisma/client": "workspace:*",
+    "@prisma/debug": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/charm": "^1.0.1",
@@ -53,7 +54,6 @@
     "ansi-escapes": "^4.3.1",
     "cli-cursor": "3.1.0",
     "dashify": "2.0.0",
-    "debug": "^4.1.1",
     "diff": "4.0.2",
     "execa": "^4.0.0",
     "figures": "^3.2.0",

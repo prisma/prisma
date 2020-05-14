@@ -5,6 +5,7 @@ import {
   PrismaClientInitializationError,
   PrismaClientRustPanicError,
   getMessage,
+  QueryEngineErrorWithLink,
 } from './Engine'
 import debugLib from 'debug'
 import { getPlatform, Platform } from '@prisma/get-platform'
@@ -21,6 +22,7 @@ import { convertLog, RustLog, RustError } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
 import bent from 'bent'
+import { getLogs } from '@prisma/debug'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -44,6 +46,7 @@ export interface EngineConfig {
   logLevel?: 'info' | 'warn'
   env?: Record<string, string>
   flags?: string[]
+  clientVersion?: string
 }
 
 /**
@@ -79,10 +82,11 @@ export class NodeEngine {
   private logLevel?: 'info' | 'warn'
   private env?: Record<string, string>
   private flags: string[]
-  private exitCode?: number
-  port?: number
-  debug: boolean
-  child?: ChildProcessWithoutNullStreams
+  private port?: number
+  private debug: boolean
+  private child?: ChildProcessWithoutNullStreams
+  private clientVersion?: string
+  exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -119,6 +123,7 @@ export class NodeEngine {
     logQueries,
     env,
     flags,
+    clientVersion,
     ...args
   }: EngineConfig) {
     this.env = env
@@ -132,6 +137,7 @@ export class NodeEngine {
     this.showColors = showColors || false
     this.logLevel = logLevel
     this.logQueries = logQueries || false
+    this.clientVersion = clientVersion
     this.flags = flags || []
 
     this.logEmitter.on('error', (log: RustLog) => {
@@ -343,7 +349,7 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     }
 
     if (this.incorrectlyPinnedPlatform) {
-      console.log(`${chalk.yellow(
+      console.error(`${chalk.yellow(
         'Warning:',
       )} You pinned the platform ${chalk.bold(
         this.incorrectlyPinnedPlatform,
@@ -546,31 +552,30 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
         this.child.on('close', (code, signal): void => {
           if (code === null && signal === 'SIGABRT' && this.child) {
-            console.error(`${chalk.bold.red(`Error in Prisma Client:`)}${
-              this.stderrLogs
-            }
-
-This is a non-recoverable error which probably happens when the Prisma Query Engine has a stack overflow.
-Please create an issue in https://github.com/prisma/prisma-client-js describing the last Prisma Client query you called.`)
+            const error = new QueryEngineErrorWithLink(
+              {
+                platform: this.platform,
+                title: `Panic in Query Engine with SIGABRT signal`,
+                description: this.stderrLogs,
+                version: this.clientVersion,
+              },
+              // this.platform,
+              // `Panic in Query Engine with SIGABRT signal`,
+              // this.stderrLogs,
+            )
+            this.logEmitter.emit('error', error)
           } else if (
             code === 255 &&
             signal === null &&
             this.lastErrorLog?.fields.message === 'PANIC'
           ) {
-            const errorDescription = `${chalk.bold.red(
-              `Error in Prisma Client:`,
-            )}
-${this.lastErrorLog.fields.message}: ${this.lastErrorLog.fields.reason} in
-${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${
-              this.lastErrorLog.fields.column
-            }`
-            const url = getGithubIssueUrl({ title: errorDescription })
-            console.error(`${errorDescription}
-
-This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
-Please try again and set the environment variable \`DEBUG=*\` and use this link to create an issue ${link(
-              url,
-            )} describing the last Prisma Client query you called and include the logs.`)
+            const error = new QueryEngineErrorWithLink({
+              platform: this.platform,
+              title: `${this.lastErrorLog.fields.message}: ${this.lastErrorLog.fields.reason} in
+${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErrorLog.fields.column}`,
+              version: this.clientVersion,
+            })
+            this.logEmitter.emit('error', error)
           }
         })
 

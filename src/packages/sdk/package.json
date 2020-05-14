@@ -20,9 +20,10 @@
     "scripts"
   ],
   "prisma": {
-    "version": "0c2ec197653b278b2978845ef958db88824cd82e"
+    "version": "947599a1413bc514e275905d562b50200bac990b"
   },
   "devDependencies": {
+    "@prisma/debug": "workspace:*",
     "@types/jest": "25.2.1",
     "@types/node": "^12.12.35",
     "@types/tar": "^4.0.3",
@@ -39,7 +40,7 @@
     "prettier": "^2.0.4",
     "ts-jest": "^25.3.1",
     "ts-node": "^8.8.2",
-    "typescript": "^3.8.3"
+    "typescript": "3.8.3"
   },
   "dependencies": {
     "@apexearth/copy": "^1.4.5",

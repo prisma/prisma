@@ -5,31 +5,28 @@ const prisma = new PrismaClient({
 })
 
 async function main() {
-  // const users = await prisma.user.findMany({
-  //   where: {
-  //     id: null,
-  //   },
-  //   include: {
-  //     posts: {
-  //       include: {
-  //         author: true,
-  //       },
-  //       orderBy: {
-  //         title: 'asc',
-  //       },
-  //     },
-  //   },
-  // })
-
-  // console.log(users)
-
-  const result = await prisma.user.updateMany({
-    data: {
-      id: null,
+  const users = await prisma.user.findMany({
+    include: {
+      posts: {
+        include: {
+          author: true,
+        },
+        orderBy: {
+          title: 'asc',
+        },
+      },
     },
   })
 
-  console.log(result)
+  console.log(users)
+
+  // const result = await prisma.user.updateMany({
+  //   data: {
+  //     id: null,
+  //   },
+  // })
+
+  // console.log(result)
 
   // // prisma.disconnect()
 

@@ -6,6 +6,7 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
+    "@prisma/debug": "workspace:*",
     "@types/jest": "^25.2.1",
     "@types/node": "^12.12.35",
     "@typescript-eslint/eslint-plugin": "^2.28.0",
@@ -31,9 +32,6 @@
   "files": [
     "dist"
   ],
-  "dependencies": {
-    "debug": "^4.1.1"
-  },
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"

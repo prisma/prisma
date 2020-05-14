@@ -1,6 +1,6 @@
 import { getPlatform } from '@prisma/get-platform'
 import archiver from 'archiver'
-import Debug from 'debug'
+import Debug from '@prisma/debug'
 import fs from 'fs'
 import globby from 'globby'
 import fetch from 'node-fetch'

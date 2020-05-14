@@ -2,8 +2,6 @@ import { Command, getVersion, resolveBinary, arg } from '@prisma/sdk'
 import { getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
-import Debug from 'debug'
-const debug = Debug('version')
 
 interface BinaryInfo {
   path: string

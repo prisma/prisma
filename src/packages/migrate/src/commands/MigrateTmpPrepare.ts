@@ -1,6 +1,6 @@
 import { Command, format, HelpError } from '@prisma/sdk'
 import chalk from 'chalk'
-import Debug from 'debug'
+import Debug from '@prisma/debug'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { occupyPath } from '../utils/occupyPath'

@@ -4,7 +4,7 @@ import chalk from 'chalk'
 
 // Packages
 import path from 'path'
-import Debug from 'debug'
+import Debug from '@prisma/debug'
 import makeDir from 'make-dir'
 import execa from 'execa'
 import pFilter from 'p-filter'
