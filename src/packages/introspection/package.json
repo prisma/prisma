@@ -16,7 +16,7 @@
     "@types/js-yaml": "3.12.3",
     "@types/json-stable-stringify": "1.0.32",
     "@types/jsonwebtoken": "8.5.0",
-    "@types/mongodb": "3.5.16",
+    "@types/mongodb": "3.5.17",
     "@types/mysql": "2.15.10",
     "@types/node": "12.12.39",
     "@types/pg": "7.14.3",
