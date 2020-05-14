@@ -23,7 +23,7 @@
     "version": "947599a1413bc514e275905d562b50200bac990b"
   },
   "devDependencies": {
-    "@prisma/debug": "workspace:^2.0.0-alpha.1205",
+    "@prisma/debug": "workspace:*",
     "@types/jest": "25.2.1",
     "@types/node": "^12.12.35",
     "@types/tar": "^4.0.3",
