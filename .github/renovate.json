@@ -1,0 +1,7 @@
+{
+    "extends": [
+        "config:base",
+        "schedule:earlyMondays"
+    ],
+    "semanticCommits": true
+}
