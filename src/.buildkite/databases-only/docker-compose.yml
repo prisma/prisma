@@ -10,7 +10,7 @@ services:
   # - TEST_MARIADB_URI=mysql://prisma:prisma@localhost:4306/tests
 
   postgres:
-    image: postgres:10.3
+    image: postgres:10.12
     restart: always
     environment:
       - POSTGRES_USER=prisma
