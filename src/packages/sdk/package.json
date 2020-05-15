@@ -23,7 +23,7 @@
     "version": "947599a1413bc514e275905d562b50200bac990b"
   },
   "devDependencies": {
-    "@types/jest": "25.2.1",
+    "@types/jest": "25.2.2",
     "@types/node": "12.12.39",
     "@types/tar": "4.0.3",
     "@typescript-eslint/eslint-plugin": "2.33.0",
