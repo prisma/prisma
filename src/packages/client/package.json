@@ -99,7 +99,7 @@
     "rimraf": "3.0.2",
     "set-value": "3.0.2",
     "sql-template-tag": "3.3.0",
-    "stacktrace-parser": "0.1.7",
+    "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
     "ts-jest": "25.5.1",
