@@ -105,10 +105,7 @@
     "ts-jest": "25.5.1",
     "ts-loader": "6.2.2",
     "ts-node": "8.10.1",
-    "typescript": "3.9.2",
-    "webpack": "5.0.0-alpha.14",
-    "webpack-bundle-analyzer": "3.7.0",
-    "webpack-cli": "4.0.0-alpha-4"
+    "typescript": "3.9.2"
   },
   "peerDependencies": {
     "@prisma/cli": "*"
