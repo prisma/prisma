@@ -58,7 +58,7 @@
     "@prisma/sdk": "workspace:*",
     "@types/debug": "4.1.5",
     "@types/fs-extra": "8.1.0",
-    "@types/jest": "25.2.1",
+    "@types/jest": "25.2.2",
     "@types/js-levenshtein": "1.1.0",
     "@types/node": "12.12.39",
     "@types/node-fetch": "2.5.7",

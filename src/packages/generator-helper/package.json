@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@prisma/debug": "workspace:*",
-    "@types/jest": "25.2.1",
+    "@types/jest": "25.2.2",
     "@types/node": "12.12.39",
     "@typescript-eslint/eslint-plugin": "2.33.0",
     "@typescript-eslint/parser": "2.33.0",
