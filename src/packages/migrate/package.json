@@ -11,7 +11,6 @@
   },
   "devDependencies": {
     "@prisma/client": "workspace:*",
-    "@prisma/debug": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/charm": "1.0.2",
@@ -46,6 +45,7 @@
     "@prisma/sdk": "*"
   },
   "dependencies": {
+    "@prisma/debug": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/ink-components": "workspace:*",

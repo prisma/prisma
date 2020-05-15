@@ -6,7 +6,6 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/debug": "workspace:*",
     "@types/jest": "25.2.2",
     "@types/node": "12.12.39",
     "@typescript-eslint/eslint-plugin": "2.33.0",
@@ -21,6 +20,9 @@
     "lint-staged": "10.2.2",
     "ts-jest": "25.5.1",
     "typescript": "3.9.2"
+  },
+  "dependencies": {
+    "@prisma/debug": "workspace:*"
   },
   "scripts": {
     "build": "tsc -d",
