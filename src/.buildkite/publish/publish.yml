@@ -1,7 +1,7 @@
 steps:
   - label: ":llama: Publish"
     plugins:
-      - docker-compose#v3.0.3:
+      - docker-compose#v3.3.0:
           config: src/.buildkite/publish/docker-compose.yml
           run: app
   - wait
