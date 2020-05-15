@@ -6,7 +6,6 @@
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/debug": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@types/jest": "25.2.1",
     "@types/node": "12.12.39",
@@ -34,6 +33,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@prisma/debug": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "bent": "^7.1.2",

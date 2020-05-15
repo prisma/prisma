@@ -23,7 +23,6 @@
     "version": "947599a1413bc514e275905d562b50200bac990b"
   },
   "devDependencies": {
-    "@prisma/debug": "workspace:*",
     "@types/jest": "25.2.1",
     "@types/node": "12.12.39",
     "@types/tar": "4.0.3",
@@ -43,6 +42,7 @@
     "typescript": "3.9.2"
   },
   "dependencies": {
+    "@prisma/debug": "workspace:*",
     "@apexearth/copy": "^1.4.5",
     "@prisma/engine-core": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
