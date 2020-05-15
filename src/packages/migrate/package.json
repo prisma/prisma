@@ -64,7 +64,7 @@
     "http-proxy-agent": "^4.0.1",
     "https-proxy-agent": "^5.0.0",
     "indent-string": "^4.0.0",
-    "ink": "2.5.0",
+    "ink": "2.7.1",
     "ink-link": "1.0.0",
     "ink-spinner": "3.0.1",
     "is-ci": "^2.0.0",
