@@ -80,7 +80,7 @@
     "fast-clone": "1.5.13",
     "fast-copy": "2.0.5",
     "flat-map-polyfill": "0.3.8",
-    "fs-monkey": "0.3.3",
+    "fs-monkey": "0.4.0",
     "get-own-enumerable-property-symbols": "3.0.2",
     "husky": "4.2.5",
     "indent-string": "4.0.0",
