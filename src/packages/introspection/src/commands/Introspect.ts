@@ -209,7 +209,7 @@ Then you can run ${chalk.green('prisma introspect')} again.
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)
 
-      const modelsCount = (introspectionSchema.match(/^\s*model\s+/gm) || [])
+      const modelsCount = (introspectionSchema.match(/^model\s+/gm) || [])
         .length
 
       log(`\n✔ Introspected ${modelsCount} ${
