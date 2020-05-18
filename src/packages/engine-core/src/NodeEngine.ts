@@ -434,6 +434,12 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         debug(env)
         debug({ cwd: this.cwd })
 
+        if (env.OVERWRITE_DATASOURCES) {
+          env.OVERWRITE_DATASOURCES = Buffer.from(
+            env.OVERWRITE_DATASOURCES,
+          ).toString('base64')
+        }
+
         const prismaPath = await this.getPrismaPath()
 
         const flags = ['--enable-raw-queries', ...this.flags]
