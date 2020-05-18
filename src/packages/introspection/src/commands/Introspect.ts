@@ -217,7 +217,7 @@ Then you can run ${chalk.green('prisma introspect')} again.
       } into ${chalk.underline(
         path.relative(process.cwd(), schemaPath),
       )} in ${chalk.bold(formatms(Date.now() - before))} ${chalk.dim(
-        introspectionSchemaVersion || '',
+        introspectionSchemaVersion ? `(${introspectionSchemaVersion})` : '',
       )}
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
 Run ${chalk.green('prisma generate')} to generate Prisma Client.`)

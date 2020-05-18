@@ -80,7 +80,7 @@
     "fast-clone": "1.5.13",
     "fast-copy": "2.0.5",
     "flat-map-polyfill": "0.3.8",
-    "fs-monkey": "0.3.3",
+    "fs-monkey": "1.0.1",
     "get-own-enumerable-property-symbols": "3.0.2",
     "husky": "4.2.5",
     "indent-string": "4.0.0",
@@ -99,16 +99,13 @@
     "rimraf": "3.0.2",
     "set-value": "3.0.2",
     "sql-template-tag": "3.3.0",
-    "stacktrace-parser": "0.1.7",
+    "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
     "ts-jest": "25.5.1",
     "ts-loader": "6.2.2",
     "ts-node": "8.10.1",
-    "typescript": "3.9.2",
-    "webpack": "5.0.0-alpha.14",
-    "webpack-bundle-analyzer": "3.7.0",
-    "webpack-cli": "4.0.0-alpha-4"
+    "typescript": "3.9.2"
   },
   "peerDependencies": {
     "@prisma/cli": "*"

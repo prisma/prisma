@@ -9,7 +9,7 @@
   "dependencies": {
     "@prisma/debug": "workspace:*",
     "chalk": "^3.0.0",
-    "cli-truncate": "2.0.0",
+    "cli-truncate": "2.1.0",
     "figures": "^3.2.0",
     "ink-spinner": "^3.0.1",
     "string-width": "^4.2.0",
