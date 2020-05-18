@@ -628,14 +628,11 @@ export class PrismaClientFetcher {
     }
     try {
       collectTimestamps && collectTimestamps.record('Pre-engine_request')
-      const { data, elapsed } = await this.dataloader.request({ document })
+      const result = await this.dataloader.request({ document })
       collectTimestamps && collectTimestamps.record('Post-engine_request')
       collectTimestamps && collectTimestamps.record('Pre-unpack')
-      const unpackResult = this.unpack(document, data, dataPath, rootField)
+      const unpackResult = this.unpack(document, result, dataPath, rootField)
       collectTimestamps && collectTimestamps.record('Post-unpack')
-      if (process.env.PRISMA_CLIENT_GET_TIME) {
-        return { data: unpackResult, elapsed }
-      }
       return unpackResult
     } catch (e) {
       let message = e.message
