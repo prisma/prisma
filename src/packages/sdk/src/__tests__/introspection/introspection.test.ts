@@ -14,37 +14,38 @@ test('introspection basic', async () => {
 
   const result = await engine.introspect(schema)
   expect(result).toMatchInlineSnapshot(`
-          Object {
-            "datamodel": "datasource ds {
-            provider = \\"sqlite\\"
-            url      = \\"file:./blog.db\\"
-          }
+    Object {
+      "datamodel": "datasource ds {
+      provider = \\"sqlite\\"
+      url      = \\"file:./blog.db\\"
+    }
 
-          model User {
-            age     Int     @default(0)
-            amount  Float   @default(0)
-            balance Float   @default(0)
-            email   String  @default(\\"\\") @unique
-            id      Int     @default(autoincrement()) @id
-            name    String?
-            role    String  @default(\\"USER\\")
-            Post    Post[]
-          }
+    model User {
+      age     Int     @default(0)
+      amount  Float   @default(0)
+      balance Float   @default(0)
+      email   String  @default(\\"\\") @unique
+      id      Int     @default(autoincrement()) @id
+      name    String?
+      role    String  @default(\\"USER\\")
+      Post    Post[]
+    }
 
-          model Post {
-            author    Int
-            content   String?
-            createdAt DateTime @default(dbgenerated())
-            kind      String?
-            published Boolean  @default(false)
-            title     String   @default(\\"\\")
-            updatedAt DateTime @default(dbgenerated())
-            uuid      String   @id
-            User      User     @relation(fields: [author], references: [id])
-          }",
-            "warnings": Array [],
-          }
-      `)
+    model Post {
+      author    Int
+      content   String?
+      createdAt DateTime @default(dbgenerated())
+      kind      String?
+      published Boolean  @default(false)
+      title     String   @default(\\"\\")
+      updatedAt DateTime @default(dbgenerated())
+      uuid      String   @id
+      User      User     @relation(fields: [author], references: [id])
+    }",
+      "version": "NonPrisma",
+      "warnings": Array [],
+    }
+  `)
   const metadata = await engine.getDatabaseMetadata(schema)
   expect(metadata).toMatchInlineSnapshot(`
           Object {

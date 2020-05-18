@@ -307,13 +307,10 @@ export class Migrate {
       const file = await readFile(lockFilePath, 'utf-8')
       const lockFile = deserializeLockFile(file)
       if (lockFile.remoteBranch) {
-        // TODO: Implement handling the conflict
         throw new Error(
           `There's a merge conflict in the ${chalk.bold(
             'migrations/migrate.lock',
-          )} file. Please execute ${chalk.greenBright(
-            'prisma migrate fix',
-          )} to solve it`,
+          )} file.`,
         )
       }
       return lockFile
