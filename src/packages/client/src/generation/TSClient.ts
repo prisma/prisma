@@ -75,8 +75,8 @@ debug("Engine Version ${engineVersion}")
  * Query Engine version: ${engineVersion}
  */
 exports.prismaVersion = {
-  client: "${clientVersion}"
-  engine: "${engineVersion}",
+  client: "${clientVersion}",
+  engine: "${engineVersion}"
 }
 
 exports.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
