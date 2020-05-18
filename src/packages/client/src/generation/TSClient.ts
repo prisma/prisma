@@ -43,14 +43,14 @@ export function TS(gen: Generatable): string {
 
 interface CommonCodeParams {
   runtimePath: string
-  engineVersion: string
   clientVersion: string
+  engineVersion: string
 }
 
 const commonCodeJS = ({
   runtimePath,
-  engineVersion,
   clientVersion,
+  engineVersion,
 }: CommonCodeParams): string => `
 Object.defineProperty(exports, "__esModule", { value: true });
 
@@ -71,12 +71,12 @@ debug("Client Version ${clientVersion}")
 debug("Engine Version ${engineVersion}")
 
 /**
- * Query Engine version: ${engineVersion}
  * Prisma Client JS version: ${clientVersion}
+ * Query Engine version: ${engineVersion}
  */
 exports.prismaVersion = {
-  engine: "${engineVersion}",
   client: "${clientVersion}"
+  engine: "${engineVersion}",
 }
 
 exports.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
@@ -88,8 +88,8 @@ exports.PrismaClientValidationError = PrismaClientValidationError;
 
 const commonCodeTS = ({
   runtimePath,
-  engineVersion,
   clientVersion,
+  engineVersion,
 }: CommonCodeParams): string => `import {
   DMMF,
   DMMFClass,
@@ -108,8 +108,8 @@ export { PrismaClientInitializationError }
 export { PrismaClientValidationError }
 
 /**
- * Query Engine version: ${engineVersion}
  * Prisma Client JS version: ${clientVersion}
+ * Query Engine version: ${engineVersion}
  */
 export declare type PrismaVersion = {
   client: string
