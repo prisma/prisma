@@ -4,7 +4,9 @@ import { PrismaQueryEngineError } from './Engine'
 export class Client {
   private session: http2.ClientHttp2Session
   constructor(url: string) {
-    this.session = http2.connect(url, {})
+    this.session = http2.connect(url, {
+      maxSessionMemory: 50,
+    })
 
     // necessary to disable Node.js' error handling and us handle the error in .on('error') of the session
     this.session.on('error', () => {}) // eslint-disable-line @typescript-eslint/no-empty-function
@@ -12,7 +14,7 @@ export class Client {
   close(): void {
     this.session.destroy()
   }
-  request(body: any): Promise<unknown> {
+  request(body: any): Promise<{ data: any; headers: any }> {
     return new Promise((resolve, reject) => {
       try {
         let rejected = false
@@ -22,9 +24,9 @@ export class Client {
         const req = this.session.request({
           [http2.constants.HTTP2_HEADER_METHOD]:
             http2.constants.HTTP2_METHOD_POST,
-          [http2.constants.HTTP2_HEADER_PATH]: `/`,
           'Content-Type': 'application/json',
           'Content-Length': buffer.length,
+          'Accept-Encoding': '*',
         })
 
         req.setEncoding('utf8')
@@ -77,7 +79,8 @@ export class Client {
 
         req.on('end', () => {
           if (data && data.length > 0 && !rejected) {
-            resolve({ body: JSON.parse(data.join('')), headers })
+            // console.log(headers)
+            resolve({ data: JSON.parse(data.join('')), headers })
           }
         })
       } catch (e) {
