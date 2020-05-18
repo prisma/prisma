@@ -22,7 +22,7 @@ import { convertLog, RustLog, RustError } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
 import bent from 'bent'
-import { Client } from './client'
+import { getLogs } from '@prisma/debug'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -86,7 +86,6 @@ export class NodeEngine {
   private debug: boolean
   private child?: ChildProcessWithoutNullStreams
   private clientVersion?: string
-  private client?: Client
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -610,7 +609,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         const url = `http://localhost:${this.port}`
         this.url = url
         // TODO: Re-enable
-        this.client = new Client(url)
+        // this.client = new Client(url)
         resolve()
       } catch (e) {
         reject(e)
@@ -694,25 +693,19 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       variables,
     }
 
-    // this.currentRequestPromise = curly.post(this.url, {
-    //   post: true,
-    //   postFields: JSON.stringify(body),
-    //   httpHeader: ['Content-Type: application/json'],
-    // })
-
-    this.currentRequestPromise = this.client!.request(body)
+    const post = bent(this.url, 'POST', 'json', 200)
+    this.currentRequestPromise = post('/', body)
 
     return this.currentRequestPromise
-      .then(({ data, statusCode, headers }) => {
+      .then((data) => {
         if (data.errors) {
           if (data.errors.length === 1) {
             throw this.graphQLToJSError(data.errors[0])
           }
           throw new Error(JSON.stringify(data.errors))
         }
-        const elapsed = parseInt(headers['x-elapsed']) / 1000
 
-        return { data, elapsed }
+        return data
       })
       .catch((error) => {
         debug({ error })
