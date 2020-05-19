@@ -645,7 +645,7 @@ export class PrismaClientFetcher {
           originalMethod: clientMethod,
           onUs: e.isPanic,
         })
-        message = stack + e.message
+        message = stack + '\n  ' + e.message
       }
 
       message = this.sanitizeMessage(message)
