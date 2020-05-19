@@ -14,11 +14,11 @@ describe('batching', () => {
       engine: {
         requestBatch: (batch) => {
           batches.push(batch)
-          return batch.map(() => ({ data: null }))
+          return batch.map(() => ({ data: { data: null }, elapsed: 0.2 }))
         },
         request: (request) => {
           requests.push(request)
-          return { data: null }
+          return { data: { data: null }, elapsed: 0.3 }
         },
       },
     })
@@ -99,11 +99,11 @@ describe('batching', () => {
       engine: {
         requestBatch: (batch) => {
           batches.push(batch)
-          return batch.map(() => ({ data: null }))
+          return batch.map(() => ({ data: { data: null }, elapsed: 0.2 }))
         },
         request: (request) => {
           requests.push(request)
-          return { data: null }
+          return { data: { data: null }, elapsed: 0.3 }
         },
       },
     })
@@ -185,11 +185,11 @@ describe('batching', () => {
       engine: {
         requestBatch: (batch) => {
           batches.push(batch)
-          return batch.map(() => ({ data: null }))
+          return batch.map(() => ({ data: { data: null }, elapsed: 0.2 }))
         },
         request: (request) => {
           requests.push(request)
-          return { data: null }
+          return { data: { data: null }, elapsed: 0.3 }
         },
       },
     })
