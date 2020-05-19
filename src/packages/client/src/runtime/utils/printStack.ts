@@ -12,7 +12,7 @@ function renderN(n: number, max: number): string {
     return String(n)
   }
 
-  return String(' '.repeat(wantedLetters - hasLetters) + n)
+  return ' '.repeat(wantedLetters - hasLetters) + n
 }
 
 export interface ErrorArgs {
