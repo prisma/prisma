@@ -137,7 +137,7 @@ Once Prisma Client was generated, you can import in your code and send queries t
 You can import and instantiate Prisma Client as follows:
 
 ```ts
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 ```
