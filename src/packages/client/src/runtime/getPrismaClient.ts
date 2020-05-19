@@ -45,7 +45,7 @@ export interface PrismaClientOptions {
   datasources?: Datasources
 
   /**
-   * @default "pretty"
+   * @default "colorless"
    */
   errorFormat?: ErrorFormat
 
