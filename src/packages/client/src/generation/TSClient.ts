@@ -390,6 +390,21 @@ export interface PrismaClientOptions {
    */
   errorFormat?: ErrorFormat
 
+  /**
+   * @example
+   * \`\`\`
+   * // Defaults to stdout
+   * log: ['query', 'info', 'warn']
+   * 
+   * // Emit as events
+   * log: [
+   *  { emit: 'stdout', level: 'query' },
+   *  { emit: 'stdout', level: 'info' },
+   *  { emit: 'stdout', level: 'warn' }
+   * ]
+   * \`\`\`
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+   */
   log?: Array<LogLevel | LogDefinition>
 
   /**
