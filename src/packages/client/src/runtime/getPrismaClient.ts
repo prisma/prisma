@@ -42,6 +42,9 @@ export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 export type Datasources = any
 
 export interface PrismaClientOptions {
+  /**
+   * Overwrites the datasource url from your prisma.schema file
+   */
   datasources?: Datasources
 
   /**
