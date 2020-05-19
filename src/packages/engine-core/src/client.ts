@@ -1,11 +1,11 @@
 import http2 from 'http2'
 import { PrismaQueryEngineError } from './Engine'
 
-export class Client {
+export class H2Client {
   private session: http2.ClientHttp2Session
   constructor(url: string) {
     this.session = http2.connect(url, {
-      maxSessionMemory: 50,
+      maxSessionMemory: 20,
     })
 
     // necessary to disable Node.js' error handling and us handle the error in .on('error') of the session
@@ -26,7 +26,6 @@ export class Client {
             http2.constants.HTTP2_METHOD_POST,
           'Content-Type': 'application/json',
           'Content-Length': buffer.length,
-          'Accept-Encoding': '*',
         })
 
         req.setEncoding('utf8')
