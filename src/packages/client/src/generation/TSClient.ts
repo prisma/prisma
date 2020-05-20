@@ -419,11 +419,6 @@ export interface PrismaClientOptions {
     }
     measurePerformance?: boolean
   }
-
-  /**
-   * Useful for pgbouncer
-   */
-  forceTransactions?: boolean
 }
 
 export type Hooks = {

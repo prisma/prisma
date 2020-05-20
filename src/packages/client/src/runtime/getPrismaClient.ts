@@ -81,11 +81,6 @@ export interface PrismaClientOptions {
     }
     measurePerformance?: boolean
   }
-
-  /**
-   * Useful for pgbouncer
-   */
-  forceTransactions?: boolean
 }
 
 export type Hooks = {
@@ -231,7 +226,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 ),
           ),
         env: envFile,
-        flags: options.forceTransactions ? ['--always-force-transactions'] : [],
+        flags: [],
         clientVersion: config.clientVersion,
       }
 
