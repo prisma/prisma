@@ -571,6 +571,7 @@ export class PrismaClientFetcher {
   debug: boolean
   hooks: any
   dataloader: Dataloader<{ document: Document }>
+
   constructor(prisma, enableDebug = false, hooks?: any) {
     this.prisma = prisma
     this.debug = enableDebug
@@ -609,6 +610,7 @@ export class PrismaClientFetcher {
       },
     })
   }
+
   async request({
     document,
     dataPath = [],
@@ -626,7 +628,7 @@ export class PrismaClientFetcher {
     isList: boolean
     clientMethod: string
     callsite?: string
-    collectTimestamps?: any
+    collectTimestamps?: CollectTimestamps
   }) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -641,11 +643,17 @@ export class PrismaClientFetcher {
     }
     try {
       collectTimestamps && collectTimestamps.record('Pre-engine_request')
-      const { data, elapsed } = await this.dataloader.request({ document })
+      const { data, elapsed } = await this.dataloader.request({
+        document,
+      })
       collectTimestamps && collectTimestamps.record('Post-engine_request')
       collectTimestamps && collectTimestamps.record('Pre-unpack')
       const unpackResult = this.unpack(document, data, dataPath, rootField)
       collectTimestamps && collectTimestamps.record('Post-unpack')
+      collectTimestamps &&
+        collectTimestamps.addResults({
+          engine_request_rust: elapsed,
+        })
       if (process.env.PRISMA_CLIENT_GET_TIME) {
         return { data: unpackResult, elapsed }
       }
