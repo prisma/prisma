@@ -266,35 +266,9 @@ describe('scalar where transformation', () => {
                   }"
             `)
 
-    expect(() => document.validate(select, false, 'tests'))
-      .toThrowErrorMatchingInlineSnapshot(`
-"
-Invalid \`prisma.tests()\` invocation:
-
-{
-  where: {
-    id: 'asd'
-        ~~~~~
-  }
-}
-
-Argument id: Got invalid value 'asd' on prisma.findManyTest. Provided String, expected UUID or UUIDFilter.
-type UUIDFilter {
-  equals?: UUID
-  not?: UUID | UUIDFilter
-  in?: List<UUID>
-  notIn?: List<UUID>
-  lt?: UUID
-  lte?: UUID
-  gt?: UUID
-  gte?: UUID
-  contains?: UUID
-  startsWith?: UUID
-  endsWith?: UUID
-}
-
-"
-`)
+    expect(document.validate(select, false, 'tests')).toMatchInlineSnapshot(
+      `undefined`,
+    )
   })
 
   test('filter by enum', () => {
