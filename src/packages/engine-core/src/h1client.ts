@@ -23,7 +23,14 @@ export function h1Post(port: number, body: string): Promise<any> {
           chunks.push(chunk)
         })
         res.on('end', () => {
-          resolve({ data: JSON.parse(chunks.join('')), headers: res.headers })
+          if (process.env.PRISMA_BUFFER_CONCAT) {
+            resolve({
+              data: JSON.parse(Buffer.concat(chunks) as any),
+              headers: res.headers,
+            })
+          } else {
+            resolve({ data: JSON.parse(chunks.join('')), headers: res.headers })
+          }
         })
       },
     )
