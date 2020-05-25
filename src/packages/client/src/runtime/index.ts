@@ -16,3 +16,4 @@ export {
   PrismaClientRustPanicError,
 } from '@prisma/engine-core'
 export { getPrismaClient } from './getPrismaClient'
+export * as sqltag from 'sql-template-tag'
