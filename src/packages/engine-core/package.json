@@ -39,9 +39,12 @@
     "bent": "^7.1.2",
     "chalk": "^3.0.0",
     "cross-fetch": "^3.0.4",
+    "fast-json-stringify": "^2.0.0",
+    "get-stream": "^5.1.0",
     "indent-string": "^4.0.0",
     "new-github-issue-url": "^0.2.1",
-    "terminal-link": "^2.1.1"
+    "terminal-link": "^2.1.1",
+    "undici": "mcollina/undici"
   },
   "files": [
     "dist"

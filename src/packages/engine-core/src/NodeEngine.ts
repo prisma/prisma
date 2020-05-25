@@ -22,6 +22,8 @@ import { convertLog, RustLog, RustError } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
 import { H2Client } from './client'
+import { h1Post } from './h1client'
+import { Undici } from './undici'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -85,7 +87,8 @@ export class NodeEngine {
   private debug: boolean
   private child?: ChildProcessWithoutNullStreams
   private clientVersion?: string
-  private client?: H2Client
+  private h2client?: H2Client
+  private undici?: Undici
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -603,7 +606,8 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         const url = `http://localhost:${this.port}`
         this.url = url
         // TODO: Re-enable
-        this.client = new H2Client(url)
+        this.h2client = new H2Client(url)
+        this.undici = new Undici(url)
         resolve()
       } catch (e) {
         reject(e)
@@ -681,16 +685,46 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       )
     }
 
-    const variables = {}
-    const body = {
-      query,
-      variables,
+    // this.currentRequestPromise = this.undici!.request(body)
+    if (process.env.PRISMA_CLIENT_USE) {
+      switch (process.env.PRISMA_CLIENT_USE) {
+        case 'h2':
+          this.currentRequestPromise = this.h2client!.request(
+            stringifyQuery(query),
+          )
+          break
+        case 'h1':
+          this.currentRequestPromise = h1Post(this.port, stringifyQuery(query))
+          break
+        case 'undici':
+          this.currentRequestPromise = this.undici!.request(
+            stringifyQuery(query),
+          )
+          break
+      }
+    } else {
+      this.currentRequestPromise = h1Post(this.port, stringifyQuery(query))
     }
-
-    this.currentRequestPromise = this.client!.request(body)
+    // this.currentRequestPromise = h1Post(this.port, body)
+    // this.currentRequestPromise = curly
+    //   .post(this.url, {
+    //     postFields: JSON.stringify(body),
+    //     httpHeader: ['Content-Type: application/json'],
+    //   })
+    //   .then((res) => {
+    //     return { data: JSON.parse(res.data), headers: res.headers[0] }
+    //   })
+    // this.currentRequestPromise = turbo
+    //   .post({
+    //     hostname: 'localhost',
+    //     port: this.port,
+    //     path: '/',
+    //     body,
+    //   })
+    //   .then((data) => ({ data, headers: {} }))
 
     return this.currentRequestPromise
-      .then(({ data, statusCode, headers }) => {
+      .then(({ data, headers }) => {
         if (data.errors) {
           if (data.errors.length === 1) {
             throw this.graphQLToJSError(data.errors[0])
@@ -754,7 +788,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       batch: queries.map((query) => ({ query, variables })),
     }
 
-    this.currentRequestPromise = this.client.request(body)
+    this.currentRequestPromise = this.h2client.request(JSON.stringify(body))
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
@@ -824,6 +858,10 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
     return new PrismaClientUnknownRequestError(error.user_facing_error.message)
   }
+}
+
+function stringifyQuery(q: string) {
+  return `{"variables":{},"query":${JSON.stringify(q)}}`
 }
 
 function exitHandler(exit = false) {

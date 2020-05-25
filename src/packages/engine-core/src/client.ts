@@ -1,6 +1,8 @@
 import http2 from 'http2'
 import { PrismaQueryEngineError } from './Engine'
 
+let buffer: Buffer | undefined
+
 export class H2Client {
   private session: http2.ClientHttp2Session
   constructor(url: string) {
@@ -14,21 +16,21 @@ export class H2Client {
   close(): void {
     this.session.destroy()
   }
-  request(body: any): Promise<{ data: any; headers: any }> {
+  request(body: string): Promise<{ data: any; headers: any }> {
     return new Promise((resolve, reject) => {
       try {
         let rejected = false
 
-        const buffer = Buffer.from(JSON.stringify(body))
+        const buffer = Buffer.from(body)
 
         const req = this.session.request({
           [http2.constants.HTTP2_HEADER_METHOD]:
             http2.constants.HTTP2_METHOD_POST,
           'Content-Type': 'application/json',
           'Content-Length': buffer.length,
+          'Accept-Encoding': 'gzip, deflare, br',
         })
 
-        req.setEncoding('utf8')
         const data = []
         let headers
 
@@ -78,8 +80,8 @@ export class H2Client {
 
         req.on('end', () => {
           if (data && data.length > 0 && !rejected) {
-            // console.log(headers)
-            resolve({ data: JSON.parse(data.join('')), headers })
+            // for whatever reason, JSON.parse does have incorrect types
+            resolve({ data: JSON.parse(Buffer.concat(data) as any), headers })
           }
         })
       } catch (e) {
