@@ -5,12 +5,9 @@ import makeDir from 'make-dir'
 import { promisify } from 'util'
 import { getPlatform } from '@prisma/get-platform'
 import { plusX } from '@prisma/engine-core/dist/util'
-import Debug from 'debug'
-const debug = Debug('resolveBinary')
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
-// const copyFile = promisify(fs.copyFile)
 
 export type EngineType =
   | 'query-engine'

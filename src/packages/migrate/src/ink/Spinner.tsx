@@ -1,4 +1,4 @@
-import Debug from 'debug'
+import Debug from '@prisma/debug'
 import InkSpinner from 'ink-spinner'
 import React from 'react'
 const debugEnabled = Debug.enabled('migrate')

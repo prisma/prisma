@@ -1,15 +1,15 @@
 {
   "name": "@prisma/ink-components",
-  "version": "2.0.0-alpha.1179",
+  "version": "2.0.0-alpha.1205",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
   "dependencies": {
+    "@prisma/debug": "workspace:*",
     "chalk": "^3.0.0",
-    "cli-truncate": "2.0.0",
-    "debug": "^4.1.1",
+    "cli-truncate": "2.1.0",
     "figures": "^3.2.0",
     "ink-spinner": "^3.0.1",
     "string-width": "^4.2.0",
@@ -23,11 +23,11 @@
     "dist"
   ],
   "devDependencies": {
-    "@types/node": "^12.12.31",
+    "@types/node": "12.12.39",
     "@types/react": "16.9.11",
     "ink": "2.5.0",
     "react": "16.11.0",
-    "typescript": "^3.8.3"
+    "typescript": "3.9.2"
   },
   "peerDependencies": {
     "ink": ">= 2.3.0",

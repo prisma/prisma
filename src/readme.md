@@ -49,7 +49,7 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 
 ### Developing `@prisma/cli` CLI
 
-1. `cd src/packages/prisma2`
+1. `cd src/packages/cli`
 2. `mkdir test && cd test`
 3. `ts-node ../src/bin.ts generate`
 

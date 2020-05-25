@@ -2,9 +2,7 @@ import os from 'os'
 import fs from 'fs'
 import { promisify } from 'util'
 import { exec } from 'child_process'
-import Debug from 'debug'
 import { Platform } from './platforms'
-const debug = Debug('getos')
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)

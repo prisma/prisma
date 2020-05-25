@@ -42,6 +42,7 @@ Object {
         "dbName": null,
         "fields": Array [
           Object {
+            "hasDefaultValue": false,
             "isGenerated": false,
             "isId": true,
             "isList": false,
@@ -54,6 +55,7 @@ Object {
             "type": "Int",
           },
           Object {
+            "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
             "isList": false,

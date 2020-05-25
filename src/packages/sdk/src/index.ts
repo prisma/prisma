@@ -11,6 +11,7 @@ export {
 export {
   IntrospectionEngine,
   IntrospectionWarnings,
+  IntrospectionSchemaVersion,
 } from './IntrospectionEngine'
 export { Generator } from './Generator'
 export { getGenerators, getGenerator, ProviderAliases } from './getGenerators'
@@ -44,6 +45,7 @@ export {
   Dictionary,
   CompiledGeneratorDefinition,
 } from './cli/types'
+export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { arg, format, isError } from './cli/utils'
 export {
   getSchemaPath,

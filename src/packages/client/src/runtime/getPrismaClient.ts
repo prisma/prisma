@@ -19,8 +19,8 @@ import {
   transformDocument,
   Args,
 } from './query'
-import debugLib from 'debug'
-const debug = debugLib('prisma-client')
+import Debug from '@prisma/debug'
+const debug = Debug('prisma-client')
 import fs from 'fs'
 import chalk from 'chalk'
 import * as sqlTemplateTag from 'sql-template-tag'
@@ -42,13 +42,31 @@ export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 export type Datasources = any
 
 export interface PrismaClientOptions {
+  /**
+   * Overwrites the datasource url from your prisma.schema file
+   */
   datasources?: Datasources
 
   /**
-   * @default "pretty"
+   * @default "colorless"
    */
   errorFormat?: ErrorFormat
 
+  /**
+   * @example
+   * \`\`\`
+   * // Defaults to stdout
+   * log: ['query', 'info', 'warn']
+   *
+   * // Emit as events
+   * log: [
+   *  { emit: 'stdout', level: 'query' },
+   *  { emit: 'stdout', level: 'info' },
+   *  { emit: 'stdout', level: 'warn' }
+   * ]
+   * \`\`\`
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+   */
   log?: Array<LogLevel | LogDefinition>
 
   /**
@@ -63,11 +81,6 @@ export interface PrismaClientOptions {
     }
     measurePerformance?: boolean
   }
-
-  /**
-   * Useful for pgbouncer
-   */
-  forceTransactions?: boolean
 }
 
 export type Hooks = {
@@ -121,6 +134,7 @@ export interface GetPrismaClientOptions {
   relativePath: string
   dirname: string
   internalDatasources: InternalDatasource[]
+  clientVersion?: string
 }
 
 // TODO: We **may** be able to get real types. However, we have both a bootstrapping
@@ -144,7 +158,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
       const useDebug = internal.debug === true
       if (useDebug) {
-        debugLib.enable('prisma-client')
+        Debug.enable('prisma-client')
       }
 
       if (internal.hooks) {
@@ -212,7 +226,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 ),
           ),
         env: envFile,
-        flags: options.forceTransactions ? ['--always-force-transactions'] : [],
+        flags: [],
+        clientVersion: config.clientVersion,
       }
 
       const sanitizedEngineConfig = omit(this.engineConfig, [
@@ -238,6 +253,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 query: 'blue',
                 info: 'cyan',
                 warn: 'yellow',
+                error: 'red',
               }
               console.error(
                 chalk[colorMap[level]](`prisma:${level}`.padEnd(13)) +
@@ -415,7 +431,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
           document = transformDocument(document)
 
-          if (debugLib.enabled('prisma-client')) {
+          if (Debug.enabled('prisma-client')) {
             const query = String(document)
             debug(`Prisma Client call:`)
             debug(
@@ -569,6 +585,7 @@ export class PrismaClientFetcher {
   debug: boolean
   hooks: any
   dataloader: Dataloader<{ document: Document }>
+
   constructor(prisma, enableDebug = false, hooks?: any) {
     this.prisma = prisma
     this.debug = enableDebug
@@ -607,6 +624,7 @@ export class PrismaClientFetcher {
       },
     })
   }
+
   async request({
     document,
     dataPath = [],
@@ -624,7 +642,7 @@ export class PrismaClientFetcher {
     isList: boolean
     clientMethod: string
     callsite?: string
-    collectTimestamps?: any
+    collectTimestamps?: CollectTimestamps
   }) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -639,11 +657,20 @@ export class PrismaClientFetcher {
     }
     try {
       collectTimestamps && collectTimestamps.record('Pre-engine_request')
-      const result = await this.dataloader.request({ document })
+      const { data, elapsed } = await this.dataloader.request({
+        document,
+      })
       collectTimestamps && collectTimestamps.record('Post-engine_request')
       collectTimestamps && collectTimestamps.record('Pre-unpack')
-      const unpackResult = this.unpack(document, result, dataPath, rootField)
+      const unpackResult = this.unpack(document, data, dataPath, rootField)
       collectTimestamps && collectTimestamps.record('Post-unpack')
+      collectTimestamps &&
+        collectTimestamps.addResults({
+          engine_request_rust: elapsed,
+        })
+      if (process.env.PRISMA_CLIENT_GET_TIME) {
+        return { data: unpackResult, elapsed }
+      }
       return unpackResult
     } catch (e) {
       let message = e.message
@@ -653,7 +680,7 @@ export class PrismaClientFetcher {
           originalMethod: clientMethod,
           onUs: e.isPanic,
         })
-        message = stack + e.message
+        message = stack + '\n  ' + e.message
       }
 
       message = this.sanitizeMessage(message)

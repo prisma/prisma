@@ -1,0 +1,52 @@
+{
+	"name": "@prisma/debug",
+	"version": "2.0.0-alpha.1205",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"license": "Apache-2.0",
+	"author": "Tim Suchanek <suchanek@prisma.io>",
+	"devDependencies": {
+		"@types/jest": "25.2.2",
+		"@types/node": "12.12.39",
+		"@typescript-eslint/eslint-plugin": "2.33.0",
+		"@typescript-eslint/parser": "2.33.0",
+		"eslint": "6.8.0",
+		"eslint-config-prettier": "6.11.0",
+		"eslint-plugin-eslint-comments": "3.1.2",
+		"eslint-plugin-jest": "23.11.0",
+		"eslint-plugin-prettier": "3.1.3",
+		"husky": "4.2.5",
+		"jest": "25.5.4",
+		"lint-staged": "10.2.2",
+		"strip-ansi": "6.0.0",
+		"ts-jest": "25.5.1",
+		"typescript": "3.9.2"
+	},
+	"scripts": {
+		"build": "tsc -d",
+		"prepublishOnly": "pnpm run build",
+		"format": "prettier --write .",
+		"lint": "eslint --fix --ext .js,.ts .",
+		"test": "jest"
+	},
+	"files": [
+		"dist"
+	],
+	"dependencies": {
+		"debug": "^4.1.1"
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
+	},
+	"lint-staged": {
+		"*.{js,ts,css,json,md}": [
+			"prettier --write",
+			"git add"
+		],
+		"*.{js,ts}": [
+			"eslint"
+		]
+	}
+}

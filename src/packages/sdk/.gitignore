@@ -9,3 +9,6 @@ prisma-fmt*
 write-test
 sandbox
 failed-*
+/debug.d.ts
+/debug.js
+/debug.js.map

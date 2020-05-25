@@ -1,10 +1,6 @@
 import { LockFile } from '../types'
 
-const header = `# IF THERE'S A GIT CONFLICT IN THIS FILE, DON'T SOLVE IT MANUALLY!
-# INSTEAD EXECUTE \`prisma migrate fix\`
-# Prisma Migrate lockfile v1
-# Read more about conflict resolution here: TODO
-`
+const header = `# Prisma Migrate lockfile v1\n`
 
 export function deserializeLockFile(file: string): LockFile {
   const lines = file.split('\n').filter((line) => {

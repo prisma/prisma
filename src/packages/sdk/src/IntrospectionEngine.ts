@@ -1,10 +1,10 @@
 import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 import byline from './utils/byline'
-const debugRpc = debugLib('IntrospectionEngine:rpc')
-const debugStderr = debugLib('IntrospectionEngine:stderr')
-const debugStdin = debugLib('IntrospectionEngine:stdin')
+const debugRpc = Debug('IntrospectionEngine:rpc')
+const debugStderr = Debug('IntrospectionEngine:stderr')
+const debugStdin = Debug('IntrospectionEngine:stdin')
 import fs from 'fs'
 import { now } from './utils/now'
 import { RustPanic, ErrorArea } from './panic'
@@ -71,6 +71,12 @@ interface IntrospectionWarningsInvalidEnumName {
   affected: { enm: string; value: string }[]
 }
 
+export type IntrospectionSchemaVersion =
+  | 'Prisma2'
+  | 'Prisma1'
+  | 'Prisma11'
+  | 'NonPrisma'
+
 let messageId = 1
 
 /* tslint:disable */
@@ -92,7 +98,7 @@ export class IntrospectionEngine {
     },
   ) {
     if (debug) {
-      debugLib.enable('IntrospectionEngine*')
+      Debug.enable('IntrospectionEngine*')
     }
     this.debug = Boolean(debug)
     this.cwd = cwd || process.cwd()
@@ -122,7 +128,11 @@ export class IntrospectionEngine {
   }
   public introspect(
     schema: string,
-  ): Promise<{ datamodel: string; warnings: IntrospectionWarnings[] }> {
+  ): Promise<{
+    datamodel: string
+    warnings: IntrospectionWarnings[]
+    version: IntrospectionSchemaVersion
+  }> {
     this.lastUrl = schema
     return this.runCommand(this.getRPCPayload('introspect', { schema }))
   }
@@ -183,16 +193,11 @@ export class IntrospectionEngine {
       // eslint-disable-next-line no-async-promise-executor, @typescript-eslint/no-misused-promises
       async (resolve, reject): Promise<void> => {
         try {
-          const { PWD, ...env } = process.env
           const binaryPath = await resolveBinary('introspection-engine')
           debugRpc('starting introspection engine with binary: ' + binaryPath)
           this.child = spawn(binaryPath, {
             stdio: ['pipe', 'pipe', 'pipe'],
-            env: {
-              ...env,
-              // RUST_LOG: 'info',
-              // RUST_BACKTRACE: '1',
-            },
+            env: process.env,
             cwd: this.cwd,
           })
 
@@ -209,7 +214,7 @@ export class IntrospectionEngine {
           })
 
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          this.child.on('exit', async (code, signal) => {
+          this.child.on('exit', async (code) => {
             // handle panics
             this.isRunning = false
             if (code === 255 && this.lastError && this.lastError.is_panic) {

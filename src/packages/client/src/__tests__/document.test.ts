@@ -28,6 +28,7 @@ test('document stringify', () => {
                 {
                   isList: false,
                   isRequired: false,
+                  isNullable: true,
                   kind: 'scalar',
                   type: 'number',
                 },
@@ -35,6 +36,7 @@ test('document stringify', () => {
               bestFittingType: {
                 isList: false,
                 isRequired: false,
+                isNullable: true,
                 kind: 'scalar',
                 type: 'number',
               },

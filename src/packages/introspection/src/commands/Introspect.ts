@@ -4,14 +4,13 @@ import path from 'path'
 import {
   IntrospectionEngine,
   IntrospectionWarnings,
+  IntrospectionSchemaVersion,
   uriToCredentials,
 } from '@prisma/sdk'
 import { formatms } from '../util/formatms'
 import fs from 'fs'
 import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 import { printDatasources } from '../prompt/utils/printDatasources'
-import Debug from 'debug'
-const debug = Debug('Introspect')
 
 /**
  * $ prisma introspect
@@ -110,10 +109,12 @@ export class Introspect implements Command {
     const before = Date.now()
     let introspectionSchema = ''
     let introspectionWarnings: IntrospectionWarnings[]
+    let introspectionSchemaVersion: IntrospectionSchemaVersion
     try {
       const introspectionResult = await engine.introspect(schema)
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
+      introspectionSchemaVersion = introspectionResult.version
     } catch (e) {
       if (e.code === 'P4001') {
         if (introspectionSchema.trim() === '') {
@@ -199,14 +200,25 @@ Then you can run ${chalk.green('prisma introspect')} again.
 
     if (args['--print']) {
       console.log(introspectionSchema)
+      introspectionSchemaVersion &&
+        console.log(
+          `\n// introspectionSchemaVersion: ${introspectionSchemaVersion}`,
+        )
       console.error(introspectionWarningsMessage)
     } else {
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)
 
-      log(`\n✔ Wrote Prisma data model into ${chalk.underline(
+      const modelsCount = (introspectionSchema.match(/^model\s+/gm) || [])
+        .length
+
+      log(`\n✔ Introspected ${modelsCount} ${
+        modelsCount > 1 ? 'models and wrote them' : 'model and wrote it'
+      } into ${chalk.underline(
         path.relative(process.cwd(), schemaPath),
-      )} in ${chalk.bold(formatms(Date.now() - before))}
+      )} in ${chalk.bold(formatms(Date.now() - before))} ${chalk.dim(
+        introspectionSchemaVersion ? `(${introspectionSchemaVersion})` : '',
+      )}
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
 Run ${chalk.green('prisma generate')} to generate Prisma Client.`)
     }

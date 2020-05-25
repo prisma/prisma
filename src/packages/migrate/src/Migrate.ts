@@ -8,7 +8,7 @@ import chalk from 'chalk'
 import { spawn } from 'child_process'
 import cliCursor from 'cli-cursor'
 import dashify from 'dashify'
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 import fs from 'fs'
 import getPort from 'get-port'
 import globby from 'globby'
@@ -55,7 +55,7 @@ import { printMigrationReadme } from './utils/printMigrationReadme'
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { flatMap } from './utils/flatMap'
-const debug = debugLib('Migrate')
+const debug = Debug('Migrate')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
 const del = promisify(rimraf)
@@ -307,13 +307,10 @@ export class Migrate {
       const file = await readFile(lockFilePath, 'utf-8')
       const lockFile = deserializeLockFile(file)
       if (lockFile.remoteBranch) {
-        // TODO: Implement handling the conflict
         throw new Error(
           `There's a merge conflict in the ${chalk.bold(
             'migrations/migrate.lock',
-          )} file. Please execute ${chalk.greenBright(
-            'prisma migrate fix',
-          )} to solve it`,
+          )} file.`,
         )
       }
       return lockFile

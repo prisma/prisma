@@ -1,10 +1,14 @@
 import http2 from 'http2'
 import { PrismaQueryEngineError } from './Engine'
 
-export class Client {
+let buffer: Buffer | undefined
+
+export class H2Client {
   private session: http2.ClientHttp2Session
   constructor(url: string) {
-    this.session = http2.connect(url, {})
+    this.session = http2.connect(url, {
+      maxSessionMemory: 20,
+    })
 
     // necessary to disable Node.js' error handling and us handle the error in .on('error') of the session
     this.session.on('error', () => {}) // eslint-disable-line @typescript-eslint/no-empty-function
@@ -12,22 +16,21 @@ export class Client {
   close(): void {
     this.session.destroy()
   }
-  request(body: any): Promise<unknown> {
+  request(body: string): Promise<{ data: any; headers: any }> {
     return new Promise((resolve, reject) => {
       try {
         let rejected = false
 
-        const buffer = Buffer.from(JSON.stringify(body))
+        const buffer = Buffer.from(body)
 
         const req = this.session.request({
           [http2.constants.HTTP2_HEADER_METHOD]:
             http2.constants.HTTP2_METHOD_POST,
-          [http2.constants.HTTP2_HEADER_PATH]: `/`,
           'Content-Type': 'application/json',
           'Content-Length': buffer.length,
+          'Accept-Encoding': 'gzip, deflare, br',
         })
 
-        req.setEncoding('utf8')
         const data = []
         let headers
 
@@ -77,7 +80,8 @@ export class Client {
 
         req.on('end', () => {
           if (data && data.length > 0 && !rejected) {
-            resolve({ body: JSON.parse(data.join('')), headers })
+            // for whatever reason, JSON.parse does have incorrect types
+            resolve({ data: JSON.parse(Buffer.concat(data) as any), headers })
           }
         })
       } catch (e) {

@@ -4,6 +4,7 @@ import {
   User,
   prismaVersion,
   FindManyMachineDataArgs,
+  LikeUpdateManyArgs,
 } from '@prisma/client'
 
 // tslint:disable
@@ -172,6 +173,11 @@ async function main() {
   })
 
   like2!.post
+
+  // make sure, that null is not allowed for this type
+  type LikeUpdateIdType = LikeUpdateManyArgs['data']['id']
+  type AllowsNull = null extends LikeUpdateIdType ? true : false
+  const allowsNull: AllowsNull = false
 }
 
 main().catch((e) => {
