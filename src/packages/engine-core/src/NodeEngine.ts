@@ -705,23 +705,6 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     } else {
       this.currentRequestPromise = h1Post(this.port, stringifyQuery(query))
     }
-    // this.currentRequestPromise = h1Post(this.port, body)
-    // this.currentRequestPromise = curly
-    //   .post(this.url, {
-    //     postFields: JSON.stringify(body),
-    //     httpHeader: ['Content-Type: application/json'],
-    //   })
-    //   .then((res) => {
-    //     return { data: JSON.parse(res.data), headers: res.headers[0] }
-    //   })
-    // this.currentRequestPromise = turbo
-    //   .post({
-    //     hostname: 'localhost',
-    //     port: this.port,
-    //     path: '/',
-    //     body,
-    //   })
-    //   .then((data) => ({ data, headers: {} }))
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
