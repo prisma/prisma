@@ -14,7 +14,6 @@ export function h1Post(port: number, body: string): Promise<any> {
         headers: {
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(body),
-          'Accept-Encoding': 'gzip, deflare, br',
         },
       },
       (res) => {
