@@ -74,11 +74,11 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
   const os = await getos()
 
-  if (os.distro === 'arm') {
+  if (['arm', 'nixos'].includes(os.distro)) {
     console.error(
-      `${chalk.yellow(
-        'Warning',
-      )} Precompiled binaries are not available for ARM.`,
+      `${chalk.yellow('Warning')} Precompiled binaries are not available for ${
+        os.distro
+      }.`,
     )
   } else if (['freebsd', 'openbsd', 'netbsd'].includes(platform)) {
     console.error(

@@ -10,7 +10,7 @@ const exists = promisify(fs.exists)
 export type GetOSResult = {
   platform: NodeJS.Platform
   libssl?: string
-  distro?: 'rhel' | 'debian' | 'musl' | 'arm'
+  distro?: 'rhel' | 'debian' | 'musl' | 'arm' | 'nixos'
 }
 
 export async function getos(): Promise<GetOSResult> {
@@ -41,6 +41,10 @@ export function parseDistro(input: string): GetOSResult['distro'] {
 
   if (id === 'raspbian') {
     return 'arm'
+  }
+
+  if (id === 'nixos') {
+    return 'nixos'
   }
 
   if (
