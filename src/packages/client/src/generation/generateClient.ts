@@ -5,7 +5,7 @@ import {
   DMMF,
   GeneratorConfig,
 } from '@prisma/generator-helper'
-import Debug from 'debug'
+import Debug from '@prisma/debug'
 import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
@@ -125,12 +125,17 @@ export async function generateClient({
   clientVersion,
   engineVersion,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
-  const useDotPrisma = !generator?.isCustomOutput || testMode
+  const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
 
   runtimePath =
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
   const finalOutputDir = useDotPrisma ? getDotPrismaDir(outputDir) : outputDir
+
+  if (testMode) {
+    Debug.enable('generateClient')
+    // debug({ finalOutputDir })
+  }
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
@@ -294,10 +299,50 @@ export async function generateClient({
   return { prismaClientDmmf, fileMap }
 }
 
-const backup = `export { DMMF } from './dmmf-types'
-// export { DMMFClass } from './dmmf'
-// export { deepGet, deepSet } from './utils/deep-set'
-// export { makeDocument, transformDocument } from './query'
+const backup = `/// <reference types="node" />
+
+export { DMMF } from './dmmf-types'
+import { inspect } from "util";
+export declare type Value = string | number | boolean | object | null | undefined;
+export declare type RawValue = Value | Sql;
+
+/**
+ * A SQL instance can be nested within each other to build SQL strings.
+ */
+export declare class Sql {
+    protected rawStrings: ReadonlyArray<string>;
+    protected rawValues: ReadonlyArray<RawValue>;
+    constructor(rawStrings: ReadonlyArray<string>, rawValues: ReadonlyArray<RawValue>);
+    readonly values: Value[];
+    readonly strings: string[];
+    readonly text: string;
+    readonly sql: string;
+    [inspect.custom](): {
+        text: string;
+        sql: string;
+        values: Value[];
+    };
+}
+/**
+ * Create a SQL query for a list of values.
+ */
+export declare function join(values: RawValue[], separator?: string): Sql;
+/**
+ * Create raw SQL statement.
+ */
+export declare function raw(value: string): Sql;
+/**
+ * Placeholder value for "no text".
+ */
+export declare const empty: Sql;
+/**
+ * Create a SQL object from a template string.
+ */
+export declare function sqltag(strings: TemplateStringsArray, ...values: RawValue[]): Sql;
+/**
+ * Standard \`sql\` tag.
+ */
+
 
 export declare var Engine: any
 export declare type Engine = any

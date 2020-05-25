@@ -14,37 +14,38 @@ test('introspection basic', async () => {
 
   const result = await engine.introspect(schema)
   expect(result).toMatchInlineSnapshot(`
-          Object {
-            "datamodel": "datasource ds {
-            provider = \\"sqlite\\"
-            url      = \\"file:./blog.db\\"
-          }
+    Object {
+      "datamodel": "datasource ds {
+      provider = \\"sqlite\\"
+      url      = \\"file:./blog.db\\"
+    }
 
-          model User {
-            age     Int     @default(0)
-            amount  Float   @default(0)
-            balance Float   @default(0)
-            email   String  @default(\\"\\") @unique
-            id      Int     @default(autoincrement()) @id
-            name    String?
-            role    String  @default(\\"USER\\")
-            Post    Post[]
-          }
+    model User {
+      age     Int     @default(0)
+      amount  Float   @default(0)
+      balance Float   @default(0)
+      email   String  @default(\\"\\") @unique
+      id      Int     @default(autoincrement()) @id
+      name    String?
+      role    String  @default(\\"USER\\")
+      Post    Post[]
+    }
 
-          model Post {
-            author    Int
-            content   String?
-            createdAt DateTime @default(dbgenerated())
-            kind      String?
-            published Boolean  @default(false)
-            title     String   @default(\\"\\")
-            updatedAt DateTime @default(dbgenerated())
-            uuid      String   @id
-            User      User     @relation(fields: [author], references: [id])
-          }",
-            "warnings": Array [],
-          }
-      `)
+    model Post {
+      author    Int
+      content   String?
+      createdAt DateTime @default(dbgenerated())
+      kind      String?
+      published Boolean  @default(false)
+      title     String   @default(\\"\\")
+      updatedAt DateTime @default(dbgenerated())
+      uuid      String   @id
+      User      User     @relation(fields: [author], references: [id])
+    }",
+      "version": "NonPrisma",
+      "warnings": Array [],
+    }
+  `)
   const metadata = await engine.getDatabaseMetadata(schema)
   expect(metadata).toMatchInlineSnapshot(`
           Object {
@@ -73,8 +74,9 @@ test('introspection basic', async () => {
               "name": "applied",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "INTEGER",
                 "family": "int",
-                "raw": "INTEGER",
+                "fullDataType": "INTEGER",
               },
             },
             Object {
@@ -83,8 +85,9 @@ test('introspection basic', async () => {
               "name": "database_migration",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "TEXT",
                 "family": "string",
-                "raw": "TEXT",
+                "fullDataType": "TEXT",
               },
             },
             Object {
@@ -93,8 +96,9 @@ test('introspection basic', async () => {
               "name": "datamodel",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "TEXT",
                 "family": "string",
-                "raw": "TEXT",
+                "fullDataType": "TEXT",
               },
             },
             Object {
@@ -103,8 +107,9 @@ test('introspection basic', async () => {
               "name": "datamodel_steps",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "TEXT",
                 "family": "string",
-                "raw": "TEXT",
+                "fullDataType": "TEXT",
               },
             },
             Object {
@@ -113,8 +118,9 @@ test('introspection basic', async () => {
               "name": "errors",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "TEXT",
                 "family": "string",
-                "raw": "TEXT",
+                "fullDataType": "TEXT",
               },
             },
             Object {
@@ -123,8 +129,9 @@ test('introspection basic', async () => {
               "name": "finished_at",
               "tpe": Object {
                 "arity": "nullable",
+                "dataType": "DATE",
                 "family": "dateTime",
-                "raw": "DATE",
+                "fullDataType": "DATE",
               },
             },
             Object {
@@ -133,8 +140,9 @@ test('introspection basic', async () => {
               "name": "name",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "TEXT",
                 "family": "string",
-                "raw": "TEXT",
+                "fullDataType": "TEXT",
               },
             },
             Object {
@@ -143,8 +151,9 @@ test('introspection basic', async () => {
               "name": "revision",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "INTEGER",
                 "family": "int",
-                "raw": "INTEGER",
+                "fullDataType": "INTEGER",
               },
             },
             Object {
@@ -153,8 +162,9 @@ test('introspection basic', async () => {
               "name": "rolled_back",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "INTEGER",
                 "family": "int",
-                "raw": "INTEGER",
+                "fullDataType": "INTEGER",
               },
             },
             Object {
@@ -163,8 +173,9 @@ test('introspection basic', async () => {
               "name": "started_at",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "DATE",
                 "family": "dateTime",
-                "raw": "DATE",
+                "fullDataType": "DATE",
               },
             },
             Object {
@@ -173,8 +184,9 @@ test('introspection basic', async () => {
               "name": "status",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "TEXT",
                 "family": "string",
-                "raw": "TEXT",
+                "fullDataType": "TEXT",
               },
             },
           ],
@@ -198,8 +210,9 @@ test('introspection basic', async () => {
               "name": "age",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "INTEGER",
                 "family": "int",
-                "raw": "INTEGER",
+                "fullDataType": "INTEGER",
               },
             },
             Object {
@@ -210,8 +223,9 @@ test('introspection basic', async () => {
               "name": "amount",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "REAL",
                 "family": "float",
-                "raw": "REAL",
+                "fullDataType": "REAL",
               },
             },
             Object {
@@ -222,8 +236,9 @@ test('introspection basic', async () => {
               "name": "balance",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "REAL",
                 "family": "float",
-                "raw": "REAL",
+                "fullDataType": "REAL",
               },
             },
             Object {
@@ -234,8 +249,9 @@ test('introspection basic', async () => {
               "name": "email",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "TEXT",
                 "family": "string",
-                "raw": "TEXT",
+                "fullDataType": "TEXT",
               },
             },
             Object {
@@ -244,8 +260,9 @@ test('introspection basic', async () => {
               "name": "id",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "INTEGER",
                 "family": "int",
-                "raw": "INTEGER",
+                "fullDataType": "INTEGER",
               },
             },
             Object {
@@ -254,8 +271,9 @@ test('introspection basic', async () => {
               "name": "name",
               "tpe": Object {
                 "arity": "nullable",
+                "dataType": "TEXT",
                 "family": "string",
-                "raw": "TEXT",
+                "fullDataType": "TEXT",
               },
             },
             Object {
@@ -266,8 +284,9 @@ test('introspection basic', async () => {
               "name": "role",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "TEXT",
                 "family": "string",
-                "raw": "TEXT",
+                "fullDataType": "TEXT",
               },
             },
           ],
@@ -304,8 +323,9 @@ test('introspection basic', async () => {
               "name": "author",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "INTEGER",
                 "family": "int",
-                "raw": "INTEGER",
+                "fullDataType": "INTEGER",
               },
             },
             Object {
@@ -314,8 +334,9 @@ test('introspection basic', async () => {
               "name": "content",
               "tpe": Object {
                 "arity": "nullable",
+                "dataType": "TEXT",
                 "family": "string",
-                "raw": "TEXT",
+                "fullDataType": "TEXT",
               },
             },
             Object {
@@ -326,8 +347,9 @@ test('introspection basic', async () => {
               "name": "createdAt",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "DATE",
                 "family": "dateTime",
-                "raw": "DATE",
+                "fullDataType": "DATE",
               },
             },
             Object {
@@ -336,8 +358,9 @@ test('introspection basic', async () => {
               "name": "kind",
               "tpe": Object {
                 "arity": "nullable",
+                "dataType": "TEXT",
                 "family": "string",
-                "raw": "TEXT",
+                "fullDataType": "TEXT",
               },
             },
             Object {
@@ -348,8 +371,9 @@ test('introspection basic', async () => {
               "name": "published",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "BOOLEAN",
                 "family": "boolean",
-                "raw": "BOOLEAN",
+                "fullDataType": "BOOLEAN",
               },
             },
             Object {
@@ -360,8 +384,9 @@ test('introspection basic', async () => {
               "name": "title",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "TEXT",
                 "family": "string",
-                "raw": "TEXT",
+                "fullDataType": "TEXT",
               },
             },
             Object {
@@ -372,8 +397,9 @@ test('introspection basic', async () => {
               "name": "updatedAt",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "DATE",
                 "family": "dateTime",
-                "raw": "DATE",
+                "fullDataType": "DATE",
               },
             },
             Object {
@@ -382,8 +408,9 @@ test('introspection basic', async () => {
               "name": "uuid",
               "tpe": Object {
                 "arity": "required",
+                "dataType": "TEXT",
                 "family": "string",
-                "raw": "TEXT",
+                "fullDataType": "TEXT",
               },
             },
           ],

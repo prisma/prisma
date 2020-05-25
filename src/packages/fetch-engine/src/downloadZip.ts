@@ -5,7 +5,7 @@ import fs from 'fs'
 import { getProxyAgent } from './getProxyAgent'
 import tempy from 'tempy'
 import path from 'path'
-import Debug from 'debug'
+import Debug from '@prisma/debug'
 import hasha from 'hasha'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
@@ -25,9 +25,13 @@ async function fetchSha256(
   // "3c82ee6cd9fedaec18a5e7cd3fc41f8c6b3dd32575dc13443d96aab4bd018411  query-engine.gz\n"
   // So we split it by whitespace and just get the hash, as that's what we're interested in
   const [zippedSha256, sha256] = [
-    (await fetch(`${url}.sha256`).then((res) => res.text())).split(/\s+/)[0],
+    (await fetch(`${url}.sha256`, {
+      agent: getProxyAgent(url)
+    }).then((res) => res.text())).split(/\s+/)[0],
     (
-      await fetch(`${url.slice(0, url.length - 3)}.sha256`).then((res) =>
+      await fetch(`${url.slice(0, url.length - 3)}.sha256`, {
+         agent:  getProxyAgent(url.slice(0, url.length - 3))
+      }).then((res) =>
         res.text(),
       )
     ).split(/\s+/)[0],

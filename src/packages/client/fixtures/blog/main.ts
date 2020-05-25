@@ -1,6 +1,8 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from './@prisma/client'
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+  errorFormat: 'pretty',
+})
 
 async function main() {
   const users = await prisma.user.findMany({
@@ -10,13 +12,21 @@ async function main() {
           author: true,
         },
         orderBy: {
-          title: 'aasc',
+          title: 'asc',
         },
       },
     },
-  } as any)
+  })
 
   console.log(users)
+
+  // const result = await prisma.user.updateMany({
+  //   data: {
+  //     id: null,
+  //   },
+  // })
+
+  // console.log(result)
 
   // // prisma.disconnect()
 

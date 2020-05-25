@@ -1,11 +1,11 @@
 import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 import { EngineArgs, EngineResults } from './types'
 import byline from './utils/byline'
-const debugRpc = debugLib('MigrateEngine:rpc')
-const debugStderr = debugLib('MigrateEngine:stderr')
-const debugStdin = debugLib('MigrateEngine:stdin')
+const debugRpc = Debug('MigrateEngine:rpc')
+const debugStderr = Debug('MigrateEngine:stderr')
+const debugStdin = Debug('MigrateEngine:stdin')
 import fs from 'fs'
 import { now } from './utils/now'
 import { RustPanic, ErrorArea, resolveBinary } from '@prisma/sdk'
@@ -50,7 +50,7 @@ export class MigrateEngine {
     this.projectDir = projectDir
     this.schemaPath = schemaPath
     if (debug) {
-      debugLib.enable('MigrateEngine*')
+      Debug.enable('MigrateEngine*')
     }
     this.debug = debug
   }

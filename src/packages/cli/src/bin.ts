@@ -1,10 +1,10 @@
 #!/usr/bin/env ts-node
-
 import fs from 'fs'
+import { promisify } from 'util'
 import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
-import { arg, drawBox } from '@prisma/sdk'
+import { arg, drawBox, getCLIPathHash, getProjectHash } from '@prisma/sdk'
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 export { byline } from '@prisma/migrate'
@@ -175,9 +175,17 @@ async function main(): Promise<number> {
     return 1
   }
   console.log(result)
+
+  // SHA256 identifier for the project based on the prisma schema path
+  const projectPathHash = await getProjectHash()
+  // SHA256 of the cli path
+  const cliPathHash = getCLIPathHash()
+
   // check prisma for updates
   const checkResult = await checkpoint.check({
     product: 'prisma',
+    cli_path_hash: cliPathHash,
+    project_hash: projectPathHash,
     version: packageJson.version,
     disable: ci.isCI,
   })

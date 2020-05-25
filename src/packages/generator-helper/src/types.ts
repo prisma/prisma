@@ -74,6 +74,7 @@ export namespace DMMF {
     name: string
     inputType: {
       isRequired: boolean
+      isNullable: boolean
       isList: boolean
       type: ArgType
       kind: FieldKind
