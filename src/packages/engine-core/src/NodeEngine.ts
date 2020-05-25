@@ -64,6 +64,7 @@ const knownPlatforms: Platform[] = [
   'freebsd',
   'openbsd',
   'netbsd',
+  'nixos',
   'arm',
 ]
 
