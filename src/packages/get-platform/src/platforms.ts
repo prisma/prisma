@@ -10,6 +10,7 @@ export type Platform =
   | 'freebsd'
   | 'openbsd'
   | 'netbsd'
+  | 'nixos'
   | 'arm'
 
 export const platforms = [
