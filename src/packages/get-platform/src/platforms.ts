@@ -23,6 +23,7 @@ export const platforms = [
   'freebsd',
   'openbsd',
   'netbsd',
+  'nixos',
   'arm',
 ]
 
