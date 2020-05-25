@@ -15,15 +15,13 @@ import fs from 'fs'
 import chalk from 'chalk'
 import { GeneratorConfig } from '@prisma/generator-helper'
 import { printGeneratorConfig } from './printGeneratorConfig'
-import { fixPlatforms, plusX, link, getGithubIssueUrl } from './util'
+import { fixPlatforms, plusX } from './util'
 import { promisify } from 'util'
 import EventEmitter from 'events'
 import { convertLog, RustLog, RustError } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
-import { H2Client } from './client'
 import { h1Post } from './h1client'
-import { Undici } from './undici'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -87,8 +85,6 @@ export class NodeEngine {
   private debug: boolean
   private child?: ChildProcessWithoutNullStreams
   private clientVersion?: string
-  private h2client?: H2Client
-  private undici?: Undici
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -605,9 +601,6 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
         const url = `http://localhost:${this.port}`
         this.url = url
-        // TODO: Re-enable
-        this.h2client = new H2Client(url)
-        this.undici = new Undici(url)
         resolve()
       } catch (e) {
         reject(e)
@@ -685,26 +678,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       )
     }
 
-    // this.currentRequestPromise = this.undici!.request(body)
-    if (process.env.PRISMA_CLIENT_USE) {
-      switch (process.env.PRISMA_CLIENT_USE) {
-        case 'h2':
-          this.currentRequestPromise = this.h2client!.request(
-            stringifyQuery(query),
-          )
-          break
-        case 'h1':
-          this.currentRequestPromise = h1Post(this.port, stringifyQuery(query))
-          break
-        case 'undici':
-          this.currentRequestPromise = this.undici!.request(
-            stringifyQuery(query),
-          )
-          break
-      }
-    } else {
-      this.currentRequestPromise = h1Post(this.port, stringifyQuery(query))
-    }
+    this.currentRequestPromise = h1Post(this.port, stringifyQuery(query))
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
@@ -771,7 +745,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       batch: queries.map((query) => ({ query, variables })),
     }
 
-    this.currentRequestPromise = this.h2client.request(JSON.stringify(body))
+    this.currentRequestPromise = h1Post(this.port, JSON.stringify(body))
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {

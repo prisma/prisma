@@ -14,23 +14,19 @@ export function h1Post(port: number, body: string): Promise<any> {
         headers: {
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(body),
+          'Accept-Encoding': 'gzip, deflare, br',
         },
       },
       (res) => {
-        res.setEncoding('utf-8')
         const chunks = []
         res.on('data', (chunk) => {
           chunks.push(chunk)
         })
         res.on('end', () => {
-          if (process.env.PRISMA_BUFFER_CONCAT) {
-            resolve({
-              data: JSON.parse(Buffer.concat(chunks) as any),
-              headers: res.headers,
-            })
-          } else {
-            resolve({ data: JSON.parse(chunks.join('')), headers: res.headers })
-          }
+          resolve({
+            data: JSON.parse(Buffer.concat(chunks) as any),
+            headers: res.headers,
+          })
         })
       },
     )
@@ -40,12 +36,3 @@ export function h1Post(port: number, body: string): Promise<any> {
     req.end()
   })
 }
-
-// async function main() {
-//   for (let i = 0; i < 100; i++) {
-//     const result = await h1Post(5000, { h: 'lo' })
-//     console.log({ result })
-//   }
-// }
-
-// main()
