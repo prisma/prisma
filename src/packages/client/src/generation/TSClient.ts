@@ -522,9 +522,9 @@ ${indent(this.jsDoc, tab)}
    * @example
    * \`\`\`
    * // With parameters use prisma.raw\`\`, values will be escaped automatically
-   * const result = await prisma.raw\`SELECT * FROM User WHERE id = \${1} OR email = \${'e@ma.il'};\`
+   * const result = await prisma.raw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
    * // Or
-   * const result = await prisma.raw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'e@ma.il')
+   * const result = await prisma.raw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
   * \`\`\`
   * 
   * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md#raw-database-access).
