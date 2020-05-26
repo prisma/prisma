@@ -5,7 +5,7 @@ import {
   PrismaClientInitializationError,
   PrismaClientRustPanicError,
   getMessage,
-  QueryEngineErrorWithLink,
+  getErrorMessageWithLink,
 } from './Engine'
 import debugLib from 'debug'
 import { getPlatform, Platform } from '@prisma/get-platform'
@@ -86,6 +86,7 @@ export class NodeEngine {
   private debug: boolean
   private child?: ChildProcessWithoutNullStreams
   private clientVersion?: string
+  private lastPanic?: Error
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -140,13 +141,17 @@ export class NodeEngine {
     this.clientVersion = clientVersion
     this.flags = flags || []
 
-    this.logEmitter.on('error', (log: RustLog) => {
+    this.logEmitter.on('error', (log: RustLog | Error) => {
       if (this.debug) {
         debugLib('engine:log')(log)
       }
-      this.lastErrorLog = log
-      if (log.fields.message === 'PANIC') {
-        this.handlePanic(log)
+      if (log instanceof Error) {
+        debugLib('engine:error')(log)
+      } else {
+        this.lastErrorLog = log
+        if (log.fields.message === 'PANIC') {
+          this.handlePanic(log)
+        }
       }
     })
 
@@ -402,6 +407,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
+        // reset last panic
+        this.lastPanic = undefined
+
         this.port = await this.getFreePort()
 
         const env: any = {
@@ -430,7 +438,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           env.CLICOLOR_FORCE = '1'
         }
 
-        debug(env)
         debug({ cwd: this.cwd })
 
         const prismaPath = await this.getPrismaPath()
@@ -552,29 +559,31 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
         this.child.on('close', (code, signal): void => {
           if (code === null && signal === 'SIGABRT' && this.child) {
-            const error = new QueryEngineErrorWithLink(
-              {
+            const error = new PrismaClientRustPanicError(
+              getErrorMessageWithLink({
                 platform: this.platform,
                 title: `Panic in Query Engine with SIGABRT signal`,
                 description: this.stderrLogs,
                 version: this.clientVersion,
-              },
-              // this.platform,
-              // `Panic in Query Engine with SIGABRT signal`,
-              // this.stderrLogs,
+              }),
             )
             this.logEmitter.emit('error', error)
           } else if (
             code === 255 &&
             signal === null &&
-            this.lastErrorLog?.fields.message === 'PANIC'
+            // if there is a "this.lastPanic", the panic has already been handled, so we don't need
+            // to look into it anymore
+            this.lastErrorLog?.fields.message === 'PANIC' &&
+            !this.lastPanic
           ) {
-            const error = new QueryEngineErrorWithLink({
-              platform: this.platform,
-              title: `${this.lastErrorLog.fields.message}: ${this.lastErrorLog.fields.reason} in
+            const error = new PrismaClientRustPanicError(
+              getErrorMessageWithLink({
+                platform: this.platform,
+                title: `${this.lastErrorLog.fields.message}: ${this.lastErrorLog.fields.reason} in
 ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErrorLog.fields.column}`,
-              version: this.clientVersion,
-            })
+                version: this.clientVersion,
+              }),
+            )
             this.logEmitter.emit('error', error)
           }
         })
@@ -600,18 +609,12 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
           throw err
         }
 
-        const url = `http://localhost:${this.port}`
-        this.url = url
+        this.url = `http://localhost:${this.port}`
         resolve()
       } catch (e) {
         reject(e)
       }
     })
-  }
-
-  fail = async (e, why): Promise<void> => {
-    debug(e, why)
-    await this.stop()
   }
 
   /**
@@ -659,17 +662,6 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     })
   }
 
-  /**
-   * Make sure that our internal port is not conflicting with the prisma.yml's port
-   * @param str config
-   */
-  protected trimPort(str: string): string {
-    return str
-      .split('\n')
-      .filter((l) => !l.startsWith('port:'))
-      .join('\n')
-  }
-
   async request<T>(query: string): Promise<T> {
     await this.start()
 
@@ -687,49 +679,14 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
           if (data.errors.length === 1) {
             throw this.graphQLToJSError(data.errors[0])
           }
+          // this case should not happen, as the query engine only returns one error
           throw new Error(JSON.stringify(data.errors))
         }
         const elapsed = parseInt(headers['x-elapsed']) / 1000
 
         return { data, elapsed }
       })
-      .catch((error) => {
-        debug({ error })
-        if (this.currentRequestPromise.isCanceled && this.lastError) {
-          // TODO: Replace these errors with known or unknown request errors
-          if (this.lastError.is_panic) {
-            throw new PrismaClientRustPanicError(getMessage(this.lastError))
-          } else {
-            throw new PrismaClientUnknownRequestError(
-              getMessage(this.lastError),
-            )
-          }
-        }
-        if (this.currentRequestPromise.isCanceled && this.lastErrorLog) {
-          throw new PrismaClientUnknownRequestError(
-            getMessage(this.lastErrorLog),
-          )
-        }
-        if (
-          (error.code && error.code === 'ECONNRESET') ||
-          error.code === 'ECONNREFUSED'
-        ) {
-          if (this.lastError) {
-            throw new PrismaClientUnknownRequestError(
-              getMessage(this.lastError),
-            )
-          }
-          if (this.lastErrorLog) {
-            throw new PrismaClientUnknownRequestError(
-              getMessage(this.lastErrorLog),
-            )
-          }
-          const logs = this.stderrLogs || this.stdoutLogs
-          throw new PrismaClientUnknownRequestError(logs)
-        }
-
-        throw error
-      })
+      .catch(this.handleRequestError)
   }
 
   async requestBatch<T>(queries: string[]): Promise<T> {
@@ -750,12 +707,16 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
+        const elapsed = parseInt(headers['x-elapsed']) / 1000
         if (Array.isArray(data)) {
           return data.map((result) => {
             if (result.errors) {
               return this.graphQLToJSError(result.errors[0])
             }
-            return result
+            return {
+              data: result,
+              elapsed,
+            }
           })
         } else {
           if (data.errors && data.errors.length === 1) {
@@ -764,43 +725,111 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
           throw new Error(JSON.stringify(data))
         }
       })
-      .catch((error) => {
-        debug({ error })
-        if (this.currentRequestPromise.isCanceled && this.lastError) {
-          // TODO: Replace these errors with known or unknown request errors
-          if (this.lastError.is_panic) {
-            throw new PrismaClientRustPanicError(getMessage(this.lastError))
-          } else {
-            throw new PrismaClientUnknownRequestError(
-              getMessage(this.lastError),
-            )
-          }
-        }
-        if (this.currentRequestPromise.isCanceled && this.lastErrorLog) {
-          throw new PrismaClientUnknownRequestError(
-            getMessage(this.lastErrorLog),
+      .catch(this.handleRequestError)
+  }
+
+  private handleRequestError = (error: Error & { code?: string }) => {
+    debug({ error })
+    let err
+    if (this.currentRequestPromise.isCanceled && this.lastError) {
+      // TODO: Replace these errors with known or unknown request errors
+      if (this.lastError.is_panic) {
+        err = new PrismaClientRustPanicError(
+          getErrorMessageWithLink({
+            platform: this.platform,
+            title: getMessage(this.lastError),
+            version: this.clientVersion,
+          }),
+        )
+        this.lastPanic = err
+      } else {
+        err = new PrismaClientUnknownRequestError(
+          getErrorMessageWithLink({
+            platform: this.platform,
+            title: getMessage(this.lastError),
+            version: this.clientVersion,
+          }),
+        )
+      }
+    } else if (this.currentRequestPromise.isCanceled && this.lastErrorLog) {
+      if (this.lastErrorLog?.fields?.message === 'PANIC') {
+        err = new PrismaClientRustPanicError(
+          getErrorMessageWithLink({
+            platform: this.platform,
+            title: getMessage(this.lastErrorLog),
+            version: this.clientVersion,
+          }),
+        )
+        this.lastPanic = err
+      } else {
+        err = new PrismaClientUnknownRequestError(
+          getErrorMessageWithLink({
+            platform: this.platform,
+            title: getMessage(this.lastErrorLog),
+            version: this.clientVersion,
+          }),
+        )
+      }
+    } else if (
+      (error.code && error.code === 'ECONNRESET') ||
+      error.code === 'ECONNREFUSED'
+    ) {
+      if (this.lastError) {
+        if (this.lastError.is_panic) {
+          err = new PrismaClientRustPanicError(
+            getErrorMessageWithLink({
+              platform: this.platform,
+              title: getMessage(this.lastError),
+              version: this.clientVersion,
+            }),
+          )
+          this.lastPanic = err
+        } else {
+          err = new PrismaClientUnknownRequestError(
+            getErrorMessageWithLink({
+              platform: this.platform,
+              title: getMessage(this.lastError),
+              version: this.clientVersion,
+            }),
           )
         }
-        if (
-          (error.code && error.code === 'ECONNRESET') ||
-          error.code === 'ECONNREFUSED'
-        ) {
-          if (this.lastError) {
-            throw new PrismaClientUnknownRequestError(
-              getMessage(this.lastError),
-            )
-          }
-          if (this.lastErrorLog) {
-            throw new PrismaClientUnknownRequestError(
-              getMessage(this.lastErrorLog),
-            )
-          }
-          const logs = this.stderrLogs || this.stdoutLogs
-          throw new PrismaClientUnknownRequestError(logs)
+      } else if (this.lastErrorLog) {
+        if (this.lastErrorLog?.fields?.message === 'PANIC') {
+          err = new PrismaClientRustPanicError(
+            getErrorMessageWithLink({
+              platform: this.platform,
+              title: getMessage(this.lastErrorLog),
+              version: this.clientVersion,
+            }),
+          )
+          this.lastPanic = err
+        } else {
+          err = new PrismaClientUnknownRequestError(
+            getErrorMessageWithLink({
+              platform: this.platform,
+              title: getMessage(this.lastErrorLog),
+              version: this.clientVersion,
+            }),
+          )
         }
+      }
+      if (!err) {
+        const logs = this.stderrLogs || this.stdoutLogs
+        err = new PrismaClientUnknownRequestError(
+          getErrorMessageWithLink({
+            platform: this.platform,
+            title: `Unknown error in Prisma Client`,
+            version: this.clientVersion,
+            description: logs,
+          }),
+        )
+      }
+    }
 
-        throw error
-      })
+    if (err) {
+      throw err
+    }
+    throw error
   }
 
   private graphQLToJSError(

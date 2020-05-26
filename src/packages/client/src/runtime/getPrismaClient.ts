@@ -341,6 +341,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           ? 'text'
           : 'sql'
 
+      debug(`Prisma Client call:`)
       if (Array.isArray(stringOrTemplateStringsArray)) {
         // Called with prisma.raw\`\`
         const queryInstance = sqlTemplateTag.sqltag(
@@ -369,6 +370,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           __prismaRawParamaters__: true,
         }
       }
+      debug(`prisma.raw(${query}, ${parameters.values})`)
 
       const document = makeDocument({
         dmmf: this.dmmf,
@@ -381,6 +383,10 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       })
 
       document.validate({ query, parameters }, false, 'raw', this.errorFormat)
+
+      const docString = String(document)
+      debug(`Generated request:`)
+      debug(docString + '\n')
 
       return this.fetcher.request({
         document,
@@ -411,7 +417,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           dataPath = dataPath ?? []
           isList = isList ?? false
 
-          const callsite = new Error().stack
+          const callsite =
+            this.errorFormat !== 'minimal' ? new Error().stack : undefined
           const clientMethod = `${lowerCaseModel}.${actionName}`
 
           let document = makeDocument({
@@ -431,20 +438,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
           document = transformDocument(document)
 
-          if (Debug.enabled('prisma-client')) {
-            const query = String(document)
-            debug(`Prisma Client call:`)
-            debug(
-              `prisma.${clientMethod}(${printJsonWithErrors(
-                args,
-                [],
-                [],
-                [],
-              )})`,
-            )
-            debug(`Generated request:`)
-            debug(query + '\n')
-          }
+          const query = String(document)
+          debug(`Prisma Client call:`)
+          debug(
+            `prisma.${clientMethod}(${printJsonWithErrors(args, [], [], [])})`,
+          )
+          debug(`Generated request:`)
+          debug(query + '\n')
 
           let requestPromise: Promise<any>
 
@@ -592,9 +592,8 @@ export class PrismaClientFetcher {
     this.hooks = hooks
     this.dataloader = new Dataloader({
       batchLoader: async (requests) => {
-        await this.prisma.connect()
         const queries = requests.map((r) => String(r.document))
-
+        await this.prisma.connect()
         return this.prisma.engine.requestBatch(queries)
       },
       singleLoader: async (request) => {
@@ -607,9 +606,7 @@ export class PrismaClientFetcher {
           return null
         }
 
-        const selectionSet = request.document.children[0]
-          .children!.map(String)
-          .join(',')
+        const selectionSet = request.document.children[0].children!.join(',')
 
         const args = request.document.children[0].args?.args
           .map((a) => {
