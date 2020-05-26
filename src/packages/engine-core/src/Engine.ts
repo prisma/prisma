@@ -74,24 +74,23 @@ export class PrismaClientInitializationError extends Error {
   }
 }
 
-export interface QueryEngineErrorWithLinkInput {
+export interface ErrorWithLinkInput {
   version: string
   platform: string
   title: string
   description?: string
 }
 
-export class QueryEngineErrorWithLink extends Error {
-  constructor({
-    version,
-    platform,
-    title,
-    description,
-  }: QueryEngineErrorWithLinkInput) {
-    const logs = getLogs()
-    const moreInfo = description ? `# Description\n${description}` : ''
-    const body = stripAnsi(
-      `Hi Prisma Team! My Prisma Client just crashed. This is the report:
+export function getErrorMessageWithLink({
+  version,
+  platform,
+  title,
+  description,
+}: ErrorWithLinkInput) {
+  const logs = getLogs()
+  const moreInfo = description ? `# Description\n${description}` : ''
+  const body = stripAnsi(
+    `Hi Prisma Team! My Prisma Client just crashed. This is the report:
 ## Versions
 
 | Name     | Version            |
@@ -105,16 +104,17 @@ export class QueryEngineErrorWithLink extends Error {
 ${logs}
 \`\`\`
 ${moreInfo}`,
-    )
+  )
 
-    const url = getGithubIssueUrl({ title, body })
-    const message = `${title}
+  const url = getGithubIssueUrl({ title, body })
+  return `${title}
 
 This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
 If you want the Prisma team to look into it, please cmd+click on the link below 
 and press the "Submit new issue" button 🙏
 
-${link(url)}`
-    super(message)
-  }
+${link(url)}
+
+Thanks!
+`
 }
