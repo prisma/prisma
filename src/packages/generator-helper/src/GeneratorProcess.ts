@@ -84,7 +84,7 @@ export class GeneratorProcess {
         try {
           data = JSON.parse(response)
         } catch (e) {
-          console.error(response)
+          debug(response)
         }
         if (data) {
           this.handleResponse(data)

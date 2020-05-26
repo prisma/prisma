@@ -370,7 +370,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           __prismaRawParamaters__: true,
         }
       }
-      debug(`prisma.raw(${query}, ${parameters.values})`)
+      if (parameters?.values) {
+        debug(`prisma.raw(${query}, ${parameters.values})`)
+      } else {
+        debug(`prisma.raw(${query})`)
+      }
 
       const document = makeDocument({
         dmmf: this.dmmf,
