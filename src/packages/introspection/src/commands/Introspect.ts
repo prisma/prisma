@@ -5,6 +5,7 @@ import {
   getSchemaPath,
   arg,
   link,
+  drawBox,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
@@ -206,9 +207,25 @@ Then you can run ${chalk.green('prisma introspect')} again.
       getWarningMessage(introspectionWarnings) || ''
 
     const prisma1UpgradeMessage = introspectionSchemaVersion.includes('Prisma1')
-      ? `\n\nThe database you introspected seems to belong to a Prisma 1 project.\nIf you want to upgrade to Prisma 2.0, please visit the docs here:\n${link(
+      ? `\n${chalk.bold('Upgrading from Prisma 1 to Prisma 2')}
+      \nThe database you introspected seems to belong to a Prisma 1 project.
+
+Please run the following command to upgrade to Prisma 2.0:
+${chalk.green('npx prisma-upgrade <datamodel.graphql>')}
+
+Learn more about the upgrade process in the docs:\n${link(
           'https://pris.ly/upgrading-to-prisma2',
         )}`
+      : ''
+
+    const prisma1UpgradeMessageBox = prisma1UpgradeMessage
+      ? '\n\n' +
+        drawBox({
+          height: 11,
+          width: 74,
+          str: prisma1UpgradeMessage,
+          horizontalPadding: 2,
+        })
       : ''
 
     if (args['--print']) {
@@ -230,13 +247,11 @@ Then you can run ${chalk.green('prisma introspect')} again.
         modelsCount > 1 ? 'models and wrote them' : 'model and wrote it'
       } into ${chalk.underline(
         path.relative(process.cwd(), schemaPath),
-      )} in ${chalk.bold(formatms(Date.now() - before))} ${chalk.dim(
+      )} in ${chalk.bold(formatms(Date.now() - before))} ${chalk.hidden(
         introspectionSchemaVersion ? `(${introspectionSchemaVersion})` : '',
-      )}
+      )}${prisma1UpgradeMessageBox}
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
-Run ${chalk.green(
-        'prisma generate',
-      )} to generate Prisma Client.${prisma1UpgradeMessage}`)
+Run ${chalk.green('prisma generate')} to generate Prisma Client.`)
     }
 
     engine.stop()
