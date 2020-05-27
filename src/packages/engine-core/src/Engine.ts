@@ -110,11 +110,9 @@ ${moreInfo}`,
   return `${title}
 
 This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
-If you want the Prisma team to look into it, please cmd+click on the link below 
-and press the "Submit new issue" button 🙏
 
 ${link(url)}
 
-Thanks!
+If you want the Prisma team to look into it, please open the link above 🙏
 `
 }
