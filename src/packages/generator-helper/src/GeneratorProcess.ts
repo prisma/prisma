@@ -2,10 +2,7 @@ import { ChildProcessByStdio } from 'child_process'
 import { spawn } from 'cross-spawn'
 import byline from './byline'
 import { GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
-import fs from 'fs'
-import { isBinaryFile } from 'isbinaryfile'
 import chalk from 'chalk'
-import path from 'path'
 import Debug from 'debug'
 const debug = Debug('GeneratorProcess')
 
@@ -27,16 +24,7 @@ export class GeneratorProcess {
   private exitCode: number | null = null
   private stderrLogs = ''
   private initPromise?: Promise<void>
-  constructor(private executablePath: string) {
-    // executablePath can be passed like this
-    // "/Users/prisma/go/bin/photongo" as a path to the executable (no options)
-    // "go run prisma/photongo/generator" as a command
-    if (!executablePath.includes(' ') && !fs.existsSync(executablePath)) {
-      throw new Error(
-        `Error in generator: Can't find executable ${executablePath}`,
-      )
-    }
-  }
+  constructor(private executablePath: string) {}
   async init(): Promise<void> {
     if (!this.initPromise) {
       this.initPromise = this.initSingleton()
@@ -45,63 +33,62 @@ export class GeneratorProcess {
   }
   initSingleton(): Promise<void> {
     return new Promise(async (resolve, reject) => {
-      let isBinary = true
+      try {
+        this.child = spawn(this.executablePath, {
+          stdio: ['pipe', 'inherit', 'pipe'],
+          shell: true,
+        })
 
-      const { command, args } = getCommandAndArgs(this.executablePath)
+        this.child.on('exit', (code) => {
+          this.exitCode = code
+        })
 
-      isBinary = await isBinaryFile(this.executablePath)
+        this.child.on('error', (err) => {
+          debug(err)
+          if (err.message.includes('EACCES')) {
+            reject(
+              new Error(
+                `The executable at ${
+                  this.executablePath
+                } lacks the right chmod. Please use ${chalk.bold(
+                  `chmod +x ${this.executablePath}`,
+                )}`,
+              ),
+            )
+          } else {
+            reject(err)
+          }
+        })
 
-      const spawnCommand = isBinary ? command : process.execPath
-      const spawnArgs = isBinary ? args : ['--max-old-space-size=8096', command]
-
-      this.child = spawn(spawnCommand, spawnArgs, {
-        stdio: ['pipe', 'inherit', 'pipe'],
-      })
-
-      this.child.on('exit', (code) => {
-        this.exitCode = code
-      })
-
-      this.child.on('error', (err) => {
-        debug(err)
-        if (err.message.includes('EACCES')) {
-          reject(
-            new Error(
-              `The executable at ${
-                this.executablePath
-              } lacks the right chmod. Please use ${chalk.bold(
-                `chmod +x ${this.executablePath}`,
-              )}`,
-            ),
-          )
-        }
-      })
-
-      byline(this.child.stderr).on('data', (line) => {
-        const response = String(line)
-        this.stderrLogs += response + '\n'
-        let data
-        try {
-          data = JSON.parse(response)
-        } catch (e) {
-          debug(response)
-        }
-        if (data) {
-          this.handleResponse(data)
-        }
-      })
-      // wait 200ms for the binary to fail
-      setTimeout(() => {
-        if (this.exitCode && this.exitCode > 0) {
-          reject(
-            new Error(
-              `Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`,
-            ),
-          )
-        } else {
-          resolve()
-        }
-      }, 200)
+        byline(this.child.stderr).on('data', (line) => {
+          const response = String(line)
+          this.stderrLogs += response + '\n'
+          let data
+          try {
+            data = JSON.parse(response)
+          } catch (e) {
+            debug(response)
+          }
+          if (data) {
+            this.handleResponse(data)
+          }
+        })
+        // wait 200ms for the binary to fail
+        setTimeout(() => {
+          if (this.exitCode && this.exitCode > 0) {
+            reject(
+              new Error(
+                `Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`,
+              ),
+            )
+          } else {
+            resolve()
+          }
+        }, 200)
+      } catch (e) {
+        console.error(e)
+        reject(e)
+      }
     })
   }
   private handleResponse(data: any): void {
@@ -182,26 +169,5 @@ export class GeneratorProcess {
         id: messageId,
       })
     })
-  }
-}
-
-// function hasChmodX(file: string): boolean {
-//   const s = fs.statSync(file)
-//   // tslint:disable-next-line
-//   const newMode = s.mode | 64 | 8 | 1
-//   return s.mode === newMode
-// }
-
-function getCommandAndArgs(str: string): { command: string; args: string[] } {
-  const lastSlash = str.lastIndexOf(path.delimiter)
-  const arr = str.slice(lastSlash).split(' ')
-
-  if (arr.length === 1) {
-    return { command: str, args: [] }
-  }
-
-  return {
-    command: str.slice(0, lastSlash) + arr[0],
-    args: arr.slice(1),
   }
 }

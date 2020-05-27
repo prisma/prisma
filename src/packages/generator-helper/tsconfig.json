@@ -12,5 +12,5 @@
     "declaration": true,
     "incremental": true
   },
-  "exclude": ["dist", "build", "download-build"]
+  "exclude": ["dist", "build", "download-build", "src/sandbox"]
 }
