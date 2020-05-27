@@ -1,4 +1,11 @@
-import { Command, format, HelpError, getSchemaPath, arg } from '@prisma/sdk'
+import {
+  Command,
+  format,
+  HelpError,
+  getSchemaPath,
+  arg,
+  link,
+} from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
 import {
@@ -198,11 +205,18 @@ Then you can run ${chalk.green('prisma introspect')} again.
     const introspectionWarningsMessage =
       getWarningMessage(introspectionWarnings) || ''
 
+    const prisma1UpgradeMessage = introspectionSchemaVersion.includes('Prisma1')
+      ? `\n\nThe database you introspected seems to belong to a Prisma 1 project.\nIf you want to upgrade to Prisma 2.0, please visit the docs here:\n${link(
+          'https://pris.ly/upgrading-to-prisma2',
+        )}`
+      : ''
+
     if (args['--print']) {
       console.log(introspectionSchema)
       introspectionSchemaVersion &&
         console.log(
           `\n// introspectionSchemaVersion: ${introspectionSchemaVersion}`,
+          prisma1UpgradeMessage.replace(/(\n)/gm, '\n// '),
         )
       console.error(introspectionWarningsMessage)
     } else {
@@ -220,7 +234,9 @@ Then you can run ${chalk.green('prisma introspect')} again.
         introspectionSchemaVersion ? `(${introspectionSchemaVersion})` : '',
       )}
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
-Run ${chalk.green('prisma generate')} to generate Prisma Client.`)
+Run ${chalk.green(
+        'prisma generate',
+      )} to generate Prisma Client.${prisma1UpgradeMessage}`)
     }
 
     engine.stop()
