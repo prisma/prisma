@@ -10,6 +10,18 @@ if [[ ${VERSION} != *"@prisma/cli"* ]]; then
 fi
 
 #
+# Test custom generator path
+#
+cd ./fixtures/custom-generator
+GENERATE_RESULT=$(node ../../build/index.js generate)
+if [[ ${GENERATE_RESULT} != *"onGenerate"* ]]; then
+  echo "custom generators are broken"
+  echo $GENERATE_RESULT
+  exit 1
+fi
+cd ../..
+
+#
 # Test introspection output with warnings
 #
 cd fixtures/introspection-warnings
@@ -112,4 +124,3 @@ if [[ ${GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_INVALID} != *"Provided --schema at 
   echo "prisma generate --schema=$GENERATE_ABSOLUTE_SCHEMA_FROM_PARENT_INVALID_PATH is broken (should fail)"
   exit 1
 fi
-
