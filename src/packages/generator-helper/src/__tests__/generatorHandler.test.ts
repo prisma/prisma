@@ -82,11 +82,10 @@ describe('generatorHandler', () => {
     await expect(generator.generate(stubOptions)).rejects.toThrow()
     generator.stop()
   })
-  test('non existent executable', () => {
-    expect(
-      () => new GeneratorProcess('this-is-a-random-path'),
-    ).toThrowErrorMatchingInlineSnapshot(
-      `"Error in generator: Can't find executable this-is-a-random-path"`,
+  test('non existent executable', async () => {
+    const generator = new GeneratorProcess(
+      path.join(__dirname, 'random path that doesnt exist'),
     )
+    expect(() => generator.init()).rejects.toThrow()
   })
 })
