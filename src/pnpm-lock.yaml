@@ -440,7 +440,6 @@ importers:
       '@types/cross-spawn': 6.0.1
       chalk: 3.0.0
       cross-spawn: 7.0.2
-      isbinaryfile: 4.0.6
     devDependencies:
       '@types/jest': 25.2.2
       '@types/node': 12.12.39
@@ -473,7 +472,6 @@ importers:
       eslint-plugin-jest: 23.11.0
       eslint-plugin-prettier: 3.1.3
       husky: 4.2.5
-      isbinaryfile: ^4.0.6
       jest: 25.5.4
       lint-staged: 10.2.2
       prettier: 2.0.5
