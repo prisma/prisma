@@ -86,7 +86,6 @@ export class GeneratorProcess {
           }
         }, 200)
       } catch (e) {
-        console.error(e)
         reject(e)
       }
     })
