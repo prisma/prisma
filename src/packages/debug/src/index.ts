@@ -79,7 +79,7 @@ export declare type Debugger = DebugLib.Debugger
 
 // https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
 // we need some space for other characters, so we go for 30k here
-export function getLogs(numChars = 30000): string {
+export function getLogs(numChars = 7500): string {
   // flatmap on text level
   let output = cache.map((c) => c.join('  ')).join('\n')
 
