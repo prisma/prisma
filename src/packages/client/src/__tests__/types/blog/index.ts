@@ -5,6 +5,10 @@ import {
   prismaVersion,
   FindManyMachineDataArgs,
   LikeUpdateManyArgs,
+  sql,
+  join,
+  empty,
+  raw,
 } from '@prisma/client'
 
 // tslint:disable
@@ -14,6 +18,8 @@ async function main() {
   const prisma = new PrismaClient()
 
   prismaVersion.client
+
+  sql`SELECT * FROM ${raw('User')} WHERE 'id' in ${join([1, 2, 3])} ${empty} `
 
   const result1 = await prisma.user.findMany({
     where: {

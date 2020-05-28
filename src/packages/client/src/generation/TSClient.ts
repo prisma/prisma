@@ -124,7 +124,7 @@ export { PrismaClientValidationError }
 /**
  * Re-export of sql-template-tag
  */
-export { default as sql, empty, join, raw } from 'sql-template-tag';
+export { sql, empty, join, raw }
 
 /**
  * Prisma Client JS version: ${clientVersion}
