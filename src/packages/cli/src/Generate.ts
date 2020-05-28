@@ -47,6 +47,7 @@ export class Generate implements Command {
   `)
 
   private logText = ''
+  private hasGeneratorErrored = false
 
   private runGenerate = simpleDebounce(
     async ({ generators }: { generators: Generator[] }) => {
@@ -75,7 +76,9 @@ export class Generate implements Command {
           )
           generator.stop()
         } catch (err) {
-          message.push(err.message)
+          this.hasGeneratorErrored = true
+          message.push(`${err.message}\n\n`)
+          generator.stop()
         }
       }
 
@@ -200,7 +203,11 @@ const prisma = new PrismaClient()`)}
 \`\`\`
 
 Explore the full API: ${link('http://pris.ly/d/client')}`
-      logUpdate('\n' + this.logText + (isJSClient ? hint : ''))
+      logUpdate(
+        '\n' +
+          this.logText +
+          (isJSClient && !this.hasGeneratorErrored ? hint : ''),
+      )
     }
 
     return ''

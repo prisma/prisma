@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+model public {
+  id Int @id
+}
+
+model dmmf {
+  id Int @id
+}
+
+model OnlyOne {
+  id Int @id
+}
+
+model delete {
+  id Int @id
+}
+
+model AND {
+  id Int @id
+}
+
+model User {
+  id Int @id
+}
+
+model UserClient {
+  id Int @id
+}
+
+model UserArgs {
+  id Int @id
+}
