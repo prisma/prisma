@@ -152,7 +152,7 @@ describe('generator', () => {
     }
 
     const generator = await getGenerator({
-      schemaPath: path.join(__dirname, 'dynamic-dynalist.prisma'),
+      schemaPath: path.join(__dirname, 'dynamic-denylist.prisma'),
       baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
@@ -163,12 +163,11 @@ describe('generator', () => {
     try {
       await generator.generate()
     } catch (e) {
-      console.log({ e })
       dynamicReservedWordError = e
     } finally {
       expect(stripAnsi(dynamicReservedWordError.message))
         .toMatchInlineSnapshot(`
-        "Error: The schema at \\"/Users/j42/Dev/prisma/src/packages/client/src/__tests__/generation/dynamic.prisma\\" contains reserved keywords.
+        "Error: The schema at \\"/Users/j42/Dev/prisma/src/packages/client/src/__tests__/generation/dynamic-denylist.prisma\\" contains reserved keywords.
                Rename the following items:
                  - \\"model UserClient\\"
                  - \\"model UserArgs\\""
@@ -205,9 +204,9 @@ describe('generator', () => {
     } catch (e) {
       doesnNotExistError = e
     } finally {
-      expect(stripAnsi(doesnNotExistError.message)).toMatchInlineSnapshot(
-        `"/Users/j42/Dev/prisma/src/packages/client/src/__tests__/generation/doesnotexist.prisma does not exist"`,
-      )
+      expect(
+        stripAnsi(doesnNotExistError.message).split('generation/')[1],
+      ).toMatchInlineSnapshot(`"doesnotexist.prisma does not exist"`)
     }
   })
 
