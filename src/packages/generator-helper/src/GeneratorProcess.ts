@@ -32,10 +32,14 @@ export class GeneratorProcess {
     return this.initPromise
   }
   initSingleton(): Promise<void> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       try {
         this.child = spawn(this.executablePath, {
           stdio: ['pipe', 'inherit', 'pipe'],
+          env: {
+            ...process.env,
+            PRISMA_GENERATOR_INVOCATION: 'true',
+          },
           shell: true,
         })
 
