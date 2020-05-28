@@ -60,11 +60,11 @@ const knownPlatforms: Platform[] = [
   'rhel-openssl-1.0.x',
   'rhel-openssl-1.1.x',
   'linux-musl',
+  'linux-nixos',
   'windows',
   'freebsd',
   'openbsd',
   'netbsd',
-  'nixos',
   'arm',
 ]
 
