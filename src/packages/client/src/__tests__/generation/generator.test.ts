@@ -1,8 +1,9 @@
-import { getGenerator, getPackedPackage } from '@prisma/sdk'
+import { getGenerator, getPackedPackage, Generator } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import { omit } from '../../omit'
 import { promisify } from 'util'
+import stripAnsi from 'strip-ansi'
 import rimraf from 'rimraf'
 const del = promisify(rimraf)
 
@@ -66,6 +67,148 @@ describe('generator', () => {
     expect(fs.existsSync(path.join(photonDir, 'index.d.ts'))).toBe(true)
     expect(fs.existsSync(path.join(photonDir, 'runtime'))).toBe(true)
     generator.stop()
+  })
+
+  test('denylist from engine validation', async () => {
+    const prismaClientTarget = path.join(
+      __dirname,
+      './node_modules/@prisma/client',
+    )
+    // Make sure, that nothing is cached.
+    try {
+      await del(prismaClientTarget)
+    } catch (e) {
+      //
+    }
+    await getPackedPackage('@prisma/client', prismaClientTarget)
+
+    if (!fs.existsSync(prismaClientTarget)) {
+      throw new Error(`Prisma Client didn't get packed properly 🤔`)
+    }
+
+    try {
+      await getGenerator({
+        schemaPath: path.join(__dirname, 'denylist.prisma'),
+        baseDir: __dirname,
+        printDownloadProgress: false,
+        skipDownload: true,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        "Schema parsing
+        error: Error validating model \\"public\\": The model name \`public\` is invalid. It is a reserved name. Please change it.
+          -->  schema.prisma:5
+           | 
+         4 | 
+         5 | model public {
+         6 |   id Int @id
+         7 | }
+           | 
+        error: Error validating model \\"dmmf\\": The model name \`dmmf\` is invalid. It is a reserved name. Please change it.
+          -->  schema.prisma:9
+           | 
+         8 | 
+         9 | model dmmf {
+        10 |   id Int @id
+        11 | }
+           | 
+        error: Error validating model \\"OnlyOne\\": The model name \`OnlyOne\` is invalid. It is a reserved name. Please change it.
+          -->  schema.prisma:13
+           | 
+        12 | 
+        13 | model OnlyOne {
+        14 |   id Int @id
+        15 | }
+           | 
+        error: Error validating model \\"delete\\": The model name \`delete\` is invalid. It is a reserved name. Please change it.
+          -->  schema.prisma:17
+           | 
+        16 | 
+        17 | model delete {
+        18 |   id Int @id
+        19 | }
+           | 
+
+        Validation Error Count: 4"
+      `)
+    }
+  })
+
+  test('denylist dynamic from client', async () => {
+    const prismaClientTarget = path.join(
+      __dirname,
+      './node_modules/@prisma/client',
+    )
+    // Make sure, that nothing is cached.
+    try {
+      await del(prismaClientTarget)
+    } catch (e) {
+      //
+    }
+    await getPackedPackage('@prisma/client', prismaClientTarget)
+
+    if (!fs.existsSync(prismaClientTarget)) {
+      throw new Error(`Prisma Client didn't get packed properly 🤔`)
+    }
+
+    const generator = await getGenerator({
+      schemaPath: path.join(__dirname, 'dynamic-denylist.prisma'),
+      baseDir: __dirname,
+      printDownloadProgress: false,
+      skipDownload: true,
+    })
+
+    // Test dynamic denylist errors
+    let dynamicReservedWordError
+    try {
+      await generator.generate()
+    } catch (e) {
+      dynamicReservedWordError = e
+    } finally {
+      expect(
+        stripAnsi(dynamicReservedWordError.message).split('generation/')[1],
+      ).toMatchInlineSnapshot(`
+        "dynamic-denylist.prisma\\" contains reserved keywords.
+               Rename the following items:
+                 - \\"model UserClient\\"
+                 - \\"model UserArgs\\""
+      `)
+    }
+    generator.stop()
+  })
+
+  test('schema path does not exist', async () => {
+    const prismaClientTarget = path.join(
+      __dirname,
+      './node_modules/@prisma/client',
+    )
+    // Make sure, that nothing is cached.
+    try {
+      await del(prismaClientTarget)
+    } catch (e) {
+      //
+    }
+    await getPackedPackage('@prisma/client', prismaClientTarget)
+
+    if (!fs.existsSync(prismaClientTarget)) {
+      throw new Error(`Prisma Client didn't get packed properly 🤔`)
+    }
+
+    let doesnNotExistError
+    try {
+      await getGenerator({
+        schemaPath: path.join(__dirname, 'doesnotexist.prisma'),
+        baseDir: __dirname,
+        printDownloadProgress: false,
+        skipDownload: true,
+      })
+    } catch (e) {
+      doesnNotExistError = e
+    } finally {
+      expect(
+        stripAnsi(doesnNotExistError.message).split('generation/')[1],
+      ).toMatchInlineSnapshot(`"doesnotexist.prisma does not exist"`)
+    }
   })
 
   test.skip('inMemory', async () => {
