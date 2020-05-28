@@ -165,9 +165,10 @@ describe('generator', () => {
     } catch (e) {
       dynamicReservedWordError = e
     } finally {
-      expect(stripAnsi(dynamicReservedWordError.message))
-        .toMatchInlineSnapshot(`
-        "Error: The schema at \\"/Users/j42/Dev/prisma/src/packages/client/src/__tests__/generation/dynamic-denylist.prisma\\" contains reserved keywords.
+      expect(
+        stripAnsi(dynamicReservedWordError.message).split('generation/')[1],
+      ).toMatchInlineSnapshot(`
+        "dynamic-denylist.prisma\\" contains reserved keywords.
                Rename the following items:
                  - \\"model UserClient\\"
                  - \\"model UserArgs\\""
