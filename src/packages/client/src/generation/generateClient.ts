@@ -28,6 +28,14 @@ const exists = promisify(fs.exists)
 const copyFile = promisify(fs.copyFile)
 const stat = promisify(fs.stat)
 
+export class DenylistError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'DenylistError'
+    this.stack = undefined
+  }
+}
+
 export interface GenerateClientOptions {
   datamodel: string
   datamodelPath: string
@@ -155,15 +163,15 @@ export async function generateClient({
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
   if (denylistsErrors) {
-    console.error(
-      `${chalk.redBright.bold(
-        'Error: ',
-      )}The schema at "${datamodelPath}" contains reserved keywords.\n       Rename the following items:`,
-    )
+    let message = `${chalk.redBright.bold(
+      'Error: ',
+    )}The schema at "${datamodelPath}" contains reserved keywords.\n       Rename the following items:`
+
     for (const error of denylistsErrors) {
-      console.error('         - ' + error.message)
+      message += '\n         - ' + error.message
     }
-    process.exit(1)
+
+    throw new DenylistError(message)
   }
 
   await makeDir(finalOutputDir)
@@ -440,6 +448,8 @@ function validateDmmfAgainstDenylists(prismaClientDmmf): Error[] | null {
   const errorArray = [] as Error[]
 
   const denylists = {
+    // A copy of this list is also in prisma-engines. Any edit should be done in both places.
+    // https://github.com/prisma/prisma-engines/blob/master/libs/datamodel/core/src/validator/invalid_model_names.rs
     models: [
       'dmmf',
       'PromiseType',
@@ -609,7 +619,8 @@ function validateDmmfAgainstDenylists(prismaClientDmmf): Error[] | null {
     for (const it of prismaClientDmmf.datamodel.models) {
       if (
         denylists.models.includes(it.name) ||
-        denylists.fields.includes(it.name)
+        denylists.fields.includes(it.name) ||
+        denylists.dynamic.includes(it.name)
       ) {
         errorArray.push(Error(`"model ${it.name}"`))
       }
