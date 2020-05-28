@@ -1,6 +1,5 @@
 #!/usr/bin/env ts-node
 import fs from 'fs'
-import { promisify } from 'util'
 import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
