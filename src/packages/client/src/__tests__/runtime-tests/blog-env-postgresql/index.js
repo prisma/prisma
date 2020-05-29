@@ -19,7 +19,7 @@ module.exports = async () => {
   const credentials = uriToCredentials(originalConnectionString)
   const sourcePort = credentials.port || 5432
   const newPort = await getPort({
-    port: getPort.makeRange(3000, 3200),
+    port: getPort.makeRange(3100, 3200),
   })
   let proxy = tcpProxy.createProxy(newPort, credentials.host, sourcePort)
 
