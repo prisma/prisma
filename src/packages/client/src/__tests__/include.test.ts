@@ -209,7 +209,7 @@ describe('include validation', () => {
   test('allow deep include without another include', () => {
     const ast = {
       include: {
-        posts: { first: 20 },
+        posts: { take: 20 },
       },
     }
 
@@ -303,7 +303,7 @@ describe('include validation', () => {
     const ast = {
       include: {
         posts: {
-          first: 20,
+          take: 20,
           select: {
             id: true,
           },
@@ -325,7 +325,7 @@ describe('include validation', () => {
           email
           name
           json
-          posts(first: 20) {
+          posts(take: 20) {
             id
           }
         }
@@ -338,7 +338,7 @@ describe('include validation', () => {
     const ast = {
       include: {
         posts: {
-          first: 20,
+          take: 20,
           select: {
             id: true,
             author: {
@@ -363,7 +363,7 @@ describe('include validation', () => {
           email
           name
           json
-          posts(first: 20) {
+          posts(take: 20) {
             id
             author {
               id
