@@ -1,4 +1,5 @@
 generator min {
+  // https://github.com/timsuchanek/minimal-generator
   provider = "npx @timsuchanek/minimal-generator"
 }
 

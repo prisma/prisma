@@ -1138,12 +1138,10 @@ const topLevelArgsJsDocs = {
     orderBy: (singular, plural): string =>
       `Determine the order of the ${plural} to fetch.`,
     skip: (singular, plural): string => `Skip the first \`n\` ${plural}.`,
-    after: (singular, plural): string =>
-      `Get all ${plural} that come after the ${singular} you provide with the current order.`,
-    before: (singular, plural): string =>
-      `Get all ${plural} that come before the ${singular} you provide with the current order.`,
-    first: (singular, plural): string => `Get the first \`n\` ${plural}.`,
-    last: (singular, plural): string => `Get the last \`n\` ${plural}.`,
+    cursor: (singular, plural): string =>
+      `Sets the position for listing ${plural}.`,
+    take: (singular, plural): string =>
+      `Get all ${plural} that come after or before the ${singular} you provide with the current order.`,
   },
   create: {
     data: (singular, plural): string =>

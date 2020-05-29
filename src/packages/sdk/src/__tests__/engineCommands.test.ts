@@ -67,7 +67,7 @@ describe('getDMMF', () => {
     )
     const dmmf = await getDMMF({ datamodel: file })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`57146513`)
+    expect(str.length).toMatchInlineSnapshot(`54656997`)
   })
 
   test('with validation errors', async () => {

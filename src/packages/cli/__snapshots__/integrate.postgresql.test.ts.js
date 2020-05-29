@@ -32,6 +32,11 @@ model unsupported_type {
   // unsupported geometric?
 }
 
+enum Role {
+  ADMIN
+  USER
+}
+
 enum invalid_enum {
   // $§! @map("$§!")
   // 123 @map("123")
@@ -102,6 +107,11 @@ model teams {
   id   Int    @id
   name String @unique
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findOne where PK_warnings'] = []
@@ -121,6 +131,11 @@ model teams {
   email String @unique
   id    Int    @id
   name  String @unique
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -149,6 +164,11 @@ model users {
   id    Int     @default(autoincrement()) @id
   posts posts[]
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findOne where PK with include_warnings'] = []
@@ -167,6 +187,11 @@ datasource pg {
 model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -187,6 +212,11 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String @default("alice")
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['create with empty data and SQL default_warnings'] = []
@@ -205,6 +235,11 @@ datasource pg {
 model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -226,6 +261,11 @@ model teams {
   id     Int     @default(autoincrement()) @id
   name   String  @unique
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['update where with boolean data_warnings'] = []
@@ -246,6 +286,11 @@ model teams {
   id     Int     @default(autoincrement()) @id
   name   String  @unique
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['update where with boolean data and select_warnings'] = []
@@ -264,6 +309,11 @@ datasource pg {
 model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -284,6 +334,11 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['updateMany where with string data - check returned count_warnings'] = []
@@ -303,6 +358,11 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['updateMany where with string data - check findMany_warnings'] = []
@@ -321,6 +381,11 @@ datasource pg {
 model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -344,6 +409,11 @@ model users {
 
   @@unique([email, name], name: "users_email_name_key")
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findOne where composite unique_warnings'] = []
@@ -365,6 +435,11 @@ model users {
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -388,6 +463,11 @@ model users {
 
   @@unique([email, name], name: "users_email_name_key")
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['delete where composite unique_warnings'] = []
@@ -406,6 +486,11 @@ datasource pg {
 model users {
   email String?
   id    Int     @default(autoincrement()) @id
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -426,6 +511,11 @@ model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where unique_warnings'] = []
@@ -444,6 +534,11 @@ datasource pg {
 model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -472,6 +567,11 @@ model users {
   id    Int     @default(autoincrement()) @id
   posts posts[]
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findOne where unique with foreign key and unpack_warnings'] = []
@@ -491,6 +591,11 @@ model posts {
   id        Int     @default(autoincrement()) @id
   published Boolean @default(false)
   title     String
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -512,6 +617,11 @@ model posts {
   published Boolean @default(false)
   title     String
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where OR[contains, contains] _warnings'] = []
@@ -531,6 +641,11 @@ model posts {
   id        Int     @default(autoincrement()) @id
   published Boolean @default(false)
   title     String
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -552,6 +667,11 @@ model posts {
   published Boolean @default(false)
   title     String
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['upsert (create)_warnings'] = []
@@ -571,6 +691,11 @@ model posts {
   id        Int     @default(autoincrement()) @id
   published Boolean @default(false)
   title     String
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -592,6 +717,11 @@ model posts {
   published Boolean @default(false)
   title     String
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany orderBy desc_warnings'] = []
@@ -611,6 +741,11 @@ model posts {
   id        Int          @default(autoincrement()) @id
   published posts_status @default(DRAFT)
   title     String
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 
 enum posts_status {
@@ -638,6 +773,11 @@ model posts {
   title     String
 }
 
+enum Role {
+  ADMIN
+  USER
+}
+
 enum posts_status {
   DRAFT
   PUBLISHED
@@ -661,6 +801,11 @@ model posts {
   id        Int          @default(autoincrement()) @id
   published posts_status @default(DRAFT)
   title     String
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 
 enum posts_status {
@@ -688,6 +833,11 @@ model posts {
   title     String
 }
 
+enum Role {
+  ADMIN
+  USER
+}
+
 enum posts_status {
   DRAFT
   PUBLISHED
@@ -711,6 +861,11 @@ model posts {
   id        Int          @default(autoincrement()) @id
   published posts_status @default(DRAFT)
   title     String
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 
 enum posts_status {
@@ -738,6 +893,11 @@ model posts {
   title     String
 }
 
+enum Role {
+  ADMIN
+  USER
+}
+
 enum posts_status {
   DRAFT
   PUBLISHED
@@ -762,6 +922,11 @@ model crons {
   id        Int     @default(autoincrement()) @id
   job       String  @unique
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where contains_warnings'] = []
@@ -781,6 +946,11 @@ model crons {
   frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -802,6 +972,11 @@ model crons {
   id        Int     @default(autoincrement()) @id
   job       String  @unique
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where endsWith_warnings'] = []
@@ -821,6 +996,11 @@ model crons {
   frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -842,6 +1022,11 @@ model posts {
   id         Int      @default(autoincrement()) @id
   title      String
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where timestamp gte than now_warnings'] = []
@@ -861,6 +1046,11 @@ model posts {
   created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -882,6 +1072,11 @@ model posts {
   id         Int      @default(autoincrement()) @id
   title      String
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where timestamp lt than now_warnings'] = []
@@ -901,6 +1096,11 @@ model teams {
   id    Int @default(autoincrement()) @id
   token Int @unique
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['update where integer data_warnings'] = []
@@ -919,6 +1119,11 @@ datasource pg {
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -940,6 +1145,11 @@ model teams {
   name  String
   token Int    @unique
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where empty in[]_warnings'] = []
@@ -959,6 +1169,11 @@ model teams {
   id    Int    @default(autoincrement()) @id
   name  String
   token Int    @unique
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -980,6 +1195,11 @@ model teams {
   name  String
   token Int    @unique
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where in[integer]_warnings'] = []
@@ -999,6 +1219,11 @@ model teams {
   id    Int    @default(autoincrement()) @id
   name  String
   token Int    @unique
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -1020,6 +1245,11 @@ model teams {
   name  String
   token Int    @unique
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where empty notIn[]_warnings'] = []
@@ -1038,6 +1268,11 @@ datasource pg {
 model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -1058,6 +1293,11 @@ model exercises {
   distance Float
   id       Int   @default(autoincrement()) @id
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where decimal_warnings'] = []
@@ -1076,6 +1316,11 @@ datasource pg {
 model exercises {
   distance Float @unique
   id       Int   @default(autoincrement()) @id
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -1096,6 +1341,11 @@ model exercises {
   distance Float @default(12.3) @unique
   id       Int   @default(autoincrement()) @id
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findOne where decimal - default value_warnings'] = []
@@ -1113,6 +1363,11 @@ datasource pg {
 
 model migrate {
   version Int @id
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -1137,6 +1392,11 @@ model variables {
 
   @@id([name, key])
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findOne where composite PK_warnings'] = []
@@ -1159,6 +1419,11 @@ model variables {
   value String
 
   @@id([name, key])
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -1183,6 +1448,11 @@ model variables {
 
   @@id([name, key])
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['upsert where composite PK - update_warnings'] = []
@@ -1206,6 +1476,11 @@ model variables {
 
   @@id([name, key])
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['upsert where composite PK - create_warnings'] = []
@@ -1228,6 +1503,11 @@ model variables {
   value String
 
   @@id([name, key])
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -1253,6 +1533,11 @@ model variables {
 
   @@unique([name, key], name: "variables_name_key_key")
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findOne where unique composite_warnings'] = []
@@ -1276,6 +1561,11 @@ model variables {
 
   @@id([name, key])
   @@unique([value, email], name: "variables_value_email_key")
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -1306,6 +1596,11 @@ model b {
   two Int
   a   a   @relation(fields: [one, two], references: [one, two])
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findOne where composite PK with foreign key_warnings'] = []
@@ -1324,6 +1619,11 @@ datasource pg {
 model teams {
   id   Int     @default(autoincrement()) @id
   name String?
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -1345,6 +1645,11 @@ model posts {
   id         Int      @default(autoincrement()) @id
   title      String
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where datetime lte - check instanceof Date_warnings'] = []
@@ -1363,6 +1668,11 @@ datasource pg {
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -1383,6 +1693,11 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where datetime gt_warnings'] = []
@@ -1401,6 +1716,11 @@ datasource pg {
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
@@ -1421,6 +1741,11 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where datetime lt_warnings'] = []
@@ -1440,6 +1765,11 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
+enum Role {
+  ADMIN
+  USER
+}
 `
 
 exports['findMany where datetime lte_warnings'] = []
@@ -1458,6 +1788,11 @@ datasource pg {
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 `
 
