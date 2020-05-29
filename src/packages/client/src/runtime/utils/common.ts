@@ -45,7 +45,7 @@ export const GraphQLScalarToJSTypeTable = {
   DateTime: ['Date', 'string'],
   ID: 'string',
   UUID: 'string',
-  Json: 'object',
+  Json: 'JsonValue',
 }
 
 export const JSTypeToGraphQLType = {
