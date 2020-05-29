@@ -25,6 +25,7 @@ module.exports = async () => {
 
   const connectionString = credentialsToUri({
     ...credentials,
+    host: 'localhost',
     port: newPort,
   })
 
