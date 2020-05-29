@@ -9,12 +9,6 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model column_name_that_becomes_empty_string {
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 12345 Int? @map("12345")
@@ -36,11 +30,6 @@ model unsupported_type {
   field1         Int        @default(autoincrement()) @id
   // This type is currently not supported.
   // unsupported geometric?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 enum invalid_enum {
@@ -109,20 +98,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id   Int    @id
   name String @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -139,21 +117,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   email String @unique
   id    Int    @id
   name  String @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -170,12 +137,6 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id      Int    @default(autoincrement()) @id
   title   String
@@ -187,11 +148,6 @@ model users {
   email String  @unique
   id    Int     @default(autoincrement()) @id
   posts posts[]
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -208,20 +164,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -238,20 +183,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id   Int    @default(autoincrement()) @id
   name String @default("alice")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -268,20 +202,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -298,21 +221,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   active Boolean @default(true)
   id     Int     @default(autoincrement()) @id
   name   String  @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -329,21 +241,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   active Boolean @default(true)
   id     Int     @default(autoincrement()) @id
   name   String  @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -360,20 +261,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -390,20 +280,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id   Int    @default(autoincrement()) @id
   name String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -420,20 +299,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id   Int    @default(autoincrement()) @id
   name String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -450,20 +318,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -480,23 +337,12 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model users {
   email String
   id    Int    @default(autoincrement()) @id
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -513,23 +359,12 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model users {
   email String
   id    Int    @default(autoincrement()) @id
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -546,23 +381,12 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model users {
   email String
   id    Int    @default(autoincrement()) @id
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -579,20 +403,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model users {
   email String?
   id    Int     @default(autoincrement()) @id
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -609,20 +422,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -639,20 +441,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -669,12 +460,6 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id      Int    @default(autoincrement()) @id
   title   String
@@ -686,11 +471,6 @@ model users {
   email String  @unique
   id    Int     @default(autoincrement()) @id
   posts posts[]
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -707,21 +487,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id        Int     @default(autoincrement()) @id
   published Boolean @default(false)
   title     String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -738,21 +507,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id        Int     @default(autoincrement()) @id
   published Boolean @default(false)
   title     String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -769,21 +527,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id        Int     @default(autoincrement()) @id
   published Boolean @default(false)
   title     String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -800,21 +547,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id        Int     @default(autoincrement()) @id
   published Boolean @default(false)
   title     String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -831,21 +567,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id        Int     @default(autoincrement()) @id
   published Boolean @default(false)
   title     String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -862,21 +587,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id        Int     @default(autoincrement()) @id
   published Boolean @default(false)
   title     String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -893,21 +607,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id        Int          @default(autoincrement()) @id
   published posts_status @default(DRAFT)
   title     String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 enum posts_status {
@@ -929,21 +632,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id        Int          @default(autoincrement()) @id
   published posts_status @default(DRAFT)
   title     String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 enum posts_status {
@@ -965,21 +657,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id        Int          @default(autoincrement()) @id
   published posts_status @default(DRAFT)
   title     String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 enum posts_status {
@@ -1001,21 +682,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id        Int          @default(autoincrement()) @id
   published posts_status @default(DRAFT)
   title     String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 enum posts_status {
@@ -1037,21 +707,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id        Int          @default(autoincrement()) @id
   published posts_status @default(DRAFT)
   title     String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 enum posts_status {
@@ -1073,21 +732,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   id        Int          @default(autoincrement()) @id
   published posts_status @default(DRAFT)
   title     String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 enum posts_status {
@@ -1109,21 +757,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model crons {
   frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1140,21 +777,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model crons {
   frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1171,21 +797,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model crons {
   frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1202,21 +817,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model crons {
   frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1233,21 +837,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1264,21 +857,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1295,21 +877,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1326,20 +897,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id    Int @default(autoincrement()) @id
   token Int @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1356,20 +916,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1386,21 +935,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id    Int    @default(autoincrement()) @id
   name  String
   token Int    @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1417,21 +955,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id    Int    @default(autoincrement()) @id
   name  String
   token Int    @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1448,21 +975,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id    Int    @default(autoincrement()) @id
   name  String
   token Int    @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1479,21 +995,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id    Int    @default(autoincrement()) @id
   name  String
   token Int    @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1510,21 +1015,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id    Int    @default(autoincrement()) @id
   name  String
   token Int    @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1541,20 +1035,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1571,20 +1054,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model exercises {
   distance Float
   id       Int   @default(autoincrement()) @id
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1601,20 +1073,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model exercises {
   distance Float @unique
   id       Int   @default(autoincrement()) @id
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1631,20 +1092,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model exercises {
   distance Float @default(12.3) @unique
   id       Int   @default(autoincrement()) @id
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1661,19 +1111,8 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model migrate {
   version Int @id
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1690,12 +1129,6 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model variables {
   email String
   key   String
@@ -1703,11 +1136,6 @@ model variables {
   value String
 
   @@id([name, key])
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1724,12 +1152,6 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model variables {
   email String
   key   String
@@ -1737,11 +1159,6 @@ model variables {
   value String
 
   @@id([name, key])
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1758,12 +1175,6 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model variables {
   email String
   key   String
@@ -1771,11 +1182,6 @@ model variables {
   value String
 
   @@id([name, key])
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1792,12 +1198,6 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model variables {
   email String
   key   String
@@ -1805,11 +1205,6 @@ model variables {
   value String
 
   @@id([name, key])
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1826,12 +1221,6 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model variables {
   email String
   key   String
@@ -1839,11 +1228,6 @@ model variables {
   value String
 
   @@id([name, key])
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1860,12 +1244,6 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model variables {
   email String
   id    Int    @default(autoincrement()) @id
@@ -1874,11 +1252,6 @@ model variables {
   value String
 
   @@unique([name, key], name: "variables_name_key_key")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1895,12 +1268,6 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model variables {
   email String
   key   String
@@ -1909,11 +1276,6 @@ model variables {
 
   @@id([name, key])
   @@unique([value, email], name: "variables_value_email_key")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1930,12 +1292,6 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model a {
   one Int
   two Int
@@ -1949,11 +1305,6 @@ model b {
   one Int
   two Int
   a   a   @relation(fields: [one, two], references: [one, two])
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -1970,20 +1321,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model teams {
   id   Int     @default(autoincrement()) @id
   name String?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -2000,21 +1340,10 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model posts {
   created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -2031,20 +1360,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -2061,20 +1379,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -2091,20 +1398,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -2121,20 +1417,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -2151,20 +1436,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
@@ -2181,20 +1455,9 @@ datasource pg {
   url = "***"
 }
 
-model Profile {
-  bio    String?
-  id     Int     @default(autoincrement()) @id
-  userId Int     @unique
-}
-
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 `
 
