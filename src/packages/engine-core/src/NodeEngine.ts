@@ -545,7 +545,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
                 debug(`Restart attempt ${attempt}. Backoff done`)
                 this.restartCount++
                 const wait =
-                  Math.random() * 2 * Math.pow(Math.E, this.restartCount) * 1000
+                  Math.random() * 2 * Math.pow(Math.E, this.restartCount) * 100
                 this.startPromise = undefined
                 this.backoffPromise = new Promise((r) => setTimeout(r, wait))
                 return this.start()
