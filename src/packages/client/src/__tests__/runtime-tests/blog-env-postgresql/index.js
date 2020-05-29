@@ -17,10 +17,11 @@ module.exports = async () => {
     process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
 
   const credentials = uriToCredentials(originalConnectionString)
+  const sourcePort = credentials.port ?? 5432
   const newPort = await getPort({
     port: getPort.makeRange(3000, 3200),
   })
-  let proxy = tcpProxy.createProxy(newPort, credentials.host, credentials.port)
+  let proxy = tcpProxy.createProxy(newPort, credentials.host, sourcePort)
 
   const connectionString = credentialsToUri({
     ...credentials,
@@ -152,39 +153,13 @@ Overriden connection string: ${connectionString}`)
     }
   }
 
-  // // Test known request error
-  // let knownRequestError
-  // try {
-  //   const result = await prisma.user.create({
-  //     data: {
-  //       email: 'a@a.de',
-  //       name: 'Alice',
-  //     },
-  //   })
-  // } catch (e) {
-  //   knownRequestError = e
-  // } finally {
-  //   if (
-  //     !knownRequestError ||
-  //     !(knownRequestError instanceof PrismaClientKnownRequestError)
-  //   ) {
-  //     throw new Error(`Known request error is incorrect`)
-  //   } else {
-  //     if (
-  //       !knownRequestError.message.includes('Invalid `prisma.user.create()`')
-  //     ) {
-  //       throw new Error(`Invalid error: ${knownRequestError.message}`)
-  //     }
-  //   }
-  // }
-
   proxy.end()
   try {
     const users = await prisma.user.findMany()
   } catch (e) {
     console.error(e)
   }
-  proxy = tcpProxy.createProxy(newPort, credentials.host, credentials.port)
+  proxy = tcpProxy.createProxy(newPort, credentials.host, sourcePort)
   await new Promise((r) => setTimeout(r, 16000))
   try {
     const users = await prisma.user.findMany()
