@@ -4,17 +4,35 @@ const {
   PrismaClientKnownRequestError,
   prismaVersion,
 } = require('@prisma/client')
+
+const { uriToCredentials, credentialsToUri } = require('@prisma/sdk')
+const tcpProxy = require('node-tcp-proxy')
+const getPort = require('get-port')
+
 const assert = require('assert')
 const { Client } = require('pg')
 
-const connectionString =
-  process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
-
-const db = new Client({
-  connectionString,
-})
-
 module.exports = async () => {
+  const originalConnectionString =
+    process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
+
+  const credentials = uriToCredentials(originalConnectionString)
+  const newPort = await getPort({
+    port: getPort.makeRange(3000, 3200),
+  })
+  let proxy = tcpProxy.createProxy(newPort, credentials.host, credentials.port)
+
+  const connectionString = credentialsToUri({
+    ...credentials,
+    port: newPort,
+  })
+
+  console.log(`Original connection string: ${originalConnectionString}.
+Overriden connection string: ${connectionString}`)
+
+  const db = new Client({
+    connectionString: originalConnectionString,
+  })
   await db.connect()
   await db.query(`
     DROP TABLE IF EXISTS "public"."Post";
@@ -44,13 +62,15 @@ module.exports = async () => {
 
   const requests = []
   const prisma = new PrismaClient({
-    // log: ['query', 'info', 'warn'],
     errorFormat: 'colorless',
     __internal: {
       measurePerformance: true,
       hooks: {
         beforeRequest: (request) => requests.push(request),
       },
+    },
+    datasources: {
+      db: connectionString,
     },
   })
 
@@ -151,12 +171,29 @@ module.exports = async () => {
   //   }
   // }
 
+  proxy.end()
+  try {
+    const users = await prisma.user.findMany()
+  } catch (e) {
+    console.error(e)
+  }
+  proxy = tcpProxy.createProxy(newPort, credentials.host, credentials.port)
+  await new Promise((r) => setTimeout(r, 16000))
+  try {
+    const users = await prisma.user.findMany()
+  } catch (e) {
+    console.error(e)
+  }
+  const users = await prisma.user.findMany()
+  assert(users.length === 1)
+
   prisma.disconnect()
   await db.query(`
     DROP TABLE IF EXISTS "public"."Post";
     DROP TABLE IF EXISTS "public"."User";
   `)
   await db.end()
+  proxy.end()
 }
 
 if (require.main === module) {
