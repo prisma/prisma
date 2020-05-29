@@ -7,7 +7,7 @@ exports[`include validation allow deep include without another include 1`] = `
     email
     name
     json
-    posts(first: 20) {
+    posts(take: 20) {
       id
       createdAt
       updatedAt

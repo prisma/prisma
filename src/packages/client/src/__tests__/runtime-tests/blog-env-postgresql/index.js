@@ -17,7 +17,7 @@ module.exports = async () => {
     process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
 
   const credentials = uriToCredentials(originalConnectionString)
-  const sourcePort = credentials.port ?? 5432
+  const sourcePort = credentials.port || 5432
   const newPort = await getPort({
     port: getPort.makeRange(3000, 3200),
   })
