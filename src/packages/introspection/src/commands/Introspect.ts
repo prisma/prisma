@@ -247,8 +247,8 @@ Learn more about the upgrade process in the docs:\n${link(
         modelsCount > 1 ? 'models and wrote them' : 'model and wrote it'
       } into ${chalk.underline(
         path.relative(process.cwd(), schemaPath),
-      )} in ${chalk.bold(formatms(Date.now() - before))} ${chalk.hidden(
-        introspectionSchemaVersion ? `(${introspectionSchemaVersion})` : '',
+      )} in ${chalk.bold(
+        formatms(Date.now() - before),
       )}${prisma1UpgradeMessageBox}
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
 Run ${chalk.green('prisma generate')} to generate Prisma Client.`)
