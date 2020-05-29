@@ -157,7 +157,7 @@ declare interface JsonArray extends Array<JsonValue> {}
  * From https://github.com/sindresorhus/type-fest/
  * Matches any valid JSON value.
  */
-declare type JsonValue = string | number | boolean | null | JsonObject | JsonArray
+declare type JsonValue = string | number | boolean | null | Date | JsonObject | JsonArray
  
 declare type SelectAndInclude = {
   select: any
