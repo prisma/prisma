@@ -759,7 +759,7 @@ async function publishPackages(
       if (process.env.BUILDKITE) {
         await run(pkgDir, `pnpm run build`, dryRun)
       }
-      await run(pkgDir, `pnpm publish --tag ${tag}`, dryRun)
+      await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
     }
   }
 

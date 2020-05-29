@@ -74,6 +74,7 @@ test('introspection basic', async () => {
               "name": "applied",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "INTEGER",
                 "family": "int",
                 "fullDataType": "INTEGER",
@@ -85,6 +86,7 @@ test('introspection basic', async () => {
               "name": "database_migration",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
@@ -96,6 +98,7 @@ test('introspection basic', async () => {
               "name": "datamodel",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
@@ -107,6 +110,7 @@ test('introspection basic', async () => {
               "name": "datamodel_steps",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
@@ -118,6 +122,7 @@ test('introspection basic', async () => {
               "name": "errors",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
@@ -129,6 +134,7 @@ test('introspection basic', async () => {
               "name": "finished_at",
               "tpe": Object {
                 "arity": "nullable",
+                "characterMaximumLength": null,
                 "dataType": "DATE",
                 "family": "dateTime",
                 "fullDataType": "DATE",
@@ -140,6 +146,7 @@ test('introspection basic', async () => {
               "name": "name",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
@@ -151,6 +158,7 @@ test('introspection basic', async () => {
               "name": "revision",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "INTEGER",
                 "family": "int",
                 "fullDataType": "INTEGER",
@@ -162,6 +170,7 @@ test('introspection basic', async () => {
               "name": "rolled_back",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "INTEGER",
                 "family": "int",
                 "fullDataType": "INTEGER",
@@ -173,6 +182,7 @@ test('introspection basic', async () => {
               "name": "started_at",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "DATE",
                 "family": "dateTime",
                 "fullDataType": "DATE",
@@ -184,6 +194,7 @@ test('introspection basic', async () => {
               "name": "status",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
@@ -210,6 +221,7 @@ test('introspection basic', async () => {
               "name": "age",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "INTEGER",
                 "family": "int",
                 "fullDataType": "INTEGER",
@@ -223,6 +235,7 @@ test('introspection basic', async () => {
               "name": "amount",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "REAL",
                 "family": "float",
                 "fullDataType": "REAL",
@@ -236,6 +249,7 @@ test('introspection basic', async () => {
               "name": "balance",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "REAL",
                 "family": "float",
                 "fullDataType": "REAL",
@@ -249,6 +263,7 @@ test('introspection basic', async () => {
               "name": "email",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
@@ -260,6 +275,7 @@ test('introspection basic', async () => {
               "name": "id",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "INTEGER",
                 "family": "int",
                 "fullDataType": "INTEGER",
@@ -271,6 +287,7 @@ test('introspection basic', async () => {
               "name": "name",
               "tpe": Object {
                 "arity": "nullable",
+                "characterMaximumLength": null,
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
@@ -284,6 +301,7 @@ test('introspection basic', async () => {
               "name": "role",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
@@ -323,6 +341,7 @@ test('introspection basic', async () => {
               "name": "author",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "INTEGER",
                 "family": "int",
                 "fullDataType": "INTEGER",
@@ -334,6 +353,7 @@ test('introspection basic', async () => {
               "name": "content",
               "tpe": Object {
                 "arity": "nullable",
+                "characterMaximumLength": null,
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
@@ -347,6 +367,7 @@ test('introspection basic', async () => {
               "name": "createdAt",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "DATE",
                 "family": "dateTime",
                 "fullDataType": "DATE",
@@ -358,6 +379,7 @@ test('introspection basic', async () => {
               "name": "kind",
               "tpe": Object {
                 "arity": "nullable",
+                "characterMaximumLength": null,
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
@@ -371,6 +393,7 @@ test('introspection basic', async () => {
               "name": "published",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "BOOLEAN",
                 "family": "boolean",
                 "fullDataType": "BOOLEAN",
@@ -384,6 +407,7 @@ test('introspection basic', async () => {
               "name": "title",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
@@ -397,6 +421,7 @@ test('introspection basic', async () => {
               "name": "updatedAt",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "DATE",
                 "family": "dateTime",
                 "fullDataType": "DATE",
@@ -408,6 +433,7 @@ test('introspection basic', async () => {
               "name": "uuid",
               "tpe": Object {
                 "arity": "required",
+                "characterMaximumLength": null,
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",

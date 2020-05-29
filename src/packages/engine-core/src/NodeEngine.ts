@@ -21,7 +21,8 @@ import EventEmitter from 'events'
 import { convertLog, RustLog, RustError } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
-import { h1Post } from './h1client'
+import { H1Client } from './h1client'
+import pRetry from 'p-retry'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -73,7 +74,7 @@ export type Deferred = {
   reject: (err: Error) => void
 }
 
-const children: ChildProcessWithoutNullStreams[] = []
+const engines: NodeEngine[] = []
 
 export class NodeEngine {
   private logEmitter: EventEmitter
@@ -87,12 +88,16 @@ export class NodeEngine {
   private child?: ChildProcessWithoutNullStreams
   private clientVersion?: string
   private lastPanic?: Error
+  private globalKillSignalReceived?: string
+  private restartCount: number = 0
+  private backoffPromise?: Promise<any>
+  private queryEngineStarted: boolean = false
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
    */
-  exiting = false
+  queryEngineKilled = false
   managementApiEnabled = false
   datamodelJson?: string
   cwd: string
@@ -113,6 +118,7 @@ export class NodeEngine {
   lastError?: RustError
   startPromise?: Promise<any>
   engineStartDeferred?: Deferred
+  h1Client: H1Client
   constructor({
     cwd,
     datamodelPath,
@@ -140,6 +146,7 @@ export class NodeEngine {
     this.logQueries = logQueries || false
     this.clientVersion = clientVersion
     this.flags = flags || []
+    this.h1Client = new H1Client()
 
     this.logEmitter.on('error', (log: RustLog | Error) => {
       if (this.debug) {
@@ -179,6 +186,7 @@ You may have to run ${chalk.greenBright(
     if (this.debug) {
       debugLib.enable('*')
     }
+    engines.push(this)
   }
 
   private resolveCwd(cwd?: string): string {
@@ -219,7 +227,7 @@ You may have to run ${chalk.greenBright(
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private handlePanic(log: RustLog): void {
-    this.child.kill()
+    this.child?.kill()
     if (this.currentRequestPromise) {
       this.currentRequestPromise.cancel()
     }
@@ -407,9 +415,21 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
-        // reset last panic
-        this.lastPanic = undefined
+        if (this.child?.connected) {
+          debug(
+            `There is a child that still runs and we want to start again. We're killing that child process now.`,
+          )
+          this.queryEngineKilled = true
+          this.child?.kill()
+        }
+        this.queryEngineStarted = false
 
+        // reset last panic
+        this.lastError = undefined
+        this.lastErrorLog = undefined
+        this.lastPanic = undefined
+        this.queryEngineKilled = false
+        this.globalKillSignalReceived = undefined
         this.port = await this.getFreePort()
 
         const env: any = {
@@ -455,11 +475,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           stdio: ['ignore', 'pipe', 'pipe'],
         })
 
-        children.push(this.child)
-
         byline(this.child.stderr).on('data', (msg) => {
           const data = String(msg)
           debug('stderr', data)
+
           try {
             const json = JSON.parse(data)
             if (typeof json.is_panic !== 'undefined') {
@@ -493,8 +512,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               json.target === 'query_engine::server' &&
               json.fields?.message.startsWith('Started http server')
             ) {
+              // TODO: Add debug statement
               this.engineStartDeferred.resolve()
               this.engineStartDeferred = undefined
+              this.queryEngineStarted = true
             }
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
@@ -508,7 +529,40 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         })
 
         this.child.on('exit', (code): void => {
+          this.h1Client.close()
           this.exitCode = code
+          if (
+            !this.queryEngineKilled &&
+            this.queryEngineStarted &&
+            this.restartCount < 5
+          ) {
+            pRetry(
+              async (attempt) => {
+                debug(`Restart attempt ${attempt}. Waiting for backoff`)
+                if (this.backoffPromise) {
+                  await this.backoffPromise
+                }
+                debug(`Restart attempt ${attempt}. Backoff done`)
+                this.restartCount++
+                const wait =
+                  Math.random() * 2 * Math.pow(Math.E, this.restartCount)
+                this.startPromise = undefined
+                this.backoffPromise = new Promise((r) => setTimeout(r, wait))
+                return this.start()
+              },
+              {
+                retries: 4,
+                randomize: true, // full jitter
+                minTimeout: 1000,
+                maxTimeout: 60 * 1000,
+                factor: Math.E,
+                onFailedAttempt: (e) => {
+                  debug(e)
+                },
+              },
+            )
+            return
+          }
           if (code !== 0 && this.engineStartDeferred) {
             const err = new PrismaClientInitializationError(this.stderrLogs)
             this.engineStartDeferred.reject(err)
@@ -558,6 +612,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         })
 
         this.child.on('close', (code, signal): void => {
+          this.h1Client.close()
           if (code === null && signal === 'SIGABRT' && this.child) {
             const error = new PrismaClientRustPanicError(
               getErrorMessageWithLink({
@@ -605,7 +660,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
             this.engineStartDeferred = { resolve, reject }
           })
         } catch (err) {
-          this.child.kill()
+          this.child?.kill()
           throw err
         }
 
@@ -631,11 +686,18 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     }
     if (this.child) {
       debug(`Stopping Prisma engine`)
-      this.exiting = true
-      // this.client.close()
-      this.child.kill()
+      this.queryEngineKilled = true
+      this.h1Client?.close()
+      this.child?.kill()
       delete this.child
     }
+  }
+
+  async kill(signal: string): Promise<void> {
+    this.globalKillSignalReceived = signal
+    this.queryEngineKilled = true
+    this.h1Client?.close()
+    this.child?.kill()
   }
 
   /**
@@ -671,7 +733,10 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       )
     }
 
-    this.currentRequestPromise = h1Post(this.port, stringifyQuery(query))
+    this.currentRequestPromise = this.h1Client.request(
+      this.port,
+      stringifyQuery(query),
+    )
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
@@ -683,6 +748,11 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
           throw new Error(JSON.stringify(data.errors))
         }
         const elapsed = parseInt(headers['x-elapsed']) / 1000
+
+        // reset restart count after successful request
+        if (this.restartCount > 0) {
+          this.restartCount = 0
+        }
 
         return { data, elapsed }
       })
@@ -703,7 +773,10 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       batch: queries.map((query) => ({ query, variables })),
     }
 
-    this.currentRequestPromise = h1Post(this.port, JSON.stringify(body))
+    this.currentRequestPromise = this.h1Client.request(
+      this.port,
+      JSON.stringify(body),
+    )
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
@@ -774,6 +847,19 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       (error.code && error.code === 'ECONNRESET') ||
       error.code === 'ECONNREFUSED'
     ) {
+      if (this.globalKillSignalReceived && !this.child.connected) {
+        throw new PrismaClientUnknownRequestError(`The Node.js process already received a ${this.globalKillSignalReceived} signal, therefore the Prisma query engine exited
+and your request can't be processed.
+You probably have some open handle that prevents your process from exiting.
+It could be an open http server or stream that didn't close yet.
+We recommend using the \`wtfnode\` package to debug open handles.`)
+      }
+
+      if (this.restartCount > 4) {
+        throw new Error(`Query engine is trying to restart, but can't.
+Please look into the logs or turn on the env var DEBUG=* to debug the constantly restarting query engine.`)
+      }
+
       if (this.lastError) {
         if (this.lastError.is_panic) {
           err = new PrismaClientRustPanicError(
@@ -847,25 +933,26 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
   }
 }
 
+// faster than creating a new object and JSON.stringify it all the time
 function stringifyQuery(q: string) {
   return `{"variables":{},"query":${JSON.stringify(q)}}`
 }
 
-function exitHandler(exit = false) {
-  return () => {
-    for (const child of children) {
-      if (!child.killed) {
-        child.kill()
-      }
+function hookProcess(handler: string, exit = false) {
+  process.once(handler as any, () => {
+    for (const engine of engines) {
+      engine.kill(handler)
     }
+    engines.splice(0, engines.length)
     if (exit) {
       process.exit()
     }
-  }
+  })
 }
 
-process.on('beforeExit', exitHandler())
-process.on('exit', exitHandler())
-process.on('SIGINT', exitHandler(true))
-process.on('SIGUSR1', exitHandler(true))
-process.on('SIGUSR2', exitHandler(true))
+hookProcess('beforeExit')
+hookProcess('exit')
+hookProcess('SIGINT', true)
+hookProcess('SIGUSR1', true)
+hookProcess('SIGUSR2', true)
+hookProcess('SIGTERM', true)

@@ -22,3 +22,5 @@ exports[`runtime works missing-binary example should not succeed: missing-binary
 exports[`runtime works missing-binary-native example should not succeed: missing-binary-native example should not succeed 1`] = `[TypeError: e.message.split(...).slice(...).trim is not a function]`;
 
 exports[`runtime works new-line example should succeed: new-line example should succeed 1`] = `undefined`;
+
+exports[`runtime works restart example should succeed: restart example should succeed 1`] = `undefined`;

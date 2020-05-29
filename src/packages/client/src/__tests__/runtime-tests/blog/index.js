@@ -39,7 +39,7 @@ module.exports = async () => {
   assert(typeof count === 'number')
 
   const paramCount = await db.user.count({
-    first: 10000,
+    take: 10000,
   })
 
   assert(typeof paramCount === 'number')

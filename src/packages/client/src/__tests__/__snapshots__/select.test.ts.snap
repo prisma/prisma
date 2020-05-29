@@ -292,7 +292,7 @@ exports[`select validation unknown arg, field, incorrect arg type 1`] = `
     id
     name # INVALID_FIELD
     name2 # INVALID_FIELD
-    posts(first: 200) {
+    posts(take: 200) {
       id
     }
   }

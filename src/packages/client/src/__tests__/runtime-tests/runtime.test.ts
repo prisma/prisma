@@ -3,7 +3,6 @@ import path from 'path'
 import { generateInFolder } from '../../utils/generateInFolder'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
-import Debug from '@prisma/debug'
 const del = promisify(rimraf)
 
 jest.setTimeout(35000)
