@@ -43,7 +43,7 @@ describe('select validation', () => {
         name: 'asd',
         name2: true,
         posts: {
-          first: 200,
+          take: 200,
           select: {
             id: true,
             title: false,
