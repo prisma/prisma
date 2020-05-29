@@ -211,8 +211,12 @@ Then you can run ${chalk.green('prisma introspect')} again.
       \nThe database you introspected seems to belong to a Prisma 1 project.
 
 Please run the following command to upgrade to Prisma 2.0:
-${chalk.green('npx prisma-upgrade <datamodel.graphql>')}
+${chalk.green(
+  'npx prisma-upgrade [path-to-prisma-yml] [path-to-schema-prisma]',
+)}
 
+Note: \`prisma.yml\` and \`schema.prisma\` paths are optional.
+ 
 Learn more about the upgrade process in the docs:\n${link(
           'https://pris.ly/upgrading-to-prisma2',
         )}`
@@ -221,7 +225,7 @@ Learn more about the upgrade process in the docs:\n${link(
     const prisma1UpgradeMessageBox = prisma1UpgradeMessage
       ? '\n\n' +
         drawBox({
-          height: 11,
+          height: 13,
           width: 74,
           str: prisma1UpgradeMessage,
           horizontalPadding: 2,
@@ -251,7 +255,13 @@ Learn more about the upgrade process in the docs:\n${link(
         formatms(Date.now() - before),
       )}${prisma1UpgradeMessageBox}
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
-Run ${chalk.green('prisma generate')} to generate Prisma Client.`)
+${
+  prisma1UpgradeMessage
+    ? `Once you upgraded your database schema to Prisma 2.0, run ${chalk.green(
+        'prisma generate',
+      )} to generate Prisma Client`
+    : `Run ${chalk.green('prisma generate')} to generate Prisma Client.`
+}`)
     }
 
     engine.stop()
