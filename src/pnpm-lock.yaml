@@ -310,9 +310,12 @@ importers:
       bent: 7.3.0
       chalk: 3.0.0
       cross-fetch: 3.0.4
+      fast-json-stringify: 2.0.0
+      get-stream: 5.1.0
       indent-string: 4.0.0
       new-github-issue-url: 0.2.1
       terminal-link: 2.1.1
+      undici: github.com/mcollina/undici/6c3d7eed592cab9c4b63d56164ecd3cc9358945a
     devDependencies:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@types/jest': 25.2.2
@@ -349,6 +352,8 @@ importers:
       eslint-plugin-eslint-comments: 3.1.2
       eslint-plugin-jest: 23.11.0
       eslint-plugin-prettier: 3.1.3
+      fast-json-stringify: ^2.0.0
+      get-stream: ^5.1.0
       husky: 4.2.5
       indent-string: ^4.0.0
       jest: 25.5.4
@@ -358,6 +363,7 @@ importers:
       terminal-link: ^2.1.1
       ts-jest: 25.5.1
       typescript: 3.9.2
+      undici: mcollina/undici
   packages/fetch-engine:
     dependencies:
       '@prisma/debug': 'link:../debug'
@@ -2009,7 +2015,6 @@ packages:
       fast-json-stable-stringify: 2.1.0
       json-schema-traverse: 0.4.1
       uri-js: 4.2.2
-    dev: true
     resolution:
       integrity: sha512-k+V+hzjm5q/Mr8ef/1Y9goCmlsK4I6Sm74teeyGvFk1XrOsbsKLjEdrvny42CZ+a8sXbk8KWpY/bDwS+FLL2UQ==
   /ansi-colors/3.2.3:
@@ -3044,7 +3049,6 @@ packages:
     resolution:
       integrity: sha1-s2nW+128E+7PUk+RsHD+7cNXzzQ=
   /deepmerge/4.2.2:
-    dev: true
     engines:
       node: '>=0.10.0'
     resolution:
@@ -3784,7 +3788,6 @@ packages:
     resolution:
       integrity: sha512-KVLihIS41LzwuXJFdUm5NstoBfAmhCPCzhn362CX2IklaPrzQRtCedzrpPa7Ff/OVbNMUSJJFqx5+4yp07NmbQ==
   /fast-deep-equal/3.1.1:
-    dev: true
     resolution:
       integrity: sha512-8UEa58QDLauDNfpbrX55Q9jrGHThw2ZMdOky5Gl1CDtVeJDPVrG4Jxx1N8jw2gkWaff5UUuX1KJd+9zGe2B+ZA==
   /fast-diff/1.2.0:
@@ -3816,9 +3819,18 @@ packages:
     resolution:
       integrity: sha512-UDV82o4uQyljznxwMxyVRJgZZt3O5wENYojjzbaGEGZgeOxkLFf+V4cnUD+krzb2F72E18RhamkMZ7AdeggF7A==
   /fast-json-stable-stringify/2.1.0:
-    dev: true
     resolution:
       integrity: sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==
+  /fast-json-stringify/2.0.0:
+    dependencies:
+      ajv: 6.12.2
+      deepmerge: 4.2.2
+      string-similarity: 4.0.1
+    dev: false
+    engines:
+      node: '>= 10.0.0'
+    resolution:
+      integrity: sha512-q3b2sMbYySzXdQSX4F9ILle3oJzpV1/7p5wPfpDL3mH2euzdL7qiEeg9B4lS/lGTjYBriAplSnpoqYLTy/p8Ew==
   /fast-levenshtein/2.0.6:
     dev: true
     resolution:
@@ -4443,6 +4455,10 @@ packages:
       node: '>= 0.6'
     resolution:
       integrity: sha512-ZTTX0MWrsQ2ZAhA1cejAwDLycFsd7I7nVtnkT3Ol0aqodaKW+0CTZDQ1uBv5whptCnc8e8HeRRJxRs0kmm/Qfw==
+  /http-parser-js/0.5.2:
+    dev: false
+    resolution:
+      integrity: sha512-opCO9ASqg5Wy2FNo7A0sxy71yGbbkJJXLdgMK04Tcypw9jr2MgWbyubb0+WdmDmGnFflO7fRbqbaihh/ENDlRQ==
   /http-proxy-agent/4.0.1:
     dependencies:
       '@tootallnate/once': 1.0.0
@@ -5497,7 +5513,6 @@ packages:
     resolution:
       integrity: sha512-mrqyZKfX5EhL7hvqcV6WG1yYjnjeuYDzDhhcAAUrq8Po85NBQBJP+ZDUT75qZQ98IkUoBqdkExkukOU7Ts2wrw==
   /json-schema-traverse/0.4.1:
-    dev: true
     resolution:
       integrity: sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==
   /json-schema/0.2.3:
@@ -6983,7 +6998,6 @@ packages:
     resolution:
       integrity: sha512-LwZy+p3SFs1Pytd/jYct4wpv49HiYCqd9Rlc5ZVdk0V+8Yzv6jR5Blk3TRmPL1ft69TxP0IMZGJ+WPFU2BFhww==
   /punycode/2.1.1:
-    dev: true
     engines:
       node: '>=6'
     resolution:
@@ -7924,6 +7938,10 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-Ttp5YvkGm5v9Ijagtaz1BnN+k9ObpvS0eIBblPMp2YWL8FBmi9qblQ9fexc2k/CXFgrTIteU3jAw3payCnwSTA==
+  /string-similarity/4.0.1:
+    dev: false
+    resolution:
+      integrity: sha512-v36MJzloekKVvKAsYi6O/qpn2mIuvwEFIT9Gx3yg4spkNjXYsk7yxc37g4ZTyMVIBvt/9PZGxnqEtme8XHK+Mw==
   /string-width/1.0.2:
     dependencies:
       code-point-at: 1.1.0
@@ -8634,7 +8652,6 @@ packages:
   /uri-js/4.2.2:
     dependencies:
       punycode: 2.1.1
-    dev: true
     resolution:
       integrity: sha512-KY9Frmirql91X2Qgjry0Wd4Y+YTdrdZheS8TFwvkbLWf/G5KNJDCh6pKL5OZctEW4+0Baa5idK2ZQuELRwPznQ==
   /urix/0.1.0:
@@ -8999,3 +9016,12 @@ packages:
       node: '>= 6'
     resolution:
       integrity: sha512-EkXc2JGcKhO5N5aZ7TmuNo45budRaFGHOmz24wtJR7znbNqDPmdZtUauKX6et8KAVseAMBOyWJqEpXcHTBsh7Q==
+  github.com/mcollina/undici/6c3d7eed592cab9c4b63d56164ecd3cc9358945a:
+    dependencies:
+      http-parser-js: 0.5.2
+    dev: false
+    name: undici
+    resolution:
+      registry: 'https://registry.npmjs.org/'
+      tarball: 'https://codeload.github.com/mcollina/undici/tar.gz/6c3d7eed592cab9c4b63d56164ecd3cc9358945a'
+    version: 0.5.0
