@@ -17,27 +17,34 @@ const db = new Client({
 module.exports = async () => {
   await db.connect()
   await db.query(`
-    DROP TABLE IF EXISTS "public"."Post";
+    DROP TYPE IF EXISTS "Role";
+    CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN');
+
+    DROP TABLE IF EXISTS "public"."Post" CASCADE;
     CREATE TABLE "public"."Post" (
         "id" text NOT NULL,
-        "createdAt" timestamp(3) NOT NULL,
+        "createdAt" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" timestamp(3) NOT NULL DEFAULT '1970-01-01 00:00:00'::timestamp without time zone,
-        "published" bool NOT NULL DEFAULT false,
-        "title" text NOT NULL DEFAULT ''::text,
+        "published" boolean NOT NULL DEFAULT false,
+        "title" text NOT NULL,
         "content" text,
-        "author" text,
+        "authorId" text,
+        "jsonData" jsonb,
         PRIMARY KEY ("id")
     );
 
-    DROP TABLE IF EXISTS "public"."User";
+    DROP TABLE IF EXISTS "public"."User" CASCADE;
     CREATE TABLE "public"."User" (
-        "id" text NOT NULL,
-        "email" text NOT NULL DEFAULT ''::text,
+        "id" text,
+        "email" text NOT NULL,
         "name" text,
         PRIMARY KEY ("id")
     );
 
-    ALTER TABLE "public"."Post" ADD FOREIGN KEY ("author") REFERENCES "public"."User"("id");
+    CREATE UNIQUE INDEX "User.email" ON "public"."User"("email");
+
+    ALTER TABLE "public"."Post" ADD FOREIGN KEY ("authorId") REFERENCES "public"."User"("id")
+    ON DELETE SET NULL ON UPDATE CASCADE;
 
     INSERT INTO "public"."User" (email, id, name) VALUES ('a@a.de',	'576eddf9-2434-421f-9a86-58bede16fd95',	'Alice');
   `)
@@ -104,7 +111,7 @@ module.exports = async () => {
   const rawQueryTemplateWithParams = await prisma.raw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
   if (rawQueryTemplateWithParams[0].name !== 'Alice') {
     throw Error(
-      "prisma.raw`SELECT * FROM User WHERE name = ${'Alice'}` result should be [{ email: 'a@a.de', id: '576eddf9-2434-421f-9a86-58bede16fd95', name: 'Alice' }]",
+      "prisma.raw`SELECT * FROM User WHERE name = ${'Alice'}` result should be [{ email: 'a@a.de', id: 11233, name: 'Alice' }]",
     )
   }
 
@@ -151,10 +158,38 @@ module.exports = async () => {
   //   }
   // }
 
+  const resultEmptyJson = await prisma.post.create({
+    data: {
+      published: false,
+      title: 'empty json',
+      jsonData: [],
+    },
+  })
+
+  await prisma.post.delete({
+    where: { id: resultEmptyJson.id },
+  })
+
+  const resultJsonArray = await prisma.post.create({
+    data: {
+      published: false,
+      title: 'json array',
+      jsonData: [
+        {
+          array1key: 'array1value',
+        },
+      ],
+    },
+  })
+
+  await prisma.post.delete({
+    where: { id: resultJsonArray.id },
+  })
+
   prisma.disconnect()
   await db.query(`
-    DROP TABLE IF EXISTS "public"."Post";
-    DROP TABLE IF EXISTS "public"."User";
+    DROP TABLE IF EXISTS "public"."Post" CASCADE;
+    DROP TABLE IF EXISTS "public"."User" CASCADE;
   `)
   await db.end()
 }

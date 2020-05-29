@@ -774,6 +774,16 @@ ${indent(value.toString(), 2)}
     }
 
     if (Array.isArray(value)) {
+      if (this.argType === 'Json') {
+        return `${key}: ${stringify(
+          JSON.stringify(value),
+          null,
+          2,
+          this.isEnum,
+          this.argType === 'Json',
+        )}`
+      }
+
       const isScalar = !(value as any[]).some((v) => typeof v === 'object')
       return `${key}: [${isScalar ? '' : '\n'}${indent(
         (value as any[])
