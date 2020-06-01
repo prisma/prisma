@@ -54,7 +54,7 @@
     "checkpoint-client": "^1.0.7",
     "cli-truncate": "^2.1.0",
     "execa": "^4.0.0",
-    "globby": "^9.2.0",
+    "globby": "^11.0.0",
     "has-yarn": "^2.1.0",
     "make-dir": "^3.0.2",
     "node-fetch": "2.6.0",
