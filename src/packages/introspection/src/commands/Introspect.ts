@@ -195,6 +195,10 @@ Then you can run ${chalk.green('prisma introspect')} again.
             message += warning.affected
               .map((it) => `- Enum "${it.enm}", value: "${it.value}"`)
               .join('\n')
+          } else if (warning.code === 5) {
+            message += warning.affected
+              .map((it) => `- Model "${it.model}", field: "${it.field}"`)
+              .join('\n')
           }
 
           message += `\n`

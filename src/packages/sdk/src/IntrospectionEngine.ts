@@ -46,6 +46,7 @@ export type IntrospectionWarnings =
   | IntrospectionWarningsEmptyFieldName
   | IntrospectionWarningsUnsupportedType
   | IntrospectionWarningsInvalidEnumName
+  | IntrospectionWarningsPrisma1
 
 interface IntrospectionWarningsMissingUnique {
   code: 1
@@ -69,6 +70,12 @@ interface IntrospectionWarningsInvalidEnumName {
   code: 4
   message: string
   affected: { enm: string; value: string }[]
+}
+
+interface IntrospectionWarningsPrisma1 {
+  code: 5
+  message: string
+  affected: { model: string; field: string }[]
 }
 
 export type IntrospectionSchemaVersion =
