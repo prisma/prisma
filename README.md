@@ -137,17 +137,17 @@ Once Prisma Client was generated, you can import in your code and send queries t
 You can import and instantiate Prisma Client as follows:
 
 ```ts
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 ```
 
 or
 
 ```js
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient } = require('@prisma/client')
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 ```
 
 Now you can start sending queries via the generated Prisma Client API, here are a few sample queries. Note that all Prisma Client queries return _plain old JavaScript objects_.
@@ -158,7 +158,7 @@ Learn more about the available operations in the [Prisma Client API reference](h
 
 ```ts
 // Run inside `async` function
-const allUsers = await prisma.user.findMany();
+const allUsers = await prisma.user.findMany()
 ```
 
 ##### Include the `posts` relation on each returned `User` object
@@ -167,7 +167,7 @@ const allUsers = await prisma.user.findMany();
 // Run inside `async` function
 const allUsers = await prisma.user.findMany({
   include: { posts: true },
-});
+})
 ```
 
 ##### Filter all `Post` records that contain `"prisma"`
@@ -177,11 +177,11 @@ const allUsers = await prisma.user.findMany({
 const filteredPosts = await prisma.post.findMany({
   where: {
     OR: [
-      { title: { contains: "prisma" } },
-      { content: { contains: "prisma" } },
+      { title: { contains: 'prisma' } },
+      { content: { contains: 'prisma' } },
     ],
   },
-});
+})
 ```
 
 ##### Create a new `User` and a new `Post` record in the same query
@@ -190,13 +190,13 @@ const filteredPosts = await prisma.post.findMany({
 // Run inside `async` function
 const user = await prisma.user.create({
   data: {
-    name: "Alice",
-    email: "alice@prisma.io",
+    name: 'Alice',
+    email: 'alice@prisma.io',
     posts: {
-      create: { title: "Join us for Prisma Day 2020" },
+      create: { title: 'Join us for Prisma Day 2020' },
     },
   },
-});
+})
 ```
 
 ##### Update an existing `Post` record
@@ -206,7 +206,7 @@ const user = await prisma.user.create({
 const post = await prisma.post.update({
   where: { id: 42 },
   data: { published: true },
-});
+})
 ```
 
 #### Usage with TypeScript
