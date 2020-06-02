@@ -123,13 +123,6 @@ export async function getGenerators({
         if (aliases && aliases[generator.provider]) {
           generatorPath = aliases[generator.provider].generatorPath
           paths = aliases[generator.provider]
-          if (!fs.existsSync(generatorPath)) {
-            throw new Error(
-              `Could not find generator executable ${
-                aliases[generator.provider].generatorPath
-              } for generator ${generator.provider}`,
-            )
-          }
         } else if (predefinedGeneratorResolvers[generator.provider]) {
           paths = await predefinedGeneratorResolvers[generator.provider](
             baseDir,
