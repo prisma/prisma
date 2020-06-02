@@ -776,7 +776,7 @@ ${indent(value.toString(), 2)}
     if (Array.isArray(value)) {
       if (this.argType === 'Json') {
         return `${key}: ${stringify(
-          JSON.stringify(value),
+          value,
           null,
           2,
           this.isEnum,
