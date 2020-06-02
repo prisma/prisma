@@ -1450,7 +1450,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   }
 ]
 
-exports['findOne - check typeof Date is String for Json field_datamodel'] = `
+exports['findOne - check typeof js object is object for Json field_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1468,4 +1468,44 @@ model posts {
 }
 `
 
-exports['findOne - check typeof Date is String for Json field_warnings'] = []
+exports['findOne - check typeof js object is object for Json field_warnings'] = []
+
+exports['findOne - check typeof Date is string for Json field_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  data  Json?
+  id    Int    @default(autoincrement()) @id
+  title String
+}
+`
+
+exports['findOne - check typeof Date is string for Json field_warnings'] = []
+
+exports['findOne - check typeof array for Json field with array_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  data  Json
+  id    Int    @default(autoincrement()) @id
+  title String
+}
+`
+
+exports['findOne - check typeof array for Json field with array_warnings'] = []

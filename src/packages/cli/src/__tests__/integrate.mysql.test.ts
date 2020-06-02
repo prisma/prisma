@@ -2097,12 +2097,51 @@ function tests(): Test[] {
       expect: [],
     },
     {
-      name: 'findOne - check typeof Date is String for Json field',
+      name: 'findOne - check typeof js object is object for Json field',
       up: `
         create table posts (
           id serial primary key not null,
           title varchar(50) not null,
           data JSON
+        );
+      `,
+      down: `
+        drop table if exists posts cascade;
+      `,
+      do: async (client) => {
+        const created = await client.posts.create({
+          data: {
+            title: 'A',
+            data: {
+              somekey: 'somevalue',
+              somekeyarray: ['somevalueinsidearray'],
+            },
+          },
+        })
+        const posts = await client.posts.findMany()
+        posts.forEach((post) => {
+          assert.ok(typeof post.data === 'object')
+        })
+        return posts
+      },
+      expect: [
+        {
+          id: 1,
+          title: 'A',
+          data: {
+            somekey: 'somevalue',
+            somekeyarray: ['somevalueinsidearray'],
+          },
+        },
+      ],
+    },
+    {
+      name: 'findOne - check typeof Date is string for Json field',
+      up: `
+        create table posts (
+          id serial primary key not null,
+          title varchar(50) not null,
+          data JSON 
         );
         insert into posts (title, data) values ('A', '"2020-01-14T11:10:19.573Z"');
       `,
@@ -2110,16 +2149,59 @@ function tests(): Test[] {
         drop table if exists posts cascade;
       `,
       do: async (client) => {
+        const created = await client.posts.create({
+          data: {
+            title: 'B',
+            data: new Date('2020-01-01'),
+          },
+        })
+        const posts = await client.posts.findMany()
+        posts.forEach((post) => {
+          assert.ok(typeof post.data === 'string')
+        })
+        return posts
+      },
+      expect: [
+        {
+          id: 1,
+          title: 'A',
+          data: '2020-01-14T11:10:19.573Z',
+        },
+        {
+          id: 2,
+          title: 'B',
+          data: '2020-01-01T00:00:00.000Z',
+        },
+      ],
+    },
+    {
+      name: 'findOne - check typeof array for Json field with array',
+      up: `
+        create table posts (
+          id serial primary key not null,
+          title varchar(50) not null,
+          data JSON not null
+        );
+        `,
+      down: `
+        drop table if exists posts cascade;
+      `,
+      do: async (client) => {
+        const result = await client.posts.create({
+          data: {
+            title: 'Hello',
+            data: ['some', 'array', 1, 2, 3, { object: 'value' }],
+          },
+        })
         const post = await client.posts.findOne({
           where: { id: 1 },
         })
-        assert.ok(typeof post.data === 'string')
         return post
       },
       expect: {
         id: 1,
-        title: 'A',
-        data: '2020-01-14T11:10:19.573Z',
+        title: 'Hello',
+        data: ['some', 'array', 1, 2, 3, { object: 'value' }],
       },
     },
   ]
