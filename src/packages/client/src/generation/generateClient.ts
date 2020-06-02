@@ -105,6 +105,13 @@ export async function buildClient({
 }
 
 function getDotPrismaDir(outputDir: string): string {
+  // Fix for Vercel
+  if (
+    process.env.NOW_BUILDER &&
+    process.env.INIT_CWD?.includes(process.cwd())
+  ) {
+    return path.join(process.cwd(), 'node_modules/.prisma/client')
+  }
   if (
     process.env.INIT_CWD &&
     process.env.npm_lifecycle_event === 'postinstall' &&
