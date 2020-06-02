@@ -491,7 +491,7 @@ export type LogEvent = {
 export declare function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
 
 ${this.jsDoc}
-export declare class PrismaClient<T extends PrismaClientOptions = {}, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
+export declare class PrismaClient<T extends PrismaClientOptions = PrismaClientOptions, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
   /**
    * @private
    */
