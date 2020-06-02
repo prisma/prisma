@@ -241,7 +241,7 @@ If the feature on the roadmap is linked to a GitHub issue, please make sure to l
 
 ## Contributing
 
-Read more about how to contribute to Prisma [here](https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md)
+Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md) and [Code of Couduct for contributors](https://github.com/prisma/prisma/blob/master/CODE_OF_CONDUCT.md).
 
 ## Build Status
 
