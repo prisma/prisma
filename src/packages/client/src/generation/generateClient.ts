@@ -318,8 +318,10 @@ export declare type RawValue = Value | Sql;
  * A SQL instance can be nested within each other to build SQL strings.
  */
 export declare class Sql {
-    protected rawStrings: ReadonlyArray<string>;
-    protected rawValues: ReadonlyArray<RawValue>;
+    values: Value[];
+    strings: string[];
+    rawStrings: ReadonlyArray<string>;
+    rawValues: ReadonlyArray<RawValue>;
     constructor(rawStrings: ReadonlyArray<string>, rawValues: ReadonlyArray<RawValue>);
     readonly values: Value[];
     readonly strings: string[];
