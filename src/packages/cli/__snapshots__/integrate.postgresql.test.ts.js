@@ -39,11 +39,6 @@ model teams {
   name String @unique
 }
 
-model users {
-  email String @unique
-  id    Int    @default(autoincrement()) @id
-}
-
 enum Role {
   ADMIN
   USER
@@ -67,11 +62,6 @@ model teams {
   email String @unique
   id    Int    @id
   name  String @unique
-}
-
-model users {
-  email String @unique
-  id    Int    @default(autoincrement()) @id
 }
 
 enum Role {
