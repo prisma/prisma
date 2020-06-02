@@ -1,3 +1,28 @@
+exports['findOne - check typeof array for Json field with array_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model posts {
+  data  Json
+  id    Int    @default(autoincrement()) @id
+  title String
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+`
+
+exports['findOne - check typeof array for Json field with array_warnings'] = []
+
 exports['findOne where PK_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
@@ -12,6 +37,11 @@ datasource pg {
 model teams {
   id   Int    @id
   name String @unique
+}
+
+model users {
+  email String @unique
+  id    Int    @default(autoincrement()) @id
 }
 
 enum Role {
@@ -37,6 +67,11 @@ model teams {
   email String @unique
   id    Int    @id
   name  String @unique
+}
+
+model users {
+  email String @unique
+  id    Int    @default(autoincrement()) @id
 }
 
 enum Role {
@@ -1797,6 +1832,31 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
     ]
   }
 ]
+
+exports['findOne - check typeof js object is object for Json field_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model posts {
+  data  Json?
+  id    Int    @default(autoincrement()) @id
+  title String
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+`
+
+exports['findOne - check typeof js object is object for Json field_warnings'] = []
 
 exports['findOne - check typeof Date is string for Json field_datamodel'] = `
 generator client {
