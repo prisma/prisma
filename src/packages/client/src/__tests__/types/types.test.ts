@@ -9,6 +9,9 @@ import {
 } from 'typescript'
 import * as ts from 'typescript'
 import { generateInFolder } from '../../utils/generateInFolder'
+import rimraf from 'rimraf'
+import { promisify } from 'util'
+const del = promisify(rimraf)
 
 jest.setTimeout(30000)
 
@@ -18,6 +21,10 @@ describe('valid types', () => {
     const testName = path.basename(dir)
 
     test(testName, async () => {
+      const nodeModules = path.join(dir, 'node_modules')
+      if (fs.existsSync(nodeModules)) {
+        await del(nodeModules)
+      }
       await generateInFolder({
         projectDir: dir,
         useLocalRuntime: false,
