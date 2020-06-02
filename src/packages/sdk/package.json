@@ -1,6 +1,6 @@
 {
   "name": "@prisma/sdk",
-  "version": "2.0.0-alpha.1205",
+  "version": "2.0.0-alpha.1284",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
@@ -20,7 +20,7 @@
     "scripts"
   ],
   "prisma": {
-    "version": "5d39801acf2e3475bd9dab029a63634358b07bf1"
+    "version": "41f8d9863f1e0f6bfdb24def858e520f99bc2479"
   },
   "devDependencies": {
     "@types/jest": "25.2.3",
@@ -42,19 +42,19 @@
     "typescript": "3.9.3"
   },
   "dependencies": {
-    "@prisma/debug": "workspace:*",
     "@apexearth/copy": "^1.4.5",
+    "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "archiver": "^3.1.1",
+    "archiver": "^4.0.0",
     "arg": "^4.1.3",
     "chalk": "3.0.0",
     "checkpoint-client": "^1.0.7",
     "cli-truncate": "^2.1.0",
     "execa": "^4.0.0",
-    "globby": "^9.2.0",
+    "globby": "^11.0.0",
     "has-yarn": "^2.1.0",
     "make-dir": "^3.0.2",
     "node-fetch": "2.6.0",
@@ -70,7 +70,7 @@
     "temp-write": "^4.0.0",
     "tempy": "^0.5.0",
     "terminal-link": "^2.1.1",
-    "tmp": "0.1.0",
+    "tmp": "0.2.1",
     "url-parse": "^1.4.7"
   },
   "husky": {

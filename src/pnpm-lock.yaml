@@ -46,10 +46,10 @@ importers:
       '@prisma/introspection': 'link:../introspection'
       '@prisma/migrate': 'link:../migrate'
       '@prisma/sdk': 'link:../sdk'
-      '@prisma/studio': 0.228.0
-      '@prisma/studio-server': 0.228.0
-      '@prisma/studio-transports': 0.228.0
-      '@prisma/studio-types': 0.228.0
+      '@prisma/studio': 0.229.0
+      '@prisma/studio-server': 0.229.0
+      '@prisma/studio-transports': 0.229.0
+      '@prisma/studio-types': 0.229.0
       '@types/debug': 4.1.5
       '@types/mocha': 5.2.7
       '@types/pg': 7.14.3
@@ -84,7 +84,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: 4.2.0
+      sqlite3: 4.1.1
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.5.0
@@ -103,10 +103,10 @@ importers:
       '@prisma/introspection': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio': 0.228.0
-      '@prisma/studio-server': 0.228.0
-      '@prisma/studio-transports': 0.228.0
-      '@prisma/studio-types': 0.228.0
+      '@prisma/studio': 0.229.0
+      '@prisma/studio-server': 0.229.0
+      '@prisma/studio-transports': 0.229.0
+      '@prisma/studio-types': 0.229.0
       '@types/debug': 4.1.5
       '@types/mocha': 5.2.7
       '@types/pg': 7.14.3
@@ -141,7 +141,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: 4.2.0
+      sqlite3: '4.1'
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.5.0
@@ -244,7 +244,7 @@ importers:
       flat-map-polyfill: 0.3.8
       fs-monkey: 1.0.1
       get-own-enumerable-property-symbols: 3.0.2
-      get-port: ^5.1.1
+      get-port: 5.1.1
       husky: 4.2.5
       indent-string: 4.0.0
       is-obj: 2.0.0
@@ -255,7 +255,7 @@ importers:
       lint-staged: 10.2.7
       make-dir: 3.1.0
       node-fetch: 2.6.0
-      node-tcp-proxy: ^0.0.15
+      node-tcp-proxy: 0.0.15
       packwatch: 2.0.0
       pg: 7.18.2
       pluralize: 8.0.0
@@ -612,8 +612,8 @@ importers:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/get-platform': 'link:../get-platform'
       '@prisma/ink-components': 'link:../ink-components'
-      '@prisma/studio-server': 0.228.0
-      '@prisma/studio-types': 0.228.0
+      '@prisma/studio-server': 0.229.0
+      '@prisma/studio-types': 0.229.0
       ansi-escapes: 4.3.1
       cli-cursor: 3.1.0
       dashify: 2.0.0
@@ -679,8 +679,8 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@prisma/ink-components': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio-server': 0.228.0
-      '@prisma/studio-types': 0.228.0
+      '@prisma/studio-server': 0.229.0
+      '@prisma/studio-types': 0.229.0
       '@types/charm': 1.0.2
       '@types/debug': 4.1.5
       '@types/diff': 4.0.2
@@ -764,7 +764,7 @@ importers:
       temp-write: 4.0.0
       tempy: 0.5.0
       terminal-link: 2.1.1
-      tmp: 0.1.0
+      tmp: 0.2.1
       url-parse: 1.4.7
     devDependencies:
       '@types/jest': 25.2.3
@@ -827,7 +827,7 @@ importers:
       temp-write: ^4.0.0
       tempy: ^0.5.0
       terminal-link: ^2.1.1
-      tmp: 0.1.0
+      tmp: 0.2.1
       ts-jest: 25.5.1
       ts-node: 8.10.2
       typescript: 3.9.3
@@ -843,9 +843,15 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-Zws+jNVT54YUjBuNfDKje2uyoTQRYpIPMHDf6v6EI019ZqXnwYxb4/gZMlDjv+O+LnZbBn2Sc8DC5KAbcBNiaQ==
+  /@babel/code-frame/7.10.1:
+    dependencies:
+      '@babel/highlight': 7.10.1
+    resolution:
+      integrity: sha512-IGhtTmpjGbYzcEDOw7DcQtbQSXcG9ftmAXtWTu9V936vDye4xjjekktFAtgZsWpzTj/X01jocB46mTywm/4SZw==
   /@babel/code-frame/7.8.3:
     dependencies:
       '@babel/highlight': 7.9.0
+    dev: true
     resolution:
       integrity: sha512-a9gxpmdXtZEInkCSHUJDLHZVBgb1QS0jhss4cPP93EW7s+uC5bikET2twEF3KV+7rDblJcmNvTR7VJejqd2C2g==
   /@babel/core/7.9.0:
@@ -950,7 +956,11 @@ packages:
     dev: true
     resolution:
       integrity: sha512-3x3yOeyBhW851hroze7ElzdkeRXQYQbFIb7gLK1WQYsw2GWDay5gAJNw1sWJ0VFP6z5J1whqeXH/WCdCjZv6dA==
+  /@babel/helper-validator-identifier/7.10.1:
+    resolution:
+      integrity: sha512-5vW/JXLALhczRCWP0PnFDMCJAchlBvM7f4uk/jXritBnIa6E1KmqmtrS3yn1LAnxFBypQ3eneLuXjsnfQsgILw==
   /@babel/helper-validator-identifier/7.9.5:
+    dev: true
     resolution:
       integrity: sha512-/8arLKUFq882w4tWGj9JYzRpAlZgiWUJ+dtteNTDqrRBz9Iguck9Rn3ykuBDoUwh2TO4tSAJlrxDUOXWklJe4g==
   /@babel/helpers/7.9.2:
@@ -961,11 +971,19 @@ packages:
     dev: true
     resolution:
       integrity: sha512-JwLvzlXVPjO8eU9c/wF9/zOIN7X6h8DYf7mG4CiFRZRvZNKEF5dQ3H3V+ASkHoIB3mWhatgl5ONhyqHRI6MppA==
+  /@babel/highlight/7.10.1:
+    dependencies:
+      '@babel/helper-validator-identifier': 7.10.1
+      chalk: 2.4.2
+      js-tokens: 4.0.0
+    resolution:
+      integrity: sha512-8rMof+gVP8mxYZApLF/JgNDAkdKa+aJt3ZYxF8z6+j/hpeXL7iMsKCPHa2jNMHu/qqBwzQF4OHNoYi8dMA/rYg==
   /@babel/highlight/7.9.0:
     dependencies:
       '@babel/helper-validator-identifier': 7.9.5
       chalk: 2.4.2
       js-tokens: 4.0.0
+    dev: true
     resolution:
       integrity: sha512-lJZPilxX7Op3Nv/2cvFdnlepPXDxi29wxteT57Q965oc5R9v86ztx0jfxVrTcBk8C2kcPkkDa2Z4T3ZsPPVWsQ==
   /@babel/parser/7.9.4:
@@ -1358,23 +1376,34 @@ packages:
     dev: true
     resolution:
       integrity: sha512-gC5mZl+rl3Fd1u7s9PJAc+vX3XdEsisxmfjvDASDj6koyHiWAblDh5bM1yR3WBogfG5kabKdXapjOApmjKxAmw==
-  /@prisma/engine-core/2.0.0-beta.4:
+  /@prisma/debug/2.0.0-alpha.1279:
     dependencies:
-      '@prisma/generator-helper': 2.0.0-beta.4
-      '@prisma/get-platform': 2.0.0-beta.4
-      bent: 7.3.1
+      debug: 4.1.1
+    resolution:
+      integrity: sha512-isxQTLjIveSUnkLx0Z+O0VYNGul3E/lfw6jPaQEcrPHFRQZKDXrdmllOefH+ZLvmwUXR1emHmH67nMryCG4csQ==
+  /@prisma/engine-core/2.0.0-alpha.1279:
+    dependencies:
+      '@prisma/debug': 2.0.0-alpha.1279
+      '@prisma/generator-helper': 2.0.0-alpha.1279
+      '@prisma/get-platform': 2.0.0-alpha.1279
+      bent: 7.3.2
       chalk: 3.0.0
       cross-fetch: 3.0.4
-      debug: 4.1.1
+      fast-json-stringify: 2.0.0
+      get-stream: 5.1.0
       indent-string: 4.0.0
+      new-github-issue-url: 0.2.1
+      p-retry: 4.2.0
+      terminal-link: 2.1.1
+      undici: github.com/mcollina/undici/ccdc2ef2872321921912576e70375f77b854e2eb
     resolution:
-      integrity: sha512-XJrhfhRaSN1kJQMjX1xmEHiooPtZXEcbXpgGTVPia8WLUo5buvnOIYL4qP5Cv0WSS4PSW68DChi+XlyGSlGNUg==
-  /@prisma/fetch-engine/2.0.0-beta.4:
+      integrity: sha512-v6+/ry2XmYsH037u1n+lx3AOa3PWBPaYuJcgYh2R0tl1KJgeykDLHEK61u92/NdHFcuo4si/EJg62qx64w8TpA==
+  /@prisma/fetch-engine/2.0.0-alpha.1279:
     dependencies:
-      '@prisma/get-platform': 2.0.0-beta.4
+      '@prisma/debug': 2.0.0-alpha.1279
+      '@prisma/get-platform': 2.0.0-alpha.1279
       chalk: 4.0.0
-      debug: 4.1.1
-      execa: 4.0.1
+      execa: 4.0.0
       find-cache-dir: 3.3.1
       hasha: 5.2.0
       htmlparser2: 4.1.0
@@ -1389,34 +1418,34 @@ packages:
       rimraf: 3.0.2
       tempy: 0.5.0
     resolution:
-      integrity: sha512-B9kPy0JhTKPoKol5uvs/832eyRZYoVf+hRbXrEbImULmz1nojk1Rv8fBLd/MVZ+cyvdgSlYeTPR2ZBTMTP1Kgg==
-  /@prisma/generator-helper/2.0.0-beta.4:
+      integrity: sha512-sF2Cb+IK46p/SmKSxut6KXmhaRDJqwLY0Hb5HImYZV4fw02USB3F4CQxPIgSjjxr24vnmiXtDE+ThiTzQzG/dw==
+  /@prisma/generator-helper/2.0.0-alpha.1279:
     dependencies:
-      '@types/cross-spawn': 6.0.1
+      '@prisma/debug': 2.0.0-alpha.1279
+      '@types/cross-spawn': 6.0.2
       chalk: 3.0.0
-      cross-spawn: 7.0.2
-      debug: 4.1.1
-      isbinaryfile: 4.0.6
+      cross-spawn: 7.0.3
     resolution:
-      integrity: sha512-z4Q6vNntvkMnG15KOTWMlHrX1QBIF6Dy2gtBvgHNmrcRhhWqQLpRFs8+MffJL4TiA6/nPu0WaAOiwF3eA+7ovg==
-  /@prisma/get-platform/2.0.0-beta.4:
+      integrity: sha512-XY2VX6qD84o6TLvgjANJ6gek92k7UVy+gk8H4OowIXwgHnHeHA6+0fA/Jk70gJKvCqix3m3Ucr3Ke/38kbjHpg==
+  /@prisma/get-platform/2.0.0-alpha.1279:
     dependencies:
-      debug: 4.1.1
+      '@prisma/debug': 2.0.0-alpha.1279
     resolution:
-      integrity: sha512-usfvR2jxDghh0volcHl7st1ebJMn1vvJA8J0ZQWsspU/El+m6XR6hF3s9ORvlBh2nLIQPdhexFiOPAxp4c4FjQ==
-  /@prisma/sdk/2.0.0-beta.4:
+      integrity: sha512-oZSYOOAO73yT2uzAr3eWBghG/M6k54DpPWiXiKNrS57i6S9GRdR6ADDdGyK+IYc9OijIqwfgQMjxI0VbDETRVw==
+  /@prisma/sdk/2.0.0-alpha.1279:
     dependencies:
       '@apexearth/copy': 1.4.5
-      '@prisma/engine-core': 2.0.0-beta.4
-      '@prisma/fetch-engine': 2.0.0-beta.4
-      '@prisma/generator-helper': 2.0.0-beta.4
-      '@prisma/get-platform': 2.0.0-beta.4
+      '@prisma/debug': 2.0.0-alpha.1279
+      '@prisma/engine-core': 2.0.0-alpha.1279
+      '@prisma/fetch-engine': 2.0.0-alpha.1279
+      '@prisma/generator-helper': 2.0.0-alpha.1279
+      '@prisma/get-platform': 2.0.0-alpha.1279
       archiver: 3.1.1
       arg: 4.1.3
       chalk: 3.0.0
       checkpoint-client: 1.1.0
       cli-truncate: 2.1.0
-      execa: 4.0.1
+      execa: 4.0.0
       globby: 9.2.0
       has-yarn: 2.1.0
       make-dir: 3.1.0
@@ -1437,32 +1466,32 @@ packages:
       url-parse: 1.4.7
     requiresBuild: true
     resolution:
-      integrity: sha512-zE1Rkjm923NopMFcWVuxCYRU8B7UUepIluD5oKc5626WxUeidFmvxnsp5YUSnqikivpu1hd22tM/jGKqOSO//A==
-  /@prisma/studio-server/0.228.0:
+      integrity: sha512-yTziM0VLv6iBUqJ9UvEo91cJe2midaYlM7NiJS7ZBnZHw8j92XE8COyDLSqWH3o+4cFtSR0DCXqsKj6oU5dofQ==
+  /@prisma/studio-server/0.229.0:
     dependencies:
-      '@prisma/get-platform': 2.0.0-beta.4
-      '@prisma/sdk': 2.0.0-beta.4
-      '@prisma/studio': 0.228.0
-      '@prisma/studio-transports': 0.228.0
-      '@prisma/studio-types': 0.228.0
+      '@prisma/get-platform': 2.0.0-alpha.1279
+      '@prisma/sdk': 2.0.0-alpha.1279
+      '@prisma/studio': 0.229.0
+      '@prisma/studio-transports': 0.229.0
+      '@prisma/studio-types': 0.229.0
       '@sentry/node': 5.15.5
       express: 4.17.1
       express-ws: 4.0.0_express@4.17.1
     resolution:
-      integrity: sha512-2lmMdV+DrswZam+yYB69724vOwDKnwsnAnDNoeGVuWms67ew8FD0tu7wg5VCg3vgdAD374RpzjzaZZcAm8dNpg==
-  /@prisma/studio-transports/0.228.0:
+      integrity: sha512-RZHvGreXxCr5WI42/zq9TYLm0ut8Z1r3UEJJQR03E9CnyrSOPlhzbwN9wyzQXeSkFTOSlGXZ8M1UdPqy0Y1QMA==
+  /@prisma/studio-transports/0.229.0:
     dependencies:
-      '@prisma/sdk': 2.0.0-beta.4
-      '@prisma/studio-types': 0.228.0
+      '@prisma/sdk': 2.0.0-alpha.1279
+      '@prisma/studio-types': 0.229.0
       '@sentry/node': 5.15.5
     resolution:
-      integrity: sha512-gbczCvsEQ1fB1H7n+e+naOikKOrXUatSm0GHoGVmJfTRAzjEYmAU752KQG2PitCBhvxpnzA9A/pr4GChsflMHg==
-  /@prisma/studio-types/0.228.0:
+      integrity: sha512-1KPK2Yp6i5rjxpLu/S+VFnrc20sCDL0nXfWtAXjcBFFi0lsRLJvSrGFnr4YruX2Dbw8ssV4xF0mikjqtNvQ8QA==
+  /@prisma/studio-types/0.229.0:
     resolution:
-      integrity: sha512-+7V15nWkZltaqvGgxP0wES4mQEKgu/T6dwqhRX4RxXPJ7ALW5z4suIDA2Do1/qpJHh50K+rtqMsH8ryBePJFZQ==
-  /@prisma/studio/0.228.0:
+      integrity: sha512-ONvtTATSFMcGQM85m+QfhrkQ9Px+20h8POYd48T5EacaqnthTlIRf4n3bfhrxYMtRQ1rM0ugrtjdVe/PYt8ILg==
+  /@prisma/studio/0.229.0:
     resolution:
-      integrity: sha512-MiE5e1IRWkcwd9sLzILRs9nxmLUNH1O4sAEI8JXQuNRc+Hd5uOvhp3xeXtuUY2c/Sucx5GtYo4W+6Jf05DtBGg==
+      integrity: sha512-HJVgcA2qReMIb9rg6vz4/Xyqd3EVef6L3sEoJccl5psIBEs5YJBFzR1l+rkyEEFLKRNuggICeFbKgh7Mmnd3ow==
   /@rollup/plugin-commonjs/11.0.1_rollup@1.29.0:
     dependencies:
       '@rollup/pluginutils': 3.0.9_rollup@1.29.0
@@ -1537,7 +1566,7 @@ packages:
       '@sentry/minimal': 5.15.5
       '@sentry/types': 5.15.5
       '@sentry/utils': 5.15.5
-      tslib: 1.11.2
+      tslib: 1.13.0
     engines:
       node: '>=6'
     resolution:
@@ -1547,7 +1576,7 @@ packages:
       '@sentry/core': 5.15.5
       '@sentry/types': 5.15.5
       '@sentry/utils': 5.15.5
-      tslib: 1.11.2
+      tslib: 1.13.0
     engines:
       node: '>=6'
     resolution:
@@ -1558,7 +1587,7 @@ packages:
       '@sentry/minimal': 5.15.5
       '@sentry/types': 5.15.5
       '@sentry/utils': 5.15.5
-      tslib: 1.11.2
+      tslib: 1.13.0
     engines:
       node: '>=6'
     resolution:
@@ -1567,7 +1596,7 @@ packages:
     dependencies:
       '@sentry/types': 5.15.5
       '@sentry/utils': 5.15.5
-      tslib: 1.11.2
+      tslib: 1.13.0
     engines:
       node: '>=6'
     resolution:
@@ -1576,7 +1605,7 @@ packages:
     dependencies:
       '@sentry/hub': 5.15.5
       '@sentry/types': 5.15.5
-      tslib: 1.11.2
+      tslib: 1.13.0
     engines:
       node: '>=6'
     resolution:
@@ -1591,7 +1620,7 @@ packages:
       cookie: 0.3.1
       https-proxy-agent: 4.0.0
       lru_map: 0.3.3
-      tslib: 1.11.2
+      tslib: 1.13.0
     engines:
       node: '>=6'
     resolution:
@@ -1604,7 +1633,7 @@ packages:
   /@sentry/utils/5.15.5:
     dependencies:
       '@sentry/types': 5.15.5
-      tslib: 1.11.2
+      tslib: 1.13.0
     engines:
       node: '>=6'
     resolution:
@@ -1661,8 +1690,14 @@ packages:
   /@types/cross-spawn/6.0.1:
     dependencies:
       '@types/node': 13.13.5
+    dev: false
     resolution:
       integrity: sha512-MtN1pDYdI6D6QFDzy39Q+6c9rl2o/xN7aWGe6oZuzqq5N6+YuwFsWiEAv3dNzvzN9YzU+itpN8lBzFpphQKLAw==
+  /@types/cross-spawn/6.0.2:
+    dependencies:
+      '@types/node': 12.12.43
+    resolution:
+      integrity: sha512-KuwNhp3eza+Rhu8IFI5HUXRP0LIhqH5cAjubUvGXXthh4YYBuP2ntwEX+Cz8GJoZUHlKo247wPWOfA9LYEq4cw==
   /@types/debug/4.1.5:
     dev: true
     resolution:
@@ -1698,7 +1733,7 @@ packages:
     dependencies:
       '@types/events': 3.0.0
       '@types/minimatch': 3.0.3
-      '@types/node': 13.13.5
+      '@types/node': 12.12.43
     resolution:
       integrity: sha512-1Bh06cbWJUHMC97acuD6UMG29nMt0Aqz1vF3guLfG+kHHJhy3AyohZFFxYk2f7Q1SQIrNwvncxAE0N/9s70F2w==
   /@types/graceful-fs/4.1.3:
@@ -1772,7 +1807,6 @@ packages:
     resolution:
       integrity: sha512-ASYsaKecA7TUsDrqIGPNk3JeEox0z/0XR/WsJJ8BIX/9+SkMSImQXKWfU/yBrSyc7ZSE/NPqLu36Nur0miCFfQ==
   /@types/node/12.12.43:
-    dev: true
     resolution:
       integrity: sha512-KUyZdkGCnVPuXfsKmDUu2XLui65LZIJ2s0M57noy5e+ixUT2oK33ep7zlvgzI8LElcWqbf8AR+o/3GqAPac2zA==
   /@types/node/13.13.5:
@@ -2309,10 +2343,10 @@ packages:
     dev: true
     resolution:
       integrity: sha1-tG6JCTSpWR8tL2+G1+ap8bP+dqg=
-  /aws4/1.9.1:
+  /aws4/1.10.0:
     dev: true
     resolution:
-      integrity: sha512-wMHVg2EOHaMRxbzgFJ9gtjOOCrI80OHLG14rxi28XwOW8ux6IiEbRCGGGqCtdAIg4FQCbW20k9RsT4y3gJlFug==
+      integrity: sha512-3YDiu347mtVtjpyV3u5kVqQLP242c06zwDOgpeRnybmXlYYsLbtTrUBUm8i8srONt+FWobl5aibnU1030PeeuA==
   /babel-jest/25.5.1_@babel+core@7.9.0:
     dependencies:
       '@babel/core': 7.9.0
@@ -2429,13 +2463,13 @@ packages:
     dev: false
     resolution:
       integrity: sha512-ROfdGmcW1shnkiV/PZhj2Gw0+TiIfBYYs40QBBFYszdd2f2D07zLOTDQm5D411srCacR3Wt5mjLstv0OMmtmFQ==
-  /bent/7.3.1:
+  /bent/7.3.2:
     dependencies:
       bytesish: 0.4.1
       caseless: 0.12.0
       is-stream: 2.0.0
     resolution:
-      integrity: sha512-4nv/p7GaItr5FJ/CPiP0t3LZ1gETMaV+zXJU0X9tHiOuAPYZ8NA8ohIyugBMBV7q64X2OiDvBaqoQSUM2LuLjA==
+      integrity: sha512-iI9r7tiiaWX8tToVBskcfU7omPb3Z1GoLhPZ1gqJD/K8jtHlPNB9dsD2RqiLc4xYOawsCzP8psnSuILN3PK9dg==
   /big.js/5.2.2:
     dev: true
     resolution:
@@ -2977,6 +3011,15 @@ packages:
       node: '>= 8'
     resolution:
       integrity: sha512-PD6G8QG3S4FK/XCGFbEQrDqO2AnMMsy0meR7lerlIOHAAbkuavGU/pOqprrlvfTNjvowivTeBsjebAL0NSoMxw==
+  /cross-spawn/7.0.3:
+    dependencies:
+      path-key: 3.1.1
+      shebang-command: 2.0.0
+      which: 2.0.2
+    engines:
+      node: '>= 8'
+    resolution:
+      integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==
   /crypto-random-string/2.0.0:
     engines:
       node: '>=8'
@@ -3655,26 +3698,10 @@ packages:
       onetime: 5.1.0
       signal-exit: 3.0.3
       strip-final-newline: 2.0.0
-    dev: false
     engines:
       node: '>=10'
     resolution:
       integrity: sha512-JbDUxwV3BoT5ZVXQrSVbAiaXhXUkIwvbhPIwZ0N13kX+5yCzOhUNdocxB/UQRuYOHRYYwAxKYwJYc0T4D12pDA==
-  /execa/4.0.1:
-    dependencies:
-      cross-spawn: 7.0.2
-      get-stream: 5.1.0
-      human-signals: 1.1.1
-      is-stream: 2.0.0
-      merge-stream: 2.0.0
-      npm-run-path: 4.0.1
-      onetime: 5.1.0
-      signal-exit: 3.0.3
-      strip-final-newline: 2.0.0
-    engines:
-      node: '>=10'
-    resolution:
-      integrity: sha512-SCjM/zlBdOK8Q5TIjOn6iEHZaPHFsMoTxXQ2nvUvtPnuohz3H2dIozSg+etNR98dGoYUp2ENSKLL/XaMmbxVgw==
   /execa/4.0.2:
     dependencies:
       cross-spawn: 7.0.2
@@ -3871,7 +3898,6 @@ packages:
       ajv: 6.12.2
       deepmerge: 4.2.2
       string-similarity: 4.0.1
-    dev: false
     engines:
       node: '>= 10.0.0'
     resolution:
@@ -4085,7 +4111,7 @@ packages:
       integrity: sha512-GWSSJGFy4e9GUeCcbIkED+bgAoFyj7XF1mV8rma3QW4NIqX9Kyx79N/PF61H5udOV3aY1IaMLs6pGbH71nlCTA==
   /fs-minipass/2.1.0:
     dependencies:
-      minipass: 3.1.1
+      minipass: 3.1.3
     engines:
       node: '>= 8'
     resolution:
@@ -4511,7 +4537,6 @@ packages:
     resolution:
       integrity: sha512-ZTTX0MWrsQ2ZAhA1cejAwDLycFsd7I7nVtnkT3Ol0aqodaKW+0CTZDQ1uBv5whptCnc8e8HeRRJxRs0kmm/Qfw==
   /http-parser-js/0.5.2:
-    dev: false
     resolution:
       integrity: sha512-opCO9ASqg5Wy2FNo7A0sxy71yGbbkJJXLdgMK04Tcypw9jr2MgWbyubb0+WdmDmGnFflO7fRbqbaihh/ENDlRQ==
   /http-proxy-agent/4.0.1:
@@ -5009,11 +5034,6 @@ packages:
   /isarray/1.0.0:
     resolution:
       integrity: sha1-u5NdSFgsuhaMBoNJV6VKPgcSTxE=
-  /isbinaryfile/4.0.6:
-    engines:
-      node: '>= 8.0.0'
-    resolution:
-      integrity: sha512-ORrEy+SNVqUhrCaal4hA4fBzhggQQ+BaLntyPOdoEiwlKZW9BZiJXjg3RMiruE4tPEI3pyVPpySHQF/dKWperg==
   /isexe/2.0.0:
     resolution:
       integrity: sha1-6PvzdNxVb/iUehDcsFctYz8s+hA=
@@ -6044,10 +6064,18 @@ packages:
   /minipass/3.1.1:
     dependencies:
       yallist: 4.0.0
+    dev: false
     engines:
       node: '>=8'
     resolution:
       integrity: sha512-UFqVihv6PQgwj8/yTGvl9kPz7xIAY+R5z6XYjRInD3Gk3qx6QGSD6zEcpeG4Dy/lQnv1J6zv8ejV90hyYIKf3w==
+  /minipass/3.1.3:
+    dependencies:
+      yallist: 4.0.0
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-Mgd2GdMVzY+x3IJ+oHnVM+KG3lA5c8tnabyJKmHSaG2kAGpudxuOf8ToDkhumF7UzME7DecbQE9uOZhNm7PuJg==
   /minizlib/1.3.3:
     dependencies:
       minipass: 2.9.0
@@ -6056,7 +6084,7 @@ packages:
       integrity: sha512-6ZYMOEnmVsdCeTJVE0W9ZD+pVnE8h9Hma/iOwwRDsdQoePpoX56/8B6z3P9VNwppJuBKNRuFDRNRqRWexT9G9Q==
   /minizlib/2.1.0:
     dependencies:
-      minipass: 3.1.1
+      minipass: 3.1.3
       yallist: 4.0.0
     engines:
       node: '>= 8'
@@ -6192,7 +6220,7 @@ packages:
     dev: true
     resolution:
       integrity: sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=
-  /needle/2.4.1:
+  /needle/2.5.0:
     dependencies:
       debug: 3.2.6
       iconv-lite: 0.4.24
@@ -6202,14 +6230,13 @@ packages:
       node: '>= 4.4.x'
     hasBin: true
     resolution:
-      integrity: sha512-x/gi6ijr4B7fwl6WYL9FwlCvRQKGlUNvnceho8wxkwXqN8jvVmmmATTmZPRRG7b/yC1eode26C2HO9jl78Du9g==
+      integrity: sha512-o/qITSDR0JCyCKEQ1/1bnUXMmznxabbwi/Y4WwJElf+evwJNFNwIDMCCt5IigFVxgeGBJESLohGtIS9gEzo1fA==
   /negotiator/0.6.2:
     engines:
       node: '>= 0.6'
     resolution:
       integrity: sha512-hZXc7K2e+PgeI1eDBe/10Ard4ekbfrrqG8Ep+8Jmf4JID2bNg7NvCPOZN+kfF574pFQI7mum2AUqDidoKqcTOw==
   /new-github-issue-url/0.2.1:
-    dev: false
     engines:
       node: '>=10'
     resolution:
@@ -6254,7 +6281,7 @@ packages:
     dependencies:
       detect-libc: 1.0.3
       mkdirp: 0.5.5
-      needle: 2.4.1
+      needle: 2.5.0
       nopt: 4.0.3
       npm-packlist: 1.4.8
       npmlog: 4.1.2
@@ -6627,7 +6654,7 @@ packages:
       integrity: sha1-06mYQxcTL1c5hxK7pDjhKVkN34w=
   /parse-json/5.0.0:
     dependencies:
-      '@babel/code-frame': 7.8.3
+      '@babel/code-frame': 7.10.1
       error-ex: 1.3.2
       json-parse-better-errors: 1.0.2
       lines-and-columns: 1.1.6
@@ -7263,7 +7290,7 @@ packages:
   /request/2.88.2:
     dependencies:
       aws-sign2: 0.7.0
-      aws4: 1.9.1
+      aws4: 1.10.0
       caseless: 0.12.0
       combined-stream: 1.0.8
       extend: 3.0.2
@@ -7781,21 +7808,21 @@ packages:
   /sourcemap-codec/1.4.8:
     resolution:
       integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==
-  /spdx-correct/3.1.0:
+  /spdx-correct/3.1.1:
     dependencies:
-      spdx-expression-parse: 3.0.0
+      spdx-expression-parse: 3.0.1
       spdx-license-ids: 3.0.5
     resolution:
-      integrity: sha512-lr2EZCctC2BNR7j7WzJ2FpDznxky1sjfxvvYEyzxNyb6lZXHODmEoJeFu4JupYlkfha1KZpJyoqiJ7pgA1qq8Q==
+      integrity: sha512-cOYcUWwhCuHCXi49RhFRCyJEK3iPj1Ziz9DpViV3tbZOwXD49QzIN3MpOLJNxh2qwq2lJJZaKMVw9qNi4jTC0w==
   /spdx-exceptions/2.3.0:
     resolution:
       integrity: sha512-/tTrYOC7PPI1nUAgx34hUpqXuyJG+DTHJTnIULG4rDygi4xu/tfgmq1e1cIRwRzwZgo4NLySi+ricLkZkw4i5A==
-  /spdx-expression-parse/3.0.0:
+  /spdx-expression-parse/3.0.1:
     dependencies:
       spdx-exceptions: 2.3.0
       spdx-license-ids: 3.0.5
     resolution:
-      integrity: sha512-Yg6D3XpRD4kkOmTpdgbUiEJFKghJH03fiC1OPll5h/0sO6neh2jqRDVHOQ4o/LMea0tgCkbMgea5ip/e+MkWyg==
+      integrity: sha512-cbqHunsQWnJNE6KhVSMsMeH5H/L9EpymbzqTQ3uLwNCLZ1Q481oWaofqH7nO6V07xlXwY6PhQdQ2IedWx/ZK4Q==
   /spdx-license-ids/3.0.5:
     resolution:
       integrity: sha512-J+FWzZoynJEXGphVIS+XEh3kFSjZX/1i9gFBaWQcB+/tmpe2qUsSBABpcxqxnAxFdiUFEgAX1bjYGQvIZmoz9Q==
@@ -7836,6 +7863,15 @@ packages:
     dev: true
     resolution:
       integrity: sha512-yPCgZZPkccMcvU8J4Hrt96nSXOEv6UuBLd9KGFdUR9VVkE7voXkWrV2UWODfNbxdDyviS/a+eFWDn86mfBgyJw==
+  /sqlite3/4.1.1:
+    dependencies:
+      nan: 2.14.1
+      node-pre-gyp: 0.11.0
+      request: 2.88.2
+    dev: true
+    requiresBuild: true
+    resolution:
+      integrity: sha512-CvT5XY+MWnn0HkbwVKJAyWEMfzpAPwnTiB3TobA5Mri44SrTovmmh499NPQP+gatkeOipqPlBLel7rn4E/PCQg==
   /sqlite3/4.2.0:
     dependencies:
       nan: 2.14.1
@@ -7930,7 +7966,6 @@ packages:
     resolution:
       integrity: sha512-Ttp5YvkGm5v9Ijagtaz1BnN+k9ObpvS0eIBblPMp2YWL8FBmi9qblQ9fexc2k/CXFgrTIteU3jAw3payCnwSTA==
   /string-similarity/4.0.1:
-    dev: false
     resolution:
       integrity: sha512-v36MJzloekKVvKAsYi6O/qpn2mIuvwEFIT9Gx3yg4spkNjXYsk7yxc37g4ZTyMVIBvt/9PZGxnqEtme8XHK+Mw==
   /string-width/1.0.2:
@@ -8214,7 +8249,7 @@ packages:
     dependencies:
       chownr: 2.0.0
       fs-minipass: 2.1.0
-      minipass: 3.1.1
+      minipass: 3.1.3
       minizlib: 2.1.0
       mkdirp: 1.0.4
       yallist: 4.0.0
@@ -8322,6 +8357,14 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-J7Z2K08jbGcdA1kkQpJSqLF6T0tdQqpR2pnSUXsIchbPdTI9v3e85cLW0d6WDhwuAleOV71j2xWs8qMPfK7nKw==
+  /tmp/0.2.1:
+    dependencies:
+      rimraf: 3.0.2
+    dev: false
+    engines:
+      node: '>=8.17.0'
+    resolution:
+      integrity: sha512-76SUhtfqR2Ijn+xllcI5P1oyannHNHByD80W1q447gU3mp9G9PSpGdWmjUOHRDPiHYacIk66W7ubDTuPF3BEtQ==
   /tmpl/1.0.4:
     dev: true
     resolution:
@@ -8502,8 +8545,12 @@ packages:
     resolution:
       integrity: sha512-aZW88SY8kQbU7gpV19lN24LtXh/yD4ZZg6qieAJDDg+YBsJcSmLGK9QpnUjAKVG/xefmvJGd1WUmfpT/g6AJGA==
   /tslib/1.11.2:
+    dev: true
     resolution:
       integrity: sha512-tTSkux6IGPnUGUd1XAZHcpu85MOkIl5zX49pO+jfsie3eP0B6pyhOlLXm3cAC6T7s+euSDDUUV+Acop5WmtkVg==
+  /tslib/1.13.0:
+    resolution:
+      integrity: sha512-i/6DQjL8Xf3be4K/E6Wgpekn5Qasl1usyw++dAA35Ue5orEn65VIxOA+YvNNl9HV3qv70T7CNwjODHZrLwvd1Q==
   /tsutils/3.17.1_typescript@3.9.3:
     dependencies:
       tslib: 1.11.2
@@ -8698,8 +8745,8 @@ packages:
       integrity: sha512-sAjOC+Kki6aJVbUOXJbcR0MnbfjvBzwKZazEJymA2IX49uoOdEdk+4fBq5cXgYgiyKtAyrrJNtBZdOeDIF+Fng==
   /validate-npm-package-license/3.0.4:
     dependencies:
-      spdx-correct: 3.1.0
-      spdx-expression-parse: 3.0.0
+      spdx-correct: 3.1.1
+      spdx-expression-parse: 3.0.1
     resolution:
       integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==
   /variable-diff/1.1.0:
@@ -8800,7 +8847,7 @@ packages:
       integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==
   /wide-align/1.1.3:
     dependencies:
-      string-width: 2.1.1
+      string-width: 1.0.2
     dev: true
     resolution:
       integrity: sha512-QGkOQc8XL6Bt5PwnsExKBPuMKBxnGxWWW3fU55Xt4feHozMUhdUMaBCk290qpm/wG5u/RSKzwdAC4i51YigihA==
@@ -9019,4 +9066,12 @@ packages:
     resolution:
       registry: 'https://registry.npmjs.org/'
       tarball: 'https://codeload.github.com/mcollina/undici/tar.gz/6c3d7eed592cab9c4b63d56164ecd3cc9358945a'
+    version: 0.5.0
+  github.com/mcollina/undici/ccdc2ef2872321921912576e70375f77b854e2eb:
+    dependencies:
+      http-parser-js: 0.5.2
+    name: undici
+    resolution:
+      registry: 'https://registry.npmjs.org/'
+      tarball: 'https://codeload.github.com/mcollina/undici/tar.gz/ccdc2ef2872321921912576e70375f77b854e2eb'
     version: 0.5.0
