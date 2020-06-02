@@ -36,7 +36,7 @@ import {
   Migration,
 } from './types'
 import { exit } from './utils/exit'
-import { formatms } from './utils/formartms'
+import { formatms } from './utils/formatms'
 import { groupBy } from './utils/groupBy'
 import { isWatchMigrationName } from './utils/isWatchMigrationName'
 import {
