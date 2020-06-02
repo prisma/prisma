@@ -12,7 +12,7 @@ fi
 #
 # Test custom generator path
 #
-cd ./fixtures/custom-generator
+cd ./fixtures/custom\ generator
 GENERATE_RESULT=$(node ../../build/index.js generate)
 if [[ ${GENERATE_RESULT} != *"onGenerate"* ]]; then
   echo "custom generators are broken"

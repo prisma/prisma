@@ -259,7 +259,7 @@ ${
   prisma1UpgradeMessage
     ? `Once you upgraded your database schema to Prisma 2.0, run ${chalk.green(
         'prisma generate',
-      )} to generate Prisma Client`
+      )} to generate Prisma Client.`
     : `Run ${chalk.green('prisma generate')} to generate Prisma Client.`
 }`)
     }
