@@ -2096,6 +2096,32 @@ function tests(): Test[] {
       },
       expect: [],
     },
+    {
+      name: 'findOne - check typeof Date is String for Json field',
+      up: `
+        create table posts (
+          id serial primary key not null,
+          title varchar(50) not null,
+          data JSON
+        );
+        insert into posts (title, data) values ('A', '"2020-01-14T11:10:19.573Z"');
+      `,
+      down: `
+        drop table if exists posts cascade;
+      `,
+      do: async (client) => {
+        const post = await client.posts.findOne({
+          where: { id: 1 },
+        })
+        assert.ok(typeof post.data === 'string')
+        return post
+      },
+      expect: {
+        id: 1,
+        title: 'A',
+        data: '2020-01-14T11:10:19.573Z',
+      },
+    },
   ]
 }
 

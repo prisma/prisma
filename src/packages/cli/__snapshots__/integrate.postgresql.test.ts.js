@@ -1,97 +1,3 @@
-exports['findMany on column_name_that_becomes_empty_string_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model column_name_that_becomes_empty_string {
-  // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
-  // 12345 Int? @map("12345")
-  field1   Int  @default(autoincrement()) @id
-}
-
-model invalid_enum_value_name {
-  field1       Int           @default(autoincrement()) @id
-  here_be_enum invalid_enum?
-}
-
-// The underlying table does not contain a unique identifier and can therefore currently not be handled.
-// model no_unique_identifier {
-  // field1 Int?
-  // field2 Int?
-// }
-
-model unsupported_type {
-  field1         Int        @default(autoincrement()) @id
-  // This type is currently not supported.
-  // unsupported geometric?
-}
-
-enum Role {
-  ADMIN
-  USER
-}
-
-enum invalid_enum {
-  // $§! @map("$§!")
-  // 123 @map("123")
-  N
-  Y
-}
-`
-
-exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
-  {
-    "code": 1,
-    "message": "These models do not have a unique identifier or id and are therefore commented out.",
-    "affected": [
-      {
-        "model": "no_unique_identifier"
-      }
-    ]
-  },
-  {
-    "code": 2,
-    "message": "These fields were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
-    "affected": [
-      {
-        "model": "column_name_that_becomes_empty_string",
-        "field": "12345"
-      }
-    ]
-  },
-  {
-    "code": 3,
-    "message": "These fields were commented out because we currently do not support their types.",
-    "affected": [
-      {
-        "model": "unsupported_type",
-        "field": "unsupported",
-        "tpe": "geometric"
-      }
-    ]
-  },
-  {
-    "code": 4,
-    "message": "These enum values were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
-    "affected": [
-      {
-        "enm": "invalid_enum",
-        "value": "$§!"
-      },
-      {
-        "enm": "invalid_enum",
-        "value": "123"
-      }
-    ]
-  }
-]
-
 exports['findOne where PK_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
@@ -1006,6 +912,31 @@ enum Role {
 
 exports['findMany where in[string]_warnings'] = []
 
+exports['findMany where datetime lte - check instanceof Date_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model posts {
+  created_at DateTime @default(now())
+  id         Int      @default(autoincrement()) @id
+  title      String
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+`
+
+exports['findMany where datetime lte - check instanceof Date_warnings'] = []
+
 exports['findMany where timestamp gte than now_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
@@ -1104,6 +1035,150 @@ enum Role {
 `
 
 exports['update where integer data_warnings'] = []
+
+exports['findMany where datetime exact_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+`
+
+exports['findMany where datetime exact_warnings'] = []
+
+exports['findMany where datetime gt_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+`
+
+exports['findMany where datetime gt_warnings'] = []
+
+exports['findMany where datetime gte_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+`
+
+exports['findMany where datetime gte_warnings'] = []
+
+exports['findMany where datetime lt_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+`
+
+exports['findMany where datetime lt_warnings'] = []
+
+exports['findMany where datetime lte_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+`
+
+exports['findMany where datetime lte_warnings'] = []
+
+exports['findMany where datetime not_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+`
+
+exports['findMany where datetime not_warnings'] = []
 
 exports['findMany where null_datamodel'] = `
 generator client {
@@ -1629,7 +1704,101 @@ enum Role {
 
 exports['updateMany where null - check findMany_warnings'] = []
 
-exports['findMany where datetime lte - check instanceof Date_datamodel'] = `
+exports['findMany on column_name_that_becomes_empty_string_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource pg {
+  provider = "postgresql"
+  url = "***"
+}
+
+model column_name_that_becomes_empty_string {
+  // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  // 12345 Int? @map("12345")
+  field1   Int  @default(autoincrement()) @id
+}
+
+model invalid_enum_value_name {
+  field1       Int           @default(autoincrement()) @id
+  here_be_enum invalid_enum?
+}
+
+// The underlying table does not contain a unique identifier and can therefore currently not be handled.
+// model no_unique_identifier {
+  // field1 Int?
+  // field2 Int?
+// }
+
+model unsupported_type {
+  field1         Int        @default(autoincrement()) @id
+  // This type is currently not supported.
+  // unsupported geometric?
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum invalid_enum {
+  // $§! @map("$§!")
+  // 123 @map("123")
+  N
+  Y
+}
+`
+
+exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
+  {
+    "code": 1,
+    "message": "These models do not have a unique identifier or id and are therefore commented out.",
+    "affected": [
+      {
+        "model": "no_unique_identifier"
+      }
+    ]
+  },
+  {
+    "code": 2,
+    "message": "These fields were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
+    "affected": [
+      {
+        "model": "column_name_that_becomes_empty_string",
+        "field": "12345"
+      }
+    ]
+  },
+  {
+    "code": 3,
+    "message": "These fields were commented out because we currently do not support their types.",
+    "affected": [
+      {
+        "model": "unsupported_type",
+        "field": "unsupported",
+        "tpe": "geometric"
+      }
+    ]
+  },
+  {
+    "code": 4,
+    "message": "These enum values were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
+    "affected": [
+      {
+        "enm": "invalid_enum",
+        "value": "$§!"
+      },
+      {
+        "enm": "invalid_enum",
+        "value": "123"
+      }
+    ]
+  }
+]
+
+exports['findOne - check typeof Date is string for Json field_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1641,9 +1810,9 @@ datasource pg {
 }
 
 model posts {
-  created_at DateTime @default(now())
-  id         Int      @default(autoincrement()) @id
-  title      String
+  data  Json?
+  id    Int    @default(autoincrement()) @id
+  title String
 }
 
 enum Role {
@@ -1652,148 +1821,4 @@ enum Role {
 }
 `
 
-exports['findMany where datetime lte - check instanceof Date_warnings'] = []
-
-exports['findMany where datetime exact_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model events {
-  id   Int       @default(autoincrement()) @id
-  time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
-}
-`
-
-exports['findMany where datetime exact_warnings'] = []
-
-exports['findMany where datetime gt_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model events {
-  id   Int       @default(autoincrement()) @id
-  time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
-}
-`
-
-exports['findMany where datetime gt_warnings'] = []
-
-exports['findMany where datetime gte_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model events {
-  id   Int       @default(autoincrement()) @id
-  time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
-}
-`
-
-exports['findMany where datetime gte_warnings'] = []
-
-exports['findMany where datetime lt_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model events {
-  id   Int       @default(autoincrement()) @id
-  time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
-}
-`
-
-exports['findMany where datetime lt_warnings'] = []
-
-exports['findMany where datetime lte_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model events {
-  id   Int       @default(autoincrement()) @id
-  time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
-}
-`
-
-exports['findMany where datetime lte_warnings'] = []
-
-exports['findMany where datetime not_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "***"
-}
-
-model events {
-  id   Int       @default(autoincrement()) @id
-  time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
-}
-`
-
-exports['findMany where datetime not_warnings'] = []
+exports['findOne - check typeof Date is string for Json field_warnings'] = []

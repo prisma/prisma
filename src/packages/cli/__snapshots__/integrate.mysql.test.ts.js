@@ -721,6 +721,106 @@ model crons {
 
 exports['findMany where endsWith_warnings'] = []
 
+exports['findMany where in[string]_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model crons {
+  frequency String?
+  id        Int     @default(autoincrement()) @id
+  job       String  @unique
+}
+`
+
+exports['findMany where in[string]_warnings'] = []
+
+exports['findMany where datetime lte - check instanceof Date_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  created_at DateTime @default(now())
+  id         Int      @default(autoincrement()) @id
+  title      String
+}
+`
+
+exports['findMany where datetime lte - check instanceof Date_warnings'] = []
+
+exports['findMany where timestamp gte than now_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  created_at DateTime @default(now())
+  id         Int      @default(autoincrement()) @id
+  title      String
+}
+`
+
+exports['findMany where timestamp gte than now_warnings'] = []
+
+exports['findMany where timestamp gt than now_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  created_at DateTime @default(now())
+  id         Int      @default(autoincrement()) @id
+  title      String
+}
+`
+
+exports['findMany where timestamp gt than now_warnings'] = []
+
+exports['findMany where timestamp lt than now_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  created_at DateTime @default(now())
+  id         Int      @default(autoincrement()) @id
+  title      String
+}
+`
+
+exports['findMany where timestamp lt than now_warnings'] = []
+
 exports['update where integer data_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
@@ -739,6 +839,120 @@ model teams {
 `
 
 exports['update where integer data_warnings'] = []
+
+exports['findMany where datetime exact_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['findMany where datetime exact_warnings'] = []
+
+exports['findMany where datetime gt_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['findMany where datetime gt_warnings'] = []
+
+exports['findMany where datetime gte_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['findMany where datetime gte_warnings'] = []
+
+exports['findMany where datetime lt_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['findMany where datetime lt_warnings'] = []
+
+exports['findMany where datetime lte_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['findMany where datetime lte_warnings'] = []
+
+exports['findMany where datetime not_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+`
+
+exports['findMany where datetime not_warnings'] = []
 
 exports['findMany where null_datamodel'] = `
 generator client {
@@ -798,6 +1012,26 @@ model teams {
 `
 
 exports['findMany where id empty in[] and token in[]_warnings'] = []
+
+exports['findMany where in[integer]_datamodel'] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id    Int    @default(autoincrement()) @id
+  name  String
+  token Int    @unique
+}
+`
+
+exports['findMany where in[integer]_warnings'] = []
 
 exports['findMany where notIn[]_datamodel'] = `
 generator client {
@@ -1216,27 +1450,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   }
 ]
 
-exports['findMany where in[string]_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model crons {
-  frequency String?
-  id        Int     @default(autoincrement()) @id
-  job       String  @unique
-}
-`
-
-exports['findMany where in[string]_warnings'] = []
-
-exports['findMany where datetime lte - check instanceof Date_datamodel'] = `
+exports['findOne - check typeof Date is String for Json field_datamodel'] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1248,204 +1462,10 @@ datasource mysql {
 }
 
 model posts {
-  created_at DateTime @default(now())
-  id         Int      @default(autoincrement()) @id
-  title      String
-}
-`
-
-exports['findMany where datetime lte - check instanceof Date_warnings'] = []
-
-exports['findMany where timestamp gte than now_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model posts {
-  created_at DateTime @default(now())
-  id         Int      @default(autoincrement()) @id
-  title      String
-}
-`
-
-exports['findMany where timestamp gte than now_warnings'] = []
-
-exports['findMany where timestamp gt than now_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model posts {
-  created_at DateTime @default(now())
-  id         Int      @default(autoincrement()) @id
-  title      String
-}
-`
-
-exports['findMany where timestamp gt than now_warnings'] = []
-
-exports['findMany where timestamp lt than now_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model posts {
-  created_at DateTime @default(now())
-  id         Int      @default(autoincrement()) @id
-  title      String
-}
-`
-
-exports['findMany where timestamp lt than now_warnings'] = []
-
-exports['findMany where datetime gt_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model events {
-  id   Int       @default(autoincrement()) @id
-  time DateTime?
-}
-`
-
-exports['findMany where datetime gt_warnings'] = []
-
-exports['findMany where datetime gte_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model events {
-  id   Int       @default(autoincrement()) @id
-  time DateTime?
-}
-`
-
-exports['findMany where datetime gte_warnings'] = []
-
-exports['findMany where datetime lt_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model events {
-  id   Int       @default(autoincrement()) @id
-  time DateTime?
-}
-`
-
-exports['findMany where datetime lt_warnings'] = []
-
-exports['findMany where datetime lte_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model events {
-  id   Int       @default(autoincrement()) @id
-  time DateTime?
-}
-`
-
-exports['findMany where datetime lte_warnings'] = []
-
-exports['findMany where in[integer]_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model teams {
+  data  Json?
   id    Int    @default(autoincrement()) @id
-  name  String
-  token Int    @unique
+  title String
 }
 `
 
-exports['findMany where in[integer]_warnings'] = []
-
-exports['findMany where datetime exact_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model events {
-  id   Int       @default(autoincrement()) @id
-  time DateTime?
-}
-`
-
-exports['findMany where datetime exact_warnings'] = []
-
-exports['findMany where datetime not_datamodel'] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model events {
-  id   Int       @default(autoincrement()) @id
-  time DateTime?
-}
-`
-
-exports['findMany where datetime not_warnings'] = []
+exports['findOne - check typeof Date is String for Json field_warnings'] = []
