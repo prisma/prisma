@@ -323,8 +323,6 @@ export declare class Sql {
     rawStrings: ReadonlyArray<string>;
     rawValues: ReadonlyArray<RawValue>;
     constructor(rawStrings: ReadonlyArray<string>, rawValues: ReadonlyArray<RawValue>);
-    readonly values: Value[];
-    readonly strings: string[];
     readonly text: string;
     readonly sql: string;
     [inspect.custom](): {
