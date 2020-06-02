@@ -118,7 +118,7 @@ import { Format } from './Format'
 const aliases: ProviderAliases = {
   'prisma-client-js': {
     generatorPath: `node --max-old-space-size=8096 "${eval(
-      "require('path').join(__dirname, '../prisma-client/generator-build/index.js')",
+      `require('path').join(__dirname, '../prisma-client/generator-build/index.js')`,
     )}"`, // all evals are here for ncc
     outputPath: eval(`require('path').join(__dirname, '../prisma-client/')`),
   },

@@ -139,10 +139,10 @@ export async function generateClient({
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
   const finalOutputDir = useDotPrisma ? getDotPrismaDir(outputDir) : outputDir
+  debug({ finalOutputDir, runtimePath })
 
   if (testMode) {
     Debug.enable('generateClient')
-    // debug({ finalOutputDir })
   }
 
   const { prismaClientDmmf, fileMap } = await buildClient({
