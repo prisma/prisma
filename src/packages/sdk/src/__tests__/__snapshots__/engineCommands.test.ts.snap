@@ -866,6 +866,38 @@ Object {
               "type": "Json",
             },
           },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "scalar",
+                  "type": "String",
+                },
+                "name": "query",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Json",
+                },
+                "name": "parameters",
+              },
+            ],
+            "name": "queryRaw",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Json",
+            },
+          },
         ],
         "name": "Mutation",
       },
