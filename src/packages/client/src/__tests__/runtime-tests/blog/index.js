@@ -62,54 +62,92 @@ module.exports = async () => {
 
   await db.connect()
 
-  // Test raw(string)
-  const rawQuery = await db.raw('SELECT 1')
-  if (rawQuery[0]['1'] !== 1) {
-    throw Error("prisma.raw('SELECT 1') result should be [ { '1': 1 } ]")
-  }
+  /**
+   * queryRaw
+   */
 
-  // Test raw(string, values)
-  const rawQueryWithValues = await db.raw(
-    'SELECT $1 AS name, $2 AS id',
-    'Alice',
-    42,
-  )
-  if (
-    rawQueryWithValues[0].name !== 'Alice' ||
-    rawQueryWithValues[0].id !== 42
-  ) {
-    throw Error(
-      "prisma.raw('SELECT $1 AS name, $2 AS id', 'Alice', 42) result should be [ { name: 'Alice', id: 42 } ]",
+  // Test queryRaw(string)
+  try {
+    const rawQuery = await db.queryRaw('SELECT 1')
+    assert(
+      rawQuery[0]['1'] === 1,
+      "prisma.queryRaw('SELECT 1') result should be [ { '1': 1 } ]",
     )
-  }
 
-  // Test raw``
-  const rawQueryTemplate = await db.raw`SELECT 1`
-  if (rawQueryTemplate[0]['1'] !== 1) {
-    throw Error("prisma.raw`SELECT 1` result should be [ { '1': 1 } ]")
-  }
-
-  // Test raw`` with ${param}
-  const rawQueryTemplateWithParams = await db.raw`SELECT * FROM User WHERE name = ${'Alice'}`
-  if (rawQueryTemplateWithParams[0].name !== 'Alice') {
-    throw Error(
-      "prisma.raw`SELECT * FROM User WHERE name = ${'Alice'}` result should be [{ email: 'a@a.de', id: '576eddf9-2434-421f-9a86-58bede16fd95', name: 'Alice' }]",
+    // Test queryRaw(string, values)
+    const rawQueryWithValues = await db.queryRaw(
+      'SELECT $1 AS name, $2 AS id',
+      'Alice',
+      42,
     )
-  }
+    assert(
+      rawQueryWithValues[0].name === 'Alice' && rawQueryWithValues[0].id === 42,
+      "prisma.queryRaw('SELECT $1 AS name, $2 AS id', 'Alice', 42) result should be [ { name: 'Alice', id: 42 } ]",
+    )
 
-  // Test raw`` with prisma.sql``
-  const rawQueryTemplateFromSqlTemplate = await db.raw(
-    sql`
+    // Test queryRaw``
+    const rawQueryTemplate = await db.queryRaw`SELECT 1`
+    assert(
+      rawQueryTemplate[0]['1'] === 1,
+      "prisma.queryRaw`SELECT 1` result should be [ { '1': 1 } ]",
+    )
+
+    // Test queryRaw`` with ${param}
+    const rawQueryTemplateWithParams = await db.queryRaw`SELECT * FROM User WHERE name = ${'Alice'}`
+    assert(
+      rawQueryTemplateWithParams[0].name === 'Alice',
+      "prisma.queryRaw`SELECT * FROM User WHERE name = ${'Alice'}` result should be [{ email: 'a@a.de', id: '576eddf9-2434-421f-9a86-58bede16fd95', name: 'Alice' }]",
+    )
+
+    // Test queryRaw`` with prisma.sql``
+    const rawQueryTemplateFromSqlTemplate = await db.queryRaw(
+      sql`
       SELECT ${join([raw('email'), raw('id'), raw('name')])}
       FROM ${raw('User')}
       ${sql`WHERE name = ${'Alice'}`}
       ${empty}
     `,
-  )
-  if (rawQueryTemplateFromSqlTemplate[0].name !== 'Alice') {
-    throw Error(
-      "prisma.raw(prisma.sql`SELECT * FROM ${join([raw('email'),raw('id'),raw('name')])} ${sql`WHERE name = ${'Alice'}`} ${empty}` result should be [{ email: 'a@a.de', id: '576eddf9-2434-421f-9a86-58bede16fd95', name: 'Alice' }]",
     )
+    assert(
+      rawQueryTemplateFromSqlTemplate[0].name === 'Alice',
+      "prisma.queryRaw(prisma.sql`SELECT * FROM ${join([raw('email'),raw('id'),raw('name')])} ${sql`WHERE name = ${'Alice'}`} ${empty}` result should be [{ email: 'a@a.de', id: '576eddf9-2434-421f-9a86-58bede16fd95', name: 'Alice' }]",
+    )
+
+    /**
+     * executeRaw
+     */
+
+    // Test executeRaw(string)
+    const executeRaw = await db.executeRaw(
+      'UPDATE User SET name = $1 WHERE id = $2',
+      'name',
+      'id',
+    )
+    assert(
+      executeRaw === 1,
+      "prisma.executeRaw('UPDATE User SET name = $1 WHERE id = $2') result should be 0",
+    )
+
+    // Test executeRaw(string, values)
+    const executeRawWithValues = await db.executeRaw(
+      'UPDATE User SET name = $1 WHERE id = $2',
+      'Alice',
+      'id',
+    )
+    assert(
+      executeRawWithValues === 0,
+      "prisma.executeRaw('UPDATE User SET name = $1 WHERE id = $2', 'Alice', 42) result should be 0",
+    )
+
+    // Test executeRaw``
+    const executeRawTemplate = await db.executeRaw`UPDATE User SET name = ${'name'} WHERE id = ${'id'}`
+    assert(
+      executeRawTemplate === 1,
+      'prisma.executeRaw`SELECT 1` result should be 0',
+    )
+  } catch (e) {
+    console.error('HI')
+    console.error(e)
   }
 
   // Test validation errors

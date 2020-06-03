@@ -540,8 +540,23 @@ ${indent(this.jsDoc, tab)}
    * Disconnect from the database
    */
   disconnect(): Promise<any>;
+
   /**
-   * Makes a raw query
+   * Executes a raw query and returns the number of affected rows
+   * @example
+   * \`\`\`
+   * // With parameters use prisma.executeRaw\`\`, values will be escaped automatically
+   * const result = await prisma.executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
+   * // Or
+   * const result = await prisma.executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
+  * \`\`\`
+  * 
+  * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md#raw-database-access).
+  */
+  executeRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<number>;
+
+  /**
+   * Performs a raw query and returns the SELECT data
    * @example
    * \`\`\`
    * // With parameters use prisma.raw\`\`, values will be escaped automatically
@@ -552,7 +567,7 @@ ${indent(this.jsDoc, tab)}
   * 
   * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md#raw-database-access).
   */
-  raw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<T>;
+  queryRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<T>;
 
 ${indent(
   dmmf.mappings
