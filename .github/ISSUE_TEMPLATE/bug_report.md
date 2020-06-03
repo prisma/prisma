@@ -5,6 +5,7 @@ title: ''
 labels: ''
 assignees: ''
 ---
+
 <!-- 
 Thanks for helping us improve Prisma! 🙏 Please follow the sections in the template and provide as much information as possible about your problem, e.g. by setting the `DEBUG="*"` environment variable and enabling additional logging output in Prisma Client.
 
@@ -38,7 +39,7 @@ Do not include your database credentials when sharing your Prisma schema! -->
 
 <!-- In which environment does the problem occur -->
 
-- OS: [e.g. Mac OS, Windows, Debian, CentOS, ...]
-- Database: [PostgreSQL, MySQL, MariaDB or SQLite]
-- Prisma version: [Run `prisma -v` to see your Prisma version]
-- Node.js version: [Run `node -v` to see your Node.js version]
+- OS: <!--[e.g. Mac OS, Windows, Debian, CentOS, ...]-->
+- Database: <!--[PostgreSQL, MySQL, MariaDB or SQLite]-->
+- Prisma version: <!--[Run `prisma -v` to see your Prisma version]-->
+- Node.js version: <!--[Run `node -v` to see your Node.js version]-->
