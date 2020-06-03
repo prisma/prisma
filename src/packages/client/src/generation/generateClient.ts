@@ -148,7 +148,9 @@ export async function generateClient({
   runtimePath =
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
-  const finalOutputDir = useDotPrisma ? getDotPrismaDir(outputDir) : outputDir
+  const finalOutputDir = useDotPrisma
+    ? await getDotPrismaDir(outputDir)
+    : outputDir
   debug({ finalOutputDir, runtimePath })
 
   if (testMode) {
