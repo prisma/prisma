@@ -18,6 +18,7 @@ import { resolveDatasources } from '../utils/resolveDatasources'
 import { extractSqliteSources } from './extractSqliteSources'
 import { TSClient, TS, JS } from './TSClient'
 import { getVersion } from '@prisma/sdk/dist/engineCommands'
+import pkgUp from 'pkg-up'
 
 const debug = Debug('generateClient')
 debug.log = console.log.bind(console)
@@ -104,20 +105,22 @@ export async function buildClient({
   }
 }
 
-function getDotPrismaDir(outputDir: string): string {
-  // Fix for Vercel
-  if (
-    process.env.NOW_BUILDER &&
-    process.env.INIT_CWD?.includes(process.cwd())
-  ) {
-    return path.join(process.cwd(), 'node_modules/.prisma/client')
-  }
+async function getDotPrismaDir(outputDir: string): Promise<string> {
   if (
     process.env.INIT_CWD &&
     process.env.npm_lifecycle_event === 'postinstall' &&
     !process.env.PWD?.includes('.pnpm')
   ) {
-    return path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
+    // INIT_CWD is the dir, in which "npm install" has been invoked. That can e.g. be in ./src
+    // If we're in ./ - there'll also be a package.json, so we can directly go for it
+    // otherwise, we'll go up in the filesystem and look for the first package.json
+    if (fs.existsSync(path.join(process.env.INIT_CWD, 'package.json'))) {
+      return path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
+    }
+    const packagePath = await pkgUp({ cwd: process.env.INIT_CWD })
+    if (packagePath) {
+      return path.join(path.dirname(packagePath), 'node_modules/.prisma/client')
+    }
   }
 
   return path.join(outputDir, '../../.prisma/client')
