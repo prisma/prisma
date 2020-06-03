@@ -150,6 +150,8 @@ importers:
       ts-mocha: 6.0.0
       typescript: 3.9.3
   packages/client:
+    dependencies:
+      pkg-up: 3.1.0
     devDependencies:
       '@apexearth/copy': 1.4.5
       '@prisma/debug': 'link:../debug'
@@ -258,6 +260,7 @@ importers:
       node-tcp-proxy: 0.0.15
       packwatch: 2.0.0
       pg: 7.18.2
+      pkg-up: ^3.1.0
       pluralize: 8.0.0
       prettier: 2.0.5
       rimraf: 3.0.2
@@ -4002,7 +4005,6 @@ packages:
   /find-up/3.0.0:
     dependencies:
       locate-path: 3.0.0
-    dev: true
     engines:
       node: '>=6'
     resolution:
@@ -5774,7 +5776,6 @@ packages:
     dependencies:
       p-locate: 3.0.0
       path-exists: 3.0.0
-    dev: true
     engines:
       node: '>=6'
     resolution:
@@ -6589,7 +6590,6 @@ packages:
   /p-locate/3.0.0:
     dependencies:
       p-limit: 2.3.0
-    dev: true
     engines:
       node: '>=6'
     resolution:
@@ -6710,7 +6710,6 @@ packages:
     resolution:
       integrity: sha1-zDPSTVJeCZpTiMAzbG4yuRYGCeA=
   /path-exists/3.0.0:
-    dev: true
     engines:
       node: '>=4'
     resolution:
@@ -6903,7 +6902,6 @@ packages:
   /pkg-up/3.1.0:
     dependencies:
       find-up: 3.0.0
-    dev: true
     engines:
       node: '>=8'
     resolution:

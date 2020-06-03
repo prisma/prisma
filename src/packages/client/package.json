@@ -130,5 +130,8 @@
     "*.{js,ts}": [
       "eslint"
     ]
+  },
+  "dependencies": {
+    "pkg-up": "^3.1.0"
   }
 }
