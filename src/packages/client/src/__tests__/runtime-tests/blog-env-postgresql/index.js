@@ -117,25 +117,45 @@ Overriden connection string: ${connectionString}`)
 
   await prisma.connect()
 
-  // Test raw(string)
-  const rawQuery = await prisma.raw('SELECT 1')
-  if (rawQuery[0]['?column?'] !== 1) {
-    throw Error("prisma.raw('SELECT 1') result should be [ { '?column?': 1 } ]")
-  }
+  // Test queryRaw(string)
+  const rawQuery = await prisma.queryRaw('SELECT 1')
+  assert.equal(
+    rawQuery[0]['?column?'],
+    1,
+    "prisma.queryRaw('SELECT 1') result should be [ { '?column?': 1 } ]",
+  )
 
-  // Test raw``
-  const rawQueryTemplate = await prisma.raw`SELECT 1`
-  if (rawQueryTemplate[0]['?column?'] !== 1) {
-    throw Error("prisma.raw`SELECT 1` result should be [ { '?column?': 1 } ]")
-  }
+  // Test queryRaw``
+  const rawQueryTemplate = await prisma.queryRaw`SELECT 1`
+  assert.equal(
+    rawQueryTemplate[0]['?column?'],
+    1,
+    "prisma.queryRaw`SELECT 1` result should be [ { '?column?': 1 } ]",
+  )
 
-  // Test raw`` with ${param}
-  const rawQueryTemplateWithParams = await prisma.raw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
-  if (rawQueryTemplateWithParams[0].name !== 'Alice') {
-    throw Error(
-      "prisma.raw`SELECT * FROM User WHERE name = ${'Alice'}` result should be [{ email: 'a@a.de', id: 11233, name: 'Alice' }]",
-    )
-  }
+  // Test queryRaw`` with ${param}
+  const rawQueryTemplateWithParams = await prisma.queryRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
+  assert.equal(
+    rawQueryTemplateWithParams[0].name,
+    'Alice',
+    "prisma.queryRaw`SELECT * FROM User WHERE name = ${'Alice'}` result should be [{ email: 'a@a.de', id: 11233, name: 'Alice' }]",
+  )
+
+  // Test executeRaw(string)
+  const rawexecute = await prisma.executeRaw('SELECT 1')
+  assert.equal(rawexecute, 1, 'executeRaw SELECT 1 must return 0')
+
+  // Test executeRaw``
+  const rawexecuteTemplate = await prisma.executeRaw`SELECT 1`
+  assert.equal(rawexecuteTemplate, 1, 'executeRaw SELECT 1 must return 0')
+
+  // Test executeRaw`` with ${param}
+  const rawexecuteTemplateWithParams = await prisma.executeRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
+  assert.equal(
+    rawexecuteTemplateWithParams,
+    1,
+    'SELECT * FROM "public"."User" WHERE name = ',
+  )
 
   // Test validation errors
   let validationError
@@ -168,7 +188,7 @@ Overriden connection string: ${connectionString}`)
     console.error(e)
   }
   const users = await prisma.user.findMany()
-  assert(users.length === 1)
+  assert.equal(users.length, 1)
   const resultEmptyJson = await prisma.post.create({
     data: {
       published: false,

@@ -1032,6 +1032,7 @@ export function selectionToFields(
       typeof value !== 'boolean' &&
       field.outputType.kind === 'scalar' &&
       field.name !== 'executeRaw' &&
+      field.name !== 'queryRaw' &&
       outputType.name !== 'Query' &&
       !name.startsWith('aggregate') &&
       field.name !== 'count' // TODO: Find a cleaner solution

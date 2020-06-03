@@ -329,10 +329,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }
 
     /**
-     * Makes a raw query
+     * Executes a raw query. Always returns a number
      */
-
-    async raw(stringOrTemplateStringsArray, ...values) {
+    async executeRaw(stringOrTemplateStringsArray, ...values) {
       let query = ''
       let parameters: any = undefined
 
@@ -371,9 +370,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         }
       }
       if (parameters?.values) {
-        debug(`prisma.raw(${query}, ${parameters.values})`)
+        debug(`prisma.executeRaw(${query}, ${parameters.values})`)
       } else {
-        debug(`prisma.raw(${query})`)
+        debug(`prisma.executeRaw(${query})`)
       }
 
       const document = makeDocument({
@@ -395,12 +394,86 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return this.fetcher.request({
         document,
         rootField: 'executeRaw',
-        typeName: 'raw',
+        typeName: 'executeRaw',
         isList: false,
         dataPath: [],
-        clientMethod: 'raw',
+        clientMethod: 'executeRaw',
       })
     }
+
+    /**
+     * Executes a raw query. Always returns a number
+     */
+    async queryRaw(stringOrTemplateStringsArray, ...values) {
+      let query = ''
+      let parameters: any = undefined
+
+      const sqlOutput =
+        this.internalDatasources[0]?.connectorType === 'postgresql'
+          ? 'text'
+          : 'sql'
+
+      debug(`Prisma Client call:`)
+      if (Array.isArray(stringOrTemplateStringsArray)) {
+        // Called with prisma.raw\`\`
+        const queryInstance = sqlTemplateTag.sqltag(
+          stringOrTemplateStringsArray as any,
+          ...values,
+        )
+        query = queryInstance[sqlOutput]
+        parameters = {
+          values: JSON.stringify(queryInstance.values),
+          __prismaRawParamaters__: true,
+        }
+      } else if ('string' === typeof stringOrTemplateStringsArray) {
+        // Called with prisma.raw(string) or prisma.raw(string, values)
+        query = stringOrTemplateStringsArray
+        if (values.length) {
+          parameters = {
+            values: JSON.stringify(values),
+            __prismaRawParamaters__: true,
+          }
+        }
+      } else {
+        // called with prisma.raw(sql\`\`)
+        query = stringOrTemplateStringsArray[sqlOutput]
+        parameters = {
+          values: JSON.stringify(stringOrTemplateStringsArray.values),
+          __prismaRawParamaters__: true,
+        }
+      }
+      if (parameters?.values) {
+        debug(`prisma.queryRaw(${query}, ${parameters.values})`)
+      } else {
+        debug(`prisma.queryRaw(${query})`)
+      }
+
+      const document = makeDocument({
+        dmmf: this.dmmf,
+        rootField: 'queryRaw',
+        rootTypeName: 'mutation',
+        select: {
+          query,
+          parameters,
+        },
+      })
+
+      document.validate({ query, parameters }, false, 'raw', this.errorFormat)
+
+      const docString = String(document)
+      debug(`Generated request:`)
+      debug(docString + '\n')
+
+      return this.fetcher.request({
+        document,
+        rootField: 'queryRaw',
+        typeName: 'queryRaw',
+        isList: false,
+        dataPath: [],
+        clientMethod: 'queryRaw',
+      })
+    }
+
     private bootstrapClient() {
       const clients = this.dmmf.mappings.reduce((acc, mapping) => {
         const lowerCaseModel = lowerCase(mapping.model)
