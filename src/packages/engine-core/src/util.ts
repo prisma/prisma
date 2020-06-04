@@ -18,7 +18,7 @@ export function plusX(file): void {
   fs.chmodSync(file, base8)
 }
 
-export function fixPlatforms(
+export function fixBinaryTargets(
   platforms: Array<Platform | string>,
   platform: Platform | string,
 ): string[] {

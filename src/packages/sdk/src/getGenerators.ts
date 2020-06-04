@@ -13,7 +13,7 @@ import {
 } from '@prisma/fetch-engine/dist/download'
 import { download } from '@prisma/fetch-engine'
 import { getPlatform, Platform } from '@prisma/get-platform'
-import { printGeneratorConfig, fixPlatforms } from '@prisma/engine-core'
+import { printGeneratorConfig, fixBinaryTargets } from '@prisma/engine-core'
 
 import { getConfig, getDMMF } from './engineCommands'
 import { unique } from './unique'
@@ -317,9 +317,9 @@ async function validateGenerators(
         `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
       )
     }
-    if (generator.config.pinnedPlatform) {
+    if (generator.config.pinnedBinaryTargets) {
       throw new Error(
-        `The \`pinnedPlatform\` field on the generator definition is deprecated.
+        `The \`pinnedBinaryTargets\` field on the generator definition is deprecated.
 Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary target.`,
       )
     }
@@ -366,7 +366,10 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
     ${chalk.greenBright(
       printGeneratorConfig({
         ...generator,
-        binaryTargets: fixPlatforms(generator.binaryTargets as any[], platform),
+        binaryTargets: fixBinaryTargets(
+          generator.binaryTargets as any[],
+          platform,
+        ),
       }),
     )}
     ${chalk.gray(

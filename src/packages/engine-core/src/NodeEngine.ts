@@ -15,7 +15,7 @@ import fs from 'fs'
 import chalk from 'chalk'
 import { GeneratorConfig } from '@prisma/generator-helper'
 import { printGeneratorConfig } from './printGeneratorConfig'
-import { fixPlatforms, plusX } from './util'
+import { fixBinaryTargets, plusX } from './util'
 import { promisify } from 'util'
 import EventEmitter from 'events'
 import { convertLog, RustLog, RustError } from './log'
@@ -112,7 +112,7 @@ export class NodeEngine {
   platformPromise: Promise<Platform>
   platform?: Platform | string
   generator?: GeneratorConfig
-  incorrectlyPinnedPlatform?: string
+  incorrectlyPinnedBinaryTarget?: string
   datasources?: DatasourceOverwrite[]
   lastErrorLog?: RustLog
   lastError?: RustError
@@ -240,7 +240,7 @@ You may have to run ${chalk.greenBright(
 
     const platform = await this.getPlatform()
     if (this.platform && this.platform !== platform) {
-      this.incorrectlyPinnedPlatform = this.platform
+      this.incorrectlyPinnedBinaryTarget = this.platform
     }
 
     this.platform = this.platform || platform
@@ -299,9 +299,9 @@ You may have to run ${chalk.greenBright(
     const platform = await this.getPlatform()
     // If path to query engine doesn't exist, throw
     if (!(await exists(prismaPath))) {
-      const pinnedStr = this.incorrectlyPinnedPlatform
+      const pinnedStr = this.incorrectlyPinnedBinaryTarget
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(
-            `${this.incorrectlyPinnedPlatform}`,
+            `${this.incorrectlyPinnedBinaryTarget}`,
           )}\n`
         : ''
 
@@ -361,11 +361,11 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
       throw new PrismaClientInitializationError(errorText)
     }
 
-    if (this.incorrectlyPinnedPlatform) {
+    if (this.incorrectlyPinnedBinaryTarget) {
       console.error(`${chalk.yellow(
         'Warning:',
       )} You pinned the platform ${chalk.bold(
-        this.incorrectlyPinnedPlatform,
+        this.incorrectlyPinnedBinaryTarget,
       )}, but Prisma Client detects ${chalk.bold(await this.getPlatform())}.
 This means you should very likely pin the platform ${chalk.greenBright(
         await this.getPlatform(),
@@ -383,7 +383,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   private getFixedGenerator(): string {
     const fixedGenerator = {
       ...this.generator,
-      binaryTargets: fixPlatforms(
+      binaryTargets: fixBinaryTargets(
         this.generator.binaryTargets as Platform[],
         this.platform,
       ),
