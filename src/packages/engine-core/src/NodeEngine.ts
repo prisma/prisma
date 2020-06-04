@@ -15,7 +15,7 @@ import fs from 'fs'
 import chalk from 'chalk'
 import { GeneratorConfig } from '@prisma/generator-helper'
 import { printGeneratorConfig } from './printGeneratorConfig'
-import { fixPlatforms, plusX } from './util'
+import { fixBinaryTargets, plusX } from './util'
 import { promisify } from 'util'
 import EventEmitter from 'events'
 import { convertLog, RustLog, RustError } from './log'
@@ -383,7 +383,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   private getFixedGenerator(): string {
     const fixedGenerator = {
       ...this.generator,
-      binaryTargets: fixPlatforms(
+      binaryTargets: fixBinaryTargets(
         this.generator.binaryTargets as Platform[],
         this.platform,
       ),
