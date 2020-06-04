@@ -197,7 +197,10 @@ You may have to run ${chalk.greenBright(
     return process.cwd()
   }
 
-  on(event: 'query' | 'info' | 'warn', listener: (log: RustLog) => any): void {
+  on(
+    event: 'query' | 'info' | 'warn' | 'error',
+    listener: (log: RustLog) => any,
+  ): void {
     this.logEmitter.on(event, listener)
   }
 
@@ -519,6 +522,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             }
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
+              if (log.level === 'error') {
+                console.log(`Emitting ${log.level}`, log)
+              }
               this.logEmitter.emit(log.level, log)
             } else {
               this.lastError = json
