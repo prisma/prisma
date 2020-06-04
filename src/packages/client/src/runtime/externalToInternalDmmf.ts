@@ -11,6 +11,10 @@ function transformFieldKind(model: ExternalDMMF.Model): DMMF.Model {
       ...field,
       kind: field.kind === 'relation' ? ('object' as any) : field.kind,
     })),
+    uniqueFields: model.fields.map((field) => ({
+      ...field,
+      kind: field.kind === 'relation' ? ('object' as any) : field.kind,
+    })),
   }
 }
 
