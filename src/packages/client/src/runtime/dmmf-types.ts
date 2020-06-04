@@ -25,6 +25,7 @@ export namespace DMMF {
     documentation?: string
     [key: string]: any // safe net for additional new props
     idFields: string[]
+    uniqueFields: string[]
   }
 
   export type FieldKind = 'scalar' | 'object' | 'enum'
