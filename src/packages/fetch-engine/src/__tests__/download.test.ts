@@ -10,6 +10,10 @@ import { getPlatform } from '@prisma/get-platform'
 import { cleanupCache } from '../cleanupCache'
 import del from 'del'
 
+const CURRENT_BINARIES_HASH = require('../../../sdk/package.json').prisma
+  .version
+const FIXED_BINARIES_HASH = 'ff6959d77f8880ec037ed8201fff4a92f3aabaa0'
+
 jest.setTimeout(30000)
 
 describe('download', () => {
@@ -17,6 +21,7 @@ describe('download', () => {
     // completely clean up the cache and keep nothing
     await cleanupCache(0)
     await del(__dirname + '/**/*engine*')
+    await del(__dirname + '/**/prisma-fmt*')
   })
 
   test('basic download', async () => {
@@ -33,25 +38,54 @@ describe('download', () => {
       __dirname,
       getBinaryName('migration-engine', platform),
     )
+    const prismafmtPath = path.join(
+      __dirname,
+      getBinaryName('prisma-fmt', platform),
+    )
 
     await download({
       binaries: {
         'query-engine': __dirname,
         'introspection-engine': __dirname,
         'migration-engine': __dirname,
+        'prisma-fmt': __dirname,
       },
-      version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+      version: FIXED_BINARIES_HASH,
     })
 
     expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(
-      `"query-engine fc45fde2be3f39a089ade64c5c480b7ac30af461"`,
+      `"query-engine ff6959d77f8880ec037ed8201fff4a92f3aabaa0"`,
     )
     expect(await getVersion(introspectionEnginePath)).toMatchInlineSnapshot(
-      `"introspection-core fc45fde2be3f39a089ade64c5c480b7ac30af461"`,
+      `"introspection-core ff6959d77f8880ec037ed8201fff4a92f3aabaa0"`,
     )
     expect(await getVersion(migrationEnginePath)).toMatchInlineSnapshot(
-      `"migration-engine-cli fc45fde2be3f39a089ade64c5c480b7ac30af461"`,
+      `"migration-engine-cli ff6959d77f8880ec037ed8201fff4a92f3aabaa0"`,
     )
+    expect(await getVersion(prismafmtPath)).toMatchInlineSnapshot(
+      `"prisma-fmt ff6959d77f8880ec037ed8201fff4a92f3aabaa0"`,
+    )
+  })
+
+  test('basic download all current binaries', async () => {
+    await download({
+      binaries: {
+        'query-engine': __dirname,
+        'introspection-engine': __dirname,
+        'migration-engine': __dirname,
+        'prisma-fmt': __dirname,
+      },
+      binaryTargets: [
+        'darwin',
+        'debian-openssl-1.0.x',
+        'debian-openssl-1.1.x',
+        'rhel-openssl-1.0.x',
+        'rhel-openssl-1.1.x',
+        'windows',
+        'linux-musl',
+      ],
+      version: CURRENT_BINARIES_HASH,
+    })
   })
 
   test('auto heal corrupt binary', async () => {
@@ -73,7 +107,7 @@ describe('download', () => {
       binaries: {
         'query-engine': baseDir,
       },
-      version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+      version: FIXED_BINARIES_HASH,
     })
 
     fs.writeFileSync(targetPath, 'incorrect-binary')
@@ -83,7 +117,7 @@ describe('download', () => {
       binaries: {
         'query-engine': baseDir,
       },
-      version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+      version: FIXED_BINARIES_HASH,
     })
 
     expect(fs.existsSync(targetPath)).toBe(true)
@@ -97,7 +131,7 @@ describe('download', () => {
         binaries: {
           'query-engine': __dirname,
         },
-        version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+        version: FIXED_BINARIES_HASH,
         binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
@@ -112,6 +146,7 @@ describe('download', () => {
         'query-engine': baseDir,
         'introspection-engine': baseDir,
         'migration-engine': baseDir,
+        'prisma-fmt': baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -122,7 +157,7 @@ describe('download', () => {
         'windows',
         'linux-musl',
       ],
-      version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+      version: FIXED_BINARIES_HASH,
     })
     const files = getFiles(baseDir)
     expect(files).toMatchInlineSnapshot(`
@@ -218,12 +253,14 @@ describe('download', () => {
       ]
     `)
     await del(baseDir + '/*engine*')
+    await del(baseDir + '/prisma-fmt*')
     const before = Date.now()
     await download({
       binaries: {
         'query-engine': baseDir,
         'introspection-engine': baseDir,
         'migration-engine': baseDir,
+        'prisma-fmt': baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -234,7 +271,7 @@ describe('download', () => {
         'windows',
         'linux-musl',
       ],
-      version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+      version: FIXED_BINARIES_HASH,
     })
     const after = Date.now()
     // cache should take less than 2s
@@ -246,6 +283,7 @@ describe('download', () => {
         'query-engine': baseDir,
         'introspection-engine': baseDir,
         'migration-engine': baseDir,
+        'prisma-fmt': baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -254,8 +292,9 @@ describe('download', () => {
         'rhel-openssl-1.0.x',
         'rhel-openssl-1.1.x',
         'windows',
+        'linux-musl',
       ],
-      version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+      version: FIXED_BINARIES_HASH,
     })
     const after2 = Date.now()
     // if binaries are already there, it should take less than 100ms to check all of them
