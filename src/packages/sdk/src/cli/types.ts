@@ -20,7 +20,7 @@ export type GeneratorConfig = {
   provider: string
   config: Dictionary<string>
   platforms: string[]
-  pinnedPlatform?: string | null
+  pinnedBinaryTargets?: string | null
 }
 
 export type GeneratorOptions = {
