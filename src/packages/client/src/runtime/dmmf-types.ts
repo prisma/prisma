@@ -22,10 +22,10 @@ export namespace DMMF {
     isEmbedded: boolean
     dbName: string | null
     fields: Field[]
+    uniqueFields: Field[]
     documentation?: string
     [key: string]: any // safe net for additional new props
     idFields: string[]
-    uniqueFields: string[]
   }
 
   export type FieldKind = 'scalar' | 'object' | 'enum'
