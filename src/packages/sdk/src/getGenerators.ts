@@ -13,7 +13,7 @@ import {
 } from '@prisma/fetch-engine/dist/download'
 import { download } from '@prisma/fetch-engine'
 import { getPlatform, Platform } from '@prisma/get-platform'
-import { printGeneratorConfig, fixPlatforms } from '@prisma/engine-core'
+import { printGeneratorConfig, fixBinaryTargets } from '@prisma/engine-core'
 
 import { getConfig, getDMMF } from './engineCommands'
 import { unique } from './unique'
@@ -366,7 +366,10 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
     ${chalk.greenBright(
       printGeneratorConfig({
         ...generator,
-        binaryTargets: fixPlatforms(generator.binaryTargets as any[], platform),
+        binaryTargets: fixBinaryTargets(
+          generator.binaryTargets as any[],
+          platform,
+        ),
       }),
     )}
     ${chalk.gray(

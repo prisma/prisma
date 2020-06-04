@@ -19,7 +19,7 @@ export type GeneratorConfig = {
   name: string
   provider: string
   config: Dictionary<string>
-  platforms: string[]
+  binaryTargets: string[]
   pinnedBinaryTargets?: string | null
 }
 
