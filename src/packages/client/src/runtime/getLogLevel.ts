@@ -1,4 +1,4 @@
-type LogLevel = 'info' | 'query' | 'warn'
+type LogLevel = 'info' | 'query' | 'warn' | 'error'
 type LogDefinition = {
   level: LogLevel
   emit: 'stdout' | 'event'
