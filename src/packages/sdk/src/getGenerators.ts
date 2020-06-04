@@ -317,9 +317,9 @@ async function validateGenerators(
         `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
       )
     }
-    if (generator.config.pinnedPlatform) {
+    if (generator.config.pinnedBinaryTargets) {
       throw new Error(
-        `The \`pinnedPlatform\` field on the generator definition is deprecated.
+        `The \`pinnedBinaryTargets\` field on the generator definition is deprecated.
 Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary target.`,
       )
     }
