@@ -119,21 +119,21 @@ describe('getDMMF', () => {
     const dmmf = await getDMMF({
       datamodel: `
       // From https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model#examples-3
-
-      // TODO Update, this example fails now 
       // Specify a multi-field unique attribute that includes a relation field
-      // model Post {
-      //   id         Int      @default(autoincrement())
-      //   author     User
-      //   title      String
-      //   published  Boolean  @default(false)
-      //   @@unique([author, title])
-      // }
-      // model User {
-      //   id        Int      @default(autoincrement())
-      //   email     String   @unique
-      //   posts     Post[]
-      // }
+      model Post {
+        id        Int     @default(autoincrement())
+        author    User    @relation(fields: [authorId], references: [id])
+        authorId  Int
+        title     String
+        published Boolean @default(false)
+        
+        @@unique([authorId, title])
+      }
+      model User {
+        id    Int    @id @default(autoincrement())
+        email String @unique
+        posts Post[]
+      }
 
       // Specify a multi-field unique attribute on two String fields
       model User1 {
