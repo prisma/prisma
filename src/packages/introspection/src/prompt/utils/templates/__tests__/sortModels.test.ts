@@ -45,6 +45,7 @@ test('sortModels', () => {
         "idFields": Array [],
         "isEmbedded": false,
         "name": "User",
+        "uniqueFields": Array [],
       },
       Object {
         "dbName": null,
@@ -52,6 +53,7 @@ test('sortModels', () => {
         "idFields": Array [],
         "isEmbedded": false,
         "name": "Post",
+        "uniqueFields": Array [],
       },
       Object {
         "dbName": null,
@@ -59,6 +61,7 @@ test('sortModels', () => {
         "idFields": Array [],
         "isEmbedded": false,
         "name": "Bike",
+        "uniqueFields": Array [],
       },
       Object {
         "dbName": null,
@@ -66,6 +69,7 @@ test('sortModels', () => {
         "idFields": Array [],
         "isEmbedded": false,
         "name": "Car",
+        "uniqueFields": Array [],
       },
     ]
   `)
