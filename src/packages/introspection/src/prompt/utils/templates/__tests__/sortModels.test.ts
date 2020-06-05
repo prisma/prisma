@@ -6,6 +6,7 @@ test('sortModels', () => {
     {
       name: 'Car',
       fields: [],
+      uniqueFields: [],
       isEmbedded: false,
       dbName: null,
       idFields: [],
@@ -13,6 +14,7 @@ test('sortModels', () => {
     {
       name: 'Bike',
       fields: [],
+      uniqueFields: [],
       isEmbedded: false,
       dbName: null,
       idFields: [],
@@ -20,12 +22,14 @@ test('sortModels', () => {
     {
       name: 'Post',
       fields: [],
+      uniqueFields: [],
       isEmbedded: false,
       dbName: null,
       idFields: [],
     },
     {
       name: 'User',
+      uniqueFields: [],
       fields: [],
       isEmbedded: false,
       dbName: null,
