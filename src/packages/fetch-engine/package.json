@@ -46,7 +46,7 @@
     "tempy": "^0.5.0"
   },
   "scripts": {
-    "build": "tsc -d",
+    "build": "tsc -d && cp src/getLatestAlphaTag.sh dist/",
     "prepublishOnly": "pnpm run build",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
