@@ -1513,7 +1513,11 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   // that's fine for us as we can just turn this into a list with a single item
   // and GraphQL even allows this. We're going the conservative route though
   // and actually generate the [] around the value
+
   if (!Array.isArray(value)) {
+    if (key === 'OR' && arg.name === 'OR' && arg.isRelationFilter) {
+      return scalarToArg(key, value, arg, argInputType)
+    }
     value = [value]
   }
 
