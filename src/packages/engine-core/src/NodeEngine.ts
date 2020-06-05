@@ -449,10 +449,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           }
         }
 
-        if (this.logLevel === 'warn') {
-          env.RUST_LOG = 'warn'
-        }
-
         if (this.datasources) {
           env.OVERWRITE_DATASOURCES = this.printDatasources()
         }
