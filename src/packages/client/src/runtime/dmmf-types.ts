@@ -22,7 +22,7 @@ export namespace DMMF {
     isEmbedded: boolean
     dbName: string | null
     fields: Field[]
-    uniqueFields: Field[]
+    uniqueFields: string[][]
     documentation?: string
     [key: string]: any // safe net for additional new props
     idFields: string[]

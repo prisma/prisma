@@ -33,7 +33,7 @@ export namespace DMMF {
     isEmbedded: boolean
     dbName: string | null
     fields: Field[]
-    uniqueFields: Field[]
+    uniqueFields: string[][]
     idFields: string[]
   }
 
