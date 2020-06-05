@@ -1076,7 +1076,11 @@ export class InputField implements Generatable {
     const fieldInputType = field.inputType[0]
     const optionalStr = fieldInputType.isRequired ? '' : '?'
     if (fieldInputType.isList) {
-      fieldType = `Enumerable<${fieldType}>`
+      if (field.name === 'OR') {
+        fieldType = `Array<${fieldType}>`
+      } else {
+        fieldType = `Enumerable<${fieldType}>`
+      }
     }
     const nullableStr =
       !fieldInputType.isRequired && !hasNull && fieldInputType.isNullable
