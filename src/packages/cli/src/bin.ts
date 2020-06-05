@@ -112,6 +112,7 @@ import { Validate } from './Validate'
 import * as checkpoint from 'checkpoint-client'
 import ci from '@prisma/ci-info'
 import { Format } from './Format'
+import { Doctor } from './Doctor'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
 // as they have to ship their own version of @prisma/client
@@ -150,6 +151,7 @@ async function main(): Promise<number> {
       version: Version.new(),
       validate: Validate.new(),
       format: Format.new(),
+      doctor: Doctor.new(),
     },
     [
       'version',
