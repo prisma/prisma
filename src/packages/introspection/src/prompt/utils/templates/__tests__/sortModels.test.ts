@@ -6,6 +6,8 @@ test('sortModels', () => {
     {
       name: 'Car',
       fields: [],
+      uniqueFields: [],
+      uniqueIndexes: [],
       isEmbedded: false,
       dbName: null,
       idFields: [],
@@ -13,6 +15,8 @@ test('sortModels', () => {
     {
       name: 'Bike',
       fields: [],
+      uniqueFields: [],
+      uniqueIndexes: [],
       isEmbedded: false,
       dbName: null,
       idFields: [],
@@ -20,12 +24,16 @@ test('sortModels', () => {
     {
       name: 'Post',
       fields: [],
+      uniqueFields: [],
+      uniqueIndexes: [],
       isEmbedded: false,
       dbName: null,
       idFields: [],
     },
     {
       name: 'User',
+      uniqueFields: [],
+      uniqueIndexes: [],
       fields: [],
       isEmbedded: false,
       dbName: null,
@@ -41,6 +49,8 @@ test('sortModels', () => {
         "idFields": Array [],
         "isEmbedded": false,
         "name": "User",
+        "uniqueFields": Array [],
+        "uniqueIndexes": Array [],
       },
       Object {
         "dbName": null,
@@ -48,6 +58,8 @@ test('sortModels', () => {
         "idFields": Array [],
         "isEmbedded": false,
         "name": "Post",
+        "uniqueFields": Array [],
+        "uniqueIndexes": Array [],
       },
       Object {
         "dbName": null,
@@ -55,6 +67,8 @@ test('sortModels', () => {
         "idFields": Array [],
         "isEmbedded": false,
         "name": "Bike",
+        "uniqueFields": Array [],
+        "uniqueIndexes": Array [],
       },
       Object {
         "dbName": null,
@@ -62,6 +76,8 @@ test('sortModels', () => {
         "idFields": Array [],
         "isEmbedded": false,
         "name": "Car",
+        "uniqueFields": Array [],
+        "uniqueIndexes": Array [],
       },
     ]
   `)

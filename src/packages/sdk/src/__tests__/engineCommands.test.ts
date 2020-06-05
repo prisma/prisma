@@ -53,11 +53,125 @@ describe('getDMMF', () => {
             "isGenerated": false,
             "name": "A",
             "uniqueFields": Array [],
+            "uniqueIndexes": Array [],
           },
         ],
       }
     `)
     expect(dmmf).toMatchSnapshot()
+  })
+
+  test('@@map model', async () => {
+    const dmmf = await getDMMF({
+      datamodel: `
+      model User {
+        id        Int      @default(autoincrement())
+        email     String   @unique
+        @@map("users")
+      }`,
+    })
+    expect(dmmf.datamodel).toMatchInlineSnapshot(`
+      Object {
+        "enums": Array [],
+        "models": Array [
+          Object {
+            "dbName": "users",
+            "fields": Array [
+              Object {
+                "default": Object {
+                  "args": Array [],
+                  "name": "autoincrement",
+                },
+                "hasDefaultValue": true,
+                "isGenerated": false,
+                "isId": false,
+                "isList": false,
+                "isReadOnly": false,
+                "isRequired": true,
+                "isUnique": false,
+                "isUpdatedAt": false,
+                "kind": "scalar",
+                "name": "id",
+                "type": "Int",
+              },
+              Object {
+                "hasDefaultValue": false,
+                "isGenerated": false,
+                "isId": false,
+                "isList": false,
+                "isReadOnly": false,
+                "isRequired": true,
+                "isUnique": true,
+                "isUpdatedAt": false,
+                "kind": "scalar",
+                "name": "email",
+                "type": "String",
+              },
+            ],
+            "idFields": Array [],
+            "isEmbedded": false,
+            "isGenerated": false,
+            "name": "User",
+            "uniqueFields": Array [],
+            "uniqueIndexes": Array [],
+          },
+        ],
+      }
+    `)
+    expect(dmmf).toMatchSnapshot()
+  })
+
+  test('@@unique model', async () => {
+    const dmmf = await getDMMF({
+      datamodel: `
+      // From https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model#examples-3
+      // Specify a multi-field unique attribute that includes a relation field
+      model Post {
+        id        Int     @default(autoincrement())
+        author    User    @relation(fields: [authorId], references: [id])
+        authorId  Int
+        title     String
+        published Boolean @default(false)
+        
+        @@unique([authorId, title])
+      }
+      model User {
+        id    Int    @id @default(autoincrement())
+        email String @unique
+        posts Post[]
+      }
+
+      // Specify a multi-field unique attribute on two String fields
+      model User1 {
+        id        Int     @default(autoincrement())
+        firstName String
+        lastName  String
+        isAdmin   Boolean @default(false)
+        @@unique([firstName, lastName])
+      }
+      
+      // Specify a multi-field unique attribute on two String fields and one Boolean field
+      model User2 {
+        id        Int     @default(autoincrement())
+        firstName String
+        lastName  String
+        isAdmin   Boolean @default(false)
+        @@unique([firstName, lastName, isAdmin])
+      }
+  `,
+    })
+
+    expect(dmmf).toMatchSnapshot()
+  })
+
+  test('chinook introspected schema', async () => {
+    const file = fs.readFileSync(
+      path.join(__dirname, '../../fixtures/chinook.prisma'),
+      'utf-8',
+    )
+    const dmmf = await getDMMF({ datamodel: file })
+    const str = JSON.stringify(dmmf)
+    expect(str.length).toMatchInlineSnapshot(`394868`)
   })
 
   test('big schema', async () => {
@@ -67,7 +181,7 @@ describe('getDMMF', () => {
     )
     const dmmf = await getDMMF({ datamodel: file })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`54657357`)
+    expect(str.length).toMatchInlineSnapshot(`54753193`)
   })
 
   test('with validation errors', async () => {

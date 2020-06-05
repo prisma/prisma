@@ -19,8 +19,8 @@ export type GeneratorConfig = {
   name: string
   provider: string
   config: Dictionary<string>
-  platforms: string[]
-  pinnedPlatform?: string | null
+  binaryTargets: string[]
+  pinnedBinaryTargets?: string | null
 }
 
 export type GeneratorOptions = {

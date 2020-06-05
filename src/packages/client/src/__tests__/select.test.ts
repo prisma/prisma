@@ -140,7 +140,7 @@ describe('select validation', () => {
 
         Unknown arg \`name_in\` in where.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -151,7 +151,7 @@ describe('select validation', () => {
         }
         Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -163,7 +163,7 @@ describe('select validation', () => {
         Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_arbitrary for type UserWhereInput. Available args:
 
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -174,7 +174,7 @@ describe('select validation', () => {
         }
         Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -186,7 +186,7 @@ describe('select validation', () => {
         Unknown arg \`id_endsWith\` in where.AND.1.id_endsWith for type UserWhereInput. Available args:
 
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -198,7 +198,7 @@ describe('select validation', () => {
         Unknown arg \`name_contains\` in where.AND.1.name_contains for type UserWhereInput. Available args:
 
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -209,7 +209,7 @@ describe('select validation', () => {
         }
         Unknown arg \`name_gt\` in where.AND.1.name_gt for type UserWhereInput. Did you mean \`name\`? Available args:
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -220,7 +220,7 @@ describe('select validation', () => {
         }
         Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -231,7 +231,7 @@ describe('select validation', () => {
         }
         Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -243,7 +243,7 @@ describe('select validation', () => {
         Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereInput. Available args:
 
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -319,7 +319,7 @@ describe('select validation', () => {
 
         Unknown arg \`name_in\` in where.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -330,7 +330,7 @@ describe('select validation', () => {
         }
         Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -342,7 +342,7 @@ describe('select validation', () => {
         Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_arbitrary for type UserWhereInput. Available args:
 
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -353,7 +353,7 @@ describe('select validation', () => {
         }
         Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -365,7 +365,7 @@ describe('select validation', () => {
         Unknown arg \`id_endsWith\` in where.AND.1.id_endsWith for type UserWhereInput. Available args:
 
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -377,7 +377,7 @@ describe('select validation', () => {
         Unknown arg \`name_contains\` in where.AND.1.name_contains for type UserWhereInput. Available args:
 
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -388,7 +388,7 @@ describe('select validation', () => {
         }
         Unknown arg \`name_gt\` in where.AND.1.name_gt for type UserWhereInput. Did you mean \`name\`? Available args:
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -399,7 +399,7 @@ describe('select validation', () => {
         }
         Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -410,7 +410,7 @@ describe('select validation', () => {
         }
         Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
@@ -422,7 +422,7 @@ describe('select validation', () => {
         Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereInput. Available args:
 
         type UserWhereInput {
-          id?: String | StringFilter
+          id?: UUID | UUIDFilter
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter

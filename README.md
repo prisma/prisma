@@ -118,15 +118,15 @@ The first step when using Prisma Client is installing its npm package:
 npm install @prisma/client
 ```
 
-Note that the installation of this package invokes the `prisma generate` command which reads your Prisma schema and _generates_ the Prisma Client code. The code will be located in `node_modules/@prisma/client`.
+Note that the installation of this package invokes the `prisma generate` command which reads your Prisma schema and _generates_ the Prisma Client code. The code will be located in `node_modules/.prisma/client`, which is exported by `node_modules/@prisma/client/index.d.ts`.
 
-After you change your data model, you'll need to manually re-generate Prisma Client to ensure the code inside `node_modules/@prisma/client` get updated:
+After you change your data model, you'll need to manually re-generate Prisma Client to ensure the code inside `node_modules/.prisma/client` get updated:
 
 ```
 prisma generate
 ```
 
-Note that because the Prisma Client node module contains specific context about _your_ Prisma schema, it's sometimes referred to as a ["smart node module"](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/generating-prisma-client#how-prisma-client-compares-to-conventional-node-modules).
+Refer to the documentation for more information about ["generating the Prisma client"](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/generating-prisma-client).
 
 #### Using Prisma Client to send queries to your database
 
@@ -216,6 +216,10 @@ Note that when using TypeScript, the result of this query will be _statically ty
 ## Community
 
 Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers. You can join us on [Slack](https://slack.prisma.io) and here on [GitHub](https://github.com/prisma/prisma/discussions).
+
+## Security
+
+If you have a security issue to report, please contact us at [security@prisma.io](mailto:security@prisma.io?subject=[GitHub]%20Prisma%202%20Security%20Report%20)
 
 ## Support
 

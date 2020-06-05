@@ -431,13 +431,14 @@ export interface PrismaClientOptions {
    * @example
    * \`\`\`
    * // Defaults to stdout
-   * log: ['query', 'info', 'warn']
+   * log: ['query', 'info', 'warn', 'error']
    * 
    * // Emit as events
    * log: [
    *  { emit: 'stdout', level: 'query' },
    *  { emit: 'stdout', level: 'info' },
    *  { emit: 'stdout', level: 'warn' }
+   *  { emit: 'stdout', level: 'error' }
    * ]
    * \`\`\`
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
@@ -463,14 +464,14 @@ export type Hooks = {
 }
 
 /* Types for Logging */
-export type LogLevel = 'info' | 'query' | 'warn'
+export type LogLevel = 'info' | 'query' | 'warn' | 'error'
 export type LogDefinition = {
   level: LogLevel
   emit: 'stdout' | 'event'
 }
 
 export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
-export type GetEvents<T extends Array<LogLevel | LogDefinition>> = GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]>
+export type GetEvents<T extends Array<LogLevel | LogDefinition>> = GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]> 
 
 export type QueryEvent = {
   timestamp: Date
@@ -491,7 +492,10 @@ export type LogEvent = {
 export declare function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
 
 ${this.jsDoc}
-export declare class PrismaClient<T extends PrismaClientOptions = PrismaClientOptions, U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never> {
+export declare class PrismaClient<
+  T extends PrismaClientOptions = PrismaClientOptions,
+  U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never
+> {
   /**
    * @private
    */
@@ -527,7 +531,7 @@ export declare class PrismaClient<T extends PrismaClientOptions = PrismaClientOp
 
 ${indent(this.jsDoc, tab)}
   constructor(optionsArg?: T);
-  on<V extends U>(eventType: V, callback: V extends never ? never : (event: V extends 'query' ? QueryEvent : LogEvent) => void): void;
+  on<V extends U>(eventType: V, callback: (event: V extends 'query' ? QueryEvent : LogEvent) => void): void;
   /**
    * Connect with the database
    */
@@ -1072,7 +1076,11 @@ export class InputField implements Generatable {
     const fieldInputType = field.inputType[0]
     const optionalStr = fieldInputType.isRequired ? '' : '?'
     if (fieldInputType.isList) {
-      fieldType = `Enumerable<${fieldType}>`
+      if (field.name === 'OR') {
+        fieldType = `Array<${fieldType}>`
+      } else {
+        fieldType = `Enumerable<${fieldType}>`
+      }
     }
     const nullableStr =
       !fieldInputType.isRequired && !hasNull && fieldInputType.isNullable
@@ -1194,12 +1202,12 @@ export class ArgsType implements Generatable {
     const singular = name
     const plural = pluralize(name)
 
-    args.forEach((arg) => {
+    for (const arg of args) {
       if (action && topLevelArgsJsDocs[action][arg.name]) {
         const comment = topLevelArgsJsDocs[action][arg.name](singular, plural)
         arg.comment = comment
       }
-    })
+    }
 
     const bothArgsOptional: DMMF.SchemaArg[] = [
       {

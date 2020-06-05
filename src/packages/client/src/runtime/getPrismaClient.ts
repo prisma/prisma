@@ -94,7 +94,7 @@ export type Hooks = {
 }
 
 /* Types for Logging */
-export type LogLevel = 'info' | 'query' | 'warn'
+export type LogLevel = 'info' | 'query' | 'warn' | 'error'
 export type LogDefinition = {
   level: LogLevel
   emit: 'stdout' | 'event'
@@ -290,7 +290,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             target: event.target,
           })
         } else {
-          // warn or info events
+          // warn,l info or error events
           callback({
             timestamp: event.timestamp,
             message: fields.message,
