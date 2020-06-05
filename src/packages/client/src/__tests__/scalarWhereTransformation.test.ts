@@ -1,3 +1,4 @@
+import stripAnsi from 'strip-ansi'
 import chalk from 'chalk'
 import { enums } from '../fixtures/enums'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
@@ -243,7 +244,7 @@ describe('scalar where transformation', () => {
   test('validate uuid scalar filter correctly', () => {
     const select = {
       where: {
-        id: 'asd',
+        id: '806c902c-eab3-4e6e-ba4a-99c135389118',
       },
     }
     const document = transformDocument(
@@ -256,19 +257,82 @@ describe('scalar where transformation', () => {
     )
 
     expect(String(document)).toMatchInlineSnapshot(`
-                  "query {
-                    findManyTest(where: {
-                      id: \\"asd\\"
-                    }) {
-                      id
-                      name
-                    }
-                  }"
-            `)
+      "query {
+        findManyTest(where: {
+          id: \\"806c902c-eab3-4e6e-ba4a-99c135389118\\"
+        }) {
+          id
+          name
+        }
+      }"
+    `)
 
     expect(document.validate(select, false, 'tests')).toMatchInlineSnapshot(
       `undefined`,
     )
+  })
+
+  test('validate uuid scalar filter should error when invalid input', () => {
+    const select = {
+      where: {
+        id: 'asd',
+      },
+    }
+
+    const document = transformDocument(
+      makeDocument({
+        dmmf,
+        select,
+        rootTypeName: 'query',
+        rootField: 'findManyTest',
+      }),
+    )
+
+    expect(String(document)).toMatchInlineSnapshot(`
+    "query {
+      findManyTest(where: {
+        id: \\"asd\\"
+      }) {
+        id
+        name
+      }
+    }"
+  `)
+
+    try {
+      expect(document.validate(select, false, 'tests')).toMatchInlineSnapshot(
+        `undefined`,
+      )
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        "
+        Invalid \`prisma.tests()\` invocation:
+
+        {
+          where: {
+            id: 'asd'
+                ~~~~~
+          }
+        }
+
+        Argument id: Got invalid value 'asd' on prisma.findManyTest. Provided String, expected UUID or UUIDFilter.
+        type UUIDFilter {
+          equals?: UUID
+          not?: UUID | UUIDFilter
+          in?: List<UUID>
+          notIn?: List<UUID>
+          lt?: UUID
+          lte?: UUID
+          gt?: UUID
+          gte?: UUID
+          contains?: UUID
+          startsWith?: UUID
+          endsWith?: UUID
+        }
+
+        "
+      `)
+    }
   })
 
   test('filter by enum', () => {
