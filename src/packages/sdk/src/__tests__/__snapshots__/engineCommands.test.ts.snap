@@ -33,6 +33,3136 @@ Object {
 }
 `;
 
+exports[`getDMMF @@map model 2`] = `
+Object {
+  "datamodel": Object {
+    "enums": Array [],
+    "models": Array [
+      Object {
+        "dbName": "users",
+        "fields": Array [
+          Object {
+            "hasDefaultValue": true,
+            "isGenerated": false,
+            "isId": false,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "id",
+            "type": "Int",
+          },
+          Object {
+            "hasDefaultValue": false,
+            "isGenerated": false,
+            "isId": false,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": true,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "email",
+            "type": "String",
+          },
+        ],
+        "idFields": Array [],
+        "isEmbedded": false,
+        "isGenerated": false,
+        "name": "User",
+        "uniqueFields": Array [],
+      },
+    ],
+  },
+  "mappings": Array [
+    Object {
+      "aggregate": "aggregateUser",
+      "createOne": "createOneUser",
+      "deleteMany": "deleteManyUser",
+      "deleteOne": "deleteOneUser",
+      "findMany": "findManyUser",
+      "findOne": "findOneUser",
+      "model": "User",
+      "updateMany": "updateManyUser",
+      "updateOne": "updateOneUser",
+      "upsertOne": "upsertOneUser",
+    },
+  ],
+  "schema": Object {
+    "enums": Array [
+      Object {
+        "name": "UserOrderByInput",
+        "values": Array [
+          "id_ASC",
+          "id_DESC",
+          "email_ASC",
+          "email_DESC",
+        ],
+      },
+    ],
+    "inputTypes": Array [
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserWhereInput",
+            },
+            "name": "AND",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserWhereInput",
+            },
+            "name": "OR",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserWhereInput",
+            },
+            "name": "NOT",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_not",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_not_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_lt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_lte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_gt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_gte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email_not",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email_not_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email_lt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email_lte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email_gt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email_gte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email_contains",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email_not_contains",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email_starts_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email_not_starts_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email_ends_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email_not_ends_with",
+          },
+        ],
+        "name": "UserWhereInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email",
+          },
+        ],
+        "name": "UserWhereUniqueInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email",
+          },
+        ],
+        "name": "UserCreateInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email",
+          },
+        ],
+        "name": "UserUpdateInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "email",
+          },
+        ],
+        "name": "UserUpdateManyMutationInput",
+      },
+    ],
+    "outputTypes": Array [
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "email",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+          },
+        ],
+        "name": "User",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "UserWhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "UserOrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "UserWhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
+            "name": "count",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "AggregateUser",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "UserWhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "UserOrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "UserWhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
+            "name": "findManyUser",
+            "outputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "User",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "aggregateUser",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "AggregateUser",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "UserWhereUniqueInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "findOneUser",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User",
+            },
+          },
+        ],
+        "name": "Query",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "count",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "BatchPayload",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "UserCreateInput",
+                },
+                "name": "data",
+              },
+            ],
+            "name": "createOneUser",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "User",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "UserWhereUniqueInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "deleteOneUser",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "UserUpdateInput",
+                },
+                "name": "data",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "UserWhereUniqueInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "updateOneUser",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "UserWhereUniqueInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "UserCreateInput",
+                },
+                "name": "create",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "UserUpdateInput",
+                },
+                "name": "update",
+              },
+            ],
+            "name": "upsertOneUser",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "User",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "UserUpdateManyMutationInput",
+                },
+                "name": "data",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "UserWhereInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "updateManyUser",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "BatchPayload",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "UserWhereInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "deleteManyUser",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "BatchPayload",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "scalar",
+                  "type": "String",
+                },
+                "name": "query",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Json",
+                },
+                "name": "parameters",
+              },
+            ],
+            "name": "executeRaw",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Json",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "scalar",
+                  "type": "String",
+                },
+                "name": "query",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Json",
+                },
+                "name": "parameters",
+              },
+            ],
+            "name": "queryRaw",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Json",
+            },
+          },
+        ],
+        "name": "Mutation",
+      },
+    ],
+    "rootMutationType": "Mutation",
+    "rootQueryType": "Query",
+  },
+}
+`;
+
+exports[`getDMMF @@unique model 1`] = `
+Object {
+  "datamodel": Object {
+    "enums": Array [],
+    "models": Array [
+      Object {
+        "dbName": null,
+        "documentation": "",
+        "fields": Array [
+          Object {
+            "hasDefaultValue": true,
+            "isGenerated": false,
+            "isId": false,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "id",
+            "type": "Int",
+          },
+          Object {
+            "hasDefaultValue": false,
+            "isGenerated": false,
+            "isId": false,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "firstName",
+            "type": "String",
+          },
+          Object {
+            "hasDefaultValue": false,
+            "isGenerated": false,
+            "isId": false,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "lastName",
+            "type": "String",
+          },
+          Object {
+            "hasDefaultValue": true,
+            "isGenerated": false,
+            "isId": false,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "isAdmin",
+            "type": "Boolean",
+          },
+        ],
+        "idFields": Array [],
+        "isEmbedded": false,
+        "isGenerated": false,
+        "name": "User1",
+        "uniqueFields": Array [
+          Array [
+            "firstName",
+            "lastName",
+          ],
+        ],
+      },
+      Object {
+        "dbName": null,
+        "documentation": "",
+        "fields": Array [
+          Object {
+            "hasDefaultValue": true,
+            "isGenerated": false,
+            "isId": false,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "id",
+            "type": "Int",
+          },
+          Object {
+            "hasDefaultValue": false,
+            "isGenerated": false,
+            "isId": false,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "firstName",
+            "type": "String",
+          },
+          Object {
+            "hasDefaultValue": false,
+            "isGenerated": false,
+            "isId": false,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "lastName",
+            "type": "String",
+          },
+          Object {
+            "hasDefaultValue": true,
+            "isGenerated": false,
+            "isId": false,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "isAdmin",
+            "type": "Boolean",
+          },
+        ],
+        "idFields": Array [],
+        "isEmbedded": false,
+        "isGenerated": false,
+        "name": "User2",
+        "uniqueFields": Array [
+          Array [
+            "firstName",
+            "lastName",
+            "isAdmin",
+          ],
+        ],
+      },
+    ],
+  },
+  "mappings": Array [
+    Object {
+      "aggregate": "aggregateUser1",
+      "createOne": "createOneUser1",
+      "deleteMany": "deleteManyUser1",
+      "deleteOne": "deleteOneUser1",
+      "findMany": "findManyUser1",
+      "findOne": "findOneUser1",
+      "model": "User1",
+      "updateMany": "updateManyUser1",
+      "updateOne": "updateOneUser1",
+      "upsertOne": "upsertOneUser1",
+    },
+    Object {
+      "aggregate": "aggregateUser2",
+      "createOne": "createOneUser2",
+      "deleteMany": "deleteManyUser2",
+      "deleteOne": "deleteOneUser2",
+      "findMany": "findManyUser2",
+      "findOne": "findOneUser2",
+      "model": "User2",
+      "updateMany": "updateManyUser2",
+      "updateOne": "updateOneUser2",
+      "upsertOne": "upsertOneUser2",
+    },
+  ],
+  "schema": Object {
+    "enums": Array [
+      Object {
+        "name": "User1OrderByInput",
+        "values": Array [
+          "id_ASC",
+          "id_DESC",
+          "firstName_ASC",
+          "firstName_DESC",
+          "lastName_ASC",
+          "lastName_DESC",
+          "isAdmin_ASC",
+          "isAdmin_DESC",
+        ],
+      },
+      Object {
+        "name": "User2OrderByInput",
+        "values": Array [
+          "id_ASC",
+          "id_DESC",
+          "firstName_ASC",
+          "firstName_DESC",
+          "lastName_ASC",
+          "lastName_DESC",
+          "isAdmin_ASC",
+          "isAdmin_DESC",
+        ],
+      },
+    ],
+    "inputTypes": Array [
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1WhereInput",
+            },
+            "name": "AND",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1WhereInput",
+            },
+            "name": "OR",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1WhereInput",
+            },
+            "name": "NOT",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_not",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_not_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_lt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_lte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_gt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_gte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_not",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_not_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_lt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_lte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_gt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_gte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_contains",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_not_contains",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_starts_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_not_starts_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_ends_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_not_ends_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_not",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_not_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_lt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_lte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_gt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_gte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_contains",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_not_contains",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_starts_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_not_starts_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_ends_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_not_ends_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+            "name": "isAdmin",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+            "name": "isAdmin_not",
+          },
+        ],
+        "name": "User1WhereInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName",
+          },
+        ],
+        "name": "FirstNameLastNameCompoundUniqueInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "FirstNameLastNameCompoundUniqueInput",
+            },
+            "name": "firstName_lastName",
+          },
+        ],
+        "name": "User1WhereUniqueInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2WhereInput",
+            },
+            "name": "AND",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2WhereInput",
+            },
+            "name": "OR",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2WhereInput",
+            },
+            "name": "NOT",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_not",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_not_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_lt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_lte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_gt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id_gte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_not",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_not_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_lt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_lte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_gt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_gte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_contains",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_not_contains",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_starts_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_not_starts_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_ends_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName_not_ends_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_not",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_not_in",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_lt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_lte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_gt",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_gte",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_contains",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_not_contains",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_starts_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_not_starts_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_ends_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName_not_ends_with",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+            "name": "isAdmin",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+            "name": "isAdmin_not",
+          },
+        ],
+        "name": "User2WhereInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+            "name": "isAdmin",
+          },
+        ],
+        "name": "FirstNameLastNameIsAdminCompoundUniqueInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "FirstNameLastNameIsAdminCompoundUniqueInput",
+            },
+            "name": "firstName_lastName_isAdmin",
+          },
+        ],
+        "name": "User2WhereUniqueInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+            "name": "isAdmin",
+          },
+        ],
+        "name": "User1CreateInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+            "name": "isAdmin",
+          },
+        ],
+        "name": "User1UpdateInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+            "name": "isAdmin",
+          },
+        ],
+        "name": "User1UpdateManyMutationInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+            "name": "isAdmin",
+          },
+        ],
+        "name": "User2CreateInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+            "name": "isAdmin",
+          },
+        ],
+        "name": "User2UpdateInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "String",
+            },
+            "name": "lastName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+            "name": "isAdmin",
+          },
+        ],
+        "name": "User2UpdateManyMutationInput",
+      },
+    ],
+    "outputTypes": Array [
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "firstName",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "lastName",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "isAdmin",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+          },
+        ],
+        "name": "User1",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User1WhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User1OrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User1WhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
+            "name": "count",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "AggregateUser1",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "firstName",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "lastName",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "String",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "isAdmin",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+          },
+        ],
+        "name": "User2",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User2WhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User2OrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User2WhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
+            "name": "count",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "AggregateUser2",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User1WhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User1OrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User1WhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
+            "name": "findManyUser1",
+            "outputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "User1",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "aggregateUser1",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "AggregateUser1",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User1WhereUniqueInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "findOneUser1",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User2WhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User2OrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User2WhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
+            "name": "findManyUser2",
+            "outputType": Object {
+              "isList": true,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "User2",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "aggregateUser2",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "AggregateUser2",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User2WhereUniqueInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "findOneUser2",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2",
+            },
+          },
+        ],
+        "name": "Query",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "count",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "BatchPayload",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User1CreateInput",
+                },
+                "name": "data",
+              },
+            ],
+            "name": "createOneUser1",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "User1",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User1WhereUniqueInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "deleteOneUser1",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User1UpdateInput",
+                },
+                "name": "data",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User1WhereUniqueInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "updateOneUser1",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User1WhereUniqueInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User1CreateInput",
+                },
+                "name": "create",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User1UpdateInput",
+                },
+                "name": "update",
+              },
+            ],
+            "name": "upsertOneUser1",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "User1",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User1UpdateManyMutationInput",
+                },
+                "name": "data",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User1WhereInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "updateManyUser1",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "BatchPayload",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User1WhereInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "deleteManyUser1",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "BatchPayload",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User2CreateInput",
+                },
+                "name": "data",
+              },
+            ],
+            "name": "createOneUser2",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "User2",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User2WhereUniqueInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "deleteOneUser2",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User2UpdateInput",
+                },
+                "name": "data",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User2WhereUniqueInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "updateOneUser2",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User2WhereUniqueInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User2CreateInput",
+                },
+                "name": "create",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User2UpdateInput",
+                },
+                "name": "update",
+              },
+            ],
+            "name": "upsertOneUser2",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "User2",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "object",
+                  "type": "User2UpdateManyMutationInput",
+                },
+                "name": "data",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User2WhereInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "updateManyUser2",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "BatchPayload",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User2WhereInput",
+                },
+                "name": "where",
+              },
+            ],
+            "name": "deleteManyUser2",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "object",
+              "type": "BatchPayload",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "scalar",
+                  "type": "String",
+                },
+                "name": "query",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Json",
+                },
+                "name": "parameters",
+              },
+            ],
+            "name": "executeRaw",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Json",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": true,
+                  "kind": "scalar",
+                  "type": "String",
+                },
+                "name": "query",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Json",
+                },
+                "name": "parameters",
+              },
+            ],
+            "name": "queryRaw",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Json",
+            },
+          },
+        ],
+        "name": "Mutation",
+      },
+    ],
+    "rootMutationType": "Mutation",
+    "rootQueryType": "Query",
+  },
+}
+`;
+
 exports[`getDMMF simple model 2`] = `
 Object {
   "datamodel": Object {
