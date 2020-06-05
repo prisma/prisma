@@ -42,6 +42,10 @@ Object {
         "dbName": "users",
         "fields": Array [
           Object {
+            "default": Object {
+              "args": Array [],
+              "name": "autoincrement",
+            },
             "hasDefaultValue": true,
             "isGenerated": false,
             "isId": false,
@@ -73,6 +77,7 @@ Object {
         "isGenerated": false,
         "name": "User",
         "uniqueFields": Array [],
+        "uniqueIndexes": Array [],
       },
     ],
   },
@@ -918,6 +923,10 @@ Object {
         "documentation": "",
         "fields": Array [
           Object {
+            "default": Object {
+              "args": Array [],
+              "name": "autoincrement",
+            },
             "hasDefaultValue": true,
             "isGenerated": false,
             "isId": false,
@@ -978,6 +987,7 @@ Object {
             "type": "String",
           },
           Object {
+            "default": false,
             "hasDefaultValue": true,
             "isGenerated": false,
             "isId": false,
@@ -1001,11 +1011,24 @@ Object {
             "title",
           ],
         ],
+        "uniqueIndexes": Array [
+          Object {
+            "fields": Array [
+              "authorId",
+              "title",
+            ],
+            "name": null,
+          },
+        ],
       },
       Object {
         "dbName": null,
         "fields": Array [
           Object {
+            "default": Object {
+              "args": Array [],
+              "name": "autoincrement",
+            },
             "hasDefaultValue": true,
             "isGenerated": false,
             "isId": true,
@@ -1054,12 +1077,17 @@ Object {
         "isGenerated": false,
         "name": "User",
         "uniqueFields": Array [],
+        "uniqueIndexes": Array [],
       },
       Object {
         "dbName": null,
         "documentation": "",
         "fields": Array [
           Object {
+            "default": Object {
+              "args": Array [],
+              "name": "autoincrement",
+            },
             "hasDefaultValue": true,
             "isGenerated": false,
             "isId": false,
@@ -1099,6 +1127,7 @@ Object {
             "type": "String",
           },
           Object {
+            "default": false,
             "hasDefaultValue": true,
             "isGenerated": false,
             "isId": false,
@@ -1122,12 +1151,25 @@ Object {
             "lastName",
           ],
         ],
+        "uniqueIndexes": Array [
+          Object {
+            "fields": Array [
+              "firstName",
+              "lastName",
+            ],
+            "name": null,
+          },
+        ],
       },
       Object {
         "dbName": null,
         "documentation": "",
         "fields": Array [
           Object {
+            "default": Object {
+              "args": Array [],
+              "name": "autoincrement",
+            },
             "hasDefaultValue": true,
             "isGenerated": false,
             "isId": false,
@@ -1167,6 +1209,7 @@ Object {
             "type": "String",
           },
           Object {
+            "default": false,
             "hasDefaultValue": true,
             "isGenerated": false,
             "isId": false,
@@ -1190,6 +1233,16 @@ Object {
             "lastName",
             "isAdmin",
           ],
+        ],
+        "uniqueIndexes": Array [
+          Object {
+            "fields": Array [
+              "firstName",
+              "lastName",
+              "isAdmin",
+            ],
+            "name": null,
+          },
         ],
       },
     ],
@@ -5933,6 +5986,7 @@ Object {
         "isGenerated": false,
         "name": "A",
         "uniqueFields": Array [],
+        "uniqueIndexes": Array [],
       },
     ],
   },

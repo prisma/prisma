@@ -53,6 +53,7 @@ describe('getDMMF', () => {
             "isGenerated": false,
             "name": "A",
             "uniqueFields": Array [],
+            "uniqueIndexes": Array [],
           },
         ],
       }
@@ -77,6 +78,10 @@ describe('getDMMF', () => {
             "dbName": "users",
             "fields": Array [
               Object {
+                "default": Object {
+                  "args": Array [],
+                  "name": "autoincrement",
+                },
                 "hasDefaultValue": true,
                 "isGenerated": false,
                 "isId": false,
@@ -108,6 +113,7 @@ describe('getDMMF', () => {
             "isGenerated": false,
             "name": "User",
             "uniqueFields": Array [],
+            "uniqueIndexes": Array [],
           },
         ],
       }
@@ -165,7 +171,7 @@ describe('getDMMF', () => {
     )
     const dmmf = await getDMMF({ datamodel: file })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`394209`)
+    expect(str.length).toMatchInlineSnapshot(`394868`)
   })
 
   test('big schema', async () => {
@@ -175,7 +181,7 @@ describe('getDMMF', () => {
     )
     const dmmf = await getDMMF({ datamodel: file })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`54657357`)
+    expect(str.length).toMatchInlineSnapshot(`54753193`)
   })
 
   test('with validation errors', async () => {
