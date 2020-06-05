@@ -217,6 +217,10 @@ Note that when using TypeScript, the result of this query will be _statically ty
 
 Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers. You can join us on [Slack](https://slack.prisma.io) and here on [GitHub](https://github.com/prisma/prisma/discussions).
 
+## Security
+
+If you have a security issue to report, please contact us at [security@prisma.io](mailto:security@prisma.io?subject=[GitHub]%20Prisma%202%20Security%20Report%20)
+
 ## Support
 
 ### Ask a question about Prisma
