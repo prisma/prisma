@@ -28,12 +28,18 @@ export namespace DMMF {
     enums: DatamodelEnum[]
   }
 
+  export interface uniqueIndex {
+    name: string
+    fields: string[]
+  }
+
   export interface Model {
     name: string
     isEmbedded: boolean
     dbName: string | null
     fields: Field[]
     uniqueFields: string[][]
+    uniqueIndexes: uniqueIndex[]
     idFields: string[]
   }
 
@@ -50,9 +56,16 @@ export namespace DMMF {
     type: string
     dbNames: string[] | null
     isGenerated: boolean
+    hasDefaultValue: boolean
+    default?: FieldDefault | string | boolean | number
     relationToFields?: any[]
     relationOnDelete?: string
     relationName?: string
+  }
+
+  export interface FieldDefault {
+    name: string
+    args: any[]
   }
 
   export interface Schema {
