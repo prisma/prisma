@@ -17,15 +17,21 @@ export namespace DMMF {
     enums: Enum[]
   }
 
+  export interface uniqueIndex {
+    name: string
+    fields: string[]
+  }
+
   export interface Model {
     name: string
     isEmbedded: boolean
     dbName: string | null
     fields: Field[]
-    uniqueFields: Field[]
+    uniqueFields: string[][]
+    uniqueIndexes: uniqueIndex[]
     documentation?: string
-    [key: string]: any // safe net for additional new props
     idFields: string[]
+    [key: string]: any // safe net for additional new props
   }
 
   export type FieldKind = 'scalar' | 'object' | 'enum'
@@ -40,17 +46,17 @@ export namespace DMMF {
     type: string
     dbNames: string[] | null
     isGenerated: boolean
+    hasDefaultValue: boolean
+    default?: FieldDefault | string | boolean | number
     relationToFields?: any[]
     relationOnDelete?: string
     relationName?: string
     documentation?: string
-    default?: FieldDefault | string | boolean
     [key: string]: any // safe net for additional new props
   }
 
   export interface FieldDefault {
     name: string
-    returnType: string
     args: any[]
   }
 

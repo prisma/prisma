@@ -20,6 +20,7 @@ module.exports = async () => {
         beforeRequest: (request) => requests.push(request),
       },
     },
+    log: ['warn', 'query'],
   })
 
   if (!prismaVersion || !prismaVersion.client) {

@@ -70,6 +70,7 @@ Overriden connection string: ${connectionString}`)
   `)
 
   const requests = []
+  const errorLogs = []
   const prisma = new PrismaClient({
     errorFormat: 'colorless',
     __internal: {
@@ -81,6 +82,12 @@ Overriden connection string: ${connectionString}`)
     datasources: {
       db: connectionString,
     },
+    log: [
+      {
+        emit: 'event',
+        level: 'error',
+      },
+    ],
   })
 
   if (!prismaVersion || !prismaVersion.client) {
@@ -174,6 +181,10 @@ Overriden connection string: ${connectionString}`)
     }
   }
 
+  prisma.on('error', (e) => {
+    errorLogs.push(e)
+  })
+
   proxy.end()
   try {
     const users = await prisma.user.findMany()
@@ -182,6 +193,8 @@ Overriden connection string: ${connectionString}`)
   }
   proxy = tcpProxy.createProxy(newPort, credentials.host, sourcePort)
   await new Promise((r) => setTimeout(r, 16000))
+  console.log(`We now have error logs, yey!`, errorLogs)
+  assert.equal(errorLogs.length, 1)
   try {
     const users = await prisma.user.findMany()
   } catch (e) {

@@ -96,7 +96,10 @@ function getFieldType(field: DMMF.Field): string {
       if (field.default === 'uuid') {
         return 'UUID'
       }
-    } else if (typeof field.default === 'boolean') {
+    } else if (
+      typeof field.default === 'boolean' ||
+      typeof field.default === 'number'
+    ) {
       return field.type
     } else if (field.default.name === 'uuid') {
       return 'UUID'
