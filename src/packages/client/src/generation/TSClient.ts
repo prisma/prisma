@@ -563,10 +563,10 @@ ${indent(this.jsDoc, tab)}
    * Performs a raw query and returns the SELECT data
    * @example
    * \`\`\`
-   * // With parameters use prisma.raw\`\`, values will be escaped automatically
-   * const result = await prisma.raw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
+   * // With parameters use prisma.queryRaw\`\`, values will be escaped automatically
+   * const result = await prisma.queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
    * // Or
-   * const result = await prisma.raw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
+   * const result = await prisma.queryRaw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
   * \`\`\`
   * 
   * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md#raw-database-access).
