@@ -1,132 +1,100 @@
-const htmlparser = require('htmlparser2') // eslint-disable-line @typescript-eslint/no-var-requires
 import fetch from 'node-fetch'
 import { getProxyAgent } from './getProxyAgent'
+import { getDownloadUrl } from './util'
+import { platforms } from '@prisma/get-platform'
+import PQueue from 'p-queue'
 
 export async function getLatestAlphaTag(): Promise<any> {
-  const objects = []
-  let isTruncated = false
-  let nextContinuationToken: string | undefined = undefined
-
-  do {
-    const url = getUrl(nextContinuationToken)
-    const xml = await fetch(url, { agent: getProxyAgent(url) }).then((res) =>
-      res.text(),
-    )
-    const result = await getObjects(xml)
-    isTruncated = result.isTruncated
-    nextContinuationToken = result.nextContinuationToken
-    objects.push(...result.objects)
-  } while (isTruncated && nextContinuationToken)
-
-  return findLatestAlphaTag(objects)
-}
-
-function getUrl(nextContinuationToken?: string): string {
-  const prefix = process.env.PATCH_BRANCH ?? `master`
-  let url = `https://prisma-builds.s3-eu-west-1.amazonaws.com/?list-type=2&prefix=${prefix}`
-
-  if (nextContinuationToken) {
-    url += `&continuation-token=${encodeURIComponent(nextContinuationToken)}`
-  }
-
-  return url
-}
-
-async function getObjects(
-  xml,
-): Promise<{
-  objects: Array<any>
-  isTruncated: boolean
-  nextContinuationToken: string | null
-}> {
-  return new Promise((resolve) => {
-    const parser = new htmlparser.Parser(
-      new htmlparser.DomHandler((err, result) => {
-        const bucketTag = result.find(
-          (child) => child.name === 'listbucketresult',
+  const url = `https://api.github.com/repos/prisma/prisma-engines/commits`
+  const result = await fetch(url, {
+    agent: getProxyAgent(url),
+  } as any).then((res) => res.json())
+  const commits = result.map((r) => r.sha)
+  const commit = await getFirstExistingCommit(commits)
+  const queue = new PQueue({ concurrency: 30 })
+  const promises = []
+  const excludedPlatforms = [
+    'freebsd',
+    'arm',
+    'linux-nixos',
+    'openbsd',
+    'netbsd',
+  ]
+  const relevantPlatforms = platforms.filter(
+    (p) => !excludedPlatforms.includes(p),
+  )
+  for (const platform of relevantPlatforms) {
+    for (const engine of [
+      'query-engine',
+      'introspection-engine',
+      'migration-engine',
+      'prisma-fmt',
+    ]) {
+      for (const extension of [
+        '.gz',
+        '.gz.sha256',
+        '.gz.sig',
+        '.sig',
+        '.sha256',
+      ]) {
+        const downloadUrl = getDownloadUrl(
+          'master',
+          commit,
+          platform,
+          engine,
+          extension,
         )
-        if (!bucketTag) {
-          resolve({
-            objects: [],
-            isTruncated: false,
-            nextContinuationToken: null,
-          })
-        }
-        const isTruncated = getKey(bucketTag, 'istruncated')
-        const nextContinuationToken = getKey(bucketTag, 'nextcontinuationtoken')
-        resolve({
-          objects: bucketTag.children
-            .filter((c) => c.name === 'contents')
-            .map((child) => {
-              return child.children.reduce((acc, curr) => {
-                acc[curr.name] = curr.children[0].data
-                return acc
-              }, {})
-            }),
-          isTruncated,
-          nextContinuationToken,
-        })
-      }),
+        promises.push(
+          queue.add(async () => ({
+            downloadUrl,
+            exists: await urlExists(downloadUrl),
+          })),
+        )
+      }
+    }
+  }
+
+  // wait for all queue items to finish
+  const exist: Array<{
+    downloadUrl: string
+    exists: boolean
+  }> = await Promise.all(promises)
+
+  const missing = exist.filter((e) => !e.exists)
+  if (missing.length > 0) {
+    throw new Error(
+      `Could not get new alpha tag, as some assets don't exist: ${missing
+        .map((m) => m.downloadUrl)
+        .join(', ')}`,
     )
-    parser.write(xml)
-    parser.end()
-  })
+  }
+
+  return commit
 }
 
-function findLatestAlphaTag(objects): any {
-  // look for the darwin build, as it always finishes last
-  objects = objects.filter((o) => o.key.includes('darwin'))
-  objects.sort((a, b) => {
-    // sort  beta to the complete end
-    if (!a.key.startsWith('master') || a.key.startsWith('master/latest')) {
-      return 1
+async function getFirstExistingCommit(commits: string[]): Promise<string> {
+  for (const commit of commits) {
+    const exists = await urlExists(
+      getDownloadUrl('master', commits[0], 'darwin', 'query-engine'),
+    )
+    if (exists) {
+      return commit
     }
-    if (!b.key.startsWith('master') || b.key.startsWith('master/latest')) {
-      return -1
+  }
+}
+
+async function urlExists(url) {
+  try {
+    const res = await fetch(url, {
+      method: 'HEAD',
+    })
+
+    const headers = Object.fromEntries(res.headers.entries())
+    if (parseInt(headers['content-length']) > 0) {
+      return res.status < 300
     }
-    // sort last modified descending
-    return new Date(a.lastmodified) < new Date(b.lastmodified) ? 1 : -1
-  })
-  return objects[0].key.split('/')[1]
-}
-
-function getKey(parentTag, key): any {
-  if (!parentTag) {
-    return null
+  } catch (e) {
+    //
   }
-  const tag = parentTag.children.find((c) => c.name === key)
-  if (tag) {
-    return serializeTag(tag)
-  }
-
-  return null
-}
-
-function serializeTag(tag): any {
-  if (tag.children) {
-    return tag.children
-      .map((c) => {
-        if (typeof c.data !== 'undefined') {
-          return serializeData(c.data)
-        }
-        if (c.children) {
-          return serializeTag(c)
-        }
-        return null
-      })
-      .join('')
-  }
-  return null
-}
-
-function serializeData(data): boolean {
-  if (data === 'false') {
-    return false
-  }
-
-  if (data === 'true') {
-    return true
-  }
-
-  return data
+  return false
 }
