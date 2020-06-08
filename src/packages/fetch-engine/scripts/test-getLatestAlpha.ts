@@ -1,3 +1,3 @@
-import { getLatestAlphaTag } from '../src'
+import { getLatestTag } from '../src'
 
-getLatestAlphaTag().then((x) => console.log(x))
+getLatestTag().then((x) => console.log(x))
