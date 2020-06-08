@@ -293,18 +293,18 @@ export function getPublishOrder(packages: Packages): string[][] {
 }
 
 /**
- * Takes the max alpha version + 1
- * For now supporting 2.0.0-alpha.X
+ * Takes the max dev version + 1
+ * For now supporting 2.0.0-dev.X
  * @param packages Local package definitions
  */
-async function getNewAlphaVersion(packages: Packages): Promise<string> {
+async function getNewDevVersion(packages: Packages): Promise<string> {
   const before = Date.now()
-  console.log('\nCalculating new alpha version...')
-  const versions = await getAllVersions(packages, 'alpha')
-  const alphaVersions = getAlphaVersionIncrements(versions)
-  const maxAlpha = Math.max(...alphaVersions)
+  console.log('\nCalculating new dev version...')
+  const versions = await getAllVersions(packages, 'dev')
+  const devVersions = getDevVersionIncrements(versions)
+  const maxDev = Math.max(...devVersions, 0)
 
-  const version = `2.0.0-alpha.${maxAlpha + 1}`
+  const version = `2.0.0-dev.0${maxDev + 1}`
   console.log(`Got ${version} in ${Date.now() - before}ms`)
   return version
 }
@@ -318,8 +318,8 @@ async function getNewPatchBetaVersion(packages: Packages): Promise<string> {
   return `2.0.0-beta.${currentBeta}-${maxIncrement + 1}`
 }
 
-function getAlphaVersionIncrements(versions: string[]): number[] {
-  const regex = /2\.0\.0-alpha\.(\d+)/
+function getDevVersionIncrements(versions: string[]): number[] {
+  const regex = /2\.0\.0-dev\.(\d+)/
   return versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -477,7 +477,7 @@ async function publish() {
       // TODO Check if PATCH_BRANCH work!
       prisma2Version = await getNewPatchBetaVersion(packages)
     } else {
-      prisma2Version = await getNewAlphaVersion(packages)
+      prisma2Version = await getNewDevVersion(packages)
     }
 
     const packagesWithVersions = await getNewPackageVersions(
@@ -735,8 +735,8 @@ async function publishPackages(
       const pkgDir = path.dirname(pkg.path)
       const tag = process.env.PATCH_BRANCH
         ? 'patch-beta'
-        : prisma2Version.includes('alpha')
-        ? 'alpha'
+        : prisma2Version.includes('dev')
+        ? 'dev'
         : 'latest'
       const newVersion = prisma2Version
 

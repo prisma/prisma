@@ -1,6 +1,6 @@
 {
   "name": "@prisma/debug",
-  "version": "2.0.0-alpha.1284",
+  "version": "2.0.0-dev.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
