@@ -432,12 +432,16 @@ async function publish() {
         )} is not a valid semver version.`,
       )
     }
-    if (!args['--release'].startsWith('2.0.0-beta.')) {
+    const releaseRegex = /2\.\d{1,2}\.\d{1,2}/
+    if (
+      !args['--release'].startsWith('2.') ||
+      !releaseRegex.test(args['--release'])
+    ) {
       throw new Error(
         `New release version ${chalk.bold.underline(
           args['--release'],
-        )} does not follow the beta naming scheme: ${chalk.bold.underline(
-          '2.0.0-beta.X',
+        )} does not follow the stable naming scheme: ${chalk.bold.underline(
+          '2.x.y',
         )}`,
       )
     }
