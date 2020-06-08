@@ -10,6 +10,10 @@ import { getPlatform } from '@prisma/get-platform'
 import { cleanupCache } from '../cleanupCache'
 import del from 'del'
 
+const CURRENT_BINARIES_HASH = require('../../../sdk/package.json').prisma
+  .version
+const FIXED_BINARIES_HASH = 'ff6959d77f8880ec037ed8201fff4a92f3aabaa0'
+
 jest.setTimeout(30000)
 
 describe('download', () => {
@@ -17,7 +21,10 @@ describe('download', () => {
     // completely clean up the cache and keep nothing
     await cleanupCache(0)
     await del(__dirname + '/**/*engine*')
+    await del(__dirname + '/**/prisma-fmt*')
   })
+
+  beforeEach(() => console.log('Before test X - download could take a while'))
 
   test('basic download', async () => {
     const platform = await getPlatform()
@@ -33,25 +40,54 @@ describe('download', () => {
       __dirname,
       getBinaryName('migration-engine', platform),
     )
+    const prismafmtPath = path.join(
+      __dirname,
+      getBinaryName('prisma-fmt', platform),
+    )
 
     await download({
       binaries: {
         'query-engine': __dirname,
         'introspection-engine': __dirname,
         'migration-engine': __dirname,
+        'prisma-fmt': __dirname,
       },
-      version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+      version: FIXED_BINARIES_HASH,
     })
 
     expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(
-      `"query-engine fc45fde2be3f39a089ade64c5c480b7ac30af461"`,
+      `"query-engine ff6959d77f8880ec037ed8201fff4a92f3aabaa0"`,
     )
     expect(await getVersion(introspectionEnginePath)).toMatchInlineSnapshot(
-      `"introspection-core fc45fde2be3f39a089ade64c5c480b7ac30af461"`,
+      `"introspection-core ff6959d77f8880ec037ed8201fff4a92f3aabaa0"`,
     )
     expect(await getVersion(migrationEnginePath)).toMatchInlineSnapshot(
-      `"migration-engine-cli fc45fde2be3f39a089ade64c5c480b7ac30af461"`,
+      `"migration-engine-cli ff6959d77f8880ec037ed8201fff4a92f3aabaa0"`,
     )
+    expect(await getVersion(prismafmtPath)).toMatchInlineSnapshot(
+      `"prisma-fmt ff6959d77f8880ec037ed8201fff4a92f3aabaa0"`,
+    )
+  })
+
+  test('basic download all current binaries', async () => {
+    await download({
+      binaries: {
+        'query-engine': __dirname,
+        'introspection-engine': __dirname,
+        'migration-engine': __dirname,
+        'prisma-fmt': __dirname,
+      },
+      binaryTargets: [
+        'darwin',
+        'debian-openssl-1.0.x',
+        'debian-openssl-1.1.x',
+        'rhel-openssl-1.0.x',
+        'rhel-openssl-1.1.x',
+        'windows',
+        'linux-musl',
+      ],
+      version: CURRENT_BINARIES_HASH,
+    })
   })
 
   test('auto heal corrupt binary', async () => {
@@ -73,7 +109,7 @@ describe('download', () => {
       binaries: {
         'query-engine': baseDir,
       },
-      version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+      version: FIXED_BINARIES_HASH,
     })
 
     fs.writeFileSync(targetPath, 'incorrect-binary')
@@ -83,7 +119,7 @@ describe('download', () => {
       binaries: {
         'query-engine': baseDir,
       },
-      version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+      version: FIXED_BINARIES_HASH,
     })
 
     expect(fs.existsSync(targetPath)).toBe(true)
@@ -97,7 +133,7 @@ describe('download', () => {
         binaries: {
           'query-engine': __dirname,
         },
-        version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+        version: FIXED_BINARIES_HASH,
         binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
@@ -112,6 +148,7 @@ describe('download', () => {
         'query-engine': baseDir,
         'introspection-engine': baseDir,
         'migration-engine': baseDir,
+        'prisma-fmt': baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -122,7 +159,7 @@ describe('download', () => {
         'windows',
         'linux-musl',
       ],
-      version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+      version: FIXED_BINARIES_HASH,
     })
     const files = getFiles(baseDir)
     expect(files).toMatchInlineSnapshot(`
@@ -133,97 +170,127 @@ describe('download', () => {
         },
         Object {
           "name": "introspection-engine-darwin",
-          "size": 11073588,
+          "size": 11420644,
         },
         Object {
           "name": "introspection-engine-debian-openssl-1.0.x",
-          "size": 14162168,
+          "size": 14539392,
         },
         Object {
           "name": "introspection-engine-debian-openssl-1.1.x",
-          "size": 14139536,
+          "size": 14530552,
         },
         Object {
           "name": "introspection-engine-linux-musl",
-          "size": 17111544,
+          "size": 17490704,
         },
         Object {
           "name": "introspection-engine-rhel-openssl-1.0.x",
-          "size": 14224308,
+          "size": 14592804,
         },
         Object {
           "name": "introspection-engine-rhel-openssl-1.1.x",
-          "size": 14202662,
+          "size": 14593231,
         },
         Object {
           "name": "introspection-engine-windows.exe",
-          "size": 23227789,
+          "size": 24204350,
         },
         Object {
           "name": "migration-engine-darwin",
-          "size": 14499444,
+          "size": 14915172,
         },
         Object {
           "name": "migration-engine-debian-openssl-1.0.x",
-          "size": 17714760,
+          "size": 18161728,
         },
         Object {
           "name": "migration-engine-debian-openssl-1.1.x",
-          "size": 17683720,
+          "size": 18142856,
         },
         Object {
           "name": "migration-engine-linux-musl",
-          "size": 20504024,
+          "size": 20938704,
         },
         Object {
           "name": "migration-engine-rhel-openssl-1.0.x",
-          "size": 17788921,
+          "size": 18235542,
         },
         Object {
           "name": "migration-engine-rhel-openssl-1.1.x",
-          "size": 17763228,
+          "size": 18209631,
         },
         Object {
           "name": "migration-engine-windows.exe",
-          "size": 27496535,
+          "size": 28555122,
+        },
+        Object {
+          "name": "prisma-fmt-darwin",
+          "size": 3187468,
+        },
+        Object {
+          "name": "prisma-fmt-debian-openssl-1.0.x",
+          "size": 5976392,
+        },
+        Object {
+          "name": "prisma-fmt-debian-openssl-1.1.x",
+          "size": 5976120,
+        },
+        Object {
+          "name": "prisma-fmt-linux-musl",
+          "size": 6033944,
+        },
+        Object {
+          "name": "prisma-fmt-rhel-openssl-1.0.x",
+          "size": 6029769,
+        },
+        Object {
+          "name": "prisma-fmt-rhel-openssl-1.1.x",
+          "size": 6035321,
+        },
+        Object {
+          "name": "prisma-fmt-windows.exe",
+          "size": 20109752,
         },
         Object {
           "name": "query-engine-darwin",
-          "size": 16149612,
+          "size": 16380936,
         },
         Object {
           "name": "query-engine-debian-openssl-1.0.x",
-          "size": 19680168,
+          "size": 19849952,
         },
         Object {
           "name": "query-engine-debian-openssl-1.1.x",
-          "size": 19652760,
+          "size": 19827192,
         },
         Object {
           "name": "query-engine-linux-musl",
-          "size": 22338512,
+          "size": 22595656,
         },
         Object {
           "name": "query-engine-rhel-openssl-1.0.x",
-          "size": 19721089,
+          "size": 19886616,
         },
         Object {
           "name": "query-engine-rhel-openssl-1.1.x",
-          "size": 19699148,
+          "size": 19865016,
         },
         Object {
           "name": "query-engine-windows.exe",
-          "size": 29877206,
+          "size": 30979524,
         },
       ]
     `)
     await del(baseDir + '/*engine*')
+    await del(baseDir + '/prisma-fmt*')
     const before = Date.now()
     await download({
       binaries: {
         'query-engine': baseDir,
         'introspection-engine': baseDir,
         'migration-engine': baseDir,
+        'prisma-fmt': baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -234,7 +301,7 @@ describe('download', () => {
         'windows',
         'linux-musl',
       ],
-      version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+      version: FIXED_BINARIES_HASH,
     })
     const after = Date.now()
     // cache should take less than 2s
@@ -246,6 +313,7 @@ describe('download', () => {
         'query-engine': baseDir,
         'introspection-engine': baseDir,
         'migration-engine': baseDir,
+        'prisma-fmt': baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -254,8 +322,9 @@ describe('download', () => {
         'rhel-openssl-1.0.x',
         'rhel-openssl-1.1.x',
         'windows',
+        'linux-musl',
       ],
-      version: 'fc45fde2be3f39a089ade64c5c480b7ac30af461',
+      version: FIXED_BINARIES_HASH,
     })
     const after2 = Date.now()
     // if binaries are already there, it should take less than 100ms to check all of them
