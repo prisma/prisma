@@ -10,7 +10,9 @@ export async function getLatestAlphaTag(): Promise<any> {
     agent: getProxyAgent(url),
   } as any).then((res) => res.json())
   const commits = result.map((r) => r.sha)
+  console.log({ commits })
   const commit = await getFirstExistingCommit(commits)
+  console.log({ commit })
   const queue = new PQueue({ concurrency: 30 })
   const promises = []
   const excludedPlatforms = [

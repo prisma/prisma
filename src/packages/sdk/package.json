@@ -20,7 +20,7 @@
     "scripts"
   ],
   "prisma": {
-    "version": "4be247b862dc0f28e4be00980cb32a59eb2b0856"
+    "version": "de2bc1cbdb5561ad73d2f08463fa2eec48993f56"
   },
   "devDependencies": {
     "@types/jest": "25.2.3",
