@@ -24,6 +24,8 @@ describe('download', () => {
     await del(__dirname + '/**/prisma-fmt*')
   })
 
+  beforeEach(() => console.log('Before test X - download could take a while'))
+
   test('basic download', async () => {
     const platform = await getPlatform()
     const queryEnginePath = path.join(
@@ -168,87 +170,115 @@ describe('download', () => {
         },
         Object {
           "name": "introspection-engine-darwin",
-          "size": 11073588,
+          "size": 11420644,
         },
         Object {
           "name": "introspection-engine-debian-openssl-1.0.x",
-          "size": 14162168,
+          "size": 14539392,
         },
         Object {
           "name": "introspection-engine-debian-openssl-1.1.x",
-          "size": 14139536,
+          "size": 14530552,
         },
         Object {
           "name": "introspection-engine-linux-musl",
-          "size": 17111544,
+          "size": 17490704,
         },
         Object {
           "name": "introspection-engine-rhel-openssl-1.0.x",
-          "size": 14224308,
+          "size": 14592804,
         },
         Object {
           "name": "introspection-engine-rhel-openssl-1.1.x",
-          "size": 14202662,
+          "size": 14593231,
         },
         Object {
           "name": "introspection-engine-windows.exe",
-          "size": 23227789,
+          "size": 24204350,
         },
         Object {
           "name": "migration-engine-darwin",
-          "size": 14499444,
+          "size": 14915172,
         },
         Object {
           "name": "migration-engine-debian-openssl-1.0.x",
-          "size": 17714760,
+          "size": 18161728,
         },
         Object {
           "name": "migration-engine-debian-openssl-1.1.x",
-          "size": 17683720,
+          "size": 18142856,
         },
         Object {
           "name": "migration-engine-linux-musl",
-          "size": 20504024,
+          "size": 20938704,
         },
         Object {
           "name": "migration-engine-rhel-openssl-1.0.x",
-          "size": 17788921,
+          "size": 18235542,
         },
         Object {
           "name": "migration-engine-rhel-openssl-1.1.x",
-          "size": 17763228,
+          "size": 18209631,
         },
         Object {
           "name": "migration-engine-windows.exe",
-          "size": 27496535,
+          "size": 28555122,
+        },
+        Object {
+          "name": "prisma-fmt-darwin",
+          "size": 3187468,
+        },
+        Object {
+          "name": "prisma-fmt-debian-openssl-1.0.x",
+          "size": 5976392,
+        },
+        Object {
+          "name": "prisma-fmt-debian-openssl-1.1.x",
+          "size": 5976120,
+        },
+        Object {
+          "name": "prisma-fmt-linux-musl",
+          "size": 6033944,
+        },
+        Object {
+          "name": "prisma-fmt-rhel-openssl-1.0.x",
+          "size": 6029769,
+        },
+        Object {
+          "name": "prisma-fmt-rhel-openssl-1.1.x",
+          "size": 6035321,
+        },
+        Object {
+          "name": "prisma-fmt-windows.exe",
+          "size": 20109752,
         },
         Object {
           "name": "query-engine-darwin",
-          "size": 16149612,
+          "size": 16380936,
         },
         Object {
           "name": "query-engine-debian-openssl-1.0.x",
-          "size": 19680168,
+          "size": 19849952,
         },
         Object {
           "name": "query-engine-debian-openssl-1.1.x",
-          "size": 19652760,
+          "size": 19827192,
         },
         Object {
           "name": "query-engine-linux-musl",
-          "size": 22338512,
+          "size": 22595656,
         },
         Object {
           "name": "query-engine-rhel-openssl-1.0.x",
-          "size": 19721089,
+          "size": 19886616,
         },
         Object {
           "name": "query-engine-rhel-openssl-1.1.x",
-          "size": 19699148,
+          "size": 19865016,
         },
         Object {
           "name": "query-engine-windows.exe",
-          "size": 29877206,
+          "size": 30979524,
         },
       ]
     `)
