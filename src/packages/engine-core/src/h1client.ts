@@ -1,4 +1,4 @@
-import http from 'http'
+import * as http from 'http'
 
 export class H1Client {
   agent: http.Agent
