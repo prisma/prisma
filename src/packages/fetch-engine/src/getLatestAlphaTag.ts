@@ -86,17 +86,23 @@ async function getFirstExistingCommit(commits: string[]): Promise<string> {
 }
 
 async function urlExists(url) {
+  console.log(`Checking ${url}`)
   try {
     const res = await fetch(url, {
       method: 'HEAD',
+      agent: getProxyAgent(url),
     })
 
     const headers = Object.fromEntries(res.headers.entries())
+    if (res.status > 200) {
+      console.error(res, headers)
+    }
     if (parseInt(headers['content-length']) > 0) {
       return res.status < 300
     }
   } catch (e) {
     //
+    console.error(e)
   }
   return false
 }
