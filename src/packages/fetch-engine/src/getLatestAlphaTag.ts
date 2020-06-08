@@ -10,9 +10,7 @@ export async function getLatestAlphaTag(): Promise<any> {
     agent: getProxyAgent(url),
   } as any).then((res) => res.json())
   const commits = result.map((r) => r.sha)
-  console.log({ commits })
   const commit = await getFirstExistingCommit(commits)
-  console.log({ commit })
   const queue = new PQueue({ concurrency: 30 })
   const promises = []
   const excludedPlatforms = [
@@ -86,14 +84,13 @@ async function getFirstExistingCommit(commits: string[]): Promise<string> {
 }
 
 async function urlExists(url) {
-  console.log(`Checking ${url}`)
   try {
     const res = await fetch(url, {
       method: 'HEAD',
       agent: getProxyAgent(url),
     })
 
-    const headers = Object.fromEntries(res.headers.entries())
+    const headers = fromEntries(res.headers.entries())
     if (res.status > 200) {
       console.error(res, headers)
     }
@@ -105,4 +102,14 @@ async function urlExists(url) {
     console.error(e)
   }
   return false
+}
+
+function fromEntries<T>(
+  entries: IterableIterator<[string, T]>,
+): Record<string, T> {
+  const result = {}
+  for (const [key, value] of entries) {
+    result[key] = value
+  }
+  return result
 }
