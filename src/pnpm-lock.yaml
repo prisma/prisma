@@ -381,7 +381,6 @@ importers:
       execa: 4.0.0
       find-cache-dir: 3.3.1
       hasha: 5.2.0
-      htmlparser2: 4.1.0
       http-proxy-agent: 4.0.1
       https-proxy-agent: 5.0.0
       make-dir: 3.0.2
@@ -409,6 +408,7 @@ importers:
       husky: 4.2.5
       jest: 25.5.4
       lint-staged: 10.2.7
+      p-queue: 6.4.0
       prettier: 2.0.5
       ts-jest: 25.5.1_jest@25.5.4+typescript@3.9.3
       typescript: 3.9.3
@@ -432,7 +432,6 @@ importers:
       execa: ^4.0.0
       find-cache-dir: ^3.3.1
       hasha: ^5.2.0
-      htmlparser2: ^4.1.0
       http-proxy-agent: ^4.0.1
       https-proxy-agent: ^5.0.0
       husky: 4.2.5
@@ -442,6 +441,7 @@ importers:
       node-fetch: ^2.6.0
       p-filter: ^2.1.0
       p-map: ^4.0.0
+      p-queue: ^6.4.0
       p-retry: ^4.2.0
       prettier: 2.0.5
       progress: ^2.0.3
@@ -3680,6 +3680,10 @@ packages:
     dev: false
     resolution:
       integrity: sha1-SrTJoPWlTbkzi0w02Gv86PSzVXE=
+  /eventemitter3/4.0.4:
+    dev: true
+    resolution:
+      integrity: sha512-rlaVLnVxtxvoyLsQQFBx53YmXHDxRIzzTLbdfxqi4yocpSjAxXwkU0cScM5JgSKMqEhrZpnvQ2D9gjylR0AimQ==
   /exec-sh/0.3.4:
     dev: true
     resolution:
@@ -6621,6 +6625,15 @@ packages:
       node: '>=10'
     resolution:
       integrity: sha512-/bjOqmgETBYB5BoEeGVea8dmvHb2m9GLy1E9W43yeyfP6QQCZGFNa+XRceJEuDB6zqr+gKpIAmlLebMpykw/MQ==
+  /p-queue/6.4.0:
+    dependencies:
+      eventemitter3: 4.0.4
+      p-timeout: 3.2.0
+    dev: true
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-X7ddxxiQ+bLR/CUt3/BVKrGcJDNxBr0pEEFKHHB6vTPWNUhgDv36GpIH18RmGM3YGPpBT+JWGjDDqsVGuF0ERw==
   /p-reduce/2.1.0:
     dev: true
     engines:
@@ -6635,6 +6648,14 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-jPH38/MRh263KKcq0wBNOGFJbm+U6784RilTmHjB/HM9kH9V8WlCpVUcdOmip9cjXOh6MxZ5yk1z2SjDUJfWmA==
+  /p-timeout/3.2.0:
+    dependencies:
+      p-finally: 1.0.0
+    dev: true
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-rhIwUycgwwKcP9yTOOFK/AKsAopjjCakVqLHePO3CC6Mir1Z99xT+R63jZxAT5lFZLa2inS5h+ZS2GvR99/FBg==
   /p-try/2.2.0:
     engines:
       node: '>=6'

@@ -46,9 +46,10 @@ export function getDownloadUrl(
   version: string,
   platform: string,
   binaryName: string,
+  extension = '.gz',
 ): string {
-  const extension = platform === 'windows' ? '.exe.gz' : '.gz'
+  const finalExtension = platform === 'windows' ? `.exe${extension}` : extension
   const baseUrl =
     process.env.PRISMA_BINARIES_MIRROR || 'https://binaries.prisma.sh'
-  return `${baseUrl}/${channel}/${version}/${platform}/${binaryName}${extension}`
+  return `${baseUrl}/${channel}/${version}/${platform}/${binaryName}${finalExtension}`
 }
