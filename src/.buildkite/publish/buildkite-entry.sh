@@ -13,7 +13,7 @@ export CHANGED_COUNT=$(node last-git-changes/bin.js --exclude='docs,examples,scr
 echo $BUILDKITE_TAG
 echo $CHANGED_COUNT
 
-if [ $CHANGED_COUNT -gt 0 ]; then
+if [ $CHANGED_COUNT -gt 0 ] || [ $BUILDKITE_TAG ]; then
   buildkite-agent pipeline upload src/.buildkite/publish/publish.yml
 else
   echo "Nothing changed"
