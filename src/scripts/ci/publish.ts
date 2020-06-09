@@ -806,7 +806,7 @@ async function publishPackages(
       if (pkgName === '@prisma/cli') {
         const latestCommit = await getLatestCommit('.')
         await writeToPkgJson(pkgDir, (pkg) => {
-          pkg.prisma.prismaCommit = latestCommit
+          pkg.prisma.prismaCommit = latestCommit.hash
         })
       }
 
