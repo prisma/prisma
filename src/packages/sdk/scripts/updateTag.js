@@ -1,10 +1,10 @@
-const { getLatestAlphaTag } = require('@prisma/fetch-engine')
+const { getLatestTag } = require('@prisma/fetch-engine')
 const pkg = require('../package.json')
 const fs = require('fs')
 const path = require('path')
 
 async function main() {
-  const tag = await getLatestAlphaTag()
+  const tag = await getLatestTag()
   console.log('Updated local engines version to', tag)
   pkg.prisma = pkg.prisma || {}
   pkg.prisma.version = tag

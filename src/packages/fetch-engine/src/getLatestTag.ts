@@ -4,7 +4,7 @@ import { getDownloadUrl } from './util'
 import { platforms } from '@prisma/get-platform'
 import PQueue from 'p-queue'
 
-export async function getLatestAlphaTag(): Promise<any> {
+export async function getLatestTag(): Promise<any> {
   const url = `https://api.github.com/repos/prisma/prisma-engines/commits`
   const result = await fetch(url, {
     agent: getProxyAgent(url),
@@ -63,7 +63,7 @@ export async function getLatestAlphaTag(): Promise<any> {
   const missing = exist.filter((e) => !e.exists)
   if (missing.length > 0) {
     throw new Error(
-      `Could not get new alpha tag, as some assets don't exist: ${missing
+      `Could not get new tag, as some assets don't exist: ${missing
         .map((m) => m.downloadUrl)
         .join(', ')}`,
     )
