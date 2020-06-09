@@ -70,7 +70,7 @@ function main() {
 
   const pkg = require(installedGlobally.pkgPath)
   const parts = pkg.version.split('-')
-  const isAlpha = parts.length > 1 ? parts[1].split('.') === 'alpha' : false
+  const isDev = parts.length > 1 ? parts[1].split('.') === 'dev' : false
 
   let message
   if (installedGlobally.name === 'prisma2') {
@@ -88,7 +88,7 @@ Then install ${white('@prisma/cli')} to continue using ${b('Prisma 2.0')}:
    )}
 
    # Install new CLI
-   ${white(`npm install @prisma/cli${isAlpha ? '@alpha' : ''} --save-dev`)}
+   ${white(`npm install @prisma/cli${isDev ? '@dev' : ''} --save-dev`)}
 
    # Invoke via npx
    ${white('npx prisma --help')}
@@ -127,7 +127,7 @@ It exposes the executable ${white('prisma1')}.
 Then you can install Prisma 2:
 
    # Install Prisma 2 CLI
-   ${white(`npm install @prisma/cli${isAlpha ? '@alpha' : ''} --save-dev`)}
+   ${white(`npm install @prisma/cli${isDev ? '@dev' : ''} --save-dev`)}
    
    # Invoke via npx
    ${white('npx prisma --help')}

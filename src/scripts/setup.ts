@@ -70,14 +70,14 @@ if (!module.parent) {
   main().catch(console.error)
 }
 
-export async function cloneOrPull(repo: string) {
+export async function cloneOrPull(repo: string, dryRun = false) {
   if (fs.existsSync(path.join(__dirname, '../', repo))) {
-    return run(repo, `git pull origin master`)
+    return run(repo, `git pull origin master`, dryRun)
   } else {
-    await run('.', `git clone --depth=50 ${repoUrl(repo)}`)
+    await run('.', `git clone --depth=50 ${repoUrl(repo)}`, dryRun)
     const envVar = getCommitEnvVar(repo)
     if (process.env[envVar]) {
-      await run(repo, `git checkout ${process.env[envVar]}`)
+      await run(repo, `git checkout ${process.env[envVar]}`, dryRun)
     }
   }
 }
@@ -86,8 +86,19 @@ function repoUrl(repo: string, org: string = 'prisma') {
   return `https://github.com/${org}/${repo}.git`
 }
 
-export async function run(cwd: string, cmd: string): Promise<void> {
-  debug(chalk.underline('./' + cwd).padEnd(20), chalk.bold(cmd))
+export async function run(
+  cwd: string,
+  cmd: string,
+  dry: boolean = false,
+): Promise<void> {
+  const args = [chalk.underline('./' + cwd).padEnd(20), chalk.bold(cmd)]
+  if (dry) {
+    args.push(chalk.dim('(dry)'))
+  }
+  debug(args.join(' '))
+  if (dry) {
+    return
+  }
   try {
     await execa.command(cmd, {
       cwd,

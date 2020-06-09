@@ -19,7 +19,7 @@ import { downloadZip } from './downloadZip'
 import { getCacheDir, getDownloadUrl } from './util'
 import { cleanupCache } from './cleanupCache'
 import { flatMap } from './flatMap'
-import { getLatestAlphaTag } from './getLatestAlphaTag'
+import { getLatestTag } from './getLatestTag'
 
 const debug = Debug('download')
 const writeFile = promisify(fs.writeFile)
@@ -129,7 +129,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   )
 
   if (options.version === 'latest') {
-    options.version = await getLatestAlphaTag()
+    options.version = await getLatestTag()
   }
 
   if (options.printVersion) {
