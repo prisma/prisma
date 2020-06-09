@@ -222,7 +222,7 @@ ${chalk.green(
 Note: \`prisma.yml\` and \`schema.prisma\` paths are optional.
  
 Learn more about the upgrade process in the docs:\n${link(
-          'https://pris.ly/upgrading-to-prisma2',
+          'https://pris.ly/d/upgrading-to-prisma2',
         )}`
       : ''
 
