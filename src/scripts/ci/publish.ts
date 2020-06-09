@@ -802,6 +802,14 @@ async function publishPackages(
       }
 
       await writeVersion(pkgDir, newVersion, dryRun)
+
+      if (pkgName === '@prisma/cli') {
+        const latestCommit = await getLatestCommit('.')
+        await writeToPkgJson(pkgDir, (pkg) => {
+          pkg.prisma.prismaCommit = latestCommit
+        })
+      }
+
       if (process.env.BUILDKITE) {
         await run(pkgDir, `pnpm run build`, dryRun)
       }
@@ -871,6 +879,18 @@ async function acquireLock(): Promise<() => void> {
     console.log(`Lock removed after ${Date.now() - before}ms`)
     await new Promise((r) => setTimeout(r, 200))
     client.quit()
+  }
+}
+
+async function writeToPkgJson(pkgDir, cb: (pkg: any) => any, dryRun?: boolean) {
+  const pkgJsonPath = path.join(pkgDir, 'package.json')
+  const file = await fs.readFile(pkgJsonPath, 'utf-8')
+  let packageJson = JSON.parse(file)
+  if (dryRun) {
+    console.log(`Would write to ${pkgJsonPath} from ${packageJson.version} now`)
+  } else {
+    packageJson = cb(packageJson)
+    await fs.writeFile(pkgJsonPath, JSON.stringify(packageJson, null, 2))
   }
 }
 
