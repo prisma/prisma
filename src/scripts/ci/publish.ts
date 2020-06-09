@@ -889,7 +889,10 @@ async function writeToPkgJson(pkgDir, cb: (pkg: any) => any, dryRun?: boolean) {
   if (dryRun) {
     console.log(`Would write to ${pkgJsonPath} from ${packageJson.version} now`)
   } else {
-    packageJson = cb(packageJson)
+    const result = cb(packageJson)
+    if (result) {
+      packageJson = result
+    }
     await fs.writeFile(pkgJsonPath, JSON.stringify(packageJson, null, 2))
   }
 }
