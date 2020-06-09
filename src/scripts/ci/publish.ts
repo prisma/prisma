@@ -295,7 +295,7 @@ export function getPublishOrder(packages: Packages): string[][] {
 
 /**
  * Takes the max dev version + 1
- * For now supporting 2.0.0-dev.X
+ * For now supporting 2.Y.Z-dev.#
  * @param packages Local package definitions
  */
 async function getNewDevVersion(packages: Packages): Promise<string> {
