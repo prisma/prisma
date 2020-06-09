@@ -10,6 +10,7 @@ importers:
       debug: 4.1.1
       execa: 4.0.2
       globby: 11.0.1
+      node-fetch: 2.6.0
       p-map: 4.0.0
       p-reduce: 2.1.0
       redis: 3.0.2
@@ -27,6 +28,7 @@ importers:
       debug: 4.1.1
       execa: 4.0.2
       globby: 11.0.1
+      node-fetch: ^2.6.0
       p-map: 4.0.0
       p-reduce: 2.1.0
       redis: 3.0.2
@@ -387,6 +389,7 @@ importers:
       node-fetch: 2.6.0
       p-filter: 2.1.0
       p-map: 4.0.0
+      p-queue: 6.4.0
       p-retry: 4.2.0
       progress: 2.0.3
       rimraf: 3.0.2
@@ -408,7 +411,6 @@ importers:
       husky: 4.2.5
       jest: 25.5.4
       lint-staged: 10.2.7
-      p-queue: 6.4.0
       prettier: 2.0.5
       ts-jest: 25.5.1_jest@25.5.4+typescript@3.9.3
       typescript: 3.9.3
@@ -3681,7 +3683,7 @@ packages:
     resolution:
       integrity: sha1-SrTJoPWlTbkzi0w02Gv86PSzVXE=
   /eventemitter3/4.0.4:
-    dev: true
+    dev: false
     resolution:
       integrity: sha512-rlaVLnVxtxvoyLsQQFBx53YmXHDxRIzzTLbdfxqi4yocpSjAxXwkU0cScM5JgSKMqEhrZpnvQ2D9gjylR0AimQ==
   /exec-sh/0.3.4:
@@ -6567,7 +6569,6 @@ packages:
     resolution:
       integrity: sha512-ZBxxZ5sL2HghephhpGAQdoskxplTwr7ICaehZwLIlfL6acuVgZPm8yBNuRAFBGEqtD/hmUeq9eqLg2ys9Xr/yw==
   /p-finally/1.0.0:
-    dev: true
     engines:
       node: '>=4'
     resolution:
@@ -6629,7 +6630,7 @@ packages:
     dependencies:
       eventemitter3: 4.0.4
       p-timeout: 3.2.0
-    dev: true
+    dev: false
     engines:
       node: '>=8'
     resolution:
@@ -6651,7 +6652,7 @@ packages:
   /p-timeout/3.2.0:
     dependencies:
       p-finally: 1.0.0
-    dev: true
+    dev: false
     engines:
       node: '>=8'
     resolution:

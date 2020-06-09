@@ -8,6 +8,7 @@ import arg from 'arg'
 import semver from 'semver'
 import pReduce from 'p-reduce'
 import redis from 'redis'
+import fetch from 'node-fetch'
 import { promisify } from 'util'
 import { cloneOrPull } from '../setup'
 
@@ -449,12 +450,16 @@ async function publish() {
         )} is not a valid semver version.`,
       )
     }
-    if (!args['--release'].startsWith('2.0.0-beta.')) {
+    const releaseRegex = /2\.\d{1,2}\.\d{1,2}/
+    if (
+      !args['--release'].startsWith('2.') ||
+      !releaseRegex.test(args['--release'])
+    ) {
       throw new Error(
         `New release version ${chalk.bold.underline(
           args['--release'],
-        )} does not follow the beta naming scheme: ${chalk.bold.underline(
-          '2.0.0-beta.X',
+        )} does not follow the stable naming scheme: ${chalk.bold.underline(
+          '2.x.y',
         )}`,
       )
     }
@@ -532,6 +537,14 @@ async function publish() {
           '.',
           `pnpm update  -r @prisma/studio@${latestStudioVersion} @prisma/studio-transports@${latestStudioVersion} @prisma/studio-server@${latestStudioVersion} @prisma/studio-types@${latestStudioVersion}`,
         )
+      }
+
+      if (args['--release']) {
+        const passing = await areEndToEndTestsPassing()
+        if (!passing) {
+          throw new Error(`We can't release, as the e2e tests are not passing!
+Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3Atest+branch%3Amaster`)
+        }
       }
 
       await publishPackages(
@@ -886,4 +899,11 @@ if (!module.parent) {
 
 async function getBranch(dir: string) {
   return runResult(dir, 'git rev-parse --symbolic-full-name --abbrev-ref HEAD')
+}
+
+async function areEndToEndTestsPassing(): Promise<boolean> {
+  const res = await fetch(
+    'https://github.com/prisma/e2e-tests/workflows/test/badge.svg',
+  ).then((r) => r.text())
+  return res.includes('passing')
 }
