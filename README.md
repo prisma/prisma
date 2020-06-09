@@ -152,7 +152,7 @@ const prisma = new PrismaClient()
 
 Now you can start sending queries via the generated Prisma Client API, here are a few sample queries. Note that all Prisma Client queries return _plain old JavaScript objects_.
 
-Learn more about the available operations in the [Prisma Client API reference](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/api) or watch this [demo video](https://www.youtube.com/watch?v=Il6-smKc77w&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=4) (2 min).
+Learn more about the available operations in the [Prisma Client API reference](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/api) or watch this [demo video](https://www.youtube.com/watch?v=LggrE5kJ75I&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=4) (2 min).
 
 ##### Retrieve all `User` records from the database
 
