@@ -304,7 +304,7 @@ async function getNewDevVersion(packages: Packages): Promise<string> {
   const devVersions = getDevVersionIncrements(versions)
   const maxDev = Math.max(...devVersions, 0)
 
-  const version = `2.0.0-dev.0${maxDev + 1}`
+  const version = `2.0.0-dev.${maxDev + 1}`
   console.log(`Got ${version} in ${Date.now() - before}ms`)
   return version
 }
