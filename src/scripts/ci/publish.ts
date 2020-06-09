@@ -74,7 +74,7 @@ async function pull(dir: string, dry = false): Promise<void> {
       throw new Error(`Missing env var GITHUB_TOKEN`)
     }
   }
-  await run(dir, `git pull origin ${branch} --no-edit`)
+  await run(dir, `git pull origin ${branch} --no-edit`, dry)
 }
 
 async function push(dir: string, dry = false): Promise<void> {
@@ -300,17 +300,21 @@ export function getPublishOrder(packages: Packages): string[][] {
 async function getNewDevVersion(packages: Packages): Promise<string> {
   const before = Date.now()
   console.log('\nCalculating new dev version...')
-  const versions = await getAllVersions(packages, 'dev')
+  const nextStable = await getNextMinorStable()
+  console.log(`Next minor stable: ${nextStable}`)
+
+  const versions = await getAllVersions(packages, 'dev', nextStable + '-dev')
   const devVersions = getDevVersionIncrements(versions)
   const maxDev = Math.max(...devVersions, 0)
 
-  const version = `2.0.0-dev.0${maxDev + 1}`
+  const version = `${nextStable}-dev.${maxDev + 1}`
   console.log(`Got ${version} in ${Date.now() - before}ms`)
   return version
 }
 
+// TODO: This logic needs to be updated for the next time we want to patch
 async function getNewPatchBetaVersion(packages: Packages): Promise<string> {
-  const versions = await getAllVersions(packages, 'patch-beta')
+  const versions = await getAllVersions(packages, 'patch-beta', '2.0.0')
   const currentBeta = getBetaFromPatchBranch(process.env.PATCH_BRANCH)
   const increments = getPatchVersionIncrements(versions, currentBeta)
   const maxIncrement = Math.max(...increments, 0)
@@ -319,7 +323,7 @@ async function getNewPatchBetaVersion(packages: Packages): Promise<string> {
 }
 
 function getDevVersionIncrements(versions: string[]): number[] {
-  const regex = /2\.0\.0-dev\.(\d+)/
+  const regex = /2\.\d+\.\d+-dev\.(\d+)/
   return versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -332,6 +336,7 @@ function getDevVersionIncrements(versions: string[]): number[] {
     .filter((v) => v)
 }
 
+// TODO: Adjust this for stable releases
 function getPatchVersionIncrements(versions: string[], beta: string): number[] {
   const regex = /2\.0\.0-beta\.(\d+)-(\d+)/
   return versions
@@ -353,6 +358,7 @@ function getPatchVersionIncrements(versions: string[], beta: string): number[] {
 async function getAllVersions(
   packages: Packages,
   channel: string,
+  prefix: string,
 ): Promise<string[]> {
   return flatten(
     await Promise.all(
@@ -362,7 +368,11 @@ async function getAllVersions(
           '.',
           `npm info ${pkg.name}@${channel} version`,
         )
-        if (remoteVersion && remoteVersion.length > 0) {
+        if (
+          remoteVersion &&
+          remoteVersion.length > 0 &&
+          remoteVersion.startsWith(prefix)
+        ) {
           pkgVersions.push(remoteVersion)
         }
 
@@ -372,6 +382,13 @@ async function getAllVersions(
   )
 }
 
+async function getNextMinorStable(): Promise<string | null> {
+  const remoteVersion = await runResult('.', `npm info @prisma/cli version`)
+
+  return increaseMinor(remoteVersion)
+}
+
+// TODO: Adjust this for stable release
 function getBetaFromPatchBranch(beta: string): string | null {
   const regex = /2\.0\.0-beta\.(\d+)\.x/
   const match = regex.exec(beta)
@@ -547,11 +564,15 @@ async function publish() {
 }
 
 async function tagEnginesRepo(dryRun = false) {
+  console.log(`Going to tag the engines repo dryRun: ${dryRun}`)
+  if (!dryRun) {
+    return
+  }
   /** Get ready */
-  await cloneOrPull('prisma-engines')
-  const remotes = (await runResult('prisma-engines', `git remote`))
-    .trim()
-    .split('\n')
+  await cloneOrPull('prisma-engines', dryRun)
+  const remotes = dryRun
+    ? []
+    : (await runResult('prisma-engines', `git remote`)).trim().split('\n')
 
   if (!remotes.includes('origin-push')) {
     await run(
@@ -624,14 +645,26 @@ async function newVersion(pkg: Package, prisma2Version: string) {
   return isPrisma2OrPhoton ? prisma2Version : await patch(pkg)
 }
 
+const semverRegex = /^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+
 function patchVersion(version: string): string | null {
   // Thanks 🙏 to https://github.com/semver/semver/issues/232#issuecomment-405596809
-  const regex = /^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
-  const match = regex.exec(version)
+  const match = semverRegex.exec(version)
   if (match) {
     return `${match.groups.major}.${match.groups.minor}.${
       Number(match.groups.patch) + 1
+    }`
+  }
+
+  return null
+}
+
+function increaseMinor(version: string): string | null {
+  const match = semverRegex.exec(version)
+  if (match) {
+    return `${match.groups.major}.${Number(match.groups.minor) + 1}.${
+      match.groups.patch
     }`
   }
 
