@@ -850,7 +850,7 @@ const ${lowerCase(mapping.model)}With${capitalize(
 const ${mapping.plural} = await ${method}()
 
 // Get first 10 ${plural}
-const ${mapping.plural} = await ${method}({ first: 10 })
+const ${mapping.plural} = await ${method}({ take: 10 })
 ${onlySelect}
 `
     }
@@ -1164,7 +1164,7 @@ const topLevelArgsJsDocs = {
     cursor: (singular, plural): string =>
       `Sets the position for listing ${plural}.`,
     take: (singular, plural): string =>
-      `Get all ${plural} that come after or before the ${singular} you provide with the current order.`,
+      `The number of ${plural} to fetch. If negative number, it will take ${plural} before the \`cursor\`.`,
   },
   create: {
     data: (singular, plural): string =>

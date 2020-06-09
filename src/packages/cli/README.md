@@ -1,14 +1,14 @@
-# Prisma 2 CLI
+# Prisma CLI
 
-Learn more about Prisma 2 in the [docs](https://github.com/prisma/prisma).
+Learn more about Prisma in the [docs](https://www.prisma.io/docs/).
 
 ## Getting started
 
-Check out the [**"Getting Started"-guide**](https://github.com/prisma/prisma/blob/master/docs/getting-started.md) to get started with Prisma 2.
+Check out the [**"Getting Started"-guide**](https://www.prisma.io/docs/getting-started/quickstart) to get started with Prisma.
 
 ## Installation
 
-The Prisma 2 CLI currently requires [Node.js 10](https://nodejs.org/en/download/releases/) (or higher).
+The Prisma CLI currently requires [Node.js 10](https://nodejs.org/en/download/releases/) (or higher).
 
 ### npm
 
