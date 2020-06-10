@@ -578,9 +578,6 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
 
 async function tagEnginesRepo(dryRun = false) {
   console.log(`Going to tag the engines repo dryRun: ${dryRun}`)
-  if (!dryRun) {
-    return
-  }
   /** Get ready */
   await cloneOrPull('prisma-engines', dryRun)
   const remotes = dryRun
