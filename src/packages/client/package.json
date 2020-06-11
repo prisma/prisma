@@ -9,6 +9,7 @@
     "query",
     "database",
     "sql",
+    "postgres",
     "postgresql",
     "mysql",
     "sqlite",
@@ -22,6 +23,15 @@
   "license": "Apache-2.0",
   "engines": {
     "node": ">=10"
+  },
+  "homepage": "https://github.com/prisma/prisma-client-js",
+  "maintainers": [
+    "Tim Suchanek <suchanek@prisma.io>",
+    "Joël Galeran <galeran@prisma.io>"
+  ],
+  "bugs": {
+    "email": "suchanek@prisma.io",
+    "url": "https://github.com/prisma/prisma-client-js/issues"
   },
   "scripts": {
     "tsc": "tsc -d",
