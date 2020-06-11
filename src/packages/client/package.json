@@ -25,6 +25,9 @@
     "node": ">=10"
   },
   "homepage": "https://github.com/prisma/prisma-client-js",
+  "repository": {
+    "url": "git@github.com:prisma/prisma.git"
+  },
   "maintainers": [
     "Tim Suchanek <suchanek@prisma.io>",
     "Joël Galeran <galeran@prisma.io>"

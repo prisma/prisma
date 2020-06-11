@@ -18,6 +18,11 @@
   ],
   "main": "build/index.js",
   "repository": "git@github.com:prisma/prisma.git",
+  "homepage": "https://github.com/prisma/prisma",
+  "bugs": {
+    "url": "https://github.com/prisma/prisma/issues",
+    "email": "suchanek@prisma.io"
+  },
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
   "engines": {
