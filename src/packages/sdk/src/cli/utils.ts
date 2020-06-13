@@ -15,9 +15,10 @@ export function arg<T extends Arg.Spec>(
   argv: string[],
   spec: T,
   stopAtPositional: true | false = true,
+  permissive: boolean = false,
 ): Arg.Result<T> | Error {
   try {
-    return Arg(spec, { argv, stopAtPositional })
+    return Arg(spec, { argv, stopAtPositional, permissive })
   } catch (err) {
     return err
   }
