@@ -401,7 +401,12 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
     binaryTarget,
     binaryName,
   } = options
-  const downloadUrl = getDownloadUrl(channel, version, binaryTarget, binaryName)
+  const downloadUrl = getDownloadUrl(
+    'all_commits',
+    version,
+    binaryTarget,
+    binaryName,
+  )
 
   const targetDir = path.dirname(targetFilePath)
 

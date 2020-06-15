@@ -75,7 +75,7 @@ export async function getLatestTag(): Promise<any> {
 async function getFirstExistingCommit(commits: string[]): Promise<string> {
   for (const commit of commits) {
     const exists = await urlExists(
-      getDownloadUrl('master', commit, 'darwin', 'query-engine'),
+      getDownloadUrl('all_commits', commit, 'darwin', 'query-engine'),
     )
     if (exists) {
       return commit
