@@ -19,7 +19,10 @@ function getCommitEnvVar(name: string): string {
 async function main() {
   if (process.env.PATCH_BRANCH) {
     await checkoutPatchBranches(process.env.PATCH_BRANCH)
-    // return
+    console.log(`Commit we're on:`)
+    await execa.command('git rev-parse HEAD', {
+      stdio: 'inherit',
+    })
   }
 
   debug(`Installing dependencies, building packages`)
@@ -146,5 +149,9 @@ async function checkoutPatchBranches(patchBranch: string) {
 
 async function branchExists(dir: string, branch: string): Promise<boolean> {
   const output = await runResult(dir, `git branch --list ${branch}`)
-  return output.trim().length > 0
+  const exists = output.trim().length > 0
+  if (exists) {
+    console.log(`Branch exists: ${exists}`)
+  }
+  return exists
 }
