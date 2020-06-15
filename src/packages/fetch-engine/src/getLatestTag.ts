@@ -118,6 +118,12 @@ function fromEntries<T>(
 }
 
 async function getBranch() {
+  if (process.env.PATCH_BRANCH) {
+    return process.env.PATCH_BRANCH
+  }
+  if (process.env.BUILDKITE_BRANCH) {
+    return process.env.BUILDKITE_BRANCH
+  }
   const result = await execa.command('git rev-parse --abbrev-ref HEAD', {
     shell: true,
     stdio: 'pipe',
