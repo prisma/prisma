@@ -314,13 +314,15 @@ async function getNewDevVersion(packages: Packages): Promise<string> {
 }
 
 // TODO: This logic needs to be updated for the next time we want to patch
-async function getNewPatchBetaVersion(packages: Packages): Promise<string> {
+async function getNewPatchDevVersion(
+  packages: Packages,
+  patchBranch: string,
+): Promise<string> {
   const versions = await getAllVersions(packages, 'patch-beta', '2.0.0')
-  const currentBeta = getBetaFromPatchBranch(process.env.PATCH_BRANCH)
-  const increments = getPatchVersionIncrements(versions, currentBeta)
-  const maxIncrement = Math.max(...increments, 0)
+  const minor = getMinorFromPatchBranch(patchBranch)
+  const maxIncrement = getMaxPatchVersionIncrement(versions, minor)
 
-  return `2.0.0-beta.${currentBeta}-${maxIncrement + 1}`
+  return `2.${minor}.x-dev.${maxIncrement + 1}`
 }
 
 function getDevVersionIncrements(versions: string[]): number[] {
@@ -338,22 +340,23 @@ function getDevVersionIncrements(versions: string[]): number[] {
 }
 
 // TODO: Adjust this for stable releases
-function getPatchVersionIncrements(versions: string[], beta: string): number[] {
-  const regex = /2\.0\.0-beta\.(\d+)-(\d+)/
-  return versions
+function getMaxPatchVersionIncrement(
+  versions: string[],
+  minor: string,
+): number {
+  const regex = /2\.\d+\.x-dev\.(\d+)/
+  const increments = versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
       const match = regex.exec(v)
-      if (
-        match &&
-        match[1] === beta && // only if the current version is in there, we're interested
-        match[2]
-      ) {
-        return Number(match[2])
+      if (match && match[1]) {
+        return Number(match[1])
       }
       return null
     })
     .filter((v) => v)
+
+  return Math.max(...increments, 0)
 }
 
 async function getAllVersions(
@@ -390,9 +393,9 @@ async function getNextMinorStable(): Promise<string | null> {
 }
 
 // TODO: Adjust this for stable release
-function getBetaFromPatchBranch(beta: string): string | null {
-  const regex = /2\.0\.0-beta\.(\d+)\.x/
-  const match = regex.exec(beta)
+function getMinorFromPatchBranch(version: string): string | null {
+  const regex = /2\.(\d+)\.x/
+  const match = regex.exec(version)
 
   if (match) {
     return match[1]
@@ -493,11 +496,12 @@ async function publish() {
     console.log(changes.map((c) => `  ${c}`).join('\n'))
 
     let prisma2Version
+    const patchBranch = getPatchBranch()
     if (args['--release']) {
       prisma2Version = args['--release']
-    } else if (process.env.PATCH_BRANCH) {
+    } else if (patchBranch) {
       // TODO Check if PATCH_BRANCH work!
-      prisma2Version = await getNewPatchBetaVersion(packages)
+      prisma2Version = await getNewPatchDevVersion(packages, patchBranch)
     } else {
       prisma2Version = await getNewDevVersion(packages)
     }
@@ -554,6 +558,7 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         args['--dry-run'],
         prisma2Version,
         args['--release'],
+        patchBranch,
       )
 
       try {
@@ -707,6 +712,7 @@ async function publishPackages(
   dryRun: boolean,
   prisma2Version: string,
   releaseVersion?: string,
+  patchBranch?: string,
 ): Promise<void> {
   // we need to release a new @prisma/cli in all cases.
   // if there is a change in photon, photon will also use this new version
@@ -776,7 +782,7 @@ async function publishPackages(
     for (const pkgName of currentBatch) {
       const pkg = packages[pkgName]
       const pkgDir = path.dirname(pkg.path)
-      const tag = process.env.PATCH_BRANCH
+      const tag = patchBranch
         ? 'patch-beta'
         : prisma2Version.includes('dev')
         ? 'dev'
@@ -827,7 +833,11 @@ async function publishPackages(
   }
 
   // for now only push when studio is being updated
-  if (!process.env.BUILDKITE || process.env.UPDATE_STUDIO) {
+  if (
+    !process.env.BUILDKITE ||
+    process.env.UPDATE_STUDIO ||
+    process.env.PATCH_BRANCH
+  ) {
     const repo = '.'
     // commit and push it :)
     // we try catch this, as this is not necessary for CI to succeed
@@ -926,4 +936,19 @@ async function areEndToEndTestsPassing(): Promise<boolean> {
     'https://github.com/prisma/e2e-tests/workflows/test/badge.svg',
   ).then((r) => r.text())
   return res.includes('passing')
+}
+
+function getPatchBranch(): string | null {
+  if (process.env.PATCH_BRANCH) {
+    return process.env.PATCH_BRANCH
+  }
+
+  if (process.env.BUILDKITE_BRANCH) {
+    const minor = getMinorFromPatchBranch(process.env.BUILDKITE_BRANCH)
+    if (typeof minor === 'string') {
+      return process.env.BUILDKITE_BRANCH
+    }
+  }
+
+  return null
 }
