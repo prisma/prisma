@@ -3005,31 +3005,6 @@ Object {
             "inputType": Object {
               "isList": false,
               "isNullable": false,
-              "isRequired": true,
-              "kind": "object",
-              "type": "UserWhereUniqueInput",
-            },
-            "name": "where",
-          },
-          Object {
-            "inputType": Object {
-              "isList": false,
-              "isNullable": false,
-              "isRequired": true,
-              "kind": "object",
-              "type": "UserCreateWithoutPostsInput",
-            },
-            "name": "create",
-          },
-        ],
-        "name": "UserCreateOrConnectWithoutPostInput",
-      },
-      Object {
-        "fields": Array [
-          Object {
-            "inputType": Object {
-              "isList": false,
-              "isNullable": false,
               "isRequired": false,
               "kind": "object",
               "type": "UserCreateWithoutPostsInput",
@@ -3045,16 +3020,6 @@ Object {
               "type": "UserWhereUniqueInput",
             },
             "name": "connect",
-          },
-          Object {
-            "inputType": Object {
-              "isList": false,
-              "isNullable": false,
-              "isRequired": false,
-              "kind": "object",
-              "type": "UserCreateOrConnectWithoutPostInput",
-            },
-            "name": "connectOrCreate",
           },
         ],
         "name": "UserCreateOneWithoutPostsInput",
@@ -3196,16 +3161,6 @@ Object {
             },
             "name": "upsert",
           },
-          Object {
-            "inputType": Object {
-              "isList": false,
-              "isNullable": false,
-              "isRequired": false,
-              "kind": "object",
-              "type": "UserCreateOrConnectWithoutPostInput",
-            },
-            "name": "connectOrCreate",
-          },
         ],
         "name": "UserUpdateOneRequiredWithoutPostsInput",
       },
@@ -3328,31 +3283,6 @@ Object {
         "fields": Array [
           Object {
             "inputType": Object {
-              "isList": false,
-              "isNullable": false,
-              "isRequired": true,
-              "kind": "object",
-              "type": "PostWhereUniqueInput",
-            },
-            "name": "where",
-          },
-          Object {
-            "inputType": Object {
-              "isList": false,
-              "isNullable": false,
-              "isRequired": true,
-              "kind": "object",
-              "type": "PostCreateWithoutAuthorInput",
-            },
-            "name": "create",
-          },
-        ],
-        "name": "PostCreateOrConnectWithoutUserInput",
-      },
-      Object {
-        "fields": Array [
-          Object {
-            "inputType": Object {
               "isList": true,
               "isNullable": false,
               "isRequired": false,
@@ -3370,16 +3300,6 @@ Object {
               "type": "PostWhereUniqueInput",
             },
             "name": "connect",
-          },
-          Object {
-            "inputType": Object {
-              "isList": true,
-              "isNullable": false,
-              "isRequired": false,
-              "kind": "object",
-              "type": "PostCreateOrConnectWithoutUserInput",
-            },
-            "name": "connectOrCreate",
           },
         ],
         "name": "PostCreateManyWithoutAuthorInput",
@@ -4010,16 +3930,6 @@ Object {
               "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
             },
             "name": "upsert",
-          },
-          Object {
-            "inputType": Object {
-              "isList": true,
-              "isNullable": false,
-              "isRequired": false,
-              "kind": "object",
-              "type": "PostCreateOrConnectWithoutUserInput",
-            },
-            "name": "connectOrCreate",
           },
         ],
         "name": "PostUpdateManyWithoutAuthorInput",
