@@ -19,7 +19,7 @@ function getCommitEnvVar(name: string): string {
 async function main() {
   if (process.env.PATCH_BRANCH) {
     await checkoutPatchBranches(process.env.PATCH_BRANCH)
-    return
+    // return
   }
 
   debug(`Installing dependencies, building packages`)
