@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@types/jest": "25.2.3",
-    "@types/node": "12.12.43",
+    "@types/node": "12.12.47",
     "@types/tar": "4.0.3",
     "@typescript-eslint/eslint-plugin": "2.34.0",
     "@typescript-eslint/parser": "2.34.0",
@@ -32,14 +32,14 @@
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "23.13.2",
-    "eslint-plugin-prettier": "3.1.3",
+    "eslint-plugin-prettier": "3.1.4",
     "husky": "4.2.5",
     "jest": "25.5.4",
-    "lint-staged": "10.2.7",
+    "lint-staged": "10.2.10",
     "prettier": "2.0.5",
     "ts-jest": "25.5.1",
     "ts-node": "8.10.2",
-    "typescript": "3.9.3"
+    "typescript": "3.9.5"
   },
   "dependencies": {
     "@apexearth/copy": "^1.4.5",
