@@ -118,12 +118,9 @@ function fromEntries<T>(
 }
 
 async function getBranch() {
-  const result = await execa.command(
-    'git rev-parse --symbolic-full-name --abbrev-ref HEAD',
-    {
-      shell: true,
-      stdio: 'pipe',
-    },
-  )
+  const result = await execa.command('git rev-parse --abbrev-ref HEAD', {
+    shell: true,
+    stdio: 'pipe',
+  })
   return result.stdout
 }
