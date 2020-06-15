@@ -28,7 +28,7 @@ importers:
       debug: 4.1.1
       execa: 4.0.2
       globby: 11.0.1
-      node-fetch: ^2.6.0
+      node-fetch: 2.6.0
       p-map: 4.0.0
       p-reduce: 2.1.0
       redis: 3.0.2
@@ -59,7 +59,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 2.34.0_4d7b57a2de70d5f860ec42d3f1ecdb5d
       '@typescript-eslint/parser': 2.34.0_eslint@6.8.0+typescript@3.9.3
       '@zeit/ncc': 0.22.3
-      checkpoint-client: 1.1.0
+      checkpoint-client: 1.1.2
       dotenv: 8.2.0
       eslint: 6.8.0
       eslint-config-prettier: 6.11.0_eslint@6.8.0
@@ -67,7 +67,7 @@ importers:
       eslint-plugin-jest: 23.13.2_eslint@6.8.0+typescript@3.9.3
       eslint-plugin-prettier: 3.1.3_eslint@6.8.0
       execa: 4.0.2
-      fast-deep-equal: 3.1.1
+      fast-deep-equal: 3.1.3
       global-dirs: 2.0.1
       husky: 4.2.5
       is-installed-globally: 0.3.2
@@ -117,7 +117,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 2.34.0
       '@typescript-eslint/parser': 2.34.0
       '@zeit/ncc': 0.22.3
-      checkpoint-client: 1.1.0
+      checkpoint-client: 1.1.2
       dotenv: 8.2.0
       eslint: 6.8.0
       eslint-config-prettier: 6.11.0
@@ -125,7 +125,7 @@ importers:
       eslint-plugin-jest: 23.13.2
       eslint-plugin-prettier: 3.1.3
       execa: 4.0.2
-      fast-deep-equal: ^3.1.1
+      fast-deep-equal: 3.1.3
       global-dirs: 2.0.1
       husky: 4.2.5
       is-installed-globally: 0.3.2
@@ -145,7 +145,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: '4.1'
+      sqlite3: 4.1.1
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.5.0
@@ -2746,6 +2746,18 @@ packages:
       write-file-atomic: 3.0.1
     resolution:
       integrity: sha512-Q+BuuQL5VHn8sxlOpEhvzsk0c+FsGVv+ULHcQ265gR0xjAgu/2JTcTg6Psv5/hva47hdXxmHmywTDwAagRTTZA==
+  /checkpoint-client/1.1.2:
+    dependencies:
+      cross-spawn: 7.0.3
+      env-paths: 2.2.0
+      fast-write-atomic: 0.2.1
+      make-dir: 3.1.0
+      ms: 2.1.2
+      node-fetch: 2.6.0
+      uuid: 8.1.0
+    dev: true
+    resolution:
+      integrity: sha512-Nvwpf7qi5bJD8+HAZ8HWzdHZBQJxi+Sw33OI8ahx1H0yby8nPcpP+h4bYYhl+8z0XrjBaUz5p6xQeTinzUi/Qw==
   /chownr/1.1.4:
     resolution:
       integrity: sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==
@@ -3898,6 +3910,10 @@ packages:
   /fast-deep-equal/3.1.1:
     resolution:
       integrity: sha512-8UEa58QDLauDNfpbrX55Q9jrGHThw2ZMdOky5Gl1CDtVeJDPVrG4Jxx1N8jw2gkWaff5UUuX1KJd+9zGe2B+ZA==
+  /fast-deep-equal/3.1.3:
+    dev: true
+    resolution:
+      integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==
   /fast-diff/1.2.0:
     dev: true
     resolution:
@@ -8775,6 +8791,11 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==
+  /uuid/8.1.0:
+    dev: true
+    hasBin: true
+    resolution:
+      integrity: sha512-CI18flHDznR0lq54xBycOVmphdCYnQLKn8abKn7PXUiKUGdEd+/l9LWNJmugXel4hXq7S+RMNl34ecyC9TntWg==
   /v8-compile-cache/2.1.0:
     dev: true
     resolution:
