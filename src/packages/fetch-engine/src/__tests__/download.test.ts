@@ -12,7 +12,7 @@ import del from 'del'
 
 const CURRENT_BINARIES_HASH = require('../../../sdk/package.json').prisma
   .version
-const FIXED_BINARIES_HASH = 'ff6959d77f8880ec037ed8201fff4a92f3aabaa0'
+const FIXED_BINARIES_HASH = 'de2bc1cbdb5561ad73d2f08463fa2eec48993f56'
 
 jest.setTimeout(30000)
 
@@ -56,16 +56,16 @@ describe('download', () => {
     })
 
     expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(
-      `"query-engine ff6959d77f8880ec037ed8201fff4a92f3aabaa0"`,
+      `"query-engine de2bc1cbdb5561ad73d2f08463fa2eec48993f56"`,
     )
     expect(await getVersion(introspectionEnginePath)).toMatchInlineSnapshot(
-      `"introspection-core ff6959d77f8880ec037ed8201fff4a92f3aabaa0"`,
+      `"introspection-core de2bc1cbdb5561ad73d2f08463fa2eec48993f56"`,
     )
     expect(await getVersion(migrationEnginePath)).toMatchInlineSnapshot(
-      `"migration-engine-cli ff6959d77f8880ec037ed8201fff4a92f3aabaa0"`,
+      `"migration-engine-cli de2bc1cbdb5561ad73d2f08463fa2eec48993f56"`,
     )
     expect(await getVersion(prismafmtPath)).toMatchInlineSnapshot(
-      `"prisma-fmt ff6959d77f8880ec037ed8201fff4a92f3aabaa0"`,
+      `"prisma-fmt de2bc1cbdb5561ad73d2f08463fa2eec48993f56"`,
     )
   })
 
@@ -170,115 +170,115 @@ describe('download', () => {
         },
         Object {
           "name": "introspection-engine-darwin",
-          "size": 11420644,
+          "size": 11368280,
         },
         Object {
           "name": "introspection-engine-debian-openssl-1.0.x",
-          "size": 14539392,
+          "size": 14375432,
         },
         Object {
           "name": "introspection-engine-debian-openssl-1.1.x",
-          "size": 14530552,
+          "size": 14350592,
         },
         Object {
           "name": "introspection-engine-linux-musl",
-          "size": 17490704,
+          "size": 17247608,
         },
         Object {
           "name": "introspection-engine-rhel-openssl-1.0.x",
-          "size": 14592804,
+          "size": 14439690,
         },
         Object {
           "name": "introspection-engine-rhel-openssl-1.1.x",
-          "size": 14593231,
+          "size": 14415929,
         },
         Object {
           "name": "introspection-engine-windows.exe",
-          "size": 24204350,
+          "size": 23728613,
         },
         Object {
           "name": "migration-engine-darwin",
-          "size": 14915172,
+          "size": 14446400,
         },
         Object {
           "name": "migration-engine-debian-openssl-1.0.x",
-          "size": 18161728,
+          "size": 17690344,
         },
         Object {
           "name": "migration-engine-debian-openssl-1.1.x",
-          "size": 18142856,
+          "size": 17640080,
         },
         Object {
           "name": "migration-engine-linux-musl",
-          "size": 20938704,
+          "size": 20378472,
         },
         Object {
           "name": "migration-engine-rhel-openssl-1.0.x",
-          "size": 18235542,
+          "size": 17770911,
         },
         Object {
           "name": "migration-engine-rhel-openssl-1.1.x",
-          "size": 18209631,
+          "size": 17717704,
         },
         Object {
           "name": "migration-engine-windows.exe",
-          "size": 28555122,
+          "size": 28185148,
         },
         Object {
           "name": "prisma-fmt-darwin",
-          "size": 3187468,
+          "size": 3243384,
         },
         Object {
           "name": "prisma-fmt-debian-openssl-1.0.x",
-          "size": 5976392,
+          "size": 5871464,
         },
         Object {
           "name": "prisma-fmt-debian-openssl-1.1.x",
-          "size": 5976120,
+          "size": 5871176,
         },
         Object {
           "name": "prisma-fmt-linux-musl",
-          "size": 6033944,
+          "size": 5870392,
         },
         Object {
           "name": "prisma-fmt-rhel-openssl-1.0.x",
-          "size": 6029769,
+          "size": 5935619,
         },
         Object {
           "name": "prisma-fmt-rhel-openssl-1.1.x",
-          "size": 6035321,
+          "size": 5937101,
         },
         Object {
           "name": "prisma-fmt-windows.exe",
-          "size": 20109752,
+          "size": 19747898,
         },
         Object {
           "name": "query-engine-darwin",
-          "size": 16380936,
+          "size": 16798944,
         },
         Object {
           "name": "query-engine-debian-openssl-1.0.x",
-          "size": 19849952,
+          "size": 20246256,
         },
         Object {
           "name": "query-engine-debian-openssl-1.1.x",
-          "size": 19827192,
+          "size": 20219680,
         },
         Object {
           "name": "query-engine-linux-musl",
-          "size": 22595656,
+          "size": 22860424,
         },
         Object {
           "name": "query-engine-rhel-openssl-1.0.x",
-          "size": 19886616,
+          "size": 20289622,
         },
         Object {
           "name": "query-engine-rhel-openssl-1.1.x",
-          "size": 19865016,
+          "size": 20268248,
         },
         Object {
           "name": "query-engine-windows.exe",
-          "size": 30979524,
+          "size": 30550365,
         },
       ]
     `)

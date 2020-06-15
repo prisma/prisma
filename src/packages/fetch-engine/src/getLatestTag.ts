@@ -3,9 +3,12 @@ import { getProxyAgent } from './getProxyAgent'
 import { getDownloadUrl } from './util'
 import { platforms } from '@prisma/get-platform'
 import PQueue from 'p-queue'
+import execa from 'execa'
 
 export async function getLatestTag(): Promise<any> {
-  const url = `https://api.github.com/repos/prisma/prisma-engines/commits`
+  const branch = await getBranch()
+  console.log({ branch })
+  const url = `https://api.github.com/repos/prisma/prisma-engines/commits?sha=${branch}`
   const result = await fetch(url, {
     agent: getProxyAgent(url),
   } as any).then((res) => res.json())
@@ -38,7 +41,7 @@ export async function getLatestTag(): Promise<any> {
         '.sha256',
       ]) {
         const downloadUrl = getDownloadUrl(
-          'master',
+          'all_commits',
           commit,
           platform,
           engine,
@@ -112,4 +115,15 @@ function fromEntries<T>(
     result[key] = value
   }
   return result
+}
+
+async function getBranch() {
+  const result = await execa.command(
+    'git rev-parse --symbolic-full-name --abbrev-ref HEAD',
+    {
+      shell: true,
+      stdio: 'pipe',
+    },
+  )
+  return result.stdout
 }
