@@ -25,16 +25,20 @@ export interface ConfigMetaFormat {
 
 path.join(__dirname, '../query-engine-darwin')
 path.join(__dirname, '../introspection-engine-darwin')
-path.join(__dirname, '../prisma-fmt')
+path.join(__dirname, '../prisma-fmt-darwin')
+
 path.join(__dirname, '../query-engine-debian-openssl-1.0.x')
 path.join(__dirname, '../introspection-engine-debian-openssl-1.0.x')
 path.join(__dirname, '../prisma-fmt-debian-openssl-1.0.x')
+
 path.join(__dirname, '../query-engine-debian-openssl-1.1.x')
 path.join(__dirname, '../introspection-engine-debian-openssl-1.1.x')
 path.join(__dirname, '../prisma-fmt-debian-openssl-1.1.x')
+
 path.join(__dirname, '../query-engine-rhel-openssl-1.0.x')
 path.join(__dirname, '../introspection-engine-rhel-openssl-1.0.x')
 path.join(__dirname, '../prisma-fmt-rhel-openssl-1.0.x')
+
 path.join(__dirname, '../query-engine-rhel-openssl-1.0.x')
 path.join(__dirname, '../introspection-engine-rhel-openssl-1.0.x')
 path.join(__dirname, '../prisma-fmt-rhel-openssl-1.0.x')
