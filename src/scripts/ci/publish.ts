@@ -11,6 +11,7 @@ import redis from 'redis'
 import fetch from 'node-fetch'
 import { promisify } from 'util'
 import { cloneOrPull } from '../setup'
+import { unique } from './unique'
 
 export type Commit = {
   date: Date
@@ -313,20 +314,68 @@ async function getNewDevVersion(packages: Packages): Promise<string> {
   return version
 }
 
+async function getCurrentPatchForMinor(minor: number): Promise<number> {
+  let versions = JSON.parse(
+    await runResult('.', 'npm show @prisma/client@* version --json'),
+  )
+
+  // inconsistent npm api
+  if (!Array.isArray(versions)) {
+    versions = [versions]
+  }
+
+  const relevantVersions: Array<{
+    major: number
+    minor: number
+    patch: number
+  }> = versions
+    .map((v) => {
+      const match = semverRegex.exec(v)
+      if (match) {
+        return {
+          major: Number(match.groups.major),
+          minor: Number(match.groups.minor),
+          patch: Number(match.groups.patch),
+        }
+      }
+      return null
+    })
+    .filter((group) => group && group.minor === minor)
+
+  if (relevantVersions.length === 0) {
+    return 0
+  }
+
+  // sort descending by patch
+  relevantVersions.sort((a, b) => {
+    return a.patch < b.patch ? 1 : -1
+  })
+
+  return relevantVersions[0].patch
+}
+
 // TODO: This logic needs to be updated for the next time we want to patch
 async function getNewPatchDevVersion(
   packages: Packages,
   patchBranch: string,
 ): Promise<string> {
-  const versions = await getAllVersions(packages, 'patch-beta', '2.0.0')
   const minor = getMinorFromPatchBranch(patchBranch)
-  const maxIncrement = getMaxPatchVersionIncrement(versions, minor)
+  const currentPatch = await getCurrentPatchForMinor(minor)
+  const newPatch = currentPatch + 1
+  const newVersion = `2.${minor}.${newPatch}`
+  const versions = [
+    ...(await getAllVersions(packages, 'patch-dev', newVersion)),
+    ...(await getAllVersions(packages, 'patch-beta', newVersion)), // TODO: remove this
+  ]
+  const maxIncrement = getMaxPatchVersionIncrement(versions)
+  console.log({ versions, maxIncrement })
 
-  return `2.${minor}.x-dev.${maxIncrement + 1}`
+  return `${newVersion}-dev.${maxIncrement + 1}`
 }
 
 function getDevVersionIncrements(versions: string[]): number[] {
   const regex = /2\.\d+\.\d+-dev\.(\d+)/
+  console.log({ versionss: versions })
   return versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -340,11 +389,8 @@ function getDevVersionIncrements(versions: string[]): number[] {
 }
 
 // TODO: Adjust this for stable releases
-function getMaxPatchVersionIncrement(
-  versions: string[],
-  minor: string,
-): number {
-  const regex = /2\.\d+\.x-dev\.(\d+)/
+function getMaxPatchVersionIncrement(versions: string[]): number {
+  const regex = /2\.\d+\.\d+-dev\.(\d+)/
   const increments = versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -364,24 +410,30 @@ async function getAllVersions(
   channel: string,
   prefix: string,
 ): Promise<string[]> {
-  return flatten(
-    await Promise.all(
-      Object.values(packages).map(async (pkg) => {
-        const pkgVersions = [pkg.version]
-        const remoteVersion = await runResult(
-          '.',
-          `npm info ${pkg.name}@${channel} version`,
-        )
-        if (
-          remoteVersion &&
-          remoteVersion.length > 0 &&
-          remoteVersion.startsWith(prefix)
-        ) {
-          pkgVersions.push(remoteVersion)
-        }
+  return unique(
+    flatten(
+      await Promise.all(
+        Object.values(packages).map(async (pkg) => {
+          const pkgVersions = []
+          if (pkg.version.startsWith(prefix)) {
+            pkgVersions.push(pkg.version)
+          }
+          const remoteVersion = await runResult(
+            '.',
+            `npm info ${pkg.name}@${channel} version`,
+          )
+          if (
+            remoteVersion &&
+            remoteVersion.length > 0 &&
+            remoteVersion.startsWith(prefix) &&
+            !pkgVersions.includes(remoteVersion)
+          ) {
+            pkgVersions.push(remoteVersion)
+          }
 
-        return pkgVersions
-      }),
+          return pkgVersions
+        }),
+      ),
     ),
   )
 }
@@ -393,12 +445,12 @@ async function getNextMinorStable(): Promise<string | null> {
 }
 
 // TODO: Adjust this for stable release
-function getMinorFromPatchBranch(version: string): string | null {
+function getMinorFromPatchBranch(version: string): number | null {
   const regex = /2\.(\d+)\.x/
   const match = regex.exec(version)
 
   if (match) {
-    return match[1]
+    return Number(match[1])
   }
 
   return null
@@ -439,6 +491,12 @@ async function publish() {
       `Setting --release to BUILDKITE_TAG = ${process.env.BUILDKITE_TAG}`,
     )
     args['--release'] = process.env.BUILDKITE_TAG
+  }
+
+  if (process.env.BUILDKITE_TAG && !process.env.RELEASE_PROMOTE_DEV) {
+    throw new Error(
+      `When BUILDKITE_TAG is provided, RELEASE_PROMOTE_DEV also needs to be provided`,
+    )
   }
 
   if (!args['--test'] && !args['--publish'] && !args['--dry-run']) {
@@ -497,6 +555,7 @@ async function publish() {
 
     let prisma2Version
     const patchBranch = getPatchBranch()
+    console.log({ patchBranch })
     if (args['--release']) {
       prisma2Version = args['--release']
     } else if (patchBranch) {
@@ -561,10 +620,12 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         patchBranch,
       )
 
-      try {
-        await tagEnginesRepo(args['--dry-run'])
-      } catch (e) {
-        console.error(e)
+      if (!patchBranch) {
+        try {
+          await tagEnginesRepo(args['--dry-run'])
+        } catch (e) {
+          console.error(e)
+        }
       }
     }
   } catch (e) {
@@ -783,7 +844,7 @@ async function publishPackages(
       const pkg = packages[pkgName]
       const pkgDir = path.dirname(pkg.path)
       const tag = patchBranch
-        ? 'patch-beta'
+        ? 'patch-dev'
         : prisma2Version.includes('dev')
         ? 'dev'
         : 'latest'
@@ -945,7 +1006,7 @@ function getPatchBranch(): string | null {
 
   if (process.env.BUILDKITE_BRANCH) {
     const minor = getMinorFromPatchBranch(process.env.BUILDKITE_BRANCH)
-    if (typeof minor === 'string') {
+    if (minor !== null) {
       return process.env.BUILDKITE_BRANCH
     }
   }
