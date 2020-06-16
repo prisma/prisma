@@ -848,7 +848,14 @@ async function publishPackages(
         : prisma2Version.includes('dev')
         ? 'dev'
         : 'latest'
-      const newVersion = prisma2Version
+
+      let newVersion = prisma2Version
+      if (
+        pkgName === '@prisma/engine-core' &&
+        process.env.BUILDKITE_TAG === '2.0.1'
+      ) {
+        newVersion = '2.0.1-1'
+      }
 
       console.log(
         `\nPublishing ${chalk.magentaBright(
@@ -877,7 +884,19 @@ async function publishPackages(
       if (process.env.BUILDKITE) {
         await run(pkgDir, `pnpm run build`, dryRun)
       }
-      await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
+      const skipPackages =
+        process.env.BUILDKITE_TAG === '2.0.1'
+          ? [
+              '@prisma/debug',
+              '@prisma/get-platform',
+              '@prisma/generator-helper',
+              '@prisma/ink-components',
+              '@prisma/fetch-engine',
+            ]
+          : []
+      if (!skipPackages.includes(pkgName)) {
+        await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
+      }
     }
   }
 
