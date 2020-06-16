@@ -313,6 +313,46 @@ async function getNewDevVersion(packages: Packages): Promise<string> {
   return version
 }
 
+async function getCurrentPatchForMinor(minor: number): Promise<number> {
+  let versions = JSON.parse(
+    await runResult('.', 'npm show @prisma/client@* version --json'),
+  )
+
+  // inconsistent npm api
+  if (!Array.isArray(versions)) {
+    versions = [versions]
+  }
+
+  const relevantVersions: Array<{
+    major: number
+    minor: number
+    patch: number
+  }> = versions
+    .map((v) => {
+      const match = semverRegex.exec(v)
+      if (match) {
+        return {
+          major: Number(match.groups.major),
+          minor: Number(match.groups.minor),
+          patch: Number(match.groups.patch),
+        }
+      }
+      return null
+    })
+    .filter((group) => group && group.minor === minor)
+
+  if (relevantVersions.length === 0) {
+    return 0
+  }
+
+  // sort descending by patch
+  relevantVersions.sort((a, b) => {
+    return a.patch < b.patch ? 1 : -1
+  })
+
+  return relevantVersions[0].patch
+}
+
 // TODO: This logic needs to be updated for the next time we want to patch
 async function getNewPatchDevVersion(
   packages: Packages,
@@ -320,9 +360,10 @@ async function getNewPatchDevVersion(
 ): Promise<string> {
   const versions = await getAllVersions(packages, 'patch-beta', '2.0.0')
   const minor = getMinorFromPatchBranch(patchBranch)
-  const maxIncrement = getMaxPatchVersionIncrement(versions, minor)
+  const maxIncrement = getMaxPatchVersionIncrement(versions)
+  const currentPatch = await getCurrentPatchForMinor(minor)
 
-  return `2.${minor}.x-dev.${maxIncrement + 1}`
+  return `2.${minor}.${currentPatch + 1}-dev.${maxIncrement + 1}`
 }
 
 function getDevVersionIncrements(versions: string[]): number[] {
@@ -340,10 +381,7 @@ function getDevVersionIncrements(versions: string[]): number[] {
 }
 
 // TODO: Adjust this for stable releases
-function getMaxPatchVersionIncrement(
-  versions: string[],
-  minor: string,
-): number {
+function getMaxPatchVersionIncrement(versions: string[]): number {
   const regex = /2\.\d+\.x-dev\.(\d+)/
   const increments = versions
     .filter((v) => v.trim().length > 0)
@@ -393,12 +431,12 @@ async function getNextMinorStable(): Promise<string | null> {
 }
 
 // TODO: Adjust this for stable release
-function getMinorFromPatchBranch(version: string): string | null {
+function getMinorFromPatchBranch(version: string): number | null {
   const regex = /2\.(\d+)\.x/
   const match = regex.exec(version)
 
   if (match) {
-    return match[1]
+    return Number(match[1])
   }
 
   return null
@@ -497,6 +535,7 @@ async function publish() {
 
     let prisma2Version
     const patchBranch = getPatchBranch()
+    console.log({ patchBranch })
     if (args['--release']) {
       prisma2Version = args['--release']
     } else if (patchBranch) {
@@ -945,7 +984,7 @@ function getPatchBranch(): string | null {
 
   if (process.env.BUILDKITE_BRANCH) {
     const minor = getMinorFromPatchBranch(process.env.BUILDKITE_BRANCH)
-    if (typeof minor === 'string') {
+    if (minor !== null) {
       return process.env.BUILDKITE_BRANCH
     }
   }
