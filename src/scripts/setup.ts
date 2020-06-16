@@ -11,13 +11,26 @@ import {
 } from './ci/publish'
 Debug.enable('setup')
 const debug = Debug('setup')
+import fetch from 'node-fetch'
 
 function getCommitEnvVar(name: string): string {
   return `${name.toUpperCase().replace(/-/g, '_')}_COMMIT`
 }
 
 async function main() {
-  if (process.env.PATCH_BRANCH) {
+  if (process.env.BUILDKITE_TAG && !process.env.RELEASE_PROMOTE_DEV) {
+    throw new Error(`When providing BUILDKITE_TAG, you also need to provide the env var RELEASE_PROMOTE_DEV, which
+has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
+  }
+  if (process.env.RELEASE_PROMOTE_DEV && !process.env.BUILDKITE_TAG) {
+    throw new Error(
+      `You provided RELEASE_PROMOTE_DEV without BUILDKITE_TAG, which doesn't make sense.`,
+    )
+  }
+  if (process.env.RELEASE_PROMOTE_DEV) {
+    const versions = await getVersionHashes(process.env.RELEASE_PROMOTE_DEV)
+    await run(`.`, `git checkout ${versions.prisma}`)
+  } else if (process.env.PATCH_BRANCH) {
     await checkoutPatchBranches(process.env.PATCH_BRANCH)
     console.log(`Commit we're on:`)
     await execa.command('git rev-parse HEAD', {
@@ -154,4 +167,19 @@ async function branchExists(dir: string, branch: string): Promise<boolean> {
     console.log(`Branch exists: ${exists}`)
   }
   return exists
+}
+
+async function getVersionHashes(
+  npmVersion: string,
+): Promise<{ engines: string; prisma: string }> {
+  return fetch(`https://unpkg.com/@prisma/cli@${npmVersion}/package.json`, {
+    headers: {
+      accept: 'application/json',
+    },
+  })
+    .then((res) => res.json())
+    .then((pkg) => ({
+      engines: pkg.prisma.version,
+      prisma: pkg.prisma.prismaCommit,
+    }))
 }
