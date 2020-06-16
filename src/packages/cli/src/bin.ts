@@ -191,7 +191,8 @@ async function main(): Promise<number> {
     disable: ci.isCI,
   })
   // if the result is cached and we're outdated, show this prompte
-  if (checkResult.status === 'ok' && checkResult.data.outdated) {
+  const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
+  if (checkResult.status === 'ok' && checkResult.data.outdated && !shouldHide) {
     console.error(
       drawBox({
         height: 4,
