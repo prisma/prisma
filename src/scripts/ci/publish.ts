@@ -358,13 +358,21 @@ async function getNewPatchDevVersion(
   packages: Packages,
   patchBranch: string,
 ): Promise<string> {
-  const versions = [
-    ...(await getAllVersions(packages, 'patch-dev', '2.0.0')),
-    ...(await getAllVersions(packages, 'patch-beta', '2.0.0')), // TODO: remove this
-  ]
   const minor = getMinorFromPatchBranch(patchBranch)
-  const maxIncrement = getMaxPatchVersionIncrement(versions)
   const currentPatch = await getCurrentPatchForMinor(minor)
+  const versions = [
+    ...(await getAllVersions(
+      packages,
+      'patch-dev',
+      `2.${minor}.${currentPatch}`,
+    )),
+    ...(await getAllVersions(
+      packages,
+      'patch-beta',
+      `2.${minor}.${currentPatch}`,
+    )), // TODO: remove this
+  ]
+  const maxIncrement = getMaxPatchVersionIncrement(versions)
 
   return `2.${minor}.${currentPatch + 1}-dev.${maxIncrement + 1}`
 }
