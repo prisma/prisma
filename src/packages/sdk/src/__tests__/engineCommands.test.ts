@@ -171,7 +171,7 @@ describe('getDMMF', () => {
     )
     const dmmf = await getDMMF({ datamodel: file })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`394868`)
+    expect(str.length).toMatchInlineSnapshot(`409348`)
   })
 
   test('big schema', async () => {
