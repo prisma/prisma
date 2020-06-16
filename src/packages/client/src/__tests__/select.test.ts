@@ -630,8 +630,7 @@ describe('select validation', () => {
         ?   content?: String,
         ?   author?: {
         ?     create?: UserCreateWithoutPostsInput,
-        ?     connect?: UserWhereUniqueInput,
-        ?     connectOrCreate?: UserCreateOrConnectWithoutPostInput
+        ?     connect?: UserWhereUniqueInput
         ?   }
           }
         }

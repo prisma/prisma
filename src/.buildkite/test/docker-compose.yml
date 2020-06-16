@@ -10,6 +10,10 @@ services:
       - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/postgres
       - TEST_MYSQL_URI=mysql://prisma:prisma@mysql:3306/tests
       - TEST_MARIADB_URI=mysql://prisma:prisma@mariadb:3306/tests
+      - BUILDKITE
+      - BUILDKITE_TAG
+      - BUILDKITE_BRANCH
+      - PATCH_BRANCH
     depends_on:
       - postgres
       - mysql
