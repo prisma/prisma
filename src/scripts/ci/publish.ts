@@ -480,6 +480,8 @@ async function publish() {
     args['--dry-run'] = true
   }
 
+  const dryRun = args['--dry-run']
+
   if (args['--publish'] && process.env.BUILDKITE_TAG) {
     if (args['--release']) {
       throw new Error(
@@ -499,7 +501,7 @@ async function publish() {
     )
   }
 
-  if (!args['--test'] && !args['--publish'] && !args['--dry-run']) {
+  if (!args['--test'] && !args['--publish'] && !dryRun) {
     throw new Error('Please either provide --test or --publish or --dry-run')
   }
 
@@ -578,12 +580,12 @@ async function publish() {
       )
     }
 
-    if (!args['--dry-run'] && args['--test']) {
+    if (!dryRun && args['--test']) {
       console.log(chalk.bold('\nTesting packages'))
       await testPackages(packages, getPublishOrder(packages))
     }
 
-    if (args['--publish'] || args['--dry-run']) {
+    if (args['--publish'] || dryRun) {
       // We know, that Photon and Prisma2 are always part of the release.
       // Therefore, also migrate is also always part of the release, as it depends on photon.
       // We can therefore safely update studio, as migrate and prisma2 are depending on studio
@@ -610,11 +612,26 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         }
       }
 
+      if (!dryRun) {
+        console.log(`Let's first do a dry run!`)
+        await publishPackages(
+          packages,
+          packagesWithVersions,
+          getPublishOrder(packages),
+          true,
+          prisma2Version,
+          args['--release'],
+          patchBranch,
+        )
+        console.log(`Waiting 5 sec so you can check it out first...`)
+        await new Promise((r) => setTimeout(r, 5000))
+      }
+
       await publishPackages(
         packages,
         packagesWithVersions,
         getPublishOrder(packages),
-        args['--dry-run'],
+        dryRun,
         prisma2Version,
         args['--release'],
         patchBranch,
@@ -622,7 +639,7 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
 
       if (!patchBranch) {
         try {
-          await tagEnginesRepo(args['--dry-run'])
+          await tagEnginesRepo(dryRun)
         } catch (e) {
           console.error(e)
         }
@@ -843,11 +860,12 @@ async function publishPackages(
     for (const pkgName of currentBatch) {
       const pkg = packages[pkgName]
       const pkgDir = path.dirname(pkg.path)
-      const tag = patchBranch
-        ? 'patch-dev'
-        : prisma2Version.includes('dev')
-        ? 'dev'
-        : 'latest'
+      const tag =
+        patchBranch && !process.env.BUILDKITE_TAG
+          ? 'patch-dev'
+          : prisma2Version.includes('dev')
+          ? 'dev'
+          : 'latest'
 
       let newVersion = prisma2Version
       if (
