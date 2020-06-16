@@ -360,21 +360,14 @@ async function getNewPatchDevVersion(
 ): Promise<string> {
   const minor = getMinorFromPatchBranch(patchBranch)
   const currentPatch = await getCurrentPatchForMinor(minor)
+  const newPatch = currentPatch + 1
   const versions = [
-    ...(await getAllVersions(
-      packages,
-      'patch-dev',
-      `2.${minor}.${currentPatch}`,
-    )),
-    ...(await getAllVersions(
-      packages,
-      'patch-beta',
-      `2.${minor}.${currentPatch}`,
-    )), // TODO: remove this
+    ...(await getAllVersions(packages, 'patch-dev', `2.${minor}.${newPatch}`)),
+    ...(await getAllVersions(packages, 'patch-beta', `2.${minor}.${newPatch}`)), // TODO: remove this
   ]
   const maxIncrement = getMaxPatchVersionIncrement(versions)
 
-  return `2.${minor}.${currentPatch + 1}-dev.${maxIncrement + 1}`
+  return `2.${minor}.${newPatch}-dev.${maxIncrement + 1}`
 }
 
 function getDevVersionIncrements(versions: string[]): number[] {
