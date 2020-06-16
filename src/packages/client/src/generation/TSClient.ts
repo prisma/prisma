@@ -444,19 +444,6 @@ export interface PrismaClientOptions {
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
    */
   log?: Array<LogLevel | LogDefinition>
-
-  /**
-   * You probably don't want to use this. \`__internal\` is used by internal tooling.
-   */
-  __internal?: {
-    debug?: boolean
-    hooks?: Hooks
-    engine?: {
-      cwd?: string
-      binaryPath?: string
-    }
-    measurePerformance?: boolean
-  }
 }
 
 export type Hooks = {
