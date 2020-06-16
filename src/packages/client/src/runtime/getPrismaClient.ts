@@ -70,6 +70,7 @@ export interface PrismaClientOptions {
   log?: Array<LogLevel | LogDefinition>
 
   /**
+   * @internal
    * You probably don't want to use this. \`__internal\` is used by internal tooling.
    */
   __internal?: {
