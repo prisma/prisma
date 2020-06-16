@@ -124,6 +124,10 @@ async function getBranch() {
   if (process.env.BUILDKITE_BRANCH) {
     return process.env.BUILDKITE_BRANCH
   }
+  await execa.command('git branch', {
+    stdio: 'inherit',
+    shell: true,
+  })
   const result = await execa.command('git rev-parse --abbrev-ref HEAD', {
     shell: true,
     stdio: 'pipe',
