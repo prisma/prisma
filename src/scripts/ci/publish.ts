@@ -11,6 +11,7 @@ import redis from 'redis'
 import fetch from 'node-fetch'
 import { promisify } from 'util'
 import { cloneOrPull } from '../setup'
+import { unique } from './unique'
 
 export type Commit = {
   date: Date
@@ -361,17 +362,20 @@ async function getNewPatchDevVersion(
   const minor = getMinorFromPatchBranch(patchBranch)
   const currentPatch = await getCurrentPatchForMinor(minor)
   const newPatch = currentPatch + 1
+  const newVersion = `2.${minor}.${newPatch}`
   const versions = [
-    ...(await getAllVersions(packages, 'patch-dev', `2.${minor}.${newPatch}`)),
-    ...(await getAllVersions(packages, 'patch-beta', `2.${minor}.${newPatch}`)), // TODO: remove this
+    ...(await getAllVersions(packages, 'patch-dev', newVersion)),
+    ...(await getAllVersions(packages, 'patch-beta', newVersion)), // TODO: remove this
   ]
   const maxIncrement = getMaxPatchVersionIncrement(versions)
+  console.log({ versions, maxIncrement })
 
-  return `2.${minor}.${newPatch}-dev.${maxIncrement + 1}`
+  return `${newVersion}-dev.${maxIncrement + 1}`
 }
 
 function getDevVersionIncrements(versions: string[]): number[] {
   const regex = /2\.\d+\.\d+-dev\.(\d+)/
+  console.log({ versionss: versions })
   return versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -386,7 +390,7 @@ function getDevVersionIncrements(versions: string[]): number[] {
 
 // TODO: Adjust this for stable releases
 function getMaxPatchVersionIncrement(versions: string[]): number {
-  const regex = /2\.\d+\.x-dev\.(\d+)/
+  const regex = /2\.\d+\.\d+-dev\.(\d+)/
   const increments = versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -406,24 +410,30 @@ async function getAllVersions(
   channel: string,
   prefix: string,
 ): Promise<string[]> {
-  return flatten(
-    await Promise.all(
-      Object.values(packages).map(async (pkg) => {
-        const pkgVersions = [pkg.version]
-        const remoteVersion = await runResult(
-          '.',
-          `npm info ${pkg.name}@${channel} version`,
-        )
-        if (
-          remoteVersion &&
-          remoteVersion.length > 0 &&
-          remoteVersion.startsWith(prefix)
-        ) {
-          pkgVersions.push(remoteVersion)
-        }
+  return unique(
+    flatten(
+      await Promise.all(
+        Object.values(packages).map(async (pkg) => {
+          const pkgVersions = []
+          if (pkg.version.startsWith(prefix)) {
+            pkgVersions.push(pkg.version)
+          }
+          const remoteVersion = await runResult(
+            '.',
+            `npm info ${pkg.name}@${channel} version`,
+          )
+          if (
+            remoteVersion &&
+            remoteVersion.length > 0 &&
+            remoteVersion.startsWith(prefix) &&
+            !pkgVersions.includes(remoteVersion)
+          ) {
+            pkgVersions.push(remoteVersion)
+          }
 
-        return pkgVersions
-      }),
+          return pkgVersions
+        }),
+      ),
     ),
   )
 }
