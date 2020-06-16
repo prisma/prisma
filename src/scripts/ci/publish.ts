@@ -600,10 +600,12 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         patchBranch,
       )
 
-      try {
-        await tagEnginesRepo(args['--dry-run'])
-      } catch (e) {
-        console.error(e)
+      if (!patchBranch) {
+        try {
+          await tagEnginesRepo(args['--dry-run'])
+        } catch (e) {
+          console.error(e)
+        }
       }
     }
   } catch (e) {
