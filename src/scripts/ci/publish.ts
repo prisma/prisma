@@ -358,7 +358,7 @@ async function getNewPatchDevVersion(
   packages: Packages,
   patchBranch: string,
 ): Promise<string> {
-  const versions = await getAllVersions(packages, 'patch-beta', '2.0.0')
+  const versions = await getAllVersions(packages, 'patch-dev', '2.0.0')
   const minor = getMinorFromPatchBranch(patchBranch)
   const maxIncrement = getMaxPatchVersionIncrement(versions)
   const currentPatch = await getCurrentPatchForMinor(minor)
@@ -824,7 +824,7 @@ async function publishPackages(
       const pkg = packages[pkgName]
       const pkgDir = path.dirname(pkg.path)
       const tag = patchBranch
-        ? 'patch-beta'
+        ? 'patch-dev'
         : prisma2Version.includes('dev')
         ? 'dev'
         : 'latest'
