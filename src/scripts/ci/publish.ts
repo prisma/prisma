@@ -493,6 +493,12 @@ async function publish() {
     args['--release'] = process.env.BUILDKITE_TAG
   }
 
+  if (process.env.BUILDKITE_TAG && !process.env.RELEASE_PROMOTE_DEV) {
+    throw new Error(
+      `When BUILDKITE_TAG is provided, RELEASE_PROMOTE_DEV also needs to be provided`,
+    )
+  }
+
   if (!args['--test'] && !args['--publish'] && !args['--dry-run']) {
     throw new Error('Please either provide --test or --publish or --dry-run')
   }

@@ -6,7 +6,22 @@ import PQueue from 'p-queue'
 import execa from 'execa'
 
 export async function getLatestTag(): Promise<any> {
-  const branch = await getBranch()
+  if (process.env.RELEASE_PROMOTE_DEV) {
+    const versions = await getVersionHashes(process.env.RELEASE_PROMOTE_DEV)
+    console.log(
+      `getLatestTag: taking ${versions.engines} as RELEASE_PROMOTE_DEV has been provided`,
+    )
+    return versions.engines
+  }
+
+  let branch = await getBranch()
+  if (branch !== 'master' && !isPatchBranch(branch)) {
+    console.log(
+      `Overwriting branch "${branch}" with "master" as it's not a branch we have binaries for`,
+    )
+    branch = 'master'
+  }
+
   console.log({ branch })
   const url = `https://api.github.com/repos/prisma/prisma-engines/commits?sha=${branch}`
   const result = await fetch(url, {
@@ -133,4 +148,24 @@ async function getBranch() {
     stdio: 'pipe',
   })
   return result.stdout
+}
+
+// TODO: Adjust this for stable release
+function isPatchBranch(version: string): boolean {
+  return /2\.(\d+)\.x/.test(version)
+}
+
+async function getVersionHashes(
+  npmVersion: string,
+): Promise<{ engines: string; prisma: string }> {
+  return fetch(`https://unpkg.com/@prisma/cli@${npmVersion}/package.json`, {
+    headers: {
+      accept: 'application/json',
+    },
+  })
+    .then((res) => res.json())
+    .then((pkg) => ({
+      engines: pkg.prisma.version,
+      prisma: pkg.prisma.prismaCommit,
+    }))
 }
