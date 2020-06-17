@@ -29,9 +29,6 @@ module.exports = async () => {
     port: newPort,
   })
 
-  console.log(`Original connection string: ${originalConnectionString}.
-Overriden connection string: ${connectionString}`)
-
   const db = new Client({
     connectionString: originalConnectionString,
   })
@@ -188,18 +185,13 @@ Overriden connection string: ${connectionString}`)
   proxy.end()
   try {
     const users = await prisma.user.findMany()
-  } catch (e) {
-    console.error(e)
-  }
+  } catch (e) {}
   proxy = tcpProxy.createProxy(newPort, credentials.host, sourcePort)
   await new Promise((r) => setTimeout(r, 16000))
-  console.log(`We now have error logs, yey!`, errorLogs)
   assert.equal(errorLogs.length, 1)
   try {
     const users = await prisma.user.findMany()
-  } catch (e) {
-    console.error(e)
-  }
+  } catch (e) {}
   const users = await prisma.user.findMany()
   assert.equal(users.length, 1)
   const resultEmptyJson = await prisma.post.create({

@@ -2,8 +2,6 @@ import chalk from 'chalk'
 import * as stackTraceParser from 'stacktrace-parser'
 import { highlightTS } from '../highlight/highlight'
 import { dedent } from './dedent'
-import Debug from '@prisma/debug'
-const debug = Debug('printStack')
 
 function renderN(n: number, max: number): string {
   const wantedLetters = String(max).length
@@ -39,8 +37,6 @@ export const printStack = ({
   let afterLines = ''
   let indentValue = 0
   let functionName = `prisma.${originalMethod}()`
-
-  debug('callsite', callsite)
 
   // @ts-ignore
   if (callsite && typeof window === 'undefined') {
