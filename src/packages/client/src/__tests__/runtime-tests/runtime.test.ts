@@ -8,7 +8,6 @@ const del = promisify(rimraf)
 jest.setTimeout(35000)
 
 // TODO: Figure out the problem with debug
-console.error = () => null
 
 describe('runtime works', () => {
   const subDirs = getSubDirs(__dirname)
