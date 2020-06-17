@@ -4,7 +4,7 @@ set -ex
 
 cd src
 
-npm i -g pnpm
+npm i -g pnpm@5.1.7
 pnpm i --no-prefer-frozen-lockfile
 
 pnpm run setup
