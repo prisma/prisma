@@ -55,7 +55,7 @@
   },
   "prisma": {
     "version": "41f8d9863f1e0f6bfdb24def858e520f99bc2479",
-    "prismaCommit": "a6b2e963b5eb83261175980594d2a3871044de1e"
+    "prismaCommit": "e4205f1367ddc8d609983d2b4b8f05f7fff20bc4"
   },
   "devDependencies": {
     "@apexearth/copy": "1.4.5",

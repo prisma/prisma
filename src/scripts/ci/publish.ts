@@ -294,6 +294,12 @@ export function getPublishOrder(packages: Packages): string[][] {
   return topo(dag)
 }
 
+function zeroOutPatch(version: string): string {
+  const parts = version.split('.')
+  parts[parts.length - 1] = '0'
+  return parts.join('.')
+}
+
 /**
  * Takes the max dev version + 1
  * For now supporting 2.Y.Z-dev.#
@@ -302,7 +308,11 @@ export function getPublishOrder(packages: Packages): string[][] {
 async function getNewDevVersion(packages: Packages): Promise<string> {
   const before = Date.now()
   console.log('\nCalculating new dev version...')
-  const nextStable = await getNextMinorStable()
+  // Why are we calling zeroOutPatch?
+  // Because here we're only interested in the 2.5.0 <- the next minor stable version
+  // If the current version would be 2.4.7, we would end up with 2.5.7
+  const nextStable = zeroOutPatch(await getNextMinorStable())
+
   console.log(`Next minor stable: ${nextStable}`)
 
   const versions = await getAllVersions(packages, 'dev', nextStable + '-dev')
