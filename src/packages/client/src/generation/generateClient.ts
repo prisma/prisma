@@ -5,7 +5,6 @@ import {
   DMMF,
   GeneratorConfig,
 } from '@prisma/generator-helper'
-import Debug from '@prisma/debug'
 import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
@@ -19,9 +18,6 @@ import { extractSqliteSources } from './extractSqliteSources'
 import { TSClient, TS, JS } from './TSClient'
 import { getVersion } from '@prisma/sdk/dist/engineCommands'
 import pkgUp from 'pkg-up'
-
-const debug = Debug('generateClient')
-debug.log = console.log.bind(console)
 
 const remove = promisify(fs.unlink)
 const writeFile = promisify(fs.writeFile)
@@ -151,11 +147,6 @@ export async function generateClient({
   const finalOutputDir = useDotPrisma
     ? await getDotPrismaDir(outputDir)
     : outputDir
-  debug({ finalOutputDir, runtimePath })
-
-  if (testMode) {
-    Debug.enable('generateClient')
-  }
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
