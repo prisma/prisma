@@ -39,6 +39,8 @@ export default function Debug(namespace: string): DebugLib.Debugger {
   const debug: DebugLib.Debugger = DebugLib(namespace)
   namespaces.push(namespace)
   DebugLib.enable(envDebug + namespaces.join(','))
+  // revert debug
+  process.env.DEBUG = envDebug
 
   if (isEnabledByEnvVar(namespace)) {
     enabledNamespaces.set(namespace, true)

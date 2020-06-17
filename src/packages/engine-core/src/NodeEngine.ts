@@ -518,9 +518,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             }
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
-              if (log.level === 'error') {
-                console.log(`Emitting ${log.level}`, log)
-              }
               this.logEmitter.emit(log.level, log)
             } else {
               this.lastError = json
