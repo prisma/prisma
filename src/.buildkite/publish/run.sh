@@ -9,7 +9,7 @@ if [ "$DEVELOPMENT_ENVIRONMENT_COMMIT" ]; then
   git checkout $DEVELOPMENT_ENVIRONMENT_COMMIT
 fi
 
-npm i -g pnpm
+npm i -g pnpm@5.1.7
 npm i -g yarn || echo "Ok"
 yarn --version || echo "Ok"
 pnpm i --no-prefer-frozen-lockfile
