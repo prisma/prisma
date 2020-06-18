@@ -75,7 +75,7 @@ export async function sendPanic(
       platform: await getPlatform(),
       liftRequest,
       schemaFile: maskedSchema,
-      fingerprint: checkpoint.signature.sync(),
+      fingerprint: await checkpoint.getSignature(),
       sqlDump,
     })
 
