@@ -264,6 +264,64 @@ describe('getConfig', () => {
 
     expect(config).toMatchSnapshot()
   })
+
+  test('datasource with env var', async () => {
+    process.env.TEST_POSTGRES_URI_FOR_DATASOURCE =
+      'postgres://user:password@something:5432/db'
+
+    const config = await getConfig({
+      datamodel: `
+      datasource db {
+        provider = "postgresql"
+        url      = env("TEST_POSTGRES_URI_FOR_DATASOURCE")
+      }
+      `,
+    })
+
+    expect(config).toMatchInlineSnapshot(`
+      Object {
+        "datasources": Array [
+          Object {
+            "connectorType": "postgresql",
+            "name": "db",
+            "url": Object {
+              "fromEnvVar": "TEST_POSTGRES_URI_FOR_DATASOURCE",
+              "value": "postgres://user:password@something:5432/db",
+            },
+          },
+        ],
+        "generators": Array [],
+      }
+    `)
+  })
+
+  test('datasource with env var - ignoreEnvVarErrors', async () => {
+    const config = await getConfig({
+      ignoreEnvVarErrors: true,
+      datamodel: `
+      datasource db {
+        provider = "postgresql"
+        url      = env("SOMETHING-SOMETHING-1234")
+      }
+      `,
+    })
+
+    expect(config).toMatchInlineSnapshot(`
+      Object {
+        "datasources": Array [
+          Object {
+            "connectorType": "postgresql",
+            "name": "db",
+            "url": Object {
+              "fromEnvVar": null,
+              "value": "postgresql://",
+            },
+          },
+        ],
+        "generators": Array [],
+      }
+    `)
+  })
 })
 
 describe('format', () => {
