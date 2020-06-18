@@ -74,6 +74,15 @@ const datasources: DataSource[] = [
     connectorType: 'mysql',
     config: {},
   },
+  {
+    name: 'db4',
+    url: {
+      value: 'postgresql://',
+      fromEnvVar: null,
+    },
+    connectorType: 'postgresql',
+    config: {},
+  },
 ]
 
 test('resolveDatasources', () => {
@@ -107,6 +116,15 @@ test('resolveDatasources', () => {
           "value": "mysql:localhost",
         },
       },
+      Object {
+        "config": Object {},
+        "connectorType": "postgresql",
+        "name": "db4",
+        "url": Object {
+          "fromEnvVar": null,
+          "value": "postgresql://",
+        },
+      },
     ]
   `)
 })
@@ -131,6 +149,10 @@ test('serializeDatasources', () => {
       {
         \\"name\\": \\"db3\\",
         \\"url\\": \\"mysql:localhost\\"
+      },
+      {
+        \\"name\\": \\"db4\\",
+        \\"url\\": \\"postgresql://\\"
       }
     ]"
   `)
