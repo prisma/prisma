@@ -5,7 +5,6 @@
         "every 2 weeks on Monday before 7am"
     ],
     "semanticCommits": true,
-    "ignoreDeps": ["ink", "ink-link", "react", "@types/react"],
     "packageRules": [{
             "groupName": "renovate-meta",
             "updateTypes": ["lockFileMaintenance", "pin"],
