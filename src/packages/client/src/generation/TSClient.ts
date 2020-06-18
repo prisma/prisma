@@ -69,9 +69,6 @@ const {
 const path = require('path')
 const debug = debugLib('prisma-client')
 
-debug("Client Version ${clientVersion}")
-debug("Engine Version ${engineVersion}")
-
 /**
  * Prisma Client JS version: ${clientVersion}
  * Query Engine version: ${engineVersion}
@@ -268,6 +265,7 @@ export class TSClient implements Generatable {
       relativePath: path.relative(outputDir, schemaDir),
       internalDatasources: datasources,
       clientVersion: this.options.clientVersion,
+      engineVersion: this.options.engineVersion,
     }
 
     return `${commonCodeJS(this.options)}
