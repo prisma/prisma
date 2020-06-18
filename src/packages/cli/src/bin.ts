@@ -78,7 +78,9 @@ if (process.argv.length > 2) {
     fs.existsSync('prisma/.env')
   ) {
     dotenvResult = dotenv.config({ path: 'prisma/.env' })
-    console.log(chalk.dim('Environment variables loaded from ./prisma/.env'))
+    // needed for Windows
+    const relative = path.relative('.', './prisma/.env')
+    console.log(chalk.dim(`Environment variables loaded from ${relative}`))
   } // We didn't find a .env file next to the prisma.schema file.
   else {
     debug('Environment variables not loaded')
