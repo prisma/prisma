@@ -127,6 +127,8 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
 
   if (fs.existsSync(schemaDir)) {
     const filePaths = await globby('migrations/**/*', {
+      // globby doesn't have it in its types but it's part of mrmlnc/fast-glob
+      // @ts-ignore
       cwd: schemaDir,
     })
 
