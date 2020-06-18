@@ -58,7 +58,7 @@ export async function getDMMF({
   datamodelPath,
   retry = 4,
 }: GetDMMFOptions): Promise<DMMF.Document> {
-  queryEnginePath = queryEnginePath || (await resolveBinary('query-engine'))
+  queryEnginePath = await resolveBinary('query-engine', queryEnginePath)
   let result
   try {
     let tempDatamodelPath: string | undefined = datamodelPath
@@ -179,7 +179,7 @@ export async function getConfig({
   datamodelPath,
   ignoreEnvVarErrors,
 }: GetConfigOptions): Promise<ConfigMetaFormat> {
-  queryEnginePath = queryEnginePath || (await resolveBinary('query-engine'))
+  queryEnginePath = await resolveBinary('query-engine', queryEnginePath)
 
   let tempDatamodelPath: string | undefined = datamodelPath
   if (!tempDatamodelPath) {
@@ -258,7 +258,7 @@ export async function formatSchema({
 }
 
 export async function getVersion(enginePath?: string): Promise<string> {
-  enginePath = enginePath || (await resolveBinary('query-engine'))
+  enginePath = await resolveBinary('query-engine', enginePath)
 
   const result = await execa(enginePath, ['--version'], {
     env: {

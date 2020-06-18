@@ -74,18 +74,22 @@ export async function getGenerators({
 
   // overwrite query engine if the version is provided
   if (version) {
-    const downloadParams: DownloadOptions = {
-      binaries: {
-        'query-engine': eval(`require('path').join(__dirname, '..')`),
-      },
-      binaryTargets: [platform],
-      showProgress: false,
-      version,
-      skipDownload,
-    }
+    const potentialPath = eval(`require('path').join(__dirname, '..')`)
+    // for pkg we need to make an exception
+    if (!potentialPath.startsWith('/snapshot/')) {
+      const downloadParams: DownloadOptions = {
+        binaries: {
+          'query-engine': potentialPath,
+        },
+        binaryTargets: [platform],
+        showProgress: false,
+        version,
+        skipDownload,
+      }
 
-    const binaryPathsWithEngineType = await download(downloadParams)
-    prismaPath = binaryPathsWithEngineType['query-engine']![platform]
+      const binaryPathsWithEngineType = await download(downloadParams)
+      prismaPath = binaryPathsWithEngineType['query-engine']![platform]
+    }
   }
 
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')

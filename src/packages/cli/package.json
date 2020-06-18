@@ -46,7 +46,8 @@
       "download-build/**/*",
       "query-engine*",
       "migration-engine*",
-      "introspection-engine*"
+      "introspection-engine*",
+      "prisma-fmt*"
     ]
   },
   "bin": {
