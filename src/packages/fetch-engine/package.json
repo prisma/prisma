@@ -39,10 +39,11 @@
     "node-fetch": "^2.6.0",
     "p-filter": "^2.1.0",
     "p-map": "^4.0.0",
+    "p-queue": "^6.4.0",
     "p-retry": "^4.2.0",
     "progress": "^2.0.3",
     "rimraf": "^3.0.2",
-    "p-queue": "^6.4.0",
+    "temp-dir": "^2.0.0",
     "tempy": "^0.5.0"
   },
   "scripts": {
