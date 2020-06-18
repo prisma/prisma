@@ -9,6 +9,7 @@ import makeDir from 'make-dir'
 import execa from 'execa'
 import pFilter from 'p-filter'
 import hasha from 'hasha'
+import tempDir from 'temp-dir'
 
 // Utils
 import { getBar } from './log'
@@ -162,16 +163,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     }
 
     // Node 14 for whatever reason can't handle concurrent writes
-    // if (process.version.startsWith('v14')) {
-    //   for (const job of binariesToDownload) {
-    //     await downloadBinary({
-    //       ...job,
-    //       version: options.version,
-    //       failSilent: options.failSilent,
-    //       progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
-    //     })
-    //   }
-    // } else {
     await Promise.all(
       binariesToDownload.map((job) =>
         downloadBinary({
@@ -182,7 +173,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         }),
       ),
     )
-    // }
 
     await cleanupPromise // make sure, that cleanup finished
     if (finishBar) {
@@ -190,7 +180,21 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     }
   }
 
-  return binaryJobsToBinaryPaths(binaryJobs)
+  const binaryPaths = binaryJobsToBinaryPaths(binaryJobs)
+  const dir = eval('__dirname')
+
+  // this is necessary for pkg
+  if (dir.startsWith('/snapshot/')) {
+    for (const engineType in binaryPaths) {
+      const binaryTargets = binaryPaths[engineType]
+      for (const binaryTarget in binaryTargets) {
+        const binaryPath = binaryTargets[binaryTarget]
+        binaryTargets[binaryTarget] = await maybeCopyToTmp(binaryPath)
+      }
+    }
+  }
+
+  return binaryPaths
 }
 
 function getCollectiveBar(
@@ -511,4 +515,35 @@ function mapKeys<T extends object>(
     acc[mapper(key as keyof T)] = value
     return acc
   }, {})
+}
+
+export async function maybeCopyToTmp(file: string): Promise<string> {
+  // in this case, we are in a "pkg" context with a virtual fs
+  // to make this work, we need to copy the binary to /tmp and execute it from there
+
+  const dir = eval('__dirname')
+  if (dir.startsWith('/snapshot/')) {
+    const targetDir = path.join(tempDir, 'prisma-binaries')
+    await makeDir(targetDir)
+    const target = path.join(targetDir, path.basename(file))
+    const data = await readFile(file)
+    await writeFile(target, data)
+    // We have to read and write until https://github.com/zeit/pkg/issues/639
+    // is resolved
+    // await copyFile(file, target)
+    plusX(target)
+    return target
+  }
+
+  return file
+}
+
+export function plusX(file): void {
+  const s = fs.statSync(file)
+  const newMode = s.mode | 64 | 8 | 1
+  if (s.mode === newMode) {
+    return
+  }
+  const base8 = newMode.toString(8).slice(-3)
+  fs.chmodSync(file, base8)
 }

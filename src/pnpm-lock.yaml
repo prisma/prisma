@@ -395,6 +395,7 @@ importers:
       p-retry: 4.2.0
       progress: 2.0.3
       rimraf: 3.0.2
+      temp-dir: 2.0.0
       tempy: 0.5.0
     devDependencies:
       '@types/fs-extra': 8.1.1
@@ -450,6 +451,7 @@ importers:
       prettier: 2.0.5
       progress: ^2.0.3
       rimraf: ^3.0.2
+      temp-dir: ^2.0.0
       tempy: ^0.5.0
       ts-jest: 25.5.1
       typescript: 3.9.5

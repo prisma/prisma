@@ -291,7 +291,6 @@ export async function generateClient({
       })
     }
   }
-  // }
 
   if (transpile) {
     await writeFile(path.join(outputDir, 'runtime/index.d.ts'), backup)

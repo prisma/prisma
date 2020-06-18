@@ -22,7 +22,17 @@ const engineEnvVarMap = {
   'prisma-fmt': 'PRISMA_FMT_BINARY',
 }
 
-export async function resolveBinary(name: EngineType): Promise<string> {
+export async function resolveBinary(
+  name: EngineType,
+  proposedPath?: string,
+): Promise<string> {
+  if (
+    proposedPath &&
+    !proposedPath.startsWith('/snapshot/') &&
+    fs.existsSync(proposedPath)
+  ) {
+    return proposedPath
+  }
   // tslint:disable-next-line
 
   const envVar = engineEnvVarMap[name]
@@ -76,7 +86,7 @@ export async function resolveBinary(name: EngineType): Promise<string> {
   )
 }
 
-async function maybeCopyToTmp(file: string): Promise<string> {
+export async function maybeCopyToTmp(file: string): Promise<string> {
   // in this case, we are in a "pkg" context with a virtual fs
   // to make this work, we need to copy the binary to /tmp and execute it from there
 
