@@ -48,6 +48,10 @@ export const GraphQLScalarToJSTypeTable = {
   Json: 'JsonValue',
 }
 
+export const JSOutputTypeToInputType = {
+  JsonValue: 'InputJsonValue',
+}
+
 export const JSTypeToGraphQLType = {
   string: 'String',
   boolean: 'Boolean',
