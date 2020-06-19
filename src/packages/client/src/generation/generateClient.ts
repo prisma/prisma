@@ -570,7 +570,6 @@ function validateDmmfAgainstDenylists(prismaClientDmmf): Error[] | null {
         `${m.name}Select`,
         `${m.name}Include`,
         `${m.name}Default`,
-        `${m.name}Client`,
         `${m.name}Delegate`,
         `${m.name}GetPayload`,
         `${m.name}Filter`,
