@@ -137,7 +137,7 @@ export interface GetPrismaClientOptions {
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativePath: string
   dirname: string
-  internalDatasources: InternalDatasource[]
+  internalDatasources: Omit<InternalDatasource, 'url'>[]
   clientVersion?: string
   engineVersion?: string
 }
@@ -153,7 +153,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     connectionPromise?: Promise<any>
     disconnectionPromise?: Promise<any>
     engineConfig: EngineConfig
-    internalDatasources: InternalDatasource[]
+    internalDatasources: Omit<InternalDatasource, 'url'>[]
     private errorFormat: ErrorFormat
     private measurePerformance: boolean
     private hooks?: Hooks
