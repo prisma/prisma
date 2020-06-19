@@ -585,7 +585,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               return requestPromise.then(onfulfilled, onrejected)
             },
             requestTransaction: () => {
-              console.log('requesting transaction')
               if (!requestPromise) {
                 requestPromise = this.fetcher.request({
                   document,
