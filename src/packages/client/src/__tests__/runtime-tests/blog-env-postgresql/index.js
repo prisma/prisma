@@ -230,6 +230,18 @@ module.exports = async () => {
     },
   })
 
+  const result = await prisma.post.findMany({
+    where: {
+      jsonData: [
+        {
+          array1key: 'array1value',
+        },
+      ],
+    },
+  })
+
+  assert.equal(result.length, 1, 'We should be able to query by json data')
+
   await prisma.post.delete({
     where: { id: resultJsonArray.id },
   })

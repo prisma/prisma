@@ -13,11 +13,7 @@ async function main() {
   //   },
   // })
 
-  const result = await prisma.withoutRelation.findMany({
-    include: {
-      asd: true,
-    },
-  })
+  const result = await prisma.withoutRelation.findMany({})
   console.log(result)
   prisma.disconnect()
 }

@@ -1,6 +1,6 @@
 datasource my_db {
-  provider = "sqlite"
-  url      = "file:dev.db"
+  provider = "postgres"
+  url      = env("POSTGRES_URL")
 }
 
 model User {
@@ -8,6 +8,7 @@ model User {
   name         String
   email        String     @unique
   status       String
+  field Json?
   permissions  Permission
   favoriteTree Tree
   locationId   Int?

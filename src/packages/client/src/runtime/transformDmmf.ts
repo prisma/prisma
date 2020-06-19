@@ -138,7 +138,7 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
         .map((f) => f.name),
     )
 
-    const fields = type.fields
+    const relationFields = type.fields
       .filter((a) => whiteList.includes(a.name))
       .map((a) => ({ ...a, isRelationFilter: true }))
 
@@ -207,10 +207,10 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
       })
 
     // NOTE: list scalar fields don't have where arguments!
-    fields.unshift(...filterTypesList)
+    relationFields.unshift(...filterTypesList)
     const newType: DMMF.InputType = {
       name: type.name,
-      fields,
+      fields: relationFields,
       isWhereType: true,
       atLeastOne: false,
     }
@@ -277,6 +277,8 @@ function getScalarFilterArgs(
     ]
   }
   switch (type) {
+    case 'Json':
+      return getBaseFilters(type, isRequired, isEnum, isNullable)
     case 'String':
     case 'ID':
     case 'UUID':
