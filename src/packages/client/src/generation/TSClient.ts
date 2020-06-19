@@ -27,6 +27,7 @@ import {
 import { uniqueBy } from '../runtime/utils/uniqueBy'
 import { GetPrismaClientOptions } from '../runtime/getPrismaClient'
 import klona from 'klona'
+import { omit } from '../omit'
 
 const tab = 2
 
@@ -263,7 +264,7 @@ export class TSClient implements Generatable {
       generator,
       sqliteDatasourceOverrides,
       relativePath: path.relative(outputDir, schemaDir),
-      internalDatasources: datasources,
+      internalDatasources: datasources.map((d) => omit(d, ['url'])),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
     }
