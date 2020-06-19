@@ -185,9 +185,9 @@ export function getSelectReturnType({
     )}<T>${listClose}${promiseClose}>`
   }
 
-  return `CheckSelect<T, ${name}Client<${getType(name, isList)}${
+  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${
     actionName === 'findOne' ? ' | null' : ''
-  }>, ${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${
+  }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${
     actionName === 'findOne' ? ' | null' : ''
   }>>`
 }
