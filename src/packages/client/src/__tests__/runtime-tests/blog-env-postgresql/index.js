@@ -77,7 +77,9 @@ module.exports = async () => {
       },
     },
     datasources: {
-      db: connectionString,
+      db: {
+        url: connectionString,
+      },
     },
     log: [
       {

@@ -39,7 +39,10 @@ import { omit } from './utils/omit'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
-export type Datasources = any
+export type Datasource = {
+  url?: string
+}
+export type Datasources = Record<string, Datasource>
 
 export interface PrismaClientOptions {
   /**
@@ -173,9 +176,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         url: 'file:' + path.resolve(config.dirname, d.url),
       }))
 
-      const inputDatasources = Object.entries(
-        options.datasources || {},
-      ).map(([name, url]: any) => ({ name, url }))
+      const inputDatasources = Object.entries(options.datasources || {})
+        .filter(([_, source]) => {
+          return source && source.url
+        })
+        .map(([name, { url }]: any) => ({ name, url }))
 
       const datasources = mergeBy(
         predefinedDatasources,
