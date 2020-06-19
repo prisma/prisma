@@ -326,6 +326,9 @@ exports.PrismaClient = PrismaClient`
  * Client
 **/
 
+export declare type Datasource = {
+  url?: string
+}
 ${new PrismaClientClass(
   this.dmmf,
   this.options.datasources,
@@ -381,7 +384,7 @@ class Datasources implements Generatable {
   public toTS(): string {
     const sources = this.internalDatasources
     return `export type Datasources = {
-${indent(sources.map((s) => `${s.name}?: string`).join('\n'), 2)}
+${indent(sources.map((s) => `${s.name}?: Datasource`).join('\n'), 2)}
 }`
   }
 }
