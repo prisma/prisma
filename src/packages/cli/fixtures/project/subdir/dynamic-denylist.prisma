@@ -12,7 +12,7 @@ model Blog {
   id Int @id
 }
 
-model BlogClient {
+model BlogInclude {
   id Int @id
 }
 
