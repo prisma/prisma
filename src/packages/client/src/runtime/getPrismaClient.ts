@@ -136,6 +136,7 @@ export interface GetPrismaClientOptions {
   dirname: string
   internalDatasources: InternalDatasource[]
   clientVersion?: string
+  engineVersion?: string
 }
 
 // TODO: We **may** be able to get real types. However, we have both a bootstrapping
@@ -307,7 +308,20 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       if (this.connectionPromise) {
         return this.connectionPromise
       }
-      this.connectionPromise = this.engine.start()
+      this.connectionPromise = (async () => {
+        await this.engine.start()
+
+        let { engineVersion, clientVersion } = config
+        if (
+          this.engineConfig.prismaPath ||
+          process.env.QUERY_ENGINE_BINARY_PATH ||
+          !engineVersion
+        ) {
+          engineVersion = await this.engine.version()
+        }
+        debug(`Client Version ${clientVersion}`)
+        debug(`Engine Version ${engineVersion}`)
+      })()
       return this.connectionPromise
     }
     /**

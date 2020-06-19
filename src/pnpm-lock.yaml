@@ -321,6 +321,7 @@ importers:
       bent: 7.3.5
       chalk: 3.0.0
       cross-fetch: 3.0.5
+      execa: 4.0.2
       fast-json-stringify: 2.1.0
       get-stream: 5.1.0
       indent-string: 4.0.0
@@ -364,6 +365,7 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 23.13.2
       eslint-plugin-prettier: 3.1.4
+      execa: ^4.0.2
       fast-json-stringify: ^2.0.0
       get-stream: ^5.1.0
       husky: 4.2.5

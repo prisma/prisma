@@ -23,6 +23,7 @@ import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
 import { H1Client } from './h1client'
 import pRetry from 'p-retry'
+import execa from 'execa'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -722,6 +723,18 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         })
       })
     })
+  }
+
+  async version() {
+    const prismaPath = await this.getPrismaPath()
+
+    const result = await execa(prismaPath, ['--version'], {
+      env: {
+        ...process.env,
+      },
+    })
+
+    return result.stdout
   }
 
   async request<T>(query: string): Promise<T> {
