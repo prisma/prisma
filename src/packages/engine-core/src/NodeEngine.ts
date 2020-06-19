@@ -772,7 +772,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       .catch(this.handleRequestError)
   }
 
-  async requestBatch<T>(queries: string[]): Promise<T> {
+  async requestBatch<T>(queries: string[], transaction = false): Promise<T> {
     await this.start()
 
     if (!this.child) {
@@ -784,6 +784,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     const variables = {}
     const body = {
       batch: queries.map((query) => ({ query, variables })),
+      transaction,
     }
 
     this.currentRequestPromise = this.h1Client.request(
