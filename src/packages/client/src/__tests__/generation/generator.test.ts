@@ -170,7 +170,6 @@ describe('generator', () => {
       ).toMatchInlineSnapshot(`
         "dynamic-denylist.prisma\\" contains reserved keywords.
                Rename the following items:
-                 - \\"model UserClient\\"
                  - \\"model UserArgs\\""
       `)
     }
