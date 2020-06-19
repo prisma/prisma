@@ -24,3 +24,5 @@ exports[`runtime works missing-binary-native example should not succeed: missing
 exports[`runtime works new-line example should succeed: new-line example should succeed 1`] = `undefined`;
 
 exports[`runtime works restart example should succeed: restart example should succeed 1`] = `undefined`;
+
+exports[`runtime works transaction example should succeed: transaction example should succeed 1`] = `undefined`;
