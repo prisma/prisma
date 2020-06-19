@@ -985,7 +985,13 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
   )}, 'select' | 'include'>): Promise<number>
 }
 
-export declare class ${name}Client<T> implements Promise<T> {
+/**
+ * The delegate class that acts as a "Promise-like" for ${name}.
+ * Why is this prefixed with \`Prisma__\`?
+ * Because we want to prevent naming conflicts as mentioned in 
+ * https://github.com/prisma/prisma-client-js/issues/707
+ */
+export declare class Prisma__${name}Client<T> implements Promise<T> {
   private readonly _dmmf;
   private readonly _fetcher;
   private readonly _queryType;
