@@ -1310,6 +1310,13 @@ function hasCorrectScalarType(
   if (graphQLType === 'List<String>' && expectedType === 'List<ID>') {
     return true
   }
+  if (
+    expectedType === 'List<String>' &&
+    (graphQLType === 'List<String | UUID>' ||
+      graphQLType === 'List<UUID | String>')
+  ) {
+    return true
+  }
 
   // Int is a subset of Float
   if (graphQLType === 'Int' && expectedType === 'Float') {
