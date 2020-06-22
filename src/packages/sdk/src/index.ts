@@ -60,7 +60,5 @@ export {
   getSchemaDirSync,
 } from './cli/getSchema'
 
-export {
-  extractExperimentalFeatures,
-  mapExperimentalFeatures,
-} from './getGenerators'
+export { extractExperimentalFeatures } from './utils/extractExperimentalFeatures'
+export { mapExperimentalFeatures } from './utils/mapExperimentalFeatures'
