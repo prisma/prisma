@@ -1,5 +1,10 @@
 import { getPlatform } from '@prisma/get-platform'
-import { getConfig, getDMMF } from '@prisma/sdk'
+import {
+  getConfig,
+  getDMMF,
+  extractExperimentalFeatures,
+  mapExperimentalFeatures,
+} from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import { performance } from 'perf_hooks'
@@ -31,8 +36,13 @@ export async function generateInFolder({
   const schemaPath = getSchemaPath(projectDir)
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
-  const dmmf = await getDMMF({ datamodel })
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
+  const dmmf = await getDMMF({
+    datamodel,
+    enableExperimental: mapExperimentalFeatures(
+      extractExperimentalFeatures(config),
+    ),
+  })
 
   const outputDir = transpile
     ? path.join(projectDir, 'node_modules/@prisma/client')

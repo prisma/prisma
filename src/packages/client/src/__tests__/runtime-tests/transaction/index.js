@@ -16,6 +16,7 @@ module.exports = async () => {
   const email = crypto.randomBytes(20).toString('hex') + '@hey.com'
 
   // intentionally use the same email 2 times to see, if the transaction gets rolled back properly
+  // TODO: Handle the error here and make sure it's the right one
   try {
     await db.transaction([
       db.user.create({
