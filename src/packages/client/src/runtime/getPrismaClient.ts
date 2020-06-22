@@ -37,6 +37,7 @@ import { printJsonWithErrors } from './utils/printJsonErrors'
 import { InternalDatasource } from './utils/printDatasources'
 import { omit } from './utils/omit'
 import { mapExperimentalFeatures } from '@prisma/sdk/dist/utils/mapExperimentalFeatures'
+import { serializeRawParameters } from './utils/serializeRawParameters'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -373,7 +374,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         )
         query = queryInstance[sqlOutput]
         parameters = {
-          values: JSON.stringify(queryInstance.values),
+          values: serializeRawParameters(queryInstance.values),
           __prismaRawParamaters__: true,
         }
       } else if ('string' === typeof stringOrTemplateStringsArray) {
@@ -381,7 +382,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         query = stringOrTemplateStringsArray
         if (values.length) {
           parameters = {
-            values: JSON.stringify(values),
+            values: serializeRawParameters(values),
             __prismaRawParamaters__: true,
           }
         }
@@ -389,7 +390,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         // called with prisma.raw(sql\`\`)
         query = stringOrTemplateStringsArray[sqlOutput]
         parameters = {
-          values: JSON.stringify(stringOrTemplateStringsArray.values),
+          values: serializeRawParameters(stringOrTemplateStringsArray.values),
           __prismaRawParamaters__: true,
         }
       }
@@ -446,7 +447,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         )
         query = queryInstance[sqlOutput]
         parameters = {
-          values: JSON.stringify(queryInstance.values),
+          values: serializeRawParameters(queryInstance.values),
           __prismaRawParamaters__: true,
         }
       } else if ('string' === typeof stringOrTemplateStringsArray) {
@@ -454,7 +455,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         query = stringOrTemplateStringsArray
         if (values.length) {
           parameters = {
-            values: JSON.stringify(values),
+            values: serializeRawParameters(values),
             __prismaRawParamaters__: true,
           }
         }
@@ -462,7 +463,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         // called with prisma.raw(sql\`\`)
         query = stringOrTemplateStringsArray[sqlOutput]
         parameters = {
-          values: JSON.stringify(stringOrTemplateStringsArray.values),
+          values: serializeRawParameters(stringOrTemplateStringsArray.values),
           __prismaRawParamaters__: true,
         }
       }
