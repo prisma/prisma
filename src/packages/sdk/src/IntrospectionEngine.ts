@@ -245,7 +245,7 @@ export class IntrospectionEngine {
           const binaryPath = await resolveBinary('introspection-engine')
           debugRpc('starting introspection engine with binary: ' + binaryPath)
 
-          const flags = [...this.flags]
+          const { flags }  = this
           debugRpc({ flags })
 
           this.child = spawn(binaryPath, flags, {
