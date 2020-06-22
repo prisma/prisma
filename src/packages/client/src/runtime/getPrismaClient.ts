@@ -36,6 +36,7 @@ import stripAnsi from 'strip-ansi'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { InternalDatasource } from './utils/printDatasources'
 import { omit } from './utils/omit'
+import { mapExperimentalFeatures } from '@prisma/sdk/dist/getGenerators'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -235,6 +236,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         env: envFile,
         flags: [],
         clientVersion: config.clientVersion,
+        enableExperimental: mapExperimentalFeatures(
+          config.generator?.experimentalFeatures,
+        ),
       }
 
       const sanitizedEngineConfig = omit(this.engineConfig, [
@@ -495,7 +499,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }
 
     async transaction(promises: Array<any>): Promise<any> {
-      if (config.generator?.config.experimentalFeatures === 'transactionApi') {
+      if (config.generator?.experimentalFeatures?.includes('transactionApi')) {
         for (const p of promises) {
           if (
             !p.requestTransaction ||

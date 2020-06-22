@@ -59,3 +59,8 @@ export {
   getSchemaSync,
   getSchemaDirSync,
 } from './cli/getSchema'
+
+export {
+  extractExperimentalFeatures,
+  mapExperimentalFeatures,
+} from './getGenerators'

@@ -23,6 +23,7 @@ const stubOptions: GeneratorOptions = {
     output: null,
     binaryTargets: [],
     provider: '',
+    experimentalFeatures: [],
   },
   otherGenerators: [],
   schemaPath: '',

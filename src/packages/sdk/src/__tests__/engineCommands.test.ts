@@ -164,12 +164,71 @@ describe('getDMMF', () => {
     expect(dmmf).toMatchSnapshot()
   })
 
+  test('@@unique model connectOrCreate', async () => {
+    const dmmf = await getDMMF({
+      datamodel: `
+      // From https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model#examples-3
+      // Specify a multi-field unique attribute that includes a relation field
+      model Post {
+        id        Int     @default(autoincrement())
+        author    User    @relation(fields: [authorId], references: [id])
+        authorId  Int
+        title     String
+        published Boolean @default(false)
+        
+        @@unique([authorId, title])
+      }
+      model User {
+        id    Int    @id @default(autoincrement())
+        email String @unique
+        posts Post[]
+      }
+
+      // Specify a multi-field unique attribute on two String fields
+      model User1 {
+        id        Int     @default(autoincrement())
+        firstName String
+        lastName  String
+        isAdmin   Boolean @default(false)
+        @@unique([firstName, lastName])
+      }
+      
+      // Specify a multi-field unique attribute on two String fields and one Boolean field
+      model User2 {
+        id        Int     @default(autoincrement())
+        firstName String
+        lastName  String
+        isAdmin   Boolean @default(false)
+        @@unique([firstName, lastName, isAdmin])
+      }
+  `,
+      enableExperimental: ['connectOrCreate'],
+    })
+
+    expect(dmmf).toMatchSnapshot()
+  })
+
   test('chinook introspected schema', async () => {
     const file = fs.readFileSync(
       path.join(__dirname, '../../fixtures/chinook.prisma'),
       'utf-8',
     )
-    const dmmf = await getDMMF({ datamodel: file })
+    const dmmf = await getDMMF({
+      datamodel: file,
+    })
+    const str = JSON.stringify(dmmf)
+    expect(str.length).toMatchInlineSnapshot(`394868`)
+  })
+
+  test('chinook introspected schema connectOrCreate', async () => {
+    const file = fs.readFileSync(
+      path.join(__dirname, '../../fixtures/chinook.prisma'),
+      'utf-8',
+    )
+    const dmmf = await getDMMF({
+      datamodel: file,
+      enableExperimental: ['connectOrCreate'],
+    })
     const str = JSON.stringify(dmmf)
     expect(str.length).toMatchInlineSnapshot(`409348`)
   })
@@ -179,7 +238,10 @@ describe('getDMMF', () => {
       path.join(__dirname, '../../fixtures/bigschema.prisma'),
       'utf-8',
     )
-    const dmmf = await getDMMF({ datamodel: file })
+    const dmmf = await getDMMF({
+      datamodel: file,
+      enableExperimental: ['connectOrCreate'],
+    })
     const str = JSON.stringify(dmmf)
     expect(str.length).toMatchInlineSnapshot(`54753193`)
   })

@@ -32,6 +32,23 @@ async function main() {
     }),
   ])
 
+  prisma.post.create({
+    data: {
+      author: {
+        connectOrCreate: {
+          where: {
+            email: 'a@a.de',
+          },
+          create: {
+            email: 'a@a.de',
+          },
+        },
+      },
+      published: true,
+      title: 'Title',
+    },
+  })
+
   console.log(users)
 
   // const result = await prisma.user.updateMany({
