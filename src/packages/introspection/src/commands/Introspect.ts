@@ -43,6 +43,9 @@ export class Introspect implements Command {
     Instead of saving the result to the filesystem, you can also print it
       ${chalk.dim('$')} prisma introspect --print'
 
+    ${chalk.bold('Flags')}
+
+      --experimental-reintrospection   Enables the experimental re-introspection feature
   `)
 
   private printUrlAsDatasource(url: string): string {
@@ -68,6 +71,7 @@ export class Introspect implements Command {
       '--url': String,
       '--print': Boolean,
       '--schema': String,
+      '--experimental-reintrospection': Boolean,
     })
 
     const log = (...messages): void => {
@@ -104,6 +108,9 @@ export class Introspect implements Command {
 
     const engine = new IntrospectionEngine({
       cwd: schemaPath ? path.dirname(schemaPath) : undefined,
+      flags: args['--experimental-reintrospection']
+        ? ['--experimental-reintrospection']
+        : undefined,
     })
 
     const basedOn =
@@ -164,7 +171,9 @@ Then you can run ${chalk.green('prisma introspect')} again.
         for (const warning of warnings) {
           message += `\n${warning.message}\n`
 
-          if (warning.code === 1) {
+          if (warning.code === 0) {
+            // affected === null
+          } else if (warning.code === 1) {
             message += warning.affected
               .map((it) => `- "${it.model}"`)
               .join('\n')
@@ -198,6 +207,22 @@ Then you can run ${chalk.green('prisma introspect')} again.
           } else if (warning.code === 5) {
             message += warning.affected
               .map((it) => `- Model "${it.model}", field: "${it.field}"`)
+              .join('\n')
+          } else if (warning.code === 6) {
+            message += warning.affected
+              .map((it) => `- Model "${it.model}", field: "${it.field}"`)
+              .join('\n')
+          } else if (warning.code === 7) {
+            message += warning.affected
+              .map((it) => `- Model "${it.model}"`)
+              .join('\n')
+          } else if (warning.code === 8) {
+            message += warning.affected
+              .map((it) => `- Model "${it.model}", field: "${it.field}"`)
+              .join('\n')
+          } else if (warning.code === 9) {
+            message += warning.affected
+              .map((it) => `- Enum "${it.enm}"`)
               .join('\n')
           }
 
