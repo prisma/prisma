@@ -51,6 +51,7 @@ describe('generator', () => {
       Object {
         "binaryTargets": Array [],
         "config": Object {},
+        "experimentalFeatures": Array [],
         "name": "client",
         "provider": "prisma-client-js",
       }
