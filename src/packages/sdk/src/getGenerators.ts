@@ -26,6 +26,8 @@ import {
 } from './predefinedGeneratorResolvers'
 import { flatMap } from './utils/flatMap'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
+import { extractExperimentalFeatures } from './utils/extractExperimentalFeatures'
+import { mapExperimentalFeatures } from './utils/mapExperimentalFeatures'
 
 const defaultEngineVersion = eval(`require('../package.json').prisma.version`)
 
@@ -452,25 +454,4 @@ function mapKeys<T extends object>(
     acc[mapper(key as keyof T)] = value
     return acc
   }, {})
-}
-
-export function extractExperimentalFeatures(
-  config: ConfigMetaFormat,
-): string[] {
-  return (
-    config.generators.find((g) => g.provider === 'prisma-client-js')
-      ?.experimentalFeatures || []
-  )
-}
-
-const featureFlagMap = {
-  transactionApi: 'transaction',
-}
-
-export function mapExperimentalFeatures(features?: string[]): string[] {
-  if (Array.isArray(features) && features.length > 0) {
-    return features.map((f) => featureFlagMap[f] ?? f)
-  }
-
-  return []
 }

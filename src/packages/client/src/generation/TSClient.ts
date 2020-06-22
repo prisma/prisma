@@ -573,7 +573,7 @@ ${indent(this.jsDoc, tab)}
   */
   queryRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<T>;
 ${
-  this.generator?.experimentalFeatures.includes('transactionApi')
+  this.generator?.experimentalFeatures?.includes('transactionApi')
     ? `
   /**
    * Execute queries in a transaction

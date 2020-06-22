@@ -16,10 +16,19 @@ it('should work with a custom output dir', async () => {
     recursive: true,
   })
   // generate into temp dir
-  await execa.node(path.join(__dirname, '../../build/index.js'), ['generate'], {
-    cwd: target,
-    stdio: 'ignore',
-  })
+  const data = await execa.node(
+    path.join(__dirname, '../../build/index.js'),
+    ['generate'],
+    {
+      cwd: target,
+      stdio: 'pipe',
+    },
+  )
+
+  if (typeof data.signal === 'number' && data.signal !== 0) {
+    throw new Error(data.stderr + data.stdout)
+  }
+
   // run code
   const { main } = await import(path.join(target, 'main.ts'))
   const result = await main()

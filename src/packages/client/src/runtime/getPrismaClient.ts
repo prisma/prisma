@@ -36,7 +36,7 @@ import stripAnsi from 'strip-ansi'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { InternalDatasource } from './utils/printDatasources'
 import { omit } from './utils/omit'
-import { mapExperimentalFeatures } from '@prisma/sdk/dist/getGenerators'
+import { mapExperimentalFeatures } from '@prisma/sdk/dist/utils/mapExperimentalFeatures'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
