@@ -1,0 +1,10 @@
+datasource my_db {
+  provider = "postgres"
+  url      = env("POSTGRES_URL")
+}
+
+model User {
+  id      String   @default(cuid()) @id
+  name    String
+  hobbies String[]
+}
