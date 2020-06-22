@@ -5,18 +5,32 @@ const prisma = new PrismaClient({
 })
 
 async function main() {
-  const users = await prisma.user.findMany({
-    include: {
-      posts: {
-        include: {
-          author: true,
-        },
-        orderBy: {
-          title: 'asc',
+  const users = await prisma.transaction([
+    prisma.user.findMany({
+      include: {
+        posts: {
+          include: {
+            author: true,
+          },
+          orderBy: {
+            title: 'asc',
+          },
         },
       },
-    },
-  })
+    }),
+    prisma.user.findMany({
+      include: {
+        posts: {
+          include: {
+            author: true,
+          },
+          orderBy: {
+            title: 'asc',
+          },
+        },
+      },
+    }),
+  ])
 
   console.log(users)
 
