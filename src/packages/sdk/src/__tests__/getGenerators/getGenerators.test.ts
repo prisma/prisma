@@ -67,6 +67,7 @@ describe('getGenerators', () => {
           "darwin",
         ],
         "config": Object {},
+        "experimentalFeatures": Array [],
         "name": "gen",
         "provider": "predefined-generator",
       }

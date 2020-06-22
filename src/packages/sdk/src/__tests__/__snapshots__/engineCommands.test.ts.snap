@@ -25,6 +25,7 @@ Object {
         "native",
       ],
       "config": Object {},
+      "experimentalFeatures": Array [],
       "name": "gen",
       "output": null,
       "provider": "fancy-provider",
