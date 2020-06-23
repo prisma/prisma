@@ -153,7 +153,7 @@ test('introspection basic', async () => {
               },
             },
             Object {
-              "autoIncrement": true,
+              "autoIncrement": false,
               "default": null,
               "name": "revision",
               "tpe": Object {
