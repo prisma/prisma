@@ -14,7 +14,6 @@ export interface IntrospectionEngineOptions {
   binaryPath?: string
   debug?: boolean
   cwd?: string
-  flags?: string[]
 }
 
 export interface RPCPayload {
@@ -137,10 +136,9 @@ export class IntrospectionEngine {
   private lastError?: any
   private initPromise?: Promise<void>
   private lastUrl?: string
-  private flags: string[]
   public isRunning = false
   constructor(
-    { debug, cwd, flags }: IntrospectionEngineOptions = {
+    { debug, cwd }: IntrospectionEngineOptions = {
       debug: false,
       cwd: process.cwd(),
     },
@@ -150,7 +148,6 @@ export class IntrospectionEngine {
     }
     this.debug = Boolean(debug)
     this.cwd = cwd || process.cwd()
-    this.flags = flags || []
   }
   public stop(): void {
     if (this.child) {
@@ -177,13 +174,16 @@ export class IntrospectionEngine {
   }
   public introspect(
     schema: string,
+    reintrospect?: Boolean,
   ): Promise<{
     datamodel: string
     warnings: IntrospectionWarnings[]
     version: IntrospectionSchemaVersion
   }> {
     this.lastUrl = schema
-    return this.runCommand(this.getRPCPayload('introspect', { schema }))
+    return this.runCommand(
+      this.getRPCPayload('introspect', { schema, reintrospect }),
+    )
   }
   public listDatabases(schema: string): Promise<string[]> {
     this.lastUrl = schema
@@ -245,10 +245,7 @@ export class IntrospectionEngine {
           const binaryPath = await resolveBinary('introspection-engine')
           debugRpc('starting introspection engine with binary: ' + binaryPath)
 
-          const { flags }  = this
-          debugRpc({ flags })
-
-          this.child = spawn(binaryPath, flags, {
+          this.child = spawn(binaryPath, {
             env: process.env,
             cwd: this.cwd,
             stdio: ['pipe', 'pipe', 'pipe'],

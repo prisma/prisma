@@ -108,9 +108,6 @@ export class Introspect implements Command {
 
     const engine = new IntrospectionEngine({
       cwd: schemaPath ? path.dirname(schemaPath) : undefined,
-      flags: args['--experimental-reintrospection']
-        ? ['--experimental-reintrospection']
-        : undefined,
     })
 
     const basedOn =
@@ -125,8 +122,12 @@ export class Introspect implements Command {
     let introspectionSchema = ''
     let introspectionWarnings: IntrospectionWarnings[]
     let introspectionSchemaVersion: IntrospectionSchemaVersion
+    const enableReintrospection = args['--experimental-reintrospection']
     try {
-      const introspectionResult = await engine.introspect(schema)
+      const introspectionResult = await engine.introspect(
+        schema,
+        enableReintrospection,
+      )
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
       introspectionSchemaVersion = introspectionResult.version
