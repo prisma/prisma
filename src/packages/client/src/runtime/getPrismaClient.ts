@@ -36,6 +36,8 @@ import stripAnsi from 'strip-ansi'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { InternalDatasource } from './utils/printDatasources'
 import { omit } from './utils/omit'
+import { mapExperimentalFeatures } from '@prisma/sdk/dist/utils/mapExperimentalFeatures'
+import { serializeRawParameters } from './utils/serializeRawParameters'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -235,6 +237,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         env: envFile,
         flags: [],
         clientVersion: config.clientVersion,
+        enableExperimental: mapExperimentalFeatures(
+          config.generator?.experimentalFeatures,
+        ),
       }
 
       const sanitizedEngineConfig = omit(this.engineConfig, [
@@ -369,7 +374,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         )
         query = queryInstance[sqlOutput]
         parameters = {
-          values: JSON.stringify(queryInstance.values),
+          values: serializeRawParameters(queryInstance.values),
           __prismaRawParamaters__: true,
         }
       } else if ('string' === typeof stringOrTemplateStringsArray) {
@@ -377,7 +382,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         query = stringOrTemplateStringsArray
         if (values.length) {
           parameters = {
-            values: JSON.stringify(values),
+            values: serializeRawParameters(values),
             __prismaRawParamaters__: true,
           }
         }
@@ -385,7 +390,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         // called with prisma.raw(sql\`\`)
         query = stringOrTemplateStringsArray[sqlOutput]
         parameters = {
-          values: JSON.stringify(stringOrTemplateStringsArray.values),
+          values: serializeRawParameters(stringOrTemplateStringsArray.values),
           __prismaRawParamaters__: true,
         }
       }
@@ -442,7 +447,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         )
         query = queryInstance[sqlOutput]
         parameters = {
-          values: JSON.stringify(queryInstance.values),
+          values: serializeRawParameters(queryInstance.values),
           __prismaRawParamaters__: true,
         }
       } else if ('string' === typeof stringOrTemplateStringsArray) {
@@ -450,7 +455,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         query = stringOrTemplateStringsArray
         if (values.length) {
           parameters = {
-            values: JSON.stringify(values),
+            values: serializeRawParameters(values),
             __prismaRawParamaters__: true,
           }
         }
@@ -458,7 +463,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         // called with prisma.raw(sql\`\`)
         query = stringOrTemplateStringsArray[sqlOutput]
         parameters = {
-          values: JSON.stringify(stringOrTemplateStringsArray.values),
+          values: serializeRawParameters(stringOrTemplateStringsArray.values),
           __prismaRawParamaters__: true,
         }
       }
@@ -492,6 +497,26 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         dataPath: [],
         clientMethod: 'queryRaw',
       })
+    }
+
+    async transaction(promises: Array<any>): Promise<any> {
+      if (config.generator?.experimentalFeatures?.includes('transactionApi')) {
+        for (const p of promises) {
+          if (
+            !p.requestTransaction ||
+            typeof p.requestTransaction !== 'function'
+          ) {
+            throw new Error(
+              `All elements of the array need to be Prisma Client promises.`,
+            )
+          }
+        }
+        return Promise.all(promises.map((p) => p.requestTransaction()))
+      } else {
+        throw new Error(
+          `In order to use the .transaction() api, please enable 'experimentalFeatures = "transactionApi" in your schema.`,
+        )
+      }
     }
 
     private bootstrapClient() {
@@ -563,6 +588,23 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               }
 
               return requestPromise.then(onfulfilled, onrejected)
+            },
+            requestTransaction: () => {
+              if (!requestPromise) {
+                requestPromise = this.fetcher.request({
+                  document,
+                  clientMethod,
+                  typeName: mapping.model,
+                  dataPath,
+                  isList,
+                  rootField,
+                  collectTimestamps,
+                  callsite,
+                  runInTransaction: true,
+                })
+              }
+
+              return requestPromise
             },
             catch: (onrejected) => {
               if (!requestPromise) {
@@ -681,7 +723,7 @@ export class PrismaClientFetcher {
   prisma: any
   debug: boolean
   hooks: any
-  dataloader: Dataloader<{ document: Document }>
+  dataloader: Dataloader<{ document: Document; runInTransaction?: boolean }>
 
   constructor(prisma, enableDebug = false, hooks?: any) {
     this.prisma = prisma
@@ -691,7 +733,8 @@ export class PrismaClientFetcher {
       batchLoader: async (requests) => {
         const queries = requests.map((r) => String(r.document))
         await this.prisma.connect()
-        return this.prisma.engine.requestBatch(queries)
+        const runTransaction = requests[0].runInTransaction
+        return this.prisma.engine.requestBatch(queries, runTransaction)
       },
       singleLoader: async (request) => {
         const query = String(request.document)
@@ -699,6 +742,10 @@ export class PrismaClientFetcher {
         return this.prisma.engine.request(query)
       },
       batchBy: (request) => {
+        if (request.runInTransaction) {
+          return 'transaction-batch'
+        }
+
         if (!request.document.children[0].name.startsWith('findOne')) {
           return null
         }
@@ -728,6 +775,7 @@ export class PrismaClientFetcher {
     callsite,
     collectTimestamps,
     clientMethod,
+    runInTransaction,
   }: {
     document: Document
     dataPath: string[]
@@ -737,6 +785,7 @@ export class PrismaClientFetcher {
     clientMethod: string
     callsite?: string
     collectTimestamps?: CollectTimestamps
+    runInTransaction?: boolean
   }) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -753,6 +802,7 @@ export class PrismaClientFetcher {
       collectTimestamps && collectTimestamps.record('Pre-engine_request')
       const { data, elapsed } = await this.dataloader.request({
         document,
+        runInTransaction,
       })
       collectTimestamps && collectTimestamps.record('Post-engine_request')
       collectTimestamps && collectTimestamps.record('Pre-unpack')

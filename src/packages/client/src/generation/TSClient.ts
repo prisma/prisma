@@ -572,7 +572,24 @@ ${indent(this.jsDoc, tab)}
   * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md#raw-database-access).
   */
   queryRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<T>;
-
+${
+  this.generator?.experimentalFeatures?.includes('transactionApi')
+    ? `
+  /**
+   * Execute queries in a transaction
+   * @example
+   * \`\`\`
+   * const [george, bob, alice] = await prisma.transaction([
+   *   prisma.user.create({ data: { name: 'George' } }),
+   *   prisma.user.create({ data: { name: 'Bob' } }),
+   *   prisma.user.create({ data: { name: 'Alice' } }),
+   * ])
+   * \`\`\`
+   */
+  transaction: PromiseConstructor['all']
+`
+    : ''
+}
 ${indent(
   dmmf.mappings
     .filter((m) => m.findMany)

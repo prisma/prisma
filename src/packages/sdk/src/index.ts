@@ -59,3 +59,6 @@ export {
   getSchemaSync,
   getSchemaDirSync,
 } from './cli/getSchema'
+
+export { extractExperimentalFeatures } from './utils/extractExperimentalFeatures'
+export { mapExperimentalFeatures } from './utils/mapExperimentalFeatures'

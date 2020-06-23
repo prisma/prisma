@@ -230,6 +230,7 @@ describe('generator', () => {
           name: 'client',
           provider: 'prisma-client-js',
           output: null,
+          experimentalFeatures: [],
         },
       ],
       skipDownload: true,

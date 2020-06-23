@@ -49,6 +49,7 @@ export type GetDMMFOptions = {
   prismaPath?: string
   datamodelPath?: string
   retry?: number
+  enableExperimental?: string[]
 }
 
 export async function getDMMF({
@@ -57,6 +58,7 @@ export async function getDMMF({
   prismaPath: queryEnginePath,
   datamodelPath,
   retry = 4,
+  enableExperimental,
 }: GetDMMFOptions): Promise<DMMF.Document> {
   queryEnginePath = await resolveBinary('query-engine', queryEnginePath)
   let result
@@ -84,11 +86,16 @@ export async function getDMMF({
       maxBuffer: MAX_BUFFER,
     }
 
-    result = await execa(
-      queryEnginePath,
-      ['--enable-raw-queries', 'cli', 'dmmf'],
-      options,
-    )
+    const experimentalFlags =
+      enableExperimental &&
+      Array.isArray(enableExperimental) &&
+      enableExperimental.length > 0
+        ? [`--enable-experimental=${enableExperimental.join(',')}`]
+        : []
+
+    const args = [...experimentalFlags, '--enable-raw-queries', 'cli', 'dmmf']
+
+    result = await execa(queryEnginePath, args, options)
 
     if (!datamodelPath) {
       await unlink(tempDatamodelPath)

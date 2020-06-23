@@ -183,6 +183,7 @@ export interface GeneratorConfig {
   provider: string
   config: Dictionary<string>
   binaryTargets: string[] // check if new commit is there
+  experimentalFeatures: string[]
 }
 
 export interface EnvValue {

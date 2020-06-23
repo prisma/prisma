@@ -3,6 +3,7 @@ import getEmail from 'git-user-email'
 import getUserName from 'git-user-name'
 import { DatabaseStep } from '../types'
 import { printDetailedDatabaseSteps } from './printDatabaseSteps'
+import { maskSchema } from '@prisma/sdk'
 
 export interface MigrationReadmeInput {
   migrationId: string
@@ -45,13 +46,15 @@ ${printDetailedDatabaseSteps(databaseSteps)}
 ## Changes
 
 \`\`\`diff
-${makePatch({
-  migrationId,
-  lastMigrationId,
-  datamodelA,
-  datamodelB,
-  databaseSteps,
-})}
+${maskSchema(
+  makePatch({
+    migrationId,
+    lastMigrationId,
+    datamodelA,
+    datamodelB,
+    databaseSteps,
+  }),
+)}
 \`\`\`
 
 ${

@@ -15,7 +15,7 @@ import { download } from '@prisma/fetch-engine'
 import { getPlatform, Platform } from '@prisma/get-platform'
 import { printGeneratorConfig, fixBinaryTargets } from '@prisma/engine-core'
 
-import { getConfig, getDMMF } from './engineCommands'
+import { getConfig, getDMMF, ConfigMetaFormat } from './engineCommands'
 import { unique } from './unique'
 import { pick } from './pick'
 import { Generator } from './Generator'
@@ -26,6 +26,8 @@ import {
 } from './predefinedGeneratorResolvers'
 import { flatMap } from './utils/flatMap'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
+import { extractExperimentalFeatures } from './utils/extractExperimentalFeatures'
+import { mapExperimentalFeatures } from './utils/mapExperimentalFeatures'
 
 const defaultEngineVersion = eval(`require('../package.json').prisma.version`)
 
@@ -93,15 +95,6 @@ export async function getGenerators({
   }
 
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
-  const dmmf = await getDMMF({
-    datamodel,
-    datamodelPath: schemaPath,
-    prismaPath,
-  })
-
-  if (dmmf.datamodel.models.length === 0) {
-    throw new Error(missingModelMessage)
-  }
 
   const config = await getConfig({
     datamodel,
@@ -109,6 +102,20 @@ export async function getGenerators({
     prismaPath,
     ignoreEnvVarErrors: true,
   })
+
+  // TODO: This needs a better abstraction, but we don't have any better right now
+  const experimentalFeatures = extractExperimentalFeatures(config)
+
+  const dmmf = await getDMMF({
+    datamodel,
+    datamodelPath: schemaPath,
+    prismaPath,
+    enableExperimental: mapExperimentalFeatures(experimentalFeatures),
+  })
+
+  if (dmmf.datamodel.models.length === 0) {
+    throw new Error(missingModelMessage)
+  }
 
   const generatorConfigs = overrideGenerators || config.generators
 

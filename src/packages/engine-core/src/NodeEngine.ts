@@ -48,6 +48,7 @@ export interface EngineConfig {
   env?: Record<string, string>
   flags?: string[]
   clientVersion?: string
+  enableExperimental?: string[]
 }
 
 /**
@@ -93,6 +94,7 @@ export class NodeEngine {
   private restartCount: number = 0
   private backoffPromise?: Promise<any>
   private queryEngineStarted: boolean = false
+  private enableExperimental: string[] = []
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -132,6 +134,7 @@ export class NodeEngine {
     env,
     flags,
     clientVersion,
+    enableExperimental,
     ...args
   }: EngineConfig) {
     this.env = env
@@ -148,6 +151,7 @@ export class NodeEngine {
     this.clientVersion = clientVersion
     this.flags = flags || []
     this.h1Client = new H1Client()
+    this.enableExperimental = enableExperimental ?? []
 
     this.logEmitter.on('error', (log: RustLog | Error) => {
       if (this.debug) {
@@ -461,8 +465,18 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         debug({ cwd: this.cwd })
 
         const prismaPath = await this.getPrismaPath()
+        const experimentalFlags =
+          this.enableExperimental &&
+          Array.isArray(this.enableExperimental) &&
+          this.enableExperimental.length > 0
+            ? [`--enable-experimental=${this.enableExperimental.join(',')}`]
+            : []
 
-        const flags = ['--enable-raw-queries', ...this.flags]
+        const flags = [
+          ...experimentalFlags,
+          '--enable-raw-queries',
+          ...this.flags,
+        ]
         debug({ flags })
 
         this.child = spawn(prismaPath, flags, {
@@ -772,7 +786,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       .catch(this.handleRequestError)
   }
 
-  async requestBatch<T>(queries: string[]): Promise<T> {
+  async requestBatch<T>(queries: string[], transaction = false): Promise<T> {
     await this.start()
 
     if (!this.child) {
@@ -784,6 +798,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     const variables = {}
     const body = {
       batch: queries.map((query) => ({ query, variables })),
+      transaction,
     }
 
     this.currentRequestPromise = this.h1Client.request(
