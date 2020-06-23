@@ -41,41 +41,80 @@ export class IntrospectionError extends Error {
   }
 }
 
+// See https://github.com/prisma/prisma-engines/blob/ReIntrospection/introspection-engine/connectors/sql-introspection-connector/src/warnings.rs
 export type IntrospectionWarnings =
+  | IntrospectionWarningsInvalidReintro
   | IntrospectionWarningsMissingUnique
   | IntrospectionWarningsEmptyFieldName
   | IntrospectionWarningsUnsupportedType
   | IntrospectionWarningsInvalidEnumName
-  | IntrospectionWarningsPrisma1
+  | IntrospectionWarningsCuidPrisma1
+  | IntrospectionWarningsUuidPrisma1
+  | IntrospectionWarningsFieldModelReintro
+  | IntrospectionWarningsFieldMapReintro
+  | IntrospectionWarningsEnumMapReintro
 
-interface IntrospectionWarningsMissingUnique {
+type AffectedModel = { model: string }[]
+type AffectedModelAndField = { model: string; field: string }[]
+type AffectedModelAndFieldAndType = {
+  model: string
+  field: string
+  tpe: string
+}[]
+type AffectedEnum = { enm: string }[]
+type AffectedEnumAndValue = { enm: string; value: string }[]
+
+interface IntrospectionWarning {
+  code: number
+  message: string
+  affected:
+    | AffectedModel
+    | AffectedModelAndField
+    | AffectedModelAndFieldAndType
+    | AffectedEnum
+    | AffectedEnumAndValue
+    | null
+}
+
+interface IntrospectionWarningsInvalidReintro extends IntrospectionWarning {
+  code: 0
+  affected: null
+}
+interface IntrospectionWarningsMissingUnique extends IntrospectionWarning {
   code: 1
-  message: string
-  affected: { model: string }[]
+  affected: AffectedModel
 }
-
-interface IntrospectionWarningsEmptyFieldName {
+interface IntrospectionWarningsEmptyFieldName extends IntrospectionWarning {
   code: 2
-  message: string
-  affected: { model: string; field: string }[]
+  affected: AffectedModelAndField
 }
-
-interface IntrospectionWarningsUnsupportedType {
+interface IntrospectionWarningsUnsupportedType extends IntrospectionWarning {
   code: 3
-  message: string
-  affected: { model: string; field: string; tpe: string }[]
+  affected: AffectedModelAndFieldAndType
 }
-
-interface IntrospectionWarningsInvalidEnumName {
+interface IntrospectionWarningsInvalidEnumName extends IntrospectionWarning {
   code: 4
-  message: string
-  affected: { enm: string; value: string }[]
+  affected: AffectedEnumAndValue
 }
-
-interface IntrospectionWarningsPrisma1 {
+interface IntrospectionWarningsCuidPrisma1 extends IntrospectionWarning {
   code: 5
-  message: string
-  affected: { model: string; field: string }[]
+  affected: AffectedModelAndField
+}
+interface IntrospectionWarningsUuidPrisma1 extends IntrospectionWarning {
+  code: 6
+  affected: AffectedModelAndField
+}
+interface IntrospectionWarningsFieldModelReintro extends IntrospectionWarning {
+  code: 7
+  affected: AffectedModel
+}
+interface IntrospectionWarningsFieldMapReintro extends IntrospectionWarning {
+  code: 8
+  affected: AffectedModelAndField
+}
+interface IntrospectionWarningsEnumMapReintro extends IntrospectionWarning {
+  code: 9
+  affected: AffectedEnum
 }
 
 export type IntrospectionSchemaVersion =
@@ -135,13 +174,16 @@ export class IntrospectionEngine {
   }
   public introspect(
     schema: string,
+    reintrospect?: Boolean,
   ): Promise<{
     datamodel: string
     warnings: IntrospectionWarnings[]
     version: IntrospectionSchemaVersion
   }> {
     this.lastUrl = schema
-    return this.runCommand(this.getRPCPayload('introspect', { schema }))
+    return this.runCommand(
+      this.getRPCPayload('introspect', { schema, reintrospect }),
+    )
   }
   public listDatabases(schema: string): Promise<string[]> {
     this.lastUrl = schema
@@ -202,10 +244,11 @@ export class IntrospectionEngine {
         try {
           const binaryPath = await resolveBinary('introspection-engine')
           debugRpc('starting introspection engine with binary: ' + binaryPath)
+
           this.child = spawn(binaryPath, {
-            stdio: ['pipe', 'pipe', 'pipe'],
             env: process.env,
             cwd: this.cwd,
+            stdio: ['pipe', 'pipe', 'pipe'],
           })
 
           this.isRunning = true
