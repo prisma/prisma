@@ -157,8 +157,22 @@ async function checkoutPatchBranches(patchBranch: string) {
   if (await branchExists(repoPath, patchBranch)) {
     await run(repoPath, `git checkout ${patchBranch}`)
   } else {
+    // TODO enable
+    // const tag = getTagFromPatchBranch(patchBranch)
+    // console.log(
+    //   `Patch branch ${patchBranch} is getting checked out from tag ${tag}`,
+    // )
+    // await run(repoPath, `git checkout -b ${patchBranch} ${tag}`)
+
+    // TODO: For the current 2.1.1 patch we need this, as otherwise our updated publish script wouldn't be part of this
     await run(repoPath, `git checkout -b ${patchBranch}`)
   }
+}
+
+function getTagFromPatchBranch(patchBranch: string): string {
+  const [major, minor, patch] = patchBranch.split('.')
+
+  return `${major}.${minor}.0`
 }
 
 async function branchExists(dir: string, branch: string): Promise<boolean> {
