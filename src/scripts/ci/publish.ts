@@ -374,11 +374,12 @@ async function getNewPatchDevVersion(
   const newPatch = currentPatch + 1
   const newVersion = `2.${minor}.${newPatch}`
   const versions = [
+    ...(await getAllVersions(packages, 'dev', newVersion)),
     ...(await getAllVersions(packages, 'patch-dev', newVersion)),
     ...(await getAllVersions(packages, 'patch-beta', newVersion)), // TODO: remove this
   ]
   const maxIncrement = getMaxPatchVersionIncrement(versions)
-  console.log({ versions, maxIncrement })
+  console.log({ versions, maxIncrement, newVersion })
 
   return `${newVersion}-dev.${maxIncrement + 1}`
 }
