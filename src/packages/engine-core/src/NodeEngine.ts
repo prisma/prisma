@@ -809,7 +809,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
   async requestBatch<T>(queries: string[], transaction = false): Promise<T> {
     await this.start()
 
-    if (!this.child) {
+    if (!this.child && !this.engineEndpoint) {
       throw new PrismaClientUnknownRequestError(
         `Can't perform request, as the Engine has already been stopped`,
       )
