@@ -373,11 +373,7 @@ async function getNewPatchDevVersion(
   const currentPatch = await getCurrentPatchForMinor(minor)
   const newPatch = currentPatch + 1
   const newVersion = `2.${minor}.${newPatch}`
-  const versions = [
-    ...(await getAllVersions(packages, 'dev', newVersion)),
-    ...(await getAllVersions(packages, 'patch-dev', newVersion)),
-    ...(await getAllVersions(packages, 'patch-beta', newVersion)), // TODO: remove this
-  ]
+  const versions = [...(await getAllVersions(packages, 'dev', newVersion))]
   const maxIncrement = getMaxPatchVersionIncrement(versions)
   console.log({ versions, maxIncrement, newVersion })
 
@@ -429,19 +425,22 @@ async function getAllVersions(
           if (pkg.version.startsWith(prefix)) {
             pkgVersions.push(pkg.version)
           }
-          const remoteVersion = await runResult(
+          const remoteVersionsString = await runResult(
             '.',
-            `npm info ${pkg.name}@${channel} version`,
+            `npm info ${pkg.name} versions --json`,
           )
-          if (
-            remoteVersion &&
-            remoteVersion.length > 0 &&
-            remoteVersion.startsWith(prefix) &&
-            !pkgVersions.includes(remoteVersion)
-          ) {
-            pkgVersions.push(remoteVersion)
-          }
 
+          const remoteVersions = JSON.parse(remoteVersionsString)
+
+          for (const remoteVersion of remoteVersions) {
+            if (
+              remoteVersion.includes(channel) &&
+              remoteVersion.startsWith(prefix) &&
+              !pkgVersions.includes(remoteVersion)
+            ) {
+              pkgVersions.push(remoteVersion)
+            }
+          }
           return pkgVersions
         }),
       ),
