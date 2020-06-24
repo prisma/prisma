@@ -944,10 +944,10 @@ async function publishPackages(
     process.env.UPDATE_STUDIO ||
     process.env.PATCH_BRANCH
   ) {
-    const repo = '.'
+    const repo = path.join(__dirname, '../../../')
     // commit and push it :)
     // we try catch this, as this is not necessary for CI to succeed
-    await run('.', `git status`, dryRun)
+    await run(repo, `git status`, dryRun)
     await pull(repo, dryRun)
     try {
       const unsavedChanges = await getUnsavedChanges(repo)
@@ -959,7 +959,8 @@ async function publishPackages(
         )
       } else {
         console.log(`\nCommiting changes`)
-        await commitChanges(repo, 'Bump Studio [skip ci]', dryRun)
+        const message = process.env.UPDATE_STUDIO ? 'Bump Studio' : 'Bump versions'
+        await commitChanges(repo, `${message} [skip ci]`, dryRun)
       }
       await push(repo, dryRun).catch(console.error)
     } catch (e) {
