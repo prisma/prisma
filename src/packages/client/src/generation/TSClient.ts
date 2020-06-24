@@ -815,7 +815,7 @@ function getMethodJSDocBody(
       )}} args - Arguments to create a ${singular}.
 @example
 // Create one ${singular}
-const user = await ${method}({
+const ${singular} = await ${method}({
   data: {
     // ... data to create a ${singular}
   }
@@ -829,7 +829,7 @@ const user = await ${method}({
       )}} args - Arguments to delete one ${singular}.
 @example
 // Delete one ${singular}
-const user = await ${method}({
+const ${singular} = await ${method}({
   where: {
     // ... filter to delete one ${singular}
   }
