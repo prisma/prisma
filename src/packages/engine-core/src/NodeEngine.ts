@@ -49,6 +49,7 @@ export interface EngineConfig {
   flags?: string[]
   clientVersion?: string
   enableExperimental?: string[]
+  engineEndpoint?: string
 }
 
 /**
@@ -95,6 +96,7 @@ export class NodeEngine {
   private backoffPromise?: Promise<any>
   private queryEngineStarted: boolean = false
   private enableExperimental: string[] = []
+  private engineEndpoint?: string
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -135,6 +137,7 @@ export class NodeEngine {
     flags,
     clientVersion,
     enableExperimental,
+    engineEndpoint,
     ...args
   }: EngineConfig) {
     this.env = env
@@ -152,6 +155,12 @@ export class NodeEngine {
     this.flags = flags || []
     this.h1Client = new H1Client()
     this.enableExperimental = enableExperimental ?? []
+    this.engineEndpoint = engineEndpoint
+
+    if (engineEndpoint) {
+      const url = new URL(engineEndpoint)
+      this.port = Number(url.port)
+    }
 
     this.logEmitter.on('error', (log: RustLog | Error) => {
       if (this.debug) {
@@ -422,6 +431,16 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   private internalStart(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
+      if (this.engineEndpoint) {
+        try {
+          await pRetry(() => this.h1Client.status(this.port), {
+            retries: 10,
+          })
+        } catch (e) {
+          return reject(e)
+        }
+        return resolve()
+      }
       try {
         if (this.child?.connected) {
           debug(
@@ -439,6 +458,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.queryEngineKilled = false
         this.globalKillSignalReceived = undefined
         this.port = await this.getFreePort()
+        debug(`port: ${this.port}`)
 
         const env: any = {
           PRISMA_DML_PATH: this.datamodelPath,
@@ -754,7 +774,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
   async request<T>(query: string): Promise<T> {
     await this.start()
 
-    if (!this.child) {
+    if (!this.child && !this.engineEndpoint) {
       throw new PrismaClientUnknownRequestError(
         `Can't perform request, as the Engine has already been stopped`,
       )

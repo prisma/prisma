@@ -84,6 +84,7 @@ export interface PrismaClientOptions {
     engine?: {
       cwd?: string
       binaryPath?: string
+      endpoint?: string
     }
     measurePerformance?: boolean
   }
@@ -221,6 +222,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         debug: useDebug,
         datamodelPath: path.join(config.dirname, 'schema.prisma'),
         prismaPath: engineConfig.binaryPath ?? undefined,
+        engineEndpoint: engineConfig.endpoint,
         datasources,
         generator: config.generator,
         showColors: this.errorFormat === 'pretty',
