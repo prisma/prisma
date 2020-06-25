@@ -37,7 +37,8 @@ export interface DatasourceOverwrite {
 export interface EngineConfig {
   cwd?: string
   datamodelPath: string
-  debug?: boolean
+  enableDebugLogs?: boolean
+  enableEngineDebugMode?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
   prismaPath?: string
   fetcher?: (query: string) => Promise<{ data?: any; error?: any }>
   generator?: GeneratorConfig
@@ -87,7 +88,8 @@ export class NodeEngine {
   private env?: Record<string, string>
   private flags: string[]
   private port?: number
-  private debug: boolean
+  private enableDebugLogs: boolean
+  private enableEngineDebugMode: boolean
   private child?: ChildProcessWithoutNullStreams
   private clientVersion?: string
   private lastPanic?: Error
@@ -142,17 +144,18 @@ export class NodeEngine {
   }: EngineConfig) {
     this.env = env
     this.cwd = this.resolveCwd(cwd)
-    this.debug = args.debug || false
+    this.enableDebugLogs = args.enableDebugLogs ?? false
+    this.enableEngineDebugMode = args.enableEngineDebugMode ?? false
     this.datamodelPath = datamodelPath
-    this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY || prismaPath
+    this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY ?? prismaPath
     this.generator = generator
     this.datasources = datasources
     this.logEmitter = new EventEmitter()
-    this.showColors = showColors || false
+    this.showColors = showColors ?? false
     this.logLevel = logLevel
-    this.logQueries = logQueries || false
+    this.logQueries = logQueries ?? false
     this.clientVersion = clientVersion
-    this.flags = flags || []
+    this.flags = flags ?? []
     this.h1Client = new H1Client()
     this.enableExperimental = enableExperimental ?? []
     this.engineEndpoint = engineEndpoint
@@ -163,7 +166,7 @@ export class NodeEngine {
     }
 
     this.logEmitter.on('error', (log: RustLog | Error) => {
-      if (this.debug) {
+      if (this.enableDebugLogs) {
         debugLib('engine:log')(log)
       }
       if (log instanceof Error) {
@@ -197,7 +200,7 @@ You may have to run ${chalk.greenBright(
     } else {
       this.getPlatform()
     }
-    if (this.debug) {
+    if (this.enableDebugLogs) {
       debugLib.enable('*')
     }
     engines.push(this)
@@ -492,8 +495,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             ? [`--enable-experimental=${this.enableExperimental.join(',')}`]
             : []
 
+        const debugFlag = this.enableEngineDebugMode ? ['--debug'] : []
+
         const flags = [
           ...experimentalFlags,
+          ...debugFlag,
           '--enable-raw-queries',
           ...this.flags,
         ]
@@ -771,7 +777,10 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     return result.stdout
   }
 
-  async request<T>(query: string): Promise<T> {
+  async request<T>(
+    query: string,
+    headers?: Record<string, string>,
+  ): Promise<T> {
     await this.start()
 
     if (!this.child && !this.engineEndpoint) {
@@ -783,6 +792,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     this.currentRequestPromise = this.h1Client.request(
       this.port,
       stringifyQuery(query),
+      headers,
     )
 
     return this.currentRequestPromise

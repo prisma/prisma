@@ -34,7 +34,7 @@ export class H1Client {
       req.end()
     })
   }
-  request(port: number, body: string): Promise<any> {
+  request(port: number, body: string, headers?: any): Promise<any> {
     return new Promise((resolve, reject) => {
       const req = http.request(
         {
@@ -46,6 +46,7 @@ export class H1Client {
           headers: {
             'Content-Type': 'application/json',
             'Content-Length': Buffer.byteLength(body),
+            ...headers,
           },
         },
         (res) => {

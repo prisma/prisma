@@ -13,7 +13,13 @@ async function main() {
   //   },
   // })
 
-  const result = await prisma.withoutRelation.findMany({})
+  const result = await prisma.user.findMany({
+    where: {
+      field: {
+        // another: 'field',
+      },
+    },
+  })
   console.log(result)
   prisma.disconnect()
 }

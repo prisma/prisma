@@ -85,6 +85,7 @@ export interface PrismaClientOptions {
       cwd?: string
       binaryPath?: string
       endpoint?: string
+      enableEngineDebugMode?: boolean
     }
     measurePerformance?: boolean
   }
@@ -219,7 +220,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
       this.engineConfig = {
         cwd,
-        debug: useDebug,
+        enableDebugLogs: useDebug,
+        enableEngineDebugMode: engineConfig.enableEngineDebugMode,
         datamodelPath: path.join(config.dirname, 'schema.prisma'),
         prismaPath: engineConfig.binaryPath ?? undefined,
         engineEndpoint: engineConfig.endpoint,
@@ -501,6 +503,55 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       })
     }
 
+    async __internal_triggerPanic(fatal: boolean) {
+      if (!this.engineConfig.enableEngineDebugMode) {
+        throw new Error(`In order to use .__internal_triggerPanic(), please enable the debug mode like so:
+new PrismaClient({
+  __internal: {
+    engine: {
+      enableEngineDebugMode: true
+    }
+  }
+})`)
+      }
+
+      const query = 'SELECT 1'
+      const parameters = {
+        values: '',
+        __prismaRawParameters__: true,
+      }
+
+      const document = makeDocument({
+        dmmf: this.dmmf,
+        rootField: 'executeRaw',
+        rootTypeName: 'mutation',
+        select: {
+          query,
+          parameters,
+        },
+      })
+
+      document.validate({ query, parameters }, false, 'raw', this.errorFormat)
+
+      const docString = String(document)
+      debug(`Generated request:`)
+      debug(docString + '\n')
+
+      const headers: Record<string, string> = fatal
+        ? { 'X-DEBUG-FATAL': '1' }
+        : { 'X-DEBUG-NON-FATAL': '1' }
+
+      return this.fetcher.request({
+        document,
+        rootField: 'executeRaw',
+        typeName: 'executeRaw',
+        isList: false,
+        dataPath: [],
+        clientMethod: 'executeRaw',
+        headers,
+      })
+    }
+
     async transaction(promises: Array<any>): Promise<any> {
       if (config.generator?.experimentalFeatures?.includes('transactionApi')) {
         for (const p of promises) {
@@ -731,7 +782,11 @@ export class PrismaClientFetcher {
   prisma: any
   debug: boolean
   hooks: any
-  dataloader: Dataloader<{ document: Document; runInTransaction?: boolean }>
+  dataloader: Dataloader<{
+    document: Document
+    runInTransaction?: boolean
+    headers?: Record<string, string>
+  }>
 
   constructor(prisma, enableDebug = false, hooks?: any) {
     this.prisma = prisma
@@ -747,7 +802,7 @@ export class PrismaClientFetcher {
       singleLoader: async (request) => {
         const query = String(request.document)
         await this.prisma.connect()
-        return this.prisma.engine.request(query)
+        return this.prisma.engine.request(query, request.headers)
       },
       batchBy: (request) => {
         if (request.runInTransaction) {
@@ -785,6 +840,7 @@ export class PrismaClientFetcher {
     clientMethod,
     runInTransaction,
     showColors,
+    headers,
   }: {
     document: Document
     dataPath: string[]
@@ -796,6 +852,7 @@ export class PrismaClientFetcher {
     collectTimestamps?: CollectTimestamps
     runInTransaction?: boolean
     showColors?: boolean
+    headers?: Record<string, string>
   }) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -813,6 +870,7 @@ export class PrismaClientFetcher {
       const { data, elapsed } = await this.dataloader.request({
         document,
         runInTransaction,
+        headers,
       })
       collectTimestamps && collectTimestamps.record('Post-engine_request')
       collectTimestamps && collectTimestamps.record('Pre-unpack')
