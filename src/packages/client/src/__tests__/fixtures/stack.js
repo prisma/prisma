@@ -1,8 +1,10 @@
 class PrismaClient {
-  user = {
-    findMany() {
-      return new Error().stack
-    },
+  get user() {
+    return {
+      findMany() {
+        return new Error().stack
+      },
+    }
   }
 }
 
