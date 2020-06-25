@@ -19,12 +19,12 @@ test('basic printStack', () => {
   expect(stack).toMatchInlineSnapshot(`
     "
     Invalid \`client.user.findMany()\` invocation in
-    src/__tests__/fixtures/stack.js:14:30
+    src/__tests__/fixtures/stack.js:16:30
 
-      10 const client = new PrismaClient()
-      11 
-      12 const templateString = \`hello\`
-      13 const templateString2 = \`\${123}\${256}\`
-    → 14 const result = client.user.findMany("
+      12 const client = new PrismaClient()
+      13 
+      14 const templateString = \`hello\`
+      15 const templateString2 = \`\${123}\${256}\`
+    → 16 const result = client.user.findMany("
   `)
 })
