@@ -9,6 +9,7 @@ module.exports = {
     '@prisma',
     'index.ts',
     'index.js',
+    'stack.js',
   ],
   globals: {
     'ts-jest': {
