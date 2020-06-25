@@ -574,6 +574,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
           const collectTimestamps = new CollectTimestamps('PrismaClient')
 
+          const showColors = this.errorFormat && this.errorFormat === 'pretty'
+
           const clientImplementation = {
             then: (onfulfilled, onrejected) => {
               if (!requestPromise) {
@@ -586,6 +588,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   rootField,
                   collectTimestamps,
                   callsite,
+                  showColors,
                 })
               }
 
@@ -603,6 +606,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   collectTimestamps,
                   callsite,
                   runInTransaction: true,
+                  showColors,
                 })
               }
 
@@ -619,6 +623,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   rootField,
                   collectTimestamps,
                   callsite,
+                  showColors,
                 })
               }
 
@@ -635,6 +640,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   rootField,
                   collectTimestamps,
                   callsite,
+                  showColors,
                 })
               }
 
@@ -778,6 +784,7 @@ export class PrismaClientFetcher {
     collectTimestamps,
     clientMethod,
     runInTransaction,
+    showColors,
   }: {
     document: Document
     dataPath: string[]
@@ -788,6 +795,7 @@ export class PrismaClientFetcher {
     callsite?: string
     collectTimestamps?: CollectTimestamps
     runInTransaction?: boolean
+    showColors?: boolean
   }) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -825,6 +833,7 @@ export class PrismaClientFetcher {
           callsite,
           originalMethod: clientMethod,
           onUs: e.isPanic,
+          showColors,
         })
         message = stack + '\n  ' + e.message
       }

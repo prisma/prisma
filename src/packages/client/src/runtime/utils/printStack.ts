@@ -17,6 +17,9 @@ export interface ErrorArgs {
   callsite?: string
   originalMethod: string
   onUs?: boolean // is this on us?
+  showColors?: boolean
+  renderPathRelative?: boolean
+  printFullStack?: boolean
 }
 
 export interface PrintStackResult {
@@ -30,6 +33,9 @@ export const printStack = ({
   callsite,
   originalMethod,
   onUs,
+  showColors,
+  renderPathRelative,
+  printFullStack,
 }: ErrorArgs): PrintStackResult => {
   const lastErrorHeight = 20
   let callsiteStr = ':'
@@ -63,20 +69,24 @@ export const printStack = ({
       trace.column &&
       !trace.file.startsWith('internal/')
     ) {
-      const fileName = trace.file
       const lineNumber = trace.lineNumber
+      const printedFileName = renderPathRelative
+        ? require('path').relative(process.cwd(), trace.file)
+        : trace.file
       callsiteStr = callsite
         ? ` in\n${chalk.underline(
-            `${trace.file}:${trace.lineNumber}:${trace.column}`,
+            `${printedFileName}:${trace.lineNumber}:${trace.column}`,
           )}`
         : ''
       const height = process.stdout.rows || 20
       const start = Math.max(0, lineNumber - 5)
       const neededHeight = lastErrorHeight + lineNumber - start
-      if (height > neededHeight) {
+
+      if (height > neededHeight || printFullStack) {
         const fs = require('fs')
-        if (fs.existsSync(fileName)) {
-          const file = fs.readFileSync(fileName, 'utf-8')
+        const exists = fs.existsSync(trace.file)
+        if (exists) {
+          const file = fs.readFileSync(trace.file, 'utf-8')
           const slicedFile = file
             .split('\n')
             .slice(start, lineNumber)
@@ -94,15 +104,18 @@ export const printStack = ({
               functionName = `${match[1]})`
             }
             const slicePoint = theLine.indexOf('{')
-            const highlightedLines = highlightTS(
-              lines
-                .map((l, i, all) =>
-                  !onUs && i === all.length - 1
-                    ? l.slice(0, slicePoint > -1 ? slicePoint : l.length - 1)
-                    : l,
-                )
-                .join('\n'),
-            ).split('\n')
+            const linesToHighlight = lines
+              .map((l, i, all) =>
+                !onUs && i === all.length - 1
+                  ? l.slice(0, slicePoint > -1 ? slicePoint : l.length - 1)
+                  : l,
+              )
+              .join('\n')
+
+            const highlightedLines = showColors
+              ? highlightTS(linesToHighlight).split('\n')
+              : linesToHighlight.split('\n')
+
             prevLines =
               '\n' +
               highlightedLines
