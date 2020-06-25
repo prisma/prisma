@@ -31,7 +31,9 @@ module.exports = async () => {
       }),
     ])
   } catch (e) {
-    console.error(e)
+    if (!e.message.includes('P2002')) {
+      throw new Error(e)
+    }
   }
 
   const users = await db.user.findMany()
