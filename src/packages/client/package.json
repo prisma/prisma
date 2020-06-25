@@ -1,6 +1,6 @@
 {
   "name": "@prisma/client",
-  "version": "2.0.0-dev.0",
+  "version": "2.2.0-dev.14",
   "description": "Prisma Client is an auto-generated and type-safe query builder for Node.js & TypeScript that's tailored to your data.",
   "keywords": [
     "prisma2",
