@@ -99,6 +99,9 @@ export class NodeEngine {
   private queryEngineStarted: boolean = false
   private enableExperimental: string[] = []
   private engineEndpoint?: string
+  private lastLog?: RustLog
+  private lastErrorLog?: RustLog
+  private lastError?: RustError
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -121,8 +124,6 @@ export class NodeEngine {
   generator?: GeneratorConfig
   incorrectlyPinnedBinaryTarget?: string
   datasources?: DatasourceOverwrite[]
-  lastErrorLog?: RustLog
-  lastError?: RustError
   startPromise?: Promise<any>
   engineStartDeferred?: Deferred
   h1Client: H1Client
@@ -560,6 +561,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
               this.logEmitter.emit(log.level, log)
+              this.lastLog = log
             } else {
               this.lastError = json
             }
@@ -859,7 +861,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       .catch(this.handleRequestError)
   }
 
-  private handleRequestError = (error: Error & { code?: string }) => {
+  private handleRequestError = async (error: Error & { code?: string }) => {
     debug({ error })
     let err
     if (this.currentRequestPromise.isCanceled && this.lastError) {
@@ -958,7 +960,8 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
         }
       }
       if (!err) {
-        const logs = this.stderrLogs || this.stdoutLogs
+        const lastLog = this.getLastLog()
+        const logs = lastLog || this.stderrLogs || this.stdoutLogs
         err = new PrismaClientUnknownRequestError(
           getErrorMessageWithLink({
             platform: this.platform,
@@ -974,6 +977,10 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
       throw err
     }
     throw error
+  }
+
+  private getLastLog(): string | null {
+    return this.lastLog?.fields?.message
   }
 
   private graphQLToJSError(
