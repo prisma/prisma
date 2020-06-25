@@ -208,6 +208,7 @@ test('introspection basic', async () => {
             "columns": Array [
               "revision",
             ],
+            "constraintName": null,
             "sequence": null,
           },
         },
@@ -330,6 +331,7 @@ test('introspection basic', async () => {
             "columns": Array [
               "id",
             ],
+            "constraintName": null,
             "sequence": null,
           },
         },
@@ -467,6 +469,7 @@ test('introspection basic', async () => {
             "columns": Array [
               "uuid",
             ],
+            "constraintName": null,
             "sequence": null,
           },
         },
