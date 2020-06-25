@@ -19,12 +19,17 @@ var uniqueId = 0
 
 export var Prism: any = {
   manual: _self.Prism && _self.Prism.manual,
-  disableWorkerMessageHandler: _self.Prism && _self.Prism.disableWorkerMessageHandler,
+  disableWorkerMessageHandler:
+    _self.Prism && _self.Prism.disableWorkerMessageHandler,
   util: {
-    encode: function(tokens: any) {
+    encode: function (tokens: any) {
       if (tokens instanceof Token) {
         const anyTokens: any = tokens
-        return new Token(anyTokens.type, Prism.util.encode(anyTokens.content), anyTokens.alias)
+        return new Token(
+          anyTokens.type,
+          Prism.util.encode(anyTokens.content),
+          anyTokens.alias,
+        )
       } else if (Array.isArray(tokens)) {
         return tokens.map(Prism.util.encode)
       } else {
@@ -35,11 +40,11 @@ export var Prism: any = {
       }
     },
 
-    type: function(o) {
+    type: function (o) {
       return Object.prototype.toString.call(o).slice(8, -1)
     },
 
-    objId: function(obj) {
+    objId: function (obj) {
       if (!obj['__id']) {
         Object.defineProperty(obj, '__id', { value: ++uniqueId })
       }
@@ -78,7 +83,7 @@ export var Prism: any = {
           clone = []
           visited[id] = clone
 
-          o.forEach(function(v, i) {
+          o.forEach(function (v, i) {
             clone[i] = deepClone(v, visited)
           })
 
@@ -91,7 +96,7 @@ export var Prism: any = {
   },
 
   languages: {
-    extend: function(id, redef) {
+    extend: function (id, redef) {
       var lang = Prism.util.clone(Prism.languages[id])
 
       for (var key in redef) {
@@ -110,7 +115,7 @@ export var Prism: any = {
      * @param insert Object with the key/value pairs to insert
      * @param root The object that contains `inside`. If equal to Prism.languages, it can be omitted.
      */
-    insertBefore: function(inside, before, insert, root) {
+    insertBefore: function (inside, before, insert, root) {
       root = root || Prism.languages
       var grammar = root[inside]
       var ret = {}
@@ -136,7 +141,7 @@ export var Prism: any = {
       root[inside] = ret
 
       // Update references in other language definitions
-      Prism.languages.DFS(Prism.languages, function(this: any, key, value) {
+      Prism.languages.DFS(Prism.languages, function (this: any, key, value) {
         if (value === old && key != inside) {
           this[key] = ret
         }
@@ -171,7 +176,7 @@ export var Prism: any = {
   },
   plugins: {},
 
-  highlight: function(text, grammar, language) {
+  highlight: function (text, grammar, language) {
     var env: any = {
       code: text,
       grammar: grammar,
@@ -183,7 +188,15 @@ export var Prism: any = {
     return Token.stringify(Prism.util.encode(env.tokens), env.language)
   },
 
-  matchGrammar: function(text, strarr, grammar, index, startPos, oneshot, target?: any) {
+  matchGrammar: function (
+    text,
+    strarr,
+    grammar,
+    index,
+    startPos,
+    oneshot,
+    target?: any,
+  ) {
     for (var token in grammar) {
       if (!grammar.hasOwnProperty(token) || !grammar[token]) {
         continue
@@ -213,7 +226,11 @@ export var Prism: any = {
         pattern = pattern.pattern || pattern
 
         // Don’t cache length as it changes during the loop
-        for (var i = index, pos = startPos; i < strarr.length; pos += strarr[i].length, ++i) {
+        for (
+          var i = index, pos = startPos;
+          i < strarr.length;
+          pos += strarr[i].length, ++i
+        ) {
           var str = strarr[i]
 
           if (strarr.length > text.length) {
@@ -237,7 +254,11 @@ export var Prism: any = {
               k = i,
               p = pos
 
-            for (var len = strarr.length; k < len && (p < to || (!strarr[k].type && !strarr[k - 1].greedy)); ++k) {
+            for (
+              var len = strarr.length;
+              k < len && (p < to || (!strarr[k].type && !strarr[k - 1].greedy));
+              ++k
+            ) {
               p += strarr[k].length
               // Move the index i to the element in strarr that is closest to from
               if (from >= p) {
@@ -288,7 +309,13 @@ export var Prism: any = {
             args.push(before)
           }
 
-          var wrapped = new Token(token, inside ? Prism.tokenize(match, inside) : match, alias, match, greedy)
+          var wrapped = new Token(
+            token,
+            inside ? Prism.tokenize(match, inside) : match,
+            alias,
+            match,
+            greedy,
+          )
 
           args.push(wrapped)
 
@@ -298,7 +325,8 @@ export var Prism: any = {
 
           Array.prototype.splice.apply(strarr, args)
 
-          if (delNum != 1) Prism.matchGrammar(text, strarr, grammar, i, pos, true, token)
+          if (delNum != 1)
+            Prism.matchGrammar(text, strarr, grammar, i, pos, true, token)
 
           if (oneshot) break
         }
@@ -306,7 +334,7 @@ export var Prism: any = {
     }
   },
 
-  tokenize: function(text, grammar) {
+  tokenize: function (text, grammar) {
     var strarr = [text]
 
     var rest = grammar.rest
@@ -327,7 +355,7 @@ export var Prism: any = {
   hooks: {
     all: {},
 
-    add: function(name, callback) {
+    add: function (name, callback) {
       var hooks = Prism.hooks.all
 
       hooks[name] = hooks[name] || []
@@ -335,7 +363,7 @@ export var Prism: any = {
       hooks[name].push(callback)
     },
 
-    run: function(name, env) {
+    run: function (name, env) {
       var callbacks = Prism.hooks.all[name]
 
       if (!callbacks || !callbacks.length) {
@@ -445,26 +473,6 @@ Prism.languages.insertBefore('javascript', 'keyword', {
   constant: /\b[A-Z](?:[A-Z_]|\dx?)*\b/,
 })
 
-Prism.languages.insertBefore('javascript', 'string', {
-  'template-string': {
-    pattern: /`(?:\\[\s\S]|\${(?:[^{}]|{(?:[^{}]|{[^}]*})*})+}|[^\\`])*`/,
-    greedy: true,
-    inside: {
-      interpolation: {
-        pattern: /\${(?:[^{}]|{(?:[^{}]|{[^}]*})*})+}/,
-        inside: {
-          'interpolation-punctuation': {
-            pattern: /^\${|}$/,
-            alias: 'punctuation',
-          },
-          rest: Prism.languages.javascript,
-        },
-      },
-      string: /[\s\S]+/,
-    },
-  },
-})
-
 if (Prism.languages.markup) {
   Prism.languages.markup.tag.addInlined('script', 'javascript')
 }
@@ -479,7 +487,14 @@ Prism.languages.typescript = Prism.languages.extend('javascript', {
 
 Prism.languages.ts = Prism.languages.typescript
 
-export function Token(this: any, type, content, alias, matchedStr?: any, greedy?: any) {
+export function Token(
+  this: any,
+  type,
+  content,
+  alias,
+  matchedStr?: any,
+  greedy?: any,
+) {
   this.type = type
   this.content = content
   this.alias = alias
@@ -488,14 +503,14 @@ export function Token(this: any, type, content, alias, matchedStr?: any, greedy?
   this.greedy = !!greedy
 }
 
-Token.stringify = function(o, language?: any) {
+Token.stringify = function (o, language?: any) {
   if (typeof o == 'string') {
     return o
   }
 
   if (Array.isArray(o)) {
     return o
-      .map(function(element) {
+      .map(function (element) {
         return Token.stringify(element, language)
       })
       .join('')
