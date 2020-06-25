@@ -79,8 +79,8 @@ async function pull(dir: string, dry = false): Promise<void> {
   await run(dir, `git pull origin ${branch} --no-edit`, dry)
 }
 
-async function push(dir: string, dry = false): Promise<void> {
-  const branch = await getBranch(dir)
+async function push(dir: string, dry = false, branch?: string): Promise<void> {
+  branch = branch ?? (await getBranch(dir))
   if (process.env.BUILDKITE) {
     if (!process.env.GITHUB_TOKEN) {
       throw new Error(`Missing env var GITHUB_TOKEN`)
@@ -959,10 +959,13 @@ async function publishPackages(
         )
       } else {
         console.log(`\nCommiting changes`)
-        const message = process.env.UPDATE_STUDIO ? 'Bump Studio' : 'Bump versions'
+        const message = process.env.UPDATE_STUDIO
+          ? 'Bump Studio'
+          : 'Bump versions'
         await commitChanges(repo, `${message} [skip ci]`, dryRun)
       }
-      await push(repo, dryRun).catch(console.error)
+      const branch = process.env.PATCH_BRANCH
+      await push(repo, dryRun, branch).catch(console.error)
     } catch (e) {
       console.error(e)
       console.error(`Ignoring this error, continuing`)
