@@ -232,6 +232,7 @@ ${fieldErrors
       const { stack, indent: indentValue, afterLines } = printStack({
         callsite,
         originalMethod: originalMethod || queryName,
+        showColors: errorFormat && errorFormat === 'pretty',
       })
 
       const errorStr = `${stack}${indent(
