@@ -48,10 +48,10 @@ importers:
       '@prisma/introspection': 'link:../introspection'
       '@prisma/migrate': 'link:../migrate'
       '@prisma/sdk': 'link:../sdk'
-      '@prisma/studio': 0.230.0
-      '@prisma/studio-server': 0.230.0
-      '@prisma/studio-transports': 0.230.0
-      '@prisma/studio-types': 0.230.0
+      '@prisma/studio': 0.229.0
+      '@prisma/studio-server': 0.229.0
+      '@prisma/studio-transports': 0.229.0
+      '@prisma/studio-types': 0.229.0
       '@types/debug': 4.1.5
       '@types/mocha': 5.2.7
       '@types/pg': 7.14.3
@@ -87,7 +87,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: 4.1.1
+      sqlite3: 4.2.0
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.5.0
@@ -106,10 +106,10 @@ importers:
       '@prisma/introspection': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio': 0.230.0
-      '@prisma/studio-server': 0.230.0
-      '@prisma/studio-transports': 0.230.0
-      '@prisma/studio-types': 0.230.0
+      '@prisma/studio': 0.229.0
+      '@prisma/studio-server': 0.229.0
+      '@prisma/studio-transports': 0.229.0
+      '@prisma/studio-types': 0.229.0
       '@types/debug': 4.1.5
       '@types/mocha': 5.2.7
       '@types/pg': 7.14.3
@@ -145,7 +145,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: '4.1'
+      sqlite3: 4.2.0
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.5.0
@@ -623,8 +623,8 @@ importers:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/get-platform': 'link:../get-platform'
       '@prisma/ink-components': 'link:../ink-components'
-      '@prisma/studio-server': 0.230.0_react@16.11.0
-      '@prisma/studio-types': 0.230.0
+      '@prisma/studio-server': 0.229.0
+      '@prisma/studio-types': 0.229.0
       ansi-escapes: 4.3.1
       cli-cursor: 3.1.0
       dashify: 2.0.0
@@ -690,8 +690,8 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@prisma/ink-components': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio-server': 0.230.0
-      '@prisma/studio-types': 0.230.0
+      '@prisma/studio-server': 0.229.0
+      '@prisma/studio-types': 0.229.0
       '@types/charm': 1.0.2
       '@types/debug': 4.1.5
       '@types/diff': 4.0.2
@@ -857,14 +857,8 @@ packages:
   /@babel/code-frame/7.10.1:
     dependencies:
       '@babel/highlight': 7.10.1
-    dev: true
     resolution:
       integrity: sha512-IGhtTmpjGbYzcEDOw7DcQtbQSXcG9ftmAXtWTu9V936vDye4xjjekktFAtgZsWpzTj/X01jocB46mTywm/4SZw==
-  /@babel/code-frame/7.10.3:
-    dependencies:
-      '@babel/highlight': 7.10.3
-    resolution:
-      integrity: sha512-fDx9eNW0qz0WkUeqL6tXEXzVlPh6Y5aCDEZesl0xBGA8ndRukX91Uk44ZqnkECp01NAZUdCAl+aiQNGi0k88Eg==
   /@babel/core/7.10.2:
     dependencies:
       '@babel/code-frame': 7.10.1
@@ -968,12 +962,8 @@ packages:
     resolution:
       integrity: sha512-UQ1LVBPrYdbchNhLwj6fetj46BcFwfS4NllJo/1aJsT+1dLTEnXJL0qHqtY7gPzF8S2fXBJamf1biAXV3X077g==
   /@babel/helper-validator-identifier/7.10.1:
-    dev: true
     resolution:
       integrity: sha512-5vW/JXLALhczRCWP0PnFDMCJAchlBvM7f4uk/jXritBnIa6E1KmqmtrS3yn1LAnxFBypQ3eneLuXjsnfQsgILw==
-  /@babel/helper-validator-identifier/7.10.3:
-    resolution:
-      integrity: sha512-bU8JvtlYpJSBPuj1VUmKpFGaDZuLxASky3LhaKj3bmpSTY6VWooSM8msk+Z0CZoErFye2tlABF6yDkT3FOPAXw==
   /@babel/helpers/7.10.1:
     dependencies:
       '@babel/template': 7.10.1
@@ -987,16 +977,8 @@ packages:
       '@babel/helper-validator-identifier': 7.10.1
       chalk: 2.4.2
       js-tokens: 4.0.0
-    dev: true
     resolution:
       integrity: sha512-8rMof+gVP8mxYZApLF/JgNDAkdKa+aJt3ZYxF8z6+j/hpeXL7iMsKCPHa2jNMHu/qqBwzQF4OHNoYi8dMA/rYg==
-  /@babel/highlight/7.10.3:
-    dependencies:
-      '@babel/helper-validator-identifier': 7.10.3
-      chalk: 2.4.2
-      js-tokens: 4.0.0
-    resolution:
-      integrity: sha512-Ih9B/u7AtgEnySE2L2F0Xm0GaM729XqqLfHkalTsbjXGyqmf/6M0Cu0WpvqueUlW+xk88BHw9Nkpj49naU+vWw==
   /@babel/parser/7.10.2:
     dev: true
     engines:
@@ -1407,16 +1389,16 @@ packages:
       '@prisma/debug': 2.0.0-alpha.1279
       '@prisma/generator-helper': 2.0.0-alpha.1279
       '@prisma/get-platform': 2.0.0-alpha.1279
-      bent: 7.3.6
+      bent: 7.3.5
       chalk: 3.0.0
       cross-fetch: 3.0.5
-      fast-json-stringify: 2.2.0
+      fast-json-stringify: 2.1.0
       get-stream: 5.1.0
       indent-string: 4.0.0
       new-github-issue-url: 0.2.1
       p-retry: 4.2.0
       terminal-link: 2.1.1
-      undici: github.com/mcollina/undici/f322ede34fa38d2c5b5782711b306dc3ad4ef1e2
+      undici: github.com/mcollina/undici/df7bade8b8e06ef13936520d5126cbf93889a356
     resolution:
       integrity: sha512-v6+/ry2XmYsH037u1n+lx3AOa3PWBPaYuJcgYh2R0tl1KJgeykDLHEK61u92/NdHFcuo4si/EJg62qx64w8TpA==
   /@prisma/fetch-engine/2.0.0-alpha.1279:
@@ -1488,60 +1470,31 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-yTziM0VLv6iBUqJ9UvEo91cJe2midaYlM7NiJS7ZBnZHw8j92XE8COyDLSqWH3o+4cFtSR0DCXqsKj6oU5dofQ==
-  /@prisma/studio-server/0.230.0:
+  /@prisma/studio-server/0.229.0:
     dependencies:
       '@prisma/get-platform': 2.0.0-alpha.1279
       '@prisma/sdk': 2.0.0-alpha.1279
-      '@prisma/studio': 0.230.0
-      '@prisma/studio-transports': 0.230.0
-      '@prisma/studio-types': 0.230.0
+      '@prisma/studio': 0.229.0
+      '@prisma/studio-transports': 0.229.0
+      '@prisma/studio-types': 0.229.0
       '@sentry/node': 5.15.5
       express: 4.17.1
       express-ws: 4.0.0_express@4.17.1
-    dev: true
     resolution:
-      integrity: sha512-Anrpl4iiE9x4bva9MOSN688qzcBnghMzFDLWg3qC249fQa/MDKQZ8XQeUYmE2FN0/+j+EgJyTasz2y2aaozh0A==
-  /@prisma/studio-server/0.230.0_react@16.11.0:
-    dependencies:
-      '@prisma/get-platform': 2.0.0-alpha.1279
-      '@prisma/sdk': 2.0.0-alpha.1279
-      '@prisma/studio': 0.230.0_react@16.11.0
-      '@prisma/studio-transports': 0.230.0
-      '@prisma/studio-types': 0.230.0
-      '@sentry/node': 5.15.5
-      express: 4.17.1
-      express-ws: 4.0.0_express@4.17.1
-    dev: false
-    peerDependencies:
-      react: '*'
-    resolution:
-      integrity: sha512-Anrpl4iiE9x4bva9MOSN688qzcBnghMzFDLWg3qC249fQa/MDKQZ8XQeUYmE2FN0/+j+EgJyTasz2y2aaozh0A==
-  /@prisma/studio-transports/0.230.0:
+      integrity: sha512-RZHvGreXxCr5WI42/zq9TYLm0ut8Z1r3UEJJQR03E9CnyrSOPlhzbwN9wyzQXeSkFTOSlGXZ8M1UdPqy0Y1QMA==
+  /@prisma/studio-transports/0.229.0:
     dependencies:
       '@prisma/sdk': 2.0.0-alpha.1279
-      '@prisma/studio-types': 0.230.0
+      '@prisma/studio-types': 0.229.0
       '@sentry/node': 5.15.5
     resolution:
-      integrity: sha512-bLERO8zzwBg01Saqk0cHVoWYoQi/vQj7OY95tmMrp+xrFcPcbc+fdjpfyYB0U6r5COs8DYTJC/bXaFQqIFSzxQ==
-  /@prisma/studio-types/0.230.0:
+      integrity: sha512-1KPK2Yp6i5rjxpLu/S+VFnrc20sCDL0nXfWtAXjcBFFi0lsRLJvSrGFnr4YruX2Dbw8ssV4xF0mikjqtNvQ8QA==
+  /@prisma/studio-types/0.229.0:
     resolution:
-      integrity: sha512-tOcl0wH0L3dO7emRde3DcHO9FXrMXFAjX/e3ZdNJZmoQeNjhDscgjyfuEW/WINP4FCkoPPoH7TXRTBGJFpYl+w==
-  /@prisma/studio/0.230.0:
-    dependencies:
-      ag-grid-community: 23.2.1
-      ag-grid-react: 23.2.1_ag-grid-community@23.2.1
-    dev: true
+      integrity: sha512-ONvtTATSFMcGQM85m+QfhrkQ9Px+20h8POYd48T5EacaqnthTlIRf4n3bfhrxYMtRQ1rM0ugrtjdVe/PYt8ILg==
+  /@prisma/studio/0.229.0:
     resolution:
-      integrity: sha512-FCwbc7swLt9inv36bAen0DmOMyERIlY8X2dpg266UVo9qxzK1SQ1M4ed99/wuHodUX6S+P5xKQwRxg/36Dfafg==
-  /@prisma/studio/0.230.0_react@16.11.0:
-    dependencies:
-      ag-grid-community: 23.2.1
-      ag-grid-react: 23.2.1_bb9a8685ff9efdcb5e40ee49306da6a9
-    dev: false
-    peerDependencies:
-      react: '*'
-    resolution:
-      integrity: sha512-FCwbc7swLt9inv36bAen0DmOMyERIlY8X2dpg266UVo9qxzK1SQ1M4ed99/wuHodUX6S+P5xKQwRxg/36Dfafg==
+      integrity: sha512-HJVgcA2qReMIb9rg6vz4/Xyqd3EVef6L3sEoJccl5psIBEs5YJBFzR1l+rkyEEFLKRNuggICeFbKgh7Mmnd3ow==
   /@sentry/apm/5.15.5:
     dependencies:
       '@sentry/browser': 5.15.5
@@ -1994,32 +1947,6 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-tLc0wSnatxAQHVHUapaHdz72pi9KUyHjq5KyHjGg9Y8Ifdc79pTh2XvI6I1/chZbnM7QtNKzh66ooDogPZSleA==
-  /ag-grid-community/23.2.1:
-    resolution:
-      integrity: sha512-WHfDV7mFsd6eQJ5yOu26nnpnW7Gd02zcp9LHHfKQky8lfgTEo382qcja7MibHzB2f5vOCBdQnOPsWrbBNKRzhQ==
-  /ag-grid-react/23.2.1_ag-grid-community@23.2.1:
-    dependencies:
-      ag-grid-community: 23.2.1
-      prop-types: 15.7.2
-    dev: true
-    peerDependencies:
-      ag-grid-community: ~23.2.0
-      react: ^16.3.0
-      react-dom: ^16.3.0
-    resolution:
-      integrity: sha512-tLbgIyjea5Alt2WsPWVDlfCNkI4gIxg8kWcpl1yTsVboVSwAnagpzFpNpIKsjbf/y4WAuKIQFfA0YXPVw4YRSg==
-  /ag-grid-react/23.2.1_bb9a8685ff9efdcb5e40ee49306da6a9:
-    dependencies:
-      ag-grid-community: 23.2.1
-      prop-types: 15.7.2
-      react: 16.11.0
-    dev: false
-    peerDependencies:
-      ag-grid-community: ~23.2.0
-      react: ^16.3.0
-      react-dom: ^16.3.0
-    resolution:
-      integrity: sha512-tLbgIyjea5Alt2WsPWVDlfCNkI4gIxg8kWcpl1yTsVboVSwAnagpzFpNpIKsjbf/y4WAuKIQFfA0YXPVw4YRSg==
   /agent-base/5.1.1:
     engines:
       node: '>= 6.0.0'
@@ -2424,16 +2351,8 @@ packages:
       bytesish: 0.4.2
       caseless: 0.12.0
       is-stream: 2.0.0
-    dev: false
     resolution:
       integrity: sha512-AzYb6pBGbmfi2mpphpGYIn9BO7aQqr31sXOXM1hwevjr4Ss2QOpy+lk8OnEOHmB/SCiDy+//+QKaldnayBOttg==
-  /bent/7.3.6:
-    dependencies:
-      bytesish: 0.4.2
-      caseless: 0.12.0
-      is-stream: 2.0.0
-    resolution:
-      integrity: sha512-d/PA/wQdFYgFCR8zYQi0LwzzcsncFFhChvyhZDJ8PVhPF0TdLKmFnjUV2ttVHLTpTiIJWMfxRByY7NT7LEacMA==
   /big.js/5.2.2:
     dev: true
     resolution:
@@ -2990,7 +2909,7 @@ packages:
       integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==
   /debug/3.2.6:
     dependencies:
-      ms: 2.1.2
+      ms: 2.1.1
     dev: true
     resolution:
       integrity: sha512-mel+jf7nrtEl5Pn1Qx46zARXKDpBbvzezse7p7LqINmdoIk8PYP5SySaxEmYv6TZ0JyEKA1hsCId6DIhgITtWQ==
@@ -3785,20 +3704,10 @@ packages:
       ajv: 6.12.2
       deepmerge: 4.2.2
       string-similarity: 4.0.1
-    dev: false
     engines:
       node: '>= 10.0.0'
     resolution:
       integrity: sha512-fXHU/VG0QmGzV4IRCKzyuctb5qCXyk8OVARmDpV0u5wZHXwRGU2TFFVT2+UD8+mo24siVAmTygVF2IzfXSzK2w==
-  /fast-json-stringify/2.2.0:
-    dependencies:
-      ajv: 6.12.2
-      deepmerge: 4.2.2
-      string-similarity: 4.0.1
-    engines:
-      node: '>= 10.0.0'
-    resolution:
-      integrity: sha512-ifA/JXvkrNA84dHbJ7UkMt20xdAZQmMBLy1ga+0wbH7IWa7j6mmq20wHhRT7SHBjw1J53LSmbCqz0Xdm+F8a5Q==
   /fast-levenshtein/2.0.6:
     dev: true
     resolution:
@@ -6505,7 +6414,7 @@ packages:
       integrity: sha1-06mYQxcTL1c5hxK7pDjhKVkN34w=
   /parse-json/5.0.0:
     dependencies:
-      '@babel/code-frame': 7.10.3
+      '@babel/code-frame': 7.10.1
       error-ex: 1.3.2
       json-parse-better-errors: 1.0.2
       lines-and-columns: 1.1.6
@@ -7683,15 +7592,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-yPCgZZPkccMcvU8J4Hrt96nSXOEv6UuBLd9KGFdUR9VVkE7voXkWrV2UWODfNbxdDyviS/a+eFWDn86mfBgyJw==
-  /sqlite3/4.1.1:
-    dependencies:
-      nan: 2.14.1
-      node-pre-gyp: 0.11.0
-      request: 2.88.2
-    dev: true
-    requiresBuild: true
-    resolution:
-      integrity: sha512-CvT5XY+MWnn0HkbwVKJAyWEMfzpAPwnTiB3TobA5Mri44SrTovmmh499NPQP+gatkeOipqPlBLel7rn4E/PCQg==
   /sqlite3/4.2.0:
     dependencies:
       nan: 2.14.1
@@ -8599,7 +8499,7 @@ packages:
       integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==
   /wide-align/1.1.3:
     dependencies:
-      string-width: 1.0.2
+      string-width: 2.1.1
     dev: true
     resolution:
       integrity: sha512-QGkOQc8XL6Bt5PwnsExKBPuMKBxnGxWWW3fU55Xt4feHozMUhdUMaBCk290qpm/wG5u/RSKzwdAC4i51YigihA==
@@ -8804,17 +8704,8 @@ packages:
   github.com/mcollina/undici/df7bade8b8e06ef13936520d5126cbf93889a356:
     dependencies:
       http-parser-js: 0.5.2
-    dev: false
     name: undici
     resolution:
       registry: 'https://registry.npmjs.org/'
       tarball: 'https://codeload.github.com/mcollina/undici/tar.gz/df7bade8b8e06ef13936520d5126cbf93889a356'
-    version: 1.0.3
-  github.com/mcollina/undici/f322ede34fa38d2c5b5782711b306dc3ad4ef1e2:
-    dependencies:
-      http-parser-js: 0.5.2
-    name: undici
-    resolution:
-      registry: 'https://registry.npmjs.org/'
-      tarball: 'https://codeload.github.com/mcollina/undici/tar.gz/f322ede34fa38d2c5b5782711b306dc3ad4ef1e2'
     version: 1.0.3
