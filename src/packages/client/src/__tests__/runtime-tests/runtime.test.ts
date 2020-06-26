@@ -11,6 +11,8 @@ jest.setTimeout(35000)
 
 describe('runtime works', () => {
   const subDirs = getSubDirs(__dirname)
+  process.setMaxListeners(subDirs.length * 2)
+
   for (const dir of subDirs) {
     const nodeModules = path.join(dir, 'node_modules')
     const testName = path.basename(dir)

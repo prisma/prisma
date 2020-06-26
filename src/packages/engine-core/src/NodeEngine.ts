@@ -962,10 +962,11 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
       if (!err) {
         const lastLog = this.getLastLog()
         const logs = lastLog || this.stderrLogs || this.stdoutLogs
+        const title = lastLog ?? `Unknown error in Prisma Client`
         err = new PrismaClientUnknownRequestError(
           getErrorMessageWithLink({
             platform: this.platform,
-            title: `Unknown error in Prisma Client`,
+            title,
             version: this.clientVersion,
             description: logs,
           }),
@@ -980,7 +981,24 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
   }
 
   private getLastLog(): string | null {
-    return this.lastLog?.fields?.message
+    const message = this.lastLog?.fields?.message
+
+    if (message) {
+      const fields = Object.entries(this.lastLog?.fields)
+        .filter(([key]) => key !== 'message')
+        .map(([key, value]) => {
+          return `${key}: ${value}`
+        })
+        .join(', ')
+
+      if (fields) {
+        return `${message}  ${fields}`
+      }
+
+      return message
+    }
+
+    return null
   }
 
   private graphQLToJSError(
