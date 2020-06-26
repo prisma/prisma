@@ -232,11 +232,13 @@ module.exports = async () => {
 
   const result = await prisma.post.findMany({
     where: {
-      jsonData: [
-        {
-          array1key: 'array1value',
-        },
-      ],
+      jsonData: {
+        equals: [
+          {
+            array1key: 'array1value',
+          },
+        ],
+      },
     },
   })
 

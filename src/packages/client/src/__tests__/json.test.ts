@@ -52,4 +52,119 @@ describe('json', () => {
       }"
     `)
   })
+  test('should reject directly querying json with the equals shortcut', () => {
+    const select = {
+      where: {
+        json: {
+          hello: 'world',
+        },
+      },
+    }
+    const document = makeDocument({
+      dmmf,
+      select,
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+    expect(() => document.validate(select, false, 'user.findMany', 'colorless'))
+      .toThrowErrorMatchingInlineSnapshot(`
+      "
+      Invalid \`prisma.user.findMany()\` invocation:
+
+      {
+        where: {
+          json: {
+            hello: 'world'
+            ~~~~~
+          }
+        }
+      }
+
+      Unknown arg \`hello\` in where.json.hello for type JsonFilter. Did you mean \`select\`? Available args:
+      type JsonFilter {
+        equals?: Json
+        not?: Json | JsonFilter
+      }
+
+      "
+    `)
+    expect(String(document)).toMatchInlineSnapshot(`
+      "query {
+        findManyUser(where: {
+          json: {
+            hello: \\"world\\"
+          }
+        }) {
+          id
+          name
+          email
+          json
+        }
+      }"
+    `)
+  })
+  test('should be able to query json with equals', () => {
+    const select = {
+      where: {
+        json: {
+          equals: {
+            hello: 'world',
+          },
+        },
+      },
+    }
+    const document = makeDocument({
+      dmmf,
+      select,
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+    document.validate(select)
+    expect(String(document)).toMatchInlineSnapshot(`
+      "query {
+        findManyUser(where: {
+          json: {
+            equals: \\"{\\\\\\"hello\\\\\\":\\\\\\"world\\\\\\"}\\"
+          }
+        }) {
+          id
+          name
+          email
+          json
+        }
+      }"
+    `)
+  })
+  test('should be able to query json with not', () => {
+    const select = {
+      where: {
+        json: {
+          not: {
+            hello: 'world',
+          },
+        },
+      },
+    }
+    const document = makeDocument({
+      dmmf,
+      select,
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+    document.validate(select)
+    expect(String(document)).toMatchInlineSnapshot(`
+      "query {
+        findManyUser(where: {
+          json: {
+            not: \\"{\\\\\\"hello\\\\\\":\\\\\\"world\\\\\\"}\\"
+          }
+        }) {
+          id
+          name
+          email
+          json
+        }
+      }"
+    `)
+  })
 })
