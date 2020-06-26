@@ -37,7 +37,8 @@ export interface DatasourceOverwrite {
 export interface EngineConfig {
   cwd?: string
   datamodelPath: string
-  debug?: boolean
+  enableDebugLogs?: boolean
+  enableEngineDebugMode?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
   prismaPath?: string
   fetcher?: (query: string) => Promise<{ data?: any; error?: any }>
   generator?: GeneratorConfig
@@ -87,7 +88,8 @@ export class NodeEngine {
   private env?: Record<string, string>
   private flags: string[]
   private port?: number
-  private debug: boolean
+  private enableDebugLogs: boolean
+  private enableEngineDebugMode: boolean
   private child?: ChildProcessWithoutNullStreams
   private clientVersion?: string
   private lastPanic?: Error
@@ -97,6 +99,9 @@ export class NodeEngine {
   private queryEngineStarted: boolean = false
   private enableExperimental: string[] = []
   private engineEndpoint?: string
+  private lastLog?: RustLog
+  private lastErrorLog?: RustLog
+  private lastError?: RustError
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -119,8 +124,6 @@ export class NodeEngine {
   generator?: GeneratorConfig
   incorrectlyPinnedBinaryTarget?: string
   datasources?: DatasourceOverwrite[]
-  lastErrorLog?: RustLog
-  lastError?: RustError
   startPromise?: Promise<any>
   engineStartDeferred?: Deferred
   h1Client: H1Client
@@ -142,17 +145,18 @@ export class NodeEngine {
   }: EngineConfig) {
     this.env = env
     this.cwd = this.resolveCwd(cwd)
-    this.debug = args.debug || false
+    this.enableDebugLogs = args.enableDebugLogs ?? false
+    this.enableEngineDebugMode = args.enableEngineDebugMode ?? false
     this.datamodelPath = datamodelPath
-    this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY || prismaPath
+    this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY ?? prismaPath
     this.generator = generator
     this.datasources = datasources
     this.logEmitter = new EventEmitter()
-    this.showColors = showColors || false
+    this.showColors = showColors ?? false
     this.logLevel = logLevel
-    this.logQueries = logQueries || false
+    this.logQueries = logQueries ?? false
     this.clientVersion = clientVersion
-    this.flags = flags || []
+    this.flags = flags ?? []
     this.h1Client = new H1Client()
     this.enableExperimental = enableExperimental ?? []
     this.engineEndpoint = engineEndpoint
@@ -163,7 +167,7 @@ export class NodeEngine {
     }
 
     this.logEmitter.on('error', (log: RustLog | Error) => {
-      if (this.debug) {
+      if (this.enableDebugLogs) {
         debugLib('engine:log')(log)
       }
       if (log instanceof Error) {
@@ -197,7 +201,7 @@ You may have to run ${chalk.greenBright(
     } else {
       this.getPlatform()
     }
-    if (this.debug) {
+    if (this.enableDebugLogs) {
       debugLib.enable('*')
     }
     engines.push(this)
@@ -492,8 +496,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             ? [`--enable-experimental=${this.enableExperimental.join(',')}`]
             : []
 
+        const debugFlag = this.enableEngineDebugMode ? ['--debug'] : []
+
         const flags = [
           ...experimentalFlags,
+          ...debugFlag,
           '--enable-raw-queries',
           ...this.flags,
         ]
@@ -554,6 +561,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
               this.logEmitter.emit(log.level, log)
+              this.lastLog = log
             } else {
               this.lastError = json
             }
@@ -771,7 +779,10 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     return result.stdout
   }
 
-  async request<T>(query: string): Promise<T> {
+  async request<T>(
+    query: string,
+    headers?: Record<string, string>,
+  ): Promise<T> {
     await this.start()
 
     if (!this.child && !this.engineEndpoint) {
@@ -783,6 +794,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     this.currentRequestPromise = this.h1Client.request(
       this.port,
       stringifyQuery(query),
+      headers,
     )
 
     return this.currentRequestPromise
@@ -849,7 +861,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       .catch(this.handleRequestError)
   }
 
-  private handleRequestError = (error: Error & { code?: string }) => {
+  private handleRequestError = async (error: Error & { code?: string }) => {
     debug({ error })
     let err
     if (this.currentRequestPromise.isCanceled && this.lastError) {
@@ -948,11 +960,13 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
         }
       }
       if (!err) {
-        const logs = this.stderrLogs || this.stdoutLogs
+        const lastLog = this.getLastLog()
+        const logs = lastLog || this.stderrLogs || this.stdoutLogs
+        const title = lastLog ?? `Unknown error in Prisma Client`
         err = new PrismaClientUnknownRequestError(
           getErrorMessageWithLink({
             platform: this.platform,
-            title: `Unknown error in Prisma Client`,
+            title,
             version: this.clientVersion,
             description: logs,
           }),
@@ -964,6 +978,27 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
       throw err
     }
     throw error
+  }
+
+  private getLastLog(): string | null {
+    const message = this.lastLog?.fields?.message
+
+    if (message) {
+      const fields = Object.entries(this.lastLog?.fields)
+        .filter(([key]) => key !== 'message')
+        .map(([key, value]) => {
+          return `${key}: ${value}`
+        })
+        .join(', ')
+
+      if (fields) {
+        return `${message}  ${fields}`
+      }
+
+      return message
+    }
+
+    return null
   }
 
   private graphQLToJSError(
