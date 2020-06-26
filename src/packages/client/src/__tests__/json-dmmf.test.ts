@@ -46,13 +46,6 @@ test('JsonFilter should contain equals and not', async () => {
                 "isList": false,
                 "isNullable": true,
                 "isRequired": false,
-                "kind": "scalar",
-                "type": "Json",
-              },
-              Object {
-                "isList": false,
-                "isNullable": true,
-                "isRequired": false,
                 "kind": "object",
                 "type": "NullableJsonFilter",
               },

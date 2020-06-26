@@ -131,6 +131,9 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
       inputTypes.push(type)
       continue
     }
+
+    // We found a model, so we'll create a custom Where Input now
+
     const whiteList = ['AND', 'OR', 'NOT']
     whiteList.push(
       ...model.fields
@@ -138,7 +141,7 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
         .map((f) => f.name),
     )
 
-    const relationFields = type.fields
+    const fields = type.fields
       .filter((a) => whiteList.includes(a.name))
       .map((a) => ({ ...a, isRelationFilter: true }))
 
@@ -147,15 +150,14 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
       // also filter out object non-lists, as we don't need to transform them
       .filter((f) => (f.kind === 'object' ? f.isList : !f.isList))
       .map((f) => {
-        if (
-          !filterTypes[
-            getFilterName(getFieldType(f), f.isRequired || f.kind === 'object')
-          ]
-        ) {
-          filterTypes[
-            getFilterName(getFieldType(f), f.isRequired || f.kind === 'object')
-          ] = makeFilterType(
-            getFieldType(f),
+        const fieldType = getFieldType(f)
+        const filterName = getFilterName(
+          fieldType,
+          f.isRequired || f.kind === 'object',
+        )
+        if (!filterTypes[filterName]) {
+          filterTypes[filterName] = makeFilterType(
+            fieldType,
             f.isRequired,
             f.kind !== 'object',
             f.kind === 'enum',
@@ -163,21 +165,17 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
         }
 
         const typeList: DMMF.SchemaArgInputType[] = []
-        if (f.kind !== 'object') {
+        if (f.kind !== 'object' && f.type !== 'Json') {
           typeList.push({
             isList: f.isList,
             isRequired: false,
             isNullable: !f.isRequired,
             kind: f.kind,
-            type: getFieldType(f),
+            type: fieldType,
           })
         }
-        const type = getFilterName(
-          getFieldType(f),
-          f.isRequired || f.kind === 'object',
-        )
         typeList.push({
-          type,
+          type: filterName,
           isList: false,
           isRequired: false,
           isNullable: !f.isRequired,
@@ -207,10 +205,10 @@ function transformWhereInputTypes(document: DMMF.Document): DMMF.Document {
       })
 
     // NOTE: list scalar fields don't have where arguments!
-    relationFields.unshift(...filterTypesList)
+    fields.unshift(...filterTypesList)
     const newType: DMMF.InputType = {
       name: type.name,
-      fields: relationFields,
+      fields: fields,
       isWhereType: true,
       atLeastOne: false,
     }

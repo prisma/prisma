@@ -144,7 +144,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -155,7 +155,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -167,7 +167,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -178,7 +178,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -190,7 +190,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -202,7 +202,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -213,7 +213,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -224,7 +224,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -235,7 +235,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -247,7 +247,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -323,7 +323,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -334,7 +334,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -346,7 +346,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -357,7 +357,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -369,7 +369,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -381,7 +381,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -392,7 +392,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -403,7 +403,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -414,7 +414,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
@@ -426,7 +426,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | NullableStringFilter | null
           posts?: PostFilter
-          json?: Json | NullableJsonFilter | null
+          json?: NullableJsonFilter | null
           AND?: UserWhereInput
           OR?: UserWhereInput
           NOT?: UserWhereInput
