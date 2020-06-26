@@ -66,28 +66,9 @@ describe('json', () => {
       rootTypeName: 'query',
       rootField: 'findManyUser',
     })
-    expect(() => document.validate(select, false, 'user.findMany', 'colorless'))
-      .toThrowErrorMatchingInlineSnapshot(`
-      "
-      Invalid \`prisma.user.findMany()\` invocation:
-
-      {
-        where: {
-          json: {
-            hello: 'world'
-            ~~~~~
-          }
-        }
-      }
-
-      Unknown arg \`hello\` in where.json.hello for type JsonFilter. Did you mean \`select\`? Available args:
-      type JsonFilter {
-        equals?: Json
-        not?: Json | JsonFilter
-      }
-
-      "
-    `)
+    expect(() =>
+      document.validate(select, false, 'user.findMany', 'colorless'),
+    ).toThrowErrorMatchingSnapshot()
     expect(String(document)).toMatchInlineSnapshot(`
       "query {
         findManyUser(where: {

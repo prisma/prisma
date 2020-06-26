@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`json should reject directly querying json with the equals shortcut 1`] = `
+"
+Invalid \`prisma.user.findMany()\` invocation:
+
+{
+  where: {
+    json: {
+      hello: 'world'
+      ~~~~~
+    }
+  }
+}
+
+Unknown arg \`hello\` in where.json.hello for type JsonFilter. Did you mean \`select\`? Available args:
+type JsonFilter {
+  equals?: Json
+  not?: Json | JsonFilter
+}
+
+"
+`;
