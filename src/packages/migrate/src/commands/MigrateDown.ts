@@ -87,7 +87,7 @@ export class MigrateDown implements Command {
 
       // in this case it's a migration id
       if (isNaN(maybeNumber) || typeof maybeNumber !== 'number') {
-        throw new Error(`Invalid migration step ${maybeNumber}`)
+        throw new Error(`"${thisArg}" is not a valid migration step number`)
       } else {
         options.n = maybeNumber
       }
