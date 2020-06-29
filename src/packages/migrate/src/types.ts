@@ -112,7 +112,7 @@ export namespace EngineResults {
   }
   export interface ApplyMigration {
     datamodelSteps: DatamodelStep[]
-    databaseSteps: DatabaseStep[]
+    databaseSteps: DatabaseSteps[]
     warnings: Warning[]
     errors: any[]
     generalErrors: any[]
@@ -130,7 +130,7 @@ export namespace EngineResults {
   export interface StoredMigration {
     id: string
     datamodelSteps: DatamodelStep[]
-    databaseSteps: DatabaseStep[]
+    databaseSteps: DatabaseSteps[]
     status: MigrationStatus
     datamodel: string
   }
@@ -173,12 +173,16 @@ export interface LocalMigration extends Migration {
 export interface Migration {
   id: string
   datamodelSteps: DatamodelStep[]
-  databaseSteps?: DatabaseStep[]
+  databaseSteps?: DatabaseSteps[]
   datamodel: string
 }
 
+export interface DatabaseSteps {
+  step: DatabaseStep
+}
+
 export interface LocalMigrationWithDatabaseSteps extends LocalMigration {
-  databaseSteps: DatabaseStep[]
+  databaseSteps: DatabaseSteps[]
   warnings: EngineResults.Warning[]
 }
 

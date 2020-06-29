@@ -1,7 +1,7 @@
 import { createPatch } from 'diff'
 import getEmail from 'git-user-email'
 import getUserName from 'git-user-name'
-import { DatabaseStep } from '../types'
+import { DatabaseStep, DatabaseSteps } from '../types'
 import { printDetailedDatabaseSteps } from './printDatabaseSteps'
 import { maskSchema } from '@prisma/sdk'
 
@@ -10,7 +10,7 @@ export interface MigrationReadmeInput {
   lastMigrationId: string
   datamodelA: string
   datamodelB: string
-  databaseSteps: DatabaseStep[]
+  databaseSteps: DatabaseSteps[]
 }
 
 export function printMigrationReadme({

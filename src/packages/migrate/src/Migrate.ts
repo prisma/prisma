@@ -3,6 +3,7 @@ import {
   drawBox,
   getGenerators,
   ProviderAliases,
+  link,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
@@ -991,9 +992,11 @@ export class Migrate {
       )
 
       throw new Error(
-        `There are more migrations in the database than locally. This must not happen. Local migration ids: ${localMigrationIds.join(
-          ', ',
-        )}. Remote migration ids: ${remoteMigrationIds.join(', ')}`,
+        `There are more migrations in the database than locally. This must not happen. Local migration ids: ${
+          localMigrationIds.length > 0
+            ? localMigrationIds.join(', ')
+            : `(empty)`
+        }. Remote migration ids: ${remoteMigrationIds.join(', ')}`,
       )
     }
 
@@ -1119,7 +1122,7 @@ class ProgressRenderer {
       })
       .map((m, index) => {
         const maxLength = maxStepLength + maxMigrationLength
-        const paddingLeft = maxLength - stripAnsi(m.line).length + 2
+        const paddingLeft = maxLength - stripAnsi(m.line).length + 4
         const newLine = m.line + ' '.repeat(paddingLeft) + '  '
 
         if (
@@ -1151,6 +1154,7 @@ class ProgressRenderer {
       '  ' +
       chalk.underline(column2) +
       ' '.repeat(Math.max(0, maxStepLength - column2.length + 2)) +
+      '  ' +
       chalk.underline(column3) +
       '\n\n'
 
@@ -1160,10 +1164,15 @@ class ProgressRenderer {
     str += chalk.bold('\nDatabase Changes:\n\n')
     str += changeOverview
 
+    const migrationsIdsPaths = this.migrations.reduce((acc, m) => {
+      acc += `./migrations/${m.id}/README.md\n`
+      return acc
+    }, '')
     str += chalk.dim(
       `\n\nYou can get the detailed db changes with ${chalk.greenBright(
         'prisma migrate up --experimental --verbose',
-      )}\nOr read about them in the ./migrations/MIGRATION_ID/README.md`,
+      )}\nOr read about them here:
+      ${link(migrationsIdsPaths)}`,
     )
 
     if (this.logsName && this.logsString.length > 0) {
