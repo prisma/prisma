@@ -1,4 +1,5 @@
 import {
+  DatabaseSteps,
   DatabaseStep,
   // RawSqlStep,
   // DropTableStep,
@@ -10,7 +11,7 @@ import { darkBrightBlue } from '@prisma/sdk/dist//highlight/theme'
 import { highlightSql } from '@prisma/sdk'
 
 export function printDatabaseStepsOverview(
-  databaseSteps: DatabaseStep[],
+  databaseSteps: DatabaseSteps[],
 ): string {
   if (databaseSteps.length === 0) {
     return `No statements inferrable.`
@@ -37,7 +38,7 @@ export function highlightMigrationsSQL(
         .map(
           (migration) =>
             `-- Migration ${migration.id}\n` +
-            migration.databaseSteps.map((s) => s.raw).join('\n'),
+            migration.databaseSteps.map((it) => it.step.raw).join('\n'),
         )
         .join('\n\n') +
       '\n\n-- End Migrations',
@@ -45,9 +46,9 @@ export function highlightMigrationsSQL(
 }
 
 export function printDetailedDatabaseSteps(
-  databaseSteps: DatabaseStep[],
+  databaseSteps: DatabaseSteps[],
 ): string {
-  return databaseSteps.map((step) => step.raw).join('\n\n')
+  return databaseSteps.map((it) => it.step.raw).join('\n\n')
 }
 
 // const bold = (str) => str
@@ -87,7 +88,7 @@ type StepCounts = {
   CreateTable: number
 }
 
-function getStepCounts(databaseSteps: DatabaseStep[]): StepCounts {
+function getStepCounts(databaseSteps: DatabaseSteps[]): StepCounts {
   const stepCounts = {
     RawSql: 0,
     DropTable: 0,
@@ -95,8 +96,8 @@ function getStepCounts(databaseSteps: DatabaseStep[]): StepCounts {
     CreateTable: 0,
   }
 
-  for (const step of databaseSteps) {
-    const key = Object.keys(step)[0]
+  for (const it of databaseSteps) {
+    const key = Object.keys(it.step)[0]
     stepCounts[key]++
   }
 
