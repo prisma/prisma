@@ -33,12 +33,3 @@ export class Undici {
     })
   }
 }
-
-// const client = new Undici('http://localhost:5000')
-
-// async function main() {
-//   const result = await client.request({ hello: 'my wold' })
-//   console.log({ result })
-// }
-
-// main()
