@@ -179,6 +179,7 @@ export interface Migration {
 
 export interface DatabaseSteps {
   step: DatabaseStep
+  raw: String
 }
 
 export interface LocalMigrationWithDatabaseSteps extends LocalMigration {
@@ -188,18 +189,15 @@ export interface LocalMigrationWithDatabaseSteps extends LocalMigration {
 
 export interface RawSqlStep {
   RawSql: string
-  raw: string
 }
 
 export interface DropTableStep {
-  raw: string
   DropTable: {
     name: string
   }
 }
 
 export interface RenameTableStep {
-  raw: string
   RenameTable: {
     name: string
     new_name: string
@@ -207,7 +205,6 @@ export interface RenameTableStep {
 }
 
 export interface CreateTableStep {
-  raw: string
   CreateTable: {
     name: string
     columns: CreateColumn[]
@@ -216,7 +213,6 @@ export interface CreateTableStep {
 }
 
 export interface CreateColumn {
-  raw: string
   name: string
   tpe: string
   required: boolean
