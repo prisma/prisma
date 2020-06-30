@@ -25,7 +25,10 @@ import fs from 'fs'
 import chalk from 'chalk'
 import * as sqlTemplateTag from 'sql-template-tag'
 import { parse as parseDotEnv } from 'dotenv'
-import { GeneratorConfig } from '@prisma/generator-helper/dist/types'
+import {
+  GeneratorConfig,
+  DataSource,
+} from '@prisma/generator-helper/dist/types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
 import { lowerCase } from './utils/common'
@@ -34,7 +37,7 @@ import { Dataloader } from './Dataloader'
 import { printStack } from './utils/printStack'
 import stripAnsi from 'strip-ansi'
 import { printJsonWithErrors } from './utils/printJsonErrors'
-import { InternalDatasource } from './utils/printDatasources'
+import { ConnectorType } from './utils/printDatasources'
 import { omit } from './utils/omit'
 import { mapExperimentalFeatures } from '@prisma/sdk/dist/utils/mapExperimentalFeatures'
 import { serializeRawParameters } from './utils/serializeRawParameters'
@@ -140,7 +143,6 @@ export interface GetPrismaClientOptions {
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativePath: string
   dirname: string
-  internalDatasources: Omit<InternalDatasource, 'url'>[]
   clientVersion?: string
   engineVersion?: string
 }
@@ -156,10 +158,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     connectionPromise?: Promise<any>
     disconnectionPromise?: Promise<any>
     engineConfig: EngineConfig
-    internalDatasources: Omit<InternalDatasource, 'url'>[]
     private errorFormat: ErrorFormat
     private measurePerformance: boolean
     private hooks?: Hooks
+    private _getConfigPromise?: Promise<{
+      datasources: DataSource[]
+      generators: GeneratorConfig[]
+    }>
     constructor(optionsArg?: PrismaClientOptions) {
       const options: PrismaClientOptions = optionsArg ?? {}
       const internal = options.__internal ?? {}
@@ -208,8 +213,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       const envFile = this.readEnv()
 
       this.dmmf = new DMMFClass(config.document)
-
-      this.internalDatasources = config.internalDatasources
 
       let cwd = path.resolve(config.dirname, config.relativePath)
 
@@ -336,6 +339,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       })()
       return this.connectionPromise
     }
+    async _getConfig() {
+      if (!this._getConfigPromise) {
+        this._getConfigPromise = this.engine.getConfig()
+      }
+
+      return this._getConfigPromise
+    }
     /**
      * @private
      */
@@ -344,6 +354,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       delete this.connectionPromise
       this.engine = new NodeEngine(this.engineConfig)
       delete this.disconnectionPromise
+      delete this._getConfigPromise
     }
     /**
      * Disconnect from the database
@@ -355,6 +366,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return this.disconnectionPromise
     }
 
+    private async _getActiveProvider(): Promise<ConnectorType> {
+      const configResult = await this._getConfig()
+      return configResult.datasources[0].activeProvider!
+    }
+
     /**
      * Executes a raw query. Always returns a number
      */
@@ -363,9 +379,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       let parameters: any = undefined
 
       const sqlOutput =
-        this.internalDatasources[0]?.connectorType === 'postgresql'
-          ? 'text'
-          : 'sql'
+        (await this._getActiveProvider()) === 'postgresql' ? 'text' : 'sql'
 
       debug(`Prisma Client call:`)
       if (Array.isArray(stringOrTemplateStringsArray)) {
@@ -436,9 +450,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       let parameters: any = undefined
 
       const sqlOutput =
-        this.internalDatasources[0]?.connectorType === 'postgresql'
-          ? 'text'
-          : 'sql'
+        (await this._getActiveProvider()) === 'postgresql' ? 'text' : 'sql'
 
       debug(`Prisma Client call:`)
       if (Array.isArray(stringOrTemplateStringsArray)) {
