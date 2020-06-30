@@ -18,6 +18,8 @@ function getCommitEnvVar(name: string): string {
 }
 
 async function main() {
+  const buildOnly = process.argv[2] === '--build'
+
   if (process.env.BUILDKITE_TAG && !process.env.RELEASE_PROMOTE_DEV) {
     throw new Error(`When providing BUILDKITE_TAG, you also need to provide the env var RELEASE_PROMOTE_DEV, which
 has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
@@ -39,24 +41,43 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     })
   }
 
-  debug(`Installing dependencies, building packages`)
-
   const rawPackages = await getPackages()
   const packages = getPackageDependencies(rawPackages)
   const publishOrder = getPublishOrder(packages)
 
   console.log(publishOrder)
+  if (!buildOnly) {
+    debug(`Installing dependencies`)
 
-  await run(
-    '.',
-    `pnpm i --no-prefer-frozen-lockfile -r --ignore-scripts`,
-  ).catch((e) => {})
+    await run(
+      '.',
+      `pnpm i --no-prefer-frozen-lockfile -r --ignore-scripts`,
+    ).catch((e) => {})
+  }
+
+  debug(`Building packages`)
+
   for (const batch of publishOrder) {
-    await pMap(batch, async (pkgName) => {
-      const pkg = packages[pkgName]
-      const pkgDir = path.dirname(pkg.path)
-      await run(pkgDir, 'pnpm run build')
-    })
+    await pMap(
+      batch,
+      async (pkgName) => {
+        const pkg = packages[pkgName]
+        const pkgDir = path.dirname(pkg.path)
+        const runPromise = run(pkgDir, 'pnpm run build')
+
+        // we want to build all in build-only to see all errors at once
+        if (buildOnly) {
+          runPromise.catch(console.error)
+        }
+
+        await runPromise
+      },
+      { concurrency: 1 },
+    )
+  }
+
+  if (buildOnly) {
+    return
   }
 
   // this should not be necessary, it's an pnpm bug
