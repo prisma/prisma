@@ -38,7 +38,7 @@ export function highlightMigrationsSQL(
         .map(
           (migration) =>
             `-- Migration ${migration.id}\n` +
-            migration.databaseSteps.map((it) => it.step.raw).join('\n'),
+            migration.databaseSteps.map((it) => it.raw).join('\n'),
         )
         .join('\n\n') +
       '\n\n-- End Migrations',
@@ -48,7 +48,10 @@ export function highlightMigrationsSQL(
 export function printDetailedDatabaseSteps(
   databaseSteps: DatabaseSteps[],
 ): string {
-  return databaseSteps.map((it) => it.step.raw).join('\n\n')
+  return databaseSteps
+    .map((it) => it.raw)
+    .join('\n\n')
+    .replace(/"quaint"./g, '') // For SQLite output
 }
 
 // const bold = (str) => str
