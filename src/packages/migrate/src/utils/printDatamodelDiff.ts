@@ -1,4 +1,8 @@
-import { highlightDatamodel } from '@prisma/sdk'
+import {
+  highlightDatamodel,
+  trimBlocksFromSchema,
+  trimNewLine,
+} from '@prisma/sdk'
 import { diffLines, diffWords, Change } from 'diff'
 import chalk from 'chalk'
 import { strongGreen, strongRed } from './customColors'
@@ -9,7 +13,7 @@ export function printDatamodelDiff(
   rawDatamodelA: string,
   rawDatamodelB?: string,
 ): any {
-  const datamodelA = trimWholeBlocks(rawDatamodelA, [
+  const datamodelA = trimBlocksFromSchema(rawDatamodelA, [
     'source',
     'datasource',
     'generator',
@@ -17,7 +21,7 @@ export function printDatamodelDiff(
   if (!rawDatamodelB) {
     return highlightDatamodel(datamodelA)
   }
-  const datamodelB = trimWholeBlocks(rawDatamodelB, [
+  const datamodelB = trimBlocksFromSchema(rawDatamodelB, [
     'source',
     'datasource',
     'generator',
@@ -81,7 +85,7 @@ export function printDatamodelDiff(
         }
         return chalk.redBright(change.value)
       }
-      return highlightDatamodel(trimWholeBlocks(change.value))
+      return highlightDatamodel(trimBlocksFromSchema(change.value))
     })
     .join('\n')
     .trim()
@@ -109,70 +113,6 @@ function trimMultiEmptyLines(str: string): string {
   }
 
   return newLines.join('\n')
-}
-
-export function trimNewLine(str: string): string {
-  if (str === '') {
-    return str
-  }
-  let newStr = str
-  if (/\r?\n|\r/.exec(newStr[0])) {
-    newStr = newStr.slice(1)
-  }
-  if (newStr.length > 0 && /\r?\n|\r/.exec(newStr[newStr.length - 1])) {
-    newStr = newStr.slice(0, newStr.length - 1)
-  }
-  return newStr
-}
-
-type Position = {
-  start: number
-  end: number
-}
-
-function trimWholeBlocks(
-  str: string,
-  blocks = ['model', 'enum', 'datasource', 'generator'],
-): string {
-  const lines = str.split('\n')
-  if (lines.length <= 2) {
-    return str
-  }
-  const modelPositions: Position[] = []
-  let blockOpen = false
-  let currentStart = -1
-
-  lines.forEach((line, index) => {
-    const trimmed = line.trim()
-    // TODO: add support for enum etc
-    // maybe just by removing the startsWith
-    if (blocks.some((b) => line.startsWith(b)) && line.endsWith('{')) {
-      blockOpen = true
-      currentStart = index
-    }
-    if (trimmed.endsWith('}') && currentStart > -1 && blockOpen) {
-      modelPositions.push({
-        start: currentStart,
-        end: index,
-      })
-      blockOpen = false
-      currentStart = -1
-    }
-  })
-
-  if (modelPositions.length === 0) {
-    return str
-  }
-
-  return trimNewLine(
-    modelPositions
-      .reduceRight((acc, position) => {
-        acc.splice(position.start, position.end - position.start + 1)
-        return acc
-      }, lines)
-      .join('\n'),
-  )
-  // .trim()
 }
 
 // filter unnecessary space changes
