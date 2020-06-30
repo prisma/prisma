@@ -21,10 +21,10 @@ import EventEmitter from 'events'
 import { convertLog, RustLog, RustError } from './log'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import byline from './byline'
-import { H1Client } from './h1client'
 import pRetry from 'p-retry'
 import execa from 'execa'
 import { omit } from './omit'
+import { Undici } from './undici'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -124,7 +124,7 @@ export class NodeEngine {
   lastError?: RustError
   startPromise?: Promise<any>
   engineStartDeferred?: Deferred
-  h1Client: H1Client
+  undici: Undici
   constructor({
     cwd,
     datamodelPath,
@@ -154,7 +154,6 @@ export class NodeEngine {
     this.logQueries = logQueries || false
     this.clientVersion = clientVersion
     this.flags = flags || []
-    this.h1Client = new H1Client()
     this.enableExperimental = enableExperimental ?? []
     this.engineEndpoint = engineEndpoint
 
@@ -466,7 +465,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     return new Promise(async (resolve, reject) => {
       if (this.engineEndpoint) {
         try {
-          await pRetry(() => this.h1Client.status(this.port), {
+          await pRetry(() => this.undici.status(), {
             retries: 10,
           })
         } catch (e) {
@@ -554,7 +553,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               json.target === 'query_engine::server' &&
               json.fields?.message.startsWith('Started http server')
             ) {
-              // TODO: Add debug statement
+              this.undici = new Undici(`http://localhost:${this.port}`)
               this.engineStartDeferred.resolve()
               this.engineStartDeferred = undefined
               this.queryEngineStarted = true
@@ -571,7 +570,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         })
 
         this.child.on('exit', (code): void => {
-          this.h1Client.close()
+          this.undici?.close()
           this.exitCode = code
           if (
             !this.queryEngineKilled &&
@@ -655,7 +654,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         })
 
         this.child.on('close', (code, signal): void => {
-          this.h1Client.close()
+          this.undici?.close()
           if (code === null && signal === 'SIGABRT' && this.child) {
             const error = new PrismaClientRustPanicError(
               getErrorMessageWithLink({
@@ -730,7 +729,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     if (this.child) {
       debug(`Stopping Prisma engine`)
       this.queryEngineKilled = true
-      this.h1Client?.close()
+      this.undici?.close()
       this.child?.kill()
       delete this.child
     }
@@ -739,8 +738,8 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
   async kill(signal: string): Promise<void> {
     this.globalKillSignalReceived = signal
     this.queryEngineKilled = true
-    this.h1Client?.close()
     this.child?.kill()
+    this.undici?.close()
   }
 
   /**
@@ -804,10 +803,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       )
     }
 
-    this.currentRequestPromise = this.h1Client.request(
-      this.port,
-      stringifyQuery(query),
-    )
+    this.currentRequestPromise = this.undici.request(stringifyQuery(query))
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
@@ -845,10 +841,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       transaction,
     }
 
-    this.currentRequestPromise = this.h1Client.request(
-      this.port,
-      JSON.stringify(body),
-    )
+    this.currentRequestPromise = this.undici.request(JSON.stringify(body))
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
@@ -917,7 +910,8 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       }
     } else if (
       (error.code && error.code === 'ECONNRESET') ||
-      error.code === 'ECONNREFUSED'
+      error.code === 'ECONNREFUSED' ||
+      error.message.toLowerCase().includes('client is destroyed')
     ) {
       if (this.globalKillSignalReceived && !this.child.connected) {
         throw new PrismaClientUnknownRequestError(`The Node.js process already received a ${this.globalKillSignalReceived} signal, therefore the Prisma query engine exited
