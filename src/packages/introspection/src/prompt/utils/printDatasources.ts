@@ -19,7 +19,7 @@ export type Datasource =
 
 export interface InternalDatasource {
   name: string
-  connectorType: ConnectorType
+  provider: ConnectorType[]
   url: string
   config: any
 }
@@ -47,7 +47,7 @@ class InternalDataSourceClass {
   public toString(): string {
     const { dataSource } = this
     const obj = {
-      provider: dataSource.connectorType,
+      provider: dataSource.provider,
       url: dataSource.url,
     }
     if (dataSource.config && typeof dataSource.config === 'object') {
