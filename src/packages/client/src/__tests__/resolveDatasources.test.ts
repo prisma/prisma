@@ -53,7 +53,8 @@ const datasources: DataSource[] = [
       value: 'file:db.db',
       fromEnvVar: null,
     },
-    connectorType: 'sqlite',
+    activeProvider: 'sqlite',
+    provider: ['sqlite'],
     config: {},
   },
   {
@@ -62,7 +63,8 @@ const datasources: DataSource[] = [
       value: 'file:./some-dir/db.db',
       fromEnvVar: null,
     },
-    connectorType: 'sqlite',
+    activeProvider: 'sqlite',
+    provider: ['sqlite'],
     config: {},
   },
   {
@@ -71,7 +73,8 @@ const datasources: DataSource[] = [
       value: 'mysql:localhost',
       fromEnvVar: null,
     },
-    connectorType: 'mysql',
+    activeProvider: 'mysql',
+    provider: ['mysql'],
     config: {},
   },
   {
@@ -80,7 +83,8 @@ const datasources: DataSource[] = [
       value: 'postgresql://',
       fromEnvVar: null,
     },
-    connectorType: 'postgresql',
+    activeProvider: 'postgresql',
+    provider: ['postgresql'],
     config: {},
   },
 ]
@@ -90,36 +94,48 @@ test('resolveDatasources', () => {
     .toMatchInlineSnapshot(`
     Array [
       Object {
+        "activeProvider": "sqlite",
         "config": Object {},
-        "connectorType": "sqlite",
         "name": "db",
+        "provider": Array [
+          "sqlite",
+        ],
         "url": Object {
           "fromEnvVar": null,
           "value": "../../../../prisma/db.db",
         },
       },
       Object {
+        "activeProvider": "sqlite",
         "config": Object {},
-        "connectorType": "sqlite",
         "name": "db2",
+        "provider": Array [
+          "sqlite",
+        ],
         "url": Object {
           "fromEnvVar": null,
           "value": "../../../../prisma/some-dir/db.db",
         },
       },
       Object {
+        "activeProvider": "mysql",
         "config": Object {},
-        "connectorType": "mysql",
         "name": "db3",
+        "provider": Array [
+          "mysql",
+        ],
         "url": Object {
           "fromEnvVar": null,
           "value": "mysql:localhost",
         },
       },
       Object {
+        "activeProvider": "postgresql",
         "config": Object {},
-        "connectorType": "postgresql",
         "name": "db4",
+        "provider": Array [
+          "postgresql",
+        ],
         "url": Object {
           "fromEnvVar": null,
           "value": "postgresql://",

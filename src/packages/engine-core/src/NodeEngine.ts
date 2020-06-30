@@ -13,7 +13,7 @@ import path from 'path'
 import net from 'net'
 import fs from 'fs'
 import chalk from 'chalk'
-import { GeneratorConfig } from '@prisma/generator-helper'
+import { GeneratorConfig, DataSource } from '@prisma/generator-helper'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixBinaryTargets, plusX } from './util'
 import { promisify } from 'util'
@@ -24,6 +24,7 @@ import byline from './byline'
 import { H1Client } from './h1client'
 import pRetry from 'p-retry'
 import execa from 'execa'
+import { omit } from './omit'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -428,6 +429,38 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     return this.startPromise
   }
 
+  private async getEngineEnvVars() {
+    debug(`port: ${this.port}`)
+
+    const env: any = {
+      PRISMA_DML_PATH: this.datamodelPath,
+      PORT: String(this.port),
+      RUST_BACKTRACE: '1',
+      RUST_LOG: 'info',
+    }
+
+    if (this.logQueries || this.logLevel === 'info') {
+      env.RUST_LOG = 'info'
+      if (this.logQueries) {
+        env.LOG_QUERIES = 'true'
+      }
+    }
+
+    if (this.datasources) {
+      env.OVERWRITE_DATASOURCES = this.printDatasources()
+    }
+
+    if (!process.env.NO_COLOR && this.showColors) {
+      env.CLICOLOR_FORCE = '1'
+    }
+
+    return {
+      ...this.env, // user-provided env vars
+      ...process.env,
+      ...env,
+    }
+  }
+
   private internalStart(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
@@ -457,30 +490,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.lastPanic = undefined
         this.queryEngineKilled = false
         this.globalKillSignalReceived = undefined
-        this.port = await this.getFreePort()
-        debug(`port: ${this.port}`)
-
-        const env: any = {
-          PRISMA_DML_PATH: this.datamodelPath,
-          PORT: String(this.port),
-          RUST_BACKTRACE: '1',
-          RUST_LOG: 'info',
-        }
-
-        if (this.logQueries || this.logLevel === 'info') {
-          env.RUST_LOG = 'info'
-          if (this.logQueries) {
-            env.LOG_QUERIES = 'true'
-          }
-        }
-
-        if (this.datasources) {
-          env.OVERWRITE_DATASOURCES = this.printDatasources()
-        }
-
-        if (!process.env.NO_COLOR && this.showColors) {
-          env.CLICOLOR_FORCE = '1'
-        }
 
         debug({ cwd: this.cwd })
 
@@ -499,12 +508,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         ]
         debug({ flags })
 
+        this.port = await this.getFreePort()
+        const env = await this.getEngineEnvVars()
+
         this.child = spawn(prismaPath, flags, {
-          env: {
-            ...this.env, // user-provided env vars
-            ...process.env,
-            ...env,
-          },
+          env,
           cwd: this.cwd,
           stdio: ['ignore', 'pipe', 'pipe'],
         })
@@ -757,6 +765,22 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         })
       })
     })
+  }
+
+  async getConfig(): Promise<{
+    datasources: DataSource[]
+    generators: GeneratorConfig[]
+  }> {
+    const prismaPath = await this.getPrismaPath()
+
+    const env = await this.getEngineEnvVars()
+
+    const result = await execa(prismaPath, ['cli', 'get-config'], {
+      env: omit(env, ['PORT']),
+      cwd: this.cwd,
+    })
+
+    return JSON.parse(result.stdout)
   }
 
   async version() {

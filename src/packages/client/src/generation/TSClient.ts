@@ -257,14 +257,12 @@ export class TSClient implements Generatable {
       sqliteDatasourceOverrides,
       outputDir,
       schemaDir,
-      datasources,
     } = this.options
 
     const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
       generator,
       sqliteDatasourceOverrides,
       relativePath: path.relative(outputDir, schemaDir),
-      internalDatasources: datasources.map((d) => omit(d, ['url'])),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
     }
@@ -285,7 +283,7 @@ ${
 }
 
 /**
- * Annotation for Vercel
+ * Annotation for \`node-file-trace\`
 **/
 path.join(__dirname, 'schema.prisma');
 

@@ -49,14 +49,12 @@ export class Introspect implements Command {
   `)
 
   private printUrlAsDatasource(url: string): string {
-    const connectorType = databaseTypeToConnectorType(
-      uriToCredentials(url).type,
-    )
+    const provider = databaseTypeToConnectorType(uriToCredentials(url).type)
 
     return printDatasources([
       {
         config: {},
-        connectorType,
+        provider: [provider],
         name: 'db',
         url,
       },
