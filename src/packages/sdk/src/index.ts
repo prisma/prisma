@@ -62,3 +62,8 @@ export {
 
 export { extractExperimentalFeatures } from './utils/extractExperimentalFeatures'
 export { mapExperimentalFeatures } from './utils/mapExperimentalFeatures'
+export {
+  trimBlocksFromSchema,
+  Position,
+  trimNewLine,
+} from './utils/trimBlocksFromSchema'
