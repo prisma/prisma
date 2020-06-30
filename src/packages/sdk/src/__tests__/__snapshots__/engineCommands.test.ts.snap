@@ -11,8 +11,11 @@ exports[`getConfig with generator and datasource 1`] = `
 Object {
   "datasources": Array [
     Object {
-      "connectorType": "sqlite",
+      "activeProvider": "sqlite",
       "name": "db",
+      "provider": Array [
+        "sqlite",
+      ],
       "url": Object {
         "fromEnvVar": null,
         "value": "file:dev.db",
