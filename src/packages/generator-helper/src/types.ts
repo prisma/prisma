@@ -196,7 +196,7 @@ export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgresql'
 export interface DataSource {
   name: string
   activeProvider: ConnectorType
-  provider: Array<ConnectorType>
+  provider: ConnectorType[]
   url: EnvValue
   config: { [key: string]: string }
 }
