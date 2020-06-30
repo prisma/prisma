@@ -19,6 +19,7 @@ import { formatms } from '../util/formatms'
 import fs from 'fs'
 import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 import { printDatasources } from '../prompt/utils/printDatasources'
+import { removeDatasource } from '../util/removeDatasource'
 
 /**
  * $ prisma introspect
@@ -97,12 +98,17 @@ export class Introspect implements Command {
         )} file.`,
       )
     }
-    // TS at its limits 🤷‍♀️
-    const schema: string = url
-      ? this.printUrlAsDatasource(url)
-      : schemaPath
-      ? fs.readFileSync(schemaPath, 'utf-8')
-      : undefined!
+
+    let schema: string | undefined
+    if (url && schemaPath) {
+      schema = this.printUrlAsDatasource(url)
+      const rawSchema = fs.readFileSync(schemaPath!, 'utf-8')
+      schema += removeDatasource(rawSchema)
+    } else if (url) {
+      schema = this.printUrlAsDatasource(url)
+    } else {
+      schema = fs.readFileSync(schemaPath!, 'utf-8')
+    }
 
     const engine = new IntrospectionEngine({
       cwd: schemaPath ? path.dirname(schemaPath) : undefined,
@@ -267,7 +273,9 @@ Learn more about the upgrade process in the docs:\n${link(
           `\n// introspectionSchemaVersion: ${introspectionSchemaVersion}`,
           prisma1UpgradeMessage.replace(/(\n)/gm, '\n// '),
         )
-      console.error(introspectionWarningsMessage)
+      if (introspectionWarningsMessage.trim().length > 0) {
+        console.error(introspectionWarningsMessage)
+      }
     } else {
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)
