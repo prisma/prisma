@@ -344,8 +344,11 @@ describe('getConfig', () => {
       Object {
         "datasources": Array [
           Object {
-            "connectorType": "postgresql",
+            "activeProvider": "postgresql",
             "name": "db",
+            "provider": Array [
+              "postgresql",
+            ],
             "url": Object {
               "fromEnvVar": "TEST_POSTGRES_URI_FOR_DATASOURCE",
               "value": "postgres://user:password@something:5432/db",
@@ -372,8 +375,11 @@ describe('getConfig', () => {
       Object {
         "datasources": Array [
           Object {
-            "connectorType": "postgresql",
+            "activeProvider": "postgresql",
             "name": "db",
+            "provider": Array [
+              "postgresql",
+            ],
             "url": Object {
               "fromEnvVar": null,
               "value": "postgresql://",

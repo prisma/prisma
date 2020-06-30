@@ -90,14 +90,8 @@ module.exports = async () => {
   })
 
   // Make sure we're not leaking connection strings in node_modules
-  const internalDatasources = [
-    {
-      name: 'db',
-      connectorType: 'postgresql',
-    },
-  ]
 
-  assert.deepEqual(prisma.internalDatasources, internalDatasources)
+  assert.equal(prisma.internalDatasources, undefined)
 
   if (!prismaVersion || !prismaVersion.client) {
     throw new Error(`prismaVersion missing: ${JSON.stringify(prismaVersion)}`)
