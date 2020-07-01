@@ -5,6 +5,16 @@ const prisma = new PrismaClient({
 })
 
 async function main() {
+  ;(prisma as any).use('all', async ({ params, fetch }) => {
+    console.log(params.clientMethod, `before`, params)
+    const data = await fetch(params)
+    console.log(params.clientMethod, data)
+    data.push({
+      name: 'fake user',
+    })
+    console.log(params.clientMethod, `after`)
+    return data
+  })
   const users = await prisma.transaction([
     prisma.user.findMany({
       include: {
