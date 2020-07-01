@@ -1,4 +1,4 @@
-exports['should work with a custom output dir 1'] = [
+exports['generate should work with a custom output dir 1'] = [
   {
     "id": 1,
     "email": "bob@bob.bob",
