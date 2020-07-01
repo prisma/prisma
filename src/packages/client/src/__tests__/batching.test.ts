@@ -40,6 +40,11 @@ describe('batching', () => {
         isList: false,
         rootField: 'query',
         typeName: 'User',
+        args: {
+          where: {
+            id: '1',
+          },
+        },
       }),
       fetcher.request({
         clientMethod: 'findOne',
@@ -57,6 +62,11 @@ describe('batching', () => {
         isList: false,
         rootField: 'query',
         typeName: 'User',
+        args: {
+          where: {
+            id: '2',
+          },
+        },
       }),
     ])
 
@@ -125,6 +135,9 @@ describe('batching', () => {
         isList: false,
         rootField: 'query',
         typeName: 'User',
+        args: {
+          where: { id: '1' },
+        },
       }),
       fetcher.request({
         clientMethod: 'findOne',
@@ -142,6 +155,9 @@ describe('batching', () => {
         isList: false,
         rootField: 'query',
         typeName: 'User',
+        args: {
+          where: { id: '2' },
+        },
       }),
     ])
 
@@ -211,6 +227,7 @@ describe('batching', () => {
         isList: false,
         rootField: 'query',
         typeName: 'User',
+        args: { where: { email: 'a@a.de' } },
       }),
       fetcher.request({
         clientMethod: 'findOne',
@@ -228,6 +245,7 @@ describe('batching', () => {
         isList: false,
         rootField: 'query',
         typeName: 'User',
+        args: { where: { id: '2' } },
       }),
     ])
 

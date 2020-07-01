@@ -9,6 +9,8 @@ jest.setTimeout(35000)
 
 // TODO: Figure out the problem with debug
 
+process.setMaxListeners(100)
+
 describe('runtime works', () => {
   const subDirs = getSubDirs(__dirname)
   for (const dir of subDirs) {
