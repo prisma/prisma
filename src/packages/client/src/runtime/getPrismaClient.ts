@@ -93,14 +93,39 @@ export interface PrismaClientOptions {
   }
 }
 
+export type HookParams = {
+  query: string
+  path: string[]
+  rootField?: string
+  typeName?: string
+  document: any
+  clientMethod: string
+  args: any
+}
+
+export type HookPoint = 'all' | 'engine'
+
+export type EngineHookParams = {
+  document: Document
+  runInTransaction?: boolean
+}
+
+// only used by the .use() hooks
+export type AllHookArgs = {
+  params: HookParams
+  fetch: (params: HookParams) => Promise<any>
+}
+
+export type EngineHookArgs = {
+  params: EngineHookParams
+  fetch: (params: EngineHookParams) => Promise<any>
+}
+
+export type AllHookCallback = (args: AllHookArgs) => Promise<any>
+export type EngineHookCallback = (args: EngineHookArgs) => Promise<any>
+
 export type Hooks = {
-  beforeRequest?: (options: {
-    query: string
-    path: string[]
-    rootField?: string
-    typeName?: string
-    document: any
-  }) => any
+  beforeRequest?: (options: HookParams) => any
 }
 
 /* Types for Logging */
@@ -165,6 +190,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       datasources: DataSource[]
       generators: GeneratorConfig[]
     }>
+    private _allHookCb?: AllHookCallback
+    private _engineHookCb?: EngineHookCallback
     constructor(optionsArg?: PrismaClientOptions) {
       const options: PrismaClientOptions = optionsArg ?? {}
       const internal = options.__internal ?? {}
@@ -295,6 +322,26 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
       return {}
     }
+    use(namespace: 'all', cb: AllHookCallback)
+    use(namespace: 'engine', cb: EngineHookCallback)
+    use(namespace: HookPoint, cb: AllHookCallback | EngineHookCallback) {
+      if (namespace === 'all') {
+        if (this._allHookCb) {
+          console.error(
+            `WARNING: The "all" hook already has a callback. It will be overriden now`,
+          )
+        }
+        this._allHookCb = cb as AllHookCallback
+      }
+      if (namespace === 'engine') {
+        if (this._engineHookCb) {
+          console.error(
+            `WARNING: The "engine" hook already has a callback. It will be overriden now`,
+          )
+        }
+        this._engineHookCb = cb as EngineHookCallback
+      }
+    }
     on(eventType: any, callback: (event: any) => void) {
       this.engine.on(eventType, (event) => {
         const fields = event.fields
@@ -416,14 +463,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         debug(`prisma.executeRaw(${query})`)
       }
 
+      const select = { query, parameters }
+
       const document = makeDocument({
         dmmf: this.dmmf,
         rootField: 'executeRaw',
         rootTypeName: 'mutation',
-        select: {
-          query,
-          parameters,
-        },
+        select,
       })
 
       document.validate({ query, parameters }, false, 'raw', this.errorFormat)
@@ -439,6 +485,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         isList: false,
         dataPath: [],
         clientMethod: 'executeRaw',
+        engineHook: this._engineHookCb,
+        allHook: this._allHookCb,
+        args: select,
       })
     }
 
@@ -487,17 +536,16 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         debug(`prisma.queryRaw(${query})`)
       }
 
+      const select = { query, parameters }
+
       const document = makeDocument({
         dmmf: this.dmmf,
         rootField: 'queryRaw',
         rootTypeName: 'mutation',
-        select: {
-          query,
-          parameters,
-        },
+        select,
       })
 
-      document.validate({ query, parameters }, false, 'raw', this.errorFormat)
+      document.validate(select, false, 'raw', this.errorFormat)
 
       const docString = String(document)
       debug(`Generated request:`)
@@ -510,6 +558,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         isList: false,
         dataPath: [],
         clientMethod: 'queryRaw',
+        engineHook: this._engineHookCb,
+        allHook: this._allHookCb,
+        args: select,
       })
     }
 
@@ -601,6 +652,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   collectTimestamps,
                   callsite,
                   showColors,
+                  engineHook: this._engineHookCb,
+                  allHook: this._allHookCb,
+                  args,
                 })
               }
 
@@ -619,6 +673,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   callsite,
                   runInTransaction: true,
                   showColors,
+                  engineHook: this._engineHookCb,
+                  allHook: this._allHookCb,
+                  args,
                 })
               }
 
@@ -636,6 +693,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   collectTimestamps,
                   callsite,
                   showColors,
+                  engineHook: this._engineHookCb,
+                  allHook: this._allHookCb,
+                  args,
                 })
               }
 
@@ -653,6 +713,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   collectTimestamps,
                   callsite,
                   showColors,
+                  engineHook: this._engineHookCb,
+                  allHook: this._allHookCb,
+                  args,
                 })
               }
 
@@ -786,7 +849,7 @@ export class PrismaClientFetcher {
     })
   }
 
-  async request({
+  private async _request({
     document,
     dataPath = [],
     rootField,
@@ -797,6 +860,8 @@ export class PrismaClientFetcher {
     clientMethod,
     runInTransaction,
     showColors,
+    engineHook,
+    args,
   }: {
     document: Document
     dataPath: string[]
@@ -808,6 +873,8 @@ export class PrismaClientFetcher {
     collectTimestamps?: CollectTimestamps
     runInTransaction?: boolean
     showColors?: boolean
+    engineHook?: EngineHookCallback
+    args: any
   }) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -818,14 +885,38 @@ export class PrismaClientFetcher {
         typeName,
         document,
         isList,
+        clientMethod,
+        args,
       })
     }
     try {
       collectTimestamps && collectTimestamps.record('Pre-engine_request')
-      const { data, elapsed } = await this.dataloader.request({
-        document,
-        runInTransaction,
-      })
+      /**
+       * If there's an engine hook, use it here
+       */
+      let data, elapsed
+      if (engineHook) {
+        const result = await engineHook({
+          params: {
+            document,
+            runInTransaction,
+          },
+          fetch: (params) => this.dataloader.request(params),
+        })
+        data = result.data
+        elapsed = result.elapsed
+      } else {
+        const result = await this.dataloader.request({
+          document,
+          runInTransaction,
+        })
+        data = result.data
+        elapsed = result.elapsed
+      }
+
+      /**
+       * Unpack
+       */
       collectTimestamps && collectTimestamps.record('Post-engine_request')
       collectTimestamps && collectTimestamps.record('Pre-unpack')
       const unpackResult = this.unpack(document, data, dataPath, rootField)
@@ -865,6 +956,56 @@ export class PrismaClientFetcher {
 
       throw e
     }
+  }
+
+  async request(params: {
+    document: Document
+    dataPath: string[]
+    rootField: string
+    typeName: string
+    isList: boolean
+    clientMethod: string
+    callsite?: string
+    collectTimestamps?: CollectTimestamps
+    runInTransaction?: boolean
+    showColors?: boolean
+    engineHook?: EngineHookCallback
+    allHook?: AllHookCallback
+    args: any
+  }) {
+    if (params.allHook) {
+      const fetch = (userParams) => {
+        return this._request({
+          document: userParams.document,
+          dataPath: userParams.path,
+          rootField: userParams.rootField,
+          typeName: userParams.typeName,
+          isList: userParams.isList,
+          clientMethod: userParams.clientMethod,
+
+          callsite: params.callsite,
+          collectTimestamps: params.collectTimestamps,
+          runInTransaction: params.runInTransaction,
+          showColors: params.showColors,
+          engineHook: params.engineHook,
+          args: params.args,
+        })
+      }
+      return params.allHook({
+        fetch,
+        params: {
+          document: params.document,
+          path: params.dataPath,
+          rootField: params.rootField,
+          typeName: params.typeName,
+          clientMethod: params.clientMethod,
+          query: String(params.document),
+          args: params.args,
+        },
+      })
+    }
+
+    return this._request(params)
   }
   sanitizeMessage(message) {
     if (this.prisma.errorFormat && this.prisma.errorFormat !== 'pretty') {
