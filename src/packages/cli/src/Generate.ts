@@ -154,7 +154,30 @@ export class Generate implements Command {
       schemaPath,
     )}\n`
 
-    if (watchMode) {
+    if (!watchMode) {
+      const hint = `
+You can now start using Prisma Client in your code:
+
+\`\`\`
+${highlightTS(`\
+import { PrismaClient } from '@prisma/client'
+// or const { PrismaClient } = require('@prisma/client')
+
+const prisma = new PrismaClient()`)}
+\`\`\`
+
+Explore the full API: ${link('http://pris.ly/d/client')}`
+      const message =
+        '\n' +
+        this.logText +
+        (isJSClient && !this.hasGeneratorErrored ? hint : '')
+
+      if (this.hasGeneratorErrored) {
+        throw new Error(message)
+      } else {
+        return message
+      }
+    } else {
       logUpdate(watchingText + '\n' + this.logText)
 
       fs.watch(schemaPath, async (eventType) => {
@@ -190,24 +213,6 @@ export class Generate implements Command {
         }
       })
       await new Promise((_) => null) // eslint-disable-line @typescript-eslint/no-unused-vars
-    } else {
-      const hint = `
-You can now start using Prisma Client in your code:
-
-\`\`\`
-${highlightTS(`\
-import { PrismaClient } from '@prisma/client'
-// or const { PrismaClient } = require('@prisma/client')
-
-const prisma = new PrismaClient()`)}
-\`\`\`
-
-Explore the full API: ${link('http://pris.ly/d/client')}`
-      logUpdate(
-        '\n' +
-          this.logText +
-          (isJSClient && !this.hasGeneratorErrored ? hint : ''),
-      )
     }
 
     return ''
