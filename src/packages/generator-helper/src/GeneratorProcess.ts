@@ -24,6 +24,11 @@ export class GeneratorProcess {
   private exitCode: number | null = null
   private stderrLogs = ''
   private initPromise?: Promise<void>
+  private lastError?: Error
+  private currentGenerateDeferred?: {
+    resolve: (result: any) => void
+    reject: (error: Error) => void
+  }
   constructor(private executablePath: string) {}
   async init(): Promise<void> {
     if (!this.initPromise) {
@@ -45,10 +50,16 @@ export class GeneratorProcess {
 
         this.child.on('exit', (code) => {
           this.exitCode = code
+          if (code && code > 0 && this.currentGenerateDeferred) {
+            // print last 5 lines of stderr
+            this.currentGenerateDeferred.reject(
+              new Error(this.stderrLogs.split('\n').slice(-5).join('\n')),
+            )
+          }
         })
 
         this.child.on('error', (err) => {
-          debug(err)
+          this.lastError = err
           if (err.message.includes('EACCES')) {
             reject(
               new Error(
@@ -158,11 +169,16 @@ export class GeneratorProcess {
     return new Promise((resolve, reject) => {
       const messageId = this.getMessageId()
 
+      this.currentGenerateDeferred = { resolve, reject }
+
       this.registerListener(messageId, (result, error) => {
         if (error) {
-          return reject(error)
+          reject(error)
+          this.currentGenerateDeferred = undefined
+          return
         }
         resolve(result)
+        this.currentGenerateDeferred = undefined
       })
 
       this.sendMessage({
