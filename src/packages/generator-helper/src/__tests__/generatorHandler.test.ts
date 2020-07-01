@@ -38,6 +38,18 @@ describe('generatorHandler', () => {
   //     )
   //   }).toThrow('is not executable')
   // })
+  test('exiting', async () => {
+    const generator = new GeneratorProcess(
+      path.join(__dirname, 'exiting-executable'),
+    )
+    await generator.init()
+    try {
+      await generator.generate(stubOptions)
+      generator.stop()
+    } catch (e) {
+      expect(e.message).toContain('Console error before exit')
+    }
+  })
   test('parsing error', async () => {
     const generator = new GeneratorProcess(
       path.join(__dirname, 'invalid-executable'),
