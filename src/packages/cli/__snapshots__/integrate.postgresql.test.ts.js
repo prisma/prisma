@@ -15,10 +15,6 @@ model posts {
   title String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne - check typeof array for Json field with array_warnings'] = []
@@ -39,10 +35,6 @@ model teams {
   name String @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne where PK_warnings'] = []
@@ -64,10 +56,6 @@ model teams {
   name  String @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne where PK with select_warnings'] = []
@@ -96,10 +84,6 @@ model users {
   posts posts[]
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne where PK with include_warnings'] = []
@@ -120,10 +104,6 @@ model teams {
   name String @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['create with data_warnings'] = []
@@ -144,10 +124,6 @@ model teams {
   name String @default("alice")
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['create with empty data and SQL default_warnings'] = []
@@ -168,10 +144,6 @@ model teams {
   name String @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['update where with numeric data_warnings'] = []
@@ -193,10 +165,6 @@ model teams {
   name   String  @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['update where with boolean data_warnings'] = []
@@ -218,10 +186,6 @@ model teams {
   name   String  @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['update where with boolean data and select_warnings'] = []
@@ -242,10 +206,6 @@ model teams {
   name String @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['update where with string data_warnings'] = []
@@ -266,10 +226,6 @@ model teams {
   name String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['updateMany where with string data - check returned count_warnings'] = []
@@ -290,10 +246,6 @@ model teams {
   name String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['updateMany where with string data - check findMany_warnings'] = []
@@ -314,10 +266,6 @@ model users {
   id    Int    @default(autoincrement()) @id
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne where unique_warnings'] = []
@@ -341,10 +289,6 @@ model users {
   @@unique([email, name], name: "users_email_name_key")
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne where composite unique_warnings'] = []
@@ -368,10 +312,6 @@ model users {
   @@unique([email, name], name: "users_email_name_key")
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['update where composite unique_warnings'] = []
@@ -395,10 +335,6 @@ model users {
   @@unique([email, name], name: "users_email_name_key")
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['delete where composite unique_warnings'] = []
@@ -419,10 +355,6 @@ model users {
   id    Int     @default(autoincrement()) @id
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany - email text_warnings'] = []
@@ -443,10 +375,6 @@ model users {
   id    Int    @default(autoincrement()) @id
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where unique_warnings'] = []
@@ -467,10 +395,6 @@ model users {
   id    Int    @default(autoincrement()) @id
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany - email varchar(50) not null unique_warnings'] = []
@@ -499,10 +423,6 @@ model users {
   posts posts[]
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne where unique with foreign key and unpack_warnings'] = []
@@ -524,10 +444,6 @@ model posts {
   title     String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where contains and boolean_warnings'] = []
@@ -549,10 +465,6 @@ model posts {
   title     String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where OR[contains, contains] _warnings'] = []
@@ -574,10 +486,6 @@ model posts {
   title     String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['upsert (update)_warnings'] = []
@@ -599,10 +507,6 @@ model posts {
   title     String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['upsert (create)_warnings'] = []
@@ -624,10 +528,6 @@ model posts {
   title     String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany orderBy asc_warnings'] = []
@@ -649,10 +549,6 @@ model posts {
   title     String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany orderBy desc_warnings'] = []
@@ -674,15 +570,11 @@ model posts {
   title     String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 enum posts_status {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['findMany - default enum_warnings'] = []
@@ -704,15 +596,11 @@ model posts {
   title     String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 enum posts_status {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['update with data - not null enum_warnings'] = []
@@ -734,15 +622,11 @@ model posts {
   title     String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 enum posts_status {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['updateMany with data - not null enum - check count_warnings'] = []
@@ -764,15 +648,11 @@ model posts {
   title     String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 enum posts_status {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['update with data - not null enum - check findMany_warnings'] = []
@@ -794,15 +674,11 @@ model posts {
   title     String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 enum posts_status {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['deleteMany where enum - check count_warnings'] = []
@@ -824,15 +700,11 @@ model posts {
   title     String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 enum posts_status {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['deleteMany where enum - check findMany_warnings'] = []
@@ -854,10 +726,6 @@ model crons {
   job       String  @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where contains_warnings'] = []
@@ -879,10 +747,6 @@ model crons {
   job       String  @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where startsWith_warnings'] = []
@@ -904,10 +768,6 @@ model crons {
   job       String  @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where endsWith_warnings'] = []
@@ -929,10 +789,6 @@ model crons {
   job       String  @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where in[string]_warnings'] = []
@@ -954,10 +810,6 @@ model posts {
   title      String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where datetime lte - check instanceof Date_warnings'] = []
@@ -979,10 +831,6 @@ model posts {
   title      String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where timestamp gte than now_warnings'] = []
@@ -1004,10 +852,6 @@ model posts {
   title      String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where timestamp gt than now_warnings'] = []
@@ -1029,10 +873,6 @@ model posts {
   title      String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where timestamp lt than now_warnings'] = []
@@ -1053,10 +893,6 @@ model teams {
   token Int @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['update where integer data_warnings'] = []
@@ -1077,10 +913,6 @@ model events {
   time DateTime?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where datetime exact_warnings'] = []
@@ -1101,10 +933,6 @@ model events {
   time DateTime?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where datetime gt_warnings'] = []
@@ -1125,10 +953,6 @@ model events {
   time DateTime?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where datetime gte_warnings'] = []
@@ -1149,10 +973,6 @@ model events {
   time DateTime?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where datetime lt_warnings'] = []
@@ -1173,10 +993,6 @@ model events {
   time DateTime?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where datetime lte_warnings'] = []
@@ -1197,10 +1013,6 @@ model events {
   time DateTime?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where datetime not_warnings'] = []
@@ -1221,10 +1033,6 @@ model events {
   time DateTime?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where null_warnings'] = []
@@ -1246,10 +1054,6 @@ model teams {
   token Int    @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where empty in[]_warnings'] = []
@@ -1271,10 +1075,6 @@ model teams {
   token Int    @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where id empty in[] and token in[]_warnings'] = []
@@ -1296,10 +1096,6 @@ model teams {
   token Int    @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where in[integer]_warnings'] = []
@@ -1321,10 +1117,6 @@ model teams {
   token Int    @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where notIn[]_warnings'] = []
@@ -1346,10 +1138,6 @@ model teams {
   token Int    @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where empty notIn[]_warnings'] = []
@@ -1370,10 +1158,6 @@ model users {
   id    Int    @default(autoincrement()) @id
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where - case insensitive field_warnings'] = []
@@ -1394,10 +1178,6 @@ model exercises {
   id       Int   @default(autoincrement()) @id
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findMany where decimal_warnings'] = []
@@ -1418,10 +1198,6 @@ model exercises {
   id       Int   @default(autoincrement()) @id
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne where decimal_warnings'] = []
@@ -1442,10 +1218,6 @@ model exercises {
   id       Int   @default(autoincrement()) @id
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne where decimal - default value_warnings'] = []
@@ -1465,10 +1237,6 @@ model migrate {
   version Int @id
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['create bigint data_warnings'] = []
@@ -1493,10 +1261,6 @@ model variables {
   @@id([name, key])
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne where composite PK_warnings'] = []
@@ -1521,10 +1285,6 @@ model variables {
   @@id([name, key])
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['update where composite PK_warnings'] = []
@@ -1549,10 +1309,6 @@ model variables {
   @@id([name, key])
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['upsert where composite PK - update_warnings'] = []
@@ -1577,10 +1333,6 @@ model variables {
   @@id([name, key])
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['upsert where composite PK - create_warnings'] = []
@@ -1605,10 +1357,6 @@ model variables {
   @@id([name, key])
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['delete where composite PK_warnings'] = []
@@ -1634,10 +1382,6 @@ model variables {
   @@unique([name, key], name: "variables_name_key_key")
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne where unique composite_warnings'] = []
@@ -1663,10 +1407,6 @@ model variables {
   @@unique([value, email], name: "variables_value_email_key")
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne where unique composite (PK is a composite)_warnings'] = []
@@ -1697,10 +1437,6 @@ model b {
   a   a   @relation(fields: [one, two], references: [one, two])
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne where composite PK with foreign key_warnings'] = []
@@ -1721,10 +1457,6 @@ model teams {
   name String?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['updateMany where null - check findMany_warnings'] = []
@@ -1763,17 +1495,13 @@ model unsupported_type {
   // unsupported geometric?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 enum invalid_enum {
   // $§! @map("$§!")
   // 123 @map("123")
   N
   Y
 }
+
 `
 
 exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
@@ -1840,10 +1568,6 @@ model posts {
   title String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne - check typeof js object is object for Json field_warnings'] = []
@@ -1865,10 +1589,6 @@ model posts {
   title String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
 `
 
 exports['findOne - check typeof Date is string for Json field_warnings'] = []
