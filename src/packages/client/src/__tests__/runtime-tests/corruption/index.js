@@ -10,7 +10,7 @@ module.exports = async () => {
     'node_modules/.prisma/client',
     `query-engine-${platform}`,
   )
-  fs.truncateSync(binaryPath, 500)
+  fs.writeFileSync(binaryPath, 'hello world')
 
   const prisma = new PrismaClient({
     log: [
