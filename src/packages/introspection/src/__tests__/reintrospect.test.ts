@@ -46,7 +46,8 @@ describe('introspect', () => {
         name    String?
         Post    Post[]
         Profile Profile?
-      }",
+      }
+      ",
         "
       // introspectionSchemaVersion: Prisma2",
         "",
@@ -98,7 +99,8 @@ describe('introspect', () => {
         name    String?
         posts   Post[]
         profile Profile?
-      }",
+      }
+      ",
         "
       // introspectionSchemaVersion: Prisma2",
         "",
@@ -155,7 +157,8 @@ describe('introspect', () => {
         name    String?
         posts   Post[]
         profile Profile?
-      }",
+      }
+      ",
         "
       // introspectionSchemaVersion: Prisma2",
         "",
