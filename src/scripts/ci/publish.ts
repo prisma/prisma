@@ -375,14 +375,12 @@ async function getNewPatchDevVersion(
   const newVersion = `2.${minor}.${newPatch}`
   const versions = [...(await getAllVersions(packages, 'dev', newVersion))]
   const maxIncrement = getMaxPatchVersionIncrement(versions)
-  console.log({ versions, maxIncrement, newVersion })
 
   return `${newVersion}-dev.${maxIncrement + 1}`
 }
 
 function getDevVersionIncrements(versions: string[]): number[] {
   const regex = /2\.\d+\.\d+-dev\.(\d+)/
-  console.log({ versionss: versions })
   return versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {

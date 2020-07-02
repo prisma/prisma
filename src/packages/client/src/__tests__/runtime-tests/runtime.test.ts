@@ -4,6 +4,7 @@ import { generateInFolder } from '../../utils/generateInFolder'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
 import stripAnsi from 'strip-ansi'
+import { getPackedPackage } from '@prisma/sdk'
 const del = promisify(rimraf)
 
 jest.setTimeout(35000)
@@ -13,27 +14,42 @@ jest.setTimeout(35000)
 process.setMaxListeners(100)
 
 let subDirs = getSubDirs(__dirname)
-const folderFilter = process.argv.length > 3 ? process.argv[3] : null
-if (folderFilter) {
-  subDirs = subDirs.filter((dir) => dir.includes(folderFilter))
-  console.log(
-    `As ${folderFilter} is provided, only ${subDirs.join(
-      ', ',
-    )} is being tested`,
-  )
+const folderFilter = process.argv.length === 4 ? process.argv[3] : null
+
+if (
+  folderFilter &&
+  !['--', '-u'].includes(folderFilter) &&
+  /[\w-]+/.test(folderFilter)
+) {
+  const dirsLeft = subDirs.filter((dir) => dir.includes(folderFilter))
+  if (dirsLeft.length > 0) {
+    subDirs = dirsLeft
+    console.log(
+      `As ${folderFilter} is provided, only ${subDirs.join(
+        ', ',
+      )} is being tested`,
+    )
+  }
 }
 
-console.log({ subDirs })
+subDirs = subDirs.map((d) => path.relative(__dirname, d))
 
-for (const dir of subDirs) {
-  const nodeModules = path.join(dir, 'node_modules')
-  const testName = path.basename(dir)
-  const shouldSucceed = shouldTestSucceed(dir)
+let packageSource: string
+beforeAll(async () => {
+  packageSource = (await getPackedPackage('@prisma/client')) as string
+})
 
-  const testTitle = `${testName} example should${
-    shouldSucceed ? '' : ' not'
-  } succeed`
-  test.concurrent(testTitle, async () => {
+describe('runtime', () => {
+  test.each(subDirs)('%s', async (dir) => {
+    dir = path.join(__dirname, dir)
+    const nodeModules = path.join(dir, 'node_modules')
+    const testName = path.basename(dir)
+    const shouldSucceed = shouldTestSucceed(dir)
+
+    const testTitle = `${testName} example should${
+      shouldSucceed ? '' : ' not'
+    } succeed`
+    // test.concurrent(testTitle, async (expect) => {
     if (fs.existsSync(nodeModules)) {
       await del(nodeModules)
     }
@@ -44,6 +60,7 @@ for (const dir of subDirs) {
       projectDir: dir,
       useLocalRuntime: false,
       transpile: true,
+      packageSource,
     })
 
     if (envVars) {
@@ -64,12 +81,18 @@ for (const dir of subDirs) {
         // https://regex101.com/r/GPVRYg/1/
         // remove the paths, so the tests can succeed on any machine
         expect(
-          stripAnsi(e.message).replace(/(\/[\/\S+]+)/gm, ''),
+          stripAnsi(e.message)
+            .replace(/(\/[\/\S+]+)/gm, '')
+            .replace(/current\s+platform\s+\"\S\"/gim, 'current platform')
+            .replace(/the\s+platform\s+\"\S\"/gim, 'the platform X'),
         ).toMatchSnapshot(testTitle)
       }
     }
+    // })
   })
-}
+})
+// for (const dir of subDirs) {
+// }
 
 function getSubDirs(dir: string): string[] {
   const files = fs.readdirSync(dir)

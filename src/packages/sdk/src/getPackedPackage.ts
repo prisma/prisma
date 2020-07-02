@@ -15,12 +15,9 @@ const del = promisify(rimraf)
 
 export async function getPackedPackage(
   name: string,
-  target: string,
+  target?: string,
   packageDir?: string,
-): Promise<void> {
-  if (!target) {
-    throw new Error(`Error in getPackage: Please provide a target`)
-  }
+): Promise<string | void> {
   packageDir =
     packageDir ||
     resolvePkg(name, { cwd: __dirname }) ||
@@ -61,18 +58,25 @@ export async function getPackedPackage(
 
   await del(archivePath)
 
-  // make target dir
-  await makeDir(target)
+  /**
+   * Only if a target is provided, perform the copy
+   */
+  if (target) {
+    // make target dir
+    await makeDir(target)
 
-  // copy stuff over
-  await copy({
-    from: path.join(tmpDir, 'package'), // when using yarn pack and extracting it, it includes a folder called "package"
-    to: target,
-    recursive: true,
-    parallelJobs: 20,
-    overwrite: true,
-  })
+    // copy stuff over
+    await copy({
+      from: path.join(tmpDir, 'package'), // when using yarn pack and extracting it, it includes a folder called "package"
+      to: target,
+      recursive: true,
+      parallelJobs: 20,
+      overwrite: true,
+    })
 
-  // delete tmp dir
-  await del(tmpDir)
+    // delete tmp dir
+    await del(tmpDir)
+  }
+
+  return path.join(tmpDir, 'package')
 }
