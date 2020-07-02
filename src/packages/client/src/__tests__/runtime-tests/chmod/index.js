@@ -1,9 +1,7 @@
 const { PrismaClient } = require('@prisma/client')
-const assert = require('assert')
 const { getPlatform } = require('@prisma/get-platform')
 const fs = require('fs')
 const path = require('path')
-const stripAnsi = require('strip-ansi')
 
 module.exports = async () => {
   const platform = await getPlatform()
