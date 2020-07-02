@@ -3,6 +3,7 @@ import path from 'path'
 import { generateInFolder } from '../../utils/generateInFolder'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
+import os from 'os'
 const del = promisify(rimraf)
 
 jest.setTimeout(35000)
@@ -11,50 +12,58 @@ jest.setTimeout(35000)
 
 process.setMaxListeners(100)
 
-describe('runtime works', () => {
-  const subDirs = getSubDirs(__dirname)
-  for (const dir of subDirs) {
-    const nodeModules = path.join(dir, 'node_modules')
-    const testName = path.basename(dir)
-    const shouldSucceed = shouldTestSucceed(dir)
+let subDirs = getSubDirs(__dirname)
+const folderFilter = process.argv.length > 3 ? process.argv[3] : null
+if (folderFilter) {
+  subDirs = subDirs.filter((dir) => dir.includes(folderFilter))
+  console.log(
+    `As ${folderFilter} is provided, only ${subDirs.join(
+      ', ',
+    )} is being tested`,
+  )
+}
 
-    const testTitle = `${testName} example should${
-      shouldSucceed ? '' : ' not'
-    } succeed`
-    test(testTitle, async () => {
-      if (fs.existsSync(nodeModules)) {
-        await del(nodeModules)
-      }
-      const envVars = getEnvVars(dir)
-      process.env = { ...process.env, ...envVars }
+for (const dir of subDirs) {
+  const nodeModules = path.join(dir, 'node_modules')
+  const testName = path.basename(dir)
+  const shouldSucceed = shouldTestSucceed(dir)
 
-      await generateInFolder({
-        projectDir: dir,
-        useLocalRuntime: false,
-        transpile: true,
-      })
+  const testTitle = `${testName} example should${
+    shouldSucceed ? '' : ' not'
+  } succeed`
+  test.concurrent(testTitle, async () => {
+    if (fs.existsSync(nodeModules)) {
+      await del(nodeModules)
+    }
+    const envVars = getEnvVars(dir)
+    process.env = { ...process.env, ...envVars }
 
-      if (envVars) {
-        for (const key of Object.keys(envVars)) {
-          delete process.env[key]
-        }
-      }
-
-      const filePath = path.join(dir, 'index.js')
-      const fn = require(filePath)
-
-      if (shouldSucceed) {
-        expect(await fn()).toMatchSnapshot(testTitle)
-      } else {
-        try {
-          await fn()
-        } catch (e) {
-          expect(e).toMatchSnapshot(testTitle)
-        }
-      }
+    await generateInFolder({
+      projectDir: dir,
+      useLocalRuntime: false,
+      transpile: true,
     })
-  }
-})
+
+    if (envVars) {
+      for (const key of Object.keys(envVars)) {
+        delete process.env[key]
+      }
+    }
+
+    const filePath = path.join(dir, 'index.js')
+    const fn = require(filePath)
+
+    if (shouldSucceed) {
+      expect(await fn()).toMatchSnapshot(testTitle)
+    } else {
+      try {
+        await fn()
+      } catch (e) {
+        expect(e).toMatchSnapshot(testTitle)
+      }
+    }
+  })
+}
 
 function getSubDirs(dir: string): string[] {
   const files = fs.readdirSync(dir)
