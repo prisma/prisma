@@ -365,6 +365,7 @@ Object {
             "name": "email_not_ends_with",
           },
         ],
+        "isOneOf": false,
         "name": "UserWhereInput",
       },
       Object {
@@ -380,6 +381,7 @@ Object {
             "name": "email",
           },
         ],
+        "isOneOf": true,
         "name": "UserWhereUniqueInput",
       },
       Object {
@@ -405,6 +407,7 @@ Object {
             "name": "email",
           },
         ],
+        "isOneOf": false,
         "name": "UserCreateInput",
       },
       Object {
@@ -430,6 +433,7 @@ Object {
             "name": "email",
           },
         ],
+        "isOneOf": false,
         "name": "UserUpdateInput",
       },
       Object {
@@ -455,6 +459,7 @@ Object {
             "name": "email",
           },
         ],
+        "isOneOf": false,
         "name": "UserUpdateManyMutationInput",
       },
     ],
@@ -1636,6 +1641,7 @@ Object {
             "name": "posts_none",
           },
         ],
+        "isOneOf": false,
         "name": "UserWhereInput",
       },
       Object {
@@ -2001,6 +2007,7 @@ Object {
             "name": "author",
           },
         ],
+        "isOneOf": false,
         "name": "PostWhereInput",
       },
       Object {
@@ -2026,6 +2033,7 @@ Object {
             "name": "title",
           },
         ],
+        "isOneOf": false,
         "name": "AuthorIdTitleCompoundUniqueInput",
       },
       Object {
@@ -2041,6 +2049,7 @@ Object {
             "name": "authorId_title",
           },
         ],
+        "isOneOf": true,
         "name": "PostWhereUniqueInput",
       },
       Object {
@@ -2066,6 +2075,7 @@ Object {
             "name": "email",
           },
         ],
+        "isOneOf": true,
         "name": "UserWhereUniqueInput",
       },
       Object {
@@ -2481,6 +2491,7 @@ Object {
             "name": "isAdmin_not",
           },
         ],
+        "isOneOf": false,
         "name": "User1WhereInput",
       },
       Object {
@@ -2506,6 +2517,7 @@ Object {
             "name": "lastName",
           },
         ],
+        "isOneOf": false,
         "name": "FirstNameLastNameCompoundUniqueInput",
       },
       Object {
@@ -2521,6 +2533,7 @@ Object {
             "name": "firstName_lastName",
           },
         ],
+        "isOneOf": true,
         "name": "User1WhereUniqueInput",
       },
       Object {
@@ -2936,6 +2949,7 @@ Object {
             "name": "isAdmin_not",
           },
         ],
+        "isOneOf": false,
         "name": "User2WhereInput",
       },
       Object {
@@ -2971,6 +2985,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "FirstNameLastNameIsAdminCompoundUniqueInput",
       },
       Object {
@@ -2986,6 +3001,7 @@ Object {
             "name": "firstName_lastName_isAdmin",
           },
         ],
+        "isOneOf": true,
         "name": "User2WhereUniqueInput",
       },
       Object {
@@ -3001,6 +3017,7 @@ Object {
             "name": "email",
           },
         ],
+        "isOneOf": false,
         "name": "UserCreateWithoutPostsInput",
       },
       Object {
@@ -3026,6 +3043,7 @@ Object {
             "name": "connect",
           },
         ],
+        "isOneOf": false,
         "name": "UserCreateOneWithoutPostsInput",
       },
       Object {
@@ -3071,6 +3089,7 @@ Object {
             "name": "author",
           },
         ],
+        "isOneOf": false,
         "name": "PostCreateInput",
       },
       Object {
@@ -3096,6 +3115,7 @@ Object {
             "name": "email",
           },
         ],
+        "isOneOf": false,
         "name": "UserUpdateWithoutPostsDataInput",
       },
       Object {
@@ -3121,6 +3141,7 @@ Object {
             "name": "create",
           },
         ],
+        "isOneOf": false,
         "name": "UserUpsertWithoutPostsInput",
       },
       Object {
@@ -3166,6 +3187,7 @@ Object {
             "name": "upsert",
           },
         ],
+        "isOneOf": false,
         "name": "UserUpdateOneRequiredWithoutPostsInput",
       },
       Object {
@@ -3211,6 +3233,7 @@ Object {
             "name": "author",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateInput",
       },
       Object {
@@ -3246,6 +3269,7 @@ Object {
             "name": "published",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateManyMutationInput",
       },
       Object {
@@ -3281,6 +3305,7 @@ Object {
             "name": "published",
           },
         ],
+        "isOneOf": false,
         "name": "PostCreateWithoutAuthorInput",
       },
       Object {
@@ -3306,6 +3331,7 @@ Object {
             "name": "connect",
           },
         ],
+        "isOneOf": false,
         "name": "PostCreateManyWithoutAuthorInput",
       },
       Object {
@@ -3331,6 +3357,7 @@ Object {
             "name": "posts",
           },
         ],
+        "isOneOf": false,
         "name": "UserCreateInput",
       },
       Object {
@@ -3366,6 +3393,7 @@ Object {
             "name": "published",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateWithoutAuthorDataInput",
       },
       Object {
@@ -3391,6 +3419,7 @@ Object {
             "name": "data",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateWithWhereUniqueWithoutAuthorInput",
       },
       Object {
@@ -3746,6 +3775,7 @@ Object {
             "name": "published_not",
           },
         ],
+        "isOneOf": false,
         "name": "PostScalarWhereInput",
       },
       Object {
@@ -3781,6 +3811,7 @@ Object {
             "name": "published",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateManyDataInput",
       },
       Object {
@@ -3806,6 +3837,7 @@ Object {
             "name": "data",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateManyWithWhereNestedInput",
       },
       Object {
@@ -3841,6 +3873,7 @@ Object {
             "name": "create",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpsertWithWhereUniqueWithoutAuthorInput",
       },
       Object {
@@ -3936,6 +3969,7 @@ Object {
             "name": "upsert",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateManyWithoutAuthorInput",
       },
       Object {
@@ -3971,6 +4005,7 @@ Object {
             "name": "posts",
           },
         ],
+        "isOneOf": false,
         "name": "UserUpdateInput",
       },
       Object {
@@ -3996,6 +4031,7 @@ Object {
             "name": "email",
           },
         ],
+        "isOneOf": false,
         "name": "UserUpdateManyMutationInput",
       },
       Object {
@@ -4041,6 +4077,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "User1CreateInput",
       },
       Object {
@@ -4086,6 +4123,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "User1UpdateInput",
       },
       Object {
@@ -4131,6 +4169,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "User1UpdateManyMutationInput",
       },
       Object {
@@ -4176,6 +4215,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "User2CreateInput",
       },
       Object {
@@ -4221,6 +4261,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "User2UpdateInput",
       },
       Object {
@@ -4266,6 +4307,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "User2UpdateManyMutationInput",
       },
     ],
@@ -6669,6 +6711,7 @@ Object {
             "name": "posts_none",
           },
         ],
+        "isOneOf": false,
         "name": "UserWhereInput",
       },
       Object {
@@ -7034,6 +7077,7 @@ Object {
             "name": "author",
           },
         ],
+        "isOneOf": false,
         "name": "PostWhereInput",
       },
       Object {
@@ -7059,6 +7103,7 @@ Object {
             "name": "title",
           },
         ],
+        "isOneOf": false,
         "name": "AuthorIdTitleCompoundUniqueInput",
       },
       Object {
@@ -7074,6 +7119,7 @@ Object {
             "name": "authorId_title",
           },
         ],
+        "isOneOf": true,
         "name": "PostWhereUniqueInput",
       },
       Object {
@@ -7099,6 +7145,7 @@ Object {
             "name": "email",
           },
         ],
+        "isOneOf": true,
         "name": "UserWhereUniqueInput",
       },
       Object {
@@ -7514,6 +7561,7 @@ Object {
             "name": "isAdmin_not",
           },
         ],
+        "isOneOf": false,
         "name": "User1WhereInput",
       },
       Object {
@@ -7539,6 +7587,7 @@ Object {
             "name": "lastName",
           },
         ],
+        "isOneOf": false,
         "name": "FirstNameLastNameCompoundUniqueInput",
       },
       Object {
@@ -7554,6 +7603,7 @@ Object {
             "name": "firstName_lastName",
           },
         ],
+        "isOneOf": true,
         "name": "User1WhereUniqueInput",
       },
       Object {
@@ -7969,6 +8019,7 @@ Object {
             "name": "isAdmin_not",
           },
         ],
+        "isOneOf": false,
         "name": "User2WhereInput",
       },
       Object {
@@ -8004,6 +8055,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "FirstNameLastNameIsAdminCompoundUniqueInput",
       },
       Object {
@@ -8019,6 +8071,7 @@ Object {
             "name": "firstName_lastName_isAdmin",
           },
         ],
+        "isOneOf": true,
         "name": "User2WhereUniqueInput",
       },
       Object {
@@ -8034,6 +8087,7 @@ Object {
             "name": "email",
           },
         ],
+        "isOneOf": false,
         "name": "UserCreateWithoutPostsInput",
       },
       Object {
@@ -8059,6 +8113,7 @@ Object {
             "name": "create",
           },
         ],
+        "isOneOf": false,
         "name": "UserCreateOrConnectWithoutPostInput",
       },
       Object {
@@ -8094,6 +8149,7 @@ Object {
             "name": "connectOrCreate",
           },
         ],
+        "isOneOf": false,
         "name": "UserCreateOneWithoutPostsInput",
       },
       Object {
@@ -8139,6 +8195,7 @@ Object {
             "name": "author",
           },
         ],
+        "isOneOf": false,
         "name": "PostCreateInput",
       },
       Object {
@@ -8164,6 +8221,7 @@ Object {
             "name": "email",
           },
         ],
+        "isOneOf": false,
         "name": "UserUpdateWithoutPostsDataInput",
       },
       Object {
@@ -8189,6 +8247,7 @@ Object {
             "name": "create",
           },
         ],
+        "isOneOf": false,
         "name": "UserUpsertWithoutPostsInput",
       },
       Object {
@@ -8244,6 +8303,7 @@ Object {
             "name": "connectOrCreate",
           },
         ],
+        "isOneOf": false,
         "name": "UserUpdateOneRequiredWithoutPostsInput",
       },
       Object {
@@ -8289,6 +8349,7 @@ Object {
             "name": "author",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateInput",
       },
       Object {
@@ -8324,6 +8385,7 @@ Object {
             "name": "published",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateManyMutationInput",
       },
       Object {
@@ -8359,6 +8421,7 @@ Object {
             "name": "published",
           },
         ],
+        "isOneOf": false,
         "name": "PostCreateWithoutAuthorInput",
       },
       Object {
@@ -8384,6 +8447,7 @@ Object {
             "name": "create",
           },
         ],
+        "isOneOf": false,
         "name": "PostCreateOrConnectWithoutUserInput",
       },
       Object {
@@ -8419,6 +8483,7 @@ Object {
             "name": "connectOrCreate",
           },
         ],
+        "isOneOf": false,
         "name": "PostCreateManyWithoutAuthorInput",
       },
       Object {
@@ -8444,6 +8509,7 @@ Object {
             "name": "posts",
           },
         ],
+        "isOneOf": false,
         "name": "UserCreateInput",
       },
       Object {
@@ -8479,6 +8545,7 @@ Object {
             "name": "published",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateWithoutAuthorDataInput",
       },
       Object {
@@ -8504,6 +8571,7 @@ Object {
             "name": "data",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateWithWhereUniqueWithoutAuthorInput",
       },
       Object {
@@ -8859,6 +8927,7 @@ Object {
             "name": "published_not",
           },
         ],
+        "isOneOf": false,
         "name": "PostScalarWhereInput",
       },
       Object {
@@ -8894,6 +8963,7 @@ Object {
             "name": "published",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateManyDataInput",
       },
       Object {
@@ -8919,6 +8989,7 @@ Object {
             "name": "data",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateManyWithWhereNestedInput",
       },
       Object {
@@ -8954,6 +9025,7 @@ Object {
             "name": "create",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpsertWithWhereUniqueWithoutAuthorInput",
       },
       Object {
@@ -9059,6 +9131,7 @@ Object {
             "name": "connectOrCreate",
           },
         ],
+        "isOneOf": false,
         "name": "PostUpdateManyWithoutAuthorInput",
       },
       Object {
@@ -9094,6 +9167,7 @@ Object {
             "name": "posts",
           },
         ],
+        "isOneOf": false,
         "name": "UserUpdateInput",
       },
       Object {
@@ -9119,6 +9193,7 @@ Object {
             "name": "email",
           },
         ],
+        "isOneOf": false,
         "name": "UserUpdateManyMutationInput",
       },
       Object {
@@ -9164,6 +9239,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "User1CreateInput",
       },
       Object {
@@ -9209,6 +9285,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "User1UpdateInput",
       },
       Object {
@@ -9254,6 +9331,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "User1UpdateManyMutationInput",
       },
       Object {
@@ -9299,6 +9377,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "User2CreateInput",
       },
       Object {
@@ -9344,6 +9423,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "User2UpdateInput",
       },
       Object {
@@ -9389,6 +9469,7 @@ Object {
             "name": "isAdmin",
           },
         ],
+        "isOneOf": false,
         "name": "User2UpdateManyMutationInput",
       },
     ],
@@ -11397,6 +11478,7 @@ Object {
             "name": "name_not_ends_with",
           },
         ],
+        "isOneOf": false,
         "name": "AWhereInput",
       },
       Object {
@@ -11412,6 +11494,7 @@ Object {
             "name": "id",
           },
         ],
+        "isOneOf": true,
         "name": "AWhereUniqueInput",
       },
       Object {
@@ -11437,6 +11520,7 @@ Object {
             "name": "name",
           },
         ],
+        "isOneOf": false,
         "name": "ACreateInput",
       },
       Object {
@@ -11462,6 +11546,7 @@ Object {
             "name": "name",
           },
         ],
+        "isOneOf": false,
         "name": "AUpdateInput",
       },
       Object {
@@ -11487,6 +11572,7 @@ Object {
             "name": "name",
           },
         ],
+        "isOneOf": false,
         "name": "AUpdateManyMutationInput",
       },
     ],
