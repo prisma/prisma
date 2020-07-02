@@ -83,8 +83,8 @@ describe('runtime', () => {
         expect(
           stripAnsi(e.message)
             .replace(/(\/[\/\S+]+)/gm, '')
-            .replace(/current\s+platform\s+\"\S\"/gim, 'current platform')
-            .replace(/the\s+platform\s+\"\S\"/gim, 'the platform X'),
+            .replace(/current\s+platform\s+\S+"/gim, 'current platform')
+            .replace(/the\s+platform\s+\S+/gim, 'the platform X'),
         ).toMatchSnapshot(testTitle)
       }
     }

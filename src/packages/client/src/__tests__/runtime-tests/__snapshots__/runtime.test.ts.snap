@@ -23,9 +23,9 @@ Invalid \`prisma.user.findMany()\` invocation in
 
 
 
-  Query engine process killed with signal SIGKILL for unknown reason.
-Make sure that the engine binary at  is not corrupt.
-"
+  Query engine exited with code 127
+
+ line 1: hello: command not found"
 `;
 
 exports[`runtime enums: enums example should succeed 1`] = `"success"`;
@@ -47,7 +47,7 @@ Invalid \`prisma.user.findMany()\` invocation in
 
 
 
-  Query engine binary for current platform \\"darwin\\" could not be found.
+  Query engine binary for current platform could not be found.
 This probably happens, because you built Prisma Client on a different platform.
 (Prisma Client looked in \\"
 
@@ -74,7 +74,7 @@ Files in
   visit.d.ts
 
 
-To solve this problem, add the platform \\"darwin\\" to the \\"generator\\" block in the \\"schema.prisma\\" file:
+To solve this problem, add the platform X to the \\"generator\\" block in the \\"schema.prisma\\" file:
 generator client {
   provider      = \\"prisma-client-js\\"
   binaryTargets = [\\"native\\"]
@@ -90,7 +90,7 @@ Invalid \`prisma.user.findMany()\` invocation in
 
 
 
-  Query engine binary for current platform \\"darwin\\" could not be found.
+  Query engine binary for current platform could not be found.
 This probably happens, because you built Prisma Client on a different platform.
 (Prisma Client looked in \\"
 
@@ -116,7 +116,7 @@ Files in
   utils
   visit.d.ts
 
-You already added the platform \\"native\\" to the \\"generator\\" block
+You already added the platform X to the \\"generator\\" block
 in the \\"schema.prisma\\" file as described in https:
 but something went wrong. That's suboptimal.
 
