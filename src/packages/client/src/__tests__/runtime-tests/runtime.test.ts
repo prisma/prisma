@@ -23,6 +23,8 @@ if (folderFilter) {
   )
 }
 
+console.log({ subDirs })
+
 for (const dir of subDirs) {
   const nodeModules = path.join(dir, 'node_modules')
   const testName = path.basename(dir)
@@ -31,7 +33,7 @@ for (const dir of subDirs) {
   const testTitle = `${testName} example should${
     shouldSucceed ? '' : ' not'
   } succeed`
-  test(testTitle, async () => {
+  test.concurrent(testTitle, async () => {
     if (fs.existsSync(nodeModules)) {
       await del(nodeModules)
     }
