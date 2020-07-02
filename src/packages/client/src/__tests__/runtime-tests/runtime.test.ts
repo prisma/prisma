@@ -3,7 +3,7 @@ import path from 'path'
 import { generateInFolder } from '../../utils/generateInFolder'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
-import os from 'os'
+import stripAnsi from 'strip-ansi'
 const del = promisify(rimraf)
 
 jest.setTimeout(35000)
@@ -54,12 +54,16 @@ for (const dir of subDirs) {
     const fn = require(filePath)
 
     if (shouldSucceed) {
-      expect(await fn()).toMatchSnapshot(testTitle)
+      expect((await fn()) || 'success').toMatchSnapshot(testTitle)
     } else {
       try {
         await fn()
       } catch (e) {
-        expect(e).toMatchSnapshot(testTitle)
+        // https://regex101.com/r/GPVRYg/1/
+        // remove the paths, so the tests can succeed on any machine
+        expect(
+          stripAnsi(e.message).replace(/(\/[\/\S+]+)/gm, ''),
+        ).toMatchSnapshot(testTitle)
       }
     }
   })

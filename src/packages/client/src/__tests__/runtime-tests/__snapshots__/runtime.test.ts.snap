@@ -1,43 +1,141 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`blog example should succeed: blog example should succeed 1`] = `undefined`;
+exports[`blog example should succeed: blog example should succeed 1`] = `"success"`;
 
 exports[`blog example should succeed: blog-env example should not succeed 1`] = `
-[Error: error: Environment variable not found: SQLITE_URL.
+"error: Environment variable not found: SQLITE_URL.
   -->  schema.prisma:3
    | 
- 2 |   provider = "sqlite"
- 3 |   url      = env("SQLITE_URL")
+ 2 |   provider = \\"sqlite\\"
+ 3 |   url      = env(\\"SQLITE_URL\\")
    | 
 
-Validation Error Count: 1]
+Validation Error Count: 1"
 `;
 
-exports[`blog example should succeed: chmod example should succeed 1`] = `undefined`;
+exports[`blog example should succeed: chmod example should succeed 1`] = `"success"`;
 
 exports[`blog example should succeed: corruption example should not succeed 1`] = `
-[Error: 
+"
 Invalid \`prisma.user.findMany()\` invocation in
 
 
 
   Query engine process killed with signal SIGKILL for unknown reason.
 Make sure that the engine binary at  is not corrupt.
-]
+"
 `;
 
-exports[`blog-env-postgresql example should succeed: blog-env-postgresql example should succeed 1`] = `undefined`;
+exports[`blog-env-postgresql example should succeed: blog-env-postgresql example should succeed 1`] = `"success"`;
 
-exports[`blog-env-postgresql example should succeed: enums example should succeed 1`] = `undefined`;
+exports[`blog-env-postgresql example should succeed: enums example should succeed 1`] = `"success"`;
 
-exports[`blog-env-postgresql example should succeed: hooks example should succeed 1`] = `undefined`;
+exports[`blog-env-postgresql example should succeed: hooks example should succeed 1`] = `"success"`;
 
-exports[`blog-env-postgresql example should succeed: missing-binary example should not succeed 1`] = `[TypeError: e.message.split(...).slice(...).trim is not a function]`;
+exports[`blog-env-postgresql example should succeed: missing-binary example should not succeed 1`] = `
+"
+Invalid \`prisma.user.findMany()\` invocation in
 
-exports[`blog-env-postgresql example should succeed: missing-binary-native example should not succeed 1`] = `[TypeError: e.message.split(...).slice(...).trim is not a function]`;
 
-exports[`blog-env-postgresql example should succeed: new-line example should succeed 1`] = `undefined`;
 
-exports[`blog-env-postgresql example should succeed: restart example should succeed 1`] = `undefined`;
+  Query engine binary for current platform \\"darwin\\" could not be found.
+This probably happens, because you built Prisma Client on a different platform.
+(Prisma Client looked in \\"
 
-exports[`blog-env-postgresql example should succeed: transaction example should succeed 1`] = `undefined`;
+Files in 
+
+  Dataloader.d.ts
+  browser-chalk.d.ts
+  browser-terminal-link.d.ts
+  browser.d.ts
+  dmmf-types.d.ts
+  dmmf.d.ts
+  error-types.d.ts
+  externalToInternalDmmf.d.ts
+  getLogLevel.d.ts
+  getPrismaClient.d.ts
+  highlight
+  index.d.ts
+  index.js
+  index.js.map
+  mergeBy.d.ts
+  query.d.ts
+  transformDmmf.d.ts
+  utils
+  visit.d.ts
+
+
+To solve this problem, add the platform \\"darwin\\" to the \\"generator\\" block in the \\"schema.prisma\\" file:
+generator client {
+  provider      = \\"prisma-client-js\\"
+  binaryTargets = [\\"native\\"]
+}
+
+Then run \\"prisma generate\\" for your changes to take effect.
+Read more about deploying Prisma Client: https:"
+`;
+
+exports[`blog-env-postgresql example should succeed: missing-binary-native example should not succeed 1`] = `
+"
+Invalid \`prisma.user.findMany()\` invocation in
+
+
+
+  Query engine binary for current platform \\"darwin\\" could not be found.
+This probably happens, because you built Prisma Client on a different platform.
+(Prisma Client looked in \\"
+
+Files in 
+
+  Dataloader.d.ts
+  browser-chalk.d.ts
+  browser-terminal-link.d.ts
+  browser.d.ts
+  dmmf-types.d.ts
+  dmmf.d.ts
+  error-types.d.ts
+  externalToInternalDmmf.d.ts
+  getLogLevel.d.ts
+  getPrismaClient.d.ts
+  highlight
+  index.d.ts
+  index.js
+  index.js.map
+  mergeBy.d.ts
+  query.d.ts
+  transformDmmf.d.ts
+  utils
+  visit.d.ts
+
+You already added the platform \\"native\\" to the \\"generator\\" block
+in the \\"schema.prisma\\" file as described in https:
+but something went wrong. That's suboptimal.
+
+Please create an issue at https:"
+`;
+
+exports[`blog-env-postgresql example should succeed: missing-column example should not succeed 1`] = `
+"
+Invalid \`prisma.user.findMany()\` invocation in
+
+
+
+  Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(SqliteFailure(Error { code: Unknown, extended_code: 1 }, Some(\\"no such column: dev.User.name\\"))) })"
+`;
+
+exports[`blog-env-postgresql example should succeed: missing-table example should not succeed 1`] = `
+"
+Invalid \`prisma.user.findMany()\` invocation in
+
+
+
+  Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(SqliteFailure(Error { code: Unknown, extended_code: 1 }, Some(\\"no such table: dev.User\\"))) })"
+`;
+
+exports[`blog-env-postgresql example should succeed: new-line example should succeed 1`] = `"success"`;
+
+exports[`blog-env-postgresql example should succeed: restart example should succeed 1`] = `"success"`;
+
+exports[`blog-env-postgresql example should succeed: transaction example should succeed 1`] = `"success"`;
