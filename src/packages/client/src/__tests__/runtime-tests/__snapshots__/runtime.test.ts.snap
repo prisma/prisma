@@ -32,6 +32,15 @@ exports[`blog-env-postgresql example should succeed: enums example should succee
 
 exports[`blog-env-postgresql example should succeed: hooks example should succeed 1`] = `"success"`;
 
+exports[`blog-env-postgresql example should succeed: incorrect-column-type example should not succeed 1`] = `
+"
+Invalid \`prisma.user.findMany()\` invocation in
+
+
+
+  Attempted to serialize scalar '123' with incompatible type 'String'"
+`;
+
 exports[`blog-env-postgresql example should succeed: missing-binary example should not succeed 1`] = `
 "
 Invalid \`prisma.user.findMany()\` invocation in

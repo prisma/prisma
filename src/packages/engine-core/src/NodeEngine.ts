@@ -606,7 +606,21 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             return
           }
           if (code !== 0 && this.engineStartDeferred) {
-            const err = new PrismaClientInitializationError(this.stderrLogs)
+            let err
+            if (code !== null) {
+              err = new PrismaClientInitializationError(
+                `Query engine exited with code ${code}\n` + this.stderrLogs,
+              )
+            } else if (this.child.signalCode) {
+              err = new PrismaClientInitializationError(
+                `Query engine process killed with signal ${this.child.signalCode} for unknown reason.
+Make sure that the engine binary at ${prismaPath} is not corrupt.\n` +
+                  this.stderrLogs,
+              )
+            } else {
+              err = new PrismaClientInitializationError(this.stderrLogs)
+            }
+
             this.engineStartDeferred.reject(err)
           }
           if (!this.child) {
