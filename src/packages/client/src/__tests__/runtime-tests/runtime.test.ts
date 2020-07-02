@@ -31,7 +31,7 @@ for (const dir of subDirs) {
   const testTitle = `${testName} example should${
     shouldSucceed ? '' : ' not'
   } succeed`
-  test.concurrent(testTitle, async () => {
+  test(testTitle, async () => {
     if (fs.existsSync(nodeModules)) {
       await del(nodeModules)
     }
