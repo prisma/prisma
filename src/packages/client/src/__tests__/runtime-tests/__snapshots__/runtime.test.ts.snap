@@ -1,8 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`blog example should succeed: blog example should succeed 1`] = `"success"`;
+exports[`runtime blog: blog example should succeed 1`] = `"success"`;
 
-exports[`blog-env example should not succeed: blog-env example should not succeed 1`] = `
+exports[`runtime blog-env: blog-env example should not succeed 1`] = `
 "error: Environment variable not found: SQLITE_URL.
   -->  schema.prisma:3
    | 
@@ -13,11 +13,11 @@ exports[`blog-env example should not succeed: blog-env example should not succee
 Validation Error Count: 1"
 `;
 
-exports[`blog-env-postgresql example should succeed: blog-env-postgresql example should succeed 1`] = `"success"`;
+exports[`runtime blog-env-postgresql: blog-env-postgresql example should succeed 1`] = `"success"`;
 
-exports[`chmod example should succeed: chmod example should succeed 1`] = `"success"`;
+exports[`runtime chmod: chmod example should succeed 1`] = `"success"`;
 
-exports[`corruption example should not succeed: corruption example should not succeed 1`] = `
+exports[`runtime corruption: corruption example should not succeed 1`] = `
 "
 Invalid \`prisma.user.findMany()\` invocation in
 
@@ -28,11 +28,11 @@ Make sure that the engine binary at  is not corrupt.
 "
 `;
 
-exports[`enums example should succeed: enums example should succeed 1`] = `"success"`;
+exports[`runtime enums: enums example should succeed 1`] = `"success"`;
 
-exports[`hooks example should succeed: hooks example should succeed 1`] = `"success"`;
+exports[`runtime hooks: hooks example should succeed 1`] = `"success"`;
 
-exports[`incorrect-column-type example should not succeed: incorrect-column-type example should not succeed 1`] = `
+exports[`runtime incorrect-column-type: incorrect-column-type example should not succeed 1`] = `
 "
 Invalid \`prisma.user.findMany()\` invocation in
 
@@ -41,7 +41,7 @@ Invalid \`prisma.user.findMany()\` invocation in
   Attempted to serialize scalar '123' with incompatible type 'String'"
 `;
 
-exports[`missing-binary example should not succeed: missing-binary example should not succeed 1`] = `
+exports[`runtime missing-binary: missing-binary example should not succeed 1`] = `
 "
 Invalid \`prisma.user.findMany()\` invocation in
 
@@ -84,7 +84,7 @@ Then run \\"prisma generate\\" for your changes to take effect.
 Read more about deploying Prisma Client: https:"
 `;
 
-exports[`missing-binary-native example should not succeed: missing-binary-native example should not succeed 1`] = `
+exports[`runtime missing-binary-native: missing-binary-native example should not succeed 1`] = `
 "
 Invalid \`prisma.user.findMany()\` invocation in
 
@@ -123,7 +123,7 @@ but something went wrong. That's suboptimal.
 Please create an issue at https:"
 `;
 
-exports[`missing-column example should not succeed: missing-column example should not succeed 1`] = `
+exports[`runtime missing-column: missing-column example should not succeed 1`] = `
 "
 Invalid \`prisma.user.findMany()\` invocation in
 
@@ -133,7 +133,7 @@ Invalid \`prisma.user.findMany()\` invocation in
 ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(SqliteFailure(Error { code: Unknown, extended_code: 1 }, Some(\\"no such column: dev.User.name\\"))) })"
 `;
 
-exports[`missing-table example should not succeed: missing-table example should not succeed 1`] = `
+exports[`runtime missing-table: missing-table example should not succeed 1`] = `
 "
 Invalid \`prisma.user.findMany()\` invocation in
 
@@ -143,8 +143,8 @@ Invalid \`prisma.user.findMany()\` invocation in
 ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(SqliteFailure(Error { code: Unknown, extended_code: 1 }, Some(\\"no such table: dev.User\\"))) })"
 `;
 
-exports[`new-line example should succeed: new-line example should succeed 1`] = `"success"`;
+exports[`runtime new-line: new-line example should succeed 1`] = `"success"`;
 
-exports[`restart example should succeed: restart example should succeed 1`] = `"success"`;
+exports[`runtime restart: restart example should succeed 1`] = `"success"`;
 
-exports[`transaction example should succeed: transaction example should succeed 1`] = `"success"`;
+exports[`runtime transaction: transaction example should succeed 1`] = `"success"`;
