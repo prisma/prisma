@@ -17,16 +17,7 @@ exports[`runtime blog-env-postgresql: blog-env-postgresql example should succeed
 
 exports[`runtime chmod: chmod example should succeed 1`] = `"success"`;
 
-exports[`runtime corruption: corruption example should not succeed 1`] = `
-"
-Invalid \`prisma.user.findMany()\` invocation in
-
-
-
-  Query engine exited with code 127
-
- line 1: hello: command not found"
-`;
+exports[`runtime corruption: corruption example should succeed 1`] = `"success"`;
 
 exports[`runtime enums: enums example should succeed 1`] = `"success"`;
 
