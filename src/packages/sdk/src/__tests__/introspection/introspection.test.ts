@@ -41,7 +41,8 @@ test('introspection basic', async () => {
       updatedAt DateTime @default(dbgenerated())
       uuid      String   @id
       User      User     @relation(fields: [author], references: [id])
-    }",
+    }
+    ",
       "version": "NonPrisma",
       "warnings": Array [],
     }
