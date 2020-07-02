@@ -15,9 +15,20 @@ Validation Error Count: 1]
 
 exports[`blog example should succeed: chmod example should succeed 1`] = `undefined`;
 
-exports[`blog example should succeed: enums example should succeed 1`] = `undefined`;
+exports[`blog example should succeed: corruption example should not succeed 1`] = `
+[Error: 
+Invalid \`prisma.user.findMany()\` invocation in
+
+
+
+  Query engine process killed with signal SIGKILL for unknown reason.
+Make sure that the engine binary at  is not corrupt.
+]
+`;
 
 exports[`blog-env-postgresql example should succeed: blog-env-postgresql example should succeed 1`] = `undefined`;
+
+exports[`blog-env-postgresql example should succeed: enums example should succeed 1`] = `undefined`;
 
 exports[`blog-env-postgresql example should succeed: hooks example should succeed 1`] = `undefined`;
 
