@@ -25,7 +25,11 @@ import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
 import { omit } from './utils/omit'
-import { MissingItem, printJsonWithErrors } from './utils/printJsonErrors'
+import {
+  MissingItem,
+  printJsonWithErrors,
+  PrintJsonWithErrorsArgs,
+} from './utils/printJsonErrors'
 import { printStack } from './utils/printStack'
 import stringifyObject from './utils/stringifyObject'
 import { visit } from './visit'
@@ -133,6 +137,9 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
         const fieldType = fieldError.error.field.outputType
           .type as DMMF.OutputType
+
+        console.log(fieldError)
+
         fieldType.fields
           .filter((field) =>
             fieldError.error.type === 'emptyInclude'
@@ -235,13 +242,21 @@ ${fieldErrors
         showColors: errorFormat && errorFormat === 'pretty',
       })
 
+      let printJsonArgs: PrintJsonWithErrorsArgs = {
+        ast: isTopLevelQuery ? { [topLevelQueryName]: select } : select,
+        keyPaths,
+        valuePaths,
+        missingItems,
+      }
+
+      // as for aggregate we simplify the api to not include `select`
+      // we need to map this here so the errors make sense
+      if (originalMethod?.endsWith('aggregate')) {
+        printJsonArgs = transformAggregatePrintJsonArgs(printJsonArgs)
+      }
+
       const errorStr = `${stack}${indent(
-        printJsonWithErrors(
-          isTopLevelQuery ? { [topLevelQueryName]: select } : select,
-          keyPaths,
-          valuePaths,
-          missingItems,
-        ),
+        printJsonWithErrors(printJsonArgs),
         indentValue,
       ).slice(indentValue)}${chalk.dim(afterLines)}
 
@@ -1824,4 +1839,53 @@ export function getField(document: Document, path: string[]): Field {
   }
 
   return pointer!
+}
+
+function removeSelectFromPath(path: string): string {
+  return path
+    .split('.')
+    .filter((p) => p !== 'select')
+    .join('.')
+}
+
+function removeSelectFromObject(obj: object): object {
+  const type = Object.prototype.toString.call(obj)
+  if (type === '[object Object]') {
+    const copy = {}
+    for (const key in obj) {
+      if (key === 'select') {
+        for (const subKey in obj['select']) {
+          copy[subKey] = removeSelectFromObject(obj['select'][subKey])
+        }
+      } else {
+        copy[key] = removeSelectFromObject(obj[key])
+      }
+    }
+    return copy
+  }
+
+  return obj
+}
+
+function transformAggregatePrintJsonArgs({
+  ast,
+  keyPaths,
+  missingItems,
+  valuePaths,
+}: PrintJsonWithErrorsArgs): PrintJsonWithErrorsArgs {
+  const newKeyPaths = keyPaths.map(removeSelectFromPath)
+  const newValuePaths = valuePaths.map(removeSelectFromPath)
+  const newMissingItems = missingItems.map((item) => ({
+    path: removeSelectFromPath(item.path),
+    isRequired: item.isRequired,
+    type: item.type,
+  }))
+
+  const newAst = removeSelectFromObject(ast)
+  return {
+    ast: newAst,
+    keyPaths: newKeyPaths,
+    missingItems: newMissingItems,
+    valuePaths: newValuePaths,
+  }
 }

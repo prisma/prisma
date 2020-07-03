@@ -6,13 +6,14 @@ datasource db {
 generator client {
   provider             = "prisma-client-js"
   binaryTargets        = ["native"]
-  experimentalFeatures = ["transactionApi", "connectOrCreate"]
+  experimentalFeatures = ["connectOrCreate", "aggregations"]
 }
 
 model User {
   id    String  @default(cuid()) @id
   email String  @unique
   name  String?
+  age   Int?
   posts Post[]
   Like  Like[]
 }

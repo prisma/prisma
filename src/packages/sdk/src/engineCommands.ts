@@ -113,6 +113,7 @@ export async function getDMMF({
       })
     }
 
+    // necessary, as sometimes the query engine prints some other stuff
     const firstCurly = result.stdout.indexOf('{')
     const stdout = result.stdout.slice(firstCurly)
 

@@ -172,6 +172,14 @@ export interface GetPrismaClientOptions {
   engineVersion?: string
 }
 
+const aggregateKeys = {
+  avg: true,
+  count: true,
+  sum: true,
+  min: true,
+  max: true,
+}
+
 // TODO: We **may** be able to get real types. However, we have both a bootstrapping
 // problem here, that we want to return a type that's not yet defined
 // and we're typecasting this anyway later
@@ -247,6 +255,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         cwd = config.dirname
       }
 
+      const experimentalFeatures = config.generator?.experimentalFeatures ?? []
+      if (!experimentalFeatures.includes('aggregations')) {
+        experimentalFeatures.push('aggregations')
+      }
+
       this.engineConfig = {
         cwd,
         debug: useDebug,
@@ -269,9 +282,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         env: envFile,
         flags: [],
         clientVersion: config.clientVersion,
-        enableExperimental: mapExperimentalFeatures(
-          config.generator?.experimentalFeatures,
-        ),
+        enableExperimental: mapExperimentalFeatures(experimentalFeatures),
       }
 
       const sanitizedEngineConfig = omit(this.engineConfig, [
@@ -628,7 +639,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           const query = String(document)
           debug(`Prisma Client call:`)
           debug(
-            `prisma.${clientMethod}(${printJsonWithErrors(args, [], [], [])})`,
+            `prisma.${clientMethod}(${printJsonWithErrors({
+              ast: args,
+              keyPaths: [],
+              valuePaths: [],
+              missingItems: [],
+            })})`,
           )
           debug(`Generated request:`)
           debug(query + '\n')
@@ -784,15 +800,47 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         delegate.count = (args) =>
           clients[mapping.model]({
             operation: 'query',
-            actionName: 'count',
+            actionName: 'count', // actionName is just cosmetics 💅🏽
             rootField: mapping.aggregate,
             args: args
               ? {
-                  select: { count: args },
+                  ...args,
+                  select: { count: true },
                 }
               : undefined,
             dataPath: ['count'],
           })
+
+        delegate.aggregate = (args) => {
+          /**
+           * avg, count, sum, min, max need to go into select
+           * For speed reasons we can go with "for in "
+           */
+          const select = Object.entries(args).reduce((acc, [key, value]) => {
+            if (aggregateKeys[key]) {
+              if (!acc.select) {
+                acc.select = {}
+              }
+              // `count` doesn't have a subselection
+              if (key === 'count') {
+                acc.select[key] = value
+              } else {
+                acc.select[key] = { select: value }
+              }
+            } else {
+              acc[key] = value
+            }
+            return acc
+          }, {} as any)
+
+          return clients[mapping.model]({
+            operation: 'query',
+            actionName: 'aggregate', // actionName is just cosmetics 💅🏽
+            rootField: mapping.aggregate,
+            args: select,
+            dataPath: [],
+          })
+        }
 
         this[lowerCaseModel] = delegate
       }
