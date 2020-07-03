@@ -27,7 +27,6 @@ import {
 import { uniqueBy } from '../runtime/utils/uniqueBy'
 import { GetPrismaClientOptions } from '../runtime/getPrismaClient'
 import klona from 'klona'
-import { omit } from '../omit'
 
 const tab = 2
 

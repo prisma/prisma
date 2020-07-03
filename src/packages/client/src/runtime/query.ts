@@ -555,7 +555,7 @@ ${errorMessages}${missingArgsLegend}\n`
         } else {
           pointer = pointer[key]
         }
-      } else if (pointer[key]) {
+      } else if (pointer && pointer[key]) {
         pointer = pointer[key]
       }
 
