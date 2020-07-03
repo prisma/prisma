@@ -19,6 +19,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne - check typeof array for Json field with array_warnings'] = []
@@ -43,6 +44,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne where PK_warnings'] = []
@@ -68,6 +70,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne where PK with select_warnings'] = []
@@ -100,6 +103,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne where PK with include_warnings'] = []
@@ -124,6 +128,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['create with data_warnings'] = []
@@ -148,6 +153,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['create with empty data and SQL default_warnings'] = []
@@ -172,6 +178,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['update where with numeric data_warnings'] = []
@@ -197,6 +204,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['update where with boolean data_warnings'] = []
@@ -222,6 +230,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['update where with boolean data and select_warnings'] = []
@@ -246,6 +255,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['update where with string data_warnings'] = []
@@ -270,6 +280,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['updateMany where with string data - check returned count_warnings'] = []
@@ -294,6 +305,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['updateMany where with string data - check findMany_warnings'] = []
@@ -318,6 +330,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne where unique_warnings'] = []
@@ -345,6 +358,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne where composite unique_warnings'] = []
@@ -372,6 +386,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['update where composite unique_warnings'] = []
@@ -399,6 +414,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['delete where composite unique_warnings'] = []
@@ -423,6 +439,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany - email text_warnings'] = []
@@ -447,6 +464,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where unique_warnings'] = []
@@ -471,6 +489,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany - email varchar(50) not null unique_warnings'] = []
@@ -503,6 +522,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne where unique with foreign key and unpack_warnings'] = []
@@ -528,6 +548,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where contains and boolean_warnings'] = []
@@ -553,6 +574,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where OR[contains, contains] _warnings'] = []
@@ -578,6 +600,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['upsert (update)_warnings'] = []
@@ -603,6 +626,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['upsert (create)_warnings'] = []
@@ -628,6 +652,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany orderBy asc_warnings'] = []
@@ -653,6 +678,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany orderBy desc_warnings'] = []
@@ -683,6 +709,7 @@ enum posts_status {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['findMany - default enum_warnings'] = []
@@ -713,6 +740,7 @@ enum posts_status {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['update with data - not null enum_warnings'] = []
@@ -743,6 +771,7 @@ enum posts_status {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['updateMany with data - not null enum - check count_warnings'] = []
@@ -773,6 +802,7 @@ enum posts_status {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['update with data - not null enum - check findMany_warnings'] = []
@@ -803,6 +833,7 @@ enum posts_status {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['deleteMany where enum - check count_warnings'] = []
@@ -833,6 +864,7 @@ enum posts_status {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['deleteMany where enum - check findMany_warnings'] = []
@@ -858,6 +890,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where contains_warnings'] = []
@@ -883,6 +916,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where startsWith_warnings'] = []
@@ -908,6 +942,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where endsWith_warnings'] = []
@@ -933,6 +968,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where in[string]_warnings'] = []
@@ -958,6 +994,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where datetime lte - check instanceof Date_warnings'] = []
@@ -983,6 +1020,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where timestamp gte than now_warnings'] = []
@@ -1008,6 +1046,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where timestamp gt than now_warnings'] = []
@@ -1033,6 +1072,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where timestamp lt than now_warnings'] = []
@@ -1057,6 +1097,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['update where integer data_warnings'] = []
@@ -1081,6 +1122,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where datetime exact_warnings'] = []
@@ -1105,6 +1147,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where datetime gt_warnings'] = []
@@ -1129,6 +1172,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where datetime gte_warnings'] = []
@@ -1153,6 +1197,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where datetime lt_warnings'] = []
@@ -1177,6 +1222,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where datetime lte_warnings'] = []
@@ -1201,6 +1247,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where datetime not_warnings'] = []
@@ -1225,6 +1272,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where null_warnings'] = []
@@ -1250,6 +1298,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where empty in[]_warnings'] = []
@@ -1275,6 +1324,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where id empty in[] and token in[]_warnings'] = []
@@ -1300,6 +1350,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where in[integer]_warnings'] = []
@@ -1325,6 +1376,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where notIn[]_warnings'] = []
@@ -1350,6 +1402,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where empty notIn[]_warnings'] = []
@@ -1374,6 +1427,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where - case insensitive field_warnings'] = []
@@ -1398,6 +1452,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findMany where decimal_warnings'] = []
@@ -1422,6 +1477,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne where decimal_warnings'] = []
@@ -1446,6 +1502,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne where decimal - default value_warnings'] = []
@@ -1469,6 +1526,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['create bigint data_warnings'] = []
@@ -1497,6 +1555,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne where composite PK_warnings'] = []
@@ -1525,6 +1584,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['update where composite PK_warnings'] = []
@@ -1553,6 +1613,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['upsert where composite PK - update_warnings'] = []
@@ -1581,6 +1642,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['upsert where composite PK - create_warnings'] = []
@@ -1609,6 +1671,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['delete where composite PK_warnings'] = []
@@ -1638,6 +1701,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne where unique composite_warnings'] = []
@@ -1667,6 +1731,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne where unique composite (PK is a composite)_warnings'] = []
@@ -1701,6 +1766,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne where composite PK with foreign key_warnings'] = []
@@ -1725,6 +1791,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['updateMany where null - check findMany_warnings'] = []
@@ -1774,6 +1841,7 @@ enum invalid_enum {
   N
   Y
 }
+
 `
 
 exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
@@ -1844,6 +1912,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne - check typeof js object is object for Json field_warnings'] = []
@@ -1869,6 +1938,7 @@ enum Role {
   ADMIN
   USER
 }
+
 `
 
 exports['findOne - check typeof Date is string for Json field_warnings'] = []
