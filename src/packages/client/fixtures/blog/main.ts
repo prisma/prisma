@@ -20,9 +20,26 @@ async function main() {
   //   },
   //   count: true,
   // })
-  const result = await prisma.user.count({
-    take: 10,
+  // const result = await prisma.user.count({
+  //   take: 10,
+  // })
+  const result = await prisma.user.aggregate({
+    avg: {
+      age: true
+    },
+    max: {
+      age: true
+    },
+    sum: {
+      age: true
+    },
+    min: {
+      age:  true
+    },
+    count: true
   })
+  result.count
+  result.avg.age
   console.log(result)
   prisma.disconnect()
 }

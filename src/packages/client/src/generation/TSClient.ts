@@ -10,6 +10,7 @@ import {
   GraphQLScalarToJSTypeTable,
   lowerCase,
   JSOutputTypeToInputType,
+  getOutputTypeName,
 } from '../runtime/utils/common'
 import { InternalDatasource } from '../runtime/utils/printDatasources'
 import { DatasourceOverwrite } from './extractSqliteSources'
@@ -23,6 +24,14 @@ import {
   getSelectReturnType,
   Projection,
   getArgName,
+  getAggregateName,
+  getAvgAggregateName,
+  getSumAggregateName,
+  getMinAggregateName,
+  getMaxAggregateName,
+  getAggregateArgsName,
+  getAggregateGetName,
+  getAggregateScalarGetName,
 } from './utils'
 import { uniqueBy } from '../runtime/utils/uniqueBy'
 import { GetPrismaClientOptions } from '../runtime/getPrismaClient'
@@ -158,6 +167,10 @@ export declare interface JsonArray extends Array<JsonValue> {}
 export declare type JsonValue = string | number | boolean | null | JsonObject | JsonArray
 
 
+type Truthify<T> = {
+  [P in keyof T]: true
+}
+
 /**
  * Same as JsonObject, but allows undefined
  */
@@ -265,6 +278,8 @@ export class TSClient implements Generatable {
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
     }
+
+    console.log(Object.keys(this.dmmf.outputTypeMap))
 
     return `${commonCodeJS(this.options)}
 
@@ -738,6 +753,29 @@ export class Model implements Generatable {
     }
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
+    const aggregateType = this.dmmf.outputTypeMap[getAggregateName(model.name)]
+    const aggregateTypes = [
+      aggregateType
+    ]
+
+    const avgType = this.dmmf.outputTypeMap[getAvgAggregateName(model.name)]
+    const sumType = this.dmmf.outputTypeMap[getSumAggregateName(model.name)]
+    const minType = this.dmmf.outputTypeMap[getMinAggregateName(model.name)]
+    const maxType = this.dmmf.outputTypeMap[getMaxAggregateName(model.name)]
+
+    if (avgType) {
+      aggregateTypes.push(avgType)
+    }
+    if (sumType) {
+      aggregateTypes.push(sumType)
+    }
+    if (minType) {
+      aggregateTypes.push(minType)
+    }
+    if (maxType) {
+      aggregateTypes.push(maxType)
+    }
+    console.log(aggregateTypes)
 
     const includeType = hasRelationField
       ? `\nexport type ${getIncludeName(model.name)} = {
@@ -769,6 +807,29 @@ ${indent(
   tab,
 )}
 }
+
+${aggregateTypes.map((type) => new SchemaOutputType(type).toTS()).join('\n')}
+
+export type ${getAggregateArgsName(model.name)} = {
+${indent(
+  aggregateType.fields.map(f => {
+    if (f.name === 'count') {
+      return `${f.name}?: true`
+    }
+    return `${f.name}?: Truthify<${(f.outputType.type as SchemaOutputType).name}>`
+  }).join('\n')
+, tab)}
+}
+
+export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(model.name)}> = {
+  [P in keyof T]: P extends 'count' ? number : ${aggregateTypes.length > 1 ? `${getAggregateScalarGetName(model.name)}<T[P]>` :  'never'}
+}
+
+${aggregateTypes.length > 1 ? (
+  `export type ${getAggregateScalarGetName(model.name)}<T extends any> = {
+  [P in keyof T]: P extends keyof ${getAvgAggregateName(model.name)} ? ${getAvgAggregateName(model.name)}[P] : never
+}`
+) : ''}
 
 export type ${getSelectName(model.name)} = {
 ${indent(
@@ -1001,7 +1062,7 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
   /**
    * Aggregate
    */
-  aggregate(args: any): Promise<any>
+  aggregate<T extends ${getAggregateArgsName(name)}>(args: Subset<T, ${getAggregateArgsName(name)}>): Promise<${getAggregateGetName(name)}<T>>
 }
 
 /**
@@ -1132,6 +1193,48 @@ export class OutputField implements Generatable {
     const arrayStr = field.isList ? `[]` : ''
     const nullableStr = !field.isRequired && !field.isList ? ' | null' : ''
     return `${field.name}: ${fieldType}${arrayStr}${nullableStr}`
+  }
+}
+
+export class SchemaOutputField implements Generatable {
+  constructor(protected readonly field: DMMF.SchemaField) {}
+  public toTS(): string {
+    const { field } = this
+    let fieldType =
+      typeof field.outputType.type === 'string'
+        ? GraphQLScalarToJSTypeTable[field.outputType.type] ||
+          field.outputType.type
+        : field.outputType.type.name
+    if (Array.isArray(fieldType)) {
+      fieldType = fieldType[0]
+    }
+    const arrayStr = field.outputType.isList ? `[]` : ''
+    const nullableStr =
+      !field.outputType.isRequired && !field.outputType.isList ? ' | null' : ''
+    return `${field.name}: ${fieldType}${arrayStr}${nullableStr}`
+  }
+}
+
+export class SchemaOutputType implements Generatable {
+  public name: string
+  public fields: DMMF.SchemaField[]
+  constructor(protected readonly type: DMMF.OutputType) {
+    this.name = type.name
+    this.fields = type.fields
+  }
+  public toTS(): string {
+    const { type } = this
+    return `
+export type ${type.name} = {
+${indent(
+  type.fields
+    .map((field) =>
+      new SchemaOutputField({ ...field, ...field.outputType }).toTS(),
+    )
+    .join('\n'),
+  tab,
+)}
+}`
   }
 }
 
