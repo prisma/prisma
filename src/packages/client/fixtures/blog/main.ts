@@ -5,21 +5,23 @@ const prisma = new PrismaClient({
 })
 
 async function main() {
-  const result = await prisma.user.aggregate({
-    avg: {
-      age: true,
-      blub: true,
-    },
-    sum: {
-      age: true,
-    },
-    min: {
-      age: true,
-    },
-    max: {
-      age: true,
-    },
-    count: true,
+  // const result = await prisma.user.aggregate({
+  //   avg: {
+  //     age3: true,
+  //   },
+  //   sum: {
+  //     age: true,
+  //   },
+  //   min: {
+  //     age: true,
+  //   },
+  //   max: {
+  //     age: true,
+  //   },
+  //   count: true,
+  // })
+  const result = await prisma.user.count({
+    take: 10,
   })
   console.log(result)
   prisma.disconnect()
