@@ -992,12 +992,17 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
   tab,
 )}
   /**
-   * 
+   * Count
    */
   count(args?: Omit<${getModelArgName(
     name,
     DMMF.ModelAction.findMany,
   )}, 'select' | 'include'>): Promise<number>
+
+  /**
+   * Aggregate
+   */
+  aggregate(args: any): Promise<any>
 }
 
 /**
