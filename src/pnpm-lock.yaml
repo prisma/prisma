@@ -210,6 +210,7 @@ importers:
       set-value: 3.0.2
       sql-template-tag: 3.4.0
       stacktrace-parser: 0.1.10
+      stat-mode: 1.0.0
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       ts-jest: 25.5.1_jest@25.5.4+typescript@3.9.5
@@ -271,6 +272,7 @@ importers:
       set-value: 3.0.2
       sql-template-tag: 3.4.0
       stacktrace-parser: 0.1.10
+      stat-mode: ^1.0.0
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       ts-jest: 25.5.1
@@ -7732,6 +7734,12 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-KJP1OCML99+8fhOHxwwzyWrlUuVX5GQ0ZpJTd1DFXhdkrvg1szxfHhawXUZ3g9TkXORQd4/WG68jMlQZ2p8wlg==
+  /stat-mode/1.0.0:
+    dev: true
+    engines:
+      node: '>= 6'
+    resolution:
+      integrity: sha512-jH9EhtKIjuXZ2cWxmXS8ZP80XyC3iasQxMDV8jzhNJpfDb7VbQLVW4Wvsxz9QZvzV+G4YoSfBUVKDOyxLzi/sg==
   /static-extend/0.1.2:
     dependencies:
       define-property: 0.2.5

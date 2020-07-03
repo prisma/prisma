@@ -10,7 +10,7 @@ module.exports = async () => {
     'node_modules/.prisma/client',
     `query-engine-${platform}`,
   )
-  fs.unlinkSync(binaryPath)
+  fs.chmodSync(binaryPath, '644')
 
   const prisma = new PrismaClient({
     log: [
