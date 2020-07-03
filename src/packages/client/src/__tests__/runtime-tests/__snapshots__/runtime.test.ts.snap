@@ -124,6 +124,22 @@ Invalid \`prisma.user.findMany()\` invocation in
 ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(SqliteFailure(Error { code: Unknown, extended_code: 1 }, Some(\\"no such column: dev.User.name\\"))) })"
 `;
 
+exports[`runtime missing-relation: missing-relation example should not succeed 1`] = `
+"
+Invalid \`prisma.post.findMany()\` invocation in
+
+
+
+  PANIC: Application logic invariant error: received null value for field author which may not be null
+
+This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
+
+https:
+
+If you want the Prisma team to look into it, please open the link above 🙏
+"
+`;
+
 exports[`runtime missing-table: missing-table example should not succeed 1`] = `
 "
 Invalid \`prisma.user.findMany()\` invocation in
@@ -137,5 +153,7 @@ ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Sqlite
 exports[`runtime new-line: new-line example should succeed 1`] = `"success"`;
 
 exports[`runtime restart: restart example should succeed 1`] = `"success"`;
+
+exports[`runtime sqlite-variable-limit: sqlite-variable-limit example should succeed 1`] = `"success"`;
 
 exports[`runtime transaction: transaction example should succeed 1`] = `"success"`;

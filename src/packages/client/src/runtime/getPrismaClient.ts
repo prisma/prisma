@@ -930,6 +930,7 @@ export class PrismaClientFetcher {
       }
       return unpackResult
     } catch (e) {
+      debug(e)
       let message = e.message
       if (callsite) {
         const { stack } = printStack({
