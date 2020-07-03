@@ -925,7 +925,8 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     } else if (
       (error.code && error.code === 'ECONNRESET') ||
       error.code === 'ECONNREFUSED' ||
-      error.message.toLowerCase().includes('client is destroyed')
+      error.message.toLowerCase().includes('client is destroyed') ||
+      error.message.toLowerCase().includes('other side closed')
     ) {
       if (this.globalKillSignalReceived && !this.child.connected) {
         throw new PrismaClientUnknownRequestError(`The Node.js process already received a ${this.globalKillSignalReceived} signal, therefore the Prisma query engine exited
