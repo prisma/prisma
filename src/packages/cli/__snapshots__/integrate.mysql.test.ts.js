@@ -13,6 +13,7 @@ model teams {
   id   Int    @id
   name String @unique
 }
+
 `
 
 exports['findOne where PK_warnings'] = []
@@ -33,6 +34,7 @@ model teams {
   id    Int    @id
   name  String @unique
 }
+
 `
 
 exports['findOne where PK with select_warnings'] = []
@@ -62,6 +64,7 @@ model users {
   id    Int     @default(autoincrement()) @id
   posts posts[]
 }
+
 `
 
 exports['findOne where PK with include_warnings'] = []
@@ -81,6 +84,7 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
 }
+
 `
 
 exports['create with data_warnings'] = []
@@ -100,6 +104,7 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String @default("alice")
 }
+
 `
 
 exports['create with empty data and SQL default_warnings'] = []
@@ -119,6 +124,7 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
 }
+
 `
 
 exports['update where with numeric data_warnings'] = []
@@ -139,6 +145,7 @@ model teams {
   id     Int     @default(autoincrement()) @id
   name   String  @unique
 }
+
 `
 
 exports['update where with boolean data_warnings'] = []
@@ -159,6 +166,7 @@ model teams {
   id     Int     @default(autoincrement()) @id
   name   String  @unique
 }
+
 `
 
 exports['update where with boolean data and select_warnings'] = []
@@ -178,6 +186,7 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
 }
+
 `
 
 exports['update where with string data_warnings'] = []
@@ -197,6 +206,7 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String
 }
+
 `
 
 exports['updateMany where with string data - check returned count_warnings'] = []
@@ -216,6 +226,7 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String
 }
+
 `
 
 exports['updateMany where with string data - check findMany_warnings'] = []
@@ -235,6 +246,7 @@ model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
 }
+
 `
 
 exports['findOne where unique_warnings'] = []
@@ -257,6 +269,7 @@ model users {
 
   @@unique([email, name], name: "users_email_name_key")
 }
+
 `
 
 exports['findOne where composite unique_warnings'] = []
@@ -279,6 +292,7 @@ model users {
 
   @@unique([email, name], name: "users_email_name_key")
 }
+
 `
 
 exports['update where composite unique_warnings'] = []
@@ -301,6 +315,7 @@ model users {
 
   @@unique([email, name], name: "users_email_name_key")
 }
+
 `
 
 exports['delete where composite unique_warnings'] = []
@@ -320,6 +335,7 @@ model users {
   email String?
   id    Int     @default(autoincrement()) @id
 }
+
 `
 
 exports['findMany - email text_warnings'] = []
@@ -339,6 +355,7 @@ model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
 }
+
 `
 
 exports['findMany where unique_warnings'] = []
@@ -358,6 +375,7 @@ model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
 }
+
 `
 
 exports['findMany - email varchar(50) not null unique_warnings'] = []
@@ -387,6 +405,7 @@ model users {
   id    Int     @default(autoincrement()) @id
   posts posts[]
 }
+
 `
 
 exports['findOne where unique with foreign key and unpack_warnings'] = []
@@ -407,6 +426,7 @@ model posts {
   published Boolean @default(false)
   title     String
 }
+
 `
 
 exports['findMany where contains and boolean_warnings'] = []
@@ -427,6 +447,7 @@ model posts {
   published Boolean @default(false)
   title     String
 }
+
 `
 
 exports['findMany where OR[contains, contains] _warnings'] = []
@@ -447,6 +468,7 @@ model posts {
   published Boolean @default(false)
   title     String
 }
+
 `
 
 exports['upsert (update)_warnings'] = []
@@ -467,6 +489,7 @@ model posts {
   published Boolean @default(false)
   title     String
 }
+
 `
 
 exports['upsert (create)_warnings'] = []
@@ -487,6 +510,7 @@ model posts {
   published Boolean @default(false)
   title     String
 }
+
 `
 
 exports['findMany orderBy asc_warnings'] = []
@@ -507,6 +531,7 @@ model posts {
   published Boolean @default(false)
   title     String
 }
+
 `
 
 exports['findMany orderBy desc_warnings'] = []
@@ -532,6 +557,7 @@ enum posts_published {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['findMany - default enum_warnings'] = []
@@ -557,6 +583,7 @@ enum posts_published {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['update with data - not null enum_warnings'] = []
@@ -582,6 +609,7 @@ enum posts_published {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['updateMany with data - not null enum - check count_warnings'] = []
@@ -607,6 +635,7 @@ enum posts_published {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['update with data - not null enum - check findMany_warnings'] = []
@@ -632,6 +661,7 @@ enum posts_published {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['deleteMany where enum - check count_warnings'] = []
@@ -657,6 +687,7 @@ enum posts_published {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['deleteMany where enum - check findMany_warnings'] = []
@@ -677,6 +708,7 @@ model crons {
   id        Int     @default(autoincrement()) @id
   job       String  @unique
 }
+
 `
 
 exports['findMany where contains_warnings'] = []
@@ -697,6 +729,7 @@ model crons {
   id        Int     @default(autoincrement()) @id
   job       String  @unique
 }
+
 `
 
 exports['findMany where startsWith_warnings'] = []
@@ -717,6 +750,7 @@ model crons {
   id        Int     @default(autoincrement()) @id
   job       String  @unique
 }
+
 `
 
 exports['findMany where endsWith_warnings'] = []
@@ -737,6 +771,7 @@ model crons {
   id        Int     @default(autoincrement()) @id
   job       String  @unique
 }
+
 `
 
 exports['findMany where in[string]_warnings'] = []
@@ -757,6 +792,7 @@ model posts {
   id         Int      @default(autoincrement()) @id
   title      String
 }
+
 `
 
 exports['findMany where datetime lte - check instanceof Date_warnings'] = []
@@ -777,6 +813,7 @@ model posts {
   id         Int      @default(autoincrement()) @id
   title      String
 }
+
 `
 
 exports['findMany where timestamp gte than now_warnings'] = []
@@ -797,6 +834,7 @@ model posts {
   id         Int      @default(autoincrement()) @id
   title      String
 }
+
 `
 
 exports['findMany where timestamp gt than now_warnings'] = []
@@ -817,6 +855,7 @@ model posts {
   id         Int      @default(autoincrement()) @id
   title      String
 }
+
 `
 
 exports['findMany where timestamp lt than now_warnings'] = []
@@ -836,6 +875,7 @@ model teams {
   id    Int @default(autoincrement()) @id
   token Int @unique
 }
+
 `
 
 exports['update where integer data_warnings'] = []
@@ -855,6 +895,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where datetime exact_warnings'] = []
@@ -874,6 +915,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where datetime gt_warnings'] = []
@@ -893,6 +935,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where datetime gte_warnings'] = []
@@ -912,6 +955,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where datetime lt_warnings'] = []
@@ -931,6 +975,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where datetime lte_warnings'] = []
@@ -950,6 +995,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where datetime not_warnings'] = []
@@ -969,6 +1015,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where null_warnings'] = []
@@ -989,6 +1036,7 @@ model teams {
   name  String
   token Int    @unique
 }
+
 `
 
 exports['findMany where empty in[]_warnings'] = []
@@ -1009,6 +1057,7 @@ model teams {
   name  String
   token Int    @unique
 }
+
 `
 
 exports['findMany where id empty in[] and token in[]_warnings'] = []
@@ -1029,6 +1078,7 @@ model teams {
   name  String
   token Int    @unique
 }
+
 `
 
 exports['findMany where in[integer]_warnings'] = []
@@ -1049,6 +1099,7 @@ model teams {
   name  String
   token Int    @unique
 }
+
 `
 
 exports['findMany where notIn[]_warnings'] = []
@@ -1069,6 +1120,7 @@ model teams {
   name  String
   token Int    @unique
 }
+
 `
 
 exports['findMany where empty notIn[]_warnings'] = []
@@ -1088,6 +1140,7 @@ model users {
   email String @unique
   id    Int    @default(autoincrement()) @id
 }
+
 `
 
 exports['findMany where - case insensitive field_warnings'] = []
@@ -1107,6 +1160,7 @@ model exercises {
   distance Float
   id       Int   @default(autoincrement()) @id
 }
+
 `
 
 exports['findMany where decimal_warnings'] = []
@@ -1126,6 +1180,7 @@ model exercises {
   distance Float @unique
   id       Int   @default(autoincrement()) @id
 }
+
 `
 
 exports['findOne where decimal_warnings'] = []
@@ -1144,6 +1199,7 @@ datasource mysql {
 model migrate {
   version Int @id
 }
+
 `
 
 exports['create bigint data_warnings'] = []
@@ -1167,6 +1223,7 @@ model variables {
 
   @@id([name, key])
 }
+
 `
 
 exports['findOne where composite PK_warnings'] = []
@@ -1190,6 +1247,7 @@ model variables {
 
   @@id([name, key])
 }
+
 `
 
 exports['update where composite PK_warnings'] = []
@@ -1213,6 +1271,7 @@ model variables {
 
   @@id([name, key])
 }
+
 `
 
 exports['upsert where composite PK - update_warnings'] = []
@@ -1236,6 +1295,7 @@ model variables {
 
   @@id([name, key])
 }
+
 `
 
 exports['upsert where composite PK - create_warnings'] = []
@@ -1259,6 +1319,7 @@ model variables {
 
   @@id([name, key])
 }
+
 `
 
 exports['delete where composite PK_warnings'] = []
@@ -1283,6 +1344,7 @@ model variables {
 
   @@unique([name, key], name: "variables_name_key_key")
 }
+
 `
 
 exports['findOne where unique composite_warnings'] = []
@@ -1307,6 +1369,7 @@ model variables {
   @@id([name, key])
   @@unique([value, email], name: "variables_value_email_key")
 }
+
 `
 
 exports['findOne where unique composite (PK is a composite)_warnings'] = []
@@ -1338,6 +1401,7 @@ model b {
 
   @@index([one, two], name: "one")
 }
+
 `
 
 exports['findOne where composite PK with foreign key_warnings'] = []
@@ -1357,6 +1421,7 @@ model teams {
   id   Int     @default(autoincrement()) @id
   name String?
 }
+
 `
 
 exports['updateMany where null - check findMany_warnings'] = []
@@ -1401,6 +1466,7 @@ enum invalid_enum_value_name_here_be_enum {
   // 123 @map("123")
   // $§! @map("$§!")
 }
+
 `
 
 exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
@@ -1466,6 +1532,7 @@ model posts {
   id    Int    @default(autoincrement()) @id
   title String
 }
+
 `
 
 exports['findOne - check typeof js object is object for Json field_warnings'] = []
@@ -1486,6 +1553,7 @@ model posts {
   id    Int    @default(autoincrement()) @id
   title String
 }
+
 `
 
 exports['findOne - check typeof Date is string for Json field_warnings'] = []
@@ -1506,6 +1574,7 @@ model posts {
   id    Int    @default(autoincrement()) @id
   title String
 }
+
 `
 
 exports['findOne - check typeof array for Json field with array_warnings'] = []
