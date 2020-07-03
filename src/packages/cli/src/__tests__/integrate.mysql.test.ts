@@ -83,7 +83,7 @@ datasource mysql {
   const introspectionResult = await engine.introspect(schema)
   const introspectionSchema = introspectionResult.datamodel
 
-  snapshot(`${name}_datamodel`, maskSchema(introspectionSchema))
+  snapshot(`${name}_datamodel`, maskSchema(introspectionSchema).trim())
   snapshot(`${name}_warnings`, introspectionResult.warnings)
 
   await generate(t, introspectionSchema)
