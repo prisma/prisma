@@ -109,12 +109,7 @@ export class MigrateUp implements Command {
       }
     }
 
-    await ensureDatabaseExists(
-      'apply',
-      true,
-      args['--create-db'],
-      args['--schema'],
-    )
+    await ensureDatabaseExists('apply', args['--create-db'], args['--schema'])
 
     const result = await migrate.up(options)
     migrate.stop()
