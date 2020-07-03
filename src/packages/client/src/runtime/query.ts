@@ -138,8 +138,6 @@ ${indent(this.children.map(String).join('\n'), tab)}
         const fieldType = fieldError.error.field.outputType
           .type as DMMF.OutputType
 
-        console.log(fieldError)
-
         fieldType.fields
           .filter((field) =>
             fieldError.error.type === 'emptyInclude'
@@ -240,6 +238,7 @@ ${fieldErrors
         callsite,
         originalMethod: originalMethod || queryName,
         showColors: errorFormat && errorFormat === 'pretty',
+        isValidationError: true,
       })
 
       let printJsonArgs: PrintJsonWithErrorsArgs = {

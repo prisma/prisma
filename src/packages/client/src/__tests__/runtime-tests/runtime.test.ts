@@ -9,8 +9,6 @@ const del = promisify(rimraf)
 
 jest.setTimeout(35000)
 
-// TODO: Figure out the problem with debug
-
 process.setMaxListeners(100)
 
 let subDirs = getSubDirs(__dirname)
@@ -23,7 +21,7 @@ if (
 ) {
   const dirsLeft = subDirs.filter((dir) => dir.includes(folderFilter))
   if (dirsLeft.length > 0) {
-    subDirs = dirsLeft
+    subDirs = [dirsLeft[0]] // only take the first matchh
     console.log(
       `As ${folderFilter} is provided, only ${subDirs.join(
         ', ',

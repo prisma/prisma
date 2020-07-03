@@ -127,7 +127,6 @@ test('JsonFilter should contain equals and not', async () => {
             "name": "id",
           },
         ],
-        "isOneOf": true,
         "name": "UserWhereUniqueInput",
       },
       Object {
@@ -157,7 +156,6 @@ test('JsonFilter should contain equals and not', async () => {
             "name": "field",
           },
         ],
-        "isOneOf": false,
         "name": "UserCreateInput",
       },
       Object {
@@ -187,7 +185,6 @@ test('JsonFilter should contain equals and not', async () => {
             "name": "field",
           },
         ],
-        "isOneOf": false,
         "name": "UserUpdateInput",
       },
       Object {
@@ -217,7 +214,6 @@ test('JsonFilter should contain equals and not', async () => {
             "name": "field",
           },
         ],
-        "isOneOf": false,
         "name": "UserUpdateManyMutationInput",
       },
       Object {
