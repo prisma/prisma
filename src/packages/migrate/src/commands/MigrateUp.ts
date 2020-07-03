@@ -49,10 +49,10 @@ export class MigrateUp implements Command {
       Go up by one migration
       ${chalk.dim('$')} prisma migrate up 1 --experimental
 
-      Go up by to a migration by timestamp
+      Go up to a migration by timestamp
       ${chalk.dim('$')} prisma migrate up 20190605204907 --experimental
 
-      Go up by to a migration by name
+      Go up to a migration by name
       ${chalk.dim('$')} prisma migrate up "add first_name field" --experimental
   `)
 
