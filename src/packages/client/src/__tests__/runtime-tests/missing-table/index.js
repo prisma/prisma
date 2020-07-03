@@ -1,17 +1,7 @@
 const { PrismaClient } = require('@prisma/client')
 const { getPlatform } = require('@prisma/get-platform')
-const fs = require('fs')
-const path = require('path')
 
 module.exports = async () => {
-  const platform = await getPlatform()
-  const binaryPath = path.join(
-    __dirname,
-    'node_modules/.prisma/client',
-    `query-engine-${platform}`,
-  )
-  fs.unlinkSync(binaryPath)
-
   const prisma = new PrismaClient({
     log: [
       {
@@ -21,9 +11,12 @@ module.exports = async () => {
     ],
   })
 
-  await prisma.user.findMany()
-
-  prisma.disconnect()
+  try {
+    await prisma.user.findMany()
+  } catch (e) {
+    prisma.disconnect()
+    throw e
+  }
 }
 
 if (require.main === module) {

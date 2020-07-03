@@ -12,17 +12,20 @@ import { generateClient } from '../generation/generateClient'
 import { getPackedPackage } from '@prisma/sdk'
 import Debug from '@prisma/debug'
 const debug = Debug('generateInFolder')
+import copy from '@apexearth/copy'
 
 export interface GenerateInFolderOptions {
   projectDir: string
   useLocalRuntime?: boolean
   transpile?: boolean
+  packageSource?: string
 }
 
 export async function generateInFolder({
   projectDir,
   useLocalRuntime = false,
   transpile = true,
+  packageSource,
 }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
   if (!projectDir) {
@@ -49,7 +52,17 @@ export async function generateInFolder({
     : path.join(projectDir, '@prisma/client')
 
   if (transpile) {
-    await getPackedPackage('@prisma/client', outputDir)
+    if (packageSource) {
+      await copy({
+        from: packageSource, // when using yarn pack and extracting it, it includes a folder called "package"
+        to: outputDir,
+        recursive: true,
+        parallelJobs: 20,
+        overwrite: true,
+      })
+    } else {
+      await getPackedPackage('@prisma/client', outputDir)
+    }
   }
 
   const platform = await getPlatform()

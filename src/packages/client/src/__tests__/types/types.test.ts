@@ -11,9 +11,15 @@ import * as ts from 'typescript'
 import { generateInFolder } from '../../utils/generateInFolder'
 import rimraf from 'rimraf'
 import { promisify } from 'util'
+import { getPackedPackage } from '@prisma/sdk'
 const del = promisify(rimraf)
 
 jest.setTimeout(30000)
+
+let packageSource: string
+beforeAll(async () => {
+  packageSource = (await getPackedPackage('@prisma/client')) as string
+})
 
 describe('valid types', () => {
   const subDirs = getSubDirs(__dirname)
@@ -29,6 +35,7 @@ describe('valid types', () => {
         projectDir: dir,
         useLocalRuntime: false,
         transpile: true,
+        packageSource,
       })
       const filePath = path.join(dir, 'index.ts')
       expect(() => compileFile(filePath)).not.toThrow()
