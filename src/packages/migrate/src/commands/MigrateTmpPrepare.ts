@@ -32,7 +32,7 @@ export class MigrateTmpPrepare implements Command {
 
     const migrate = new Migrate()
     debug('initialized migrate')
-    await ensureDatabaseExists('dev', false, true)
+    await ensureDatabaseExists('dev', true)
 
     await migrate.up({
       short: true,

@@ -93,7 +93,7 @@ export class MigrateDown implements Command {
       }
     }
 
-    await ensureDatabaseExists('unapply', true, undefined, args['--schema'])
+    await ensureDatabaseExists('unapply', undefined, args['--schema'])
 
     const result = await migrate.down(options)
     migrate.stop()

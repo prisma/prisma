@@ -92,12 +92,7 @@ export class MigrateSave implements Command {
     }
 
     const preview = args['--preview'] || false
-    await ensureDatabaseExists(
-      'create',
-      true,
-      args['--create-db'],
-      args['--schema'],
-    )
+    await ensureDatabaseExists('create', args['--create-db'], args['--schema'])
 
     const migrate = new Migrate(args['--schema'])
 
