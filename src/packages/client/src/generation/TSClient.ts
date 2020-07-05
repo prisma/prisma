@@ -279,8 +279,6 @@ export class TSClient implements Generatable {
       engineVersion: this.options.engineVersion,
     }
 
-    console.log(Object.keys(this.dmmf.outputTypeMap))
-
     return `${commonCodeJS(this.options)}
 
 /**
@@ -775,7 +773,6 @@ export class Model implements Generatable {
     if (maxType) {
       aggregateTypes.push(maxType)
     }
-    console.log(aggregateTypes)
 
     const includeType = hasRelationField
       ? `\nexport type ${getIncludeName(model.name)} = {
