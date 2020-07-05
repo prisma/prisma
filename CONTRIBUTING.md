@@ -4,8 +4,9 @@ Prisma consists of a mono-repo for all TypeScript code.
 To setup and build the packages, follow these steps:
 
 ```bash
-cd src
-npm i -g pnpm
+git clone https://github.com/prisma/prisma.git
+cd prisma/src
+npm i -g pnpm@5.1.7
 pnpm i --ignore-scripts
 pnpm run setup
 ```
