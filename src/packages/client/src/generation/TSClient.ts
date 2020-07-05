@@ -32,6 +32,7 @@ import {
   getAggregateArgsName,
   getAggregateGetName,
   getAggregateScalarGetName,
+  getAggregateInputType,
 } from './utils'
 import { uniqueBy } from '../runtime/utils/uniqueBy'
 import { GetPrismaClientOptions } from '../runtime/getPrismaClient'
@@ -165,11 +166,6 @@ export declare interface JsonArray extends Array<JsonValue> {}
  * Matches any valid JSON value.
  */
 export declare type JsonValue = string | number | boolean | null | JsonObject | JsonArray
-
-
-type Truthify<T> = {
-  [P in keyof T]: true
-}
 
 /**
  * Same as JsonObject, but allows undefined
@@ -752,9 +748,7 @@ export class Model implements Generatable {
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const aggregateType = this.dmmf.outputTypeMap[getAggregateName(model.name)]
-    const aggregateTypes = [
-      aggregateType
-    ]
+    const aggregateTypes = [aggregateType]
 
     const avgType = this.dmmf.outputTypeMap[getAvgAggregateName(model.name)]
     const sumType = this.dmmf.outputTypeMap[getSumAggregateName(model.name)]
@@ -807,26 +801,68 @@ ${indent(
 
 ${aggregateTypes.map((type) => new SchemaOutputType(type).toTS()).join('\n')}
 
+${
+  aggregateTypes.length > 1
+    ? aggregateTypes
+        .slice(1)
+        .map((type) => {
+          const newType: DMMF.InputType = {
+            name: getAggregateInputType(type.name),
+            fields: type.fields.map((field) => ({
+              ...field,
+              name: field.name,
+              inputType: [
+                {
+                  isList: false,
+                  isNullable: false,
+                  isRequired: false,
+                  kind: 'scalar',
+                  type: 'true',
+                },
+              ],
+            })),
+          }
+          return new InputType(newType).toTS()
+        })
+        .join('\n')
+    : ''
+}
+
 export type ${getAggregateArgsName(model.name)} = {
 ${indent(
-  aggregateType.fields.map(f => {
-    if (f.name === 'count') {
-      return `${f.name}?: true`
-    }
-    return `${f.name}?: Truthify<${(f.outputType.type as SchemaOutputType).name}>`
-  }).join('\n')
-, tab)}
+  aggregateType.fields
+    .map((f) => {
+      if (f.name === 'count') {
+        return `${f.name}?: true`
+      }
+      return `${f.name}?: ${getAggregateInputType(
+        (f.outputType.type as SchemaOutputType).name,
+      )}`
+    })
+    .join('\n'),
+  tab,
+)}
 }
 
-export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(model.name)}> = {
-  [P in keyof T]: P extends 'count' ? number : ${aggregateTypes.length > 1 ? `${getAggregateScalarGetName(model.name)}<T[P]>` :  'never'}
+export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
+      model.name,
+    )}> = {
+  [P in keyof T]: P extends 'count' ? number : ${
+    aggregateTypes.length > 1
+      ? `${getAggregateScalarGetName(model.name)}<T[P]>`
+      : 'never'
+  }
 }
 
-${aggregateTypes.length > 1 ? (
-  `export type ${getAggregateScalarGetName(model.name)}<T extends any> = {
-  [P in keyof T]: P extends keyof ${getAvgAggregateName(model.name)} ? ${getAvgAggregateName(model.name)}[P] : never
+${
+  aggregateTypes.length > 1
+    ? `export type ${getAggregateScalarGetName(model.name)}<T extends any> = {
+  [P in keyof T]: P extends keyof ${getAvgAggregateName(
+    model.name,
+  )} ? ${getAvgAggregateName(model.name)}[P] : never
 }`
-) : ''}
+    : ''
+}
 
 export type ${getSelectName(model.name)} = {
 ${indent(
@@ -1059,7 +1095,11 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
   /**
    * Aggregate
    */
-  aggregate<T extends ${getAggregateArgsName(name)}>(args: Subset<T, ${getAggregateArgsName(name)}>): Promise<${getAggregateGetName(name)}<T>>
+  aggregate<T extends ${getAggregateArgsName(
+    name,
+  )}>(args: Subset<T, ${getAggregateArgsName(
+      name,
+    )}>): Promise<${getAggregateGetName(name)}<T>>
 }
 
 /**
