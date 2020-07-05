@@ -50,7 +50,7 @@ if (process.argv.length > 2) {
   let dotenvResult
 
   // Parse CLI arguments and look for --schema
-  const args = arg(process.argv.slice(3), { '--schema': String })
+  const args = arg(process.argv.slice(3), { '--schema': String }, false, true)
 
   // Check --schema directory
   if (args && args['--schema']) {
