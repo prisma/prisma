@@ -44,7 +44,7 @@ export async function generateInFolder({
   const enableExperimental = mapExperimentalFeatures(
     extractExperimentalFeatures(config),
   )
-  if (enableExperimental.includes('aggregations')) {
+  if (!enableExperimental.includes('aggregations')) {
     enableExperimental.push('aggregations')
   }
 
