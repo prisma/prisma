@@ -44,6 +44,10 @@ export function getMaxAggregateName(modelName: string): string {
   return `${modelName}MaxAggregateOutputType`
 }
 
+export function getAggregateInputType(aggregateOutputType: string): string {
+  return aggregateOutputType.replace(/OutputType$/, 'InputType')
+}
+
 export function getAggregateArgsName(modelName: string): string {
   return `Aggregate${modelName}Args`
 }
