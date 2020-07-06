@@ -129,6 +129,10 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       }),
   )
 
+  if (process.env.BINARY_DOWNLOAD_VERSION) {
+    options.version = process.env.BINARY_DOWNLOAD_VERSION
+  }
+
   if (options.version === 'latest') {
     options.version = await getLatestTag()
   }

@@ -494,58 +494,7 @@ Object {
       Object {
         "fields": Array [
           Object {
-            "args": Array [
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "UserWhereInput",
-                },
-                "name": "where",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "enum",
-                  "type": "UserOrderByInput",
-                },
-                "name": "orderBy",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "UserWhereUniqueInput",
-                },
-                "name": "cursor",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "take",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "skip",
-              },
-            ],
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -623,7 +572,58 @@ Object {
             },
           },
           Object {
-            "args": Array [],
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "UserWhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "UserOrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "UserWhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
             "name": "aggregateUser",
             "outputType": Object {
               "isList": false,
@@ -4464,58 +4464,7 @@ Object {
       Object {
         "fields": Array [
           Object {
-            "args": Array [
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "PostWhereInput",
-                },
-                "name": "where",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "enum",
-                  "type": "PostOrderByInput",
-                },
-                "name": "orderBy",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "PostWhereUniqueInput",
-                },
-                "name": "cursor",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "take",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "skip",
-              },
-            ],
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -4531,58 +4480,7 @@ Object {
       Object {
         "fields": Array [
           Object {
-            "args": Array [
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "UserWhereInput",
-                },
-                "name": "where",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "enum",
-                  "type": "UserOrderByInput",
-                },
-                "name": "orderBy",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "UserWhereUniqueInput",
-                },
-                "name": "cursor",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "take",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "skip",
-              },
-            ],
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -4647,58 +4545,7 @@ Object {
       Object {
         "fields": Array [
           Object {
-            "args": Array [
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "User1WhereInput",
-                },
-                "name": "where",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "enum",
-                  "type": "User1OrderByInput",
-                },
-                "name": "orderBy",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "User1WhereUniqueInput",
-                },
-                "name": "cursor",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "take",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "skip",
-              },
-            ],
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -4763,58 +4610,7 @@ Object {
       Object {
         "fields": Array [
           Object {
-            "args": Array [
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "User2WhereInput",
-                },
-                "name": "where",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "enum",
-                  "type": "User2OrderByInput",
-                },
-                "name": "orderBy",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "User2WhereUniqueInput",
-                },
-                "name": "cursor",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "take",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "skip",
-              },
-            ],
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -4892,7 +4688,58 @@ Object {
             },
           },
           Object {
-            "args": Array [],
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "PostWhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "PostOrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "PostWhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
             "name": "aggregatePost",
             "outputType": Object {
               "isList": false,
@@ -4987,7 +4834,58 @@ Object {
             },
           },
           Object {
-            "args": Array [],
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "UserWhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "UserOrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "UserWhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
             "name": "aggregateUser",
             "outputType": Object {
               "isList": false,
@@ -5082,7 +4980,58 @@ Object {
             },
           },
           Object {
-            "args": Array [],
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User1WhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User1OrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User1WhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
             "name": "aggregateUser1",
             "outputType": Object {
               "isList": false,
@@ -5177,7 +5126,58 @@ Object {
             },
           },
           Object {
-            "args": Array [],
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User2WhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User2OrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User2WhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
             "name": "aggregateUser2",
             "outputType": Object {
               "isList": false,
@@ -9626,58 +9626,7 @@ Object {
       Object {
         "fields": Array [
           Object {
-            "args": Array [
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "PostWhereInput",
-                },
-                "name": "where",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "enum",
-                  "type": "PostOrderByInput",
-                },
-                "name": "orderBy",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "PostWhereUniqueInput",
-                },
-                "name": "cursor",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "take",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "skip",
-              },
-            ],
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -9693,58 +9642,7 @@ Object {
       Object {
         "fields": Array [
           Object {
-            "args": Array [
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "UserWhereInput",
-                },
-                "name": "where",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "enum",
-                  "type": "UserOrderByInput",
-                },
-                "name": "orderBy",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "UserWhereUniqueInput",
-                },
-                "name": "cursor",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "take",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "skip",
-              },
-            ],
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -9809,58 +9707,7 @@ Object {
       Object {
         "fields": Array [
           Object {
-            "args": Array [
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "User1WhereInput",
-                },
-                "name": "where",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "enum",
-                  "type": "User1OrderByInput",
-                },
-                "name": "orderBy",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "User1WhereUniqueInput",
-                },
-                "name": "cursor",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "take",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "skip",
-              },
-            ],
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -9925,58 +9772,7 @@ Object {
       Object {
         "fields": Array [
           Object {
-            "args": Array [
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "User2WhereInput",
-                },
-                "name": "where",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "enum",
-                  "type": "User2OrderByInput",
-                },
-                "name": "orderBy",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "User2WhereUniqueInput",
-                },
-                "name": "cursor",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "take",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "skip",
-              },
-            ],
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -10054,7 +9850,58 @@ Object {
             },
           },
           Object {
-            "args": Array [],
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "PostWhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "PostOrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "PostWhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
             "name": "aggregatePost",
             "outputType": Object {
               "isList": false,
@@ -10149,7 +9996,58 @@ Object {
             },
           },
           Object {
-            "args": Array [],
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "UserWhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "UserOrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "UserWhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
             "name": "aggregateUser",
             "outputType": Object {
               "isList": false,
@@ -10244,7 +10142,58 @@ Object {
             },
           },
           Object {
-            "args": Array [],
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User1WhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User1OrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User1WhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
             "name": "aggregateUser1",
             "outputType": Object {
               "isList": false,
@@ -10339,7 +10288,58 @@ Object {
             },
           },
           Object {
-            "args": Array [],
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User2WhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User2OrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "User2WhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
             "name": "aggregateUser2",
             "outputType": Object {
               "isList": false,
@@ -11607,58 +11607,7 @@ Object {
       Object {
         "fields": Array [
           Object {
-            "args": Array [
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "AWhereInput",
-                },
-                "name": "where",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "enum",
-                  "type": "AOrderByInput",
-                },
-                "name": "orderBy",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "object",
-                  "type": "AWhereUniqueInput",
-                },
-                "name": "cursor",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "take",
-              },
-              Object {
-                "inputType": Object {
-                  "isList": false,
-                  "isNullable": false,
-                  "isRequired": false,
-                  "kind": "scalar",
-                  "type": "Int",
-                },
-                "name": "skip",
-              },
-            ],
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -11736,7 +11685,58 @@ Object {
             },
           },
           Object {
-            "args": Array [],
+            "args": Array [
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "AWhereInput",
+                },
+                "name": "where",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "AOrderByInput",
+                },
+                "name": "orderBy",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "object",
+                  "type": "AWhereUniqueInput",
+                },
+                "name": "cursor",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "take",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": false,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "scalar",
+                  "type": "Int",
+                },
+                "name": "skip",
+              },
+            ],
             "name": "aggregateA",
             "outputType": Object {
               "isList": false,

@@ -1,5 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`runtime aggregations: aggregations example should succeed 1`] = `"success"`;
+
 exports[`runtime blog: blog example should succeed 1`] = `"success"`;
 
 exports[`runtime blog-env: blog-env example should not succeed 1`] = `

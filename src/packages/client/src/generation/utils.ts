@@ -24,6 +24,42 @@ export function getSelectName(modelName: string): string {
   return `${modelName}Select`
 }
 
+export function getAggregateName(modelName: string): string {
+  return `Aggregate${modelName}`
+}
+
+export function getAvgAggregateName(modelName: string): string {
+  return `${modelName}AvgAggregateOutputType`
+}
+
+export function getSumAggregateName(modelName: string): string {
+  return `${modelName}SumAggregateOutputType`
+}
+
+export function getMinAggregateName(modelName: string): string {
+  return `${modelName}MinAggregateOutputType`
+}
+
+export function getMaxAggregateName(modelName: string): string {
+  return `${modelName}MaxAggregateOutputType`
+}
+
+export function getAggregateInputType(aggregateOutputType: string): string {
+  return aggregateOutputType.replace(/OutputType$/, 'InputType')
+}
+
+export function getAggregateArgsName(modelName: string): string {
+  return `Aggregate${modelName}Args`
+}
+
+export function getAggregateGetName(modelName: string): string {
+  return `Get${modelName}AggregateType`
+}
+
+export function getAggregateScalarGetName(modelName: string): string {
+  return `Get${modelName}AggregateScalarType`
+}
+
 export function getIncludeName(modelName: string): string {
   return `${modelName}Include`
 }
