@@ -14,8 +14,8 @@ export function format(input = ''): string {
 export function arg<T extends Arg.Spec>(
   argv: string[],
   spec: T,
-  stopAtPositional: true | false = true,
-  permissive: boolean = false,
+  stopAtPositional = true,
+  permissive = false,
 ): Arg.Result<T> | Error {
   try {
     return Arg(spec, { argv, stopAtPositional, permissive })

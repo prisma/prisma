@@ -5,97 +5,55 @@ const prisma = new PrismaClient({
 })
 
 async function main() {
-  ;(prisma as any).use('all', async ({ params, fetch }) => {
-    console.log(params.clientMethod, `before`, params)
-    const data = await fetch(params)
-    console.log(params.clientMethod, data)
-    data.push({
-      name: 'fake user',
-    })
-    console.log(params.clientMethod, `after`)
-    return data
-  })
-  const users = await prisma.transaction([
-    prisma.user.findMany({
-      include: {
-        posts: {
-          include: {
-            author: true,
-          },
-          orderBy: {
-            title: 'asc',
-          },
-        },
-      },
-    }),
-    prisma.user.findMany({
-      include: {
-        posts: {
-          include: {
-            author: true,
-          },
-          orderBy: {
-            title: 'asc',
-          },
-        },
-      },
-    }),
-  ])
-
-  prisma.post.create({
-    data: {
-      author: {
-        connectOrCreate: {
-          where: {
-            email: 'a@a.de',
-          },
-          create: {
-            email: 'a@a.de',
-          },
-        },
-      },
-      published: true,
-      title: 'Title',
+  // const result = await prisma.user.aggregate({
+  //   avg: {
+  //     age3: true,
+  //   },
+  //   sum: {
+  //     age: true,
+  //   },
+  //   min: {
+  //     age: true,
+  //   },
+  //   max: {
+  //     age: true,
+  //   },
+  //   count: true,
+  // })
+  // const result = await prisma.user.count({
+  //   take: 10,
+  // })
+  const result = await prisma.user.aggregate({
+    avg: {
+      age: true
     },
+    max: {
+      age: true
+    },
+    sum: {
+      age: true
+    },
+    min: {
+      age:  true
+    },
+    count: true
   })
+  result.count
+  result.avg.age
+  console.log(result)
+  prisma.disconnect()
+}
 
-  console.log(users)
-
-  // const result = await prisma.user.updateMany({
-  //   data: {
-  //     id: null,
-  //   },
-  // })
-
-  // console.log(result)
-
-  // // prisma.disconnect()
-
-  // const user = await prisma.post.findOne({
-  //   include: {
-  //     author: true,
-  //   },
-  //   where: {
-  //     id: '',
-  //   },
-  // })
-
-  // const x = await prisma.post.update({
-  //   where: {
-  //     id: '',
-  //   },
-  //   data: {
-  //     id: '',
-  //     published: true,
-  //     title: null,
-  //   },
-  // })
-
-  // prisma.post.findMany({
-  //   where: {
-  //     title: null,
-  //   },
-  // })
+async function seed() {
+  for (let i = 0; i < 10; i++) {
+    await prisma.user.create({
+      data: {
+        email: `a${i}@asd.de`,
+        age: 29,
+        name: 'Bob',
+      },
+    })
+  }
 }
 
 main().catch((e) => {

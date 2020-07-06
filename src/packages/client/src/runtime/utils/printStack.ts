@@ -16,10 +16,11 @@ function renderN(n: number, max: number): string {
 export interface ErrorArgs {
   callsite?: string
   originalMethod: string
-  onUs?: boolean // is this on us?
+  onUs?: boolean // is this on us or is it a user error?
   showColors?: boolean
   renderPathRelative?: boolean
   printFullStack?: boolean
+  isValidationError?: boolean
 }
 
 export interface PrintStackResult {
@@ -36,6 +37,7 @@ export const printStack = ({
   showColors,
   renderPathRelative,
   printFullStack,
+  isValidationError,
 }: ErrorArgs): PrintStackResult => {
   const lastErrorHeight = 20
   let callsiteStr = ':'
@@ -133,7 +135,7 @@ export const printStack = ({
                     : chalk.dim('  ' + l),
                 )
                 .join('\n')
-            if (!match) {
+            if (!match && !isValidationError) {
               prevLines += '\n\n'
             }
             afterLines = ')'

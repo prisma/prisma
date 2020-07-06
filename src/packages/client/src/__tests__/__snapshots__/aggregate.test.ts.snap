@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`aggregate unhappy path - incorrect arg 1`] = `
+"
+Invalid \`prisma.user()\` invocation:
+
+{
+  mount: true
+  ~~~~~
+}
+
+Unknown arg \`mount\` in mount for type AggregateUser. Did you mean \`where\`? Available args:
+type aggregateUser {
+  where?: UserWhereInput
+  orderBy?: UserOrderByInput
+  cursor?: UserWhereUniqueInput
+  take?: Int
+  skip?: Int
+}
+
+"
+`;
+
+exports[`aggregate unhappy path - incorrect field 1`] = `
+"
+Invalid \`prisma.user()\` invocation:
+
+{
+  select: {
+    avg: {
+      select: {
+        blub: true,
+        ~~~~
+?       id?: true,
+?       age?: true,
+?       personaId?: true
+      }
+    }
+  }
+}
+
+
+Unknown field \`blub\` for select statement on model UserAvgAggregateOutputType. Available options are listed in green. Did you mean \`id\`?
+"
+`;
