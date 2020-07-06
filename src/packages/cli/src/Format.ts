@@ -7,8 +7,9 @@ import {
   formatSchema,
 } from '@prisma/sdk'
 import chalk from 'chalk'
-import { getConfig, getDMMF } from '@prisma/sdk'
+import { getDMMF } from '@prisma/sdk'
 import fs from 'fs'
+import os from 'os'
 import { formatms } from './utils/formatms'
 
 /**
@@ -68,9 +69,11 @@ export class Format implements Command {
       datamodel: schema,
     })
 
-    const output = await formatSchema({
+    let output = await formatSchema({
       schemaPath,
     })
+
+    output = output.trimEnd() + os.EOL
 
     fs.writeFileSync(schemaPath, output)
     const after = Date.now()
