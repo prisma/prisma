@@ -1,6 +1,5 @@
 import chalk from 'chalk'
 import stripAnsi from 'strip-ansi'
-import { dedent } from './dedent'
 import { deepSet } from './deep-set'
 import stringifyObject from './stringifyObject'
 
@@ -12,12 +11,19 @@ export interface MissingItem {
 
 const DIM_TOKEN = '@@__DIM_POINTER__@@'
 
-export function printJsonWithErrors(
-  ast: object,
-  keyPaths: string[],
-  valuePaths: string[],
-  missingItems: MissingItem[] = [],
-) {
+export type PrintJsonWithErrorsArgs = {
+  ast: object
+  keyPaths: string[]
+  valuePaths: string[]
+  missingItems: MissingItem[]
+}
+
+export function printJsonWithErrors({
+  ast,
+  keyPaths,
+  valuePaths,
+  missingItems,
+}: PrintJsonWithErrorsArgs) {
   let obj = ast
   for (const { path, type } of missingItems) {
     obj = deepSet(obj, path, type)

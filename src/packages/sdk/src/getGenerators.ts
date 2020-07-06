@@ -104,13 +104,19 @@ export async function getGenerators({
   })
 
   // TODO: This needs a better abstraction, but we don't have any better right now
-  const experimentalFeatures = extractExperimentalFeatures(config)
+  const experimentalFeatures = mapExperimentalFeatures(
+    extractExperimentalFeatures(config),
+  )
+
+  if (!experimentalFeatures.includes('aggregations')) {
+    experimentalFeatures.push('aggregations')
+  }
 
   const dmmf = await getDMMF({
     datamodel,
     datamodelPath: schemaPath,
     prismaPath,
-    enableExperimental: mapExperimentalFeatures(experimentalFeatures),
+    enableExperimental: experimentalFeatures,
   })
 
   if (dmmf.datamodel.models.length === 0) {

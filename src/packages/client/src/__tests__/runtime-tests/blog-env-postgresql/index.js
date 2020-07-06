@@ -104,6 +104,9 @@ module.exports = async () => {
 
   await prisma.user.findMany()
   prisma.disconnect()
+
+  // flakyness :shrug:
+  await new Promise((r) => setTimeout(r, 200))
   assert(requests.length === 2)
 
   const count = await prisma.user.count()

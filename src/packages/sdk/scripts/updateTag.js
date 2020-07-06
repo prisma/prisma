@@ -4,6 +4,9 @@ const fs = require('fs')
 const path = require('path')
 
 async function main() {
+  if (process.env.BINARY_DOWNLOAD_VERSION) {
+    return
+  }
   const tag = await getLatestTag()
   console.log('Updated local engines version to', tag)
   pkg.prisma = pkg.prisma || {}
