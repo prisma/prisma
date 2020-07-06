@@ -64,7 +64,7 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
 
   if (
     credentials.type === 'sqlite' &&
-    credentials.uri?.indexOf('file:') === 0
+    credentials.uri?.startsWith('file:')
   ) {
     // if `file:../parent-dev.db` return as it is (do not convert to squlite://)
     return credentials.uri
