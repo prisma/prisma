@@ -68,7 +68,14 @@ export class Doctor implements Command {
       cwd: path.dirname(schemaPath),
     })
 
-    const { datamodel } = await engine.introspect(schema)
+    let datamodel
+    try {
+      const result = await engine.introspect(schema, true)
+      datamodel = result.datamodel
+    } finally {
+      engine.stop()
+    }
+
     const remoteDmmf = await getDMMF({ datamodel })
 
     const remoteModels = keyBy(
@@ -158,10 +165,11 @@ function printModelMessage({
   }
 
   for (const { localField, remoteField } of incorrectFieldType) {
-    const printField = (f: DMMF.Field) => f.name + (f.isList ? '[]' : '')
+    const printFieldType = (f: DMMF.Field) => f.type + (f.isList ? '[]' : '')
+
     msg += `↪ Field ${localField.name} has type ${chalk.greenBright(
-      localField.type + printField(localField),
-    )} locally, but ${chalk.redBright(printField(remoteField))} remote`
+      printFieldType(localField),
+    )} locally, but ${chalk.redBright(printFieldType(remoteField))} remote\n`
   }
 
   return msg
