@@ -73,7 +73,7 @@ export async function askToCreateDb(
       : credentials.type === 'postgresql'
       ? 'PostgreSQL'
       : credentials.type === 'sqlite'
-      ? 'Sqlite'
+      ? 'SQLite'
       : credentials.type
 
   const schemaWord = 'database'
