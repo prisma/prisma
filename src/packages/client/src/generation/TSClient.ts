@@ -10,7 +10,6 @@ import {
   GraphQLScalarToJSTypeTable,
   lowerCase,
   JSOutputTypeToInputType,
-  getOutputTypeName,
 } from '../runtime/utils/common'
 import { InternalDatasource } from '../runtime/utils/printDatasources'
 import { DatasourceOverwrite } from './extractSqliteSources'
@@ -358,7 +357,7 @@ ${/*new Query(this.dmmf, 'query')*/ ''}
 ${this.dmmf.schema.enums.map((type) => new Enum(type).toTS()).join('\n\n')}
 
 ${Object.values(this.dmmf.modelMap)
-  .map((model) => new Model(model, this.dmmf).toTS())
+  .map((model) => new Model(model, this.dmmf, this.options.generator!).toTS())
   .join('\n')}
 
 /**
@@ -701,6 +700,7 @@ export class Model implements Generatable {
   constructor(
     protected readonly model: DMMF.Model,
     protected readonly dmmf: DMMFClass,
+    protected readonly generator?: GeneratorConfig,
   ) {
     const outputType = dmmf.outputTypeMap[model.name]
     this.outputType = new OutputType(outputType)
@@ -739,14 +739,8 @@ export class Model implements Generatable {
 
     return argsTypes
   }
-  public toTS(): string {
-    const { model, outputType } = this
-
-    if (!outputType) {
-      return ''
-    }
-
-    const hasRelationField = model.fields.some((f) => f.kind === 'object')
+  private getAggregationTypes() {
+    const { model } = this
     const aggregateType = this.dmmf.outputTypeMap[getAggregateName(model.name)]
     const aggregateTypes = [aggregateType]
 
@@ -768,38 +762,9 @@ export class Model implements Generatable {
       aggregateTypes.push(maxType)
     }
 
-    const includeType = hasRelationField
-      ? `\nexport type ${getIncludeName(model.name)} = {
-${indent(
-  outputType.fields
-    .filter((f) => f.outputType.kind === 'object')
-    .map(
-      (f) =>
-        `${f.name}?: boolean` +
-        (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
-    )
-    .join('\n'),
-  tab,
-)}
-}\n`
-      : ''
-
-    return `
-/**
- * Model ${model.name}
- */
-
-export type ${model.name} = {
-${indent(
-  model.fields
-    .filter((f) => f.kind !== 'object')
-    .map((field) => new OutputField(field).toTS())
-    .join('\n'),
-  tab,
-)}
-}
-
-${aggregateTypes.map((type) => new SchemaOutputType(type).toTS()).join('\n')}
+    return `${aggregateTypes
+      .map((type) => new SchemaOutputType(type).toTS())
+      .join('\n')}
 
 ${
   aggregateTypes.length > 1
@@ -863,6 +828,54 @@ ${
 }`
     : ''
 }
+    
+    `
+  }
+  public toTS(): string {
+    const { model, outputType } = this
+
+    if (!outputType) {
+      return ''
+    }
+
+    const hasRelationField = model.fields.some((f) => f.kind === 'object')
+
+    const includeType = hasRelationField
+      ? `\nexport type ${getIncludeName(model.name)} = {
+${indent(
+  outputType.fields
+    .filter((f) => f.outputType.kind === 'object')
+    .map(
+      (f) =>
+        `${f.name}?: boolean` +
+        (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
+    )
+    .join('\n'),
+  tab,
+)}
+}\n`
+      : ''
+
+    return `
+/**
+ * Model ${model.name}
+ */
+
+export type ${model.name} = {
+${indent(
+  model.fields
+    .filter((f) => f.kind !== 'object')
+    .map((field) => new OutputField(field).toTS())
+    .join('\n'),
+  tab,
+)}
+}
+
+${
+  this.generator?.experimentalFeatures.includes('aggregateApi')
+    ? this.getAggregationTypes()
+    : ''
+}
 
 export type ${getSelectName(model.name)} = {
 ${indent(
@@ -879,7 +892,7 @@ ${indent(
 ${includeType}
 ${new PayloadType(this.outputType!).toTS()}
 
-${new ModelDelegate(this.outputType!, this.dmmf).toTS()}
+${new ModelDelegate(this.outputType!, this.dmmf, this.generator).toTS()}
 
 // Custom InputTypes
 ${this.argsTypes.map(TS).join('\n')}
@@ -1052,6 +1065,7 @@ export class ModelDelegate implements Generatable {
   constructor(
     protected readonly outputType: OutputType,
     protected readonly dmmf: DMMFClass,
+    protected readonly generator?: GeneratorConfig,
   ) {}
   public toTS(): string {
     const { fields, name } = this.outputType
@@ -1092,14 +1106,20 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
     DMMF.ModelAction.findMany,
   )}, 'select' | 'include'>): Promise<number>
 
+${
+  this.generator?.experimentalFeatures?.includes('aggregateApi')
+    ? `
   /**
    * Aggregate
    */
   aggregate<T extends ${getAggregateArgsName(
     name,
   )}>(args: Subset<T, ${getAggregateArgsName(
-      name,
-    )}>): Promise<${getAggregateGetName(name)}<T>>
+        name,
+      )}>): Promise<${getAggregateGetName(name)}<T>>
+    `
+    : ''
+}
 }
 
 /**

@@ -1,5 +1,6 @@
 const featureFlagMap = {
   transactionApi: 'transaction',
+  aggregateApi: 'aggregations',
 }
 
 export function mapExperimentalFeatures(features?: string[]): string[] {

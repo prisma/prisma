@@ -4,9 +4,9 @@ datasource db {
 }
 
 generator client {
-  provider     = "prisma-client-js"
-  output       = "@prisma/client"
-  featureFlags = ["aggregations"]
+  provider             = "prisma-client-js"
+  output               = "@prisma/client"
+  experimentalFeatures = ["aggregateApi"]
 }
 
 // / User model comment
