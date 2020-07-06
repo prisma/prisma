@@ -872,7 +872,7 @@ ${indent(
 }
 
 ${
-  this.generator?.experimentalFeatures.includes('aggregateApi')
+  this.generator?.experimentalFeatures?.includes('aggregateApi')
     ? this.getAggregationTypes()
     : ''
 }
