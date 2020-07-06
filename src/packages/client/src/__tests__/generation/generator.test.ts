@@ -171,7 +171,8 @@ describe('generator', () => {
       ).toMatchInlineSnapshot(`
         "dynamic-denylist.prisma\\" contains reserved keywords.
                Rename the following items:
-                 - \\"model UserArgs\\""
+                 - \\"model UserArgs\\"
+        To learn more about how to rename models, check out https://pris.ly/d/naming-models"
       `)
     }
     generator.stop()
