@@ -64,8 +64,8 @@ export class Version implements Command {
   }: BinaryInfo): string {
     const resolved = fromEnvVar ? `, resolved by ${fromEnvVar}` : ''
     return `${version} (at ${path.relative(
-      absolutePath,
       __dirname,
+      absolutePath,
     )}${resolved})`
   }
 
