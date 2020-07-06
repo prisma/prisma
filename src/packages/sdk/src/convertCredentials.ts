@@ -1,6 +1,7 @@
 import { DatabaseCredentials } from './types'
 import URL from 'url-parse'
 import { ConnectorType } from '@prisma/generator-helper'
+import path from 'path'
 
 export function credentialsToUri(credentials: DatabaseCredentials): string {
   const type = databaseTypeToProtocol(credentials.type)
@@ -61,6 +62,13 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
     url.pathname = ''
   }
 
+  if (
+    credentials.type === 'sqlite' &&
+    credentials.uri?.startsWith('file:')
+  ) {
+    // if `file:../parent-dev.db` return as it is (do not convert to squlite://)
+    return credentials.uri
+  }
   // use a custom toString method, as we don't want escaping of query params
   return url.toString((q) =>
     Object.entries(q)
@@ -87,16 +95,24 @@ export function uriToCredentials(
 
   const { schema, socket, host, ...extraFields } = uri.query
 
+  let database: string | undefined = undefined
+  if (type === 'sqlite' && uri.pathname) {
+    if (uri.pathname.startsWith('file:')) {
+      database = uri.pathname.slice(5)
+    } else {
+      database = path.basename(uri.pathname)
+    }
+  } else if (uri.pathname.length > 1) {
+    database = uri.pathname.slice(1)
+  }
+
   return {
     type,
     host: exists(uri.hostname) ? uri.hostname : undefined,
     user: exists(uri.username) ? uri.username : undefined,
     port: exists(uri.port) ? Number(uri.port) : undefined,
     password: exists(uri.password) ? uri.password : undefined,
-    database:
-      uri.pathname && uri.pathname.length > 1
-        ? uri.pathname.slice(1)
-        : undefined,
+    database,
     schema: uri.query.schema || undefined,
     uri: connectionString,
     ssl: Boolean(uri.query.sslmode),
