@@ -97,7 +97,7 @@ export function uriToCredentials(
 
   let database: string | undefined = undefined
   if (type === 'sqlite' && uri.pathname) {
-    if (uri.pathname.indexOf('file:') === 0) {
+    if (uri.pathname.startsWith('file:')) {
       database = uri.pathname.slice(5)
     } else {
       database = path.basename(uri.pathname)
