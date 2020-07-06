@@ -165,6 +165,7 @@ export async function generateClient({
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
+
   if (denylistsErrors) {
     let message = `${chalk.redBright.bold(
       'Error: ',
@@ -173,6 +174,8 @@ export async function generateClient({
     for (const error of denylistsErrors) {
       message += '\n         - ' + error.message
     }
+
+    message += `\nTo learn more about how to rename models, check out https://pris.ly/d/naming-models`
 
     throw new DenylistError(message)
   }
@@ -446,7 +449,9 @@ async function fileSize(name: string): Promise<number | null> {
   }
 }
 
-function validateDmmfAgainstDenylists(prismaClientDmmf): Error[] | null {
+function validateDmmfAgainstDenylists(
+  prismaClientDmmf: PrismaClientDMMF.Document,
+): Error[] | null {
   const errorArray = [] as Error[]
 
   const denylists = {
@@ -559,47 +564,63 @@ function validateDmmfAgainstDenylists(prismaClientDmmf): Error[] | null {
       'while',
       'with',
       'yield',
+      'Transaction',
     ],
     fields: ['AND', 'OR', 'NOT'],
     dynamic: [] as string[],
   }
 
-  for (const m of prismaClientDmmf.datamodel.models) {
+  for (const { name } of prismaClientDmmf.datamodel.models) {
     denylists.dynamic.push(
       ...[
-        `${m.name}Select`,
-        `${m.name}Include`,
-        `${m.name}Default`,
-        `${m.name}Delegate`,
-        `${m.name}GetPayload`,
-        `${m.name}Filter`,
+        `${name}Select`,
+        `${name}Include`,
+        `${name}Default`,
+        `${name}Delegate`,
+        `${name}GetPayload`,
+        `${name}Filter`,
 
-        `${m.name}Args`,
-        `${m.name}ArgsFilter`,
-        `${m.name}ArgsRequired`,
+        `${name}Args`,
+        `${name}ArgsFilter`,
+        `${name}ArgsRequired`,
 
-        `${m.name}WhereInput`,
-        `${m.name}WhereUniqueInput`,
-        `${m.name}CreateInput`,
-        `${m.name}UpdateInput`,
-        `${m.name}UpdateManyMutationInput`,
-        `${m.name}OrderByInput`,
+        `${name}WhereInput`,
+        `${name}WhereUniqueInput`,
+        `${name}CreateInput`,
+        `${name}UpdateInput`,
+        `${name}UpdateManyMutationInput`,
+        `${name}OrderByInput`,
 
-        `${m.name}CreateArgs`,
+        `${name}CreateArgs`,
 
-        `${m.name}UpsertArgs`,
+        `${name}UpsertArgs`,
 
-        `${m.name}UpdateArgs`,
-        `${m.name}UpdateManyArgs`,
+        `${name}UpdateArgs`,
+        `${name}UpdateManyArgs`,
 
-        `${m.name}DeleteArgs`,
-        `${m.name}DeleteManyArgs`,
-        `Extract${m.name}SelectDeleteArgs`,
-        `Extract${m.name}IncludeDeleteArgs`,
+        `${name}DeleteArgs`,
+        `${name}DeleteManyArgs`,
+        `Extract${name}SelectDeleteArgs`,
+        `Extract${name}IncludeDeleteArgs`,
 
-        `FindOne${m.name}Args`,
+        `FindOne${name}Args`,
 
-        `FindMany${m.name}Args`,
+        `FindMany${name}Args`,
+
+        /** Aggregate Types */
+
+        `Aggregate${name}`,
+        `${name}AvgAggregateOutputType`,
+        `${name}SumAggregateOutputType`,
+        `${name}MinAggregateOutputType`,
+        `${name}MaxAggregateOutputType`,
+        `${name}AvgAggregateInputType`,
+        `${name}SumAggregateInputType`,
+        `${name}MinAggregateInputType`,
+        `${name}MaxAggregateInputType`,
+        `Aggregate${name}Args`,
+        `Get${name}AggregateType`,
+        `Get${name}AggregateScalarType`,
       ],
     )
   }
