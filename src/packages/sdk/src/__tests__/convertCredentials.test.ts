@@ -1,6 +1,14 @@
 import { uriToCredentials, credentialsToUri } from '../convertCredentials'
 
 const uris = [
+  'file:',
+  'file:dev.db',
+  'file:/absolute-dev.db',
+  'file:./current-dev.db',
+  'file:../parent-dev.db',
+  'file:../../parent-parent-dev.db',
+  'sqlite://',
+  'sqlite://dev.db',
   'postgresql://',
   'postgresql://localhost',
   'postgresql://localhost:5433',
@@ -20,6 +28,12 @@ const uris = [
 
 for (const uri of uris) {
   test(`Convert ${uri}`, () => {
-    expect(credentialsToUri(uriToCredentials(uri))).toBe(uri)
+    const credentials = uriToCredentials(uri)
+    const uriFromCredentials = credentialsToUri(credentials)
+
+    expect(credentials).toMatchSnapshot()
+    expect(uriFromCredentials).toMatchSnapshot()
+
+    expect(uriFromCredentials).toBe(uri)
   })
 }
