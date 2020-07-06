@@ -11,7 +11,12 @@ module.exports = async () => {
     console.log(post)
   } catch (e) {
     prisma.disconnect()
-    throw e
+    if (
+      !e.message.includes('PANIC') &&
+      !e.message.includes('invariant error')
+    ) {
+      throw e
+    }
   }
 }
 
