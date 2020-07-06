@@ -7,6 +7,8 @@ import {
   IntrospectionEngine,
   keyBy,
   pick,
+  format,
+  HelpError,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -30,12 +32,34 @@ export class Doctor implements Command {
     return new Doctor()
   }
 
-  async parse(argv: string[]): Promise<string> {
+  // static help template
+  private static help = format(`
+    Check, if the schema and the database are in sync.
+
+    ${chalk.bold('Usage')}
+
+    With an existing schema.prisma:
+      ${chalk.dim('$')} prisma doctor
+
+    Or specify a schema:
+      ${chalk.dim('$')} prisma doctor --schema=./schema.prisma
+
+  `)
+
+  async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
-      // '--help': Boolean,
-      // '-h': '--help',
+      '--help': Boolean,
+      '-h': '--help',
       '--schema': String,
     })
+
+    if (args instanceof Error) {
+      return this.help(args.message)
+    }
+
+    if (args['--help']) {
+      return this.help()
+    }
 
     const schemaPath = await getSchemaPath(args['--schema'])
 
@@ -68,7 +92,14 @@ export class Doctor implements Command {
       cwd: path.dirname(schemaPath),
     })
 
-    const { datamodel } = await engine.introspect(schema)
+    let datamodel
+    try {
+      const result = await engine.introspect(schema, true)
+      datamodel = result.datamodel
+    } finally {
+      engine.stop()
+    }
+
     const remoteDmmf = await getDMMF({ datamodel })
 
     const remoteModels = keyBy(
@@ -128,6 +159,14 @@ export class Doctor implements Command {
 
     return `Everything in sync 🔄`
   }
+
+  // help message
+  public help(error?: string): string | HelpError {
+    if (error) {
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Doctor.help}`)
+    }
+    return Doctor.help
+  }
 }
 
 function printModelMessage({
@@ -158,10 +197,11 @@ function printModelMessage({
   }
 
   for (const { localField, remoteField } of incorrectFieldType) {
-    const printField = (f: DMMF.Field) => f.name + (f.isList ? '[]' : '')
+    const printFieldType = (f: DMMF.Field) => f.type + (f.isList ? '[]' : '')
+
     msg += `↪ Field ${localField.name} has type ${chalk.greenBright(
-      localField.type + printField(localField),
-    )} locally, but ${chalk.redBright(printField(remoteField))} remote`
+      printFieldType(localField),
+    )} locally, but ${chalk.redBright(printFieldType(remoteField))} remote\n`
   }
 
   return msg

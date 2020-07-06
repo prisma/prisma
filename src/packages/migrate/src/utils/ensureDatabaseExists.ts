@@ -15,11 +15,7 @@ export async function ensureDatabaseExists(
 ) {
   const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel })
-  const activeDatasource =
-    config.datasources.length === 1
-      ? config.datasources[0]
-      : config.datasources.find((d) => d.config.enabled === 'true') ||
-        config.datasources[0]
+  const activeDatasource = config.datasources[0]
 
   if (!activeDatasource) {
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
