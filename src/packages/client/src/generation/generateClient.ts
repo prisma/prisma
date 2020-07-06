@@ -565,6 +565,7 @@ function validateDmmfAgainstDenylists(
       'with',
       'yield',
       'Transaction',
+      'transaction',
     ],
     fields: ['AND', 'OR', 'NOT'],
     dynamic: [] as string[],
