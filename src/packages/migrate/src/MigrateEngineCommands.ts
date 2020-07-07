@@ -44,7 +44,7 @@ export async function canConnectToDatabase(
     } else {
       return {
         code: 'P1003',
-        message: "Sqlite DB file doesn't exist",
+        message: "SQLite database file doesn't exist",
       }
     }
   }
