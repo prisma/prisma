@@ -1847,7 +1847,7 @@ enum invalid_enum {
 exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   {
     "code": 1,
-    "message": "These models do not have a unique identifier or id and are therefore commented out.",
+    "message": "The following models were commented out as they do not have a unique identifier or id. This is currently not supported by Prisma.",
     "affected": [
       {
         "model": "no_unique_identifier"
@@ -1856,7 +1856,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 2,
-    "message": "These fields were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
+    "message": "These fields were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the `@map` directive.",
     "affected": [
       {
         "model": "column_name_that_becomes_empty_string",
@@ -1866,7 +1866,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 3,
-    "message": "These fields were commented out because we currently do not support their types.",
+    "message": "These fields were commented out because Prisma currently does not support their types.",
     "affected": [
       {
         "model": "unsupported_type",
@@ -1877,7 +1877,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 4,
-    "message": "These enum values were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
+    "message": "These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the `@map` directive.",
     "affected": [
       {
         "enm": "invalid_enum",
