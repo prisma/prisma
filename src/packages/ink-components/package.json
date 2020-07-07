@@ -1,6 +1,6 @@
 {
   "name": "@prisma/ink-components",
-  "version": "2.2.0-dev.43",
+  "version": "2.2.0-dev.60",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
