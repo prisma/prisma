@@ -10,9 +10,9 @@ datasource pg {
 }
 
 model posts {
-  data  Json
   id    Int    @default(autoincrement()) @id
   title String
+  data  Json
 }
 
 enum Role {
@@ -61,9 +61,9 @@ datasource pg {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 enum Role {
@@ -88,14 +88,14 @@ datasource pg {
 
 model posts {
   id      Int    @default(autoincrement()) @id
-  title   String
   user_id Int
+  title   String
   users   users  @relation(fields: [user_id], references: [id])
 }
 
 model users {
-  email String  @unique
   id    Int     @default(autoincrement()) @id
+  email String  @unique
   posts posts[]
 }
 
@@ -195,9 +195,9 @@ datasource pg {
 }
 
 model teams {
-  active Boolean @default(true)
   id     Int     @default(autoincrement()) @id
   name   String  @unique
+  active Boolean @default(true)
 }
 
 enum Role {
@@ -221,9 +221,9 @@ datasource pg {
 }
 
 model teams {
-  active Boolean @default(true)
   id     Int     @default(autoincrement()) @id
   name   String  @unique
+  active Boolean @default(true)
 }
 
 enum Role {
@@ -322,8 +322,8 @@ datasource pg {
 }
 
 model users {
-  email String @unique
   id    Int    @default(autoincrement()) @id
+  email String @unique
 }
 
 enum Role {
@@ -347,8 +347,8 @@ datasource pg {
 }
 
 model users {
-  email String
   id    Int    @default(autoincrement()) @id
+  email String
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
@@ -375,8 +375,8 @@ datasource pg {
 }
 
 model users {
-  email String
   id    Int    @default(autoincrement()) @id
+  email String
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
@@ -403,8 +403,8 @@ datasource pg {
 }
 
 model users {
-  email String
   id    Int    @default(autoincrement()) @id
+  email String
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
@@ -431,8 +431,8 @@ datasource pg {
 }
 
 model users {
-  email String?
   id    Int     @default(autoincrement()) @id
+  email String?
 }
 
 enum Role {
@@ -456,8 +456,8 @@ datasource pg {
 }
 
 model users {
-  email String @unique
   id    Int    @default(autoincrement()) @id
+  email String @unique
 }
 
 enum Role {
@@ -481,8 +481,8 @@ datasource pg {
 }
 
 model users {
-  email String @unique
   id    Int    @default(autoincrement()) @id
+  email String @unique
 }
 
 enum Role {
@@ -507,14 +507,14 @@ datasource pg {
 
 model posts {
   id      Int    @default(autoincrement()) @id
-  title   String
   user_id Int
+  title   String
   users   users  @relation(fields: [user_id], references: [id])
 }
 
 model users {
-  email String  @unique
   id    Int     @default(autoincrement()) @id
+  email String  @unique
   posts posts[]
 }
 
@@ -540,8 +540,8 @@ datasource pg {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
 
 enum Role {
@@ -566,8 +566,8 @@ datasource pg {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
 
 enum Role {
@@ -592,8 +592,8 @@ datasource pg {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
 
 enum Role {
@@ -618,8 +618,8 @@ datasource pg {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
 
 enum Role {
@@ -644,8 +644,8 @@ datasource pg {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
 
 enum Role {
@@ -670,8 +670,8 @@ datasource pg {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
 
 enum Role {
@@ -696,8 +696,8 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  published posts_status @default(DRAFT)
   title     String
+  published posts_status @default(DRAFT)
 }
 
 enum Role {
@@ -727,8 +727,8 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  published posts_status @default(DRAFT)
   title     String
+  published posts_status @default(DRAFT)
 }
 
 enum Role {
@@ -758,8 +758,8 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  published posts_status @default(DRAFT)
   title     String
+  published posts_status @default(DRAFT)
 }
 
 enum Role {
@@ -789,8 +789,8 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  published posts_status @default(DRAFT)
   title     String
+  published posts_status @default(DRAFT)
 }
 
 enum Role {
@@ -820,8 +820,8 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  published posts_status @default(DRAFT)
   title     String
+  published posts_status @default(DRAFT)
 }
 
 enum Role {
@@ -851,8 +851,8 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  published posts_status @default(DRAFT)
   title     String
+  published posts_status @default(DRAFT)
 }
 
 enum Role {
@@ -881,9 +881,9 @@ datasource pg {
 }
 
 model crons {
-  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+  frequency String?
 }
 
 enum Role {
@@ -907,9 +907,9 @@ datasource pg {
 }
 
 model crons {
-  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+  frequency String?
 }
 
 enum Role {
@@ -933,9 +933,9 @@ datasource pg {
 }
 
 model crons {
-  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+  frequency String?
 }
 
 enum Role {
@@ -959,9 +959,9 @@ datasource pg {
 }
 
 model crons {
-  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+  frequency String?
 }
 
 enum Role {
@@ -985,9 +985,9 @@ datasource pg {
 }
 
 model posts {
-  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
+  created_at DateTime @default(now())
 }
 
 enum Role {
@@ -1011,9 +1011,9 @@ datasource pg {
 }
 
 model posts {
-  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
+  created_at DateTime @default(now())
 }
 
 enum Role {
@@ -1037,9 +1037,9 @@ datasource pg {
 }
 
 model posts {
-  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
+  created_at DateTime @default(now())
 }
 
 enum Role {
@@ -1063,9 +1063,9 @@ datasource pg {
 }
 
 model posts {
-  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
+  created_at DateTime @default(now())
 }
 
 enum Role {
@@ -1290,8 +1290,8 @@ datasource pg {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
 
 enum Role {
@@ -1316,8 +1316,8 @@ datasource pg {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
 
 enum Role {
@@ -1342,8 +1342,8 @@ datasource pg {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
 
 enum Role {
@@ -1368,8 +1368,8 @@ datasource pg {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
 
 enum Role {
@@ -1394,8 +1394,8 @@ datasource pg {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
 
 enum Role {
@@ -1419,8 +1419,8 @@ datasource pg {
 }
 
 model users {
-  email String @unique
   id    Int    @default(autoincrement()) @id
+  email String @unique
 }
 
 enum Role {
@@ -1444,8 +1444,8 @@ datasource pg {
 }
 
 model exercises {
-  distance Float
   id       Int   @default(autoincrement()) @id
+  distance Float
 }
 
 enum Role {
@@ -1469,8 +1469,8 @@ datasource pg {
 }
 
 model exercises {
-  distance Float @unique
   id       Int   @default(autoincrement()) @id
+  distance Float @unique
 }
 
 enum Role {
@@ -1494,8 +1494,8 @@ datasource pg {
 }
 
 model exercises {
-  distance Float @default(12.3) @unique
   id       Int   @default(autoincrement()) @id
+  distance Float @default(12.3) @unique
 }
 
 enum Role {
@@ -1543,10 +1543,10 @@ datasource pg {
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
@@ -1572,10 +1572,10 @@ datasource pg {
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
@@ -1601,10 +1601,10 @@ datasource pg {
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
@@ -1630,10 +1630,10 @@ datasource pg {
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
@@ -1659,10 +1659,10 @@ datasource pg {
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
@@ -1688,11 +1688,11 @@ datasource pg {
 }
 
 model variables {
-  email String
   id    Int    @default(autoincrement()) @id
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@unique([name, key], name: "variables_name_key_key")
 }
@@ -1718,10 +1718,10 @@ datasource pg {
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
   @@unique([value, email], name: "variables_value_email_key")
@@ -1808,9 +1808,9 @@ datasource pg {
 }
 
 model column_name_that_becomes_empty_string {
+  field1   Int  @default(autoincrement()) @id
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 12345 Int? @map("12345")
-  field1   Int  @default(autoincrement()) @id
 }
 
 model invalid_enum_value_name {
@@ -1903,9 +1903,9 @@ datasource pg {
 }
 
 model posts {
-  data  Json?
   id    Int    @default(autoincrement()) @id
   title String
+  data  Json?
 }
 
 enum Role {
@@ -1929,9 +1929,9 @@ datasource pg {
 }
 
 model posts {
-  data  Json?
   id    Int    @default(autoincrement()) @id
   title String
+  data  Json?
 }
 
 enum Role {
