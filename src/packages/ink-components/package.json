@@ -23,11 +23,11 @@
     "dist"
   ],
   "devDependencies": {
-    "@types/node": "12.12.47",
-    "@types/react": "16.9.11",
-    "ink": "2.5.0",
-    "react": "16.11.0",
-    "typescript": "3.9.5"
+    "@types/node": "12.12.48",
+    "@types/react": "16.9.41",
+    "ink": "2.7.1",
+    "react": "16.13.1",
+    "typescript": "3.9.6"
   },
   "peerDependencies": {
     "ink": ">= 2.3.0",
