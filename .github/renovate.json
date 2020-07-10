@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:base"],
-  "schedule": ["every week on Friday before 4pm"],
+  "schedule": ["every Friday after 3pm"],
   "semanticCommits": true,
   "ignoreDeps": ["react", "ink", "ink-spinner", "ink-link", "@types/react"],
   "packageRules": [
