@@ -91,6 +91,7 @@ export namespace EngineResults {
     warnings: any[]
     errors: any[]
     generalErrors: any[]
+    unexecutableMigrations: any[]
   }
   export enum MigrationStatus {
     MigrationSuccess = 'MigrationSuccess',
@@ -116,6 +117,7 @@ export namespace EngineResults {
     warnings: Warning[]
     errors: any[]
     generalErrors: any[]
+    unexecutableMigrations: any[]
   }
 
   export interface Warning {
@@ -179,12 +181,13 @@ export interface Migration {
 
 export interface DatabaseSteps {
   step: DatabaseStep
-  raw: String
+  raw: string
 }
 
 export interface LocalMigrationWithDatabaseSteps extends LocalMigration {
   databaseSteps: DatabaseSteps[]
   warnings: EngineResults.Warning[]
+  unexecutableMigrations: any[]
 }
 
 export interface RawSqlStep {

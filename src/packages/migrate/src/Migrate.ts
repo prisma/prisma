@@ -338,12 +338,15 @@ export class Migrate {
       datamodelSteps,
       databaseSteps,
       warnings,
+      unexecutableMigrations,
     } = await this.engine.inferMigrationSteps({
       sourceConfig,
       datamodel,
       migrationId,
       assumeToBeApplied,
     })
+
+    console.error({ unexecutableMigrations })
 
     if (datamodelSteps.length === 0) {
       return undefined
@@ -355,6 +358,7 @@ export class Migrate {
       datamodelSteps,
       databaseSteps,
       warnings,
+      unexecutableMigrations,
     }
   }
 
@@ -735,6 +739,9 @@ export class Migrate {
         steps: datamodelSteps,
         sourceConfig,
       })
+      console.log({ result })
+      console.log({ unexecutableMigrations: result.unexecutableMigrations })
+
       await new Promise((r) => setTimeout(r, 50))
       // needed for the ProgressRenderer
       // and for verbose printing
@@ -868,7 +875,6 @@ export class Migrate {
       ],
       {
         // globby doesn't have it in its types but it's part of mrmlnc/fast-glob
-        // @ts-ignore
         cwd: migrationsDir,
       },
     ).then((files) =>
@@ -941,6 +947,7 @@ export class Migrate {
             ...migration,
             databaseSteps: [],
             warnings: [],
+            unexecutableMigrations: [],
           }
         }
         const stepsUntilNow =
@@ -955,11 +962,14 @@ export class Migrate {
         const {
           databaseSteps,
           warnings,
+          unexecutableMigrations,
         } = await this.engine.calculateDatabaseSteps(input)
+        console.log({ unexecutableMigrations })
         return {
           ...migration,
           databaseSteps,
           warnings,
+          unexecutableMigrations,
         }
       },
       { concurrency: 1 },
