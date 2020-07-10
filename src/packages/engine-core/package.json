@@ -46,7 +46,7 @@
     "new-github-issue-url": "^0.2.1",
     "p-retry": "^4.2.0",
     "terminal-link": "^2.1.1",
-    "undici": "1.0.3"
+    "undici": "1.1.0"
   },
   "files": [
     "dist"
