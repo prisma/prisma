@@ -119,7 +119,6 @@
   },
   "scripts": {
     "test:generate": "./node_modules/.bin/mocha src/__tests__/integrate.generate.test.ts --require ts-mocha src/__tests__/integrate.generate.test.ts --timeout 10s",
-    "test:dotenv": "./node_modules/.bin/mocha src/__tests__/dotenv.test.ts --require ts-mocha src/__tests__/dotenv.test.ts --timeout 10s",
     "test:format": "./node_modules/.bin/mocha src/__tests__/format.test.ts --require ts-mocha src/__tests__/format.test.ts --timeout 5s",
     "test:doctor": "./node_modules/.bin/mocha src/__tests__/doctor.test.ts --require ts-mocha src/__tests__/doctor.test.ts --timeout 5s",
     "test:sqlite": "./node_modules/.bin/mocha src/__tests__/integrate.sqlite.test.ts --require ts-mocha src/__tests__/integrate.sqlite.test.ts --timeout 10s",
