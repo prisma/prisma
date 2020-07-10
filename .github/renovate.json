@@ -4,6 +4,7 @@
   "schedule": ["after 4pm on friday"],
   "semanticCommits": true,
   "ignoreDeps": ["react", "ink", "ink-spinner", "ink-link", "@types/react"],
+  "masterIssue": true,
   "packageRules": [
     {
       "groupName": "renovate-meta",
