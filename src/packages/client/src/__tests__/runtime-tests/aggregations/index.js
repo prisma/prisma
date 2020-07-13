@@ -5,6 +5,13 @@ module.exports = async () => {
   const prisma = new PrismaClient()
 
   const result = await prisma.user.aggregate({
+    where: {
+      age: {
+        gt: -1,
+      },
+    },
+    skip: 0,
+    take: 10000,
     avg: {
       age: true,
     },

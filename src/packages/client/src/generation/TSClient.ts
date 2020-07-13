@@ -742,6 +742,13 @@ export class Model implements Generatable {
   private getAggregationTypes() {
     const { model, mapping } = this
     const aggregateType = this.dmmf.outputTypeMap[getAggregateName(model.name)]
+    if (!aggregateType) {
+      throw new Error(
+        `Could not get aggregate type "${getAggregateName(model.name)}" for "${
+          model.name
+        }"`,
+      )
+    }
     const aggregateTypes = [aggregateType]
 
     const avgType = this.dmmf.outputTypeMap[getAvgAggregateName(model.name)]
