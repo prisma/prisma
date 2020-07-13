@@ -21,10 +21,6 @@
   <a href="https://github.com/prisma/prisma1">Prisma 1</a>
 </div>
 
-## Prisma Day
-
-Join us for [Prisma Day](https://www.prisma.io/day/) conference on the 25-26th of June.
-
 ## What is Prisma?
 
 Prisma is a **database toolkit** that consists of these tools:
