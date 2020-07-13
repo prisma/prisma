@@ -1,5 +1,5 @@
 {
-  "version": "2.3.0-dev.10",
+  "version": "2.2.1-dev.3",
   "name": "@prisma/cli",
   "description": "The Prisma command line interface (CLI) is the primary way to interact with your Prisma project from the command line. It can initialize new project assets, generate Prisma Client, and analyze existing database structures through introspection to automatically create your application models.",
   "keywords": [
@@ -55,8 +55,8 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "9fa0e57d0617e4e18ceae3b23280702f90b18412",
-    "prismaCommit": "f4f1ab33abcc6736806c768a0b49b59f7fdff5d7"
+    "version": "832e37683666c748b0a1cbdc2c5068b5e443e816",
+    "prismaCommit": "2faf0c88f6f77b2078ff0cacf272c72b4b4bfbe0"
   },
   "devDependencies": {
     "@apexearth/copy": "1.4.5",
