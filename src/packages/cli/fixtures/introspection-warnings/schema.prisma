@@ -4,9 +4,9 @@ datasource db {
 }
 
 model column_name_that_becomes_empty_string {
+  field1   Int  @default(autoincrement()) @id
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 12345 Int? @map("12345")
-  field1   Int  @default(autoincrement()) @id
 }
 
 // The underlying table does not contain a unique identifier and can therefore currently not be handled.
@@ -23,12 +23,9 @@ model unsupported_type {
 }
 
 model column_name_that_becomes_empty_string2 {
+  field2          Int  @default(autoincrement()) @id
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 1            Int? @map("1")
-  // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
-  // 10           Int? @map("10")
-  // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
-  // 11           Int? @map("11")
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 2            Int? @map("2")
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -46,6 +43,9 @@ model column_name_that_becomes_empty_string2 {
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 9            Int? @map("9")
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  // 10           Int? @map("10")
+  // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  // 11           Int? @map("11")
+  // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 999999999999 Int? @map("999999999999")
-  field2          Int  @default(autoincrement()) @id
 }

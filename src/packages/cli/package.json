@@ -1,5 +1,5 @@
 {
-  "version": "2.2.0-dev.43",
+  "version": "2.2.1-dev.4",
   "name": "@prisma/cli",
   "description": "The Prisma command line interface (CLI) is the primary way to interact with your Prisma project from the command line. It can initialize new project assets, generate Prisma Client, and analyze existing database structures through introspection to automatically create your application models.",
   "keywords": [
@@ -55,8 +55,8 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "83ac782d5d93dcee37efeba8ccbeff596701148a",
-    "prismaCommit": "c9b81b72f67acdc9a8362989d4845b4f0cd7df27"
+    "version": "832e37683666c748b0a1cbdc2c5068b5e443e816",
+    "prismaCommit": "a5eb191258a8d8b5d3b99602e5d425fd1748df6c"
   },
   "devDependencies": {
     "@apexearth/copy": "1.4.5",
@@ -69,10 +69,10 @@
     "@prisma/introspection": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.232.0",
-    "@prisma/studio-server": "0.232.0",
-    "@prisma/studio-transports": "0.232.0",
-    "@prisma/studio-types": "0.232.0",
+    "@prisma/studio": "0.235.0",
+    "@prisma/studio-server": "0.235.0",
+    "@prisma/studio-transports": "0.235.0",
+    "@prisma/studio-types": "0.235.0",
     "@types/debug": "4.1.5",
     "@types/mocha": "5.2.7",
     "@types/pg": "7.14.3",
@@ -108,7 +108,7 @@
     "rimraf": "3.0.2",
     "snap-shot-it": "7.9.3",
     "sqlite-async": "1.1.0",
-    "sqlite3": "4.1.1",
+    "sqlite3": "4.1",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
     "tempy": "0.5.0",
@@ -119,7 +119,6 @@
   },
   "scripts": {
     "test:generate": "./node_modules/.bin/mocha src/__tests__/integrate.generate.test.ts --require ts-mocha src/__tests__/integrate.generate.test.ts --timeout 10s",
-    "test:dotenv": "./node_modules/.bin/mocha src/__tests__/dotenv.test.ts --require ts-mocha src/__tests__/dotenv.test.ts --timeout 10s",
     "test:format": "./node_modules/.bin/mocha src/__tests__/format.test.ts --require ts-mocha src/__tests__/format.test.ts --timeout 5s",
     "test:doctor": "./node_modules/.bin/mocha src/__tests__/doctor.test.ts --require ts-mocha src/__tests__/doctor.test.ts --timeout 5s",
     "test:sqlite": "./node_modules/.bin/mocha src/__tests__/integrate.sqlite.test.ts --require ts-mocha src/__tests__/integrate.sqlite.test.ts --timeout 10s",

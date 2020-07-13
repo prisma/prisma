@@ -645,10 +645,12 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         patchBranch,
       )
 
-      try {
-        await tagEnginesRepo(dryRun)
-      } catch (e) {
-        console.error(e)
+      if (!process.env.PATCH_BRANCH) {
+        try {
+          await tagEnginesRepo(dryRun)
+        } catch (e) {
+          console.error(e)
+        }
       }
     }
   } catch (e) {
@@ -924,16 +926,21 @@ async function publishPackages(
     }
   }
 
-  if (process.env.UPDATE_STUDIO) {
+  if (process.env.UPDATE_STUDIO || process.env.PATCH_BRANCH) {
     await run('.', `git config --global user.email "prismabots@gmail.com"`)
     await run('.', `git config --global user.name "prisma-bot"`)
-    await run('.', `git checkout master`, dryRun)
     await run(
       '.',
       `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
       dryRun,
       true,
     )
+  }
+
+  if (process.env.UPDATE_STUDIO) {
+    await run('.', `git stash`, dryRun)
+    await run('.', `git checkout master`, dryRun)
+    await run('.', `git stash pop`, dryRun)
   }
 
   // for now only push when studio is being updated
@@ -946,7 +953,14 @@ async function publishPackages(
     // commit and push it :)
     // we try catch this, as this is not necessary for CI to succeed
     await run(repo, `git status`, dryRun)
-    await pull(repo, dryRun)
+    await pull(repo, dryRun).catch((e) => {
+      if (process.env.PATCH_BRANCH) {
+        console.error(e)
+      } else {
+        throw e
+      }
+    })
+
     try {
       const unsavedChanges = await getUnsavedChanges(repo)
       if (!unsavedChanges) {

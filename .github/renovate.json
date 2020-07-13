@@ -1,43 +1,48 @@
 {
-    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "extends": ["config:base"],
-    "schedule": [
-        "every 2 weeks on Monday before 7am"
-    ],
-    "semanticCommits": true,
-    "packageRules": [{
-            "groupName": "renovate-meta",
-            "updateTypes": ["lockFileMaintenance", "pin"],
-            "semanticCommitType": "chore",
-            "semanticCommitScope": "deps"
-        },
-        {
-            "groupName": "dependencies (non-major)",
-            "depTypeList": ["dependencies"],
-            "updateTypes": ["patch", "minor"],
-            "semanticCommitType": "deps"
-        },
-        {
-            "groupName": "devDependencies (major)",
-            "depTypeList": ["devDependencies"],
-            "updateTypes": ["major"],
-            "semanticCommitType": "chore",
-            "semanticCommitScope": "deps"
-        },
-        {
-            "groupName": "devDependencies (non-major)",
-            "depTypeList": ["devDependencies"],
-            "updateTypes": ["patch", "minor"],
-            "semanticCommitType": "chore",
-            "semanticCommitScope": "deps"
-        },
-        {
-            "groupName": "devDependencies (non-major)",
-            "automerge": "true",
-            "depTypeList": ["devDependencies"],
-            "updateTypes": ["patch", "minor"],
-            "semanticCommitType": "chore",
-            "semanticCommitScope": "deps"
-        }
-    ]
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "schedule": ["after 4pm on friday"],
+  "semanticCommits": true,
+  "ignoreDeps": ["react", "ink", "ink-spinner", "ink-link", "@types/react"],
+  "masterIssue": true,
+  "packageRules": [
+    {
+      "groupName": "renovate-meta",
+      "updateTypes": ["lockFileMaintenance", "pin"]
+    },
+    {
+      "groupName": "dependencies (non-major)",
+      "depTypeList": ["dependencies"],
+      "updateTypes": ["patch", "minor"]
+    },
+    {
+      "groupName": "devDependencies (major)",
+      "depTypeList": ["devDependencies"],
+      "updateTypes": ["major"]
+    },
+    {
+      "groupName": "definitelyTyped",
+      "automerge": "true",
+      "packagePatterns": ["^@types/"],
+      "excludePackageNames": ["@types/react"],
+      "updateTypes": ["patch", "minor"]
+    },
+    {
+      "groupName": "devDependencies (non-major)",
+      "automerge": "true",
+      "depTypeList": ["devDependencies"],
+      "updateTypes": ["patch", "minor"]
+    },
+    {
+      "groupName": "React & ink (non-major)",
+      "packageNames": [
+        "react",
+        "ink",
+        "ink-spinner",
+        "ink-link",
+        "@types/react"
+      ],
+      "updateTypes": ["patch", "minor"]
+    }
+  ]
 }

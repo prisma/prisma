@@ -30,9 +30,9 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 `
@@ -51,21 +51,21 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model users {
-  email String  @unique
   id    Int     @default(autoincrement()) @id
+  email String  @unique
   posts posts[]
 }
 
 model posts {
   id      Int    @default(autoincrement()) @id
-  title   String
   user_id Int
+  title   String
   users   users  @relation(fields: [user_id], references: [id])
 }
 
@@ -145,9 +145,9 @@ datasource sqlite {
 }
 
 model teams {
-  active Boolean @default(true)
   id     Int     @default(autoincrement()) @id
   name   String  @unique
+  active Boolean @default(true)
 }
 
 `
@@ -166,9 +166,9 @@ datasource sqlite {
 }
 
 model teams {
-  active Boolean @default(true)
   id     Int     @default(autoincrement()) @id
   name   String  @unique
+  active Boolean @default(true)
 }
 
 `
@@ -247,14 +247,14 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model users {
-  email String @unique
   id    Int    @default(autoincrement()) @id
+  email String @unique
 }
 
 `
@@ -273,14 +273,14 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model users {
-  email String?
   id    Int     @default(autoincrement()) @id
+  email String?
 }
 
 `
@@ -299,14 +299,14 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model users {
-  email String @unique
   id    Int    @default(autoincrement()) @id
+  email String @unique
 }
 
 `
@@ -325,14 +325,14 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model users {
-  email String @unique
   id    Int    @default(autoincrement()) @id
+  email String @unique
 }
 
 `
@@ -351,21 +351,21 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model users {
-  email String  @unique
   id    Int     @default(autoincrement()) @id
+  email String  @unique
   posts posts[]
 }
 
 model posts {
   id      Int    @default(autoincrement()) @id
-  title   String
   user_id Int
+  title   String
   users   users  @relation(fields: [user_id], references: [id])
 }
 
@@ -385,15 +385,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
 
 `
@@ -412,15 +412,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
 
 `
@@ -439,15 +439,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
 
 `
@@ -466,15 +466,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
 
 `
@@ -493,15 +493,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
 
 `
@@ -520,15 +520,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
 
 `
@@ -547,15 +547,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model crons {
-  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+  frequency String?
 }
 
 `
@@ -574,15 +574,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model crons {
-  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+  frequency String?
 }
 
 `
@@ -601,15 +601,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model crons {
-  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+  frequency String?
 }
 
 `
@@ -628,15 +628,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model crons {
-  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+  frequency String?
 }
 
 `
@@ -655,15 +655,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model posts {
-  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
+  created_at DateTime @default(now())
 }
 
 `
@@ -682,15 +682,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model posts {
-  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
+  created_at DateTime @default(now())
 }
 
 `
@@ -709,15 +709,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model posts {
-  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
+  created_at DateTime @default(now())
 }
 
 `
@@ -736,15 +736,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model posts {
-  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
+  created_at DateTime @default(now())
 }
 
 `
@@ -783,9 +783,9 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model events {
@@ -809,9 +809,9 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model events {
@@ -835,9 +835,9 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model events {
@@ -861,9 +861,9 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model events {
@@ -887,9 +887,9 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model events {
@@ -913,9 +913,9 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model events {
@@ -940,8 +940,8 @@ datasource sqlite {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
 
 `
@@ -961,8 +961,8 @@ datasource sqlite {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
 
 `
@@ -982,8 +982,8 @@ datasource sqlite {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
 
 `
@@ -1003,8 +1003,8 @@ datasource sqlite {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
 
 `
@@ -1024,8 +1024,8 @@ datasource sqlite {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
 
 `
@@ -1044,14 +1044,14 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model users {
-  email String @unique
   id    Int    @default(autoincrement()) @id
+  email String @unique
 }
 
 `
@@ -1070,14 +1070,14 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model exercises {
-  distance Float
   id       Int   @default(autoincrement()) @id
+  distance Float
 }
 
 `
@@ -1096,14 +1096,14 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model exercises {
-  distance Float @unique
   id       Int   @default(autoincrement()) @id
+  distance Float @unique
 }
 
 `
@@ -1122,14 +1122,14 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model exercises {
-  distance Float @default(12.3) @unique
   id       Int   @default(autoincrement()) @id
+  distance Float @default(12.3) @unique
 }
 
 `
@@ -1148,9 +1148,9 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model migrate {
@@ -1173,16 +1173,16 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
@@ -1203,16 +1203,16 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
@@ -1233,16 +1233,16 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
@@ -1263,16 +1263,16 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
@@ -1293,16 +1293,16 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
@@ -1323,17 +1323,17 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model variables {
-  email String
   id    Int    @default(autoincrement()) @id
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@unique([name, key], name: "sqlite_autoindex_variables_1")
 }
@@ -1354,16 +1354,16 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
   @@unique([value, email], name: "sqlite_autoindex_variables_2")
@@ -1385,9 +1385,9 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model a {
@@ -1441,15 +1441,15 @@ datasource sqlite {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
 
 model column_name_that_becomes_empty_string {
+  field1   Int  @default(autoincrement()) @id
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 12345 Int? @map("12345")
-  field1   Int  @default(autoincrement()) @id
 }
 
 // The underlying table does not contain a unique identifier and can therefore currently not be handled.
@@ -1470,7 +1470,7 @@ model unsupported_type {
 exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   {
     "code": 1,
-    "message": "These models do not have a unique identifier or id and are therefore commented out.",
+    "message": "The following models were commented out as they do not have a unique identifier or id. This is currently not supported by Prisma.",
     "affected": [
       {
         "model": "no_unique_identifier"
@@ -1479,7 +1479,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 2,
-    "message": "These fields were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
+    "message": "These fields were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the `@map` directive.",
     "affected": [
       {
         "model": "column_name_that_becomes_empty_string",
@@ -1489,7 +1489,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 3,
-    "message": "These fields were commented out because we currently do not support their types.",
+    "message": "These fields were commented out because Prisma currently does not support their types.",
     "affected": [
       {
         "model": "no_unique_identifier",

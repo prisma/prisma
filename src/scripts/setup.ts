@@ -32,6 +32,10 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   if (process.env.RELEASE_PROMOTE_DEV) {
     const versions = await getVersionHashes(process.env.RELEASE_PROMOTE_DEV)
     // TODO: disable the dry run here
+
+    await run('.', `git config --global user.email "prismabots@gmail.com"`)
+    await run('.', `git config --global user.name "prisma-bot"`)
+    await run(`.`, `git stash`)
     await run(`.`, `git checkout ${versions.prisma}`)
   } else if (process.env.PATCH_BRANCH) {
     await checkoutPatchBranches(process.env.PATCH_BRANCH)

@@ -12,10 +12,11 @@ export CHANGED_COUNT=$(node last-git-changes/bin.js --exclude='docs,examples,scr
 
 echo $BUILDKITE_TAG
 echo $CHANGED_COUNT
+echo $BUILDKITE_SOURCE
+echo $UPDATE_STUDIO
 
-if [ $CHANGED_COUNT -gt 0 ] || [ $BUILDKITE_TAG ]; then
+if [ $CHANGED_COUNT -gt 0 ] || [ $BUILDKITE_TAG ] || [ $BUILDKITE_SOURCE == "trigger_job" ] || [ $UPDATE_STUDIO ]; then
   buildkite-agent pipeline upload src/.buildkite/publish/publish.yml
 else
   echo "Nothing changed"
 fi
-

@@ -67,13 +67,16 @@ if (process.argv.length > 2) {
       debug('Environment variables not loaded (--schema was provided)')
     }
   } // Check current directory
-  else if (fs.existsSync('.env')) {
+  else if (fs.existsSync('schema.prisma') && fs.existsSync('.env')) {
     dotenvResult = dotenv.config()
     console.log(
       chalk.dim('Environment variables loaded from current directory'),
     )
   } // Check ./prisma directory
-  else if (fs.existsSync('prisma/.env')) {
+  else if (
+    fs.existsSync('prisma/schema.prisma') &&
+    fs.existsSync('prisma/.env')
+  ) {
     dotenvResult = dotenv.config({ path: 'prisma/.env' })
     // needed for Windows
     const relative = path.relative('.', './prisma/.env')
