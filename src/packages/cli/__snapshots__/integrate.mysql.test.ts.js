@@ -30,9 +30,9 @@ datasource mysql {
 }
 
 model teams {
+  email String @unique
   id    Int    @id
   name  String @unique
-  email String @unique
 }
 
 `
@@ -52,16 +52,16 @@ datasource mysql {
 
 model posts {
   id      Int    @default(autoincrement()) @id
-  user_id Int
   title   String
+  user_id Int
   users   users  @relation(fields: [user_id], references: [id])
 
   @@index([user_id], name: "user_id")
 }
 
 model users {
-  id    Int     @default(autoincrement()) @id
   email String  @unique
+  id    Int     @default(autoincrement()) @id
   posts posts[]
 }
 
@@ -141,9 +141,9 @@ datasource mysql {
 }
 
 model teams {
+  active Boolean @default(true)
   id     Int     @default(autoincrement()) @id
   name   String  @unique
-  active Boolean @default(true)
 }
 
 `
@@ -162,9 +162,9 @@ datasource mysql {
 }
 
 model teams {
+  active Boolean @default(true)
   id     Int     @default(autoincrement()) @id
   name   String  @unique
-  active Boolean @default(true)
 }
 
 `
@@ -243,8 +243,8 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String @unique
+  id    Int    @default(autoincrement()) @id
 }
 
 `
@@ -263,8 +263,8 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String
+  id    Int    @default(autoincrement()) @id
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
@@ -286,8 +286,8 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String
+  id    Int    @default(autoincrement()) @id
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
@@ -309,8 +309,8 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String
+  id    Int    @default(autoincrement()) @id
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
@@ -332,8 +332,8 @@ datasource mysql {
 }
 
 model users {
-  id    Int     @default(autoincrement()) @id
   email String?
+  id    Int     @default(autoincrement()) @id
 }
 
 `
@@ -352,8 +352,8 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String @unique
+  id    Int    @default(autoincrement()) @id
 }
 
 `
@@ -372,8 +372,8 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String @unique
+  id    Int    @default(autoincrement()) @id
 }
 
 `
@@ -393,16 +393,16 @@ datasource mysql {
 
 model posts {
   id      Int    @default(autoincrement()) @id
-  user_id Int
   title   String
+  user_id Int
   users   users  @relation(fields: [user_id], references: [id])
 
   @@index([user_id], name: "user_id")
 }
 
 model users {
-  id    Int     @default(autoincrement()) @id
   email String  @unique
+  id    Int     @default(autoincrement()) @id
   posts posts[]
 }
 
@@ -423,8 +423,8 @@ datasource mysql {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  title     String
   published Boolean @default(false)
+  title     String
 }
 
 `
@@ -444,8 +444,8 @@ datasource mysql {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  title     String
   published Boolean @default(false)
+  title     String
 }
 
 `
@@ -465,8 +465,8 @@ datasource mysql {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  title     String
   published Boolean @default(false)
+  title     String
 }
 
 `
@@ -486,8 +486,8 @@ datasource mysql {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  title     String
   published Boolean @default(false)
+  title     String
 }
 
 `
@@ -507,8 +507,8 @@ datasource mysql {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  title     String
   published Boolean @default(false)
+  title     String
 }
 
 `
@@ -528,8 +528,8 @@ datasource mysql {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  title     String
   published Boolean @default(false)
+  title     String
 }
 
 `
@@ -549,8 +549,8 @@ datasource mysql {
 
 model posts {
   id        Int             @default(autoincrement()) @id
-  title     String
   published posts_published @default(DRAFT)
+  title     String
 }
 
 enum posts_published {
@@ -575,8 +575,8 @@ datasource mysql {
 
 model posts {
   id        Int             @default(autoincrement()) @id
-  title     String
   published posts_published @default(DRAFT)
+  title     String
 }
 
 enum posts_published {
@@ -601,8 +601,8 @@ datasource mysql {
 
 model posts {
   id        Int             @default(autoincrement()) @id
-  title     String
   published posts_published @default(DRAFT)
+  title     String
 }
 
 enum posts_published {
@@ -627,8 +627,8 @@ datasource mysql {
 
 model posts {
   id        Int             @default(autoincrement()) @id
-  title     String
   published posts_published @default(DRAFT)
+  title     String
 }
 
 enum posts_published {
@@ -653,8 +653,8 @@ datasource mysql {
 
 model posts {
   id        Int             @default(autoincrement()) @id
-  title     String
   published posts_published @default(DRAFT)
+  title     String
 }
 
 enum posts_published {
@@ -679,8 +679,8 @@ datasource mysql {
 
 model posts {
   id        Int             @default(autoincrement()) @id
-  title     String
   published posts_published @default(DRAFT)
+  title     String
 }
 
 enum posts_published {
@@ -704,9 +704,9 @@ datasource mysql {
 }
 
 model crons {
+  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
-  frequency String?
 }
 
 `
@@ -725,9 +725,9 @@ datasource mysql {
 }
 
 model crons {
+  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
-  frequency String?
 }
 
 `
@@ -746,9 +746,9 @@ datasource mysql {
 }
 
 model crons {
+  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
-  frequency String?
 }
 
 `
@@ -767,9 +767,9 @@ datasource mysql {
 }
 
 model crons {
+  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
-  frequency String?
 }
 
 `
@@ -788,9 +788,9 @@ datasource mysql {
 }
 
 model posts {
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
-  created_at DateTime @default(now())
 }
 
 `
@@ -809,9 +809,9 @@ datasource mysql {
 }
 
 model posts {
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
-  created_at DateTime @default(now())
 }
 
 `
@@ -830,9 +830,9 @@ datasource mysql {
 }
 
 model posts {
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
-  created_at DateTime @default(now())
 }
 
 `
@@ -851,9 +851,9 @@ datasource mysql {
 }
 
 model posts {
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
-  created_at DateTime @default(now())
 }
 
 `
@@ -1033,8 +1033,8 @@ datasource mysql {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  token Int    @unique
   name  String
+  token Int    @unique
 }
 
 `
@@ -1054,8 +1054,8 @@ datasource mysql {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  token Int    @unique
   name  String
+  token Int    @unique
 }
 
 `
@@ -1075,8 +1075,8 @@ datasource mysql {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  token Int    @unique
   name  String
+  token Int    @unique
 }
 
 `
@@ -1096,8 +1096,8 @@ datasource mysql {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  token Int    @unique
   name  String
+  token Int    @unique
 }
 
 `
@@ -1117,8 +1117,8 @@ datasource mysql {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  token Int    @unique
   name  String
+  token Int    @unique
 }
 
 `
@@ -1137,8 +1137,8 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String @unique
+  id    Int    @default(autoincrement()) @id
 }
 
 `
@@ -1157,8 +1157,8 @@ datasource mysql {
 }
 
 model exercises {
-  id       Int   @default(autoincrement()) @id
   distance Float
+  id       Int   @default(autoincrement()) @id
 }
 
 `
@@ -1177,8 +1177,8 @@ datasource mysql {
 }
 
 model exercises {
-  id       Int   @default(autoincrement()) @id
   distance Float @unique
+  id       Int   @default(autoincrement()) @id
 }
 
 `
@@ -1216,10 +1216,10 @@ datasource mysql {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
   email String
+  key   String
+  name  String
+  value String
 
   @@id([name, key])
 }
@@ -1240,10 +1240,10 @@ datasource mysql {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
   email String
+  key   String
+  name  String
+  value String
 
   @@id([name, key])
 }
@@ -1264,10 +1264,10 @@ datasource mysql {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
   email String
+  key   String
+  name  String
+  value String
 
   @@id([name, key])
 }
@@ -1288,10 +1288,10 @@ datasource mysql {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
   email String
+  key   String
+  name  String
+  value String
 
   @@id([name, key])
 }
@@ -1312,10 +1312,10 @@ datasource mysql {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
   email String
+  key   String
+  name  String
+  value String
 
   @@id([name, key])
 }
@@ -1336,11 +1336,11 @@ datasource mysql {
 }
 
 model variables {
-  id    Int    @default(autoincrement()) @id
-  name  String
-  key   String
-  value String
   email String
+  id    Int    @default(autoincrement()) @id
+  key   String
+  name  String
+  value String
 
   @@unique([name, key], name: "variables_name_key_key")
 }
@@ -1361,10 +1361,10 @@ datasource mysql {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
   email String
+  key   String
+  name  String
+  value String
 
   @@id([name, key])
   @@unique([value, email], name: "variables_value_email_key")
@@ -1438,9 +1438,9 @@ datasource mysql {
 }
 
 model column_name_that_becomes_empty_string {
-  field1   Int  @default(autoincrement()) @id
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 12345 Int? @map("12345")
+  field1   Int  @default(autoincrement()) @id
 }
 
 model invalid_enum_value_name {
@@ -1472,7 +1472,7 @@ enum invalid_enum_value_name_here_be_enum {
 exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   {
     "code": 1,
-    "message": "The following models were commented out as they do not have a unique identifier or id. This is currently not supported by Prisma.",
+    "message": "These models do not have a unique identifier or id and are therefore commented out.",
     "affected": [
       {
         "model": "no_unique_identifier"
@@ -1481,7 +1481,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 2,
-    "message": "These fields were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the `@map` directive.",
+    "message": "These fields were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
     "affected": [
       {
         "model": "column_name_that_becomes_empty_string",
@@ -1491,7 +1491,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 3,
-    "message": "These fields were commented out because Prisma currently does not support their types.",
+    "message": "These fields were commented out because we currently do not support their types.",
     "affected": [
       {
         "model": "unsupported_type",
@@ -1502,7 +1502,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 4,
-    "message": "These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the `@map` directive.",
+    "message": "These enum values were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
     "affected": [
       {
         "enm": "invalid_enum_value_name_here_be_enum",
@@ -1528,9 +1528,9 @@ datasource mysql {
 }
 
 model posts {
+  data  Json?
   id    Int    @default(autoincrement()) @id
   title String
-  data  Json?
 }
 
 `
@@ -1549,9 +1549,9 @@ datasource mysql {
 }
 
 model posts {
+  data  Json?
   id    Int    @default(autoincrement()) @id
   title String
-  data  Json?
 }
 
 `
@@ -1570,9 +1570,9 @@ datasource mysql {
 }
 
 model posts {
+  data  Json
   id    Int    @default(autoincrement()) @id
   title String
-  data  Json
 }
 
 `

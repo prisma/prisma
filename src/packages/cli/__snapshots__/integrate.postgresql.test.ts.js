@@ -10,14 +10,9 @@ datasource pg {
 }
 
 model posts {
+  data  Json
   id    Int    @default(autoincrement()) @id
   title String
-  data  Json
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -40,11 +35,6 @@ model teams {
   name String @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 `
 
 exports['findOne where PK_warnings'] = []
@@ -61,14 +51,9 @@ datasource pg {
 }
 
 model teams {
+  email String @unique
   id    Int    @id
   name  String @unique
-  email String @unique
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -88,20 +73,15 @@ datasource pg {
 
 model posts {
   id      Int    @default(autoincrement()) @id
-  user_id Int
   title   String
+  user_id Int
   users   users  @relation(fields: [user_id], references: [id])
 }
 
 model users {
-  id    Int     @default(autoincrement()) @id
   email String  @unique
+  id    Int     @default(autoincrement()) @id
   posts posts[]
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -124,11 +104,6 @@ model teams {
   name String @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 `
 
 exports['create with data_warnings'] = []
@@ -147,11 +122,6 @@ datasource pg {
 model teams {
   id   Int    @default(autoincrement()) @id
   name String @default("alice")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -174,11 +144,6 @@ model teams {
   name String @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 `
 
 exports['update where with numeric data_warnings'] = []
@@ -195,14 +160,9 @@ datasource pg {
 }
 
 model teams {
+  active Boolean @default(true)
   id     Int     @default(autoincrement()) @id
   name   String  @unique
-  active Boolean @default(true)
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -221,14 +181,9 @@ datasource pg {
 }
 
 model teams {
+  active Boolean @default(true)
   id     Int     @default(autoincrement()) @id
   name   String  @unique
-  active Boolean @default(true)
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -251,11 +206,6 @@ model teams {
   name String @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 `
 
 exports['update where with string data_warnings'] = []
@@ -274,11 +224,6 @@ datasource pg {
 model teams {
   id   Int    @default(autoincrement()) @id
   name String
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -301,11 +246,6 @@ model teams {
   name String
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 `
 
 exports['updateMany where with string data - check findMany_warnings'] = []
@@ -322,13 +262,8 @@ datasource pg {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String @unique
-}
-
-enum Role {
-  ADMIN
-  USER
+  id    Int    @default(autoincrement()) @id
 }
 
 `
@@ -347,16 +282,11 @@ datasource pg {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String
+  id    Int    @default(autoincrement()) @id
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -375,16 +305,11 @@ datasource pg {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String
+  id    Int    @default(autoincrement()) @id
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -403,16 +328,11 @@ datasource pg {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String
+  id    Int    @default(autoincrement()) @id
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -431,13 +351,8 @@ datasource pg {
 }
 
 model users {
-  id    Int     @default(autoincrement()) @id
   email String?
-}
-
-enum Role {
-  ADMIN
-  USER
+  id    Int     @default(autoincrement()) @id
 }
 
 `
@@ -456,13 +371,8 @@ datasource pg {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String @unique
-}
-
-enum Role {
-  ADMIN
-  USER
+  id    Int    @default(autoincrement()) @id
 }
 
 `
@@ -481,13 +391,8 @@ datasource pg {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String @unique
-}
-
-enum Role {
-  ADMIN
-  USER
+  id    Int    @default(autoincrement()) @id
 }
 
 `
@@ -507,20 +412,15 @@ datasource pg {
 
 model posts {
   id      Int    @default(autoincrement()) @id
-  user_id Int
   title   String
+  user_id Int
   users   users  @relation(fields: [user_id], references: [id])
 }
 
 model users {
-  id    Int     @default(autoincrement()) @id
   email String  @unique
+  id    Int     @default(autoincrement()) @id
   posts posts[]
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -540,13 +440,8 @@ datasource pg {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  title     String
   published Boolean @default(false)
-}
-
-enum Role {
-  ADMIN
-  USER
+  title     String
 }
 
 `
@@ -566,13 +461,8 @@ datasource pg {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  title     String
   published Boolean @default(false)
-}
-
-enum Role {
-  ADMIN
-  USER
+  title     String
 }
 
 `
@@ -592,13 +482,8 @@ datasource pg {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  title     String
   published Boolean @default(false)
-}
-
-enum Role {
-  ADMIN
-  USER
+  title     String
 }
 
 `
@@ -618,13 +503,8 @@ datasource pg {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  title     String
   published Boolean @default(false)
-}
-
-enum Role {
-  ADMIN
-  USER
+  title     String
 }
 
 `
@@ -644,13 +524,8 @@ datasource pg {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  title     String
   published Boolean @default(false)
-}
-
-enum Role {
-  ADMIN
-  USER
+  title     String
 }
 
 `
@@ -670,13 +545,8 @@ datasource pg {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  title     String
   published Boolean @default(false)
-}
-
-enum Role {
-  ADMIN
-  USER
+  title     String
 }
 
 `
@@ -696,13 +566,8 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  title     String
   published posts_status @default(DRAFT)
-}
-
-enum Role {
-  ADMIN
-  USER
+  title     String
 }
 
 enum posts_status {
@@ -727,13 +592,8 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  title     String
   published posts_status @default(DRAFT)
-}
-
-enum Role {
-  ADMIN
-  USER
+  title     String
 }
 
 enum posts_status {
@@ -758,13 +618,8 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  title     String
   published posts_status @default(DRAFT)
-}
-
-enum Role {
-  ADMIN
-  USER
+  title     String
 }
 
 enum posts_status {
@@ -789,13 +644,8 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  title     String
   published posts_status @default(DRAFT)
-}
-
-enum Role {
-  ADMIN
-  USER
+  title     String
 }
 
 enum posts_status {
@@ -820,13 +670,8 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  title     String
   published posts_status @default(DRAFT)
-}
-
-enum Role {
-  ADMIN
-  USER
+  title     String
 }
 
 enum posts_status {
@@ -851,13 +696,8 @@ datasource pg {
 
 model posts {
   id        Int          @default(autoincrement()) @id
-  title     String
   published posts_status @default(DRAFT)
-}
-
-enum Role {
-  ADMIN
-  USER
+  title     String
 }
 
 enum posts_status {
@@ -881,14 +721,9 @@ datasource pg {
 }
 
 model crons {
+  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
-  frequency String?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -907,14 +742,9 @@ datasource pg {
 }
 
 model crons {
+  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
-  frequency String?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -933,14 +763,9 @@ datasource pg {
 }
 
 model crons {
+  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
-  frequency String?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -959,14 +784,9 @@ datasource pg {
 }
 
 model crons {
+  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
-  frequency String?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -985,14 +805,9 @@ datasource pg {
 }
 
 model posts {
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
-  created_at DateTime @default(now())
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1011,14 +826,9 @@ datasource pg {
 }
 
 model posts {
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
-  created_at DateTime @default(now())
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1037,14 +847,9 @@ datasource pg {
 }
 
 model posts {
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
-  created_at DateTime @default(now())
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1063,14 +868,9 @@ datasource pg {
 }
 
 model posts {
+  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
-  created_at DateTime @default(now())
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1093,11 +893,6 @@ model teams {
   token Int @unique
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 `
 
 exports['update where integer data_warnings'] = []
@@ -1116,11 +911,6 @@ datasource pg {
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1143,11 +933,6 @@ model events {
   time DateTime?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 `
 
 exports['findMany where datetime gt_warnings'] = []
@@ -1166,11 +951,6 @@ datasource pg {
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1193,11 +973,6 @@ model events {
   time DateTime?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 `
 
 exports['findMany where datetime lt_warnings'] = []
@@ -1216,11 +991,6 @@ datasource pg {
 model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1243,11 +1013,6 @@ model events {
   time DateTime?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 `
 
 exports['findMany where datetime not_warnings'] = []
@@ -1268,11 +1033,6 @@ model events {
   time DateTime?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 `
 
 exports['findMany where null_warnings'] = []
@@ -1290,13 +1050,8 @@ datasource pg {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  token Int    @unique
   name  String
-}
-
-enum Role {
-  ADMIN
-  USER
+  token Int    @unique
 }
 
 `
@@ -1316,13 +1071,8 @@ datasource pg {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  token Int    @unique
   name  String
-}
-
-enum Role {
-  ADMIN
-  USER
+  token Int    @unique
 }
 
 `
@@ -1342,13 +1092,8 @@ datasource pg {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  token Int    @unique
   name  String
-}
-
-enum Role {
-  ADMIN
-  USER
+  token Int    @unique
 }
 
 `
@@ -1368,13 +1113,8 @@ datasource pg {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  token Int    @unique
   name  String
-}
-
-enum Role {
-  ADMIN
-  USER
+  token Int    @unique
 }
 
 `
@@ -1394,13 +1134,8 @@ datasource pg {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  token Int    @unique
   name  String
-}
-
-enum Role {
-  ADMIN
-  USER
+  token Int    @unique
 }
 
 `
@@ -1419,13 +1154,8 @@ datasource pg {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
   email String @unique
-}
-
-enum Role {
-  ADMIN
-  USER
+  id    Int    @default(autoincrement()) @id
 }
 
 `
@@ -1444,13 +1174,8 @@ datasource pg {
 }
 
 model exercises {
-  id       Int   @default(autoincrement()) @id
   distance Float
-}
-
-enum Role {
-  ADMIN
-  USER
+  id       Int   @default(autoincrement()) @id
 }
 
 `
@@ -1469,13 +1194,8 @@ datasource pg {
 }
 
 model exercises {
-  id       Int   @default(autoincrement()) @id
   distance Float @unique
-}
-
-enum Role {
-  ADMIN
-  USER
+  id       Int   @default(autoincrement()) @id
 }
 
 `
@@ -1494,13 +1214,8 @@ datasource pg {
 }
 
 model exercises {
-  id       Int   @default(autoincrement()) @id
   distance Float @default(12.3) @unique
-}
-
-enum Role {
-  ADMIN
-  USER
+  id       Int   @default(autoincrement()) @id
 }
 
 `
@@ -1522,11 +1237,6 @@ model migrate {
   version Int @id
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 `
 
 exports['create bigint data_warnings'] = []
@@ -1543,17 +1253,12 @@ datasource pg {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
   email String
+  key   String
+  name  String
+  value String
 
   @@id([name, key])
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1572,17 +1277,12 @@ datasource pg {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
   email String
+  key   String
+  name  String
+  value String
 
   @@id([name, key])
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1601,17 +1301,12 @@ datasource pg {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
   email String
+  key   String
+  name  String
+  value String
 
   @@id([name, key])
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1630,17 +1325,12 @@ datasource pg {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
   email String
+  key   String
+  name  String
+  value String
 
   @@id([name, key])
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1659,17 +1349,12 @@ datasource pg {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
   email String
+  key   String
+  name  String
+  value String
 
   @@id([name, key])
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1688,18 +1373,13 @@ datasource pg {
 }
 
 model variables {
-  id    Int    @default(autoincrement()) @id
-  name  String
-  key   String
-  value String
   email String
+  id    Int    @default(autoincrement()) @id
+  key   String
+  name  String
+  value String
 
   @@unique([name, key], name: "variables_name_key_key")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1718,18 +1398,13 @@ datasource pg {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
   email String
+  key   String
+  name  String
+  value String
 
   @@id([name, key])
   @@unique([value, email], name: "variables_value_email_key")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1762,11 +1437,6 @@ model b {
   a   a   @relation(fields: [one, two], references: [one, two])
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 `
 
 exports['findOne where composite PK with foreign key_warnings'] = []
@@ -1787,11 +1457,6 @@ model teams {
   name String?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 `
 
 exports['updateMany where null - check findMany_warnings'] = []
@@ -1808,9 +1473,9 @@ datasource pg {
 }
 
 model column_name_that_becomes_empty_string {
-  field1   Int  @default(autoincrement()) @id
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 12345 Int? @map("12345")
+  field1   Int  @default(autoincrement()) @id
 }
 
 model invalid_enum_value_name {
@@ -1830,11 +1495,6 @@ model unsupported_type {
   // unsupported geometric?
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 enum invalid_enum {
   // $§! @map("$§!")
   // 123 @map("123")
@@ -1847,7 +1507,7 @@ enum invalid_enum {
 exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   {
     "code": 1,
-    "message": "The following models were commented out as they do not have a unique identifier or id. This is currently not supported by Prisma.",
+    "message": "These models do not have a unique identifier or id and are therefore commented out.",
     "affected": [
       {
         "model": "no_unique_identifier"
@@ -1856,7 +1516,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 2,
-    "message": "These fields were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the `@map` directive.",
+    "message": "These fields were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
     "affected": [
       {
         "model": "column_name_that_becomes_empty_string",
@@ -1866,7 +1526,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 3,
-    "message": "These fields were commented out because Prisma currently does not support their types.",
+    "message": "These fields were commented out because we currently do not support their types.",
     "affected": [
       {
         "model": "unsupported_type",
@@ -1877,7 +1537,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 4,
-    "message": "These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the `@map` directive.",
+    "message": "These enum values were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
     "affected": [
       {
         "enm": "invalid_enum",
@@ -1903,14 +1563,9 @@ datasource pg {
 }
 
 model posts {
+  data  Json?
   id    Int    @default(autoincrement()) @id
   title String
-  data  Json?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
@@ -1929,14 +1584,9 @@ datasource pg {
 }
 
 model posts {
+  data  Json?
   id    Int    @default(autoincrement()) @id
   title String
-  data  Json?
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 `
