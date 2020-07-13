@@ -740,7 +740,7 @@ export class Model implements Generatable {
     return argsTypes
   }
   private getAggregationTypes() {
-    const { model } = this
+    const { model, mapping } = this
     const aggregateType = this.dmmf.outputTypeMap[getAggregateName(model.name)]
     const aggregateTypes = [aggregateType]
 
@@ -760,6 +760,15 @@ export class Model implements Generatable {
     }
     if (maxType) {
       aggregateTypes.push(maxType)
+    }
+
+    const aggregateRootField = this.dmmf.queryType.fields.find(
+      (f) => f.name === mapping?.aggregate,
+    )
+    if (!aggregateRootField) {
+      throw new Error(
+        `Could not find aggregate root field for model ${model.name}. Mapping: ${mapping?.aggregate}`,
+      )
     }
 
     return `${aggregateTypes
@@ -795,15 +804,18 @@ ${
 
 export type ${getAggregateArgsName(model.name)} = {
 ${indent(
-  aggregateType.fields
-    .map((f) => {
-      if (f.name === 'count') {
-        return `${f.name}?: true`
-      }
-      return `${f.name}?: ${getAggregateInputType(
-        (f.outputType.type as SchemaOutputType).name,
-      )}`
-    })
+  aggregateRootField.args
+    .map((arg) => new InputField(arg).toTS())
+    .concat(
+      aggregateType.fields.map((f) => {
+        if (f.name === 'count') {
+          return `${f.name}?: true`
+        }
+        return `${f.name}?: ${getAggregateInputType(
+          (f.outputType.type as SchemaOutputType).name,
+        )}`
+      }),
+    )
     .join('\n'),
   tab,
 )}
