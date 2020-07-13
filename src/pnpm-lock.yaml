@@ -48,10 +48,10 @@ importers:
       '@prisma/introspection': 'link:../introspection'
       '@prisma/migrate': 'link:../migrate'
       '@prisma/sdk': 'link:../sdk'
-      '@prisma/studio': 0.234.0
-      '@prisma/studio-server': 0.234.0
-      '@prisma/studio-transports': 0.234.0
-      '@prisma/studio-types': 0.234.0
+      '@prisma/studio': 0.235.0
+      '@prisma/studio-server': 0.235.0
+      '@prisma/studio-transports': 0.235.0
+      '@prisma/studio-types': 0.235.0
       '@types/debug': 4.1.5
       '@types/mocha': 5.2.7
       '@types/pg': 7.14.3
@@ -106,10 +106,10 @@ importers:
       '@prisma/introspection': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio': 0.234.0
-      '@prisma/studio-server': 0.234.0
-      '@prisma/studio-transports': 0.234.0
-      '@prisma/studio-types': 0.234.0
+      '@prisma/studio': 0.235.0
+      '@prisma/studio-server': 0.235.0
+      '@prisma/studio-transports': 0.235.0
+      '@prisma/studio-types': 0.235.0
       '@types/debug': 4.1.5
       '@types/mocha': 5.2.7
       '@types/pg': 7.14.3
@@ -330,7 +330,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.2.0
       terminal-link: 2.1.1
-      undici: 1.0.3
+      undici: 1.1.0
     devDependencies:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@types/jest': 25.2.3
@@ -380,7 +380,7 @@ importers:
       terminal-link: ^2.1.1
       ts-jest: 25.5.1
       typescript: 3.9.5
-      undici: 1.0.3
+      undici: 1.1.0
   packages/fetch-engine:
     dependencies:
       '@prisma/debug': 'link:../debug'
@@ -625,8 +625,8 @@ importers:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/get-platform': 'link:../get-platform'
       '@prisma/ink-components': 'link:../ink-components'
-      '@prisma/studio-server': 0.234.0_react@16.11.0
-      '@prisma/studio-types': 0.234.0
+      '@prisma/studio-server': 0.235.0_react@16.11.0
+      '@prisma/studio-types': 0.235.0
       ansi-escapes: 4.3.1
       cli-cursor: 3.1.0
       dashify: 2.0.0
@@ -640,9 +640,9 @@ importers:
       http-proxy-agent: 4.0.1
       https-proxy-agent: 5.0.0
       indent-string: 4.0.0
-      ink: 2.5.0_react@16.11.0
-      ink-link: 1.0.0_ink@2.5.0+react@16.11.0
-      ink-spinner: 3.0.1_ink@2.5.0+react@16.11.0
+      ink: 2.7.1_25417382793f8b9d506bef5a668275ff
+      ink-link: 1.1.0_ink@2.7.1+react@16.11.0
+      ink-spinner: 3.1.0_ink@2.7.1+react@16.11.0
       is-ci: 2.0.0
       log-update: 4.0.0
       open: 7.0.4
@@ -692,8 +692,8 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@prisma/ink-components': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio-server': 0.234.0
-      '@prisma/studio-types': 0.234.0
+      '@prisma/studio-server': 0.235.0
+      '@prisma/studio-types': 0.235.0
       '@types/charm': 1.0.2
       '@types/debug': 4.1.5
       '@types/diff': 4.0.2
@@ -725,9 +725,9 @@ importers:
       https-proxy-agent: ^5.0.0
       husky: 4.2.5
       indent-string: ^4.0.0
-      ink: 2.5.0
-      ink-link: 1.0.0
-      ink-spinner: 3.0.1
+      ink: 2.7.1
+      ink-link: 1.1.0
+      ink-spinner: 3.1.0
       is-ci: ^2.0.0
       jest: 25.5.4
       lint-staged: 10.2.10
@@ -1399,8 +1399,8 @@ packages:
       bent: 7.3.7
       chalk: 3.0.0
       cross-fetch: 3.0.5
-      execa: 4.0.2
-      fast-json-stringify: 2.2.1
+      execa: 4.0.3
+      fast-json-stringify: 2.2.2
       get-stream: 5.1.0
       indent-string: 4.0.0
       new-github-issue-url: 0.2.1
@@ -1452,7 +1452,7 @@ packages:
       '@prisma/fetch-engine': 2.2.0-dev.60
       '@prisma/generator-helper': 2.2.0-dev.60
       '@prisma/get-platform': 2.2.0-dev.60
-      archiver: 4.0.1
+      archiver: 4.0.2
       arg: 4.1.3
       chalk: 3.0.0
       checkpoint-client: 1.1.2
@@ -1479,26 +1479,26 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-fMRaKbQptkppFtwsBJWbKNvEa6/UzXeeNhhFy02wLOg2gnUN5BgWrmsetRxSePYyn6OP2QbFcykvl79+E9Mtkg==
-  /@prisma/studio-server/0.234.0:
+  /@prisma/studio-server/0.235.0:
     dependencies:
       '@prisma/get-platform': 2.2.0-dev.60
       '@prisma/sdk': 2.2.0-dev.60
-      '@prisma/studio': 0.234.0
-      '@prisma/studio-transports': 0.234.0
-      '@prisma/studio-types': 0.234.0
+      '@prisma/studio': 0.235.0
+      '@prisma/studio-transports': 0.235.0
+      '@prisma/studio-types': 0.235.0
       '@sentry/node': 5.15.5
       express: 4.17.1
       express-ws: 4.0.0_express@4.17.1
     dev: true
     resolution:
-      integrity: sha512-+6HCfwvLMDlYUL+z+AcsvnNN5SrjtT/SV21fhZl81MMK/t+giNVeCt5JdQjo510THH7yZD+9NJupYQxrLFuNvA==
-  /@prisma/studio-server/0.234.0_react@16.11.0:
+      integrity: sha512-D73eToUlS5ai8x+dIrd+SJKs+phBdcePoXU6mGHJzlpsYUYLyQWOixKdp6xc0yIGvhfPimc4/qtw8lJELf6n0w==
+  /@prisma/studio-server/0.235.0_react@16.11.0:
     dependencies:
       '@prisma/get-platform': 2.2.0-dev.60
       '@prisma/sdk': 2.2.0-dev.60
-      '@prisma/studio': 0.234.0_react@16.11.0
-      '@prisma/studio-transports': 0.234.0
-      '@prisma/studio-types': 0.234.0
+      '@prisma/studio': 0.235.0_react@16.11.0
+      '@prisma/studio-transports': 0.235.0
+      '@prisma/studio-types': 0.235.0
       '@sentry/node': 5.15.5
       express: 4.17.1
       express-ws: 4.0.0_express@4.17.1
@@ -1506,25 +1506,25 @@ packages:
     peerDependencies:
       react: '*'
     resolution:
-      integrity: sha512-+6HCfwvLMDlYUL+z+AcsvnNN5SrjtT/SV21fhZl81MMK/t+giNVeCt5JdQjo510THH7yZD+9NJupYQxrLFuNvA==
-  /@prisma/studio-transports/0.234.0:
+      integrity: sha512-D73eToUlS5ai8x+dIrd+SJKs+phBdcePoXU6mGHJzlpsYUYLyQWOixKdp6xc0yIGvhfPimc4/qtw8lJELf6n0w==
+  /@prisma/studio-transports/0.235.0:
     dependencies:
       '@prisma/sdk': 2.2.0-dev.60
-      '@prisma/studio-types': 0.234.0
+      '@prisma/studio-types': 0.235.0
       '@sentry/node': 5.15.5
     resolution:
-      integrity: sha512-TxETImnrihYMLj/AXiv0kq7Izi4Ewei7QKNK7RIMtxzr+VRTR5ytCCCr4TDSIevsLepkfTPyHLaRTAhNhTx/Bw==
-  /@prisma/studio-types/0.234.0:
+      integrity: sha512-nrtn9PGFBoY8w4uFxmktr3mH0MxXtII4gCIJJWooR1vJPdaqQirYFB74SuiyvpA7WIKlvTT+owefRbliMCLEPw==
+  /@prisma/studio-types/0.235.0:
     resolution:
-      integrity: sha512-y6FHB2f5GyJQ2UO0pqvkHUvbVLC4VfealEdWb27Jz3nL3iHRDH2RS1z6u0CxkNu697pBmCL7NHEy+YZxVmoBxw==
-  /@prisma/studio/0.234.0:
+      integrity: sha512-9AKdrmd4BqHxO8u4GJSpB11pPfaJv822f1tBYlVYm1Iir08QCSPEwS2yY5sP2pVBA/V+fKzeZhB8cH/pm7wyPA==
+  /@prisma/studio/0.235.0:
     dependencies:
       ag-grid-community: 23.2.1
       ag-grid-react: 23.2.1_ag-grid-community@23.2.1
     dev: true
     resolution:
-      integrity: sha512-fTAn+eHgosv54Bk/pmCEebjicdVGpkWhp5acUANOe6182H8DFsBdcRP7EPys0syBHEExHyGkjnM0BFbPTI/XiQ==
-  /@prisma/studio/0.234.0_react@16.11.0:
+      integrity: sha512-7z2GUV+CLy1vlJT3arfA0PkNM2uTNAO0MaoDFdq74C/b7AGVDZVgGGtEbo0GCKiEHc7K5mpA4HBu474PdQn8Ww==
+  /@prisma/studio/0.235.0_react@16.11.0:
     dependencies:
       ag-grid-community: 23.2.1
       ag-grid-react: 23.2.1_bb9a8685ff9efdcb5e40ee49306da6a9
@@ -1532,7 +1532,7 @@ packages:
     peerDependencies:
       react: '*'
     resolution:
-      integrity: sha512-fTAn+eHgosv54Bk/pmCEebjicdVGpkWhp5acUANOe6182H8DFsBdcRP7EPys0syBHEExHyGkjnM0BFbPTI/XiQ==
+      integrity: sha512-7z2GUV+CLy1vlJT3arfA0PkNM2uTNAO0MaoDFdq74C/b7AGVDZVgGGtEbo0GCKiEHc7K5mpA4HBu474PdQn8Ww==
   /@sentry/apm/5.15.5:
     dependencies:
       '@sentry/browser': 5.15.5
@@ -2164,10 +2164,24 @@ packages:
       readable-stream: 3.6.0
       tar-stream: 2.1.3
       zip-stream: 3.0.1
+    dev: false
     engines:
       node: '>= 8'
     resolution:
       integrity: sha512-/YV1pU4Nhpf/rJArM23W6GTUjT0l++VbjykrCRua1TSXrn+yM8Qs7XvtwSiRse0iCe49EPNf7ktXnPsWuSb91Q==
+  /archiver/4.0.2:
+    dependencies:
+      archiver-utils: 2.1.0
+      async: 3.2.0
+      buffer-crc32: 0.2.13
+      glob: 7.1.6
+      readable-stream: 3.6.0
+      tar-stream: 2.1.3
+      zip-stream: 3.0.1
+    engines:
+      node: '>= 8'
+    resolution:
+      integrity: sha512-B9IZjlGwaxF33UN4oPbfBkyA4V1SxNLeIhR1qY8sRXSsbdUkEHrrOvwlYFPx+8uQeCe9M+FG6KgO+imDmQ79CQ==
   /are-we-there-yet/1.1.5:
     dependencies:
       delegates: 1.0.0
@@ -2229,6 +2243,12 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-iYUI2iIm84DfkEcoRWhJwVAaSw0=
+  /arrify/2.0.1:
+    dev: false
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-3duEwti880xqi4eAMN8AyR4a0ByT90zoYdLlevfrvU43vb0YZwZVfxOgxWrLXXXpyugL0hNZc9G6BiB5B3nUug==
   /asn1/0.2.4:
     dependencies:
       safer-buffer: 2.1.2
@@ -2263,8 +2283,12 @@ packages:
   /async/2.6.3:
     dependencies:
       lodash: 4.17.15
+    dev: false
     resolution:
       integrity: sha512-zflvls11DCy+dQWzTW2dzuilv8Z5X/pjfmZOWba6TNIVDm+2UDaJmXSOXlasHKfNBs8oo3M0aT50fDEWfKZjXg==
+  /async/3.2.0:
+    resolution:
+      integrity: sha512-TR2mEZFVOj2pLStYxLht7TyfuRzaydfpxr3k9RpHIzMgw7A64dzsdqCxH1WJyQdoe8T10nDXd9wnEigmiuHIZw==
   /asynckit/0.4.0:
     dev: true
     resolution:
@@ -2283,6 +2307,12 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-NUwV1i9D3vxxY1KnfZgSZ716d6ovY7o8LfOwLhGIPFBowIb6Ln6DBW64+jCqPzUznel2hRSkQnYQqvh7/ldw8A==
+  /auto-bind/4.0.0:
+    dev: false
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-Hdw8qdNiqdJ8LqT0iK0sVzkFbzg6fhnQqqfWhBDxcHZvU75+B+ayzTy8x+k5Ix0Y92XOhOUlx74ps+bA6BeYMQ==
   /aws-sign2/0.7.0:
     dev: true
     resolution:
@@ -3549,6 +3579,21 @@ packages:
       node: '>=10'
     resolution:
       integrity: sha512-QI2zLa6CjGWdiQsmSkZoGtDx2N+cQIGb3yNolGTdjSQzydzLgYYf8LRuagp7S7fPimjcrzUDSUFd/MgzELMi4Q==
+  /execa/4.0.3:
+    dependencies:
+      cross-spawn: 7.0.3
+      get-stream: 5.1.0
+      human-signals: 1.1.1
+      is-stream: 2.0.0
+      merge-stream: 2.0.0
+      npm-run-path: 4.0.1
+      onetime: 5.1.0
+      signal-exit: 3.0.3
+      strip-final-newline: 2.0.0
+    engines:
+      node: '>=10'
+    resolution:
+      integrity: sha512-WFDXGHckXPWZX19t1kCsXzOpqX9LWYNqn4C+HqZlk/V0imTkzJZqf87ZBhvpHaftERYknpk0fjSylnXVlVgI0A==
   /exit/0.1.2:
     dev: true
     engines:
@@ -3725,7 +3770,7 @@ packages:
       node: '>= 10.0.0'
     resolution:
       integrity: sha512-fXHU/VG0QmGzV4IRCKzyuctb5qCXyk8OVARmDpV0u5wZHXwRGU2TFFVT2+UD8+mo24siVAmTygVF2IzfXSzK2w==
-  /fast-json-stringify/2.2.1:
+  /fast-json-stringify/2.2.2:
     dependencies:
       ajv: 6.12.3
       deepmerge: 4.2.2
@@ -3733,7 +3778,7 @@ packages:
     engines:
       node: '>= 10.0.0'
     resolution:
-      integrity: sha512-5s4KScgFR3cmrAoMip9K1m+oP9OsMtU8pG2oNbztbGKS9Xn4oDyPXdqefjpeMrZU4wgGga6/jyIOasghBPcpcQ==
+      integrity: sha512-PGVgdhENLlN0ohubWcVE1ofpXfhwEySikM7WbIPvs3Ei9dNqrxiH70U2vVt7iqYn87CnRsHSpTknmALKmFz7SQ==
   /fast-levenshtein/2.0.6:
     dev: true
     resolution:
@@ -4197,12 +4242,6 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-NPUEnOHs3ysGSa8+8k5F7TVBbZE=
-  /has-flag/2.0.0:
-    dev: false
-    engines:
-      node: '>=0.10.0'
-    resolution:
-      integrity: sha1-6CB68cx7MNRGzHC3NLXovhj4jVE=
   /has-flag/3.0.0:
     engines:
       node: '>=4'
@@ -4476,12 +4515,12 @@ packages:
   /ini/1.3.5:
     resolution:
       integrity: sha512-RZY5huIKCMRWDUqZlEi72f/lmXKMvuszcMBduliQ3nnWbx9X/ZBQO7DijMEYS9EhHBb2qacRUMtC7svLwe0lcw==
-  /ink-link/1.0.0_ink@2.5.0+react@16.11.0:
+  /ink-link/1.1.0_ink@2.7.1+react@16.11.0:
     dependencies:
-      ink: 2.5.0_react@16.11.0
+      ink: 2.7.1_25417382793f8b9d506bef5a668275ff
       prop-types: 15.7.2
       react: 16.11.0
-      terminal-link: 1.3.0
+      terminal-link: 2.1.1
     dev: false
     engines:
       node: '>=8'
@@ -4489,7 +4528,7 @@ packages:
       ink: '>=2.0.0'
       react: '>=16.8.0'
     resolution:
-      integrity: sha512-oIyGm7UYz5e9j9xc3zgzkYBYLCcRKg/deA3jieXqQT6F4mnhdlTQfLv8zfNt+IMsouPEEKuLPZGE5no5SAIEPQ==
+      integrity: sha512-a716nYz4YDPu8UOA2PwabTZgTvZa3SYB/70yeXVmTOKFAEdMbJyGSVeNuB7P+aM2olzDj9AGVchA7W5QytF9uA==
   /ink-spinner/3.0.1_ink@2.5.0+react@16.11.0:
     dependencies:
       cli-spinners: 1.3.1
@@ -4504,6 +4543,20 @@ packages:
       react: ^16.8.2
     resolution:
       integrity: sha512-AVR4Z/NXDQ7dT5ltWcCzFS9Dd4T8eaO//E2UO8VYNiJcZpPCSJ11o5A0UVPcMlZxGbGD6ikUFDR3ZgPUQk5haQ==
+  /ink-spinner/3.1.0_ink@2.7.1+react@16.11.0:
+    dependencies:
+      cli-spinners: 1.3.1
+      ink: 2.7.1_25417382793f8b9d506bef5a668275ff
+      prop-types: 15.7.2
+      react: 16.11.0
+    dev: false
+    engines:
+      node: '>=8'
+    peerDependencies:
+      ink: ^2.0.0
+      react: ^16.8.2
+    resolution:
+      integrity: sha512-sPqmE4qeJ43vJFk9DGLd0wIqhMBAr3129ZqHPt7b847fVl+YTZ3g96khI82Db+FYE7v/Fc5B3lp4ZNtJfqpRUg==
   /ink/2.5.0_react@16.11.0:
     dependencies:
       '@types/react': 16.9.11
@@ -4532,6 +4585,39 @@ packages:
       react: '>=16.8.0'
     resolution:
       integrity: sha512-HUkVglJ11cXK+W1a5cKNoOCxLkDi5hbDMAWSFDcwF2kpNd0eoX+2/cpaTP9BTFaQ8RJk7O59NxKMmyPXkmxo7w==
+  /ink/2.7.1_25417382793f8b9d506bef5a668275ff:
+    dependencies:
+      '@types/react': 16.9.11
+      ansi-escapes: 4.3.1
+      arrify: 2.0.1
+      auto-bind: 4.0.0
+      chalk: 3.0.0
+      cli-cursor: 3.1.0
+      cli-truncate: 2.1.0
+      is-ci: 2.0.0
+      lodash.throttle: 4.1.1
+      log-update: 3.4.0
+      prop-types: 15.7.2
+      react: 16.11.0
+      react-reconciler: 0.24.0_react@16.11.0
+      scheduler: 0.18.0
+      signal-exit: 3.0.3
+      slice-ansi: 3.0.0
+      string-length: 3.1.0
+      widest-line: 3.1.0
+      wrap-ansi: 6.2.0
+      yoga-layout-prebuilt: 1.9.6
+    dev: false
+    engines:
+      node: '>=8'
+    peerDependencies:
+      '@types/react': '>=16.8.0'
+      react: '>=16.8.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+    resolution:
+      integrity: sha512-s7lJuQDJEdjqtaIWhp3KYHl6WV3J04U9zoQ6wVc+Xoa06XM27SXUY57qC5DO46xkF0CfgXMKkKNcgvSu/SAEpA==
   /inquirer/7.2.0:
     dependencies:
       ansi-escapes: 4.3.1
@@ -6891,6 +6977,20 @@ packages:
       react: ^16.0.0
     resolution:
       integrity: sha512-h4Rl3L3O6G9V4Ff+F+tCXX8ElDVn0Psk/odT+NPWeA55Yk5G7+kHT8D+Q3yE+51C72LbrYcX6OfLmCZ/7Nx9cw==
+  /react-reconciler/0.24.0_react@16.11.0:
+    dependencies:
+      loose-envify: 1.4.0
+      object-assign: 4.1.1
+      prop-types: 15.7.2
+      react: 16.11.0
+      scheduler: 0.18.0
+    dev: false
+    engines:
+      node: '>=0.10.0'
+    peerDependencies:
+      react: ^16.0.0
+    resolution:
+      integrity: sha512-gAGnwWkf+NOTig9oOowqid9O0HjTDC+XVGBCAmJYYJ2A2cN/O4gDdIuuUQjv8A4v6GDwVfJkagpBBLW5OW9HSw==
   /react/16.11.0:
     dependencies:
       loose-envify: 1.4.0
@@ -7267,6 +7367,13 @@ packages:
       object-assign: 4.1.1
     resolution:
       integrity: sha512-xAefmSfN6jqAa7Kuq7LIJY0bwAPG3xlCj0HMEBQk1lxYiDKZscY2xJ5U/61ZTrYbmNQbXa+gc7czPkVo11tnCg==
+  /scheduler/0.18.0:
+    dependencies:
+      loose-envify: 1.4.0
+      object-assign: 4.1.1
+    dev: false
+    resolution:
+      integrity: sha512-agTSHR1Nbfi6ulI0kYNK0203joW2Y5W4po4l+v03tOoiJKpTBbxpNhWDvqc/4IcOw+KLmSiQLTasZ4cab2/UWQ==
   /semver-compare/1.0.0:
     dev: true
     resolution:
@@ -7717,7 +7824,6 @@ packages:
     dependencies:
       astral-regex: 1.0.0
       strip-ansi: 5.2.0
-    dev: true
     engines:
       node: '>=8'
     resolution:
@@ -7895,15 +8001,6 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-oRSIpR8pxT1Wr2FquTNnGet79b3BWljqOuoW/h4oBhxJ/HUbX5nX6JSruTkvXDCFMwDPvsaTTbvMLKZWSy0R5g==
-  /supports-hyperlinks/1.0.1:
-    dependencies:
-      has-flag: 2.0.0
-      supports-color: 5.5.0
-    dev: false
-    engines:
-      node: '>=4'
-    resolution:
-      integrity: sha512-HHi5kVSefKaJkGYXbDuKbUGRVxqnWGn3J2e39CYcNJEfWciGq2zYtOhXLTlvrOZW1QU7VX67w7fMmWafHX9Pfw==
   /supports-hyperlinks/2.1.0:
     dependencies:
       has-flag: 4.0.0
@@ -8001,15 +8098,6 @@ packages:
       node: '>=10'
     resolution:
       integrity: sha512-VEY96x7gbIRfsxqsafy2l5yVxxp3PhwAGoWMyC2D2Zt5DmEv+2tGiPOrquNRpf21hhGnKLVEsuqleqiZmKG/qw==
-  /terminal-link/1.3.0:
-    dependencies:
-      ansi-escapes: 3.2.0
-      supports-hyperlinks: 1.0.1
-    dev: false
-    engines:
-      node: '>=6'
-    resolution:
-      integrity: sha512-nFaWG/gs3brGi3opgWU2+dyFGbQ7tueSRYOBOD8URdDXCbAGqDEZzuskCc+okCClYcJFDPwn8e2mbv4FqAnWFA==
   /terminal-link/2.1.1:
     dependencies:
       ansi-escapes: 4.3.1
@@ -8347,6 +8435,10 @@ packages:
       http-parser-js: 0.5.2
     resolution:
       integrity: sha512-zLI6kvRUJBSXpd3rwwl/f86W7w2fOAMI9lkiO04f7mkzT2ty4+GaVeQfDJyI/t54dQtekxJGlg4H2lr7ZvJc4Q==
+  /undici/1.1.0:
+    dev: false
+    resolution:
+      integrity: sha512-wi4zaKmxyaMCOMucf3DFC05YEqtDiCjrXMfPiJlvuQyQeUgeAUHZLm+K7DBhC7lfni6/g+flNoYrzMbtraA4sQ==
   /union-value/1.0.1:
     dependencies:
       arr-union: 3.1.0
@@ -8553,6 +8645,14 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha512-Ba5m9/Fa4Xt9eb2ELXt77JxVDV8w7qQrH0zS/TWSJdLyAwQjWoOzpzj5lwVftDz6n/EOu3tNACS84v509qwnJA==
+  /widest-line/3.1.0:
+    dependencies:
+      string-width: 4.2.0
+    dev: false
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-NsmoXalsWVDMGupxZ5R08ka9flZjjiLvHVAWYOKtiKM8ujtZWr9cRffak+uSE48+Ob8ObalXpwyeUiyDD6QFgg==
   /word-wrap/1.2.3:
     dev: true
     engines:
