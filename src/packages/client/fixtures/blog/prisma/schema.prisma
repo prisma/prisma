@@ -6,7 +6,7 @@ datasource db {
 generator client {
   provider             = "prisma-client-js"
   binaryTargets        = ["native"]
-  experimentalFeatures = ["connectOrCreate", "aggregations"]
+  experimentalFeatures = ["connectOrCreate", "aggregateApi"]
 }
 
 model User {
