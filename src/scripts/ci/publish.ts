@@ -951,7 +951,14 @@ async function publishPackages(
     // commit and push it :)
     // we try catch this, as this is not necessary for CI to succeed
     await run(repo, `git status`, dryRun)
-    await pull(repo, dryRun)
+    await pull(repo, dryRun).catch((e) => {
+      if (process.env.PATCH_BRANCH) {
+        console.error(e)
+      } else {
+        throw e
+      }
+    })
+
     try {
       const unsavedChanges = await getUnsavedChanges(repo)
       if (!unsavedChanges) {
