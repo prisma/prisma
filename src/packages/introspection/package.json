@@ -1,6 +1,6 @@
 {
   "name": "@prisma/introspection",
-  "version": "2.2.1-dev.3",
+  "version": "2.2.1-dev.4",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
