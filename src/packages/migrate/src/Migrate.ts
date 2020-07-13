@@ -346,8 +346,6 @@ export class Migrate {
       assumeToBeApplied,
     })
 
-    console.error({ unexecutableMigrations })
-
     if (datamodelSteps.length === 0) {
       return undefined
     }
@@ -739,8 +737,6 @@ export class Migrate {
         steps: datamodelSteps,
         sourceConfig,
       })
-      console.log({ result })
-      console.log({ unexecutableMigrations: result.unexecutableMigrations })
 
       await new Promise((r) => setTimeout(r, 50))
       // needed for the ProgressRenderer
@@ -964,7 +960,6 @@ export class Migrate {
           warnings,
           unexecutableMigrations,
         } = await this.engine.calculateDatabaseSteps(input)
-        console.log({ unexecutableMigrations })
         return {
           ...migration,
           databaseSteps,

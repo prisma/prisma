@@ -111,6 +111,24 @@ export class MigrateSave implements Command {
       preview,
     )
 
+    if (
+      migration.unexecutableMigrations &&
+      migration.unexecutableMigrations.length > 0
+    ) {
+      migrate.stop()
+
+      const messages: string[] = []
+      messages.push(
+        `${chalk.bold(
+          '\n\n⚠️ We found migration(s) that cannot be executed:\n',
+        )}`,
+      )
+      for (const item of migration.unexecutableMigrations) {
+        messages.push(`${chalk(`  • ${item.description}`)}`)
+      }
+      throw new Error(messages.join('\n'))
+    }
+
     if (migration.warnings && migration.warnings.length > 0) {
       console.log(
         chalk.bold(

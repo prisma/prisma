@@ -292,23 +292,10 @@ Array [
 
 exports[`migrate.create invalid ok 6`] = `
 "
-Prisma Migrate just created your migration XXXXXXXXXXXXXX-init-2 in
 
-migrations/
-  └─ XXXXXXXXXXXXXX-init-2/
-    └─ steps.json
-    └─ schema.prisma
-    └─ README.md
+⚠️  unexecutableMigrations:
 
-Run prisma migrate up --experimental to apply the migration
-"
-`;
-
-exports[`migrate.create invalid ok 7`] = `
-"Failure during a migration command: Connector error. (error: Error querying the database: Null constraint failed: (requiredSomething)
-   0: migration_core::api::ApplyMigration
-           with migration_id=\\"XXXXXXXXXXXXXX-init-2\\"
-             at migration-engine/core/src/api.rs:77)"
+  • Added the required column \`requiredSomething\` to the \`User\` table without a default value. There are 1 rows in this table, it is not possible to execute this migration."
 `;
 
 exports[`migrate.create simple ok 1`] = `

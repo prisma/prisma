@@ -244,12 +244,12 @@ function createTests() {
       },
       fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
-        const migration = await migrate.createMigration('setup')
-        const result = await migrate.save(migration!, 'setup')
+        const migration = await migrate.createMigration('setup1')
+        const result = await migrate.save(migration!, 'setup1')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn't be undefined`)
         }
-        assert.ok(result.migrationId.includes('-setup'))
+        assert.ok(result.migrationId.includes('-setup1'))
         assert.ok(result.newLockFile)
         assert.ok(result.files['steps.json'])
         assert.ok(result.files['schema.prisma'])
@@ -284,12 +284,12 @@ function createTests() {
           'schema-not-null.prisma',
         )
         const migrate2 = new Migrate(schemaPath2)
-        const migration2 = await migrate2.createMigration('setup')
-        const result2 = await migrate2.save(migration2!, 'setup')
+        const migration2 = await migrate2.createMigration('setup2')
+        const result2 = await migrate2.save(migration2!, 'setup2')
         if (typeof result2 === 'undefined') {
           return assert.fail(`result2 shouldn't be undefined`)
         }
-        assert.ok(result2.migrationId.includes('-setup'))
+        assert.ok(result2.migrationId.includes('-setup2'))
         assert.ok(result2.newLockFile)
         assert.ok(result2.files['steps.json'])
         assert.ok(result2.files['schema.prisma'])
@@ -303,43 +303,16 @@ function createTests() {
           logs.push(...args)
         }
 
-        // Save from CLI - write files to filesystem
-        const resultSave2 = await MigrateSave.new().parse([
-          `--schema=${schemaPath2}`,
-          `--name=init-2`,
-          '--experimental',
-        ])
-        expect(
-          replaceTimestamp(stripAnsi(resultSave2 as string)),
-        ).toMatchSnapshot()
-
-        assert.equal(
-          stripAnsi(logs.join('\n')),
-          `📼  migrate save --name init-2
-
-Local datamodel Changes:
-
-model User {
-  id Int @id
-  canBeNull String?
-  canBeNull String
-  requiredSomething String
-}
-
-
-⚠️  There might be data loss when applying the migration:
-
-  • You are about to alter the column \`canBeNull\` on the \`User\` table, which still contains 1 non-null values. The data in that column could be lost.
-  • Added the required column \`requiredSomething\` to the \`User\` table without a default value. There are 1 rows in this table, it is not possible to execute this migration.`,
-        )
-
-        console.log = oldConsoleLog
-
         try {
-          const resultUp2 = await migrate2.up({ autoApprove: true })
-          expect(stripAnsi(resultUp2)).toMatchSnapshot()
+          // Save from CLI - write files to filesystem
+          await MigrateSave.new().parse([
+            `--schema=${schemaPath2}`,
+            `--name=init-2`,
+            '--experimental',
+          ])
         } catch (e) {
-          expect(replaceTimestamp(stripAnsi(e.message))).toMatchSnapshot()
+          // Should error with unexecutableMigrations:
+          expect(stripAnsi(e.message)).toMatchSnapshot()
         }
       },
     },
