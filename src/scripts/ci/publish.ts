@@ -645,10 +645,12 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         patchBranch,
       )
 
-      try {
-        await tagEnginesRepo(dryRun)
-      } catch (e) {
-        console.error(e)
+      if (!process.env.PATCH_BRANCH) {
+        try {
+          await tagEnginesRepo(dryRun)
+        } catch (e) {
+          console.error(e)
+        }
       }
     }
   } catch (e) {
