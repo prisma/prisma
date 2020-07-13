@@ -94,6 +94,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "files": [
+    "!**/__tests__",
     "dist",
     "download.js",
     "scripts/download.js"

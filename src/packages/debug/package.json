@@ -30,6 +30,7 @@
     "test": "jest"
   },
   "files": [
+    "!**/__tests__",
     "dist"
   ],
   "dependencies": {
