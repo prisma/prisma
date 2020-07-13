@@ -25,23 +25,23 @@ export function getSelectName(modelName: string): string {
 }
 
 export function getAggregateName(modelName: string): string {
-  return `Aggregate${modelName}`
+  return `Aggregate${capitalize(modelName)}`
 }
 
 export function getAvgAggregateName(modelName: string): string {
-  return `${modelName}AvgAggregateOutputType`
+  return `${capitalize(modelName)}AvgAggregateOutputType`
 }
 
 export function getSumAggregateName(modelName: string): string {
-  return `${modelName}SumAggregateOutputType`
+  return `${capitalize(modelName)}SumAggregateOutputType`
 }
 
 export function getMinAggregateName(modelName: string): string {
-  return `${modelName}MinAggregateOutputType`
+  return `${capitalize(modelName)}MinAggregateOutputType`
 }
 
 export function getMaxAggregateName(modelName: string): string {
-  return `${modelName}MaxAggregateOutputType`
+  return `${capitalize(modelName)}MaxAggregateOutputType`
 }
 
 export function getAggregateInputType(aggregateOutputType: string): string {
