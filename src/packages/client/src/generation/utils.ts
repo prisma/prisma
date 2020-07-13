@@ -49,15 +49,15 @@ export function getAggregateInputType(aggregateOutputType: string): string {
 }
 
 export function getAggregateArgsName(modelName: string): string {
-  return `Aggregate${modelName}Args`
+  return `Aggregate${capitalize(modelName)}Args`
 }
 
 export function getAggregateGetName(modelName: string): string {
-  return `Get${modelName}AggregateType`
+  return `Get${capitalize(modelName)}AggregateType`
 }
 
 export function getAggregateScalarGetName(modelName: string): string {
-  return `Get${modelName}AggregateScalarType`
+  return `Get${capitalize(modelName)}AggregateScalarType`
 }
 
 export function getIncludeName(modelName: string): string {
