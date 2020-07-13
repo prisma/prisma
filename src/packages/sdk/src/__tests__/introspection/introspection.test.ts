@@ -70,9 +70,9 @@ test('introspection basic', async () => {
         Object {
           "columns": Array [
             Object {
-              "autoIncrement": true,
+              "autoIncrement": false,
               "default": null,
-              "name": "revision",
+              "name": "applied",
               "tpe": Object {
                 "arity": "required",
                 "characterMaximumLength": null,
@@ -84,7 +84,7 @@ test('introspection basic', async () => {
             Object {
               "autoIncrement": false,
               "default": null,
-              "name": "name",
+              "name": "database_migration",
               "tpe": Object {
                 "arity": "required",
                 "characterMaximumLength": null,
@@ -108,55 +108,7 @@ test('introspection basic', async () => {
             Object {
               "autoIncrement": false,
               "default": null,
-              "name": "status",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "TEXT",
-                "family": "string",
-                "fullDataType": "TEXT",
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": null,
-              "name": "applied",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "INTEGER",
-                "family": "int",
-                "fullDataType": "INTEGER",
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": null,
-              "name": "rolled_back",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "INTEGER",
-                "family": "int",
-                "fullDataType": "INTEGER",
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": null,
               "name": "datamodel_steps",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "TEXT",
-                "family": "string",
-                "fullDataType": "TEXT",
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": null,
-              "name": "database_migration",
               "tpe": Object {
                 "arity": "required",
                 "characterMaximumLength": null,
@@ -180,6 +132,54 @@ test('introspection basic', async () => {
             Object {
               "autoIncrement": false,
               "default": null,
+              "name": "finished_at",
+              "tpe": Object {
+                "arity": "nullable",
+                "characterMaximumLength": null,
+                "dataType": "DATE",
+                "family": "dateTime",
+                "fullDataType": "DATE",
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": null,
+              "name": "name",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "TEXT",
+                "family": "string",
+                "fullDataType": "TEXT",
+              },
+            },
+            Object {
+              "autoIncrement": true,
+              "default": null,
+              "name": "revision",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "INTEGER",
+                "family": "int",
+                "fullDataType": "INTEGER",
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": null,
+              "name": "rolled_back",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "INTEGER",
+                "family": "int",
+                "fullDataType": "INTEGER",
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": null,
               "name": "started_at",
               "tpe": Object {
                 "arity": "required",
@@ -192,13 +192,13 @@ test('introspection basic', async () => {
             Object {
               "autoIncrement": false,
               "default": null,
-              "name": "finished_at",
+              "name": "status",
               "tpe": Object {
-                "arity": "nullable",
+                "arity": "required",
                 "characterMaximumLength": null,
-                "dataType": "DATE",
-                "family": "dateTime",
-                "fullDataType": "DATE",
+                "dataType": "TEXT",
+                "family": "string",
+                "fullDataType": "TEXT",
               },
             },
           ],
