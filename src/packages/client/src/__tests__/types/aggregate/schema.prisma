@@ -10,7 +10,7 @@ generator client {
 }
 
 // / User model comment
-model User {
+model user {
   id            String  @default(uuid()) @id
   email         String  @unique
   age           Int
@@ -29,7 +29,7 @@ model Post {
   title     String
   content   String?
   authorId  String?
-  author    User?    @relation(fields: [authorId], references: [id])
+  author    user?    @relation(fields: [authorId], references: [id])
   Like      Like[]
 }
 
@@ -52,7 +52,7 @@ model MachineData {
 model Like {
   id     String @default(cuid()) @id
   userId String
-  user   User   @relation(fields: [userId], references: [id])
+  user   user   @relation(fields: [userId], references: [id])
   postId String
   post   Post   @relation(fields: [postId], references: [id])
 

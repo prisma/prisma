@@ -13,6 +13,17 @@ async function main() {
   })
 
   const { count, avg, max, min, sum } = await prisma.user.aggregate({
+    cursor: {
+      email: 'a@a.de',
+    },
+    orderBy: {
+      age: 'asc',
+    },
+    skip: 12,
+    take: 10,
+    where: {
+      age: { gt: 500 },
+    },
     count: true,
     avg: {
       age: true,
