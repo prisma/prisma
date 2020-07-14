@@ -10,7 +10,7 @@
   "dependencies": {
     "@prisma/debug": "workspace:*",
     "@types/cross-spawn": "^6.0.1",
-    "chalk": "^3.0.0",
+    "chalk": "^4.0.0",
     "cross-spawn": "^7.0.2"
   },
   "scripts": {

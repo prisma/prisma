@@ -50,7 +50,7 @@
     "@prisma/get-platform": "workspace:*",
     "archiver": "^4.0.0",
     "arg": "^4.1.3",
-    "chalk": "3.0.0",
+    "chalk": "4.1.0",
     "checkpoint-client": "1.1.2",
     "cli-truncate": "^2.1.0",
     "execa": "^4.0.0",
