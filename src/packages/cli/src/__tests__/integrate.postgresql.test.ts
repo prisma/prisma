@@ -25,6 +25,8 @@ const latestDevPromise = getLatestTag()
 
 before((done) => {
   db.connect((err) => done(err))
+  db.query('drop schema public cascade;')
+  db.query('create schema public;')
 })
 
 beforeEach(async () => {

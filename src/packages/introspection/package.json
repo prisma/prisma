@@ -36,7 +36,7 @@
     "@prisma/sdk": "*"
   },
   "dependencies": {
-    "chalk": "^3.0.0",
+    "chalk": "^4.0.0",
     "execa": "^4.0.0",
     "make-dir": "^3.0.2",
     "strip-ansi": "^6.0.0"
