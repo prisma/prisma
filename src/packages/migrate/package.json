@@ -24,7 +24,7 @@
     "@typescript-eslint/eslint-plugin": "3.6.1",
     "@typescript-eslint/parser": "3.6.1",
     "@zeit/ncc": "0.22.3",
-    "better-sqlite3": "^7.1.0",
+    "better-sqlite3": "7.1.0",
     "chalk": "4.1.0",
     "del": "5.1.0",
     "eslint": "7.4.0",
