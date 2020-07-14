@@ -126,6 +126,7 @@ export class MigrateSave implements Command {
       for (const item of migration.unexecutableMigrations) {
         messages.push(`${chalk(`  • ${item.description}`)}`)
       }
+      console.log() // empty line
       throw new Error(messages.join('\n'))
     }
 
