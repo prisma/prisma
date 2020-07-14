@@ -55,7 +55,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
 
     await run(
       '.',
-      `pnpm i --no-prefer-frozen-lockfile -r --ignore-scripts`,
+      `pnpm i --no-prefer-frozen-lockfile -r --ignore-scripts --reporter=silent`,
     ).catch((e) => {})
   }
 
@@ -105,7 +105,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   }
 
   // final install on top level
-  await run('.', 'pnpm i --no-prefer-frozen-lockfile -r')
+  await run('.', 'pnpm i --no-prefer-frozen-lockfile -r --reporter=silent')
 }
 
 if (!module.parent) {
