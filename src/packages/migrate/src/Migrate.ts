@@ -871,6 +871,8 @@ export class Migrate {
       ],
       {
         // globby doesn't have it in its types but it's part of mrmlnc/fast-glob
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
         cwd: migrationsDir,
       },
     ).then((files) =>
@@ -1170,14 +1172,13 @@ class ProgressRenderer {
     str += changeOverview
 
     const migrationsIdsPaths = this.migrations.reduce((acc, m) => {
-      acc += `./migrations/${m.id}/README.md\n`
+      acc += `\n      ${link(`./migrations/${m.id}/README.md`)}\n`
       return acc
     }, '')
     str += chalk.dim(
       `\n\nYou can get the detailed db changes with ${chalk.greenBright(
         'prisma migrate up --experimental --verbose',
-      )}\nOr read about them here:
-      ${link(migrationsIdsPaths)}`,
+      )}\nOr read about them here:${migrationsIdsPaths}`,
     )
 
     if (this.logsName && this.logsString.length > 0) {
