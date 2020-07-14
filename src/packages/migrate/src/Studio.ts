@@ -104,6 +104,7 @@ export class Studio {
           await open(serverUrl, {
             app: this.browser,
             url: true,
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
           }).catch(() => {}) // Ignore any errors
           break
       }

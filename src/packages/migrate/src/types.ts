@@ -43,6 +43,10 @@ export interface RelationFieldType {
   }
 }
 
+export interface UnexecutableMigration {
+  description: string
+}
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EngineArgs {
   /**
@@ -91,6 +95,7 @@ export namespace EngineResults {
     warnings: any[]
     errors: any[]
     generalErrors: any[]
+    unexecutableMigrations: UnexecutableMigration[]
   }
   export enum MigrationStatus {
     MigrationSuccess = 'MigrationSuccess',
@@ -116,6 +121,7 @@ export namespace EngineResults {
     warnings: Warning[]
     errors: any[]
     generalErrors: any[]
+    unexecutableMigrations: UnexecutableMigration[]
   }
 
   export interface Warning {
@@ -179,12 +185,13 @@ export interface Migration {
 
 export interface DatabaseSteps {
   step: DatabaseStep
-  raw: String
+  raw: string
 }
 
 export interface LocalMigrationWithDatabaseSteps extends LocalMigration {
   databaseSteps: DatabaseSteps[]
   warnings: EngineResults.Warning[]
+  unexecutableMigrations: UnexecutableMigration[]
 }
 
 export interface RawSqlStep {
