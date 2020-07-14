@@ -291,6 +291,14 @@ Array [
 `;
 
 exports[`migrate.create invalid ok 6`] = `
+"
+
+⚠️ We found migration(s) that cannot be executed:
+
+  • Added the required column \`requiredSomething\` to the \`User\` table without a default value. There are 1 rows in this table, it is not possible to execute this migration."
+`;
+
+exports[`migrate.create invalid ok 7`] = `
 "📼  migrate save --name init-2
 
 Local datamodel Changes:
@@ -300,13 +308,7 @@ model User {
   canBeNull String?
   canBeNull String
   requiredSomething String
-}
-
-
-⚠️  There might be data loss when applying the migration:
-
-  • You are about to alter the column \`canBeNull\` on the \`User\` table, which still contains 1 non-null values. The data in that column could be lost.
-  • Added the required column \`requiredSomething\` to the \`User\` table without a default value. There are 1 rows in this table, it is not possible to execute this migration."
+}"
 `;
 
 exports[`migrate.create simple ok 1`] = `
