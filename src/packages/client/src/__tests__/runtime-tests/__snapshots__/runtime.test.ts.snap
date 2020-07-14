@@ -23,6 +23,8 @@ exports[`runtime chmod: chmod example should succeed 1`] = `"success"`;
 
 exports[`runtime corruption: corruption example should succeed 1`] = `"success"`;
 
+exports[`runtime distinct: distinct example should succeed 1`] = `"success"`;
+
 exports[`runtime enums: enums example should succeed 1`] = `"success"`;
 
 exports[`runtime hooks: hooks example should succeed 1`] = `"success"`;
