@@ -109,14 +109,14 @@ async function urlExists(url) {
 
     const headers = fromEntries(res.headers.entries())
     if (res.status > 200) {
-      console.error(res, headers)
+      // console.error(res, headers)
     }
     if (parseInt(headers['content-length']) > 0) {
       return res.status < 300
     }
   } catch (e) {
     //
-    console.error(e)
+    // console.error(e)
   }
   return false
 }
