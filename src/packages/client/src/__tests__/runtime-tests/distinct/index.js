@@ -14,7 +14,7 @@ module.exports = async () => {
     distinct: ['name'],
   })
 
-  assert.equal(result.length, 10)
+  assert.equal(result.length, 1)
 
   prisma.disconnect()
 }
