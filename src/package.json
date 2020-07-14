@@ -10,7 +10,7 @@
     "@types/redis": "2.8.22",
     "arg": "4.1.3",
     "batching-toposort": "1.2.0",
-    "chalk": "3.0.0",
+    "chalk": "4.1.0",
     "debug": "4.1.1",
     "execa": "4.0.2",
     "globby": "11.0.1",
