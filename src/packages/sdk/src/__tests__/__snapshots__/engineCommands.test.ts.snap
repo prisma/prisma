@@ -3100,16 +3100,6 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
-              "type": "Int",
-            },
-            "name": "id",
-          },
-          Object {
-            "inputType": Object {
-              "isList": false,
-              "isNullable": false,
-              "isRequired": false,
-              "kind": "scalar",
               "type": "String",
             },
             "name": "email",
@@ -3980,16 +3970,6 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
-              "type": "Int",
-            },
-            "name": "id",
-          },
-          Object {
-            "inputType": Object {
-              "isList": false,
-              "isNullable": false,
-              "isRequired": false,
-              "kind": "scalar",
               "type": "String",
             },
             "name": "email",
@@ -4010,16 +3990,6 @@ Object {
       },
       Object {
         "fields": Array [
-          Object {
-            "inputType": Object {
-              "isList": false,
-              "isNullable": false,
-              "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
-            },
-            "name": "id",
-          },
           Object {
             "inputType": Object {
               "isList": false,
@@ -8206,16 +8176,6 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
-              "type": "Int",
-            },
-            "name": "id",
-          },
-          Object {
-            "inputType": Object {
-              "isList": false,
-              "isNullable": false,
-              "isRequired": false,
-              "kind": "scalar",
               "type": "String",
             },
             "name": "email",
@@ -9142,16 +9102,6 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
-              "type": "Int",
-            },
-            "name": "id",
-          },
-          Object {
-            "inputType": Object {
-              "isList": false,
-              "isNullable": false,
-              "isRequired": false,
-              "kind": "scalar",
               "type": "String",
             },
             "name": "email",
@@ -9172,16 +9122,6 @@ Object {
       },
       Object {
         "fields": Array [
-          Object {
-            "inputType": Object {
-              "isList": false,
-              "isNullable": false,
-              "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
-            },
-            "name": "id",
-          },
           Object {
             "inputType": Object {
               "isList": false,
