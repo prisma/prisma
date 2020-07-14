@@ -4,6 +4,8 @@ exports[`runtime aggregations: aggregations example should succeed 1`] = `"succe
 
 exports[`runtime blog: blog example should succeed 1`] = `"success"`;
 
+exports[`runtime blog-dot-env: blog-dot-env example should succeed 1`] = `"success"`;
+
 exports[`runtime blog-env: blog-env example should not succeed 1`] = `
 "error: Environment variable not found: SQLITE_URL.
   -->  schema.prisma:3
