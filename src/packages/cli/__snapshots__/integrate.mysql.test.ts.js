@@ -1448,7 +1448,7 @@ model invalid_enum_value_name {
   here_be_enum invalid_enum_value_name_here_be_enum?
 }
 
-// The underlying table does not contain a unique identifier and can therefore currently not be handled.
+// The underlying table does not contain a valid unique identifier and can therefore currently not be handled.
 // model no_unique_identifier {
   // field1 Int?
   // field2 Int?
@@ -1472,7 +1472,7 @@ enum invalid_enum_value_name_here_be_enum {
 exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   {
     "code": 1,
-    "message": "The following models were commented out as they do not have a unique identifier or id. This is currently not supported by Prisma.",
+    "message": "The following models were commented out as they do not have a valid unique identifier or id. This is currently not supported by Prisma.",
     "affected": [
       {
         "model": "no_unique_identifier"
