@@ -24,8 +24,6 @@ describe('download', () => {
     await del(__dirname + '/**/prisma-fmt*')
   })
 
-  beforeEach(() => console.log('Before test X - download could take a while'))
-
   test('basic download', async () => {
     const platform = await getPlatform()
     const queryEnginePath = path.join(

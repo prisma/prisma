@@ -9,15 +9,15 @@ if [ "$DEVELOPMENT_ENVIRONMENT_COMMIT" ]; then
   git checkout $DEVELOPMENT_ENVIRONMENT_COMMIT
 fi
 
-npm i -g pnpm@5.1.7
-npm i -g yarn || echo "Ok"
+npm i --silent -g pnpm@5.1.7
+npm i --silent -g yarn || echo "Ok"
 yarn --version || echo "Ok"
-pnpm i --no-prefer-frozen-lockfile
+pnpm i --no-prefer-frozen-lockfile --reporter=silent
 
 pnpm run setup
 
 cd packages/cli
-pnpm i sqlite3@4.1 --unsafe-perm
+pnpm i sqlite3@4.1 --unsafe-perm --reporter=silent
 cd ../..
 
 pnpm run test

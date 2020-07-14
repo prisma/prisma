@@ -8,7 +8,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "chalk": "^3.0.0",
+    "chalk": "^4.0.0",
     "cli-truncate": "2.1.0",
     "figures": "^3.2.0",
     "ink-spinner": "^3.0.1",
@@ -23,11 +23,11 @@
     "dist"
   ],
   "devDependencies": {
-    "@types/node": "12.12.47",
+    "@types/node": "12.12.50",
     "@types/react": "16.9.11",
     "ink": "2.5.0",
     "react": "16.11.0",
-    "typescript": "3.9.5"
+    "typescript": "3.9.6"
   },
   "peerDependencies": {
     "ink": ">= 2.3.0",
