@@ -314,6 +314,8 @@ function createTests() {
           // Should error with unexecutableMigrations:
           expect(stripAnsi(e.message)).toMatchSnapshot()
         }
+        console.log = oldConsoleLog
+        expect(stripAnsi(logs.join('\n'))).toMatchSnapshot()
       },
     },
   ]
