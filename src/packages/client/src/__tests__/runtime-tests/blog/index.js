@@ -15,7 +15,6 @@ module.exports = async () => {
   const db = new PrismaClient({
     errorFormat: 'colorless',
     __internal: {
-      measurePerformance: true,
       hooks: {
         beforeRequest: (request) => requests.push(request),
       },
@@ -53,10 +52,6 @@ module.exports = async () => {
   const userPromise = db.user.findMany()
   await userPromise
   // @ts-ignore
-  const perfResults = userPromise._collectTimestamps.getResults()
-  if (Object.keys(perfResults).length === 0) {
-    throw Error('measurePerformance is enabled but results object is empty')
-  }
 
   await db.disconnect()
 

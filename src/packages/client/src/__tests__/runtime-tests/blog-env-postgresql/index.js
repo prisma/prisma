@@ -121,10 +121,6 @@ module.exports = async () => {
   const userPromise = prisma.user.findMany()
   await userPromise
   // @ts-ignore
-  const perfResults = userPromise._collectTimestamps.getResults()
-  if (Object.keys(perfResults).length === 0) {
-    throw Error('measurePerformance is enabled but results object is empty')
-  }
 
   await prisma.disconnect()
 

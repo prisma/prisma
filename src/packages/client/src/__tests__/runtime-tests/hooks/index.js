@@ -7,13 +7,13 @@ module.exports = async () => {
   const allResults = []
   const engineResults = []
 
-  db.use('all', async ({ params, fetch }) => {
+  db.use('all', async (params, fetch) => {
     const result = await fetch(params)
     allResults.push(result)
     return result
   })
 
-  db.use('engine', async ({ params, fetch }) => {
+  db.use('engine', async (params, fetch) => {
     const result = await fetch(params)
     engineResults.push(result)
     return result
