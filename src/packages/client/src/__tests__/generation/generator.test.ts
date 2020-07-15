@@ -97,7 +97,7 @@ describe('generator', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "Schema parsing
-        error: Error validating model \\"public\\": The model name \`public\` is invalid. It is a reserved name. Please change it.
+        error: Error validating model \\"public\\": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:5
            | 
          4 | 
@@ -105,7 +105,7 @@ describe('generator', () => {
          6 |   id Int @id
          7 | }
            | 
-        error: Error validating model \\"dmmf\\": The model name \`dmmf\` is invalid. It is a reserved name. Please change it.
+        error: Error validating model \\"dmmf\\": The model name \`dmmf\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:9
            | 
          8 | 
@@ -113,7 +113,7 @@ describe('generator', () => {
         10 |   id Int @id
         11 | }
            | 
-        error: Error validating model \\"OnlyOne\\": The model name \`OnlyOne\` is invalid. It is a reserved name. Please change it.
+        error: Error validating model \\"OnlyOne\\": The model name \`OnlyOne\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:13
            | 
         12 | 
@@ -121,7 +121,7 @@ describe('generator', () => {
         14 |   id Int @id
         15 | }
            | 
-        error: Error validating model \\"delete\\": The model name \`delete\` is invalid. It is a reserved name. Please change it.
+        error: Error validating model \\"delete\\": The model name \`delete\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:17
            | 
         16 | 
