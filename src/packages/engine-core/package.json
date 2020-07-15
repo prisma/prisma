@@ -49,6 +49,7 @@
     "undici": "1.1.0"
   },
   "files": [
+    "!**/__tests__",
     "dist"
   ],
   "husky": {
