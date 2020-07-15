@@ -51,7 +51,7 @@ export const printStack = ({
     const stack = stackTraceParser.parse(callsite)
     // TODO: more resilient logic to check that it's not relative to cwd
     const trace = stack.find((t, i) => {
-      if (i < 2) {
+      if (i < 3) {
         if (t.methodName.includes('Object.')) {
           return false
         }
@@ -59,7 +59,9 @@ export const printStack = ({
       return (
         t.file &&
         !t.file.includes('@prisma') &&
+        !t.file.includes('getPrismaClient') &&
         !t.methodName.includes('new ') &&
+        !t.methodName.includes('_getCallsite') &&
         t.methodName.split('.').length < 4
       )
     })
