@@ -7,8 +7,19 @@ module.exports = async () => {
   const allResults = []
   const engineResults = []
 
-  db.use('all', async (params, fetch) => {
+  const order = []
+
+  db.use(async (params, fetch) => {
+    order.push(1)
     const result = await fetch(params)
+    order.push(4)
+    return result
+  })
+
+  db.use(async (params, fetch) => {
+    order.push(2)
+    const result = await fetch(params)
+    order.push(3)
     allResults.push(result)
     return result
   })
@@ -22,6 +33,7 @@ module.exports = async () => {
   await db.user.findMany()
   await db.post.findMany()
 
+  assert.deepEqual(order, [1, 2, 3, 4, 1, 2, 3, 4])
   assert.deepEqual(allResults, [[], []])
   assert.deepEqual(
     engineResults.map((r) => r.data),

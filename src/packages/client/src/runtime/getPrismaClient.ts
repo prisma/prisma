@@ -113,6 +113,14 @@ export type MiddlewareParams = {
   runInTransaction: boolean
 }
 
+/**
+ * The `T` type makes sure, that the `return proceed` is not forgotten in the middleware implementation
+ */
+export type Middleware<T = any> = (
+  params: MiddlewareParams,
+  next: (params: MiddlewareParams) => Promise<T>,
+) => Promise<T>
+
 export interface InternalRequestParams extends MiddlewareParams {
   /**
    * The original client method being called.
@@ -136,15 +144,6 @@ export type AllHookArgs = {
   params: HookParams
   fetch: (params: HookParams) => Promise<any>
 }
-
-/**
- * The `T` type makes sure, that the `return proceed` is not forgotten in the middleware implementation
- */
-export type Middleware<T = any> = (
-  params: MiddlewareParams,
-  next: (params: MiddlewareParams) => Promise<T>,
-) => Promise<T>
-
 /**
  * The `T` type makes sure, that the `return proceed` is not forgotten in the middleware implementation
  */
