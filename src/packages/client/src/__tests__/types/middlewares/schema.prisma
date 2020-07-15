@@ -1,0 +1,60 @@
+datasource db {
+  provider = "postgres"
+  url      = env("SOME_DB")
+}
+
+generator client {
+  provider             = "prisma-client-js"
+  output               = "@prisma/client"
+  experimentalFeatures = ["aggregateApi"]
+}
+
+// / User model comment
+model user {
+  id            String  @default(uuid()) @id
+  email         String  @unique
+  age           Int
+  followerCount Int?
+  // / name comment
+  name          String?
+  posts         Post[]
+  Like          Like[]
+}
+
+model Post {
+  id        String   @default(cuid()) @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  authorId  String?
+  author    user?    @relation(fields: [authorId], references: [id])
+  Like      Like[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model MachineData {
+  id        String @default(cuid()) @id
+  machineId String
+  os        String
+  osVersion Float
+  osArch    String
+  procFreq  Float
+  procCores Int
+  ram       Int
+}
+
+model Like {
+  id     String @default(cuid()) @id
+  userId String
+  user   user   @relation(fields: [userId], references: [id])
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
+}

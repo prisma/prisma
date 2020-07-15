@@ -27,8 +27,6 @@ exports[`runtime distinct: distinct example should succeed 1`] = `"success"`;
 
 exports[`runtime enums: enums example should succeed 1`] = `"success"`;
 
-exports[`runtime hooks: hooks example should succeed 1`] = `"success"`;
-
 exports[`runtime incorrect-column-type: incorrect-column-type example should not succeed 1`] = `
 "
 Invalid \`prisma.user.findMany()\` invocation in
@@ -37,6 +35,8 @@ Invalid \`prisma.user.findMany()\` invocation in
 
   Attempted to serialize scalar '123' with incompatible type 'String'"
 `;
+
+exports[`runtime middlewares: middlewares example should succeed 1`] = `"success"`;
 
 exports[`runtime missing-binary: missing-binary example should not succeed 1`] = `
 "

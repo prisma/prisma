@@ -493,6 +493,25 @@ export type LogEvent = {
 }
 /* End Types for Logging */
 
+/**
+ * These options are being passed in to the middleware as "params"
+ */
+export type MiddlewareParams = {
+  operation: string
+  rootField: string
+  args: any
+  dataPath: string[]
+  runInTransaction: boolean
+}
+
+/**
+ * The \`T\` type makes sure, that the \`return proceed\` is not forgotten in the middleware implementation
+ */
+export type Middleware<T = any> = (
+  params: MiddlewareParams,
+  next: (params: MiddlewareParams) => Promise<T>,
+) => Promise<T>
+
 // tested in getLogLevel.test.ts
 export declare function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
 
@@ -549,6 +568,11 @@ ${indent(this.jsDoc, tab)}
    * Disconnect from the database
    */
   disconnect(): Promise<any>;
+
+  /**
+   * Add a middleware
+   */
+  use(cb: Middleware): void
 
   /**
    * Executes a raw query and returns the number of affected rows
