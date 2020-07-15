@@ -16,6 +16,7 @@
     "test": "jest"
   },
   "files": [
+    "!**/__tests__",
     "dist",
     "scripts"
   ],
