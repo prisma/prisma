@@ -5,9 +5,15 @@ import path from 'path'
 
 export function credentialsToUri(credentials: DatabaseCredentials): string {
   const type = databaseTypeToProtocol(credentials.type)
+
   if (credentials.type === 'mongo') {
     return credentials.uri!
   }
+
+  if (credentials.type === 'sqlite') {
+    return credentials.uri!
+  }
+
   const url = new URL(type + '//', true)
 
   if (credentials.host) {
@@ -62,13 +68,6 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
     url.pathname = ''
   }
 
-  if (
-    credentials.type === 'sqlite' &&
-    credentials.uri?.startsWith('file:')
-  ) {
-    // if `file:../parent-dev.db` return as it is (do not convert to squlite://)
-    return credentials.uri
-  }
   // use a custom toString method, as we don't want escaping of query params
   return url.toString((q) =>
     Object.entries(q)
@@ -130,7 +129,7 @@ function databaseTypeToProtocol(databaseType: ConnectorType): string {
     case 'mongo':
       return 'mongodb:'
     case 'sqlite':
-      return 'sqlite:'
+      return 'file:'
   }
 }
 
@@ -144,7 +143,6 @@ function protocolToDatabaseType(protocol: string): ConnectorType {
     case 'mysql:':
       return 'mysql'
     case 'file:':
-    case 'sqlite:':
       return 'sqlite'
   }
 

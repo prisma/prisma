@@ -7,8 +7,6 @@ const uris = [
   'file:./current-dev.db',
   'file:../parent-dev.db',
   'file:../../parent-parent-dev.db',
-  'sqlite://',
-  'sqlite://dev.db',
   'postgresql://',
   'postgresql://localhost',
   'postgresql://localhost:5433',
