@@ -225,7 +225,7 @@ declare class PrismaClientFetcher {
   private readonly debug;
   private readonly hooks?;
   constructor(prisma: PrismaClient<any, any>, debug?: boolean, hooks?: Hooks | undefined);
-  request<T>(document: any, dataPath?: string[], rootField?: string, typeName?: string, isList?: boolean, callsite?: string, collectTimestamps?: any): Promise<T>;
+  request<T>(document: any, dataPath?: string[], rootField?: string, typeName?: string, isList?: boolean, callsite?: string): Promise<T>;
   sanitizeMessage(message: string): string;
   protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean): any;
 }
@@ -1160,7 +1160,6 @@ export declare class Prisma__${name}Client<T> implements Promise<T> {
   private _isList;
   private _callsite;
   private _requestPromise?;
-  private _collectTimestamps?;
   constructor(_dmmf: DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
   readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 ${indent(
