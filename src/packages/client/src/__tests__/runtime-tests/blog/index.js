@@ -37,11 +37,11 @@ module.exports = async () => {
 
   assert.equal(posts.length, 0)
   db.disconnect()
-  assert(requests.length === 1)
+  assert.equal(requests.length, 2)
 
   await db.user.findMany()
   db.disconnect()
-  assert(requests.length === 2)
+  assert.equal(requests.length, 3)
 
   const count = await db.user.count()
   assert(typeof count === 'number')
