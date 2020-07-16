@@ -52,6 +52,7 @@ export const printStack = ({
     // TODO: more resilient logic to check that it's not relative to cwd
     const trace = stack.find((t, i) => {
       if (i < 3) {
+        // the first few function calls can always be ignored
         if (t.methodName.includes('Object.')) {
           return false
         }
