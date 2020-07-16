@@ -87,6 +87,7 @@ main()
           } else {
             console.error(chalk.redBright.bold('Error: ') + e.message)
           }
+          process.exit(1)
         },
       )
     } else {
