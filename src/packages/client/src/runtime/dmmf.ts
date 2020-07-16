@@ -53,8 +53,8 @@ export class DMMFClass implements DMMF.Document {
     }
   }
   protected resolveOutputTypes(types: DMMF.OutputType[]) {
-    for (const typeA of types) {
-      for (const field of typeA.fields) {
+    for (const type of types) {
+      for (const field of type.fields) {
         if (
           typeof field.outputType.type === 'string' &&
           !ScalarTypeTable[field.outputType.type]
@@ -65,6 +65,7 @@ export class DMMFClass implements DMMF.Document {
             field.outputType.type
         }
       }
+      type.fieldMap = keyBy(type.fields, 'name')
     }
   }
   protected resolveInputTypes(types: DMMF.InputType[]) {
@@ -93,6 +94,7 @@ export class DMMFClass implements DMMF.Document {
             field.inputType[1].type
         }
       }
+      type.fieldMap = keyBy(type.fields, 'name')
     }
   }
   protected resolveFieldArgumentTypes(
