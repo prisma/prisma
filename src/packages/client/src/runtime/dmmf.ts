@@ -1,5 +1,5 @@
 import { DMMF } from './dmmf-types'
-import { Dictionary, keyBy, ScalarTypeTable } from './utils/common'
+import { Dictionary, keyBy, ScalarTypeTable, keyBy2 } from './utils/common'
 
 export class DMMFClass implements DMMF.Document {
   public datamodel: DMMF.Datamodel
@@ -13,6 +13,8 @@ export class DMMFClass implements DMMF.Document {
   public inputTypeMap: Dictionary<DMMF.InputType>
   public enumMap: Dictionary<DMMF.Enum>
   public modelMap: Dictionary<DMMF.Model>
+  public mappingsMap: Dictionary<DMMF.Mapping>
+  public rootFieldMap: Dictionary<DMMF.SchemaField>
   constructor({ datamodel, schema, mappings }: DMMF.Document) {
     this.datamodel = datamodel
     this.schema = schema
@@ -32,18 +34,13 @@ export class DMMFClass implements DMMF.Document {
     this.inputTypeMap = this.getInputTypeMap()
     this.resolveInputTypes(this.inputTypes)
     this.resolveFieldArgumentTypes(this.outputTypes, this.inputTypeMap)
+    this.mappingsMap = this.getMappingsMap()
 
     // needed as references are not kept
     this.queryType = this.outputTypeMap.Query
     this.mutationType = this.outputTypeMap.Mutation
     this.outputTypes = this.outputTypes
-  }
-  public getField(fieldName: string) {
-    return (
-      // TODO: create lookup table for Query and Mutation
-      this.queryType.fields.find((f) => f.name === fieldName) ||
-      this.mutationType.fields.find((f) => f.name === fieldName)
-    )
+    this.rootFieldMap = this.getRootFieldMap()
   }
   protected outputTypeToMergedOutputType = (
     outputType: DMMF.OutputType,
@@ -137,15 +134,21 @@ export class DMMFClass implements DMMF.Document {
     return this.schema.outputTypes.map(this.outputTypeToMergedOutputType)
   }
   protected getEnumMap(): Dictionary<DMMF.Enum> {
-    return keyBy(this.schema.enums, (e) => e.name)
+    return keyBy(this.schema.enums, 'name')
   }
   protected getModelMap(): Dictionary<DMMF.Model> {
-    return keyBy(this.datamodel.models, (m) => m.name)
+    return keyBy(this.datamodel.models, 'name')
   }
   protected getMergedOutputTypeMap(): Dictionary<DMMF.OutputType> {
-    return keyBy(this.outputTypes, (t) => t.name)
+    return keyBy(this.outputTypes, 'name')
   }
   protected getInputTypeMap(): Dictionary<DMMF.InputType> {
-    return keyBy(this.schema.inputTypes, (t) => t.name)
+    return keyBy(this.schema.inputTypes, 'name')
+  }
+  protected getMappingsMap(): Dictionary<DMMF.Mapping> {
+    return keyBy(this.mappings, 'model')
+  }
+  protected getRootFieldMap(): Dictionary<DMMF.SchemaField> {
+    return keyBy2(this.queryType.fields, this.mutationType.fields, 'name')
   }
 }

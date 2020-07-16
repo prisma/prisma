@@ -697,7 +697,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       // TODO: Replace with lookup map for speedup
       let mapping
       if (model) {
-        mapping = this.dmmf.mappings.find((m) => m.model === model)
+        mapping = this.dmmf.mappingsMap[model]
         if (!mapping) {
           throw new Error(
             `Could not find mapping for model ${model} ${JSON.stringify(
@@ -712,11 +712,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       if (operation !== 'query' && operation !== 'mutation') {
         throw new Error(`Invalid operation ${operation} for action ${action}`)
       }
-      const rootType =
-        operation === 'query' ? this.dmmf.queryType : this.dmmf.mutationType
 
-      // TODO: Use map instead of find
-      const field = rootType.fields.find((f) => f.name === rootField)
+      const field = this.dmmf.rootFieldMap[rootField!]
 
       if (!field) {
         throw new Error(
