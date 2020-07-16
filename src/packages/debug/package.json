@@ -1,26 +1,26 @@
 {
   "name": "@prisma/debug",
-  "version": "2.2.0-dev.63",
+  "version": "2.2.1-dev.4",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@types/jest": "25.2.3",
-    "@types/node": "12.12.47",
-    "@typescript-eslint/eslint-plugin": "2.34.0",
-    "@typescript-eslint/parser": "2.34.0",
-    "eslint": "6.8.0",
+    "@types/jest": "26.0.4",
+    "@types/node": "12.12.50",
+    "@typescript-eslint/eslint-plugin": "3.6.1",
+    "@typescript-eslint/parser": "3.6.1",
+    "eslint": "7.4.0",
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "23.13.2",
+    "eslint-plugin-jest": "23.18.0",
     "eslint-plugin-prettier": "3.1.4",
     "husky": "4.2.5",
-    "jest": "25.5.4",
-    "lint-staged": "10.2.10",
+    "jest": "26.1.0",
+    "lint-staged": "10.2.11",
     "strip-ansi": "6.0.0",
-    "ts-jest": "25.5.1",
-    "typescript": "3.9.5"
+    "ts-jest": "26.1.2",
+    "typescript": "3.9.6"
   },
   "scripts": {
     "build": "tsc -d",
@@ -30,6 +30,7 @@
     "test": "jest"
   },
   "files": [
+    "!**/__tests__",
     "dist"
   ],
   "dependencies": {

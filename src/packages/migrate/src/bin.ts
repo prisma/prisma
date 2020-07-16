@@ -12,6 +12,10 @@ process.env.NODE_NO_WARNINGS = '1'
 /**
  * Dependencies
  */
+import chalk from 'chalk'
+import debugLib from 'debug'
+import path from 'path'
+
 import { HelpError, isError } from '@prisma/sdk'
 import { MigrateCommand } from './commands/MigrateCommand'
 import { MigrateDown } from './commands/MigrateDown'
@@ -21,7 +25,10 @@ import { MigrateUp } from './commands/MigrateUp'
 import { StudioCommand } from './commands/StudioCommand'
 import { handlePanic } from './utils/handlePanic'
 import { ProviderAliases } from '@prisma/sdk'
-import path from 'path'
+
+const debug = debugLib('migrate')
+
+const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
 const providerAliases: ProviderAliases = {
   'prisma-client-js': {
@@ -71,13 +78,24 @@ main()
       process.exit(code)
     }
   })
-  .catch((err) => {
-    if (err.rustStack) {
-      // console.error(err.rustStack)
-      // console.error(err.stack)
-      handlePanic(err, 'TEST', 'TEST').catch(console.error)
+  .catch((error) => {
+    if (error.rustStack) {
+      handlePanic(error, packageJson.version, packageJson.prisma.version).catch(
+        (e) => {
+          if (debugLib.enabled('migrate')) {
+            console.error(chalk.redBright.bold('Error: ') + e.stack)
+          } else {
+            console.error(chalk.redBright.bold('Error: ') + e.message)
+          }
+          process.exit(1)
+        },
+      )
     } else {
-      console.error(err)
+      if (debugLib.enabled('migrate')) {
+        console.error(chalk.redBright.bold('Error: ') + error.stack)
+      } else {
+        console.error(chalk.redBright.bold('Error: ') + error.message)
+      }
       process.exit(1)
     }
   })

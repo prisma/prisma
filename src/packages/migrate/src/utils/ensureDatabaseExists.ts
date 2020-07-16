@@ -10,7 +10,7 @@ export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev'
 
 export async function ensureDatabaseExists(
   action: MigrateAction,
-  forceCreate: boolean = false,
+  forceCreate = false,
   schemaPath?: string,
 ) {
   const datamodel = await getSchema(schemaPath)

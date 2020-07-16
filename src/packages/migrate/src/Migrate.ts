@@ -56,7 +56,7 @@ import { printMigrationReadme } from './utils/printMigrationReadme'
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { flatMap } from './utils/flatMap'
-const debug = Debug('Migrate')
+const debug = Debug('migrate')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
 const del = promisify(rimraf)
@@ -338,6 +338,7 @@ export class Migrate {
       datamodelSteps,
       databaseSteps,
       warnings,
+      unexecutableMigrations,
     } = await this.engine.inferMigrationSteps({
       sourceConfig,
       datamodel,
@@ -355,6 +356,7 @@ export class Migrate {
       datamodelSteps,
       databaseSteps,
       warnings,
+      unexecutableMigrations,
     }
   }
 
@@ -735,6 +737,7 @@ export class Migrate {
         steps: datamodelSteps,
         sourceConfig,
       })
+
       await new Promise((r) => setTimeout(r, 50))
       // needed for the ProgressRenderer
       // and for verbose printing
@@ -868,6 +871,7 @@ export class Migrate {
       ],
       {
         // globby doesn't have it in its types but it's part of mrmlnc/fast-glob
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         cwd: migrationsDir,
       },
@@ -941,6 +945,7 @@ export class Migrate {
             ...migration,
             databaseSteps: [],
             warnings: [],
+            unexecutableMigrations: [],
           }
         }
         const stepsUntilNow =
@@ -955,11 +960,13 @@ export class Migrate {
         const {
           databaseSteps,
           warnings,
+          unexecutableMigrations,
         } = await this.engine.calculateDatabaseSteps(input)
         return {
           ...migration,
           databaseSteps,
           warnings,
+          unexecutableMigrations,
         }
       },
       { concurrency: 1 },
@@ -1165,14 +1172,13 @@ class ProgressRenderer {
     str += changeOverview
 
     const migrationsIdsPaths = this.migrations.reduce((acc, m) => {
-      acc += `./migrations/${m.id}/README.md\n`
+      acc += `\n      ${link(`./migrations/${m.id}/README.md`)}\n`
       return acc
     }, '')
     str += chalk.dim(
       `\n\nYou can get the detailed db changes with ${chalk.greenBright(
         'prisma migrate up --experimental --verbose',
-      )}\nOr read about them here:
-      ${link(migrationsIdsPaths)}`,
+      )}\nOr read about them here:${migrationsIdsPaths}`,
     )
 
     if (this.logsName && this.logsString.length > 0) {

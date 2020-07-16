@@ -9,7 +9,7 @@ model column_name_that_becomes_empty_string {
   // 12345 Int? @map("12345")
 }
 
-// The underlying table does not contain a unique identifier and can therefore currently not be handled.
+// The underlying table does not contain a valid unique identifier and can therefore currently not be handled.
 // model no_unique_identifier {
   // This type is currently not supported.
   // field1 integer key
