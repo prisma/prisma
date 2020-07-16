@@ -1,14 +1,5 @@
 import { DMMF } from './dmmf-types'
 import { Dictionary, keyBy, ScalarTypeTable } from './utils/common'
-import { performance } from 'perf_hooks'
-
-function getLogger() {
-  // let last = performance.now()
-  return (...args: string[]) => {
-    // console.error(`${(performance.now() - last).toFixed(2)}ms`, ...args)
-    // last = performance.now()
-  }
-}
 
 export class DMMFClass implements DMMF.Document {
   public datamodel: DMMF.Datamodel
@@ -26,47 +17,32 @@ export class DMMFClass implements DMMF.Document {
     this.datamodel = datamodel
     this.schema = schema
     this.mappings = mappings
-    const log = getLogger()
-    log(`starting`)
     this.enumMap = this.getEnumMap()
-    log(`enumMap`)
     this.queryType = this.getQueryType()
-    log(`queryType`)
     this.mutationType = this.getMutationType()
-    log(`mutationType`)
     this.modelMap = this.getModelMap()
-    log(`modelMap`)
 
     this.outputTypes = this.getOutputTypes()
-    log(`outputTypes`)
 
     this.outputTypeMap = this.getMergedOutputTypeMap()
-    log(`outputTypes map`)
 
     this.resolveOutputTypes(this.outputTypes)
-    log(`resolve Output Types`)
 
     this.inputTypes = this.schema.inputTypes
     this.inputTypeMap = this.getInputTypeMap()
-    log(`input type map`)
     this.resolveInputTypes(this.inputTypes)
-    log(`input types`)
     this.resolveFieldArgumentTypes(this.outputTypes, this.inputTypeMap)
-    log(`resolve fields `)
-
-    log(`merge things...`)
 
     // needed as references are not kept
     this.queryType = this.outputTypeMap.Query
     this.mutationType = this.outputTypeMap.Mutation
     this.outputTypes = this.outputTypes
-    log(`done`)
   }
   public getField(fieldName: string) {
     return (
       // TODO: create lookup table for Query and Mutation
-      this.queryType.fields.find(f => f.name === fieldName) ||
-      this.mutationType.fields.find(f => f.name === fieldName)
+      this.queryType.fields.find((f) => f.name === fieldName) ||
+      this.mutationType.fields.find((f) => f.name === fieldName)
     )
   }
   protected outputTypeToMergedOutputType = (
@@ -152,24 +128,24 @@ export class DMMFClass implements DMMF.Document {
     }
   }
   protected getQueryType(): DMMF.OutputType {
-    return this.schema.outputTypes.find(t => t.name === 'Query')!
+    return this.schema.outputTypes.find((t) => t.name === 'Query')!
   }
   protected getMutationType(): DMMF.OutputType {
-    return this.schema.outputTypes.find(t => t.name === 'Mutation')!
+    return this.schema.outputTypes.find((t) => t.name === 'Mutation')!
   }
   protected getOutputTypes(): DMMF.OutputType[] {
     return this.schema.outputTypes.map(this.outputTypeToMergedOutputType)
   }
   protected getEnumMap(): Dictionary<DMMF.Enum> {
-    return keyBy(this.schema.enums, e => e.name)
+    return keyBy(this.schema.enums, (e) => e.name)
   }
   protected getModelMap(): Dictionary<DMMF.Model> {
-    return keyBy(this.datamodel.models, m => m.name)
+    return keyBy(this.datamodel.models, (m) => m.name)
   }
   protected getMergedOutputTypeMap(): Dictionary<DMMF.OutputType> {
-    return keyBy(this.outputTypes, t => t.name)
+    return keyBy(this.outputTypes, (t) => t.name)
   }
   protected getInputTypeMap(): Dictionary<DMMF.InputType> {
-    return keyBy(this.schema.inputTypes, t => t.name)
+    return keyBy(this.schema.inputTypes, (t) => t.name)
   }
 }
