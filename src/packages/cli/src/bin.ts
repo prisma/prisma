@@ -237,6 +237,7 @@ if (require.main === module) {
             } else {
               console.error(chalk.redBright.bold('Error: ') + e.message)
             }
+            process.exit(1)
           })
         } else {
           if (debugLib.enabled('prisma')) {
