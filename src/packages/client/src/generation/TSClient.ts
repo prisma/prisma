@@ -742,7 +742,7 @@ export class Model implements Generatable {
       if (!fieldName) {
         continue
       }
-      const field = this.dmmf.getField(fieldName)
+      const field = this.dmmf.rootFieldMap[fieldName]
       if (!field) {
         throw new Error(
           `Oops this must not happen. Could not find field ${fieldName} on either Query or Mutation`,
@@ -793,9 +793,7 @@ export class Model implements Generatable {
       aggregateTypes.push(maxType)
     }
 
-    const aggregateRootField = this.dmmf.queryType.fields.find(
-      (f) => f.name === mapping?.aggregate,
-    )
+    const aggregateRootField = this.dmmf.rootFieldMap[mapping?.aggregate!]
     if (!aggregateRootField) {
       throw new Error(
         `Could not find aggregate root field for model ${model.name}. Mapping: ${mapping?.aggregate}`,
