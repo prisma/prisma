@@ -6,8 +6,8 @@ const prisma = new PrismaClient({
 
 async function main() {
   const res = await prisma.user.findMany({
-    distinct: ['2age'],
-  } as any)
+    distinct: ['age'],
+  })
   console.log(res)
   prisma.disconnect()
 }
