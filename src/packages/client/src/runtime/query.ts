@@ -1019,6 +1019,7 @@ export function selectionToFields(
 ): Field[] {
   const outputType = schemaField.outputType.type as DMMF.OutputType
   return Object.entries(selection).reduce((acc, [name, value]: any) => {
+    // TODO: turn this into a lookup map instead of a find to get constant lookup performance
     const field = outputType.fields.find((f) => f.name === name)
     if (!field) {
       // if the field name is incorrect, we ignore the args and child fields altogether
