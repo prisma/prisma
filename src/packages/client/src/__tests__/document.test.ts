@@ -96,6 +96,7 @@ test('document stringify', () => {
               fields: [],
               isEmbedded: false,
               name: 'User',
+              fieldMap: {},
             },
           },
         }),

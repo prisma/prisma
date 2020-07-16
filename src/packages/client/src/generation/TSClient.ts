@@ -841,7 +841,7 @@ ${indent(
           return `${f.name}?: true`
         }
         return `${f.name}?: ${getAggregateInputType(
-          (f.outputType.type as SchemaOutputType).name,
+          (f.outputType.type as DMMF.OutputType).name,
         )}`
       }),
     )
@@ -1110,8 +1110,7 @@ export class ModelDelegate implements Generatable {
   ) {}
   public toTS(): string {
     const { fields, name } = this.outputType
-    // TODO: Turn O(n^2) to O(n)
-    const mapping = this.dmmf.mappings.find((m) => m.model === name)!
+    const mapping = this.dmmf.mappingsMap[name]
     if (!mapping) {
       return ''
     }
