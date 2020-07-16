@@ -7,6 +7,11 @@ async function main() {
   const prisma = new PrismaClient()
 
   prisma.use(async (params, next) => {
+    params.args
+    params.dataPath
+    params.action
+    params.model
+    params.runInTransaction
     return next(params)
   })
 }
