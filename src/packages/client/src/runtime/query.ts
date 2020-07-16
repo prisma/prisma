@@ -1019,8 +1019,10 @@ export function selectionToFields(
 ): Field[] {
   const outputType = schemaField.outputType.type as DMMF.OutputType
   return Object.entries(selection).reduce((acc, [name, value]: any) => {
-    // TODO: turn this into a lookup map instead of a find to get constant lookup performance
-    const field = outputType.fields.find((f) => f.name === name)
+    const field = outputType.fieldMap
+      ? outputType.fieldMap[name]
+      : outputType.fields.find((f) => f.name === name)
+
     if (!field) {
       // if the field name is incorrect, we ignore the args and child fields altogether
       acc.push(
@@ -1613,15 +1615,16 @@ function objectToArgs(
   outputType?: DMMF.OutputType,
 ): Args {
   // filter out undefined values and treat them if they weren't provided
-  // TODO: think about using JSON.parse(JSON.stringify()) upfront instead to simplify things
   const obj = cleanObject(initialObj)
-  const { fields: args } = inputType
+  const { fields: args, fieldMap } = inputType
   const requiredArgs: any = args
     .filter((arg) => arg.inputType.some((t) => t.isRequired))
     .map((arg) => [arg.name, undefined])
   const entries = unionBy(Object.entries(obj || {}), requiredArgs, (a) => a[0])
   const argsList = entries.reduce((acc, [argName, value]: any) => {
-    const schemaArg = args.find((a) => a.name === argName)
+    const schemaArg = fieldMap
+      ? fieldMap[argName]
+      : args.find((a) => a.name === argName)
     if (!schemaArg) {
       const didYouMeanField =
         typeof value === 'boolean' &&
@@ -1756,9 +1759,9 @@ export function mapDates({ field, data }: MapDatesOptions): any {
 
     if (child.schemaField && child.schemaField.outputType.kind === 'object') {
       if (Array.isArray(data)) {
-        data.forEach((entry) =>
-          mapDates({ field: child, data: entry[child.name] }),
-        )
+        for (const entry of data) {
+          mapDates({ field: child, data: entry[child.name] })
+        }
       } else {
         mapDates({ field: child, data: data[child.name] })
       }
@@ -1801,9 +1804,9 @@ export function mapJson({ field, data }: MapDatesOptions): any {
 
     if (child.schemaField && child.schemaField.outputType.kind === 'object') {
       if (Array.isArray(data)) {
-        data.forEach((entry) =>
-          mapJson({ field: child, data: entry[child.name] }),
-        )
+        for (const entry of data) {
+          mapJson({ field: child, data: entry[child.name] })
+        }
       } else {
         mapJson({ field: child, data: data[child.name] })
       }
@@ -1816,6 +1819,7 @@ export function mapJson({ field, data }: MapDatesOptions): any {
 export function getField(document: Document, path: string[]): Field {
   const todo = path.slice() // let's create a copy to not fiddle with the input argument
   const firstElement = todo.shift()
+  // this might be slow because of the find
   let pointer = document.children.find((c) => c.name === firstElement)
 
   if (!pointer) {
