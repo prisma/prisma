@@ -106,8 +106,8 @@ export type HookParams = {
  * These options are being passed in to the middleware as "params"
  */
 export type MiddlewareParams = {
-  operation: string
-  rootField: string
+  model?: string
+  action: Action
   args: any
   dataPath: string[]
   runInTransaction: boolean
@@ -198,6 +198,34 @@ export interface GetPrismaClientOptions {
   dirname: string
   clientVersion?: string
   engineVersion?: string
+}
+
+export type Action =
+  | 'findOne'
+  | 'findMany'
+  | 'create'
+  | 'update'
+  | 'updateMany'
+  | 'upsert'
+  | 'delete'
+  | 'deleteMany'
+  | 'executeRaw'
+  | 'queryRaw'
+  | 'aggregate'
+
+const actionOperationMap = {
+  findOne: 'query',
+  findMany: 'query',
+  count: 'query',
+  create: 'mutation',
+  update: 'mutation',
+  updateMany: 'mutation',
+  upsert: 'mutation',
+  delete: 'mutation',
+  deleteMany: 'mutation',
+  executeRaw: 'mutation',
+  queryRaw: 'mutation',
+  aggregate: 'query',
 }
 
 const aggregateKeys = {
@@ -503,8 +531,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         args,
         clientMethod: 'executeRaw',
         dataPath: [],
-        operation: 'mutation',
-        rootField: 'executeRaw',
+        action: 'executeRaw',
         callsite: this._getCallsite(),
         runInTransaction: false,
       })
@@ -568,8 +595,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         args,
         clientMethod: 'queryRaw',
         dataPath: [],
-        operation: 'mutation',
-        rootField: 'queryRaw',
+        action: 'queryRaw',
         callsite: this._getCallsite(),
         runInTransaction: false,
       })
@@ -598,12 +624,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _request(internalParams: InternalRequestParams) {
       if (this._middlewares.length > 0) {
         // https://perf.link/#eyJpZCI6Img4bmd0anp5eGxrIiwidGl0bGUiOiJGaW5kaW5nIG51bWJlcnMgaW4gYW4gYXJyYXkgb2YgMTAwMCIsImJlZm9yZSI6ImNvbnN0IGRhdGEgPSB7XG4gIG9wZXJhdGlvbjogXCJxdWVyeVwiLFxuICByb290RmllbGQ6IFwiZmluZE1hbnlVc2VyXCIsXG4gIGFyZ3M6IHtcbiAgICB3aGVyZTogeyBpZDogeyBndDogNSB9IH1cbiAgfSxcbiAgZGF0YVBhdGg6IFtdLFxuICBjbGllbnRNZXRob2Q6ICd1c2VyLmZpbmRNYW55J1xufSIsInRlc3RzIjpbeyJuYW1lIjoiZm9yIGluIiwiY29kZSI6ImNvbnN0IG5ld0RhdGEgPSB7fVxuZm9yIChjb25zdCBrZXkgaW4gZGF0YSkge1xuICBpZiAoa2V5ICE9PSAnY2xpZW50TWV0aG9kJykge1xuICAgIG5ld0RhdGFba2V5XSA9IGRhdGFba2V5XVxuICB9XG59IiwicnVucyI6WzU1MzAwMCw0OTAwMDAsMzQ0MDAwLDYyNDAwMCwxMzkxMDAwLDEyMjQwMDAsMTA2NDAwMCwxMjE3MDAwLDc0MDAwLDM3MzAwMCw5MDUwMDAsNTM3MDAwLDE3MDYwMDAsOTAzMDAwLDE0MjUwMDAsMTMxMjAwMCw3NjkwMDAsMTM0NTAwMCwxOTQ4MDAwLDk5MDAwMCw5MDAwMDAsMTM0ODAwMCwxMDk2MDAwLDM4NjAwMCwxNTE3MDAwLDE5MzYwMDAsMTAwMCwyMTM0MDAwLDEzMjgwMDAsODI5MDAwLDE1ODYwMDAsMTc2MzAwMCw1MDgwMDAsOTg2MDAwLDE5NDkwMDAsMjEwODAwMCwxNjA4MDAwLDIyNDAwMCwxOTAyMDAwLDEyNjgwMDAsMjEzNDAwMCwxNzEwMDAwLDEzNzIwMDAsMjExMDAwMCwxNzgwMDAwLDc3NzAwMCw1NzgwMDAsNDAwMCw4OTAwMDAsMTEwMTAwMCwxNTk0MDAwLDE3ODAwMDAsMzU0MDAwLDU0NDAwMCw4MjQwMDAsNzEwMDAwLDg0OTAwMCwxNjQwMDAwLDE5ODQwMDAsNzAzMDAwLDg4MjAwMCw4NTAwMDAsMTA2MDAwLDMwMzAwMCwxMzMwMDAsNjA4MDAwLDIxMzQwMDAsNTUxMDAwLDc0MjAwMCwyMDcwMDAsMTU3NTAwMCwxMzQwMDAsNDAwMCwxMDAwLDQ5NDAwMCwyNTAwMDAsMTQwMjAwMCw2OTgwMDAsNTgxMDAwLDQ4MDAwMCwyMDMwMDAsMTY4MzAwMCwxNjcxMDAwLDEyNDAwMDAsMTk1NjAwMCwzMDUwMDAsODkwMDAsNjUzMDAwLDE3MDgwMDAsMTYwMTAwMCwxOTg0MDAwLDg4ODAwMCwyMTAwMDAwLDE5NzUwMDAsNTM2MDAwLDU3NTAwMCwyMTM0MDAwLDEwMTcwMDAsMTI5NzAwMCw3NTYwMDBdLCJvcHMiOjEwNDUxNTB9LHsibmFtZSI6IkRlY29uc3RydWN0b3IiLCJjb2RlIjoiY29uc3QgeyBjbGllbnRNZXRob2QsIC4uLnJlc3QgfSA9IGRhdGEiLCJydW5zIjpbMjE0MDAwLDUxMDAwLDg2NDAwMCw3MjcwMDAsNDMxMDAwLDIyMDAwMCwzOTAwMDAsODQxMDAwLDIyOTAwMCw3MjIwMDAsNDEzMDAwLDYwODAwMCwyOTgwMDAsMzY4MDAwLDg2NDAwMCw5MjQwMDAsMTI4MDAwLDU1MzAwMCw4ODAwMDAsNTQ1MDAwLDc3NTAwMCw0MzAwMDAsMjM3MDAwLDc4NjAwMCw1NTUwMDAsNTI2MDAwLDMyNzAwMCw2MzAwMCw5MTIwMDAsMTgxMDAwLDMzMTAwMCw0MzAwMCwyMjUwMDAsNTQ3MDAwLDgyMjAwMCw3OTMwMDAsMTA1NzAwMCw1NjAwMCwyNzUwMDAsMzkzMDAwLDgwNTAwMCw5MzAwMCw3NjYwMDAsODM0MDAwLDUwMzAwMCw4MDAwMCwyMzgwMDAsNDY0MDAwLDU2NDAwMCw3MzAwMDAsOTU1MDAwLDgwOTAwMCwyMDMwMDAsNDEzMDAwLDM0NDAwMCw1MDIwMDAsNjEzMDAwLDEwMDAwMCw0MzIwMDAsNjcwMDAwLDQ1MzAwMCw4OTEwMDAsNTUwMDAsMjMwMDAwLDM5MTAwMCw3NTQwMDAsMTEyMjAwMCw3NjIwMDAsMzU3MDAwLDQ3MDAwLDc5MjAwMCwzNTQwMDAsMTA4MDAwMCwxNjAwMCwxODgwMDAsMTQxMDAwLDIxMDAwMCw2MDcwMDAsOTAyMDAwLDgyNTAwMCwxOTAwMDAsMjMzMDAwLDI4MzAwMCwyMzgwMDAsNjk2MDAwLDc2ODAwMCw3NTgwMDAsMTk0MDAwLDI3OTAwMCwyMjMwMDAsMjM4MDAwLDkzNDAwMCw2MDUwMDAsMTcwMDAsMjEwMDAwLDMyMjAwMCwxMDM0MDAwLDgxMjAwMCw0NDYwMDAsNjMxMDAwXSwib3BzIjo0OTAxMDB9LHsibmFtZSI6ImRlbGV0ZSIsImNvZGUiOiJjb25zdCB7IGNsaWVudE1ldGhvZCB9ID0gZGF0YVxuZGVsZXRlIGRhdGEuY2xpZW50TWV0aG9kIiwicnVucyI6WzI3NjIwMDAsNjIyMDAwLDEwNTcwMDAsMzIzMTAwMCwzNDQ2MDAwLDIwNzMwMDAsMzM4MjAwMCwyNzA0MDAwLDM4ODEwMDAsMTIwMTAwMCwzNzk3MDAwLDI1OTAwMCwxMDI4MDAwLDI1MTgwMDAsMjEwMjAwMCwxOTczMDAwLDM0MTIwMDAsMzU4MDAwLDExNDcwMDAsMTA3NDAwMCwzMTk1MDAwLDM2NzUwMDAsNTQ3MDAwLDIwNzkwMDAsMjc0NTAwMCwyNDE1MDAwLDIxOTAwMCwzNzM3MDAwLDM2OTIwMDAsMTY0MDAwLDI0MzMwMDAsNjQzMDAwLDcxODAwMCw0Mzg2MDAwLDE3MDIwMDAsMTAyNDAwMCw1NjUwMDAsNDIxOTAwMCwxMTk3MDAwLDE4MzkwMDAsMzgyMTAwMCwxMTUyMDAwLDg1MzAwMCwxMzczMDAwLDI5NTAwMCwxNDg5MDAwLDE0MjEwMDAsMjcyNDAwMCw1MDYxMDAwLDI2NTcwMDAsMjYzNzAwMCwyOTkwMDAsMjE1NzAwMCwxNTAxMDAwLDM2OTAwMDAsMzU3OTAwMCw0MjE5MDAwLDI4NTgwMDAsNTI0MzAwMCwxNTA0MDAwLDEyMTMwMDAsMjM4NDAwMCw3NzgwMDAsMjgyNjAwMCwxNzQ5MDAwLDM2MjAwMCwyNzEzMDAwLDMzODYwMDAsMzE2NjAwMCwxNTMwMDAsNzk0MDAwLDMyMTcwMDAsMjA4MjAwMCw0MTUwMDAsMzMyMDAwMCwyMTA1MDAwLDE1NzYwMDAsMjUxMDAwLDIzMjkwMDAsOTI1MDAwLDM3MTUwMDAsNjkyMDAwLDE5MDIwMDAsMjA0NzAwMCwyNTM5MDAwLDIwMjkwMDAsMzE3OTAwMCwyMTA2MDAwLDg5NTAwMCwxNTUwMDAwLDYwNzAwMCw0MTA1MDAwLDM0ODMwMDAsMzcxNTAwMCw0OTQwMDAwLDIyODAwMCw0MDI2MDAwLDE2MTYwMDAsMzMxNDAwMCwyNDIyMDAwXSwib3BzIjoyMTY2MDgwfSx7Im5hbWUiOiJDcmVhdGUgbmV3IG9iamVjdCIsImNvZGUiOiJjb25zdCBuZXdEYXRhID0ge1xuICBvcGVyYXRpb246IGRhdGEub3BlcmF0aW9uLFxuICByb290RmllbGQ6IGRhdGEucm9vdEZpZWxkLFxuICBhcmdzOiBkYXRhLmFyZ3MsXG4gIGRhdGFQYXRoOiBkYXRhLmRhdGFQYXRoXG59IiwicnVucyI6WzcwNTAwMCwxMTAwMDAsMzI3NTAwMCwxOTgwMDAsMjE5OTAwMCw0MzYwMDAsODI4MDAwLDI5MjcwMDAsNzI0MDAwLDI1NDAwMCwyOTgzMDAwLDI2NzIwMDAsMjUzMDAwLDI4MjcwMDAsMzA0ODAwMCwyOTA3MDAwLDM0OTkwMDAsMjY1OTAwMCwzODIyMDAwLDI3NzcwMDAsMzc5NzAwMCw4MDAwMDAsNDM1MDAwLDExOTMwMDAsMTAwMDAsMTQ0MDAwMCw3NTcwMDAsMTMyMDAwMCwzMjIwMDAsMjA3MDAwLDM2ODAwMDAsMzkxMTAwMCwzMjQxMDAwLDExMDcwMDAsNDM4MDAwLDMwNDQwMDAsMTA3NjAwMCwyMTAwMDAsNDIxOTAwMCwzNzQ4MDAwLDQwNjcwMDAsNzc0MDAwLDYzMDAwLDMyMTAwMCwzMDQ4MDAwLDMxMjgwMDAsMTg3MTAwMCwzNTkxMDAwLDI0MzcwMDAsNjcxMDAwLDc5OTAwMCwxMTUzMDAwLDIxMTMwMDAsOTUwMDAsNTg3MDAwLDYyMzAwMCwxMzEzMDAwLDMxNTgwMDAsMzMyNzAwMCwxNTkwMDAsNDg4MDAwLDIxMTAwMCwxMjk0MDAwLDExNTcwMDAsNDA0MDAwLDM2MjMwMDAsMjY4NDAwMCw4NzkwMDAsMjE4NTAwMCwxNTkyMDAwLDM2ODcwMDAsMjI0ODAwMCwyMjE4MDAwLDE3NDMwMDAsNzg4MDAwLDQwODYwMDAsMjExNTAwMCwzOTE0MDAwLDM5MjgwMDAsNDM3MjAwMCwxOTkwMDAsMzc1MzAwMCwzNjQ3MDAwLDE2MjcwMDAsMTQ5OTAwMCwxODQyMDAwLDIxMjkwMDAsNDAwMCwxMjIzMDAwLDI4NjMwMDAsMzgzNDAwMCwzNjk0MDAwLDYzNjAwMCw0MjQ3MDAwLDQwMjIwMDAsMTAwMDAsMTcxNDAwMCwxNzUwMDAwLDI5MDEwMDAsMTM0NjAwMF0sIm9wcyI6MTkzOTEyMH1dLCJ1cGRhdGVkIjoiMjAyMC0wNy0xNVQxMTowMDo1Ny45MzhaIn0%3D
-        const params = {
+        const params: MiddlewareParams = {
           args: internalParams.args,
           dataPath: internalParams.dataPath,
-          operation: internalParams.operation,
-          rootField: internalParams.rootField,
           runInTransaction: internalParams.runInTransaction,
+          action: internalParams.action,
+          model: internalParams.model,
         }
         return this._requestWithMiddlewares(
           params,
@@ -646,13 +672,45 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       args,
       clientMethod,
       dataPath,
-      operation,
-      rootField,
       callsite,
       runInTransaction,
+      action,
+      model,
     }: InternalRequestParams) {
+      if (action !== 'executeRaw' && action !== 'queryRaw' && !model) {
+        throw new Error(`Model missing for action ${action}`)
+      }
+
+      if ((action === 'executeRaw' || action === 'queryRaw') && model) {
+        throw new Error(
+          `executeRaw and queryRaw can't be executed on a model basis. The model ${model} has been provided`,
+        )
+      }
+
+      let rootField: string | undefined
+      const operation = actionOperationMap[action]
+
+      if (action === 'executeRaw' || action === 'queryRaw') {
+        rootField = action
+      }
+
+      // TODO: Replace with lookup map for speedup
+      let mapping
+      if (model) {
+        mapping = this.dmmf.mappings.find((m) => m.model === model)
+        if (!mapping) {
+          throw new Error(
+            `Could not find mapping for model ${model} ${JSON.stringify(
+              arguments,
+            )}`,
+          )
+        }
+
+        rootField = mapping[action]
+      }
+
       if (operation !== 'query' && operation !== 'mutation') {
-        throw new Error(`Invalid operation ${operation}`)
+        throw new Error(`Invalid operation ${operation} for action ${action}`)
       }
       const rootType =
         operation === 'query' ? this.dmmf.queryType : this.dmmf.mutationType
@@ -661,7 +719,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       const field = rootType.fields.find((f) => f.name === rootField)
 
       if (!field) {
-        throw new Error(`Could not find rootField ${rootField}`)
+        throw new Error(
+          `Could not find rootField ${rootField} for action ${action} for model ${model} on rootType ${operation}`,
+        )
       }
 
       const { isList } = field.outputType
@@ -669,7 +729,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
       let document = makeDocument({
         dmmf: this.dmmf,
-        rootField: rootField,
+        rootField: rootField!,
         rootTypeName: operation,
         select: args,
       })
@@ -701,7 +761,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         typeName,
         dataPath,
         isList,
-        rootField,
+        rootField: rootField!,
         callsite,
         showColors: this.errorFormat === 'pretty',
         args,
@@ -719,13 +779,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           throw new Error(`Invalid mapping ${mapping.model}, can't find model`)
         }
 
-        const prismaClient = ({
-          operation,
-          actionName,
-          rootField,
-          args,
-          dataPath,
-        }) => {
+        const prismaClient = ({ operation, actionName, args, dataPath }) => {
           dataPath = dataPath ?? []
 
           const clientMethod = `${lowerCaseModel}.${actionName}`
@@ -739,9 +793,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 requestPromise = this._request({
                   args,
                   dataPath,
-                  operation,
+                  action: actionName,
+                  model: model.name,
                   clientMethod,
-                  rootField,
                   callsite,
                   runInTransaction: false,
                 })
@@ -754,9 +808,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 requestPromise = this._request({
                   args,
                   dataPath,
-                  operation,
+                  action: actionName,
+                  model: model.name,
                   clientMethod,
-                  rootField,
                   callsite,
                   runInTransaction: true,
                 })
@@ -769,9 +823,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 requestPromise = this._request({
                   args,
                   dataPath,
-                  operation,
+                  action: actionName,
+                  model: model.name,
                   clientMethod,
-                  rootField,
                   callsite,
                   runInTransaction: false,
                 })
@@ -784,9 +838,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 requestPromise = this._request({
                   args,
                   dataPath,
-                  operation,
+                  action: actionName,
+                  model: model.name,
                   clientMethod,
-                  rootField,
                   callsite,
                   runInTransaction: false,
                 })
@@ -810,7 +864,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               return clients[field.type]({
                 operation,
                 actionName,
-                rootField,
                 args: newArgs,
                 dataPath: newDataPath,
                 isList: field.isList,
@@ -843,7 +896,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 clients[mapping.model]({
                   operation,
                   actionName,
-                  rootField,
                   args,
                 })
             }
@@ -853,11 +905,10 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           {},
         )
 
-        delegate.count = (args) =>
-          clients[mapping.model]({
+        delegate.count = (args) => {
+          return clients[mapping.model]({
             operation: 'query',
-            actionName: 'count', // actionName is just cosmetics 💅🏽
-            rootField: mapping.aggregate,
+            actionName: `aggregate`,
             args: args
               ? {
                   ...args,
@@ -866,6 +917,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               : undefined,
             dataPath: ['count'],
           })
+        }
 
         delegate.aggregate = (args) => {
           /**
