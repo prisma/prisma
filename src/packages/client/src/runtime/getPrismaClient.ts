@@ -776,13 +776,21 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           throw new Error(`Invalid mapping ${mapping.model}, can't find model`)
         }
 
-        const prismaClient = ({ operation, actionName, args, dataPath }) => {
+        const prismaClient = ({
+          operation,
+          actionName,
+          args,
+          dataPath,
+          modelName,
+        }) => {
           dataPath = dataPath ?? []
 
           const clientMethod = `${lowerCaseModel}.${actionName}`
 
           let requestPromise: Promise<any>
           const callsite = this._getCallsite()
+
+          const requestModelName = modelName ?? model.name
 
           const clientImplementation = {
             then: (onfulfilled, onrejected) => {
@@ -791,7 +799,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   args,
                   dataPath,
                   action: actionName,
-                  model: model.name,
+                  model: requestModelName,
                   clientMethod,
                   callsite,
                   runInTransaction: false,
@@ -806,7 +814,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   args,
                   dataPath,
                   action: actionName,
-                  model: model.name,
+                  model: requestModelName,
                   clientMethod,
                   callsite,
                   runInTransaction: true,
@@ -821,7 +829,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   args,
                   dataPath,
                   action: actionName,
-                  model: model.name,
+                  model: requestModelName,
                   clientMethod,
                   callsite,
                   runInTransaction: false,
@@ -836,7 +844,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   args,
                   dataPath,
                   action: actionName,
-                  model: model.name,
+                  model: requestModelName,
                   clientMethod,
                   callsite,
                   runInTransaction: false,
@@ -864,6 +872,10 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 args: newArgs,
                 dataPath: newDataPath,
                 isList: field.isList,
+                /*
+                 * necessary for user.posts() calls -> the original model name needs to be preserved
+                 */
+                modelName: model.name,
               })
             }
           }
