@@ -52,7 +52,7 @@ if (process.argv.length > 2) {
   // Parse CLI arguments and look for --schema
   const args = arg(process.argv.slice(3), { '--schema': String }, false, true)
 
-  // Check --schema directory
+  // 1 -Check --schema directory
   if (args && args['--schema']) {
     const dotenvFilepath = path.join(path.dirname(args['--schema']), '.env')
 
@@ -66,13 +66,8 @@ if (process.argv.length > 2) {
     } else {
       debug('Environment variables not loaded (--schema was provided)')
     }
-  } // Check current directory
-  else if (fs.existsSync('schema.prisma') && fs.existsSync('.env')) {
-    dotenvResult = dotenv.config()
-    console.log(
-      chalk.dim('Environment variables loaded from current directory'),
-    )
-  } // Check ./prisma directory
+  }
+  // 2 - Check ./prisma directory for schema.prisma
   else if (
     fs.existsSync('prisma/schema.prisma') &&
     fs.existsSync('prisma/.env')
@@ -81,7 +76,22 @@ if (process.argv.length > 2) {
     // needed for Windows
     const relative = path.relative('.', './prisma/.env')
     console.log(chalk.dim(`Environment variables loaded from ${relative}`))
-  } // We didn't find a .env file next to the prisma.schema file.
+  }
+  // 3 - Check current directory for schema.prisma
+  else if (fs.existsSync('schema.prisma') && fs.existsSync('.env')) {
+    dotenvResult = dotenv.config()
+    console.log(
+      chalk.dim('Environment variables loaded from current directory'),
+    )
+  }
+  // 4 - Check if ./prisma/.env exist and load it (we could not find a schema.prisma)
+  else if (fs.existsSync('prisma/.env')) {
+    dotenvResult = dotenv.config({ path: 'prisma/.env' })
+    // needed for Windows
+    const relative = path.relative('.', './prisma/.env')
+    console.log(chalk.dim(`Environment variables loaded from ${relative}`))
+  }
+  // 5 - We didn't find a .env file next to the prisma.schema file.
   else {
     debug('Environment variables not loaded')
   }
