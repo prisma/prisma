@@ -5,9 +5,13 @@ const prisma = new PrismaClient({
 })
 
 async function main() {
-  const res = await prisma.user.findMany({
-    distinct: ['age'],
-  })
+  const res = await prisma.user
+    .findOne({
+      where: {
+        email: 'a0@asd.de',
+      },
+    })
+    .posts()
   console.log(res)
   prisma.disconnect()
 }

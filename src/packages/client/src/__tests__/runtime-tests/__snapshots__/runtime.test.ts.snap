@@ -38,6 +38,8 @@ Invalid \`prisma.user.findMany()\` invocation in
 
 exports[`runtime middlewares: middlewares example should succeed 1`] = `"success"`;
 
+exports[`runtime middlewares-manipulation: middlewares-manipulation example should succeed 1`] = `"success"`;
+
 exports[`runtime missing-binary: missing-binary example should not succeed 1`] = `
 "
 Invalid \`prisma.user.findMany()\` invocation in

@@ -27,6 +27,15 @@ module.exports = async () => {
 
   // Test connecting and disconnecting all the time
   await db.user.findMany()
+  const posts = await db.user
+    .findOne({
+      where: {
+        email: 'a@a.de',
+      },
+    })
+    .posts()
+
+  assert.equal(posts.length, 0)
   db.disconnect()
   assert(requests.length === 1)
 
