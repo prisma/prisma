@@ -9,9 +9,8 @@ const del = promisify(rimraf)
 
 jest.setTimeout(35000)
 
-process.setMaxListeners(100)
-
 let subDirs = getSubDirs(__dirname)
+process.setMaxListeners(subDirs.length * 2)
 const folderFilter = process.argv.length === 4 ? process.argv[3] : null
 
 if (

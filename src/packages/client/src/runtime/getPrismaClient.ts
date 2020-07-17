@@ -88,6 +88,7 @@ export interface PrismaClientOptions {
       cwd?: string
       binaryPath?: string
       endpoint?: string
+      enableEngineDebugMode?: boolean
     }
   }
 }
@@ -130,6 +131,7 @@ export interface InternalRequestParams extends MiddlewareParams {
    */
   clientMethod: string
   callsite?: string
+  headers?: Record<string, string>
 }
 
 export type HookPoint = 'all' | 'engine'
@@ -315,7 +317,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
       this.engineConfig = {
         cwd,
-        debug: useDebug,
+        enableDebugLogs: useDebug,
+        enableEngineDebugMode: engineConfig.enableEngineDebugMode,
         datamodelPath: path.join(config.dirname, 'schema.prisma'),
         prismaPath: engineConfig.binaryPath ?? undefined,
         engineEndpoint: engineConfig.endpoint,
@@ -601,6 +604,38 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       })
     }
 
+    async __internal_triggerPanic(fatal: boolean) {
+      if (!this.engineConfig.enableEngineDebugMode) {
+        throw new Error(`In order to use .__internal_triggerPanic(), please enable the debug mode like so:
+new PrismaClient({
+  __internal: {
+    engine: {
+      enableEngineDebugMode: true
+    }
+  }
+})`)
+      }
+
+      const query = 'SELECT 1'
+
+      const headers: Record<string, string> = fatal
+        ? { 'X-DEBUG-FATAL': '1' }
+        : { 'X-DEBUG-NON-FATAL': '1' }
+
+      return this._request({
+        action: 'queryRaw',
+        args: {
+          query,
+          parameters: undefined,
+        },
+        clientMethod: 'queryRaw',
+        dataPath: [],
+        runInTransaction: false,
+        headers,
+        callsite: this._getCallsite(),
+      })
+    }
+
     async transaction(promises: Array<any>): Promise<any> {
       if (config.generator?.experimentalFeatures?.includes('transactionApi')) {
         for (const p of promises) {
@@ -636,6 +671,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           this._middlewares.slice(),
           internalParams.clientMethod,
           internalParams.callsite,
+          internalParams.headers,
         )
       }
 
@@ -647,6 +683,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       middlewares: Middleware[],
       clientMethod: string,
       callsite?: string,
+      headers?: Record<string, string>,
     ) {
       const middleware = middlewares.shift()
       if (middleware) {
@@ -664,6 +701,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       // as it would be much slower
       ;(params as InternalRequestParams).clientMethod = clientMethod
       ;(params as InternalRequestParams).callsite = callsite
+      ;(params as InternalRequestParams).headers = headers
 
       return this._executeRequest(params as InternalRequestParams)
     }
@@ -676,6 +714,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       runInTransaction,
       action,
       model,
+      headers,
     }: InternalRequestParams) {
       if (action !== 'executeRaw' && action !== 'queryRaw' && !model) {
         throw new Error(`Model missing for action ${action}`)
@@ -699,11 +738,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       if (model) {
         mapping = this.dmmf.mappingsMap[model]
         if (!mapping) {
-          throw new Error(
-            `Could not find mapping for model ${model} ${JSON.stringify(
-              arguments,
-            )}`,
-          )
+          throw new Error(`Could not find mapping for model ${model}`)
         }
 
         rootField = mapping[action]
@@ -764,6 +799,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         args,
         engineHook: this._engineMiddlewares[0],
         runInTransaction,
+        headers,
       })
     }
 
@@ -971,7 +1007,11 @@ export class PrismaClientFetcher {
   prisma: any
   debug: boolean
   hooks: any
-  dataloader: Dataloader<{ document: Document; runInTransaction?: boolean }>
+  dataloader: Dataloader<{
+    document: Document
+    runInTransaction?: boolean
+    headers?: Record<string, string>
+  }>
 
   constructor(prisma, enableDebug = false, hooks?: any) {
     this.prisma = prisma
@@ -987,7 +1027,7 @@ export class PrismaClientFetcher {
       singleLoader: async (request) => {
         const query = String(request.document)
         await this.prisma.connect()
-        return this.prisma.engine.request(query)
+        return this.prisma.engine.request(query, request.headers)
       },
       batchBy: (request) => {
         if (request.runInTransaction) {
@@ -1026,6 +1066,7 @@ export class PrismaClientFetcher {
     showColors,
     engineHook,
     args,
+    headers,
   }: {
     document: Document
     dataPath: string[]
@@ -1038,6 +1079,7 @@ export class PrismaClientFetcher {
     showColors?: boolean
     engineHook?: EngineMiddleware
     args: any
+    headers?: Record<string, string>
   }) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -1071,6 +1113,7 @@ export class PrismaClientFetcher {
         const result = await this.dataloader.request({
           document,
           runInTransaction,
+          headers,
         })
         data = result.data
         elapsed = result.elapsed
@@ -1098,6 +1141,7 @@ export class PrismaClientFetcher {
       }
 
       message = this.sanitizeMessage(message)
+      // TODO: Do request with callsite instead, so we don't need to rethrow
       if (e.code) {
         throw new PrismaClientKnownRequestError(message, e.code, e.meta)
       } else if (e.isPanic) {
