@@ -88,7 +88,9 @@ export function getErrorMessageWithLink({
   description,
 }: ErrorWithLinkInput) {
   const logs = getLogs()
-  const moreInfo = description ? `# Description\n${description}` : ''
+  const moreInfo = description
+    ? `# Description\n\`\`\`\n${description}\n\`\`\``
+    : ''
   const body = stripAnsi(
     `Hi Prisma Team! My Prisma Client just crashed. This is the report:
 ## Versions
@@ -99,11 +101,12 @@ export function getErrorMessageWithLink({
 | OS       | ${platform.padEnd(19)}|
 | Prisma   | ${version.padEnd(19)}|
 
+${moreInfo}
+
 ## Logs
 \`\`\`
 ${logs}
-\`\`\`
-${moreInfo}`,
+\`\`\``,
   )
 
   const url = getGithubIssueUrl({ title, body })
