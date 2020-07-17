@@ -10,7 +10,7 @@ export class Undici {
       pipelining: 10,
     })
   }
-  request(body) {
+  request(body: any, customHeaders?: Record<string, string>) {
     return new Promise((resolve, reject) => {
       this.pool.request(
         {
@@ -18,6 +18,7 @@ export class Undici {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...customHeaders,
           },
           body,
         },

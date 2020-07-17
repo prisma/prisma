@@ -27,6 +27,8 @@ exports[`runtime distinct: distinct example should succeed 1`] = `"success"`;
 
 exports[`runtime enums: enums example should succeed 1`] = `"success"`;
 
+exports[`runtime error-link: error-link example should succeed 1`] = `"success"`;
+
 exports[`runtime incorrect-column-type: incorrect-column-type example should not succeed 1`] = `
 "
 Invalid \`prisma.user.findMany()\` invocation in
