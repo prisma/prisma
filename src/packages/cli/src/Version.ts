@@ -1,4 +1,12 @@
-import { Command, getVersion, resolveBinary, arg } from '@prisma/sdk'
+import {
+  Command,
+  getVersion,
+  resolveBinary,
+  arg,
+  getSchemaPath,
+  getSchema,
+  getConfig,
+} from '@prisma/sdk'
 import { getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
@@ -54,7 +62,30 @@ export class Version implements Command {
       ['Format Binary', this.printBinaryInfo(fmtBinary)],
     ]
 
+    const featureFlags = await this.getFeatureFlags()
+    if (featureFlags && featureFlags.length > 0) {
+      rows.push(['Preview Features', featureFlags.join(', ')])
+    }
+
     return this.printTable(rows, args['--json'])
+  }
+
+  private async getFeatureFlags(): Promise<string[]> {
+    try {
+      const datamodel = await getSchema()
+      const config = await getConfig({
+        datamodel,
+      })
+      const generator = config.generators.find(
+        (g) => g.experimentalFeatures.length > 0,
+      )
+      if (generator) {
+        return generator.experimentalFeatures
+      }
+    } catch (e) {
+      // console.error(e)
+    }
+    return []
   }
 
   private printBinaryInfo({
