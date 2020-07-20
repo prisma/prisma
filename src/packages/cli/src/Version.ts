@@ -77,10 +77,10 @@ export class Version implements Command {
         datamodel,
       })
       const generator = config.generators.find(
-        (g) => g.experimentalFeatures.length > 0,
+        (g) => g.previewFeatures.length > 0,
       )
       if (generator) {
-        return generator.experimentalFeatures
+        return generator.previewFeatures
       }
     } catch (e) {
       // console.error(e)

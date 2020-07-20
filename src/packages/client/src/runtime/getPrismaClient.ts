@@ -39,7 +39,7 @@ import stripAnsi from 'strip-ansi'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { ConnectorType } from './utils/printDatasources'
 import { omit } from './utils/omit'
-import { mapExperimentalFeatures } from '@prisma/sdk/dist/utils/mapExperimentalFeatures'
+import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
@@ -310,9 +310,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         cwd = config.dirname
       }
 
-      const experimentalFeatures = config.generator?.experimentalFeatures ?? []
-      if (!experimentalFeatures.includes('aggregations')) {
-        experimentalFeatures.push('aggregations')
+      const previewFeatures = config.generator?.previewFeatures ?? []
+      if (!previewFeatures.includes('aggregations')) {
+        previewFeatures.push('aggregations')
       }
 
       this.engineConfig = {
@@ -338,7 +338,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         env: envFile,
         flags: [],
         clientVersion: config.clientVersion,
-        enableExperimental: mapExperimentalFeatures(experimentalFeatures),
+        enableExperimental: mapPreviewFeatures(previewFeatures),
       }
 
       const sanitizedEngineConfig = omit(this.engineConfig, [
@@ -637,7 +637,7 @@ new PrismaClient({
     }
 
     async transaction(promises: Array<any>): Promise<any> {
-      if (config.generator?.experimentalFeatures?.includes('transactionApi')) {
+      if (config.generator?.previewFeatures?.includes('transactionApi')) {
         for (const p of promises) {
           if (
             !p.requestTransaction ||
@@ -651,7 +651,7 @@ new PrismaClient({
         return Promise.all(promises.map((p) => p.requestTransaction()))
       } else {
         throw new Error(
-          `In order to use the .transaction() api, please enable 'experimentalFeatures = "transactionApi" in your schema.`,
+          `In order to use the .transaction() api, please enable 'previewFeatures = "transactionApi" in your schema.`,
         )
       }
     }

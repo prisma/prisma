@@ -26,4 +26,4 @@ prisma
 test
 /prisma-client
 write-test
-prisma2*.tgz
+prisma-cli*.tgz

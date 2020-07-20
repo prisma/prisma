@@ -3,7 +3,7 @@ const featureFlagMap = {
   aggregateApi: 'aggregations',
 }
 
-export function mapExperimentalFeatures(features?: string[]): string[] {
+export function mapPreviewFeatures(features?: string[]): string[] {
   if (Array.isArray(features) && features.length > 0) {
     return features.map((f) => featureFlagMap[f] ?? f)
   }

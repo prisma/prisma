@@ -60,8 +60,8 @@ export {
   getSchemaDirSync,
 } from './cli/getSchema'
 
-export { extractExperimentalFeatures } from './utils/extractExperimentalFeatures'
-export { mapExperimentalFeatures } from './utils/mapExperimentalFeatures'
+export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
+export { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 export {
   trimBlocksFromSchema,
   Position,

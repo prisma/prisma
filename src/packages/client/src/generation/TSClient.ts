@@ -616,7 +616,7 @@ ${indent(this.jsDoc, tab)}
   */
   queryRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<T>;
 ${
-  this.generator?.experimentalFeatures?.includes('transactionApi')
+  this.generator?.previewFeatures?.includes('transactionApi')
     ? `
   /**
    * Execute queries in a transaction
@@ -927,7 +927,7 @@ ${indent(
 }
 
 ${
-  this.generator?.experimentalFeatures?.includes('aggregateApi')
+  this.generator?.previewFeatures?.includes('aggregateApi')
     ? this.getAggregationTypes()
     : ''
 }
@@ -1161,7 +1161,7 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
   )}, 'select' | 'include'>): Promise<number>
 
 ${
-  this.generator?.experimentalFeatures?.includes('aggregateApi')
+  this.generator?.previewFeatures?.includes('aggregateApi')
     ? `
   /**
    * Aggregate

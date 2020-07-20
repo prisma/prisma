@@ -2,9 +2,8 @@ import { getPlatform } from '@prisma/get-platform'
 import {
   getConfig,
   getDMMF,
-  getVersion,
-  extractExperimentalFeatures,
-  mapExperimentalFeatures,
+  extractPreviewFeatures,
+  mapPreviewFeatures,
 } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
@@ -41,16 +40,14 @@ export async function generateInFolder({
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-  const enableExperimental = mapExperimentalFeatures(
-    extractExperimentalFeatures(config),
-  )
-  if (!enableExperimental.includes('aggregations')) {
-    enableExperimental.push('aggregations')
+  const enablePreview = mapPreviewFeatures(extractPreviewFeatures(config))
+  if (!enablePreview.includes('aggregations')) {
+    enablePreview.push('aggregations')
   }
 
   const dmmf = await getDMMF({
     datamodel,
-    enableExperimental,
+    enableExperimental: enablePreview, // it's still called enableExperimental when calling the query engine
   })
 
   const outputDir = transpile

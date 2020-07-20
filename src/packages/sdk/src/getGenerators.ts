@@ -26,8 +26,8 @@ import {
 } from './predefinedGeneratorResolvers'
 import { flatMap } from './utils/flatMap'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
-import { extractExperimentalFeatures } from './utils/extractExperimentalFeatures'
-import { mapExperimentalFeatures } from './utils/mapExperimentalFeatures'
+import { extractPreviewFeatures } from './utils/extractPreviewFeatures'
+import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 
 const defaultEngineVersion = eval(`require('../package.json').prisma.version`)
 
@@ -104,8 +104,8 @@ export async function getGenerators({
   })
 
   // TODO: This needs a better abstraction, but we don't have any better right now
-  const experimentalFeatures = mapExperimentalFeatures(
-    extractExperimentalFeatures(config),
+  const experimentalFeatures = mapPreviewFeatures(
+    extractPreviewFeatures(config),
   )
 
   if (!experimentalFeatures.includes('aggregations')) {
