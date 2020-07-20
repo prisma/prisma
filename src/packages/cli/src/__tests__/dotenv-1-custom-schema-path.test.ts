@@ -5,9 +5,9 @@ import stripAnsi from 'strip-ansi'
 it('should NOT read .env file in root folder, only prisma/.env', async () => {
   process.argv.push('--version')
 
-  const oldConsoleLog = console.log
+  const oldConsoleLog = console.error
   const logs: string[] = []
-  console.log = (...args) => {
+  console.error = (...args) => {
     logs.push(...args)
   }
 
@@ -15,7 +15,7 @@ it('should NOT read .env file in root folder, only prisma/.env', async () => {
   process.chdir(path.join(__dirname, './fixtures/dotenv-1-custom-schema-path'))
   process.argv.push('--schema=./custom-path/schema.prisma')
   await import('../bin')
-  console.log = oldConsoleLog
+  console.error = oldConsoleLog
 
   assert.equal(
     stripAnsi(logs.join()),
