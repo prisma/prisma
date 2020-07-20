@@ -5,9 +5,9 @@ import stripAnsi from 'strip-ansi'
 it('should read .env file in prisma folder', async () => {
   process.argv.push('--version')
 
-  const oldConsoleLog = console.log
+  const oldConsoleLog = console.error
   const logs: string[] = []
-  console.log = (...args) => {
+  console.error = (...args) => {
     logs.push(...args)
   }
 
@@ -15,7 +15,7 @@ it('should read .env file in prisma folder', async () => {
   process.chdir(path.join(__dirname, './fixtures/dotenv-2-prisma-folder'))
   await import('../bin')
 
-  console.log = oldConsoleLog
+  console.error = oldConsoleLog
   assert.equal(
     stripAnsi(logs.join()),
     'Environment variables loaded from prisma/.env',
