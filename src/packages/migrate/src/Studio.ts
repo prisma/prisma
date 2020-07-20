@@ -12,6 +12,7 @@ export interface StudioOptions {
   schemaPath?: string
   browser?: string
   port?: number
+  staticAssetDir?: string
 }
 
 const debug = Debug('Studio')
@@ -22,11 +23,18 @@ export class Studio {
   private browser?: string
   private instance?: any
   private port?: number
+  private staticAssetDir?: string
 
-  constructor({ schemaPath, browser, port }: StudioOptions = {}) {
+  constructor({
+    schemaPath,
+    browser,
+    port,
+    staticAssetDir,
+  }: StudioOptions = {}) {
     this.schemaPath = this.getSchemaPath(schemaPath)
     this.browser = browser
     this.port = port
+    this.staticAssetDir = staticAssetDir || path.resolve(__dirname, 'public') // Overriding this directory since after NCC compilation, this won't resolve automatically
   }
 
   public async start(providerAliases: ProviderAliases): Promise<string> {
@@ -86,7 +94,7 @@ export class Studio {
             providerAliases,
           },
         },
-        staticAssetDir: path.resolve(__dirname, 'public'), // Overriding this directory since after NCC compilation, this won't resolve automatically
+        staticAssetDir: this.staticAssetDir,
         versions: {
           prisma2: packageJson.version,
           queryEngine: packageJson.prisma.version,
@@ -127,7 +135,7 @@ export class Studio {
     return this.start(providerAliases)
   }
 
-  private getSchemaPath(schemaPathFromOptions?): string {
+  private getSchemaPath(schemaPathFromOptions?: string): string {
     const schemaPath = getSchemaPathSync(schemaPathFromOptions)
     if (!schemaPath) {
       throw new Error(
