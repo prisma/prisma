@@ -86,6 +86,12 @@ export async function getDMMF({
       maxBuffer: MAX_BUFFER,
     }
 
+    if (enableExperimental) {
+      enableExperimental = enableExperimental.filter(
+        (e) => !['middlewaresApi'].includes(e),
+      )
+    }
+
     const experimentalFlags =
       enableExperimental &&
       Array.isArray(enableExperimental) &&

@@ -39,7 +39,7 @@ import stripAnsi from 'strip-ansi'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { ConnectorType } from './utils/printDatasources'
 import { omit } from './utils/omit'
-import { mapExperimentalFeatures } from '@prisma/sdk/dist/utils/mapExperimentalFeatures'
+import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
@@ -338,7 +338,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         env: envFile,
         flags: [],
         clientVersion: config.clientVersion,
-        enableExperimental: mapExperimentalFeatures(previewFeatures),
+        enableExperimental: mapPreviewFeatures(previewFeatures),
       }
 
       const sanitizedEngineConfig = omit(this.engineConfig, [
