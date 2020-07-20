@@ -310,9 +310,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         cwd = config.dirname
       }
 
-      const experimentalFeatures = config.generator?.experimentalFeatures ?? []
-      if (!experimentalFeatures.includes('aggregations')) {
-        experimentalFeatures.push('aggregations')
+      const previewFeatures = config.generator?.previewFeatures ?? []
+      if (!previewFeatures.includes('aggregations')) {
+        previewFeatures.push('aggregations')
       }
 
       this.engineConfig = {
@@ -338,7 +338,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         env: envFile,
         flags: [],
         clientVersion: config.clientVersion,
-        enableExperimental: mapExperimentalFeatures(experimentalFeatures),
+        enableExperimental: mapExperimentalFeatures(previewFeatures),
       }
 
       const sanitizedEngineConfig = omit(this.engineConfig, [
@@ -637,7 +637,7 @@ new PrismaClient({
     }
 
     async transaction(promises: Array<any>): Promise<any> {
-      if (config.generator?.experimentalFeatures?.includes('transactionApi')) {
+      if (config.generator?.previewFeatures?.includes('transactionApi')) {
         for (const p of promises) {
           if (
             !p.requestTransaction ||
@@ -651,7 +651,7 @@ new PrismaClient({
         return Promise.all(promises.map((p) => p.requestTransaction()))
       } else {
         throw new Error(
-          `In order to use the .transaction() api, please enable 'experimentalFeatures = "transactionApi" in your schema.`,
+          `In order to use the .transaction() api, please enable 'previewFeatures = "transactionApi" in your schema.`,
         )
       }
     }
