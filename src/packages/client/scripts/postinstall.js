@@ -20,6 +20,7 @@ async function main() {
   // Only execute if !localpath
   const installedGlobally = localPath ? undefined : await isInstalledGlobally()
 
+  process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
   try {
     if (localPath) {
       await run('node', [localPath, 'generate'])

@@ -96,6 +96,8 @@ export class Generate implements Command {
       '--schema': String,
     })
 
+    const isPostinstall = process.env.PRISMA_GENERATE_IN_POSTINSTALL
+
     if (isError(args)) {
       return this.help(args.message)
     }
@@ -108,10 +110,19 @@ export class Generate implements Command {
 
     const schemaPath = await getSchemaPath(args['--schema'])
     if (!schemaPath) {
+      if (isPostinstall) {
+        console.error(`${chalk.yellow(
+          'warning',
+        )} The postinstall script automatically ran \`prisma generate\` and did not find your \`prisma/schema.prisma\`.
+If you have a Prisma Schema file in a custom path, you will need to run
+\`prisma generate --schema=./path/to/your/schema.prisma\` to generate Prisma Client.
+If you do not have a Prisma Schema file yet, you can ignore this message.`)
+        return ''
+      }
       throw new Error(
-        `Either provide ${chalk.greenBright(
-          '--schema',
-        )} or make sure that you are in a folder with a ${chalk.greenBright(
+        `Either provide ${chalk.greenBright('--schema')} ${chalk.bold(
+          'or',
+        )} make sure that you are in a folder with a ${chalk.greenBright(
           'schema.prisma',
         )} file.`,
       )
@@ -143,6 +154,14 @@ export class Generate implements Command {
         }
       }
     } catch (errGetGenerators) {
+      if (isPostinstall) {
+        console.error(`${chalk.blueBright(
+          'info',
+        )} The postinstall script automatically ran \`prisma generate\`, which failed.
+The postinstall script still succeeds but won't generate the Prisma Client.
+Please run \`prisma generate\` to see the errors.`)
+        return ''
+      }
       if (watchMode) {
         this.logText += `${errGetGenerators.message}\n\n`
       } else {
@@ -173,6 +192,14 @@ Explore the full API: ${link('http://pris.ly/d/client')}`
         (isJSClient && !this.hasGeneratorErrored ? hint : '')
 
       if (this.hasGeneratorErrored) {
+        if (isPostinstall) {
+          console.error(`${chalk.blueBright(
+            'info',
+          )} The postinstall script automatically ran \`prisma generate\`, which failed.
+The postinstall script still succeeds but won't generate the Prisma Client.
+Please run \`prisma generate\` to see the errors.`)
+          return ''
+        }
         throw new Error(message)
       } else {
         return message
