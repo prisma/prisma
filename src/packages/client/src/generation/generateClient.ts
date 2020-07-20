@@ -164,7 +164,10 @@ export async function generateClient({
     engineVersion,
   })
 
-  const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
+  const denylistsErrors = validateDmmfAgainstDenylists(
+    prismaClientDmmf,
+    generator?.previewFeatures,
+  )
 
   if (denylistsErrors) {
     let message = `${chalk.redBright.bold(
@@ -451,6 +454,7 @@ async function fileSize(name: string): Promise<number | null> {
 
 function validateDmmfAgainstDenylists(
   prismaClientDmmf: PrismaClientDMMF.Document,
+  previewFeatures: string[] = [],
 ): Error[] | null {
   const errorArray = [] as Error[]
 
@@ -564,11 +568,13 @@ function validateDmmfAgainstDenylists(
       'while',
       'with',
       'yield',
-      'Transaction',
-      'transaction',
     ],
     fields: ['AND', 'OR', 'NOT'],
     dynamic: [] as string[],
+  }
+  if (previewFeatures.includes('tranactionApi')) {
+    denylists.models.push('transaction')
+    denylists.models.push('Transaction')
   }
 
   for (const { name } of prismaClientDmmf.datamodel.models) {
