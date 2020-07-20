@@ -583,10 +583,16 @@ ${indent(this.jsDoc, tab)}
    */
   disconnect(): Promise<any>;
 
+  ${
+    this.generator?.previewFeatures?.includes('middlewaresApi')
+      ? `
   /**
    * Add a middleware
    */
   use(cb: Middleware): void
+  `
+      : ''
+  }
 
   /**
    * Executes a raw query and returns the number of affected rows
