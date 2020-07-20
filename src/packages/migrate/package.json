@@ -88,7 +88,7 @@
     "precommit": "lint-staged && FORCE_COLOR=0 jest",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
-    "test": "FORCE_COLOR=0 jest studio",
+    "test": "FORCE_COLOR=0 jest",
     "build": "tsc -d && cp src/GeneratorWorker.js dist/GeneratorWorker.js",
     "ncc": "ncc build dist/index.js -o build",
     "ncc:req": "ncc build fixtures/req.js -o build",

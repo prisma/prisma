@@ -135,6 +135,14 @@ export class Studio {
     return this.start(providerAliases)
   }
 
+  public async stop(): Promise<void> {
+    if (!this.instance) {
+      return
+    }
+
+    await this.instance.stop('Stopping')
+  }
+
   private getSchemaPath(schemaPathFromOptions?: string): string {
     const schemaPath = getSchemaPathSync(schemaPathFromOptions)
     if (!schemaPath) {

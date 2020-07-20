@@ -38,16 +38,19 @@ describe('Studio', () => {
     // This is because the test only sees if Studio loads, and not that data is shown correctly (for now)
   })
 
-  beforeEach(() => {
+  beforeEach(async () => {
     studioInstance = new Studio({
       schemaPath: path.resolve(`${testRootDir}/schema.prisma`),
-      staticAssetDir: path.resolve('../../build/public'),
+      staticAssetDir: path.resolve(__dirname, '../../../cli/build/public'),
       port: 5678,
       browser: 'none',
     })
+
+    await studioInstance.start()
   })
 
-  afterEach(() => {
+  afterEach(async () => {
+    await studioInstance.stop()
     studioInstance = null
   })
 
@@ -56,9 +59,7 @@ describe('Studio', () => {
   })
 
   test('launches', async (done) => {
-    await studioInstance.start()
-
-    http.get('http://localhost:5678', (res) => {
+    http.get('http://localhost:5678', async (res) => {
       assert.ok(res.statusCode === 200, 'Studio did not launch correctly')
       done()
     })
