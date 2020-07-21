@@ -62,12 +62,9 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
     url.pathname = ''
   }
 
-  if (
-    credentials.type === 'sqlite' &&
-    credentials.uri?.startsWith('file:')
-  ) {
-    // if `file:../parent-dev.db` return as it is (do not convert to squlite://)
-    return credentials.uri
+  if (credentials.type === 'sqlite') {
+    // if `file:../parent-dev.db` return as it is
+    return credentials.uri!
   }
   // use a custom toString method, as we don't want escaping of query params
   return url.toString((q) =>
@@ -99,6 +96,9 @@ export function uriToCredentials(
   if (type === 'sqlite' && uri.pathname) {
     if (uri.pathname.startsWith('file:')) {
       database = uri.pathname.slice(5)
+    }
+    if (uri.pathname.startsWith('sqlite:')) {
+      database = uri.pathname.slice(7)
     } else {
       database = path.basename(uri.pathname)
     }
