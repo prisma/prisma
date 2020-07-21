@@ -124,7 +124,6 @@ import { Generate } from './Generate'
 import { ProviderAliases } from '@prisma/sdk'
 import { Validate } from './Validate'
 import * as checkpoint from 'checkpoint-client'
-import ci from '@prisma/ci-info'
 import { Format } from './Format'
 import { Doctor } from './Doctor'
 
@@ -202,7 +201,6 @@ async function main(): Promise<number> {
     cli_path_hash: cliPathHash,
     project_hash: projectPathHash,
     version: packageJson.version,
-    disable: ci.isCI,
   })
   // if the result is cached and we're outdated, show this prompt
   const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE

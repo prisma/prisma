@@ -60,7 +60,6 @@
   },
   "devDependencies": {
     "@apexearth/copy": "1.4.5",
-    "@prisma/ci-info": "2.1.1",
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
@@ -80,7 +79,7 @@
     "@typescript-eslint/eslint-plugin": "3.6.1",
     "@typescript-eslint/parser": "3.6.1",
     "@zeit/ncc": "0.22.3",
-    "checkpoint-client": "1.1.2",
+    "checkpoint-client": "1.1.3",
     "dotenv": "8.2.0",
     "eslint": "7.4.0",
     "eslint-config-prettier": "6.11.0",
