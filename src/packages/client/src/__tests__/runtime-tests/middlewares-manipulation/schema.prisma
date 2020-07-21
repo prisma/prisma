@@ -6,7 +6,7 @@ datasource db {
 
 generator client {
   provider             = "prisma-client-js"
-  experimentalFeatures = ["aggregations", "middlewaresApi"]
+  experimentalFeatures = ["aggregations", "middlewares"]
 }
 
 // / User model comment

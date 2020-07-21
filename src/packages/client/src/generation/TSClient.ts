@@ -584,7 +584,7 @@ ${indent(this.jsDoc, tab)}
   disconnect(): Promise<any>;
 
   ${
-    this.generator?.previewFeatures?.includes('middlewaresApi')
+    this.generator?.previewFeatures?.includes('middlewares')
       ? `
   /**
    * Add a middleware
