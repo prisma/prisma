@@ -1,0 +1,16 @@
+# Number of days of inactivity before an issue becomes stale
+daysUntilStale: 90
+# Never close the issues
+daysUntilClose: false
+# Issues with these labels will never be considered stale
+# Only exempting feature requests right now as they are picked by product
+exemptLabels:
+  - kind/feature
+# Label to use when marking an issue as stale
+staleLabel: status/needs-action
+# Comment to post when marking an issue as stale. Set to `false` to disable
+markComment: false
+# Comment to post when closing a stale issue. Set to `false` to disable
+closeComment: false
+# Limit to only `issues`
+only: issues
