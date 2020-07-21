@@ -43,7 +43,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     await execa.command('git rev-parse HEAD', {
       stdio: 'inherit',
     })
-  } else {
+  } else if (process.env.UPDATE_STUDIO) {
     await execa.command(`git stash`, {
       stdio: 'inherit',
     })
