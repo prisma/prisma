@@ -52,16 +52,16 @@ if (process.argv.length > 2) {
   // Parse CLI arguments and look for --schema
   const args = arg(process.argv.slice(3), { '--schema': String }, false, true)
 
+  let message
+
   // 1 -Check --schema directory
   if (args && args['--schema']) {
     const dotenvFilepath = path.join(path.dirname(args['--schema']), '.env')
 
     if (fs.existsSync(args['--schema']) && fs.existsSync(dotenvFilepath)) {
       dotenvResult = dotenv.config({ path: dotenvFilepath })
-      console.log(
-        chalk.dim(
-          'Environment variables loaded from provided --schema directory',
-        ),
+      message = chalk.dim(
+        'Environment variables loaded from provided --schema directory',
       )
     } else {
       debug('Environment variables not loaded (--schema was provided)')
@@ -75,21 +75,19 @@ if (process.argv.length > 2) {
     dotenvResult = dotenv.config({ path: 'prisma/.env' })
     // needed for Windows
     const relative = path.relative('.', './prisma/.env')
-    console.log(chalk.dim(`Environment variables loaded from ${relative}`))
+    message = chalk.dim(`Environment variables loaded from ${relative}`)
   }
   // 3 - Check current directory for schema.prisma
   else if (fs.existsSync('schema.prisma') && fs.existsSync('.env')) {
     dotenvResult = dotenv.config()
-    console.log(
-      chalk.dim('Environment variables loaded from current directory'),
-    )
+    message = chalk.dim('Environment variables loaded from current directory')
   }
   // 4 - Check if ./prisma/.env exist and load it (we could not find a schema.prisma)
   else if (fs.existsSync('prisma/.env')) {
     dotenvResult = dotenv.config({ path: 'prisma/.env' })
     // needed for Windows
     const relative = path.relative('.', './prisma/.env')
-    console.log(chalk.dim(`Environment variables loaded from ${relative}`))
+    message = chalk.dim(`Environment variables loaded from ${relative}`)
   }
   // 5 - We didn't find a .env file next to the prisma.schema file.
   else {
@@ -97,7 +95,11 @@ if (process.argv.length > 2) {
   }
   // Print the error if any (if internal dotenv readFileSync throws)
   if (dotenvResult && dotenvResult.error) {
-    console.error(chalk.redBright.bold('Error: ') + dotenvResult.error)
+    message = chalk.redBright.bold('Error: ') + dotenvResult.error
+  }
+
+  if (message && !process.env.PRISMA_GENERATE_IN_POSTINSTALL) {
+    console.error(message)
   }
 }
 

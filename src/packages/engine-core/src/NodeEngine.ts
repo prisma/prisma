@@ -160,6 +160,9 @@ export class NodeEngine {
     this.clientVersion = clientVersion
     this.flags = flags ?? []
     this.enableExperimental = enableExperimental ?? []
+    this.enableExperimental = this.enableExperimental.filter(
+      (e) => e !== 'middlewares',
+    )
     this.engineEndpoint = engineEndpoint
 
     if (engineEndpoint) {

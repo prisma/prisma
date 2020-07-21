@@ -393,18 +393,24 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     use(namespace: 'all', cb: Middleware)
     use(namespace: 'engine', cb: EngineMiddleware)
     use(namespace: HookPoint | Middleware, cb?: Middleware | EngineMiddleware) {
-      if (typeof namespace === 'function') {
-        this._middlewares.push(namespace)
-      } else if (typeof namespace === 'string') {
-        if (namespace === 'all') {
-          this._middlewares.push(cb! as Middleware)
-        } else if (namespace === 'engine') {
-          this._engineMiddlewares.push(cb! as EngineMiddleware)
+      if (config.generator?.previewFeatures?.includes('middlewares')) {
+        if (typeof namespace === 'function') {
+          this._middlewares.push(namespace)
+        } else if (typeof namespace === 'string') {
+          if (namespace === 'all') {
+            this._middlewares.push(cb! as Middleware)
+          } else if (namespace === 'engine') {
+            this._engineMiddlewares.push(cb! as EngineMiddleware)
+          } else {
+            throw new Error(`Unknown middleware hook ${namespace}`)
+          }
         } else {
-          throw new Error(`Unknown middleware hook ${namespace}`)
+          throw new Error(`Invalid middleware ${namespace}`)
         }
       } else {
-        throw new Error(`Invalid middleware ${namespace}`)
+        throw new Error(
+          `In order to use the middlewares api, please enable set previewFeatures = ["middlewares"]`,
+        )
       }
     }
     on(eventType: any, callback: (event: any) => void) {

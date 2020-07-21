@@ -65,9 +65,9 @@ export class Doctor implements Command {
 
     if (!schemaPath) {
       throw new Error(
-        `Either provide ${chalk.greenBright(
-          '--schema',
-        )} or make sure that you are in a folder with a ${chalk.greenBright(
+        `Either provide ${chalk.greenBright('--schema')} ${chalk.bold(
+          'or',
+        )} make sure that you are in a folder with a ${chalk.greenBright(
           'schema.prisma',
         )} file.`,
       )

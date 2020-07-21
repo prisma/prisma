@@ -33,7 +33,6 @@ describe('Studio', () => {
     )
     // For the time being, it is okay that the SQLite file used in this schema doesn't exist
     // This is because the test only sees if Studio loads, and not that data is shown correctly (for now)
-
     studioInstance = new Studio({
       schemaPath: path.resolve(`${testRootDir}/schema.prisma`),
       staticAssetDir: path.resolve(__dirname, '../../../cli/build/public'),
