@@ -161,7 +161,7 @@ export class NodeEngine {
     this.flags = flags ?? []
     this.enableExperimental = enableExperimental ?? []
     this.enableExperimental = this.enableExperimental.filter(
-      (e) => e !== 'middlewaresApi',
+      (e) => e !== 'middlewares',
     )
     this.engineEndpoint = engineEndpoint
 

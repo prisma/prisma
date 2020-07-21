@@ -88,7 +88,7 @@ export async function getDMMF({
 
     if (enableExperimental) {
       enableExperimental = enableExperimental.filter(
-        (e) => !['middlewaresApi'].includes(e),
+        (e) => !['middlewares'].includes(e),
       )
     }
 
