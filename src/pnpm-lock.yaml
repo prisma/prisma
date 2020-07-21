@@ -684,6 +684,7 @@ importers:
       pkg-up: 3.1.0
       prettier: 2.0.5
       react: 16.11.0
+      tempy: 0.5.0
       ts-jest: 26.1.2_jest@26.1.0+typescript@3.9.6
       typescript: 3.9.6
     specifiers:
@@ -749,6 +750,7 @@ importers:
       strip-ansi: ^6.0.0
       strip-indent: ^3.0.0
       supports-hyperlinks: ^2.1.0
+      tempy: 0.5.0
       ts-jest: 26.1.2
       typescript: 3.9.6
   packages/sdk:
