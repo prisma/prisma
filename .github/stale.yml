@@ -2,10 +2,16 @@
 daysUntilStale: 90
 # Never close the issues
 daysUntilClose: false
-# Issues with these labels will never be considered stale
-# Only exempting feature requests right now as they are picked by product
+
+# exempt every other kind of issues expect kind/bug
 exemptLabels:
+  - kind/discussion
+  - kind/docs
   - kind/feature
+  - kind/improvement
+  - kind/question
+  - kind/regression
+
 # Label to use when marking an issue as stale
 staleLabel: status/needs-action
 # Comment to post when marking an issue as stale. Set to `false` to disable
