@@ -36,7 +36,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     // TODO: disable the dry run here
 
     await run(`.`, `git stash`)
-    await run(`.`, `git checkout ${versions.prisma}`)
+    await run(`.`, `git checkout ${versions.prisma}`, true)
   } else if (process.env.PATCH_BRANCH) {
     await checkoutPatchBranches(process.env.PATCH_BRANCH)
     console.log(`Commit we're on:`)
