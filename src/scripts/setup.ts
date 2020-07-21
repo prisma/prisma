@@ -43,6 +43,10 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     await execa.command('git rev-parse HEAD', {
       stdio: 'inherit',
     })
+  } else {
+    await execa.command(`git checkout ${process.env.BUILDKITE_BRANCH}`, {
+      stdio: 'inherit',
+    })
   }
 
   const rawPackages = await getPackages()
