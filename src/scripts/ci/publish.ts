@@ -606,6 +606,10 @@ async function publish() {
         console.log(
           `UPDATE_STUDIO set true, so we're updating it to ${latestStudioVersion}`,
         )
+        console.log(`Active branch`)
+        await run('.', 'git branch')
+        console.log(`Let's check out master!`)
+        await run('.', 'git checkout master')
         await run(
           '.',
           `pnpm update  -r @prisma/studio@${latestStudioVersion} @prisma/studio-transports@${latestStudioVersion} @prisma/studio-server@${latestStudioVersion} @prisma/studio-types@${latestStudioVersion}`,
