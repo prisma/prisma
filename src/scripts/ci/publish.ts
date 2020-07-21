@@ -12,6 +12,7 @@ import fetch from 'node-fetch'
 import { promisify } from 'util'
 import { cloneOrPull } from '../setup'
 import { unique } from './unique'
+import pMap from 'p-map'
 
 export type Commit = {
   date: Date
@@ -417,8 +418,9 @@ async function getAllVersions(
 ): Promise<string[]> {
   return unique(
     flatten(
-      await Promise.all(
-        Object.values(packages).map(async (pkg) => {
+      await pMap(
+        Object.values(packages),
+        async (pkg) => {
           const pkgVersions = []
           if (pkg.version.startsWith(prefix)) {
             pkgVersions.push(pkg.version)
@@ -440,7 +442,8 @@ async function getAllVersions(
             }
           }
           return pkgVersions
-        }),
+        },
+        { concurrency: 3 }, // Let's not spam npm too much
       ),
     ),
   )
