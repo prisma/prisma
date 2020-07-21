@@ -41,5 +41,9 @@ Do not include your database credentials when sharing your Prisma schema! -->
 
 - OS: <!--[e.g. Mac OS, Windows, Debian, CentOS, ...]-->
 - Database: <!--[PostgreSQL, MySQL, MariaDB or SQLite]-->
-- Prisma version: <!--[Run `prisma -v` to see your Prisma version]-->
 - Node.js version: <!--[Run `node -v` to see your Node.js version]-->
+- Prisma version:
+<!--[Run `prisma -v` to see your Prisma version and paste it between the ´´´]-->
+```
+
+```
