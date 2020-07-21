@@ -4,7 +4,7 @@ import mkdir from 'make-dir'
 import fs from 'fs'
 import { promisify } from 'util'
 import { dirname, join } from 'path'
-import pkgup from 'pkg-up'
+import tempy from 'tempy'
 import dedent from 'strip-indent'
 import Sqlite from 'better-sqlite3'
 import stripAnsi from 'strip-ansi'
@@ -12,17 +12,23 @@ import { Migrate } from '../Migrate'
 import { MigrateSave } from '../commands/MigrateSave'
 
 const writeFile = promisify(fs.writeFile)
+const testRootDir = tempy.directory()
 
 describe('migrate.create', () => {
+  beforeEach(async () => {
+    await mkdir(testRootDir)
+  })
+
+  afterEach(async () => {
+    await del(testRootDir, { force: true }) // Need force: true because `del` does not delete dirs outside the CWD
+  })
+
   createTests().map((t) => {
     // eslint-disable-next-line jest/expect-expect
     test(t.name, async () => {
-      const pkg = dirname((await pkgup({ cwd: __dirname })) || __filename)
-      const root = join(pkg, 'tmp', 'migrate-' + Date.now())
-      const schemaPath = join(root, Object.keys(t.fs)[0])
-      await writeFiles(root, t.fs)
+      const schemaPath = join(testRootDir, Object.keys(t.fs)[0])
+      await writeFiles(testRootDir, t.fs)
       await t.fn(schemaPath)
-      await del(root)
     })
   })
 })

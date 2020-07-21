@@ -681,7 +681,6 @@ importers:
       jest: 26.1.0
       lint-staged: 10.2.11
       make-dir: 3.1.0
-      pkg-up: 3.1.0
       prettier: 2.0.5
       react: 16.11.0
       tempy: 0.5.0
@@ -740,7 +739,6 @@ importers:
       make-dir: 3.1.0
       open: ^7.0.3
       p-map: ^4.0.0
-      pkg-up: 3.1.0
       prettier: 2.0.5
       prompts: ^2.3.2
       ps-tree: 1.2.0
