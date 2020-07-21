@@ -44,6 +44,9 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
       stdio: 'inherit',
     })
   } else {
+    await execa.command(`git stash`, {
+      stdio: 'inherit',
+    })
     await execa.command(`git checkout ${process.env.BUILDKITE_BRANCH}`, {
       stdio: 'inherit',
     })
