@@ -1,0 +1,20 @@
+name: "Close stale issues"
+on:
+  schedule:
+  - cron: "0 0 * * *"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: pantharshit00/stale
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        stale-issue-message: 'DUMMY, FOR ENABLING'
+        days-before-stale: 60
+        days-before-close: -1
+        exemptLabels: 'kind/discussion,kind/docs,kind/feature,kind/improvement,kind/question,kind/regression'
+        staleLabel: 'status/needs-action'
+        skip-stale-issue-message: true
+        skip-stale-pr-message: true
+        
