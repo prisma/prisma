@@ -18,4 +18,6 @@ jobs:
         stale-issue-label: 'status/needs-action'
         skip-stale-issue-message: true
         skip-stale-pr-message: true
+        ascending: true
+        operations-per-run: 100  
         
