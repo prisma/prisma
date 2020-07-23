@@ -19,5 +19,5 @@ jobs:
         skip-stale-issue-message: true
         skip-stale-pr-message: true
         ascending: true
-        operations-per-run: 100  
+        operations-per-run: 100
         
