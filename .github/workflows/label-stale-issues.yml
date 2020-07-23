@@ -14,7 +14,7 @@ jobs:
         stale-issue-message: 'DUMMY, FOR ENABLING'
         days-before-stale: 60
         days-before-close: -1
-        exempt-issue-labels: 'kind/discussion,kind/docs,kind/feature,kind/improvement,kind/question,kind/regression'
+        exempt-issue-labels: 'kind/discussion,kind/docs,kind/feature,kind/improvement,kind/question'
         stale-issue-label: 'status/needs-action'
         skip-stale-issue-message: true
         skip-stale-pr-message: true
