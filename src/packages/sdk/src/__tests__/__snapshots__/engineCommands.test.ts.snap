@@ -3215,7 +3215,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
-              "isNullable": true,
+              "isNullable": false,
               "isRequired": false,
               "kind": "object",
               "type": "UserUpdateOneRequiredWithoutPostsInput",
@@ -3339,7 +3339,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
-              "isNullable": true,
+              "isNullable": false,
               "isRequired": false,
               "kind": "object",
               "type": "PostCreateManyWithoutAuthorInput",
@@ -3977,7 +3977,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
-              "isNullable": true,
+              "isNullable": false,
               "isRequired": false,
               "kind": "object",
               "type": "PostUpdateManyWithoutAuthorInput",
@@ -8301,7 +8301,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
-              "isNullable": true,
+              "isNullable": false,
               "isRequired": false,
               "kind": "object",
               "type": "UserUpdateOneRequiredWithoutPostsInput",
@@ -8461,7 +8461,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
-              "isNullable": true,
+              "isNullable": false,
               "isRequired": false,
               "kind": "object",
               "type": "PostCreateManyWithoutAuthorInput",
@@ -9109,7 +9109,7 @@ Object {
           Object {
             "inputType": Object {
               "isList": false,
-              "isNullable": true,
+              "isNullable": false,
               "isRequired": false,
               "kind": "object",
               "type": "PostUpdateManyWithoutAuthorInput",

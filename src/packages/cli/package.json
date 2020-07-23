@@ -55,7 +55,7 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "b1c5396ac9832eb8481b3c7f36c393ab1747211d",
+    "version": "0f3750ce5b6509b766811fbe350e83f232daa57f",
     "prismaCommit": "d952d0fa345f5671dcda7827588e455e979a1d07"
   },
   "devDependencies": {
