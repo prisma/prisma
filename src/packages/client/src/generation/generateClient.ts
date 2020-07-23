@@ -287,7 +287,7 @@ export async function generateClient({
       process.env.INIT_CWD,
       'node_modules/.prisma/client',
     )
-    if (finalOutputDir !== backupPath) {
+    if (finalOutputDir !== backupPath && !generator!.isCustomOutput) {
       await copy({
         from: finalOutputDir,
         to: backupPath,
