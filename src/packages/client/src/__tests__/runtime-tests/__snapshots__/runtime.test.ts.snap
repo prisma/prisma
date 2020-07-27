@@ -142,8 +142,7 @@ Invalid \`prisma.user.findMany()\` invocation in
 
 
 
-  Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(SqliteFailure(Error { code: Unknown, extended_code: 1 }, Some(\\"no such table: dev.User\\"))) })"
+  The underlying table for model \`dev.User\` does not exist."
 `;
 
 exports[`runtime new-line: new-line example should succeed 1`] = `"success"`;
