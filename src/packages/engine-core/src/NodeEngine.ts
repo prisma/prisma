@@ -1003,14 +1003,20 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
           lastLog = this.getLastLog()
         }
         const logs = lastLog || this.stderrLogs || this.stdoutLogs
-        const title = lastLog ?? error.message
+        let title = lastLog ?? error.message
+        let description =
+          error.stack + '\nExit code: ' + this.exitCode + '\n' + logs
+        if (!lastLog) {
+          description =
+            `signalCode: ${this.child.signalCode} | exitCode: ${this.child.exitCode} | killed: ${this.child.killed}\n` +
+            description
+        }
         err = new PrismaClientUnknownRequestError(
           getErrorMessageWithLink({
             platform: this.platform,
             title,
             version: this.clientVersion,
-            description:
-              error.stack + '\nExit code: ' + this.exitCode + '\n' + logs,
+            description,
           }),
         )
       }
