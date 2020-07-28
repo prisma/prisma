@@ -997,8 +997,11 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
       }
       if (!err) {
         // wait a bit so we get some logs
-        await new Promise((r) => setTimeout(r, 500))
-        const lastLog = this.getLastLog()
+        let lastLog = this.getLastLog()
+        if (!lastLog) {
+          await new Promise((r) => setTimeout(r, 500))
+          lastLog = this.getLastLog()
+        }
         const logs = lastLog || this.stderrLogs || this.stdoutLogs
         const title = lastLog ?? error.message
         err = new PrismaClientUnknownRequestError(
