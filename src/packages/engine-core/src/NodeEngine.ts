@@ -895,7 +895,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       .catch(this.handleRequestError)
   }
 
-  private handleRequestError = (error: Error & { code?: string }) => {
+  private handleRequestError = async (error: Error & { code?: string }) => {
     debug({ error })
     let err
     if (this.currentRequestPromise.isCanceled && this.lastError) {
@@ -996,6 +996,8 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
         }
       }
       if (!err) {
+        // wait a bit so we get some logs
+        await new Promise((r) => setTimeout(r, 500))
         const lastLog = this.getLastLog()
         const logs = lastLog || this.stderrLogs || this.stdoutLogs
         const title = lastLog ?? error.message
@@ -1004,7 +1006,8 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
             platform: this.platform,
             title,
             version: this.clientVersion,
-            description: error.stack + '\n' + logs,
+            description:
+              error.stack + '\nExit code: ' + this.exitCode + '\n' + logs,
           }),
         )
       }
