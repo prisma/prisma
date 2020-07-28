@@ -820,7 +820,11 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     return result.stdout
   }
 
-  async request<T>(query: string, headers: Record<string, string>): Promise<T> {
+  async request<T>(
+    query: string,
+    headers: Record<string, string>,
+    numTry = 1,
+  ): Promise<T> {
     await this.start()
 
     if (!this.child && !this.engineEndpoint) {
@@ -852,10 +856,24 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
         return { data, elapsed }
       })
-      .catch(this.handleRequestError)
+
+      .catch(async (e) => {
+        const isError = await this.handleRequestError(e)
+        if (!isError) {
+          // retry
+          if (numTry < 3) {
+            await new Promise((r) => setTimeout(r, Math.random() * 1000))
+            return this.request(query, headers, numTry + 1)
+          }
+        }
+      })
   }
 
-  async requestBatch<T>(queries: string[], transaction = false): Promise<T> {
+  async requestBatch<T>(
+    queries: string[],
+    transaction = false,
+    numTry = 1,
+  ): Promise<T> {
     await this.start()
 
     if (!this.child && !this.engineEndpoint) {
@@ -892,7 +910,16 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
           throw new Error(JSON.stringify(data))
         }
       })
-      .catch(this.handleRequestError)
+      .catch(async (e) => {
+        const isError = await this.handleRequestError(e)
+        if (!isError) {
+          // retry
+          if (numTry < 3) {
+            await new Promise((r) => setTimeout(r, Math.random() * 1000))
+            return this.requestBatch(queries, transaction, numTry + 1)
+          }
+        }
+      })
   }
 
   private handleRequestError = async (error: Error & { code?: string }) => {
@@ -1017,6 +1044,8 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
             description,
           }),
         )
+        debug(err.message)
+        return false
       }
     }
 
