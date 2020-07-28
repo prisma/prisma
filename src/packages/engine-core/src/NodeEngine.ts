@@ -858,7 +858,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       })
 
       .catch(async (e) => {
-        const isError = await this.handleRequestError(e)
+        const isError = await this.handleRequestError(e, numTry < 3)
         if (!isError) {
           // retry
           if (numTry < 3) {
@@ -866,6 +866,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
             return this.request(query, headers, numTry + 1)
           }
         }
+        throw isError
       })
   }
 
@@ -911,7 +912,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         }
       })
       .catch(async (e) => {
-        const isError = await this.handleRequestError(e)
+        const isError = await this.handleRequestError(e, numTry < 3)
         if (!isError) {
           // retry
           if (numTry < 3) {
@@ -919,10 +920,15 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
             return this.requestBatch(queries, transaction, numTry + 1)
           }
         }
+
+        throw isError
       })
   }
 
-  private handleRequestError = async (error: Error & { code?: string }) => {
+  private handleRequestError = async (
+    error: Error & { code?: string },
+    graceful: boolean,
+  ) => {
     debug({ error })
     let err
     if (this.currentRequestPromise.isCanceled && this.lastError) {
@@ -1045,7 +1051,9 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
           }),
         )
         debug(err.message)
-        return false
+        if (graceful) {
+          return false
+        }
       }
     }
 
