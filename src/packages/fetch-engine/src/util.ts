@@ -16,6 +16,15 @@ export async function getRootCacheDir(): Promise<string | null> {
       return path.join(process.env.APPDATA, 'Prisma')
     }
   }
+  // if this is lambda, nope
+  if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+    try {
+      await makeDir(`/tmp/prisma-download`)
+      return `/tmp/prisma-download`
+    } catch (e) {
+      return null
+    }
+  }
   return path.join(os.homedir(), '.cache/prisma')
 }
 
