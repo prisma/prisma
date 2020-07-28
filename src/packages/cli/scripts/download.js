@@ -25,6 +25,10 @@ async function main() {
     )
   } else {
     createLockFile()
+    let binaryTargets = undefined
+    if (process.env.PRISMA_CLI_BINARY_TARGETS) {
+      binaryTargets = process.env.PRISMA_CLI_BINARY_TARGETS.split(',')
+    }
     await download({
       binaries: {
         'query-engine': binaryDir,
@@ -35,6 +39,7 @@ async function main() {
       showProgress: true,
       version,
       failSilent: true,
+      binaryTargets,
     }).catch((e) => debug(e))
 
     cleanupLockFile()
