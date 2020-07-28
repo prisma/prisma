@@ -1006,11 +1006,9 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
         let title = lastLog ?? error.message
         let description =
           error.stack + '\nExit code: ' + this.exitCode + '\n' + logs
-        if (!lastLog) {
-          description =
-            `signalCode: ${this.child.signalCode} | exitCode: ${this.child.exitCode} | killed: ${this.child.killed}\n` +
-            description
-        }
+        description =
+          `signalCode: ${this.child.signalCode} | exitCode: ${this.child.exitCode} | killed: ${this.child.killed}\n` +
+          description
         err = new PrismaClientUnknownRequestError(
           getErrorMessageWithLink({
             platform: this.platform,
