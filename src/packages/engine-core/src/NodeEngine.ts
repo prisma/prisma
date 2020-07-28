@@ -998,13 +998,13 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
       if (!err) {
         const lastLog = this.getLastLog()
         const logs = lastLog || this.stderrLogs || this.stdoutLogs
-        const title = lastLog ?? `Unknown error in Prisma Client`
+        const title = error.message
         err = new PrismaClientUnknownRequestError(
           getErrorMessageWithLink({
             platform: this.platform,
             title,
             version: this.clientVersion,
-            description: logs,
+            description: error.stack + '\n' + logs,
           }),
         )
       }
