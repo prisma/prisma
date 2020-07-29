@@ -175,6 +175,7 @@ export class IntrospectionEngine {
   public introspect(
     schema: string,
     reintrospect?: Boolean,
+    clean?: Boolean,
   ): Promise<{
     datamodel: string
     warnings: IntrospectionWarnings[]
@@ -182,7 +183,7 @@ export class IntrospectionEngine {
   }> {
     this.lastUrl = schema
     return this.runCommand(
-      this.getRPCPayload('introspect', { schema, reintrospect }),
+      this.getRPCPayload('introspect', { schema, reintrospect, clean }),
     )
   }
   public listDatabases(schema: string): Promise<string[]> {
