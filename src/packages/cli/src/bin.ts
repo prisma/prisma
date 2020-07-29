@@ -181,6 +181,7 @@ async function main(): Promise<number> {
   )
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))
+
   if (result instanceof HelpError) {
     console.error(result.message)
     return 1
@@ -190,31 +191,39 @@ async function main(): Promise<number> {
   }
   console.log(result)
 
-  // SHA256 identifier for the project based on the prisma schema path
-  const projectPathHash = await getProjectHash()
-  // SHA256 of the cli path
-  const cliPathHash = getCLIPathHash()
+  try {
+    // SHA256 identifier for the project based on the prisma schema path
+    const projectPathHash = await getProjectHash()
+    // SHA256 of the cli path
+    const cliPathHash = getCLIPathHash()
 
-  // check prisma for updates
-  const checkResult = await checkpoint.check({
-    product: 'prisma',
-    cli_path_hash: cliPathHash,
-    project_hash: projectPathHash,
-    version: packageJson.version,
-  })
-  // if the result is cached and we're outdated, show this prompt
-  const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
-  if (checkResult.status === 'ok' && checkResult.data.outdated && !shouldHide) {
-    console.error(
-      drawBox({
-        height: 4,
-        width: 59,
-        str: `\n${chalk.blue('Update available')} ${packageJson.version} -> ${
-          checkResult.data.current_version
-        }\nRun ${chalk.bold(checkResult.data.install_command)} to update`,
-        horizontalPadding: 2,
-      }),
-    )
+    // check prisma for updates
+    const checkResult = await checkpoint.check({
+      product: 'prisma',
+      cli_path_hash: cliPathHash,
+      project_hash: projectPathHash,
+      version: packageJson.version,
+    })
+    // if the result is cached and we're outdated, show this prompt
+    const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
+    if (
+      checkResult.status === 'ok' &&
+      checkResult.data.outdated &&
+      !shouldHide
+    ) {
+      console.error(
+        drawBox({
+          height: 4,
+          width: 59,
+          str: `\n${chalk.blue('Update available')} ${packageJson.version} -> ${
+            checkResult.data.current_version
+          }\nRun ${chalk.bold(checkResult.data.install_command)} to update`,
+          horizontalPadding: 2,
+        }),
+      )
+    }
+  } catch (e) {
+    debug(e)
   }
 
   return 0
