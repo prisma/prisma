@@ -127,7 +127,7 @@ export class MigrateSave implements Command {
         messages.push(`${chalk(`  • ${item.description}`)}`)
       }
       console.log() // empty line
-      throw new Error(messages.join('\n'))
+      throw new Error(`${messages.join('\n')}\n`)
     }
 
     if (migration.warnings && migration.warnings.length > 0) {
