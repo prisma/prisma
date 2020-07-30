@@ -1,6 +1,6 @@
 {
   "name": "@prisma/sdk",
-  "version": "2.3.0-dev.56",
+  "version": "2.4.0-dev.36",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
@@ -21,7 +21,7 @@
     "scripts"
   ],
   "prisma": {
-    "version": "ab6fccbd80bff0d30b57f371c8929de7b48c77e2"
+    "version": "8eb4af13db3ce3b6b0e02e11d4d236082544281a"
   },
   "devDependencies": {
     "@types/jest": "26.0.7",
