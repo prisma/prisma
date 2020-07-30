@@ -1,6 +1,6 @@
+import fs from 'fs'
 import { join } from 'path'
 import tempy from 'tempy'
-import fs from 'fs'
 import { Init, defaultSchema, defaultEnv } from '../commands/Init'
 import stripAnsi from 'strip-ansi'
 
