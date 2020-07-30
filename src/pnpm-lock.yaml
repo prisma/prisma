@@ -588,6 +588,7 @@ importers:
       lint-staged: 10.2.11
       prettier: 2.0.5
       rimraf: 3.0.2
+      tempy: 0.6.0
       ts-jest: 26.1.4_jest@26.1.0+typescript@3.9.7
       ts-node: 8.10.2_typescript@3.9.7
       typescript: 3.9.7
@@ -614,6 +615,7 @@ importers:
       prettier: 2.0.5
       rimraf: 3.0.2
       strip-ansi: ^6.0.0
+      tempy: ^0.6.0
       ts-jest: 26.1.4
       ts-node: 8.10.2
       typescript: 3.9.7
@@ -1935,14 +1937,12 @@ packages:
     resolution:
       integrity: sha512-lXXAa8c8ASoA61Tj9H5E5V2mRUTvNZ/dpJ5KxghI+O5geWMHt73NLZ9kEBBDK7zUUfMsMY3ZH4Sqeqh3SjSyfg==
   /@types/prop-types/15.7.3:
-    dev: true
     resolution:
       integrity: sha512-KfRL3PuHmqQLOG+2tGpRO26Ctg+Cq1E01D2DMriKEATHgWLfeNDmq9e29Q9WIky0dQ3NPkd1mzYH8Lm936Z9qw==
   /@types/react/16.9.11:
     dependencies:
       '@types/prop-types': 15.7.3
       csstype: 2.6.10
-    dev: true
     resolution:
       integrity: sha512-UBT4GZ3PokTXSWmdgC/GeCGEJXE5ofWyibCcecRLUVN2ZBpXQGVgQGtG2foS7CrTKFKlQVVswLvf7Js6XA/CVQ==
   /@types/redis/2.8.25:
@@ -3174,7 +3174,6 @@ packages:
     resolution:
       integrity: sha512-AZL67abkUzIuvcHqk7c09cezpGNcxUxU4Ioi/05xHk4DQeTkWmGYftIE6ctU6AEt+Gn4n1lDStOtj7FKycP71A==
   /csstype/2.6.10:
-    dev: true
     resolution:
       integrity: sha512-D34BqZU4cIlMCY93rZHbrq9pjTAQJ3U8S8rfBqjwHxkGPThWFjzZDQpgMJY0QViLxth6ZKYiwFBo14RdN44U/w==
   /dashdash/1.14.1:
@@ -7252,7 +7251,6 @@ packages:
       loose-envify: 1.4.0
       object-assign: 4.1.1
       prop-types: 15.7.2
-    dev: true
     engines:
       node: '>=0.10.0'
     resolution:
