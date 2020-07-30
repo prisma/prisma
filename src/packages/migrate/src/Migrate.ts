@@ -63,6 +63,9 @@ const del = promisify(rimraf)
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
 
+export interface PushOptions {
+  force?: boolean
+}
 export interface UpOptions {
   preview?: boolean
   n?: number
@@ -318,6 +321,27 @@ export class Migrate {
     }
 
     return initLockFile()
+  }
+
+  public async push({ force = false }: PushOptions = {}): Promise<
+    EngineResults.SchemaPush
+  > {
+    const datamodel = this.getDatamodel()
+
+    const {
+      warnings,
+      unexecutable,
+      executedSteps,
+    } = await this.engine.schemaPush({
+      force,
+      schema: datamodel,
+    })
+
+    return {
+      executedSteps,
+      warnings,
+      unexecutable,
+    }
   }
 
   public async createMigration(

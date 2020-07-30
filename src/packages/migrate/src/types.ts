@@ -52,6 +52,10 @@ export namespace EngineArgs {
   /**
    * These RPCs need a sourceConfig, therefore a db connection to function
    */
+  export interface SchemaPush {
+    schema: string
+    force: boolean
+  }
   export interface ApplyMigration {
     migrationId: string
     steps: DatamodelStep[]
@@ -89,6 +93,11 @@ export namespace EngineArgs {
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EngineResults {
+  export interface SchemaPush {
+    executedSteps: number
+    warnings: string[]
+    unexecutable: string[]
+  }
   export interface InferMigrationSteps {
     datamodelSteps: DatamodelStep[]
     databaseSteps: any[]
