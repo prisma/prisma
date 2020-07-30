@@ -26,6 +26,7 @@
     "prettier": "2.0.5",
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.0",
+    "tempy": "^0.6.0",
     "ts-jest": "26.1.4",
     "ts-node": "8.10.2",
     "typescript": "3.9.7"
