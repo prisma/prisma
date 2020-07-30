@@ -27,7 +27,7 @@ export class SchemaPush implements Command {
 
     ${chalk.bold('Options')}
 
-      --force           Skip interactive approval before migrating
+      --force           Ignore data loss warnings
       -c, --create-db   Create the database in case it doesn't exist
       -h, --help        Displays this help message
 
@@ -36,8 +36,8 @@ export class SchemaPush implements Command {
       Push the local schema state to the database
       ${chalk.dim('$')} prisma schema push --experimental
 
-      Push the local schema state to the database
-      ${chalk.dim('$')} prisma schema push --experimental
+      Using --force to ignore data loss warnings
+      ${chalk.dim('$')} prisma schema push --force --experimental
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -111,7 +111,7 @@ export class SchemaPush implements Command {
       }
     }
 
-    if (migration.executedSteps === 0) {
+    if (migration.warnings.length === 0 && migration.executedSteps === 0) {
       return `\nThe database is already in sync with the Prisma schema.`
     } else {
       return `\n${
