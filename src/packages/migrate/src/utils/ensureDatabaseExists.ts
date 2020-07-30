@@ -6,7 +6,7 @@ import { canConnectToDatabase } from '../MigrateEngineCommands'
 import { DatabaseCredentials, uriToCredentials } from '@prisma/sdk'
 import prompt from 'prompts'
 
-export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev'
+export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
 
 export async function ensureDatabaseExists(
   action: MigrateAction,

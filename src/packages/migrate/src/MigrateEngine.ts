@@ -57,6 +57,11 @@ export class MigrateEngine {
   public stop(): void {
     this.child!.kill()
   }
+  public schemaPush(
+    args: EngineArgs.SchemaPush,
+  ): Promise<EngineResults.SchemaPush> {
+    return this.runCommand(this.getRPCPayload('schemaPush', args))
+  }
   public applyMigration(
     args: EngineArgs.ApplyMigration,
   ): Promise<EngineResults.ApplyMigration> {
