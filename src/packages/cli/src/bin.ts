@@ -114,6 +114,8 @@ import {
   MigrateDown,
   MigrateTmpPrepare,
   StudioCommand,
+  SchemaCommand,
+  SchemaPush,
   handlePanic,
 } from '@prisma/migrate'
 import { CLI } from './CLI'
@@ -165,6 +167,9 @@ async function main(): Promise<number> {
       validate: Validate.new(),
       format: Format.new(),
       doctor: Doctor.new(),
+      schema: SchemaCommand.new({
+        push: SchemaPush.new(),
+      }),
     },
     [
       'version',
@@ -177,6 +182,7 @@ async function main(): Promise<number> {
       'generate',
       'validate',
       'format',
+      'schema',
     ],
   )
   // parse the arguments
