@@ -847,6 +847,8 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
           // this case should not happen, as the query engine only returns one error
           throw new Error(JSON.stringify(data.errors))
         }
+
+        // Rust engine returns time in microseconds and we want it in miliseconds
         const elapsed = parseInt(headers['x-elapsed']) / 1000
 
         // reset restart count after successful request
@@ -893,6 +895,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
+        // Rust engine returns time in microseconds and we want it in miliseconds
         const elapsed = parseInt(headers['x-elapsed']) / 1000
         if (Array.isArray(data)) {
           return data.map((result) => {
