@@ -429,40 +429,6 @@ test('JsonFilter should contain equals and not', async () => {
         ],
         "name": "NullableJsonFilter",
       },
-      Object {
-        "atLeastOne": true,
-        "atMostOne": true,
-        "fields": Array [
-          Object {
-            "inputType": Array [
-              Object {
-                "isList": false,
-                "isNullable": true,
-                "isRequired": false,
-                "kind": "enum",
-                "type": "OrderByArg",
-              },
-            ],
-            "isRelationFilter": false,
-            "name": "id",
-          },
-          Object {
-            "inputType": Array [
-              Object {
-                "isList": false,
-                "isNullable": true,
-                "isRequired": false,
-                "kind": "enum",
-                "type": "OrderByArg",
-              },
-            ],
-            "isRelationFilter": false,
-            "name": "field",
-          },
-        ],
-        "isOrderType": true,
-        "name": "UserOrderByInput",
-      },
     ]
   `)
 })

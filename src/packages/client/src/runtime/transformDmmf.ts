@@ -2,20 +2,29 @@ import { DMMF } from './dmmf-types'
 import { Dictionary, uniqBy } from './utils/common'
 
 export function transformDmmf(document: DMMF.Document): DMMF.Document {
-  const doc = transformOrderInputTypes(transformWhereInputTypes(document))
+  const doc = transformWhereInputTypes(document)
   return {
     datamodel: doc.datamodel,
     mappings: doc.mappings,
     schema: {
-      enums: doc.schema.enums,
+      enums: transformSortOrder(doc.schema.enums),
       rootMutationType: doc.schema.rootMutationType,
       rootQueryType: doc.schema.rootQueryType,
       outputTypes: filterOutputTypes(doc.schema.outputTypes),
-      inputTypes: makeWhereUniqueInputsRequired(
-        filterInputTypes(doc.schema.inputTypes),
+      inputTypes: markOrderInputType(
+        makeWhereUniqueInputsRequired(filterInputTypes(doc.schema.inputTypes)),
       ),
     },
   }
+}
+
+function markOrderInputType(inputTypes: DMMF.InputType[]): DMMF.InputType[] {
+  return inputTypes.map((t) => {
+    if (t.name.endsWith('OrderByInput')) {
+      t.isOrderType = true
+    }
+    return t
+  })
 }
 
 function filterInputTypes(types: DMMF.InputType[]): DMMF.InputType[] {
@@ -26,57 +35,13 @@ function filterOutputTypes(types: DMMF.OutputType[]): DMMF.OutputType[] {
   return uniqBy(types, (o) => o.name)
 }
 
-function transformOrderInputTypes(document: DMMF.Document): DMMF.Document {
-  const inputTypes: DMMF.InputType[] = document.schema.inputTypes
-  const enums: DMMF.Enum[] = [
-    {
-      name: 'OrderByArg',
-      values: ['asc', 'desc'],
-    },
-  ]
-  for (const type of document.schema.enums) {
-    if (!type.name.endsWith('OrderByInput')) {
-      enums.push(type)
-      continue
+function transformSortOrder(enums: DMMF.Enum[]): DMMF.Enum[] {
+  return enums.map((e) => {
+    if (e.name === 'SortOrder') {
+      e.values = e.values.map((v) => v.toLowerCase())
     }
-    const argNames = type.values.reduce<string[]>((acc, curr) => {
-      if (curr.endsWith('ASC')) {
-        const index = curr.lastIndexOf('_ASC')
-        acc.push(curr.slice(0, index))
-      }
-      return acc
-    }, [])
-    const inputType: DMMF.InputType = {
-      name: type.name,
-      atLeastOne: true,
-      atMostOne: true,
-      isOrderType: true,
-      fields: argNames.map((name) => ({
-        name,
-        inputType: [
-          {
-            type: 'OrderByArg',
-            isList: false,
-            isRequired: false,
-            isNullable: true,
-            kind: 'enum',
-          },
-        ],
-        isRelationFilter: false,
-      })),
-    }
-    inputTypes.push(inputType)
-  }
-
-  return {
-    datamodel: document.datamodel,
-    mappings: document.mappings,
-    schema: {
-      ...document.schema,
-      inputTypes,
-      enums,
-    },
-  }
+    return e
+  })
 }
 
 function makeWhereUniqueInputsRequired(
