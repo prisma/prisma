@@ -29,18 +29,25 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
       `You provided RELEASE_PROMOTE_DEV without BUILDKITE_TAG, which doesn't make sense.`,
     )
   }
+  await run('.', `git config --global user.email "prismabots@gmail.com"`)
+  await run('.', `git config --global user.name "prisma-bot"`)
   if (process.env.RELEASE_PROMOTE_DEV) {
     const versions = await getVersionHashes(process.env.RELEASE_PROMOTE_DEV)
     // TODO: disable the dry run here
 
-    await run('.', `git config --global user.email "prismabots@gmail.com"`)
-    await run('.', `git config --global user.name "prisma-bot"`)
     await run(`.`, `git stash`)
-    await run(`.`, `git checkout ${versions.prisma}`)
+    await run(`.`, `git checkout ${versions.prisma}`, true)
   } else if (process.env.PATCH_BRANCH) {
     await checkoutPatchBranches(process.env.PATCH_BRANCH)
     console.log(`Commit we're on:`)
     await execa.command('git rev-parse HEAD', {
+      stdio: 'inherit',
+    })
+  } else if (process.env.UPDATE_STUDIO) {
+    await execa.command(`git stash`, {
+      stdio: 'inherit',
+    })
+    await execa.command(`git checkout ${process.env.BUILDKITE_BRANCH}`, {
       stdio: 'inherit',
     })
   }

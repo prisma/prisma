@@ -1,6 +1,6 @@
 {
   "name": "@prisma/sdk",
-  "version": "2.2.1-dev.4",
+  "version": "2.4.0-dev.45",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
@@ -21,26 +21,26 @@
     "scripts"
   ],
   "prisma": {
-    "version": "143a8265b75aefe077e9f483f4a275ab5e0ad5f6"
+    "version": "8337329d29aec488119918879493ab6fd38c880e"
   },
   "devDependencies": {
-    "@types/jest": "26.0.4",
-    "@types/node": "12.12.50",
+    "@types/jest": "26.0.8",
+    "@types/node": "12.12.53",
     "@types/tar": "4.0.3",
-    "@typescript-eslint/eslint-plugin": "3.6.1",
-    "@typescript-eslint/parser": "3.6.1",
-    "eslint": "7.4.0",
+    "@typescript-eslint/eslint-plugin": "3.7.1",
+    "@typescript-eslint/parser": "3.7.1",
+    "eslint": "7.6.0",
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "23.18.0",
+    "eslint-plugin-jest": "23.20.0",
     "eslint-plugin-prettier": "3.1.4",
     "husky": "4.2.5",
-    "jest": "26.1.0",
+    "jest": "26.2.2",
     "lint-staged": "10.2.11",
     "prettier": "2.0.5",
-    "ts-jest": "26.1.2",
+    "ts-jest": "26.1.4",
     "ts-node": "8.10.2",
-    "typescript": "3.9.6"
+    "typescript": "3.9.7"
   },
   "dependencies": {
     "@apexearth/copy": "^1.4.5",
@@ -52,7 +52,7 @@
     "archiver": "^4.0.0",
     "arg": "^4.1.3",
     "chalk": "4.1.0",
-    "checkpoint-client": "1.1.2",
+    "checkpoint-client": "1.1.3",
     "cli-truncate": "^2.1.0",
     "execa": "^4.0.0",
     "globby": "^11.0.0",

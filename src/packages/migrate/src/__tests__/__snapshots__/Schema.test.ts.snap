@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`schema.create invalid ok 1`] = `
+"
+⚠️ We found changes that cannot be executed:
+
+  • Added the required column \`requiredSomething\` to the \`User\` table without a default value. There are 1 rows in this table, it is not possible to execute this migration.
+"
+`;
+
+exports[`schema.create invalid ok 2`] = `""`;

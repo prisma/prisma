@@ -1,6 +1,6 @@
 {
   "name": "@prisma/ink-components",
-  "version": "2.2.1-dev.4",
+  "version": "2.4.0-dev.45",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
@@ -24,11 +24,11 @@
     "dist"
   ],
   "devDependencies": {
-    "@types/node": "12.12.50",
+    "@types/node": "12.12.53",
     "@types/react": "16.9.11",
     "ink": "2.7.1",
     "react": "16.11.0",
-    "typescript": "3.9.6"
+    "typescript": "3.9.7"
   },
   "peerDependencies": {
     "ink": ">= 2.3.0",

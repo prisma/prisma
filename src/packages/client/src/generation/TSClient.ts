@@ -209,9 +209,15 @@ export declare type PromiseReturnType<T extends (...args: any) => Promise<any>> 
 
 export declare type Enumerable<T> = T | Array<T>;
 
-export declare type TrueKeys<T> = {
+export type RequiredKeys<T> = {
+  [K in keyof T]-?: {} extends Pick<T, K> ? never : K
+}[keyof T]
+
+export declare type TruthyKeys<T> = {
   [key in keyof T]: T[key] extends false | undefined | null ? never : key
 }[keyof T]
+
+export declare type TrueKeys<T> = TruthyKeys<Pick<T, RequiredKeys<T>>>
 
 /**
  * Subset

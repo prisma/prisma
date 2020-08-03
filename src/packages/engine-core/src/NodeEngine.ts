@@ -820,7 +820,11 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     return result.stdout
   }
 
-  async request<T>(query: string, headers: Record<string, string>): Promise<T> {
+  async request<T>(
+    query: string,
+    headers: Record<string, string>,
+    numTry = 1,
+  ): Promise<T> {
     await this.start()
 
     if (!this.child && !this.engineEndpoint) {
@@ -843,6 +847,8 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
           // this case should not happen, as the query engine only returns one error
           throw new Error(JSON.stringify(data.errors))
         }
+
+        // Rust engine returns time in microseconds and we want it in miliseconds
         const elapsed = parseInt(headers['x-elapsed']) / 1000
 
         // reset restart count after successful request
@@ -852,10 +858,25 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
         return { data, elapsed }
       })
-      .catch(this.handleRequestError)
+
+      .catch(async (e) => {
+        const isError = await this.handleRequestError(e, numTry < 3)
+        if (!isError) {
+          // retry
+          if (numTry < 3) {
+            await new Promise((r) => setTimeout(r, Math.random() * 1000))
+            return this.request(query, headers, numTry + 1)
+          }
+        }
+        throw isError
+      })
   }
 
-  async requestBatch<T>(queries: string[], transaction = false): Promise<T> {
+  async requestBatch<T>(
+    queries: string[],
+    transaction = false,
+    numTry = 1,
+  ): Promise<T> {
     await this.start()
 
     if (!this.child && !this.engineEndpoint) {
@@ -874,6 +895,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
+        // Rust engine returns time in microseconds and we want it in miliseconds
         const elapsed = parseInt(headers['x-elapsed']) / 1000
         if (Array.isArray(data)) {
           return data.map((result) => {
@@ -892,10 +914,24 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
           throw new Error(JSON.stringify(data))
         }
       })
-      .catch(this.handleRequestError)
+      .catch(async (e) => {
+        const isError = await this.handleRequestError(e, numTry < 3)
+        if (!isError) {
+          // retry
+          if (numTry < 3) {
+            await new Promise((r) => setTimeout(r, Math.random() * 1000))
+            return this.requestBatch(queries, transaction, numTry + 1)
+          }
+        }
+
+        throw isError
+      })
   }
 
-  private handleRequestError = (error: Error & { code?: string }) => {
+  private handleRequestError = async (
+    error: Error & { code?: string },
+    graceful: boolean,
+  ) => {
     debug({ error })
     let err
     if (this.currentRequestPromise.isCanceled && this.lastError) {
@@ -996,17 +1032,31 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
         }
       }
       if (!err) {
-        const lastLog = this.getLastLog()
+        // wait a bit so we get some logs
+        let lastLog = this.getLastLog()
+        if (!lastLog) {
+          await new Promise((r) => setTimeout(r, 500))
+          lastLog = this.getLastLog()
+        }
         const logs = lastLog || this.stderrLogs || this.stdoutLogs
-        const title = lastLog ?? `Unknown error in Prisma Client`
+        let title = lastLog ?? error.message
+        let description =
+          error.stack + '\nExit code: ' + this.exitCode + '\n' + logs
+        description =
+          `signalCode: ${this.child.signalCode} | exitCode: ${this.child.exitCode} | killed: ${this.child.killed}\n` +
+          description
         err = new PrismaClientUnknownRequestError(
           getErrorMessageWithLink({
             platform: this.platform,
             title,
             version: this.clientVersion,
-            description: logs,
+            description,
           }),
         )
+        debug(err.message)
+        if (graceful) {
+          return false
+        }
       }
     }
 

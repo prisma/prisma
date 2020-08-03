@@ -2,7 +2,7 @@
 
 set -ex
 
-git clone git@github.com:timsuchanek/last-git-changes.git
+git clone https://github.com/timsuchanek/last-git-changes.git
 cd last-git-changes
 npm install
 npm run build

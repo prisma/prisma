@@ -2,6 +2,8 @@
 
 exports[`runtime aggregations: aggregations example should succeed 1`] = `"success"`;
 
+exports[`runtime async-hooks: async-hooks example should succeed 1`] = `"success"`;
+
 exports[`runtime blog: blog example should succeed 1`] = `"success"`;
 
 exports[`runtime blog-dot-env: blog-dot-env example should succeed 1`] = `"success"`;
@@ -142,8 +144,7 @@ Invalid \`prisma.user.findMany()\` invocation in
 
 
 
-  Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(SqliteFailure(Error { code: Unknown, extended_code: 1 }, Some(\\"no such table: dev.User\\"))) })"
+  The underlying table for model \`dev.User\` does not exist."
 `;
 
 exports[`runtime new-line: new-line example should succeed 1`] = `"success"`;
