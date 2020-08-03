@@ -144,7 +144,8 @@ Invalid \`prisma.user.findMany()\` invocation in
 
 
 
-  The underlying table for model \`dev.User\` does not exist."
+  Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: TableDoesNotExist { table: \\"dev.User\\" } })"
 `;
 
 exports[`runtime new-line: new-line example should succeed 1`] = `"success"`;

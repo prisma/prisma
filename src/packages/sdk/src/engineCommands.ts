@@ -61,6 +61,7 @@ export async function getDMMF({
   enableExperimental,
 }: GetDMMFOptions): Promise<DMMF.Document> {
   queryEnginePath = await resolveBinary('query-engine', queryEnginePath)
+  debug({ queryEnginePath })
   let result
   try {
     let tempDatamodelPath: string | undefined = datamodelPath

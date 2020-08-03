@@ -58,18 +58,19 @@ function transformArgs(args: ExternalDMMF.SchemaArg[]): DMMF.SchemaArg[] {
 }
 
 function fixOrderByEnum(arg: ExternalDMMF.SchemaArg): ExternalDMMF.SchemaArg {
-  if (arg.name === 'orderBy' && arg.inputType.type.endsWith('OrderByInput')) {
-    return {
-      name: arg.name,
-      inputType: {
-        isList: arg.inputType.isList,
-        isRequired: arg.inputType.isRequired,
-        isNullable: arg.inputType.isNullable,
-        type: arg.inputType.type,
-        kind: 'object',
-      },
-    }
-  }
+  // TODO: cleanup
+  // if (arg.name === 'orderBy' && arg.inputType.type.endsWith('OrderByInput')) {
+  //   return {
+  //     name: arg.name,
+  //     inputType: {
+  //       isList: arg.inputType.isList,
+  //       isRequired: arg.inputType.isRequired,
+  //       isNullable: arg.inputType.isNullable,
+  //       type: arg.inputType.type,
+  //       kind: 'object',
+  //     },
+  //   }
+  // }
   return arg
 }
 
