@@ -140,22 +140,22 @@ describe('introspect', () => {
         id        Int      @default(autoincrement()) @id
         published Boolean  @default(false)
         title     String
-        author    User     @relation(fields: [authorId], references: [id])
+        User      User     @relation(fields: [authorId], references: [id])
       }
 
       model Profile {
         bio    String?
         id     Int     @default(autoincrement()) @id
         userId Int     @unique
-        user   User    @relation(fields: [userId], references: [id])
+        User   User    @relation(fields: [userId], references: [id])
       }
 
       model User {
         email   String   @unique
         id      Int      @default(autoincrement()) @id
         name    String?
-        posts   Post[]
-        profile Profile?
+        Post    Post[]
+        Profile Profile?
       }
       ",
         "
