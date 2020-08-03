@@ -6,7 +6,7 @@ module.exports = async () => {
   const prisma = new PrismaClient()
 
   let asyncId
-  prisma.use(async (params, fetch) => {
+  prisma.$use(async (params, fetch) => {
     asyncId = executionAsyncId()
     return fetch(params)
   })
@@ -14,7 +14,7 @@ module.exports = async () => {
   await prisma.user.findMany()
   assert(asyncId > 0)
 
-  prisma.disconnect()
+  prisma.$disconnect()
 }
 
 if (require.main === module) {

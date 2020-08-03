@@ -9,14 +9,14 @@ module.exports = async () => {
 
   const order = []
 
-  db.use(async (params, fetch) => {
+  db.$use(async (params, fetch) => {
     order.push(1)
     const result = await fetch(params)
     order.push(4)
     return result
   })
 
-  db.use(async (params, fetch) => {
+  db.$use(async (params, fetch) => {
     order.push(2)
     const result = await fetch(params)
     order.push(3)
@@ -24,7 +24,7 @@ module.exports = async () => {
     return result
   })
 
-  db.use('engine', async (params, fetch) => {
+  db.$use('engine', async (params, fetch) => {
     const result = await fetch(params)
     engineResults.push(result)
     return result
@@ -53,7 +53,7 @@ module.exports = async () => {
   assert(typeof engineResults[0].elapsed === 'number')
   assert(typeof engineResults[1].elapsed === 'number')
 
-  db.disconnect()
+  db.$disconnect()
 }
 
 if (require.main === module) {

@@ -17,7 +17,7 @@ module.exports = async () => {
     },
   })
 
-  prisma.disconnect()
+  prisma.$disconnect()
 }
 
 if (require.main === module) {
@@ -51,7 +51,7 @@ async function seed() {
     },
     { concurrency: 20 },
   )
-  prisma.disconnect()
+  prisma.$disconnect()
 }
 
 async function compressFile(filename) {
@@ -61,10 +61,10 @@ async function compressFile(filename) {
     const output = fs.createWriteStream(filename + '.br')
 
     input.pipe(compress).pipe(output)
-    output.on('finish', () => {
+    output.$on('finish', () => {
       resolve()
     })
-    output.on('error', (ex) => {
+    output.$on('error', (ex) => {
       reject(ex)
     })
   })
@@ -77,10 +77,10 @@ async function uncompressFile(filename) {
     const output = fs.createWriteStream(filename)
 
     input.pipe(decompress).pipe(output)
-    output.on('finish', () => {
+    output.$on('finish', () => {
       resolve()
     })
-    output.on('error', (ex) => {
+    output.$on('error', (ex) => {
       reject(ex)
     })
   })

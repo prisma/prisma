@@ -6,7 +6,7 @@ import { PrismaClient } from '@prisma/client'
 async function main() {
   const prisma = new PrismaClient()
 
-  prisma.use(async (params, next) => {
+  prisma.$use(async (params, next) => {
     params.args
     params.dataPath
     params.action
