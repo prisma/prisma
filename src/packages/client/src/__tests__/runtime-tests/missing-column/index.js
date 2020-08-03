@@ -12,7 +12,7 @@ module.exports = async () => {
   try {
     await prisma.user.findMany()
   } catch (e) {
-    prisma.disconnect()
+    prisma.$disconnect()
     throw e
   }
 }

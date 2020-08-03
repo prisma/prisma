@@ -6,7 +6,7 @@ module.exports = async () => {
 
   let theParams
   let firstCall = true
-  prisma.use(async (params, fetch) => {
+  prisma.$use(async (params, fetch) => {
     theParams = JSON.parse(JSON.stringify(params)) // clone
     if (firstCall) {
       params.args = {
@@ -20,7 +20,7 @@ module.exports = async () => {
     return result
   })
 
-  prisma.use(async (params, fetch) => {
+  prisma.$use(async (params, fetch) => {
     const result = await fetch(params)
     if (result.length > 0) {
       result[0].name += '2' // make sure that we can change the result
@@ -48,7 +48,7 @@ module.exports = async () => {
     },
   ])
 
-  prisma.disconnect()
+  prisma.$disconnect()
 }
 
 if (require.main === module) {

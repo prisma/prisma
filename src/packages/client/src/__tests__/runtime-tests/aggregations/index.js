@@ -35,7 +35,7 @@ module.exports = async () => {
     sum: { age: 800 },
   })
 
-  prisma.disconnect()
+  prisma.$disconnect()
 }
 
 if (require.main === module) {
@@ -54,5 +54,5 @@ async function seed() {
       },
     })
   }
-  prisma.disconnect()
+  prisma.$disconnect()
 }
