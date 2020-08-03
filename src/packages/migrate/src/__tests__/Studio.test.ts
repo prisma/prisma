@@ -1,19 +1,73 @@
-import tempy from 'tempy'
 import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
 import http from 'http'
-import assert from 'assert'
+import tempy from 'tempy'
 import del from 'del'
 import mkdir from 'make-dir'
+import WebSocket from 'ws'
 
 import { Studio } from '../Studio'
 
 const writeFile = promisify(fs.writeFile)
 const testRootDir = tempy.directory()
 
-describe('Studio', () => {
-  let studioInstance
+const setupWS = (): Promise<WebSocket> => {
+  return new Promise((res) => {
+    const ws = new WebSocket('ws://127.0.0.1:5678/')
+    ws.on('open', () => {
+      ws.on('message', (data: string) => {
+        /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
+        const message: any = JSON.parse(data)
+
+        expect(message).toHaveProperty('channel')
+        expect(message).toHaveProperty('action')
+
+        /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+        if (message.channel !== '-photon' && message.action !== 'start') {
+          return
+        }
+        /* eslint-enable */
+
+        res(ws)
+      })
+      ws.send(
+        JSON.stringify({
+          requestId: 1,
+          channel: 'photon',
+          action: 'start',
+          payload: {},
+        }),
+      )
+    })
+  })
+}
+
+const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
+  return new Promise((res) => {
+    ws.on('message', (data: string) => {
+      /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
+      const message: any = JSON.parse(data)
+
+      expect(message).toHaveProperty('channel')
+      expect(message).toHaveProperty('action')
+
+      /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+      if (message.channel !== '-photon' && message.action !== 'request') {
+        return
+      }
+      /* eslint-enable */
+
+      res(message)
+    })
+
+    // Send the same query Studio would send if launched
+    ws.send(JSON.stringify(message))
+  })
+}
+
+describe('Studio: Loading', () => {
+  let studioInstance: Studio
 
   beforeEach(async () => {
     await mkdir(testRootDir)
@@ -22,8 +76,7 @@ describe('Studio', () => {
       `
       datasource my_db {
         provider = "sqlite"
-        url = "file:./db/db_file.db"
-        default = true
+        url      = "file:./src/__tests__/sqlite.test.db"
       }
 
       model User {
@@ -40,19 +93,290 @@ describe('Studio', () => {
       browser: 'none',
     })
 
-    await studioInstance.start()
+    await studioInstance.start({})
   })
 
   afterEach(async () => {
     await studioInstance.stop()
-    studioInstance = null
     await del(testRootDir, { force: true }) // Need force: true because `del` does not delete dirs outside the CWD
   })
 
-  test('launches', async (done) => {
-    http.get('http://localhost:5678', async (res) => {
-      assert.ok(res.statusCode === 200, 'Studio did not launch correctly')
-      done()
+  test('launches', async () => {
+    await new Promise((res) => {
+      http.get('http://localhost:5678', (response) => {
+        expect(response.statusCode).toBe(200)
+        res()
+      })
     })
+  })
+})
+
+describe('Studio: Queries', () => {
+  let studioInstance: Studio
+  let ws: WebSocket
+
+  beforeEach(async () => {
+    jest.setTimeout(10000)
+
+    await mkdir(testRootDir)
+    await writeFile(
+      path.resolve(`${testRootDir}/schema.prisma`),
+      `
+      datasource my_db {
+        provider = "sqlite"
+        url      = "file:./sqlite.test.db"
+      }
+
+      model with_all_field_types {
+        id       Int      @id
+        string   String
+        int      Int
+        float    Float
+        datetime DateTime
+      
+        relation      relation_target   @relation("waft_rt")
+        relation_list relation_target[] @relation("waft_rt_list")
+      }
+      
+      model relation_target {
+        id   Int    @id
+        name String
+      
+        // waft = With All Field Types
+        waft_id Int?
+        waft    with_all_field_types?  @relation("waft_rt", fields: [waft_id], references: [id])
+        wafts   with_all_field_types[] @relation("waft_rt_list", fields: [waft_id], references: [id])
+      }
+    `,
+    )
+    fs.copyFileSync(
+      './src/__tests__/sqlite.test.db',
+      path.resolve(`${testRootDir}/sqlite.test.db`),
+    )
+    studioInstance = new Studio({
+      schemaPath: path.resolve(`${testRootDir}/schema.prisma`),
+      staticAssetDir: path.resolve(__dirname, '../../../cli/build/public'),
+      port: 5678,
+      browser: 'none',
+    })
+
+    await studioInstance.start({})
+
+    ws = await setupWS()
+  })
+
+  afterEach(async () => {
+    await studioInstance.stop()
+    await del(testRootDir, { force: true }) // Need force: true because `del` does not delete dirs outside the CWD
+    ws.close()
+  })
+
+  test('findMany', async () => {
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+    jest.setTimeout(10000)
+
+    // Send the same query Studio would send if launched
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
+    const response = await sendRequest(ws, {
+      requestId: 1,
+      channel: 'photon',
+      action: 'request',
+      payload: {
+        data: {
+          query: `
+          prisma.with_all_field_types.findMany({
+            select: {
+              id: true,
+              string: true,
+              int: true,
+              float: true,
+              datetime: true,
+              relation: true,
+              relation_list: true,
+            }
+          })`,
+        },
+      },
+    })
+
+    expect(response).toHaveProperty('payload')
+
+    expect(response.payload).toHaveProperty('error', null)
+
+    expect(response.payload).toHaveProperty('data')
+    expect(response.payload.data).toHaveProperty('meta')
+    expect(response.payload.data.meta).toHaveProperty(
+      'typeName',
+      'with_all_field_types',
+    )
+    expect(response.payload.data.meta).toHaveProperty('fieldNames', [
+      'id',
+      'string',
+      'int',
+      'float',
+      'datetime',
+      'relation',
+      'relation_list',
+    ])
+
+    expect(response.payload.data).toHaveProperty('response', [
+      {
+        id: 1,
+        string: 'Some string',
+        int: 42,
+        float: 3.14,
+        datetime: '2020-08-03T00:00:00.000Z',
+        relation: { id: 1, name: 'Relation Target 001', waft_id: 1 },
+        relation_list: [],
+      },
+      {
+        id: 2,
+        string: 'Delete me',
+        int: 0,
+        float: 0,
+        datetime: '1970-01-01T00:00:00.000Z',
+        relation: { id: 2, name: 'Relation Target 002', waft_id: 2 },
+        relation_list: [],
+      },
+    ])
+    /* eslint-enable */
+  })
+
+  test('create', async () => {
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+    jest.setTimeout(10000)
+
+    // Send the same query Studio would send if a new record was created
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
+    const response: any = await sendRequest(ws, {
+      requestId: 1,
+      channel: 'photon',
+      action: 'request',
+      payload: {
+        data: {
+          query: `
+          prisma.with_all_field_types.create({
+            data: {
+              id: 3,
+              string: "",
+              int: 0,
+              float: 0.0,
+              datetime: "2020-08-03T00:00:00.000Z",
+              relation: {
+                connect: {
+                  id: 3
+                }
+              },
+              relation_list: {
+                connect: {
+                  id: 3
+                }
+              }
+            },
+            select: {
+              id: true,
+              string: true,
+              int: true,
+              float: true,
+              datetime: true,
+              relation: true,
+              relation_list: true,
+            }
+          })`,
+        },
+      },
+    })
+
+    expect(response).toHaveProperty('payload')
+
+    expect(response.payload).toHaveProperty('error', null)
+
+    expect(response.payload).toHaveProperty('data')
+    expect(response.payload.data).toHaveProperty('meta')
+    expect(response.payload.data.meta).toHaveProperty(
+      'typeName',
+      'with_all_field_types',
+    )
+    expect(response.payload.data.meta).toHaveProperty('fieldNames', [
+      'id',
+      'string',
+      'int',
+      'float',
+      'datetime',
+      'relation',
+      'relation_list',
+    ])
+
+    expect(response.payload.data).toHaveProperty('response', {
+      id: 3,
+      string: '',
+      int: 0,
+      float: 0,
+      datetime: '2020-08-03T00:00:00.000Z',
+      relation: { id: 3, name: 'Relation Target 003', waft_id: 3 },
+      relation_list: [{ id: 3, name: 'Relation Target 003', waft_id: 3 }],
+    })
+    /* eslint-enable */
+  })
+
+  test('delete', async () => {
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+    jest.setTimeout(10000)
+
+    // Send the same query Studio would send if an existing record was deleted
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
+    const response: any = await sendRequest(ws, {
+      requestId: 1,
+      channel: 'photon',
+      action: 'request',
+      payload: {
+        data: {
+          query: `
+          prisma.with_all_field_types.delete({
+            where: { id: 2 },
+            select: {
+              id: true,
+              string: true,
+              int: true,
+              float: true,
+              datetime: true,
+              relation: true,
+              relation_list: true,
+            }
+          })`,
+        },
+      },
+    })
+
+    expect(response).toHaveProperty('payload')
+
+    expect(response.payload).toHaveProperty('error', null)
+
+    expect(response.payload).toHaveProperty('data')
+    expect(response.payload.data).toHaveProperty('meta')
+    expect(response.payload.data.meta).toHaveProperty(
+      'typeName',
+      'with_all_field_types',
+    )
+    expect(response.payload.data.meta).toHaveProperty('fieldNames', [
+      'id',
+      'string',
+      'int',
+      'float',
+      'datetime',
+      'relation',
+      'relation_list',
+    ])
+
+    expect(response.payload.data).toHaveProperty('response', {
+      id: 2,
+      string: 'Delete me',
+      int: 0,
+      float: 0,
+      datetime: '1970-01-01T00:00:00.000Z',
+      relation: { id: 2, name: 'Relation Target 002', waft_id: 2 },
+      relation_list: [],
+    })
+    /* eslint-enable */
   })
 })

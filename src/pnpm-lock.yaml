@@ -666,6 +666,7 @@ importers:
       '@types/node': 12.12.50
       '@types/prompts': 2.0.8
       '@types/react': 16.9.11
+      '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 3.6.1_2fb6084e4347229e80c1d0673d682b3a
       '@typescript-eslint/parser': 3.6.1_eslint@7.4.0+typescript@3.9.6
       '@zeit/ncc': 0.22.3
@@ -686,6 +687,7 @@ importers:
       tempy: 0.5.0
       ts-jest: 26.1.2_jest@26.1.0+typescript@3.9.6
       typescript: 3.9.6
+      ws: 7.3.1
     specifiers:
       '@prisma/client': 'workspace:*'
       '@prisma/debug': 'workspace:*'
@@ -704,6 +706,7 @@ importers:
       '@types/node': 12.12.50
       '@types/prompts': 2.0.8
       '@types/react': 16.9.11
+      '@types/ws': ^7.2.6
       '@typescript-eslint/eslint-plugin': 3.6.1
       '@typescript-eslint/parser': 3.6.1
       '@zeit/ncc': 0.22.3
@@ -751,6 +754,7 @@ importers:
       tempy: 0.5.0
       ts-jest: 26.1.2
       typescript: 3.9.6
+      ws: 7.3.1
   packages/sdk:
     dependencies:
       '@apexearth/copy': 1.4.5
@@ -1852,6 +1856,12 @@ packages:
     dev: true
     resolution:
       integrity: sha512-Z7AVMMlkI8NTWF0qGhC4QIX0zkV/+y0J8x7b/RsHrN0310+YNjoJd8UrApCiGBCWtKjxS9QhNqLi2UJNToh5hA==
+  /@types/ws/7.2.6:
+    dependencies:
+      '@types/node': 12.12.50
+    dev: true
+    resolution:
+      integrity: sha512-Q07IrQUSNpr+cXU4E4LtkSIBPie5GLZyyMC1QtQYRLWz701+XcoVygGUZgvLqElq1nU4ICldMYPnexlBsg3dqQ==
   /@types/yargs-parser/15.0.0:
     dev: true
     resolution:
@@ -8907,6 +8917,20 @@ packages:
         optional: true
     resolution:
       integrity: sha512-iFtXzngZVXPGgpTlP1rBqsUK82p9tKqsWRPg5L56egiljujJT3vGAYnHANvFxBieXrTFavhzhxW52jnaWV+w2w==
+  /ws/7.3.1:
+    dev: true
+    engines:
+      node: '>=8.3.0'
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: ^5.0.2
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+    resolution:
+      integrity: sha512-D3RuNkynyHmEJIpD2qrgVkc9DQ23OrN/moAwZX4L8DfvszsJxpjQuUq3LMx6HoYji9fbIOBY18XWBsAux1ZZUA==
   /xml-name-validator/3.0.0:
     dev: true
     resolution:
