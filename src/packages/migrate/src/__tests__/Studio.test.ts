@@ -11,10 +11,11 @@ import { Studio } from '../Studio'
 
 const writeFile = promisify(fs.writeFile)
 const testRootDir = tempy.directory()
+const STUDIO_TEST_PORT = 5678
 
 const setupWS = (): Promise<WebSocket> => {
   return new Promise((res) => {
-    const ws = new WebSocket('ws://127.0.0.1:5678/')
+    const ws = new WebSocket(`ws://127.0.0.1:${STUDIO_TEST_PORT}/`)
     ws.on('open', () => {
       ws.on('message', (data: string) => {
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
@@ -112,7 +113,7 @@ describe('Studio', () => {
     studioInstance = new Studio({
       schemaPath: path.resolve(`${testRootDir}/schema.prisma`),
       staticAssetDir: path.resolve(__dirname, '../../../cli/build/public'),
-      port: 5678,
+      port: STUDIO_TEST_PORT,
       browser: 'none',
     })
 
@@ -129,7 +130,7 @@ describe('Studio', () => {
 
   test('launches client correctly', async () => {
     await new Promise((res) => {
-      http.get('http://localhost:5678', (response) => {
+      http.get(`http://localhost:${STUDIO_TEST_PORT}`, (response) => {
         expect(response.statusCode).toBe(200)
         res()
       })
