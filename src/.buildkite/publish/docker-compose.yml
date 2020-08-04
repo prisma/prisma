@@ -25,6 +25,7 @@ services:
       - DEVELOPMENT_ENVIRONMENT_COMMIT
       - PATCH_BRANCH
       - DRY_RUN
+      - CI
     depends_on:
       - postgres
       - mysql

@@ -14,6 +14,7 @@ services:
       - BUILDKITE_TAG
       - BUILDKITE_BRANCH
       - PATCH_BRANCH
+      - CI
     depends_on:
       - postgres
       - mysql
