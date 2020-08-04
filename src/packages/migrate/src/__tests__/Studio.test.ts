@@ -67,52 +67,7 @@ const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
   })
 }
 
-describe('Studio: Loading', () => {
-  let studioInstance: Studio
-
-  beforeEach(async () => {
-    await mkdir(testRootDir)
-    await writeFile(
-      path.resolve(`${testRootDir}/schema.prisma`),
-      `
-      datasource my_db {
-        provider = "sqlite"
-        url      = "file:./src/__tests__/sqlite.test.db"
-      }
-
-      model User {
-        id Int @id
-      }
-    `,
-    )
-    // For the time being, it is okay that the SQLite file used in this schema doesn't exist
-    // This is because the test only sees if Studio loads, and not that data is shown correctly (for now)
-    studioInstance = new Studio({
-      schemaPath: path.resolve(`${testRootDir}/schema.prisma`),
-      staticAssetDir: path.resolve(__dirname, '../../../cli/build/public'),
-      port: 5678,
-      browser: 'none',
-    })
-
-    await studioInstance.start({})
-  })
-
-  afterEach(async () => {
-    await studioInstance.stop()
-    await del(testRootDir, { force: true }) // Need force: true because `del` does not delete dirs outside the CWD
-  })
-
-  test('launches', async () => {
-    await new Promise((res) => {
-      http.get('http://localhost:5678', (response) => {
-        expect(response.statusCode).toBe(200)
-        res()
-      })
-    })
-  })
-})
-
-describe('Studio: Queries', () => {
+describe('Studio', () => {
   let studioInstance: Studio
   let ws: WebSocket
 
@@ -125,7 +80,7 @@ describe('Studio: Queries', () => {
       `
       datasource my_db {
         provider = "sqlite"
-        url      = "file:./sqlite.test.db"
+        url      = "file:./studio-test.db"
       }
 
       model with_all_field_types {
@@ -151,8 +106,8 @@ describe('Studio: Queries', () => {
     `,
     )
     fs.copyFileSync(
-      './src/__tests__/sqlite.test.db',
-      path.resolve(`${testRootDir}/sqlite.test.db`),
+      './src/__tests__/studio-test.db',
+      path.resolve(`${testRootDir}/studio-test.db`),
     )
     studioInstance = new Studio({
       schemaPath: path.resolve(`${testRootDir}/schema.prisma`),
@@ -172,7 +127,16 @@ describe('Studio: Queries', () => {
     ws.close()
   })
 
-  test('findMany', async () => {
+  test('launches client correctly', async () => {
+    await new Promise((res) => {
+      http.get('http://localhost:5678', (response) => {
+        expect(response.statusCode).toBe(200)
+        res()
+      })
+    })
+  })
+
+  test('can respond to `findMany` queries', async () => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
     // Send the same query Studio client would send if launched
@@ -242,7 +206,7 @@ describe('Studio: Queries', () => {
     /* eslint-enable */
   })
 
-  test('create', async () => {
+  test('can respond to `create` queries', async () => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
     // Send the same query Studio client would send if a new record was created
@@ -318,7 +282,7 @@ describe('Studio: Queries', () => {
     /* eslint-enable */
   })
 
-  test('update', async () => {
+  test('can respond to `update` queries', async () => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
     // Send the same query Studio client would send if a new record was created
@@ -396,7 +360,7 @@ describe('Studio: Queries', () => {
     /* eslint-enable */
   })
 
-  test('delete', async () => {
+  test('can respond to `delete` queries', async () => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
     // Send the same query Studio client would send if an existing record was deleted
