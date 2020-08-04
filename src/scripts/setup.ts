@@ -29,8 +29,10 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
       `You provided RELEASE_PROMOTE_DEV without BUILDKITE_TAG, which doesn't make sense.`,
     )
   }
-  await run('.', `git config --global user.email "prismabots@gmail.com"`)
-  await run('.', `git config --global user.name "prisma-bot"`)
+  if (process.env.CI) {
+    await run('.', `git config --global user.email "prismabots@gmail.com"`)
+    await run('.', `git config --global user.name "prisma-bot"`)
+  }
   if (process.env.RELEASE_PROMOTE_DEV) {
     const versions = await getVersionHashes(process.env.RELEASE_PROMOTE_DEV)
     // TODO: disable the dry run here
