@@ -139,10 +139,10 @@ module.exports = async () => {
   )
   assert(
     executeRawWithValues === 0,
-    "prisma.$.$executeRaw(('UPDATE User SET name = $1 WHERE id = $2', 'Alice', 42) result should be 0",
+    "prisma.$executeRaw(('UPDATE User SET name = $1 WHERE id = $2', 'Alice', 42) result should be 0",
   )
 
-  // Test .$executeRaw(``
+  // Test $executeRaw
   const $executeRawTemplate = await db.$executeRaw`UPDATE User SET name = ${'name'} WHERE id = ${'id'}`
   assert.equal($executeRawTemplate, 0)
 

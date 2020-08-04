@@ -61,10 +61,10 @@ async function compressFile(filename) {
     const output = fs.createWriteStream(filename + '.br')
 
     input.pipe(compress).pipe(output)
-    output.$on('finish', () => {
+    output.on('finish', () => {
       resolve()
     })
-    output.$on('error', (ex) => {
+    output.on('error', (ex) => {
       reject(ex)
     })
   })
@@ -77,10 +77,10 @@ async function uncompressFile(filename) {
     const output = fs.createWriteStream(filename)
 
     input.pipe(decompress).pipe(output)
-    output.$on('finish', () => {
+    output.on('finish', () => {
       resolve()
     })
-    output.$on('error', (ex) => {
+    output.on('error', (ex) => {
       reject(ex)
     })
   })
