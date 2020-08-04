@@ -578,6 +578,13 @@ async function publish() {
       prisma2Version = await getNewDevVersion(packages)
     }
 
+    const tag =
+      patchBranch && !process.env.BUILDKITE_TAG
+        ? 'patch-dev'
+        : prisma2Version.includes('dev')
+        ? 'dev'
+        : 'latest'
+
     const packagesWithVersions = await getNewPackageVersions(
       packages,
       prisma2Version,
@@ -620,10 +627,10 @@ async function publish() {
       }
 
       if (args['--release']) {
-        const passing = await areEndToEndTestsPassing()
+        const passing = await areEndToEndTestsPassing(tag)
         if (!passing) {
-          throw new Error(`We can't release, as the e2e tests are not passing!
-Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3Atest+branch%3Amaster`)
+          throw new Error(`We can't release, as the e2e tests are not passing for the ${tag} npm tag!
+Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3Atest+branch%3A${tag}`)
         }
       }
 
@@ -637,6 +644,7 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
           prisma2Version,
           args['--release'],
           patchBranch,
+          tag,
         )
         console.log(`Waiting 5 sec so you can check it out first...`)
         await new Promise((r) => setTimeout(r, 5000))
@@ -650,6 +658,7 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         prisma2Version,
         args['--release'],
         patchBranch,
+        tag,
       )
 
       if (!process.env.PATCH_BRANCH) {
@@ -806,9 +815,10 @@ async function publishPackages(
   prisma2Version: string,
   releaseVersion?: string,
   patchBranch?: string,
+  tag: string,
 ): Promise<void> {
   // we need to release a new @prisma/cli in all cases.
-  // if there is a change in photon, photon will also use this new version
+  // if there is a change in prisma-client-js, it will also use this new version
 
   const publishStr = dryRun
     ? `${chalk.bold('Dry publish')} `
@@ -875,12 +885,6 @@ async function publishPackages(
     for (const pkgName of currentBatch) {
       const pkg = packages[pkgName]
       const pkgDir = path.dirname(pkg.path)
-      const tag =
-        patchBranch && !process.env.BUILDKITE_TAG
-          ? 'patch-dev'
-          : prisma2Version.includes('dev')
-          ? 'dev'
-          : 'latest'
 
       let newVersion = prisma2Version
       if (
@@ -1062,10 +1066,14 @@ async function getBranch(dir: string) {
   return runResult(dir, 'git rev-parse --symbolic-full-name --abbrev-ref HEAD')
 }
 
-async function areEndToEndTestsPassing(): Promise<boolean> {
-  const res = await fetch(
-    'https://github.com/prisma/e2e-tests/workflows/test/badge.svg',
-  ).then((r) => r.text())
+async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
+  let svgUrl = 'https://github.com/prisma/e2e-tests/workflows/test/badge.svg'
+
+  if (tag === 'patch-dev' || tag === 'dev') {
+    svgUrl += `?branch=${tag}`
+  }
+
+  const res = await fetch(svgUrl).then((r) => r.text())
   return res.includes('passing')
 }
 
