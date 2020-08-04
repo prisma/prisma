@@ -3,7 +3,14 @@ import fs from 'fs'
 import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
-import { arg, drawBox, getCLIPathHash, getProjectHash } from '@prisma/sdk'
+import {
+  arg,
+  drawBox,
+  getCLIPathHash,
+  getProjectHash,
+  getSchema,
+  getConfig,
+} from '@prisma/sdk'
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 export { byline } from '@prisma/migrate'
@@ -197,12 +204,41 @@ async function main(): Promise<number> {
     // SHA256 of the cli path
     const cliPathHash = getCLIPathHash()
 
+    let schemaProviders: string[] | undefined
+    let schemaPreviewFeatures: string[] | undefined
+    try {
+      const args = arg(
+        process.argv.slice(3),
+        { '--schema': String },
+        false,
+        true,
+      )
+      const schema = await getSchema(args['--schema'])
+      const config = await getConfig({
+        datamodel: schema,
+      })
+      if (config.datasources.length > 0) {
+        schemaProviders = config.datasources[0].provider
+      }
+      const generator = config.generators.find(
+        (gen) => gen.previewFeatures.length > 0,
+      )
+      if (generator) {
+        schemaPreviewFeatures = generator.previewFeatures
+      }
+    } catch (e) {
+      //
+      debug(e)
+    }
+
     // check prisma for updates
     const checkResult = await checkpoint.check({
       product: 'prisma',
       cli_path_hash: cliPathHash,
       project_hash: projectPathHash,
       version: packageJson.version,
+      schema_providers: schemaProviders,
+      schema_preview_features: schemaPreviewFeatures,
     })
     // if the result is cached and we're outdated, show this prompt
     const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
