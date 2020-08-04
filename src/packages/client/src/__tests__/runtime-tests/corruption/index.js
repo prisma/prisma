@@ -24,7 +24,7 @@ module.exports = async () => {
 
     const data = await prisma.user.findMany()
 
-    prisma.disconnect()
+    prisma.$disconnect()
   } catch (e) {
     if (!e.message.includes('not found')) {
       throw new Error(`Invalid error message for binary corruption: ${e}`)

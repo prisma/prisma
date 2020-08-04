@@ -8,7 +8,7 @@ module.exports = async () => {
     errorFormat: 'colorless',
   })
   try {
-    await prisma.connect()
+    await prisma.$connect()
   } catch (e) {
     throw e
   }

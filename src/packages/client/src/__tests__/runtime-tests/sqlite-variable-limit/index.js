@@ -17,7 +17,7 @@ module.exports = async () => {
     },
   })
 
-  prisma.disconnect()
+  prisma.$disconnect()
 }
 
 if (require.main === module) {
@@ -51,7 +51,7 @@ async function seed() {
     },
     { concurrency: 20 },
   )
-  prisma.disconnect()
+  prisma.$disconnect()
 }
 
 async function compressFile(filename) {
