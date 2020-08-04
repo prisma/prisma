@@ -4,7 +4,7 @@ import { link } from '../link'
 
 export const missingGeneratorMessage = `\n${chalk.blue(
   'info',
-)} You don't have defined any generator in your ${chalk.bold(
+)} You don't have any generators defined in your ${chalk.bold(
   'schema.prisma',
 )}, so nothing will be generated.
 You can define them like this:
@@ -15,9 +15,9 @@ ${chalk.bold(
 }`),
 )}`
 
-export const missingModelMessage = `\nYou don't have defined any ${chalk.bold(
+export const missingModelMessage = `\nYou don't have any ${chalk.bold(
   'model',
-)} in your ${chalk.bold('schema.prisma')}, so nothing will be generated.
+)} defined in your ${chalk.bold('schema.prisma')}, so nothing will be generated.
 You can define a model like this:
 
 ${chalk.bold(
