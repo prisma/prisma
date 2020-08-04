@@ -744,7 +744,8 @@ interface ArgOptions {
 
 export class Arg {
   public readonly key: string
-  public readonly value: ArgValue
+  // not readonly, as we later need to transform it
+  public value: ArgValue
   public readonly error?: InvalidArgError
   public readonly hasError: boolean
   public readonly isEnum: boolean
@@ -947,14 +948,9 @@ export function transformDocument(document: Document): Document {
   }
   function transformOrderArg(arg: Arg) {
     if (arg.value instanceof Args) {
-      const orderArg = arg.value.args[0]
-      if (orderArg && orderArg.value) {
-        return new Arg({
-          ...arg,
-          isEnum: true,
-          value: `${orderArg.key}_${orderArg.value!.toString().toUpperCase()}`,
-        })
-      }
+      arg.value.args.forEach((arg) => {
+        arg.value = String(arg.value).toUpperCase()
+      })
     }
 
     return arg

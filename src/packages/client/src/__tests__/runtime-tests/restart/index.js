@@ -8,7 +8,7 @@ module.exports = async () => {
 
   await db.user.findMany()
 
-  db.engine.child.kill()
+  db._engine.child.kill()
 
   await new Promise((r) => setTimeout(r, 1000))
 
@@ -16,7 +16,7 @@ module.exports = async () => {
   assert(result.length > 0)
 
   for (let i = 0; i < 7; i++) {
-    db.engine.child.kill()
+    db._engine.child.kill()
     await new Promise((r) => setTimeout(r, 200))
   }
   let err
@@ -31,7 +31,7 @@ module.exports = async () => {
     ),
   )
 
-  db.disconnect()
+  db.$disconnect()
 }
 
 if (require.main === module) {

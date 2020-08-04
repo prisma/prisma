@@ -24,7 +24,7 @@ module.exports = async () => {
 
   await prisma.user.findMany()
 
-  prisma.disconnect()
+  prisma.$disconnect()
 }
 
 if (require.main === module) {

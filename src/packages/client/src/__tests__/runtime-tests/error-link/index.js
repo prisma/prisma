@@ -22,7 +22,7 @@ module.exports = async () => {
     )
   }
 
-  db.disconnect()
+  db.$disconnect()
 }
 
 if (require.main === module) {

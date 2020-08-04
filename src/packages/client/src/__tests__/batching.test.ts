@@ -10,8 +10,8 @@ describe('batching', () => {
     const requests: any[] = []
 
     const fetcher = new PrismaClientFetcher({
-      connect: () => Promise.resolve(),
-      engine: {
+      $connect: () => Promise.resolve(),
+      _engine: {
         requestBatch: (batch) => {
           batches.push(batch)
           return batch.map(() => ({ data: { data: null }, elapsed: 0.2 }))
@@ -105,8 +105,8 @@ describe('batching', () => {
     const requests: any[] = []
 
     const fetcher = new PrismaClientFetcher({
-      connect: () => Promise.resolve(),
-      engine: {
+      $connect: () => Promise.resolve(),
+      _engine: {
         requestBatch: (batch) => {
           batches.push(batch)
           return batch.map(() => ({ data: { data: null }, elapsed: 0.2 }))
@@ -197,8 +197,8 @@ describe('batching', () => {
     const requests: any[] = []
 
     const fetcher = new PrismaClientFetcher({
-      connect: () => Promise.resolve(),
-      engine: {
+      $connect: () => Promise.resolve(),
+      _engine: {
         requestBatch: (batch) => {
           batches.push(batch)
           return batch.map(() => ({ data: { data: null }, elapsed: 0.2 }))

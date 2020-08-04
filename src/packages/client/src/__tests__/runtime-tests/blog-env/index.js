@@ -8,7 +8,7 @@ module.exports = async () => {
     errorFormat: 'colorless',
   })
   try {
-    await prisma.connect()
+    await prisma.$connect()
   } catch (e) {
     // make sure, that it's a PrismaClientInitializationError
     if (e instanceof PrismaClientInitializationError) {

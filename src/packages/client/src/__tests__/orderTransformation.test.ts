@@ -13,7 +13,7 @@ describe('where transformation', () => {
     const select = {
       orderBy: {
         email: 'asc',
-        // id: 'asc',
+        id: 'desc',
       },
     }
     const document = makeDocument({
@@ -22,10 +22,12 @@ describe('where transformation', () => {
       rootTypeName: 'query',
       rootField: 'findManyUser',
     })
+    document.validate(select)
     expect(String(document)).toMatchInlineSnapshot(`
       "query {
         findManyUser(orderBy: {
           email: asc
+          id: desc
         }) {
           id
           name
@@ -41,7 +43,10 @@ describe('where transformation', () => {
     `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       "query {
-        findManyUser(orderBy: email_ASC) {
+        findManyUser(orderBy: {
+          email: ASC
+          id: DESC
+        }) {
           id
           name
           email
@@ -89,7 +94,10 @@ describe('where transformation', () => {
     `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       "query {
-        findManyUser(orderBy: email_ASC) {
+        findManyUser(orderBy: {
+          email: ASC
+          id: ASC
+        }) {
           id
           name
           email
@@ -117,15 +125,13 @@ describe('where transformation', () => {
           ~~~~~~~~~~~~~~~
         }
 
-        Argument orderBy of type UserOrderByInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
-        type UserOrderByInput {
-          id?: OrderByArg
-          name?: OrderByArg
-          email?: OrderByArg
-          status?: OrderByArg
-          favoriteTree?: OrderByArg
-          locationId?: OrderByArg
+        Argument orderBy: Provided value 
+        {
+          email: 'asc',
+          id: 'asc'
         }
+        of type Json on prisma.findManyUser is not a enum.
+        → Possible values: UserOrderByInput.id_ASC, UserOrderByInput.id_DESC, UserOrderByInput.name_ASC, UserOrderByInput.name_DESC, UserOrderByInput.email_ASC, UserOrderByInput.email_DESC, UserOrderByInput.status_ASC, UserOrderByInput.status_DESC, UserOrderByInput.favoriteTree_ASC, UserOrderByInput.favoriteTree_DESC, UserOrderByInput.locationId_ASC, UserOrderByInput.locationId_DESC
 
         "
       `)

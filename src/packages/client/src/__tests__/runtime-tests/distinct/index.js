@@ -16,7 +16,7 @@ module.exports = async () => {
 
   assert.equal(result.length, 1)
 
-  prisma.disconnect()
+  prisma.$disconnect()
 }
 
 if (require.main === module) {
