@@ -16,7 +16,7 @@ ${chalk.bold(
 )}`
 
 export const missingModelMessage = `\nYou don't have any ${chalk.bold(
-  'model',
+  'models',
 )} defined in your ${chalk.bold('schema.prisma')}, so nothing will be generated.
 You can define a model like this:
 
