@@ -5,9 +5,14 @@ const prisma = new PrismaClient({
 } as any)
 
 async function main() {
-  // const result = await (prisma as any).__internal_triggerPanic(true)
-  const result = await prisma.$queryRaw(`SELECT 1`)
-  console.log(result)
+  const x = await prisma.user.findMany({
+    orderBy: {
+      email: 'desc',
+      name: 'asc',
+    },
+  })
+  console.log(x)
+  prisma.disconnect()
 }
 
 main().catch((e) => {
