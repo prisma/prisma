@@ -26,8 +26,8 @@ describe('where transformation', () => {
     expect(String(document)).toMatchInlineSnapshot(`
       "query {
         findManyUser(orderBy: {
-          \\"email\\": \\"asc\\",
-          \\"id\\": \\"desc\\"
+          email: asc
+          id: desc
         }) {
           id
           name
@@ -44,8 +44,8 @@ describe('where transformation', () => {
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       "query {
         findManyUser(orderBy: {
-          \\"email\\": \\"asc\\",
-          \\"id\\": \\"desc\\"
+          email: ASC
+          id: DESC
         }) {
           id
           name
@@ -77,8 +77,8 @@ describe('where transformation', () => {
     expect(String(document)).toMatchInlineSnapshot(`
       "query {
         findManyUser(orderBy: {
-          \\"email\\": \\"asc\\",
-          \\"id\\": \\"asc\\"
+          email: asc
+          id: asc
         }) {
           id
           name
@@ -95,8 +95,8 @@ describe('where transformation', () => {
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       "query {
         findManyUser(orderBy: {
-          \\"email\\": \\"asc\\",
-          \\"id\\": \\"asc\\"
+          email: ASC
+          id: ASC
         }) {
           id
           name
@@ -150,7 +150,7 @@ describe('where transformation', () => {
     })
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       "query {
-        findManyUser(orderBy: null) {
+        findManyUser {
           id
           name
           email
@@ -178,7 +178,7 @@ describe('where transformation', () => {
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       "query {
         findManyUser(orderBy: {
-          \\"id\\": null
+
         }) {
           id
           name
