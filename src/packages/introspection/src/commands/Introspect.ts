@@ -132,7 +132,7 @@ export class Introspect implements Command {
       const introspectionResult = await engine.introspect(
         schema,
         args['--experimental-reintrospection'],
-        args['--clean']
+        args['--clean'],
       )
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
@@ -164,6 +164,17 @@ ${chalk.bold('To fix this, you have two options:')}
 Then you can run ${chalk.green('prisma introspect')} again. 
 `)
         }
+      } else if (args['--experimental-reintrospection'] && !args['--clean']) {
+        // Waiting for a proper error code from the engine coming soon.
+        throw new Error(`\n${chalk.red(
+          'Introspection failed as your current Prisma schema file is invalid:',
+        )}
+Please fix your current schema manually, use ${chalk.green(
+          'prisma validate',
+        )} to confirm it is valid and then run this command again.
+Or run this command with the ${chalk.green(
+          '--clean',
+        )} flag to ignore your current schema and overwrite it. All local modifications will be lost.\n`)
       }
 
       throw e
