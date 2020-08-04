@@ -934,8 +934,10 @@ async function publishPackages(
   }
 
   if (process.env.UPDATE_STUDIO || process.env.PATCH_BRANCH) {
-    await run('.', `git config --global user.email "prismabots@gmail.com"`)
-    await run('.', `git config --global user.name "prisma-bot"`)
+    if (process.env.CI) {
+      await run('.', `git config --global user.email "prismabots@gmail.com"`)
+      await run('.', `git config --global user.name "prisma-bot"`)
+    }
     await run(
       '.',
       `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
