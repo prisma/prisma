@@ -31,6 +31,7 @@ const setupWS = (): Promise<WebSocket> => {
 
         res(ws)
       })
+
       ws.send(
         JSON.stringify({
           requestId: 1,
@@ -173,9 +174,8 @@ describe('Studio: Queries', () => {
 
   test('findMany', async () => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-    jest.setTimeout(10000)
 
-    // Send the same query Studio would send if launched
+    // Send the same query Studio client would send if launched
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
     const response = await sendRequest(ws, {
       requestId: 1,
@@ -244,9 +244,8 @@ describe('Studio: Queries', () => {
 
   test('create', async () => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-    jest.setTimeout(10000)
 
-    // Send the same query Studio would send if a new record was created
+    // Send the same query Studio client would send if a new record was created
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
     const response: any = await sendRequest(ws, {
       requestId: 1,
@@ -319,11 +318,88 @@ describe('Studio: Queries', () => {
     /* eslint-enable */
   })
 
+  test('update', async () => {
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
+    // Send the same query Studio client would send if a new record was created
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
+    const response: any = await sendRequest(ws, {
+      requestId: 1,
+      channel: 'photon',
+      action: 'request',
+      payload: {
+        data: {
+          query: `
+          prisma.with_all_field_types.update({
+            where: {
+              id: 1
+            },
+            data: {
+              string: "Changed String",
+              int: 100,
+              float: 100.5,
+              datetime: "2025-08-03T00:00:00.000Z",
+              relation: {
+                connect: {
+                  id: 3
+                }
+              },
+              relation_list: {
+                connect: {
+                  id: 3
+                }
+              }
+            },
+            select: {
+              id: true,
+              string: true,
+              int: true,
+              float: true,
+              datetime: true,
+              relation: true,
+              relation_list: true,
+            }
+          })`,
+        },
+      },
+    })
+
+    expect(response).toHaveProperty('payload')
+
+    expect(response.payload).toHaveProperty('error', null)
+
+    expect(response.payload).toHaveProperty('data')
+    expect(response.payload.data).toHaveProperty('meta')
+    expect(response.payload.data.meta).toHaveProperty(
+      'typeName',
+      'with_all_field_types',
+    )
+    expect(response.payload.data.meta).toHaveProperty('fieldNames', [
+      'id',
+      'string',
+      'int',
+      'float',
+      'datetime',
+      'relation',
+      'relation_list',
+    ])
+
+    expect(response.payload.data).toHaveProperty('response', {
+      id: 1,
+      string: 'Changed String',
+      int: 100,
+      float: 100.5,
+      datetime: '2025-08-03T00:00:00.000Z',
+      relation: { id: 3, name: 'Relation Target 003', waft_id: 1 },
+      relation_list: [{ id: 3, name: 'Relation Target 003', waft_id: 1 }],
+    })
+    /* eslint-enable */
+  })
+
   test('delete', async () => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-    jest.setTimeout(10000)
 
-    // Send the same query Studio would send if an existing record was deleted
+    // Send the same query Studio client would send if an existing record was deleted
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
     const response: any = await sendRequest(ws, {
       requestId: 1,
