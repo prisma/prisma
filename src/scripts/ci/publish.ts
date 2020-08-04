@@ -642,9 +642,9 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
           getPublishOrder(packages),
           true,
           prisma2Version,
+          tag,
           args['--release'],
           patchBranch,
-          tag,
         )
         console.log(`Waiting 5 sec so you can check it out first...`)
         await new Promise((r) => setTimeout(r, 5000))
@@ -656,9 +656,9 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         getPublishOrder(packages),
         dryRun,
         prisma2Version,
+        tag,
         args['--release'],
         patchBranch,
-        tag,
       )
 
       if (!process.env.PATCH_BRANCH) {
@@ -813,9 +813,9 @@ async function publishPackages(
   publishOrder: string[][],
   dryRun: boolean,
   prisma2Version: string,
+  tag: string,
   releaseVersion?: string,
   patchBranch?: string,
-  tag: string,
 ): Promise<void> {
   // we need to release a new @prisma/cli in all cases.
   // if there is a change in prisma-client-js, it will also use this new version
