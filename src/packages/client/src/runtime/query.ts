@@ -946,15 +946,6 @@ export function transformDocument(document: Document): Document {
       }),
     )
   }
-  function transformOrderArg(arg: Arg) {
-    if (arg.value instanceof Args) {
-      arg.value.args.forEach((arg) => {
-        arg.value = String(arg.value).toUpperCase()
-      })
-    }
-
-    return arg
-  }
   return visit(document, {
     Arg: {
       enter(arg) {
@@ -963,10 +954,6 @@ export function transformDocument(document: Document): Document {
           return undefined
         }
         if (isInputArgType(argType)) {
-          if (argType.isOrderType) {
-            return transformOrderArg(arg)
-          }
-
           if (argType.isWhereType && schemaArg) {
             let value = arg.value
             if (isArgsArray(arg.value)) {
@@ -1439,14 +1426,21 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
           let error: AtMostOneError | AtLeastOneError | undefined
           const keys = Object.keys(val || {})
           const numKeys = keys.length
+
           if (numKeys === 0 && t.type.atLeastOne) {
             error = {
               type: 'atLeastOne',
               key,
               inputType: t.type,
             }
-          }
-          if (numKeys > 1 && t.type.atMostOne) {
+          } else if (numKeys > 1 && t.type.isOneOf) {
+            error = {
+              type: 'atMostOne',
+              key,
+              inputType: t.type,
+              providedKeys: keys,
+            }
+          } else if (numKeys > 1 && t.type.atMostOne) {
             error = {
               type: 'atMostOne',
               key,
@@ -1551,13 +1545,26 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   const hasAtLeastOneError = inputType.atLeastOne
     ? value.some((v) => !v || Object.keys(cleanObject(v)).length === 0)
     : false
-  const err: AtLeastOneError | undefined = hasAtLeastOneError
+  let err: AtLeastOneError | undefined | AtMostOneError = hasAtLeastOneError
     ? {
         inputType,
         key,
         type: 'atLeastOne',
       }
     : undefined
+  if (!err) {
+    const hasOneOfError = inputType.isOneOf
+      ? value.find((v) => !v || Object.keys(cleanObject(v)).length !== 1)
+      : false
+    if (hasOneOfError) {
+      err = {
+        inputType,
+        key,
+        type: 'atMostOne',
+        providedKeys: Object.keys(hasOneOfError),
+      }
+    }
+  }
   return new Arg({
     key,
     value: value.map((v) => {
