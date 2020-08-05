@@ -37,6 +37,8 @@ importers:
       ts-node: 8.10.2
       typescript: 3.9.7
   packages/cli:
+    dependencies:
+      ws: 7.3.1
     devDependencies:
       '@apexearth/copy': 1.4.5
       '@prisma/client': 'link:../client'
@@ -55,6 +57,7 @@ importers:
       '@types/mocha': 8.0.1
       '@types/pg': 7.14.4
       '@types/sqlite3': 3.1.6
+      '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 3.7.1_98f5354ad0bbc327ab4925c12674a6b1
       '@typescript-eslint/parser': 3.7.1_eslint@7.6.0+typescript@3.9.7
       '@zeit/ncc': 0.22.3
@@ -112,6 +115,7 @@ importers:
       '@types/mocha': 8.0.1
       '@types/pg': 7.14.4
       '@types/sqlite3': 3.1.6
+      '@types/ws': ^7.2.6
       '@typescript-eslint/eslint-plugin': 3.7.1
       '@typescript-eslint/parser': 3.7.1
       '@zeit/ncc': 0.22.3
@@ -143,7 +147,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: 4.2.0
+      sqlite3: '4.1'
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.6.0
@@ -151,6 +155,7 @@ importers:
       ts-jest: 26.1.4
       ts-mocha: 7.0.0
       typescript: 3.9.7
+      ws: ^7.3.1
   packages/client:
     dependencies:
       pkg-up: 3.1.0
@@ -666,7 +671,6 @@ importers:
       '@types/node': 12.12.53
       '@types/prompts': 2.0.8
       '@types/react': 16.9.11
-      '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 3.7.1_98f5354ad0bbc327ab4925c12674a6b1
       '@typescript-eslint/parser': 3.7.1_eslint@7.6.0+typescript@3.9.7
       '@zeit/ncc': 0.22.3
@@ -687,7 +691,6 @@ importers:
       tempy: 0.5.0
       ts-jest: 26.1.4_jest@26.2.2+typescript@3.9.7
       typescript: 3.9.7
-      ws: 7.3.1
     specifiers:
       '@prisma/client': 'workspace:*'
       '@prisma/debug': 'workspace:*'
@@ -706,7 +709,6 @@ importers:
       '@types/node': 12.12.53
       '@types/prompts': 2.0.8
       '@types/react': 16.9.11
-      '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 3.7.1
       '@typescript-eslint/parser': 3.7.1
       '@zeit/ncc': 0.22.3
@@ -754,7 +756,6 @@ importers:
       tempy: 0.5.0
       ts-jest: 26.1.4
       typescript: 3.9.7
-      ws: 7.3.1
   packages/sdk:
     dependencies:
       '@apexearth/copy': 1.4.5
@@ -1758,10 +1759,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-yzBInQFhdY8kaZmqoL2+3U5dSTMrKaYcb561VU+lDzAYvqt+2lojvBEy+hmpSNuXnPTx7m9+04CzWYOUqWME2A==
-  /@types/node/12.12.50:
-    dev: true
-    resolution:
-      integrity: sha512-5ImO01Fb8YsEOYpV+aeyGYztcYcjGsBvN4D7G5r1ef2cuQOpymjWNQi5V0rKHE6PC2ru3HkoUr/Br2/8GUA84w==
   /@types/node/12.12.53:
     resolution:
       integrity: sha512-51MYTDTyCziHb70wtGNFRwB4l+5JNvdqzFSkbDvpbftEgVUBEE+T5f7pROhWMp/fxp07oNIEQZd5bbfAH22ohQ==
@@ -1773,6 +1770,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-rouEWBImiRaSJsVA+ITTFM6ZxibuAlTuNOCyxVbwreu6k6+ujs7DfnU9o+PShFhET78pMBl3eH+AGSI5eOTkPA==
+  /@types/node/14.0.27:
+    dev: true
+    resolution:
+      integrity: sha512-kVrqXhbclHNHGu9ztnAwSncIgJv/FaxmzXJvGXNdcCpV1b8u1/Mi6z6m0vwy0LzKeXFTPLH0NzwmoJ3fNCIq0g==
   /@types/normalize-package-data/2.4.0:
     resolution:
       integrity: sha512-f5j5b/Gf71L+dbqxIpQ4Z2WlmI/mPJ0fOkGGmFgtb6sAu97EPczzbS3/tJKxmcYDj55OX6ssqwDAWOHIYDRDGA==
@@ -1844,7 +1845,7 @@ packages:
       integrity: sha512-Z7AVMMlkI8NTWF0qGhC4QIX0zkV/+y0J8x7b/RsHrN0310+YNjoJd8UrApCiGBCWtKjxS9QhNqLi2UJNToh5hA==
   /@types/ws/7.2.6:
     dependencies:
-      '@types/node': 12.12.50
+      '@types/node': 14.0.27
     dev: true
     resolution:
       integrity: sha512-Q07IrQUSNpr+cXU4E4LtkSIBPie5GLZyyMC1QtQYRLWz701+XcoVygGUZgvLqElq1nU4ICldMYPnexlBsg3dqQ==
@@ -8870,7 +8871,6 @@ packages:
     resolution:
       integrity: sha512-jaHFD6PFv6UgoIVda6qZllptQsMlDEJkTQcybzzXDYM1XO9Y8em691FGMPmM46WGyLU4z9KMgQN+qrux/nhlHA==
   /ws/7.3.1:
-    dev: true
     engines:
       node: '>=8.3.0'
     peerDependencies:

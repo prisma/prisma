@@ -7,7 +7,6 @@ build
 tmp/
 failed-*.md
 *.db
-!studio-test.db
 .env*
 pnpm-debug.log
 write-test

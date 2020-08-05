@@ -1,16 +1,10 @@
 import fs from 'fs'
 import path from 'path'
-import { promisify } from 'util'
 import http from 'http'
-import tempy from 'tempy'
-import del from 'del'
-import mkdir from 'make-dir'
+import assert from 'assert'
 import WebSocket from 'ws'
-import { getGenerator } from '@prisma/sdk'
+import { Studio } from '@prisma/migrate'
 
-import { Studio } from '../Studio'
-
-const writeFile = promisify(fs.writeFile)
 const STUDIO_TEST_PORT = 5678
 
 const setupWS = (): Promise<WebSocket> => {
@@ -21,8 +15,8 @@ const setupWS = (): Promise<WebSocket> => {
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
         const message: any = JSON.parse(data)
 
-        expect(message).toHaveProperty('channel')
-        expect(message).toHaveProperty('action')
+        assert.notStrictEqual(message.channel, undefined)
+        assert.notStrictEqual(message.action, undefined)
 
         /* eslint-disable @typescript-eslint/no-unsafe-member-access */
         if (message.channel !== '-photon' && message.action !== 'start') {
@@ -51,8 +45,8 @@ const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
       /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
       const message: any = JSON.parse(data)
 
-      expect(message).toHaveProperty('channel')
-      expect(message).toHaveProperty('action')
+      assert.notStrictEqual(message.channel, undefined)
+      assert.notStrictEqual(message.action, undefined)
 
       /* eslint-disable @typescript-eslint/no-unsafe-member-access */
       if (message.channel !== '-photon' && message.action !== 'request') {
@@ -68,77 +62,24 @@ const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
   })
 }
 
-jest.setTimeout(10000) // Increase timeout for all tests & hooks
-
 describe('Studio', () => {
-  let testRootDir: string
   let studioInstance: Studio
   let ws: WebSocket
 
-  beforeAll(async () => {
-    testRootDir = tempy.directory()
-
-    await mkdir(testRootDir)
-    await writeFile(
-      path.resolve(`${testRootDir}/schema.prisma`),
-      `
-      datasource my_db {
-        provider        = "sqlite"
-        url             = "file:./studio-test.db"
-      }
-
-      generator client {
-        provider        = "prisma-client-js"
-        previewFeatures = [ "middlewares" ]
-        output          = "./client"
-      }
-
-      model with_all_field_types {
-        id       Int      @id
-        string   String
-        int      Int
-        float    Float
-        datetime DateTime
-      
-        relation      relation_target   @relation("waft_rt")
-        relation_list relation_target[] @relation("waft_rt_list")
-      }
-      
-      model relation_target {
-        id   Int    @id
-        name String
-      
-        // waft = With All Field Types
-        waft_id Int?
-        waft    with_all_field_types?  @relation("waft_rt", fields: [waft_id], references: [id])
-        wafts   with_all_field_types[] @relation("waft_rt_list", fields: [waft_id], references: [id])
-      }
-    `,
-    )
-    fs.copyFileSync(
-      './src/__tests__/studio-test.db',
-      path.resolve(`${testRootDir}/studio-test.db`),
-    )
-
-    const generator = await getGenerator({
-      schemaPath: path.resolve(`${testRootDir}/schema.prisma`),
-    })
-    await generator.generate()
-    generator.stop()
-  })
-
   beforeEach(async () => {
-    // "Reset" the DB before each test by replacing the SQLite file
+    // Before  every test, we'd like to reset the DB.
+    // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
     fs.copyFileSync(
-      './src/__tests__/studio-test.db',
-      path.resolve(`${testRootDir}/studio-test.db`),
+      './src/__tests__/fixtures/studio-test-project/dev.db',
+      './src/__tests__/fixtures/studio-test-project/dev_tmp.db',
     )
     studioInstance = new Studio({
-      schemaPath: path.resolve(`${testRootDir}/schema.prisma`),
+      schemaPath: path.resolve(
+        './src/__tests__/fixtures/studio-test-project/schema.prisma',
+      ),
       staticAssetDir: path.resolve(__dirname, '../../../cli/build/public'),
       port: STUDIO_TEST_PORT,
       browser: 'none',
-      generatedPrismaClientDir: path.resolve(`${testRootDir}/client`),
     })
 
     await studioInstance.start({})
@@ -151,15 +92,11 @@ describe('Studio', () => {
     ws.close()
   })
 
-  afterAll(async () => {
-    await del(testRootDir, { force: true }) // Need force: true because `del` does not delete dirs outside the CWD
-  })
-
-  test('launches client correctly', async () => {
+  it('launches client correctly', async () => {
     await new Promise((res, rej) => {
       http.get(`http://localhost:${STUDIO_TEST_PORT}`, (response) => {
         try {
-          expect(response.statusCode).toBe(200)
+          assert.equal(response.statusCode, 200)
           res()
         } catch (e) {
           rej(e)
@@ -168,7 +105,7 @@ describe('Studio', () => {
     })
   })
 
-  test('can respond to `findMany` queries', async () => {
+  it.only('can respond to `findMany` queries', async () => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
     // Send the same query Studio client would send if launched
@@ -195,18 +132,19 @@ describe('Studio', () => {
       },
     })
 
-    expect(response).toHaveProperty('payload')
+    assert.notStrictEqual(response.payload, undefined)
 
-    expect(response.payload).toHaveProperty('error', null)
+    assert.strictEqual(response.payload.error, null)
 
-    expect(response.payload).toHaveProperty('data')
-    expect(response.payload.data).toHaveProperty('params')
-    expect(response.payload.data.params).toHaveProperty(
-      'model',
+    assert.notStrictEqual(response.payload.data, undefined)
+    assert.notStrictEqual(response.payload.data.params, undefined)
+    assert.notStrictEqual(response.payload.data.params.model, undefined)
+    assert.strictEqual(
+      response.payload.data.params.model,
       'with_all_field_types',
     )
-    expect(response.payload.data.params).toHaveProperty('args')
-    expect(response.payload.data.params.args).toHaveProperty('select', {
+    assert.notStrictEqual(response.payload.data.params.args, undefined)
+    assert.deepStrictEqual(response.payload.data.params.args.select, {
       id: true,
       string: true,
       int: true,
@@ -216,7 +154,8 @@ describe('Studio', () => {
       relation_list: true,
     })
 
-    expect(response.payload.data).toHaveProperty('response', [
+    assert.notStrictEqual(response.payload.data.response, undefined)
+    assert.deepStrictEqual(response.payload.data.response, [
       {
         id: 1,
         string: 'Some string',
@@ -239,7 +178,7 @@ describe('Studio', () => {
     /* eslint-enable */
   })
 
-  test('can respond to `create` queries', async () => {
+  it('can respond to `create` queries', async () => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
     // Send the same query Studio client would send if a new record was created
@@ -283,18 +222,19 @@ describe('Studio', () => {
       },
     })
 
-    expect(response).toHaveProperty('payload')
+    assert.notStrictEqual(response.payload, undefined)
 
-    expect(response.payload).toHaveProperty('error', null)
+    assert.strictEqual(response.payload.error, null)
 
-    expect(response.payload).toHaveProperty('data')
-    expect(response.payload.data).toHaveProperty('params')
-    expect(response.payload.data.params).toHaveProperty(
-      'model',
+    assert.notStrictEqual(response.payload.data, undefined)
+    assert.notStrictEqual(response.payload.data.params, undefined)
+    assert.notStrictEqual(response.payload.data.params.model, undefined)
+    assert.strictEqual(
+      response.payload.data.params.model,
       'with_all_field_types',
     )
-    expect(response.payload.data.params).toHaveProperty('args')
-    expect(response.payload.data.params.args).toHaveProperty('select', {
+    assert.notStrictEqual(response.payload.data.params.args, undefined)
+    assert.deepStrictEqual(response.payload.data.params.args.select, {
       id: true,
       string: true,
       int: true,
@@ -304,7 +244,8 @@ describe('Studio', () => {
       relation_list: true,
     })
 
-    expect(response.payload.data).toHaveProperty('response', {
+    assert.notStrictEqual(response.payload.data.response, undefined)
+    assert.deepStrictEqual(response.payload.data.response, {
       id: 3,
       string: '',
       int: 0,
@@ -316,7 +257,7 @@ describe('Studio', () => {
     /* eslint-enable */
   })
 
-  test('can respond to `update` queries', async () => {
+  it('can respond to `update` queries', async () => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
     // Send the same query Studio client would send if a new record was created
@@ -362,18 +303,19 @@ describe('Studio', () => {
       },
     })
 
-    expect(response).toHaveProperty('payload')
+    assert.notStrictEqual(response.payload, undefined)
 
-    expect(response.payload).toHaveProperty('error', null)
+    assert.strictEqual(response.payload.error, null)
 
-    expect(response.payload).toHaveProperty('data')
-    expect(response.payload.data).toHaveProperty('params')
-    expect(response.payload.data.params).toHaveProperty(
-      'model',
+    assert.notStrictEqual(response.payload.data, undefined)
+    assert.notStrictEqual(response.payload.data.params, undefined)
+    assert.notStrictEqual(response.payload.data.params.model, undefined)
+    assert.strictEqual(
+      response.payload.data.params.model,
       'with_all_field_types',
     )
-    expect(response.payload.data.params).toHaveProperty('args')
-    expect(response.payload.data.params.args).toHaveProperty('select', {
+    assert.notStrictEqual(response.payload.data.params.args, undefined)
+    assert.deepStrictEqual(response.payload.data.params.args.select, {
       id: true,
       string: true,
       int: true,
@@ -383,7 +325,8 @@ describe('Studio', () => {
       relation_list: true,
     })
 
-    expect(response.payload.data).toHaveProperty('response', {
+    assert.notStrictEqual(response.payload.data.response, undefined)
+    assert.deepStrictEqual(response.payload.data.response, {
       id: 1,
       string: 'Changed String',
       int: 100,
@@ -395,7 +338,7 @@ describe('Studio', () => {
     /* eslint-enable */
   })
 
-  test('can respond to `delete` queries', async () => {
+  it('can respond to `delete` queries', async () => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
     // Send the same query Studio client would send if an existing record was deleted
@@ -423,18 +366,19 @@ describe('Studio', () => {
       },
     })
 
-    expect(response).toHaveProperty('payload')
+    assert.notStrictEqual(response.payload, undefined)
 
-    expect(response.payload).toHaveProperty('error', null)
+    assert.strictEqual(response.payload.error, null)
 
-    expect(response.payload).toHaveProperty('data')
-    expect(response.payload.data).toHaveProperty('params')
-    expect(response.payload.data.params).toHaveProperty(
-      'model',
+    assert.notStrictEqual(response.payload.data, undefined)
+    assert.notStrictEqual(response.payload.data.params, undefined)
+    assert.notStrictEqual(response.payload.data.params.model, undefined)
+    assert.strictEqual(
+      response.payload.data.params.model,
       'with_all_field_types',
     )
-    expect(response.payload.data.params).toHaveProperty('args')
-    expect(response.payload.data.params.args).toHaveProperty('select', {
+    assert.notStrictEqual(response.payload.data.params.args, undefined)
+    assert.deepStrictEqual(response.payload.data.params.args.select, {
       id: true,
       string: true,
       int: true,
@@ -444,7 +388,8 @@ describe('Studio', () => {
       relation_list: true,
     })
 
-    expect(response.payload.data).toHaveProperty('response', {
+    assert.notStrictEqual(response.payload.data.response, undefined)
+    assert.deepStrictEqual(response.payload.data.response, {
       id: 2,
       string: 'Delete me',
       int: 0,
