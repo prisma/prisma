@@ -169,20 +169,21 @@ describe('Studio', () => {
     expect(response.payload).toHaveProperty('error', null)
 
     expect(response.payload).toHaveProperty('data')
-    expect(response.payload.data).toHaveProperty('meta')
-    expect(response.payload.data.meta).toHaveProperty(
-      'typeName',
+    expect(response.payload.data).toHaveProperty('params')
+    expect(response.payload.data.params).toHaveProperty(
+      'model',
       'with_all_field_types',
     )
-    expect(response.payload.data.meta).toHaveProperty('fieldNames', [
-      'id',
-      'string',
-      'int',
-      'float',
-      'datetime',
-      'relation',
-      'relation_list',
-    ])
+    expect(response.payload.data.params).toHaveProperty('args')
+    expect(response.payload.data.params.args).toHaveProperty('select', {
+      id: true,
+      string: true,
+      int: true,
+      float: true,
+      datetime: true,
+      relation: true,
+      relation_list: true,
+    })
 
     expect(response.payload.data).toHaveProperty('response', [
       {
@@ -256,20 +257,21 @@ describe('Studio', () => {
     expect(response.payload).toHaveProperty('error', null)
 
     expect(response.payload).toHaveProperty('data')
-    expect(response.payload.data).toHaveProperty('meta')
-    expect(response.payload.data.meta).toHaveProperty(
-      'typeName',
+    expect(response.payload.data).toHaveProperty('params')
+    expect(response.payload.data.params).toHaveProperty(
+      'model',
       'with_all_field_types',
     )
-    expect(response.payload.data.meta).toHaveProperty('fieldNames', [
-      'id',
-      'string',
-      'int',
-      'float',
-      'datetime',
-      'relation',
-      'relation_list',
-    ])
+    expect(response.payload.data.params).toHaveProperty('args')
+    expect(response.payload.data.params.args).toHaveProperty('select', {
+      id: true,
+      string: true,
+      int: true,
+      float: true,
+      datetime: true,
+      relation: true,
+      relation_list: true,
+    })
 
     expect(response.payload.data).toHaveProperty('response', {
       id: 3,
@@ -334,20 +336,21 @@ describe('Studio', () => {
     expect(response.payload).toHaveProperty('error', null)
 
     expect(response.payload).toHaveProperty('data')
-    expect(response.payload.data).toHaveProperty('meta')
-    expect(response.payload.data.meta).toHaveProperty(
-      'typeName',
+    expect(response.payload.data).toHaveProperty('params')
+    expect(response.payload.data.params).toHaveProperty(
+      'model',
       'with_all_field_types',
     )
-    expect(response.payload.data.meta).toHaveProperty('fieldNames', [
-      'id',
-      'string',
-      'int',
-      'float',
-      'datetime',
-      'relation',
-      'relation_list',
-    ])
+    expect(response.payload.data.params).toHaveProperty('args')
+    expect(response.payload.data.params.args).toHaveProperty('select', {
+      id: true,
+      string: true,
+      int: true,
+      float: true,
+      datetime: true,
+      relation: true,
+      relation_list: true,
+    })
 
     expect(response.payload.data).toHaveProperty('response', {
       id: 1,
@@ -394,20 +397,21 @@ describe('Studio', () => {
     expect(response.payload).toHaveProperty('error', null)
 
     expect(response.payload).toHaveProperty('data')
-    expect(response.payload.data).toHaveProperty('meta')
-    expect(response.payload.data.meta).toHaveProperty(
-      'typeName',
+    expect(response.payload.data).toHaveProperty('params')
+    expect(response.payload.data.params).toHaveProperty(
+      'model',
       'with_all_field_types',
     )
-    expect(response.payload.data.meta).toHaveProperty('fieldNames', [
-      'id',
-      'string',
-      'int',
-      'float',
-      'datetime',
-      'relation',
-      'relation_list',
-    ])
+    expect(response.payload.data.params).toHaveProperty('args')
+    expect(response.payload.data.params.args).toHaveProperty('select', {
+      id: true,
+      string: true,
+      int: true,
+      float: true,
+      datetime: true,
+      relation: true,
+      relation_list: true,
+    })
 
     expect(response.payload.data).toHaveProperty('response', {
       id: 2,
