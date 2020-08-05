@@ -82,6 +82,7 @@ function createTests() {
         assert.ok(result.files['README.md'])
         expect(migration?.datamodelSteps).toMatchSnapshot()
         expect(migration?.warnings).toMatchSnapshot()
+        expect(migration?.unexecutableMigrations).toMatchSnapshot()
       },
     },
     {
@@ -114,6 +115,7 @@ function createTests() {
         assert.ok(result.files['README.md'])
         expect(migration?.datamodelSteps).toMatchSnapshot()
         expect(migration?.warnings).toMatchSnapshot()
+        expect(migration?.unexecutableMigrations).toMatchSnapshot()
       },
     },
     {
@@ -146,6 +148,7 @@ function createTests() {
         assert.ok(result.files['README.md'])
         expect(migration?.datamodelSteps).toMatchSnapshot()
         expect(migration?.warnings).toMatchSnapshot()
+        expect(migration?.unexecutableMigrations).toMatchSnapshot()
       },
     },
     {
@@ -178,6 +181,7 @@ function createTests() {
         assert.ok(result.files['README.md'])
         expect(migration?.datamodelSteps).toMatchSnapshot()
         expect(migration?.warnings).toMatchSnapshot()
+        expect(migration?.unexecutableMigrations).toMatchSnapshot()
       },
     },
     {
@@ -210,6 +214,7 @@ function createTests() {
         assert.ok(result.files['README.md'])
         expect(migration?.datamodelSteps).toMatchSnapshot()
         expect(migration?.warnings).toMatchSnapshot()
+        expect(migration?.unexecutableMigrations).toMatchSnapshot()
       },
     },
     {
@@ -256,6 +261,7 @@ function createTests() {
         assert.ok(result.files['README.md'])
         expect(migration?.datamodelSteps).toMatchSnapshot()
         expect(migration?.warnings).toMatchSnapshot()
+        expect(migration?.unexecutableMigrations).toMatchSnapshot()
 
         // Save from CLI - write files to filesystem
         const resultSave = await MigrateSave.new().parse([
