@@ -13,6 +13,7 @@ export interface StudioOptions {
   browser?: string
   port?: number
   staticAssetDir?: string
+  generatedPrismaClientDir?: string // Used by tests only currently
 }
 
 const debug = Debug('Studio')
@@ -24,17 +25,20 @@ export class Studio {
   private instance?: any
   private port?: number
   private staticAssetDir?: string
+  private generatedPrismaClientDir?: string
 
   constructor({
     schemaPath,
     browser,
     port,
     staticAssetDir,
+    generatedPrismaClientDir,
   }: StudioOptions = {}) {
     this.schemaPath = this.getSchemaPath(schemaPath)
     this.browser = browser
     this.port = port
     this.staticAssetDir = staticAssetDir || path.resolve(__dirname, 'public') // Overriding this directory since after NCC compilation, this won't resolve automatically
+    this.generatedPrismaClientDir = generatedPrismaClientDir
   }
 
   public async start(providerAliases: ProviderAliases): Promise<string> {
@@ -89,6 +93,8 @@ export class Studio {
           queryEngine: firstExistingPath.path,
         },
         prismaClient: {
+          // Technically only one of `dir` or `generator` is needed. Internally, the `generator` will be used only if `dir` is undefined
+          dir: this.generatedPrismaClientDir,
           generator: {
             version: packageJson.prisma.version,
             providerAliases,

@@ -6,11 +6,11 @@ import tempy from 'tempy'
 import del from 'del'
 import mkdir from 'make-dir'
 import WebSocket from 'ws'
+import { getGenerator } from '@prisma/sdk'
 
 import { Studio } from '../Studio'
 
 const writeFile = promisify(fs.writeFile)
-const testRootDir = tempy.directory()
 const STUDIO_TEST_PORT = 5678
 
 const setupWS = (): Promise<WebSocket> => {
@@ -71,17 +71,26 @@ const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
 jest.setTimeout(10000) // Increase timeout for all tests & hooks
 
 describe('Studio', () => {
+  let testRootDir: string
   let studioInstance: Studio
   let ws: WebSocket
 
-  beforeEach(async () => {
+  beforeAll(async () => {
+    testRootDir = tempy.directory()
+
     await mkdir(testRootDir)
     await writeFile(
       path.resolve(`${testRootDir}/schema.prisma`),
       `
       datasource my_db {
-        provider = "sqlite"
-        url      = "file:./studio-test.db"
+        provider        = "sqlite"
+        url             = "file:./studio-test.db"
+      }
+
+      generator client {
+        provider        = "prisma-client-js"
+        previewFeatures = [ "middlewares" ]
+        output          = "./client"
       }
 
       model with_all_field_types {
@@ -110,11 +119,26 @@ describe('Studio', () => {
       './src/__tests__/studio-test.db',
       path.resolve(`${testRootDir}/studio-test.db`),
     )
+
+    const generator = await getGenerator({
+      schemaPath: path.resolve(`${testRootDir}/schema.prisma`),
+    })
+    await generator.generate()
+    generator.stop()
+  })
+
+  beforeEach(async () => {
+    // "Reset" the DB before each test by replacing the SQLite file
+    fs.copyFileSync(
+      './src/__tests__/studio-test.db',
+      path.resolve(`${testRootDir}/studio-test.db`),
+    )
     studioInstance = new Studio({
       schemaPath: path.resolve(`${testRootDir}/schema.prisma`),
       staticAssetDir: path.resolve(__dirname, '../../../cli/build/public'),
       port: STUDIO_TEST_PORT,
       browser: 'none',
+      generatedPrismaClientDir: path.resolve(`${testRootDir}/client`),
     })
 
     await studioInstance.start({})
@@ -124,15 +148,22 @@ describe('Studio', () => {
 
   afterEach(async () => {
     await studioInstance.stop()
-    await del(testRootDir, { force: true }) // Need force: true because `del` does not delete dirs outside the CWD
     ws.close()
   })
 
+  afterAll(async () => {
+    await del(testRootDir, { force: true }) // Need force: true because `del` does not delete dirs outside the CWD
+  })
+
   test('launches client correctly', async () => {
-    await new Promise((res) => {
+    await new Promise((res, rej) => {
       http.get(`http://localhost:${STUDIO_TEST_PORT}`, (response) => {
-        expect(response.statusCode).toBe(200)
-        res()
+        try {
+          expect(response.statusCode).toBe(200)
+          res()
+        } catch (e) {
+          rej(e)
+        }
       })
     })
   })
