@@ -122,6 +122,7 @@ export namespace DMMF {
     isOrderType?: boolean
     atLeastOne?: boolean
     atMostOne?: boolean
+    isOneOf?: boolean
     fields: SchemaArg[]
     fieldMap?: Record<string, SchemaArg>
   }

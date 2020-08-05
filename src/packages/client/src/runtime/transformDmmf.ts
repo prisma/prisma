@@ -7,7 +7,7 @@ export function transformDmmf(document: DMMF.Document): DMMF.Document {
     datamodel: doc.datamodel,
     mappings: doc.mappings,
     schema: {
-      enums: transformSortOrder(doc.schema.enums),
+      enums: doc.schema.enums,
       rootMutationType: doc.schema.rootMutationType,
       rootQueryType: doc.schema.rootQueryType,
       outputTypes: filterOutputTypes(doc.schema.outputTypes),
@@ -33,15 +33,6 @@ function filterInputTypes(types: DMMF.InputType[]): DMMF.InputType[] {
 
 function filterOutputTypes(types: DMMF.OutputType[]): DMMF.OutputType[] {
   return uniqBy(types, (o) => o.name)
-}
-
-function transformSortOrder(enums: DMMF.Enum[]): DMMF.Enum[] {
-  return enums.map((e) => {
-    if (e.name === 'SortOrder') {
-      e.values = e.values.map((v) => v.toLowerCase())
-    }
-    return e
-  })
 }
 
 function makeWhereUniqueInputsRequired(
