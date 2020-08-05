@@ -8,12 +8,13 @@ export type Platform =
   | 'linux-musl'
   | 'linux-nixos'
   | 'windows'
-  | 'freebsd'
+  | 'freebsd11'
+  | 'freebsd12'
   | 'openbsd'
   | 'netbsd'
   | 'arm'
 
-export const platforms = [
+export const platforms: Array<Platform> = [
   'darwin',
   'debian-openssl-1.0.x',
   'debian-openssl-1.1.x',
@@ -22,7 +23,8 @@ export const platforms = [
   'linux-musl',
   'linux-nixos',
   'windows',
-  'freebsd',
+  'freebsd11',
+  'freebsd12',
   'openbsd',
   'netbsd',
   'arm',
@@ -32,6 +34,9 @@ export function mayBeCompatible(
   platformA: Platform,
   platformB: Platform,
 ): boolean {
+  if (platformA.startsWith('freebsd') || platformB.startsWith('freebsd')) {
+    return false
+  }
   if (platformA === 'native' || platformB === 'native') {
     return true
   }

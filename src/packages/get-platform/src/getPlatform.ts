@@ -10,11 +10,33 @@ const exists = promisify(fs.exists)
 export type GetOSResult = {
   platform: NodeJS.Platform
   libssl?: string
-  distro?: 'rhel' | 'debian' | 'musl' | 'arm' | 'nixos'
+  distro?:
+    | 'rhel'
+    | 'debian'
+    | 'musl'
+    | 'arm'
+    | 'nixos'
+    | 'freebsd12'
+    | 'freebsd11'
 }
 
 export async function getos(): Promise<GetOSResult> {
   const platform = os.platform()
+
+  if (platform === 'freebsd') {
+    const version = await gracefulExec(`freebsd-version`)
+    if (version && version.trim().length > 0) {
+      const regex = /^(\d+)\.?/
+      const match = regex.exec(version)
+      if (match) {
+        return {
+          platform: 'freebsd',
+          distro: `freebsd${match[1]}` as GetOSResult['distro'],
+        }
+      }
+    }
+  }
+
   if (platform !== 'linux') {
     return {
       platform,
@@ -144,7 +166,7 @@ export async function getPlatform(): Promise<Platform> {
   }
 
   if (platform === 'freebsd') {
-    return 'freebsd'
+    return distro as Platform
   }
 
   if (platform === 'openbsd') {

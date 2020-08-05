@@ -15,7 +15,7 @@ import tempDir from 'temp-dir'
 import { getBar } from './log'
 import plusxSync from './chmod'
 import { copy } from './copy'
-import { getPlatform, Platform, platforms, getos } from '@prisma/get-platform'
+import { getPlatform, Platform, platforms, getos } from 'tmp-get-platform'
 import { downloadZip } from './downloadZip'
 import { getCacheDir, getDownloadUrl } from './util'
 import { cleanupCache } from './cleanupCache'
@@ -81,11 +81,11 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         os.distro
       }.`,
     )
-  } else if (['freebsd', 'openbsd', 'netbsd'].includes(platform)) {
+  } else if (['freebsd11', 'openbsd', 'netbsd'].includes(platform)) {
     console.error(
       `${chalk.yellow(
         'Warning',
-      )} Precompiled binaries are not available for ${platform}.`,
+      )} Precompiled binaries are not available for ${platform}. Read more about building your own binaries at https://pris.ly/d/build-binaries`,
     )
   }
 
