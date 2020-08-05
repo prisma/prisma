@@ -68,13 +68,13 @@ const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
   })
 }
 
+jest.setTimeout(10000) // Increase timeout for all tests & hooks
+
 describe('Studio', () => {
   let studioInstance: Studio
   let ws: WebSocket
 
   beforeEach(async () => {
-    jest.setTimeout(10000)
-
     await mkdir(testRootDir)
     await writeFile(
       path.resolve(`${testRootDir}/schema.prisma`),
