@@ -5,6 +5,7 @@
   "semanticCommits": true,
   "ignoreDeps": ["react", "ink", "ink-spinner", "ink-link", "@types/react"],
   "masterIssue": true,
+  "reviewers": ["@jolg42", "@timsuchanek"],
   "packageRules": [
     {
       "groupName": "renovate-meta",
@@ -32,6 +33,13 @@
       "automerge": "true",
       "depTypeList": ["devDependencies"],
       "updateTypes": ["patch", "minor"]
+    },
+    {
+      "groupName": "checkpoint-client",
+      "packageNames": ["checkpoint-client"],
+      "updateTypes": ["patch", "minor"],
+      "schedule": ["at any time"],
+      "reviewers": ["@matthewmueller", "@steebchen", "@jolg42", "@timsuchanek"]
     },
     {
       "groupName": "React & ink (non-major)",
