@@ -575,17 +575,26 @@ export declare class PrismaClient<
 
 ${indent(this.jsDoc, tab)}
   constructor(optionsArg?: T);
+  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? QueryEvent : LogEvent) => void): void;
+  /**
+   * @deprecated renamed to \`$on\`
+   */
   on<V extends U>(eventType: V, callback: (event: V extends 'query' ? QueryEvent : LogEvent) => void): void;
   /**
    * Connect with the database
    */
-  connect(): Promise<void>;
+  $connect(): Promise<void>;
   /**
-   * @private
+   * @deprecated renamed to \`$connect\`
    */
-  private runDisconnect;
+  connect(): Promise<void>;
+
   /**
    * Disconnect from the database
+   */
+  $disconnect(): Promise<any>;
+  /**
+   * @deprecated renamed to \`$disconnect\`
    */
   disconnect(): Promise<any>;
 
@@ -595,7 +604,7 @@ ${indent(this.jsDoc, tab)}
   /**
    * Add a middleware
    */
-  use(cb: Middleware): void
+  $use(cb: Middleware): void
   `
       : ''
   }
@@ -612,6 +621,11 @@ ${indent(this.jsDoc, tab)}
   * 
   * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md#raw-database-access).
   */
+  $executeRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<number>;
+
+  /**
+   * @deprecated renamed to \`$executeRaw\`
+   */
   executeRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<number>;
 
   /**
@@ -626,6 +640,11 @@ ${indent(this.jsDoc, tab)}
   * 
   * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md#raw-database-access).
   */
+  $queryRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<T>;
+ 
+  /**
+   * @deprecated renamed to \`$executeRaw\`
+   */
   queryRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<T>;
 ${
   this.generator?.previewFeatures?.includes('transactionApi')
@@ -640,6 +659,10 @@ ${
    *   prisma.user.create({ data: { name: 'Alice' } }),
    * ])
    * \`\`\`
+   */
+  $transaction: PromiseConstructor['all']
+  /**
+   * @deprecated renamed to \`$transaction\`
    */
   transaction: PromiseConstructor['all']
 `

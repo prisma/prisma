@@ -244,14 +244,14 @@ const aggregateKeys = {
 // and we're typecasting this anyway later
 export function getPrismaClient(config: GetPrismaClientOptions): any {
   class NewPrismaClient {
-    dmmf: DMMFClass
-    engine: NodeEngine
-    fetcher: PrismaClientFetcher
-    connectionPromise?: Promise<any>
-    disconnectionPromise?: Promise<any>
-    engineConfig: EngineConfig
-    private errorFormat: ErrorFormat
-    private hooks?: Hooks
+    _dmmf: DMMFClass
+    _engine: NodeEngine
+    _fetcher: PrismaClientFetcher
+    _connectionPromise?: Promise<any>
+    _disconnectionPromise?: Promise<any>
+    _engineConfig: EngineConfig
+    private _errorFormat: ErrorFormat
+    private _hooks?: Hooks
     private _getConfigPromise?: Promise<{
       datasources: DataSource[]
       generators: GeneratorConfig[]
@@ -268,7 +268,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
 
       if (internal.hooks) {
-        this.hooks = internal.hooks
+        this._hooks = internal.hooks
       }
 
       let predefinedDatasources = config.sqliteDatasourceOverrides ?? []
@@ -292,18 +292,18 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       const engineConfig = internal.engine || {}
 
       if (options.errorFormat) {
-        this.errorFormat = options.errorFormat
+        this._errorFormat = options.errorFormat
       } else if (process.env.NODE_ENV === 'production') {
-        this.errorFormat = 'minimal'
+        this._errorFormat = 'minimal'
       } else if (process.env.NO_COLOR) {
-        this.errorFormat = 'colorless'
+        this._errorFormat = 'colorless'
       } else {
-        this.errorFormat = 'colorless' // default errorFormat
+        this._errorFormat = 'colorless' // default errorFormat
       }
 
       const envFile = this.readEnv()
 
-      this.dmmf = new DMMFClass(config.document)
+      this._dmmf = new DMMFClass(config.document)
 
       let cwd = path.resolve(config.dirname, config.relativePath)
 
@@ -316,7 +316,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         previewFeatures.push('aggregations')
       }
 
-      this.engineConfig = {
+      this._engineConfig = {
         cwd,
         enableDebugLogs: useDebug,
         enableEngineDebugMode: engineConfig.enableEngineDebugMode,
@@ -325,7 +325,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         engineEndpoint: engineConfig.endpoint,
         datasources,
         generator: config.generator,
-        showColors: this.errorFormat === 'pretty',
+        showColors: this._errorFormat === 'pretty',
         logLevel: options.log && (getLogLevel(options.log) as any), // TODO
         logQueries:
           options.log &&
@@ -342,14 +342,14 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         enableExperimental: mapPreviewFeatures(previewFeatures),
       }
 
-      const sanitizedEngineConfig = omit(this.engineConfig, [
+      const sanitizedEngineConfig = omit(this._engineConfig, [
         'env',
         'datasources',
       ])
       debug({ engineConfig: sanitizedEngineConfig })
 
-      this.engine = new NodeEngine(this.engineConfig)
-      this.fetcher = new PrismaClientFetcher(this, false, this.hooks)
+      this._engine = new NodeEngine(this._engineConfig)
+      this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
 
       if (options.log) {
         for (const log of options.log) {
@@ -360,7 +360,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               ? log.level
               : null
           if (level) {
-            this.on(level, (event) => {
+            this.$on(level, (event) => {
               const colorMap = {
                 query: 'blue',
                 info: 'cyan',
@@ -376,7 +376,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         }
       }
 
-      this.bootstrapClient()
+      this._bootstrapClient()
     }
     private readEnv() {
       const dotEnvPath = path.resolve(
@@ -390,10 +390,21 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
       return {}
     }
-    use(cb: Middleware)
-    use(namespace: 'all', cb: Middleware)
-    use(namespace: 'engine', cb: EngineMiddleware)
-    use(namespace: HookPoint | Middleware, cb?: Middleware | EngineMiddleware) {
+    use(...args) {
+      console.warn(
+        `${chalk.yellow(
+          'warn',
+        )} prisma.use() is deprecated, please use prisma.$use() instead`,
+      )
+      return (this.$use as any)(...args)
+    }
+    $use(cb: Middleware)
+    $use(namespace: 'all', cb: Middleware)
+    $use(namespace: 'engine', cb: EngineMiddleware)
+    $use(
+      namespace: HookPoint | Middleware,
+      cb?: Middleware | EngineMiddleware,
+    ) {
       if (config.generator?.previewFeatures?.includes('middlewares')) {
         if (typeof namespace === 'function') {
           this._middlewares.push(namespace)
@@ -415,7 +426,15 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
     }
     on(eventType: any, callback: (event: any) => void) {
-      this.engine.on(eventType, (event) => {
+      console.warn(
+        `${chalk.yellow(
+          'warn',
+        )} prisma.on() is deprecated, please use prisma.$on() instead`,
+      )
+      return this.$on(eventType, callback)
+    }
+    $on(eventType: any, callback: (event: any) => void) {
+      this._engine.on(eventType, (event) => {
         const fields = event.fields
         if (eventType === 'query') {
           callback({
@@ -435,32 +454,40 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         }
       })
     }
-    async connect() {
-      if (this.disconnectionPromise) {
-        await this.disconnectionPromise
+    connect() {
+      console.warn(
+        `${chalk.yellow(
+          'warn',
+        )} prisma.connect() is deprecated, please use prisma.$connect() instead`,
+      )
+      return this.$connect()
+    }
+    async $connect() {
+      if (this._disconnectionPromise) {
+        await this._disconnectionPromise
       }
-      if (this.connectionPromise) {
-        return this.connectionPromise
+      if (this._connectionPromise) {
+        return this._connectionPromise
       }
-      this.connectionPromise = (async () => {
-        await this.engine.start()
+      this._connectionPromise = (async () => {
+        await this._engine.start()
 
         let { engineVersion, clientVersion } = config
         if (
-          this.engineConfig.prismaPath ||
+          this._engineConfig.prismaPath ||
           process.env.QUERY_ENGINE_BINARY_PATH ||
           !engineVersion
         ) {
-          engineVersion = await this.engine.version()
+          engineVersion = await this._engine.version()
         }
         debug(`Client Version ${clientVersion}`)
         debug(`Engine Version ${engineVersion}`)
       })()
-      return this.connectionPromise
+      return this._connectionPromise
     }
     async _getConfig() {
       if (!this._getConfigPromise) {
-        this._getConfigPromise = this.engine.getConfig()
+        this._getConfigPromise = this._engine.getConfig()
       }
 
       return this._getConfigPromise
@@ -468,21 +495,29 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * @private
      */
-    async runDisconnect() {
-      await this.engine.stop()
-      delete this.connectionPromise
-      this.engine = new NodeEngine(this.engineConfig)
-      delete this.disconnectionPromise
+    async _runDisconnect() {
+      await this._engine.stop()
+      delete this._connectionPromise
+      this._engine = new NodeEngine(this._engineConfig)
+      delete this._disconnectionPromise
       delete this._getConfigPromise
+    }
+    disconnect() {
+      console.warn(
+        `${chalk.yellow(
+          'warn',
+        )} prisma.disconnect() is deprecated, please use prisma.$disconnect() instead`,
+      )
+      return this.$disconnect()
     }
     /**
      * Disconnect from the database
      */
-    async disconnect() {
-      if (!this.disconnectionPromise) {
-        this.disconnectionPromise = this.runDisconnect()
+    async $disconnect() {
+      if (!this._disconnectionPromise) {
+        this._disconnectionPromise = this._runDisconnect()
       }
-      return this.disconnectionPromise
+      return this._disconnectionPromise
     }
 
     private async _getActiveProvider(): Promise<ConnectorType> {
@@ -490,10 +525,19 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return configResult.datasources[0].activeProvider!
     }
 
+    executeRaw(stringOrTemplateStringsArray, ...values) {
+      console.warn(
+        `${chalk.yellow(
+          'warn',
+        )} prisma.executeRaw() is deprecated, please use prisma.$executeRaw() instead`,
+      )
+      return this.$executeRaw(stringOrTemplateStringsArray, ...values)
+    }
+
     /**
      * Executes a raw query. Always returns a number
      */
-    async executeRaw(stringOrTemplateStringsArray, ...values) {
+    async $executeRaw(stringOrTemplateStringsArray, ...values) {
       let query = ''
       let parameters: any = undefined
 
@@ -548,16 +592,25 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }
 
     private _getCallsite() {
-      if (this.errorFormat !== 'minimal') {
+      if (this._errorFormat !== 'minimal') {
         return new Error().stack
       }
       return undefined
     }
 
+    queryRaw(stringOrTemplateStringsArray, ...args) {
+      console.warn(
+        `${chalk.yellow(
+          'warn',
+        )} prisma.queryRaw() is deprecated, please use prisma.$queryRaw() instead`,
+      )
+      return this.$queryRaw(stringOrTemplateStringsArray, ...args)
+    }
+
     /**
      * Executes a raw query. Always returns a number
      */
-    async queryRaw(stringOrTemplateStringsArray, ...values) {
+    async $queryRaw(stringOrTemplateStringsArray, ...values) {
       let query = ''
       let parameters: any = undefined
 
@@ -612,7 +665,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }
 
     async __internal_triggerPanic(fatal: boolean) {
-      if (!this.engineConfig.enableEngineDebugMode) {
+      if (!this._engineConfig.enableEngineDebugMode) {
         throw new Error(`In order to use .__internal_triggerPanic(), please enable the debug mode like so:
 new PrismaClient({
   __internal: {
@@ -643,7 +696,15 @@ new PrismaClient({
       })
     }
 
-    async transaction(promises: Array<any>): Promise<any> {
+    transaction(promises) {
+      console.warn(
+        `${chalk.yellow(
+          'warn',
+        )} prisma.transaction() is deprecated, please use prisma.$transaction() instead`,
+      )
+      return this.$transaction(promises)
+    }
+    async $transaction(promises: Array<any>): Promise<any> {
       if (config.generator?.previewFeatures?.includes('transactionApi')) {
         for (const p of promises) {
           if (
@@ -748,7 +809,7 @@ new PrismaClient({
       // TODO: Replace with lookup map for speedup
       let mapping
       if (model) {
-        mapping = this.dmmf.mappingsMap[model]
+        mapping = this._dmmf.mappingsMap[model]
         if (!mapping) {
           throw new Error(`Could not find mapping for model ${model}`)
         }
@@ -760,7 +821,7 @@ new PrismaClient({
         throw new Error(`Invalid operation ${operation} for action ${action}`)
       }
 
-      const field = this.dmmf.rootFieldMap[rootField!]
+      const field = this._dmmf.rootFieldMap[rootField!]
 
       if (!field) {
         throw new Error(
@@ -772,13 +833,13 @@ new PrismaClient({
       const typeName = getOutputTypeName(field.outputType.type)
 
       let document = makeDocument({
-        dmmf: this.dmmf,
+        dmmf: this._dmmf,
         rootField: rootField!,
         rootTypeName: operation,
         select: args,
       })
 
-      document.validate(args, false, clientMethod, this.errorFormat, callsite)
+      document.validate(args, false, clientMethod, this._errorFormat, callsite)
 
       document = transformDocument(document)
 
@@ -799,7 +860,7 @@ new PrismaClient({
         debug(query + '\n')
       }
 
-      return this.fetcher.request({
+      return this._fetcher.request({
         document,
         clientMethod,
         typeName,
@@ -807,7 +868,7 @@ new PrismaClient({
         isList,
         rootField: rootField!,
         callsite,
-        showColors: this.errorFormat === 'pretty',
+        showColors: this._errorFormat === 'pretty',
         args,
         engineHook: this._engineMiddlewares[0],
         runInTransaction,
@@ -815,10 +876,10 @@ new PrismaClient({
       })
     }
 
-    private bootstrapClient() {
-      const clients = this.dmmf.mappings.reduce((acc, mapping) => {
+    private _bootstrapClient() {
+      const clients = this._dmmf.mappings.reduce((acc, mapping) => {
         const lowerCaseModel = lowerCase(mapping.model)
-        const model = this.dmmf.modelMap[mapping.model]
+        const model = this._dmmf.modelMap[mapping.model]
 
         if (!model) {
           throw new Error(`Invalid mapping ${mapping.model}, can't find model`)
@@ -936,7 +997,7 @@ new PrismaClient({
         return acc
       }, {})
 
-      for (const mapping of this.dmmf.mappings) {
+      for (const mapping of this._dmmf.mappings) {
         const lowerCaseModel = lowerCase(mapping.model)
 
         const denyList = {
@@ -1032,14 +1093,14 @@ export class PrismaClientFetcher {
     this.dataloader = new Dataloader({
       batchLoader: async (requests) => {
         const queries = requests.map((r) => String(r.document))
-        await this.prisma.connect()
+        await this.prisma.$connect()
         const runTransaction = requests[0].runInTransaction
-        return this.prisma.engine.requestBatch(queries, runTransaction)
+        return this.prisma._engine.requestBatch(queries, runTransaction)
       },
       singleLoader: async (request) => {
         const query = String(request.document)
-        await this.prisma.connect()
-        return this.prisma.engine.request(query, request.headers)
+        await this.prisma.$connect()
+        return this.prisma._engine.request(query, request.headers)
       },
       batchBy: (request) => {
         if (request.runInTransaction) {

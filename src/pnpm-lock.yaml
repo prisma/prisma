@@ -47,10 +47,10 @@ importers:
       '@prisma/introspection': 'link:../introspection'
       '@prisma/migrate': 'link:../migrate'
       '@prisma/sdk': 'link:../sdk'
-      '@prisma/studio': 0.241.0
-      '@prisma/studio-server': 0.241.0
-      '@prisma/studio-transports': 0.241.0
-      '@prisma/studio-types': 0.241.0
+      '@prisma/studio': 0.245.0
+      '@prisma/studio-server': 0.245.0
+      '@prisma/studio-transports': 0.245.0
+      '@prisma/studio-types': 0.245.0
       '@types/debug': 4.1.5
       '@types/mocha': 8.0.1
       '@types/pg': 7.14.4
@@ -58,7 +58,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 3.7.1_98f5354ad0bbc327ab4925c12674a6b1
       '@typescript-eslint/parser': 3.7.1_eslint@7.6.0+typescript@3.9.7
       '@zeit/ncc': 0.22.3
-      checkpoint-client: 1.1.3
+      checkpoint-client: 1.1.6
       dotenv: 8.2.0
       eslint: 7.6.0
       eslint-config-prettier: 6.11.0_eslint@7.6.0
@@ -104,10 +104,10 @@ importers:
       '@prisma/introspection': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio': 0.241.0
-      '@prisma/studio-server': 0.241.0
-      '@prisma/studio-transports': 0.241.0
-      '@prisma/studio-types': 0.241.0
+      '@prisma/studio': 0.245.0
+      '@prisma/studio-server': 0.245.0
+      '@prisma/studio-transports': 0.245.0
+      '@prisma/studio-types': 0.245.0
       '@types/debug': 4.1.5
       '@types/mocha': 8.0.1
       '@types/pg': 7.14.4
@@ -115,7 +115,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 3.7.1
       '@typescript-eslint/parser': 3.7.1
       '@zeit/ncc': 0.22.3
-      checkpoint-client: 1.1.3
+      checkpoint-client: 1.1.6
       dotenv: 8.2.0
       eslint: 7.6.0
       eslint-config-prettier: 6.11.0
@@ -625,8 +625,8 @@ importers:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/get-platform': 'link:../get-platform'
       '@prisma/ink-components': 'link:../ink-components'
-      '@prisma/studio-server': 0.241.0
-      '@prisma/studio-types': 0.241.0
+      '@prisma/studio-server': 0.245.0
+      '@prisma/studio-types': 0.245.0
       ansi-escapes: 4.3.1
       cli-cursor: 3.1.0
       dashify: 2.0.0
@@ -696,8 +696,8 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@prisma/ink-components': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio-server': 0.241.0
-      '@prisma/studio-types': 0.241.0
+      '@prisma/studio-server': 0.245.0
+      '@prisma/studio-types': 0.245.0
       '@types/charm': 1.0.2
       '@types/debug': 4.1.5
       '@types/diff': 4.0.2
@@ -766,7 +766,7 @@ importers:
       archiver: 4.0.1
       arg: 4.1.3
       chalk: 4.1.0
-      checkpoint-client: 1.1.3
+      checkpoint-client: 1.1.6
       cli-truncate: 2.1.0
       execa: 4.0.2
       globby: 11.0.1
@@ -820,7 +820,7 @@ importers:
       archiver: ^4.0.0
       arg: ^4.1.3
       chalk: 4.1.0
-      checkpoint-client: 1.1.3
+      checkpoint-client: 1.1.6
       cli-truncate: ^2.1.0
       eslint: 7.6.0
       eslint-config-prettier: 6.11.0
@@ -1400,16 +1400,16 @@ packages:
   /@prisma/ci-info/2.1.2:
     resolution:
       integrity: sha512-RhAHY+wp6Nqu89Tp3zfUVkpGfqk4TfngeOWaMGgmhP7mB2ASDtOl8dkwxHmI8eN4edo+luyjPmbJBC4kST321A==
-  /@prisma/debug/2.3.0:
+  /@prisma/debug/2.4.0-dev.58:
     dependencies:
       debug: 4.1.1
     resolution:
-      integrity: sha512-b/pkhAL3flv5Vof8V7J8E1oqHuoYySQdAgzEsSdGzOOMRqFQhpXVbmt2/pYf+zgvaeGvqMiP7CMXasa1JotuhQ==
-  /@prisma/engine-core/2.3.0:
+      integrity: sha512-hj33nTUhpGyjmTe+XU+78pIEoX7apo7QYCuf4QuXBC4WutiZwW4oZjce/9xFSGiIxuhCepchrF22xIjuaUWMmA==
+  /@prisma/engine-core/2.4.0-dev.58:
     dependencies:
-      '@prisma/debug': 2.3.0
-      '@prisma/generator-helper': 2.3.0
-      '@prisma/get-platform': 2.3.0
+      '@prisma/debug': 2.4.0-dev.58
+      '@prisma/generator-helper': 2.4.0-dev.58
+      '@prisma/get-platform': 2.4.0-dev.58
       bent: 7.3.9
       chalk: 4.1.0
       cross-fetch: 3.0.5
@@ -1422,11 +1422,11 @@ packages:
       terminal-link: 2.1.1
       undici: 1.1.0
     resolution:
-      integrity: sha512-8fCA7UF29MLaaihWrvfrUYgwkjD6ePWpNzO3pxMW52mcyxc6BE/AXQTKhgl6uSmP6xMUw2tPBp3VEs4+8hDQ9A==
-  /@prisma/fetch-engine/2.3.0:
+      integrity: sha512-qyFM6nUS+XwZAZyJfZol31jMwBBkRnhuwdcYb972oS3AHtPEPUu0PUTNP6CMHg2WCbYWBveJsg4kOv7tAELhKQ==
+  /@prisma/fetch-engine/2.4.0-dev.58:
     dependencies:
-      '@prisma/debug': 2.3.0
-      '@prisma/get-platform': 2.3.0
+      '@prisma/debug': 2.4.0-dev.58
+      '@prisma/get-platform': 2.4.0-dev.58
       chalk: 4.1.0
       execa: 4.0.2
       find-cache-dir: 3.3.1
@@ -1444,32 +1444,32 @@ packages:
       temp-dir: 2.0.0
       tempy: 0.5.0
     resolution:
-      integrity: sha512-wmEfkwGa0u2MksUR51Eako/3zSUN1a95XLDbPowvvre1yyDFjajsKJKA7TcgaYWH8bHF1UCSB3ED4FhcOCA48w==
-  /@prisma/generator-helper/2.3.0:
+      integrity: sha512-D+lnJPRYFGJB92tCfyP2HA4/7J2fES5aupFnMns8GGmNuNVynvBvwxSxIR43H0lTfoKBJpoEFa0AaRq2lqCeVA==
+  /@prisma/generator-helper/2.4.0-dev.58:
     dependencies:
-      '@prisma/debug': 2.3.0
+      '@prisma/debug': 2.4.0-dev.58
       '@types/cross-spawn': 6.0.2
       chalk: 4.1.0
       cross-spawn: 7.0.3
     resolution:
-      integrity: sha512-DL+9fpBSkLxic4VxA2U0N5leGV6o+E0LOgzlDIDpQsTVzwYiGWX0xSM2PJLKJv/sqY2B9ayeJBSYGfa6/79D3w==
-  /@prisma/get-platform/2.3.0:
+      integrity: sha512-WrhyQRiJgc+aAwhok/O0PRkHpXEYd/lvqoUGr98m2l8QyUlAMT4hG6qf6dTHUSQN9kbR/qSTutf5xcts/hm3DQ==
+  /@prisma/get-platform/2.4.0-dev.58:
     dependencies:
-      '@prisma/debug': 2.3.0
+      '@prisma/debug': 2.4.0-dev.58
     resolution:
-      integrity: sha512-2ZMuFuPevBTqiX0SHQwIpLczPPV0Cgh5+XsgIyQ4b/sD0J7o5b+JPQOTkoQGXZ2bV4HjdlwJqYg7+F+08tl6gw==
-  /@prisma/sdk/2.3.0:
+      integrity: sha512-0+ZdEuIPv3eZyDKe8KU6xbIBl9XjRhxC1Kw/8WTPKtJGgSJ/ajdLhfQR5XfFzppTzLw34am6ejaYG/fWAOTfOw==
+  /@prisma/sdk/2.4.0-dev.58:
     dependencies:
       '@apexearth/copy': 1.4.5
-      '@prisma/debug': 2.3.0
-      '@prisma/engine-core': 2.3.0
-      '@prisma/fetch-engine': 2.3.0
-      '@prisma/generator-helper': 2.3.0
-      '@prisma/get-platform': 2.3.0
+      '@prisma/debug': 2.4.0-dev.58
+      '@prisma/engine-core': 2.4.0-dev.58
+      '@prisma/fetch-engine': 2.4.0-dev.58
+      '@prisma/generator-helper': 2.4.0-dev.58
+      '@prisma/get-platform': 2.4.0-dev.58
       archiver: 4.0.2
       arg: 4.1.3
       chalk: 4.1.0
-      checkpoint-client: 1.1.2
+      checkpoint-client: 1.1.5
       cli-truncate: 2.1.0
       execa: 4.0.2
       globby: 11.0.1
@@ -1492,32 +1492,32 @@ packages:
       url-parse: 1.4.7
     requiresBuild: true
     resolution:
-      integrity: sha512-bFFDrLhG/reJXONa47QQcQ+9PECxO2ArOSMF4W1+xNOpvui1XM3EwZqdQVA+HeMm95H0l0dpNndihnTyNhGIzw==
-  /@prisma/studio-server/0.241.0:
+      integrity: sha512-Hl2EAue++Bq9aDh9u9oXWUFLgrFion87MjuLh5LE8Q/sTFxUK43WlyRAyyfpp1TdpYaf+esk/L5di+UuNOnyVg==
+  /@prisma/studio-server/0.245.0:
     dependencies:
-      '@prisma/get-platform': 2.3.0
-      '@prisma/sdk': 2.3.0
-      '@prisma/studio': 0.241.0
-      '@prisma/studio-transports': 0.241.0
-      '@prisma/studio-types': 0.241.0
+      '@prisma/get-platform': 2.4.0-dev.58
+      '@prisma/sdk': 2.4.0-dev.58
+      '@prisma/studio': 0.245.0
+      '@prisma/studio-transports': 0.245.0
+      '@prisma/studio-types': 0.245.0
       '@sentry/node': 5.15.5
       express: 4.17.1
       express-ws: 4.0.0_express@4.17.1
     resolution:
-      integrity: sha512-FMT2/eFYjB8guC933Pdw3ytEBJb3MADkduVkmlRyoI9XeljeeE0oNetpTd17qMm/0WuuNxB9jsBBSSs/6lSlAg==
-  /@prisma/studio-transports/0.241.0:
+      integrity: sha512-6jx5bVnvr6mXn+NcuU7VGaOMcbYzh4Q3TsXCC8kBYsftxkogHL1FSTbExDj18FAyVRGRhCdaT/HQZDs5xUpW6A==
+  /@prisma/studio-transports/0.245.0:
     dependencies:
-      '@prisma/sdk': 2.3.0
-      '@prisma/studio-types': 0.241.0
+      '@prisma/sdk': 2.4.0-dev.58
+      '@prisma/studio-types': 0.245.0
       '@sentry/node': 5.15.5
     resolution:
-      integrity: sha512-Gx5ZFJ00FTRbC2YX1n+q+Cp0PoN/c4TGIyFiFD2nAn2n05G4VUvFZsznbrsOyP4N/iCP5upka0QjbN07e7YUew==
-  /@prisma/studio-types/0.241.0:
+      integrity: sha512-5uyo/LnDFSX8WPVaXTsPnm7jvL7HBUhuqSD4IPu3E7249CXz1Uxm1DWH5yHkGBLPiB9ubrzRrraowYvYEz1XFA==
+  /@prisma/studio-types/0.245.0:
     resolution:
-      integrity: sha512-ZDqTUF5PI6ln6eA0Ti7B6AxnSVS2NQI1VGouEim7tUU8a0270AFdQ34KYSBjc5hwitrsapvWT2lWWB/5PsbTHA==
-  /@prisma/studio/0.241.0:
+      integrity: sha512-jjW76ubyr1Xg3CDw75v8sJHguNgGC9+60C4TPOvOiWqyLM546K2YhdgVHF5p72KGk1cqh1j0W5jHpDV1j/Eq2g==
+  /@prisma/studio/0.245.0:
     resolution:
-      integrity: sha512-htd0O+4gqpFHqPDfcV5kuIL+sNNgM9myj4CcBQ8fRWfM34Vb2vXbJ9JksI0+W2l3o61XysuHzbcxQu0NAm3vPA==
+      integrity: sha512-a314ekxBhlHl8TSOlY+5cVXyNj8Jgrzft/Iky47kggz3/BHEaJuSp0ZL4zie3Du6YnzqKI4M/gOKpDx+GNRz1w==
   /@sentry/apm/5.15.5:
     dependencies:
       '@sentry/browser': 5.15.5
@@ -2705,18 +2705,7 @@ packages:
       node: '>= 0.8.0'
     resolution:
       integrity: sha1-FCD/sQ/URNz8ebQ4kbv//TKoRgA=
-  /checkpoint-client/1.1.2:
-    dependencies:
-      cross-spawn: 7.0.3
-      env-paths: 2.2.0
-      fast-write-atomic: 0.2.1
-      make-dir: 3.1.0
-      ms: 2.1.2
-      node-fetch: 2.6.0
-      uuid: 8.1.0
-    resolution:
-      integrity: sha512-Nvwpf7qi5bJD8+HAZ8HWzdHZBQJxi+Sw33OI8ahx1H0yby8nPcpP+h4bYYhl+8z0XrjBaUz5p6xQeTinzUi/Qw==
-  /checkpoint-client/1.1.3:
+  /checkpoint-client/1.1.5:
     dependencies:
       '@prisma/ci-info': 2.1.2
       cross-spawn: 7.0.3
@@ -2727,7 +2716,19 @@ packages:
       node-fetch: 2.6.0
       uuid: 8.1.0
     resolution:
-      integrity: sha512-TwlERZKs5PkpvByCkOmAuQGqxqNnNmjaw/4NpH8j0DPr3jadyI4S9v/8on5G5MnLxMU/BQ1TdCdyiJy1SveDhw==
+      integrity: sha512-g3XOwdd7zUI1+ZOtSR3ek7Shm8Zvy2x9086K4IcHBHkzNa3uGBbOaT0+iGq90GpbXrLVOxiG+s+i3M3OZ3Mm1Q==
+  /checkpoint-client/1.1.6:
+    dependencies:
+      '@prisma/ci-info': 2.1.2
+      cross-spawn: 7.0.3
+      env-paths: 2.2.0
+      fast-write-atomic: 0.2.1
+      make-dir: 3.1.0
+      ms: 2.1.2
+      node-fetch: 2.6.0
+      uuid: 8.1.0
+    resolution:
+      integrity: sha512-/sl6b1CJq/eKarfO/bi5f1akpZzJemn9bQqzDGjSo0ZdN9KI2hpqJyd19YA4w/oalEsJ915jhOkCtYnoYwE0Jg==
   /chokidar/3.3.1:
     dependencies:
       anymatch: 3.1.1
@@ -3849,7 +3850,7 @@ packages:
     dependencies:
       ajv: 6.12.3
       deepmerge: 4.2.2
-      string-similarity: 4.0.1
+      string-similarity: 4.0.2
     engines:
       node: '>= 10.0.0'
     resolution:
@@ -7960,8 +7961,12 @@ packages:
     resolution:
       integrity: sha512-PKyXUd0LK0ePjSOnWn34V2uD6acUWev9uy0Ft05k0E8xRW+SKcA0F7eMr7h5xlzfn+4O3N+55rduYyet3Jk+jw==
   /string-similarity/4.0.1:
+    dev: false
     resolution:
       integrity: sha512-v36MJzloekKVvKAsYi6O/qpn2mIuvwEFIT9Gx3yg4spkNjXYsk7yxc37g4ZTyMVIBvt/9PZGxnqEtme8XHK+Mw==
+  /string-similarity/4.0.2:
+    resolution:
+      integrity: sha512-eCsPPyoQBgY4TMpVD6DVfO7pLrimUONriaO4Xjp3WPUW0YnNLqdHgRj23xotLlqrL90eJhBeq3zdAJf2mQgfBQ==
   /string-width/1.0.2:
     dependencies:
       code-point-at: 1.1.0

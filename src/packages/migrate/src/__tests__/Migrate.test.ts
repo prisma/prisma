@@ -88,6 +88,7 @@ function createTests() {
         assert.ok(result.files['README.md'])
         expect(migration?.datamodelSteps).toMatchSnapshot()
         expect(migration?.warnings).toMatchSnapshot()
+        expect(migration?.unexecutableMigrations).toMatchSnapshot()
       },
     },
     {
@@ -120,6 +121,7 @@ function createTests() {
         assert.ok(result.files['README.md'])
         expect(migration?.datamodelSteps).toMatchSnapshot()
         expect(migration?.warnings).toMatchSnapshot()
+        expect(migration?.unexecutableMigrations).toMatchSnapshot()
       },
     },
     {
@@ -152,6 +154,7 @@ function createTests() {
         assert.ok(result.files['README.md'])
         expect(migration?.datamodelSteps).toMatchSnapshot()
         expect(migration?.warnings).toMatchSnapshot()
+        expect(migration?.unexecutableMigrations).toMatchSnapshot()
       },
     },
     {
@@ -184,6 +187,7 @@ function createTests() {
         assert.ok(result.files['README.md'])
         expect(migration?.datamodelSteps).toMatchSnapshot()
         expect(migration?.warnings).toMatchSnapshot()
+        expect(migration?.unexecutableMigrations).toMatchSnapshot()
       },
     },
     {
@@ -216,6 +220,7 @@ function createTests() {
         assert.ok(result.files['README.md'])
         expect(migration?.datamodelSteps).toMatchSnapshot()
         expect(migration?.warnings).toMatchSnapshot()
+        expect(migration?.unexecutableMigrations).toMatchSnapshot()
       },
     },
     {
@@ -262,6 +267,7 @@ function createTests() {
         assert.ok(result.files['README.md'])
         expect(migration?.datamodelSteps).toMatchSnapshot()
         expect(migration?.warnings).toMatchSnapshot()
+        expect(migration?.unexecutableMigrations).toMatchSnapshot()
 
         // Save from CLI - write files to filesystem
         const resultSave = await MigrateSave.new().parse([
@@ -275,6 +281,9 @@ function createTests() {
 
         await migrate.up()
 
+        /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+        /* eslint-disable @typescript-eslint/no-unsafe-call */
+        /* eslint-disable @typescript-eslint/no-unsafe-member-access */
         const db = new Sqlite(
           schemaPath.replace('schema.prisma', 'db/db_file.db'),
           {
@@ -284,6 +293,9 @@ function createTests() {
         const stmt = db.prepare('INSERT INTO User (canBeNull) VALUES (?)')
         const info = stmt.run('Something!')
         assert.equal(info.changes, 1)
+        /* eslint-enable @typescript-eslint/no-unsafe-assignment */
+        /* eslint-enable @typescript-eslint/no-unsafe-call */
+        /* eslint-enable @typescript-eslint/no-unsafe-member-access */
 
         const schemaPath2 = schemaPath.replace(
           'schema.prisma',
@@ -318,6 +330,7 @@ function createTests() {
           ])
         } catch (e) {
           // Should error with unexecutableMigrations:
+          /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
           expect(stripAnsi(e.message)).toMatchSnapshot()
         }
         console.log = oldConsoleLog

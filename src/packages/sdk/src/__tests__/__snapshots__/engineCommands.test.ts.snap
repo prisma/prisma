@@ -102,12 +102,10 @@ Object {
   "schema": Object {
     "enums": Array [
       Object {
-        "name": "UserOrderByInput",
+        "name": "SortOrder",
         "values": Array [
-          "id_ASC",
-          "id_DESC",
-          "email_ASC",
-          "email_DESC",
+          "ASC",
+          "DESC",
         ],
       },
     ],
@@ -375,6 +373,32 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "email",
+          },
+        ],
+        "isOneOf": false,
+        "name": "UserOrderByInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
               "kind": "scalar",
               "type": "String",
             },
@@ -526,7 +550,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "UserOrderByInput",
                 },
                 "name": "orderBy",
@@ -588,7 +612,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "UserOrderByInput",
                 },
                 "name": "orderBy",
@@ -1309,51 +1333,10 @@ Object {
   "schema": Object {
     "enums": Array [
       Object {
-        "name": "PostOrderByInput",
+        "name": "SortOrder",
         "values": Array [
-          "id_ASC",
-          "id_DESC",
-          "authorId_ASC",
-          "authorId_DESC",
-          "title_ASC",
-          "title_DESC",
-          "published_ASC",
-          "published_DESC",
-        ],
-      },
-      Object {
-        "name": "UserOrderByInput",
-        "values": Array [
-          "id_ASC",
-          "id_DESC",
-          "email_ASC",
-          "email_DESC",
-        ],
-      },
-      Object {
-        "name": "User1OrderByInput",
-        "values": Array [
-          "id_ASC",
-          "id_DESC",
-          "firstName_ASC",
-          "firstName_DESC",
-          "lastName_ASC",
-          "lastName_DESC",
-          "isAdmin_ASC",
-          "isAdmin_DESC",
-        ],
-      },
-      Object {
-        "name": "User2OrderByInput",
-        "values": Array [
-          "id_ASC",
-          "id_DESC",
-          "firstName_ASC",
-          "firstName_DESC",
-          "lastName_ASC",
-          "lastName_DESC",
-          "isAdmin_ASC",
-          "isAdmin_DESC",
+          "ASC",
+          "DESC",
         ],
       },
     ],
@@ -2016,6 +1999,52 @@ Object {
             "inputType": Object {
               "isList": false,
               "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "authorId",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "title",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "published",
+          },
+        ],
+        "isOneOf": false,
+        "name": "PostOrderByInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
@@ -2051,6 +2080,32 @@ Object {
         ],
         "isOneOf": true,
         "name": "PostWhereUniqueInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "email",
+          },
+        ],
+        "isOneOf": false,
+        "name": "UserOrderByInput",
       },
       Object {
         "fields": Array [
@@ -2493,6 +2548,52 @@ Object {
         ],
         "isOneOf": false,
         "name": "User1WhereInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "lastName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "isAdmin",
+          },
+        ],
+        "isOneOf": false,
+        "name": "User1OrderByInput",
       },
       Object {
         "fields": Array [
@@ -2951,6 +3052,52 @@ Object {
         ],
         "isOneOf": false,
         "name": "User2WhereInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "lastName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "isAdmin",
+          },
+        ],
+        "isOneOf": false,
+        "name": "User2OrderByInput",
       },
       Object {
         "fields": Array [
@@ -4323,7 +4470,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "PostOrderByInput",
                 },
                 "name": "orderBy",
@@ -4612,7 +4759,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "PostOrderByInput",
                 },
                 "name": "orderBy",
@@ -4674,7 +4821,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "PostOrderByInput",
                 },
                 "name": "orderBy",
@@ -4758,7 +4905,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "UserOrderByInput",
                 },
                 "name": "orderBy",
@@ -4820,7 +4967,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "UserOrderByInput",
                 },
                 "name": "orderBy",
@@ -4904,7 +5051,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "User1OrderByInput",
                 },
                 "name": "orderBy",
@@ -4966,7 +5113,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "User1OrderByInput",
                 },
                 "name": "orderBy",
@@ -5050,7 +5197,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "User2OrderByInput",
                 },
                 "name": "orderBy",
@@ -5112,7 +5259,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "User2OrderByInput",
                 },
                 "name": "orderBy",
@@ -6349,51 +6496,10 @@ Object {
   "schema": Object {
     "enums": Array [
       Object {
-        "name": "PostOrderByInput",
+        "name": "SortOrder",
         "values": Array [
-          "id_ASC",
-          "id_DESC",
-          "authorId_ASC",
-          "authorId_DESC",
-          "title_ASC",
-          "title_DESC",
-          "published_ASC",
-          "published_DESC",
-        ],
-      },
-      Object {
-        "name": "UserOrderByInput",
-        "values": Array [
-          "id_ASC",
-          "id_DESC",
-          "email_ASC",
-          "email_DESC",
-        ],
-      },
-      Object {
-        "name": "User1OrderByInput",
-        "values": Array [
-          "id_ASC",
-          "id_DESC",
-          "firstName_ASC",
-          "firstName_DESC",
-          "lastName_ASC",
-          "lastName_DESC",
-          "isAdmin_ASC",
-          "isAdmin_DESC",
-        ],
-      },
-      Object {
-        "name": "User2OrderByInput",
-        "values": Array [
-          "id_ASC",
-          "id_DESC",
-          "firstName_ASC",
-          "firstName_DESC",
-          "lastName_ASC",
-          "lastName_DESC",
-          "isAdmin_ASC",
-          "isAdmin_DESC",
+          "ASC",
+          "DESC",
         ],
       },
     ],
@@ -7056,6 +7162,52 @@ Object {
             "inputType": Object {
               "isList": false,
               "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "authorId",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "title",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "published",
+          },
+        ],
+        "isOneOf": false,
+        "name": "PostOrderByInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
@@ -7091,6 +7243,32 @@ Object {
         ],
         "isOneOf": true,
         "name": "PostWhereUniqueInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "email",
+          },
+        ],
+        "isOneOf": false,
+        "name": "UserOrderByInput",
       },
       Object {
         "fields": Array [
@@ -7533,6 +7711,52 @@ Object {
         ],
         "isOneOf": false,
         "name": "User1WhereInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "lastName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "isAdmin",
+          },
+        ],
+        "isOneOf": false,
+        "name": "User1OrderByInput",
       },
       Object {
         "fields": Array [
@@ -7991,6 +8215,52 @@ Object {
         ],
         "isOneOf": false,
         "name": "User2WhereInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "firstName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "lastName",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "isAdmin",
+          },
+        ],
+        "isOneOf": false,
+        "name": "User2OrderByInput",
       },
       Object {
         "fields": Array [
@@ -9455,7 +9725,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "PostOrderByInput",
                 },
                 "name": "orderBy",
@@ -9744,7 +10014,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "PostOrderByInput",
                 },
                 "name": "orderBy",
@@ -9806,7 +10076,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "PostOrderByInput",
                 },
                 "name": "orderBy",
@@ -9890,7 +10160,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "UserOrderByInput",
                 },
                 "name": "orderBy",
@@ -9952,7 +10222,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "UserOrderByInput",
                 },
                 "name": "orderBy",
@@ -10036,7 +10306,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "User1OrderByInput",
                 },
                 "name": "orderBy",
@@ -10098,7 +10368,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "User1OrderByInput",
                 },
                 "name": "orderBy",
@@ -10182,7 +10452,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "User2OrderByInput",
                 },
                 "name": "orderBy",
@@ -10244,7 +10514,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "User2OrderByInput",
                 },
                 "name": "orderBy",
@@ -11155,12 +11425,10 @@ Object {
   "schema": Object {
     "enums": Array [
       Object {
-        "name": "AOrderByInput",
+        "name": "SortOrder",
         "values": Array [
-          "id_ASC",
-          "id_DESC",
-          "name_ASC",
-          "name_DESC",
+          "ASC",
+          "DESC",
         ],
       },
     ],
@@ -11428,6 +11696,32 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "enum",
+              "type": "SortOrder",
+            },
+            "name": "name",
+          },
+        ],
+        "isOneOf": false,
+        "name": "AOrderByInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
               "kind": "scalar",
               "type": "Int",
             },
@@ -11579,7 +11873,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "AOrderByInput",
                 },
                 "name": "orderBy",
@@ -11641,7 +11935,7 @@ Object {
                   "isList": false,
                   "isNullable": false,
                   "isRequired": false,
-                  "kind": "enum",
+                  "kind": "object",
                   "type": "AOrderByInput",
                 },
                 "name": "orderBy",

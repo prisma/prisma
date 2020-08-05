@@ -99,11 +99,11 @@ module.exports = async () => {
 
   // Test connecting and disconnecting all the time
   await prisma.user.findMany()
-  prisma.disconnect()
+  prisma.$disconnect()
   assert(requests.length === 1)
 
   await prisma.user.findMany()
-  prisma.disconnect()
+  prisma.$disconnect()
 
   // flakyness :shrug:
   await new Promise((r) => setTimeout(r, 200))
@@ -112,30 +112,30 @@ module.exports = async () => {
   const count = await prisma.user.count()
   assert(typeof count === 'number')
 
-  prisma.connect()
-  await prisma.disconnect()
+  prisma.$connect()
+  await prisma.$disconnect()
 
   await new Promise((r) => setTimeout(r, 200))
-  prisma.connect()
+  prisma.$connect()
 
   const userPromise = prisma.user.findMany()
   await userPromise
   // @ts-ignore
 
-  await prisma.disconnect()
+  await prisma.$disconnect()
 
-  await prisma.connect()
+  await prisma.$connect()
 
   // Test queryRaw(string)
-  const rawQuery = await prisma.queryRaw('SELECT 1')
+  const rawQuery = await prisma.$queryRaw('SELECT 1')
   assert.equal(
     rawQuery[0]['?column?'],
     1,
-    "prisma.queryRaw('SELECT 1') result should be [ { '?column?': 1 } ]",
+    "prisma.$queryRaw('SELECT 1') result should be [ { '?column?': 1 } ]",
   )
 
   // Test queryRaw``
-  const rawQueryTemplate = await prisma.queryRaw`SELECT 1`
+  const rawQueryTemplate = await prisma.$queryRaw`SELECT 1`
   assert.equal(
     rawQueryTemplate[0]['?column?'],
     1,
@@ -143,7 +143,7 @@ module.exports = async () => {
   )
 
   // Test queryRaw`` with ${param}
-  const rawQueryTemplateWithParams = await prisma.queryRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
+  const rawQueryTemplateWithParams = await prisma.$queryRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
   assert.equal(
     rawQueryTemplateWithParams[0].name,
     'Alice',
@@ -151,15 +151,15 @@ module.exports = async () => {
   )
 
   // Test executeRaw(string)
-  const rawexecute = await prisma.executeRaw('SELECT 1')
+  const rawexecute = await prisma.$executeRaw('SELECT 1')
   assert.equal(rawexecute, 1, 'executeRaw SELECT 1 must return 0')
 
   // Test executeRaw``
-  const rawexecuteTemplate = await prisma.executeRaw`SELECT 1`
+  const rawexecuteTemplate = await prisma.$executeRaw`SELECT 1`
   assert.equal(rawexecuteTemplate, 1, 'executeRaw SELECT 1 must return 0')
 
   // Test executeRaw`` with ${param}
-  const rawexecuteTemplateWithParams = await prisma.executeRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
+  const rawexecuteTemplateWithParams = await prisma.$executeRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
   assert.equal(
     rawexecuteTemplateWithParams,
     1,
@@ -183,7 +183,7 @@ module.exports = async () => {
     }
   }
 
-  prisma.on('error', (e) => {
+  prisma.$on('error', (e) => {
     errorLogs.push(e)
   })
 
@@ -239,7 +239,7 @@ module.exports = async () => {
     where: { id: resultJsonArray.id },
   })
 
-  prisma.disconnect()
+  prisma.$disconnect()
   await db.query(`
     DROP TABLE IF EXISTS "public"."Post" CASCADE;
     DROP TABLE IF EXISTS "public"."User" CASCADE;
