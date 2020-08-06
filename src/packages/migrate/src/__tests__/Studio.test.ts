@@ -11,6 +11,8 @@ import { Studio } from '../Studio'
 
 const writeFile = promisify(fs.writeFile)
 
+jest.setTimeout(10000)
+
 describe('Studio', () => {
   let testRootDir
   let studioInstance
