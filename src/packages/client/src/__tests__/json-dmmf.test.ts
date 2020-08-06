@@ -138,7 +138,7 @@ test('JsonFilter should contain equals and not', async () => {
             "name": "field",
           },
         ],
-        "isOneOf": false,
+        "isOneOf": true,
         "isOrderType": true,
         "name": "UserOrderByInput",
       },

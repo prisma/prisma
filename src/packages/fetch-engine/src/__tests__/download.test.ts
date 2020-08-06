@@ -12,7 +12,7 @@ import del from 'del'
 
 const CURRENT_BINARIES_HASH = require('../../../sdk/package.json').prisma
   .version
-const FIXED_BINARIES_HASH = 'de2bc1cbdb5561ad73d2f08463fa2eec48993f56'
+const FIXED_BINARIES_HASH = '6c777331554df4c3e0a90dd841339c7b0619d0e1'
 
 jest.setTimeout(30000)
 
@@ -54,16 +54,16 @@ describe('download', () => {
     })
 
     expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(
-      `"query-engine de2bc1cbdb5561ad73d2f08463fa2eec48993f56"`,
+      `"query-engine 6c777331554df4c3e0a90dd841339c7b0619d0e1"`,
     )
     expect(await getVersion(introspectionEnginePath)).toMatchInlineSnapshot(
-      `"introspection-core de2bc1cbdb5561ad73d2f08463fa2eec48993f56"`,
+      `"introspection-core 6c777331554df4c3e0a90dd841339c7b0619d0e1"`,
     )
     expect(await getVersion(migrationEnginePath)).toMatchInlineSnapshot(
-      `"migration-engine-cli de2bc1cbdb5561ad73d2f08463fa2eec48993f56"`,
+      `"migration-engine-cli 6c777331554df4c3e0a90dd841339c7b0619d0e1"`,
     )
     expect(await getVersion(prismafmtPath)).toMatchInlineSnapshot(
-      `"prisma-fmt de2bc1cbdb5561ad73d2f08463fa2eec48993f56"`,
+      `"prisma-fmt 6c777331554df4c3e0a90dd841339c7b0619d0e1"`,
     )
   })
 
@@ -83,6 +83,7 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
         'linux-musl',
+        'freebsd12',
       ],
       version: CURRENT_BINARIES_HASH,
     })
@@ -156,6 +157,7 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
         'linux-musl',
+        'freebsd12',
       ],
       version: FIXED_BINARIES_HASH,
     })
@@ -168,115 +170,131 @@ describe('download', () => {
         },
         Object {
           "name": "introspection-engine-darwin",
-          "size": 11368280,
+          "size": 13828044,
         },
         Object {
           "name": "introspection-engine-debian-openssl-1.0.x",
-          "size": 14375432,
+          "size": 17351776,
         },
         Object {
           "name": "introspection-engine-debian-openssl-1.1.x",
-          "size": 14350592,
+          "size": 17317424,
+        },
+        Object {
+          "name": "introspection-engine-freebsd12",
+          "size": 16797120,
         },
         Object {
           "name": "introspection-engine-linux-musl",
-          "size": 17247608,
+          "size": 20163912,
         },
         Object {
           "name": "introspection-engine-rhel-openssl-1.0.x",
-          "size": 14439690,
+          "size": 21922926,
         },
         Object {
           "name": "introspection-engine-rhel-openssl-1.1.x",
-          "size": 14415929,
+          "size": 21890064,
         },
         Object {
           "name": "introspection-engine-windows.exe",
-          "size": 23728613,
+          "size": 12641280,
         },
         Object {
           "name": "migration-engine-darwin",
-          "size": 14446400,
+          "size": 17214132,
         },
         Object {
           "name": "migration-engine-debian-openssl-1.0.x",
-          "size": 17690344,
+          "size": 20935840,
         },
         Object {
           "name": "migration-engine-debian-openssl-1.1.x",
-          "size": 17640080,
+          "size": 20910448,
+        },
+        Object {
+          "name": "migration-engine-freebsd12",
+          "size": 20265640,
         },
         Object {
           "name": "migration-engine-linux-musl",
-          "size": 20378472,
+          "size": 23589824,
         },
         Object {
           "name": "migration-engine-rhel-openssl-1.0.x",
-          "size": 17770911,
+          "size": 25519204,
         },
         Object {
           "name": "migration-engine-rhel-openssl-1.1.x",
-          "size": 17717704,
+          "size": 25499443,
         },
         Object {
           "name": "migration-engine-windows.exe",
-          "size": 28185148,
+          "size": 16844288,
         },
         Object {
           "name": "prisma-fmt-darwin",
-          "size": 3243384,
+          "size": 3295680,
         },
         Object {
           "name": "prisma-fmt-debian-openssl-1.0.x",
-          "size": 5871464,
+          "size": 6205336,
         },
         Object {
           "name": "prisma-fmt-debian-openssl-1.1.x",
-          "size": 5871176,
+          "size": 6205056,
+        },
+        Object {
+          "name": "prisma-fmt-freebsd12",
+          "size": 5987088,
         },
         Object {
           "name": "prisma-fmt-linux-musl",
-          "size": 5870392,
+          "size": 6248256,
         },
         Object {
           "name": "prisma-fmt-rhel-openssl-1.0.x",
-          "size": 5935619,
+          "size": 10755506,
         },
         Object {
           "name": "prisma-fmt-rhel-openssl-1.1.x",
-          "size": 5937101,
+          "size": 10757880,
         },
         Object {
           "name": "prisma-fmt-windows.exe",
-          "size": 19747898,
+          "size": 4321280,
         },
         Object {
           "name": "query-engine-darwin",
-          "size": 16798944,
+          "size": 18784360,
         },
         Object {
           "name": "query-engine-debian-openssl-1.0.x",
-          "size": 20246256,
+          "size": 22668136,
         },
         Object {
           "name": "query-engine-debian-openssl-1.1.x",
-          "size": 20219680,
+          "size": 22637248,
+        },
+        Object {
+          "name": "query-engine-freebsd12",
+          "size": 21965792,
         },
         Object {
           "name": "query-engine-linux-musl",
-          "size": 22860424,
+          "size": 25313248,
         },
         Object {
           "name": "query-engine-rhel-openssl-1.0.x",
-          "size": 20289622,
+          "size": 27218536,
         },
         Object {
           "name": "query-engine-rhel-openssl-1.1.x",
-          "size": 20268248,
+          "size": 27189132,
         },
         Object {
           "name": "query-engine-windows.exe",
-          "size": 30550365,
+          "size": 17725952,
         },
       ]
     `)
@@ -321,13 +339,14 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
         'linux-musl',
+        'freebsd12',
       ],
       version: FIXED_BINARIES_HASH,
     })
     const after2 = Date.now()
     // if binaries are already there, it should take less than 100ms to check all of them
     // value on Mac: 33ms
-    expect(after2 - before2).toBeLessThan(3000)
+    expect(after2 - before2).toBeLessThan(3500)
   })
 })
 
