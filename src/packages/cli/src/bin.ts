@@ -30,8 +30,14 @@ process.on('unhandledRejection', (e) => {
 // hides ExperimentalWarning: The fs.promises API is experimental
 process.env.NODE_NO_WARNINGS = '1'
 
-// react: psst 🙊
-process.env.NODE_ENV = 'production'
+// If running via `ts-node`, treat NODE_ENV as development
+// @ts-ignore
+if (process[Symbol.for('ts-node.register.instance')]) {
+  process.env.NODE_ENV = 'development'
+} else {
+  // react: psst 🙊
+  process.env.NODE_ENV = 'production'
+}
 
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
