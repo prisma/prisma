@@ -120,7 +120,6 @@ import {
   MigrateUp,
   MigrateDown,
   MigrateTmpPrepare,
-  StudioCommand,
   handlePanic,
 } from '@prisma/migrate'
 import { CLI } from './CLI'
@@ -133,6 +132,7 @@ import { Validate } from './Validate'
 import * as checkpoint from 'checkpoint-client'
 import { Format } from './Format'
 import { Doctor } from './Doctor'
+import { Studio } from './Studio'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
 // as they have to ship their own version of @prisma/client
@@ -166,7 +166,7 @@ async function main(): Promise<number> {
       'tmp-prepare': MigrateTmpPrepare.new(),
       introspect: Introspect.new(),
       dev: Dev.new(),
-      studio: StudioCommand.new(aliases),
+      studio: Studio.new(aliases),
       generate: Generate.new(),
       version: Version.new(),
       validate: Validate.new(),

@@ -49,8 +49,6 @@ importers:
       '@prisma/sdk': 'link:../sdk'
       '@prisma/studio': 0.245.0
       '@prisma/studio-server': 0.245.0
-      '@prisma/studio-transports': 0.245.0
-      '@prisma/studio-types': 0.245.0
       '@types/debug': 4.1.5
       '@types/mocha': 8.0.1
       '@types/pg': 7.14.4
@@ -67,6 +65,7 @@ importers:
       eslint-plugin-prettier: 3.1.4_eslint@7.6.0
       execa: 4.0.3
       fast-deep-equal: 3.1.3
+      get-port: 5.1.1
       global-dirs: 2.0.1
       husky: 4.2.5
       is-installed-globally: 0.3.2
@@ -106,8 +105,6 @@ importers:
       '@prisma/sdk': 'workspace:*'
       '@prisma/studio': 0.245.0
       '@prisma/studio-server': 0.245.0
-      '@prisma/studio-transports': 0.245.0
-      '@prisma/studio-types': 0.245.0
       '@types/debug': 4.1.5
       '@types/mocha': 8.0.1
       '@types/pg': 7.14.4
@@ -124,6 +121,7 @@ importers:
       eslint-plugin-prettier: 3.1.4
       execa: 4.0.3
       fast-deep-equal: 3.1.3
+      get-port: 5.1.1
       global-dirs: 2.0.1
       husky: 4.2.5
       is-installed-globally: 0.3.2
