@@ -135,17 +135,12 @@ export class Studio implements Command {
     await studio.start()
 
     const serverUrl = `http://localhost:${port}`
-    switch (browser) {
-      case 'none':
-      case 'NONE':
-        break
-      default:
-        await open(serverUrl, {
-          app: browser,
-          url: true,
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
-        }).catch(() => {}) // Ignore any errors
-        break
+    if (!browser || browser.toLowerCase() !== 'none') {
+      await open(serverUrl, {
+        app: browser,
+        url: true,
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+      }).catch(() => {}) // Ignore any errors
     }
 
     return `Studio started at ${serverUrl}`
