@@ -631,7 +631,6 @@ importers:
       diff: 4.0.2
       execa: 4.0.2
       figures: 3.2.0
-      get-port: 5.1.1
       git-user-email: 0.2.2
       git-user-name: 2.0.0
       globby: 11.0.1
@@ -651,7 +650,6 @@ importers:
       string-width: 4.2.0
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
-      supports-hyperlinks: 2.1.0
     devDependencies:
       '@prisma/client': 'link:../client'
       '@prisma/generator-helper': 'link:../generator-helper'
@@ -719,7 +717,6 @@ importers:
       eslint-plugin-prettier: 3.1.4
       execa: ^4.0.0
       figures: ^3.2.0
-      get-port: ^5.1.1
       git-user-email: ^0.2.2
       git-user-name: ^2.0.0
       globby: ^11.0.0
@@ -746,7 +743,6 @@ importers:
       string-width: ^4.2.0
       strip-ansi: ^6.0.0
       strip-indent: ^3.0.0
-      supports-hyperlinks: ^2.1.0
       ts-jest: 26.1.4
       typescript: 3.9.7
   packages/sdk:
@@ -4119,6 +4115,7 @@ packages:
     resolution:
       integrity: sha512-pjzuKtY64GYfWizNAJ0fr9VqttZkNiK2iS430LtIHzjBEr6bX8Am2zm4sW4Ro5wjWW5cAlRL1qAMTcXbjNAO2Q==
   /get-port/5.1.1:
+    dev: true
     engines:
       node: '>=8'
     resolution:
