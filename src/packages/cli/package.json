@@ -55,7 +55,7 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "e745b5f2a9bea5d04faeb768b619aa761d176b7d",
+    "version": "195d4bdc2d16132977f4ba7a8ca312f7906cb086",
     "prismaCommit": "56e57f3d762b052b3d1d6ee07794c1d1adfadb9a"
   },
   "devDependencies": {
@@ -70,8 +70,6 @@
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.245.0",
     "@prisma/studio-server": "0.245.0",
-    "@prisma/studio-transports": "0.245.0",
-    "@prisma/studio-types": "0.245.0",
     "@types/debug": "4.1.5",
     "@types/mocha": "8.0.1",
     "@types/pg": "7.14.4",
@@ -80,7 +78,7 @@
     "@typescript-eslint/eslint-plugin": "3.7.1",
     "@typescript-eslint/parser": "3.7.1",
     "@zeit/ncc": "0.22.3",
-    "checkpoint-client": "1.1.6",
+    "checkpoint-client": "1.1.7",
     "dotenv": "8.2.0",
     "eslint": "7.6.0",
     "eslint-config-prettier": "6.11.0",
@@ -89,6 +87,7 @@
     "eslint-plugin-prettier": "3.1.4",
     "execa": "4.0.3",
     "fast-deep-equal": "3.1.3",
+    "get-port": "5.1.1",
     "global-dirs": "2.0.1",
     "husky": "4.2.5",
     "is-installed-globally": "0.3.2",

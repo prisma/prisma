@@ -13,7 +13,6 @@ describe('where transformation', () => {
     const select = {
       orderBy: {
         email: 'asc',
-        id: 'desc',
       },
     }
     const document = makeDocument({
@@ -22,13 +21,14 @@ describe('where transformation', () => {
       rootTypeName: 'query',
       rootField: 'findManyUser',
     })
-    document.validate(select)
+    document.validate(select, false)
     expect(String(document)).toMatchInlineSnapshot(`
       "query {
-        findManyUser(orderBy: {
-          email: asc
-          id: desc
-        }) {
+        findManyUser(orderBy: [
+          {
+            email: asc
+          }
+        ]) {
           id
           name
           email
@@ -43,10 +43,11 @@ describe('where transformation', () => {
     `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       "query {
-        findManyUser(orderBy: {
-          email: ASC
-          id: DESC
-        }) {
+        findManyUser(orderBy: [
+          {
+            email: asc
+          }
+        ]) {
           id
           name
           email
@@ -76,10 +77,12 @@ describe('where transformation', () => {
     })
     expect(String(document)).toMatchInlineSnapshot(`
       "query {
-        findManyUser(orderBy: {
-          email: asc
-          id: asc
-        }) {
+        findManyUser(orderBy: [
+          {
+            email: asc
+            id: asc
+          }
+        ]) {
           id
           name
           email
@@ -94,10 +97,12 @@ describe('where transformation', () => {
     `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       "query {
-        findManyUser(orderBy: {
-          email: ASC
-          id: ASC
-        }) {
+        findManyUser(orderBy: [
+          {
+            email: asc
+            id: asc
+          }
+        ]) {
           id
           name
           email
@@ -113,6 +118,7 @@ describe('where transformation', () => {
     try {
       document.validate(select, false, 'users')
     } catch (e) {
+      console.log('does it still throw?')
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
         Invalid \`prisma.users()\` invocation:
@@ -125,13 +131,18 @@ describe('where transformation', () => {
           ~~~~~~~~~~~~~~~
         }
 
-        Argument orderBy: Provided value 
-        {
-          email: 'asc',
-          id: 'asc'
+        Argument orderBy of type UserOrderByInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
+        type UserOrderByInput {
+          id?: SortOrder
+          name?: SortOrder
+          email?: SortOrder
+          status?: SortOrder
+          nicknames?: SortOrder
+          permissions?: SortOrder
+          favoriteTree?: SortOrder
+          locationId?: SortOrder
+          someFloats?: SortOrder
         }
-        of type Json on prisma.findManyUser is not a enum.
-        → Possible values: UserOrderByInput.id_ASC, UserOrderByInput.id_DESC, UserOrderByInput.name_ASC, UserOrderByInput.name_DESC, UserOrderByInput.email_ASC, UserOrderByInput.email_DESC, UserOrderByInput.status_ASC, UserOrderByInput.status_DESC, UserOrderByInput.favoriteTree_ASC, UserOrderByInput.favoriteTree_DESC, UserOrderByInput.locationId_ASC, UserOrderByInput.locationId_DESC
 
         "
       `)
@@ -177,9 +188,11 @@ describe('where transformation', () => {
     })
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       "query {
-        findManyUser(orderBy: {
-
-        }) {
+        findManyUser(orderBy: [
+          {
+            id: null
+          }
+        ]) {
           id
           name
           email

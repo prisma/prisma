@@ -22,7 +22,6 @@ import { MigrateDown } from './commands/MigrateDown'
 import { MigrateSave } from './commands/MigrateSave'
 import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
 import { MigrateUp } from './commands/MigrateUp'
-import { StudioCommand } from './commands/StudioCommand'
 import { handlePanic } from './utils/handlePanic'
 import { ProviderAliases } from '@prisma/sdk'
 
@@ -50,7 +49,6 @@ async function main(): Promise<number> {
     up: MigrateUp.new(),
     down: MigrateDown.new(),
     ['tmp-prepare']: MigrateTmpPrepare.new(),
-    studio: StudioCommand.new(providerAliases),
   })
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))

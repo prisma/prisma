@@ -104,8 +104,8 @@ Object {
       Object {
         "name": "SortOrder",
         "values": Array [
-          "ASC",
-          "DESC",
+          "asc",
+          "desc",
         ],
       },
     ],
@@ -389,7 +389,7 @@ Object {
             "name": "email",
           },
         ],
-        "isOneOf": false,
+        "isOneOf": true,
         "name": "UserOrderByInput",
       },
       Object {
@@ -547,7 +547,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -609,7 +609,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -1335,8 +1335,8 @@ Object {
       Object {
         "name": "SortOrder",
         "values": Array [
-          "ASC",
-          "DESC",
+          "asc",
+          "desc",
         ],
       },
     ],
@@ -2036,7 +2036,7 @@ Object {
             "name": "published",
           },
         ],
-        "isOneOf": false,
+        "isOneOf": true,
         "name": "PostOrderByInput",
       },
       Object {
@@ -2104,7 +2104,7 @@ Object {
             "name": "email",
           },
         ],
-        "isOneOf": false,
+        "isOneOf": true,
         "name": "UserOrderByInput",
       },
       Object {
@@ -2592,7 +2592,7 @@ Object {
             "name": "isAdmin",
           },
         ],
-        "isOneOf": false,
+        "isOneOf": true,
         "name": "User1OrderByInput",
       },
       Object {
@@ -3096,7 +3096,7 @@ Object {
             "name": "isAdmin",
           },
         ],
-        "isOneOf": false,
+        "isOneOf": true,
         "name": "User2OrderByInput",
       },
       Object {
@@ -4467,7 +4467,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -4756,7 +4756,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -4818,7 +4818,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -4902,7 +4902,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -4964,7 +4964,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -5048,7 +5048,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -5110,7 +5110,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -5194,7 +5194,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -5256,7 +5256,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -6498,8 +6498,8 @@ Object {
       Object {
         "name": "SortOrder",
         "values": Array [
-          "ASC",
-          "DESC",
+          "asc",
+          "desc",
         ],
       },
     ],
@@ -7199,7 +7199,7 @@ Object {
             "name": "published",
           },
         ],
-        "isOneOf": false,
+        "isOneOf": true,
         "name": "PostOrderByInput",
       },
       Object {
@@ -7267,7 +7267,7 @@ Object {
             "name": "email",
           },
         ],
-        "isOneOf": false,
+        "isOneOf": true,
         "name": "UserOrderByInput",
       },
       Object {
@@ -7755,7 +7755,7 @@ Object {
             "name": "isAdmin",
           },
         ],
-        "isOneOf": false,
+        "isOneOf": true,
         "name": "User1OrderByInput",
       },
       Object {
@@ -8259,7 +8259,7 @@ Object {
             "name": "isAdmin",
           },
         ],
-        "isOneOf": false,
+        "isOneOf": true,
         "name": "User2OrderByInput",
       },
       Object {
@@ -9722,7 +9722,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -10011,7 +10011,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -10073,7 +10073,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -10157,7 +10157,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -10219,7 +10219,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -10303,7 +10303,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -10365,7 +10365,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -10449,7 +10449,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -10511,7 +10511,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -11427,8 +11427,8 @@ Object {
       Object {
         "name": "SortOrder",
         "values": Array [
-          "ASC",
-          "DESC",
+          "asc",
+          "desc",
         ],
       },
     ],
@@ -11712,7 +11712,7 @@ Object {
             "name": "name",
           },
         ],
-        "isOneOf": false,
+        "isOneOf": true,
         "name": "AOrderByInput",
       },
       Object {
@@ -11870,7 +11870,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",
@@ -11932,7 +11932,7 @@ Object {
               },
               Object {
                 "inputType": Object {
-                  "isList": false,
+                  "isList": true,
                   "isNullable": false,
                   "isRequired": false,
                   "kind": "object",

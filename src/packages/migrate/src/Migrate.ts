@@ -11,7 +11,6 @@ import cliCursor from 'cli-cursor'
 import dashify from 'dashify'
 import Debug from '@prisma/debug'
 import fs from 'fs'
-import getPort from 'get-port'
 import globby from 'globby'
 import indent from 'indent-string'
 import logUpdate from 'log-update'
@@ -27,7 +26,6 @@ import { highlightDatamodel, maskSchema } from '@prisma/sdk'
 import { blue } from '@prisma/sdk/dist/highlight/theme'
 import { DevComponentRenderer } from './ink/DevComponentRenderer'
 import { MigrateEngine } from './MigrateEngine'
-import { Studio } from './Studio'
 import {
   EngineResults,
   FileMap,
@@ -154,9 +152,6 @@ export class Migrate {
           const after = Date.now()
           renderer &&
             renderer.setState({ migrating: false, migratedIn: after - before })
-          if (renderer) {
-            this.recreateStudioServer(providerAliases)
-          }
         } else {
           debug(`No migration to apply`)
         }
@@ -252,8 +247,6 @@ export class Migrate {
   )
   // tsline:enable
   private datamodelBeforeWatch = ''
-  private studioServer?: Studio
-  private studioPort = 5555
   private schemaPath: string
   constructor(schemaPath?: string) {
     this.schemaPath = this.getSchemaPath(schemaPath)
@@ -281,24 +274,6 @@ export class Migrate {
   // TODO: optimize datapaths, where we have a datamodel already, use it
   public getSourceConfig(): string {
     return this.getDatamodel()
-  }
-
-  public async recreateStudioServer(
-    providerAliases: ProviderAliases,
-  ): Promise<string | undefined> {
-    try {
-      if (this.studioServer) {
-        return await this.studioServer.restart(providerAliases)
-      }
-
-      this.studioServer = new Studio({
-        schemaPath: this.schemaPath,
-        port: this.studioPort,
-      })
-      await this.studioServer.start(providerAliases)
-    } catch (e) {
-      debug(e)
-    }
   }
 
   public async getLockFile(): Promise<LockFile> {
@@ -458,15 +433,11 @@ export class Migrate {
       cliVersion: packageJson.version,
     })
 
-    this.studioPort = await getPort({ port: getPort.makeRange(5555, 5600) })
-
     const relativeDatamodelPath = path.relative(process.cwd(), this.schemaPath)
 
     // From here on, we render the dev ui
     const renderer = new DevComponentRenderer({
-      port: this.studioPort,
       initialState: {
-        studioPort: this.studioPort,
         datamodelBefore: this.datamodelBeforeWatch,
         datamodelAfter: datamodel,
         generators: generators.map((gen) => ({
@@ -493,8 +464,6 @@ export class Migrate {
     // console.error = (...args) => {
     //   debug(...args)
     // }
-
-    this.recreateStudioServer(options.providerAliases)
 
     const { migrationsToApply } = await this.getMigrationsToApply()
 

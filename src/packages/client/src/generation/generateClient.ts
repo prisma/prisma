@@ -572,10 +572,6 @@ function validateDmmfAgainstDenylists(
     fields: ['AND', 'OR', 'NOT'],
     dynamic: [] as string[],
   }
-  if (previewFeatures.includes('tranactionApi')) {
-    denylists.models.push('transaction')
-    denylists.models.push('Transaction')
-  }
 
   for (const { name } of prismaClientDmmf.datamodel.models) {
     denylists.dynamic.push(

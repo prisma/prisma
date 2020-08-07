@@ -9,7 +9,6 @@ import {
 } from './DevInkComponent'
 
 export interface DevComponentOptions {
-  port: number
   initialState: DevComponentProps
 }
 
