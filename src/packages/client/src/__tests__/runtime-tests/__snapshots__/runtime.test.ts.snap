@@ -155,3 +155,13 @@ exports[`runtime restart: restart example should succeed 1`] = `"success"`;
 exports[`runtime sqlite-variable-limit: sqlite-variable-limit example should succeed 1`] = `"success"`;
 
 exports[`runtime transaction: transaction example should succeed 1`] = `"success"`;
+
+exports[`runtime uds: uds example should succeed 1`] = `
+Array [
+  Object {
+    "email": "a@a.de",
+    "id": "576eddf9-2434-421f-9a86-58bede16fd95",
+    "name": "Alice",
+  },
+]
+`;
