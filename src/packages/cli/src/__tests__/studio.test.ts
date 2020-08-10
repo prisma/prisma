@@ -15,8 +15,8 @@ const setupWS = (): Promise<WebSocket> => {
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
         const message: any = JSON.parse(data)
 
-        assert.notStrictEqual(message.channel, undefined)
-        assert.notStrictEqual(message.action, undefined)
+        assert.ok(message.channel !== undefined)
+        assert.ok(message.action !== undefined)
 
         /* eslint-disable @typescript-eslint/no-unsafe-member-access */
         if (message.channel !== '-photon' && message.action !== 'start') {
@@ -45,8 +45,8 @@ const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
       /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
       const message: any = JSON.parse(data)
 
-      assert.notStrictEqual(message.channel, undefined)
-      assert.notStrictEqual(message.action, undefined)
+      assert.ok(message.channel !== undefined)
+      assert.ok(message.action !== undefined)
 
       /* eslint-disable @typescript-eslint/no-unsafe-member-access */
       if (message.channel !== '-photon' && message.action !== 'request') {
@@ -144,18 +144,18 @@ describe('Studio', () => {
       },
     })
 
-    assert.notStrictEqual(response.payload, undefined)
+    assert.ok(response.payload !== undefined)
 
     assert.strictEqual(response.payload.error, null)
 
-    assert.notStrictEqual(response.payload.data, undefined)
-    assert.notStrictEqual(response.payload.data.params, undefined)
-    assert.notStrictEqual(response.payload.data.params.model, undefined)
+    assert.ok(response.payload.data !== undefined)
+    assert.ok(response.payload.data.params !== undefined)
+    assert.ok(response.payload.data.params.model !== undefined)
     assert.strictEqual(
       response.payload.data.params.model,
       'with_all_field_types',
     )
-    assert.notStrictEqual(response.payload.data.params.args, undefined)
+    assert.ok(response.payload.data.params.args !== undefined)
     assert.deepStrictEqual(response.payload.data.params.args.select, {
       id: true,
       string: true,
@@ -166,7 +166,7 @@ describe('Studio', () => {
       relation_list: true,
     })
 
-    assert.notStrictEqual(response.payload.data.response, undefined)
+    assert.ok(response.payload.data.response !== undefined)
     assert.deepStrictEqual(response.payload.data.response, [
       {
         id: 1,
@@ -234,18 +234,18 @@ describe('Studio', () => {
       },
     })
 
-    assert.notStrictEqual(response.payload, undefined)
+    assert.ok(response.payload !== undefined)
 
     assert.strictEqual(response.payload.error, null)
 
-    assert.notStrictEqual(response.payload.data, undefined)
-    assert.notStrictEqual(response.payload.data.params, undefined)
-    assert.notStrictEqual(response.payload.data.params.model, undefined)
+    assert.ok(response.payload.data !== undefined)
+    assert.ok(response.payload.data.params !== undefined)
+    assert.ok(response.payload.data.params.model !== undefined)
     assert.strictEqual(
       response.payload.data.params.model,
       'with_all_field_types',
     )
-    assert.notStrictEqual(response.payload.data.params.args, undefined)
+    assert.ok(response.payload.data.params.args !== undefined)
     assert.deepStrictEqual(response.payload.data.params.args.select, {
       id: true,
       string: true,
@@ -256,7 +256,7 @@ describe('Studio', () => {
       relation_list: true,
     })
 
-    assert.notStrictEqual(response.payload.data.response, undefined)
+    assert.ok(response.payload.data.response !== undefined)
     assert.deepStrictEqual(response.payload.data.response, {
       id: 3,
       string: '',
@@ -315,18 +315,18 @@ describe('Studio', () => {
       },
     })
 
-    assert.notStrictEqual(response.payload, undefined)
+    assert.ok(response.payload !== undefined)
 
     assert.strictEqual(response.payload.error, null)
 
-    assert.notStrictEqual(response.payload.data, undefined)
-    assert.notStrictEqual(response.payload.data.params, undefined)
-    assert.notStrictEqual(response.payload.data.params.model, undefined)
+    assert.ok(response.payload.data !== undefined)
+    assert.ok(response.payload.data.params !== undefined)
+    assert.ok(response.payload.data.params.model !== undefined)
     assert.strictEqual(
       response.payload.data.params.model,
       'with_all_field_types',
     )
-    assert.notStrictEqual(response.payload.data.params.args, undefined)
+    assert.ok(response.payload.data.params.args !== undefined)
     assert.deepStrictEqual(response.payload.data.params.args.select, {
       id: true,
       string: true,
@@ -337,7 +337,7 @@ describe('Studio', () => {
       relation_list: true,
     })
 
-    assert.notStrictEqual(response.payload.data.response, undefined)
+    assert.ok(response.payload.data.response !== undefined)
     assert.deepStrictEqual(response.payload.data.response, {
       id: 1,
       string: 'Changed String',
@@ -378,18 +378,18 @@ describe('Studio', () => {
       },
     })
 
-    assert.notStrictEqual(response.payload, undefined)
+    assert.ok(response.payload !== undefined)
 
     assert.strictEqual(response.payload.error, null)
 
-    assert.notStrictEqual(response.payload.data, undefined)
-    assert.notStrictEqual(response.payload.data.params, undefined)
-    assert.notStrictEqual(response.payload.data.params.model, undefined)
+    assert.ok(response.payload.data !== undefined)
+    assert.ok(response.payload.data.params !== undefined)
+    assert.ok(response.payload.data.params.model !== undefined)
     assert.strictEqual(
       response.payload.data.params.model,
       'with_all_field_types',
     )
-    assert.notStrictEqual(response.payload.data.params.args, undefined)
+    assert.ok(response.payload.data.params.args !== undefined)
     assert.deepStrictEqual(response.payload.data.params.args.select, {
       id: true,
       string: true,
@@ -400,7 +400,7 @@ describe('Studio', () => {
       relation_list: true,
     })
 
-    assert.notStrictEqual(response.payload.data.response, undefined)
+    assert.ok(response.payload.data.response !== undefined)
     assert.deepStrictEqual(response.payload.data.response, {
       id: 2,
       string: 'Delete me',
