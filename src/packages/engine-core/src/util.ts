@@ -4,6 +4,7 @@ import terminalLink from 'terminal-link'
 import newGithubIssueUrl from 'new-github-issue-url'
 import chalk from 'chalk'
 import Debug from '@prisma/debug'
+import crypto from 'crypto'
 const debug = Debug('plusX')
 
 export function plusX(file): void {
@@ -56,4 +57,8 @@ export function getGithubIssueUrl({
     title,
     body,
   })
+}
+
+export function getRandomString() {
+  return crypto.randomBytes(12).toString('hex')
 }

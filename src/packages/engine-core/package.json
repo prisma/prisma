@@ -36,17 +36,15 @@
     "@prisma/debug": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "bent": "^7.1.2",
     "chalk": "^4.0.0",
     "cross-fetch": "^3.0.4",
     "execa": "^4.0.2",
-    "fast-json-stringify": "^2.0.0",
     "get-stream": "^5.1.0",
     "indent-string": "^4.0.0",
     "new-github-issue-url": "^0.2.1",
     "p-retry": "^4.2.0",
     "terminal-link": "^2.1.1",
-    "undici": "1.1.0"
+    "undici": "1.3.0"
   },
   "files": [
     "!**/__tests__",
