@@ -12,10 +12,11 @@ import { getPlatform, Platform } from '@prisma/get-platform'
 import path from 'path'
 import net from 'net'
 import fs from 'fs'
+import os from 'os'
 import chalk from 'chalk'
 import { GeneratorConfig, DataSource } from '@prisma/generator-helper'
 import { printGeneratorConfig } from './printGeneratorConfig'
-import { fixBinaryTargets, plusX } from './util'
+import { fixBinaryTargets, plusX, getRandomString } from './util'
 import { promisify } from 'util'
 import EventEmitter from 'events'
 import { convertLog, RustLog, RustError } from './log'
@@ -52,6 +53,7 @@ export interface EngineConfig {
   clientVersion?: string
   enableExperimental?: string[]
   engineEndpoint?: string
+  useUds?: boolean
 }
 
 /**
@@ -81,6 +83,7 @@ export type Deferred = {
 }
 
 const engines: NodeEngine[] = []
+const socketPaths: string[] = []
 
 export class NodeEngine {
   private logEmitter: EventEmitter
@@ -104,6 +107,8 @@ export class NodeEngine {
   private lastLog?: RustLog
   private lastErrorLog?: RustLog
   private lastError?: RustError
+  private useUds: boolean = false
+  private socketPath?: string
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -145,6 +150,7 @@ export class NodeEngine {
     engineEndpoint,
     enableDebugLogs,
     enableEngineDebugMode,
+    useUds,
   }: EngineConfig) {
     this.env = env
     this.cwd = this.resolveCwd(cwd)
@@ -165,6 +171,12 @@ export class NodeEngine {
       (e) => e !== 'middlewares',
     )
     this.engineEndpoint = engineEndpoint
+
+    if (useUds && process.platform !== 'win32') {
+      this.socketPath = `/tmp/prisma-${getRandomString()}.sock`
+      socketPaths.push(this.socketPath)
+      this.useUds = useUds
+    }
 
     if (engineEndpoint) {
       const url = new URL(engineEndpoint)
@@ -438,13 +450,16 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   }
 
   private async getEngineEnvVars() {
-    debug(`port: ${this.port}`)
-
     const env: any = {
       PRISMA_DML_PATH: this.datamodelPath,
-      PORT: String(this.port),
       RUST_BACKTRACE: '1',
       RUST_LOG: 'info',
+    }
+
+    if (!this.useUds) {
+      env.PORT = String(this.port)
+    } else {
+      debug(`port: ${this.port}`)
     }
 
     if (this.logQueries || this.logLevel === 'info') {
@@ -517,6 +532,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           '--enable-raw-queries',
           ...this.flags,
         ]
+
+        if (this.useUds) {
+          flags.push('--unix-path', this.socketPath)
+        }
+
         debug({ flags })
 
         this.port = await this.getFreePort()
@@ -565,7 +585,19 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               json.target === 'query_engine::server' &&
               json.fields?.message.startsWith('Started http server')
             ) {
-              this.undici = new Undici(`http://localhost:${this.port}`)
+              if (this.useUds) {
+                this.undici = new Undici(
+                  {
+                    hostname: 'localhost',
+                    protocol: 'http:',
+                  },
+                  {
+                    socketPath: this.socketPath,
+                  },
+                )
+              } else {
+                this.undici = new Undici(`http://localhost:${this.port}`)
+              }
               this.engineStartDeferred.resolve()
               this.engineStartDeferred = undefined
               this.queryEngineStarted = true
@@ -578,7 +610,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               this.lastError = json
             }
           } catch (e) {
-            // debug(e, data)
+            debug(e, data)
           }
         })
 
@@ -760,6 +792,18 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       this.child?.kill()
       delete this.child
     }
+    setTimeout(() => {
+      if (this.socketPath) {
+        try {
+          fs.unlinkSync(this.socketPath)
+        } catch (e) {
+          debug(e)
+          //
+        }
+        socketPaths.splice(socketPaths.indexOf(this.socketPath), 1)
+        this.socketPath = undefined
+      }
+    })
   }
 
   async kill(signal: string): Promise<void> {
@@ -1116,6 +1160,15 @@ function hookProcess(handler: string, exit = false) {
     engines.splice(0, engines.length)
     if (exit) {
       process.exit()
+    }
+    if (socketPaths.length > 0) {
+      for (const socketPath of socketPaths) {
+        try {
+          fs.unlinkSync(socketPath)
+        } catch (e) {
+          //
+        }
+      }
     }
   })
 }
