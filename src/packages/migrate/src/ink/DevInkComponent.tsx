@@ -1,9 +1,7 @@
 import cliCursor from 'cli-cursor'
 import { Box, Color, StdinContext, StdoutContext } from 'ink'
-import Link from 'ink-link'
 import React, { Component } from 'react'
 import stripAnsi from 'strip-ansi'
-import supportsHyperlinks from 'supports-hyperlinks'
 import { EngineResults } from '../types'
 import { formatms } from '../utils/formatms'
 import { missingGeneratorMessage } from '@prisma/sdk'
@@ -27,7 +25,6 @@ export interface DevComponentProps {
   lastChanged: Date | undefined
   error?: Error
   datamodelPath: string
-  studioPort: number
   relativeDatamodelPath: string
   warnings?: EngineResults.Warning[]
   onSubmitWarningsPrompt?: (ok: boolean) => void
@@ -327,24 +324,6 @@ class DevComponent extends Component<Props, State> {
             />
           ) : (
             <>
-              <Box
-                marginTop={1}
-                width={this.width}
-                justifyContent="space-between"
-              >
-                <Box>
-                  <Color bold>Studio endpoint: </Color>
-                  {supportsHyperlinks.stdout ? (
-                    <Link url={'http://localhost:' + this.props.studioPort}>
-                      http://localhost:{this.props.studioPort}/
-                    </Link>
-                  ) : (
-                    <Color underline>
-                      http://localhost:{this.props.studioPort}/
-                    </Color>
-                  )}
-                </Box>
-              </Box>
               <Color dim>{'─'.repeat(this.width)}</Color>
               <Box>
                 <Box>

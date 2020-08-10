@@ -59,7 +59,6 @@
     "diff": "4.0.2",
     "execa": "^4.0.0",
     "figures": "^3.2.0",
-    "get-port": "^5.1.1",
     "git-user-email": "^0.2.2",
     "git-user-name": "^2.0.0",
     "globby": "^11.0.0",
@@ -78,8 +77,7 @@
     "rimraf": "^3.0.2",
     "string-width": "^4.2.0",
     "strip-ansi": "^6.0.0",
-    "strip-indent": "^3.0.0",
-    "supports-hyperlinks": "^2.1.0"
+    "strip-indent": "^3.0.0"
   },
   "scripts": {
     "install": "node scripts/download.js",
