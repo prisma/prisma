@@ -2,15 +2,13 @@ import { PrismaClient } from './@prisma/client'
 
 const prisma = new PrismaClient({
   errorFormat: 'pretty',
+  __internal: {
+    useUds: true,
+  },
 } as any)
 
 async function main() {
-  const x = await prisma.user.findMany({
-    orderBy: {
-      email: 'desc',
-      name: 'asc',
-    },
-  })
+  const x = await prisma.user.findMany()
   console.log(x)
   prisma.disconnect()
 }
