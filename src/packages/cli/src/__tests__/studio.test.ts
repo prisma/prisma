@@ -3,7 +3,7 @@ import path from 'path'
 import http from 'http'
 import assert from 'assert'
 import WebSocket from 'ws'
-import { Studio } from '@prisma/migrate'
+import { Studio } from '../Studio'
 
 const STUDIO_TEST_PORT = 5678
 
@@ -63,7 +63,7 @@ const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
 }
 
 describe('Studio', () => {
-  let studioInstance: Studio
+  let studio: Studio
   let ws: WebSocket
 
   beforeEach(async () => {
@@ -73,22 +73,34 @@ describe('Studio', () => {
       './src/__tests__/fixtures/studio-test-project/dev.db',
       './src/__tests__/fixtures/studio-test-project/dev_tmp.db',
     )
-    studioInstance = new Studio({
-      schemaPath: path.resolve(
-        './src/__tests__/fixtures/studio-test-project/schema.prisma',
-      ),
-      staticAssetDir: path.resolve(__dirname, '../../../cli/build/public'),
-      port: STUDIO_TEST_PORT,
-      browser: 'none',
+    studio = Studio.new({
+      'prisma-client-js': {
+        generatorPath: `node --max-old-space-size=8096 "${path.resolve(
+          './prisma-client/generator-build/index.js',
+        )}"`, // all evals are here for ncc
+        outputPath: eval(
+          `require('path').join(__dirname, '../prisma-client/')`,
+        ),
+      },
     })
 
-    await studioInstance.start({})
+    await studio.parse([
+      '--experimental',
+      '--schema',
+      path.resolve(
+        './src/__tests__/fixtures/studio-test-project/schema.prisma',
+      ),
+      '--port',
+      `${STUDIO_TEST_PORT}`,
+      '--browser',
+      'none',
+    ])
 
     ws = await setupWS()
   })
 
   afterEach(async () => {
-    await studioInstance.stop()
+    await studio.instance.stop()
     ws.close()
   })
 
@@ -105,7 +117,7 @@ describe('Studio', () => {
     })
   })
 
-  it.only('can respond to `findMany` queries', async () => {
+  it('can respond to `findMany` queries', async () => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
     // Send the same query Studio client would send if launched

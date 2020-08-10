@@ -55,8 +55,8 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "734ab53bd8e2cadf18b8b71cb53bf2d2bed46517",
-    "prismaCommit": "2d2b986314c267a181d1833d35f83bf328da364f"
+    "version": "8e4f3a5c140fa60e254d5ca37536c5991960dc7f",
+    "prismaCommit": "56e57f3d762b052b3d1d6ee07794c1d1adfadb9a"
   },
   "devDependencies": {
     "@apexearth/copy": "1.4.5",
@@ -114,7 +114,8 @@
     "terminal-link": "2.1.1",
     "ts-jest": "26.1.4",
     "ts-mocha": "7.0.0",
-    "typescript": "3.9.7"
+    "typescript": "3.9.7",
+    "ws": "^7.3.1"
   },
   "scripts": {
     "test:generate": "./node_modules/.bin/mocha src/__tests__/integrate.generate.test.ts --require ts-mocha src/__tests__/integrate.generate.test.ts --timeout 10s",
@@ -161,8 +162,5 @@
     "*.{js,ts}": [
       "eslint"
     ]
-  },
-  "dependencies": {
-    "ws": "^7.3.1"
   }
 }
