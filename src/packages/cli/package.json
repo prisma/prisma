@@ -1,5 +1,5 @@
 {
-  "version": "2.4.0-dev.59",
+  "version": "2.5.0-dev.11",
   "name": "@prisma/cli",
   "description": "The Prisma command line interface (CLI) is the primary way to interact with your Prisma project from the command line. It can initialize new project assets, generate Prisma Client, and analyze existing database structures through introspection to automatically create your application models.",
   "keywords": [
@@ -55,8 +55,8 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "195d4bdc2d16132977f4ba7a8ca312f7906cb086",
-    "prismaCommit": "56e57f3d762b052b3d1d6ee07794c1d1adfadb9a"
+    "version": "734ab53bd8e2cadf18b8b71cb53bf2d2bed46517",
+    "prismaCommit": "2d2b986314c267a181d1833d35f83bf328da364f"
   },
   "devDependencies": {
     "@apexearth/copy": "1.4.5",
@@ -68,14 +68,14 @@
     "@prisma/introspection": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.245.0",
-    "@prisma/studio-server": "0.245.0",
+    "@prisma/studio": "0.246.0",
+    "@prisma/studio-server": "0.246.0",
     "@types/debug": "4.1.5",
     "@types/mocha": "8.0.1",
     "@types/pg": "7.14.4",
     "@types/sqlite3": "3.1.6",
-    "@typescript-eslint/eslint-plugin": "3.7.1",
-    "@typescript-eslint/parser": "3.7.1",
+    "@typescript-eslint/eslint-plugin": "3.8.0",
+    "@typescript-eslint/parser": "3.8.0",
     "@zeit/ncc": "0.22.3",
     "checkpoint-client": "1.1.7",
     "dotenv": "8.2.0",
@@ -95,7 +95,7 @@
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
     "mariadb": "2.4.2",
-    "mocha": "8.1.0",
+    "mocha": "8.1.1",
     "mz": "2.7.0",
     "open": "7.1.0",
     "packwatch": "2.0.0",
@@ -106,7 +106,7 @@
     "rimraf": "3.0.2",
     "snap-shot-it": "7.9.3",
     "sqlite-async": "1.1.0",
-    "sqlite3": "4.1",
+    "sqlite3": "4.2.0",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
     "tempy": "0.6.0",
