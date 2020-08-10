@@ -30,8 +30,14 @@ process.on('unhandledRejection', (e) => {
 // hides ExperimentalWarning: The fs.promises API is experimental
 process.env.NODE_NO_WARNINGS = '1'
 
-// react: psst 🙊
-process.env.NODE_ENV = 'production'
+// If running via `ts-node`, treat NODE_ENV as development
+// @ts-ignore
+if (process[Symbol.for('ts-node.register.instance')]) {
+  process.env.NODE_ENV = 'development'
+} else {
+  // react: psst 🙊
+  process.env.NODE_ENV = 'production'
+}
 
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
@@ -120,7 +126,6 @@ import {
   MigrateUp,
   MigrateDown,
   MigrateTmpPrepare,
-  StudioCommand,
   handlePanic,
 } from '@prisma/migrate'
 import { CLI } from './CLI'
@@ -133,6 +138,7 @@ import { Validate } from './Validate'
 import * as checkpoint from 'checkpoint-client'
 import { Format } from './Format'
 import { Doctor } from './Doctor'
+import { Studio } from './Studio'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
 // as they have to ship their own version of @prisma/client
@@ -166,7 +172,7 @@ async function main(): Promise<number> {
       'tmp-prepare': MigrateTmpPrepare.new(),
       introspect: Introspect.new(),
       dev: Dev.new(),
-      studio: StudioCommand.new(aliases),
+      studio: Studio.new(aliases),
       generate: Generate.new(),
       version: Version.new(),
       validate: Validate.new(),
