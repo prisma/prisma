@@ -60,6 +60,7 @@ export class Version implements Command {
       ['Migration Engine', this.printBinaryInfo(migrationEngine)],
       ['Introspection Engine', this.printBinaryInfo(introspectionEngine)],
       ['Format Binary', this.printBinaryInfo(fmtBinary)],
+      ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
 
     const featureFlags = await this.getFeatureFlags()
