@@ -73,7 +73,7 @@ function createTests() {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.push()
         migrate.stop()
-        expect(migration.executedSteps).toEqual(4)
+        expect(migration.executedSteps).toEqual(1)
         expect(migration.warnings).toEqual([])
         expect(migration.unexecutable).toEqual([])
         return
@@ -99,7 +99,7 @@ function createTests() {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.push()
         migrate.stop()
-        expect(migration.executedSteps).toEqual(4)
+        expect(migration.executedSteps).toEqual(1)
         expect(migration.warnings).toEqual([])
         expect(migration.unexecutable).toEqual([])
         return
@@ -125,7 +125,7 @@ function createTests() {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.push()
         migrate.stop()
-        expect(migration.executedSteps).toEqual(4)
+        expect(migration.executedSteps).toEqual(1)
         expect(migration.warnings).toEqual([])
         expect(migration.unexecutable).toEqual([])
         return
@@ -165,7 +165,7 @@ function createTests() {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.push()
         migrate.stop()
-        expect(migration.executedSteps).toEqual(4)
+        expect(migration.executedSteps).toEqual(1)
         expect(migration.warnings).toEqual([])
         expect(migration.unexecutable).toEqual([])
 
