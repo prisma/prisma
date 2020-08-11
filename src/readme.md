@@ -7,7 +7,7 @@ To setup and build the packages, follow these steps:
 
 ```bash
 cd src
-npm i -g pnpm
+npm i --silent -g pnpm@5.1.7
 pnpm i --ignore-scripts
 pnpm run setup
 ```
