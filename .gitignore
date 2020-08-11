@@ -18,3 +18,4 @@ copy-photon.sh
 *.tsbuildinfo
 .env*
 .prisma
+.pnpm-store

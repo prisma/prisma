@@ -15,13 +15,13 @@ describe('getErrorMessageWithLink', () => {
     expect(
       stripAnsi(message)
         .replace(/v\d{1,2}\.\d{1,2}\.\d{1,2}/, 'NODE_VERSION')
-        .replace(/\+/g, ''),
+        .replace(/[\+-]/g, ''),
     ).toMatchInlineSnapshot(`
       "This is a title
 
-      This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
+      This is a nonrecoverable error which probably happens when the Prisma Query Engine has a panic.
 
-      https://github.com/prisma/prisma-client-js/issues/new?body=HiPrismaTeam%21MyPrismaClientjustcrashed.Thisisthereport%3A%0A%23%23Versions%0A%0A%7CName%7CVersion%7C%0A%7C----------%7C--------------------%7C%0A%7CNode%7CNODE_VERSION%7C%0A%7COS%7Cdarwin%7C%0A%7CPrisma%7C1.2.3%7C%0A%0A%23Description%0A%60%60%60%0AThisissomecrazydescription%0A%60%60%60%0A%0A%23%23Logs%0A%60%60%60%0Atest-namespacehello%2B0ms%0A%60%60%60&title=Thisisatitle&template=bug_report.md
+      https://github.com/prisma/prismaclientjs/issues/new?body=HiPrismaTeam%21MyPrismaClientjustcrashed.Thisisthereport%3A%0A%23%23Versions%0A%0A%7CName%7CVersion%7C%0A%7C%7C%7C%0A%7CNode%7CNODE_VERSION%7C%0A%7COS%7Cdarwin%7C%0A%7CPrisma%7C1.2.3%7C%0A%0A%23Description%0A%60%60%60%0AThisissomecrazydescription%0A%60%60%60%0A%0A%23%23Logs%0A%60%60%60%0Atestnamespacehello%0A%60%60%60&title=Thisisatitle&template=bug_report.md
 
       If you want the Prisma team to look into it, please open the link above 🙏
       "
