@@ -1,8 +1,6 @@
 import { arg, Command, format, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
-import Debug from '@prisma/debug'
 import StudioServer from '@prisma/studio-server'
-import fs from 'fs'
 import getPort from 'get-port'
 import path from 'path'
 import open from 'open'
@@ -14,6 +12,8 @@ import { ExperimentalFlagError } from './utils/experimental'
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 export class Studio implements Command {
+  public instance?: StudioServer
+
   public static new(providerAliases: ProviderAliases): Studio {
     return new Studio(providerAliases)
   }
@@ -142,6 +142,8 @@ export class Studio implements Command {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
       }).catch(() => {}) // Ignore any errors
     }
+
+    this.instance = studio
 
     return `Studio started at ${serverUrl}`
   }
