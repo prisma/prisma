@@ -14,6 +14,7 @@ module.exports = async () => {
   try {
     await db.__internal_triggerPanic(true)
   } catch (e) {
+    console.log('error-link', e)
     assert(
       stripAnsi(e.message).includes(
         'Query engine debug fatal error, shutting down.',
