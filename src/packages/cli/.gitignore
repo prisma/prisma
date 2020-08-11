@@ -11,6 +11,7 @@ download-build
 runtime
 examples
 !sqlite.test.db
+!src/__tests__/fixtures/studio-test-project/dev.db
 tmp
 tmp-sqlite
 tmp-mysql

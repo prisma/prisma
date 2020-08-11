@@ -53,6 +53,7 @@ importers:
       '@types/mocha': 8.0.1
       '@types/pg': 7.14.4
       '@types/sqlite3': 3.1.6
+      '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 3.8.0_9195d7e59c976ef8295ee5e80b40ac89
       '@typescript-eslint/parser': 3.8.0_eslint@7.6.0+typescript@3.9.7
       '@zeit/ncc': 0.22.3
@@ -85,7 +86,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: 4.1.1
+      sqlite3: 4.2.0
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.6.0
@@ -93,6 +94,7 @@ importers:
       ts-jest: 26.1.4_jest@26.2.2+typescript@3.9.7
       ts-mocha: 7.0.0_mocha@8.1.1
       typescript: 3.9.7
+      ws: 7.3.1
     specifiers:
       '@apexearth/copy': 1.4.5
       '@prisma/client': 'workspace:*'
@@ -109,6 +111,7 @@ importers:
       '@types/mocha': 8.0.1
       '@types/pg': 7.14.4
       '@types/sqlite3': 3.1.6
+      '@types/ws': ^7.2.6
       '@typescript-eslint/eslint-plugin': 3.8.0
       '@typescript-eslint/parser': 3.8.0
       '@zeit/ncc': 0.22.3
@@ -141,7 +144,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: '4.1'
+      sqlite3: 4.2.0
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.6.0
@@ -149,6 +152,7 @@ importers:
       ts-jest: 26.1.4
       ts-mocha: 7.0.0
       typescript: 3.9.7
+      ws: ^7.3.1
   packages/client:
     dependencies:
       pkg-up: 3.1.0
@@ -677,9 +681,9 @@ importers:
       jest: 26.2.2
       lint-staged: 10.2.11
       make-dir: 3.1.0
-      pkg-up: 3.1.0
       prettier: 2.0.5
       react: 16.11.0
+      tempy: 0.5.0
       ts-jest: 26.1.4_jest@26.2.2+typescript@3.9.7
       typescript: 3.9.7
     specifiers:
@@ -734,7 +738,6 @@ importers:
       make-dir: 3.1.0
       open: ^7.0.3
       p-map: ^4.0.0
-      pkg-up: 3.1.0
       prettier: 2.0.5
       prompts: ^2.3.2
       ps-tree: 1.2.0
@@ -743,6 +746,7 @@ importers:
       string-width: ^4.2.0
       strip-ansi: ^6.0.0
       strip-indent: ^3.0.0
+      tempy: 0.5.0
       ts-jest: 26.1.4
       typescript: 3.9.7
   packages/sdk:
@@ -1759,6 +1763,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-rouEWBImiRaSJsVA+ITTFM6ZxibuAlTuNOCyxVbwreu6k6+ujs7DfnU9o+PShFhET78pMBl3eH+AGSI5eOTkPA==
+  /@types/node/14.0.27:
+    dev: true
+    resolution:
+      integrity: sha512-kVrqXhbclHNHGu9ztnAwSncIgJv/FaxmzXJvGXNdcCpV1b8u1/Mi6z6m0vwy0LzKeXFTPLH0NzwmoJ3fNCIq0g==
   /@types/normalize-package-data/2.4.0:
     resolution:
       integrity: sha512-f5j5b/Gf71L+dbqxIpQ4Z2WlmI/mPJ0fOkGGmFgtb6sAu97EPczzbS3/tJKxmcYDj55OX6ssqwDAWOHIYDRDGA==
@@ -1828,6 +1836,12 @@ packages:
     dev: true
     resolution:
       integrity: sha512-Z7AVMMlkI8NTWF0qGhC4QIX0zkV/+y0J8x7b/RsHrN0310+YNjoJd8UrApCiGBCWtKjxS9QhNqLi2UJNToh5hA==
+  /@types/ws/7.2.6:
+    dependencies:
+      '@types/node': 14.0.27
+    dev: true
+    resolution:
+      integrity: sha512-Q07IrQUSNpr+cXU4E4LtkSIBPie5GLZyyMC1QtQYRLWz701+XcoVygGUZgvLqElq1nU4ICldMYPnexlBsg3dqQ==
   /@types/yargs-parser/15.0.0:
     dev: true
     resolution:
@@ -5541,7 +5555,7 @@ packages:
       whatwg-encoding: 1.0.5
       whatwg-mimetype: 2.3.0
       whatwg-url: 8.1.0
-      ws: 7.3.0
+      ws: 7.3.1
       xml-name-validator: 3.0.0
     dev: true
     engines:
@@ -7847,15 +7861,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-yPCgZZPkccMcvU8J4Hrt96nSXOEv6UuBLd9KGFdUR9VVkE7voXkWrV2UWODfNbxdDyviS/a+eFWDn86mfBgyJw==
-  /sqlite3/4.1.1:
-    dependencies:
-      nan: 2.14.1
-      node-pre-gyp: 0.11.0
-      request: 2.88.2
-    dev: true
-    requiresBuild: true
-    resolution:
-      integrity: sha512-CvT5XY+MWnn0HkbwVKJAyWEMfzpAPwnTiB3TobA5Mri44SrTovmmh499NPQP+gatkeOipqPlBLel7rn4E/PCQg==
   /sqlite3/4.2.0:
     dependencies:
       nan: 2.14.1
@@ -8867,7 +8872,7 @@ packages:
       async-limiter: 1.0.1
     resolution:
       integrity: sha512-jaHFD6PFv6UgoIVda6qZllptQsMlDEJkTQcybzzXDYM1XO9Y8em691FGMPmM46WGyLU4z9KMgQN+qrux/nhlHA==
-  /ws/7.3.0:
+  /ws/7.3.1:
     dev: true
     engines:
       node: '>=8.3.0'
@@ -8880,7 +8885,7 @@ packages:
       utf-8-validate:
         optional: true
     resolution:
-      integrity: sha512-iFtXzngZVXPGgpTlP1rBqsUK82p9tKqsWRPg5L56egiljujJT3vGAYnHANvFxBieXrTFavhzhxW52jnaWV+w2w==
+      integrity: sha512-D3RuNkynyHmEJIpD2qrgVkc9DQ23OrN/moAwZX4L8DfvszsJxpjQuUq3LMx6HoYji9fbIOBY18XWBsAux1ZZUA==
   /xml-name-validator/3.0.0:
     dev: true
     resolution:
