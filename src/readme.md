@@ -1,6 +1,8 @@
 # Contributing
 
 Prisma consists of a mono-repo for all TypeScript code.
+
+### Setup
 To setup and build the packages, follow these steps:
 
 ```bash
@@ -8,6 +10,12 @@ cd src
 npm i -g pnpm
 pnpm i --ignore-scripts
 pnpm run setup
+```
+
+### Tests
+To run the tests:
+```bash
+pnpm run test
 ```
 
 Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org/)
