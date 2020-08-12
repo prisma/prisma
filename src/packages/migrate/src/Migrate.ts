@@ -992,11 +992,11 @@ export class Migrate {
       )
 
       throw new Error(
-        `There are more migrations in the database than locally. This must not happen. Local migration ids: ${
+        `There are more migrations in the database than locally. This must not happen.\nLocal migration ids: ${
           localMigrationIds.length > 0
             ? localMigrationIds.join(', ')
             : `(empty)`
-        }. Remote migration ids: ${remoteMigrationIds.join(', ')}`,
+        }.\nRemote migration ids: ${remoteMigrationIds.join(', ')}`,
       )
     }
 
