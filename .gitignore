@@ -14,8 +14,9 @@ query-engine*
 
 dist/
 
-copy-photon.sh
 *.tsbuildinfo
 .env*
 .prisma
 .pnpm-store
+
+.vscode
