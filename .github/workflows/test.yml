@@ -1,0 +1,29 @@
+name: Node.js CI
+
+on: [push]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+    container:
+      image: 'node:12'
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    # - uses: actions/setup-node@v2-beta
+    #   with:
+    #     node-version: '12'
+    #     check-latest: true
+    # - name: Use Node.js ${{ matrix.node-version }}
+    #   uses: actions/setup-node@v1
+    #   with:
+    #     node-version: ${{ matrix.node-version }}
+    - run: bash src/.buildkite/test/run.sh
+      env:
+        CI: true
+        SKIP_GIT: true
