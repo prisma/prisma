@@ -3,6 +3,8 @@ import fs from 'fs'
 import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
+import hasYarn from 'has-yarn'
+import isInstalledGlobally from 'is-installed-globally'
 import {
   arg,
   drawBox,
@@ -55,16 +57,15 @@ if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   )
 }
 
+// Parse CLI arguments and look for --schema
+const args = arg(process.argv.slice(3), { '--schema': String }, false, true)
+
 //
 // Read .env file only if next to schema.prisma
 //
 // if the CLI is called witout any comand like `prisma` we can ignore .env loading
 if (process.argv.length > 2) {
   let dotenvResult
-
-  // Parse CLI arguments and look for --schema
-  const args = arg(process.argv.slice(3), { '--schema': String }, false, true)
-
   let message
 
   // 1 -Check --schema directory
@@ -213,12 +214,6 @@ async function main(): Promise<number> {
     let schemaProviders: string[] | undefined
     let schemaPreviewFeatures: string[] | undefined
     try {
-      const args = arg(
-        process.argv.slice(3),
-        { '--schema': String },
-        false,
-        true,
-      )
       const schema = await getSchema(args['--schema'])
       const config = await getConfig({
         datamodel: schema,
@@ -236,6 +231,24 @@ async function main(): Promise<number> {
       //
       debug(e)
     }
+
+    const npxUsed = String(process.env._)?.includes('_npx')
+
+    // Examples
+    // yarn 'yarn/1.22.4 npm/? node/v12.14.1 darwin x64'
+    // npm 'npm/6.14.7 node/v12.14.1 darwin x64'
+    const yarnUsed = process.env.npm_config_user_agent?.includes('yarn')
+    const baseDir = process.cwd() // args && args['--schema'] ? path.dirname(args['--schema'])
+    const has_Yarn = hasYarn(baseDir) || hasYarn(path.join(baseDir, '..'))
+
+    debug(
+      `process.env.npm_config_user_agent ${process.env.npm_config_user_agent}`,
+    )
+    debug({ isInstalledGlobally })
+    debug({ yarnUsed })
+    debug({ npxUsed })
+    debug({ baseDir })
+    debug({ has_Yarn })
 
     // check prisma for updates
     const checkResult = await checkpoint.check({
