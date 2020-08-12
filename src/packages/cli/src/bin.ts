@@ -3,7 +3,6 @@ import fs from 'fs'
 import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
-import hasYarn from 'has-yarn'
 import isInstalledGlobally from 'is-installed-globally'
 import {
   arg,
@@ -232,23 +231,33 @@ async function main(): Promise<number> {
       debug(e)
     }
 
-    const npxUsed = String(process.env._)?.includes('_npx')
+    function makeInstallCommand(packageName: string, tag: string): string {
+      // Examples
+      // yarn 'yarn/1.22.4 npm/? node/v12.14.1 darwin x64'
+      // npm 'npm/6.14.7 node/v12.14.1 darwin x64'
+      const yarnUsed = process.env.npm_config_user_agent?.includes('yarn')
 
-    // Examples
-    // yarn 'yarn/1.22.4 npm/? node/v12.14.1 darwin x64'
-    // npm 'npm/6.14.7 node/v12.14.1 darwin x64'
-    const yarnUsed = process.env.npm_config_user_agent?.includes('yarn')
-    const baseDir = process.cwd() // args && args['--schema'] ? path.dirname(args['--schema'])
-    const has_Yarn = hasYarn(baseDir) || hasYarn(path.join(baseDir, '..'))
+      let command = ''
+      if (yarnUsed) {
+        if (isInstalledGlobally) {
+          command = `yarn global add ${packageName}`
+        } else {
+          command = `yarn add --dev ${packageName}`
+        }
+      } else {
+        if (isInstalledGlobally) {
+          command = `npm i -g ${packageName}`
+        } else {
+          command = `npm i --save-dev ${packageName}`
+        }
+      }
 
-    debug(
-      `process.env.npm_config_user_agent ${process.env.npm_config_user_agent}`,
-    )
-    debug({ isInstalledGlobally })
-    debug({ yarnUsed })
-    debug({ npxUsed })
-    debug({ baseDir })
-    debug({ has_Yarn })
+      if (tag && tag !== 'latest') {
+        command += `@${tag}`
+      }
+
+      return command
+    }
 
     // check prisma for updates
     const checkResult = await checkpoint.check({
@@ -270,9 +279,14 @@ async function main(): Promise<number> {
         drawBox({
           height: 4,
           width: 59,
-          str: `\n${chalk.blue('Update available')} ${packageJson.version} -> ${
-            checkResult.data.current_version
-          }\nRun ${chalk.bold(checkResult.data.install_command)} to update`,
+          str: `\n${chalk.blue('Update available')} ${
+            checkResult.data.previous_version
+          } -> ${checkResult.data.current_version}\nRun ${chalk.bold(
+            makeInstallCommand(
+              checkResult.data.package,
+              checkResult.data.release_tag,
+            ),
+          )} to update`,
           horizontalPadding: 2,
         }),
       )
