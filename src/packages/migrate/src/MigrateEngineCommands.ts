@@ -119,6 +119,8 @@ async function doesSqliteDbExist(
 
   if (filePath.startsWith('file:')) {
     filePath = filePath.slice(5)
+  } else if (filePath.startsWith('sqlite:')) {
+    filePath = filePath.slice(7)
   }
 
   const cwd = schemaDir || (await getSchemaDir())
