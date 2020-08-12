@@ -110,13 +110,12 @@ export class MigrateSave implements Command {
       name,
       preview,
     )
+    migrate.stop()
 
     if (
       migration.unexecutableMigrations &&
       migration.unexecutableMigrations.length > 0
     ) {
-      migrate.stop()
-
       const messages: string[] = []
       messages.push(
         `${chalk.bold(
@@ -143,7 +142,6 @@ export class MigrateSave implements Command {
     }
 
     if (preview) {
-      migrate.stop()
       return `\nRun ${chalk.greenBright(
         'prisma migrate save --name MIGRATION_NAME --experimental',
       )} to create the migration\n`
@@ -156,8 +154,6 @@ export class MigrateSave implements Command {
     await serializeFileMap(files, migrationsDir)
     const lockFilePath = path.join(schemaDir, 'migrations', 'migrate.lock')
     await writeFile(lockFilePath, newLockFile)
-
-    migrate.stop()
 
     return `\nPrisma Migrate just created your migration ${printMigrationId(
       migrationId,
