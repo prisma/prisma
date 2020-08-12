@@ -458,7 +458,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
     if (!this.useUds) {
       env.PORT = String(this.port)
-    } else {
       debug(`port: ${this.port}`)
     }
 
