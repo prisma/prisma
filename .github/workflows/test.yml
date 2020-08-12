@@ -9,9 +9,9 @@ jobs:
     container:
       image: 'node:12'
 
-    strategy:
-      matrix:
-        node-version: [12.x]
+    # strategy:
+    #   matrix:
+    #     node-version: [12.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -27,3 +27,4 @@ jobs:
       env:
         CI: true
         SKIP_GIT: true
+        GITHUB_CONTEXT: ${{ toJson(github) }}
