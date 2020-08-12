@@ -101,6 +101,9 @@ export class MigrateEngine {
   ): Promise<EngineResults.MigrationProgress> {
     return this.runCommand(this.getRPCPayload('migrationProgress', args))
   }
+  public debugPanic(): Promise<any> {
+    return this.runCommand(this.getRPCPayload('debugPanic', undefined))
+  }
   private rejectAll(err: any): void {
     Object.entries(this.listeners).map(([id, listener]) => {
       listener(null, err)

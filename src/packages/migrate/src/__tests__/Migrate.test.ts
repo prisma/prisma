@@ -337,5 +337,33 @@ function createTests() {
         expect(stripAnsi(logs.join('\n'))).toMatchSnapshot()
       },
     },
+    {
+      name: 'simple debug panic',
+      fs: {
+        'schema.prisma': `
+      datasource my_db {
+        provider = "sqlite"
+        url = "file:./db/db_file.db"
+        default = true
+      }
+
+      model User {
+        id Int @id
+      }
+    `,
+        'db/.keep': ``,
+      },
+      fn: async (schemaPath: string): Promise<undefined> => {
+        const migrate = new Migrate(schemaPath)
+
+        try {
+          await migrate.engine.debugPanic()
+        } catch (e) {
+          // Should error
+          expect(stripAnsi(e.message)).toMatchSnapshot()
+        }
+        return
+      },
+    },
   ]
 }

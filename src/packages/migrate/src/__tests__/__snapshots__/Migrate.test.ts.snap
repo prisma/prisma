@@ -317,6 +317,16 @@ model User {
 }"
 `;
 
+exports[`migrate.create simple debug panic 1`] = `
+"Error in migration engine.
+Reason: [/rustc/c367798cfd3817ca6ae908ce675d1d99242af148/src/libstd/macros.rs:13:23] This is the debugPanic artificial panic
+
+Please create an issue in the migrate repo with
+your \`schema.prisma\` and the prisma command you tried to use 🙏:
+https://github.com/prisma/migrate/issues/new
+"
+`;
+
 exports[`migrate.create simple ok 1`] = `
 Array [
   Object {
