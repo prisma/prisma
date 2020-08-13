@@ -67,17 +67,23 @@ export async function canConnectToDatabase(
 
     return true
   } catch (e) {
-    let json: CommandErrorJson
-    try {
-      json = JSON.parse(e.stdout)
-    } catch (e) {
-      throw new Error(`Can't parse migration engine response:\n${e.stdout}`)
-    }
+    if (e.stdout) {
+      let json: CommandErrorJson
+      try {
+        json = JSON.parse(e.stdout)
+      } catch (e) {
+        throw new Error(`Can't parse migration engine response:\n${e.stdout}`)
+      }
 
-    return {
-      code: json.error_code,
-      message: json.message,
-      meta: json.meta,
+      return {
+        code: json.error_code,
+        message: json.message,
+        meta: json.meta,
+      }
+    } else if (e.stderr) {
+      throw new Error(`Migration engine error:\n${e.stderr}`)
+    } else {
+      throw new Error(`Migration engine exited.`)
     }
   }
 }
