@@ -22,7 +22,7 @@ export async function handlePanic(
 async function panicDialog(error, cliVersion, binaryVersion) {
   const errorMessage = error.message
     .split('\n')
-    .slice(0, process.stdout.rows - 20)
+    .slice(0, Math.max(20, process.stdout.rows))
     .join('\n')
 
   console.log(`${chalk.red('Oops, an unexpected error occured!')}

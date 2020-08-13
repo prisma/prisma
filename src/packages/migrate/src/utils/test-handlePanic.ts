@@ -6,7 +6,7 @@ async function main() {
   // process.env.GITHUB_ACTIONS = 'maybe'
 
   const error = new RustPanic(
-    'Some error message!',
+    'Some error message!\n'.repeat(23),
     '',
     undefined,
     ErrorArea.LIFT_CLI,
