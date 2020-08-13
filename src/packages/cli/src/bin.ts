@@ -139,6 +139,7 @@ import * as checkpoint from 'checkpoint-client'
 import { Format } from './Format'
 import { Doctor } from './Doctor'
 import { Studio } from './Studio'
+import { Telemetry } from './Telemetry'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
 // as they have to ship their own version of @prisma/client
@@ -178,6 +179,7 @@ async function main(): Promise<number> {
       validate: Validate.new(),
       format: Format.new(),
       doctor: Doctor.new(),
+      telemetry: Telemetry.new(),
     },
     [
       'version',
@@ -190,6 +192,7 @@ async function main(): Promise<number> {
       'generate',
       'validate',
       'format',
+      'telemetry',
     ],
   )
   // parse the arguments
