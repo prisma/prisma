@@ -6,6 +6,7 @@ import chalk from 'chalk'
 async function main() {
   const args = arg({
     '--skip-transpile': Boolean,
+    '--built-runtime': Boolean
   })
 
   const projectDir = args._[0]
@@ -26,6 +27,7 @@ async function main() {
     projectDir,
     useLocalRuntime,
     transpile: !args['--skip-transpile'],
+    useBuiltRuntime: args['--built-runtime']
   })
 
   console.log(

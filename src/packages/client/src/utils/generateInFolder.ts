@@ -19,6 +19,7 @@ export interface GenerateInFolderOptions {
   useLocalRuntime?: boolean
   transpile?: boolean
   packageSource?: string
+  useBuiltRuntime?: boolean
 }
 
 export async function generateInFolder({
@@ -26,6 +27,7 @@ export async function generateInFolder({
   useLocalRuntime = false,
   transpile = true,
   packageSource,
+  useBuiltRuntime
 }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
   if (!projectDir) {
@@ -70,13 +72,21 @@ export async function generateInFolder({
 
   const platform = await getPlatform()
 
+  let runtimePath
+  if (useLocalRuntime) {
+    runtimePath = path.relative(outputDir, path.join(__dirname, '../runtime'))
+  }
+  if (useBuiltRuntime) {
+    runtimePath = path.relative(outputDir, path.join(__dirname, '../../runtime'))
+  }
+
   await generateClient({
     binaryPaths: {
       queryEngine: {
         [platform]: path.join(
           __dirname,
           `../../query-engine-${platform}${
-            platform === 'windows' ? '.exe' : ''
+          platform === 'windows' ? '.exe' : ''
           }`,
         ),
       },
@@ -86,9 +96,7 @@ export async function generateInFolder({
     ...config,
     outputDir,
     schemaDir: path.dirname(schemaPath),
-    runtimePath: useLocalRuntime
-      ? path.relative(outputDir, path.join(__dirname, '../runtime'))
-      : undefined,
+    runtimePath,
     transpile,
     testMode: true,
     datamodelPath: schemaPath,
