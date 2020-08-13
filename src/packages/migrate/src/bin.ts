@@ -78,16 +78,17 @@ main()
   })
   .catch((error) => {
     if (error.rustStack) {
-      handlePanic(error, packageJson.version, packageJson.prisma.version).catch(
-        (e) => {
+      handlePanic(error, packageJson.version, packageJson.prisma.version)
+        .catch((e) => {
           if (debugLib.enabled('migrate')) {
             console.error(chalk.redBright.bold('Error: ') + e.stack)
           } else {
             console.error(chalk.redBright.bold('Error: ') + e.message)
           }
+        })
+        .finally(() => {
           process.exit(1)
-        },
-      )
+        })
     } else {
       if (debugLib.enabled('migrate')) {
         console.error(chalk.redBright.bold('Error: ') + error.stack)
