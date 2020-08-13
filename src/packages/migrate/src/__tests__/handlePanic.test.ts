@@ -41,7 +41,8 @@ describe('handlePanic', () => {
   const packageJsonVersion = '0.0.0'
   const prismaVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
 
-  it('ask to submit the panic error in interactive mode', async () => {
+  // Only works locally (not in CI)
+  it.skip('ask to submit the panic error in interactive mode', async () => {
     const oldConsoleLog = console.log
     const logs: string[] = []
     console.log = (...args) => {
