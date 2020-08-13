@@ -986,7 +986,7 @@ new PrismaClient({
                 /*
                  * necessary for user.posts() calls -> the original model name needs to be preserved
                  */
-                modelName: model.name,
+                modelName: modelName || model.name,
               })
             }
           }

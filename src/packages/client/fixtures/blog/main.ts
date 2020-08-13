@@ -8,9 +8,18 @@ const prisma = new PrismaClient({
 } as any)
 
 async function main() {
-  const x = await prisma.user.findMany()
+  const x = await prisma.user.findOne({
+    where: {
+      email: 'a@a.de'
+    }
+  })
+    .property()
+    .house()
+    .like()
+    .post()
+    .author()
   console.log(x)
-  prisma.disconnect()
+  prisma.$disconnect()
 }
 
 main().catch((e) => {
