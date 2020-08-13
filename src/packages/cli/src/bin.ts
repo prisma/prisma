@@ -239,11 +239,12 @@ async function main(): Promise<number> {
 
       let command = ''
       if (yarnUsed) {
-        if (isInstalledGlobally) {
-          command = `yarn global add ${packageName}`
-        } else {
-          command = `yarn add --dev ${packageName}`
-        }
+        // It's not possible to detect when it's the global package
+        // because the command is just `prisma`, yarn is not executing it
+        // so it will output the npm global command
+
+        // When yarn is used locally it works
+        command = `yarn add --dev ${packageName}`
       } else {
         if (isInstalledGlobally) {
           command = `npm i -g ${packageName}`
