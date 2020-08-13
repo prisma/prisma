@@ -677,6 +677,7 @@ importers:
       jest: 26.2.2
       lint-staged: 10.2.11
       make-dir: 3.1.0
+      mock-stdin: 1.0.0
       prettier: 2.0.5
       react: 16.11.0
       tempy: 0.5.0
@@ -732,6 +733,7 @@ importers:
       lint-staged: 10.2.11
       log-update: ^4.0.0
       make-dir: 3.1.0
+      mock-stdin: ^1.0.0
       open: ^7.0.3
       p-map: ^4.0.0
       prettier: 2.0.5
@@ -6112,6 +6114,10 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-p7FuGlYH8t7gaiodlFreseLxEmxTgvyG9RgPHODFPySNhwUehu8NIb0vdSt3WFckSneswZ0Un5typYcWElk7HQ==
+  /mock-stdin/1.0.0:
+    dev: true
+    resolution:
+      integrity: sha512-tukRdb9Beu27t6dN+XztSRHq9J0B/CoAOySGzHfn8UTfmqipA5yNT/sDUEyYdAV3Hpka6Wx6kOMxuObdOex60Q==
   /moment-timezone/0.5.31:
     dependencies:
       moment: 2.26.0
