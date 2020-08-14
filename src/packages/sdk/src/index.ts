@@ -36,6 +36,8 @@ export { link } from './link'
 export { sendPanic } from './sendPanic'
 export { maskSchema } from './utils/maskSchema'
 export { drawBox } from './drawBox'
+export { isCurrentBinInstalledGlobally } from './isCurrentBinInstalledGlobally'
+export { getCommandWithExecutor } from './getCommandWithExecutor'
 
 export { HelpError, unknownCommand } from './cli/Help'
 export {

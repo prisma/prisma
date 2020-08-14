@@ -137,13 +137,12 @@ import {
   MigrateTmpPrepare,
   handlePanic,
 } from '@prisma/migrate'
-import { isInstalledGlobally } from './utils/isInstalledGlobally'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
 import { Dev } from './Dev'
 import { Version } from './Version'
 import { Generate } from './Generate'
-import { ProviderAliases } from '@prisma/sdk'
+import { ProviderAliases, isCurrentBinInstalledGlobally } from '@prisma/sdk'
 import { Validate } from './Validate'
 import { Format } from './Format'
 import { Doctor } from './Doctor'
@@ -166,7 +165,7 @@ if (process.env.NO_COLOR) {
   chalk.level = 0
 }
 
-const isPrismaInstalledGlobally = isInstalledGlobally()
+const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
 
 /**
  * Main function

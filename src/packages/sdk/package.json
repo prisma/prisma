@@ -34,6 +34,7 @@
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "23.20.0",
     "eslint-plugin-prettier": "3.1.4",
+    "global-dirs": "^2.0.1",
     "husky": "4.2.5",
     "jest": "26.2.2",
     "lint-staged": "10.2.11",
