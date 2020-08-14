@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
-import isInstalledGlobally from 'is-installed-globally'
+
 import {
   arg,
   drawBox,
@@ -119,6 +119,7 @@ if (process.argv.length > 2) {
 /**
  * Dependencies
  */
+import * as checkpoint from 'checkpoint-client'
 import { isError, HelpError } from '@prisma/sdk'
 import {
   MigrateCommand,
@@ -128,6 +129,7 @@ import {
   MigrateTmpPrepare,
   handlePanic,
 } from '@prisma/migrate'
+import { isInstalledGlobally } from './utils/isInstalledGlobally'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
 import { Dev } from './Dev'
@@ -135,7 +137,6 @@ import { Version } from './Version'
 import { Generate } from './Generate'
 import { ProviderAliases } from '@prisma/sdk'
 import { Validate } from './Validate'
-import * as checkpoint from 'checkpoint-client'
 import { Format } from './Format'
 import { Doctor } from './Doctor'
 import { Studio } from './Studio'
@@ -156,6 +157,8 @@ const aliases: ProviderAliases = {
 if (process.env.NO_COLOR) {
   chalk.level = 0
 }
+
+const isPrismaInstalledGlobally = isInstalledGlobally()
 
 /**
  * Main function
@@ -241,19 +244,14 @@ async function main(): Promise<number> {
       const yarnUsed = process.env.npm_config_user_agent?.includes('yarn')
 
       let command = ''
-      if (yarnUsed) {
-        // It's not possible to detect when it's the global package
-        // because the command is just `prisma`, yarn is not executing it
-        // so it will output the npm global command
-
-        // When yarn is used locally it works
+      if (isPrismaInstalledGlobally === 'yarn') {
+        command = `yarn global add ${packageName}`
+      } else if (isPrismaInstalledGlobally === 'npm') {
+        command = `npm i -g ${packageName}`
+      } else if (yarnUsed) {
         command = `yarn add --dev ${packageName}`
       } else {
-        if (isInstalledGlobally) {
-          command = `npm i -g ${packageName}`
-        } else {
-          command = `npm i --save-dev ${packageName}`
-        }
+        command = `npm i --save-dev ${packageName}`
       }
 
       if (tag && tag !== 'latest') {
@@ -272,7 +270,7 @@ async function main(): Promise<number> {
       schema_providers: schemaProviders,
       schema_preview_features: schemaPreviewFeatures,
       cli_path: process.argv[1],
-      cli_install_type: isInstalledGlobally ? 'global' : 'local',
+      cli_install_type: isPrismaInstalledGlobally ? 'global' : 'local',
       command: process.argv.slice(2).join(' '),
     })
     // if the result is cached and we're outdated, show this prompt
