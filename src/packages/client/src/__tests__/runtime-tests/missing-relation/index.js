@@ -10,7 +10,6 @@ module.exports = async () => {
     })
     console.log(post)
   } catch (e) {
-    console.log('missing-relation', e)
     prisma.$disconnect()
     if (
       !e.message.includes('PANIC') &&

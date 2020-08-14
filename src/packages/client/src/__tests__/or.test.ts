@@ -26,9 +26,13 @@ describe('at least one validation', () => {
     expect(String(document)).toMatchInlineSnapshot(`
       "query {
         findManyUser(where: {
-          OR: {
-            \\"email\\": {}
-          }
+          OR: [
+            {
+              email: {
+
+              }
+            }
+          ]
         }) {
           id
           name
