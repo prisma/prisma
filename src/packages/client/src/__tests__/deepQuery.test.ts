@@ -44,19 +44,41 @@ describe('minimal where transformation', () => {
     expect(transformedDocument).toMatchInlineSnapshot(`
       "query {
         findManyUser(where: {
-          likedArticles_some: {
-            likedBy_some: {
-              AND: [
-                {
-                  likedArticles_some: {
-                    likedBy_some: {
-                      likedArticles_some: {
-                        title_contains: \\"A string\\"
-                      }
+          likedArticles: {
+            is: {
+              some: {
+                likedBy: {
+                  is: {
+                    some: {
+                      AND: [
+                        {
+                          likedArticles: {
+                            is: {
+                              some: {
+                                likedBy: {
+                                  is: {
+                                    some: {
+                                      likedArticles: {
+                                        is: {
+                                          some: {
+                                            title: {
+                                              contains: \\"A string\\"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
                     }
                   }
                 }
-              ]
+              }
             }
           }
         }) {

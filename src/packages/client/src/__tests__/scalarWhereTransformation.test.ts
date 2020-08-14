@@ -113,27 +113,43 @@ describe('scalar where transformation', () => {
         findManyUser(where: {
           AND: [
             {
-              email: \\"a@a.de\\"
-              email_gt: \\"0\\"
+              email: {
+                equals: \\"a@a.de\\"
+                gt: \\"0\\"
+              }
               AND: [
                 {
-                  name: \\"5\\"
-                  name_not: \\"7\\"
+                  name: {
+                    equals: \\"5\\"
+                    not: {
+                      equals: \\"7\\"
+                    }
+                  }
                   OR: [
                     {
-                      id_not: \\"8\\"
-                      id_not_in: [\\"7\\"]
+                      id: {
+                        not: {
+                          equals: \\"8\\"
+                          in: [\\"7\\"]
+                        }
+                      }
                     },
                     {
-                      id_not: \\"9\\"
+                      id: {
+                        not: {
+                          equals: \\"9\\"
+                        }
+                      }
                     }
                   ]
                 }
               ]
             },
             {
-              id: \\"1\\"
-              id_gt: \\"0\\"
+              id: {
+                equals: \\"1\\"
+                gt: \\"0\\"
+              }
             }
           ]
         }) {
@@ -199,46 +215,56 @@ describe('scalar where transformation', () => {
     })
 
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-                                          "mutation {
-                                            updateManyPost(
-                                              where: {
-                                                AND: [
-                                                  {
-                                                    title: {
-                                                      \\"equals\\": \\"a@a.de\\",
-                                                      \\"gt\\": \\"0\\"
-                                                    }
-                                                    AND: [
-                                                      {
-                                                        title: {
-                                                          \\"equals\\": \\"5\\",
-                                                          \\"not\\": \\"7\\"
-                                                        }
-                                                        OR: [
-                                                          {
-                                                            id_not: \\"8\\"
-                                                          },
-                                                          {
-                                                            id_not: \\"9\\"
-                                                          }
-                                                        ]
-                                                      }
-                                                    ]
-                                                  },
-                                                  {
-                                                    id: \\"1\\"
-                                                    id_gt: \\"0\\"
-                                                  }
-                                                ]
-                                              }
-                                              data: {
+      "mutation {
+        updateManyPost(
+          where: {
+            AND: [
+              {
+                title: {
+                  \\"equals\\": \\"a@a.de\\",
+                  \\"gt\\": \\"0\\"
+                }
+                AND: [
+                  {
+                    title: {
+                      \\"equals\\": \\"5\\",
+                      \\"not\\": \\"7\\"
+                    }
+                    OR: [
+                      {
+                        id: {
+                          not: {
+                            equals: \\"8\\"
+                          }
+                        }
+                      },
+                      {
+                        id: {
+                          not: {
+                            equals: \\"9\\"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                id: {
+                  equals: \\"1\\"
+                  gt: \\"0\\"
+                }
+              }
+            ]
+          }
+          data: {
 
-                                              }
-                                            ) {
-                                              count
-                                            }
-                                          }"
-                            `)
+          }
+        ) {
+          count
+        }
+      }"
+    `)
   })
 
   test('validate uuid scalar filter correctly', () => {
@@ -259,7 +285,9 @@ describe('scalar where transformation', () => {
     expect(String(document)).toMatchInlineSnapshot(`
       "query {
         findManyTest(where: {
-          id: \\"806c902c-eab3-4e6e-ba4a-99c135389118\\"
+          id: {
+            equals: \\"806c902c-eab3-4e6e-ba4a-99c135389118\\"
+          }
         }) {
           id
           name
@@ -289,15 +317,17 @@ describe('scalar where transformation', () => {
     )
 
     expect(String(document)).toMatchInlineSnapshot(`
-    "query {
-      findManyTest(where: {
-        id: \\"asd\\"
-      }) {
-        id
-        name
-      }
-    }"
-  `)
+      "query {
+        findManyTest(where: {
+          id: {
+            equals: \\"asd\\"
+          }
+        }) {
+          id
+          name
+        }
+      }"
+    `)
 
     try {
       expect(document.validate(select, false, 'tests')).toMatchInlineSnapshot(
@@ -353,7 +383,9 @@ describe('scalar where transformation', () => {
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       "query {
         findManyUser(where: {
-          favoriteTree_in: [\\"OAK\\", \\"BLASKASH\\"]
+          favoriteTree: {
+            in: [OAK, BLASKASH]
+          }
         }) {
           id
           name

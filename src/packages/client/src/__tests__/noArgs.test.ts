@@ -51,11 +51,13 @@ describe('no args', () => {
       rootTypeName: 'query',
       rootField: 'findManyUser',
     })
-    document.validate(select, false, 'user', 'colorless')
+    expect(() =>
+      document.validate(select, false, 'user', 'colorless'),
+    ).toThrowErrorMatchingSnapshot()
     expect(String(document)).toMatchInlineSnapshot(`
       "query {
         findManyUser(where: {
-
+          likedArticles: null
         }) {
           id
           name

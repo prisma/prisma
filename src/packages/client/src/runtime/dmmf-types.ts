@@ -27,6 +27,7 @@ export namespace DMMF {
     isEmbedded: boolean
     dbName: string | null
     fields: Field[]
+    fieldMap?: Record<string, Field>
     uniqueFields: string[][]
     uniqueIndexes: uniqueIndex[]
     documentation?: string

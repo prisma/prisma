@@ -57,25 +57,12 @@ function transformArgs(args: ExternalDMMF.SchemaArg[]): DMMF.SchemaArg[] {
   return args.map(transformArg)
 }
 
-function fixOrderByEnum(arg: ExternalDMMF.SchemaArg): ExternalDMMF.SchemaArg {
-  // TODO: cleanup
-  // if (arg.name === 'orderBy' && arg.inputType.type.endsWith('OrderByInput')) {
-  //   return {
-  //     name: arg.name,
-  //     inputType: {
-  //       isList: arg.inputType.isList,
-  //       isRequired: arg.inputType.isRequired,
-  //       isNullable: arg.inputType.isNullable,
-  //       type: arg.inputType.type,
-  //       kind: 'object',
-  //     },
-  //   }
-  // }
-  return arg
-}
 
-function transformArg(argBefore: ExternalDMMF.SchemaArg): DMMF.SchemaArg {
-  const arg = fixOrderByEnum(argBefore)
+/**
+ * Turns the input types into lists
+ * @param arg ExternalDMMF.SchemaArg
+ */
+function transformArg(arg: ExternalDMMF.SchemaArg): DMMF.SchemaArg {
   return {
     name: arg.name,
     inputType: [arg.inputType],
