@@ -32,7 +32,7 @@ services:
       # - mariadb
 
   postgres:
-    image: postgres:10.13
+    image: postgres:10.14
     restart: always
     environment:
       - POSTGRES_USER=prisma
