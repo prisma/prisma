@@ -97,7 +97,7 @@ datasource mysql {
   delete require.cache[prismaClientPath]
   const { PrismaClient } = await import(prismaClientPath)
   const prisma = new PrismaClient()
-  await prisma.connect()
+  await prisma.$connect()
   try {
     const result = await t.do(prisma)
     await db.query(t.down)
@@ -105,7 +105,7 @@ datasource mysql {
   } catch (err) {
     throw err
   } finally {
-    await prisma.disconnect()
+    await prisma.$disconnect()
   }
 }
 
