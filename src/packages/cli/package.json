@@ -74,7 +74,7 @@
     "@types/mocha": "8.0.1",
     "@types/pg": "7.14.4",
     "@types/sqlite3": "3.1.6",
-    "@types/ws": "^7.2.6",
+    "@types/ws": "7.2.6",
     "@typescript-eslint/eslint-plugin": "3.8.0",
     "@typescript-eslint/parser": "3.8.0",
     "@zeit/ncc": "0.22.3",
@@ -107,7 +107,7 @@
     "rimraf": "3.0.2",
     "snap-shot-it": "7.9.3",
     "sqlite-async": "1.1.0",
-    "sqlite3": "4.1",
+    "sqlite3": "4.1.1",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
     "tempy": "0.6.0",
@@ -115,7 +115,7 @@
     "ts-jest": "26.1.4",
     "ts-mocha": "7.0.0",
     "typescript": "3.9.7",
-    "ws": "^7.3.1"
+    "ws": "7.3.1"
   },
   "scripts": {
     "test:generate": "./node_modules/.bin/mocha src/__tests__/integrate.generate.test.ts --require ts-mocha src/__tests__/integrate.generate.test.ts --timeout 10s",
