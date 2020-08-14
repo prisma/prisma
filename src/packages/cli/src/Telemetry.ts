@@ -26,6 +26,8 @@ export class Telemetry implements Command {
         release_tag: it.output.release_tag,
         cli_path: it.cli_path,
         cli_path_hash: it.output.cli_path_hash,
+        last_reminder: it.last_reminder,
+        cached_at: it.cached_at,
       }
     })
 
@@ -33,8 +35,10 @@ export class Telemetry implements Command {
       {
         signature: info.signature,
         cachePath: info.cachePath,
-        projectPathHash,
-        cliPathHash,
+        current: {
+          projectPathHash,
+          cliPathHash,
+        },
         cacheItems,
       },
       undefined,
