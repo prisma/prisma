@@ -1,4 +1,3 @@
-import { Version } from './Version'
 import { Command } from '@prisma/sdk'
 import * as checkpoint from 'checkpoint-client'
 import { getCLIPathHash, getProjectHash } from '@prisma/sdk'
@@ -13,19 +12,30 @@ export class Telemetry implements Command {
 
   // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
-    const signature = await checkpoint.getSignature()
-    const version = JSON.parse(await Version.new().parse(['--json']))
+    const info = await checkpoint.getInfo()
     // SHA256 identifier for the project based on the prisma schema path
     const projectPathHash = await getProjectHash()
     // SHA256 of the cli path
     const cliPathHash = getCLIPathHash()
 
+    const cacheItems = info.cacheItems.map((it) => {
+      return {
+        product: it.output.product,
+        version: it.version,
+        package: it.output.package,
+        release_tag: it.output.release_tag,
+        cli_path: it.cli_path,
+        cli_path_hash: it.output.cli_path_hash,
+      }
+    })
+
     return JSON.stringify(
       {
-        signature,
+        signature: info.signature,
+        cachePath: info.cachePath,
         projectPathHash,
         cliPathHash,
-        version,
+        cacheItems,
       },
       undefined,
       2,
