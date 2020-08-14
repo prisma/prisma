@@ -89,7 +89,7 @@ datasource sqlite {
   assert(prismaVersion.engine === engineVersion)
 
   const prisma = new PrismaClient()
-  await prisma.connect()
+  await prisma.$connect()
   db = await Database.open(sqlitePath)
   try {
     const result = await t.do(prisma)
@@ -98,7 +98,7 @@ datasource sqlite {
   } catch (err) {
     throw err
   } finally {
-    await prisma.disconnect()
+    await prisma.$disconnect()
     await db.close()
   }
 }
