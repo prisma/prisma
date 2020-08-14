@@ -56,8 +56,16 @@ if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   )
 }
 
-// Parse CLI arguments and look for --schema
-const args = arg(process.argv.slice(3), { '--schema': String }, false, true)
+// Parse CLI arguments
+const args = arg(
+  process.argv.slice(3),
+  {
+    '--schema': String,
+    '--telemetry_information': String,
+  },
+  false,
+  true,
+)
 
 //
 // Read .env file only if next to schema.prisma
@@ -272,6 +280,9 @@ async function main(): Promise<number> {
       cli_path: process.argv[1],
       cli_install_type: isPrismaInstalledGlobally ? 'global' : 'local',
       command: process.argv.slice(2).join(' '),
+      information:
+        args['--telemetry_information'] ||
+        process.env.PRISMA_TELEMETRY_INFORMATION,
     })
     // if the result is cached and we're outdated, show this prompt
     const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
