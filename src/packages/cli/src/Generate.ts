@@ -1,3 +1,4 @@
+/* eslint-disable eslint-comments/disable-enable-pair, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/restrict-template-expressions */
 import {
   Command,
   arg,
@@ -95,7 +96,7 @@ export class Generate implements Command {
       '--watch': Boolean,
       '--schema': String,
       // Only used for checkpoint information
-      '--postinstall': String,
+      '--postinstall': Boolean,
     })
 
     const isPostinstall = process.env.PRISMA_GENERATE_IN_POSTINSTALL
