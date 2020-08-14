@@ -94,6 +94,8 @@ export class Generate implements Command {
       '-h': '--help',
       '--watch': Boolean,
       '--schema': String,
+      // Only used for checkpoint information
+      '--postinstall': String,
     })
 
     const isPostinstall = process.env.PRISMA_GENERATE_IN_POSTINSTALL

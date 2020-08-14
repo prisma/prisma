@@ -23,12 +23,12 @@ async function main() {
   process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
   try {
     if (localPath) {
-      await run('node', [localPath, 'generate'])
+      await run('node', [localPath, 'generate', '--postinstall'])
       return
     }
 
     if (installedGlobally) {
-      await run('prisma', ['generate'])
+      await run('prisma', ['generate', '--postinstall'])
       return
     }
   } catch (e) {
