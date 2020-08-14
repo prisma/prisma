@@ -273,6 +273,7 @@ async function main(): Promise<number> {
       schema_preview_features: schemaPreviewFeatures,
       cli_path: process.argv[1],
       cli_install_type: isInstalledGlobally ? 'global' : 'local',
+      command: process.argv.slice(2).join(' '),
     })
     // if the result is cached and we're outdated, show this prompt
     const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
