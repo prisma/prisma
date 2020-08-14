@@ -32,8 +32,14 @@ describe('minimal where transformation', () => {
         findManyUser(where: {
           OR: [
             {
-              posts_some: {
-                id_in: [\\"test\\"]
+              posts: {
+                is: {
+                  some: {
+                    id: {
+                      in: [\\"test\\"]
+                    }
+                  }
+                }
               }
             }
           ]
@@ -65,7 +71,9 @@ describe('minimal where transformation', () => {
         findManyUser(where: {
           OR: [
             {
-              name_starts_with: \\"x\\"
+              name: {
+                startsWith: \\"x\\"
+              }
             }
           ]
         }) {
@@ -96,7 +104,9 @@ describe('minimal where transformation', () => {
         findManyUser(where: {
           OR: [
             {
-              name_ends_with: \\"x\\"
+              name: {
+                endsWith: \\"x\\"
+              }
             }
           ]
         }) {

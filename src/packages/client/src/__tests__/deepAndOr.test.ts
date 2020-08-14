@@ -48,26 +48,34 @@ describe('minimal where transformation', () => {
         findManyUser(where: {
           OR: [
             {
-              posts_some: {
-                OR: [
-                  {
-                    author: {
-                      OR: [
-                        {
-                          AND: [
-                            {
-                              OR: [
-                                {
-                                  id: \\"10\\"
-                                }
-                              ]
-                            }
-                          ]
+              posts: {
+                is: {
+                  some: {
+                    OR: [
+                      {
+                        author: {
+                          is: {
+                            OR: [
+                              {
+                                AND: [
+                                  {
+                                    OR: [
+                                      {
+                                        id: {
+                                          equals: \\"10\\"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
                         }
-                      ]
-                    }
+                      }
+                    ]
                   }
-                ]
+                }
               }
             }
           ]

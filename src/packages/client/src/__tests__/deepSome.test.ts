@@ -37,12 +37,30 @@ describe('minimal where transformation', () => {
     expect(transformedDocument).toMatchInlineSnapshot(`
       "query {
         findManyUser(where: {
-          posts_some: {
-            author: {
-              posts_some: {
+          posts: {
+            is: {
+              some: {
                 author: {
-                  posts_some: {
-                    id: \\"5\\"
+                  is: {
+                    posts: {
+                      is: {
+                        some: {
+                          author: {
+                            is: {
+                              posts: {
+                                is: {
+                                  some: {
+                                    id: {
+                                      equals: \\"5\\"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }

@@ -37,6 +37,22 @@ Note: Lines with + are required
 "
 `;
 
+exports[`no args findMany 2`] = `
+"
+Invalid \`prisma.user()\` invocation:
+
+{
+  where: {
+    likedArticles: null
+                   ~~~~
+  }
+}
+
+Argument likedArticles for where.likedArticles must not be null. Please use undefined instead.
+
+"
+`;
+
 exports[`no args findOne 1`] = `
 "
 Invalid \`prisma.user()\` invocation:
@@ -86,14 +102,14 @@ Invalid \`prisma.user()\` invocation:
 +   email?: String
 + },
 ? where?: {
-?   id?: Int,
-?   name?: String,
-?   email?: String,
-?   likedArticles?: ArticleFilter,
-?   personaId?: Int,
 ?   AND?: UserWhereInput,
 ?   OR?: UserWhereInput,
 ?   NOT?: UserWhereInput,
+?   id?: Int,
+?   name?: String,
+?   email?: String,
+?   likedArticles?: ArticleListRelationFilter,
+?   personaId?: Int,
 ?   persona?: PersonaWhereInput
 ? }
 }
