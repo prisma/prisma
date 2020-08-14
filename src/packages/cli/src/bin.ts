@@ -61,7 +61,7 @@ const args = arg(
   process.argv.slice(3),
   {
     '--schema': String,
-    '--telemetry_information': String,
+    '--telemetry-information': String,
   },
   false,
   true,
@@ -281,7 +281,7 @@ async function main(): Promise<number> {
       cli_install_type: isPrismaInstalledGlobally ? 'global' : 'local',
       command: process.argv.slice(2).join(' '),
       information:
-        args['--telemetry_information'] ||
+        args['--telemetry-information'] ||
         process.env.PRISMA_TELEMETRY_INFORMATION,
     })
     // if the result is cached and we're outdated, show this prompt
