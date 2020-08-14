@@ -33,7 +33,7 @@ export class CLI implements Command {
       '--version': Boolean,
       '-v': '--version',
       '--experimental': Boolean,
-      '--telemetry_information': String,
+      '--telemetry-information': String,
     })
 
     if (isError(args)) {
