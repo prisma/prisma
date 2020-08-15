@@ -19,6 +19,8 @@ exports[`runtime blog-env: blog-env example should not succeed 1`] = `
 Validation Error Count: 1"
 `;
 
+exports[`runtime blog-env-postgresql: blog-env-postgresql example should succeed 1`] = `"success"`;
+
 exports[`runtime chaining: chaining example should succeed 1`] = `
 Array [
   null,
