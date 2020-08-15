@@ -193,7 +193,7 @@ module.exports = async () => {
   } catch (e) { }
   proxy = tcpProxy.createProxy(newPort, credentials.host, sourcePort)
   await new Promise((r) => setTimeout(r, 16000))
-  assert.equal(errorLogs.length, 2)
+  assert.equal(errorLogs.length, 1)
   try {
     const users = await prisma.user.findMany()
   } catch (e) { }
