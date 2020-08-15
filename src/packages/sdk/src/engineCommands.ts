@@ -70,7 +70,7 @@ export async function getDMMF({
       } catch (err) {
         throw new Error(
           chalk.redBright.bold('Get DMMF ') +
-            'unable to write temp data model path',
+          'unable to write temp data model path',
         )
       }
     }
@@ -88,14 +88,14 @@ export async function getDMMF({
 
     if (enableExperimental) {
       enableExperimental = enableExperimental.filter(
-        (e) => !['middlewares'].includes(e),
+        (e) => !['middlewares', 'aggregateApi', 'distinct', 'aggregations'].includes(e),
       )
     }
 
     const experimentalFlags =
       enableExperimental &&
-      Array.isArray(enableExperimental) &&
-      enableExperimental.length > 0
+        Array.isArray(enableExperimental) &&
+        enableExperimental.length > 0
         ? [`--enable-experimental=${enableExperimental.join(',')}`]
         : []
 
@@ -202,7 +202,7 @@ export async function getConfig({
     } catch (err) {
       throw new Error(
         chalk.redBright.bold('Get DMMF ') +
-          'unable to write temp data model path',
+        'unable to write temp data model path',
       )
     }
   }

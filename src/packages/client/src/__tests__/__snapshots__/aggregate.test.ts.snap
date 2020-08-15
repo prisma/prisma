@@ -16,6 +16,7 @@ type aggregateUser {
   cursor?: UserWhereUniqueInput
   take?: Int
   skip?: Int
+  distinct?: UserDistinctFieldEnum
 }
 
 "
