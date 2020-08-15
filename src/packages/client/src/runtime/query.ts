@@ -984,13 +984,15 @@ export function transformDocument(document: Document): Document {
             }
           }
         }
-        if (ar.value === null || typeof ar.value !== 'object' || ar.argType === 'DateTime' || ar.argType === 'Json') {
-          ar.value = new Args([new Arg({
-            key: 'equals',
-            value: ar.value,
-            argType: ar.argType, // probably wrong but fine
-            schemaArg: ar.schemaArg // probably wrong but fine
-          })])
+        if ((ar.isEnum || (typeof ar.argType === 'string' && isScalar(ar.argType)))) {
+          if (typeof ar.value !== 'object' || ar.argType === 'DateTime' || ar.argType === 'Json' || ar.value === null) {
+            ar.value = new Args([new Arg({
+              key: 'equals',
+              value: ar.value,
+              argType: ar.argType, // probably wrong but fine
+              schemaArg: ar.schemaArg // probably wrong but fine
+            })])
+          }
         } else if (typeof ar.value === 'object' && ar.schemaArg?.inputType[0].kind === 'object' && ar.key !== 'is') {
           if (ar.value instanceof Args) {
             if (!ar.value.args.find(a => a.key === 'is')) {
