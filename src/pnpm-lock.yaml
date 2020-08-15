@@ -111,7 +111,7 @@ importers:
       '@types/mocha': 8.0.1
       '@types/pg': 7.14.4
       '@types/sqlite3': 3.1.6
-      '@types/ws': ^7.2.6
+      '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 3.8.0
       '@typescript-eslint/parser': 3.8.0
       '@zeit/ncc': 0.22.3
@@ -144,7 +144,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: '4.1'
+      sqlite3: 4.1.1
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.6.0
@@ -152,7 +152,7 @@ importers:
       ts-jest: 26.1.4
       ts-mocha: 7.0.0
       typescript: 3.9.7
-      ws: ^7.3.1
+      ws: 7.3.1
   packages/client:
     dependencies:
       pkg-up: 3.1.0
@@ -330,7 +330,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.2.0
       terminal-link: 2.1.1
-      undici: 1.3.0
+      undici: 1.3.1
     devDependencies:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@types/jest': 26.0.9
@@ -378,7 +378,7 @@ importers:
       terminal-link: ^2.1.1
       ts-jest: 26.1.4
       typescript: 3.9.7
-      undici: 1.3.0
+      undici: 1.3.1
   packages/fetch-engine:
     dependencies:
       '@prisma/debug': 'link:../debug'
@@ -398,7 +398,7 @@ importers:
       progress: 2.0.3
       rimraf: 3.0.2
       temp-dir: 2.0.0
-      tempy: 0.5.0
+      tempy: 0.6.0
     devDependencies:
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.9
@@ -454,7 +454,7 @@ importers:
       progress: ^2.0.3
       rimraf: ^3.0.2
       temp-dir: ^2.0.0
-      tempy: ^0.5.0
+      tempy: ^0.6.0
       ts-jest: 26.1.4
       typescript: 3.9.7
   packages/generator-helper:
@@ -735,7 +735,7 @@ importers:
       lint-staged: 10.2.11
       log-update: ^4.0.0
       make-dir: 3.1.0
-      mock-stdin: ^1.0.0
+      mock-stdin: 1.0.0
       open: ^7.0.3
       p-map: ^4.0.0
       prettier: 2.0.5
@@ -777,7 +777,7 @@ importers:
       tar: 6.0.2
       temp-dir: 2.0.0
       temp-write: 4.0.0
-      tempy: 0.5.0
+      tempy: 0.6.0
       terminal-link: 2.1.1
       tmp: 0.2.1
       url-parse: 1.4.7
@@ -840,7 +840,7 @@ importers:
       tar: ^6.0.1
       temp-dir: ^2.0.0
       temp-write: ^4.0.0
-      tempy: ^0.5.0
+      tempy: ^0.6.0
       terminal-link: ^2.1.1
       tmp: 0.2.1
       ts-jest: 26.1.4
@@ -8283,7 +8283,6 @@ packages:
       temp-dir: 2.0.0
       type-fest: 0.16.0
       unique-string: 2.0.0
-    dev: true
     engines:
       node: '>=10'
     resolution:
@@ -8582,7 +8581,6 @@ packages:
     resolution:
       integrity: sha512-34R7HTnG0XIJcBSn5XhDd7nNFPRcXYRZrBB2O2jdKqYODldSzBAqzsWoZYYvduky73toYS/ESqxPvkDf/F0XMg==
   /type-fest/0.16.0:
-    dev: true
     engines:
       node: '>=10'
     resolution:
@@ -8631,10 +8629,10 @@ packages:
   /undici/1.1.0:
     resolution:
       integrity: sha512-wi4zaKmxyaMCOMucf3DFC05YEqtDiCjrXMfPiJlvuQyQeUgeAUHZLm+K7DBhC7lfni6/g+flNoYrzMbtraA4sQ==
-  /undici/1.3.0:
+  /undici/1.3.1:
     dev: false
     resolution:
-      integrity: sha512-JE5HzCCsZQzfTtgAVY9LUipmRv3/L+yzcTN6S3DSJWxk1E3RIgyVCIkYv9qV7B3OWu515wci37hhOLllVvGCyA==
+      integrity: sha512-NX7FzPHOrsIEHv3PDlVX4wzN1gB7WlCUzkcL2Y3rrEE4vKrlJ2Oyvn+QdACR5qpeCI7j3XtfDirGuZlkL2JDDw==
   /union-value/1.0.1:
     dependencies:
       arr-union: 3.1.0

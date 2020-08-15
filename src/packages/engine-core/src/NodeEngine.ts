@@ -168,7 +168,7 @@ export class NodeEngine {
     this.flags = flags ?? []
     this.enableExperimental = enableExperimental ?? []
     this.enableExperimental = this.enableExperimental.filter(
-      (e) => e !== 'middlewares',
+      (e) => !['middlewares', 'aggregateApi', 'distinct', 'aggregations'].includes(e),
     )
     this.engineEndpoint = engineEndpoint
 

@@ -108,6 +108,13 @@ Object {
           "desc",
         ],
       },
+      Object {
+        "name": "UserDistinctFieldEnum",
+        "values": Array [
+          "id",
+          "email",
+        ],
+      },
     ],
     "inputTypes": Array [
       Object {
@@ -501,6 +508,70 @@ Object {
         "fields": Array [
           Object {
             "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Float",
+            },
+          },
+        ],
+        "name": "UserAvgAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "UserSumAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "UserMinAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "UserMaxAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -508,6 +579,50 @@ Object {
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "avg",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserAvgAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "sum",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserSumAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "min",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserMinAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "max",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserMaxAggregateOutputType",
             },
           },
         ],
@@ -566,6 +681,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "UserDistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "findManyUser",
@@ -628,6 +753,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "UserDistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "aggregateUser",
@@ -1319,6 +1454,40 @@ Object {
         "values": Array [
           "asc",
           "desc",
+        ],
+      },
+      Object {
+        "name": "PostDistinctFieldEnum",
+        "values": Array [
+          "id",
+          "authorId",
+          "title",
+          "published",
+        ],
+      },
+      Object {
+        "name": "UserDistinctFieldEnum",
+        "values": Array [
+          "id",
+          "email",
+        ],
+      },
+      Object {
+        "name": "User1DistinctFieldEnum",
+        "values": Array [
+          "id",
+          "firstName",
+          "lastName",
+          "isAdmin",
+        ],
+      },
+      Object {
+        "name": "User2DistinctFieldEnum",
+        "values": Array [
+          "id",
+          "firstName",
+          "lastName",
+          "isAdmin",
         ],
       },
     ],
@@ -3297,6 +3466,16 @@ Object {
                 },
                 "name": "skip",
               },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "PostDistinctFieldEnum",
+                },
+                "name": "distinct",
+              },
             ],
             "name": "posts",
             "outputType": Object {
@@ -3374,7 +3553,45 @@ Object {
         "fields": Array [
           Object {
             "args": Array [],
-            "name": "count",
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Float",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "authorId",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Float",
+            },
+          },
+        ],
+        "name": "PostAvgAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "authorId",
             "outputType": Object {
               "isList": false,
               "isNullable": false,
@@ -3384,7 +3601,61 @@ Object {
             },
           },
         ],
-        "name": "AggregatePost",
+        "name": "PostSumAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "authorId",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "PostMinAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "authorId",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "PostMaxAggregateOutputType",
       },
       Object {
         "fields": Array [
@@ -3397,6 +3668,174 @@ Object {
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "avg",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "PostAvgAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "sum",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "PostSumAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "min",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "PostMinAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "max",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "PostMaxAggregateOutputType",
+            },
+          },
+        ],
+        "name": "AggregatePost",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Float",
+            },
+          },
+        ],
+        "name": "UserAvgAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "UserSumAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "UserMinAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "UserMaxAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "count",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "avg",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserAvgAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "sum",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserSumAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "min",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserMinAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "max",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserMaxAggregateOutputType",
             },
           },
         ],
@@ -3455,6 +3894,70 @@ Object {
         "fields": Array [
           Object {
             "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Float",
+            },
+          },
+        ],
+        "name": "User1AvgAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "User1SumAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "User1MinAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "User1MaxAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -3462,6 +3965,50 @@ Object {
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "avg",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1AvgAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "sum",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1SumAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "min",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1MinAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "max",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1MaxAggregateOutputType",
             },
           },
         ],
@@ -3520,6 +4067,70 @@ Object {
         "fields": Array [
           Object {
             "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Float",
+            },
+          },
+        ],
+        "name": "User2AvgAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "User2SumAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "User2MinAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "User2MaxAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -3527,6 +4138,50 @@ Object {
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "avg",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2AvgAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "sum",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2SumAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "min",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2MinAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "max",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2MaxAggregateOutputType",
             },
           },
         ],
@@ -3585,6 +4240,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "PostDistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "findManyPost",
@@ -3647,6 +4312,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "PostDistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "aggregatePost",
@@ -3732,6 +4407,16 @@ Object {
                 },
                 "name": "skip",
               },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "UserDistinctFieldEnum",
+                },
+                "name": "distinct",
+              },
             ],
             "name": "findManyUser",
             "outputType": Object {
@@ -3793,6 +4478,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "UserDistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "aggregateUser",
@@ -3878,6 +4573,16 @@ Object {
                 },
                 "name": "skip",
               },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User1DistinctFieldEnum",
+                },
+                "name": "distinct",
+              },
             ],
             "name": "findManyUser1",
             "outputType": Object {
@@ -3939,6 +4644,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User1DistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "aggregateUser1",
@@ -4024,6 +4739,16 @@ Object {
                 },
                 "name": "skip",
               },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User2DistinctFieldEnum",
+                },
+                "name": "distinct",
+              },
             ],
             "name": "findManyUser2",
             "outputType": Object {
@@ -4085,6 +4810,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User2DistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "aggregateUser2",
@@ -5292,6 +6027,40 @@ Object {
         "values": Array [
           "asc",
           "desc",
+        ],
+      },
+      Object {
+        "name": "PostDistinctFieldEnum",
+        "values": Array [
+          "id",
+          "authorId",
+          "title",
+          "published",
+        ],
+      },
+      Object {
+        "name": "UserDistinctFieldEnum",
+        "values": Array [
+          "id",
+          "email",
+        ],
+      },
+      Object {
+        "name": "User1DistinctFieldEnum",
+        "values": Array [
+          "id",
+          "firstName",
+          "lastName",
+          "isAdmin",
+        ],
+      },
+      Object {
+        "name": "User2DistinctFieldEnum",
+        "values": Array [
+          "id",
+          "firstName",
+          "lastName",
+          "isAdmin",
         ],
       },
     ],
@@ -7362,6 +8131,16 @@ Object {
                 },
                 "name": "skip",
               },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "PostDistinctFieldEnum",
+                },
+                "name": "distinct",
+              },
             ],
             "name": "posts",
             "outputType": Object {
@@ -7439,7 +8218,45 @@ Object {
         "fields": Array [
           Object {
             "args": Array [],
-            "name": "count",
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Float",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "authorId",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Float",
+            },
+          },
+        ],
+        "name": "PostAvgAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "authorId",
             "outputType": Object {
               "isList": false,
               "isNullable": false,
@@ -7449,7 +8266,61 @@ Object {
             },
           },
         ],
-        "name": "AggregatePost",
+        "name": "PostSumAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "authorId",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "PostMinAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "authorId",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "PostMaxAggregateOutputType",
       },
       Object {
         "fields": Array [
@@ -7462,6 +8333,174 @@ Object {
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "avg",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "PostAvgAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "sum",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "PostSumAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "min",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "PostMinAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "max",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "PostMaxAggregateOutputType",
+            },
+          },
+        ],
+        "name": "AggregatePost",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Float",
+            },
+          },
+        ],
+        "name": "UserAvgAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "UserSumAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "UserMinAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "UserMaxAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "count",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "avg",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserAvgAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "sum",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserSumAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "min",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserMinAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "max",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "UserMaxAggregateOutputType",
             },
           },
         ],
@@ -7520,6 +8559,70 @@ Object {
         "fields": Array [
           Object {
             "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Float",
+            },
+          },
+        ],
+        "name": "User1AvgAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "User1SumAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "User1MinAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "User1MaxAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -7527,6 +8630,50 @@ Object {
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "avg",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1AvgAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "sum",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1SumAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "min",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1MinAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "max",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User1MaxAggregateOutputType",
             },
           },
         ],
@@ -7585,6 +8732,70 @@ Object {
         "fields": Array [
           Object {
             "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Float",
+            },
+          },
+        ],
+        "name": "User2AvgAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "User2SumAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "User2MinAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "User2MaxAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -7592,6 +8803,50 @@ Object {
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "avg",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2AvgAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "sum",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2SumAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "min",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2MinAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "max",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "User2MaxAggregateOutputType",
             },
           },
         ],
@@ -7650,6 +8905,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "PostDistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "findManyPost",
@@ -7712,6 +8977,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "PostDistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "aggregatePost",
@@ -7797,6 +9072,16 @@ Object {
                 },
                 "name": "skip",
               },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "UserDistinctFieldEnum",
+                },
+                "name": "distinct",
+              },
             ],
             "name": "findManyUser",
             "outputType": Object {
@@ -7858,6 +9143,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "UserDistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "aggregateUser",
@@ -7943,6 +9238,16 @@ Object {
                 },
                 "name": "skip",
               },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User1DistinctFieldEnum",
+                },
+                "name": "distinct",
+              },
             ],
             "name": "findManyUser1",
             "outputType": Object {
@@ -8004,6 +9309,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User1DistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "aggregateUser1",
@@ -8089,6 +9404,16 @@ Object {
                 },
                 "name": "skip",
               },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User2DistinctFieldEnum",
+                },
+                "name": "distinct",
+              },
             ],
             "name": "findManyUser2",
             "outputType": Object {
@@ -8150,6 +9475,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "User2DistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "aggregateUser2",
@@ -9033,6 +10368,13 @@ Object {
           "desc",
         ],
       },
+      Object {
+        "name": "ADistinctFieldEnum",
+        "values": Array [
+          "id",
+          "name",
+        ],
+      },
     ],
     "inputTypes": Array [
       Object {
@@ -9426,6 +10768,70 @@ Object {
         "fields": Array [
           Object {
             "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Float",
+            },
+          },
+        ],
+        "name": "AAvgAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "ASumAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "AMinAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
+            "name": "id",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": true,
+              "kind": "scalar",
+              "type": "Int",
+            },
+          },
+        ],
+        "name": "AMaxAggregateOutputType",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "args": Array [],
             "name": "count",
             "outputType": Object {
               "isList": false,
@@ -9433,6 +10839,50 @@ Object {
               "isRequired": true,
               "kind": "scalar",
               "type": "Int",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "avg",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "AAvgAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "sum",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "ASumAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "min",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "AMinAggregateOutputType",
+            },
+          },
+          Object {
+            "args": Array [],
+            "name": "max",
+            "outputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "AMaxAggregateOutputType",
             },
           },
         ],
@@ -9491,6 +10941,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "ADistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "findManyA",
@@ -9553,6 +11013,16 @@ Object {
                   "type": "Int",
                 },
                 "name": "skip",
+              },
+              Object {
+                "inputType": Object {
+                  "isList": true,
+                  "isNullable": false,
+                  "isRequired": false,
+                  "kind": "enum",
+                  "type": "ADistinctFieldEnum",
+                },
+                "name": "distinct",
               },
             ],
             "name": "aggregateA",

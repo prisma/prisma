@@ -919,7 +919,6 @@ export function makeDocument({
 
 export function transformDocument(document: Document): Document {
   function transformWhereArgs(args: Args) {
-    let count = 0
     return new Args(
       args.args.map((ar) => {
         // for NOT, AND, OR
@@ -933,7 +932,7 @@ export function transformDocument(document: Document): Document {
           if (ar.schemaArg && !ar.schemaArg.isRelationFilter) {
             for (let i = ar.value.args.length; i--;) {
               const a = ar.value.args[i]
-              if (a.key === 'not' && (typeof a.value !== 'object') || a.argType === 'DateTime') {
+              if (a.key === 'not' && (typeof a.value !== 'object' || a.argType === 'DateTime')) {
                 a.value = new Args([new Arg({
                   key: 'equals',
                   value: a.value,
@@ -957,7 +956,7 @@ export function transformDocument(document: Document): Document {
                   ar.value.args.push(notField)
                 }
                 // we might be ahead of time...
-                if ((typeof notField.value !== 'object') || notField.argType === 'DateTime') {
+                if ((typeof notField.value !== 'object') || notField.argType === 'DateTime' || notField.value === null) {
                   notField.value = new Args([new Arg({
                     key: 'equals',
                     value: notField.value,
@@ -985,7 +984,7 @@ export function transformDocument(document: Document): Document {
             }
           }
         }
-        if (typeof ar.value !== 'object' || ar.argType === 'DateTime' || ar.argType === 'Json') {
+        if (ar.value === null || typeof ar.value !== 'object' || ar.argType === 'DateTime' || ar.argType === 'Json') {
           ar.value = new Args([new Arg({
             key: 'equals',
             value: ar.value,
