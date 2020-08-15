@@ -10,9 +10,8 @@ const prisma = new PrismaClient({
 async function main() {
   const x = await prisma.post.findMany({
     where: {
-      createdAt: {
-        lt: new Date()
-      }
+      // author: null
+      id: 'asd'
     }
   })
   console.log(x)
