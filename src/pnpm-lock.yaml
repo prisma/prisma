@@ -330,7 +330,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.2.0
       terminal-link: 2.1.1
-      undici: 1.3.1
+      undici: github.com/mcollina/undici/8d08ac93dde4571ec184be1924fcb16e62005bcc
     devDependencies:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@types/jest': 26.0.9
@@ -378,7 +378,7 @@ importers:
       terminal-link: ^2.1.1
       ts-jest: 26.1.4
       typescript: 3.9.7
-      undici: 1.3.1
+      undici: mcollina/undici
   packages/fetch-engine:
     dependencies:
       '@prisma/debug': 'link:../debug'
@@ -8629,10 +8629,6 @@ packages:
   /undici/1.1.0:
     resolution:
       integrity: sha512-wi4zaKmxyaMCOMucf3DFC05YEqtDiCjrXMfPiJlvuQyQeUgeAUHZLm+K7DBhC7lfni6/g+flNoYrzMbtraA4sQ==
-  /undici/1.3.1:
-    dev: false
-    resolution:
-      integrity: sha512-NX7FzPHOrsIEHv3PDlVX4wzN1gB7WlCUzkcL2Y3rrEE4vKrlJ2Oyvn+QdACR5qpeCI7j3XtfDirGuZlkL2JDDw==
   /union-value/1.0.1:
     dependencies:
       arr-union: 3.1.0
@@ -9065,3 +9061,9 @@ packages:
       node: '>= 8'
     resolution:
       integrity: sha512-r+JdDipt93ttDjsOVPU5zaq5bAyY+3H19bDrThkvuVxC0xMQzU1PJcS6D+KrP3u96gH9XLomcHPb+2skoDjulQ==
+  github.com/mcollina/undici/8d08ac93dde4571ec184be1924fcb16e62005bcc:
+    dev: false
+    name: undici
+    resolution:
+      tarball: 'https://codeload.github.com/mcollina/undici/tar.gz/8d08ac93dde4571ec184be1924fcb16e62005bcc'
+    version: 1.3.1
