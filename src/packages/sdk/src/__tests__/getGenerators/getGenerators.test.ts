@@ -46,7 +46,12 @@ describe('getGenerators', () => {
       ]),
     ).toMatchInlineSnapshot(`
       Object {
-        "datamodel": "generator gen {
+        "datamodel": "datasource db {
+        provider = \\"sqlite\\"
+        url      = \\"file:./dev.db\\"
+      }
+
+      generator gen {
         provider      = \\"predefined-generator\\"
         binaryTargets = [\\"darwin\\"]
       }
@@ -55,7 +60,19 @@ describe('getGenerators', () => {
         id   Int    @id
         name String
       }",
-        "datasources": Array [],
+        "datasources": Array [
+          Object {
+            "activeProvider": "sqlite",
+            "name": "db",
+            "provider": Array [
+              "sqlite",
+            ],
+            "url": Object {
+              "fromEnvVar": null,
+              "value": "sqlite://",
+            },
+          },
+        ],
         "otherGenerators": Array [],
       }
     `)
