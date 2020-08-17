@@ -598,16 +598,10 @@ ${indent(this.jsDoc, tab)}
    */
   disconnect(): Promise<any>;
 
-  ${
-    this.generator?.previewFeatures?.includes('middlewares')
-      ? `
   /**
    * Add a middleware
    */
   $use(cb: Middleware): void
-  `
-      : ''
-  }
 
   /**
    * Executes a raw query and returns the number of affected rows
@@ -961,11 +955,7 @@ ${indent(
 )}
 }
 
-${
-  this.generator?.previewFeatures?.includes('aggregateApi')
-    ? this.getAggregationTypes()
-    : ''
-}
+${this.getAggregationTypes()}
 
 export type ${getSelectName(model.name)} = {
 ${indent(
@@ -1195,20 +1185,14 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
     DMMF.ModelAction.findMany,
   )}, 'select' | 'include'>): Promise<number>
 
-${
-  this.generator?.previewFeatures?.includes('aggregateApi')
-    ? `
   /**
    * Aggregate
    */
   aggregate<T extends ${getAggregateArgsName(
     name,
   )}>(args: Subset<T, ${getAggregateArgsName(
-        name,
-      )}>): Promise<${getAggregateGetName(name)}<T>>
-    `
-    : ''
-}
+      name,
+    )}>): Promise<${getAggregateGetName(name)}<T>>
 }
 
 /**
