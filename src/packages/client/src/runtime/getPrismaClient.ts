@@ -169,10 +169,10 @@ export type LogDefinition = {
 
 export type GetLogType<
   T extends LogLevel | LogDefinition
-  > = T extends LogDefinition
+> = T extends LogDefinition
   ? T['emit'] extends 'event'
-  ? T['level']
-  : never
+    ? T['level']
+    : never
   : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
   | GetLogType<T[0]>
@@ -313,9 +313,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
 
       const previewFeatures = config.generator?.previewFeatures ?? []
-      if (!previewFeatures.includes('aggregations')) {
-        previewFeatures.push('aggregations')
-      }
 
       this._engineConfig = {
         cwd,
@@ -334,8 +331,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             typeof options.log === 'string'
               ? options.log === 'query'
               : options.log.find((o) =>
-                typeof o === 'string' ? o === 'query' : o.level === 'query',
-              ),
+                  typeof o === 'string' ? o === 'query' : o.level === 'query',
+                ),
           ),
         env: envFile,
         flags: [],
@@ -359,8 +356,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             typeof log === 'string'
               ? log
               : log.emit === 'stdout'
-                ? log.level
-                : null
+              ? log.level
+              : null
           if (level) {
             this.$on(level, (event) => {
               const colorMap = {
@@ -371,7 +368,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               }
               console.error(
                 chalk[colorMap[level]](`prisma:${level}`.padEnd(13)) +
-                (event.message || event.query),
+                  (event.message || event.query),
               )
             })
           }
@@ -407,24 +404,18 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       namespace: HookPoint | Middleware,
       cb?: Middleware | EngineMiddleware,
     ) {
-      if (config.generator?.previewFeatures?.includes('middlewares')) {
-        if (typeof namespace === 'function') {
-          this._middlewares.push(namespace)
-        } else if (typeof namespace === 'string') {
-          if (namespace === 'all') {
-            this._middlewares.push(cb! as Middleware)
-          } else if (namespace === 'engine') {
-            this._engineMiddlewares.push(cb! as EngineMiddleware)
-          } else {
-            throw new Error(`Unknown middleware hook ${namespace}`)
-          }
+      if (typeof namespace === 'function') {
+        this._middlewares.push(namespace)
+      } else if (typeof namespace === 'string') {
+        if (namespace === 'all') {
+          this._middlewares.push(cb! as Middleware)
+        } else if (namespace === 'engine') {
+          this._engineMiddlewares.push(cb! as EngineMiddleware)
         } else {
-          throw new Error(`Invalid middleware ${namespace}`)
+          throw new Error(`Unknown middleware hook ${namespace}`)
         }
       } else {
-        throw new Error(
-          `In order to use the middlewares api, please enable set previewFeatures = ["middlewares"]`,
-        )
+        throw new Error(`Invalid middleware ${namespace}`)
       }
     }
     on(eventType: any, callback: (event: any) => void) {
@@ -774,9 +765,9 @@ new PrismaClient({
 
       // No, we won't copy the whole object here just to make it easier to do TypeScript
       // as it would be much slower
-      ; (params as InternalRequestParams).clientMethod = clientMethod
-        ; (params as InternalRequestParams).callsite = callsite
-        ; (params as InternalRequestParams).headers = headers
+      ;(params as InternalRequestParams).clientMethod = clientMethod
+      ;(params as InternalRequestParams).callsite = callsite
+      ;(params as InternalRequestParams).headers = headers
 
       return this._executeRequest(params as InternalRequestParams)
     }
@@ -972,8 +963,8 @@ new PrismaClient({
               const prefix = dataPath.includes('select')
                 ? 'select'
                 : dataPath.includes('include')
-                  ? 'include'
-                  : 'select'
+                ? 'include'
+                : 'select'
               const newDataPath = [...dataPath, prefix, field.name]
               const newArgs = deepSet(args, newDataPath, fieldArgs || true)
 
@@ -1031,9 +1022,9 @@ new PrismaClient({
             actionName: `aggregate`,
             args: args
               ? {
-                ...args,
-                select: { count: true },
-              }
+                  ...args,
+                  select: { count: true },
+                }
               : undefined,
             dataPath: ['count'],
           })

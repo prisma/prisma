@@ -27,7 +27,7 @@ export async function generateInFolder({
   useLocalRuntime = false,
   transpile = true,
   packageSource,
-  useBuiltRuntime
+  useBuiltRuntime,
 }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
   if (!projectDir) {
@@ -43,9 +43,6 @@ export async function generateInFolder({
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   const enablePreview = mapPreviewFeatures(extractPreviewFeatures(config))
-  if (!enablePreview.includes('aggregations')) {
-    enablePreview.push('aggregations')
-  }
 
   const dmmf = await getDMMF({
     datamodel,
@@ -75,14 +72,17 @@ export async function generateInFolder({
   let runtimePath
   if (useLocalRuntime) {
     if (useBuiltRuntime) {
-      runtimePath = path.relative(outputDir, path.join(__dirname, '../../runtime'))
-
+      runtimePath = path.relative(
+        outputDir,
+        path.join(__dirname, '../../runtime'),
+      )
     } else {
       runtimePath = path.relative(outputDir, path.join(__dirname, '../runtime'))
-
     }
   } else if (useBuiltRuntime) {
-    throw new Error(`Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`)
+    throw new Error(
+      `Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`,
+    )
   }
 
   await generateClient({
@@ -91,7 +91,7 @@ export async function generateInFolder({
         [platform]: path.join(
           __dirname,
           `../../query-engine-${platform}${
-          platform === 'windows' ? '.exe' : ''
+            platform === 'windows' ? '.exe' : ''
           }`,
         ),
       },
