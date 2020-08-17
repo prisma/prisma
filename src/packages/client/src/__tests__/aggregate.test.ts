@@ -42,7 +42,6 @@ describe('aggregate', () => {
     dmmf = new DMMFClass(
       await getDMMF({
         datamodel: recommender,
-        enableExperimental: ['aggregations'],
       }),
     )
   })
