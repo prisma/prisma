@@ -596,6 +596,25 @@ async function publish() {
           `UPDATE_STUDIO is set, so we only update Prisma Client and all dependants.`,
         ),
       )
+
+      // We know, that Prisma Client and Prisma CLI are always part of the release.
+      // Therefore, also Migrate is also always part of the release, as it depends on Prisma Client.
+      // We can therefore safely update Studio, as migrate and Prisma CLI are depending on Studio
+      const latestStudioVersion = await runResult(
+        '.',
+        'npm info @prisma/studio-transports version',
+      )
+      console.log(
+        `UPDATE_STUDIO set true, so we're updating it to ${latestStudioVersion}`,
+      )
+      console.log(`Active branch`)
+      await run('.', 'git branch')
+      console.log(`Let's check out master!`)
+      await run('.', 'git checkout master')
+      await run(
+        '.',
+        `pnpm update  -r @prisma/studio@${latestStudioVersion} @prisma/studio-transports@${latestStudioVersion} @prisma/studio-server@${latestStudioVersion} @prisma/studio-types@${latestStudioVersion}`,
+      )
     }
 
     if (!dryRun && args['--test']) {
@@ -604,28 +623,6 @@ async function publish() {
     }
 
     if (args['--publish'] || dryRun) {
-      // We know, that Photon and Prisma2 are always part of the release.
-      // Therefore, also migrate is also always part of the release, as it depends on photon.
-      // We can therefore safely update studio, as migrate and prisma2 are depending on studio
-
-      if (process.env.UPDATE_STUDIO) {
-        const latestStudioVersion = await runResult(
-          '.',
-          'npm info @prisma/studio-transports version',
-        )
-        console.log(
-          `UPDATE_STUDIO set true, so we're updating it to ${latestStudioVersion}`,
-        )
-        console.log(`Active branch`)
-        await run('.', 'git branch')
-        console.log(`Let's check out master!`)
-        await run('.', 'git checkout master')
-        await run(
-          '.',
-          `pnpm update  -r @prisma/studio@${latestStudioVersion} @prisma/studio-transports@${latestStudioVersion} @prisma/studio-server@${latestStudioVersion} @prisma/studio-types@${latestStudioVersion}`,
-        )
-      }
-
       if (args['--release']) {
         const passing = await areEndToEndTestsPassing(tag)
         if (!passing) {
