@@ -1,7 +1,8 @@
 import fs from 'fs'
 import globalDirectories from 'global-dirs'
 
-export function isInstalledGlobally(): 'npm' | 'yarn' | false {
+// returns if current prisma bin is installed globally
+export function isCurrentBinInstalledGlobally(): 'npm' | 'yarn' | false {
   try {
     const realPrismaPath = fs.realpathSync(process.argv[1])
     const usingGlobalYarn =

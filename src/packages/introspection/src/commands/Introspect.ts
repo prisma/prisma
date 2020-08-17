@@ -6,6 +6,7 @@ import {
   arg,
   link,
   drawBox,
+  getCommandWithExecutor,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
@@ -149,7 +150,7 @@ ${chalk.bold(
 )} could not create any models in your ${chalk.bold(
             'schema.prisma',
           )} file and you will not be able to generate Prisma Client with the ${chalk.bold(
-            'prisma generate',
+            getCommandWithExecutor('prisma generate'),
           )} command.
 
 ${chalk.bold('To fix this, you have two options:')}
@@ -161,7 +162,9 @@ ${chalk.bold('To fix this, you have two options:')}
             'schema.prisma',
           )} points to a database that is not empty (it must contain at least one table).
 
-Then you can run ${chalk.green('prisma introspect')} again. 
+Then you can run ${chalk.green(
+            getCommandWithExecutor('prisma introspect'),
+          )} again. 
 `)
         }
       } else if (args['--experimental-reintrospection'] && !args['--clean']) {
@@ -170,7 +173,7 @@ Then you can run ${chalk.green('prisma introspect')} again.
           'Introspection failed as your current Prisma schema file is invalid:',
         )}
 Please fix your current schema manually, use ${chalk.green(
-          'prisma validate',
+          getCommandWithExecutor('prisma validate'),
         )} to confirm it is valid and then run this command again.
 Or run this command with the ${chalk.green(
           '--clean',
@@ -307,9 +310,11 @@ Learn more about the upgrade process in the docs:\n${link(
 ${
   prisma1UpgradeMessage
     ? `Once you upgraded your database schema to Prisma 2.0, run ${chalk.green(
-        'prisma generate',
+        getCommandWithExecutor('prisma generate'),
       )} to generate Prisma Client.`
-    : `Run ${chalk.green('prisma generate')} to generate Prisma Client.`
+    : `Run ${chalk.green(
+        getCommandWithExecutor('prisma generate'),
+      )} to generate Prisma Client.`
 }`)
     }
 
