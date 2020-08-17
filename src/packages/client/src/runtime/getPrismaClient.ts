@@ -313,9 +313,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
 
       const previewFeatures = config.generator?.previewFeatures ?? []
-      if (!previewFeatures.includes('aggregations')) {
-        previewFeatures.push('aggregations')
-      }
 
       this._engineConfig = {
         cwd,
@@ -407,7 +404,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       namespace: HookPoint | Middleware,
       cb?: Middleware | EngineMiddleware,
     ) {
-      if (config.generator?.previewFeatures?.includes('middlewares')) {
         if (typeof namespace === 'function') {
           this._middlewares.push(namespace)
         } else if (typeof namespace === 'string') {
@@ -421,10 +417,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         } else {
           throw new Error(`Invalid middleware ${namespace}`)
         }
-      } else {
-        throw new Error(
-          `In order to use the middlewares api, please enable set previewFeatures = ["middlewares"]`,
-        )
       }
     }
     on(eventType: any, callback: (event: any) => void) {
