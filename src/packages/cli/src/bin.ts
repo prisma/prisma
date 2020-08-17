@@ -58,7 +58,7 @@ if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
 
 // Parse CLI arguments
 const args = arg(
-  process.argv.slice(3),
+  process.argv.slice(2),
   {
     '--schema': String,
     '--telemetry-information': String,
