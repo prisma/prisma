@@ -330,7 +330,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.2.0
       terminal-link: 2.1.1
-      undici: github.com/mcollina/undici/8d08ac93dde4571ec184be1924fcb16e62005bcc
+      undici: github.com/mcollina/undici/e76f6a37836537f08c2d9b7d8805d6ff21d1e744
     devDependencies:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@types/jest': 26.0.9
@@ -378,7 +378,7 @@ importers:
       terminal-link: ^2.1.1
       ts-jest: 26.1.4
       typescript: 3.9.7
-      undici: mcollina/undici
+      undici: 'git://github.com/mcollina/undici.git#e76f6a37836537f08c2d9b7d8805d6ff21d1e744'
   packages/fetch-engine:
     dependencies:
       '@prisma/debug': 'link:../debug'
@@ -9065,16 +9065,15 @@ packages:
       node: '>= 8'
     resolution:
       integrity: sha512-r+JdDipt93ttDjsOVPU5zaq5bAyY+3H19bDrThkvuVxC0xMQzU1PJcS6D+KrP3u96gH9XLomcHPb+2skoDjulQ==
-  github.com/mcollina/undici/8d08ac93dde4571ec184be1924fcb16e62005bcc:
-    dev: false
-    name: undici
-    resolution:
-      registry: 'https://registry.npmjs.org/'
-      tarball: 'https://codeload.github.com/mcollina/undici/tar.gz/8d08ac93dde4571ec184be1924fcb16e62005bcc'
-    version: 1.3.1
   github.com/mcollina/undici/cb93e2a21876d8c1c95a8636787d46e2c06af31e:
     name: undici
     resolution:
       registry: 'https://registry.npmjs.org/'
       tarball: 'https://codeload.github.com/mcollina/undici/tar.gz/cb93e2a21876d8c1c95a8636787d46e2c06af31e'
+    version: 1.3.1
+  github.com/mcollina/undici/e76f6a37836537f08c2d9b7d8805d6ff21d1e744:
+    dev: false
+    name: undici
+    resolution:
+      tarball: 'https://codeload.github.com/mcollina/undici/tar.gz/e76f6a37836537f08c2d9b7d8805d6ff21d1e744'
     version: 1.3.1
