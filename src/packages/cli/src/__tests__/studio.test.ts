@@ -62,7 +62,7 @@ const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
   })
 }
 
-describe.skip('Studio', () => {
+describe('Studio', () => {
   let studio: Studio
   let ws: WebSocket
 
