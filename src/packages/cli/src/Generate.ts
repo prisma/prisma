@@ -6,6 +6,7 @@ import {
   HelpError,
   getSchemaPath,
   isError,
+  getCommandWithExecutor,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import logUpdate from 'log-update'
@@ -162,7 +163,7 @@ If you do not have a Prisma Schema file yet, you can ignore this message.`)
           'info',
         )} The postinstall script automatically ran \`prisma generate\`, which failed.
 The postinstall script still succeeds but won't generate the Prisma Client.
-Please run \`prisma generate\` to see the errors.`)
+Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         return ''
       }
       if (watchMode) {
@@ -200,7 +201,7 @@ Explore the full API: ${link('http://pris.ly/d/client')}`
             'info',
           )} The postinstall script automatically ran \`prisma generate\`, which failed.
 The postinstall script still succeeds but won't generate the Prisma Client.
-Please run \`prisma generate\` to see the errors.`)
+Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
           return ''
         }
         throw new Error(message)
