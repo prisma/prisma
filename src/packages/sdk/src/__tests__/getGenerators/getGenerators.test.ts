@@ -47,8 +47,8 @@ describe('getGenerators', () => {
     ).toMatchInlineSnapshot(`
       Object {
         "datamodel": "datasource db {
-        provider = \\"postgresql\\"
-        url      = env(\\"TEST_POSTGRES_URI\\")
+        provider = \\"sqlite\\"
+        url      = \\"file:./dev.db\\"
       }
 
       generator gen {
@@ -62,14 +62,14 @@ describe('getGenerators', () => {
       }",
         "datasources": Array [
           Object {
-            "activeProvider": "postgresql",
+            "activeProvider": "sqlite",
             "name": "db",
             "provider": Array [
-              "postgresql",
+              "sqlite",
             ],
             "url": Object {
               "fromEnvVar": null,
-              "value": "postgresql://",
+              "value": "sqlite://",
             },
           },
         ],

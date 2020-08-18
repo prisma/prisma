@@ -144,6 +144,144 @@ test('JsonFilter should contain equals and not', async () => {
                 "isList": false,
                 "isNullable": false,
                 "isRequired": false,
+                "kind": "object",
+                "type": "NestedStringFilter",
+              },
+            ],
+            "name": "not",
+          },
+        ],
+        "isOneOf": false,
+        "name": "NestedStringFilter",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Array [
+              Object {
+                "isList": false,
+                "isNullable": false,
+                "isRequired": false,
+                "kind": "scalar",
+                "type": "String",
+              },
+            ],
+            "name": "equals",
+          },
+          Object {
+            "inputType": Array [
+              Object {
+                "isList": true,
+                "isNullable": false,
+                "isRequired": false,
+                "kind": "scalar",
+                "type": "String",
+              },
+            ],
+            "name": "in",
+          },
+          Object {
+            "inputType": Array [
+              Object {
+                "isList": true,
+                "isNullable": false,
+                "isRequired": false,
+                "kind": "scalar",
+                "type": "String",
+              },
+            ],
+            "name": "notIn",
+          },
+          Object {
+            "inputType": Array [
+              Object {
+                "isList": false,
+                "isNullable": false,
+                "isRequired": false,
+                "kind": "scalar",
+                "type": "String",
+              },
+            ],
+            "name": "lt",
+          },
+          Object {
+            "inputType": Array [
+              Object {
+                "isList": false,
+                "isNullable": false,
+                "isRequired": false,
+                "kind": "scalar",
+                "type": "String",
+              },
+            ],
+            "name": "lte",
+          },
+          Object {
+            "inputType": Array [
+              Object {
+                "isList": false,
+                "isNullable": false,
+                "isRequired": false,
+                "kind": "scalar",
+                "type": "String",
+              },
+            ],
+            "name": "gt",
+          },
+          Object {
+            "inputType": Array [
+              Object {
+                "isList": false,
+                "isNullable": false,
+                "isRequired": false,
+                "kind": "scalar",
+                "type": "String",
+              },
+            ],
+            "name": "gte",
+          },
+          Object {
+            "inputType": Array [
+              Object {
+                "isList": false,
+                "isNullable": false,
+                "isRequired": false,
+                "kind": "scalar",
+                "type": "String",
+              },
+            ],
+            "name": "contains",
+          },
+          Object {
+            "inputType": Array [
+              Object {
+                "isList": false,
+                "isNullable": false,
+                "isRequired": false,
+                "kind": "scalar",
+                "type": "String",
+              },
+            ],
+            "name": "startsWith",
+          },
+          Object {
+            "inputType": Array [
+              Object {
+                "isList": false,
+                "isNullable": false,
+                "isRequired": false,
+                "kind": "scalar",
+                "type": "String",
+              },
+            ],
+            "name": "endsWith",
+          },
+          Object {
+            "inputType": Array [
+              Object {
+                "isList": false,
+                "isNullable": false,
+                "isRequired": false,
                 "kind": "scalar",
                 "type": "String",
               },
@@ -152,7 +290,7 @@ test('JsonFilter should contain equals and not', async () => {
                 "isNullable": false,
                 "isRequired": false,
                 "kind": "object",
-                "type": "StringFilter",
+                "type": "NestedStringFilter",
               },
             ],
             "name": "not",
@@ -160,6 +298,36 @@ test('JsonFilter should contain equals and not', async () => {
         ],
         "isOneOf": false,
         "name": "StringFilter",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Array [
+              Object {
+                "isList": false,
+                "isNullable": true,
+                "isRequired": false,
+                "kind": "scalar",
+                "type": "Json",
+              },
+            ],
+            "name": "equals",
+          },
+          Object {
+            "inputType": Array [
+              Object {
+                "isList": false,
+                "isNullable": false,
+                "isRequired": false,
+                "kind": "object",
+                "type": "NestedJsonNullableFilter",
+              },
+            ],
+            "name": "not",
+          },
+        ],
+        "isOneOf": false,
+        "name": "NestedJsonNullableFilter",
       },
       Object {
         "fields": Array [
@@ -189,7 +357,7 @@ test('JsonFilter should contain equals and not', async () => {
                 "isNullable": false,
                 "isRequired": false,
                 "kind": "object",
-                "type": "JsonNullableFilter",
+                "type": "NestedJsonNullableFilter",
               },
             ],
             "name": "not",

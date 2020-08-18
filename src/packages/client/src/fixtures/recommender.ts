@@ -1,4 +1,9 @@
 export const recommender = /* GraphQL */ `
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
 model Article {
   id      Int      @id
   url     String   @unique
