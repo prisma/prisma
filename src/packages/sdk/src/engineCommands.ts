@@ -233,10 +233,11 @@ export async function getConfig({
 
     return JSON.parse(result.stdout)
   } catch (e) {
-    if (e.stderr) {
+    if (e.stderr || e.stdout) {
+      const error = e.stderr ? e.stderr : e.stout
       let jsonError, message
       try {
-        jsonError = JSON.parse(e.stderr)
+        jsonError = JSON.parse(error)
         message = `${chalk.redBright.bold('Get config ')}\n${chalk.redBright(
           jsonError.message,
         )}\n`
@@ -245,14 +246,12 @@ export async function getConfig({
         }
       } catch (e) {
         // if JSON parse / pretty handling fails, fallback to simple printing
-        throw new Error(chalk.redBright.bold('Get config ') + e.stderr)
+        throw new Error(chalk.redBright.bold('Get config ') + error)
       }
 
       throw new Error(message)
     }
-    if (e.stdout) {
-      throw new Error(chalk.redBright.bold('Get config ') + e.stdout)
-    }
+
     throw new Error(chalk.redBright.bold('Get config ') + e)
   }
 }
