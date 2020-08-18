@@ -167,11 +167,24 @@ export class NodeEngine {
     this.clientVersion = clientVersion
     this.flags = flags ?? []
     this.enableExperimental = enableExperimental ?? []
+    const removedFlags = [
+      'middlewares',
+      'aggregateApi',
+      'distinct',
+      'aggregations',
+    ]
+    const removedFlagsUsed = this.enableExperimental.filter((e) =>
+      removedFlags.includes(e),
+    )
+    if (removedFlagsUsed.length > 0) {
+      console.log(
+        `Info: The preview flags \`${removedFlagsUsed.join(
+          '`, `',
+        )}\` were removed, you can now safely remove them from your schema.prisma.`,
+      )
+    }
     this.enableExperimental = this.enableExperimental.filter(
-      (e) =>
-        !['middlewares', 'aggregateApi', 'distinct', 'aggregations'].includes(
-          e,
-        ),
+      (e) => !removedFlags.includes(e),
     )
     this.engineEndpoint = engineEndpoint
 
