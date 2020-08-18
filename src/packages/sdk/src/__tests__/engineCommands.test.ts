@@ -6,12 +6,32 @@ import path from 'path'
 jest.setTimeout(10000)
 
 describe('getDMMF', () => {
+  test('no datasource should get a validation error', async () => {
+    const datamodel = `model A {
+      id Int @id
+      name String
+    }
+    `
+    /* eslint-disable jest/no-try-expect */
+    try {
+      await getDMMF({ datamodel })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchSnapshot()
+    }
+    /* eslint-enable jest/no-try-expect */
+  })
+
   test('simple model', async () => {
     const dmmf = await getDMMF({
-      datamodel: `model A {
-    id Int @id
-    name String
-  }`,
+      datamodel: `
+      datasource db {
+        provider = "sqlite"
+        url      = "file:./dev.db"
+      }
+      model A {
+        id Int @id
+        name String
+      }`,
     })
 
     expect(dmmf.datamodel).toMatchInlineSnapshot(`
@@ -64,6 +84,10 @@ describe('getDMMF', () => {
   test('@@map model', async () => {
     const dmmf = await getDMMF({
       datamodel: `
+      datasource db {
+        provider = "postgresql"
+        url      = env("MY_POSTGRESQL_DB")
+      }
       model User {
         id        Int      @default(autoincrement())
         email     String   @unique
@@ -121,9 +145,85 @@ describe('getDMMF', () => {
     expect(dmmf).toMatchSnapshot()
   })
 
+  test('model with autoincrement should fail if sqlite', async () => {
+    const datamodel = `
+      datasource db {
+        provider = "sqlite"
+        url      = "file:dev.db"
+      }
+      model User {
+        id        Int      @default(autoincrement())
+        email     String   @unique
+        @@map("users")
+      }`
+
+    /* eslint-disable jest/no-try-expect */
+    try {
+      await getDMMF({ datamodel })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        "Schema parsing
+        error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default value is used on a non-id field even though the datasource does not support this.
+          -->  schema.prisma:7
+           | 
+         6 |       model User {
+         7 |         id        Int      @default(autoincrement())
+         8 |         email     String   @unique
+           | 
+        error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
+          -->  schema.prisma:7
+           | 
+         6 |       model User {
+         7 |         id        Int      @default(autoincrement())
+         8 |         email     String   @unique
+           | 
+
+        Validation Error Count: 2"
+      `)
+    }
+    /* eslint-enable jest/no-try-expect */
+  })
+
+  test('model with autoincrement should fail if mysql', async () => {
+    const datamodel = `
+      datasource db {
+        provider = "mysql"
+        url      = env("MY_MYSQL_DB")
+      }
+      model User {
+        id        Int      @default(autoincrement())
+        email     String   @unique
+        @@map("users")
+      }`
+
+    /* eslint-disable jest/no-try-expect */
+    try {
+      await getDMMF({ datamodel })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        "Schema parsing
+        error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
+          -->  schema.prisma:7
+           | 
+         6 |       model User {
+         7 |         id        Int      @default(autoincrement())
+         8 |         email     String   @unique
+           | 
+
+        Validation Error Count: 1"
+      `)
+    }
+    /* eslint-enable jest/no-try-expect */
+  })
+
   test('@@unique model', async () => {
     const dmmf = await getDMMF({
       datamodel: `
+      datasource db {
+        provider = "postgres"
+        url      = env("MY_POSTGRES_DB")
+      }
+
       // From https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model#examples-3
       // Specify a multi-field unique attribute that includes a relation field
       model Post {
@@ -167,6 +267,11 @@ describe('getDMMF', () => {
   test('@@unique model connectOrCreate', async () => {
     const dmmf = await getDMMF({
       datamodel: `
+      datasource db {
+        provider = "postgresql"
+        url      = env("MY_POSTGRES_DB")
+      }
+
       // From https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model#examples-3
       // Specify a multi-field unique attribute that includes a relation field
       model Post {
@@ -217,7 +322,7 @@ describe('getDMMF', () => {
       datamodel: file,
     })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`286507`)
+    expect(str.length).toMatchInlineSnapshot(`293332`)
   })
 
   test('chinook introspected schema connectOrCreate', async () => {
@@ -230,7 +335,7 @@ describe('getDMMF', () => {
       enableExperimental: ['connectOrCreate'],
     })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`301323`)
+    expect(str.length).toMatchInlineSnapshot(`308148`)
   })
 
   test('big schema', async () => {
@@ -243,7 +348,7 @@ describe('getDMMF', () => {
       enableExperimental: ['connectOrCreate'],
     })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`51282887`)
+    expect(str.length).toMatchInlineSnapshot(`51284966`)
   })
 
   test('with validation errors', async () => {
@@ -296,10 +401,16 @@ describe('getDMMF', () => {
 describe('getConfig', () => {
   test('empty config', async () => {
     const config = await getConfig({
-      datamodel: `model A {
-      id Int @id
-      name String
-    }`,
+      datamodel: `
+      datasource db {
+        provider = "sqlite"
+        url      = "file:../hello.db"
+      }
+      
+      model A {
+        id Int @id
+        name String
+      }`,
     })
 
     expect(config).toMatchSnapshot()
