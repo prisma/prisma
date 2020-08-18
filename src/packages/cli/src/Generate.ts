@@ -98,6 +98,7 @@ export class Generate implements Command {
       '--schema': String,
       // Only used for checkpoint information
       '--postinstall': Boolean,
+      '--telemetry-information': String,
     })
 
     const isPostinstall = process.env.PRISMA_GENERATE_IN_POSTINSTALL

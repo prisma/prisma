@@ -29,6 +29,7 @@ export class Version implements Command {
   async parse(argv: string[]): Promise<string> {
     const args = arg(argv, {
       '--json': Boolean,
+      '--telemetry-information': String,
     })
     const platform = await getPlatform()
 

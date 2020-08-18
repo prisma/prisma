@@ -76,6 +76,7 @@ export class Studio implements Command {
       '-b': '--browser',
       '--schema': String,
       '--experimental': Boolean,
+      '--telemetry-information': String,
     })
 
     if (isError(args)) {

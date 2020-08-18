@@ -73,6 +73,7 @@ export class MigrateUp implements Command {
         '--auto-approve': Boolean,
         '--experimental': Boolean,
         '--schema': String,
+        '--telemetry-information': String,
       },
       false,
     )

@@ -78,6 +78,7 @@ export class MigrateSave implements Command {
       '-c': '--create-db',
       '--experimental': Boolean,
       '--schema': String,
+      '--telemetry-information': String,
     })
 
     if (isError(args)) {
