@@ -76,6 +76,7 @@ export class MigrateCommand implements Command {
       '--help': Boolean,
       '-h': '--help',
       '--experimental': Boolean,
+      '--telemetry-information': String,
     })
 
     if (isError(args)) {

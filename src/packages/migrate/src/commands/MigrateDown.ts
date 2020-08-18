@@ -60,6 +60,7 @@ export class MigrateDown implements Command {
         '-p': '--preview',
         '--experimental': Boolean,
         '--schema': String,
+        '--telemetry-information': String,
       },
       false,
     )

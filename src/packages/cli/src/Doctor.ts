@@ -51,6 +51,7 @@ export class Doctor implements Command {
       '--help': Boolean,
       '-h': '--help',
       '--schema': String,
+      '--telemetry-information': String,
     })
 
     if (args instanceof Error) {
