@@ -3,11 +3,6 @@ datasource db {
   url      = env("TEST_POSTGRES_URI")
 }
 
-// datasource db {
-//   provider = "sqlite"
-//   url      = "file:./dev.db"
-// }
-
 generator gen {
   provider      = "predefined-generator"
   binaryTargets = ["marvin"]

@@ -2,6 +2,11 @@ import { DMMFClass, makeDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
 
 export const recommender = /* GraphQL */ `
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
 model Article {
   id      Int      @id
   url     String   @unique
