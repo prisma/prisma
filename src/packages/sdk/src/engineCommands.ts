@@ -70,7 +70,7 @@ export async function getDMMF({
       } catch (err) {
         throw new Error(
           chalk.redBright.bold('Get DMMF ') +
-          'unable to write temp data model path',
+            'unable to write temp data model path',
         )
       }
     }
@@ -88,14 +88,17 @@ export async function getDMMF({
 
     if (enableExperimental) {
       enableExperimental = enableExperimental.filter(
-        (e) => !['middlewares', 'aggregateApi', 'distinct', 'aggregations'].includes(e),
+        (e) =>
+          !['middlewares', 'aggregateApi', 'distinct', 'aggregations'].includes(
+            e,
+          ),
       )
     }
 
     const experimentalFlags =
       enableExperimental &&
-        Array.isArray(enableExperimental) &&
-        enableExperimental.length > 0
+      Array.isArray(enableExperimental) &&
+      enableExperimental.length > 0
         ? [`--enable-experimental=${enableExperimental.join(',')}`]
         : []
 
@@ -202,7 +205,7 @@ export async function getConfig({
     } catch (err) {
       throw new Error(
         chalk.redBright.bold('Get DMMF ') +
-        'unable to write temp data model path',
+          'unable to write temp data model path',
       )
     }
   }
@@ -231,7 +234,21 @@ export async function getConfig({
     return JSON.parse(result.stdout)
   } catch (e) {
     if (e.stderr) {
-      throw new Error(chalk.redBright.bold('Get config ') + e.stderr)
+      let jsonError, message
+      try {
+        jsonError = JSON.parse(e.stderr)
+        message = `${chalk.redBright.bold('Get config ')}\n${chalk.redBright(
+          jsonError.message,
+        )}\n`
+        if (jsonError.error_code) {
+          message = chalk.redBright(`${jsonError.error_code}\n\n`) + message
+        }
+      } catch (e) {
+        // if JSON parse / pretty handling fails, fallback to simple printing
+        throw new Error(chalk.redBright.bold('Get config ') + e.stderr)
+      }
+
+      throw new Error(message)
     }
     if (e.stdout) {
       throw new Error(chalk.redBright.bold('Get config ') + e.stdout)
