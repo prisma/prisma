@@ -98,36 +98,36 @@ describe('generator', () => {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "Schema parsing
         error: Error validating model \\"public\\": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-          -->  schema.prisma:5
+          -->  schema.prisma:10
            | 
-         4 | 
-         5 | model public {
-         6 |   id Int @id
-         7 | }
+         9 | 
+        10 | model public {
+        11 |   id Int @id
+        12 | }
            | 
         error: Error validating model \\"dmmf\\": The model name \`dmmf\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-          -->  schema.prisma:9
+          -->  schema.prisma:14
            | 
-         8 | 
-         9 | model dmmf {
-        10 |   id Int @id
-        11 | }
+        13 | 
+        14 | model dmmf {
+        15 |   id Int @id
+        16 | }
            | 
         error: Error validating model \\"OnlyOne\\": The model name \`OnlyOne\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-          -->  schema.prisma:13
+          -->  schema.prisma:18
            | 
-        12 | 
-        13 | model OnlyOne {
-        14 |   id Int @id
-        15 | }
+        17 | 
+        18 | model OnlyOne {
+        19 |   id Int @id
+        20 | }
            | 
         error: Error validating model \\"delete\\": The model name \`delete\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-          -->  schema.prisma:17
+          -->  schema.prisma:22
            | 
-        16 | 
-        17 | model delete {
-        18 |   id Int @id
-        19 | }
+        21 | 
+        22 | model delete {
+        23 |   id Int @id
+        24 | }
            | 
 
         Validation Error Count: 4"
