@@ -254,17 +254,24 @@ module.exports = async () => {
     'insensitiveEndsWithResult',
   )
 
-  try {
-    const standardResult = await prisma.user.findMany({
-      where: {
-        email: {
-          contains: 'a@a.de',
-        },
+  const standardResult = await prisma.user.findMany({
+    where: {
+      email: {
+        contains: 'a@a.de',
       },
-    })
-  } catch (e) {
-    assert.equal(!!e.message, true)
-  }
+    },
+  })
+  assert.deepStrictEqual(
+    standardResult,
+    [
+      {
+        email: 'a@a.de',
+        id: '576eddf9-2434-421f-9a86-58bede16fd91',
+        name: 'alice',
+      },
+    ],
+    'standardResult',
+  )
 
   prisma.$disconnect()
   await db.query(`
