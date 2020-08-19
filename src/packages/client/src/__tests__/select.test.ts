@@ -464,7 +464,8 @@ describe('select validation', () => {
         +   published: Boolean,
         +   title: String,
         +   content?: String,
-        +   author?: UserCreateOneWithoutPostsInput
+        +   author?: UserCreateOneWithoutPostsInput,
+        +   categories?: CategoryCreateManyWithoutPostsInput
         + }
         }
 
@@ -502,7 +503,8 @@ describe('select validation', () => {
         +   published: Boolean,
         +   title: String,
         +   content?: String,
-        +   author?: UserCreateOneWithoutPostsInput
+        +   author?: UserCreateOneWithoutPostsInput,
+        +   categories?: CategoryCreateManyWithoutPostsInput
         + }
         }
 
@@ -537,7 +539,8 @@ describe('select validation', () => {
         +   published: Boolean,
         +   title: String,
         +   content?: String,
-        +   author?: UserCreateOneWithoutPostsInput
+        +   author?: UserCreateOneWithoutPostsInput,
+        +   categories?: CategoryCreateManyWithoutPostsInput
         + }
         }
 
@@ -586,7 +589,11 @@ describe('select validation', () => {
         ?   id?: String,
         ?   createdAt?: DateTime,
         ?   updatedAt?: DateTime,
-        ?   content?: String
+        ?   content?: String,
+        ?   categories?: {
+        ?     create?: CategoryCreateWithoutPostsInput,
+        ?     connect?: CategoryWhereUniqueInput
+        ?   }
           }
         }
 
@@ -631,6 +638,10 @@ describe('select validation', () => {
         ?   author?: {
         ?     create?: UserCreateWithoutPostsInput,
         ?     connect?: UserWhereUniqueInput
+        ?   },
+        ?   categories?: {
+        ?     create?: CategoryCreateWithoutPostsInput,
+        ?     connect?: CategoryWhereUniqueInput
         ?   }
           }
         }

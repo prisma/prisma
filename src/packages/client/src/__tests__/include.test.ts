@@ -55,7 +55,8 @@ describe('include validation', () => {
 
         {
           include: {
-        ?   author?: true
+        ?   author?: true,
+        ?   categories?: true
           }
         }
 
@@ -250,7 +251,8 @@ describe('include validation', () => {
           include: {
             id: true,
             ~~
-        ?   author?: true
+        ?   author?: true,
+        ?   categories?: true
           }
         }
 
@@ -288,7 +290,8 @@ describe('include validation', () => {
           include: {
             mauthor: true,
             ~~~~~~~
-        ?   author?: true
+        ?   author?: true,
+        ?   categories?: true
           }
         }
 

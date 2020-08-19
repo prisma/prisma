@@ -45,38 +45,28 @@ describe('minimal where transformation', () => {
       "query {
         findManyUser(where: {
           likedArticles: {
-            is: {
-              some: {
-                likedBy: {
-                  is: {
-                    some: {
-                      AND: [
-                        {
-                          likedArticles: {
-                            is: {
-                              some: {
-                                likedBy: {
-                                  is: {
-                                    some: {
-                                      likedArticles: {
-                                        is: {
-                                          some: {
-                                            title: {
-                                              contains: \\"A string\\"
-                                            }
-                                          }
-                                        }
-                                      }
-                                    }
+            some: {
+              likedBy: {
+                some: {
+                  AND: [
+                    {
+                      likedArticles: {
+                        some: {
+                          likedBy: {
+                            some: {
+                              likedArticles: {
+                                some: {
+                                  title: {
+                                    contains: \\"A string\\"
                                   }
                                 }
                               }
                             }
                           }
                         }
-                      ]
+                      }
                     }
-                  }
+                  ]
                 }
               }
             }

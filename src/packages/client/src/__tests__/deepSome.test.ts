@@ -38,23 +38,17 @@ describe('minimal where transformation', () => {
       "query {
         findManyUser(where: {
           posts: {
-            is: {
-              some: {
-                author: {
-                  is: {
-                    posts: {
-                      is: {
-                        some: {
-                          author: {
-                            is: {
-                              posts: {
-                                is: {
-                                  some: {
-                                    id: {
-                                      equals: \\"5\\"
-                                    }
-                                  }
-                                }
+            some: {
+              author: {
+                is: {
+                  posts: {
+                    some: {
+                      author: {
+                        is: {
+                          posts: {
+                            some: {
+                              id: {
+                                equals: \\"5\\"
                               }
                             }
                           }

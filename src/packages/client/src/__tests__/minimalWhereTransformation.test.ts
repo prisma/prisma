@@ -33,11 +33,9 @@ describe('minimal where transformation', () => {
           OR: [
             {
               posts: {
-                is: {
-                  some: {
-                    id: {
-                      in: [\\"test\\"]
-                    }
+                some: {
+                  id: {
+                    in: [\\"test\\"]
                   }
                 }
               }
@@ -109,6 +107,39 @@ describe('minimal where transformation', () => {
               }
             }
           ]
+        }) {
+          id
+          email
+          name
+          json
+        }
+      }"
+    `)
+  })
+
+  test('implicit many-to-many relation: contains', () => {
+    const transformedDocument = getTransformedDocument({
+      where: {
+        posts: {
+          some: {
+            title: {
+              contains: 'mytitle',
+            },
+          },
+        },
+      },
+    })
+
+    expect(transformedDocument).toMatchInlineSnapshot(`
+      "query {
+        findManyUser(where: {
+          posts: {
+            some: {
+              title: {
+                contains: \\"mytitle\\"
+              }
+            }
+          }
         }) {
           id
           email
