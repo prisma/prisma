@@ -429,7 +429,7 @@ class PrismaClientClass implements Generatable {
  * \`\`\`
  *
  * 
- * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md).
+ * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
  */`
   }
   public toTS(): string {
@@ -613,7 +613,7 @@ ${indent(this.jsDoc, tab)}
    * const result = await prisma.executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
   * \`\`\`
   * 
-  * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md#raw-database-access).
+  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
   */
   $executeRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<number>;
 
@@ -632,7 +632,7 @@ ${indent(this.jsDoc, tab)}
    * const result = await prisma.queryRaw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
   * \`\`\`
   * 
-  * Read more in our [docs](https://github.com/prisma/prisma/blob/master/docs/prisma-client-js/api.md#raw-database-access).
+  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
   */
   $queryRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<T>;
  
