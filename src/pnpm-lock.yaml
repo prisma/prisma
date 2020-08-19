@@ -47,8 +47,8 @@ importers:
       '@prisma/introspection': 'link:../introspection'
       '@prisma/migrate': 'link:../migrate'
       '@prisma/sdk': 'link:../sdk'
-      '@prisma/studio': 0.259.0
-      '@prisma/studio-server': 0.259.0
+      '@prisma/studio': 0.260.0
+      '@prisma/studio-server': 0.260.0
       '@types/debug': 4.1.5
       '@types/mocha': 8.0.1
       '@types/pg': 7.14.4
@@ -105,8 +105,8 @@ importers:
       '@prisma/introspection': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio': 0.259.0
-      '@prisma/studio-server': 0.259.0
+      '@prisma/studio': 0.260.0
+      '@prisma/studio-server': 0.260.0
       '@types/debug': 4.1.5
       '@types/mocha': 8.0.1
       '@types/pg': 7.14.4
@@ -625,8 +625,8 @@ importers:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/get-platform': 'link:../get-platform'
       '@prisma/ink-components': 'link:../ink-components'
-      '@prisma/studio-server': 0.259.0
-      '@prisma/studio-types': 0.259.0
+      '@prisma/studio-server': 0.260.0
+      '@prisma/studio-types': 0.260.0
       ansi-escapes: 4.3.1
       cli-cursor: 3.1.0
       dashify: 2.0.0
@@ -693,8 +693,8 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@prisma/ink-components': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio-server': 0.259.0
-      '@prisma/studio-types': 0.259.0
+      '@prisma/studio-server': 0.260.0
+      '@prisma/studio-types': 0.260.0
       '@types/charm': 1.0.2
       '@types/debug': 4.1.5
       '@types/diff': 4.0.2
@@ -1408,16 +1408,16 @@ packages:
   /@prisma/ci-info/2.1.2:
     resolution:
       integrity: sha512-RhAHY+wp6Nqu89Tp3zfUVkpGfqk4TfngeOWaMGgmhP7mB2ASDtOl8dkwxHmI8eN4edo+luyjPmbJBC4kST321A==
-  /@prisma/debug/2.5.0-dev.62:
+  /@prisma/debug/2.6.0-dev.4:
     dependencies:
       debug: 4.1.1
     resolution:
-      integrity: sha512-2bafdys2zb5xgi3xZKsjU5fHAsV1o70VTM744jBNKmpSDWE6dPd7zegPUQDqeqGdzejUPvURrWcz5412TH6m0A==
-  /@prisma/engine-core/2.5.0-dev.62:
+      integrity: sha512-DyMZh9h1xI/0AFHJbKYzCDvhxayDDaBc1sQdvtERZ9d1nCQvgBy40fQyu5GDRIjwHKRa40CEpSKFZFbXQTRFvg==
+  /@prisma/engine-core/2.6.0-dev.4:
     dependencies:
-      '@prisma/debug': 2.5.0-dev.62
-      '@prisma/generator-helper': 2.5.0-dev.62
-      '@prisma/get-platform': 2.5.0-dev.62
+      '@prisma/debug': 2.6.0-dev.4
+      '@prisma/generator-helper': 2.6.0-dev.4
+      '@prisma/get-platform': 2.6.0-dev.4
       chalk: 4.1.0
       cross-fetch: 3.0.5
       execa: 4.0.3
@@ -1426,13 +1426,13 @@ packages:
       new-github-issue-url: 0.2.1
       p-retry: 4.2.0
       terminal-link: 2.1.1
-      undici: github.com/mcollina/undici/0c35b697f5b1432ac1122e2ac492f2190052046e
+      undici: github.com/mcollina/undici/e76f6a37836537f08c2d9b7d8805d6ff21d1e744
     resolution:
-      integrity: sha512-T44PrvO2TSIuI/HFvDo7mpWtk8fBrG9rgemMVUauqqrs/LmzC2V95ke5DU4jSkXdOgGP3QZ4VJN+2iWI768I5A==
-  /@prisma/fetch-engine/2.5.0-dev.62:
+      integrity: sha512-mtPG96T6fzJ9+sFMmUQJ0MULQn0k5PBAOkcFtkeaCZefMqYLve4hyyT/scXrP+qcEYVrSmK5uyR/rjeVmb+1jA==
+  /@prisma/fetch-engine/2.6.0-dev.4:
     dependencies:
-      '@prisma/debug': 2.5.0-dev.62
-      '@prisma/get-platform': 2.5.0-dev.62
+      '@prisma/debug': 2.6.0-dev.4
+      '@prisma/get-platform': 2.6.0-dev.4
       chalk: 4.1.0
       execa: 4.0.3
       find-cache-dir: 3.3.1
@@ -1450,34 +1450,35 @@ packages:
       temp-dir: 2.0.0
       tempy: 0.6.0
     resolution:
-      integrity: sha512-8URb1EDAoXzoOaTFs8a/KOZwi2HrCW133IA8wIXKiuIaMvXxg2lAinIsljKTiV15C/DxY5arzUwrLWfdA9O7GQ==
-  /@prisma/generator-helper/2.5.0-dev.62:
+      integrity: sha512-zS4exHymPx/ID5I6aFmE6hdlW1psZ9eyvafFj3pPhHuWRct0CSKolrIJfWpdaaZRSlC46XoUQT9FeXLNa7CSRg==
+  /@prisma/generator-helper/2.6.0-dev.4:
     dependencies:
-      '@prisma/debug': 2.5.0-dev.62
+      '@prisma/debug': 2.6.0-dev.4
       '@types/cross-spawn': 6.0.2
       chalk: 4.1.0
       cross-spawn: 7.0.3
     resolution:
-      integrity: sha512-3wG/w/bJU3dETCDRK4eZifqSfvEYJw/7ubCkk53oXZkYLGgvHavfSkupqmg6uWXpOaQXDQ5dRnuKJZAnMmKs5A==
-  /@prisma/get-platform/2.5.0-dev.62:
+      integrity: sha512-tsnfGDyeybS1IE46u4IiKaJOkRmcr8jt7x64CQDRDa8dDz35m+kRAY3xzlU+BXkLfN2Bju71Zc0TLclx9mEHdQ==
+  /@prisma/get-platform/2.6.0-dev.4:
     dependencies:
-      '@prisma/debug': 2.5.0-dev.62
+      '@prisma/debug': 2.6.0-dev.4
     resolution:
-      integrity: sha512-wJvgNAJ8jnWJr2LBuiqc6lvEOFysIOR7V5ZE4KTgdkB0xHb7miQV5PwyiT9YvbNeLkrbjfDVs2CQKdKlyfXlnQ==
-  /@prisma/sdk/2.5.0-dev.62:
+      integrity: sha512-KZFH0fTyZwSVuBebvPfSAX4n8EdG1VpdZyRIvia+SQkp5IW+lsShJ8B9PB3I7Uq6cTUQJ/G5D6GUmn+ZVvDIGg==
+  /@prisma/sdk/2.6.0-dev.4:
     dependencies:
       '@apexearth/copy': 1.4.5
-      '@prisma/debug': 2.5.0-dev.62
-      '@prisma/engine-core': 2.5.0-dev.62
-      '@prisma/fetch-engine': 2.5.0-dev.62
-      '@prisma/generator-helper': 2.5.0-dev.62
-      '@prisma/get-platform': 2.5.0-dev.62
+      '@prisma/debug': 2.6.0-dev.4
+      '@prisma/engine-core': 2.6.0-dev.4
+      '@prisma/fetch-engine': 2.6.0-dev.4
+      '@prisma/generator-helper': 2.6.0-dev.4
+      '@prisma/get-platform': 2.6.0-dev.4
       archiver: 4.0.2
       arg: 4.1.3
       chalk: 4.1.0
       checkpoint-client: 1.1.10
       cli-truncate: 2.1.0
       execa: 4.0.2
+      global-dirs: 2.0.1
       globby: 11.0.1
       has-yarn: 2.1.0
       make-dir: 3.1.0
@@ -1498,32 +1499,32 @@ packages:
       url-parse: 1.4.7
     requiresBuild: true
     resolution:
-      integrity: sha512-UwiCGB4O2+ozIooAV9YkTyP/H33H/vh5oGFuKavEklglOtH6R0iNgW92sxaDbpYeNOKd3DxQVszYQr8uEDzb4A==
-  /@prisma/studio-server/0.259.0:
+      integrity: sha512-ixd3E2r0z+xGo0Nf29hX0erk33WhgItc5suX5dli04TGbE0LI+1daepo8vHvKyZsjJiB5xFo7OSOj2kiAHRrzg==
+  /@prisma/studio-server/0.260.0:
     dependencies:
-      '@prisma/get-platform': 2.5.0-dev.62
-      '@prisma/sdk': 2.5.0-dev.62
-      '@prisma/studio': 0.259.0
-      '@prisma/studio-transports': 0.259.0
-      '@prisma/studio-types': 0.259.0
+      '@prisma/get-platform': 2.6.0-dev.4
+      '@prisma/sdk': 2.6.0-dev.4
+      '@prisma/studio': 0.260.0
+      '@prisma/studio-transports': 0.260.0
+      '@prisma/studio-types': 0.260.0
       '@sentry/node': 5.15.5
       express: 4.17.1
       express-ws: 4.0.0_express@4.17.1
     resolution:
-      integrity: sha512-zpKb8f2omrPpUXBH4d3LxwNzL2YKkWOVUgv7WYKaWPUE8E1eeiezsOurpxbTq1J+t/bwtvRw/gSQ83rikoJn3Q==
-  /@prisma/studio-transports/0.259.0:
+      integrity: sha512-3NPsJH9Lu6twVgVAOhpRhgZOPCf/3GvaTm+sLNN41v664YA/bMWkg0iFEOF/CSXmQKFU1pDBqui1k4/nk3n5+A==
+  /@prisma/studio-transports/0.260.0:
     dependencies:
-      '@prisma/sdk': 2.5.0-dev.62
-      '@prisma/studio-types': 0.259.0
+      '@prisma/sdk': 2.6.0-dev.4
+      '@prisma/studio-types': 0.260.0
       '@sentry/node': 5.15.5
     resolution:
-      integrity: sha512-4UF9zd2iPD5r20D8lzlhJR4nAANDPpd9dDPvJ3oyicc18WN/cEth9cA2jUBd8g3Tp6NyTyegIRJ/LV2ZVeRoSQ==
-  /@prisma/studio-types/0.259.0:
+      integrity: sha512-G8DD6ZLxX9l0G1q7tneOZn8pr3hh+oueJpUUqRTUgW9lFbjX3OPXoPq5DbHywf2NnqcjP++lmrrZukxgMrq/Rg==
+  /@prisma/studio-types/0.260.0:
     resolution:
-      integrity: sha512-uYvUGI8qgrq+Ezc3J2A2sC8ID1phz/RzwlIpIdMGQyj9y+W21ksc/p3ogVwuAIPlvvEgDbpQf5zkHlfNzjwjDA==
-  /@prisma/studio/0.259.0:
+      integrity: sha512-X3OiW/2pbdINeBn9ee0wcudxwcBmfmoPhBJOBtyiFJ+CBONqV3XNpvy7huWU1c96xRFqHQCKUtWop0G6+JySyQ==
+  /@prisma/studio/0.260.0:
     resolution:
-      integrity: sha512-8zF4L5WefeAHbtrho+KLJ3zbSN1viE9ygmV3dZy39q5zC0PipreQQjN+vwEpVkkAc3xxfbqM7j6u59C/tSmfgQ==
+      integrity: sha512-bWMp57EmwpC1LStAvtuwEBuW1s2nOqxGCVtTwgrpb8e24tmHDEgiXmuVjaPSlU/xMvee0aWjs1Wceb6nRjF9LQ==
   /@sentry/apm/5.15.5:
     dependencies:
       '@sentry/browser': 5.15.5
@@ -9064,14 +9065,7 @@ packages:
       node: '>= 8'
     resolution:
       integrity: sha512-r+JdDipt93ttDjsOVPU5zaq5bAyY+3H19bDrThkvuVxC0xMQzU1PJcS6D+KrP3u96gH9XLomcHPb+2skoDjulQ==
-  github.com/mcollina/undici/0c35b697f5b1432ac1122e2ac492f2190052046e:
-    name: undici
-    resolution:
-      registry: 'https://registry.npmjs.org/'
-      tarball: 'https://codeload.github.com/mcollina/undici/tar.gz/0c35b697f5b1432ac1122e2ac492f2190052046e'
-    version: 1.3.1
   github.com/mcollina/undici/e76f6a37836537f08c2d9b7d8805d6ff21d1e744:
-    dev: false
     name: undici
     resolution:
       registry: 'https://registry.npmjs.org/'
