@@ -29,6 +29,12 @@ model Post {
   content   String?
   authorId  String?
   author    User? @relation(fields: [authorId])
+  categories Category[]  @relation("MyPostCatRelationTable")
+}
+
+model Category {
+  id        String   @default(cuid()) @id
+  posts Post[]  @relation("MyPostCatRelationTable")
 }
 
 model NoRelations {

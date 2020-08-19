@@ -163,6 +163,8 @@ ConnectorError(ConnectorError { user_facing_error: None, kind: TableDoesNotExist
 
 exports[`runtime new-line: new-line example should succeed 1`] = `"success"`;
 
+exports[`runtime relations: relations example should succeed 1`] = `"success"`;
+
 exports[`runtime removed-experimental-flags: removed-experimental-flags example should succeed 1`] = `"success"`;
 
 exports[`runtime removed-preview-flags: removed-preview-flags example should succeed 1`] = `"success"`;
