@@ -31,6 +31,20 @@ module.exports = async () => {
 
   assert.deepStrictEqual(resultWhereNull, [])
 
+  const resultWhereORDateNotNull = await prisma.sale.findMany({
+    where: {
+      OR: [
+        {
+          dateOptional: {
+            not: null,
+          },
+        },
+      ],
+    },
+  })
+
+  assert.deepStrictEqual(resultWhereORDateNotNull, [])
+
   const resultWhereNullSingularRelationField = await prisma.location.findMany({
     where: {
       company: null,

@@ -18,6 +18,7 @@ model Person {
 model Sale {
   id     String   @id @default(cuid())
   date   DateTime
+  dateOptional   DateTime?
   canBeNull String?
   persons Person[]  @relation("PersonsOnSale", references: [id])
 }
