@@ -134,6 +134,7 @@ describe('select validation', () => {
             ~~~~~
         ?   posts?: true,
         ?   email?: true,
+        ?   profile?: true,
         ?   json?: true
           }
         }
@@ -147,6 +148,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
@@ -158,6 +160,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_arbitrary for type UserWhereInput. Available args:
@@ -170,6 +173,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
@@ -181,6 +185,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`id_endsWith\` in where.AND.1.id_endsWith for type UserWhereInput. Available args:
@@ -193,6 +198,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`name_contains\` in where.AND.1.name_contains for type UserWhereInput. Available args:
@@ -205,6 +211,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`name_gt\` in where.AND.1.name_gt for type UserWhereInput. Did you mean \`name\`? Available args:
@@ -216,6 +223,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
@@ -227,6 +235,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
@@ -238,6 +247,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereInput. Available args:
@@ -250,6 +260,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Invalid value 'asd' of type String for field name on model User. Expected either true or false.
@@ -313,6 +324,7 @@ describe('select validation', () => {
             ~~~~~
         ?   posts?: true,
         ?   email?: true,
+        ?   profile?: true,
         ?   json?: true
           }
         }
@@ -326,6 +338,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
@@ -337,6 +350,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_arbitrary for type UserWhereInput. Available args:
@@ -349,6 +363,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
@@ -360,6 +375,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`id_endsWith\` in where.AND.1.id_endsWith for type UserWhereInput. Available args:
@@ -372,6 +388,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`name_contains\` in where.AND.1.name_contains for type UserWhereInput. Available args:
@@ -384,6 +401,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`name_gt\` in where.AND.1.name_gt for type UserWhereInput. Did you mean \`name\`? Available args:
@@ -395,6 +413,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
@@ -406,6 +425,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
@@ -417,6 +437,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereInput. Available args:
@@ -429,6 +450,7 @@ describe('select validation', () => {
           email?: String | StringFilter
           name?: String | StringNullableFilter | null
           posts?: PostListRelationFilter
+          profile?: ProfileWhereInput
           json?: Json | JsonNullableFilter | null
         }
         Invalid value 'asd' of type String for field name on model User. Expected either true or false.
