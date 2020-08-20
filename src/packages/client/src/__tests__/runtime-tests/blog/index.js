@@ -187,6 +187,16 @@ module.exports = async () => {
     }
   }
 
+  // relation query where not null
+  const relationWhereNotNull = await db.user.findMany({
+    where: {
+      profile: {
+        bio: { not: null },
+      },
+    },
+  })
+  assert.deepStrictEqual(relationWhereNotNull, [])
+
   db.$disconnect()
 }
 

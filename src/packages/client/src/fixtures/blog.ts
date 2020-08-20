@@ -17,7 +17,15 @@ model User {
   /// name comment
   name  String?
   posts Post[]
+  profile Profile?
   json Json?
+}
+
+model Profile {
+  id     String     @default(cuid()) @id
+  bio    String?
+  user   User       @relation(fields: [userId], references: [id])
+  userId String     @unique
 }
 
 model Post {
@@ -34,7 +42,7 @@ model Post {
 
 model Category {
   id        String   @default(cuid()) @id
-  posts Post[]  @relation("MyPostCatRelationTable")
+  posts     Post[]  @relation("MyPostCatRelationTable")
 }
 
 model NoRelations {

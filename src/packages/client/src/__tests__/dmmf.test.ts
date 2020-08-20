@@ -67,7 +67,7 @@ describe('dmmf', () => {
             "inputType": Array [
               Object {
                 "isList": false,
-                "isNullable": false,
+                "isNullable": true,
                 "isRequired": false,
                 "kind": "object",
                 "type": "NestedEnumPostKindFilter",
@@ -131,7 +131,7 @@ describe('dmmf', () => {
               },
               Object {
                 "isList": false,
-                "isNullable": false,
+                "isNullable": true,
                 "isRequired": false,
                 "kind": "object",
                 "type": "NestedEnumPostKindFilter",
@@ -211,7 +211,7 @@ describe('dmmf', () => {
             "inputType": Array [
               Object {
                 "isList": false,
-                "isNullable": false,
+                "isNullable": true,
                 "isRequired": false,
                 "kind": "object",
                 "type": "NestedEnumPostKindFilter",
@@ -275,7 +275,7 @@ describe('dmmf', () => {
               },
               Object {
                 "isList": false,
-                "isNullable": false,
+                "isNullable": true,
                 "isRequired": false,
                 "kind": "object",
                 "type": "NestedEnumPostKindFilter",

@@ -322,7 +322,7 @@ describe('getDMMF', () => {
       datamodel: file,
     })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`293332`)
+    expect(str.length).toMatchInlineSnapshot(`293318`)
   })
 
   test('chinook introspected schema connectOrCreate', async () => {
@@ -335,7 +335,7 @@ describe('getDMMF', () => {
       enableExperimental: ['connectOrCreate'],
     })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`308148`)
+    expect(str.length).toMatchInlineSnapshot(`308134`)
   })
 
   test('big schema', async () => {
@@ -348,7 +348,7 @@ describe('getDMMF', () => {
       enableExperimental: ['connectOrCreate'],
     })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`51284966`)
+    expect(str.length).toMatchInlineSnapshot(`51284962`)
   })
 
   test('with validation errors', async () => {
