@@ -142,7 +142,7 @@ test('JsonFilter should contain equals and not', async () => {
             "inputType": Array [
               Object {
                 "isList": false,
-                "isNullable": false,
+                "isNullable": true,
                 "isRequired": false,
                 "kind": "object",
                 "type": "NestedStringFilter",
@@ -287,7 +287,7 @@ test('JsonFilter should contain equals and not', async () => {
               },
               Object {
                 "isList": false,
-                "isNullable": false,
+                "isNullable": true,
                 "isRequired": false,
                 "kind": "object",
                 "type": "NestedStringFilter",
@@ -317,7 +317,7 @@ test('JsonFilter should contain equals and not', async () => {
             "inputType": Array [
               Object {
                 "isList": false,
-                "isNullable": false,
+                "isNullable": true,
                 "isRequired": false,
                 "kind": "object",
                 "type": "NestedJsonNullableFilter",
@@ -354,7 +354,7 @@ test('JsonFilter should contain equals and not', async () => {
               },
               Object {
                 "isList": false,
-                "isNullable": false,
+                "isNullable": true,
                 "isRequired": false,
                 "kind": "object",
                 "type": "NestedJsonNullableFilter",
