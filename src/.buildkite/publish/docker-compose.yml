@@ -26,6 +26,7 @@ services:
       - PATCH_BRANCH
       - DRY_RUN
       - CI
+      - PRISMA_TELEMETRY_INFORMATION="prisma publish"
     depends_on:
       - postgres
       - mysql
