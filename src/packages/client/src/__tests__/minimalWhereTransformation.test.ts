@@ -149,6 +149,86 @@ describe('minimal where transformation', () => {
       }"
     `)
   })
+
+  test('implicit many-to-many relation: select date equals (implicit)', () => {
+    const transformedDocument = getTransformedDocument({
+      select: {
+        posts: {
+          where: {
+            OR: [
+              {
+                createdAt: '2020-08-19T10:02:43.353Z',
+              },
+            ],
+          },
+        },
+      },
+    })
+
+    expect(transformedDocument).toMatchInlineSnapshot(`
+      "query {
+        findManyUser {
+          posts(where: {
+            OR: [
+              {
+                createdAt: {
+                  equals: \\"2020-08-19T10:02:43.353Z\\"
+                }
+              }
+            ]
+          }) {
+            id
+            createdAt
+            updatedAt
+            published
+            title
+            content
+            authorId
+          }
+        }
+      }"
+    `)
+  })
+
+  test('implicit many-to-many relation: select date equals (explicit)', () => {
+    const transformedDocument = getTransformedDocument({
+      select: {
+        posts: {
+          where: {
+            OR: [
+              {
+                createdAt: { equals: '2020-08-19T10:02:43.353Z' },
+              },
+            ],
+          },
+        },
+      },
+    })
+
+    expect(transformedDocument).toMatchInlineSnapshot(`
+      "query {
+        findManyUser {
+          posts(where: {
+            OR: [
+              {
+                createdAt: {
+                  equals: \\"2020-08-19T10:02:43.353Z\\"
+                }
+              }
+            ]
+          }) {
+            id
+            createdAt
+            updatedAt
+            published
+            title
+            content
+            authorId
+          }
+        }
+      }"
+    `)
+  })
 })
 
 function getTransformedDocument(select) {

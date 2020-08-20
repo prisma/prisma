@@ -986,12 +986,15 @@ export function transformDocument(document: Document): Document {
         }
         if ((ar.isEnum || (typeof ar.argType === 'string' && isScalar(ar.argType)))) {
           if (typeof ar.value !== 'object' || ar.argType === 'DateTime' || ar.argType === 'Json' || ar.value === null) {
-            ar.value = new Args([new Arg({
-              key: 'equals',
-              value: ar.value,
-              argType: ar.argType, // probably wrong but fine
-              schemaArg: ar.schemaArg // probably wrong but fine
-            })])
+            // if it's already an equals { X } do not add equals
+            if (!(ar.value instanceof Args)) {
+              ar.value = new Args([new Arg({
+                key: 'equals',
+                value: ar.value,
+                argType: ar.argType, // probably wrong but fine
+                schemaArg: ar.schemaArg // probably wrong but fine
+              })])
+            } 
           }
         } else if (
           
