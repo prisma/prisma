@@ -26,7 +26,7 @@ services:
       - PATCH_BRANCH
       - DRY_RUN
       - CI
-      - PRISMA_TELEMETRY_INFORMATION="prisma publish"
+      - PRISMA_TELEMETRY_INFORMATION=buildkite prisma publish
     depends_on:
       - postgres
       - mysql
