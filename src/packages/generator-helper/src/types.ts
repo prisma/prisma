@@ -15,6 +15,7 @@ export namespace DMMF {
     name: string
     values: EnumValue[]
     dbName?: string | null
+    documentation?: string
   }
 
   export interface SchemaEnum {
