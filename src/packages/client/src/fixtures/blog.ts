@@ -34,7 +34,7 @@ model Post {
 
 model Category {
   id        String   @default(cuid()) @id
-  posts Post[]  @relation("MyPostCatRelationTable")
+  posts     Post[]  @relation("MyPostCatRelationTable")
 }
 
 model NoRelations {
