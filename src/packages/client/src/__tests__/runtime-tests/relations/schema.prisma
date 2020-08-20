@@ -11,11 +11,25 @@ generator client {
 model Person {
   id    String @id @default(cuid())
   name  String
+  canBeNull String?
   sales Sale[] @relation("PersonsOnSale", references: [id])
 }
 
 model Sale {
   id     String   @id @default(cuid())
   date   DateTime
+  dateOptional   DateTime?
+  canBeNull String?
   persons Person[]  @relation("PersonsOnSale", references: [id])
+}
+
+model Location {
+  id Int @id
+  companyId Int
+  company Company @relation(fields: companyId, references: id)
+}
+
+model Company {
+  id Int @id
+  location Location
 }

@@ -933,12 +933,15 @@ export function transformDocument(document: Document): Document {
             for (let i = ar.value.args.length; i--;) {
               const a = ar.value.args[i]
               if (a.key === 'not' && (typeof a.value !== 'object' || a.argType === 'DateTime')) {
-                a.value = new Args([new Arg({
-                  key: 'equals',
-                  value: a.value,
-                  argType: a.argType,
-                  schemaArg: a.schemaArg
-                })])
+                // if it's already an equals { X } do not add equals
+                if (!(a.value instanceof Args)) {
+                  a.value = new Args([new Arg({
+                    key: 'equals',
+                    value: a.value,
+                    argType: a.argType,
+                    schemaArg: a.schemaArg
+                  })])
+                }
               }
               if (a.key === 'notIn') {
                 let notField = ar.value.args.find(theArg => theArg.key === 'not')
@@ -957,12 +960,15 @@ export function transformDocument(document: Document): Document {
                 }
                 // we might be ahead of time...
                 if ((typeof notField.value !== 'object') || notField.argType === 'DateTime' || notField.value === null) {
-                  notField.value = new Args([new Arg({
-                    key: 'equals',
-                    value: notField.value,
-                    argType: notField.argType,
-                    schemaArg: notField.schemaArg
-                  })])
+                  // if it's already an equals { X } do not add equals
+                  if (!(notField.value instanceof Args)) {
+                    notField.value = new Args([new Arg({
+                      key: 'equals',
+                      value: notField.value,
+                      argType: notField.argType,
+                      schemaArg: notField.schemaArg
+                    })])
+                  }
                 }
                 const index = (notField!.value as Args).args.findIndex(arg => arg.key === 'in')
                 const inArg = new Arg({
@@ -986,15 +992,17 @@ export function transformDocument(document: Document): Document {
         }
         if ((ar.isEnum || (typeof ar.argType === 'string' && isScalar(ar.argType)))) {
           if (typeof ar.value !== 'object' || ar.argType === 'DateTime' || ar.argType === 'Json' || ar.value === null) {
-            ar.value = new Args([new Arg({
-              key: 'equals',
-              value: ar.value,
-              argType: ar.argType, // probably wrong but fine
-              schemaArg: ar.schemaArg // probably wrong but fine
-            })])
+            // if it's already an equals { X } do not add equals
+            if (!(ar.value instanceof Args)) {
+              ar.value = new Args([new Arg({
+                key: 'equals',
+                value: ar.value,
+                argType: ar.argType, // probably wrong but fine
+                schemaArg: ar.schemaArg // probably wrong but fine
+              })])
+            } 
           }
         } else if (
-          
           typeof ar.value === 'object'
           && ar.schemaArg?.inputType[0].kind === 'object' 
           && ar.key !== 'is' 
@@ -1011,6 +1019,13 @@ export function transformDocument(document: Document): Document {
                 schemaArg: ar.schemaArg // probably wrong but fine
               })])
             }
+          } else if(ar.value === null) {
+            ar.value = new Args([new Arg({
+              key: 'is',
+              value: ar.value,
+              argType: ar.argType, // probably wrong but fine
+              schemaArg: ar.schemaArg // probably wrong but fine
+            })]) 
           }
         }
         return ar
