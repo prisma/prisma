@@ -229,6 +229,61 @@ describe('minimal where transformation', () => {
       }"
     `)
   })
+
+  test('implicit many-to-many relation: where null', () => {
+    const transformedDocument = getTransformedDocument({
+      select: {
+        posts: {
+          where: {
+            content: null,
+          },
+        },
+      },
+    })
+
+    expect(transformedDocument).toMatchInlineSnapshot(`
+      "query {
+        findManyUser {
+          posts(where: {
+            content: {
+              equals: null
+            }
+          }) {
+            id
+            createdAt
+            updatedAt
+            published
+            title
+            content
+            authorId
+          }
+        }
+      }"
+    `)
+  })
+
+  test('where null', () => {
+    const transformedDocument = getTransformedDocument({
+      where: {
+        name: null,
+      },
+    })
+
+    expect(transformedDocument).toMatchInlineSnapshot(`
+      "query {
+        findManyUser(where: {
+          name: {
+            equals: null
+          }
+        }) {
+          id
+          email
+          name
+          json
+        }
+      }"
+    `)
+  })
 })
 
 function getTransformedDocument(select) {

@@ -190,13 +190,13 @@ module.exports = async () => {
   proxy.end()
   try {
     const users = await prisma.user.findMany()
-  } catch (e) { }
+  } catch (e) {}
   proxy = tcpProxy.createProxy(newPort, credentials.host, sourcePort)
   await new Promise((r) => setTimeout(r, 16000))
   assert.equal(errorLogs.length, 1)
   try {
     const users = await prisma.user.findMany()
-  } catch (e) { }
+  } catch (e) {}
   const users = await prisma.user.findMany()
   assert.equal(users.length, 1)
   const resultEmptyJson = await prisma.post.create({
@@ -234,6 +234,14 @@ module.exports = async () => {
   })
 
   assert.equal(result.length, 1, 'We should be able to query by json data')
+
+  const resultWhereNull = await prisma.post.findMany({
+    where: {
+      content: null,
+    },
+  })
+
+  assert.equal(resultWhereNull.length, 1, 'We should be able to query by null')
 
   await prisma.post.delete({
     where: { id: resultJsonArray.id },

@@ -997,7 +997,6 @@ export function transformDocument(document: Document): Document {
             } 
           }
         } else if (
-          
           typeof ar.value === 'object'
           && ar.schemaArg?.inputType[0].kind === 'object' 
           && ar.key !== 'is' 
@@ -1014,6 +1013,13 @@ export function transformDocument(document: Document): Document {
                 schemaArg: ar.schemaArg // probably wrong but fine
               })])
             }
+          } else if(ar.value === null) {
+            ar.value = new Args([new Arg({
+              key: 'is',
+              value: ar.value,
+              argType: ar.argType, // probably wrong but fine
+              schemaArg: ar.schemaArg // probably wrong but fine
+            })]) 
           }
         }
         return ar
