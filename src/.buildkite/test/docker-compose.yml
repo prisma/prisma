@@ -15,6 +15,7 @@ services:
       - BUILDKITE_BRANCH
       - PATCH_BRANCH
       - CI
+      - PRISMA_TELEMETRY_INFORMATION="prisma test"
     depends_on:
       - postgres
       - mysql
