@@ -284,6 +284,35 @@ describe('minimal where transformation', () => {
       }"
     `)
   })
+
+  test('one-to-one realtion where null', () => {
+    const transformedDocument = getTransformedDocument({
+      where: {
+        profile: {
+          bio: { not: null },
+        },
+      },
+    })
+
+    expect(transformedDocument).toMatchInlineSnapshot(`
+      "query {
+        findManyUser(where: {
+          profile: {
+            is: {
+              bio: {
+                not: null
+              }
+            }
+          }
+        }) {
+          id
+          email
+          name
+          json
+        }
+      }"
+    `)
+  })
 })
 
 function getTransformedDocument(select) {

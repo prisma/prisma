@@ -17,7 +17,15 @@ model User {
   /// name comment
   name  String?
   posts Post[]
+  profile Profile?
   json Json?
+}
+
+model Profile {
+  id     String     @default(cuid()) @id
+  bio    String?
+  user   User       @relation(fields: [userId], references: [id])
+  userId String     @unique
 }
 
 model Post {
