@@ -38,6 +38,8 @@ export namespace DMMF {
     isEmbedded: boolean
     dbName: string | null
     fields: Field[]
+    isGenerated: boolean
+    documentation?: string
     uniqueFields: string[][]
     uniqueIndexes: uniqueIndex[]
     idFields: string[]
@@ -64,6 +66,7 @@ export namespace DMMF {
     relationFromFields?: any[]
     relationOnDelete?: string
     relationName?: string
+    documentation?: string
   }
 
   export interface FieldDefault {
