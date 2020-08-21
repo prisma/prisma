@@ -5,6 +5,8 @@ import {
   ProviderAliases,
   link,
   getCommandWithExecutor,
+  highlightDatamodel,
+  maskSchema,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
@@ -23,7 +25,6 @@ import rimraf from 'rimraf'
 import { Readable } from 'stream'
 import stripAnsi from 'strip-ansi'
 import { promisify } from 'util'
-import { highlightDatamodel, maskSchema } from '@prisma/sdk'
 import { blue } from '@prisma/sdk/dist/highlight/theme'
 import { DevComponentRenderer } from './ink/DevComponentRenderer'
 import { MigrateEngine } from './MigrateEngine'
@@ -393,9 +394,11 @@ export class Migrate {
       console.log(brightGreen.bold('\nNew datamodel:\n'))
     }
     if (lastMigration) {
-      console.log(printDatamodelDiff(lastMigration.datamodel, datamodel))
+      console.log(
+        printDatamodelDiff(lastMigration.datamodel, maskSchema(datamodel)),
+      )
     } else {
-      console.log(highlightDatamodel(datamodel))
+      console.log(highlightDatamodel(maskSchema(datamodel)))
     }
 
     lockFile.localMigrations.push(migrationId)
