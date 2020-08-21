@@ -256,16 +256,22 @@ export async function getConfig({
   }
 }
 
-type FormatOptions = {
-  schemaPath: string
-}
-
+// can be used by passing either
+// the schema as a string
+// or a path to the schema file
+export async function formatSchema({ schema }: { schema: string })
+export async function formatSchema({ schemaPath }: { schemaPath: string })
 export async function formatSchema({
   schemaPath,
-}: FormatOptions): Promise<string> {
-  if (!fs.existsSync(schemaPath)) {
-    throw new Error(`Schema at ${schemaPath} does not exist.`)
+  schema,
+}: {
+  schemaPath?: string
+  schema?: string
+}): Promise<string> {
+  if (!schema && !schemaPath) {
+    throw new Error(`Paramater schema or schemaPath must be passed.`)
   }
+
   const prismaFmtPath = await resolveBinary('prisma-fmt')
   const showColors = !process.env.NO_COLOR && process.stdout.isTTY
 
@@ -276,13 +282,20 @@ export async function formatSchema({
       ...(showColors ? { CLICOLOR_FORCE: '1' } : {}),
     },
     maxBuffer: MAX_BUFFER,
-  }
+  } as execa.Options
 
-  const result = await execa(
-    prismaFmtPath,
-    ['format', '-i', schemaPath],
-    options,
-  )
+  let result
+  if (schemaPath) {
+    if (!fs.existsSync(schemaPath)) {
+      throw new Error(`Schema at ${schemaPath} does not exist.`)
+    }
+    result = await execa(prismaFmtPath, ['format', '-i', schemaPath], options)
+  } else if (schema) {
+    result = await execa(prismaFmtPath, ['format'], {
+      ...options,
+      input: schema,
+    })
+  }
 
   return result.stdout
 }
