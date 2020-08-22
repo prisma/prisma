@@ -1,4 +1,4 @@
-![Prisma](https://i.imgur.com/SFzi1NE.png)
+![Prisma](https://images2.prisma.io/prisma-github-banner.png)
 
 <div align="center">
   <h1>Prisma</h1>
