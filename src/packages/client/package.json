@@ -101,7 +101,7 @@
     "is-obj": "2.0.0",
     "is-regexp": "2.1.0",
     "jest": "26.2.2",
-    "jest-diff": "^26.4.0",
+    "jest-diff": "26.4.2",
     "js-levenshtein": "1.1.6",
     "klona": "1.1.2",
     "lint-staged": "10.2.11",
