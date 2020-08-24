@@ -17,11 +17,6 @@
       "updateTypes": ["patch", "minor"]
     },
     {
-      "groupName": "devDependencies (major)",
-      "depTypeList": ["devDependencies"],
-      "updateTypes": ["major"]
-    },
-    {
       "groupName": "definitelyTyped",
       "automerge": "true",
       "packagePatterns": ["^@types/"],
