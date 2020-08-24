@@ -6,21 +6,6 @@ import path from 'path'
 jest.setTimeout(10000)
 
 describe('getDMMF', () => {
-  test('no datasource should get a validation error', async () => {
-    const datamodel = `model A {
-      id Int @id
-      name String
-    }
-    `
-    /* eslint-disable jest/no-try-expect */
-    try {
-      await getDMMF({ datamodel })
-    } catch (e) {
-      expect(stripAnsi(e.message)).toMatchSnapshot()
-    }
-    /* eslint-enable jest/no-try-expect */
-  })
-
   test('simple model', async () => {
     const dmmf = await getDMMF({
       datamodel: `

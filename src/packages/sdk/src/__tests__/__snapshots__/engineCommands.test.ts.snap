@@ -10911,18 +10911,6 @@ Object {
 }
 `;
 
-exports[`getDMMF no datasource should get a validation error 1`] = `
-"Schema parsing
-error: Error validating: You defined no datasource. You must define exactly one datasource.
-  -->  schema.prisma:1
-   | 
-   | 
- 1 | model A {
-   | 
-
-Validation Error Count: 1"
-`;
-
 exports[`getDMMF simple model 2`] = `
 Object {
   "datamodel": Object {
