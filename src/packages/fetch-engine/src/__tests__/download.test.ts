@@ -17,7 +17,7 @@ const FIXED_BINARIES_HASH = '6c777331554df4c3e0a90dd841339c7b0619d0e1'
 jest.setTimeout(30000)
 
 describe('download', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
     // completely clean up the cache and keep nothing
     await cleanupCache(0)
     await del(__dirname + '/**/*engine*')
@@ -68,6 +68,24 @@ describe('download', () => {
   })
 
   test('basic download all current binaries', async () => {
+    const platform = await getPlatform()
+    const queryEnginePath = path.join(
+      __dirname,
+      getBinaryName('query-engine', platform),
+    )
+    const introspectionEnginePath = path.join(
+      __dirname,
+      getBinaryName('introspection-engine', platform),
+    )
+    const migrationEnginePath = path.join(
+      __dirname,
+      getBinaryName('migration-engine', platform),
+    )
+    const prismafmtPath = path.join(
+      __dirname,
+      getBinaryName('prisma-fmt', platform),
+    )
+
     await download({
       binaries: {
         'query-engine': __dirname,
@@ -87,6 +105,16 @@ describe('download', () => {
       ],
       version: CURRENT_BINARIES_HASH,
     })
+
+    // Check that all binaries git hash are the same
+    expect(await getVersion(queryEnginePath)).toContain(CURRENT_BINARIES_HASH)
+    expect(await getVersion(introspectionEnginePath)).toContain(
+      CURRENT_BINARIES_HASH,
+    )
+    expect(await getVersion(migrationEnginePath)).toContain(
+      CURRENT_BINARIES_HASH,
+    )
+    expect(await getVersion(prismafmtPath)).toContain(CURRENT_BINARIES_HASH)
   })
 
   test('auto heal corrupt binary', async () => {
