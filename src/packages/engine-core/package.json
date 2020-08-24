@@ -22,7 +22,7 @@
     "lint-staged": "10.2.11",
     "strip-ansi": "6.0.0",
     "ts-jest": "26.2.0",
-    "typescript": "3.9.7"
+    "typescript": "4.0.2"
   },
   "scripts": {
     "build": "tsc -d",

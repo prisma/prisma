@@ -28,8 +28,8 @@
     "strip-ansi": "6.0.0",
     "tempy": "0.6.0",
     "ts-jest": "26.2.0",
-    "ts-node": "8.10.2",
-    "typescript": "3.9.7"
+    "ts-node": "9.0.0",
+    "typescript": "4.0.2"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
