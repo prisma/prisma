@@ -11,6 +11,7 @@ test('sortModels', () => {
       isEmbedded: false,
       dbName: null,
       idFields: [],
+      isGenerated: false,
     },
     {
       name: 'Bike',
@@ -20,6 +21,7 @@ test('sortModels', () => {
       isEmbedded: false,
       dbName: null,
       idFields: [],
+      isGenerated: false,
     },
     {
       name: 'Post',
@@ -29,6 +31,7 @@ test('sortModels', () => {
       isEmbedded: false,
       dbName: null,
       idFields: [],
+      isGenerated: false,
     },
     {
       name: 'User',
@@ -38,47 +41,9 @@ test('sortModels', () => {
       isEmbedded: false,
       dbName: null,
       idFields: [],
+      isGenerated: false,
     },
   ]
 
-  expect(sortModels(models)).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        "dbName": null,
-        "fields": Array [],
-        "idFields": Array [],
-        "isEmbedded": false,
-        "name": "User",
-        "uniqueFields": Array [],
-        "uniqueIndexes": Array [],
-      },
-      Object {
-        "dbName": null,
-        "fields": Array [],
-        "idFields": Array [],
-        "isEmbedded": false,
-        "name": "Post",
-        "uniqueFields": Array [],
-        "uniqueIndexes": Array [],
-      },
-      Object {
-        "dbName": null,
-        "fields": Array [],
-        "idFields": Array [],
-        "isEmbedded": false,
-        "name": "Bike",
-        "uniqueFields": Array [],
-        "uniqueIndexes": Array [],
-      },
-      Object {
-        "dbName": null,
-        "fields": Array [],
-        "idFields": Array [],
-        "isEmbedded": false,
-        "name": "Car",
-        "uniqueFields": Array [],
-        "uniqueIndexes": Array [],
-      },
-    ]
-  `)
+  expect(sortModels(models)).toMatchSnapshot()
 })
