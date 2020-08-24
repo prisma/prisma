@@ -8,12 +8,7 @@ jest.setTimeout(10000)
 describe('getDMMF', () => {
   test('simple model', async () => {
     const dmmf = await getDMMF({
-      datamodel: `
-      datasource db {
-        provider = "sqlite"
-        url      = "file:./dev.db"
-      }
-      model A {
+      datamodel: `model A {
         id Int @id
         name String
       }`,
