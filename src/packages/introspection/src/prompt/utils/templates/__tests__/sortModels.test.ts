@@ -11,6 +11,7 @@ test('sortModels', () => {
       isEmbedded: false,
       dbName: null,
       idFields: [],
+      isGenerated: false,
     },
     {
       name: 'Bike',
@@ -20,6 +21,7 @@ test('sortModels', () => {
       isEmbedded: false,
       dbName: null,
       idFields: [],
+      isGenerated: false,
     },
     {
       name: 'Post',
@@ -29,6 +31,7 @@ test('sortModels', () => {
       isEmbedded: false,
       dbName: null,
       idFields: [],
+      isGenerated: false,
     },
     {
       name: 'User',
@@ -38,6 +41,7 @@ test('sortModels', () => {
       isEmbedded: false,
       dbName: null,
       idFields: [],
+      isGenerated: false,
     },
   ]
 
