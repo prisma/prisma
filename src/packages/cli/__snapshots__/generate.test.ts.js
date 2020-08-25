@@ -1,6 +1,6 @@
 exports['generate should work with a custom output dir 1'] = `
 
-✔ Generated Prisma Client to ./generated/client in 72ms
+✔ Generated Prisma Client to ./generated/client in XXms
 
 You can now start using Prisma Client in your code:
 

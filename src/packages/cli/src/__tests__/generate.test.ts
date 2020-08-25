@@ -34,7 +34,7 @@ describe('generate', () => {
     // run code
     const { main } = await import(path.join(target, 'main.ts'))
     const result = await main()
-    snapshot(data.stdout)
+    snapshot(cleanSnapshot(data.stdout))
     snapshot(result)
   })
 
@@ -63,3 +63,7 @@ describe('generate', () => {
     }
   })
 })
+
+function cleanSnapshot(str: string): string {
+  return str.replace(/\d+ms/g, 'XXms')
+}
