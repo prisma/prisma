@@ -242,7 +242,13 @@ export async function getConfig({
           jsonError.message,
         )}\n`
         if (jsonError.error_code) {
-          message = chalk.redBright(`${jsonError.error_code}\n\n`) + message
+          if (jsonError.error_code === 'P1012') {
+            message =
+              chalk.redBright(`Schema Parsing ${jsonError.error_code}\n\n`) +
+              message
+          } else {
+            message = chalk.redBright(`${jsonError.error_code}\n\n`) + message
+          }
         }
       } catch (e) {
         // if JSON parse / pretty handling fails, fallback to simple printing
