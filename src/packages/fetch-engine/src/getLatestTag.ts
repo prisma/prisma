@@ -27,7 +27,6 @@ export async function getLatestTag(): Promise<any> {
     agent: getProxyAgent(url),
   } as any).then((res) => res.json())
   if (!Array.isArray(result)) {
-    console.log(result)
     throw new Error(`Result is not an array for ${url}`)
   }
   const commits = result.map((r) => r.sha)
