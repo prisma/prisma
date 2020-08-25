@@ -1000,16 +1000,18 @@ export function transformDocument(document: Document): Document {
                 argType: ar.argType, // probably wrong but fine
                 schemaArg: ar.schemaArg // probably wrong but fine
               })])
-            } 
+            }
           }
         } else if (
           typeof ar.value === 'object'
-          && ar.schemaArg?.inputType[0].kind === 'object' 
-          && ar.key !== 'is' 
+          && ar.schemaArg?.inputType[0].kind === 'object'
+          && ar.key !== 'is'
+          && ar.argType !== 'Json'
           // do not add `is` on ...ListRelationFilter 
           // https://github.com/prisma/prisma/issues/3342
           && !(typeof ar.schemaArg?.inputType[0].type === 'object' && ar.schemaArg?.inputType[0].type.name.includes('ListRelationFilter'))
-          ) {
+          && !(typeof ar.argType === 'object' && (ar.argType as DMMF.InputType)?.name?.startsWith('Json'))
+        ) {
           if (ar.value instanceof Args) {
             if (!ar.value.args.find(a => a.key === 'is')) {
               ar.value = new Args([new Arg({
@@ -1019,13 +1021,13 @@ export function transformDocument(document: Document): Document {
                 schemaArg: ar.schemaArg // probably wrong but fine
               })])
             }
-          } else if(ar.value === null) {
+          } else if (ar.value === null) {
             ar.value = new Args([new Arg({
               key: 'is',
               value: ar.value,
               argType: ar.argType, // probably wrong but fine
               schemaArg: ar.schemaArg // probably wrong but fine
-            })]) 
+            })])
           }
         }
         return ar

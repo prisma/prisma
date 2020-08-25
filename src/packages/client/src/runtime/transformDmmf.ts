@@ -119,7 +119,10 @@ function transformInputTypes(document: DMMF.Document): DMMF.Document {
 
           // there might not be an equals field, if it's a relation filter
           if (equalsField) {
-            f.inputType.unshift(equalsField.inputType[0])
+            if (equalsField.inputType[0].type !== 'Json') {
+              f.inputType.unshift(equalsField.inputType[0])
+            }
+
             if (equalsField.inputType[0].isNullable) {
               f.inputType.push({
                 isList: false,
