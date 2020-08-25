@@ -118,7 +118,6 @@ describe('where transformation', () => {
     try {
       document.validate(select, false, 'users')
     } catch (e) {
-      console.log('does it still throw?')
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
         Invalid \`prisma.users()\` invocation:
