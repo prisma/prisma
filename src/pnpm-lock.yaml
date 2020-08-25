@@ -47,8 +47,8 @@ importers:
       '@prisma/introspection': 'link:../introspection'
       '@prisma/migrate': 'link:../migrate'
       '@prisma/sdk': 'link:../sdk'
-      '@prisma/studio': 0.266.0
-      '@prisma/studio-server': 0.266.0
+      '@prisma/studio': 0.268.0
+      '@prisma/studio-server': 0.268.0
       '@types/debug': 4.1.5
       '@types/mocha': 8.0.3
       '@types/pg': 7.14.4
@@ -86,7 +86,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: 4.2.0
+      sqlite3: 4.1.1
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.6.0
@@ -105,8 +105,8 @@ importers:
       '@prisma/introspection': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio': 0.266.0
-      '@prisma/studio-server': 0.266.0
+      '@prisma/studio': 0.268.0
+      '@prisma/studio-server': 0.268.0
       '@types/debug': 4.1.5
       '@types/mocha': 8.0.3
       '@types/pg': 7.14.4
@@ -144,7 +144,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: 4.2.0
+      sqlite3: '4.1'
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.6.0
@@ -625,8 +625,8 @@ importers:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/get-platform': 'link:../get-platform'
       '@prisma/ink-components': 'link:../ink-components'
-      '@prisma/studio-server': 0.266.0
-      '@prisma/studio-types': 0.266.0
+      '@prisma/studio-server': 0.268.0
+      '@prisma/studio-types': 0.268.0
       ansi-escapes: 4.3.1
       cli-cursor: 3.1.0
       dashify: 2.0.0
@@ -693,8 +693,8 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@prisma/ink-components': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio-server': 0.266.0
-      '@prisma/studio-types': 0.266.0
+      '@prisma/studio-server': 0.268.0
+      '@prisma/studio-types': 0.268.0
       '@types/charm': 1.0.2
       '@types/debug': 4.1.5
       '@types/diff': 4.0.2
@@ -1477,31 +1477,31 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-ixd3E2r0z+xGo0Nf29hX0erk33WhgItc5suX5dli04TGbE0LI+1daepo8vHvKyZsjJiB5xFo7OSOj2kiAHRrzg==
-  /@prisma/studio-server/0.266.0:
+  /@prisma/studio-server/0.268.0:
     dependencies:
       '@prisma/get-platform': 2.6.0-dev.4
       '@prisma/sdk': 2.6.0-dev.4
-      '@prisma/studio': 0.266.0
-      '@prisma/studio-transports': 0.266.0
-      '@prisma/studio-types': 0.266.0
+      '@prisma/studio': 0.268.0
+      '@prisma/studio-transports': 0.268.0
+      '@prisma/studio-types': 0.268.0
       '@sentry/node': 5.15.5
       express: 4.17.1
       express-ws: 4.0.0_express@4.17.1
     resolution:
-      integrity: sha512-Ampgk25NTpLu32XBGKzHPWwS5FTbyFTxip2Cxj5Xo7Xf0+0PnQzgzVdEB2FuLbrBec3kjD1y5ux75lhbbNOd+w==
-  /@prisma/studio-transports/0.266.0:
+      integrity: sha512-mJlz6kUvNkUcoez8ySX22KUTpIg2iR5xc1gSx2qyi6M7s63qB9GjJNL3Pn/Eyba8SUTzwDNCr4sXeqRRp7G+PQ==
+  /@prisma/studio-transports/0.268.0:
     dependencies:
       '@prisma/sdk': 2.6.0-dev.4
-      '@prisma/studio-types': 0.266.0
+      '@prisma/studio-types': 0.268.0
       '@sentry/node': 5.15.5
     resolution:
-      integrity: sha512-RCSniNr2qNF3GWAAQxCHb+OgZBla4bZ3fXsAQlMuf/oPxdVa12vTV+Nyn5VzN9ubfVG1BVLzRJ7JAQA1gfC9sw==
-  /@prisma/studio-types/0.266.0:
+      integrity: sha512-VVhTQ01vXHv+36g0hc0TefEziiMkYj1OkeD/i76kO/bQDfgvPfFBT/V+XWXRFtbd//fhjGhvPNsoZf6jRZcZHw==
+  /@prisma/studio-types/0.268.0:
     resolution:
-      integrity: sha512-ku5OWg1zwKVOfyyaoWpkrM0UI2Ll5kxm+zBcgvUTrntvw+vG2LKsqN4ZbZPwbB1DetfytbAKl3CD1vvldXGnWw==
-  /@prisma/studio/0.266.0:
+      integrity: sha512-x7MP1nuhNOl9pQqEza6UYvBQkKgD7gd4w3oU2usnkSQK0ghFOgqnlVkFsbOgs1+9rPSHMckxYyrrhUpuRMRwbg==
+  /@prisma/studio/0.268.0:
     resolution:
-      integrity: sha512-rXbSLGckjzh4bcIVtqOni299IKOuOpu+Bl9y9wGF8/a2qcekLUpHSVswiF7aTm3IiKqFVum0nxKrENNztxf35g==
+      integrity: sha512-cPV8tMiRj0QlJwE9C3zCHnTj3ZgkcZz+Z9/iq5XLrzW8ezc7SHMOVVkIWWj8Zqbr0emmrd/PiJ4AtzQx4kPAcg==
   /@sentry/apm/5.15.5:
     dependencies:
       '@sentry/browser': 5.15.5
@@ -1638,7 +1638,7 @@ packages:
       integrity: sha512-rr+OQyAjxze7GgWrSaJwydHStIhHq2lvY3BOC2Mj7KnzI7XK0Uw1TOOdI9lDoajEbSWLiYgoo4f1R51erQfhPQ==
   /@types/cross-spawn/6.0.2:
     dependencies:
-      '@types/node': 14.0.13
+      '@types/node': 14.0.27
     resolution:
       integrity: sha512-KuwNhp3eza+Rhu8IFI5HUXRP0LIhqH5cAjubUvGXXthh4YYBuP2ntwEX+Cz8GJoZUHlKo247wPWOfA9LYEq4cw==
   /@types/debug/4.1.5:
@@ -1757,10 +1757,10 @@ packages:
     resolution:
       integrity: sha512-kwbcs0jySLxzLsa2nWUAGOd/s21WU1jebrEdtzhsj1D4Yps1EOuyI1Qcu+FD56dL7NRNIJtDDjcqIG22NwkgLw==
   /@types/node/14.0.13:
+    dev: true
     resolution:
       integrity: sha512-rouEWBImiRaSJsVA+ITTFM6ZxibuAlTuNOCyxVbwreu6k6+ujs7DfnU9o+PShFhET78pMBl3eH+AGSI5eOTkPA==
   /@types/node/14.0.27:
-    dev: true
     resolution:
       integrity: sha512-kVrqXhbclHNHGu9ztnAwSncIgJv/FaxmzXJvGXNdcCpV1b8u1/Mi6z6m0vwy0LzKeXFTPLH0NzwmoJ3fNCIq0g==
   /@types/normalize-package-data/2.4.0:
@@ -3584,8 +3584,12 @@ packages:
     resolution:
       integrity: sha1-SrTJoPWlTbkzi0w02Gv86PSzVXE=
   /eventemitter3/4.0.4:
+    dev: false
     resolution:
       integrity: sha512-rlaVLnVxtxvoyLsQQFBx53YmXHDxRIzzTLbdfxqi4yocpSjAxXwkU0cScM5JgSKMqEhrZpnvQ2D9gjylR0AimQ==
+  /eventemitter3/4.0.5:
+    resolution:
+      integrity: sha512-QR0rh0YiPuxuDQ6+T9GAO/xWTExXpxIes1Nl9RykNGTnE1HJmkuEfxJH9cubjIOQZ/GH4qNBR4u8VSHaKiWs4g==
   /exec-sh/0.3.4:
     dev: true
     resolution:
@@ -5518,8 +5522,12 @@ packages:
     resolution:
       integrity: sha512-OYu7XEzjkCQ3C5Ps3QIZsQfNpqoJyZZA99wd9aWd05NCtC5pWOkShK2mkL6HXQR6/Cy2lbNdPlZBpuQHXE63gA==
   /json-parse-better-errors/1.0.2:
+    dev: true
     resolution:
       integrity: sha512-mrqyZKfX5EhL7hvqcV6WG1yYjnjeuYDzDhhcAAUrq8Po85NBQBJP+ZDUT75qZQ98IkUoBqdkExkukOU7Ts2wrw==
+  /json-parse-even-better-errors/2.3.0:
+    resolution:
+      integrity: sha512-o3aP+RsWDJZayj1SbHNQAI8x0v3T3SKiGoZlNYfbUP1S3omJQ6i9CnqADqkSPaOAxwua4/1YWx5CM7oiChJt2Q==
   /json-schema-traverse/0.4.1:
     dev: true
     resolution:
@@ -6556,7 +6564,7 @@ packages:
       integrity: sha512-X7ddxxiQ+bLR/CUt3/BVKrGcJDNxBr0pEEFKHHB6vTPWNUhgDv36GpIH18RmGM3YGPpBT+JWGjDDqsVGuF0ERw==
   /p-queue/6.6.1:
     dependencies:
-      eventemitter3: 4.0.4
+      eventemitter3: 4.0.5
       p-timeout: 3.2.0
     engines:
       node: '>=8'
@@ -6627,16 +6635,16 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-OOY5b7PAEFV0E2Fir1KOkxchnZNCdowAJgQ5NuxjpBKTRP3pQhwkrkxqQjeoKJ+fO7bCpmIZaogI4eZGDMEGOw==
-  /parse-json/5.0.1:
+  /parse-json/5.1.0:
     dependencies:
       '@babel/code-frame': 7.10.4
       error-ex: 1.3.2
-      json-parse-better-errors: 1.0.2
+      json-parse-even-better-errors: 2.3.0
       lines-and-columns: 1.1.6
     engines:
       node: '>=8'
     resolution:
-      integrity: sha512-ztoZ4/DYeXQq4E21v169sC8qWINGpcosGv9XhTDvg9/hWvx/zrFkc9BiWxR58OJLHGk28j5BL0SDLeV2WmFZlQ==
+      integrity: sha512-+mi/lmVVNKFNVyLXV31ERiy2CY5E1/F6QtJFEzoChPRwwngMNXRDQ9GJ5WdE2Z2P4AujsOi0/+2qHID68KwfIQ==
   /parse-passwd/1.0.0:
     dev: false
     engines:
@@ -7121,7 +7129,7 @@ packages:
     dependencies:
       '@types/normalize-package-data': 2.4.0
       normalize-package-data: 2.5.0
-      parse-json: 5.0.1
+      parse-json: 5.1.0
       type-fest: 0.6.0
     engines:
       node: '>=8'
@@ -7819,6 +7827,15 @@ packages:
     dev: true
     resolution:
       integrity: sha512-yPCgZZPkccMcvU8J4Hrt96nSXOEv6UuBLd9KGFdUR9VVkE7voXkWrV2UWODfNbxdDyviS/a+eFWDn86mfBgyJw==
+  /sqlite3/4.1.1:
+    dependencies:
+      nan: 2.14.1
+      node-pre-gyp: 0.11.0
+      request: 2.88.2
+    dev: true
+    requiresBuild: true
+    resolution:
+      integrity: sha512-CvT5XY+MWnn0HkbwVKJAyWEMfzpAPwnTiB3TobA5Mri44SrTovmmh499NPQP+gatkeOipqPlBLel7rn4E/PCQg==
   /sqlite3/4.2.0:
     dependencies:
       nan: 2.14.1
