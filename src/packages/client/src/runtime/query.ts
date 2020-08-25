@@ -1005,12 +1005,15 @@ export function transformDocument(document: Document): Document {
         } else if (
           typeof ar.value === 'object'
           && ar.schemaArg?.inputType[0].kind === 'object'
+          // don't do the "is" nesting if we're already on a field called "is"
           && ar.key !== 'is'
           && ar.argType !== 'Json'
           // do not add `is` on ...ListRelationFilter 
           // https://github.com/prisma/prisma/issues/3342
           && !(typeof ar.schemaArg?.inputType[0].type === 'object' && ar.schemaArg?.inputType[0].type.name.includes('ListRelationFilter'))
+          // don't do the "is" nesting for Json types
           && !(typeof ar.argType === 'object' && (ar.argType as DMMF.InputType)?.name?.startsWith('Json'))
+          && !(typeof ar.argType === 'object' && (ar.argType as DMMF.InputType)?.name?.startsWith('NestedJson'))
         ) {
           if (ar.value instanceof Args) {
             if (!ar.value.args.find(a => a.key === 'is')) {

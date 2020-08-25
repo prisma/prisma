@@ -37,19 +37,40 @@ describe('json', () => {
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
     })
-    expect(String(document)).toMatchInlineSnapshot(`
-      "mutation {
-        createOneUser(data: {
-          email: \\"a@a.de\\"
-          json: \\"{\\\\\\"hello\\\\\\":\\\\\\"world\\\\\\"}\\"
-          name: \\"Bob\\"
-        }) {
-          id
-          name
-          email
-          json
-        }
-      }"
-    `)
+    document.validate(undefined, false, 'user', 'colorless')
+    expect(String(document)).toMatchSnapshot()
+  })
+  test('should be able filter json', async () => {
+    const document = makeDocument({
+      dmmf,
+      select: {
+        where: {
+          json: {
+            equals: {
+              hello: 'world',
+            }
+          },
+        },
+      },
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+    document.validate(undefined, false, 'user', 'colorless')
+    expect(String(document)).toMatchSnapshot()
+  })
+  test('should error if equals is missing', async () => {
+    const document = makeDocument({
+      dmmf,
+      select: {
+        where: {
+          json: {
+            hello: 'world',
+          },
+        },
+      },
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+    expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
 })
