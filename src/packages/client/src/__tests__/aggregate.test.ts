@@ -78,6 +78,16 @@ describe('aggregate', () => {
       dmmf,
       select: {
         take: 10,
+        cursor: {
+          email: 'a@a.de',
+        },
+        orderBy: {
+          age: 'asc',
+        },
+        skip: 12,
+        where: {
+          age: { gt: 500 },
+        },
         select: {
           count: true,
           avg: {
@@ -106,25 +116,7 @@ describe('aggregate', () => {
       rootField: 'aggregateUser',
     })
     document.validate(undefined, false, 'user', 'colorless')
-    expect(String(document)).toMatchInlineSnapshot(`
-      "query {
-        aggregateUser(take: 10) {
-          count
-          avg {
-            age
-          }
-          min {
-            age
-          }
-          max {
-            age
-          }
-          sum {
-            age
-          }
-        }
-      }"
-    `)
+    expect(String(document)).toMatchSnapshot()
   })
 
   test('unhappy path - incorrect arg', () => {
