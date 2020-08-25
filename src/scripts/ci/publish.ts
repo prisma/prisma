@@ -47,6 +47,10 @@ async function getUnsavedChanges(dir: string): Promise<string | null> {
 }
 
 async function getLatestCommit(dir: string): Promise<Commit> {
+  if (process.env.GITHUB_CONTEXT) {
+    const context = JSON.parse(process.env.GITHUB_CONTEXT)
+    return context.sha
+  }
   const result = await runResult(
     dir,
     'git log --pretty=format:"%ad %H %P" --date=iso-strict -n 1',
@@ -582,8 +586,8 @@ async function publish() {
       patchBranch && !process.env.BUILDKITE_TAG
         ? 'patch-dev'
         : prisma2Version.includes('dev')
-        ? 'dev'
-        : 'latest'
+          ? 'dev'
+          : 'latest'
 
     const packagesWithVersions = await getNewPackageVersions(
       packages,
@@ -768,7 +772,7 @@ function patchVersion(version: string): string | null {
   if (match) {
     return `${match.groups.major}.${match.groups.minor}.${
       Number(match.groups.patch) + 1
-    }`
+      }`
   }
 
   return null
@@ -779,7 +783,7 @@ function increaseMinor(version: string): string | null {
   if (match) {
     return `${match.groups.major}.${Number(match.groups.minor) + 1}.${
       match.groups.patch
-    }`
+      }`
   }
 
   return null
@@ -820,8 +824,8 @@ async function publishPackages(
   const publishStr = dryRun
     ? `${chalk.bold('Dry publish')} `
     : releaseVersion
-    ? 'Releasing '
-    : 'Publishing '
+      ? 'Releasing '
+      : 'Publishing '
 
   if (releaseVersion) {
     console.log(
@@ -921,12 +925,12 @@ async function publishPackages(
       const skipPackages =
         process.env.BUILDKITE_TAG === '2.0.1'
           ? [
-              '@prisma/debug',
-              '@prisma/get-platform',
-              '@prisma/generator-helper',
-              '@prisma/ink-components',
-              '@prisma/fetch-engine',
-            ]
+            '@prisma/debug',
+            '@prisma/get-platform',
+            '@prisma/generator-helper',
+            '@prisma/ink-components',
+            '@prisma/fetch-engine',
+          ]
           : []
       if (!skipPackages.includes(pkgName)) {
         await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
@@ -1043,7 +1047,7 @@ async function writeVersion(pkgDir: string, version: string, dryRun?: boolean) {
   if (dryRun) {
     console.log(
       `Would update ${pkgJsonPath} from ${
-        packageJson.version
+      packageJson.version
       } to ${version} now ${chalk.dim('(dry)')}`,
     )
   } else {
