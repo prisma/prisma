@@ -26,9 +26,11 @@ export async function getLatestTag(): Promise<any> {
   const result = await fetch(url, {
     agent: getProxyAgent(url),
   } as any).then((res) => res.json())
+
   if (!Array.isArray(result)) {
     throw new Error(`Result is not an array for ${url}`)
   }
+
   const commits = result.map((r) => r.sha)
   const commit = await getFirstExistingCommit(commits)
   const queue = new PQueue({ concurrency: 30 })
