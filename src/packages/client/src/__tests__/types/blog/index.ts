@@ -16,11 +16,19 @@ import {
 // This file will not be executed, just compiled to check if the typings are valid
 async function main() {
   const prisma = new PrismaClient({
+    log: [{
+      emit: 'event',
+      level: 'query'
+    }],
     datasources: {
       db: {
         url: 'file:dev.db',
       },
     },
+  })
+
+  prisma.on('query', a => {
+    //
   })
 
   prismaVersion.client

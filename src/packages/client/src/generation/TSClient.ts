@@ -482,7 +482,9 @@ export type LogDefinition = {
 }
 
 export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
-export type GetEvents<T extends Array<LogLevel | LogDefinition>> = GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]> 
+export type GetEvents<T extends any> = T extends Array<LogLevel | LogDefinition> ?
+  GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]>
+  : never
 
 export type QueryEvent = {
   timestamp: Date
@@ -538,7 +540,7 @@ export declare function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLe
 ${this.jsDoc}
 export declare class PrismaClient<
   T extends PrismaClientOptions = PrismaClientOptions,
-  U = keyof T extends 'log' ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never
+  U = 'log' extends keyof T ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never
 > {
   /**
    * @private
