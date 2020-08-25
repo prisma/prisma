@@ -565,10 +565,12 @@ async function publish() {
       throw new Error(`Oops, there are circular dependencies: ${circles}`)
     }
 
-    const changes = await getLatestChanges()
+    if (!process.env.GITHUB_CONTEXT) {
+      const changes = await getLatestChanges()
 
-    console.log(chalk.bold(`Changed files:`))
-    console.log(changes.map((c) => `  ${c}`).join('\n'))
+      console.log(chalk.bold(`Changed files:`))
+      console.log(changes.map((c) => `  ${c}`).join('\n'))
+    }
 
     let prisma2Version
     const patchBranch = getPatchBranch()
