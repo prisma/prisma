@@ -1,5 +1,41 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`aggregate combined happy path 1`] = `
+"query {
+  aggregateUser(
+    take: 10
+    cursor: {
+      email: \\"a@a.de\\"
+    }
+    orderBy: [
+      {
+        age: asc
+      }
+    ]
+    skip: 12
+    where: {
+      age: {
+        gt: 500
+      }
+    }
+  ) {
+    count
+    avg {
+      age
+    }
+    min {
+      age
+    }
+    max {
+      age
+    }
+    sum {
+      age
+    }
+  }
+}"
+`;
+
 exports[`aggregate unhappy path - incorrect arg 1`] = `
 "
 Invalid \`prisma.user()\` invocation:
