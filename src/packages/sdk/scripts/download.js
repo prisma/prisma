@@ -18,4 +18,7 @@ download({
   printVersion: true,
   ignoreCache: true,
   version,
+}).catch((e) => {
+  console.error(e)
+  process.exit(1)
 })
