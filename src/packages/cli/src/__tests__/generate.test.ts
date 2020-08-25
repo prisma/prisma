@@ -13,7 +13,7 @@ describe('generate', () => {
     // copy example into temp dir
     // why a tmp dir? To make sure, we're outside of this workspace
     await copy({
-      from: path.join(__dirname, './fixtures/example-project'),
+      from: path.join(__dirname, './fixtures/generate-custom-output'),
       to: target,
       recursive: true,
     })
@@ -34,6 +34,7 @@ describe('generate', () => {
     // run code
     const { main } = await import(path.join(target, 'main.ts'))
     const result = await main()
+    snapshot(data.stdout)
     snapshot(result)
   })
 
