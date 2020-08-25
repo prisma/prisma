@@ -190,13 +190,13 @@ module.exports = async () => {
   proxy.end()
   try {
     const users = await prisma.user.findMany()
-  } catch (e) {}
+  } catch (e) { }
   proxy = tcpProxy.createProxy(newPort, credentials.host, sourcePort)
   await new Promise((r) => setTimeout(r, 16000))
   assert.equal(errorLogs.length, 1)
   try {
     const users = await prisma.user.findMany()
-  } catch (e) {}
+  } catch (e) { }
   const users = await prisma.user.findMany()
   assert.equal(users.length, 1)
   const resultEmptyJson = await prisma.post.create({
@@ -219,17 +219,19 @@ module.exports = async () => {
         {
           array1key: 'array1value',
         },
-      ],
+      ]
     },
   })
 
   const result = await prisma.post.findMany({
     where: {
-      jsonData: [
-        {
-          array1key: 'array1value',
-        },
-      ],
+      jsonData: {
+        equals: [
+          {
+            array1key: 'array1value',
+          },
+        ]
+      },
     },
   })
 
