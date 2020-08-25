@@ -144,6 +144,7 @@ async function getBranch() {
   if (process.env.BUILDKITE_BRANCH) {
     return process.env.BUILDKITE_BRANCH
   }
+  console.log(process.env.GITHUB_CONTEXT)
   const result = await execa.command('git rev-parse --abbrev-ref HEAD', {
     shell: true,
     stdio: 'pipe',
