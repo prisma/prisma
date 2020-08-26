@@ -521,6 +521,12 @@ function validateDmmfAgainstDenylists(
       'PrismaClientInitializationError',
       'PrismaClientRustPanicError',
       'PrismaVersion',
+      'IntFieldUpdateOperationsInput',
+      'FloatFieldUpdateOperationsInput',
+      'BoolFieldUpdateOperationsInput',
+      'StringFieldUpdateOperationsInput',
+      'DateTimeFieldUpdateOperationsInput',
+      'JsonFieldUpdateOperationsInput',
       // JavaScript keywords
       'await',
       'async',
