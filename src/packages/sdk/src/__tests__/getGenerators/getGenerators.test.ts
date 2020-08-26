@@ -89,6 +89,8 @@ describe('getGenerators', () => {
         "provider": "predefined-generator",
       }
     `)
+
+    generators.forEach((g) => g.stop())
   })
 
   test('fail on platforms', async () => {
