@@ -12,8 +12,8 @@ jobs:
       postgres:
         image: postgres:10.3
         env:
-          - POSTGRES_USER=prisma
-          - POSTGRES_PASSWORD=prisma
+          POSTGRES_USER: prisma
+          POSTGRES_PASSWORD: prisma
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -23,10 +23,10 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          - MYSQL_ROOT_PASSWORD=root
-          - MYSQL_DATABASE=tests
-          - MYSQL_USER=prisma
-          - MYSQL_PASSWORD=prisma
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: tests
+          MYSQL_USER: prisma
+          MYSQL_PASSWORD: prisma
         volumes:
           - mysql:/var/lib/mysql
         ports:
