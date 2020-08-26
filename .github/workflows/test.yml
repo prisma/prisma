@@ -42,6 +42,7 @@ jobs:
         env:
           CI: true
           SKIP_GIT: true
+          DEBUG: '*'
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@postgres:5432/postgres
           TEST_MYSQL_URI: mysql://prisma:prisma@mysql:3306/tests
