@@ -167,6 +167,8 @@ Invalid \`prisma.user.findMany()\` invocation in
 ConnectorError(ConnectorError { user_facing_error: None, kind: TableDoesNotExist { table: \\"dev.User\\" } })"
 `;
 
+exports[`runtime multi-connect: multi-connect example should succeed 1`] = `Array []`;
+
 exports[`runtime new-line: new-line example should succeed 1`] = `"success"`;
 
 exports[`runtime relations: relations example should succeed 1`] = `"success"`;
