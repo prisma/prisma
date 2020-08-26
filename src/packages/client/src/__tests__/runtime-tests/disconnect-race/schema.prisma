@@ -1,0 +1,58 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native"]
+  previewFeatures = ["connectOrCreate"]
+}
+
+model User {
+  id         String   @default(cuid()) @id
+  email      String   @unique
+  name       String?
+  age        Int?
+  posts      Post[]
+  likes      Like[]
+  property   Property @relation(fields: [propertyId], references: [id])
+  propertyId String
+}
+
+model Property {
+  id      String @default(cuid()) @id
+  house   House  @relation(fields: [houseId], references: [id])
+  users   User[]
+  houseId String
+}
+
+model House {
+  id         String     @default(cuid()) @id
+  like       Like       @relation(fields: [likeId], references: [id])
+  properties Property[]
+  likeId     String
+}
+
+model Post {
+  id        String   @default(cuid()) @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id])
+  Like      Like[]
+}
+
+model Like {
+  id     String @default(cuid()) @id
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
+  House House[]
+}

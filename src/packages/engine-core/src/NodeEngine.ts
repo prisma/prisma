@@ -50,10 +50,16 @@ export interface EngineConfig {
   logLevel?: 'info' | 'warn'
   env?: Record<string, string>
   flags?: string[]
+
   clientVersion?: string
   enableExperimental?: string[]
   engineEndpoint?: string
   useUds?: boolean
+}
+
+type GetConfigResult = {
+  datasources: DataSource[]
+  generators: GeneratorConfig[]
 }
 
 /**
@@ -79,6 +85,11 @@ const knownPlatforms: Platform[] = [
 
 export type Deferred = {
   resolve: () => void
+  reject: (err: Error) => void
+}
+
+export type StopDeferred = {
+  resolve: (code: number | null) => void
   reject: (err: Error) => void
 }
 
@@ -109,6 +120,8 @@ export class NodeEngine {
   private lastError?: RustError
   private useUds: boolean = false
   private socketPath?: string
+  private getConfigPromise?: Promise<GetConfigResult>
+  private stopPromise?: Promise<void>
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -133,6 +146,7 @@ export class NodeEngine {
   datasources?: DatasourceOverwrite[]
   startPromise?: Promise<any>
   engineStartDeferred?: Deferred
+  engineStopDeferred?: StopDeferred
   undici: Undici
   constructor({
     cwd,
@@ -355,8 +369,8 @@ You may have to run ${chalk.greenBright(
     if (!(await exists(prismaPath))) {
       const pinnedStr = this.incorrectlyPinnedBinaryTarget
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(
-            `${this.incorrectlyPinnedBinaryTarget}`,
-          )}\n`
+          `${this.incorrectlyPinnedBinaryTarget}`,
+        )}\n`
         : ''
 
       const dir = path.dirname(prismaPath)
@@ -386,9 +400,9 @@ ${files.map((f) => `  ${f}`).join('\n')}\n`
           errorText += `
 You already added the platform${
             this.generator.binaryTargets.length > 1 ? 's' : ''
-          } ${this.generator.binaryTargets
-            .map((t) => `"${chalk.bold(t)}"`)
-            .join(', ')} to the "${chalk.underline('generator')}" block
+            } ${this.generator.binaryTargets
+              .map((t) => `"${chalk.bold(t)}"`)
+              .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
 
@@ -398,14 +412,14 @@ Please create an issue at https://github.com/prisma/prisma-client-js/issues/new`
           // Just add it
           errorText += `\n\nTo solve this problem, add the platform "${
             this.platform
-          }" to the "${chalk.underline(
-            'generator',
-          )}" block in the "schema.prisma" file:
+            }" to the "${chalk.underline(
+              'generator',
+            )}" block in the "schema.prisma" file:
 ${chalk.greenBright(this.getFixedGenerator())}
 
 Then run "${chalk.greenBright(
-            'prisma generate',
-          )}" for your changes to take effect.
+              'prisma generate',
+            )}" for your changes to take effect.
 Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         }
       } else {
@@ -502,6 +516,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   private internalStart(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
+      if (this.stopPromise) {
+        await this.stopPromise
+      }
       if (this.engineEndpoint) {
         try {
           await pRetry(() => this.undici.status(), {
@@ -534,8 +551,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         const prismaPath = await this.getPrismaPath()
         const experimentalFlags =
           this.enableExperimental &&
-          Array.isArray(this.enableExperimental) &&
-          this.enableExperimental.length > 0
+            Array.isArray(this.enableExperimental) &&
+            this.enableExperimental.length > 0
             ? [`--enable-experimental=${this.enableExperimental.join(',')}`]
             : []
 
@@ -630,6 +647,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         })
 
         this.child.on('exit', (code): void => {
+          if (this.engineStopDeferred) {
+            this.engineStopDeferred.resolve(code)
+            return
+          }
           this.undici?.close()
           this.exitCode = code
           if (
@@ -675,7 +696,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               err = new PrismaClientInitializationError(
                 `Query engine process killed with signal ${this.child.signalCode} for unknown reason.
 Make sure that the engine binary at ${prismaPath} is not corrupt.\n` +
-                  this.stderrLogs,
+                this.stderrLogs,
               )
             } else {
               err = new PrismaClientInitializationError(this.stderrLogs)
@@ -781,6 +802,15 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         }
 
         this.url = `http://localhost:${this.port}`
+
+          // don't wait for this
+
+          ; (async () => {
+            const engineVersion = await this.version()
+            debug(`Client Version ${this.clientVersion}`)
+            debug(`Engine Version ${engineVersion}`)
+          })()
+
         resolve()
       } catch (e) {
         reject(e)
@@ -788,11 +818,22 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     })
   }
 
+  async stop(): Promise<void> {
+    if (!this.stopPromise) {
+      this.stopPromise = this._stop()
+    }
+
+    return this.stopPromise
+  }
+
   /**
    * If Prisma runs, stop it
    */
-  async stop(): Promise<void> {
-    await this.start()
+  async _stop(): Promise<void> {
+    if (this.startPromise) {
+      await this.startPromise
+    }
+    await new Promise(r => process.nextTick(r))
     if (this.currentRequestPromise) {
       try {
         await this.currentRequestPromise
@@ -800,13 +841,24 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         //
       }
     }
+    this.getConfigPromise = undefined
+    let stopPromise
     if (this.child) {
       debug(`Stopping Prisma engine`)
+      if (this.startPromise) {
+        await this.startPromise
+      }
+      stopPromise = new Promise((resolve, reject) => {
+        this.engineStopDeferred = { resolve, reject }
+      })
       this.queryEngineKilled = true
       this.undici?.close()
       this.child?.kill()
       delete this.child
     }
+    this.startPromise = undefined
+    await stopPromise
+    this.engineStopDeferred = undefined
     setTimeout(() => {
       if (this.socketPath) {
         try {
@@ -822,6 +874,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
   }
 
   async kill(signal: string): Promise<void> {
+    this.getConfigPromise = undefined
     this.globalKillSignalReceived = signal
     this.queryEngineKilled = true
     this.child?.kill()
@@ -852,10 +905,14 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     })
   }
 
-  async getConfig(): Promise<{
-    datasources: DataSource[]
-    generators: GeneratorConfig[]
-  }> {
+  async getConfig(): Promise<GetConfigResult> {
+    if (!this.getConfigPromise) {
+      this.getConfigPromise = this._getConfig()
+    }
+    return this.getConfigPromise
+  }
+
+  async _getConfig(): Promise<GetConfigResult> {
     const prismaPath = await this.getPrismaPath()
 
     const env = await this.getEngineEnvVars()
@@ -885,6 +942,9 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     headers: Record<string, string>,
     numTry = 1,
   ): Promise<T> {
+    if (this.stopPromise) {
+      await this.stopPromise
+    }
     await this.start()
 
     if (!this.child && !this.engineEndpoint) {
