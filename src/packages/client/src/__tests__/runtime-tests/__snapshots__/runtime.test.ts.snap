@@ -36,6 +36,12 @@ exports[`runtime chmod: chmod example should succeed 1`] = `"success"`;
 
 exports[`runtime corruption: corruption example should succeed 1`] = `"success"`;
 
+exports[`runtime disconnect-finally: disconnect-finally example should succeed 1`] = `Array []`;
+
+exports[`runtime disconnect-race: disconnect-race example should succeed 1`] = `Array []`;
+
+exports[`runtime disconnect-while-query: disconnect-while-query example should succeed 1`] = `Array []`;
+
 exports[`runtime distinct: distinct example should succeed 1`] = `"success"`;
 
 exports[`runtime enums: enums example should succeed 1`] = `"success"`;
