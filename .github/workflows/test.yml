@@ -11,32 +11,28 @@ jobs:
     services:
       postgres:
         image: postgres:10.3
-        restart: always
-        environment:
+        env:
           - POSTGRES_USER=prisma
           - POSTGRES_PASSWORD=prisma
-        volumes:
-          - postgres:/var/lib/postgresql/data
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
 
-      # mysql:
-      #   image: mysql:8.0
-      #   command: --default-authentication-plugin=mysql_native_password
-      #   restart: always
-      #   environment:
-      #     - MYSQL_ROOT_PASSWORD=root
-      #     - MYSQL_DATABASE=tests
-      #     - MYSQL_USER=prisma
-      #     - MYSQL_PASSWORD=prisma
-      #   volumes:
-      #     - mysql:/var/lib/mysql
-      #   ports:
-      #     - 3306
-      #   options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      mysql:
+        image: mysql:8.0
+        command: --default-authentication-plugin=mysql_native_password
+        env:
+          - MYSQL_ROOT_PASSWORD=root
+          - MYSQL_DATABASE=tests
+          - MYSQL_USER=prisma
+          - MYSQL_PASSWORD=prisma
+        volumes:
+          - mysql:/var/lib/mysql
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
       - uses: actions/checkout@v2
