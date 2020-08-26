@@ -932,7 +932,7 @@ export function transformDocument(document: Document): Document {
           if (ar.schemaArg && !ar.schemaArg.isRelationFilter) {
             for (let i = ar.value.args.length; i--;) {
               const a = ar.value.args[i]
-              if (a.key === 'not' && (typeof a.value !== 'object' || a.argType === 'DateTime')) {
+              if (a.key === 'not' && (typeof a.value !== 'object' || a.argType === 'DateTime' || a.argType === 'Json')) {
                 // if it's already an equals { X } do not add equals
                 if (!(a.value instanceof Args)) {
                   a.value = new Args([new Arg({
@@ -959,7 +959,7 @@ export function transformDocument(document: Document): Document {
                   ar.value.args.push(notField)
                 }
                 // we might be ahead of time...
-                if ((typeof notField.value !== 'object') || notField.argType === 'DateTime' || notField.value === null) {
+                if ((typeof notField.value !== 'object') || notField.argType === 'DateTime' || notField.value === null || notField.argType === 'Json') {
                   // if it's already an equals { X } do not add equals
                   if (!(notField.value instanceof Args)) {
                     notField.value = new Args([new Arg({
