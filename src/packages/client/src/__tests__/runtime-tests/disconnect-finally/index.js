@@ -8,10 +8,10 @@ async function main() {
 }
 
 module.exports = () => {
-  return new Promise((r) => {
+  return new Promise((resolve) => {
     main().finally(async () => {
       await prisma.$disconnect()
-      r(await res)
+      resolve(await res)
     })
   })
 }

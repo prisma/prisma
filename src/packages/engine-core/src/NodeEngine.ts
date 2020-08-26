@@ -833,7 +833,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     if (this.startPromise) {
       await this.startPromise
     }
-    await new Promise(r => process.nextTick(r))
+    await new Promise(resolve => process.nextTick(resolve))
     if (this.currentRequestPromise) {
       try {
         await this.currentRequestPromise
@@ -857,7 +857,9 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       delete this.child
     }
     this.startPromise = undefined
-    await stopPromise
+    if (stopPromise) {
+      await stopPromise
+    }
     this.engineStopDeferred = undefined
     setTimeout(() => {
       if (this.socketPath) {
