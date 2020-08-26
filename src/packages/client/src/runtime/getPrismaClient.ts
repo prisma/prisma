@@ -169,10 +169,10 @@ export type LogDefinition = {
 
 export type GetLogType<
   T extends LogLevel | LogDefinition
-> = T extends LogDefinition
+  > = T extends LogDefinition
   ? T['emit'] extends 'event'
-    ? T['level']
-    : never
+  ? T['level']
+  : never
   : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
   | GetLogType<T[0]>
@@ -331,8 +331,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             typeof options.log === 'string'
               ? options.log === 'query'
               : options.log.find((o) =>
-                  typeof o === 'string' ? o === 'query' : o.level === 'query',
-                ),
+                typeof o === 'string' ? o === 'query' : o.level === 'query',
+              ),
           ),
         env: envFile,
         flags: [],
@@ -356,8 +356,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             typeof log === 'string'
               ? log
               : log.emit === 'stdout'
-              ? log.level
-              : null
+                ? log.level
+                : null
           if (level) {
             this.$on(level, (event) => {
               const colorMap = {
@@ -368,7 +368,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               }
               console.error(
                 chalk[colorMap[level]](`prisma:${level}`.padEnd(13)) +
-                  (event.message || event.query),
+                (event.message || event.query),
               )
             })
           }
@@ -456,34 +456,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return this.$connect()
     }
     async $connect() {
-      if (this._disconnectionPromise) {
-        await this._disconnectionPromise
-      }
-      if (this._connectionPromise) {
-        return this._connectionPromise
-      }
-      this._connectionPromise = (async () => {
-        await this._engine.start()
-
-        let { engineVersion, clientVersion } = config
-        if (
-          this._engineConfig.prismaPath ||
-          process.env.QUERY_ENGINE_BINARY_PATH ||
-          !engineVersion
-        ) {
-          engineVersion = await this._engine.version()
-        }
-        debug(`Client Version ${clientVersion}`)
-        debug(`Engine Version ${engineVersion}`)
-      })()
-      return this._connectionPromise
-    }
-    async _getConfig() {
-      if (!this._getConfigPromise) {
-        this._getConfigPromise = this._engine.getConfig()
-      }
-
-      return this._getConfigPromise
+      return this._engine.start()
     }
     /**
      * @private
@@ -507,14 +480,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
      * Disconnect from the database
      */
     async $disconnect() {
-      if (!this._disconnectionPromise) {
-        this._disconnectionPromise = this._runDisconnect()
-      }
-      return this._disconnectionPromise
+      return this._engine.stop()
     }
 
     private async _getActiveProvider(): Promise<ConnectorType> {
-      const configResult = await this._getConfig()
+      const configResult = await this._engine.getConfig()
       return configResult.datasources[0].activeProvider!
     }
 
@@ -765,9 +735,9 @@ new PrismaClient({
 
       // No, we won't copy the whole object here just to make it easier to do TypeScript
       // as it would be much slower
-      ;(params as InternalRequestParams).clientMethod = clientMethod
-      ;(params as InternalRequestParams).callsite = callsite
-      ;(params as InternalRequestParams).headers = headers
+      ; (params as InternalRequestParams).clientMethod = clientMethod
+        ; (params as InternalRequestParams).callsite = callsite
+        ; (params as InternalRequestParams).headers = headers
 
       return this._executeRequest(params as InternalRequestParams)
     }
@@ -963,8 +933,8 @@ new PrismaClient({
               const prefix = dataPath.includes('select')
                 ? 'select'
                 : dataPath.includes('include')
-                ? 'include'
-                : 'select'
+                  ? 'include'
+                  : 'select'
               const newDataPath = [...dataPath, prefix, field.name]
               const newArgs = deepSet(args, newDataPath, fieldArgs || true)
 
@@ -1022,9 +992,9 @@ new PrismaClient({
             actionName: `aggregate`,
             args: args
               ? {
-                  ...args,
-                  select: { count: true },
-                }
+                ...args,
+                select: { count: true },
+              }
               : undefined,
             dataPath: ['count'],
           })
@@ -1086,13 +1056,11 @@ export class PrismaClientFetcher {
     this.dataloader = new Dataloader({
       batchLoader: async (requests) => {
         const queries = requests.map((r) => String(r.document))
-        await this.prisma.$connect()
         const runTransaction = requests[0].runInTransaction
         return this.prisma._engine.requestBatch(queries, runTransaction)
       },
       singleLoader: async (request) => {
         const query = String(request.document)
-        await this.prisma.$connect()
         return this.prisma._engine.request(query, request.headers)
       },
       batchBy: (request) => {
