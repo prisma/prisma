@@ -7,6 +7,37 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: 'node:12'
+
+    services:
+      postgres:
+        image: postgres:10.3
+        restart: always
+        environment:
+          - POSTGRES_USER=prisma
+          - POSTGRES_PASSWORD=prisma
+        volumes:
+          - postgres:/var/lib/postgresql/data
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      mysql:
+        image: mysql:8.0
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        environment:
+          - MYSQL_ROOT_PASSWORD=root
+          - MYSQL_DATABASE=tests
+          - MYSQL_USER=prisma
+          - MYSQL_PASSWORD=prisma
+        volumes:
+          - mysql:/var/lib/mysql
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       - uses: actions/checkout@v2
       - run: bash src/.buildkite/test/run.sh
@@ -14,3 +45,5 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          TEST_POSTGRES_URI: postgres://prisma:prisma@postgres:5432/postgres
+          TEST_MYSQL_URI: mysql://prisma:prisma@mysql:3306/tests
