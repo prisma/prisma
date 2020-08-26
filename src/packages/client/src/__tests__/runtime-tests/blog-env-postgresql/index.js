@@ -190,13 +190,13 @@ module.exports = async () => {
   proxy.end()
   try {
     const users = await prisma.user.findMany()
-  } catch (e) { }
+  } catch (e) {}
   proxy = tcpProxy.createProxy(newPort, credentials.host, sourcePort)
   await new Promise((r) => setTimeout(r, 16000))
   assert.equal(errorLogs.length, 1)
   try {
     const users = await prisma.user.findMany()
-  } catch (e) { }
+  } catch (e) {}
   const users = await prisma.user.findMany()
   assert.equal(users.length, 1)
   const resultEmptyJson = await prisma.post.create({
@@ -219,7 +219,7 @@ module.exports = async () => {
         {
           array1key: 'array1value',
         },
-      ]
+      ],
     },
   })
 
@@ -230,7 +230,7 @@ module.exports = async () => {
           {
             array1key: 'array1value',
           },
-        ]
+        ],
       },
     },
   })
@@ -242,6 +242,20 @@ module.exports = async () => {
       content: null,
     },
   })
+
+  const result2 = await prisma.post.findMany({
+    where: {
+      jsonData: {
+        not: [
+          {
+            array1key: 'array1value',
+          },
+        ],
+      },
+    },
+  })
+
+  assert.deepEqual(result2, [])
 
   assert.equal(resultWhereNull.length, 1, 'We should be able to query by null')
 
