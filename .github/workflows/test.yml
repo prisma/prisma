@@ -19,6 +19,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      ports:
+        - 5432/tcp
 
       mysql:
         image: mysql:8.0
@@ -43,5 +45,5 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/postgres
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/postgres
           TEST_MYSQL_URI: mysql://prisma:prisma@localhost:3306/tests
