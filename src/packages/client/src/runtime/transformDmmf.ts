@@ -134,9 +134,18 @@ function transformInputTypes(document: DMMF.Document): DMMF.Document {
                 type: 'null'
               })
             }
+            // lift up "not" field
             if (!inputTypeFieldLookupMap[inputTypeName].not) {
               const notField = filterType.fields.find(field => field.name === 'not')
               if (notField && notField.inputType.length === 1) {
+                if (equalsField.inputType[0].type === 'Json') {
+                  // we need to filter out the `NestedJsonNullableFilter`,
+                  // as we have lifted the "not" filter one level up already
+                  // and we just want to directly filter the json as it is
+                  if (notField.inputType[0].type === 'NestedJsonNullableFilter') {
+                    notField.inputType = []
+                  }
+                }
                 notField.inputType.unshift(equalsField.inputType[0])
               }
               inputTypeFieldLookupMap[inputTypeName].not = notField!
