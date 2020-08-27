@@ -225,6 +225,7 @@ async function main(): Promise<number> {
 
     let schemaProviders: string[] | undefined
     let schemaPreviewFeatures: string[] | undefined
+    let schemaGeneratorsProviders: string[] | undefined
     try {
       const schema = await getSchema(args['--schema'])
       const config = await getConfig({
@@ -239,6 +240,8 @@ async function main(): Promise<number> {
       if (generator) {
         schemaPreviewFeatures = generator.previewFeatures
       }
+      // Example 'prisma-client-js'
+      schemaGeneratorsProviders = config.generators.map((gen) => gen.provider)
     } catch (e) {
       //
       debug(e)
