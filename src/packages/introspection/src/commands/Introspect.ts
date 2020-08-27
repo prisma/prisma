@@ -250,11 +250,14 @@ Or run this command with the ${chalk.green(
             message += warning.affected
               .map((it) => `- Enum "${it.enm}", value: "${it.value}"`)
               .join('\n')
-          } else if (warning.code === 5) {
-            message += warning.affected
-              .map((it) => `- Model "${it.model}", field: "${it.field}"`)
-              .join('\n')
-          } else if (warning.code === 6) {
+          } else if (
+            warning.code === 5 ||
+            warning.code === 6 ||
+            warning.code === 8 ||
+            warning.code === 11 ||
+            warning.code === 12 ||
+            warning.code === 13
+          ) {
             message += warning.affected
               .map((it) => `- Model "${it.model}", field: "${it.field}"`)
               .join('\n')
@@ -262,14 +265,17 @@ Or run this command with the ${chalk.green(
             message += warning.affected
               .map((it) => `- Model "${it.model}"`)
               .join('\n')
-          } else if (warning.code === 8) {
-            message += warning.affected
-              .map((it) => `- Model "${it.model}", field: "${it.field}"`)
-              .join('\n')
-          } else if (warning.code === 9) {
+          } else if (warning.code === 9 || warning.code === 10) {
             message += warning.affected
               .map((it) => `- Enum "${it.enm}"`)
               .join('\n')
+          } else if (warning.affected) {
+            // Output unhandled warning
+            message += `Code ${warning.code}\n${JSON.stringify(
+              warning.affected,
+              null,
+              2,
+            )}`
           }
 
           message += `\n`
