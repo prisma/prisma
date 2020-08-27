@@ -338,13 +338,6 @@ Array [
             "kind": "scalar",
             "type": "Json",
           },
-          Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "object",
-            "type": "NestedJsonNullableFilter",
-          },
         ],
         "name": "not",
       },

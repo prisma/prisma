@@ -53,7 +53,7 @@ module.exports = async () => {
 
   assert.deepStrictEqual(resultWhereNullSingularRelationField, [])
 
-  db.$disconnect()
+  await db.$disconnect()
 }
 
 if (require.main === module) {

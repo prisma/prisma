@@ -10,6 +10,8 @@ module.exports = {
     'index.ts',
     'index.js',
     'stack.js',
+    'runner.js',
+    'node_modules/',
   ],
   globals: {
     'ts-jest': {

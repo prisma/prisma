@@ -205,6 +205,7 @@ importers:
       node-tcp-proxy: 0.0.15
       packwatch: 2.0.0
       pg: 8.3.2_pg@8.3.2
+      pidtree: 0.5.0
       pluralize: 8.0.0
       prettier: 2.1.0
       rimraf: 3.0.2
@@ -267,6 +268,7 @@ importers:
       node-tcp-proxy: 0.0.15
       packwatch: 2.0.0
       pg: 8.3.2
+      pidtree: ^0.5.0
       pkg-up: ^3.1.0
       pluralize: 8.0.0
       prettier: 2.1.0
@@ -3626,12 +3628,12 @@ packages:
   /execa/4.0.3:
     dependencies:
       cross-spawn: 7.0.3
-      get-stream: 5.1.0
+      get-stream: 5.2.0
       human-signals: 1.1.1
       is-stream: 2.0.0
       merge-stream: 2.0.0
       npm-run-path: 4.0.1
-      onetime: 5.1.0
+      onetime: 5.1.2
       signal-exit: 3.0.3
       strip-final-newline: 2.0.0
     engines:
@@ -6420,6 +6422,13 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-5NcSkPHhwTVFIQN+TUqXoS5+dlElHXdpAWu9I0HP20YOtIi+aZ0Ct82jdlILDxjLEAWwvm+qj1m6aEtsDVmm6Q==
+  /onetime/5.1.2:
+    dependencies:
+      mimic-fn: 2.1.0
+    engines:
+      node: '>=6'
+    resolution:
+      integrity: sha512-kbpaSSGJTWdAY5KPVeMOKXSrPtr8C8C7wodJbcsd51jRnmD+GZu8Y0VoU6Dm5Z4vWr0Ig/1NKuWRKf7j5aaYSg==
   /open/7.0.4:
     dependencies:
       is-docker: 2.0.0
@@ -6775,6 +6784,13 @@ packages:
       node: '>=8.6'
     resolution:
       integrity: sha512-q0M/9eZHzmr0AulXyPwNfZjtwZ/RBZlbN3K3CErVrk50T2ASYI7Bye0EvekFY3IP1Nt2DHu0re+V2ZHIpMkuWg==
+  /pidtree/0.5.0:
+    dev: true
+    engines:
+      node: '>=0.10'
+    hasBin: true
+    resolution:
+      integrity: sha512-9nxspIM7OpZuhBxPg73Zvyq7j1QMPMPsGKTqRc2XOaFQauDvoNz9fM1Wdkjmeo7l9GXOZiRs97sPkuayl39wjA==
   /pirates/4.0.1:
     dependencies:
       node-modules-regexp: 1.0.0
