@@ -30,59 +30,6 @@ describe('introspect', () => {
         id        Int      @default(autoincrement()) @id
         published Boolean  @default(false)
         title     String
-        User      User     @relation(fields: [authorId], references: [id])
-      }
-
-      model Profile {
-        bio    String?
-        id     Int     @default(autoincrement()) @id
-        userId Int     @unique
-        User   User    @relation(fields: [userId], references: [id])
-      }
-
-      model User {
-        email   String   @unique
-        id      Int      @default(autoincrement()) @id
-        name    String?
-        Post    Post[]
-        Profile Profile?
-      }
-      ",
-        "
-      // introspectionSchemaVersion: Prisma2",
-        "",
-      ]
-    `)
-  })
-
-  test('basic reintrospection', async () => {
-    process.chdir(path.join(__dirname, 'fixture'))
-    const introspect = new Introspect()
-    const oldConsoleLog = console.log
-    const logs: string[] = []
-    console.log = (...args) => {
-      logs.push(...args)
-    }
-    await introspect.parse(['--print', '--experimental-reintrospection'])
-    console.log = oldConsoleLog
-    expect(logs).toMatchInlineSnapshot(`
-      Array [
-        "generator client {
-        provider = \\"prisma-client-js\\"
-      }
-
-      datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:dev.db\\"
-      }
-
-      model Post {
-        authorId  Int
-        content   String?
-        createdAt DateTime @default(now())
-        id        Int      @default(autoincrement()) @id
-        published Boolean  @default(false)
-        title     String
         author    User     @relation(fields: [authorId], references: [id])
       }
 
@@ -108,7 +55,7 @@ describe('introspect', () => {
     `)
   })
 
-  test('reintrospection --clean', async () => {
+  test('introspection --force', async () => {
     process.chdir(path.join(__dirname, 'fixture'))
     const introspect = new Introspect()
     const oldConsoleLog = console.log
@@ -116,11 +63,7 @@ describe('introspect', () => {
     console.log = (...args) => {
       logs.push(...args)
     }
-    await introspect.parse([
-      '--print',
-      '--experimental-reintrospection',
-      '--clean',
-    ])
+    await introspect.parse(['--print', '--force'])
     console.log = oldConsoleLog
     expect(logs).toMatchInlineSnapshot(`
       Array [
@@ -165,7 +108,7 @@ describe('introspect', () => {
     `)
   })
 
-  test('basic reintrospection with --url', async () => {
+  test('basic introspection with --url', async () => {
     process.chdir(path.join(__dirname, 'fixture'))
     const introspect = new Introspect()
     const oldConsoleLog = console.log
@@ -173,12 +116,7 @@ describe('introspect', () => {
     console.log = (...args) => {
       logs.push(...args)
     }
-    await introspect.parse([
-      '--print',
-      '--experimental-reintrospection',
-      '--url',
-      'file:dev.db',
-    ])
+    await introspect.parse(['--print', '--url', 'file:dev.db'])
     console.log = oldConsoleLog
     expect(logs).toMatchInlineSnapshot(`
       Array [
