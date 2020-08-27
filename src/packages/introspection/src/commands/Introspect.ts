@@ -171,7 +171,7 @@ Then you can run ${chalk.green(
         // Schema Parsing Error
         console.log() // empty line
         throw new Error(`${chalk.red(
-          'Introspection failed as your current Prisma schema file is invalid',
+          `${e.code} Introspection failed as your current Prisma schema file is invalid`,
         )}\n
 Please fix your current schema manually, use ${chalk.green(
           getCommandWithExecutor('prisma validate'),
