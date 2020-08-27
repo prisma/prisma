@@ -319,10 +319,7 @@ export class IntrospectionEngine {
             if (code !== 0 || messages.includes('panicked at')) {
               let errorMessage =
                 chalk.red.bold('Error in introspection engine: ') + messages
-              if (messages.includes('\u001b[1;94m-->\u001b[0m')) {
-                errorMessage =
-                  `${chalk.red.bold('Schema parsing\n')}` + messages
-              } else if (this.lastError && this.lastError.msg === 'PANIC') {
+              if (this.lastError && this.lastError.msg === 'PANIC') {
                 errorMessage = serializePanic(this.lastError)
                 err = new IntrospectionPanic(
                   errorMessage,

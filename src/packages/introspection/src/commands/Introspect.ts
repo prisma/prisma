@@ -47,8 +47,7 @@ export class Introspect implements Command {
 
     ${chalk.bold('Flags')}
 
-      --experimental-reintrospection   Enables the experimental re-introspection feature
-      --clean                          Ignore current schema.prisma file when using the re-introspection feature
+      --force     Ignore current schema.prisma file
   `)
 
   private printUrlAsDatasource(url: string): string {
@@ -72,6 +71,8 @@ export class Introspect implements Command {
       '--url': String,
       '--print': Boolean,
       '--schema': String,
+      '--force': Boolean,
+      // deprecated
       '--experimental-reintrospection': Boolean,
       '--clean': Boolean,
     })
@@ -88,6 +89,30 @@ export class Introspect implements Command {
 
     if (args['--help']) {
       return this.help()
+    }
+
+    if (args['--clean'] || args['--experimental-reintrospection']) {
+      const renamedMessages: string[] = []
+      if (args['--experimental-reintrospection']) {
+        renamedMessages.push(
+          `The ${chalk.redBright(
+            '--experimental-reintrospection',
+          )} flag has been removed and is now the default behavior of ${chalk.greenBright(
+            'prisma introspect',
+          )}.`,
+        )
+      }
+
+      if (args['--clean']) {
+        renamedMessages.push(
+          `The ${chalk.redBright(
+            '--clean',
+          )} flag has been renamed to ${chalk.greenBright('--force')}.`,
+        )
+      }
+
+      console.error(`\n${renamedMessages.join('\n')}\n`)
+      process.exit(1)
     }
 
     const url: string | undefined = args['--url']
@@ -132,8 +157,7 @@ export class Introspect implements Command {
     try {
       const introspectionResult = await engine.introspect(
         schema,
-        args['--experimental-reintrospection'],
-        args['--clean'],
+        args['--force'],
       )
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
@@ -167,16 +191,17 @@ Then you can run ${chalk.green(
           )} again. 
 `)
         }
-      } else if (args['--experimental-reintrospection'] && !args['--clean']) {
-        // Waiting for a proper error code from the engine coming soon.
-        throw new Error(`\n${chalk.red(
-          'Introspection failed as your current Prisma schema file is invalid:',
-        )}
+      } else if (e.code === 'P1012') {
+        // Schema Parsing Error
+        console.log() // empty line
+        throw new Error(`${chalk.red(
+          `${e.code} Introspection failed as your current Prisma schema file is invalid`,
+        )}\n
 Please fix your current schema manually, use ${chalk.green(
           getCommandWithExecutor('prisma validate'),
         )} to confirm it is valid and then run this command again.
 Or run this command with the ${chalk.green(
-          '--clean',
+          '--force',
         )} flag to ignore your current schema and overwrite it. All local modifications will be lost.\n`)
       }
 
