@@ -219,7 +219,6 @@ importers:
       ts-loader: 8.0.3_typescript@3.9.7
       ts-node: 8.10.2_typescript@3.9.7
       typescript: 3.9.7
-      wtfnode: 0.8.1
     specifiers:
       '@apexearth/copy': 1.4.5
       '@prisma/debug': 'workspace:*'
@@ -284,7 +283,6 @@ importers:
       ts-loader: 8.0.3
       ts-node: 8.10.2
       typescript: 3.9.7
-      wtfnode: ^0.8.1
   packages/debug:
     dependencies:
       debug: 4.1.1
@@ -8867,11 +8865,6 @@ packages:
         optional: true
     resolution:
       integrity: sha512-D3RuNkynyHmEJIpD2qrgVkc9DQ23OrN/moAwZX4L8DfvszsJxpjQuUq3LMx6HoYji9fbIOBY18XWBsAux1ZZUA==
-  /wtfnode/0.8.1:
-    dev: true
-    hasBin: true
-    resolution:
-      integrity: sha512-S7S7D8CGHVCtlTn1IWX+nEbxavpL9+fk3vk02RPZHiExyZFb9oKTTig3nEnMCL2yaJ4047V5lAkuulXuO2OsOw==
   /xml-name-validator/3.0.0:
     dev: true
     resolution:
