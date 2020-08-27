@@ -4,10 +4,8 @@ import { generateInFolder } from '../../utils/generateInFolder'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
 import stripAnsi from 'strip-ansi'
-import pidtree from 'pidtree'
 import execa from 'execa'
 import { getPackedPackage } from '@prisma/sdk'
-import wtf from 'wtfnode'
 const del = promisify(rimraf)
 
 jest.setTimeout(35000)
