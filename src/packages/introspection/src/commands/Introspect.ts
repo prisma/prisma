@@ -167,11 +167,12 @@ Then you can run ${chalk.green(
           )} again. 
 `)
         }
-      } else if (args['--experimental-reintrospection'] && !args['--clean']) {
-        // Waiting for a proper error code from the engine coming soon.
-        throw new Error(`\n${chalk.red(
-          'Introspection failed as your current Prisma schema file is invalid:',
-        )}
+      } else if (e.code === 'P1012') {
+        // Schema Parsing Error
+        console.log() // empty line
+        throw new Error(`${chalk.red(
+          `${e.code} Introspection failed as your current Prisma schema file is invalid`,
+        )}\n
 Please fix your current schema manually, use ${chalk.green(
           getCommandWithExecutor('prisma validate'),
         )} to confirm it is valid and then run this command again.
