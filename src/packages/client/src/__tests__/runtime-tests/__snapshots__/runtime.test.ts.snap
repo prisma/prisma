@@ -163,8 +163,7 @@ Invalid \`prisma.user.findMany()\` invocation in
 
 
 
-  Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: TableDoesNotExist { table: \\"dev.User\\" } })"
+  The table \`dev.User\` does not exist in the current database."
 `;
 
 exports[`runtime multi-connect: multi-connect example should succeed 1`] = `Array []`;
