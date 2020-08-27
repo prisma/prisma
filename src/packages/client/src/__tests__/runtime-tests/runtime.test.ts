@@ -4,7 +4,10 @@ import { generateInFolder } from '../../utils/generateInFolder'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
 import stripAnsi from 'strip-ansi'
+import pidtree from 'pidtree'
+import execa from 'execa'
 import { getPackedPackage } from '@prisma/sdk'
+import wtf from 'wtfnode'
 const del = promisify(rimraf)
 
 jest.setTimeout(35000)
@@ -36,6 +39,21 @@ beforeAll(async () => {
   packageSource = (await getPackedPackage('@prisma/client')) as string
 })
 
+// afterAll(async () => {
+//   const children = await pidtree(process.pid)
+//   console.log(children)
+//   for (const child of children) {
+//     try {
+//       process.kill(child, 'SIGKILL')
+//       console.log(`Killing ${child} succeeded`)
+//     } catch (e) {
+//       console.error(e)
+//     }
+//   }
+//   // setTimeout(() => {
+//   // }, 200)
+// })
+
 describe('runtime', () => {
   test.each(subDirs)('%s', async (dir) => {
     dir = path.join(__dirname, dir)
@@ -45,7 +63,7 @@ describe('runtime', () => {
 
     const testTitle = `${testName} example should${
       shouldSucceed ? '' : ' not'
-    } succeed`
+      } succeed`
     // test.concurrent(testTitle, async (expect) => {
     if (fs.existsSync(nodeModules)) {
       await del(nodeModules)
@@ -67,25 +85,26 @@ describe('runtime', () => {
     }
 
     const filePath = path.join(dir, 'index.js')
-    const fn = require(filePath)
+    const { data, error, stdout, stderr } = await run(filePath)
 
     if (shouldSucceed) {
-      expect((await fn()) || 'success').toMatchSnapshot(testTitle)
-    } else {
-      try {
-        await fn()
-      } catch (e) {
-        // https://regex101.com/r/GPVRYg/1/
-        // remove the paths, so the tests can succeed on any machine
-        expect(
-          stripAnsi(e.message)
-            .replace(/(\/[\/\S+]+)/gm, '')
-            .replace(/current\s+platform\s+\S+"/gim, 'current platform')
-            .replace(/the\s+platform\s+\S+/gim, 'the platform X'),
-        ).toMatchSnapshot(testTitle)
+      if (error) {
+        throw new Error(`${testTitle} should succeed, but error:` + error)
       }
+      expect(data).toMatchSnapshot(testTitle)
+    } else {
+      if (!error) {
+        throw new Error(`${testTitle} should not succeed, but the error is missing`)
+      }
+      // https://regex101.com/r/GPVRYg/1/
+      // remove the paths, so the tests can succeed on any machine
+      expect(
+        stripAnsi(error!)
+          .replace(/(\/[\/\S+]+)/gm, '')
+          .replace(/current\s+platform\s+\S+"/gim, 'current platform')
+          .replace(/the\s+platform\s+\S+/gim, 'the platform X'),
+      ).toMatchSnapshot(testTitle)
     }
-    // })
   })
 })
 // for (const dir of subDirs) {
@@ -118,4 +137,34 @@ function shouldTestSucceed(dir: string): boolean {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
 
   return manifest.shouldSucceed
+}
+
+type RunResult = {
+  stderr: string, stdout: string, data?: any, error?: string
+}
+
+async function run(filePath: string): Promise<RunResult> {
+  const runPath = path.join(__dirname, 'runner.js')
+  const child = execa.node(runPath)
+  let data
+  let error
+  child.on('message', (message) => {
+    const result = JSON.parse(message)
+    if (result.data) {
+      data = result.data
+    }
+    if (result.error) {
+      error = result.error
+    }
+  })
+  process.nextTick(() => {
+    child.send(JSON.stringify({ filePath }))
+  })
+  const result = await child
+  return {
+    stdout: result.stdout,
+    stderr: result.stderr,
+    data,
+    error
+  }
 }

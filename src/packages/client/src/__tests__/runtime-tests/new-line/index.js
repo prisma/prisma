@@ -1,6 +1,6 @@
 const { PrismaClient } = require('@prisma/client')
 
-function run() {
+async function run() {
   const client = new PrismaClient()
 }
 
