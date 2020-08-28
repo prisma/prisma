@@ -60,6 +60,7 @@ const fetchPath = (port: number): Promise<string | null> =>
 
     setTimeout(() => {
       if (!resolved) {
+        client.destroy()
         resolve(null)
       }
     }, 3000)
