@@ -516,6 +516,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   private internalStart(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
+      await new Promise(r => process.nextTick(r))
       if (this.stopPromise) {
         await this.stopPromise
       }
@@ -530,12 +531,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         return resolve()
       }
       try {
-        if (this.child?.connected) {
+        if (this.child?.connected || (this.child && !this.child?.killed)) {
           debug(
-            `There is a child that still runs and we want to start again. We're killing that child process now.`,
+            `There is a child that still runs and we want to start again`,
           )
-          this.queryEngineKilled = true
-          this.child?.kill()
         }
         this.queryEngineStarted = false
 
@@ -811,6 +810,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
             debug(`Engine Version ${engineVersion}`)
           })()
 
+        this.stopPromise = undefined
         resolve()
       } catch (e) {
         reject(e)
@@ -833,6 +833,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     if (this.startPromise) {
       await this.startPromise
     }
+    // not sure yet if this is a good idea
     await new Promise(resolve => process.nextTick(resolve))
     if (this.currentRequestPromise) {
       try {
@@ -842,24 +843,27 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       }
     }
     this.getConfigPromise = undefined
-    let stopPromise
+    let stopChildPromise
     if (this.child) {
-      debug(`Stopping Prisma engine`)
+      debug(`Stopping Prisma engine4`)
       if (this.startPromise) {
+        debug(`Waiting for start promise`)
         await this.startPromise
       }
-      stopPromise = new Promise((resolve, reject) => {
+      debug(`Done waiting for start promise`)
+      stopChildPromise = new Promise((resolve, reject) => {
         this.engineStopDeferred = { resolve, reject }
       })
       this.queryEngineKilled = true
       this.undici?.close()
       this.child?.kill()
-      delete this.child
+      this.child = undefined
     }
+    if (stopChildPromise) {
+      await stopChildPromise
+    }
+    await new Promise(r => process.nextTick(r))
     this.startPromise = undefined
-    if (stopPromise) {
-      await stopPromise
-    }
     this.engineStopDeferred = undefined
     setTimeout(() => {
       if (this.socketPath) {

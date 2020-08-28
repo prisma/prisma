@@ -170,6 +170,33 @@ function transformInputTypes(document: DMMF.Document): DMMF.Document {
       inputType.atLeastOne = true
     }
 
+    // add union transformation, lift `set` up in both `update` and `updateMany` types
+    if (inputType.name.endsWith('UpdateInput') || inputType.name.endsWith('UpdateManyMutationInput')) {
+      inputType.isUpdateType = true
+      for (const field of inputType.fields) {
+        const fieldInputTypeName = field.inputType[0].type.toString()
+        if (fieldInputTypeName.endsWith('FieldUpdateOperationsInput')) {
+          const fieldInputType = inputTypeMap[fieldInputTypeName]
+          if (!fieldInputType) {
+            throw new Error(`Could not find field input type ${fieldInputTypeName}`)
+          }
+          fieldInputType.isUpdateOperationType = true
+          // remove the original type for JSON
+          // because we can't allow {set: {}} as it would be ambiguous
+          const setField = fieldInputType.fields.find(f => f.name === 'set')
+          if (!setField) {
+            // WEIRD, should normally not happen. But we for now also don't have a reason to error here
+            // it could e.g. happen that we incorrectly jumped into a relation type
+            continue
+          }
+          if (fieldInputTypeName.endsWith('JsonFieldUpdateOperationsInput')) {
+            field.inputType = []
+          }
+          field.inputType.unshift(setField.inputType[0])
+        }
+      }
+    }
+
     return inputType
   })
   return document

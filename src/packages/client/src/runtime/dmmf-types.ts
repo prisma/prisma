@@ -121,6 +121,8 @@ export namespace DMMF {
     name: string
     isWhereType?: boolean // this is needed to transform it back
     isOrderType?: boolean
+    isUpdateType?: boolean
+    isUpdateOperationType?: boolean
     atLeastOne?: boolean
     atMostOne?: boolean
     isOneOf?: boolean

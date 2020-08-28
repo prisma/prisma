@@ -14,50 +14,7 @@ describe('getDMMF', () => {
       }`,
     })
 
-    expect(dmmf.datamodel).toMatchInlineSnapshot(`
-      Object {
-        "enums": Array [],
-        "models": Array [
-          Object {
-            "dbName": null,
-            "fields": Array [
-              Object {
-                "hasDefaultValue": false,
-                "isGenerated": false,
-                "isId": true,
-                "isList": false,
-                "isReadOnly": false,
-                "isRequired": true,
-                "isUnique": false,
-                "isUpdatedAt": false,
-                "kind": "scalar",
-                "name": "id",
-                "type": "Int",
-              },
-              Object {
-                "hasDefaultValue": false,
-                "isGenerated": false,
-                "isId": false,
-                "isList": false,
-                "isReadOnly": false,
-                "isRequired": true,
-                "isUnique": false,
-                "isUpdatedAt": false,
-                "kind": "scalar",
-                "name": "name",
-                "type": "String",
-              },
-            ],
-            "idFields": Array [],
-            "isEmbedded": false,
-            "isGenerated": false,
-            "name": "A",
-            "uniqueFields": Array [],
-            "uniqueIndexes": Array [],
-          },
-        ],
-      }
-    `)
+    expect(dmmf.datamodel).toMatchSnapshot()
     expect(dmmf).toMatchSnapshot()
   })
 
@@ -74,54 +31,7 @@ describe('getDMMF', () => {
         @@map("users")
       }`,
     })
-    expect(dmmf.datamodel).toMatchInlineSnapshot(`
-      Object {
-        "enums": Array [],
-        "models": Array [
-          Object {
-            "dbName": "users",
-            "fields": Array [
-              Object {
-                "default": Object {
-                  "args": Array [],
-                  "name": "autoincrement",
-                },
-                "hasDefaultValue": true,
-                "isGenerated": false,
-                "isId": false,
-                "isList": false,
-                "isReadOnly": false,
-                "isRequired": true,
-                "isUnique": false,
-                "isUpdatedAt": false,
-                "kind": "scalar",
-                "name": "id",
-                "type": "Int",
-              },
-              Object {
-                "hasDefaultValue": false,
-                "isGenerated": false,
-                "isId": false,
-                "isList": false,
-                "isReadOnly": false,
-                "isRequired": true,
-                "isUnique": true,
-                "isUpdatedAt": false,
-                "kind": "scalar",
-                "name": "email",
-                "type": "String",
-              },
-            ],
-            "idFields": Array [],
-            "isEmbedded": false,
-            "isGenerated": false,
-            "name": "User",
-            "uniqueFields": Array [],
-            "uniqueIndexes": Array [],
-          },
-        ],
-      }
-    `)
+    expect(dmmf.datamodel).toMatchSnapshot()
     expect(dmmf).toMatchSnapshot()
   })
 
@@ -141,25 +51,7 @@ describe('getDMMF', () => {
     try {
       await getDMMF({ datamodel })
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "Schema parsing
-        error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default value is used on a non-id field even though the datasource does not support this.
-          -->  schema.prisma:7
-           | 
-         6 |       model User {
-         7 |         id        Int      @default(autoincrement())
-         8 |         email     String   @unique
-           | 
-        error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
-          -->  schema.prisma:7
-           | 
-         6 |       model User {
-         7 |         id        Int      @default(autoincrement())
-         8 |         email     String   @unique
-           | 
-
-        Validation Error Count: 2"
-      `)
+      expect(stripAnsi(e.message)).toMatchSnapshot()
     }
     /* eslint-enable jest/no-try-expect */
   })
@@ -180,18 +72,7 @@ describe('getDMMF', () => {
     try {
       await getDMMF({ datamodel })
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "Schema parsing
-        error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
-          -->  schema.prisma:7
-           | 
-         6 |       model User {
-         7 |         id        Int      @default(autoincrement())
-         8 |         email     String   @unique
-           | 
-
-        Validation Error Count: 1"
-      `)
+      expect(stripAnsi(e.message)).toMatchSnapshot()
     }
     /* eslint-enable jest/no-try-expect */
   })
@@ -302,7 +183,7 @@ describe('getDMMF', () => {
       datamodel: file,
     })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`293318`)
+    expect(str.length).toMatchSnapshot()
   })
 
   test('chinook introspected schema connectOrCreate', async () => {
@@ -315,7 +196,7 @@ describe('getDMMF', () => {
       enableExperimental: ['connectOrCreate'],
     })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`308134`)
+    expect(str.length).toMatchSnapshot()
   })
 
   test('big schema', async () => {
@@ -328,7 +209,7 @@ describe('getDMMF', () => {
       enableExperimental: ['connectOrCreate'],
     })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`51284962`)
+    expect(str.length).toMatchSnapshot()
   })
 
   test('with validation errors', async () => {
@@ -431,24 +312,7 @@ describe('getConfig', () => {
       `,
     })
 
-    expect(config).toMatchInlineSnapshot(`
-      Object {
-        "datasources": Array [
-          Object {
-            "activeProvider": "postgresql",
-            "name": "db",
-            "provider": Array [
-              "postgresql",
-            ],
-            "url": Object {
-              "fromEnvVar": "TEST_POSTGRES_URI_FOR_DATASOURCE",
-              "value": "postgres://user:password@something:5432/db",
-            },
-          },
-        ],
-        "generators": Array [],
-      }
-    `)
+    expect(config).toMatchSnapshot()
   })
 
   test('datasource with env var - ignoreEnvVarErrors', async () => {
@@ -462,24 +326,7 @@ describe('getConfig', () => {
       `,
     })
 
-    expect(config).toMatchInlineSnapshot(`
-      Object {
-        "datasources": Array [
-          Object {
-            "activeProvider": "postgresql",
-            "name": "db",
-            "provider": Array [
-              "postgresql",
-            ],
-            "url": Object {
-              "fromEnvVar": null,
-              "value": "postgresql://",
-            },
-          },
-        ],
-        "generators": Array [],
-      }
-    `)
+    expect(config).toMatchSnapshot()
   })
 })
 
@@ -489,8 +336,7 @@ describe('format', () => {
       // @ts-expect-error
       const formatted = await formatSchema({})
     } catch (e) {
-      expect(e.message).toMatchInlineSnapshot(
-        `"Paramater schema or schemaPath must be passed."`,
+      expect(e.message).toMatchSnapshot(
       )
     }
   })
@@ -500,47 +346,7 @@ describe('format', () => {
       schemaPath: path.join(__dirname, 'fixtures/blog.prisma'),
     })
 
-    expect(formatted).toMatchInlineSnapshot(`
-      "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:dev.db\\"
-      }
-
-      generator client {
-        provider      = \\"prisma-client-js\\"
-        binaryTargets = [\\"native\\"]
-      }
-
-      model User {
-        id    String  @default(cuid()) @id
-        email String  @unique
-        name  String?
-        posts Post[]
-        Like  Like[]
-      }
-
-      model Post {
-        id        String   @default(cuid()) @id
-        createdAt DateTime @default(now())
-        updatedAt DateTime @updatedAt
-        published Boolean
-        title     String
-        content   String?
-        authorId  String?
-        author    User?    @relation(fields: [authorId], references: [id])
-        Like      Like[]
-      }
-
-      model Like {
-        id     String @default(cuid()) @id
-        userId String
-        user   User   @relation(fields: [userId], references: [id])
-        postId String
-        post   Post   @relation(fields: [postId], references: [id])
-
-        @@unique([userId, postId])
-      }"
-    `)
+    expect(formatted).toMatchSnapshot()
   })
 
   test('valid blog schema', async () => {
@@ -585,46 +391,6 @@ describe('format', () => {
       }`,
     })
 
-    expect(formatted).toMatchInlineSnapshot(`
-      "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:dev.db\\"
-      }
-
-      generator client {
-        provider      = \\"prisma-client-js\\"
-        binaryTargets = [\\"native\\"]
-      }
-
-      model User {
-        id    String  @default(cuid()) @id
-        email String  @unique
-        name  String?
-        posts Post[]
-        Like  Like[]
-      }
-
-      model Post {
-        id        String   @default(cuid()) @id
-        createdAt DateTime @default(now())
-        updatedAt DateTime @updatedAt
-        published Boolean
-        title     String
-        content   String?
-        authorId  String?
-        author    User?    @relation(fields: [authorId], references: [id])
-        Like      Like[]
-      }
-
-      model Like {
-        id     String @default(cuid()) @id
-        userId String
-        user   User   @relation(fields: [userId], references: [id])
-        postId String
-        post   Post   @relation(fields: [postId], references: [id])
-
-        @@unique([userId, postId])
-      }"
-    `)
+    expect(formatted).toMatchSnapshot()
   })
 })

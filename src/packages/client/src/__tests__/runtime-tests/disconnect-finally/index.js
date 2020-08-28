@@ -11,6 +11,8 @@ module.exports = () => {
   return new Promise((resolve) => {
     main().finally(async () => {
       await prisma.$disconnect()
+      await res
+      prisma.$disconnect()
       resolve(await res)
     })
   })

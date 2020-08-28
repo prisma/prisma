@@ -8,6 +8,9 @@ module.exports = async () => {
   const a = prisma.user.findMany()
   prisma.$disconnect()
 
+  await a
+  await prisma.$disconnect()
+
   return await a
 }
 

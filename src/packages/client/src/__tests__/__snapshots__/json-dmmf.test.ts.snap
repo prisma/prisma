@@ -518,6 +518,51 @@ Array [
             "type": "String",
           },
         ],
+        "name": "set",
+      },
+    ],
+    "isOneOf": true,
+    "isUpdateOperationType": true,
+    "name": "StringFieldUpdateOperationsInput",
+  },
+  Object {
+    "fields": Array [
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": true,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "Json",
+          },
+        ],
+        "name": "set",
+      },
+    ],
+    "isOneOf": true,
+    "isUpdateOperationType": true,
+    "name": "NullableJsonFieldUpdateOperationsInput",
+  },
+  Object {
+    "fields": Array [
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "object",
+            "type": "StringFieldUpdateOperationsInput",
+          },
+        ],
         "name": "id",
       },
       Object {
@@ -534,6 +579,7 @@ Array [
       },
     ],
     "isOneOf": false,
+    "isUpdateType": true,
     "name": "UserUpdateInput",
   },
   Object {
@@ -547,6 +593,13 @@ Array [
             "kind": "scalar",
             "type": "String",
           },
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "object",
+            "type": "StringFieldUpdateOperationsInput",
+          },
         ],
         "name": "id",
       },
@@ -564,6 +617,7 @@ Array [
       },
     ],
     "isOneOf": false,
+    "isUpdateType": true,
     "name": "UserUpdateManyMutationInput",
   },
 ]
