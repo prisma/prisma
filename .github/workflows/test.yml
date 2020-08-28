@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2-beta
         with:
-          node-version: '14'
+          node-version: '12'
       - run: bash src/.buildkite/test/run.sh
         env:
           CI: true
