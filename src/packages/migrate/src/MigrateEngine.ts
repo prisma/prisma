@@ -57,6 +57,7 @@ export class MigrateEngine {
   public stop(): void {
     this.child!.kill()
   }
+  /* eslint-disable @typescript-eslint/no-unsafe-return */
   public schemaPush(
     args: EngineArgs.SchemaPush,
   ): Promise<EngineResults.SchemaPush> {
@@ -104,6 +105,7 @@ export class MigrateEngine {
   public debugPanic(): Promise<any> {
     return this.runCommand(this.getRPCPayload('debugPanic', undefined))
   }
+  /* eslint-enable @typescript-eslint/no-unsafe-return */
   private rejectAll(err: any): void {
     Object.entries(this.listeners).map(([id, listener]) => {
       listener(null, err)
@@ -178,7 +180,7 @@ export class MigrateEngine {
 
         this.child.on('exit', (code, signal) => {
           const messages = this.messages.join('\n')
-          let err: any
+          let err: RustPanic | Error | undefined
           if (code !== 0 || messages.includes('panicking')) {
             let errorMessage =
               chalk.red.bold('Error in migration engine: ') + messages
@@ -241,6 +243,13 @@ export class MigrateEngine {
   }
   private async runCommand(request: RPCPayload): Promise<any> {
     await this.init()
+    if (this.child?.killed) {
+      throw new Error(
+        `Can't execute ${JSON.stringify(
+          request,
+        )} because migration engine already exited.`,
+      )
+    }
     return new Promise((resolve, reject) => {
       this.registerCallback(request.id, (response, err) => {
         if (err) {
@@ -250,12 +259,13 @@ export class MigrateEngine {
           resolve(response.result)
         } else {
           if (response.error) {
-            if (response.error.data && response.error.data.message) {
-              debugRpc(response)
+            debugRpc(response)
+            if (response.error.data?.is_panic) {
+              // if (response.error.data && response.error.data.message) {
               const message =
-                (response.error.data && response.error.data.message) ||
-                response.error.message
+                response.error.data?.error?.message ?? response.error.message
               reject(
+                // Handle error and displays the interactive dialog to send panic error
                 new RustPanic(
                   message,
                   response.error.data.message,
@@ -264,6 +274,18 @@ export class MigrateEngine {
                   this.schemaPath,
                 ),
               )
+            } else if (response.error.data?.message) {
+              // Print known error code & message from engine
+              // See known errors at https://github.com/prisma/specs/tree/master/errors#prisma-sdk
+              let message = `${chalk.redBright(response.error.data.message)}\n`
+              if (response.error.data?.error_code) {
+                message =
+                  chalk.redBright(`${response.error.data.error_code}\n\n`) +
+                  message
+                reject(new EngineError(message, response.error.data.error_code))
+              } else {
+                reject(new Error(message))
+              }
             } else {
               const text = this.persistError(request, this.messages.join('\n'))
               reject(
@@ -291,6 +313,13 @@ export class MigrateEngine {
           }
         }
       })
+      if (this.child!.stdin!.destroyed) {
+        throw new Error(
+          `Can't execute ${JSON.stringify(
+            request,
+          )} because migration engine is destroyed.`,
+        )
+      }
       debugRpc('SENDING RPC CALL', JSON.stringify(request))
       this.child!.stdin!.write(JSON.stringify(request) + '\n')
       this.lastRequest = request
