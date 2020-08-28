@@ -359,8 +359,10 @@ function createTests() {
         try {
           await migrate.engine.debugPanic()
         } catch (e) {
-          // Should error
-          expect(stripAnsi(e.message)).toMatchSnapshot()
+          expect(
+            // remove hash
+            stripAnsi(e.message).replace(/\/rustc\/(.+)\//, '/rustc/hash/'),
+          ).toMatchSnapshot()
         }
         return
       },
