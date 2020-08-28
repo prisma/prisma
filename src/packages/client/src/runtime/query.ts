@@ -744,15 +744,15 @@ interface ArgOptions {
 }
 
 export class Arg {
-  public readonly key: string
+  public key: string
   // not readonly, as we later need to transform it
   public value: ArgValue
-  public readonly error?: InvalidArgError
-  public readonly hasError: boolean
-  public readonly isEnum: boolean
-  public readonly schemaArg?: DMMF.SchemaArg
-  public readonly argType?: DMMF.ArgType
-  public readonly isNullable: boolean
+  public error?: InvalidArgError
+  public hasError: boolean
+  public isEnum: boolean
+  public schemaArg?: DMMF.SchemaArg
+  public argType?: DMMF.ArgType
+  public isNullable: boolean
 
   constructor({
     key,
@@ -1037,6 +1037,22 @@ export function transformDocument(document: Document): Document {
       })
     )
   }
+  function transformUpdateArg(arg: Arg): Arg {
+    const { value } = arg
+
+    if (value instanceof Args) {
+      value.args = value.args.map(ar => {
+        if (ar.schemaArg?.inputType.length === 2 && ar.schemaArg.inputType[0].kind === 'scalar') {
+          const operationsInputType = ar.schemaArg?.inputType[1]
+          ar.argType = (operationsInputType?.type as DMMF.InputType).name
+          ar.value = new Args([new Arg({ key: 'set', value: ar.value, schemaArg: ar.schemaArg })])
+        }
+        return ar
+      })
+    }
+
+    return arg
+  }
   return visit(document, {
     Arg: {
       enter(arg) {
@@ -1053,6 +1069,9 @@ export function transformDocument(document: Document): Document {
               value = transformWhereArgs(arg.value)
             }
             return new Arg({ ...arg, value })
+          }
+          if (argType.isUpdateType && schemaArg) {
+            return transformUpdateArg(arg)
           }
         }
 

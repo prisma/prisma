@@ -8,7 +8,7 @@ import execa from 'execa'
 import { getPackedPackage } from '@prisma/sdk'
 const del = promisify(rimraf)
 
-jest.setTimeout(35000)
+jest.setTimeout(30000)
 
 let subDirs = getSubDirs(__dirname)
 process.setMaxListeners(subDirs.length * 2)
@@ -62,7 +62,6 @@ describe('runtime', () => {
     const testTitle = `${testName} example should${
       shouldSucceed ? '' : ' not'
       } succeed`
-    // test.concurrent(testTitle, async (expect) => {
     if (fs.existsSync(nodeModules)) {
       await del(nodeModules)
     }

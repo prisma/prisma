@@ -1,5 +1,129 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`format nothing 1`] = `"Paramater schema or schemaPath must be passed."`;
+
+exports[`format valid blog schema 1`] = `
+"datasource db {
+  provider = \\"sqlite\\"
+  url      = \\"file:dev.db\\"
+}
+
+generator client {
+  provider      = \\"prisma-client-js\\"
+  binaryTargets = [\\"native\\"]
+}
+
+model User {
+  id    String  @default(cuid()) @id
+  email String  @unique
+  name  String?
+  posts Post[]
+  Like  Like[]
+}
+
+model Post {
+  id        String   @default(cuid()) @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id])
+  Like      Like[]
+}
+
+model Like {
+  id     String @default(cuid()) @id
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
+}"
+`;
+
+exports[`format valid blog schemaPath 1`] = `
+"datasource db {
+  provider = \\"sqlite\\"
+  url      = \\"file:dev.db\\"
+}
+
+generator client {
+  provider      = \\"prisma-client-js\\"
+  binaryTargets = [\\"native\\"]
+}
+
+model User {
+  id    String  @default(cuid()) @id
+  email String  @unique
+  name  String?
+  posts Post[]
+  Like  Like[]
+}
+
+model Post {
+  id        String   @default(cuid()) @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id])
+  Like      Like[]
+}
+
+model Like {
+  id     String @default(cuid()) @id
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
+}"
+`;
+
+exports[`getConfig datasource with env var - ignoreEnvVarErrors 1`] = `
+Object {
+  "datasources": Array [
+    Object {
+      "activeProvider": "postgresql",
+      "name": "db",
+      "provider": Array [
+        "postgresql",
+      ],
+      "url": Object {
+        "fromEnvVar": null,
+        "value": "postgresql://",
+      },
+    },
+  ],
+  "generators": Array [],
+}
+`;
+
+exports[`getConfig datasource with env var 1`] = `
+Object {
+  "datasources": Array [
+    Object {
+      "activeProvider": "postgresql",
+      "name": "db",
+      "provider": Array [
+        "postgresql",
+      ],
+      "url": Object {
+        "fromEnvVar": "TEST_POSTGRES_URI_FOR_DATASOURCE",
+        "value": "postgres://user:password@something:5432/db",
+      },
+    },
+  ],
+  "generators": Array [],
+}
+`;
+
 exports[`getConfig empty config 1`] = `
 Object {
   "datasources": Array [
@@ -44,6 +168,55 @@ Object {
       "output": null,
       "previewFeatures": Array [],
       "provider": "fancy-provider",
+    },
+  ],
+}
+`;
+
+exports[`getDMMF @@map model 1`] = `
+Object {
+  "enums": Array [],
+  "models": Array [
+    Object {
+      "dbName": "users",
+      "fields": Array [
+        Object {
+          "default": Object {
+            "args": Array [],
+            "name": "autoincrement",
+          },
+          "hasDefaultValue": true,
+          "isGenerated": false,
+          "isId": false,
+          "isList": false,
+          "isReadOnly": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isUpdatedAt": false,
+          "kind": "scalar",
+          "name": "id",
+          "type": "Int",
+        },
+        Object {
+          "hasDefaultValue": false,
+          "isGenerated": false,
+          "isId": false,
+          "isList": false,
+          "isReadOnly": false,
+          "isRequired": true,
+          "isUnique": true,
+          "isUpdatedAt": false,
+          "kind": "scalar",
+          "name": "email",
+          "type": "String",
+        },
+      ],
+      "idFields": Array [],
+      "isEmbedded": false,
+      "isGenerated": false,
+      "name": "User",
+      "uniqueFields": Array [],
+      "uniqueIndexes": Array [],
     },
   ],
 }
@@ -627,8 +800,14 @@ Object {
               "kind": "scalar",
               "type": "Int",
             },
-            "name": "id",
+            "name": "set",
           },
+        ],
+        "isOneOf": true,
+        "name": "IntFieldUpdateOperationsInput",
+      },
+      Object {
+        "fields": Array [
           Object {
             "inputType": Object {
               "isList": false,
@@ -636,6 +815,32 @@ Object {
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
+            },
+            "name": "set",
+          },
+        ],
+        "isOneOf": true,
+        "name": "StringFieldUpdateOperationsInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "email",
           },
@@ -650,8 +855,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -660,8 +865,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "email",
           },
@@ -2890,7 +3095,55 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "set",
+          },
+        ],
+        "isOneOf": true,
+        "name": "IntFieldUpdateOperationsInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
               "type": "String",
+            },
+            "name": "set",
+          },
+        ],
+        "isOneOf": true,
+        "name": "StringFieldUpdateOperationsInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+            "name": "set",
+          },
+        ],
+        "isOneOf": true,
+        "name": "BoolFieldUpdateOperationsInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "email",
           },
@@ -2977,8 +3230,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -2987,8 +3240,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "title",
           },
@@ -2997,8 +3250,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "published",
           },
@@ -3023,8 +3276,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -3033,8 +3286,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "title",
           },
@@ -3043,8 +3296,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "published",
           },
@@ -3147,8 +3400,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -3157,8 +3410,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "title",
           },
@@ -3167,8 +3420,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "published",
           },
@@ -3285,8 +3538,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -3295,8 +3548,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "title",
           },
@@ -3305,8 +3558,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "published",
           },
@@ -3479,8 +3732,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "email",
           },
@@ -3505,8 +3758,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "email",
           },
@@ -3567,8 +3820,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -3577,8 +3830,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "firstName",
           },
@@ -3587,8 +3840,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "lastName",
           },
@@ -3597,8 +3850,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "isAdmin",
           },
@@ -3613,8 +3866,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -3623,8 +3876,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "firstName",
           },
@@ -3633,8 +3886,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "lastName",
           },
@@ -3643,8 +3896,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "isAdmin",
           },
@@ -3705,8 +3958,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -3715,8 +3968,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "firstName",
           },
@@ -3725,8 +3978,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "lastName",
           },
@@ -3735,8 +3988,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "isAdmin",
           },
@@ -3751,8 +4004,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -3761,8 +4014,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "firstName",
           },
@@ -3771,8 +4024,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "lastName",
           },
@@ -3781,8 +4034,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "isAdmin",
           },
@@ -7707,7 +7960,55 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "kind": "scalar",
+              "type": "Int",
+            },
+            "name": "set",
+          },
+        ],
+        "isOneOf": true,
+        "name": "IntFieldUpdateOperationsInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
               "type": "String",
+            },
+            "name": "set",
+          },
+        ],
+        "isOneOf": true,
+        "name": "StringFieldUpdateOperationsInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "scalar",
+              "type": "Boolean",
+            },
+            "name": "set",
+          },
+        ],
+        "isOneOf": true,
+        "name": "BoolFieldUpdateOperationsInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "email",
           },
@@ -7804,8 +8105,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -7814,8 +8115,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "title",
           },
@@ -7824,8 +8125,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "published",
           },
@@ -7850,8 +8151,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -7860,8 +8161,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "title",
           },
@@ -7870,8 +8171,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "published",
           },
@@ -8010,8 +8311,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -8020,8 +8321,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "title",
           },
@@ -8030,8 +8331,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "published",
           },
@@ -8148,8 +8449,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -8158,8 +8459,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "title",
           },
@@ -8168,8 +8469,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "published",
           },
@@ -8352,8 +8653,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "email",
           },
@@ -8378,8 +8679,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "email",
           },
@@ -8440,8 +8741,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -8450,8 +8751,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "firstName",
           },
@@ -8460,8 +8761,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "lastName",
           },
@@ -8470,8 +8771,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "isAdmin",
           },
@@ -8486,8 +8787,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -8496,8 +8797,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "firstName",
           },
@@ -8506,8 +8807,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "lastName",
           },
@@ -8516,8 +8817,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "isAdmin",
           },
@@ -8578,8 +8879,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -8588,8 +8889,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "firstName",
           },
@@ -8598,8 +8899,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "lastName",
           },
@@ -8608,8 +8909,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "isAdmin",
           },
@@ -8624,8 +8925,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -8634,8 +8935,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "firstName",
           },
@@ -8644,8 +8945,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "lastName",
           },
@@ -8654,8 +8955,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Boolean",
+              "kind": "object",
+              "type": "BoolFieldUpdateOperationsInput",
             },
             "name": "isAdmin",
           },
@@ -10911,6 +11212,90 @@ Object {
 }
 `;
 
+exports[`getDMMF big schema 1`] = `52072188`;
+
+exports[`getDMMF chinook introspected schema 1`] = `302162`;
+
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `316978`;
+
+exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
+"Schema parsing
+error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
+  -->  schema.prisma:7
+   | 
+ 6 |       model User {
+ 7 |         id        Int      @default(autoincrement())
+ 8 |         email     String   @unique
+   | 
+
+Validation Error Count: 1"
+`;
+
+exports[`getDMMF model with autoincrement should fail if sqlite 1`] = `
+"Schema parsing
+error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default value is used on a non-id field even though the datasource does not support this.
+  -->  schema.prisma:7
+   | 
+ 6 |       model User {
+ 7 |         id        Int      @default(autoincrement())
+ 8 |         email     String   @unique
+   | 
+error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
+  -->  schema.prisma:7
+   | 
+ 6 |       model User {
+ 7 |         id        Int      @default(autoincrement())
+ 8 |         email     String   @unique
+   | 
+
+Validation Error Count: 2"
+`;
+
+exports[`getDMMF simple model 1`] = `
+Object {
+  "enums": Array [],
+  "models": Array [
+    Object {
+      "dbName": null,
+      "fields": Array [
+        Object {
+          "hasDefaultValue": false,
+          "isGenerated": false,
+          "isId": true,
+          "isList": false,
+          "isReadOnly": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isUpdatedAt": false,
+          "kind": "scalar",
+          "name": "id",
+          "type": "Int",
+        },
+        Object {
+          "hasDefaultValue": false,
+          "isGenerated": false,
+          "isId": false,
+          "isList": false,
+          "isReadOnly": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isUpdatedAt": false,
+          "kind": "scalar",
+          "name": "name",
+          "type": "String",
+        },
+      ],
+      "idFields": Array [],
+      "isEmbedded": false,
+      "isGenerated": false,
+      "name": "A",
+      "uniqueFields": Array [],
+      "uniqueIndexes": Array [],
+    },
+  ],
+}
+`;
+
 exports[`getDMMF simple model 2`] = `
 Object {
   "datamodel": Object {
@@ -11485,8 +11870,14 @@ Object {
               "kind": "scalar",
               "type": "Int",
             },
-            "name": "id",
+            "name": "set",
           },
+        ],
+        "isOneOf": true,
+        "name": "IntFieldUpdateOperationsInput",
+      },
+      Object {
+        "fields": Array [
           Object {
             "inputType": Object {
               "isList": false,
@@ -11494,6 +11885,32 @@ Object {
               "isRequired": false,
               "kind": "scalar",
               "type": "String",
+            },
+            "name": "set",
+          },
+        ],
+        "isOneOf": true,
+        "name": "StringFieldUpdateOperationsInput",
+      },
+      Object {
+        "fields": Array [
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
+            },
+            "name": "id",
+          },
+          Object {
+            "inputType": Object {
+              "isList": false,
+              "isNullable": false,
+              "isRequired": false,
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "name",
           },
@@ -11508,8 +11925,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "Int",
+              "kind": "object",
+              "type": "IntFieldUpdateOperationsInput",
             },
             "name": "id",
           },
@@ -11518,8 +11935,8 @@ Object {
               "isList": false,
               "isNullable": false,
               "isRequired": false,
-              "kind": "scalar",
-              "type": "String",
+              "kind": "object",
+              "type": "StringFieldUpdateOperationsInput",
             },
             "name": "name",
           },

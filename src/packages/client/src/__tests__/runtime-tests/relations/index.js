@@ -54,6 +54,7 @@ module.exports = async () => {
   assert.deepStrictEqual(resultWhereNullSingularRelationField, [])
 
   await db.$disconnect()
+  await prisma.$disconnect()
 }
 
 if (require.main === module) {
