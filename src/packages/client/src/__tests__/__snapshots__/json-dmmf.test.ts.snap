@@ -7,349 +7,6 @@ Array [
       Object {
         "inputType": Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "equals",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": true,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "in",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": true,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "notIn",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "lt",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "lte",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "gt",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "gte",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "contains",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "startsWith",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "endsWith",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "object",
-            "type": "NestedStringFilter",
-          },
-        ],
-        "name": "not",
-      },
-    ],
-    "isOneOf": false,
-    "name": "NestedStringFilter",
-  },
-  Object {
-    "fields": Array [
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "equals",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": true,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "in",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": true,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "notIn",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "lt",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "lte",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "gt",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "gte",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "contains",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "startsWith",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-        ],
-        "name": "endsWith",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
-          Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "object",
-            "type": "NestedStringFilter",
-          },
-        ],
-        "name": "not",
-      },
-    ],
-    "isOneOf": false,
-    "name": "StringFilter",
-  },
-  Object {
-    "fields": Array [
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "Json",
-          },
-        ],
-        "name": "equals",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "object",
-            "type": "NestedJsonNullableFilter",
-          },
-        ],
-        "name": "not",
-      },
-    ],
-    "isOneOf": false,
-    "name": "NestedJsonNullableFilter",
-  },
-  Object {
-    "fields": Array [
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "Json",
-          },
-        ],
-        "name": "equals",
-      },
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "Json",
-          },
-        ],
-        "name": "not",
-      },
-    ],
-    "isOneOf": false,
-    "name": "JsonNullableFilter",
-  },
-  Object {
-    "fields": Array [
-      Object {
-        "inputType": Array [
-          Object {
             "isList": true,
             "isNullable": false,
             "isRequired": false,
@@ -517,44 +174,6 @@ Array [
             "kind": "scalar",
             "type": "String",
           },
-        ],
-        "name": "set",
-      },
-    ],
-    "isOneOf": true,
-    "isUpdateOperationType": true,
-    "name": "StringFieldUpdateOperationsInput",
-  },
-  Object {
-    "fields": Array [
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "Json",
-          },
-        ],
-        "name": "set",
-      },
-    ],
-    "isOneOf": true,
-    "isUpdateOperationType": true,
-    "name": "NullableJsonFieldUpdateOperationsInput",
-  },
-  Object {
-    "fields": Array [
-      Object {
-        "inputType": Array [
-          Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
-          },
           Object {
             "isList": false,
             "isNullable": false,
@@ -619,6 +238,387 @@ Array [
     "isOneOf": false,
     "isUpdateType": true,
     "name": "UserUpdateManyMutationInput",
+  },
+  Object {
+    "fields": Array [
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "equals",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": true,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "in",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": true,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "notIn",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "lt",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "lte",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "gt",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "gte",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "contains",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "startsWith",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "endsWith",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+          Object {
+            "isList": false,
+            "isNullable": true,
+            "isRequired": false,
+            "kind": "object",
+            "type": "NestedStringFilter",
+          },
+        ],
+        "name": "not",
+      },
+    ],
+    "isOneOf": false,
+    "name": "StringFilter",
+  },
+  Object {
+    "fields": Array [
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": true,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "Json",
+          },
+        ],
+        "name": "equals",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": true,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "Json",
+          },
+        ],
+        "name": "not",
+      },
+    ],
+    "isOneOf": false,
+    "name": "JsonNullableFilter",
+  },
+  Object {
+    "fields": Array [
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "set",
+      },
+    ],
+    "isOneOf": true,
+    "isUpdateOperationType": true,
+    "name": "StringFieldUpdateOperationsInput",
+  },
+  Object {
+    "fields": Array [
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": true,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "Json",
+          },
+        ],
+        "name": "set",
+      },
+    ],
+    "isOneOf": true,
+    "isUpdateOperationType": true,
+    "name": "NullableJsonFieldUpdateOperationsInput",
+  },
+  Object {
+    "fields": Array [
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "equals",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": true,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "in",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": true,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "notIn",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "lt",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "lte",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "gt",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "gte",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "contains",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "startsWith",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": false,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "String",
+          },
+        ],
+        "name": "endsWith",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": true,
+            "isRequired": false,
+            "kind": "object",
+            "type": "NestedStringFilter",
+          },
+        ],
+        "name": "not",
+      },
+    ],
+    "isOneOf": false,
+    "name": "NestedStringFilter",
+  },
+  Object {
+    "fields": Array [
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": true,
+            "isRequired": false,
+            "kind": "scalar",
+            "type": "Json",
+          },
+        ],
+        "name": "equals",
+      },
+      Object {
+        "inputType": Array [
+          Object {
+            "isList": false,
+            "isNullable": true,
+            "isRequired": false,
+            "kind": "object",
+            "type": "NestedJsonNullableFilter",
+          },
+        ],
+        "name": "not",
+      },
+    ],
+    "isOneOf": false,
+    "name": "NestedJsonNullableFilter",
   },
 ]
 `;
