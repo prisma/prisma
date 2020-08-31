@@ -1964,7 +1964,7 @@ packages:
       debug: 4.1.1
       glob: 7.1.6
       is-glob: 4.0.1
-      lodash: 4.17.19
+      lodash: 4.17.20
       semver: 7.3.2
       tsutils: 3.17.1_typescript@3.9.7
       typescript: 3.9.7
