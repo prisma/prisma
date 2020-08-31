@@ -1,5 +1,5 @@
 {
-  "version": "2.6.0-dev.31",
+  "version": "2.6.0-dev.55",
   "name": "@prisma/cli",
   "description": "The Prisma command line interface (CLI) is the primary way to interact with your Prisma project from the command line. It can initialize new project assets, generate Prisma Client, and analyze existing database structures through introspection to automatically create your application models.",
   "keywords": [
@@ -55,8 +55,8 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "a0b427d77d040aa7a76ddeedfb63e269351d63d7",
-    "prismaCommit": "567f3c0730dde3122aa23d4bb8e535615dc0a892"
+    "version": "650b5d0348ec38ae61e1e7db69bb54808418ede4",
+    "prismaCommit": "6b97cf3498116d7b5cac37a9a169bbd8e08685d3"
   },
   "devDependencies": {
     "@apexearth/copy": "1.4.5",
@@ -68,8 +68,8 @@
     "@prisma/introspection": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.270.0",
-    "@prisma/studio-server": "0.270.0",
+    "@prisma/studio": "0.271.0",
+    "@prisma/studio-server": "0.271.0",
     "@types/debug": "4.1.5",
     "@types/mocha": "8.0.3",
     "@types/pg": "7.14.4",
@@ -107,7 +107,7 @@
     "rimraf": "3.0.2",
     "snap-shot-it": "7.9.3",
     "sqlite-async": "1.1.0",
-    "sqlite3": "4.2.0",
+    "sqlite3": "4.1",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
     "tempy": "0.6.0",
