@@ -1,5 +1,5 @@
 {
-  "version": "2.6.0-dev.31",
+  "version": "2.6.0-dev.55",
   "name": "@prisma/cli",
   "description": "The Prisma command line interface (CLI) is the primary way to interact with your Prisma project from the command line. It can initialize new project assets, generate Prisma Client, and analyze existing database structures through introspection to automatically create your application models.",
   "keywords": [
@@ -55,8 +55,8 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "686b1f56ade7661ab2f1e60a6b3346abe2746175",
-    "prismaCommit": "567f3c0730dde3122aa23d4bb8e535615dc0a892"
+    "version": "650b5d0348ec38ae61e1e7db69bb54808418ede4",
+    "prismaCommit": "6b97cf3498116d7b5cac37a9a169bbd8e08685d3"
   },
   "devDependencies": {
     "@apexearth/copy": "1.4.5",
@@ -68,8 +68,8 @@
     "@prisma/introspection": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.268.0",
-    "@prisma/studio-server": "0.268.0",
+    "@prisma/studio": "0.271.0",
+    "@prisma/studio-server": "0.271.0",
     "@types/debug": "4.1.5",
     "@types/mocha": "8.0.3",
     "@types/pg": "7.14.4",
@@ -92,15 +92,15 @@
     "husky": "4.2.5",
     "is-installed-globally": "0.3.2",
     "jest": "26.4.2",
-    "lint-staged": "10.2.11",
+    "lint-staged": "10.2.13",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
     "mariadb": "2.4.2",
-    "mocha": "8.1.1",
+    "mocha": "8.1.3",
     "mz": "2.7.0",
-    "open": "7.2.0",
+    "open": "7.2.1",
     "packwatch": "2.0.0",
-    "pg": "8.3.2",
+    "pg": "8.3.3",
     "pkg": "4.4.9",
     "pkg-up": "3.1.0",
     "resolve-pkg": "2.0.0",
@@ -112,7 +112,7 @@
     "strip-indent": "3.0.0",
     "tempy": "0.6.0",
     "terminal-link": "2.1.1",
-    "ts-jest": "26.2.0",
+    "ts-jest": "26.3.0",
     "ts-mocha": "7.0.0",
     "typescript": "3.9.7",
     "ws": "7.3.1"

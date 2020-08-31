@@ -1,6 +1,6 @@
 {
   "name": "@prisma/introspection",
-  "version": "2.6.0-dev.31",
+  "version": "2.6.0-dev.55",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -22,12 +22,12 @@
     "husky": "4.2.5",
     "indent-string": "4.0.0",
     "jest": "26.4.2",
-    "lint-staged": "10.2.11",
-    "prettier": "2.1.0",
+    "lint-staged": "10.2.13",
+    "prettier": "2.1.1",
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.0",
     "tempy": "0.6.0",
-    "ts-jest": "26.2.0",
+    "ts-jest": "26.3.0",
     "ts-node": "8.10.2",
     "typescript": "3.9.7"
   },

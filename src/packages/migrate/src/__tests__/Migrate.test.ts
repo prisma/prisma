@@ -6,7 +6,7 @@ import { promisify } from 'util'
 import { dirname, join } from 'path'
 import tempy from 'tempy'
 import dedent from 'strip-indent'
-import Sqlite from 'better-sqlite3'
+import Database from 'sqlite-async'
 import stripAnsi from 'strip-ansi'
 import { Migrate } from '../Migrate'
 import { MigrateSave } from '../commands/MigrateSave'
@@ -78,6 +78,7 @@ function createTests() {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('setup')
         const result = await migrate.save(migration!, 'setup')
+        migrate.stop()
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn't be undefined`)
         }
@@ -111,6 +112,7 @@ function createTests() {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('initial setup')
         const result = await migrate.save(migration!, 'initial setup')
+        migrate.stop()
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn't be undefined`)
         }
@@ -144,6 +146,7 @@ function createTests() {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('initial setup')
         const result = await migrate.save(migration!, 'initial setup')
+        migrate.stop()
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn't be undefined`)
         }
@@ -177,6 +180,7 @@ function createTests() {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('setup')
         const result = await migrate.save(migration!, 'setup')
+        migrate.stop()
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn't be undefined`)
         }
@@ -210,6 +214,7 @@ function createTests() {
         const migrate = new Migrate(schemaPath)
         const migration = await migrate.createMigration('setup')
         const result = await migrate.save(migration!, 'setup')
+        migrate.stop()
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn't be undefined`)
         }
@@ -280,19 +285,16 @@ function createTests() {
         ).toMatchSnapshot()
 
         await migrate.up()
+        migrate.stop()
 
         /* eslint-disable @typescript-eslint/no-unsafe-assignment */
         /* eslint-disable @typescript-eslint/no-unsafe-call */
         /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-        const db = new Sqlite(
+        const db = await Database.open(
           schemaPath.replace('schema.prisma', 'db/db_file.db'),
-          {
-            // verbose: console.log,
-          },
         )
-        const stmt = db.prepare('INSERT INTO User (canBeNull) VALUES (?)')
-        const info = stmt.run('Something!')
-        assert.equal(info.changes, 1)
+        await db.exec('INSERT INTO User (canBeNull) VALUES ("Something!")')
+        await db.close()
         /* eslint-enable @typescript-eslint/no-unsafe-assignment */
         /* eslint-enable @typescript-eslint/no-unsafe-call */
         /* eslint-enable @typescript-eslint/no-unsafe-member-access */
@@ -304,6 +306,7 @@ function createTests() {
         const migrate2 = new Migrate(schemaPath2)
         const migration2 = await migrate2.createMigration('setup2')
         const result2 = await migrate2.save(migration2!, 'setup2')
+        migrate2.stop()
         if (typeof result2 === 'undefined') {
           return assert.fail(`result2 shouldn't be undefined`)
         }
@@ -359,8 +362,13 @@ function createTests() {
         try {
           await migrate.engine.debugPanic()
         } catch (e) {
-          // Should error
-          expect(stripAnsi(e.message)).toMatchSnapshot()
+          expect(
+            // remove hash
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            stripAnsi(e.message).replace(/\/rustc\/(.+)\//, '/rustc/hash/'),
+          ).toMatchSnapshot()
+        } finally {
+          migrate.stop()
         }
         return
       },

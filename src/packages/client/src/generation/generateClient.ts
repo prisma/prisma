@@ -527,6 +527,12 @@ function validateDmmfAgainstDenylists(
       'StringFieldUpdateOperationsInput',
       'DateTimeFieldUpdateOperationsInput',
       'JsonFieldUpdateOperationsInput',
+      'NullableIntFieldUpdateOperationsInput',
+      'NullableFloatFieldUpdateOperationsInput',
+      'NullableBoolFieldUpdateOperationsInput',
+      'NullableStringFieldUpdateOperationsInput',
+      'NullableDateTimeFieldUpdateOperationsInput',
+      'NullableJsonFieldUpdateOperationsInput',
       // JavaScript keywords
       'await',
       'async',

@@ -1,6 +1,6 @@
 {
   "name": "@prisma/engine-core",
-  "version": "2.6.0-dev.31",
+  "version": "2.6.0-dev.55",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,9 +19,9 @@
     "eslint-plugin-prettier": "3.1.4",
     "husky": "4.2.5",
     "jest": "26.4.2",
-    "lint-staged": "10.2.11",
+    "lint-staged": "10.2.13",
     "strip-ansi": "6.0.0",
-    "ts-jest": "26.2.0",
+    "ts-jest": "26.3.0",
     "typescript": "3.9.7"
   },
   "scripts": {
@@ -44,7 +44,7 @@
     "new-github-issue-url": "^0.2.1",
     "p-retry": "^4.2.0",
     "terminal-link": "^2.1.1",
-    "undici": "git://github.com/mcollina/undici.git#e76f6a37836537f08c2d9b7d8805d6ff21d1e744"
+    "undici": "git://github.com/nodejs/undici.git#e76f6a37836537f08c2d9b7d8805d6ff21d1e744"
   },
   "files": [
     "!**/__tests__",

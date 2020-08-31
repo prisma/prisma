@@ -1,4 +1,3 @@
-import assert from 'assert'
 import del from 'del'
 import mkdir from 'make-dir'
 import fs from 'fs'
@@ -6,7 +5,7 @@ import { promisify } from 'util'
 import { dirname, join } from 'path'
 import tempy from 'tempy'
 import dedent from 'strip-indent'
-import Sqlite from 'better-sqlite3'
+import Database from 'sqlite-async'
 import stripAnsi from 'strip-ansi'
 import { Migrate } from '../Migrate'
 import { SchemaPush } from '../commands/SchemaPush'
@@ -172,15 +171,11 @@ function createTests() {
         /* eslint-disable @typescript-eslint/no-unsafe-assignment */
         /* eslint-disable @typescript-eslint/no-unsafe-call */
         /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-        const db = new Sqlite(
+        const db = await Database.open(
           schemaPath.replace('schema.prisma', 'db/db_file.db'),
-          {
-            // verbose: console.log,
-          },
         )
-        const stmt = db.prepare('INSERT INTO User (canBeNull) VALUES (?)')
-        const info = stmt.run('Something!')
-        assert.equal(info.changes, 1)
+        await db.exec('INSERT INTO User (canBeNull) VALUES ("Something!")')
+        await db.close()
         /* eslint-enable @typescript-eslint/no-unsafe-assignment */
         /* eslint-enable @typescript-eslint/no-unsafe-call */
         /* eslint-enable @typescript-eslint/no-unsafe-member-access */
@@ -202,10 +197,9 @@ function createTests() {
             '--experimental',
           ])
         } catch (e) {
-          /* eslint-disable @typescript-eslint/no-unsafe-member-access */
           // Should error with unexecutableMigrations:
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           expect(stripAnsi(e.message)).toMatchSnapshot()
-          /* eslint-enable */
         }
         console.log = oldConsoleLog
         expect(stripAnsi(logs.join('\n'))).toMatchSnapshot()

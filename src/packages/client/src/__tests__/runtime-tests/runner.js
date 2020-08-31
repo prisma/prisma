@@ -22,14 +22,15 @@ process.on('message', (msg) => {
       )
     })
     .finally(async () => {
-      const pids = await pidtree(process.pid)
-      for (const pid of pids) {
-        try {
-          process.kill(pid)
-        } catch (e) {
-          // console.error(e)
-        }
-      }
-      process.exit()
+      // const pids = await pidtree(process.pid)
+      // for (const pid of pids) {
+      //   try {
+      //     process.kill(pid)
+      //   } catch (e) {
+      //     // console.error(e)
+      //   }
+      // }
+      // process.exit()
+      process.removeAllListeners('message')
     })
 })
