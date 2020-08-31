@@ -58,7 +58,6 @@ tests().map((t: Test) => {
 
 async function runTest(name: string, t: Test) {
   let db = await Database.open(sqlitePath)
-  // let db = new Database(sqlitePath, { verbose: console.log })
   await db.exec(t.down)
   await db.exec(t.up)
   await db.close()
