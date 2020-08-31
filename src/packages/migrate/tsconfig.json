@@ -14,5 +14,12 @@
     "jsx": "react",
     "incremental": true
   },
-  "exclude": ["dist", "build", "fixtures"]
+  "exclude": [
+    "dist",
+    "build",
+    "fixtures",
+    "fixtures_old",
+    "src/__tests__",
+    "tmp"
+  ]
 }
