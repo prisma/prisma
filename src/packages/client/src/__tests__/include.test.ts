@@ -192,6 +192,12 @@ describe('include validation', () => {
           email
           name
           json
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
           posts {
             id
             createdAt
@@ -328,6 +334,12 @@ describe('include validation', () => {
           email
           name
           json
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
           posts(take: 20) {
             id
           }
@@ -366,6 +378,12 @@ describe('include validation', () => {
           email
           name
           json
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
           posts(take: 20) {
             id
             author {
@@ -373,6 +391,12 @@ describe('include validation', () => {
               email
               name
               json
+              countInt1
+              countInt2
+              countInt3
+              countInt4
+              countInt5
+              countInt6
               posts {
                 id
                 createdAt

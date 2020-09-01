@@ -4,6 +4,8 @@ exports[`runtime aggregations: aggregations example should succeed 1`] = `undefi
 
 exports[`runtime async-hooks: async-hooks example should succeed 1`] = `undefined`;
 
+exports[`runtime atomic-number-operations: atomic-number-operations example should succeed 1`] = `undefined`;
+
 exports[`runtime blog: blog example should succeed 1`] = `undefined`;
 
 exports[`runtime blog-dot-env: blog-dot-env example should succeed 1`] = `undefined`;

@@ -81,6 +81,12 @@ describe('batching', () => {
           email
           name
           json
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
         }
       }",
           "query {
@@ -91,6 +97,12 @@ describe('batching', () => {
           email
           name
           json
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
         }
       }",
         ],
@@ -185,6 +197,12 @@ describe('batching', () => {
           email
           name
           json
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
         }
       }",
       ]
@@ -260,6 +278,12 @@ describe('batching', () => {
           email
           name
           json
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
         }
       }",
         "query {
@@ -270,6 +294,12 @@ describe('batching', () => {
           email
           name
           json
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
         }
       }",
       ]
