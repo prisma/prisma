@@ -46,6 +46,7 @@ describe('minimal where transformation', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3
@@ -85,6 +86,7 @@ describe('minimal where transformation', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3
@@ -124,6 +126,7 @@ describe('minimal where transformation', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3
@@ -163,6 +166,7 @@ describe('minimal where transformation', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3
@@ -304,6 +308,7 @@ describe('minimal where transformation', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3
@@ -339,6 +344,7 @@ describe('minimal where transformation', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3

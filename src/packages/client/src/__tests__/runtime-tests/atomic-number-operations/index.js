@@ -4,6 +4,24 @@ const assert = require('assert')
 module.exports = async () => {
   const prisma = new PrismaClient()
 
+  const set = await prisma.user.update({
+    where: {
+      email: 'b@b.de',
+    },
+    data: {
+      countInt: 1,
+      countFloat: 0.0,
+    },
+  })
+
+  assert.deepStrictEqual(set, {
+    id: '576eddf9-1111-421f-9a86-58bede16fd11',
+    email: 'b@b.de',
+    name: 'Alex',
+    countInt: 1,
+    countFloat: 0.0,
+  })
+
   const increment = await prisma.user.update({
     where: {
       email: 'b@b.de',

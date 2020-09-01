@@ -119,6 +119,7 @@ exports[`select validation Allow select with an include 1`] = `
       email
       name
       json
+      countFloat
       countInt1
       countInt2
       countInt3
@@ -575,6 +576,7 @@ Invalid \`prisma.findManyUser()\` invocation:
 ?   email?: true,
 ?   profile?: true,
 ?   json?: true,
+?   countFloat?: true,
 ?   countInt1?: true,
 ?   countInt2?: true,
 ?   countInt3?: true,
@@ -595,6 +597,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -613,6 +616,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -632,6 +636,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -650,6 +655,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -669,6 +675,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -688,6 +695,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -706,6 +714,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -724,6 +733,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -742,6 +752,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -761,6 +772,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -827,6 +839,7 @@ Invalid \`prisma.findManyUser()\` invocation:
 ?   email?: true,
 ?   profile?: true,
 ?   json?: true,
+?   countFloat?: true,
 ?   countInt1?: true,
 ?   countInt2?: true,
 ?   countInt3?: true,
@@ -847,6 +860,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -865,6 +879,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -884,6 +899,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -902,6 +918,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -921,6 +938,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -940,6 +958,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -958,6 +977,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -976,6 +996,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -994,6 +1015,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null
@@ -1013,6 +1035,7 @@ type UserWhereInput {
   posts?: PostListRelationFilter
   profile?: ProfileWhereInput
   json?: JsonNullableFilter | null
+  countFloat?: Float | FloatNullableFilter | null
   countInt1?: Int | IntNullableFilter | null
   countInt2?: Int | IntNullableFilter | null
   countInt3?: Int | IntNullableFilter | null

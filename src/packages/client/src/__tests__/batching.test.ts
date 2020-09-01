@@ -81,6 +81,7 @@ describe('batching', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3
@@ -97,6 +98,7 @@ describe('batching', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3
@@ -197,6 +199,7 @@ describe('batching', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3
@@ -278,6 +281,7 @@ describe('batching', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3
@@ -294,6 +298,7 @@ describe('batching', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3

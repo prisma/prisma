@@ -19,6 +19,7 @@ model User {
   posts Post[]
   profile Profile?
   json Json?
+  countFloat Float?
   countInt1 Int?
   countInt2 Int?
   countInt3 Int?
