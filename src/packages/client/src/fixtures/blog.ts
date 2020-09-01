@@ -19,6 +19,12 @@ model User {
   posts Post[]
   profile Profile?
   json Json?
+  countInt1 Int?
+  countInt2 Int?
+  countInt3 Int?
+  countInt4 Int?
+  countInt5 Int?
+  countInt6 Int?
 }
 
 model Profile {
