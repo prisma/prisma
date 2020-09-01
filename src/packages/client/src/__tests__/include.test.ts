@@ -192,6 +192,7 @@ describe('include validation', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3
@@ -334,6 +335,7 @@ describe('include validation', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3
@@ -378,6 +380,7 @@ describe('include validation', () => {
           email
           name
           json
+          countFloat
           countInt1
           countInt2
           countInt3
@@ -391,6 +394,7 @@ describe('include validation', () => {
               email
               name
               json
+              countFloat
               countInt1
               countInt2
               countInt3
