@@ -14,18 +14,6 @@ model User {
   email String  @unique
   // / name comment
   name  String?
-  posts Post[]
   countInt Int?
   countFloat Float?
-}
-
-model Post {
-  id        String   @default(cuid()) @id
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  published Boolean
-  title     String
-  content   String?
-  authorId  String?
-  author    User?    @relation(fields: [authorId], references: [id])
 }
