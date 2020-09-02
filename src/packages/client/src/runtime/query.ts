@@ -1043,12 +1043,20 @@ export function transformDocument(document: Document): Document {
     if (value instanceof Args) {
       value.args = value.args.map(ar => {
         if (ar.schemaArg?.inputType.length === 2 && 
-          (ar.schemaArg.inputType[0].kind === 'scalar' || ar.schemaArg.inputType[0].kind === 'enum') &&
-          typeof ar.value !== 'object'
+          ((ar.schemaArg.inputType[0].kind === 'scalar' || ar.schemaArg.inputType[0].kind === 'enum') &&
+          typeof ar.value !== 'object')
         ) {
+          
           const operationsInputType = ar.schemaArg?.inputType[1]
           ar.argType = (operationsInputType?.type as DMMF.InputType).name
           ar.value = new Args([new Arg({ key: 'set', value: ar.value, schemaArg: ar.schemaArg })])
+
+        } else if(ar.schemaArg?.inputType.length === 1 && ar.schemaArg?.inputType[0].type === 'Json') {
+          
+          const operationsInputType = ar.schemaArg?.inputType[0]
+          ar.argType = (operationsInputType?.type as DMMF.InputType).name
+          ar.value = new Args([new Arg({ key: 'set', value: ar.value, schemaArg: ar.schemaArg })])
+        
         }
         return ar
       })

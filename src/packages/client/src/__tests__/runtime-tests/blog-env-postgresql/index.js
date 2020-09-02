@@ -223,6 +223,22 @@ module.exports = async () => {
     },
   })
 
+  const resultJsonArrayUpdate = await prisma.post.update({
+    where: {
+      id: resultJsonArray.id
+    },
+    data: {
+      title: 'json array updated',
+      jsonData: [
+        {
+          array1key: 'array1value updated',
+        },
+      ],
+    },
+  })
+
+  console.log(resultJsonArrayUpdate)
+  
   const result = await prisma.post.findMany({
     where: {
       jsonData: {
