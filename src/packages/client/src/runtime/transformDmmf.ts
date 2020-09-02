@@ -171,7 +171,11 @@ function transformInputTypes(document: DMMF.Document): DMMF.Document {
     }
 
     // add union transformation, lift `set` up in both `update` and `updateMany` types
-    if (inputType.name.endsWith('UpdateInput') || inputType.name.endsWith('UpdateManyMutationInput')) {
+    if (inputType.name.endsWith('UpdateInput') || inputType.name.endsWith('UpdateManyMutationInput') || 
+      // lifting needs to be done in the nested input types https://github.com/prisma/prisma/issues/3497
+      (inputType.name.includes('UpdateWithout') && inputType.name.endsWith('DataInput')) ||
+      inputType.name.endsWith('UpdateManyDataInput')
+    ) {
       inputType.isUpdateType = true
       for (const field of inputType.fields) {
         const fieldInputTypeName = field.inputType[0].type.toString()

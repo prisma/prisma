@@ -198,6 +198,57 @@ async function main() {
   type LikeUpdateIdType = LikeUpdateManyArgs['data']['id']
   type AllowsNull = null extends LikeUpdateIdType ? true : false
   const allowsNull: AllowsNull = false
+
+  // check if listing of `set` is done in nested relations
+  // https://github.com/prisma/prisma/issues/3497
+  await prisma.user.update({
+    where: {
+      id: '6'
+    },
+    data: {
+      posts: {
+        update: {
+          data: {
+            title: 'something'
+          },
+          where: {
+            id: 'whatever'
+          }
+        },
+      }
+    },
+  })
+
+  await prisma.user.update({
+    where: {
+      id: '6'
+    },
+    data: {
+      posts: {
+        updateMany: {
+          data: {
+            title: 'something'
+          },
+          where: {
+            id: 'whatever'
+          }
+        },
+      }
+    },
+  })
+
+  await prisma.post.update({
+    where: {
+      id: '6'
+    },
+    data: {
+      author: {
+        update: {
+          name: 'something'
+        },
+      }
+    },
+  })
 }
 
 main().catch((e) => {
