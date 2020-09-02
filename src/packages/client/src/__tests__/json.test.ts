@@ -1,6 +1,9 @@
-import { DMMFClass } from '../runtime/dmmf'
-import { makeDocument } from '../runtime/query'
+// import { DMMFClass } from '../runtime/dmmf'
+// import { makeDocument } from '../runtime/query'
 import { getDMMF } from '../generation/getDMMF'
+import chalk from 'chalk'
+import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+chalk.level = 0
 
 const datamodel = `\
 datasource db {
@@ -48,7 +51,7 @@ describe('json', () => {
           json: {
             equals: {
               hello: 'world',
-            }
+            },
           },
         },
       },
@@ -71,6 +74,43 @@ describe('json', () => {
       rootTypeName: 'query',
       rootField: 'findManyUser',
     })
-    expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
+    expect(() =>
+      document.validate(undefined, false, 'user', 'colorless'),
+    ).toThrowErrorMatchingSnapshot()
+  })
+
+  test('should be able to update json', () => {
+    function getTransformedDocument(select) {
+      const document = makeDocument({
+        dmmf,
+        select,
+        rootTypeName: 'mutation',
+        rootField: 'updateOneUser',
+      })
+      return String(transformDocument(document))
+    }
+
+    const transformedDocument = getTransformedDocument({
+      data: {
+        json: ['value1', 'value2'],
+      },
+    })
+
+    expect(transformedDocument).toMatchInlineSnapshot(`
+      "mutation {
+        updateOneUser(
+          data: {
+            json: {
+              set: [\\"value1\\", \\"value2\\"]
+            }
+          }
+        ) {
+          id
+          name
+          email
+          json
+        }
+      }"
+    `)
   })
 })
