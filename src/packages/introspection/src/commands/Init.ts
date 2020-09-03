@@ -62,11 +62,7 @@ export class Init implements Command {
       '--url': String,
     })
 
-    if (isError(args)) {
-      return null
-    }
-
-    if (args['--help']) {
+    if (isError(args) || args['--help']) {
       return this.help()
     }
 
