@@ -101,7 +101,7 @@ describe('json', () => {
         updateOneUser(
           data: {
             json: {
-              set: [\\"value1\\", \\"value2\\"]
+              set: \\"[\\\\\\"value1\\\\\\",\\\\\\"value2\\\\\\"]\\"
             }
           }
         ) {
