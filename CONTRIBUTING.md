@@ -25,7 +25,7 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 1. `cd fixtures/blog`
 1. `export DB_URL=YOUR_POSTGRES_DB_URL`  
    For this step you might find our [docker-compose setup](./src/docker) helpful
-1. `npx prisma migrate save --name init --experimental && prisma migrate up --experimental`
+1. `npx @prisma/cli migrate save --create-db --name init --experimental && npx @prisma/cli migrate up --experimental`
 1. `ts-node main`
 
 ### Running integration tests for Prisma Client JS
