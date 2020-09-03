@@ -15,11 +15,13 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 
 ### Developing Prisma Client JS
 
-2. `cd src/packages/client`
-3. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
-4. `cd fixtures/blog`
-5. `prisma migrate save --name init --experimental && prisma migrate up --experimental`
-6. `ts-node main.ts`
+1. `cd src/packages/client`
+1. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
+1. `cd fixtures/blog`
+1. `export DB_URL=YOUR_POSTGRES_DB_URL`  
+   For this step you might find our [docker-compose setup](./src/docker) helpful
+1. `npx prisma migrate save --name init --experimental && prisma migrate up --experimental`
+1. `ts-node main`
 
 ### Working on code generation
 
@@ -40,19 +42,19 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 ### Developing Prisma Migrate
 
 1. `cd src/packages/migrate/fixtures/blog`
-2. `ts-node ../../src/bin.ts up`
+1. `ts-node ../../src/bin.ts up`
 
 ### Developing `prisma init` Command
 
 1. `cd src/packages/introspection`
-2. `mkdir test && cd test`
-3. `ts-node ../src/bin.ts`
+1. `mkdir test && cd test`
+1. `ts-node ../src/bin.ts`
 
 ### Developing `@prisma/cli` CLI
 
 1. `cd src/packages/prisma2`
-2. `mkdir test && cd test`
-3. `ts-node ../src/bin.ts generate`
+1. `mkdir test && cd test`
+1. `ts-node ../src/bin.ts generate`
 
 ### How to update all binaries
 
@@ -82,7 +84,7 @@ We structure our messages like this:
 Example
 
 ```
-feature(client): new awesome feature
+feat(client): new awesome feature
 
 Closes #111
 ```
