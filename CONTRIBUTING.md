@@ -13,6 +13,11 @@ pnpm run setup
 
 Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org/)
 
+### General prerequisites
+
+1. Install [`pnpm`](https://pnpm.js.org/) (for installing npm dependencies)
+1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing test databases)
+
 ### Developing Prisma Client JS
 
 1. `cd src/packages/client`
@@ -22,6 +27,20 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
    For this step you might find our [docker-compose setup](./src/docker) helpful
 1. `npx prisma migrate save --name init --experimental && prisma migrate up --experimental`
 1. `ts-node main`
+
+### Running integration tests for Prisma Client JS
+
+Start the test databases (see [readme](./src/docker) for various ways to run these)
+
+1. `cd src/docker`
+1. `docker-compose up -d`
+
+Start the tests
+
+1. `cd src/packages/cli`
+2. `pnpm run test:postgresql && pnpm run test:mysql && pnpm run test:mariadb`
+
+Note: to update the snaphot add the following env var `SNAPSHOT_UPDATE=1`
 
 ### Working on code generation
 

@@ -43,12 +43,3 @@ docker-compose down
 ```
 docker-compose down -v --rmi all --remove-orphans
 ```
-
-### Trigger integration tests for these databases
-
-```
-cd prisma/src/packages/cli
-pnpm run test-posgresql && pnpm run test-mysql && pnpm run test-mariadb
-```
-
-Note: to update the snaphot add the following env var `SNAPSHOT_UPDATE=1`
