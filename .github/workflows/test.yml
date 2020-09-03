@@ -33,7 +33,7 @@ jobs:
           - mysql:/var/lib/mysql
         ports:
           - 3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        options: --default-authentication-plugin=mysql_native_password --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
       - uses: actions/checkout@v2
