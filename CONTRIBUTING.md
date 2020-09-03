@@ -15,7 +15,7 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 
 ### General prerequisites
 
-1. Install [`pnpm`](https://pnpm.js.org/) (for installing npm dependencies)
+1. Install [`pnpm@5.1.7`](https://pnpm.js.org/) (for installing npm dependencies)
 1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing test databases)
 
 ### Developing Prisma Client JS
