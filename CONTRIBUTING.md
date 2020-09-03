@@ -40,7 +40,10 @@ Start the tests
 1. `cd src/packages/cli`
 2. `pnpm run test:postgresql && pnpm run test:mysql && pnpm run test:mariadb`
 
-Note: to update the snaphot add the following env var `SNAPSHOT_UPDATE=1`
+Notes:
+
+- To update the snaphot add the following env var `SNAPSHOT_UPDATE=1`
+- If on a patch branch then the latest engine binary patch version for that semver-minor series will be used. If not on a patch branch then the current `master` engine binary version will be used. A patch branch is a branch whose name matches semver pattern `2.<minor>.x`. The Test suite will log which engine binary is being used at the start of testing.
 
 ### Working on code generation
 
