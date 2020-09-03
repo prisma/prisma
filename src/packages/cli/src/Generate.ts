@@ -58,11 +58,11 @@ export class Generate implements Command {
       for (const generator of generators) {
         const toStr = generator.options!.generator.output!
           ? chalk.dim(
-            ` to .${path.sep}${path.relative(
-              process.cwd(),
-              generator.options!.generator.output!,
-            )}`,
-          )
+              ` to .${path.sep}${path.relative(
+                process.cwd(),
+                generator.options!.generator.output!,
+              )}`,
+            )
           : ''
         const name = generator.manifest
           ? generator.manifest.prettyName
@@ -71,10 +71,11 @@ export class Generate implements Command {
         try {
           await generator.generate()
           const after = Date.now()
+          const version = generator.manifest?.version
           message.push(
-            `✔ Generated ${chalk.bold(name!)}${toStr} in ${formatms(
-              after - before,
-            )}\n`,
+            `✔ Generated ${chalk.bold(name!)}${
+              version ? ` (version: ${version})` : ''
+            }${toStr} in ${formatms(after - before)}\n`,
           )
           generator.stop()
         } catch (err) {
@@ -179,12 +180,20 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     )}\n`
 
     if (!watchMode) {
-      const prismaClientJSGenerator = generators?.find(g => g.options?.generator.provider === 'prisma-client-js')
+      const prismaClientJSGenerator = generators?.find(
+        (g) => g.options?.generator.provider === 'prisma-client-js',
+      )
       let hint = ''
       if (prismaClientJSGenerator) {
-        const importPath = prismaClientJSGenerator.options?.generator?.isCustomOutput ?
-          prefixRelativePathIfNecessary(path.relative(process.cwd(), prismaClientJSGenerator.options?.generator.output!)) :
-          '@prisma/client'
+        const importPath = prismaClientJSGenerator.options?.generator
+          ?.isCustomOutput
+          ? prefixRelativePathIfNecessary(
+              path.relative(
+                process.cwd(),
+                prismaClientJSGenerator.options?.generator.output!,
+              ),
+            )
+          : '@prisma/client'
         hint = `
 You can now start using Prisma Client in your code:
 
@@ -267,7 +276,6 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     return Generate.help
   }
 }
-
 
 function prefixRelativePathIfNecessary(relativePath: string): string {
   if (relativePath.startsWith('..')) {
