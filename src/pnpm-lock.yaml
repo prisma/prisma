@@ -6180,7 +6180,7 @@ packages:
     dev: true
     resolution:
       integrity: sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=
-  /needle/2.5.0:
+  /needle/2.5.2:
     dependencies:
       debug: 3.2.6
       iconv-lite: 0.4.24
@@ -6190,7 +6190,7 @@ packages:
       node: '>= 4.4.x'
     hasBin: true
     resolution:
-      integrity: sha512-o/qITSDR0JCyCKEQ1/1bnUXMmznxabbwi/Y4WwJElf+evwJNFNwIDMCCt5IigFVxgeGBJESLohGtIS9gEzo1fA==
+      integrity: sha512-LbRIwS9BfkPvNwNHlsA41Q29kL2L/6VaOJ0qisM5lLWsTV3nP15abO5ITL6L81zqFhzjRKDAYjpcBcwM0AVvLQ==
   /negotiator/0.6.2:
     engines:
       node: '>= 0.6'
@@ -6261,7 +6261,7 @@ packages:
     dependencies:
       detect-libc: 1.0.3
       mkdirp: 0.5.5
-      needle: 2.5.0
+      needle: 2.5.2
       nopt: 4.0.3
       npm-packlist: 1.4.8
       npmlog: 4.1.2
