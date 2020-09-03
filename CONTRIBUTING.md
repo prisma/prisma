@@ -38,7 +38,7 @@ Start the test databases (see [readme](./src/docker) for various ways to run the
 Start the tests
 
 1. `cd src/packages/cli`
-2. `pnpm run test:postgresql && pnpm run test:mysql && pnpm run test:mariadb`
+2. `pnpm run test`
 
 Notes:
 
