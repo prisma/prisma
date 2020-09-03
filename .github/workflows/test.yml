@@ -39,11 +39,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2-beta
         with:
-          node-version: '12'
+          node-version: "12"
       # MySQL needs to be started manually https://github.blog/changelog/2020-02-21-github-actions-breaking-change-ubuntu-virtual-environments-will-no-longer-start-the-mysql-service-automatically/
-      - run: |
-          sudo /etc/init.d/mysql start 
-          bash src/.buildkite/test/run.sh
+      - run: sudo /etc/init.d/mysql start
+      - run: bash src/.buildkite/test/run.sh
         env:
           CI: true
           SKIP_GIT: true
