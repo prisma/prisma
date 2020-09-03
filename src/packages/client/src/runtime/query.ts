@@ -785,6 +785,15 @@ export class Arg {
     }
 
     if (value instanceof Args) {
+      if (
+        value.args.length === 1 &&
+        value.args[0].key === 'set' &&
+        value.args[0].schemaArg?.inputType[0].type === 'Json'
+      ) {
+        return `${key}: {
+  set: ${stringify(value.args[0].value, null, 2, this.isEnum, true)}
+}`
+      }
       return `${key}: {
 ${indent(value.toString(), 2)}
 }`
@@ -1043,12 +1052,33 @@ export function transformDocument(document: Document): Document {
     if (value instanceof Args) {
       value.args = value.args.map(ar => {
         if (ar.schemaArg?.inputType.length === 2 && 
-          (ar.schemaArg.inputType[0].kind === 'scalar' || ar.schemaArg.inputType[0].kind === 'enum') &&
-          typeof ar.value !== 'object'
+          ((ar.schemaArg.inputType[0].kind === 'scalar' || ar.schemaArg.inputType[0].kind === 'enum') &&
+          typeof ar.value !== 'object')
         ) {
+          
           const operationsInputType = ar.schemaArg?.inputType[1]
           ar.argType = (operationsInputType?.type as DMMF.InputType).name
-          ar.value = new Args([new Arg({ key: 'set', value: ar.value, schemaArg: ar.schemaArg })])
+          ar.value = new Args([
+            new Arg({
+              key: 'set',
+              value: ar.value,
+              schemaArg: ar.schemaArg,
+            }),
+          ])
+        } else if (
+          ar.schemaArg?.inputType.length === 1 &&
+          ar.schemaArg?.inputType[0].type === 'Json'
+        ) {
+          const operationsInputType = ar.schemaArg?.inputType[0]
+          ar.argType = (operationsInputType?.type as DMMF.InputType).name
+          ar.value = new Args([
+            new Arg({
+              key: 'set',
+              value: ar.value,
+              schemaArg: ar.schemaArg,
+              argType: 'Json',
+            }),
+          ])
         }
         return ar
       })
