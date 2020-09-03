@@ -4,6 +4,8 @@ exports[`runtime aggregations: aggregations example should succeed 1`] = `undefi
 
 exports[`runtime async-hooks: async-hooks example should succeed 1`] = `undefined`;
 
+exports[`runtime atomic-number-operations: atomic-number-operations example should succeed 1`] = `undefined`;
+
 exports[`runtime blog: blog example should succeed 1`] = `undefined`;
 
 exports[`runtime blog-dot-env: blog-dot-env example should succeed 1`] = `undefined`;
@@ -151,8 +153,7 @@ Invalid \`prisma.user.findMany()\` invocation in
 
 
 
-  Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(SqliteFailure(Error { code: Unknown, extended_code: 1 }, Some(\\"no such column: dev.User.name\\"))) })"
+  The column \`dev.User.name\` does not exist in the current database."
 `;
 
 exports[`runtime missing-relation: missing-relation example should succeed 1`] = `undefined`;

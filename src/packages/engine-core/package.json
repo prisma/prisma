@@ -1,6 +1,6 @@
 {
   "name": "@prisma/engine-core",
-  "version": "2.6.0-dev.31",
+  "version": "2.6.1-dev.1",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -44,7 +44,7 @@
     "new-github-issue-url": "^0.2.1",
     "p-retry": "^4.2.0",
     "terminal-link": "^2.1.1",
-    "undici": "git://github.com/mcollina/undici.git#e76f6a37836537f08c2d9b7d8805d6ff21d1e744"
+    "undici": "git://github.com/nodejs/undici.git#e76f6a37836537f08c2d9b7d8805d6ff21d1e744"
   },
   "files": [
     "!**/__tests__",

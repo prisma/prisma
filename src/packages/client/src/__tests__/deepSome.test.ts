@@ -65,6 +65,13 @@ describe('minimal where transformation', () => {
           email
           name
           json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
         }
       }"
     `)

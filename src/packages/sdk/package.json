@@ -1,6 +1,6 @@
 {
   "name": "@prisma/sdk",
-  "version": "2.6.0-dev.31",
+  "version": "2.6.1-dev.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
@@ -21,7 +21,7 @@
     "scripts"
   ],
   "prisma": {
-    "version": "a0b427d77d040aa7a76ddeedfb63e269351d63d7"
+    "version": "6a8054bb549e4cc23f157b0010cb2e95cb2637fb"
   },
   "devDependencies": {
     "@types/jest": "26.0.10",
@@ -52,7 +52,7 @@
     "archiver": "^4.0.0",
     "arg": "^4.1.3",
     "chalk": "4.1.0",
-    "checkpoint-client": "1.1.10",
+    "checkpoint-client": "1.1.11",
     "cli-truncate": "^2.1.0",
     "execa": "^4.0.0",
     "global-dirs": "^2.0.1",

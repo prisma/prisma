@@ -61,7 +61,7 @@ describe('runtime', () => {
 
     const testTitle = `${testName} example should${
       shouldSucceed ? '' : ' not'
-      } succeed`
+    } succeed`
     if (fs.existsSync(nodeModules)) {
       await del(nodeModules)
     }
@@ -91,7 +91,9 @@ describe('runtime', () => {
       expect(data).toMatchSnapshot(testTitle)
     } else {
       if (!error) {
-        throw new Error(`${testTitle} should not succeed, but the error is missing`)
+        throw new Error(
+          `${testTitle} should not succeed, but the error is missing`,
+        )
       }
       // https://regex101.com/r/GPVRYg/1/
       // remove the paths, so the tests can succeed on any machine
@@ -137,7 +139,10 @@ function shouldTestSucceed(dir: string): boolean {
 }
 
 type RunResult = {
-  stderr: string, stdout: string, data?: any, error?: string
+  stderr: string
+  stdout: string
+  data?: any
+  error?: string
 }
 
 async function run(filePath: string): Promise<RunResult> {
@@ -162,6 +167,6 @@ async function run(filePath: string): Promise<RunResult> {
     stdout: result.stdout,
     stderr: result.stderr,
     data,
-    error
+    error,
   }
 }
