@@ -38,6 +38,7 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+          --entrypoint sh mysql:8 -c "exec docker-entrypoint.sh mysqld --default-authentication-plugin=mysql_native_password"
 
     steps:
       - uses: actions/checkout@v2
