@@ -47,6 +47,7 @@ module.exports = async () => {
         "content" text,
         "authorId" text,
         "jsonData" jsonb,
+        "coinflips" _bool,
         PRIMARY KEY ("id")
     );
 
@@ -259,26 +260,6 @@ module.exports = async () => {
 
   assert.equal(resultWhereNull.length, 1, 'We should be able to query by null')
 
-
-  const resultJsonUpdateWithoutSet = await prisma.post.update({
-    where: {
-      id: resultJsonArray.id,
-    },
-    data: {
-      title: 'json array updated',
-      jsonData: [
-        {
-          array1key: 'array1valueupdated',
-        },
-      ],
-    },
-  })
-  assert.strictEqual(
-    resultJsonUpdateWithoutSet.title,
-    'json array updated',
-    'We should be able to update json data without set',
-  )
-
   const resultJsonUpdateWithSet = await prisma.post.update({
     where: {
       id: resultJsonArray.id
@@ -291,11 +272,36 @@ module.exports = async () => {
             array1key: 'array1valueupdated',
           },
         ],
-      }
+      },
+      coinflips: {
+        set: [true, true, true, false, true],
+      },
     },
   })
   assert.strictEqual(resultJsonUpdateWithSet.title, 'json array updated 2', 'We should be able to update json data with set')
 
+  const resultJsonUpdateWithoutSet = await prisma.post.update({
+    where: {
+      id: resultJsonArray.id,
+    },
+    data: {
+      title: 'json array updated',
+      jsonData: [
+        {
+          array1key: 'array1valueupdated',
+        },
+      ],
+      // // TODO broken, needs to be fixed
+      // coinflips: [true, true, true, false, true]
+    },
+  })
+
+  assert.strictEqual(
+    resultJsonUpdateWithoutSet.title,
+    'json array updated',
+    'We should be able to update json data without set',
+  )
+  
   const resultJsonUpdateWithoutSetDatetime = await prisma.post.update({
     where: {
       id: resultJsonArray.id
