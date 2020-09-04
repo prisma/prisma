@@ -199,6 +199,7 @@ describe('include validation', () => {
           countInt4
           countInt5
           countInt6
+          lastLoginAt
           posts {
             id
             createdAt
@@ -342,6 +343,7 @@ describe('include validation', () => {
           countInt4
           countInt5
           countInt6
+          lastLoginAt
           posts(take: 20) {
             id
           }
@@ -387,6 +389,7 @@ describe('include validation', () => {
           countInt4
           countInt5
           countInt6
+          lastLoginAt
           posts(take: 20) {
             id
             author {
@@ -401,6 +404,7 @@ describe('include validation', () => {
               countInt4
               countInt5
               countInt6
+              lastLoginAt
               posts {
                 id
                 createdAt

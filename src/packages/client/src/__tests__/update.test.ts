@@ -16,16 +16,18 @@ function getTransformedDocument(select) {
   return String(transformDocument(document))
 }
 
-describe('minimal atomic update transformation', () => {
+describe('minimal update transformation', () => {
   beforeAll(async () => {
     dmmf = new DMMFClass(await getDMMF({ datamodel: blog }))
   })
 
-  test('atomic set operation without object wrapping', () => {
+  test('set null values', () => {
     const transformedDocument = getTransformedDocument({
       data: {
-        countFloat: 3.1415926,
-        countInt1: 3,
+        name: null,
+        profile: {
+          set: null,
+        },
       },
     })
 
@@ -33,11 +35,11 @@ describe('minimal atomic update transformation', () => {
       "mutation {
         updateOneUser(
           data: {
-            countFloat: {
-              set: 3.1415926
+            name: {
+              set: null
             }
-            countInt1: {
-              set: 3
+            profile: {
+              set: null
             }
           }
         ) {
@@ -58,29 +60,44 @@ describe('minimal atomic update transformation', () => {
     `)
   })
 
-  test('atomic operations with object wrapping', () => {
+  test('set date', () => {
     const transformedDocument = getTransformedDocument({
       data: {
-        countFloat: {
-          set: null,
-        },
-        countInt1: {
-          set: null,
-        },
-        countInt2: {
-          set: 123,
-        },
-        countInt3: {
-          increment: 1,
-        },
-        countInt4: {
-          decrement: 1,
-        },
-        countInt5: {
-          multiply: 2,
-        },
-        countInt6: {
-          divide: 4,
+        lastLoginAt: new Date('2020-09-04T07:45:24.484Z'),
+      },
+    })
+
+    expect(transformedDocument).toMatchInlineSnapshot(`
+      "mutation {
+        updateOneUser(
+          data: {
+            lastLoginAt: {
+              set: \\"2020-09-04T07:45:24.484Z\\"
+            }
+          }
+        ) {
+          id
+          email
+          name
+          json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
+          lastLoginAt
+        }
+      }"
+    `)
+  })
+
+  test('set date with set wrapper', () => {
+    const transformedDocument = getTransformedDocument({
+      data: {
+        lastLoginAt: {
+          set: new Date('2020-09-04T07:45:24.484Z'),
         },
       },
     })
@@ -89,26 +106,8 @@ describe('minimal atomic update transformation', () => {
       "mutation {
         updateOneUser(
           data: {
-            countFloat: {
-              set: null
-            }
-            countInt1: {
-              set: null
-            }
-            countInt2: {
-              set: 123
-            }
-            countInt3: {
-              increment: 1
-            }
-            countInt4: {
-              decrement: 1
-            }
-            countInt5: {
-              multiply: 2
-            }
-            countInt6: {
-              divide: 4
+            lastLoginAt: {
+              set: \\"2020-09-04T07:45:24.484Z\\"
             }
           }
         ) {

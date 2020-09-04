@@ -26,6 +26,7 @@ model User {
   countInt4 Int?
   countInt5 Int?
   countInt6 Int?
+  lastLoginAt DateTime @default(now())
 }
 
 model Profile {

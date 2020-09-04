@@ -88,6 +88,7 @@ describe('batching', () => {
           countInt4
           countInt5
           countInt6
+          lastLoginAt
         }
       }",
           "query {
@@ -105,6 +106,7 @@ describe('batching', () => {
           countInt4
           countInt5
           countInt6
+          lastLoginAt
         }
       }",
         ],
@@ -206,6 +208,7 @@ describe('batching', () => {
           countInt4
           countInt5
           countInt6
+          lastLoginAt
         }
       }",
       ]
@@ -288,6 +291,7 @@ describe('batching', () => {
           countInt4
           countInt5
           countInt6
+          lastLoginAt
         }
       }",
         "query {
@@ -305,6 +309,7 @@ describe('batching', () => {
           countInt4
           countInt5
           countInt6
+          lastLoginAt
         }
       }",
       ]

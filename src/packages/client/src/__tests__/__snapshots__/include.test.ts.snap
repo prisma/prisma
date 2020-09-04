@@ -14,6 +14,7 @@ exports[`include validation allow deep include without another include 1`] = `
     countInt4
     countInt5
     countInt6
+    lastLoginAt
     posts(take: 20) {
       id
       createdAt
@@ -49,6 +50,7 @@ exports[`include validation allow include statement with only false properties 1
       countInt4
       countInt5
       countInt6
+      lastLoginAt
     }
   }
 }"
@@ -93,6 +95,7 @@ exports[`include validation deep include query 1`] = `
       countInt4
       countInt5
       countInt6
+      lastLoginAt
       posts {
         id
         createdAt
