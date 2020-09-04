@@ -54,6 +54,7 @@ describe('minimal where transformation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }"
     `)
@@ -95,6 +96,7 @@ describe('minimal where transformation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }"
     `)
@@ -136,6 +138,7 @@ describe('minimal where transformation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }"
     `)
@@ -177,6 +180,7 @@ describe('minimal where transformation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }"
     `)
@@ -216,6 +220,7 @@ describe('minimal where transformation', () => {
             title
             content
             authorId
+            optionnal
           }
         }
       }"
@@ -256,6 +261,7 @@ describe('minimal where transformation', () => {
             title
             content
             authorId
+            optionnal
           }
         }
       }"
@@ -288,6 +294,7 @@ describe('minimal where transformation', () => {
             title
             content
             authorId
+            optionnal
           }
         }
       }"
@@ -320,6 +327,7 @@ describe('minimal where transformation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }"
     `)
@@ -357,6 +365,7 @@ describe('minimal where transformation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }"
     `)

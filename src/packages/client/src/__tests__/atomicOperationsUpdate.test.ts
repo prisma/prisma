@@ -53,6 +53,7 @@ describe('minimal atomic update transformation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }"
     `)
@@ -124,6 +125,7 @@ describe('minimal atomic update transformation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }"
     `)
