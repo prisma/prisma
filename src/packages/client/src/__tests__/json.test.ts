@@ -43,6 +43,7 @@ describe('json', () => {
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
   })
+  
   test('should be able filter json', async () => {
     const document = makeDocument({
       dmmf,
@@ -61,6 +62,7 @@ describe('json', () => {
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
   })
+
   test('should error if equals is missing', async () => {
     const document = makeDocument({
       dmmf,

@@ -17,6 +17,7 @@ exports[`select validation null when undefined is allowed 1`] = `
     title
     content
     authorId
+    optionnal
   }
 }"
 `;
@@ -34,6 +35,7 @@ exports[`select validation null when undefined is not allowed 1`] = `
     title
     content
     authorId
+    optionnal
   }
 }"
 `;

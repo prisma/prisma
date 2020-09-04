@@ -37,6 +37,7 @@ describe('optional to one relation', () => {
           title
           content
           authorId
+          optionnal
         }
       }"
     `)
