@@ -1054,7 +1054,6 @@ export function transformDocument(document: Document): Document {
         if (ar.schemaArg?.inputType.length === 2 && 
           (
             (ar.schemaArg.inputType[0].kind === 'scalar' || ar.schemaArg.inputType[0].kind === 'enum') 
-            && ar.argType !== 'Json'
             && !(ar.value instanceof Args && ['set', 'increment', 'decrement', 'multiply', 'divide'].includes(ar.value.args[0].key))
           )
         ) {
