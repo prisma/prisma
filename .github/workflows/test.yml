@@ -22,23 +22,40 @@ jobs:
         ports:
           - 5432/tcp
 
+      # https://stackoverflow.com/questions/60902904/how-to-pass-mysql-native-password-to-mysql-service-in-github-actions
+      # mysql:
+      #   image: mysql:8.0
+      #   env:
+      #     MYSQL_ROOT_PASSWORD: root
+      #     MYSQL_DATABASE: tests
+      #     MYSQL_USER: prisma
+      #     MYSQL_PASSWORD: prisma
+      #   volumes:
+      #     - mysql:/var/lib/mysql
+      #   ports:
+      #     - 3306/tcp
+      #   options: >-
+      #     --health-cmd="mysqladmin ping"
+      #     --health-interval=10s
+      #     --health-timeout=5s
+      #     --health-retries=5
       mysql:
-        image: mysql:8.0
+        image: bitnami/mysql:8
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: tests
           MYSQL_USER: prisma
           MYSQL_PASSWORD: prisma
+          MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
         volumes:
           - mysql:/var/lib/mysql
         ports:
-          - 3306:3306
+          - 3306/tcp
         options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-          --entrypoint sh mysql:8 -c "exec docker-entrypoint.sh mysqld --default-authentication-plugin=mysql_native_password"
+          --health-cmd="mysqladmin ping" 
+          --health-interval=10s 
+          --health-timeout=5s 
+          --health-retries=3
 
     steps:
       - uses: actions/checkout@v2
