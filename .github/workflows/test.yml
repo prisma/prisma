@@ -40,7 +40,7 @@ jobs:
       #     --health-timeout=5s
       #     --health-retries=5
       mysql:
-        image: bitnami/mysql:8
+        image: bitnami/mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: tests
