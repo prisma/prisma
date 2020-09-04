@@ -38,7 +38,7 @@ jobs:
       #     --health-cmd="mysqladmin ping"
       #     --health-interval=10s
       #     --health-timeout=5s
-      #     --health-retries=5
+      #     --health-retries=3
       mysql:
         image: bitnami/mysql:8.0
         env:
@@ -47,10 +47,8 @@ jobs:
           MYSQL_USER: prisma
           MYSQL_PASSWORD: prisma
           MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
-        volumes:
-          - mysql:/var/lib/mysql
         ports:
-          - 3306/tcp
+          - 3306
         options: >-
           --health-cmd="mysqladmin ping" 
           --health-interval=10s 
