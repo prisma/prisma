@@ -14,6 +14,8 @@ exports[`include validation allow deep include without another include 1`] = `
     countInt4
     countInt5
     countInt6
+    lastLoginAt
+    coinflips
     posts(take: 20) {
       id
       createdAt
@@ -22,6 +24,7 @@ exports[`include validation allow deep include without another include 1`] = `
       title
       content
       authorId
+      optionnal
     }
   }
 }"
@@ -37,6 +40,7 @@ exports[`include validation allow include statement with only false properties 1
     title
     content
     authorId
+    optionnal
     author {
       id
       email
@@ -49,6 +53,8 @@ exports[`include validation allow include statement with only false properties 1
       countInt4
       countInt5
       countInt6
+      lastLoginAt
+      coinflips
     }
   }
 }"
@@ -81,6 +87,7 @@ exports[`include validation deep include query 1`] = `
     title
     content
     authorId
+    optionnal
     author {
       id
       email
@@ -93,6 +100,8 @@ exports[`include validation deep include query 1`] = `
       countInt4
       countInt5
       countInt6
+      lastLoginAt
+      coinflips
       posts {
         id
         createdAt
@@ -101,6 +110,7 @@ exports[`include validation deep include query 1`] = `
         title
         content
         authorId
+        optionnal
       }
     }
   }

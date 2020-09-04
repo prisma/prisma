@@ -37,6 +37,7 @@ exports[`select validation Allow different iso strings 1 1`] = `
     title
     content
     authorId
+    optionnal
   }
 }"
 `;
@@ -56,6 +57,7 @@ exports[`select validation Allow different iso strings 2 1`] = `
     title
     content
     authorId
+    optionnal
   }
 }"
 `;
@@ -75,6 +77,7 @@ exports[`select validation Allow different iso strings 2 2`] = `
     title
     content
     authorId
+    optionnal
   }
 }"
 `;
@@ -107,6 +110,7 @@ exports[`select validation Allow explicit null value 1`] = `
     title
     content
     authorId
+    optionnal
   }
 }"
 `;
@@ -126,6 +130,8 @@ exports[`select validation Allow select with an include 1`] = `
       countInt4
       countInt5
       countInt6
+      lastLoginAt
+      coinflips
       posts {
         id
         createdAt
@@ -134,6 +140,7 @@ exports[`select validation Allow select with an include 1`] = `
         title
         content
         authorId
+        optionnal
       }
     }
   }
@@ -154,6 +161,7 @@ exports[`select validation Allow simple create mutation 1`] = `
     title
     content
     authorId
+    optionnal
   }
 }"
 `;
@@ -186,6 +194,7 @@ exports[`select validation Allow uuid for string input 1`] = `
     title
     content
     authorId
+    optionnal
   }
 }"
 `;
@@ -212,6 +221,7 @@ exports[`select validation missing arg object 1`] = `
     title
     content
     authorId
+    optionnal
   }
 }"
 `;
@@ -228,6 +238,7 @@ Invalid \`prisma.createOnePost()\` invocation:
 +   published: Boolean,
 +   title: String,
 +   content?: String,
++   optionnal?: Float,
 +   author?: UserCreateOneWithoutPostsInput,
 +   categories?: CategoryCreateManyWithoutPostsInput
 + }
@@ -249,6 +260,7 @@ exports[`select validation missing arg object 3`] = `
     title
     content
     authorId
+    optionnal
   }
 }"
 `;
@@ -265,6 +277,7 @@ Invalid \`prisma.createOnePost()\` invocation:
 +   published: Boolean,
 +   title: String,
 +   content?: String,
++   optionnal?: Float,
 +   author?: UserCreateOneWithoutPostsInput,
 +   categories?: CategoryCreateManyWithoutPostsInput
 + }
@@ -293,6 +306,7 @@ Invalid \`prisma.createOnePost()\` invocation:
 +   published: Boolean,
 +   title: String,
 +   content?: String,
++   optionnal?: Float,
 +   author?: UserCreateOneWithoutPostsInput,
 +   categories?: CategoryCreateManyWithoutPostsInput
 + }
@@ -316,6 +330,7 @@ exports[`select validation missing arg scalar && object 1`] = `
     title
     content
     authorId
+    optionnal
   }
 }"
 `;
@@ -332,6 +347,7 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   createdAt?: DateTime,
 ?   updatedAt?: DateTime,
 ?   content?: String,
+?   optionnal?: Float,
 ?   author?: {
 ?     create?: UserCreateWithoutPostsInput,
 ?     connect?: UserWhereUniqueInput
@@ -366,6 +382,7 @@ exports[`select validation missing arg scalar 1`] = `
     title
     content
     authorId
+    optionnal
   }
 }"
 `;
@@ -387,6 +404,7 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   createdAt?: DateTime,
 ?   updatedAt?: DateTime,
 ?   content?: String,
+?   optionnal?: Float,
 ?   categories?: {
 ?     create?: CategoryCreateWithoutPostsInput,
 ?     connect?: CategoryWhereUniqueInput
@@ -582,7 +600,9 @@ Invalid \`prisma.findManyUser()\` invocation:
 ?   countInt3?: true,
 ?   countInt4?: true,
 ?   countInt5?: true,
-?   countInt6?: true
+?   countInt6?: true,
+?   lastLoginAt?: true,
+?   coinflips?: true
   }
 }
 
@@ -604,6 +624,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
@@ -623,6 +645,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_arbitrary for type UserWhereInput. Available args:
 
@@ -643,6 +667,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
@@ -662,6 +688,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`id_endsWith\` in where.AND.1.id_endsWith for type UserWhereInput. Available args:
 
@@ -682,6 +710,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`name_contains\` in where.AND.1.name_contains for type UserWhereInput. Available args:
 
@@ -702,6 +732,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`name_gt\` in where.AND.1.name_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
@@ -721,6 +753,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
@@ -740,6 +774,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
@@ -759,6 +795,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereInput. Available args:
 
@@ -779,6 +817,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Invalid value 'asd' of type String for field name on model User. Expected either true or false.
 Unknown field \`name2\` for select statement on model User. Available options are listed in green. Did you mean \`name\`?
@@ -845,7 +885,9 @@ Invalid \`prisma.findManyUser()\` invocation:
 ?   countInt3?: true,
 ?   countInt4?: true,
 ?   countInt5?: true,
-?   countInt6?: true
+?   countInt6?: true,
+?   lastLoginAt?: true,
+?   coinflips?: true
   }
 }
 
@@ -867,6 +909,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
@@ -886,6 +930,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_arbitrary for type UserWhereInput. Available args:
 
@@ -906,6 +952,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
@@ -925,6 +973,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`id_endsWith\` in where.AND.1.id_endsWith for type UserWhereInput. Available args:
 
@@ -945,6 +995,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`name_contains\` in where.AND.1.name_contains for type UserWhereInput. Available args:
 
@@ -965,6 +1017,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`name_gt\` in where.AND.1.name_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
@@ -984,6 +1038,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
@@ -1003,6 +1059,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
@@ -1022,6 +1080,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereInput. Available args:
 
@@ -1042,6 +1102,8 @@ type UserWhereInput {
   countInt4?: Int | IntNullableFilter | null
   countInt5?: Int | IntNullableFilter | null
   countInt6?: Int | IntNullableFilter | null
+  lastLoginAt?: DateTime | DateTimeFilter
+  coinflips?: List<Boolean> | BoolNullableListFilter
 }
 Invalid value 'asd' of type String for field name on model User. Expected either true or false.
 Unknown field \`name2\` for select statement on model User. Available options are listed in green. Did you mean \`name\`?

@@ -65,5 +65,7 @@ describe('generate', () => {
 })
 
 function cleanSnapshot(str: string): string {
-  return str.replace(/\d+ms/g, 'XXms')
+  return str
+    .replace(/\d+ms/g, 'XXms')
+    .replace(/\(version:.+\)/g, '(version: 0.0.0)')
 }

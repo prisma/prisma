@@ -47,8 +47,8 @@ importers:
       '@prisma/introspection': 'link:../introspection'
       '@prisma/migrate': 'link:../migrate'
       '@prisma/sdk': 'link:../sdk'
-      '@prisma/studio': 0.272.0
-      '@prisma/studio-server': 0.272.0
+      '@prisma/studio': 0.273.0
+      '@prisma/studio-server': 0.273.0
       '@types/debug': 4.1.5
       '@types/mocha': 8.0.3
       '@types/pg': 7.14.4
@@ -105,8 +105,8 @@ importers:
       '@prisma/introspection': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio': 0.272.0
-      '@prisma/studio-server': 0.272.0
+      '@prisma/studio': 0.273.0
+      '@prisma/studio-server': 0.273.0
       '@types/debug': 4.1.5
       '@types/mocha': 8.0.3
       '@types/pg': 7.14.4
@@ -627,8 +627,8 @@ importers:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/get-platform': 'link:../get-platform'
       '@prisma/ink-components': 'link:../ink-components'
-      '@prisma/studio-server': 0.272.0
-      '@prisma/studio-types': 0.272.0
+      '@prisma/studio-server': 0.273.0
+      '@prisma/studio-types': 0.273.0
       ansi-escapes: 4.3.1
       cli-cursor: 3.1.0
       dashify: 2.0.0
@@ -697,8 +697,8 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@prisma/ink-components': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio-server': 0.272.0
-      '@prisma/studio-types': 0.272.0
+      '@prisma/studio-server': 0.273.0
+      '@prisma/studio-types': 0.273.0
       '@types/charm': 1.0.2
       '@types/debug': 4.1.5
       '@types/diff': 4.0.2
@@ -1483,31 +1483,31 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-d/Mp1x3HiLbm8qkc5DXzghGLitGkxN/6uGb81EtxEYMvNe9BqcyD3BjdfTDEJX29LHilqMcVN842HK5Tav7Grw==
-  /@prisma/studio-server/0.272.0:
+  /@prisma/studio-server/0.273.0:
     dependencies:
       '@prisma/get-platform': 2.6.0-dev.54
       '@prisma/sdk': 2.6.0-dev.54
-      '@prisma/studio': 0.272.0
-      '@prisma/studio-transports': 0.272.0
-      '@prisma/studio-types': 0.272.0
+      '@prisma/studio': 0.273.0
+      '@prisma/studio-transports': 0.273.0
+      '@prisma/studio-types': 0.273.0
       '@sentry/node': 5.15.5
       express: 4.17.1
       express-ws: 4.0.0_express@4.17.1
     resolution:
-      integrity: sha512-NNbgejzqWHVNRtoo0eK1/vd4FNnnTpmPBvesmvCdvu4Q54mZOO2gCtwGiMoKrkY9v/DV+aKizH8HADDxXR8jRw==
-  /@prisma/studio-transports/0.272.0:
+      integrity: sha512-gKYlU9/nd1XvSes1SUT1JXNCEpHXBtSRvqxOawJm2U12+aYBQAfMzJVag2khXC5V3YFVfMZ0usTI0bdMfYGpyA==
+  /@prisma/studio-transports/0.273.0:
     dependencies:
       '@prisma/sdk': 2.6.0-dev.54
-      '@prisma/studio-types': 0.272.0
+      '@prisma/studio-types': 0.273.0
       '@sentry/node': 5.15.5
     resolution:
-      integrity: sha512-duBiSF6AU37x4tfT9n2p81+t4VlAmeXzr20O+g5P0nas1Z1GlBLv8U5zT8zwkVqOimj9c3gLd6kRDdU6VYfhEQ==
-  /@prisma/studio-types/0.272.0:
+      integrity: sha512-W2LRsJw1aNHatU2ImGLO7LwDxQnJj6Wn2++L6pXfbC3kK0t8RuYyOTU3eqkBx5LsnJI79hdSN1FZm/7H1SEtcg==
+  /@prisma/studio-types/0.273.0:
     resolution:
-      integrity: sha512-3L05IemiF3jBGQ6xoA+UGoVaD/UAsJZ0aZ2pHbiG6gYhF0d+3EF1aXbe99Jkh1jLHW4kygsdjmu+8XrGcVlbCg==
-  /@prisma/studio/0.272.0:
+      integrity: sha512-fS4VIMgvetdqZma37rntAI2e9rRP6X2d6vg8UN6rpiqzWjpgBYr/9hIb0O9+p4MtIn5om0m7TBX9lmHZ5Y7iuw==
+  /@prisma/studio/0.273.0:
     resolution:
-      integrity: sha512-5UCDY55SkcUx6IY1IH1EEL90sMvj6vTuAwU5tV9It7K0ZP8u4Y+5vVs0w4V1C2Bjc/vcu6RrIhFf0Vj+6MJcBw==
+      integrity: sha512-d/1DB1bFvQaM1hYrbPDIOHhv1C+LUF/w3z4eTIKEecXbo8Jijz6GqpESznVXeA7AJUWENOzbbUaEdxR4XLyLoA==
   /@sentry/apm/5.15.5:
     dependencies:
       '@sentry/browser': 5.15.5
@@ -5547,9 +5547,9 @@ packages:
     dev: true
     resolution:
       integrity: sha512-mrqyZKfX5EhL7hvqcV6WG1yYjnjeuYDzDhhcAAUrq8Po85NBQBJP+ZDUT75qZQ98IkUoBqdkExkukOU7Ts2wrw==
-  /json-parse-even-better-errors/2.3.0:
+  /json-parse-even-better-errors/2.3.1:
     resolution:
-      integrity: sha512-o3aP+RsWDJZayj1SbHNQAI8x0v3T3SKiGoZlNYfbUP1S3omJQ6i9CnqADqkSPaOAxwua4/1YWx5CM7oiChJt2Q==
+      integrity: sha512-xyFwyhro/JEof6Ghe2iz2NcXoj2sloNsWr/XsERDK/oiPCfaNhl5ONfp+jQdAZRQQ0IJWNzH9zIZF7li91kh2w==
   /json-schema-traverse/0.4.1:
     dev: true
     resolution:
@@ -6693,7 +6693,7 @@ packages:
     dependencies:
       '@babel/code-frame': 7.10.4
       error-ex: 1.3.2
-      json-parse-even-better-errors: 2.3.0
+      json-parse-even-better-errors: 2.3.1
       lines-and-columns: 1.1.6
     engines:
       node: '>=8'

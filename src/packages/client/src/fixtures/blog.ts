@@ -26,6 +26,8 @@ model User {
   countInt4 Int?
   countInt5 Int?
   countInt6 Int?
+  lastLoginAt DateTime @default(now())
+  coinflips Boolean[]
 }
 
 model Profile {
@@ -43,6 +45,7 @@ model Post {
   title     String
   content   String?
   authorId  String?
+  optionnal  Float?
   author    User? @relation(fields: [authorId])
   categories Category[]  @relation("MyPostCatRelationTable")
 }
