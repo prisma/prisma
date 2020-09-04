@@ -73,6 +73,7 @@ describe('minimal where transformation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }"
     `)

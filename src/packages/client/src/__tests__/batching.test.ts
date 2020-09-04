@@ -89,6 +89,7 @@ describe('batching', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }",
           "query {
@@ -107,6 +108,7 @@ describe('batching', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }",
         ],
@@ -191,6 +193,7 @@ describe('batching', () => {
           title
           content
           authorId
+          optionnal
         }
       }",
         "query {
@@ -209,6 +212,7 @@ describe('batching', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }",
       ]
@@ -292,6 +296,7 @@ describe('batching', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }",
         "query {
@@ -310,6 +315,7 @@ describe('batching', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }",
       ]

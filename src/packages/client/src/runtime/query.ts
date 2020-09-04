@@ -1068,8 +1068,7 @@ export function transformDocument(document: Document): Document {
             }),
           ])
         } else if (
-          ar.schemaArg?.inputType.length === 1 &&
-          ar.schemaArg?.inputType[0].type === 'Json'
+          ar.schemaArg?.inputType.length === 1 && ar.schemaArg?.inputType[0].type === 'Json' 
         ) {
           const operationsInputType = ar.schemaArg?.inputType[0]
           ar.argType = (operationsInputType?.type as DMMF.InputType).name

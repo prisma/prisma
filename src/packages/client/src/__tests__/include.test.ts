@@ -200,6 +200,7 @@ describe('include validation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
           posts {
             id
             createdAt
@@ -208,6 +209,7 @@ describe('include validation', () => {
             title
             content
             authorId
+            optionnal
           }
         }
       }"
@@ -344,6 +346,7 @@ describe('include validation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
           posts(take: 20) {
             id
           }
@@ -390,6 +393,7 @@ describe('include validation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
           posts(take: 20) {
             id
             author {
@@ -405,6 +409,7 @@ describe('include validation', () => {
               countInt5
               countInt6
               lastLoginAt
+              coinflips
               posts {
                 id
                 createdAt
@@ -413,6 +418,7 @@ describe('include validation', () => {
                 title
                 content
                 authorId
+                optionnal
               }
             }
           }

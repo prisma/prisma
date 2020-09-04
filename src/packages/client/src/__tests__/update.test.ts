@@ -28,6 +28,19 @@ describe('minimal update transformation', () => {
         profile: {
           set: null,
         },
+        posts: {
+          updateMany: {
+            data: {
+              optionnal: null,
+              content: {
+                set: null,
+              },
+            },
+            where: {
+              id: 'someid',
+            },
+          },
+        },
       },
     })
 
@@ -41,38 +54,24 @@ describe('minimal update transformation', () => {
             profile: {
               set: null
             }
-          }
-        ) {
-          id
-          email
-          name
-          json
-          countFloat
-          countInt1
-          countInt2
-          countInt3
-          countInt4
-          countInt5
-          countInt6
-          lastLoginAt
-        }
-      }"
-    `)
-  })
-
-  test('set date', () => {
-    const transformedDocument = getTransformedDocument({
-      data: {
-        lastLoginAt: new Date('2020-09-04T07:45:24.484Z'),
-      },
-    })
-
-    expect(transformedDocument).toMatchInlineSnapshot(`
-      "mutation {
-        updateOneUser(
-          data: {
-            lastLoginAt: {
-              set: \\"2020-09-04T07:45:24.484Z\\"
+            posts: {
+              updateMany: [
+                {
+                  data: {
+                    optionnal: {
+                      set: null
+                    }
+                    content: {
+                      set: null
+                    }
+                  }
+                  where: {
+                    id: {
+                      equals: \\"someid\\"
+                    }
+                  }
+                }
+              ]
             }
           }
         ) {
@@ -88,16 +87,25 @@ describe('minimal update transformation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
         }
       }"
     `)
   })
 
-  test('set date with set wrapper', () => {
+  test('set date', () => {
     const transformedDocument = getTransformedDocument({
       data: {
-        lastLoginAt: {
-          set: new Date('2020-09-04T07:45:24.484Z'),
+        lastLoginAt: new Date('2020-09-04T07:45:24.484Z'),
+        posts: {
+          updateMany: {
+            data: {
+              updatedAt: new Date('2020-09-04T07:45:24.484Z'),
+            },
+            where: {
+              id: 'someid',
+            },
+          },
         },
       },
     })
@@ -109,6 +117,22 @@ describe('minimal update transformation', () => {
             lastLoginAt: {
               set: \\"2020-09-04T07:45:24.484Z\\"
             }
+            posts: {
+              updateMany: [
+                {
+                  data: {
+                    updatedAt: {
+                      set: \\"2020-09-04T07:45:24.484Z\\"
+                    }
+                  }
+                  where: {
+                    id: {
+                      equals: \\"someid\\"
+                    }
+                  }
+                }
+              ]
+            }
           }
         ) {
           id
@@ -123,6 +147,146 @@ describe('minimal update transformation', () => {
           countInt5
           countInt6
           lastLoginAt
+          coinflips
+        }
+      }"
+    `)
+  })
+
+  test('set date with set wrapper', () => {
+    const transformedDocument = getTransformedDocument({
+      data: {
+        lastLoginAt: {
+          set: new Date('2020-09-04T07:45:24.484Z'),
+        },
+        posts: {
+          updateMany: {
+            data: {
+              updatedAt: {
+                set: new Date('2020-09-04T07:45:24.484Z'),
+              },
+            },
+            where: {
+              id: 'someid',
+            },
+          },
+        },
+      },
+    })
+
+    expect(transformedDocument).toMatchInlineSnapshot(`
+      "mutation {
+        updateOneUser(
+          data: {
+            lastLoginAt: {
+              set: \\"2020-09-04T07:45:24.484Z\\"
+            }
+            posts: {
+              updateMany: [
+                {
+                  data: {
+                    updatedAt: {
+                      set: \\"2020-09-04T07:45:24.484Z\\"
+                    }
+                  }
+                  where: {
+                    id: {
+                      equals: \\"someid\\"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ) {
+          id
+          email
+          name
+          json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
+          lastLoginAt
+          coinflips
+        }
+      }"
+    `)
+  })
+
+  test('Boolean[] list with set', () => {
+    const transformedDocument = getTransformedDocument({
+      data: {
+        coinflips: {
+          set: [true, true, true, false, true],
+        },
+      },
+    })
+
+    expect(transformedDocument).toMatchInlineSnapshot(`
+      "mutation {
+        updateOneUser(
+          data: {
+            coinflips: {
+              set: [true, true, true, false, true]
+            }
+          }
+        ) {
+          id
+          email
+          name
+          json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
+          lastLoginAt
+          coinflips
+        }
+      }"
+    `)
+  })
+
+  test('Boolean[] list without set', () => {
+    const transformedDocument = getTransformedDocument({
+      data: {
+        coinflips: [true, true, true, false, true],
+      },
+    })
+
+    // this is broken and needs to be fixed
+    expect(transformedDocument).toMatchInlineSnapshot(`
+      "mutation {
+        updateOneUser(
+          data: {
+            coinflips: {
+              0: true
+              1: true
+              2: true
+              3: false
+              4: true
+            }
+          }
+        ) {
+          id
+          email
+          name
+          json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
+          lastLoginAt
+          coinflips
         }
       }"
     `)
