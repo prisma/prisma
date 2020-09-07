@@ -55,7 +55,8 @@ describe('include validation', () => {
 
         {
           include: {
-        ?   author?: true
+        ?   author?: true,
+        ?   categories?: true
           }
         }
 
@@ -191,6 +192,15 @@ describe('include validation', () => {
           email
           name
           json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
+          lastLoginAt
+          coinflips
           posts {
             id
             createdAt
@@ -199,6 +209,7 @@ describe('include validation', () => {
             title
             content
             authorId
+            optionnal
           }
         }
       }"
@@ -250,7 +261,8 @@ describe('include validation', () => {
           include: {
             id: true,
             ~~
-        ?   author?: true
+        ?   author?: true,
+        ?   categories?: true
           }
         }
 
@@ -288,7 +300,8 @@ describe('include validation', () => {
           include: {
             mauthor: true,
             ~~~~~~~
-        ?   author?: true
+        ?   author?: true,
+        ?   categories?: true
           }
         }
 
@@ -325,6 +338,15 @@ describe('include validation', () => {
           email
           name
           json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
+          lastLoginAt
+          coinflips
           posts(take: 20) {
             id
           }
@@ -363,6 +385,15 @@ describe('include validation', () => {
           email
           name
           json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
+          lastLoginAt
+          coinflips
           posts(take: 20) {
             id
             author {
@@ -370,6 +401,15 @@ describe('include validation', () => {
               email
               name
               json
+              countFloat
+              countInt1
+              countInt2
+              countInt3
+              countInt4
+              countInt5
+              countInt6
+              lastLoginAt
+              coinflips
               posts {
                 id
                 createdAt
@@ -378,6 +418,7 @@ describe('include validation', () => {
                 title
                 content
                 authorId
+                optionnal
               }
             }
           }

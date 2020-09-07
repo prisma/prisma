@@ -9,121 +9,82 @@ describe('getDMMF', () => {
   test('simple model', async () => {
     const dmmf = await getDMMF({
       datamodel: `model A {
-    id Int @id
-    name String
-  }`,
+        id Int @id
+        name String
+      }`,
     })
 
-    expect(dmmf.datamodel).toMatchInlineSnapshot(`
-      Object {
-        "enums": Array [],
-        "models": Array [
-          Object {
-            "dbName": null,
-            "fields": Array [
-              Object {
-                "hasDefaultValue": false,
-                "isGenerated": false,
-                "isId": true,
-                "isList": false,
-                "isReadOnly": false,
-                "isRequired": true,
-                "isUnique": false,
-                "isUpdatedAt": false,
-                "kind": "scalar",
-                "name": "id",
-                "type": "Int",
-              },
-              Object {
-                "hasDefaultValue": false,
-                "isGenerated": false,
-                "isId": false,
-                "isList": false,
-                "isReadOnly": false,
-                "isRequired": true,
-                "isUnique": false,
-                "isUpdatedAt": false,
-                "kind": "scalar",
-                "name": "name",
-                "type": "String",
-              },
-            ],
-            "idFields": Array [],
-            "isEmbedded": false,
-            "isGenerated": false,
-            "name": "A",
-            "uniqueFields": Array [],
-            "uniqueIndexes": Array [],
-          },
-        ],
-      }
-    `)
+    expect(dmmf.datamodel).toMatchSnapshot()
     expect(dmmf).toMatchSnapshot()
   })
 
   test('@@map model', async () => {
     const dmmf = await getDMMF({
       datamodel: `
+      datasource db {
+        provider = "postgresql"
+        url      = env("MY_POSTGRESQL_DB")
+      }
       model User {
         id        Int      @default(autoincrement())
         email     String   @unique
         @@map("users")
       }`,
     })
-    expect(dmmf.datamodel).toMatchInlineSnapshot(`
-      Object {
-        "enums": Array [],
-        "models": Array [
-          Object {
-            "dbName": "users",
-            "fields": Array [
-              Object {
-                "default": Object {
-                  "args": Array [],
-                  "name": "autoincrement",
-                },
-                "hasDefaultValue": true,
-                "isGenerated": false,
-                "isId": false,
-                "isList": false,
-                "isReadOnly": false,
-                "isRequired": true,
-                "isUnique": false,
-                "isUpdatedAt": false,
-                "kind": "scalar",
-                "name": "id",
-                "type": "Int",
-              },
-              Object {
-                "hasDefaultValue": false,
-                "isGenerated": false,
-                "isId": false,
-                "isList": false,
-                "isReadOnly": false,
-                "isRequired": true,
-                "isUnique": true,
-                "isUpdatedAt": false,
-                "kind": "scalar",
-                "name": "email",
-                "type": "String",
-              },
-            ],
-            "idFields": Array [],
-            "isEmbedded": false,
-            "isGenerated": false,
-            "name": "User",
-            "uniqueFields": Array [],
-            "uniqueIndexes": Array [],
-          },
-        ],
-      }
-    `)
+    expect(dmmf.datamodel).toMatchSnapshot()
     expect(dmmf).toMatchSnapshot()
+  })
+
+  test('model with autoincrement should fail if sqlite', async () => {
+    const datamodel = `
+      datasource db {
+        provider = "sqlite"
+        url      = "file:dev.db"
+      }
+      model User {
+        id        Int      @default(autoincrement())
+        email     String   @unique
+        @@map("users")
+      }`
+
+    /* eslint-disable jest/no-try-expect */
+    try {
+      await getDMMF({ datamodel })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchSnapshot()
+    }
+    /* eslint-enable jest/no-try-expect */
+  })
+
+  test('model with autoincrement should fail if mysql', async () => {
+    const datamodel = `
+      datasource db {
+        provider = "mysql"
+        url      = env("MY_MYSQL_DB")
+      }
+      model User {
+        id        Int      @default(autoincrement())
+        email     String   @unique
+        @@map("users")
+      }`
+
+    /* eslint-disable jest/no-try-expect */
+    try {
+      await getDMMF({ datamodel })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchSnapshot()
+    }
+    /* eslint-enable jest/no-try-expect */
   })
 
   test('@@unique model', async () => {
     const dmmf = await getDMMF({
       datamodel: `
+      datasource db {
+        provider = "postgres"
+        url      = env("MY_POSTGRES_DB")
+      }
+
       // From https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model#examples-3
       // Specify a multi-field unique attribute that includes a relation field
       model Post {
@@ -167,6 +128,11 @@ describe('getDMMF', () => {
   test('@@unique model connectOrCreate', async () => {
     const dmmf = await getDMMF({
       datamodel: `
+      datasource db {
+        provider = "postgresql"
+        url      = env("MY_POSTGRES_DB")
+      }
+
       // From https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model#examples-3
       // Specify a multi-field unique attribute that includes a relation field
       model Post {
@@ -217,7 +183,7 @@ describe('getDMMF', () => {
       datamodel: file,
     })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`286507`)
+    expect(str.length).toMatchSnapshot()
   })
 
   test('chinook introspected schema connectOrCreate', async () => {
@@ -230,7 +196,7 @@ describe('getDMMF', () => {
       enableExperimental: ['connectOrCreate'],
     })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`301323`)
+    expect(str.length).toMatchSnapshot()
   })
 
   test('big schema', async () => {
@@ -243,7 +209,7 @@ describe('getDMMF', () => {
       enableExperimental: ['connectOrCreate'],
     })
     const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchInlineSnapshot(`51282887`)
+    expect(str.length).toMatchSnapshot()
   })
 
   test('with validation errors', async () => {
@@ -296,10 +262,16 @@ describe('getDMMF', () => {
 describe('getConfig', () => {
   test('empty config', async () => {
     const config = await getConfig({
-      datamodel: `model A {
-      id Int @id
-      name String
-    }`,
+      datamodel: `
+      datasource db {
+        provider = "sqlite"
+        url      = "file:../hello.db"
+      }
+      
+      model A {
+        id Int @id
+        name String
+      }`,
     })
 
     expect(config).toMatchSnapshot()
@@ -340,24 +312,7 @@ describe('getConfig', () => {
       `,
     })
 
-    expect(config).toMatchInlineSnapshot(`
-      Object {
-        "datasources": Array [
-          Object {
-            "activeProvider": "postgresql",
-            "name": "db",
-            "provider": Array [
-              "postgresql",
-            ],
-            "url": Object {
-              "fromEnvVar": "TEST_POSTGRES_URI_FOR_DATASOURCE",
-              "value": "postgres://user:password@something:5432/db",
-            },
-          },
-        ],
-        "generators": Array [],
-      }
-    `)
+    expect(config).toMatchSnapshot()
   })
 
   test('datasource with env var - ignoreEnvVarErrors', async () => {
@@ -371,52 +326,49 @@ describe('getConfig', () => {
       `,
     })
 
-    expect(config).toMatchInlineSnapshot(`
-      Object {
-        "datasources": Array [
-          Object {
-            "activeProvider": "postgresql",
-            "name": "db",
-            "provider": Array [
-              "postgresql",
-            ],
-            "url": Object {
-              "fromEnvVar": null,
-              "value": "postgresql://",
-            },
-          },
-        ],
-        "generators": Array [],
-      }
-    `)
+    expect(config).toMatchSnapshot()
   })
 })
 
 describe('format', () => {
-  test('valid blog schema', async () => {
+  test('nothing', async () => {
+    try {
+      // @ts-expect-error
+      const formatted = await formatSchema({})
+    } catch (e) {
+      expect(e.message).toMatchSnapshot(
+      )
+    }
+  })
+
+  test('valid blog schemaPath', async () => {
     const formatted = await formatSchema({
       schemaPath: path.join(__dirname, 'fixtures/blog.prisma'),
     })
 
-    expect(formatted).toMatchInlineSnapshot(`
-      "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:dev.db\\"
-      }
+    expect(formatted).toMatchSnapshot()
+  })
 
+  test('valid blog schema', async () => {
+    const formatted = await formatSchema({
+      schema: `
+      datasource db {
+        provider = "sqlite"
+        url      = "file:dev.db"
+      }
+      
       generator client {
-        provider      = \\"prisma-client-js\\"
-        binaryTargets = [\\"native\\"]
+        provider      = "prisma-client-js"
+        binaryTargets = ["native"]
       }
-
+      
       model User {
         id    String  @default(cuid()) @id
         email String  @unique
         name  String?
         posts Post[]
-        Like  Like[]
       }
-
+      
       model Post {
         id        String   @default(cuid()) @id
         createdAt DateTime @default(now())
@@ -426,18 +378,19 @@ describe('format', () => {
         content   String?
         authorId  String?
         author    User?    @relation(fields: [authorId], references: [id])
-        Like      Like[]
       }
-
+      
       model Like {
         id     String @default(cuid()) @id
         userId String
         user   User   @relation(fields: [userId], references: [id])
         postId String
         post   Post   @relation(fields: [postId], references: [id])
-
+      
         @@unique([userId, postId])
-      }"
-    `)
+      }`,
+    })
+
+    expect(formatted).toMatchSnapshot()
   })
 })

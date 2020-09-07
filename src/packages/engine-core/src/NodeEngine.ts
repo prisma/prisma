@@ -50,10 +50,16 @@ export interface EngineConfig {
   logLevel?: 'info' | 'warn'
   env?: Record<string, string>
   flags?: string[]
+
   clientVersion?: string
   enableExperimental?: string[]
   engineEndpoint?: string
   useUds?: boolean
+}
+
+type GetConfigResult = {
+  datasources: DataSource[]
+  generators: GeneratorConfig[]
 }
 
 /**
@@ -79,6 +85,11 @@ const knownPlatforms: Platform[] = [
 
 export type Deferred = {
   resolve: () => void
+  reject: (err: Error) => void
+}
+
+export type StopDeferred = {
+  resolve: (code: number | null) => void
   reject: (err: Error) => void
 }
 
@@ -109,6 +120,8 @@ export class NodeEngine {
   private lastError?: RustError
   private useUds: boolean = false
   private socketPath?: string
+  private getConfigPromise?: Promise<GetConfigResult>
+  private stopPromise?: Promise<void>
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -133,6 +146,7 @@ export class NodeEngine {
   datasources?: DatasourceOverwrite[]
   startPromise?: Promise<any>
   engineStartDeferred?: Deferred
+  engineStopDeferred?: StopDeferred
   undici: Undici
   constructor({
     cwd,
@@ -167,8 +181,24 @@ export class NodeEngine {
     this.clientVersion = clientVersion
     this.flags = flags ?? []
     this.enableExperimental = enableExperimental ?? []
+    const removedFlags = [
+      'middlewares',
+      'aggregateApi',
+      'distinct',
+      'aggregations',
+    ]
+    const removedFlagsUsed = this.enableExperimental.filter((e) =>
+      removedFlags.includes(e),
+    )
+    if (removedFlagsUsed.length > 0) {
+      console.log(
+        `Info: The preview flags \`${removedFlagsUsed.join(
+          '`, `',
+        )}\` were removed, you can now safely remove them from your schema.prisma.`,
+      )
+    }
     this.enableExperimental = this.enableExperimental.filter(
-      (e) => !['middlewares', 'aggregateApi', 'distinct', 'aggregations'].includes(e),
+      (e) => !removedFlags.includes(e),
     )
     this.engineEndpoint = engineEndpoint
 
@@ -486,6 +516,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   private internalStart(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
+      await new Promise(r => process.nextTick(r))
+      if (this.stopPromise) {
+        await this.stopPromise
+      }
       if (this.engineEndpoint) {
         try {
           await pRetry(() => this.undici.status(), {
@@ -497,12 +531,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         return resolve()
       }
       try {
-        if (this.child?.connected) {
+        if (this.child?.connected || (this.child && !this.child?.killed)) {
           debug(
-            `There is a child that still runs and we want to start again. We're killing that child process now.`,
+            `There is a child that still runs and we want to start again`,
           )
-          this.queryEngineKilled = true
-          this.child?.kill()
         }
         this.queryEngineStarted = false
 
@@ -614,6 +646,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         })
 
         this.child.on('exit', (code): void => {
+          if (this.engineStopDeferred) {
+            this.engineStopDeferred.resolve(code)
+            return
+          }
           this.undici?.close()
           this.exitCode = code
           if (
@@ -765,6 +801,16 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         }
 
         this.url = `http://localhost:${this.port}`
+
+          // don't wait for this
+
+          ; (async () => {
+            const engineVersion = await this.version()
+            debug(`Client Version ${this.clientVersion}`)
+            debug(`Engine Version ${engineVersion}`)
+          })()
+
+        this.stopPromise = undefined
         resolve()
       } catch (e) {
         reject(e)
@@ -772,11 +818,23 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     })
   }
 
+  async stop(): Promise<void> {
+    if (!this.stopPromise) {
+      this.stopPromise = this._stop()
+    }
+
+    return this.stopPromise
+  }
+
   /**
    * If Prisma runs, stop it
    */
-  async stop(): Promise<void> {
-    await this.start()
+  async _stop(): Promise<void> {
+    if (this.startPromise) {
+      await this.startPromise
+    }
+    // not sure yet if this is a good idea
+    await new Promise(resolve => process.nextTick(resolve))
     if (this.currentRequestPromise) {
       try {
         await this.currentRequestPromise
@@ -784,13 +842,29 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         //
       }
     }
+    this.getConfigPromise = undefined
+    let stopChildPromise
     if (this.child) {
-      debug(`Stopping Prisma engine`)
+      debug(`Stopping Prisma engine4`)
+      if (this.startPromise) {
+        debug(`Waiting for start promise`)
+        await this.startPromise
+      }
+      debug(`Done waiting for start promise`)
+      stopChildPromise = new Promise((resolve, reject) => {
+        this.engineStopDeferred = { resolve, reject }
+      })
       this.queryEngineKilled = true
       this.undici?.close()
       this.child?.kill()
-      delete this.child
+      this.child = undefined
     }
+    if (stopChildPromise) {
+      await stopChildPromise
+    }
+    await new Promise(r => process.nextTick(r))
+    this.startPromise = undefined
+    this.engineStopDeferred = undefined
     setTimeout(() => {
       if (this.socketPath) {
         try {
@@ -806,6 +880,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
   }
 
   async kill(signal: string): Promise<void> {
+    this.getConfigPromise = undefined
     this.globalKillSignalReceived = signal
     this.queryEngineKilled = true
     this.child?.kill()
@@ -836,10 +911,14 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     })
   }
 
-  async getConfig(): Promise<{
-    datasources: DataSource[]
-    generators: GeneratorConfig[]
-  }> {
+  async getConfig(): Promise<GetConfigResult> {
+    if (!this.getConfigPromise) {
+      this.getConfigPromise = this._getConfig()
+    }
+    return this.getConfigPromise
+  }
+
+  async _getConfig(): Promise<GetConfigResult> {
     const prismaPath = await this.getPrismaPath()
 
     const env = await this.getEngineEnvVars()
@@ -869,6 +948,9 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     headers: Record<string, string>,
     numTry = 1,
   ): Promise<T> {
+    if (this.stopPromise) {
+      await this.stopPromise
+    }
     await this.start()
 
     if (!this.child && !this.engineEndpoint) {
@@ -1020,7 +1102,8 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     } else if (
       (error.code && error.code === 'ECONNRESET') ||
       error.code === 'ECONNREFUSED' ||
-      (error.code === 'UND_ERR_SOCKET' && error.message.toLowerCase().includes('closed')) ||
+      (error.code === 'UND_ERR_SOCKET' &&
+        error.message.toLowerCase().includes('closed')) ||
       error.message.toLowerCase().includes('client is destroyed') ||
       error.message.toLowerCase().includes('other side closed')
     ) {

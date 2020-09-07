@@ -47,6 +47,10 @@ async function getUnsavedChanges(dir: string): Promise<string | null> {
 }
 
 async function getLatestCommit(dir: string): Promise<Commit> {
+  if (process.env.GITHUB_CONTEXT) {
+    const context = JSON.parse(process.env.GITHUB_CONTEXT)
+    return context.sha
+  }
   const result = await runResult(
     dir,
     'git log --pretty=format:"%ad %H %P" --date=iso-strict -n 1',
@@ -561,10 +565,12 @@ async function publish() {
       throw new Error(`Oops, there are circular dependencies: ${circles}`)
     }
 
-    const changes = await getLatestChanges()
+    if (!process.env.GITHUB_CONTEXT) {
+      const changes = await getLatestChanges()
 
-    console.log(chalk.bold(`Changed files:`))
-    console.log(changes.map((c) => `  ${c}`).join('\n'))
+      console.log(chalk.bold(`Changed files:`))
+      console.log(changes.map((c) => `  ${c}`).join('\n'))
+    }
 
     let prisma2Version
     const patchBranch = getPatchBranch()
@@ -582,8 +588,8 @@ async function publish() {
       patchBranch && !process.env.BUILDKITE_TAG
         ? 'patch-dev'
         : prisma2Version.includes('dev')
-        ? 'dev'
-        : 'latest'
+          ? 'dev'
+          : 'latest'
 
     const packagesWithVersions = await getNewPackageVersions(
       packages,
@@ -596,6 +602,25 @@ async function publish() {
           `UPDATE_STUDIO is set, so we only update Prisma Client and all dependants.`,
         ),
       )
+
+      // We know, that Prisma Client and Prisma CLI are always part of the release.
+      // Therefore, also Migrate is also always part of the release, as it depends on Prisma Client.
+      // We can therefore safely update Studio, as migrate and Prisma CLI are depending on Studio
+      const latestStudioVersion = await runResult(
+        '.',
+        'npm info @prisma/studio-transports version',
+      )
+      console.log(
+        `UPDATE_STUDIO set true, so we're updating it to ${latestStudioVersion}`,
+      )
+      console.log(`Active branch`)
+      await run('.', 'git branch')
+      console.log(`Let's check out master!`)
+      await run('.', 'git checkout master')
+      await run(
+        '.',
+        `pnpm update  -r @prisma/studio@${latestStudioVersion} @prisma/studio-transports@${latestStudioVersion} @prisma/studio-server@${latestStudioVersion} @prisma/studio-types@${latestStudioVersion}`,
+      )
     }
 
     if (!dryRun && args['--test']) {
@@ -604,28 +629,6 @@ async function publish() {
     }
 
     if (args['--publish'] || dryRun) {
-      // We know, that Photon and Prisma2 are always part of the release.
-      // Therefore, also migrate is also always part of the release, as it depends on photon.
-      // We can therefore safely update studio, as migrate and prisma2 are depending on studio
-
-      if (process.env.UPDATE_STUDIO) {
-        const latestStudioVersion = await runResult(
-          '.',
-          'npm info @prisma/studio-transports version',
-        )
-        console.log(
-          `UPDATE_STUDIO set true, so we're updating it to ${latestStudioVersion}`,
-        )
-        console.log(`Active branch`)
-        await run('.', 'git branch')
-        console.log(`Let's check out master!`)
-        await run('.', 'git checkout master')
-        await run(
-          '.',
-          `pnpm update  -r @prisma/studio@${latestStudioVersion} @prisma/studio-transports@${latestStudioVersion} @prisma/studio-server@${latestStudioVersion} @prisma/studio-types@${latestStudioVersion}`,
-        )
-      }
-
       if (args['--release']) {
         const passing = await areEndToEndTestsPassing(tag)
         if (!passing) {
@@ -771,7 +774,7 @@ function patchVersion(version: string): string | null {
   if (match) {
     return `${match.groups.major}.${match.groups.minor}.${
       Number(match.groups.patch) + 1
-    }`
+      }`
   }
 
   return null
@@ -782,7 +785,7 @@ function increaseMinor(version: string): string | null {
   if (match) {
     return `${match.groups.major}.${Number(match.groups.minor) + 1}.${
       match.groups.patch
-    }`
+      }`
   }
 
   return null
@@ -823,8 +826,8 @@ async function publishPackages(
   const publishStr = dryRun
     ? `${chalk.bold('Dry publish')} `
     : releaseVersion
-    ? 'Releasing '
-    : 'Publishing '
+      ? 'Releasing '
+      : 'Publishing '
 
   if (releaseVersion) {
     console.log(
@@ -924,12 +927,12 @@ async function publishPackages(
       const skipPackages =
         process.env.BUILDKITE_TAG === '2.0.1'
           ? [
-              '@prisma/debug',
-              '@prisma/get-platform',
-              '@prisma/generator-helper',
-              '@prisma/ink-components',
-              '@prisma/fetch-engine',
-            ]
+            '@prisma/debug',
+            '@prisma/get-platform',
+            '@prisma/generator-helper',
+            '@prisma/ink-components',
+            '@prisma/fetch-engine',
+          ]
           : []
       if (!skipPackages.includes(pkgName)) {
         await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
@@ -1046,7 +1049,7 @@ async function writeVersion(pkgDir: string, version: string, dryRun?: boolean) {
   if (dryRun) {
     console.log(
       `Would update ${pkgJsonPath} from ${
-        packageJson.version
+      packageJson.version
       } to ${version} now ${chalk.dim('(dry)')}`,
     )
   } else {

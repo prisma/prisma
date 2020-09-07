@@ -1,12 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`runtime aggregations: aggregations example should succeed 1`] = `"success"`;
+exports[`runtime aggregations: aggregations example should succeed 1`] = `undefined`;
 
-exports[`runtime async-hooks: async-hooks example should succeed 1`] = `"success"`;
+exports[`runtime async-hooks: async-hooks example should succeed 1`] = `undefined`;
 
-exports[`runtime blog: blog example should succeed 1`] = `"success"`;
+exports[`runtime atomic-number-operations: atomic-number-operations example should succeed 1`] = `undefined`;
 
-exports[`runtime blog-dot-env: blog-dot-env example should succeed 1`] = `"success"`;
+exports[`runtime blog: blog example should succeed 1`] = `undefined`;
+
+exports[`runtime blog-dot-env: blog-dot-env example should succeed 1`] = `undefined`;
 
 exports[`runtime blog-env: blog-env example should not succeed 1`] = `
 "error: Environment variable not found: SQLITE_URL.
@@ -19,7 +21,9 @@ exports[`runtime blog-env: blog-env example should not succeed 1`] = `
 Validation Error Count: 1"
 `;
 
-exports[`runtime blog-env-postgresql: blog-env-postgresql example should succeed 1`] = `"success"`;
+exports[`runtime blog-env-postgresql: blog-env-postgresql example should succeed 1`] = `undefined`;
+
+exports[`runtime blog-update: blog-update example should succeed 1`] = `undefined`;
 
 exports[`runtime chaining: chaining example should succeed 1`] = `
 Array [
@@ -32,15 +36,21 @@ Array [
 ]
 `;
 
-exports[`runtime chmod: chmod example should succeed 1`] = `"success"`;
+exports[`runtime chmod: chmod example should succeed 1`] = `undefined`;
 
-exports[`runtime corruption: corruption example should succeed 1`] = `"success"`;
+exports[`runtime corruption: corruption example should succeed 1`] = `undefined`;
 
-exports[`runtime distinct: distinct example should succeed 1`] = `"success"`;
+exports[`runtime disconnect-finally: disconnect-finally example should succeed 1`] = `Array []`;
 
-exports[`runtime enums: enums example should succeed 1`] = `"success"`;
+exports[`runtime disconnect-race: disconnect-race example should succeed 1`] = `Array []`;
 
-exports[`runtime error-link: error-link example should succeed 1`] = `"success"`;
+exports[`runtime disconnect-while-query: disconnect-while-query example should succeed 1`] = `Array []`;
+
+exports[`runtime distinct: distinct example should succeed 1`] = `undefined`;
+
+exports[`runtime enums: enums example should succeed 1`] = `undefined`;
+
+exports[`runtime error-link: error-link example should succeed 1`] = `undefined`;
 
 exports[`runtime incorrect-column-type: incorrect-column-type example should not succeed 1`] = `
 "
@@ -51,9 +61,11 @@ Invalid \`prisma.user.findMany()\` invocation in
   Attempted to serialize scalar '123' with incompatible type 'String'"
 `;
 
-exports[`runtime middlewares: middlewares example should succeed 1`] = `"success"`;
+exports[`runtime insensitiveFilters-postgresql: insensitiveFilters-postgresql example should succeed 1`] = `undefined`;
 
-exports[`runtime middlewares-manipulation: middlewares-manipulation example should succeed 1`] = `"success"`;
+exports[`runtime middlewares: middlewares example should succeed 1`] = `undefined`;
+
+exports[`runtime middlewares-manipulation: middlewares-manipulation example should succeed 1`] = `undefined`;
 
 exports[`runtime missing-binary: missing-binary example should not succeed 1`] = `
 "
@@ -143,11 +155,10 @@ Invalid \`prisma.user.findMany()\` invocation in
 
 
 
-  Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(SqliteFailure(Error { code: Unknown, extended_code: 1 }, Some(\\"no such column: dev.User.name\\"))) })"
+  The column \`dev.User.name\` does not exist in the current database."
 `;
 
-exports[`runtime missing-relation: missing-relation example should succeed 1`] = `"success"`;
+exports[`runtime missing-relation: missing-relation example should succeed 1`] = `undefined`;
 
 exports[`runtime missing-table: missing-table example should not succeed 1`] = `
 "
@@ -155,17 +166,24 @@ Invalid \`prisma.user.findMany()\` invocation in
 
 
 
-  Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: TableDoesNotExist { table: \\"dev.User\\" } })"
+  The table \`dev.User\` does not exist in the current database."
 `;
 
-exports[`runtime new-line: new-line example should succeed 1`] = `"success"`;
+exports[`runtime multi-connect: multi-connect example should succeed 1`] = `Array []`;
 
-exports[`runtime restart: restart example should succeed 1`] = `"success"`;
+exports[`runtime new-line: new-line example should succeed 1`] = `undefined`;
 
-exports[`runtime sqlite-variable-limit: sqlite-variable-limit example should succeed 1`] = `"success"`;
+exports[`runtime relations: relations example should succeed 1`] = `undefined`;
 
-exports[`runtime transaction: transaction example should succeed 1`] = `"success"`;
+exports[`runtime removed-experimental-flags: removed-experimental-flags example should succeed 1`] = `undefined`;
+
+exports[`runtime removed-preview-flags: removed-preview-flags example should succeed 1`] = `undefined`;
+
+exports[`runtime restart: restart example should succeed 1`] = `undefined`;
+
+exports[`runtime sqlite-variable-limit: sqlite-variable-limit example should succeed 1`] = `undefined`;
+
+exports[`runtime transaction: transaction example should succeed 1`] = `undefined`;
 
 exports[`runtime uds: uds example should succeed 1`] = `
 Array [

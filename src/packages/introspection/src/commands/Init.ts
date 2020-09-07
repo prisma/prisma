@@ -1,4 +1,11 @@
-import { Command, arg, format, HelpError, uriToCredentials } from '@prisma/sdk'
+import {
+  Command,
+  arg,
+  format,
+  HelpError,
+  uriToCredentials,
+  getCommandWithExecutor,
+} from '@prisma/sdk'
 import { isError } from 'util'
 import fs from 'fs'
 import path from 'path'
@@ -55,11 +62,7 @@ export class Init implements Command {
       '--url': String,
     })
 
-    if (isError(args)) {
-      return null
-    }
-
-    if (args['--help']) {
+    if (isError(args) || args['--help']) {
       return this.help()
     }
 
@@ -150,10 +153,10 @@ export class Init implements Command {
 
     const steps = [
       `Run ${chalk.green(
-        'prisma introspect',
+        getCommandWithExecutor('prisma introspect'),
       )} to turn your database schema into a Prisma data model.`,
       `Run ${chalk.green(
-        'prisma generate',
+        getCommandWithExecutor('prisma generate'),
       )} to install Prisma Client. You can then start querying your database.`,
     ]
 

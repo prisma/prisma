@@ -1,6 +1,9 @@
-import { DMMFClass } from '../runtime/dmmf'
-import { makeDocument } from '../runtime/query'
+// import { DMMFClass } from '../runtime/dmmf'
+// import { makeDocument } from '../runtime/query'
 import { getDMMF } from '../generation/getDMMF'
+import chalk from 'chalk'
+import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+chalk.level = 0
 
 const datamodel = `\
 datasource db {
@@ -37,13 +40,73 @@ describe('json', () => {
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
     })
-    expect(String(document)).toMatchInlineSnapshot(`
+    document.validate(undefined, false, 'user', 'colorless')
+    expect(String(document)).toMatchSnapshot()
+  })
+  
+  test('should be able filter json', async () => {
+    const document = makeDocument({
+      dmmf,
+      select: {
+        where: {
+          json: {
+            equals: {
+              hello: 'world',
+            },
+          },
+        },
+      },
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+    document.validate(undefined, false, 'user', 'colorless')
+    expect(String(document)).toMatchSnapshot()
+  })
+
+  test('should error if equals is missing', async () => {
+    const document = makeDocument({
+      dmmf,
+      select: {
+        where: {
+          json: {
+            hello: 'world',
+          },
+        },
+      },
+      rootTypeName: 'query',
+      rootField: 'findManyUser',
+    })
+    expect(() =>
+      document.validate(undefined, false, 'user', 'colorless'),
+    ).toThrowErrorMatchingSnapshot()
+  })
+
+  test('should be able to update json', () => {
+    function getTransformedDocument(select) {
+      const document = makeDocument({
+        dmmf,
+        select,
+        rootTypeName: 'mutation',
+        rootField: 'updateOneUser',
+      })
+      return String(transformDocument(document))
+    }
+
+    const transformedDocument = getTransformedDocument({
+      data: {
+        json: ['value1', 'value2'],
+      },
+    })
+
+    expect(transformedDocument).toMatchInlineSnapshot(`
       "mutation {
-        createOneUser(data: {
-          email: \\"a@a.de\\"
-          json: \\"{\\\\\\"hello\\\\\\":\\\\\\"world\\\\\\"}\\"
-          name: \\"Bob\\"
-        }) {
+        updateOneUser(
+          data: {
+            json: {
+              set: \\"[\\\\\\"value1\\\\\\",\\\\\\"value2\\\\\\"]\\"
+            }
+          }
+        ) {
           id
           name
           email

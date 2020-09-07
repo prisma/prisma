@@ -108,10 +108,6 @@ export async function getGenerators({
     extractPreviewFeatures(config),
   )
 
-  if (!experimentalFeatures.includes('aggregations')) {
-    experimentalFeatures.push('aggregations')
-  }
-
   const dmmf = await getDMMF({
     datamodel,
     datamodelPath: schemaPath,

@@ -17,7 +17,24 @@ model User {
   /// name comment
   name  String?
   posts Post[]
+  profile Profile?
   json Json?
+  countFloat Float?
+  countInt1 Int?
+  countInt2 Int?
+  countInt3 Int?
+  countInt4 Int?
+  countInt5 Int?
+  countInt6 Int?
+  lastLoginAt DateTime @default(now())
+  coinflips Boolean[]
+}
+
+model Profile {
+  id     String     @default(cuid()) @id
+  bio    String?
+  user   User       @relation(fields: [userId], references: [id])
+  userId String     @unique
 }
 
 model Post {
@@ -28,7 +45,14 @@ model Post {
   title     String
   content   String?
   authorId  String?
+  optionnal  Float?
   author    User? @relation(fields: [authorId])
+  categories Category[]  @relation("MyPostCatRelationTable")
+}
+
+model Category {
+  id        String   @default(cuid()) @id
+  posts     Post[]  @relation("MyPostCatRelationTable")
 }
 
 model NoRelations {

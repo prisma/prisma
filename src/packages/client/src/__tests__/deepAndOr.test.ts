@@ -49,32 +49,30 @@ describe('minimal where transformation', () => {
           OR: [
             {
               posts: {
-                is: {
-                  some: {
-                    OR: [
-                      {
-                        author: {
-                          is: {
-                            OR: [
-                              {
-                                AND: [
-                                  {
-                                    OR: [
-                                      {
-                                        id: {
-                                          equals: \\"10\\"
-                                        }
+                some: {
+                  OR: [
+                    {
+                      author: {
+                        is: {
+                          OR: [
+                            {
+                              AND: [
+                                {
+                                  OR: [
+                                    {
+                                      id: {
+                                        equals: \\"10\\"
                                       }
-                                    ]
-                                  }
-                                ]
-                              }
-                            ]
-                          }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
                         }
                       }
-                    ]
-                  }
+                    }
+                  ]
                 }
               }
             }
@@ -84,6 +82,15 @@ describe('minimal where transformation', () => {
           email
           name
           json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
+          lastLoginAt
+          coinflips
         }
       }"
     `)

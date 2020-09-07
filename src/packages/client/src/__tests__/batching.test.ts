@@ -81,6 +81,15 @@ describe('batching', () => {
           email
           name
           json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
+          lastLoginAt
+          coinflips
         }
       }",
           "query {
@@ -91,6 +100,15 @@ describe('batching', () => {
           email
           name
           json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
+          lastLoginAt
+          coinflips
         }
       }",
         ],
@@ -175,6 +193,7 @@ describe('batching', () => {
           title
           content
           authorId
+          optionnal
         }
       }",
         "query {
@@ -185,6 +204,15 @@ describe('batching', () => {
           email
           name
           json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
+          lastLoginAt
+          coinflips
         }
       }",
       ]
@@ -260,6 +288,15 @@ describe('batching', () => {
           email
           name
           json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
+          lastLoginAt
+          coinflips
         }
       }",
         "query {
@@ -270,6 +307,15 @@ describe('batching', () => {
           email
           name
           json
+          countFloat
+          countInt1
+          countInt2
+          countInt3
+          countInt4
+          countInt5
+          countInt6
+          lastLoginAt
+          coinflips
         }
       }",
       ]

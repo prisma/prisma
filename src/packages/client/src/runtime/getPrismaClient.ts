@@ -314,9 +314,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
 
       const previewFeatures = config.generator?.previewFeatures ?? []
-      if (!previewFeatures.includes('aggregations')) {
-        previewFeatures.push('aggregations')
-      }
 
       this._engineConfig = {
         cwd,
@@ -408,24 +405,18 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       namespace: HookPoint | Middleware,
       cb?: Middleware | EngineMiddleware,
     ) {
-      if (config.generator?.previewFeatures?.includes('middlewares')) {
-        if (typeof namespace === 'function') {
-          this._middlewares.push(namespace)
-        } else if (typeof namespace === 'string') {
-          if (namespace === 'all') {
-            this._middlewares.push(cb! as Middleware)
-          } else if (namespace === 'engine') {
-            this._engineMiddlewares.push(cb! as EngineMiddleware)
-          } else {
-            throw new Error(`Unknown middleware hook ${namespace}`)
-          }
+      if (typeof namespace === 'function') {
+        this._middlewares.push(namespace)
+      } else if (typeof namespace === 'string') {
+        if (namespace === 'all') {
+          this._middlewares.push(cb! as Middleware)
+        } else if (namespace === 'engine') {
+          this._engineMiddlewares.push(cb! as EngineMiddleware)
         } else {
-          throw new Error(`Invalid middleware ${namespace}`)
+          throw new Error(`Unknown middleware hook ${namespace}`)
         }
       } else {
-        throw new Error(
-          `In order to use the middlewares api, please enable set previewFeatures = ["middlewares"]`,
-        )
+        throw new Error(`Invalid middleware ${namespace}`)
       }
     }
     on(eventType: any, callback: (event: any) => void) {
@@ -466,34 +457,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return this.$connect()
     }
     async $connect() {
-      if (this._disconnectionPromise) {
-        await this._disconnectionPromise
-      }
-      if (this._connectionPromise) {
-        return this._connectionPromise
-      }
-      this._connectionPromise = (async () => {
-        await this._engine.start()
-
-        let { engineVersion, clientVersion } = config
-        if (
-          this._engineConfig.prismaPath ||
-          process.env.QUERY_ENGINE_BINARY_PATH ||
-          !engineVersion
-        ) {
-          engineVersion = await this._engine.version()
-        }
-        debug(`Client Version ${clientVersion}`)
-        debug(`Engine Version ${engineVersion}`)
-      })()
-      return this._connectionPromise
-    }
-    async _getConfig() {
-      if (!this._getConfigPromise) {
-        this._getConfigPromise = this._engine.getConfig()
-      }
-
-      return this._getConfigPromise
+      return this._engine.start()
     }
     /**
      * @private
@@ -517,14 +481,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
      * Disconnect from the database
      */
     async $disconnect() {
-      if (!this._disconnectionPromise) {
-        this._disconnectionPromise = this._runDisconnect()
-      }
-      return this._disconnectionPromise
+      return this._engine.stop()
     }
 
     private async _getActiveProvider(): Promise<ConnectorType> {
-      const configResult = await this._getConfig()
+      const configResult = await this._engine.getConfig()
       return configResult.datasources[0].activeProvider!
     }
 
@@ -1096,13 +1057,11 @@ export class PrismaClientFetcher {
     this.dataloader = new Dataloader({
       batchLoader: async (requests) => {
         const queries = requests.map((r) => String(r.document))
-        await this.prisma.$connect()
         const runTransaction = requests[0].runInTransaction
         return this.prisma._engine.requestBatch(queries, runTransaction)
       },
       singleLoader: async (request) => {
         const query = String(request.document)
-        await this.prisma.$connect()
         return this.prisma._engine.request(query, request.headers)
       },
       batchBy: (request) => {

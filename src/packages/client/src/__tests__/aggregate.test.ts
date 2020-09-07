@@ -2,6 +2,11 @@ import { DMMFClass, makeDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
 
 export const recommender = /* GraphQL */ `
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
 model Article {
   id      Int      @id
   url     String   @unique
@@ -42,7 +47,6 @@ describe('aggregate', () => {
     dmmf = new DMMFClass(
       await getDMMF({
         datamodel: recommender,
-        enableExperimental: ['aggregations'],
       }),
     )
   })
@@ -74,6 +78,16 @@ describe('aggregate', () => {
       dmmf,
       select: {
         take: 10,
+        cursor: {
+          email: 'a@a.de',
+        },
+        orderBy: {
+          age: 'asc',
+        },
+        skip: 12,
+        where: {
+          age: { gt: 500 },
+        },
         select: {
           count: true,
           avg: {
@@ -102,25 +116,7 @@ describe('aggregate', () => {
       rootField: 'aggregateUser',
     })
     document.validate(undefined, false, 'user', 'colorless')
-    expect(String(document)).toMatchInlineSnapshot(`
-      "query {
-        aggregateUser(take: 10) {
-          count
-          avg {
-            age
-          }
-          min {
-            age
-          }
-          max {
-            age
-          }
-          sum {
-            age
-          }
-        }
-      }"
-    `)
+    expect(String(document)).toMatchSnapshot()
   })
 
   test('unhappy path - incorrect arg', () => {

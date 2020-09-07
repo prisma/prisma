@@ -744,15 +744,15 @@ interface ArgOptions {
 }
 
 export class Arg {
-  public readonly key: string
+  public key: string
   // not readonly, as we later need to transform it
   public value: ArgValue
-  public readonly error?: InvalidArgError
-  public readonly hasError: boolean
-  public readonly isEnum: boolean
-  public readonly schemaArg?: DMMF.SchemaArg
-  public readonly argType?: DMMF.ArgType
-  public readonly isNullable: boolean
+  public error?: InvalidArgError
+  public hasError: boolean
+  public isEnum: boolean
+  public schemaArg?: DMMF.SchemaArg
+  public argType?: DMMF.ArgType
+  public isNullable: boolean
 
   constructor({
     key,
@@ -785,6 +785,15 @@ export class Arg {
     }
 
     if (value instanceof Args) {
+      if (
+        value.args.length === 1 &&
+        value.args[0].key === 'set' &&
+        value.args[0].schemaArg?.inputType[0].type === 'Json'
+      ) {
+        return `${key}: {
+  set: ${stringify(value.args[0].value, null, 2, this.isEnum, true)}
+}`
+      }
       return `${key}: {
 ${indent(value.toString(), 2)}
 }`
@@ -932,13 +941,16 @@ export function transformDocument(document: Document): Document {
           if (ar.schemaArg && !ar.schemaArg.isRelationFilter) {
             for (let i = ar.value.args.length; i--;) {
               const a = ar.value.args[i]
-              if (a.key === 'not' && (typeof a.value !== 'object' || a.argType === 'DateTime')) {
-                a.value = new Args([new Arg({
-                  key: 'equals',
-                  value: a.value,
-                  argType: a.argType,
-                  schemaArg: a.schemaArg
-                })])
+              if (a.key === 'not' && (typeof a.value !== 'object' || a.argType === 'DateTime' || a.argType === 'Json')) {
+                // if it's already an equals { X } do not add equals
+                if (!(a.value instanceof Args)) {
+                  a.value = new Args([new Arg({
+                    key: 'equals',
+                    value: a.value,
+                    argType: a.argType,
+                    schemaArg: a.schemaArg
+                  })])
+                }
               }
               if (a.key === 'notIn') {
                 let notField = ar.value.args.find(theArg => theArg.key === 'not')
@@ -956,13 +968,16 @@ export function transformDocument(document: Document): Document {
                   ar.value.args.push(notField)
                 }
                 // we might be ahead of time...
-                if ((typeof notField.value !== 'object') || notField.argType === 'DateTime' || notField.value === null) {
-                  notField.value = new Args([new Arg({
-                    key: 'equals',
-                    value: notField.value,
-                    argType: notField.argType,
-                    schemaArg: notField.schemaArg
-                  })])
+                if ((typeof notField.value !== 'object') || notField.argType === 'DateTime' || notField.value === null || notField.argType === 'Json') {
+                  // if it's already an equals { X } do not add equals
+                  if (!(notField.value instanceof Args)) {
+                    notField.value = new Args([new Arg({
+                      key: 'equals',
+                      value: notField.value,
+                      argType: notField.argType,
+                      schemaArg: notField.schemaArg
+                    })])
+                  }
                 }
                 const index = (notField!.value as Args).args.findIndex(arg => arg.key === 'in')
                 const inArg = new Arg({
@@ -986,14 +1001,29 @@ export function transformDocument(document: Document): Document {
         }
         if ((ar.isEnum || (typeof ar.argType === 'string' && isScalar(ar.argType)))) {
           if (typeof ar.value !== 'object' || ar.argType === 'DateTime' || ar.argType === 'Json' || ar.value === null) {
-            ar.value = new Args([new Arg({
-              key: 'equals',
-              value: ar.value,
-              argType: ar.argType, // probably wrong but fine
-              schemaArg: ar.schemaArg // probably wrong but fine
-            })])
+            // if it's already an equals { X } do not add equals
+            if (!(ar.value instanceof Args)) {
+              ar.value = new Args([new Arg({
+                key: 'equals',
+                value: ar.value,
+                argType: ar.argType, // probably wrong but fine
+                schemaArg: ar.schemaArg // probably wrong but fine
+              })])
+            }
           }
-        } else if (typeof ar.value === 'object' && ar.schemaArg?.inputType[0].kind === 'object' && ar.key !== 'is') {
+        } else if (
+          typeof ar.value === 'object'
+          && ar.schemaArg?.inputType[0].kind === 'object'
+          // don't do the "is" nesting if we're already on a field called "is"
+          && ar.key !== 'is'
+          && ar.argType !== 'Json'
+          // do not add `is` on ...ListRelationFilter 
+          // https://github.com/prisma/prisma/issues/3342
+          && !(typeof ar.schemaArg?.inputType[0].type === 'object' && ar.schemaArg?.inputType[0].type.name.includes('ListRelationFilter'))
+          // don't do the "is" nesting for Json types
+          && !(typeof ar.argType === 'object' && (ar.argType as DMMF.InputType)?.name?.startsWith('Json'))
+          && !(typeof ar.argType === 'object' && (ar.argType as DMMF.InputType)?.name?.startsWith('NestedJson'))
+        ) {
           if (ar.value instanceof Args) {
             if (!ar.value.args.find(a => a.key === 'is')) {
               ar.value = new Args([new Arg({
@@ -1003,11 +1033,58 @@ export function transformDocument(document: Document): Document {
                 schemaArg: ar.schemaArg // probably wrong but fine
               })])
             }
+          } else if (ar.value === null) {
+            ar.value = new Args([new Arg({
+              key: 'is',
+              value: ar.value,
+              argType: ar.argType, // probably wrong but fine
+              schemaArg: ar.schemaArg // probably wrong but fine
+            })])
           }
         }
         return ar
       })
     )
+  }
+  function transformUpdateArg(arg: Arg): Arg {
+    const { value } = arg
+
+    if (value instanceof Args) {
+      value.args = value.args.map(ar => {
+        if (ar.schemaArg?.inputType.length === 2 && 
+          (
+            (ar.schemaArg.inputType[0].kind === 'scalar' || ar.schemaArg.inputType[0].kind === 'enum') 
+            && !(ar.value instanceof Args && ['set', 'increment', 'decrement', 'multiply', 'divide'].includes(ar.value.args[0].key))
+          )
+        ) {
+          const operationsInputType = ar.schemaArg?.inputType[1]
+          ar.argType = (operationsInputType?.type as DMMF.InputType).name
+          ar.value = new Args([
+            new Arg({
+              key: 'set',
+              value: ar.value,
+              schemaArg: ar.schemaArg,
+            }),
+          ])
+        } else if (
+          ar.schemaArg?.inputType.length === 1 && ar.schemaArg?.inputType[0].type === 'Json' 
+        ) {
+          const operationsInputType = ar.schemaArg?.inputType[0]
+          ar.argType = (operationsInputType?.type as DMMF.InputType).name
+          ar.value = new Args([
+            new Arg({
+              key: 'set',
+              value: ar.value,
+              schemaArg: ar.schemaArg,
+              argType: 'Json',
+            }),
+          ])
+        }
+        return ar
+      })
+    }
+
+    return arg
   }
   return visit(document, {
     Arg: {
@@ -1025,6 +1102,9 @@ export function transformDocument(document: Document): Document {
               value = transformWhereArgs(arg.value)
             }
             return new Arg({ ...arg, value })
+          }
+          if (argType.isUpdateType && schemaArg) {
+            return transformUpdateArg(arg)
           }
         }
 

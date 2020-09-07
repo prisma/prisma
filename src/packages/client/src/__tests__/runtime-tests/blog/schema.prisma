@@ -1,12 +1,11 @@
 datasource db {
   provider = "sqlite"
-  url      = "sqlite:dev.db"
+  url      = "file:./dev.db"
   default  = true
 }
 
 generator client {
-  provider             = "prisma-client-js"
-  experimentalFeatures = ["aggregations"]
+  provider = "prisma-client-js"
 }
 
 // / User model comment
@@ -16,6 +15,14 @@ model User {
   // / name comment
   name  String?
   posts Post[]
+  profile Profile?
+}
+
+model Profile {
+  id     String     @default(cuid()) @id
+  bio    String?
+  user   User    @relation(fields: [userId], references: [id])
+  userId String     @unique
 }
 
 model Post {
@@ -25,6 +32,6 @@ model Post {
   published Boolean
   title     String
   content   String?
-  authorId  String?  @map("author")
+  authorId  String? @map("author")
   author    User?    @relation(fields: [authorId], references: [id])
 }

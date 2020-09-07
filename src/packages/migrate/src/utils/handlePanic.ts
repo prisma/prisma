@@ -28,7 +28,7 @@ async function panicDialog(error, cliVersion, binaryVersion) {
   console.log(`${chalk.red('Oops, an unexpected error occured!')}
 ${chalk.red(errorMessage)}
 
-${chalk.bold('Please help us improve Prisma 2 by submitting an error report.')}
+${chalk.bold('Please help us improve Prisma by submitting an error report.')}
 ${chalk.bold(
   'Error reports never contain personal or other sensitive information.',
 )}

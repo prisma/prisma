@@ -4,6 +4,9 @@ import {
   getGenerators,
   ProviderAliases,
   link,
+  getCommandWithExecutor,
+  highlightDatamodel,
+  maskSchema,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
@@ -22,7 +25,6 @@ import rimraf from 'rimraf'
 import { Readable } from 'stream'
 import stripAnsi from 'strip-ansi'
 import { promisify } from 'util'
-import { highlightDatamodel, maskSchema } from '@prisma/sdk'
 import { blue } from '@prisma/sdk/dist/highlight/theme'
 import { DevComponentRenderer } from './ink/DevComponentRenderer'
 import { MigrateEngine } from './MigrateEngine'
@@ -392,9 +394,11 @@ export class Migrate {
       console.log(brightGreen.bold('\nNew datamodel:\n'))
     }
     if (lastMigration) {
-      console.log(printDatamodelDiff(lastMigration.datamodel, datamodel))
+      console.log(
+        printDatamodelDiff(lastMigration.datamodel, maskSchema(datamodel)),
+      )
     } else {
-      console.log(highlightDatamodel(datamodel))
+      console.log(highlightDatamodel(maskSchema(datamodel)))
     }
 
     lockFile.localMigrations.push(migrationId)
@@ -529,12 +533,14 @@ export class Migrate {
     if (localWatchMigrations.length > 0) {
       throw new Error(
         `Before running ${chalk.yellow(
-          'prisma migrate down --experimental',
+          getCommandWithExecutor('prisma migrate down --experimental'),
         )}, please save your ${chalk.bold(
           'dev',
         )} changes using ${chalk.bold.greenBright(
-          'prisma migrate save --experimental',
-        )} and ${chalk.bold.greenBright('prisma migrate up --experimental')}`,
+          getCommandWithExecutor('prisma migrate save --experimental'),
+        )} and ${chalk.bold.greenBright(
+          getCommandWithExecutor('prisma migrate up --experimental'),
+        )}`,
       )
     }
     const datamodel = this.getDatamodel()
@@ -717,7 +723,7 @@ export class Migrate {
     if (preview) {
       progressRenderer.done()
       return `\nTo apply the migrations, run ${chalk.greenBright(
-        'prisma migrate up --experimental',
+        getCommandWithExecutor('prisma migrate up --experimental'),
       )}\n`
     }
 
@@ -901,7 +907,7 @@ export class Migrate {
       if (Array.isArray(stepsFileJson)) {
         throw new Error(
           `We changed the steps.json format - please delete your migrations folder and run ${chalk.greenBright(
-            'prisma migrate save --experimental',
+            getCommandWithExecutor('prisma migrate save --experimental'),
           )} again`,
         )
       }
@@ -1170,7 +1176,7 @@ class ProgressRenderer {
     }, '')
     str += chalk.dim(
       `\n\nYou can get the detailed db changes with ${chalk.greenBright(
-        'prisma migrate up --experimental --verbose',
+        getCommandWithExecutor('prisma migrate up --experimental --verbose'),
       )}\nOr read about them here:${migrationsIdsPaths}`,
     )
 

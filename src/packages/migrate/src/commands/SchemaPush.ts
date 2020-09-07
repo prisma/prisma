@@ -51,6 +51,7 @@ export class SchemaPush implements Command {
         '--force': Boolean,
         '--experimental': Boolean,
         '--schema': String,
+        '--telemetry-information': String,
       },
       false,
     )

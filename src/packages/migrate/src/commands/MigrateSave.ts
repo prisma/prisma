@@ -6,6 +6,7 @@ import {
   getSchemaDir,
   HelpError,
   isError,
+  getCommandWithExecutor,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -77,6 +78,7 @@ export class MigrateSave implements Command {
       '-c': '--create-db',
       '--experimental': Boolean,
       '--schema': String,
+      '--telemetry-information': String,
     })
 
     if (isError(args)) {
@@ -143,7 +145,9 @@ export class MigrateSave implements Command {
 
     if (preview) {
       return `\nRun ${chalk.greenBright(
-        'prisma migrate save --name MIGRATION_NAME --experimental',
+        getCommandWithExecutor(
+          'prisma migrate save --name MIGRATION_NAME --experimental',
+        ),
       )} to create the migration\n`
     }
 
@@ -160,7 +164,7 @@ export class MigrateSave implements Command {
     )} in\n\n${chalk.dim(
       printFiles(`migrations/${migrationId}`, files),
     )}\n\nRun ${chalk.greenBright(
-      'prisma migrate up --experimental',
+      getCommandWithExecutor('prisma migrate up --experimental'),
     )} to apply the migration\n`
   }
 

@@ -17,7 +17,7 @@ const FIXED_BINARIES_HASH = '6c777331554df4c3e0a90dd841339c7b0619d0e1'
 jest.setTimeout(30000)
 
 describe('download', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
     // completely clean up the cache and keep nothing
     await cleanupCache(0)
     await del(__dirname + '/**/*engine*')
@@ -68,6 +68,24 @@ describe('download', () => {
   })
 
   test('basic download all current binaries', async () => {
+    const platform = await getPlatform()
+    const queryEnginePath = path.join(
+      __dirname,
+      getBinaryName('query-engine', platform),
+    )
+    const introspectionEnginePath = path.join(
+      __dirname,
+      getBinaryName('introspection-engine', platform),
+    )
+    const migrationEnginePath = path.join(
+      __dirname,
+      getBinaryName('migration-engine', platform),
+    )
+    const prismafmtPath = path.join(
+      __dirname,
+      getBinaryName('prisma-fmt', platform),
+    )
+
     await download({
       binaries: {
         'query-engine': __dirname,
@@ -87,6 +105,16 @@ describe('download', () => {
       ],
       version: CURRENT_BINARIES_HASH,
     })
+
+    // Check that all binaries git hash are the same
+    expect(await getVersion(queryEnginePath)).toContain(CURRENT_BINARIES_HASH)
+    expect(await getVersion(introspectionEnginePath)).toContain(
+      CURRENT_BINARIES_HASH,
+    )
+    expect(await getVersion(migrationEnginePath)).toContain(
+      CURRENT_BINARIES_HASH,
+    )
+    expect(await getVersion(prismafmtPath)).toContain(CURRENT_BINARIES_HASH)
   })
 
   test('auto heal corrupt binary', async () => {
@@ -322,7 +350,8 @@ describe('download', () => {
     const after = Date.now()
     // cache should take less than 2s
     // value on Mac: 1440
-    expect(after - before).toBeLessThan(4000)
+    // value on GH Actions: ~5812
+    expect(after - before).toBeLessThan(6200)
     const before2 = Date.now()
     await download({
       binaries: {
@@ -346,7 +375,7 @@ describe('download', () => {
     const after2 = Date.now()
     // if binaries are already there, it should take less than 100ms to check all of them
     // value on Mac: 33ms
-    expect(after2 - before2).toBeLessThan(3500)
+    expect(after2 - before2).toBeLessThan(4500)
   })
 })
 

@@ -6,6 +6,7 @@ import {
   HelpError,
   getSchemaPath,
   isError,
+  getCommandWithExecutor,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import logUpdate from 'log-update'
@@ -70,10 +71,11 @@ export class Generate implements Command {
         try {
           await generator.generate()
           const after = Date.now()
+          const version = generator.manifest?.version
           message.push(
-            `✔ Generated ${chalk.bold(name!)}${toStr} in ${formatms(
-              after - before,
-            )}\n`,
+            `✔ Generated ${chalk.bold(name!)}${
+              version ? ` (version: ${version})` : ''
+            }${toStr} in ${formatms(after - before)}\n`,
           )
           generator.stop()
         } catch (err) {
@@ -97,6 +99,7 @@ export class Generate implements Command {
       '--schema': String,
       // Only used for checkpoint information
       '--postinstall': Boolean,
+      '--telemetry-information': String,
     })
 
     const isPostinstall = process.env.PRISMA_GENERATE_IN_POSTINSTALL
@@ -162,7 +165,7 @@ If you do not have a Prisma Schema file yet, you can ignore this message.`)
           'info',
         )} The postinstall script automatically ran \`prisma generate\`, which failed.
 The postinstall script still succeeds but won't generate the Prisma Client.
-Please run \`prisma generate\` to see the errors.`)
+Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         return ''
       }
       if (watchMode) {
@@ -177,18 +180,33 @@ Please run \`prisma generate\` to see the errors.`)
     )}\n`
 
     if (!watchMode) {
-      const hint = `
+      const prismaClientJSGenerator = generators?.find(
+        (g) => g.options?.generator.provider === 'prisma-client-js',
+      )
+      let hint = ''
+      if (prismaClientJSGenerator) {
+        const importPath = prismaClientJSGenerator.options?.generator
+          ?.isCustomOutput
+          ? prefixRelativePathIfNecessary(
+              path.relative(
+                process.cwd(),
+                prismaClientJSGenerator.options?.generator.output!,
+              ),
+            )
+          : '@prisma/client'
+        hint = `
 You can now start using Prisma Client in your code:
 
 \`\`\`
 ${highlightTS(`\
-import { PrismaClient } from '@prisma/client'
-// or const { PrismaClient } = require('@prisma/client')
+import { PrismaClient } from '${importPath}'
+// or const { PrismaClient } = require('${importPath}')
 
 const prisma = new PrismaClient()`)}
 \`\`\`
 
 Explore the full API: ${link('http://pris.ly/d/client')}`
+      }
       const message =
         '\n' +
         this.logText +
@@ -200,7 +218,7 @@ Explore the full API: ${link('http://pris.ly/d/client')}`
             'info',
           )} The postinstall script automatically ran \`prisma generate\`, which failed.
 The postinstall script still succeeds but won't generate the Prisma Client.
-Please run \`prisma generate\` to see the errors.`)
+Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
           return ''
         }
         throw new Error(message)
@@ -257,4 +275,12 @@ Please run \`prisma generate\` to see the errors.`)
     }
     return Generate.help
   }
+}
+
+function prefixRelativePathIfNecessary(relativePath: string): string {
+  if (relativePath.startsWith('..')) {
+    return relativePath
+  }
+
+  return `./${relativePath}`
 }

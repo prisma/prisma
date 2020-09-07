@@ -1,0 +1,127 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`introspect basic introspection 1`] = `
+Array [
+  "generator client {
+  provider = \\"prisma-client-js\\"
+}
+
+datasource db {
+  provider = \\"sqlite\\"
+  url      = \\"file:dev.db\\"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @default(autoincrement()) @id
+  published Boolean  @default(false)
+  title     String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Profile {
+  bio    String?
+  id     Int     @default(autoincrement()) @id
+  userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id])
+}
+
+model User {
+  email   String   @unique
+  id      Int      @default(autoincrement()) @id
+  name    String?
+  posts   Post[]
+  profile Profile?
+}
+",
+  "
+// introspectionSchemaVersion: Prisma2",
+  "",
+]
+`;
+
+exports[`introspect basic introspection with --url 1`] = `
+Array [
+  "generator client {
+  provider = \\"prisma-client-js\\"
+}
+
+datasource db {
+  provider = \\"sqlite\\"
+  url      = \\"file:dev.db\\"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @default(autoincrement()) @id
+  published Boolean  @default(false)
+  title     String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Profile {
+  bio    String?
+  id     Int     @default(autoincrement()) @id
+  userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id])
+}
+
+model User {
+  email   String   @unique
+  id      Int      @default(autoincrement()) @id
+  name    String?
+  posts   Post[]
+  profile Profile?
+}
+",
+  "
+// introspectionSchemaVersion: Prisma2",
+  "",
+]
+`;
+
+exports[`introspect introspection --force 1`] = `
+Array [
+  "generator client {
+  provider = \\"prisma-client-js\\"
+}
+
+datasource db {
+  provider = \\"sqlite\\"
+  url      = \\"file:dev.db\\"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @default(autoincrement()) @id
+  published Boolean  @default(false)
+  title     String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Profile {
+  bio    String?
+  id     Int     @default(autoincrement()) @id
+  userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id])
+}
+
+model User {
+  email   String   @unique
+  id      Int      @default(autoincrement()) @id
+  name    String?
+  posts   Post[]
+  profile Profile?
+}
+",
+  "
+// introspectionSchemaVersion: Prisma2",
+  "",
+]
+`;

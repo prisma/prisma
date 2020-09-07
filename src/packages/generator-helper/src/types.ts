@@ -15,6 +15,7 @@ export namespace DMMF {
     name: string
     values: EnumValue[]
     dbName?: string | null
+    documentation?: string
   }
 
   export interface SchemaEnum {
@@ -38,6 +39,8 @@ export namespace DMMF {
     isEmbedded: boolean
     dbName: string | null
     fields: Field[]
+    isGenerated: boolean
+    documentation?: string
     uniqueFields: string[][]
     uniqueIndexes: uniqueIndex[]
     idFields: string[]
@@ -52,15 +55,19 @@ export namespace DMMF {
     isRequired: boolean
     isList: boolean
     isUnique: boolean
+    isReadOnly: boolean
     isId: boolean
+    isUpdatedAt: boolean
     type: string
     dbNames: string[] | null
     isGenerated: boolean
     hasDefaultValue: boolean
     default?: FieldDefault | string | boolean | number
     relationToFields?: any[]
+    relationFromFields?: any[]
     relationOnDelete?: string
     relationName?: string
+    documentation?: string
   }
 
   export interface FieldDefault {

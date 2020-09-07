@@ -63,378 +63,19 @@ describe('select validation', () => {
     try {
       document.validate(ast, undefined, undefined, 'minimal')
     } catch (e) {
-      expect(e.message).toMatchInlineSnapshot(`
-        "Unknown arg \`name_in\` in where.name_in for type UserWhereInput. Did you mean \`name\`?
-        Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`?
-        Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_arbitrary for type UserWhereInput.
-        Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`?
-        Unknown arg \`id_endsWith\` in where.AND.1.id_endsWith for type UserWhereInput.
-        Unknown arg \`name_contains\` in where.AND.1.name_contains for type UserWhereInput.
-        Unknown arg \`name_gt\` in where.AND.1.name_gt for type UserWhereInput. Did you mean \`name\`?
-        Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you mean \`name\`?
-        Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`?
-        Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereInput.
-        Invalid value 'asd' of type String for field name on model User. Expected either true or false.
-        Unknown field \`name2\` for select statement on model User. Did you mean \`name\`?"
-      `)
+      expect(e.message).toMatchSnapshot()
     }
 
     try {
       document.validate(ast, undefined, undefined, 'colorless')
     } catch (e) {
-      expect(e.message).toMatchInlineSnapshot(`
-        "
-        Invalid \`prisma.findManyUser()\` invocation:
-
-        {
-          skip: 200,
-          where: {
-            name_contains: undefined,
-            name_in: [
-            ~~~~~~~
-              'hans',
-              'peter',
-              'schmidt'
-            ],
-            AND: [
-              {
-                age_gt: 10123123123,
-                ~~~~~~
-                this_is_completely_arbitrary: 'veryLongNameGoIntoaNewLineNow@gmail.com'
-                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-              },
-              {
-                age_gt: 10123123123,
-                ~~~~~~
-                id_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
-                ~~~~~~~~~~~
-                name_contains: 'hans',
-                ~~~~~~~~~~~~~
-                name_gt: 2131203912039123,
-                ~~~~~~~
-                name_in: [
-                ~~~~~~~
-                  'hans'
-                ],
-                AND: [
-                  {
-                    age_gt: '10123123123',
-                    ~~~~~~
-                    id_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com'
-                    ~~~~~~~~~~~
-                  }
-                ]
-              }
-            ]
-          },
-          select: {
-        ?   id?: true,
-        ?   name?: true,
-            name2: true,
-            ~~~~~
-        ?   posts?: true,
-        ?   email?: true,
-        ?   json?: true
-          }
-        }
-
-        Unknown arg \`name_in\` in where.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_arbitrary for type UserWhereInput. Available args:
-
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`id_endsWith\` in where.AND.1.id_endsWith for type UserWhereInput. Available args:
-
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`name_contains\` in where.AND.1.name_contains for type UserWhereInput. Available args:
-
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`name_gt\` in where.AND.1.name_gt for type UserWhereInput. Did you mean \`name\`? Available args:
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereInput. Available args:
-
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Invalid value 'asd' of type String for field name on model User. Expected either true or false.
-        Unknown field \`name2\` for select statement on model User. Available options are listed in green. Did you mean \`name\`?
-        "
-      `)
+      expect(e.message).toMatchSnapshot()
     }
 
     try {
       document.validate(ast)
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        Invalid \`prisma.findManyUser()\` invocation:
-
-        {
-          skip: 200,
-          where: {
-            name_contains: undefined,
-            name_in: [
-            ~~~~~~~
-              'hans',
-              'peter',
-              'schmidt'
-            ],
-            AND: [
-              {
-                age_gt: 10123123123,
-                ~~~~~~
-                this_is_completely_arbitrary: 'veryLongNameGoIntoaNewLineNow@gmail.com'
-                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-              },
-              {
-                age_gt: 10123123123,
-                ~~~~~~
-                id_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
-                ~~~~~~~~~~~
-                name_contains: 'hans',
-                ~~~~~~~~~~~~~
-                name_gt: 2131203912039123,
-                ~~~~~~~
-                name_in: [
-                ~~~~~~~
-                  'hans'
-                ],
-                AND: [
-                  {
-                    age_gt: '10123123123',
-                    ~~~~~~
-                    id_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com'
-                    ~~~~~~~~~~~
-                  }
-                ]
-              }
-            ]
-          },
-          select: {
-        ?   id?: true,
-        ?   name?: true,
-            name2: true,
-            ~~~~~
-        ?   posts?: true,
-        ?   email?: true,
-        ?   json?: true
-          }
-        }
-
-        Unknown arg \`name_in\` in where.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_arbitrary for type UserWhereInput. Available args:
-
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`id_endsWith\` in where.AND.1.id_endsWith for type UserWhereInput. Available args:
-
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`name_contains\` in where.AND.1.name_contains for type UserWhereInput. Available args:
-
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`name_gt\` in where.AND.1.name_gt for type UserWhereInput. Did you mean \`name\`? Available args:
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereInput. Available args:
-
-        type UserWhereInput {
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          id?: String | StringFilter
-          email?: String | StringFilter
-          name?: String | StringNullableFilter | null
-          posts?: PostListRelationFilter
-          json?: Json | JsonNullableFilter | null
-        }
-        Invalid value 'asd' of type String for field name on model User. Expected either true or false.
-        Unknown field \`name2\` for select statement on model User. Available options are listed in green. Did you mean \`name\`?
-        "
-      `)
+      expect(stripAnsi(e.message)).toMatchSnapshot()
     }
   })
 
@@ -452,27 +93,7 @@ describe('select validation', () => {
     try {
       document.validate(ast)
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        Invalid \`prisma.createOnePost()\` invocation:
-
-        {
-        + data: {
-        +   id?: String,
-        +   createdAt?: DateTime,
-        +   updatedAt?: DateTime,
-        +   published: Boolean,
-        +   title: String,
-        +   content?: String,
-        +   author?: UserCreateOneWithoutPostsInput
-        + }
-        }
-
-        Argument data is missing.
-
-        Note: Lines with + are required
-        "
-      `)
+      expect(stripAnsi(e.message)).toMatchSnapshot()
     }
   })
 
@@ -490,62 +111,19 @@ describe('select validation', () => {
     try {
       document.validate(ast)
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        Invalid \`prisma.createOnePost()\` invocation:
-
-        {
-        + data: {
-        +   id?: String,
-        +   createdAt?: DateTime,
-        +   updatedAt?: DateTime,
-        +   published: Boolean,
-        +   title: String,
-        +   content?: String,
-        +   author?: UserCreateOneWithoutPostsInput
-        + }
-        }
-
-        Argument data is missing.
-
-        Note: Lines with + are required
-        "
-      `)
+      expect(stripAnsi(e.message)).toMatchSnapshot()
     }
 
     try {
       document.validate(ast, undefined, undefined, 'minimal')
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "Argument data is missing.
-        "
-      `)
+      expect(stripAnsi(e.message)).toMatchSnapshot()
     }
 
     try {
       document.validate(ast, undefined, undefined, 'colorless')
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        Invalid \`prisma.createOnePost()\` invocation:
-
-        {
-        + data: {
-        +   id?: String,
-        +   createdAt?: DateTime,
-        +   updatedAt?: DateTime,
-        +   published: Boolean,
-        +   title: String,
-        +   content?: String,
-        +   author?: UserCreateOneWithoutPostsInput
-        + }
-        }
-
-        Argument data is missing.
-
-        Note: Lines with + are required
-        "
-      `)
+      expect(stripAnsi(e.message)).toMatchSnapshot()
     }
   })
 
@@ -570,31 +148,7 @@ describe('select validation', () => {
     try {
       document.validate(ast)
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        Invalid \`prisma.createOnePost()\` invocation:
-
-        {
-          data: {
-            title: 'string',
-            author: {
-              connect: {
-                id: ''
-              }
-            },
-        +   published: Boolean,
-        ?   id?: String,
-        ?   createdAt?: DateTime,
-        ?   updatedAt?: DateTime,
-        ?   content?: String
-          }
-        }
-
-        Argument published for data.published is missing.
-
-        Note: Lines with + are required, lines with ? are optional.
-        "
-      `)
+      expect(stripAnsi(e.message)).toMatchSnapshot()
     }
   })
 
@@ -616,30 +170,7 @@ describe('select validation', () => {
     try {
       document.validate(ast)
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        Invalid \`prisma.createOnePost()\` invocation:
-
-        {
-          data: {
-            title: 'string',
-        +   published: Boolean,
-        ?   id?: String,
-        ?   createdAt?: DateTime,
-        ?   updatedAt?: DateTime,
-        ?   content?: String,
-        ?   author?: {
-        ?     create?: UserCreateWithoutPostsInput,
-        ?     connect?: UserWhereUniqueInput
-        ?   }
-          }
-        }
-
-        Argument published for data.published is missing.
-
-        Note: Lines with + are required, lines with ? are optional.
-        "
-      `)
+      expect(stripAnsi(e.message)).toMatchSnapshot()
     }
   })
 
@@ -859,28 +390,7 @@ describe('select validation', () => {
     try {
       document.validate(ast)
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        Invalid \`prisma.findOnePost()\` invocation:
-
-        {
-          select: {
-            author: {
-              select: {
-                id: true
-              }
-            }
-          },
-          where: {
-        ?   id?: String
-          }
-        }
-
-        Argument where of type PostWhereUniqueInput needs at least one argument. Available args are listed in green.
-
-        Note: Lines with ? are optional.
-        "
-      `)
+      expect(stripAnsi(e.message)).toMatchSnapshot()
     }
   })
 
@@ -909,28 +419,7 @@ describe('select validation', () => {
     try {
       document.validate(ast)
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        Invalid \`prisma.findOnePost()\` invocation:
-
-        {
-          select: {
-            author: {
-              select: {
-                id: true
-              }
-            }
-          },
-          where: {
-        ?   id?: String
-          }
-        }
-
-        Argument where of type PostWhereUniqueInput needs at least one argument. Available args are listed in green.
-
-        Note: Lines with ? are optional.
-        "
-      `)
+      expect(stripAnsi(e.message)).toMatchSnapshot()
     }
   })
 
@@ -1004,27 +493,7 @@ describe('select validation', () => {
       rootField: 'findManyPost',
     })
 
-    expect(String(document)).toMatchInlineSnapshot(`
-      "query {
-        findManyPost {
-          author {
-            id
-            email
-            name
-            json
-            posts {
-              id
-              createdAt
-              updatedAt
-              published
-              title
-              content
-              authorId
-            }
-          }
-        }
-      }"
-    `)
+    expect(String(document)).toMatchSnapshot()
     expect(() => document.validate(ast)).not.toThrow()
   })
 })

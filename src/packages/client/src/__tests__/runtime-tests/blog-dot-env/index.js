@@ -11,5 +11,7 @@ module.exports = async () => {
     await prisma.$connect()
   } catch (e) {
     throw e
+  } finally {
+    prisma.$disconnect()
   }
 }

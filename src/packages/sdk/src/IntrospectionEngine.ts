@@ -43,6 +43,7 @@ export class IntrospectionError extends Error {
 
 // See https://github.com/prisma/prisma-engines/blob/ReIntrospection/introspection-engine/connectors/sql-introspection-connector/src/warnings.rs
 export type IntrospectionWarnings =
+  | IntrospectionWarningsUnhandled
   | IntrospectionWarningsInvalidReintro
   | IntrospectionWarningsMissingUnique
   | IntrospectionWarningsEmptyFieldName
@@ -53,6 +54,10 @@ export type IntrospectionWarnings =
   | IntrospectionWarningsFieldModelReintro
   | IntrospectionWarningsFieldMapReintro
   | IntrospectionWarningsEnumMapReintro
+  | IntrospectionWarningsEnumValueMapReintro
+  | IntrospectionWarningsCuidReintro
+  | IntrospectionWarningsUuidReintro
+  | IntrospectionWarningsUpdatedAtReintro
 
 type AffectedModel = { model: string }[]
 type AffectedModelAndField = { model: string; field: string }[]
@@ -76,6 +81,10 @@ interface IntrospectionWarning {
     | null
 }
 
+interface IntrospectionWarningsUnhandled extends IntrospectionWarning {
+  code: number
+  affected: any
+}
 interface IntrospectionWarningsInvalidReintro extends IntrospectionWarning {
   code: 0
   affected: null
@@ -115,6 +124,23 @@ interface IntrospectionWarningsFieldMapReintro extends IntrospectionWarning {
 interface IntrospectionWarningsEnumMapReintro extends IntrospectionWarning {
   code: 9
   affected: AffectedEnum
+}
+interface IntrospectionWarningsEnumValueMapReintro
+  extends IntrospectionWarning {
+  code: 10
+  affected: AffectedEnum
+}
+interface IntrospectionWarningsCuidReintro extends IntrospectionWarning {
+  code: 11
+  affected: AffectedModelAndField
+}
+interface IntrospectionWarningsUuidReintro extends IntrospectionWarning {
+  code: 12
+  affected: AffectedModelAndField
+}
+interface IntrospectionWarningsUpdatedAtReintro extends IntrospectionWarning {
+  code: 13
+  affected: AffectedModelAndField
 }
 
 export type IntrospectionSchemaVersion =
@@ -293,10 +319,7 @@ export class IntrospectionEngine {
             if (code !== 0 || messages.includes('panicked at')) {
               let errorMessage =
                 chalk.red.bold('Error in introspection engine: ') + messages
-              if (messages.includes('\u001b[1;94m-->\u001b[0m')) {
-                errorMessage =
-                  `${chalk.red.bold('Schema parsing\n')}` + messages
-              } else if (this.lastError && this.lastError.msg === 'PANIC') {
+              if (this.lastError && this.lastError.msg === 'PANIC') {
                 errorMessage = serializePanic(this.lastError)
                 err = new IntrospectionPanic(
                   errorMessage,

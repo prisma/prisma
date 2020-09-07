@@ -59,7 +59,7 @@ if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
 
 // Parse CLI arguments
 const args = arg(
-  process.argv.slice(3),
+  process.argv.slice(2),
   {
     '--schema': String,
     '--telemetry-information': String,
@@ -138,13 +138,12 @@ import {
   MigrateTmpPrepare,
   handlePanic,
 } from '@prisma/migrate'
-import { isInstalledGlobally } from './utils/isInstalledGlobally'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
 import { Dev } from './Dev'
 import { Version } from './Version'
 import { Generate } from './Generate'
-import { ProviderAliases } from '@prisma/sdk'
+import { ProviderAliases, isCurrentBinInstalledGlobally } from '@prisma/sdk'
 import { Validate } from './Validate'
 import { Format } from './Format'
 import { Doctor } from './Doctor'
@@ -167,7 +166,7 @@ if (process.env.NO_COLOR) {
   chalk.level = 0
 }
 
-const isPrismaInstalledGlobally = isInstalledGlobally()
+const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
 
 /**
  * Main function
@@ -227,6 +226,7 @@ async function main(): Promise<number> {
 
     let schemaProviders: string[] | undefined
     let schemaPreviewFeatures: string[] | undefined
+    let schemaGeneratorsProviders: string[] | undefined
     try {
       const schema = await getSchema(args['--schema'])
       const config = await getConfig({
@@ -241,6 +241,8 @@ async function main(): Promise<number> {
       if (generator) {
         schemaPreviewFeatures = generator.previewFeatures
       }
+      // Example 'prisma-client-js'
+      schemaGeneratorsProviders = config.generators.map((gen) => gen.provider)
     } catch (e) {
       //
       debug(e)
@@ -278,6 +280,7 @@ async function main(): Promise<number> {
       version: packageJson.version,
       schema_providers: schemaProviders,
       schema_preview_features: schemaPreviewFeatures,
+      schema_generators_providers: schemaGeneratorsProviders,
       cli_path: process.argv[1],
       cli_install_type: isPrismaInstalledGlobally ? 'global' : 'local',
       command: process.argv.slice(2).join(' '),

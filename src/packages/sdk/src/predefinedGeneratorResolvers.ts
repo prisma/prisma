@@ -4,6 +4,7 @@ import hasYarn from 'has-yarn'
 import execa from 'execa'
 import path from 'path'
 import fs from 'fs'
+import { getCommandWithExecutor } from './getCommandWithExecutor'
 import Debug from '@prisma/debug'
 const debugEnabled = Debug.enabled('generator')
 
@@ -35,7 +36,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   )} with ${chalk.green(
       "import { PrismaClient } from '@prisma/client'",
     )} in your code.
-  4. Run ${chalk.green('prisma generate')} again.
+  4. Run ${chalk.green(getCommandWithExecutor('prisma generate'))} again.
       `)
   },
   'prisma-client-js': async (baseDir, version) => {
@@ -82,7 +83,9 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
           `Could not resolve @prisma/client despite the installation that we just tried.
 Please try to install it by hand with ${chalk.bold.greenBright(
             'npm install @prisma/client',
-          )} and rerun ${chalk.bold('prisma generate')} 🙏.`,
+          )} and rerun ${chalk.bold(
+            getCommandWithExecutor('prisma generate'),
+          )} 🙏.`,
         )
       }
 
@@ -98,7 +101,9 @@ Please try to install it by hand with ${chalk.bold.greenBright(
         `Could not resolve @prisma/client. 
 Please try to install it with ${chalk.bold.greenBright(
           'npm install @prisma/client',
-        )} and rerun ${chalk.bold('prisma generate')} 🙏.`,
+        )} and rerun ${chalk.bold(
+          getCommandWithExecutor('prisma generate'),
+        )} 🙏.`,
       )
     }
 

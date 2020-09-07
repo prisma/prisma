@@ -119,7 +119,12 @@ function transformInputTypes(document: DMMF.Document): DMMF.Document {
 
           // there might not be an equals field, if it's a relation filter
           if (equalsField) {
-            f.inputType.unshift(equalsField.inputType[0])
+            // Don't add ` | Json` for json types, as we need strict types there
+            // Otherwise there is an ambiguity between { equals: {} } and { equals: { equals: ... } }
+            if (equalsField.inputType[0].type !== 'Json') {
+              f.inputType.unshift(equalsField.inputType[0])
+            }
+
             if (equalsField.inputType[0].isNullable) {
               f.inputType.push({
                 isList: false,
@@ -129,9 +134,18 @@ function transformInputTypes(document: DMMF.Document): DMMF.Document {
                 type: 'null'
               })
             }
+            // lift up "not" field
             if (!inputTypeFieldLookupMap[inputTypeName].not) {
               const notField = filterType.fields.find(field => field.name === 'not')
               if (notField && notField.inputType.length === 1) {
+                if (equalsField.inputType[0].type === 'Json') {
+                  // we need to filter out the `NestedJsonNullableFilter`,
+                  // as we have lifted the "not" filter one level up already
+                  // and we just want to directly filter the json as it is
+                  if (notField.inputType[0].type === 'NestedJsonNullableFilter') {
+                    notField.inputType = []
+                  }
+                }
                 notField.inputType.unshift(equalsField.inputType[0])
               }
               inputTypeFieldLookupMap[inputTypeName].not = notField!
@@ -154,6 +168,37 @@ function transformInputTypes(document: DMMF.Document): DMMF.Document {
     // set `atLeastOne` for unique where types
     if (inputType.name.endsWith('WhereUniqueInput')) {
       inputType.atLeastOne = true
+    }
+
+    // add union transformation, lift `set` up in both `update` and `updateMany` types
+    if (inputType.name.endsWith('UpdateInput') || inputType.name.endsWith('UpdateManyMutationInput') || 
+      // lifting needs to be done in the nested input types https://github.com/prisma/prisma/issues/3497
+      (inputType.name.includes('UpdateWithout') && inputType.name.endsWith('DataInput')) ||
+      inputType.name.endsWith('UpdateManyDataInput')
+    ) {
+      inputType.isUpdateType = true
+      for (const field of inputType.fields) {
+        const fieldInputTypeName = field.inputType[0].type.toString()
+        if (fieldInputTypeName.endsWith('FieldUpdateOperationsInput')) {
+          const fieldInputType = inputTypeMap[fieldInputTypeName]
+          if (!fieldInputType) {
+            throw new Error(`Could not find field input type ${fieldInputTypeName}`)
+          }
+          fieldInputType.isUpdateOperationType = true
+          // remove the original type for JSON
+          // because we can't allow {set: {}} as it would be ambiguous
+          const setField = fieldInputType.fields.find(f => f.name === 'set')
+          if (!setField) {
+            // WEIRD, should normally not happen. But we for now also don't have a reason to error here
+            // it could e.g. happen that we incorrectly jumped into a relation type
+            continue
+          }
+          if (fieldInputTypeName.endsWith('JsonFieldUpdateOperationsInput')) {
+            field.inputType = []
+          }
+          field.inputType.unshift(setField.inputType[0])
+        }
+      }
     }
 
     return inputType

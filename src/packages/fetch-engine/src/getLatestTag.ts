@@ -26,6 +26,11 @@ export async function getLatestTag(): Promise<any> {
   const result = await fetch(url, {
     agent: getProxyAgent(url),
   } as any).then((res) => res.json())
+
+  if (!Array.isArray(result)) {
+    throw new Error(`Result is not an array for ${url}`)
+  }
+
   const commits = result.map((r) => r.sha)
   const commit = await getFirstExistingCommit(commits)
   const queue = new PQueue({ concurrency: 30 })
@@ -139,6 +144,11 @@ async function getBranch() {
   if (process.env.BUILDKITE_BRANCH) {
     return process.env.BUILDKITE_BRANCH
   }
+  if (process.env.GITHUB_CONTEXT) {
+    const context = JSON.parse(process.env.GITHUB_CONTEXT)
+    const split = context.ref.split('/')
+    return split[split.length - 1]
+  }
   const result = await execa.command('git rev-parse --abbrev-ref HEAD', {
     shell: true,
     stdio: 'pipe',
@@ -148,7 +158,7 @@ async function getBranch() {
 
 // TODO: Adjust this for stable release
 function isPatchBranch(version: string): boolean {
-  return /2\.(\d+)\.x/.test(version)
+  return /^2\.(\d+)\.x/.test(version)
 }
 
 async function getVersionHashes(

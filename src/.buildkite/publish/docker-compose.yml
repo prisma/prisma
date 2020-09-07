@@ -26,13 +26,14 @@ services:
       - PATCH_BRANCH
       - DRY_RUN
       - CI
+      - PRISMA_TELEMETRY_INFORMATION="buildkite prisma publish"
     depends_on:
       - postgres
       - mysql
       # - mariadb
 
   postgres:
-    image: postgres:10.13
+    image: postgres:10.14
     restart: always
     environment:
       - POSTGRES_USER=prisma
