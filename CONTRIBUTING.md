@@ -13,13 +13,38 @@ pnpm run setup
 
 Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org/)
 
+### General prerequisites
+
+1. Install [`pnpm@5.1.7`](https://pnpm.js.org/) (for installing npm dependencies)
+1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing test databases)
+1. Install [`ts-node`](https://github.com/TypeStrong/ts-node) (for running Node scripts written in TypeScript)
+
 ### Developing Prisma Client JS
 
-2. `cd src/packages/client`
-3. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
-4. `cd fixtures/blog`
-5. `prisma migrate save --name init --experimental && prisma migrate up --experimental`
-6. `ts-node main.ts`
+1. `cd src/packages/client`
+1. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
+1. `cd fixtures/blog`
+1. `export DB_URL=YOUR_POSTGRES_DB_URL`  
+   For this step you might find our [docker-compose setup](./src/docker) helpful
+1. `npx @prisma/cli migrate save --create-db --name init --experimental && npx @prisma/cli migrate up --experimental`
+1. `ts-node main`
+
+### Running integration tests for Prisma Client JS
+
+Start the test databases (see [readme](./src/docker) for various ways to run these)
+
+1. `cd src/docker`
+1. `docker-compose up -d`
+
+Start the tests
+
+1. `cd src/packages/cli`
+2. `pnpm run test`
+
+Notes:
+
+- To update the snapshots add the following env var `SNAPSHOT_UPDATE=1`
+- If on a patch branch then the latest engine binary patch version for that semver-minor series will be used. If not on a patch branch then the current `master` engine binary version will be used. A patch branch is a branch whose name matches semver pattern `2.<minor>.x`. The Test suite will log which engine binary is being used at the start of testing.
 
 ### Working on code generation
 
@@ -40,19 +65,19 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 ### Developing Prisma Migrate
 
 1. `cd src/packages/migrate/fixtures/blog`
-2. `ts-node ../../src/bin.ts up`
+1. `ts-node ../../src/bin.ts up`
 
 ### Developing `prisma init` Command
 
 1. `cd src/packages/introspection`
-2. `mkdir test && cd test`
-3. `ts-node ../src/bin.ts`
+1. `mkdir test && cd test`
+1. `ts-node ../src/bin.ts`
 
 ### Developing `@prisma/cli` CLI
 
 1. `cd src/packages/prisma2`
-2. `mkdir test && cd test`
-3. `ts-node ../src/bin.ts generate`
+1. `mkdir test && cd test`
+1. `ts-node ../src/bin.ts generate`
 
 ### How to update all binaries
 
@@ -82,7 +107,7 @@ We structure our messages like this:
 Example
 
 ```
-feature(client): new awesome feature
+feat(client): new awesome feature
 
 Closes #111
 ```
