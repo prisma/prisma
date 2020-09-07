@@ -6,7 +6,7 @@ If they are already used make sure to change the ports like this
 
 ```yaml
 ports:
-    - '3307:3306 # only change the first number
+  - '3307:3306 # only change the first number
 ```
 
 ## Usage
@@ -14,25 +14,32 @@ ports:
 ### Start
 
 In detached mode
-`docker-compose up -d`
-`docker-compose logs -f mysql`
+
+```
+docker-compose up -d
+docker-compose logs -f mysql
+```
 
 In attached mode:
-`docker-compose up`
+
+```
+docker-compose up`
+```
+
 Or start only one service:
-`docker-compose mysql`
+
+```
+docker-compose mysql
+```
 
 ### Stop
 
-`docker-compose down`
+```
+docker-compose down
+```
 
 ### Delete all
 
-`docker-compose down -v --rmi all --remove-orphans`
-
-### Trigger integration tests for these databases
-
-`cd prisma/src/packages/cli`
-`pnpm run test-posgresql && pnpm run test-mysql && pnpm run test-mariadb`
-
-Note: to update the snaphot add the following env var `SNAPSHOT_UPDATE=1`
+```
+docker-compose down -v --rmi all --remove-orphans
+```
