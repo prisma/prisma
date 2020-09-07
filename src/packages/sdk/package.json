@@ -1,6 +1,6 @@
 {
   "name": "@prisma/sdk",
-  "version": "2.7.0-dev.22",
+  "version": "2.7.0-dev.23",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
