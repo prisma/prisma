@@ -29,7 +29,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
       `You provided RELEASE_PROMOTE_DEV without BUILDKITE_TAG, which doesn't make sense.`,
     )
   }
-  if (process.env.CI) {
+  if (process.env.CI && !process.env.SKIP_GIT) {
     await run('.', `git config --global user.email "prismabots@gmail.com"`)
     await run('.', `git config --global user.name "prisma-bot"`)
   }
@@ -65,7 +65,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     await run(
       '.',
       `pnpm i --no-prefer-frozen-lockfile -r --ignore-scripts --reporter=silent`,
-    ).catch((e) => {})
+    ).catch((e) => { })
   }
 
   debug(`Building packages`)
