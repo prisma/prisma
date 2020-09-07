@@ -81,7 +81,7 @@ model User {
 In this schema, you configure three things:
 
 - **Data source**: Specifies your database connection (via an environment variable)
-- **Generator**: Indicates that you want to genenerate Prisma Client
+- **Generator**: Indicates that you want to generate Prisma Client
 - **Data model**: Defines your application models
 
 ---
@@ -245,7 +245,7 @@ If the feature on the roadmap is linked to a GitHub issue, please make sure to l
 
 ## Contributing
 
-Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md) and [Code of Couduct for contributors](https://github.com/prisma/prisma/blob/master/CODE_OF_CONDUCT.md).
+Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md) and [Code of Conduct for contributors](https://github.com/prisma/prisma/blob/master/CODE_OF_CONDUCT.md).
 
 ## Build Status
 
