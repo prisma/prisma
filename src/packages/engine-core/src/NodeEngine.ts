@@ -202,7 +202,9 @@ export class NodeEngine {
     )
     this.engineEndpoint = engineEndpoint
 
-    if (useUds && process.platform !== 'win32') {
+    // TODO enable again if this doesn't work as intended
+    // if (useUds && process.platform !== 'win32') {
+    if (process.platform !== 'win32') {
       this.socketPath = `/tmp/prisma-${getRandomString()}.sock`
       socketPaths.push(this.socketPath)
       this.useUds = useUds
