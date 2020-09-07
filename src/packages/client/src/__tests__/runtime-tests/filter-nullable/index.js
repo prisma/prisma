@@ -11,7 +11,7 @@ module.exports = async () => {
     },
   })
 
-  console.log(result)
+  assert.strictEqual(result.length, 2, "Should return 2 Sale rows")
 
   db.$disconnect()
 }
