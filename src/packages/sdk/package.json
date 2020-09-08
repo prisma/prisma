@@ -40,7 +40,7 @@
     "prettier": "2.1.1",
     "ts-jest": "26.3.0",
     "ts-node": "8.10.2",
-    "typescript": "3.9.7"
+    "typescript": "4.0.2"
   },
   "dependencies": {
     "@apexearth/copy": "^1.4.5",
