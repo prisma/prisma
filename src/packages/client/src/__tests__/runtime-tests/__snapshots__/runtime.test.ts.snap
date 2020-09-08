@@ -52,6 +52,8 @@ exports[`runtime enums: enums example should succeed 1`] = `undefined`;
 
 exports[`runtime error-link: error-link example should succeed 1`] = `undefined`;
 
+exports[`runtime filter-nullable: filter-nullable example should succeed 1`] = `undefined`;
+
 exports[`runtime incorrect-column-type: incorrect-column-type example should not succeed 1`] = `
 "
 Invalid \`prisma.user.findMany()\` invocation in
