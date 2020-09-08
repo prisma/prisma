@@ -52,7 +52,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test:postgresql
-        working-directory: src
+        working-directory: src/packages/cli
         env:
           CI: true
           SKIP_GIT: true
@@ -113,7 +113,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test:mysql
-        working-directory: src
+        working-directory: src/packages/cli
         env:
           CI: true
           SKIP_GIT: true
@@ -159,7 +159,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test:sqlite
-        working-directory: src
+        working-directory: src/packages/cli
         env:
           CI: true
           SKIP_GIT: true
@@ -168,7 +168,7 @@ jobs:
   #
   # CLI-COMMANDS
   #
-  cli-:
+  cli-commands:
     runs-on: ubuntu-latest
 
     strategy:
@@ -204,7 +204,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test:commands
-        working-directory: src
+        working-directory: src/packages/cli
         env:
           CI: true
           SKIP_GIT: true
