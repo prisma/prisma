@@ -11,8 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     services:
@@ -67,8 +66,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     services:
@@ -128,8 +126,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     steps:
@@ -176,8 +173,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     steps:
@@ -221,8 +217,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     services:
@@ -277,8 +272,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     steps:
@@ -322,8 +316,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     steps:
@@ -367,8 +360,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     steps:
@@ -412,8 +404,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     steps:
@@ -457,8 +448,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     steps:
@@ -502,8 +492,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     steps:
@@ -547,8 +536,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     steps:
@@ -595,8 +583,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     services:
