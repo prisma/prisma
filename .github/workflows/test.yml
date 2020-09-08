@@ -1,6 +1,6 @@
 name: Node.js CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   test:
@@ -22,23 +22,8 @@ jobs:
         ports:
           - 5432/tcp
 
+      # mysql:8.0 would not work as we use `mariadb` node lib and it doesn't support the latest default password algorithm
       # https://stackoverflow.com/questions/60902904/how-to-pass-mysql-native-password-to-mysql-service-in-github-actions
-      # mysql:
-      #   image: mysql:8.0
-      #   env:
-      #     MYSQL_ROOT_PASSWORD: root
-      #     MYSQL_DATABASE: tests
-      #     MYSQL_USER: prisma
-      #     MYSQL_PASSWORD: prisma
-      #   volumes:
-      #     - mysql:/var/lib/mysql
-      #   ports:
-      #     - 3306/tcp
-      #   options: >-
-      #     --health-cmd="mysqladmin ping"
-      #     --health-interval=10s
-      #     --health-timeout=5s
-      #     --health-retries=3
       mysql:
         image: bitnami/mysql:8.0
         env:
