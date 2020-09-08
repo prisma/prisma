@@ -137,6 +137,8 @@ jobs:
           MYSQL_DATABASE: tests
           MYSQL_USER: prisma
           MYSQL_PASSWORD: prisma
+        ports:
+          - 3306
 
     steps:
       - uses: actions/checkout@v2
