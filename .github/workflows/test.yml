@@ -3,25 +3,72 @@ name: Node.js CI
 on: [push, pull_request]
 
 jobs:
-  test:
+  #
+  # CLI-POSTGRESQL
+  #
+  cli-postgresql:
     runs-on: ubuntu-latest
-    # container:
-    #   image: 'node:12'
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: [12]
 
     services:
       postgres:
-        image: postgres:10.3
+        image: postgres:9
         env:
           POSTGRES_USER: prisma
           POSTGRES_PASSWORD: prisma
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
         ports:
           - 5432/tcp
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
+    steps:
+      - uses: actions/checkout@v2
+
+      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test:postgresql
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/postgres
+
+  #
+  # CLI-MYSQL
+  #
+  cli-mysql:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: [12]
+
+    services:
       # mysql:8.0 would not work as we use `mariadb` node lib and it doesn't support the latest default password algorithm
       # https://stackoverflow.com/questions/60902904/how-to-pass-mysql-native-password-to-mysql-service-in-github-actions
       mysql:
@@ -34,21 +81,17 @@ jobs:
           MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
         ports:
           - 3306
-        options: >-
-          --health-cmd="mysqladmin ping" 
-          --health-interval=10s 
-          --health-timeout=5s 
-          --health-retries=3
+        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 3
 
     steps:
       - uses: actions/checkout@v2
+
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
         uses: actions/cache@v2
         env:
           cache-name: cache-node-modules
         with:
-          # pnpm cache files are stored in `~/.pnpm-store` on Linux/macOS
           path: ~/.pnpm-store
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
@@ -58,11 +101,60 @@ jobs:
 
       - uses: actions/setup-node@v2-beta
         with:
-          node-version: "12"
-      - run: bash src/.buildkite/test/run.sh
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/setup.sh
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/postgres
+
+      - run: pnpm run test:mysql
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_MYSQL_URI: mysql://prisma:prisma@localhost:${{ job.services.mysql.ports[3306] }}/tests
+
+  #
+  # CLI-SQLITE
+  #
+  cli-sqlite:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        node: [12]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test:sqlite
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
