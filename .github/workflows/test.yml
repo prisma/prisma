@@ -42,6 +42,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # pnpm cache files are stored in `~/.pnpm-store` on Linux/macOS
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
       - uses: actions/setup-node@v2-beta
         with:
           node-version: "12"
