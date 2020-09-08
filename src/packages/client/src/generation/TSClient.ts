@@ -639,7 +639,7 @@ ${indent(this.jsDoc, tab)}
   $queryRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<T>;
  
   /**
-   * @deprecated renamed to \`$executeRaw\`
+   * @deprecated renamed to \`$queryRaw\`
    */
   queryRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<T>;
 ${
