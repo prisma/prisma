@@ -26,10 +26,5 @@ test('corruption', async () => {
     errorFormat: 'minimal',
   })
 
-  await expect(prisma.user.findMany()).rejects
-    .toThrowErrorMatchingInlineSnapshot(`
-          Query engine exited with code 127
-
-          /client/src/__tests__/integration/errors/corruption/node_modules/.prisma/client/query-engine-TEST_PLATFORM: 1: hello: not found
-        `)
+  await expect(prisma.user.findMany()).rejects.toThrowError('not found')
 })
