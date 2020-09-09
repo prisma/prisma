@@ -76,7 +76,7 @@ test('blog-env-postgresql', async () => {
     },
     datasources: {
       db: {
-        url: connectionString,
+        url: originalConnectionString,
       },
     },
     log: [
