@@ -39,15 +39,15 @@ describe('scalar where transformation', () => {
     )
 
     expect(String(document)).toMatchInlineSnapshot(`
-      "mutation {
+      mutation {
         createOneUser(data: {
-          name: \\"Name\\"
-          email: \\"hans@hans.de\\"
-          status: \\"\\"
+          name: "Name"
+          email: "hans@hans.de"
+          status: ""
           favoriteTree: OAK
           location: {
             create: {
-              city: \\"Berlin\\"
+              city: "Berlin"
               id: 5
             }
           }
@@ -65,7 +65,7 @@ describe('scalar where transformation', () => {
           locationId
           someFloats
         }
-      }"
+      }
     `)
 
     expect(() => document.validate(select, false, 'tests')).not.toThrow()

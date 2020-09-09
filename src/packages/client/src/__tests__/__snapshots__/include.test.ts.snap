@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`include validation allow deep include without another include 1`] = `
-"query {
+query {
   findManyUser {
     id
     email
@@ -27,11 +27,11 @@ exports[`include validation allow deep include without another include 1`] = `
       optionnal
     }
   }
-}"
+}
 `;
 
 exports[`include validation allow include statement with only false properties 1`] = `
-"query {
+query {
   findManyPost {
     id
     createdAt
@@ -57,28 +57,28 @@ exports[`include validation allow include statement with only false properties 1
       coinflips
     }
   }
-}"
+}
 `;
 
 exports[`include validation allow normal findMany without include for empty model 1`] = `
-"query {
+query {
   findManyNoRelations {
     id
     name
   }
-}"
+}
 `;
 
 exports[`include validation catch unknown field name 1`] = `
-"query {
+query {
   mauthor {
     mauthor # INVALID_FIELD
   }
-}"
+}
 `;
 
 exports[`include validation deep include query 1`] = `
-"query {
+query {
   findManyPost {
     id
     createdAt
@@ -114,37 +114,37 @@ exports[`include validation deep include query 1`] = `
       }
     }
   }
-}"
+}
 `;
 
 exports[`include validation dont allow empty include statements 1`] = `
-"query {
+query {
   findManyPost {
     include # INVALID_FIELD
   }
-}"
+}
 `;
 
 exports[`include validation enforce empty include, if no relation 1`] = `
-"query {
+query {
   asd {
     asd # INVALID_FIELD
   }
-}"
+}
 `;
 
 exports[`include validation enforce no include, if no relation 1`] = `
-"query {
+query {
   findManyNoRelations {
     include # INVALID_FIELD
   }
-}"
+}
 `;
 
 exports[`include validation handle scalar fields special 1`] = `
-"query {
+query {
   id {
     id # INVALID_FIELD
   }
-}"
+}
 `;

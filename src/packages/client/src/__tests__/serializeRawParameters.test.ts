@@ -7,9 +7,9 @@ test('serializeRawParemeters object', () => {
 
   expect(replaceDates(data)).toMatchInlineSnapshot(`
     Object {
-      "date": Object {
-        "prisma__type": "date",
-        "prisma__value": "2020-06-22T17:07:16.348Z",
+      date: Object {
+        prisma__type: date,
+        prisma__value: 2020-06-22T17:07:16.348Z,
       },
     }
   `)
@@ -22,10 +22,10 @@ test('serializeRawParemeters array', () => {
 
   expect(replaceDates(data)).toMatchInlineSnapshot(`
     Object {
-      "date": Array [
+      date: Array [
         Object {
-          "prisma__type": "date",
-          "prisma__value": "2020-06-22T17:07:16.348Z",
+          prisma__type: date,
+          prisma__value: 2020-06-22T17:07:16.348Z,
         },
       ],
     }
@@ -37,8 +37,8 @@ test('serializeRawParemeters scalar', () => {
 
   expect(replaceDates(data)).toMatchInlineSnapshot(`
     Object {
-      "prisma__type": "date",
-      "prisma__value": "2020-06-22T17:07:16.348Z",
+      prisma__type: date,
+      prisma__value: 2020-06-22T17:07:16.348Z,
     }
   `)
 })
@@ -55,15 +55,15 @@ test('serializeRawParemeters nested', () => {
 
   expect(replaceDates(data)).toMatchInlineSnapshot(`
     Object {
-      "deep": Object {
-        "date": Array [
+      deep: Object {
+        date: Array [
           Object {
-            "prisma__type": "date",
-            "prisma__value": "2020-06-22T17:07:16.348Z",
+            prisma__type: date,
+            prisma__value: 2020-06-22T17:07:16.348Z,
           },
           Object {
-            "prisma__type": "date",
-            "prisma__value": "2020-06-22T17:07:16.348Z",
+            prisma__type: date,
+            prisma__value: 2020-06-22T17:07:16.348Z,
           },
         ],
       },

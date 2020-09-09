@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`json should be able filter json 1`] = `
-"query {
+query {
   findManyUser(where: {
     json: {
-      equals: \\"{\\\\\\"hello\\\\\\":\\\\\\"world\\\\\\"}\\"
+      equals: "{\\"hello\\":\\"world\\"}"
     }
   }) {
     id
@@ -12,26 +12,26 @@ exports[`json should be able filter json 1`] = `
     email
     json
   }
-}"
+}
 `;
 
 exports[`json should be able to create json 1`] = `
-"mutation {
+mutation {
   createOneUser(data: {
-    email: \\"a@a.de\\"
-    json: \\"{\\\\\\"hello\\\\\\":\\\\\\"world\\\\\\"}\\"
-    name: \\"Bob\\"
+    email: "a@a.de"
+    json: "{\\"hello\\":\\"world\\"}"
+    name: "Bob"
   }) {
     id
     name
     email
     json
   }
-}"
+}
 `;
 
 exports[`json should error if equals is missing 1`] = `
-"
+
 Invalid \`prisma.user()\` invocation:
 
 {}
@@ -42,5 +42,5 @@ type JsonFilter {
   not?: Json | NestedJsonFilter
 }
 
-"
+
 `;

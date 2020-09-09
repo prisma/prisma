@@ -12,7 +12,7 @@ test('info and warn', () => {
     },
   ])
 
-  expect(level).toMatchInlineSnapshot(`"info"`)
+  expect(level).toMatchInlineSnapshot(`info`)
 })
 
 test('query', () => {
@@ -35,5 +35,5 @@ test('strings and objects', () => {
     'warn',
   ])
 
-  expect(level).toMatchInlineSnapshot(`"warn"`)
+  expect(level).toMatchInlineSnapshot(`warn`)
 })

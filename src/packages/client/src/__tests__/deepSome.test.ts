@@ -35,7 +35,7 @@ describe('minimal where transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(where: {
           posts: {
             some: {
@@ -48,7 +48,7 @@ describe('minimal where transformation', () => {
                           posts: {
                             some: {
                               id: {
-                                equals: \\"5\\"
+                                equals: "5"
                               }
                             }
                           }
@@ -75,7 +75,7 @@ describe('minimal where transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 })

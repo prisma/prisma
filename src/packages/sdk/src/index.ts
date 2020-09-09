@@ -1,3 +1,4 @@
+
 export { pick } from './pick'
 
 export { keyBy } from './keyBy'
@@ -69,3 +70,7 @@ export {
   Position,
   trimNewLine,
 } from './utils/trimBlocksFromSchema'
+
+export { getRelativeSchemaPath } from './cli/getSchema'
+
+export { canConnectToDatabase, createDatabase } from './migrateEngineCommands'

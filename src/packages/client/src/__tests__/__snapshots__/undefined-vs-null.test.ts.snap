@@ -1,13 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`select validation null when undefined is allowed 1`] = `
-"mutation {
+mutation {
   updateOnePost(
     data: {
       id: null
     }
     where: {
-      id: \\"abc\\"
+      id: "abc"
     }
   ) {
     id
@@ -19,11 +19,11 @@ exports[`select validation null when undefined is allowed 1`] = `
     authorId
     optionnal
   }
-}"
+}
 `;
 
 exports[`select validation null when undefined is not allowed 1`] = `
-"mutation {
+mutation {
   createOnePost(data: {
     published: true
     title: null
@@ -37,5 +37,5 @@ exports[`select validation null when undefined is not allowed 1`] = `
     authorId
     optionnal
   }
-}"
+}
 `;

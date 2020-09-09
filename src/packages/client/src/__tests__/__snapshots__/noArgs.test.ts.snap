@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`no args createOne 1`] = `
-"
+
 Invalid \`prisma.user()\` invocation:
 
 {
@@ -17,11 +17,11 @@ Invalid \`prisma.user()\` invocation:
 Argument data is missing.
 
 Note: Lines with + are required
-"
+
 `;
 
 exports[`no args deleteOne 1`] = `
-"
+
 Invalid \`prisma.user()\` invocation:
 
 {
@@ -34,11 +34,11 @@ Invalid \`prisma.user()\` invocation:
 Argument where is missing.
 
 Note: Lines with + are required
-"
+
 `;
 
 exports[`no args findMany 2`] = `
-"
+
 Invalid \`prisma.user()\` invocation:
 
 {
@@ -50,11 +50,11 @@ Invalid \`prisma.user()\` invocation:
 
 Argument likedArticles for where.likedArticles must not be null. Please use undefined instead.
 
-"
+
 `;
 
 exports[`no args findOne 1`] = `
-"
+
 Invalid \`prisma.user()\` invocation:
 
 {
@@ -67,11 +67,11 @@ Invalid \`prisma.user()\` invocation:
 Argument where is missing.
 
 Note: Lines with + are required
-"
+
 `;
 
 exports[`no args nested create 1`] = `
-"
+
 Invalid \`prisma.user()\` invocation:
 
 {
@@ -88,11 +88,11 @@ Invalid \`prisma.user()\` invocation:
 Argument data.likedArticles.connect of type ArticleWhereUniqueInput needs at least one argument. Available args are listed in green.
 
 Note: Lines with ? are optional.
-"
+
 `;
 
 exports[`no args updateMany 1`] = `
-"
+
 Invalid \`prisma.user()\` invocation:
 
 {
@@ -117,11 +117,11 @@ Invalid \`prisma.user()\` invocation:
 Argument data is missing.
 
 Note: Lines with + are required, lines with ? are optional.
-"
+
 `;
 
 exports[`no args upsertOne 1`] = `
-"
+
 Invalid \`prisma.user()\` invocation:
 
 {
@@ -150,5 +150,5 @@ Argument create is missing.
 Argument update is missing.
 
 Note: Lines with + are required
-"
+
 `;
