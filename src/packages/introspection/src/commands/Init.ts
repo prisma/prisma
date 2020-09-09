@@ -11,8 +11,7 @@ import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
 import { printError } from '../prompt/utils/print'
-import { link } from '@prisma/sdk'
-import { canConnectToDatabase } from '@prisma/migrate'
+import { link, canConnectToDatabase } from '@prisma/sdk'
 
 export const defaultSchema = (
   provider = 'postgresql',

@@ -115,26 +115,26 @@ test('document stringify', () => {
   ])
 
   expect(String(document)).toMatchInlineSnapshot(`
-    "query {
+    query {
       users(
         mirst: 100
-        skip: \\"200\\"
+        skip: "200"
         where: {
           age_gt: 10
           age_in: [1, 2, 3]
-          name_in: [\\"hans\\", \\"peter\\", \\"schmidt\\"]
+          name_in: ["hans", "peter", "schmidt"]
           OR: [
             {
               age_gt: 10123123123
-              email_endsWith: \\"veryLongNameGoIntoaNewLineNow@gmail.com\\"
+              email_endsWith: "veryLongNameGoIntoaNewLineNow@gmail.com"
             },
             {
               age_gt: 10123123123
-              email_endsWith: \\"veryLongNameGoIntoaNewLineNow@gmail.com\\"
+              email_endsWith: "veryLongNameGoIntoaNewLineNow@gmail.com"
               OR: [
                 {
                   age_gt: 10123123123
-                  email_endsWith: \\"veryLongNameGoIntoaNewLineNow@gmail.com\\"
+                  email_endsWith: "veryLongNameGoIntoaNewLineNow@gmail.com"
                 }
               ]
             }
@@ -152,6 +152,6 @@ test('document stringify', () => {
           name
         }
       }
-    }"
+    }
   `)
 })

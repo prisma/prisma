@@ -27,17 +27,17 @@ describe('getField', () => {
     })
 
     expect(getField(document, ['findOneUser']).name).toMatchInlineSnapshot(
-      `"findOneUser"`,
+      `findOneUser`,
     )
     expect(
       getField(document, ['findOneUser', 'id']).name,
-    ).toMatchInlineSnapshot(`"id"`)
+    ).toMatchInlineSnapshot(`id`)
     expect(
       getField(document, ['findOneUser', 'posts']).name,
-    ).toMatchInlineSnapshot(`"posts"`)
+    ).toMatchInlineSnapshot(`posts`)
     expect(
       getField(document, ['findOneUser', 'posts', 'title']).name,
-    ).toMatchInlineSnapshot(`"title"`)
+    ).toMatchInlineSnapshot(`title`)
   })
 })
 
@@ -73,11 +73,11 @@ describe('unpack', () => {
 
     expect(result).toMatchInlineSnapshot(`
       Object {
-        "createdAt": 2019-10-17T09:56:37.690Z,
-        "id": "some-id",
-        "published": false,
-        "title": "Some mighty hightly title",
-        "updatedAt": 2019-10-17T09:56:37.690Z,
+        createdAt: 2019-10-17T09:56:37.690Z,
+        id: some-id,
+        published: false,
+        title: Some mighty hightly title,
+        updatedAt: 2019-10-17T09:56:37.690Z,
       }
     `)
   })
@@ -131,25 +131,25 @@ describe('unpack', () => {
     expect(result).toMatchInlineSnapshot(`
       Array [
         Object {
-          "createdAt": 2019-10-17T09:56:37.690Z,
-          "id": "some-id",
-          "published": false,
-          "title": "Some mighty hightly title",
-          "updatedAt": 2019-10-17T09:56:37.690Z,
+          createdAt: 2019-10-17T09:56:37.690Z,
+          id: some-id,
+          published: false,
+          title: Some mighty hightly title,
+          updatedAt: 2019-10-17T09:56:37.690Z,
         },
         Object {
-          "createdAt": 2019-11-17T09:56:37.690Z,
-          "id": "some-id2",
-          "published": true,
-          "title": "Having a title that is recital is just vital",
-          "updatedAt": 2019-11-17T09:56:37.690Z,
+          createdAt: 2019-11-17T09:56:37.690Z,
+          id: some-id2,
+          published: true,
+          title: Having a title that is recital is just vital,
+          updatedAt: 2019-11-17T09:56:37.690Z,
         },
         Object {
-          "createdAt": 2019-11-17T09:56:37.690Z,
-          "id": "some-id3",
-          "published": true,
-          "title": "One thing for sure: If you don't read the bible, you can't belong to the tribal.",
-          "updatedAt": 2019-11-17T09:56:37.690Z,
+          createdAt: 2019-11-17T09:56:37.690Z,
+          id: some-id3,
+          published: true,
+          title: One thing for sure: If you don't read the bible, you can't belong to the tribal.,
+          updatedAt: 2019-11-17T09:56:37.690Z,
         },
       ]
     `)
@@ -208,32 +208,32 @@ describe('unpack', () => {
 
     expect(result).toMatchInlineSnapshot(`
       Object {
-        "email": "a@a.com",
-        "id": "some-id",
-        "json": Object {
-          "hello": "world",
+        email: a@a.com,
+        id: some-id,
+        json: Object {
+          hello: world,
         },
-        "posts": Array [
+        posts: Array [
           Object {
-            "createdAt": 2019-10-17T09:56:37.690Z,
-            "id": "some-id",
-            "published": false,
-            "title": "Some mighty hightly title",
-            "updatedAt": 2019-10-17T09:56:37.690Z,
+            createdAt: 2019-10-17T09:56:37.690Z,
+            id: some-id,
+            published: false,
+            title: Some mighty hightly title,
+            updatedAt: 2019-10-17T09:56:37.690Z,
           },
           Object {
-            "createdAt": 2019-11-17T09:56:37.690Z,
-            "id": "some-id2",
-            "published": true,
-            "title": "Having a title that is recital is just vital",
-            "updatedAt": 2019-11-17T09:56:37.690Z,
+            createdAt: 2019-11-17T09:56:37.690Z,
+            id: some-id2,
+            published: true,
+            title: Having a title that is recital is just vital,
+            updatedAt: 2019-11-17T09:56:37.690Z,
           },
           Object {
-            "createdAt": 2019-11-17T09:56:37.690Z,
-            "id": "some-id3",
-            "published": true,
-            "title": "Does the bible talk about the revival of the tribal?",
-            "updatedAt": 2019-11-17T09:56:37.690Z,
+            createdAt: 2019-11-17T09:56:37.690Z,
+            id: some-id3,
+            published: true,
+            title: Does the bible talk about the revival of the tribal?,
+            updatedAt: 2019-11-17T09:56:37.690Z,
           },
         ],
       }

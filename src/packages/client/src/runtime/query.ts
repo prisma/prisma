@@ -901,7 +901,7 @@ export function makeDocument({
   rootTypeName,
   rootField,
   select,
-}: DocumentInput) {
+}: DocumentInput): any { // TODO: remove any
   if (!select) {
     select = {}
   }
@@ -1051,9 +1051,9 @@ export function transformDocument(document: Document): Document {
 
     if (value instanceof Args) {
       value.args = value.args.map(ar => {
-        if (ar.schemaArg?.inputType.length === 2 && 
+        if (ar.schemaArg?.inputType.length === 2 &&
           (
-            (ar.schemaArg.inputType[0].kind === 'scalar' || ar.schemaArg.inputType[0].kind === 'enum') 
+            (ar.schemaArg.inputType[0].kind === 'scalar' || ar.schemaArg.inputType[0].kind === 'enum')
             && !(ar.value instanceof Args && ['set', 'increment', 'decrement', 'multiply', 'divide'].includes(ar.value.args[0].key))
           )
         ) {
@@ -1067,7 +1067,7 @@ export function transformDocument(document: Document): Document {
             }),
           ])
         } else if (
-          ar.schemaArg?.inputType.length === 1 && ar.schemaArg?.inputType[0].type === 'Json' 
+          ar.schemaArg?.inputType.length === 1 && ar.schemaArg?.inputType[0].type === 'Json'
         ) {
           const operationsInputType = ar.schemaArg?.inputType[0]
           ar.argType = (operationsInputType?.type as DMMF.InputType).name

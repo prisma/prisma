@@ -18,7 +18,7 @@ describe('minimal where transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyLocation(where: {
           company: {
             is: null
@@ -27,7 +27,7 @@ describe('minimal where transformation', () => {
           id
           companyId
         }
-      }"
+      }
     `)
   })
 })

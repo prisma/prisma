@@ -58,30 +58,30 @@ describe('scalar where transformation', () => {
       rootField: 'findManyUser',
     })
     expect(String(document)).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(where: {
           AND: [
             {
               email: {
-                equals: \\"a@a.de\\"
-                gt: \\"0\\"
+                equals: "a@a.de"
+                gt: "0"
               }
               AND: [
                 {
                   name: {
-                    equals: \\"5\\"
-                    not: \\"7\\"
+                    equals: "5"
+                    not: "7"
                   }
                   OR: [
                     {
                       id: {
-                        not: \\"8\\"
-                        notIn: [\\"7\\"]
+                        not: "8"
+                        notIn: ["7"]
                       }
                     },
                     {
                       id: {
-                        not: \\"9\\"
+                        not: "9"
                       }
                     }
                   ]
@@ -90,8 +90,8 @@ describe('scalar where transformation', () => {
             },
             {
               id: {
-                equals: \\"1\\"
-                gt: \\"0\\"
+                equals: "1"
+                gt: "0"
               }
             }
           ]
@@ -106,38 +106,38 @@ describe('scalar where transformation', () => {
           locationId
           someFloats
         }
-      }"
+      }
     `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(where: {
           AND: [
             {
               email: {
-                equals: \\"a@a.de\\"
-                gt: \\"0\\"
+                equals: "a@a.de"
+                gt: "0"
               }
               AND: [
                 {
                   name: {
-                    equals: \\"5\\"
+                    equals: "5"
                     not: {
-                      equals: \\"7\\"
+                      equals: "7"
                     }
                   }
                   OR: [
                     {
                       id: {
                         not: {
-                          equals: \\"8\\"
-                          in: [\\"7\\"]
+                          equals: "8"
+                          in: ["7"]
                         }
                       }
                     },
                     {
                       id: {
                         not: {
-                          equals: \\"9\\"
+                          equals: "9"
                         }
                       }
                     }
@@ -147,8 +147,8 @@ describe('scalar where transformation', () => {
             },
             {
               id: {
-                equals: \\"1\\"
-                gt: \\"0\\"
+                equals: "1"
+                gt: "0"
               }
             }
           ]
@@ -163,7 +163,7 @@ describe('scalar where transformation', () => {
           locationId
           someFloats
         }
-      }"
+      }
     `)
   })
 
@@ -215,33 +215,33 @@ describe('scalar where transformation', () => {
     })
 
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-      "mutation {
+      mutation {
         updateManyPost(
           where: {
             AND: [
               {
                 title: {
-                  \\"equals\\": \\"a@a.de\\",
-                  \\"gt\\": \\"0\\"
+                  "equals": "a@a.de",
+                  "gt": "0"
                 }
                 AND: [
                   {
                     title: {
-                      \\"equals\\": \\"5\\",
-                      \\"not\\": \\"7\\"
+                      "equals": "5",
+                      "not": "7"
                     }
                     OR: [
                       {
                         id: {
                           not: {
-                            equals: \\"8\\"
+                            equals: "8"
                           }
                         }
                       },
                       {
                         id: {
                           not: {
-                            equals: \\"9\\"
+                            equals: "9"
                           }
                         }
                       }
@@ -251,8 +251,8 @@ describe('scalar where transformation', () => {
               },
               {
                 id: {
-                  equals: \\"1\\"
-                  gt: \\"0\\"
+                  equals: "1"
+                  gt: "0"
                 }
               }
             ]
@@ -263,7 +263,7 @@ describe('scalar where transformation', () => {
         ) {
           count
         }
-      }"
+      }
     `)
   })
 
@@ -283,16 +283,16 @@ describe('scalar where transformation', () => {
     )
 
     expect(String(document)).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyTest(where: {
           id: {
-            equals: \\"806c902c-eab3-4e6e-ba4a-99c135389118\\"
+            equals: "806c902c-eab3-4e6e-ba4a-99c135389118"
           }
         }) {
           id
           name
         }
-      }"
+      }
     `)
 
     expect(document.validate(select, false, 'tests')).toMatchInlineSnapshot(
@@ -317,16 +317,16 @@ describe('scalar where transformation', () => {
     )
 
     expect(String(document)).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyTest(where: {
           id: {
-            equals: \\"asd\\"
+            equals: "asd"
           }
         }) {
           id
           name
         }
-      }"
+      }
     `)
 
     try {
@@ -381,7 +381,7 @@ describe('scalar where transformation', () => {
     })
 
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(where: {
           favoriteTree: {
             in: [OAK, BLASKASH]
@@ -397,7 +397,7 @@ describe('scalar where transformation', () => {
           locationId
           someFloats
         }
-      }"
+      }
     `)
   })
 })

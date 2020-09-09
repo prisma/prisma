@@ -9,7 +9,6 @@ export { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
 export { SchemaCommand } from './commands/SchemaCommand'
 export { SchemaPush } from './commands/SchemaPush'
 export { default as byline } from './utils/byline'
-export { canConnectToDatabase, createDatabase } from './MigrateEngineCommands'
 export { handlePanic } from './utils/handlePanic'
 
 export * from './types'
