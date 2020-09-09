@@ -42,6 +42,7 @@ export async function getLatestTag(): Promise<any> {
     'openbsd',
     'netbsd',
     'freebsd11',
+    'freebsd12',
   ]
   const relevantPlatforms = platforms.filter(
     (p) => !excludedPlatforms.includes(p),

@@ -16,8 +16,8 @@ export type GetOSResult = {
     | 'musl'
     | 'arm'
     | 'nixos'
-    | 'freebsd12'
     | 'freebsd11'
+    | 'freebsd12'
 }
 
 export async function getos(): Promise<GetOSResult> {

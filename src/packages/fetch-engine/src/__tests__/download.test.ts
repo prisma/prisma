@@ -101,7 +101,6 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
         'linux-musl',
-        'freebsd12',
       ],
       version: CURRENT_BINARIES_HASH,
     })
@@ -185,7 +184,6 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
         'linux-musl',
-        'freebsd12',
       ],
       version: FIXED_BINARIES_HASH,
     })
