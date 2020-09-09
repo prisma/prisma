@@ -1,74 +1,86 @@
-import tempy from 'tempy'
+import * as FSJet from 'fs-jetpack'
+import { FSJetpack } from 'fs-jetpack/types'
 import path from 'path'
+import tempy from 'tempy'
 import { Doctor } from '../Doctor'
-import copy from '@apexearth/copy'
-import assert from 'assert'
-import stripAnsi from 'strip-ansi'
 
-describe('doctor', () => {
-  it('doctor should succeed when schema and db match', async () => {
-    const tmpDir = tempy.directory()
-    await copy({
-      from: path.join(__dirname, 'fixtures/example-project/prisma'),
-      to: tmpDir,
-      recursive: true,
-    })
-    const cwd = process.cwd()
-    process.chdir(tmpDir)
+const ctx: {
+  tmpDir: string
+  logs: string[]
+  fs: FSJetpack
+  mocked: { 'console.error': any; cwd: string }
+} = {} as any
 
-    const doctor = Doctor.new()
-    const errLog = []
-    const oldConsoleError = console.error
-    console.error = (...args) => {
-      errLog.push(...args)
-    }
-    const result = await doctor.parse([])
-    console.error = oldConsoleError
+beforeEach(() => {
+  ctx.logs = []
+  ctx.tmpDir = tempy.directory()
+  ctx.mocked = {} as any
+  ctx.mocked['console.error'] = console.error
+  ctx.mocked.cwd = process.cwd()
+  ctx.fs = FSJet.cwd(ctx.tmpDir)
+  console.error = (...args) => {
+    ctx.logs.push(...args)
+  }
+  process.chdir(ctx.tmpDir)
+})
 
-    assert.deepEqual(errLog, [`👩‍⚕️🏥 Prisma Doctor checking the database...`])
-    assert.equal(result, 'Everything in sync 🔄')
+afterEach(() => {
+  console.error = ctx.mocked['console.error']
+  process.chdir(ctx.mocked.cwd)
+})
 
-    process.chdir(cwd)
+it('doctor should succeed when schema and db do match', async () => {
+  ctx.fs.copy(path.join(__dirname, 'fixtures/example-project/prisma'), '.', {
+    overwrite: true,
+  })
+  await expect(Doctor.new().parse([])).resolves.toEqual('Everything in sync 🔄')
+  expect(ctx.logs).toEqual([`👩‍⚕️🏥 Prisma Doctor checking the database...`])
+})
+
+it('should fail when db is missing', async () => {
+  ctx.fs.copy(path.join(__dirname, 'fixtures/schema-db-out-of-sync'), '.', {
+    overwrite: true,
+  })
+  ctx.fs.remove('dev.db')
+
+  await expect(
+    Doctor.new().parse([]),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(
+    `"P1003: SQLite database file doesn't exist"`,
+  )
+})
+
+it('should fail when db is empty', async () => {
+  ctx.fs.copy(path.join(__dirname, 'fixtures/schema-db-out-of-sync'), '.', {
+    overwrite: true,
+  })
+  ctx.fs.write(path.join(ctx.tmpDir, 'dev.db'), '')
+
+  await expect(Doctor.new().parse([])).rejects
+    .toThrowErrorMatchingInlineSnapshot(`
+          "[91mP4001[39m
+          [91m[39m
+          [91m[39m[91mThe introspected database was empty: file:dev.db[39m
+          "
+        `)
+})
+
+it('should fail when schema and db do not match', async () => {
+  ctx.fs.copy(path.join(__dirname, 'fixtures/schema-db-out-of-sync'), '.', {
+    overwrite: true,
   })
 
-  it('should fail when schema and db dont match', async () => {
-    const tmpDir = tempy.directory()
-    await copy({
-      from: path.join(__dirname, 'fixtures/schema-db-out-of-sync'),
-      to: tmpDir,
-      recursive: true,
-    })
-    const cwd = process.cwd()
-    process.chdir(tmpDir)
+  await expect(Doctor.new().parse([])).rejects
+    .toThrowErrorMatchingInlineSnapshot(`
+          "
 
-    const doctor = Doctor.new()
-    const errLog = []
-    const oldConsoleError = console.error
-    console.error = (...args) => {
-      errLog.push(...args)
-    }
-    let err
-    try {
-      const result = await doctor.parse([])
-    } catch (e) {
-      err = e
-    }
-    console.error = oldConsoleError
-
-    assert.equal(
-      stripAnsi(err.message),
-      `
-
-Post
-↪ Model is missing in database
+          [1m[4mNewPost[24m[22m
+          ↪ Model is missing in database
 
 
-User
-↪ Field name is missing in database
-↪ Field posts is missing in database
-`,
-    )
-
-    process.chdir(cwd)
-  })
+          [1m[4mUser[24m[22m
+          ↪ Field [1mnewName[22m is missing in database
+          ↪ Field [1mnewPosts[22m is missing in database
+          "
+        `)
 })

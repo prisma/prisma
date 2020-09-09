@@ -8,7 +8,7 @@ datasource db {
   url      = "file:dev.db"
 }
 
-model Post {
+model NewPost {
   id        Int      @default(autoincrement()) @id
   createdAt DateTime @default(now())
   title     String
@@ -26,9 +26,9 @@ model Profile {
 }
 
 model User {
-  id      Int      @default(autoincrement()) @id
-  email   String   @unique
-  name    String?
-  posts   Post[]
-  profile Profile?
+  id       Int       @default(autoincrement()) @id
+  email    String    @unique
+  newName  String?
+  newPosts NewPost[]
+  profile  Profile?
 }

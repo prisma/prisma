@@ -7,18 +7,9 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "noImplicitAny": false,
-    "outDir": "dist",
     "rootDir": "src",
     "declaration": true,
     "skipLibCheck": true,
     "incremental": true
-  },
-  "exclude": [
-    "dist",
-    "build",
-    "runtime",
-    "examples",
-    "src/__tests__",
-    "fixtures"
-  ]
+  }
 }
