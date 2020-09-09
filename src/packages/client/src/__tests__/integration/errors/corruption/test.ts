@@ -7,7 +7,7 @@ test('corruption', async () => {
   expect.assertions(1)
 
   await generateTestClient()
-  const { PrismaClient } = require('@prisma/client')
+  const { PrismaClient } = require('./node_modules/@prisma/client')
   const platform = await getPlatform()
   const binaryPath = path.join(
     __dirname,

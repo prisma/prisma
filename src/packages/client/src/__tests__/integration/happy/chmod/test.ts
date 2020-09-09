@@ -12,7 +12,7 @@ test('chmod', async () => {
     `query-engine-${platform}`,
   )
   fs.chmodSync(binaryPath, '644')
-  const { PrismaClient } = require('@prisma/client')
+  const { PrismaClient } = require('./node_modules/@prisma/client')
 
   const prisma = new PrismaClient({
     log: [

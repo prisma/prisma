@@ -4,7 +4,7 @@ import { generateTestClient } from "../../../../utils/getTestClient"
 
 test('transaction', async () => {
   await generateTestClient()
-  const { PrismaClient, prismaVersion } = require('@prisma/client')
+  const { PrismaClient, prismaVersion } = require('./node_modules/@prisma/client')
   const db = new PrismaClient()
 
   if (!prismaVersion || !prismaVersion.client) {

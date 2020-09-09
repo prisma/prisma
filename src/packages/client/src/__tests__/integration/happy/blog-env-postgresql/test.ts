@@ -9,7 +9,7 @@ test('blog-env-postgresql', async () => {
     PrismaClient,
     PrismaClientValidationError,
     prismaVersion,
-  } = require('@prisma/client')
+  } = require('./node_modules/@prisma/client')
 
   let originalConnectionString =
     (process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev')

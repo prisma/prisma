@@ -13,7 +13,7 @@ test('blog', async () => {
     raw,
     join,
     empty,
-  } = require('@prisma/client')
+  } = require('./node_modules/@prisma/client')
 
   const requests: any[] = []
   const db = new PrismaClient({
