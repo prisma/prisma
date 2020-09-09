@@ -578,6 +578,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.child = spawn(prismaPath, flags, {
           env,
           cwd: this.cwd,
+          windowsHide:true,
           stdio: ['ignore', 'pipe', 'pipe'],
         })
 
