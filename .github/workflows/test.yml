@@ -1,6 +1,11 @@
 name: Node.js CI
 
-on: [push, pull_request]
+# Run on push only for master, if not it will trigger push & pull_request on PRs
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
   #
