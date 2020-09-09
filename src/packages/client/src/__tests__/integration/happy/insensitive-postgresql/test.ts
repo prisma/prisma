@@ -1,10 +1,16 @@
 const { Client } = require('pg')
 import { getTestClient } from "../../../../utils/getTestClient"
+import { createDatabase } from "@prisma/sdk"
 
 test('insensitive-postgresql', async () => {
   const PrismaClient = await getTestClient()
-  const originalConnectionString =
+  let originalConnectionString =
     process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
+
+  originalConnectionString += '-insensitive-postgresql'
+
+  await createDatabase(originalConnectionString).catch(e => console.error(e))
+
   const db = new Client({
     connectionString: originalConnectionString,
   })
@@ -47,7 +53,11 @@ test('insensitive-postgresql', async () => {
     INSERT INTO "public"."User" (email, id, name) VALUES ('A@a.dE',	'576eddf9-2434-421f-9a86-58bede16fd96',	'alicE');
   `)
 
-  const prisma = new PrismaClient()
+  const prisma = new PrismaClient({
+    datasources: {
+      db: { url: originalConnectionString }
+    }
+  })
 
   const defaultResult = await prisma.user.findMany({
     where: {

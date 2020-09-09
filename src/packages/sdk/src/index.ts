@@ -72,3 +72,5 @@ export {
 } from './utils/trimBlocksFromSchema'
 
 export { getRelativeSchemaPath } from './cli/getSchema'
+
+export { canConnectToDatabase, createDatabase } from './migrateEngineCommands'

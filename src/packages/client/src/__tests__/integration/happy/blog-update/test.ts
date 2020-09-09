@@ -106,46 +106,46 @@ test('blog-update', async () => {
 
   expect(updateNullResult).toMatchInlineSnapshot(`
     Object {
-      "email": "a@hey.com",
-      "lastLoginAt": null,
-      "name": null,
-      "posts": Array [
+      email: a@hey.com,
+      lastLoginAt: null,
+      name: null,
+      posts: Array [
         Object {
-          "content": null,
-          "optionnal": null,
-          "published": true,
-          "title": "mytitle",
+          content: null,
+          optionnal: null,
+          published: true,
+          title: mytitle,
         },
         Object {
-          "content": null,
-          "optionnal": null,
-          "published": true,
-          "title": "mytitle",
+          content: null,
+          optionnal: null,
+          published: true,
+          title: mytitle,
         },
         Object {
-          "content": null,
-          "optionnal": null,
-          "published": true,
-          "title": "mytitle",
+          content: null,
+          optionnal: null,
+          published: true,
+          title: mytitle,
         },
         Object {
-          "content": null,
-          "optionnal": null,
-          "published": true,
-          "title": "mytitle",
+          content: null,
+          optionnal: null,
+          published: true,
+          title: mytitle,
         },
         Object {
-          "content": null,
-          "optionnal": null,
-          "published": true,
-          "title": "mytitle",
+          content: null,
+          optionnal: null,
+          published: true,
+          title: mytitle,
         },
       ],
-      "profile": Object {
-        "bio": null,
-        "goesToBedAt": null,
+      profile: Object {
+        bio: null,
+        goesToBedAt: null,
       },
-      "wakesUpAt": null,
+      wakesUpAt: null,
     }
   `)
 

@@ -179,6 +179,7 @@ importers:
       chalk: 4.1.0
       del: 5.1.0
       dotenv: 8.2.0
+      escape-string-regexp: 4.0.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0_eslint@7.8.1
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
@@ -208,6 +209,7 @@ importers:
       pidtree: 0.5.0
       pluralize: 8.0.0
       prettier: 2.1.1
+      replace-string: 3.1.0
       rimraf: 3.0.2
       set-value: 3.0.2
       sql-template-tag: 3.4.0
@@ -242,6 +244,7 @@ importers:
       chalk: 4.1.0
       del: 5.1.0
       dotenv: 8.2.0
+      escape-string-regexp: ^4.0.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -272,6 +275,7 @@ importers:
       pkg-up: ^3.1.0
       pluralize: 8.0.0
       prettier: 2.1.1
+      replace-string: ^3.1.0
       rimraf: 3.0.2
       set-value: 3.0.2
       sql-template-tag: 3.4.0
@@ -7274,6 +7278,12 @@ packages:
       node: '>=0.10'
     resolution:
       integrity: sha1-jcrkcOHIirwtYA//Sndihtp15jc=
+  /replace-string/3.1.0:
+    dev: true
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-yPpxc4ZR2makceA9hy/jHNqc7QVkd4Je/N0WRHm6bs3PtivPuPynxE5ejU/mp5EhnCv8+uZL7vhz8rkluSlx+Q==
   /request-progress/3.0.0:
     dependencies:
       throttleit: 1.0.0

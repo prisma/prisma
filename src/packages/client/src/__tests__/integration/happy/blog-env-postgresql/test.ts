@@ -1,4 +1,4 @@
-import { uriToCredentials, credentialsToUri } from '@prisma/sdk'
+import { uriToCredentials, credentialsToUri, createDatabase } from '@prisma/sdk'
 import { Client } from 'pg'
 import { generateTestClient } from '../../../../utils/getTestClient'
 
@@ -11,8 +11,11 @@ test('blog-env-postgresql', async () => {
     prismaVersion,
   } = require('@prisma/client')
 
-  const originalConnectionString =
-    process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev'
+  let originalConnectionString =
+    (process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/prisma-dev')
+
+  originalConnectionString += '-blog-env-postgresql'
+  await createDatabase(originalConnectionString).catch(e => console.error(e))
 
   const credentials = uriToCredentials(originalConnectionString)
   const sourcePort = credentials.port || 5432
@@ -137,7 +140,7 @@ test('blog-env-postgresql', async () => {
   expect(errorLogs.length).toBe(1)
   try {
     const users = await prisma.user.findMany()
-  } catch (e) {}
+  } catch (e) { }
   const users = await prisma.user.findMany()
   expect(users.length).toBe(1)
   const resultEmptyJson = await prisma.post.create({
@@ -229,24 +232,24 @@ test('blog-env-postgresql', async () => {
 
   expect(resultJsonUpdateWithSet).toMatchInlineSnapshot(`
     Object {
-      "authorId": null,
-      "coinflips": Array [
+      authorId: null,
+      coinflips: Array [
         true,
         true,
         true,
         false,
         true,
       ],
-      "content": null,
-      "jsonData": Object {
-        "set": Array [
+      content: null,
+      jsonData: Object {
+        set: Array [
           Object {
-            "array1key": "array1valueupdated",
+            array1key: array1valueupdated,
           },
         ],
       },
-      "published": false,
-      "title": "json array updated 2",
+      published: false,
+      title: json array updated 2,
     }
   `)
 

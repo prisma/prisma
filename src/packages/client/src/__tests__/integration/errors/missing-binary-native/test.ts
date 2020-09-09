@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { getPlatform } from '@prisma/get-platform'
 
-test('missing-binary', async () => {
+test('missing-binary-native', async () => {
   expect.assertions(1)
   await generateTestClient()
 
@@ -30,14 +30,14 @@ test('missing-binary', async () => {
   }).rejects.toThrowErrorMatchingInlineSnapshot(`
 
           Invalid \`prisma.user.findMany()\` invocation in
-          /client/src/__tests__/integration/errors/missing-binary/test.ts:29:23
+          /client/src/__tests__/integration/errors/missing-binary-native/test.ts:29:23
 
 
             Query engine binary for current platform "TEST_PLATFORM" could not be found.
           This probably happens, because you built Prisma Client on a different platform.
-          (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/client/runtime/query-engine-TEST_PLATFORM")
+          (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary-native/node_modules/@prisma/client/runtime/query-engine-TEST_PLATFORM")
 
-          Files in /client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/client/runtime:
+          Files in /client/src/__tests__/integration/errors/missing-binary-native/node_modules/@prisma/client/runtime:
 
             Dataloader.d.ts
             browser-chalk.d.ts
@@ -59,14 +59,10 @@ test('missing-binary', async () => {
             utils
             visit.d.ts
 
+          You already added the platform "native" to the "generator" block
+          in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
+          but something went wrong. That's suboptimal.
 
-          To solve this problem, add the platform "TEST_PLATFORM" to the "generator" block in the "schema.prisma" file:
-          generator client {
-            provider      = "prisma-client-js"
-            binaryTargets = ["native"]
-          }
-
-          Then run "prisma generate" for your changes to take effect.
-          Read more about deploying Prisma Client: https://pris.ly/d/client-generator
+          Please create an issue at TEST_GITHUB_LINK
         `)
 })
