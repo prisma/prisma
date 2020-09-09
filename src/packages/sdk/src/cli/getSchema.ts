@@ -2,6 +2,7 @@ import { promisify } from 'util'
 import fs from 'fs'
 import path from 'path'
 import execa from 'execa'
+import readPkgUp from 'read-pkg-up'
 
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
@@ -10,57 +11,103 @@ const readFile = promisify(fs.readFile)
  * Async
  */
 
-export async function getSchemaPath(
-  schemaPathFromArgs?,
+export async function getSchemaPath(schemaPathFromArgs?: string) {
+  return getSchemaPathInternal(schemaPathFromArgs, {
+    cwd: process.cwd(),
+  })
+}
+
+export async function getSchemaPathInternal(
+  schemaPathFromArgs?: string,
+  opts: { cwd: string } = {
+    cwd: process.cwd(),
+  },
 ): Promise<string | null> {
   if (schemaPathFromArgs) {
-    // try the user custom path
+    // 1. try the user custom path
     const customSchemaPath = await getAbsoluteSchemaPath(
       path.resolve(schemaPathFromArgs),
     )
-    if (customSchemaPath) {
-      return customSchemaPath
-    } else {
+    if (!customSchemaPath) {
       throw new Error(
         `Provided --schema at ${schemaPathFromArgs} doesn't exist.`,
       )
     }
+
+    return customSchemaPath
   }
 
-  // try the normal cwd
-  const relativeSchemaPath = await getRelativeSchemaPath(process.cwd())
-  if (relativeSchemaPath) {
-    return relativeSchemaPath
+  // 2. Try the package.json `prisma.schema` custom path
+  // 3. Try the conventional ./schema.prisma or ./prisma/schema.prisma paths
+  const schemaPath =
+    (await getSchemaPathFromPackageJson(opts.cwd)) ??
+    (await getRelativeSchemaPath(opts.cwd))
+
+  if (schemaPath) {
+    return schemaPath
   }
 
-  // in case no schema can't be found there, try the npm-based INIT_CWD
+  // 4. In case no schema can't be found there, try the npm-based INIT_CWD
   if (process.env.INIT_CWD) {
     return (
-      (await getRelativeSchemaPath(process.env.INIT_CWD)) ||
-      (await resolveYarnSchema())
+      (await getSchemaPathFromPackageJson(process.env.INIT_CWD)) ??
+      (await getRelativeSchemaPath(process.env.INIT_CWD)) ??
+      (await resolveYarnSchema(process.env.INIT_CWD))
     )
   }
 
   return null
 }
 
-async function resolveYarnSchema(): Promise<null | string> {
+export async function getSchemaPathFromPackageJson(
+  cwd: string,
+): Promise<string | null> {
+  const pkgJson = await readPkgUp({ cwd })
+  const schemaPathFromPkgJson: string | undefined =
+    pkgJson?.packageJson?.prisma?.schema
+
+  if (pkgJson && schemaPathFromPkgJson) {
+    const absoluteSchemaPath = path.isAbsolute(schemaPathFromPkgJson)
+      ? schemaPathFromPkgJson
+      : path.resolve(path.dirname(pkgJson.path), schemaPathFromPkgJson)
+
+    if ((await exists(absoluteSchemaPath)) === false) {
+      throw new Error(
+        `Provided schema path at ./${path.relative(
+          cwd,
+          absoluteSchemaPath,
+        )} from ./${path.relative(cwd, pkgJson.path)} doesn't exist.`,
+      )
+    }
+
+    return absoluteSchemaPath
+  }
+
+  return null
+}
+
+async function resolveYarnSchema(cwd: string): Promise<null | string> {
   if (process.env.npm_config_user_agent?.includes('yarn')) {
     try {
-      const { stdout: version } = await execa.command('yarn --version')
+      const { stdout: version } = await execa.command('yarn --version', {
+        cwd,
+      })
 
       if (version.startsWith('2')) {
         return null
       }
 
-      const { stdout } = await execa.command('yarn workspaces info --json')
+      const { stdout } = await execa.command('yarn workspaces info --json', {
+        cwd,
+      })
       const json = getJson(stdout)
+
       for (const workspace of Object.values<any>(json)) {
-        const workspacePath = path.join(
-          process.env.INIT_CWD!,
-          workspace.location,
-        )
-        const workspaceSchemaPath = await getRelativeSchemaPath(workspacePath)
+        const workspacePath = path.join(cwd, workspace.location)
+        const workspaceSchemaPath =
+          (await getSchemaPathFromPackageJson(workspacePath)) ??
+          (await getRelativeSchemaPath(workspacePath))
+
         if (workspaceSchemaPath) {
           return workspaceSchemaPath
         }
@@ -72,23 +119,28 @@ async function resolveYarnSchema(): Promise<null | string> {
   return null
 }
 
-function resolveYarnSchemaSync(): string | null {
+function resolveYarnSchemaSync(cwd: string): string | null {
   if (process.env.npm_config_user_agent?.includes('yarn')) {
     try {
-      const { stdout: version } = execa.commandSync('yarn --version')
+      const { stdout: version } = execa.commandSync('yarn --version', {
+        cwd,
+      })
 
       if (version.startsWith('2')) {
         return null
       }
 
-      const { stdout } = execa.commandSync('yarn workspaces info --json')
+      const { stdout } = execa.commandSync('yarn workspaces info --json', {
+        cwd,
+      })
       const json = getJson(stdout)
+
       for (const workspace of Object.values<any>(json)) {
-        const workspacePath = path.join(
-          process.env.INIT_CWD!,
-          workspace.location,
-        )
-        const workspaceSchemaPath = getRelativeSchemaPathSync(workspacePath)
+        const workspacePath = path.join(cwd, workspace.location)
+        let workspaceSchemaPath =
+          getSchemaPathFromPackageJsonSync(workspacePath) ??
+          getRelativeSchemaPathSync(workspacePath)
+
         if (workspaceSchemaPath) {
           return workspaceSchemaPath
         }
@@ -129,7 +181,7 @@ async function getRelativeSchemaPath(cwd: string): Promise<string | null> {
  * Small helper that returns the directory which contains the `schema.prisma` file
  */
 export async function getSchemaDir(
-  schemaPathFromArgs?,
+  schemaPathFromArgs?: string,
 ): Promise<string | null> {
   if (schemaPathFromArgs) {
     return path.resolve(path.dirname(schemaPathFromArgs))
@@ -157,33 +209,74 @@ export async function getSchema(schemaPathFromArgs?): Promise<string> {
  * Sync
  */
 
-export function getSchemaPathSync(schemaPathFromArgs?): string | null {
+export function getSchemaPathSync(schemaPathFromArgs?: string) {
+  return getSchemaPathSyncInternal(schemaPathFromArgs, {
+    cwd: process.cwd(),
+  })
+}
+
+export function getSchemaPathSyncInternal(
+  schemaPathFromArgs?: string,
+  opts: { cwd: string } = {
+    cwd: process.cwd(),
+  },
+): string | null {
   if (schemaPathFromArgs) {
-    // try the user custom path
+    // 1. Try the user custom path
     const customSchemaPath = getAbsoluteSchemaPathSync(
       path.resolve(schemaPathFromArgs),
     )
-    if (customSchemaPath) {
-      return customSchemaPath
-    } else {
+    if (!customSchemaPath) {
       throw new Error(
         `Provided --schema at ${schemaPathFromArgs} doesn't exist.`,
       )
     }
+
+    return customSchemaPath
   }
 
-  // first try intuitive schema path
-  const relativeSchemaPath = getRelativeSchemaPathSync(process.cwd())
+  // 2. Try the package.json `prisma.schema` custom path
+  // 3. Try the conventional `./schema.prisma` or `./prisma/schema.prisma` paths
+  const schemaPath =
+    getSchemaPathFromPackageJsonSync(opts.cwd) ??
+    getRelativeSchemaPathSync(opts.cwd)
 
-  if (relativeSchemaPath) {
-    return relativeSchemaPath
+  if (schemaPath) {
+    return schemaPath
   }
 
-  // in case the normal schema path doesn't exist, try the npm base dir
+  // 4. In case no schema can't be found there, try the npm-based INIT_CWD
   if (process.env.INIT_CWD) {
     return (
-      getRelativeSchemaPathSync(process.env.INIT_CWD) || resolveYarnSchemaSync()
+      getSchemaPathFromPackageJsonSync(process.env.INIT_CWD) ??
+      getRelativeSchemaPathSync(process.env.INIT_CWD) ??
+      resolveYarnSchemaSync(process.env.INIT_CWD)
     )
+  }
+
+  return null
+}
+
+export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
+  const pkgJson = readPkgUp.sync({ cwd })
+  const schemaPathFromPkgJson: string | undefined =
+    pkgJson?.packageJson?.prisma?.schema
+
+  if (pkgJson && schemaPathFromPkgJson) {
+    const absoluteSchemaPath = path.isAbsolute(schemaPathFromPkgJson)
+      ? schemaPathFromPkgJson
+      : path.resolve(path.dirname(pkgJson.path), schemaPathFromPkgJson)
+
+    if (fs.existsSync(absoluteSchemaPath) === false) {
+      throw new Error(
+        `Provided schema path at ./${path.relative(
+          cwd,
+          absoluteSchemaPath,
+        )} from ./${path.relative(cwd, pkgJson.path)} doesn't exist.`,
+      )
+    }
+
+    return absoluteSchemaPath
   }
 
   return null
