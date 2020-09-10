@@ -1,74 +1,76 @@
-import tempy from 'tempy'
-import path from 'path'
 import { Doctor } from '../Doctor'
-import copy from '@apexearth/copy'
-import assert from 'assert'
-import stripAnsi from 'strip-ansi'
+import { Context } from './__helpers__/context'
 
-describe('doctor', () => {
-  it('doctor should succeed when schema and db match', async () => {
-    const tmpDir = tempy.directory()
-    await copy({
-      from: path.join(__dirname, 'fixtures/example-project/prisma'),
-      to: tmpDir,
-      recursive: true,
-    })
-    const cwd = process.cwd()
-    process.chdir(tmpDir)
+const ctx = Context.new<{
+  mocked: {
+    'console.error': jest.SpyInstance
+  }
+}>()
 
-    const doctor = Doctor.new()
-    const errLog = []
-    const oldConsoleError = console.error
-    console.error = (...args) => {
-      errLog.push(...args)
-    }
-    const result = await doctor.parse([])
-    console.error = oldConsoleError
+beforeEach(() => {
+  ctx.mocked['console.error'] = jest
+    .spyOn(console, 'error')
+    .mockImplementation(() => {})
+})
 
-    assert.deepEqual(errLog, [`👩‍⚕️🏥 Prisma Doctor checking the database...`])
-    assert.equal(result, 'Everything in sync 🔄')
+afterEach(() => {
+  ctx.mocked['console.error'].mockRestore()
+})
 
-    process.chdir(cwd)
-  })
+it('doctor should succeed when schema and db do match', async () => {
+  ctx.fixture('example-project/prisma')
+  const result = Doctor.new().parse([])
+  await expect(result).resolves.toEqual('Everything in sync 🔄')
+  expect(ctx.mocked['console.error'].mock.calls).toMatchInlineSnapshot(`
+    Array [
+      Array [
+        👩‍⚕️🏥 Prisma Doctor checking the database...,
+      ],
+    ]
+  `)
+})
 
-  it('should fail when schema and db dont match', async () => {
-    const tmpDir = tempy.directory()
-    await copy({
-      from: path.join(__dirname, 'fixtures/schema-db-out-of-sync'),
-      to: tmpDir,
-      recursive: true,
-    })
-    const cwd = process.cwd()
-    process.chdir(tmpDir)
+it('should fail when db is missing', async () => {
+  ctx.fixture('schema-db-out-of-sync')
+  ctx.fs.remove('dev.db')
+  const result = Doctor.new().parse([])
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+    `P1003: SQLite database file doesn't exist`,
+  )
+})
 
-    const doctor = Doctor.new()
-    const errLog = []
-    const oldConsoleError = console.error
-    console.error = (...args) => {
-      errLog.push(...args)
-    }
-    let err
-    try {
-      const result = await doctor.parse([])
-    } catch (e) {
-      err = e
-    }
-    console.error = oldConsoleError
+it('should fail when prisma schema is missing', async () => {
+  const result = Doctor.new().parse([])
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+    `Either provide --schema or make sure that you are in a folder with a schema.prisma file.`,
+  )
+})
 
-    assert.equal(
-      stripAnsi(err.message),
-      `
+it('should fail when db is empty', async () => {
+  ctx.fixture('schema-db-out-of-sync')
+  ctx.fs.write('dev.db', '')
+  const result = Doctor.new().parse([])
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+          P4001
 
-Post
-↪ Model is missing in database
+          The introspected database was empty: file:dev.db
+
+        `)
+})
+
+it('should fail when schema and db do not match', async () => {
+  ctx.fixture('schema-db-out-of-sync')
+  const result = Doctor.new().parse([])
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
 
-User
-↪ Field name is missing in database
-↪ Field posts is missing in database
-`,
-    )
+          NewPost
+          ↪ Model is missing in database
 
-    process.chdir(cwd)
-  })
+
+          User
+          ↪ Field newName is missing in database
+          ↪ Field newPosts is missing in database
+
+        `)
 })
