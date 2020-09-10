@@ -2207,27 +2207,28 @@ function tests(): Test[] {
     {
       name: 'reproduction https://github.com/prisma/prisma/issues/3576',
       up: `
-CREATE TABLE items (
-  item_id int(10) UNSIGNED NOT NULL,
-  problematic_column mediumint(8) UNSIGNED DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        CREATE TABLE items (
+          item_id int(10) UNSIGNED NOT NULL,
+          problematic_column mediumint(8) UNSIGNED DEFAULT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-ALTER TABLE items
-  ADD PRIMARY KEY (item_id);
+        ALTER TABLE items
+          ADD PRIMARY KEY (item_id);
 
-INSERT INTO items SET item_id = 123, problematic_column = NULL;
+        INSERT INTO items SET item_id = 123, problematic_column = NULL;
         `,
       down: `
         drop table if exists items;
       `,
       do: async (client) => {
-        const items = await prisma.item.findMany();
-        return items
+        return await client.items.findMany()
       },
-      expect: {
-        item_id: 123,
-        problematic_column: null
-      },
+      expect: [
+        {
+          item_id: 123,
+          problematic_column: null,
+        },
+      ],
     },
   ]
 }
