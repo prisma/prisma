@@ -8,6 +8,7 @@ const ctx: {
   tmpDir: string
   logs: string[]
   fs: FSJetpack
+  fixture: (name: string) => void
   mocked: { 'console.error': any; cwd: string }
 } = {} as any
 
@@ -18,6 +19,11 @@ beforeEach(() => {
   ctx.mocked['console.error'] = console.error
   ctx.mocked.cwd = process.cwd()
   ctx.fs = FSJet.cwd(ctx.tmpDir)
+  ctx.fixture = (name: string) => {
+    ctx.fs.copy(path.join(__dirname, 'fixtures', name), '.', {
+      overwrite: true,
+    })
+  }
   console.error = (...args) => {
     ctx.logs.push(...args)
   }
@@ -30,57 +36,53 @@ afterEach(() => {
 })
 
 it('doctor should succeed when schema and db do match', async () => {
-  ctx.fs.copy(path.join(__dirname, 'fixtures/example-project/prisma'), '.', {
-    overwrite: true,
-  })
-  await expect(Doctor.new().parse([])).resolves.toEqual('Everything in sync 🔄')
+  ctx.fixture('example-project/prisma')
+  const result = Doctor.new().parse([])
+  await expect(result).resolves.toEqual('Everything in sync 🔄')
   expect(ctx.logs).toEqual([`👩‍⚕️🏥 Prisma Doctor checking the database...`])
 })
 
 it('should fail when db is missing', async () => {
-  ctx.fs.copy(path.join(__dirname, 'fixtures/schema-db-out-of-sync'), '.', {
-    overwrite: true,
-  })
+  ctx.fixture('schema-db-out-of-sync')
   ctx.fs.remove('dev.db')
+  const result = Doctor.new().parse([])
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+    `P1003: SQLite database file doesn't exist`,
+  )
+})
 
-  await expect(
-    Doctor.new().parse([]),
-  ).rejects.toThrowErrorMatchingInlineSnapshot(
-    `"P1003: SQLite database file doesn't exist"`,
+it('should fail when prisma schema is missing', async () => {
+  const result = Doctor.new().parse([])
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+    `Either provide --schema or make sure that you are in a folder with a schema.prisma file.`,
   )
 })
 
 it('should fail when db is empty', async () => {
-  ctx.fs.copy(path.join(__dirname, 'fixtures/schema-db-out-of-sync'), '.', {
-    overwrite: true,
-  })
-  ctx.fs.write(path.join(ctx.tmpDir, 'dev.db'), '')
+  ctx.fixture('schema-db-out-of-sync')
+  ctx.fs.write('dev.db', '')
+  const result = Doctor.new().parse([])
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+          P4001
 
-  await expect(Doctor.new().parse([])).rejects
-    .toThrowErrorMatchingInlineSnapshot(`
-          "[91mP4001[39m
-          [91m[39m
-          [91m[39m[91mThe introspected database was empty: file:dev.db[39m
-          "
+          The introspected database was empty: file:dev.db
+
         `)
 })
 
 it('should fail when schema and db do not match', async () => {
-  ctx.fs.copy(path.join(__dirname, 'fixtures/schema-db-out-of-sync'), '.', {
-    overwrite: true,
-  })
+  ctx.fixture('schema-db-out-of-sync')
+  const result = Doctor.new().parse([])
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-  await expect(Doctor.new().parse([])).rejects
-    .toThrowErrorMatchingInlineSnapshot(`
-          "
 
-          [1m[4mNewPost[24m[22m
+          NewPost
           ↪ Model is missing in database
 
 
-          [1m[4mUser[24m[22m
-          ↪ Field [1mnewName[22m is missing in database
-          ↪ Field [1mnewPosts[22m is missing in database
-          "
+          User
+          ↪ Field newName is missing in database
+          ↪ Field newPosts is missing in database
+
         `)
 })
