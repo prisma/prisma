@@ -2204,6 +2204,31 @@ function tests(): Test[] {
         data: ['some', 'array', 1, 2, 3, { object: 'value' }],
       },
     },
+    {
+      name: 'reproduction https://github.com/prisma/prisma-client-js/issues/849',
+      up: `
+CREATE TABLE wp_posts (
+  ID bigint unsigned NOT NULL AUTO_INCREMENT,
+  post_date datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (ID),
+);
+
+INSERT INTO wp_posts VALUES (1,'0000-00-00 00:00:00');
+        `,
+      down: `
+        drop table if exists wp_posts cascade;
+      `,
+      do: async (client) => {
+        const posts = await client.wp_posts.findMany()
+        return posts
+      },
+      expect: [
+        {
+          ID: 1,
+          post_date: '0000-00-00 00:00:00',
+        },
+      ],
+    },
   ]
 }
 
