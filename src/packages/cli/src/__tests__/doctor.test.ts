@@ -1,34 +1,20 @@
-import * as FSJet from 'fs-jetpack'
-import { FSJetpack } from 'fs-jetpack/types'
-import path from 'path'
-import tempy from 'tempy'
 import { Doctor } from '../Doctor'
+import { Context } from './__helpers__/context'
 
-const ctx: {
-  tmpDir: string
-  fs: FSJetpack
-  fixture: (name: string) => void
-  mocked: { 'console.error': jest.SpyInstance; cwd: string }
-} = {} as any
+const ctx = Context.new<{
+  mocked: {
+    'console.error': jest.SpyInstance
+  }
+}>()
 
 beforeEach(() => {
-  ctx.tmpDir = tempy.directory()
-  ctx.fs = FSJet.cwd(ctx.tmpDir)
-  ctx.mocked = {
-    cwd: process.cwd(),
-    'console.error': jest.spyOn(console, 'error').mockImplementation(() => {}),
-  }
-  ctx.fixture = (name: string) => {
-    ctx.fs.copy(path.join(__dirname, 'fixtures', name), '.', {
-      overwrite: true,
-    })
-  }
-  process.chdir(ctx.tmpDir)
+  ctx.mocked['console.error'] = jest
+    .spyOn(console, 'error')
+    .mockImplementation(() => {})
 })
 
 afterEach(() => {
   ctx.mocked['console.error'].mockRestore()
-  process.chdir(ctx.mocked.cwd)
 })
 
 it('doctor should succeed when schema and db do match', async () => {
