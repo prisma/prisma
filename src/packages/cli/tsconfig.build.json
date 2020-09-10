@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist"
+  },
+  "exclude": [
+    "dist",
+    "build",
+    "runtime",
+    "examples",
+    "src/__tests__",
+    "fixtures"
+  ]
+}

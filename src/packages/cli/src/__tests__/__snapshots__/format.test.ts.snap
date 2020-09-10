@@ -1,3 +1,6 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`format should add a trailing EOL 1`] = `
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
@@ -8,7 +11,7 @@ datasource db {
   url      = "file:dev.db"
 }
 
-model NewPost {
+model Post {
   id        Int      @default(autoincrement()) @id
   createdAt DateTime @default(now())
   title     String
@@ -26,9 +29,11 @@ model Profile {
 }
 
 model User {
-  id       Int       @default(autoincrement()) @id
-  email    String    @unique
-  newName  String?
-  newPosts NewPost[]
-  profile  Profile?
+  id      Int      @default(autoincrement()) @id
+  email   String   @unique
+  name    String?
+  posts   Post[]
+  profile Profile?
 }
+
+`;

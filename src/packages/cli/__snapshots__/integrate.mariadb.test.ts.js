@@ -13,6 +13,7 @@ model teams {
   id   Int    @id
   name String @unique
 }
+
 `
 
 exports['findOne where PK_warnings'] = []
@@ -29,10 +30,11 @@ datasource mysql {
 }
 
 model teams {
-  email String @unique
   id    Int    @id
   name  String @unique
+  email String @unique
 }
+
 `
 
 exports['findOne where PK with select_warnings'] = []
@@ -50,18 +52,19 @@ datasource mysql {
 
 model posts {
   id      Int    @default(autoincrement()) @id
-  title   String
   user_id Int
+  title   String
   users   users  @relation(fields: [user_id], references: [id])
 
   @@index([user_id], name: "user_id")
 }
 
 model users {
-  email String  @unique
   id    Int     @default(autoincrement()) @id
+  email String  @unique
   posts posts[]
 }
+
 `
 
 exports['findOne where PK with include_warnings'] = []
@@ -81,6 +84,7 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
 }
+
 `
 
 exports['create with data_warnings'] = []
@@ -100,6 +104,7 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String @default("alice")
 }
+
 `
 
 exports['create with empty data and SQL default_warnings'] = []
@@ -119,6 +124,7 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
 }
+
 `
 
 exports['update where with numeric data_warnings'] = []
@@ -135,10 +141,11 @@ datasource mysql {
 }
 
 model teams {
-  active Boolean @default(true)
   id     Int     @default(autoincrement()) @id
   name   String  @unique
+  active Boolean @default(true)
 }
+
 `
 
 exports['update where with boolean data_warnings'] = []
@@ -155,10 +162,11 @@ datasource mysql {
 }
 
 model teams {
-  active Boolean @default(true)
   id     Int     @default(autoincrement()) @id
   name   String  @unique
+  active Boolean @default(true)
 }
+
 `
 
 exports['update where with boolean data and select_warnings'] = []
@@ -178,6 +186,7 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
 }
+
 `
 
 exports['update where with string data_warnings'] = []
@@ -197,6 +206,7 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String
 }
+
 `
 
 exports['updateMany where with string data - check returned count_warnings'] = []
@@ -216,6 +226,7 @@ model teams {
   id   Int    @default(autoincrement()) @id
   name String
 }
+
 `
 
 exports['updateMany where with string data - check findMany_warnings'] = []
@@ -232,9 +243,10 @@ datasource mysql {
 }
 
 model users {
-  email String @unique
   id    Int    @default(autoincrement()) @id
+  email String @unique
 }
+
 `
 
 exports['findOne where unique_warnings'] = []
@@ -251,12 +263,13 @@ datasource mysql {
 }
 
 model users {
-  email String
   id    Int    @default(autoincrement()) @id
+  email String
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
 }
+
 `
 
 exports['findOne where composite unique_warnings'] = []
@@ -273,12 +286,13 @@ datasource mysql {
 }
 
 model users {
-  email String
   id    Int    @default(autoincrement()) @id
+  email String
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
 }
+
 `
 
 exports['update where composite unique_warnings'] = []
@@ -295,12 +309,13 @@ datasource mysql {
 }
 
 model users {
-  email String
   id    Int    @default(autoincrement()) @id
+  email String
   name  String
 
   @@unique([email, name], name: "users_email_name_key")
 }
+
 `
 
 exports['delete where composite unique_warnings'] = []
@@ -317,9 +332,10 @@ datasource mysql {
 }
 
 model users {
-  email String?
   id    Int     @default(autoincrement()) @id
+  email String?
 }
+
 `
 
 exports['findMany - email text_warnings'] = []
@@ -336,9 +352,10 @@ datasource mysql {
 }
 
 model users {
-  email String @unique
   id    Int    @default(autoincrement()) @id
+  email String @unique
 }
+
 `
 
 exports['findMany where unique_warnings'] = []
@@ -355,9 +372,10 @@ datasource mysql {
 }
 
 model users {
-  email String @unique
   id    Int    @default(autoincrement()) @id
+  email String @unique
 }
+
 `
 
 exports['findMany - email varchar(50) not null unique_warnings'] = []
@@ -375,18 +393,19 @@ datasource mysql {
 
 model posts {
   id      Int    @default(autoincrement()) @id
-  title   String
   user_id Int
+  title   String
   users   users  @relation(fields: [user_id], references: [id])
 
   @@index([user_id], name: "user_id")
 }
 
 model users {
-  email String  @unique
   id    Int     @default(autoincrement()) @id
+  email String  @unique
   posts posts[]
 }
+
 `
 
 exports['findOne where unique with foreign key and unpack_warnings'] = []
@@ -404,9 +423,10 @@ datasource mysql {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
+
 `
 
 exports['findMany where contains and boolean_warnings'] = []
@@ -424,9 +444,10 @@ datasource mysql {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
+
 `
 
 exports['findMany where OR[contains, contains] _warnings'] = []
@@ -444,9 +465,10 @@ datasource mysql {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
+
 `
 
 exports['upsert (update)_warnings'] = []
@@ -464,9 +486,10 @@ datasource mysql {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
+
 `
 
 exports['upsert (create)_warnings'] = []
@@ -484,9 +507,10 @@ datasource mysql {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
+
 `
 
 exports['findMany orderBy asc_warnings'] = []
@@ -504,9 +528,10 @@ datasource mysql {
 
 model posts {
   id        Int     @default(autoincrement()) @id
-  published Boolean @default(false)
   title     String
+  published Boolean @default(false)
 }
+
 `
 
 exports['findMany orderBy desc_warnings'] = []
@@ -524,14 +549,15 @@ datasource mysql {
 
 model posts {
   id        Int             @default(autoincrement()) @id
-  published posts_published @default(DRAFT)
   title     String
+  published posts_published @default(DRAFT)
 }
 
 enum posts_published {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['findMany - default enum_warnings'] = []
@@ -549,14 +575,15 @@ datasource mysql {
 
 model posts {
   id        Int             @default(autoincrement()) @id
-  published posts_published @default(DRAFT)
   title     String
+  published posts_published @default(DRAFT)
 }
 
 enum posts_published {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['update with data - not null enum_warnings'] = []
@@ -574,14 +601,15 @@ datasource mysql {
 
 model posts {
   id        Int             @default(autoincrement()) @id
-  published posts_published @default(DRAFT)
   title     String
+  published posts_published @default(DRAFT)
 }
 
 enum posts_published {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['updateMany with data - not null enum - check count_warnings'] = []
@@ -599,14 +627,15 @@ datasource mysql {
 
 model posts {
   id        Int             @default(autoincrement()) @id
-  published posts_published @default(DRAFT)
   title     String
+  published posts_published @default(DRAFT)
 }
 
 enum posts_published {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['update with data - not null enum - check findMany_warnings'] = []
@@ -624,14 +653,15 @@ datasource mysql {
 
 model posts {
   id        Int             @default(autoincrement()) @id
-  published posts_published @default(DRAFT)
   title     String
+  published posts_published @default(DRAFT)
 }
 
 enum posts_published {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['deleteMany where enum - check count_warnings'] = []
@@ -649,14 +679,15 @@ datasource mysql {
 
 model posts {
   id        Int             @default(autoincrement()) @id
-  published posts_published @default(DRAFT)
   title     String
+  published posts_published @default(DRAFT)
 }
 
 enum posts_published {
   DRAFT
   PUBLISHED
 }
+
 `
 
 exports['deleteMany where enum - check findMany_warnings'] = []
@@ -673,10 +704,11 @@ datasource mysql {
 }
 
 model crons {
-  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+  frequency String?
 }
+
 `
 
 exports['findMany where contains_warnings'] = []
@@ -693,10 +725,11 @@ datasource mysql {
 }
 
 model crons {
-  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+  frequency String?
 }
+
 `
 
 exports['findMany where startsWith_warnings'] = []
@@ -713,10 +746,11 @@ datasource mysql {
 }
 
 model crons {
-  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+  frequency String?
 }
+
 `
 
 exports['findMany where endsWith_warnings'] = []
@@ -733,10 +767,11 @@ datasource mysql {
 }
 
 model crons {
-  frequency String?
   id        Int     @default(autoincrement()) @id
   job       String  @unique
+  frequency String?
 }
+
 `
 
 exports['findMany where in[string]_warnings'] = []
@@ -753,10 +788,11 @@ datasource mysql {
 }
 
 model posts {
-  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
+  created_at DateTime @default(now())
 }
+
 `
 
 exports['findMany where datetime lte - check instanceof Date_warnings'] = []
@@ -773,10 +809,11 @@ datasource mysql {
 }
 
 model posts {
-  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
+  created_at DateTime @default(now())
 }
+
 `
 
 exports['findMany where timestamp gte than now_warnings'] = []
@@ -793,10 +830,11 @@ datasource mysql {
 }
 
 model posts {
-  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
+  created_at DateTime @default(now())
 }
+
 `
 
 exports['findMany where timestamp gt than now_warnings'] = []
@@ -813,10 +851,11 @@ datasource mysql {
 }
 
 model posts {
-  created_at DateTime @default(now())
   id         Int      @default(autoincrement()) @id
   title      String
+  created_at DateTime @default(now())
 }
+
 `
 
 exports['findMany where timestamp lt than now_warnings'] = []
@@ -836,6 +875,7 @@ model teams {
   id    Int @default(autoincrement()) @id
   token Int @unique
 }
+
 `
 
 exports['update where integer data_warnings'] = []
@@ -855,6 +895,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where datetime exact_warnings'] = []
@@ -874,6 +915,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where datetime gt_warnings'] = []
@@ -893,6 +935,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where datetime gte_warnings'] = []
@@ -912,6 +955,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where datetime lt_warnings'] = []
@@ -931,6 +975,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where datetime lte_warnings'] = []
@@ -950,6 +995,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where datetime not_warnings'] = []
@@ -969,6 +1015,7 @@ model events {
   id   Int       @default(autoincrement()) @id
   time DateTime?
 }
+
 `
 
 exports['findMany where null_warnings'] = []
@@ -986,9 +1033,10 @@ datasource mysql {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
+
 `
 
 exports['findMany where empty in[]_warnings'] = []
@@ -1006,9 +1054,10 @@ datasource mysql {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
+
 `
 
 exports['findMany where id empty in[] and token in[]_warnings'] = []
@@ -1026,9 +1075,10 @@ datasource mysql {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
+
 `
 
 exports['findMany where in[integer]_warnings'] = []
@@ -1046,9 +1096,10 @@ datasource mysql {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
+
 `
 
 exports['findMany where notIn[]_warnings'] = []
@@ -1066,9 +1117,10 @@ datasource mysql {
 
 model teams {
   id    Int    @default(autoincrement()) @id
-  name  String
   token Int    @unique
+  name  String
 }
+
 `
 
 exports['findMany where empty notIn[]_warnings'] = []
@@ -1085,9 +1137,10 @@ datasource mysql {
 }
 
 model users {
-  email String @unique
   id    Int    @default(autoincrement()) @id
+  email String @unique
 }
+
 `
 
 exports['findMany where - case insensitive field_warnings'] = []
@@ -1104,9 +1157,10 @@ datasource mysql {
 }
 
 model exercises {
-  distance Float
   id       Int   @default(autoincrement()) @id
+  distance Float
 }
+
 `
 
 exports['findMany where decimal_warnings'] = []
@@ -1123,9 +1177,10 @@ datasource mysql {
 }
 
 model exercises {
-  distance Float @unique
   id       Int   @default(autoincrement()) @id
+  distance Float @unique
 }
+
 `
 
 exports['findOne where decimal_warnings'] = []
@@ -1144,6 +1199,7 @@ datasource mysql {
 model migrate {
   version Int @id
 }
+
 `
 
 exports['create bigint data_warnings'] = []
@@ -1160,13 +1216,14 @@ datasource mysql {
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
+
 `
 
 exports['findOne where composite PK_warnings'] = []
@@ -1183,13 +1240,14 @@ datasource mysql {
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
+
 `
 
 exports['update where composite PK_warnings'] = []
@@ -1206,13 +1264,14 @@ datasource mysql {
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
+
 `
 
 exports['upsert where composite PK - update_warnings'] = []
@@ -1229,13 +1288,14 @@ datasource mysql {
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
+
 `
 
 exports['upsert where composite PK - create_warnings'] = []
@@ -1252,13 +1312,14 @@ datasource mysql {
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
 }
+
 `
 
 exports['delete where composite PK_warnings'] = []
@@ -1275,14 +1336,15 @@ datasource mysql {
 }
 
 model variables {
-  email String
   id    Int    @default(autoincrement()) @id
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@unique([name, key], name: "variables_name_key_key")
 }
+
 `
 
 exports['findOne where unique composite_warnings'] = []
@@ -1299,14 +1361,15 @@ datasource mysql {
 }
 
 model variables {
-  email String
-  key   String
   name  String
+  key   String
   value String
+  email String
 
   @@id([name, key])
   @@unique([value, email], name: "variables_value_email_key")
 }
+
 `
 
 exports['findOne where unique composite (PK is a composite)_warnings'] = []
@@ -1338,6 +1401,7 @@ model b {
 
   @@index([one, two], name: "one")
 }
+
 `
 
 exports['findOne where composite PK with foreign key_warnings'] = []
@@ -1357,6 +1421,7 @@ model teams {
   id   Int     @default(autoincrement()) @id
   name String?
 }
+
 `
 
 exports['updateMany where null - check findMany_warnings'] = []
@@ -1373,9 +1438,9 @@ datasource mysql {
 }
 
 model column_name_that_becomes_empty_string {
+  field1   Int  @default(autoincrement()) @id
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 12345 Int? @map("12345")
-  field1   Int  @default(autoincrement()) @id
 }
 
 model invalid_enum_value_name {
@@ -1383,7 +1448,7 @@ model invalid_enum_value_name {
   here_be_enum invalid_enum_value_name_here_be_enum?
 }
 
-// The underlying table does not contain a unique identifier and can therefore currently not be handled.
+// The underlying table does not contain a valid unique identifier and can therefore currently not be handled.
 // model no_unique_identifier {
   // field1 Int?
   // field2 Int?
@@ -1401,12 +1466,13 @@ enum invalid_enum_value_name_here_be_enum {
   // 123 @map("123")
   // $§! @map("$§!")
 }
+
 `
 
 exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   {
     "code": 1,
-    "message": "These models do not have a unique identifier or id and are therefore commented out.",
+    "message": "The following models were commented out as they do not have a valid unique identifier or id. This is currently not supported by Prisma.",
     "affected": [
       {
         "model": "no_unique_identifier"
@@ -1415,7 +1481,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 2,
-    "message": "These fields were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
+    "message": "These fields were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the `@map` directive.",
     "affected": [
       {
         "model": "column_name_that_becomes_empty_string",
@@ -1425,7 +1491,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 3,
-    "message": "These fields were commented out because we currently do not support their types.",
+    "message": "These fields were commented out because Prisma currently does not support their types.",
     "affected": [
       {
         "model": "unsupported_type",
@@ -1436,7 +1502,7 @@ exports['findMany on column_name_that_becomes_empty_string_warnings'] = [
   },
   {
     "code": 4,
-    "message": "These enum values were commented out because of invalid names. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]*.",
+    "message": "These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the `@map` directive.",
     "affected": [
       {
         "enm": "invalid_enum_value_name_here_be_enum",
