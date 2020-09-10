@@ -14,13 +14,13 @@ test('basic mergeBy', () => {
     },
   ]
   expect(mergeBy(arr1, arr2, (a) => a.name)).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            "name": "db",
-            "url": "file:new-url.db",
-          },
-        ]
-    `)
+    Array [
+      Object {
+        name: db,
+        url: file:new-url.db,
+      },
+    ]
+  `)
 })
 
 test('mergeBy should merge last item', () => {
@@ -43,8 +43,8 @@ test('mergeBy should merge last item', () => {
   expect(mergeBy(arr1, arr2, (a) => a.name)).toMatchInlineSnapshot(`
     Array [
       Object {
-        "name": "db",
-        "url": "file:new-url2.db",
+        name: db,
+        url: file:new-url2.db,
       },
     ]
   `)

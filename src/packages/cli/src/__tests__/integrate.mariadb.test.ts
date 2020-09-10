@@ -2068,7 +2068,7 @@ function tests(): Test[] {
           PRIMARY KEY (\`field1\`)
         ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
         
-        CREATE TABLE \`inva lid_enum_value_name\` (
+        CREATE TABLE \`invalid_enum_value_name\` (
           \`field1\` int(11) NOT NULL AUTO_INCREMENT,
           \`here_be_enum\` enum('Y','N','123','$§!') DEFAULT NULL,
           PRIMARY KEY (\`field1\`)

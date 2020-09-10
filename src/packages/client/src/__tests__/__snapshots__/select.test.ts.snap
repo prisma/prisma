@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`select validation Accept empty where in findMany 1`] = `
-"query {
+query {
   findManyPost(where: {
 
   }) {
@@ -9,26 +9,26 @@ exports[`select validation Accept empty where in findMany 1`] = `
       id
     }
   }
-}"
+}
 `;
 
 exports[`select validation Allow deep select query 1`] = `
-"query {
+query {
   findManyPost {
     author {
       id
     }
   }
-}"
+}
 `;
 
 exports[`select validation Allow different iso strings 1 1`] = `
-"mutation {
+mutation {
   createOnePost(data: {
-    title: \\"Some title\\"
+    title: "Some title"
     content: null
     published: false
-    createdAt: \\"2020-05-05T16:28:33.983Z\\"
+    createdAt: "2020-05-05T16:28:33.983Z"
   }) {
     id
     createdAt
@@ -39,16 +39,16 @@ exports[`select validation Allow different iso strings 1 1`] = `
     authorId
     optionnal
   }
-}"
+}
 `;
 
 exports[`select validation Allow different iso strings 2 1`] = `
-"mutation {
+mutation {
   createOnePost(data: {
-    title: \\"Some title\\"
+    title: "Some title"
     content: null
     published: false
-    createdAt: \\"2020-05-05T16:28:33.983+03:00\\"
+    createdAt: "2020-05-05T16:28:33.983+03:00"
   }) {
     id
     createdAt
@@ -59,16 +59,16 @@ exports[`select validation Allow different iso strings 2 1`] = `
     authorId
     optionnal
   }
-}"
+}
 `;
 
 exports[`select validation Allow different iso strings 2 2`] = `
-"mutation {
+mutation {
   createOnePost(data: {
-    title: \\"Some title\\"
+    title: "Some title"
     content: null
     published: false
-    createdAt: \\"2020-05-05T16:28:33.983-02:00\\"
+    createdAt: "2020-05-05T16:28:33.983-02:00"
   }) {
     id
     createdAt
@@ -79,11 +79,11 @@ exports[`select validation Allow different iso strings 2 2`] = `
     authorId
     optionnal
   }
-}"
+}
 `;
 
 exports[`select validation Allow empty input array 1`] = `
-"query {
+query {
   findManyPost(where: {
     id: {
       in: []
@@ -93,13 +93,13 @@ exports[`select validation Allow empty input array 1`] = `
       id
     }
   }
-}"
+}
 `;
 
 exports[`select validation Allow explicit null value 1`] = `
-"mutation {
+mutation {
   createOnePost(data: {
-    title: \\"Some title\\"
+    title: "Some title"
     content: null
     published: false
   }) {
@@ -112,11 +112,11 @@ exports[`select validation Allow explicit null value 1`] = `
     authorId
     optionnal
   }
-}"
+}
 `;
 
 exports[`select validation Allow select with an include 1`] = `
-"query {
+query {
   findManyPost {
     author {
       id
@@ -144,14 +144,14 @@ exports[`select validation Allow select with an include 1`] = `
       }
     }
   }
-}"
+}
 `;
 
 exports[`select validation Allow simple create mutation 1`] = `
-"mutation {
+mutation {
   createOnePost(data: {
-    title: \\"Some title\\"
-    content: \\"Some Content\\"
+    title: "Some title"
+    content: "Some Content"
     published: false
   }) {
     id
@@ -163,28 +163,28 @@ exports[`select validation Allow simple create mutation 1`] = `
     authorId
     optionnal
   }
-}"
+}
 `;
 
 exports[`select validation Allow uuid array for string array 1`] = `
-"query {
+query {
   findManyPost(where: {
     id: {
-      in: [\\"d4082b42-b161-11e9-8754-6542abf52968\\"]
+      in: ["d4082b42-b161-11e9-8754-6542abf52968"]
     }
   }) {
     author {
       id
     }
   }
-}"
+}
 `;
 
 exports[`select validation Allow uuid for string input 1`] = `
-"mutation {
+mutation {
   createOnePost(data: {
-    title: \\"Some title\\"
-    content: \\"123e4567-e89b-12d3-a456-426655440000\\"
+    title: "Some title"
+    content: "123e4567-e89b-12d3-a456-426655440000"
     published: false
   }) {
     id
@@ -196,11 +196,11 @@ exports[`select validation Allow uuid for string input 1`] = `
     authorId
     optionnal
   }
-}"
+}
 `;
 
 exports[`select validation allow where with all undefined in findMany 1`] = `
-"query {
+query {
   findManyPost(where: {
 
   }) {
@@ -208,11 +208,11 @@ exports[`select validation allow where with all undefined in findMany 1`] = `
       id
     }
   }
-}"
+}
 `;
 
 exports[`select validation missing arg object 1`] = `
-"mutation {
+mutation {
   createOnePost() {
     id
     createdAt
@@ -223,11 +223,11 @@ exports[`select validation missing arg object 1`] = `
     authorId
     optionnal
   }
-}"
+}
 `;
 
 exports[`select validation missing arg object 2`] = `
-"
+
 Invalid \`prisma.createOnePost()\` invocation:
 
 {
@@ -247,11 +247,11 @@ Invalid \`prisma.createOnePost()\` invocation:
 Argument data is missing.
 
 Note: Lines with + are required
-"
+
 `;
 
 exports[`select validation missing arg object 3`] = `
-"mutation {
+mutation {
   createOnePost() {
     id
     createdAt
@@ -262,11 +262,11 @@ exports[`select validation missing arg object 3`] = `
     authorId
     optionnal
   }
-}"
+}
 `;
 
 exports[`select validation missing arg object 4`] = `
-"
+
 Invalid \`prisma.createOnePost()\` invocation:
 
 {
@@ -286,16 +286,16 @@ Invalid \`prisma.createOnePost()\` invocation:
 Argument data is missing.
 
 Note: Lines with + are required
-"
+
 `;
 
 exports[`select validation missing arg object 5`] = `
-"Argument data is missing.
-"
+Argument data is missing.
+
 `;
 
 exports[`select validation missing arg object 6`] = `
-"
+
 Invalid \`prisma.createOnePost()\` invocation:
 
 {
@@ -315,13 +315,13 @@ Invalid \`prisma.createOnePost()\` invocation:
 Argument data is missing.
 
 Note: Lines with + are required
-"
+
 `;
 
 exports[`select validation missing arg scalar && object 1`] = `
-"mutation {
+mutation {
   createOnePost(data: {
-    title: \\"string\\"
+    title: "string"
   }) {
     id
     createdAt
@@ -332,11 +332,11 @@ exports[`select validation missing arg scalar && object 1`] = `
     authorId
     optionnal
   }
-}"
+}
 `;
 
 exports[`select validation missing arg scalar && object 2`] = `
-"
+
 Invalid \`prisma.createOnePost()\` invocation:
 
 {
@@ -362,16 +362,16 @@ Invalid \`prisma.createOnePost()\` invocation:
 Argument published for data.published is missing.
 
 Note: Lines with + are required, lines with ? are optional.
-"
+
 `;
 
 exports[`select validation missing arg scalar 1`] = `
-"mutation {
+mutation {
   createOnePost(data: {
-    title: \\"string\\"
+    title: "string"
     author: {
       connect: {
-        id: \\"\\"
+        id: ""
       }
     }
   }) {
@@ -384,11 +384,11 @@ exports[`select validation missing arg scalar 1`] = `
     authorId
     optionnal
   }
-}"
+}
 `;
 
 exports[`select validation missing arg scalar 2`] = `
-"
+
 Invalid \`prisma.createOnePost()\` invocation:
 
 {
@@ -415,11 +415,11 @@ Invalid \`prisma.createOnePost()\` invocation:
 Argument published for data.published is missing.
 
 Note: Lines with + are required, lines with ? are optional.
-"
+
 `;
 
 exports[`select validation reject all undefined where for findOne 1`] = `
-"query {
+query {
   findOnePost(where: {
 
   }) {
@@ -427,11 +427,11 @@ exports[`select validation reject all undefined where for findOne 1`] = `
       id
     }
   }
-}"
+}
 `;
 
 exports[`select validation reject all undefined where for findOne 2`] = `
-"
+
 Invalid \`prisma.findOnePost()\` invocation:
 
 {
@@ -450,11 +450,11 @@ Invalid \`prisma.findOnePost()\` invocation:
 Argument where of type PostWhereUniqueInput needs at least one argument. Available args are listed in green.
 
 Note: Lines with ? are optional.
-"
+
 `;
 
 exports[`select validation reject empty where for findOne 1`] = `
-"query {
+query {
   findOnePost(where: {
 
   }) {
@@ -462,11 +462,11 @@ exports[`select validation reject empty where for findOne 1`] = `
       id
     }
   }
-}"
+}
 `;
 
 exports[`select validation reject empty where for findOne 2`] = `
-"
+
 Invalid \`prisma.findOnePost()\` invocation:
 
 {
@@ -485,30 +485,30 @@ Invalid \`prisma.findOnePost()\` invocation:
 Argument where of type PostWhereUniqueInput needs at least one argument. Available args are listed in green.
 
 Note: Lines with ? are optional.
-"
+
 `;
 
 exports[`select validation unknown arg, field, incorrect arg type 1`] = `
-"query {
+query {
   findManyUser(
     skip: 200
     where: {
-      name_in: [\\"hans\\", \\"peter\\", \\"schmidt\\"]
+      name_in: ["hans", "peter", "schmidt"]
       AND: [
         {
           age_gt: 10123123123
-          this_is_completely_arbitrary: \\"veryLongNameGoIntoaNewLineNow@gmail.com\\"
+          this_is_completely_arbitrary: "veryLongNameGoIntoaNewLineNow@gmail.com"
         },
         {
           age_gt: 10123123123
-          id_endsWith: \\"veryLongNameGoIntoaNewLineNow@gmail.com\\"
-          name_contains: \\"hans\\"
+          id_endsWith: "veryLongNameGoIntoaNewLineNow@gmail.com"
+          name_contains: "hans"
           name_gt: 2131203912039123
-          name_in: [\\"hans\\"]
+          name_in: ["hans"]
           AND: [
             {
-              age_gt: \\"10123123123\\"
-              id_endsWith: \\"veryLongNameGoIntoaNewLineNow@gmail.com\\"
+              age_gt: "10123123123"
+              id_endsWith: "veryLongNameGoIntoaNewLineNow@gmail.com"
             }
           ]
         }
@@ -522,11 +522,11 @@ exports[`select validation unknown arg, field, incorrect arg type 1`] = `
       id
     }
   }
-}"
+}
 `;
 
 exports[`select validation unknown arg, field, incorrect arg type 2`] = `
-"Unknown arg \`name_in\` in where.name_in for type UserWhereInput. Did you mean \`name\`?
+Unknown arg \`name_in\` in where.name_in for type UserWhereInput. Did you mean \`name\`?
 Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`?
 Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_arbitrary for type UserWhereInput.
 Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`?
@@ -537,11 +537,11 @@ Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you 
 Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`?
 Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereInput.
 Invalid value 'asd' of type String for field name on model User. Expected either true or false.
-Unknown field \`name2\` for select statement on model User. Did you mean \`name\`?"
+Unknown field \`name2\` for select statement on model User. Did you mean \`name\`?
 `;
 
 exports[`select validation unknown arg, field, incorrect arg type 3`] = `
-"
+
 Invalid \`prisma.findManyUser()\` invocation:
 
 {
@@ -822,11 +822,11 @@ type UserWhereInput {
 }
 Invalid value 'asd' of type String for field name on model User. Expected either true or false.
 Unknown field \`name2\` for select statement on model User. Available options are listed in green. Did you mean \`name\`?
-"
+
 `;
 
 exports[`select validation unknown arg, field, incorrect arg type 4`] = `
-"
+
 Invalid \`prisma.findManyUser()\` invocation:
 
 {
@@ -1107,5 +1107,5 @@ type UserWhereInput {
 }
 Invalid value 'asd' of type String for field name on model User. Expected either true or false.
 Unknown field \`name2\` for select statement on model User. Available options are listed in green. Did you mean \`name\`?
-"
+
 `;

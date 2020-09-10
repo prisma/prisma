@@ -23,7 +23,7 @@ describe('where transformation', () => {
     })
     document.validate(select, false)
     expect(String(document)).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(orderBy: [
           {
             email: asc
@@ -39,10 +39,10 @@ describe('where transformation', () => {
           locationId
           someFloats
         }
-      }"
+      }
     `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(orderBy: [
           {
             email: asc
@@ -58,7 +58,7 @@ describe('where transformation', () => {
           locationId
           someFloats
         }
-      }"
+      }
     `)
   })
 
@@ -76,7 +76,7 @@ describe('where transformation', () => {
       rootField: 'findManyUser',
     })
     expect(String(document)).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(orderBy: [
           {
             email: asc
@@ -93,10 +93,10 @@ describe('where transformation', () => {
           locationId
           someFloats
         }
-      }"
+      }
     `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(orderBy: [
           {
             email: asc
@@ -113,13 +113,13 @@ describe('where transformation', () => {
           locationId
           someFloats
         }
-      }"
+      }
     `)
     try {
       document.validate(select, false, 'users')
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
+
         Invalid \`prisma.users()\` invocation:
 
         {
@@ -143,7 +143,7 @@ describe('where transformation', () => {
           someFloats?: SortOrder
         }
 
-        "
+
       `)
     }
   })
@@ -159,7 +159,7 @@ describe('where transformation', () => {
       rootField: 'findManyUser',
     })
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser {
           id
           name
@@ -171,7 +171,7 @@ describe('where transformation', () => {
           locationId
           someFloats
         }
-      }"
+      }
     `)
   })
 
@@ -186,7 +186,7 @@ describe('where transformation', () => {
       rootField: 'findManyUser',
     })
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(orderBy: [
           {
             id: null
@@ -202,7 +202,7 @@ describe('where transformation', () => {
           locationId
           someFloats
         }
-      }"
+      }
     `)
   })
 })

@@ -30,7 +30,7 @@ describe('minimal atomic update transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "mutation {
+      mutation {
         updateOneUser(
           data: {
             countFloat: {
@@ -55,7 +55,7 @@ describe('minimal atomic update transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 
@@ -87,7 +87,7 @@ describe('minimal atomic update transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "mutation {
+      mutation {
         updateOneUser(
           data: {
             countFloat: {
@@ -127,7 +127,7 @@ describe('minimal atomic update transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 })

@@ -22,7 +22,7 @@ describe('minimal where transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManySale(where: {
           OR: [
             {
@@ -37,7 +37,7 @@ describe('minimal where transformation', () => {
           id
           date
         }
-      }"
+      }
     `)
   })
 })

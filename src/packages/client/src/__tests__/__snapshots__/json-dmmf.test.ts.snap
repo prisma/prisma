@@ -3,622 +3,622 @@
 exports[`JsonFilter should contain equals and not 1`] = `
 Array [
   Object {
-    "fields": Array [
+    fields: Array [
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": true,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "object",
-            "type": "UserWhereInput",
+            isList: true,
+            isNullable: false,
+            isRequired: false,
+            kind: object,
+            type: UserWhereInput,
           },
         ],
-        "name": "AND",
+        name: AND,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": true,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "object",
-            "type": "UserWhereInput",
+            isList: true,
+            isNullable: false,
+            isRequired: false,
+            kind: object,
+            type: UserWhereInput,
           },
         ],
-        "name": "OR",
+        name: OR,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": true,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "object",
-            "type": "UserWhereInput",
+            isList: true,
+            isNullable: false,
+            isRequired: false,
+            kind: object,
+            type: UserWhereInput,
           },
         ],
-        "name": "NOT",
+        name: NOT,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "object",
-            "type": "StringFilter",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: object,
+            type: StringFilter,
           },
         ],
-        "name": "id",
+        name: id,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "object",
-            "type": "JsonNullableFilter",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: object,
+            type: JsonNullableFilter,
           },
           Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "null",
+            isList: false,
+            isNullable: true,
+            isRequired: false,
+            kind: scalar,
+            type: null,
           },
         ],
-        "name": "field",
+        name: field,
       },
     ],
-    "isOneOf": false,
-    "isWhereType": true,
-    "name": "UserWhereInput",
+    isOneOf: false,
+    isWhereType: true,
+    name: UserWhereInput,
   },
   Object {
-    "fields": Array [
+    fields: Array [
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "enum",
-            "type": "SortOrder",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: enum,
+            type: SortOrder,
           },
         ],
-        "name": "id",
+        name: id,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "enum",
-            "type": "SortOrder",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: enum,
+            type: SortOrder,
           },
         ],
-        "name": "field",
+        name: field,
       },
     ],
-    "isOneOf": true,
-    "isOrderType": true,
-    "name": "UserOrderByInput",
+    isOneOf: true,
+    isOrderType: true,
+    name: UserOrderByInput,
   },
   Object {
-    "atLeastOne": true,
-    "fields": Array [
+    atLeastOne: true,
+    fields: Array [
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "id",
+        name: id,
       },
     ],
-    "isOneOf": true,
-    "name": "UserWhereUniqueInput",
+    isOneOf: true,
+    name: UserWhereUniqueInput,
   },
   Object {
-    "fields": Array [
+    fields: Array [
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "id",
+        name: id,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "Json",
+            isList: false,
+            isNullable: true,
+            isRequired: false,
+            kind: scalar,
+            type: Json,
           },
         ],
-        "name": "field",
+        name: field,
       },
     ],
-    "isOneOf": false,
-    "name": "UserCreateInput",
+    isOneOf: false,
+    name: UserCreateInput,
   },
   Object {
-    "fields": Array [
+    fields: Array [
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "object",
-            "type": "StringFieldUpdateOperationsInput",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: object,
+            type: StringFieldUpdateOperationsInput,
           },
         ],
-        "name": "id",
+        name: id,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "Json",
+            isList: false,
+            isNullable: true,
+            isRequired: false,
+            kind: scalar,
+            type: Json,
           },
         ],
-        "name": "field",
+        name: field,
       },
     ],
-    "isOneOf": false,
-    "isUpdateType": true,
-    "name": "UserUpdateInput",
+    isOneOf: false,
+    isUpdateType: true,
+    name: UserUpdateInput,
   },
   Object {
-    "fields": Array [
+    fields: Array [
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "object",
-            "type": "StringFieldUpdateOperationsInput",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: object,
+            type: StringFieldUpdateOperationsInput,
           },
         ],
-        "name": "id",
+        name: id,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "Json",
+            isList: false,
+            isNullable: true,
+            isRequired: false,
+            kind: scalar,
+            type: Json,
           },
         ],
-        "name": "field",
+        name: field,
       },
     ],
-    "isOneOf": false,
-    "isUpdateType": true,
-    "name": "UserUpdateManyMutationInput",
+    isOneOf: false,
+    isUpdateType: true,
+    name: UserUpdateManyMutationInput,
   },
   Object {
-    "fields": Array [
+    fields: Array [
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "equals",
+        name: equals,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": true,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: true,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "in",
+        name: in,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": true,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: true,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "notIn",
+        name: notIn,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "lt",
+        name: lt,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "lte",
+        name: lte,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "gt",
+        name: gt,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "gte",
+        name: gte,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "contains",
+        name: contains,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "startsWith",
+        name: startsWith,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "endsWith",
+        name: endsWith,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
           Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "object",
-            "type": "NestedStringFilter",
+            isList: false,
+            isNullable: true,
+            isRequired: false,
+            kind: object,
+            type: NestedStringFilter,
           },
         ],
-        "name": "not",
+        name: not,
       },
     ],
-    "isOneOf": false,
-    "name": "StringFilter",
+    isOneOf: false,
+    name: StringFilter,
   },
   Object {
-    "fields": Array [
+    fields: Array [
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "Json",
+            isList: false,
+            isNullable: true,
+            isRequired: false,
+            kind: scalar,
+            type: Json,
           },
         ],
-        "name": "equals",
+        name: equals,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "Json",
+            isList: false,
+            isNullable: true,
+            isRequired: false,
+            kind: scalar,
+            type: Json,
           },
         ],
-        "name": "not",
+        name: not,
       },
     ],
-    "isOneOf": false,
-    "name": "JsonNullableFilter",
+    isOneOf: false,
+    name: JsonNullableFilter,
   },
   Object {
-    "fields": Array [
+    fields: Array [
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "set",
+        name: set,
       },
     ],
-    "isOneOf": true,
-    "isUpdateOperationType": true,
-    "name": "StringFieldUpdateOperationsInput",
+    isOneOf: true,
+    isUpdateOperationType: true,
+    name: StringFieldUpdateOperationsInput,
   },
   Object {
-    "fields": Array [
+    fields: Array [
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "Json",
+            isList: false,
+            isNullable: true,
+            isRequired: false,
+            kind: scalar,
+            type: Json,
           },
         ],
-        "name": "set",
+        name: set,
       },
     ],
-    "isOneOf": true,
-    "isUpdateOperationType": true,
-    "name": "NullableJsonFieldUpdateOperationsInput",
+    isOneOf: true,
+    isUpdateOperationType: true,
+    name: NullableJsonFieldUpdateOperationsInput,
   },
   Object {
-    "fields": Array [
+    fields: Array [
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "equals",
+        name: equals,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": true,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: true,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "in",
+        name: in,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": true,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: true,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "notIn",
+        name: notIn,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "lt",
+        name: lt,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "lte",
+        name: lte,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "gt",
+        name: gt,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "gte",
+        name: gte,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "contains",
+        name: contains,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "startsWith",
+        name: startsWith,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": false,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "String",
+            isList: false,
+            isNullable: false,
+            isRequired: false,
+            kind: scalar,
+            type: String,
           },
         ],
-        "name": "endsWith",
+        name: endsWith,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "object",
-            "type": "NestedStringFilter",
+            isList: false,
+            isNullable: true,
+            isRequired: false,
+            kind: object,
+            type: NestedStringFilter,
           },
         ],
-        "name": "not",
+        name: not,
       },
     ],
-    "isOneOf": false,
-    "name": "NestedStringFilter",
+    isOneOf: false,
+    name: NestedStringFilter,
   },
   Object {
-    "fields": Array [
+    fields: Array [
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "scalar",
-            "type": "Json",
+            isList: false,
+            isNullable: true,
+            isRequired: false,
+            kind: scalar,
+            type: Json,
           },
         ],
-        "name": "equals",
+        name: equals,
       },
       Object {
-        "inputType": Array [
+        inputType: Array [
           Object {
-            "isList": false,
-            "isNullable": true,
-            "isRequired": false,
-            "kind": "object",
-            "type": "NestedJsonNullableFilter",
+            isList: false,
+            isNullable: true,
+            isRequired: false,
+            kind: object,
+            type: NestedJsonNullableFilter,
           },
         ],
-        "name": "not",
+        name: not,
       },
     ],
-    "isOneOf": false,
-    "name": "NestedJsonNullableFilter",
+    isOneOf: false,
+    name: NestedJsonNullableFilter,
   },
 ]
 `;

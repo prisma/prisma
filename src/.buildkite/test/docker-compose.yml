@@ -22,7 +22,7 @@ services:
       # - mariadb
 
   postgres:
-    image: postgres:10.3
+    image: postgres:10
     restart: always
     environment:
       - POSTGRES_USER=prisma
@@ -42,8 +42,9 @@ services:
     volumes:
       - mysql:/var/lib/mysql
 
+
   # mariadb:
-  #   image: mariadb:10.4
+  #   image: mariadb:10
   #   restart: always
   #   environment:
   #     - MYSQL_ROOT_PASSWORD=root

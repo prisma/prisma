@@ -17,7 +17,7 @@ test('basic printStack', () => {
   )
 
   expect(stack).toMatchInlineSnapshot(`
-    "
+
     Invalid \`client.user.findMany()\` invocation in
     src/__tests__/fixtures/stack.js:16:30
 
@@ -25,6 +25,6 @@ test('basic printStack', () => {
       13 
       14 const templateString = \`hello\`
       15 const templateString2 = \`\${123}\${256}\`
-    → 16 const result = client.user.findMany("
+    → 16 const result = client.user.findMany(
   `)
 })

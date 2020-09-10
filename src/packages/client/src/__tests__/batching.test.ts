@@ -73,9 +73,9 @@ describe('batching', () => {
     expect(batches).toMatchInlineSnapshot(`
       Array [
         Array [
-          "query {
+          query {
         findOneUser(where: {
-          id: \\"1\\"
+          id: "1"
         }) {
           id
           email
@@ -91,10 +91,10 @@ describe('batching', () => {
           lastLoginAt
           coinflips
         }
-      }",
-          "query {
+      },
+          query {
         findOneUser(where: {
-          id: \\"2\\"
+          id: "2"
         }) {
           id
           email
@@ -110,7 +110,7 @@ describe('batching', () => {
           lastLoginAt
           coinflips
         }
-      }",
+      },
         ],
       ]
     `)
@@ -182,9 +182,9 @@ describe('batching', () => {
     expect(batches).toMatchInlineSnapshot(`Array []`)
     expect(requests).toMatchInlineSnapshot(`
       Array [
-        "query {
+        query {
         findOnePost(where: {
-          id: \\"1\\"
+          id: "1"
         }) {
           id
           createdAt
@@ -195,10 +195,10 @@ describe('batching', () => {
           authorId
           optionnal
         }
-      }",
-        "query {
+      },
+        query {
         findOneUser(where: {
-          id: \\"2\\"
+          id: "2"
         }) {
           id
           email
@@ -214,7 +214,7 @@ describe('batching', () => {
           lastLoginAt
           coinflips
         }
-      }",
+      },
       ]
     `)
   })
@@ -280,9 +280,9 @@ describe('batching', () => {
     expect(batches).toMatchInlineSnapshot(`Array []`)
     expect(requests).toMatchInlineSnapshot(`
       Array [
-        "query {
+        query {
         findOneUser(where: {
-          email: \\"a@a.de\\"
+          email: "a@a.de"
         }) {
           id
           email
@@ -298,10 +298,10 @@ describe('batching', () => {
           lastLoginAt
           coinflips
         }
-      }",
-        "query {
+      },
+        query {
         findOneUser(where: {
-          id: \\"2\\"
+          id: "2"
         }) {
           id
           email
@@ -317,7 +317,7 @@ describe('batching', () => {
           lastLoginAt
           coinflips
         }
-      }",
+      },
       ]
     `)
   })
