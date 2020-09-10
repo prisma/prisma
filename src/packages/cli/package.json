@@ -1,5 +1,5 @@
 {
-  "version": "2.7.0-dev.7",
+  "version": "2.7.0-dev.23",
   "name": "@prisma/cli",
   "description": "The Prisma command line interface (CLI) is the primary way to interact with your Prisma project from the command line. It can initialize new project assets, generate Prisma Client, and analyze existing database structures through introspection to automatically create your application models.",
   "keywords": [
@@ -55,8 +55,8 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "d1dd8a0508dfc82ae8bd83d91159e0ac807593ec",
-    "prismaCommit": "a11e3c53808e0bfa538ca03ff7ae3f73573c8c68"
+    "version": "66ab5fb1ad3262553bee50cedb3144f3c26f67a7",
+    "prismaCommit": "52641f7165ae61ab307cfc240ca83fd1e405cb17"
   },
   "devDependencies": {
     "@apexearth/copy": "1.4.5",
@@ -68,8 +68,8 @@
     "@prisma/introspection": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.273.0",
-    "@prisma/studio-server": "0.273.0",
+    "@prisma/studio": "0.276.0",
+    "@prisma/studio-server": "0.276.0",
     "@types/debug": "4.1.5",
     "@types/mocha": "8.0.3",
     "@types/pg": "7.14.4",
@@ -108,14 +108,14 @@
     "rimraf": "3.0.2",
     "snap-shot-it": "7.9.3",
     "sqlite-async": "1.1.0",
-    "sqlite3": "4.2.0",
+    "sqlite3": "4.1",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
     "tempy": "0.6.0",
     "terminal-link": "2.1.1",
     "ts-jest": "26.3.0",
     "ts-mocha": "7.0.0",
-    "typescript": "3.9.7",
+    "typescript": "4.0.2",
     "ws": "7.3.1"
   },
   "scripts": {
@@ -134,7 +134,8 @@
     "test:mariadb": "./node_modules/.bin/mocha src/__tests__/integrate.mariadb.test.ts --require ts-mocha src/__tests__/integrate.mariadb.test.ts --timeout 10s",
     "test:mysql": "./node_modules/.bin/mocha src/__tests__/integrate.mysql.test.ts --require ts-mocha src/__tests__/integrate.mysql.test.ts --timeout 10s",
     "test:postgresql": "./node_modules/.bin/mocha src/__tests__/integrate.postgresql.test.ts --require ts-mocha src/__tests__/integrate.postgresql.test.ts --timeout 10s",
-    "test": "./fixtures/test.sh && pnpm run test:generate && pnpm run test:dotenv && pnpm run test:format && pnpm run test:postgresql && pnpm run test:sqlite && pnpm run test:mysql && pnpm run test:studio",
+    "test:commands": "./fixtures/test.sh && pnpm run test:generate && pnpm run test:dotenv && pnpm run test:format && pnpm run test:studio",
+    "test": "pnpm run test:commands && pnpm run test:postgresql && pnpm run test:sqlite && pnpm run test:mysql",
     "test:debug": "./node_modules/.bin/mocha --inspect-brk src/__tests__/integrate.* --require ts-mocha src/__tests__/integrate.* --timeout 10s",
     "test:mocha": "pnpm run test:sqlite && pnpm run test:postgresql && pnpm run test:mysql",
     "test:update-snapshots": "SNAPSHOT_UPDATE=1 pnpm run test:mocha",

@@ -1,6 +1,6 @@
 {
   "name": "@prisma/fetch-engine",
-  "version": "2.7.0-dev.7",
+  "version": "2.7.0-dev.23",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -24,7 +24,7 @@
     "lint-staged": "10.3.0",
     "prettier": "2.1.1",
     "ts-jest": "26.3.0",
-    "typescript": "3.9.7"
+    "typescript": "4.0.2"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",

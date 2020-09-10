@@ -18,4 +18,5 @@ module.exports = {
       packageJson: 'package.json',
     },
   },
+  snapshotSerializers: ['./scripts/jestSnapshotSerializer'],
 }

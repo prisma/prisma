@@ -1,0 +1,23 @@
+datasource db {
+  provider = "sqlite"
+  url      = "sqlite:dev.db"
+  default  = true
+}
+
+generator client {
+  provider             = "prisma-client-js"
+}
+
+model Person {
+  id    String @id @default(cuid())
+  name  String
+  sales Sale[] @relation("PersonsOnSale", references: [id])
+}
+
+model Sale {
+  id     String   @id @default(cuid())
+  resaleId String?
+  resale   Sale?   @relation("Resale", fields: [resaleId], references: [id])
+  originalSale Sale?   @relation("Resale")
+  persons Person[]  @relation("PersonsOnSale", references: [id])
+}

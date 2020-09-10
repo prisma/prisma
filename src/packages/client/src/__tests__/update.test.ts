@@ -45,7 +45,7 @@ describe('minimal update transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "mutation {
+      mutation {
         updateOneUser(
           data: {
             name: {
@@ -67,7 +67,7 @@ describe('minimal update transformation', () => {
                   }
                   where: {
                     id: {
-                      equals: \\"someid\\"
+                      equals: "someid"
                     }
                   }
                 }
@@ -89,7 +89,7 @@ describe('minimal update transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 
@@ -111,23 +111,23 @@ describe('minimal update transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "mutation {
+      mutation {
         updateOneUser(
           data: {
             lastLoginAt: {
-              set: \\"2020-09-04T07:45:24.484Z\\"
+              set: "2020-09-04T07:45:24.484Z"
             }
             posts: {
               updateMany: [
                 {
                   data: {
                     updatedAt: {
-                      set: \\"2020-09-04T07:45:24.484Z\\"
+                      set: "2020-09-04T07:45:24.484Z"
                     }
                   }
                   where: {
                     id: {
-                      equals: \\"someid\\"
+                      equals: "someid"
                     }
                   }
                 }
@@ -149,7 +149,7 @@ describe('minimal update transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 
@@ -175,23 +175,23 @@ describe('minimal update transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "mutation {
+      mutation {
         updateOneUser(
           data: {
             lastLoginAt: {
-              set: \\"2020-09-04T07:45:24.484Z\\"
+              set: "2020-09-04T07:45:24.484Z"
             }
             posts: {
               updateMany: [
                 {
                   data: {
                     updatedAt: {
-                      set: \\"2020-09-04T07:45:24.484Z\\"
+                      set: "2020-09-04T07:45:24.484Z"
                     }
                   }
                   where: {
                     id: {
-                      equals: \\"someid\\"
+                      equals: "someid"
                     }
                   }
                 }
@@ -213,7 +213,7 @@ describe('minimal update transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 
@@ -227,7 +227,7 @@ describe('minimal update transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "mutation {
+      mutation {
         updateOneUser(
           data: {
             coinflips: {
@@ -249,7 +249,7 @@ describe('minimal update transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 
@@ -262,7 +262,7 @@ describe('minimal update transformation', () => {
 
     // this is broken and needs to be fixed
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "mutation {
+      mutation {
         updateOneUser(
           data: {
             coinflips: {
@@ -288,7 +288,7 @@ describe('minimal update transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 })

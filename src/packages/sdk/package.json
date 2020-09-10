@@ -1,6 +1,6 @@
 {
   "name": "@prisma/sdk",
-  "version": "2.7.0-dev.7",
+  "version": "2.7.0-dev.23",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
@@ -21,7 +21,7 @@
     "scripts"
   ],
   "prisma": {
-    "version": "d1dd8a0508dfc82ae8bd83d91159e0ac807593ec"
+    "version": "66ab5fb1ad3262553bee50cedb3144f3c26f67a7"
   },
   "devDependencies": {
     "@types/jest": "26.0.13",
@@ -40,7 +40,7 @@
     "prettier": "2.1.1",
     "ts-jest": "26.3.0",
     "ts-node": "8.10.2",
-    "typescript": "3.9.7"
+    "typescript": "4.0.2"
   },
   "dependencies": {
     "@apexearth/copy": "^1.4.5",

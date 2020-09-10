@@ -38,10 +38,10 @@ describe('generator', () => {
       omit<any, any>(generator.manifest, ['version']),
     ).toMatchInlineSnapshot(`
       Object {
-        "defaultOutput": "@prisma/client",
-        "prettyName": "Prisma Client",
-        "requiresEngines": Array [
-          "queryEngine",
+        defaultOutput: @prisma/client,
+        prettyName: Prisma Client,
+        requiresEngines: Array [
+          queryEngine,
         ],
       }
     `)
@@ -49,17 +49,17 @@ describe('generator', () => {
     expect(omit(generator.options!.generator, ['output']))
       .toMatchInlineSnapshot(`
       Object {
-        "binaryTargets": Array [],
-        "config": Object {},
-        "name": "client",
-        "previewFeatures": Array [],
-        "provider": "prisma-client-js",
+        binaryTargets: Array [],
+        config: Object {},
+        name: client,
+        previewFeatures: Array [],
+        provider: prisma-client-js,
       }
     `)
 
     expect(
       path.relative(__dirname, generator.options!.generator.output!),
-    ).toMatchInlineSnapshot(`"node_modules/@prisma/client"`)
+    ).toMatchInlineSnapshot(`node_modules/@prisma/client`)
 
     await generator.generate()
     const photonDir = path.join(__dirname, 'node_modules/@prisma/client')
@@ -96,8 +96,8 @@ describe('generator', () => {
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "Schema parsing
-        error: Error validating model \\"public\\": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
+        Schema parsing
+        error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:10
            | 
          9 | 
@@ -105,7 +105,7 @@ describe('generator', () => {
         11 |   id Int @id
         12 | }
            | 
-        error: Error validating model \\"dmmf\\": The model name \`dmmf\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
+        error: Error validating model "dmmf": The model name \`dmmf\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:14
            | 
         13 | 
@@ -113,7 +113,7 @@ describe('generator', () => {
         15 |   id Int @id
         16 | }
            | 
-        error: Error validating model \\"OnlyOne\\": The model name \`OnlyOne\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
+        error: Error validating model "OnlyOne": The model name \`OnlyOne\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:18
            | 
         17 | 
@@ -121,7 +121,7 @@ describe('generator', () => {
         19 |   id Int @id
         20 | }
            | 
-        error: Error validating model \\"delete\\": The model name \`delete\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
+        error: Error validating model "delete": The model name \`delete\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:22
            | 
         21 | 
@@ -130,7 +130,7 @@ describe('generator', () => {
         24 | }
            | 
 
-        Validation Error Count: 4"
+        Validation Error Count: 4
       `)
     }
   })
@@ -169,10 +169,10 @@ describe('generator', () => {
       expect(
         stripAnsi(dynamicReservedWordError.message).split('generation/')[1],
       ).toMatchInlineSnapshot(`
-        "dynamic-denylist.prisma\\" contains reserved keywords.
+        dynamic-denylist.prisma" contains reserved keywords.
                Rename the following items:
-                 - \\"model UserArgs\\"
-        To learn more about how to rename models, check out https://pris.ly/d/naming-models"
+                 - "model UserArgs"
+        To learn more about how to rename models, check out https://pris.ly/d/naming-models
       `)
     }
     generator.stop()
@@ -208,7 +208,7 @@ describe('generator', () => {
     } finally {
       expect(
         stripAnsi(doesnNotExistError.message).split('generation/')[1],
-      ).toMatchInlineSnapshot(`"doesnotexist.prisma does not exist"`)
+      ).toMatchInlineSnapshot(`doesnotexist.prisma does not exist`)
     }
   })
 

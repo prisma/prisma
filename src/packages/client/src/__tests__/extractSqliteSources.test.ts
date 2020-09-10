@@ -44,19 +44,19 @@ test('ignore comments', () => {
   expect(result).toMatchInlineSnapshot(`
     Array [
       Object {
-        "name": "db",
-        "url": "../cwd/my/folder/dev.db",
+        name: db,
+        url: ../cwd/my/folder/dev.db,
       },
     ]
   `)
 
   expect(serializeDatasources(result)).toMatchInlineSnapshot(`
-    "[
+    [
       {
-        \\"name\\": \\"db\\",
-        \\"url\\": \\"../cwd/my/folder/dev.db\\"
+        "name": "db",
+        "url": "../cwd/my/folder/dev.db"
       }
-    ]"
+    ]
   `)
 })
 
@@ -102,18 +102,18 @@ test('basic happy path', () => {
   expect(result).toMatchInlineSnapshot(`
     Array [
       Object {
-        "name": "db",
-        "url": "../cwd/my/folder/dev.db",
+        name: db,
+        url: ../cwd/my/folder/dev.db,
       },
     ]
   `)
 
   expect(serializeDatasources(result)).toMatchInlineSnapshot(`
-    "[
+    [
       {
-        \\"name\\": \\"db\\",
-        \\"url\\": \\"../cwd/my/folder/dev.db\\"
+        "name": "db",
+        "url": "../cwd/my/folder/dev.db"
       }
-    ]"
+    ]
   `)
 })

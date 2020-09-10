@@ -65,11 +65,11 @@ describe('aggregate', () => {
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchInlineSnapshot(`
-      "query {
+      query {
         aggregateUser(take: 10) {
           count
         }
-      }"
+      }
     `)
   })
 

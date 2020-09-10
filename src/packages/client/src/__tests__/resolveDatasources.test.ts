@@ -14,36 +14,36 @@ const outputDir = '/Users/tim/project/node_modules/@prisma/client/runtime'
 test('absolutizeRelativePath', () => {
   expect(
     absolutizeRelativePath('file:db.db', cwd, outputDir),
-  ).toMatchInlineSnapshot(`"../../../../prisma/db.db"`)
+  ).toMatchInlineSnapshot(`../../../../prisma/db.db`)
   expect(
     absolutizeRelativePath('file:/db.db', cwd, outputDir),
-  ).toMatchInlineSnapshot(`"../../../../../../../db.db"`)
+  ).toMatchInlineSnapshot(`../../../../../../../db.db`)
   expect(
     absolutizeRelativePath('file:../db.db', cwd, outputDir),
-  ).toMatchInlineSnapshot(`"../../../../db.db"`)
+  ).toMatchInlineSnapshot(`../../../../db.db`)
   expect(
     absolutizeRelativePath('file:./db.db', cwd, outputDir),
-  ).toMatchInlineSnapshot(`"../../../../prisma/db.db"`)
+  ).toMatchInlineSnapshot(`../../../../prisma/db.db`)
 
   expect(
     absolutizeRelativePath('file:asd/another/dir/db.db', cwd, outputDir),
-  ).toMatchInlineSnapshot(`"../../../../prisma/asd/another/dir/db.db"`)
+  ).toMatchInlineSnapshot(`../../../../prisma/asd/another/dir/db.db`)
   expect(
     absolutizeRelativePath('file:/some/random/dir/db.db', cwd, outputDir),
-  ).toMatchInlineSnapshot(`"../../../../../../../some/random/dir/db.db"`)
+  ).toMatchInlineSnapshot(`../../../../../../../some/random/dir/db.db`)
   expect(
     absolutizeRelativePath(
       'file:/Users/tim/project/node_modules/@prisma/client/runtime',
       cwd,
       outputDir,
     ),
-  ).toMatchInlineSnapshot(`""`)
+  ).toMatchInlineSnapshot(``)
   expect(
     absolutizeRelativePath('file:../another-dir/db.db', cwd, outputDir),
-  ).toMatchInlineSnapshot(`"../../../../another-dir/db.db"`)
+  ).toMatchInlineSnapshot(`../../../../another-dir/db.db`)
   expect(
     absolutizeRelativePath('file:./some/dir/db.db', cwd, outputDir),
-  ).toMatchInlineSnapshot(`"../../../../prisma/some/dir/db.db"`)
+  ).toMatchInlineSnapshot(`../../../../prisma/some/dir/db.db`)
 })
 
 const datasources: DataSource[] = [
@@ -94,51 +94,51 @@ test('resolveDatasources', () => {
     .toMatchInlineSnapshot(`
     Array [
       Object {
-        "activeProvider": "sqlite",
-        "config": Object {},
-        "name": "db",
-        "provider": Array [
-          "sqlite",
+        activeProvider: sqlite,
+        config: Object {},
+        name: db,
+        provider: Array [
+          sqlite,
         ],
-        "url": Object {
-          "fromEnvVar": null,
-          "value": "../../../../prisma/db.db",
+        url: Object {
+          fromEnvVar: null,
+          value: ../../../../prisma/db.db,
         },
       },
       Object {
-        "activeProvider": "sqlite",
-        "config": Object {},
-        "name": "db2",
-        "provider": Array [
-          "sqlite",
+        activeProvider: sqlite,
+        config: Object {},
+        name: db2,
+        provider: Array [
+          sqlite,
         ],
-        "url": Object {
-          "fromEnvVar": null,
-          "value": "../../../../prisma/some-dir/db.db",
+        url: Object {
+          fromEnvVar: null,
+          value: ../../../../prisma/some-dir/db.db,
         },
       },
       Object {
-        "activeProvider": "mysql",
-        "config": Object {},
-        "name": "db3",
-        "provider": Array [
-          "mysql",
+        activeProvider: mysql,
+        config: Object {},
+        name: db3,
+        provider: Array [
+          mysql,
         ],
-        "url": Object {
-          "fromEnvVar": null,
-          "value": "mysql:localhost",
+        url: Object {
+          fromEnvVar: null,
+          value: mysql:localhost,
         },
       },
       Object {
-        "activeProvider": "postgresql",
-        "config": Object {},
-        "name": "db4",
-        "provider": Array [
-          "postgresql",
+        activeProvider: postgresql,
+        config: Object {},
+        name: db4,
+        provider: Array [
+          postgresql,
         ],
-        "url": Object {
-          "fromEnvVar": null,
-          "value": "postgresql://",
+        url: Object {
+          fromEnvVar: null,
+          value: postgresql://,
         },
       },
     ]
@@ -153,23 +153,23 @@ test('serializeDatasources', () => {
       ),
     ),
   ).toMatchInlineSnapshot(`
-    "[
+    [
       {
-        \\"name\\": \\"db\\",
-        \\"url\\": \\"../../../../prisma/db.db\\"
+        "name": "db",
+        "url": "../../../../prisma/db.db"
       },
       {
-        \\"name\\": \\"db2\\",
-        \\"url\\": \\"../../../../prisma/some-dir/db.db\\"
+        "name": "db2",
+        "url": "../../../../prisma/some-dir/db.db"
       },
       {
-        \\"name\\": \\"db3\\",
-        \\"url\\": \\"mysql:localhost\\"
+        "name": "db3",
+        "url": "mysql:localhost"
       },
       {
-        \\"name\\": \\"db4\\",
-        \\"url\\": \\"postgresql://\\"
+        "name": "db4",
+        "url": "postgresql://"
       }
-    ]"
+    ]
   `)
 })

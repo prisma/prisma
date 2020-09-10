@@ -42,6 +42,7 @@ export async function getLatestTag(): Promise<any> {
     'openbsd',
     'netbsd',
     'freebsd11',
+    'freebsd12',
   ]
   const relevantPlatforms = platforms.filter(
     (p) => !excludedPlatforms.includes(p),
@@ -149,11 +150,21 @@ async function getBranch() {
     const split = context.ref.split('/')
     return split[split.length - 1]
   }
-  const result = await execa.command('git rev-parse --abbrev-ref HEAD', {
-    shell: true,
-    stdio: 'pipe',
-  })
-  return result.stdout
+
+  // Need to be handled
+  // for example it's used in https://github.com/prisma/binary-tester and the environment
+  // is not a git repository so it fails
+  try {
+    const result = await execa.command('git rev-parse --abbrev-ref HEAD', {
+      shell: true,
+      stdio: 'pipe',
+    })
+    return result.stdout
+  } catch (e) {
+    console.error(e)
+  }
+
+  return
 }
 
 // TODO: Adjust this for stable release

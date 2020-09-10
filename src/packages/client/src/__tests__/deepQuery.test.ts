@@ -42,7 +42,7 @@ describe('minimal where transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(where: {
           likedArticles: {
             some: {
@@ -57,7 +57,7 @@ describe('minimal where transformation', () => {
                               likedArticles: {
                                 some: {
                                   title: {
-                                    contains: \\"A string\\"
+                                    contains: "A string"
                                   }
                                 }
                               }
@@ -77,7 +77,7 @@ describe('minimal where transformation', () => {
           email
           personaId
         }
-      }"
+      }
     `)
   })
 })

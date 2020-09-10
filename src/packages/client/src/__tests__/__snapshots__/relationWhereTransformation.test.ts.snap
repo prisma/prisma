@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`relation where transformation throw correctly for deep at least one error 1`] = `
-"
+
 Invalid \`prisma.artists()\` invocation:
 
 {
@@ -43,11 +43,11 @@ type PlaylistTrackWhereInput {
   TrackId?: Int | IntFilter
 }
 
-"
+
 `;
 
 exports[`relation where transformation throw correctly for incorrect deep scalar 1`] = `
-"
+
 Invalid \`prisma.users()\` invocation:
 
 {
@@ -91,11 +91,11 @@ type PlaylistTrackWhereInput {
   TrackId?: Int | IntFilter
 }
 
-"
+
 `;
 
 exports[`relation where transformation transform correctly 1`] = `
-"
+
 Invalid \`prisma.users()\` invocation:
 
 {
@@ -139,5 +139,5 @@ type PlaylistTrackWhereInput {
   TrackId?: Int | IntFilter
 }
 
-"
+
 `;

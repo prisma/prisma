@@ -50,7 +50,7 @@ describe('include validation', () => {
       document.validate(ast, false)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
+
         Invalid \`prisma.findManyPost()\` invocation:
 
         {
@@ -62,7 +62,7 @@ describe('include validation', () => {
 
 
         The \`include\` statement for type Post must not be empty. Available options are listed in green.
-        "
+
       `)
     }
   })
@@ -98,7 +98,7 @@ describe('include validation', () => {
       document.validate(ast, false)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
+
         Invalid \`prisma.findManyNoRelations()\` invocation:
 
         {
@@ -107,7 +107,7 @@ describe('include validation', () => {
 
 
         NoRelations does not have any relation and therefore can't have an \`include\` statement.
-        "
+
       `)
     }
   })
@@ -131,7 +131,7 @@ describe('include validation', () => {
       document.validate(ast, false)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
+
         Invalid \`prisma.asd()\` invocation:
 
         {
@@ -144,7 +144,7 @@ describe('include validation', () => {
 
         Unknown field \`asd\` for include statement on model NoRelations.
         This model has no relations, so you can't use include with it.
-        "
+
       `)
     }
   })
@@ -186,7 +186,7 @@ describe('include validation', () => {
     })
 
     expect(String(document)).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser {
           id
           email
@@ -212,7 +212,7 @@ describe('include validation', () => {
             optionnal
           }
         }
-      }"
+      }
     `)
     expect(() => document.validate(ast)).not.toThrow()
   })
@@ -254,7 +254,7 @@ describe('include validation', () => {
       document.validate(ast, false)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
+
         Invalid \`prisma.id()\` invocation:
 
         {
@@ -269,7 +269,7 @@ describe('include validation', () => {
 
         Invalid scalar field \`id\` for include statement on model Post. Available options are listed in green.
         Note, that include statements only accept relation fields.
-        "
+
       `)
     }
   })
@@ -293,7 +293,7 @@ describe('include validation', () => {
       document.validate(ast, false)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
+
         Invalid \`prisma.mauthor()\` invocation:
 
         {
@@ -307,7 +307,7 @@ describe('include validation', () => {
 
 
         Unknown field \`mauthor\` for include statement on model Post. Available options are listed in green. Did you mean \`author\`?
-        "
+
       `)
     }
   })
@@ -332,7 +332,7 @@ describe('include validation', () => {
     })
 
     expect(String(document)).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser {
           id
           email
@@ -351,7 +351,7 @@ describe('include validation', () => {
             id
           }
         }
-      }"
+      }
     `)
     expect(() => document.validate(ast)).not.toThrow()
   })
@@ -379,7 +379,7 @@ describe('include validation', () => {
     })
 
     expect(String(document)).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser {
           id
           email
@@ -423,7 +423,7 @@ describe('include validation', () => {
             }
           }
         }
-      }"
+      }
     `)
     expect(() => document.validate(ast)).not.toThrow()
   })
