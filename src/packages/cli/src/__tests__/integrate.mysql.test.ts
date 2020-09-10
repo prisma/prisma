@@ -2222,7 +2222,7 @@ INSERT INTO items SET item_id = 123, problematic_column = NULL;
       `,
       do: async (client) => {
         const items = await prisma.item.findMany();
-        return itmes
+        return items
       },
       expect: {
         item_id: 123,
