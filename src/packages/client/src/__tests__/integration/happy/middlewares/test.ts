@@ -1,4 +1,4 @@
-import { getTestClient } from "../../../../utils/getTestClient"
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('middlewares', async () => {
   const PrismaClient = await getTestClient()
@@ -35,21 +35,18 @@ test('middlewares', async () => {
 
   expect(order).toEqual([1, 2, 3, 4, 1, 2, 3, 4])
   expect(allResults).toEqual([[], []])
-  expect(engineResults.map((r) => r.data)).toEqual(
-    [
-      {
-        data: {
-          findManyUser: [],
-        },
+  expect(engineResults.map((r) => r.data)).toEqual([
+    {
+      data: {
+        findManyUser: [],
       },
-      {
-        data: {
-          findManyPost: [],
-        },
+    },
+    {
+      data: {
+        findManyPost: [],
       },
-    ],
-
-  )
+    },
+  ])
   expect(typeof engineResults[0].elapsed).toEqual('number')
   expect(typeof engineResults[1].elapsed).toEqual('number')
 

@@ -53,20 +53,20 @@ export class Dataloader<T = any> {
       if (batch.length === 1) {
         this.options
           .singleLoader(batch[0].request)
-          .then(result => {
+          .then((result) => {
             if (result instanceof Error) {
               batch[0].reject(result)
             } else {
               batch[0].resolve(result)
             }
           })
-          .catch(e => {
+          .catch((e) => {
             batch[0].reject(e)
           })
       } else {
         this.options
-          .batchLoader(batch.map(j => j.request))
-          .then(results => {
+          .batchLoader(batch.map((j) => j.request))
+          .then((results) => {
             if (results instanceof Error) {
               for (let i = 0; i < batch!.length; i++) {
                 batch![i].reject(results)
@@ -82,7 +82,7 @@ export class Dataloader<T = any> {
               }
             }
           })
-          .catch(e => {
+          .catch((e) => {
             for (let i = 0; i < batch!.length; i++) {
               batch![i].reject(e)
             }

@@ -1,4 +1,4 @@
-import { getTestClient } from "../../../../utils/getTestClient"
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('filter-nullable', async () => {
   const PrismaClient = await getTestClient()
@@ -10,12 +10,10 @@ test('filter-nullable', async () => {
     },
   })
 
-  expect(result).toEqual(
-    [
-      { id: '1', resaleId: null },
-      { id: '2', resaleId: null },
-    ]
-  )
+  expect(result).toEqual([
+    { id: '1', resaleId: null },
+    { id: '2', resaleId: null },
+  ])
 
   prisma.$disconnect()
 })

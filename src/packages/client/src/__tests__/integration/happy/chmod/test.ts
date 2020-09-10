@@ -1,7 +1,7 @@
 import { getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
-import { generateTestClient } from "../../../../utils/getTestClient"
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('chmod', async () => {
   await generateTestClient()

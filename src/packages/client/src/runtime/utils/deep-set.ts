@@ -9,7 +9,8 @@ const keys = (ks: string | string[]) => (Array.isArray(ks) ? ks : ks.split('.'))
 // returning the current value in each iteration.
 // if at any point the value for the current key does not exist,
 // return the default value
-export const deepGet = (o, kp: string[]) => keys(kp).reduce((o, k) => o && o[k], o)
+export const deepGet = (o, kp: string[]) =>
+  keys(kp).reduce((o, k) => o && o[k], o)
 
 // traverse the set of keys right to left,
 // returning a new object containing both properties from the object
@@ -23,4 +24,7 @@ export const deepGet = (o, kp: string[]) => keys(kp).reduce((o, k) => o && o[k],
 // 2. b = Object.assign({}, { b: { c: 1 } }, { b: c })
 // 3. returned = Object.assign({}, { a: { b: { c: 1 } } }, { a: b })
 export const deepSet = (o: any, kp: string | string[], v: any) =>
-  keys(kp).reduceRight((v, k, i, ks) => Object.assign({}, deepGet(o, ks.slice(0, i)), { [k]: v }), v)
+  keys(kp).reduceRight(
+    (v, k, i, ks) => Object.assign({}, deepGet(o, ks.slice(0, i)), { [k]: v }),
+    v,
+  )

@@ -21,7 +21,7 @@ export function transformDmmf(document: DMMF.Document): DMMF.Document {
 
 /**
  * Set `isOrderType`
- * @param inputTypes 
+ * @param inputTypes
  */
 function markOrderInputType(inputTypes: DMMF.InputType[]): DMMF.InputType[] {
   return inputTypes.map((t) => {
@@ -48,7 +48,7 @@ function filterOutputTypes(types: DMMF.OutputType[]): DMMF.OutputType[] {
 
 /**
  * Add `atLeastOne` to unique where input types
- * @param inputTypes 
+ * @param inputTypes
  */
 function makeWhereUniqueInputsRequired(
   inputTypes: DMMF.InputType[],
@@ -68,12 +68,18 @@ function transformInputTypes(document: DMMF.Document): DMMF.Document {
     inputTypeMap[inputType.name] = inputType
   }
 
-  const inputTypeFieldLookupMap: Record<string, Record<string, DMMF.SchemaArg>> = Object.create(null)
+  const inputTypeFieldLookupMap: Record<
+    string,
+    Record<string, DMMF.SchemaArg>
+  > = Object.create(null)
 
-  document.schema.inputTypes = document.schema.inputTypes.map(inputType => {
+  document.schema.inputTypes = document.schema.inputTypes.map((inputType) => {
     // add `notIn`
-    if (inputType.name.endsWith('Filter') && !inputType.name.endsWith('RelationFilter')) {
-      const inFieldIndex = inputType.fields.findIndex(f => f.name === 'in')
+    if (
+      inputType.name.endsWith('Filter') &&
+      !inputType.name.endsWith('RelationFilter')
+    ) {
+      const inFieldIndex = inputType.fields.findIndex((f) => f.name === 'in')
 
       if (inFieldIndex > -1) {
         const inField = inputType.fields[inFieldIndex]
@@ -88,15 +94,14 @@ function transformInputTypes(document: DMMF.Document): DMMF.Document {
     if (inputType.name.endsWith('WhereInput')) {
       inputType.isWhereType = true
 
-      inputType.fields = inputType.fields.map(f => {
+      inputType.fields = inputType.fields.map((f) => {
         const inputTypeType = f.inputType[0]
         const inputTypeName = inputTypeType.type.toString()
         if (inputTypeName.endsWith('Filter')) {
-
           // TODO: improve name selection here
           if (inputTypeName.endsWith('RelationFilter')) {
             const nestedInputType = inputTypeMap[inputTypeName]
-            const isField = nestedInputType.fields.find(f => f.name === 'is')
+            const isField = nestedInputType.fields.find((f) => f.name === 'is')
             // lift "is" fields of to one relation filter up - basically skip them
             if (isField) {
               f.inputType[0] = isField.inputType[0]
@@ -111,9 +116,11 @@ function transformInputTypes(document: DMMF.Document): DMMF.Document {
           // TODO: optimize
           let equalsField = inputTypeFieldLookupMap[inputTypeName]?.equals
           if (!equalsField) {
-            equalsField = filterType.fields.find(field => field.name === 'equals')!
+            equalsField = filterType.fields.find(
+              (field) => field.name === 'equals',
+            )!
             inputTypeFieldLookupMap[inputTypeName] = {
-              equals: equalsField
+              equals: equalsField,
             }
           }
 
@@ -131,18 +138,22 @@ function transformInputTypes(document: DMMF.Document): DMMF.Document {
                 isNullable: true,
                 isRequired: false,
                 kind: 'scalar',
-                type: 'null'
+                type: 'null',
               })
             }
             // lift up "not" field
             if (!inputTypeFieldLookupMap[inputTypeName].not) {
-              const notField = filterType.fields.find(field => field.name === 'not')
+              const notField = filterType.fields.find(
+                (field) => field.name === 'not',
+              )
               if (notField && notField.inputType.length === 1) {
                 if (equalsField.inputType[0].type === 'Json') {
                   // we need to filter out the `NestedJsonNullableFilter`,
                   // as we have lifted the "not" filter one level up already
                   // and we just want to directly filter the json as it is
-                  if (notField.inputType[0].type === 'NestedJsonNullableFilter') {
+                  if (
+                    notField.inputType[0].type === 'NestedJsonNullableFilter'
+                  ) {
                     notField.inputType = []
                   }
                 }
@@ -171,9 +182,12 @@ function transformInputTypes(document: DMMF.Document): DMMF.Document {
     }
 
     // add union transformation, lift `set` up in both `update` and `updateMany` types
-    if (inputType.name.endsWith('UpdateInput') || inputType.name.endsWith('UpdateManyMutationInput') || 
+    if (
+      inputType.name.endsWith('UpdateInput') ||
+      inputType.name.endsWith('UpdateManyMutationInput') ||
       // lifting needs to be done in the nested input types https://github.com/prisma/prisma/issues/3497
-      (inputType.name.includes('UpdateWithout') && inputType.name.endsWith('DataInput')) ||
+      (inputType.name.includes('UpdateWithout') &&
+        inputType.name.endsWith('DataInput')) ||
       inputType.name.endsWith('UpdateManyDataInput')
     ) {
       inputType.isUpdateType = true
@@ -182,12 +196,14 @@ function transformInputTypes(document: DMMF.Document): DMMF.Document {
         if (fieldInputTypeName.endsWith('FieldUpdateOperationsInput')) {
           const fieldInputType = inputTypeMap[fieldInputTypeName]
           if (!fieldInputType) {
-            throw new Error(`Could not find field input type ${fieldInputTypeName}`)
+            throw new Error(
+              `Could not find field input type ${fieldInputTypeName}`,
+            )
           }
           fieldInputType.isUpdateOperationType = true
           // remove the original type for JSON
           // because we can't allow {set: {}} as it would be ambiguous
-          const setField = fieldInputType.fields.find(f => f.name === 'set')
+          const setField = fieldInputType.fields.find((f) => f.name === 'set')
           if (!setField) {
             // WEIRD, should normally not happen. But we for now also don't have a reason to error here
             // it could e.g. happen that we incorrectly jumped into a relation type

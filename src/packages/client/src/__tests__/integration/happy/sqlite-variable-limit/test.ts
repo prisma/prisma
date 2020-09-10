@@ -2,7 +2,7 @@
 const zlib = require('zlib')
 const fs = require('fs')
 const path = require('path')
-import { getTestClient } from "../../../../utils/getTestClient"
+import { getTestClient } from '../../../../utils/getTestClient'
 
 jest.setTimeout(10000)
 
@@ -22,7 +22,6 @@ test('sqlite-variable-limit', async () => {
 
   prisma.$disconnect()
 })
-
 
 // async function compressFile(filename) {
 //   return new Promise((resolve, reject) => {

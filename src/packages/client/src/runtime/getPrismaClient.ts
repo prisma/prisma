@@ -169,10 +169,10 @@ export type LogDefinition = {
 
 export type GetLogType<
   T extends LogLevel | LogDefinition
-  > = T extends LogDefinition
+> = T extends LogDefinition
   ? T['emit'] extends 'event'
-  ? T['level']
-  : never
+    ? T['level']
+    : never
   : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
   | GetLogType<T[0]>
@@ -331,8 +331,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             typeof options.log === 'string'
               ? options.log === 'query'
               : options.log.find((o) =>
-                typeof o === 'string' ? o === 'query' : o.level === 'query',
-              ),
+                  typeof o === 'string' ? o === 'query' : o.level === 'query',
+                ),
           ),
         env: envFile,
         flags: [],
@@ -356,8 +356,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             typeof log === 'string'
               ? log
               : log.emit === 'stdout'
-                ? log.level
-                : null
+              ? log.level
+              : null
           if (level) {
             this.$on(level, (event) => {
               const colorMap = {
@@ -368,7 +368,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               }
               console.error(
                 chalk[colorMap[level]](`prisma:${level}`.padEnd(13)) +
-                (event.message || event.query),
+                  (event.message || event.query),
               )
             })
           }
@@ -735,9 +735,9 @@ new PrismaClient({
 
       // No, we won't copy the whole object here just to make it easier to do TypeScript
       // as it would be much slower
-      ; (params as InternalRequestParams).clientMethod = clientMethod
-        ; (params as InternalRequestParams).callsite = callsite
-        ; (params as InternalRequestParams).headers = headers
+      ;(params as InternalRequestParams).clientMethod = clientMethod
+      ;(params as InternalRequestParams).callsite = callsite
+      ;(params as InternalRequestParams).headers = headers
 
       return this._executeRequest(params as InternalRequestParams)
     }
@@ -933,8 +933,8 @@ new PrismaClient({
               const prefix = dataPath.includes('select')
                 ? 'select'
                 : dataPath.includes('include')
-                  ? 'include'
-                  : 'select'
+                ? 'include'
+                : 'select'
               const newDataPath = [...dataPath, prefix, field.name]
               const newArgs = deepSet(args, newDataPath, fieldArgs || true)
 
@@ -992,9 +992,9 @@ new PrismaClient({
             actionName: `aggregate`,
             args: args
               ? {
-                ...args,
-                select: { count: true },
-              }
+                  ...args,
+                  select: { count: true },
+                }
               : undefined,
             dataPath: ['count'],
           })

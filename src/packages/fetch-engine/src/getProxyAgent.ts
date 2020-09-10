@@ -1,8 +1,7 @@
 import HttpsProxyAgent from 'https-proxy-agent'
 import HttpProxyAgent from 'http-proxy-agent'
 import Url from 'url'
-
-'use strict'
+;('use strict')
 // code from https://raw.githubusercontent.com/request/request/5ba8eb44da7cd639ca21070ea9be20d611b85f66/lib/getProxyFromURI.js
 
 function formatHostname(hostname: string): string {

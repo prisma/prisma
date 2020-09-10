@@ -1,4 +1,4 @@
-import { getTestClient } from "../../../../utils/getTestClient"
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('atomic-operations', async () => {
   const PrismaClient = await getTestClient()
@@ -20,7 +20,6 @@ test('atomic-operations', async () => {
     name: 'Alex',
     countInt: 1,
     countFloat: 0.0,
-
   })
 
   const increment = await prisma.user.update({
@@ -43,7 +42,6 @@ test('atomic-operations', async () => {
     name: 'Alex',
     countInt: 2,
     countFloat: 1.54321,
-
   })
 
   const decrement = await prisma.user.update({
