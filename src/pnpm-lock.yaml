@@ -307,10 +307,11 @@ importers:
       eslint-config-prettier: 6.11.0_eslint@7.8.1
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
       eslint-plugin-jest: 24.0.0_eslint@7.8.1+typescript@4.0.2
-      eslint-plugin-prettier: 3.1.4_eslint@7.8.1
+      eslint-plugin-prettier: 3.1.4_eslint@7.8.1+prettier@2.1.1
       husky: 4.2.5
       jest: 26.4.2
       lint-staged: 10.3.0
+      prettier: 2.1.1
       strip-ansi: 6.0.0
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
       typescript: 4.0.2
@@ -328,6 +329,7 @@ importers:
       husky: 4.2.5
       jest: 26.4.2
       lint-staged: 10.3.0
+      prettier: ^2.1.1
       strip-ansi: 6.0.0
       ts-jest: 26.3.0
       typescript: 4.0.2
@@ -356,10 +358,11 @@ importers:
       eslint-config-prettier: 6.11.0_eslint@7.8.1
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
       eslint-plugin-jest: 24.0.0_eslint@7.8.1+typescript@4.0.2
-      eslint-plugin-prettier: 3.1.4_eslint@7.8.1
+      eslint-plugin-prettier: 3.1.4_eslint@7.8.1+prettier@2.1.1
       husky: 4.2.5
       jest: 26.4.2
       lint-staged: 10.3.0
+      prettier: 2.1.1
       strip-ansi: 6.0.0
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
       typescript: 4.0.2
@@ -388,6 +391,7 @@ importers:
       lint-staged: 10.3.0
       new-github-issue-url: ^0.2.1
       p-retry: ^4.2.0
+      prettier: ^2.1.1
       strip-ansi: 6.0.0
       terminal-link: ^2.1.1
       ts-jest: 26.3.0
@@ -527,10 +531,11 @@ importers:
       eslint-config-prettier: 6.11.0_eslint@7.8.1
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
       eslint-plugin-jest: 24.0.0_eslint@7.8.1+typescript@4.0.2
-      eslint-plugin-prettier: 3.1.4_eslint@7.8.1
+      eslint-plugin-prettier: 3.1.4_eslint@7.8.1+prettier@2.1.1
       husky: 4.2.5
       jest: 26.4.2
       lint-staged: 10.3.0
+      prettier: 2.1.1
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
       typescript: 4.0.2
     specifiers:
@@ -547,6 +552,7 @@ importers:
       husky: 4.2.5
       jest: 26.4.2
       lint-staged: 10.3.0
+      prettier: ^2.1.1
       ts-jest: 26.3.0
       typescript: 4.0.2
   packages/ink-components:
@@ -3446,18 +3452,6 @@ packages:
       typescript: '*'
     resolution:
       integrity: sha512-a0G7hSDbuBCW4PNT6MVpAyfnGbUDOqxzOyhR6wT2BIBnR7MhvfAqd6KKfsTjX+Z3gxzIHiEsihzdClU4cSc6qQ==
-  /eslint-plugin-prettier/3.1.4_eslint@7.8.1:
-    dependencies:
-      eslint: 7.8.1
-      prettier-linter-helpers: 1.0.0
-    dev: true
-    engines:
-      node: '>=6.0.0'
-    peerDependencies:
-      eslint: '>=5.0.0'
-      prettier: '>=1.13.0'
-    resolution:
-      integrity: sha512-jZDa8z76klRqo+TdGDTFJSavwbnWK2ZpqGKNZ+VvweMW516pDUMmQ2koXvxEE4JhzNvTv+radye/bWGBmA6jmg==
   /eslint-plugin-prettier/3.1.4_eslint@7.8.1+prettier@2.1.1:
     dependencies:
       eslint: 7.8.1
