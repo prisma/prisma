@@ -18,7 +18,7 @@ it('doctor should succeed when schema and db do match', async () => {
 
 it('should fail when db is missing', async () => {
   ctx.fixture('schema-db-out-of-sync')
-  ctx.fs.remove('dev.db')
+  ctx.fs.remove('db.sqlite')
   const result = Doctor.new().parse([])
   await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
     `P1003: SQLite database file doesn't exist`,
@@ -34,12 +34,12 @@ it('should fail when prisma schema is missing', async () => {
 
 it('should fail when db is empty', async () => {
   ctx.fixture('schema-db-out-of-sync')
-  ctx.fs.write('dev.db', '')
+  ctx.fs.write('db.sqlite', '')
   const result = Doctor.new().parse([])
   await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
           P4001
 
-          The introspected database was empty: file:dev.db
+          The introspected database was empty: file:db.sqlite
 
         `)
 })
@@ -50,13 +50,13 @@ it('should fail when schema and db do not match', async () => {
   await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
 
-          NewPost
-          ↪ Model is missing in database
+                    NewPost
+                    ↪ Model is missing in database
 
 
-          User
-          ↪ Field newName is missing in database
-          ↪ Field newPosts is missing in database
+                    User
+                    ↪ Field newName is missing in database
+                    ↪ Field newPosts is missing in database
 
-        `)
+                `)
 })
