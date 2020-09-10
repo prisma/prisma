@@ -2207,6 +2207,8 @@ function tests(): Test[] {
     {
       name: 'reproduction https://github.com/prisma/prisma-client-js/issues/849',
       up: `
+SET SESSION sql_mode = '';
+
 CREATE TABLE wp_posts (
   ID bigint unsigned NOT NULL AUTO_INCREMENT,
   post_date datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
