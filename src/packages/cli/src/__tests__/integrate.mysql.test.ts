@@ -2218,7 +2218,7 @@ ALTER TABLE items
 INSERT INTO items SET item_id = 123, problematic_column = NULL;
         `,
       down: `
-        drop table if exists posts items;
+        drop table if exists items;
       `,
       do: async (client) => {
         const items = await prisma.item.findMany();
