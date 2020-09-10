@@ -2210,7 +2210,7 @@ function tests(): Test[] {
 CREATE TABLE wp_posts (
   ID bigint unsigned NOT NULL AUTO_INCREMENT,
   post_date datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  PRIMARY KEY (ID),
+  PRIMARY KEY (ID)
 );
 
 INSERT INTO wp_posts VALUES (1,'0000-00-00 00:00:00');
