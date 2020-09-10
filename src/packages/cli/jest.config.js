@@ -10,6 +10,7 @@ module.exports = {
     '**/src/__tests__/dotenv-4*',
     '**/src/__tests__/dotenv-5*',
     '**/src/__tests__/generate*',
+    '**/src/__tests__/studio*',
   ],
   // todo duplicated serializer from client package, should share
   snapshotSerializers: ['./src/__tests__/__helpers__/snapshotSerializer.ts'],
