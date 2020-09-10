@@ -1,4 +1,3 @@
-import assert from 'assert'
 import fs from 'fs'
 import http from 'http'
 import path from 'path'
@@ -12,17 +11,14 @@ const setupWS = (): Promise<WebSocket> => {
     const ws = new WebSocket(`ws://127.0.0.1:${STUDIO_TEST_PORT}/`)
     ws.on('open', () => {
       ws.on('message', (data: string) => {
-        /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
         const message: any = JSON.parse(data)
 
-        assert.ok(message.channel !== undefined)
-        assert.ok(message.action !== undefined)
+        expect(message.channel).not.toBeUndefined()
+        expect(message.action).not.toBeUndefined()
 
-        /* eslint-disable @typescript-eslint/no-unsafe-member-access */
         if (message.channel !== '-photon' && message.action !== 'start') {
           return
         }
-        /* eslint-enable */
 
         res(ws)
       })
@@ -44,8 +40,8 @@ const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
     ws.on('message', (data: string) => {
       const message: any = JSON.parse(data)
 
-      expect(message.channel).toBeUndefined()
-      expect(message.action).toBeUndefined()
+      expect(message.channel).not.toBeUndefined()
+      expect(message.action).not.toBeUndefined()
 
       if (message.channel !== '-photon' && message.action !== 'request') {
         return
