@@ -24,7 +24,7 @@ const debug = Debug('prisma-client')
 import fs from 'fs'
 import chalk from 'chalk'
 import * as sqlTemplateTag from 'sql-template-tag'
-import { parse as parseDotEnv } from 'dotenv'
+import dotenv from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
 import {
   GeneratorConfig,
@@ -385,7 +385,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         '.env',
       )
       if (fs.existsSync(dotEnvPath)) {
-        return dotenvExpand(parseDotEnv(fs.readFileSync(dotEnvPath, 'utf-8')))
+        return dotenvExpand(dotenv.config({ path: dotEnvPath })).parsed
       }
 
       return {}
