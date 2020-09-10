@@ -6,32 +6,28 @@ import { Doctor } from '../Doctor'
 
 const ctx: {
   tmpDir: string
-  logs: string[]
   fs: FSJetpack
   fixture: (name: string) => void
-  mocked: { 'console.error': any; cwd: string }
+  mocked: { 'console.error': jest.SpyInstance; cwd: string }
 } = {} as any
 
 beforeEach(() => {
-  ctx.logs = []
   ctx.tmpDir = tempy.directory()
-  ctx.mocked = {} as any
-  ctx.mocked['console.error'] = console.error
-  ctx.mocked.cwd = process.cwd()
   ctx.fs = FSJet.cwd(ctx.tmpDir)
+  ctx.mocked = {
+    cwd: process.cwd(),
+    'console.error': jest.spyOn(console, 'error').mockImplementation(() => {}),
+  }
   ctx.fixture = (name: string) => {
     ctx.fs.copy(path.join(__dirname, 'fixtures', name), '.', {
       overwrite: true,
     })
   }
-  console.error = (...args) => {
-    ctx.logs.push(...args)
-  }
   process.chdir(ctx.tmpDir)
 })
 
 afterEach(() => {
-  console.error = ctx.mocked['console.error']
+  ctx.mocked['console.error'].mockRestore()
   process.chdir(ctx.mocked.cwd)
 })
 
@@ -39,7 +35,13 @@ it('doctor should succeed when schema and db do match', async () => {
   ctx.fixture('example-project/prisma')
   const result = Doctor.new().parse([])
   await expect(result).resolves.toEqual('Everything in sync 🔄')
-  expect(ctx.logs).toEqual([`👩‍⚕️🏥 Prisma Doctor checking the database...`])
+  expect(ctx.mocked['console.error'].mock.calls).toMatchInlineSnapshot(`
+    Array [
+      Array [
+        👩‍⚕️🏥 Prisma Doctor checking the database...,
+      ],
+    ]
+  `)
 })
 
 it('should fail when db is missing', async () => {
