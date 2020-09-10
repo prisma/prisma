@@ -1,21 +1,7 @@
 import { Doctor } from '../Doctor'
-import { Context } from './__helpers__/context'
+import { consoleContext, Context } from './__helpers__/context'
 
-const ctx = Context.new<{
-  mocked: {
-    'console.error': jest.SpyInstance
-  }
-}>()
-
-beforeEach(() => {
-  ctx.mocked['console.error'] = jest
-    .spyOn(console, 'error')
-    .mockImplementation(() => {})
-})
-
-afterEach(() => {
-  ctx.mocked['console.error'].mockRestore()
-})
+const ctx = Context.new().add(consoleContext).assemble()
 
 it('doctor should succeed when schema and db do match', async () => {
   ctx.fixture('example-project/prisma')
