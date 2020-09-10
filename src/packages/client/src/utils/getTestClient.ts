@@ -1,10 +1,18 @@
 import { parse } from 'stacktrace-parser'
 import path from 'path'
-import { getRelativeSchemaPath, getConfig, extractPreviewFeatures, mapPreviewFeatures } from '@prisma/sdk'
+import {
+  getRelativeSchemaPath,
+  getConfig,
+  extractPreviewFeatures,
+  mapPreviewFeatures,
+} from '@prisma/sdk'
 import { getDMMF } from '../generation/getDMMF'
 import { promisify } from 'util'
 import fs from 'fs'
-import { GetPrismaClientOptions, getPrismaClient } from '../runtime/getPrismaClient'
+import {
+  GetPrismaClientOptions,
+  getPrismaClient,
+} from '../runtime/getPrismaClient'
 import { extractSqliteSources } from '../generation/extractSqliteSources'
 import { generateInFolder } from './generateInFolder'
 const readFile = promisify(fs.readFile)
@@ -18,16 +26,15 @@ export async function getTestClient(): Promise<any> {
   const schemaPath = await getRelativeSchemaPath(schemaDir)
   const datamodel = await readFile(schemaPath!, 'utf-8')
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-  const generator = config.generators.find(g => g.provider === 'prisma-client-js')
-  const enableExperimental = mapPreviewFeatures(
-    extractPreviewFeatures(config),
+  const generator = config.generators.find(
+    (g) => g.provider === 'prisma-client-js',
   )
+  const enableExperimental = mapPreviewFeatures(extractPreviewFeatures(config))
   const document = await getDMMF({
     datamodel,
-    enableExperimental
+    enableExperimental,
   })
   const outputDir = schemaDir
-
 
   const options: GetPrismaClientOptions = {
     document,
@@ -40,7 +47,7 @@ export async function getTestClient(): Promise<any> {
       datamodel,
       schemaDir,
       outputDir,
-    )
+    ),
   }
 
   return getPrismaClient(options)
@@ -57,6 +64,6 @@ export async function generateTestClient(): Promise<any> {
     projectDir,
     useLocalRuntime: false,
     transpile: true,
-    useBuiltRuntime: false
+    useBuiltRuntime: false,
   })
 }

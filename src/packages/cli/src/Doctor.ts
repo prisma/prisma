@@ -9,7 +9,7 @@ import {
   pick,
   format,
   HelpError,
-  canConnectToDatabase
+  canConnectToDatabase,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'

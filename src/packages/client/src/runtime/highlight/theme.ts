@@ -5,7 +5,7 @@ export const orange = chalk.rgb(246, 145, 95)
 export const darkBrightBlue = chalk.rgb(107, 139, 140)
 export const blue = chalk.cyan
 export const brightBlue = chalk.rgb(127, 155, 155)
-export const identity = str => str
+export const identity = (str) => str
 
 export const theme: Theme = {
   keyword: blue,

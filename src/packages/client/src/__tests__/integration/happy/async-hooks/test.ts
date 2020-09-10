@@ -1,5 +1,5 @@
 import { executionAsyncId } from 'async_hooks'
-import { getTestClient } from "../../../../utils/getTestClient"
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('async-hooks', async () => {
   const PrismaClient = await getTestClient()
@@ -15,4 +15,3 @@ test('async-hooks', async () => {
 
   prisma.$disconnect()
 })
-

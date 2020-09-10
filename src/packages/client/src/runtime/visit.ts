@@ -7,7 +7,7 @@ interface Visitor {
 }
 
 export function visit(document: Document, visitor: Visitor): Document {
-  const children = document.children.map(field => visitField(field, visitor))
+  const children = document.children.map((field) => visitField(field, visitor))
   if (
     document.children.length === children.length &&
     document.children.every((child, index) => child === children[index])
@@ -19,16 +19,20 @@ export function visit(document: Document, visitor: Visitor): Document {
 }
 
 function visitField(field: Field, visitor: Visitor): Field {
-  const args = field.args ? field.args.args.map(arg => visitArg(arg, visitor)) : undefined
+  const args = field.args
+    ? field.args.args.map((arg) => visitArg(arg, visitor))
+    : undefined
   const newArgs = args ? new Args(args) : undefined
-  const children = field.children ? field.children.map(child => visitField(child, visitor)) : undefined
+  const children = field.children
+    ? field.children.map((child) => visitField(child, visitor))
+    : undefined
 
   const argsDidntChange =
     (!newArgs && !field.args) ||
     (field.args &&
       newArgs &&
-      (field.args.args.length === newArgs.args.length &&
-        field.args.args.every((arg, index) => arg === newArgs.args[index])))
+      field.args.args.length === newArgs.args.length &&
+      field.args.args.every((arg, index) => arg === newArgs.args[index]))
 
   const fieldsDidntChange =
     (!field.children && !children) ||
@@ -52,7 +56,7 @@ function visitField(field: Field, visitor: Visitor): Field {
 
 function isArgsArray(input: any): input is Args[] {
   if (Array.isArray(input)) {
-    return input.every(arg => arg instanceof Args)
+    return input.every((arg) => arg instanceof Args)
   }
 
   return false
@@ -61,8 +65,11 @@ function isArgsArray(input: any): input is Args[] {
 function visitArg(arg: Arg, visitor: Visitor): Arg {
   function mapArgs(inputArgs: Args) {
     const { args } = inputArgs
-    const newArgs = args.map(a => visitArg(a, visitor))
-    if (newArgs.length !== args.length || args.find((a, i) => a !== newArgs[i])) {
+    const newArgs = args.map((a) => visitArg(a, visitor))
+    if (
+      newArgs.length !== args.length ||
+      args.find((a, i) => a !== newArgs[i])
+    ) {
       return new Args(newArgs)
     }
     return inputArgs

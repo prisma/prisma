@@ -11,8 +11,8 @@ async function main() {
   const x = await prisma.post.findMany({
     where: {
       // author: null
-      id: 'asd'
-    }
+      id: 'asd',
+    },
   })
   console.log(x)
   prisma.$disconnect()

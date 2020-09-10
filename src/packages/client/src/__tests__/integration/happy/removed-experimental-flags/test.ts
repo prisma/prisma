@@ -1,4 +1,4 @@
-import { getTestClient } from "../../../../utils/getTestClient"
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('removed-experimental-flags', async () => {
   console.log = () => null

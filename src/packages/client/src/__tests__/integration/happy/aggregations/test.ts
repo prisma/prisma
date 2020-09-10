@@ -1,4 +1,4 @@
-import { getTestClient } from "../../../../utils/getTestClient"
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('aggregations', async () => {
   const PrismaClient = await getTestClient()

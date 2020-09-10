@@ -1,4 +1,4 @@
-import { getTestClient } from "../../../../utils/getTestClient"
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('restart', async () => {
   const PrismaClient = await getTestClient()
@@ -33,4 +33,3 @@ test('restart', async () => {
 
   db.$disconnect()
 })
-

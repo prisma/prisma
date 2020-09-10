@@ -1,5 +1,4 @@
-import { generateTestClient } from "../../../../utils/getTestClient"
-
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('blog', async () => {
   await generateTestClient()
@@ -76,9 +75,7 @@ test('blog', async () => {
 
   // Test queryRaw(string)
   const rawQuery = await db.$queryRaw('SELECT 1')
-  expect(
-    rawQuery[0]['1']
-  ).toBe(1)
+  expect(rawQuery[0]['1']).toBe(1)
 
   // Test queryRaw(string, values)
   const rawQueryWithValues = await db.$queryRaw(
@@ -89,7 +86,7 @@ test('blog', async () => {
 
   expect(rawQueryWithValues[0]).toEqual({
     name: 'Alice',
-    id: 42
+    id: 42,
   })
 
   // Test queryRaw``

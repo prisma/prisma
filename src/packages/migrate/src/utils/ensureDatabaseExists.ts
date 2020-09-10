@@ -1,7 +1,12 @@
 import { getSchema, getSchemaDir } from '@prisma/sdk'
 import { getConfig } from '@prisma/sdk'
 import chalk from 'chalk'
-import { DatabaseCredentials, uriToCredentials, createDatabase, canConnectToDatabase } from '@prisma/sdk'
+import {
+  DatabaseCredentials,
+  uriToCredentials,
+  createDatabase,
+  canConnectToDatabase,
+} from '@prisma/sdk'
 import prompt from 'prompts'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
@@ -69,10 +74,10 @@ export async function askToCreateDb(
     credentials.type === 'mysql'
       ? 'MySQL'
       : credentials.type === 'postgresql'
-        ? 'PostgreSQL'
-        : credentials.type === 'sqlite'
-          ? 'SQLite'
-          : credentials.type
+      ? 'PostgreSQL'
+      : credentials.type === 'sqlite'
+      ? 'SQLite'
+      : credentials.type
 
   const schemaWord = 'database'
 

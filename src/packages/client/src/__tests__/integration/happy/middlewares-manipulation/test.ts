@@ -1,4 +1,4 @@
-import { getTestClient } from "../../../../utils/getTestClient"
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('middlewares-manipulation', async () => {
   const PrismaClient = await getTestClient()
@@ -29,7 +29,6 @@ test('middlewares-manipulation', async () => {
   })
 
   const users = await prisma.user.findMany()
-
 
   expect(theParams).toEqual({
     dataPath: [],

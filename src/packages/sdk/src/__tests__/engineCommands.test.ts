@@ -336,8 +336,7 @@ describe('format', () => {
       // @ts-expect-error
       const formatted = await formatSchema({})
     } catch (e) {
-      expect(e.message).toMatchSnapshot(
-      )
+      expect(e.message).toMatchSnapshot()
     }
   })
 

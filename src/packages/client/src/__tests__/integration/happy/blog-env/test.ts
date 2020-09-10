@@ -1,5 +1,5 @@
-import { getTestClient } from "../../../../utils/getTestClient"
-import { PrismaClientInitializationError } from "../../../../runtime"
+import { getTestClient } from '../../../../utils/getTestClient'
+import { PrismaClientInitializationError } from '../../../../runtime'
 
 test('blog-env', async () => {
   const env = require('./env.json')

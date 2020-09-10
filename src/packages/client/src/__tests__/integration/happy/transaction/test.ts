@@ -1,10 +1,13 @@
 const assert = require('assert')
 const crypto = require('crypto')
-import { generateTestClient } from "../../../../utils/getTestClient"
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('transaction', async () => {
   await generateTestClient()
-  const { PrismaClient, prismaVersion } = require('./node_modules/@prisma/client')
+  const {
+    PrismaClient,
+    prismaVersion,
+  } = require('./node_modules/@prisma/client')
   const db = new PrismaClient()
 
   if (!prismaVersion || !prismaVersion.client) {

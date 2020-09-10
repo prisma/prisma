@@ -1,4 +1,4 @@
-import { getTestClient } from "../../../../utils/getTestClient"
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('disconnect-finally', async () => {
   const PrismaClient = await getTestClient()
@@ -23,4 +23,3 @@ test('disconnect-finally', async () => {
   const data = await run()
   expect(data).toMatchSnapshot()
 })
-
