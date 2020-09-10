@@ -1,6 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
-test('uds', async () => {
+test.skip('uds', async () => {
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient({
     __internal: {
