@@ -3,6 +3,9 @@ import { FSJetpack } from 'fs-jetpack/types'
 import * as Path from 'path'
 import tempy from 'tempy'
 
+/**
+ * Base test context.
+ */
 type BaseContext = {
   tmpDir: string
   fs: FSJetpack
@@ -15,6 +18,14 @@ type BaseContext = {
   fixture: (name: string) => void
 }
 
+/**
+ * Create test context to use in tests. Provides the following:
+ *
+ * - A temporary diectory
+ * - an fs-jetpack instance bound to the temporary directory
+ * - Mocked process.cwd via Node process.chdir
+ * - Fixture loader for boostrapping the temporary directory with content
+ */
 export const Context = {
   new: function (ctx: BaseContext = {} as any) {
     const c = ctx as any
@@ -40,22 +51,35 @@ export const Context = {
   },
 }
 
-function factory<C>(ctx: C) {
+/**
+ * A function that provides additonal test context.
+ */
+type ContextContributor<Context, NewContext> = (ctx: Context) => NewContext
+
+/**
+ * Main context builder API that permits recursively building up context.
+ */
+function factory<Context>(ctx: Context) {
   return {
-    add<CExtra>(contributor: (ctx: C) => CExtra) {
-      contributor(ctx)
-      return factory<C & CExtra>(ctx as any)
+    add<NewContext>(
+      contextContributor: ContextContributor<Context, NewContext>,
+    ) {
+      contextContributor(ctx)
+      return factory<Context & NewContext>(ctx as any)
     },
-    assemble(): C {
+    assemble(): Context {
       return ctx
     },
   }
 }
 
 /**
- * Mock console.error with a Jest spy before each test
+ * Test context contributor. Mocks console.error with a Jest spy before each test.
  */
-export function consoleContext(ctx: BaseContext) {
+export const consoleContext: ContextContributor<
+  BaseContext,
+  { mocked: { 'console.error': jest.SpyInstance } }
+> = (ctx) => {
   beforeEach(() => {
     ctx.mocked['console.error'] = jest
       .spyOn(console, 'error')
@@ -66,5 +90,5 @@ export function consoleContext(ctx: BaseContext) {
     ctx.mocked['console.error'].mockRestore()
   })
 
-  return (null as any) as { mocked: { 'console.error': jest.SpyInstance } }
+  return null as any
 }
