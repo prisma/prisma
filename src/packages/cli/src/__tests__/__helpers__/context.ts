@@ -1,3 +1,4 @@
+import execa, { ExecaChildProcess } from 'execa'
 import * as FSJet from 'fs-jetpack'
 import { FSJetpack } from 'fs-jetpack/types'
 import * as Path from 'path'
@@ -16,6 +17,14 @@ type BaseContext = {
    * Setup the temporary directory based on the contents of some fixture.
    */
   fixture: (name: string) => void
+  /**
+   * Spawn the Prisma cli using the temporary directory as the CWD.
+   *
+   * @remarks
+   *
+   * For this to work the source must be built!
+   */
+  cli: (...input: string[]) => ExecaChildProcess<string>
 }
 
 /**
@@ -40,6 +49,16 @@ export const Context = {
       }
       c.mocked = c.mocked ?? {}
       c.mocked.cwd = process.cwd()
+      c.cli = (...input) => {
+        return execa.node(
+          Path.join(__dirname, '../../../build/index.js'),
+          input,
+          {
+            cwd: c.fs.cwd(),
+            stdio: 'pipe',
+          },
+        )
+      }
       process.chdir(c.tmpDir)
     })
 
