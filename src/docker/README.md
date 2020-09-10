@@ -29,7 +29,7 @@ docker-compose up`
 Or start only one service:
 
 ```
-docker-compose mysql
+docker-compose up mysql
 ```
 
 ### Stop
