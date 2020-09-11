@@ -16,10 +16,12 @@ import {
 // This file will not be executed, just compiled to check if the typings are valid
 async function main() {
   const prisma = new PrismaClient({
-    log: [{
-      emit: 'event',
-      level: 'query'
-    }],
+    log: [
+      {
+        emit: 'event',
+        level: 'query',
+      },
+    ],
     datasources: {
       db: {
         url: 'file:dev.db',
@@ -27,7 +29,7 @@ async function main() {
     },
   })
 
-  prisma.on('query', a => {
+  prisma.on('query', (a) => {
     //
   })
 
@@ -203,50 +205,50 @@ async function main() {
   // https://github.com/prisma/prisma/issues/3497
   await prisma.user.update({
     where: {
-      id: '6'
+      id: '6',
     },
     data: {
       posts: {
         update: {
           data: {
-            title: 'something'
+            title: 'something',
           },
           where: {
-            id: 'whatever'
-          }
+            id: 'whatever',
+          },
         },
-      }
+      },
     },
   })
 
   await prisma.user.update({
     where: {
-      id: '6'
+      id: '6',
     },
     data: {
       posts: {
         updateMany: {
           data: {
-            title: 'something'
+            title: 'something',
           },
           where: {
-            id: 'whatever'
-          }
+            id: 'whatever',
+          },
         },
-      }
+      },
     },
   })
 
   await prisma.post.update({
     where: {
-      id: '6'
+      id: '6',
     },
     data: {
       author: {
         update: {
-          name: 'something'
+          name: 'something',
         },
-      }
+      },
     },
   })
 }

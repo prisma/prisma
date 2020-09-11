@@ -28,14 +28,14 @@ describe('minimal where transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(where: {
           OR: [
             {
               posts: {
                 some: {
                   id: {
-                    in: [\\"test\\"]
+                    in: ["test"]
                   }
                 }
               }
@@ -56,7 +56,7 @@ describe('minimal where transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 
@@ -74,12 +74,12 @@ describe('minimal where transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(where: {
           OR: [
             {
               name: {
-                startsWith: \\"x\\"
+                startsWith: "x"
               }
             }
           ]
@@ -98,7 +98,7 @@ describe('minimal where transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 
@@ -116,12 +116,12 @@ describe('minimal where transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(where: {
           OR: [
             {
               name: {
-                endsWith: \\"x\\"
+                endsWith: "x"
               }
             }
           ]
@@ -140,7 +140,7 @@ describe('minimal where transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 
@@ -158,12 +158,12 @@ describe('minimal where transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(where: {
           posts: {
             some: {
               title: {
-                contains: \\"mytitle\\"
+                contains: "mytitle"
               }
             }
           }
@@ -182,7 +182,7 @@ describe('minimal where transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 
@@ -202,13 +202,13 @@ describe('minimal where transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser {
           posts(where: {
             OR: [
               {
                 createdAt: {
-                  equals: \\"2020-08-19T10:02:43.353Z\\"
+                  equals: "2020-08-19T10:02:43.353Z"
                 }
               }
             ]
@@ -223,7 +223,7 @@ describe('minimal where transformation', () => {
             optionnal
           }
         }
-      }"
+      }
     `)
   })
 
@@ -243,13 +243,13 @@ describe('minimal where transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser {
           posts(where: {
             OR: [
               {
                 createdAt: {
-                  equals: \\"2020-08-19T10:02:43.353Z\\"
+                  equals: "2020-08-19T10:02:43.353Z"
                 }
               }
             ]
@@ -264,7 +264,7 @@ describe('minimal where transformation', () => {
             optionnal
           }
         }
-      }"
+      }
     `)
   })
 
@@ -280,7 +280,7 @@ describe('minimal where transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser {
           posts(where: {
             content: {
@@ -297,7 +297,7 @@ describe('minimal where transformation', () => {
             optionnal
           }
         }
-      }"
+      }
     `)
   })
 
@@ -309,7 +309,7 @@ describe('minimal where transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(where: {
           name: {
             equals: null
@@ -329,7 +329,7 @@ describe('minimal where transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 
@@ -343,7 +343,7 @@ describe('minimal where transformation', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(where: {
           profile: {
             is: {
@@ -367,7 +367,7 @@ describe('minimal where transformation', () => {
           lastLoginAt
           coinflips
         }
-      }"
+      }
     `)
   })
 })

@@ -171,7 +171,9 @@ async function getAbsoluteSchemaPath(
   return null
 }
 
-async function getRelativeSchemaPath(cwd: string): Promise<string | null> {
+export async function getRelativeSchemaPath(
+  cwd: string,
+): Promise<string | null> {
   let schemaPath = path.join(cwd, 'schema.prisma')
   if (await exists(schemaPath)) {
     return schemaPath

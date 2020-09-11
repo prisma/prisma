@@ -1,9 +1,12 @@
 import { getSchema, getSchemaDir } from '@prisma/sdk'
 import { getConfig } from '@prisma/sdk'
 import chalk from 'chalk'
-import { createDatabase } from '..'
-import { canConnectToDatabase } from '../MigrateEngineCommands'
-import { DatabaseCredentials, uriToCredentials } from '@prisma/sdk'
+import {
+  DatabaseCredentials,
+  uriToCredentials,
+  createDatabase,
+  canConnectToDatabase,
+} from '@prisma/sdk'
 import prompt from 'prompts'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'

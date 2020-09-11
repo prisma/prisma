@@ -24,7 +24,7 @@ describe('at least one validation', () => {
       rootField: 'findManyUser',
     })
     expect(String(document)).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(where: {
           OR: [
             {
@@ -44,7 +44,7 @@ describe('at least one validation', () => {
           locationId
           someFloats
         }
-      }"
+      }
     `)
     try {
       document.validate(select, false, 'users')

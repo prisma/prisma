@@ -75,9 +75,6 @@ datasource sqlite {
   const introspectionResult = await engine.introspect(schema)
   const introspectionSchema = introspectionResult.datamodel
 
-  snapshot(`${name}_datamodel`, maskSchema(introspectionSchema))
-  snapshot(`${name}_warnings`, introspectionResult.warnings)
-
   await generate(t, introspectionSchema)
   const prismaClientPath = join(tmp, 'index.js')
 
@@ -100,6 +97,9 @@ datasource sqlite {
     await prisma.$disconnect()
     await db.close()
   }
+
+  snapshot(`${name}_datamodel`, maskSchema(introspectionSchema))
+  snapshot(`${name}_warnings`, introspectionResult.warnings)
 }
 
 async function generate(test: Test, datamodel: string) {

@@ -57,7 +57,6 @@ function transformArgs(args: ExternalDMMF.SchemaArg[]): DMMF.SchemaArg[] {
   return args.map(transformArg)
 }
 
-
 /**
  * Turns the input types into lists
  * @param arg ExternalDMMF.SchemaArg

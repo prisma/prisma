@@ -7,5 +7,5 @@ export function highlightTS(str: string) {
 
 function highlight(str: string, grammar: SyntaxDefinition) {
   const tokens = Prism.tokenize(str, grammar)
-  return tokens.map(t => Token.stringify(t)).join('')
+  return tokens.map((t) => Token.stringify(t)).join('')
 }

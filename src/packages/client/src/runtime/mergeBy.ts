@@ -14,7 +14,7 @@ export function mergeBy<T>(
   const groupedArr1 = groupBy(arr1, cb)
   const groupedArr2 = groupBy(arr2, cb)
   const result: T[] = Object.values(groupedArr2).map(
-    value => value[value.length - 1],
+    (value) => value[value.length - 1],
   )
 
   const arr2Keys = Object.keys(groupedArr2)

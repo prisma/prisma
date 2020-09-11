@@ -1,6 +1,6 @@
 {
   "name": "@prisma/engine-core",
-  "version": "2.7.0-dev.23",
+  "version": "2.7.0-dev.53",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,6 +20,7 @@
     "husky": "4.2.5",
     "jest": "26.4.2",
     "lint-staged": "10.3.0",
+    "prettier": "^2.1.1",
     "strip-ansi": "6.0.0",
     "ts-jest": "26.3.0",
     "typescript": "4.0.2"

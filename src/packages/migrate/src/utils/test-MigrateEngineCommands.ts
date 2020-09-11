@@ -1,7 +1,7 @@
 import {
   canConnectToDatabase,
   //  createDatabase
-} from '../MigrateEngineCommands'
+} from '@prisma/sdk'
 
 // async function main2() {
 //   const result = await createDatabase(process.env.TEST_CONNECTION_STRING!)

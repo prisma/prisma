@@ -6,7 +6,7 @@ import chalk from 'chalk'
 async function main() {
   const args = arg({
     '--skip-transpile': Boolean,
-    '--built-runtime': Boolean
+    '--built-runtime': Boolean,
   })
 
   const projectDir = args._[0]
@@ -24,14 +24,16 @@ async function main() {
   const useLocalRuntime = args['--skip-transpile']
 
   if (args['--built-runtime'] && !args['--skip-transpile']) {
-    throw new Error(`Please either provide --skip-transpile or --skip-transpile and --built-runtime`)
+    throw new Error(
+      `Please either provide --skip-transpile or --skip-transpile and --built-runtime`,
+    )
   }
 
   const time = await generateInFolder({
     projectDir,
-    useLocalRuntime,
+    useLocalRuntime: args['--skip-transpile'],
     transpile: !args['--skip-transpile'],
-    useBuiltRuntime: args['--built-runtime']
+    useBuiltRuntime: args['--built-runtime'],
   })
 
   console.log(

@@ -43,7 +43,7 @@ describe('json', () => {
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
   })
-  
+
   test('should be able filter json', async () => {
     const document = makeDocument({
       dmmf,
@@ -99,11 +99,11 @@ describe('json', () => {
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
-      "mutation {
+      mutation {
         updateOneUser(
           data: {
             json: {
-              set: \\"[\\\\\\"value1\\\\\\",\\\\\\"value2\\\\\\"]\\"
+              set: "[\\"value1\\",\\"value2\\"]"
             }
           }
         ) {
@@ -112,7 +112,7 @@ describe('json', () => {
           email
           json
         }
-      }"
+      }
     `)
   })
 })

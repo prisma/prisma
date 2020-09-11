@@ -9,12 +9,12 @@ import {
   pick,
   format,
   HelpError,
+  canConnectToDatabase,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
-import { canConnectToDatabase } from '@prisma/migrate'
 import { DMMF } from '@prisma/generator-helper'
 import equal from 'fast-deep-equal'
 

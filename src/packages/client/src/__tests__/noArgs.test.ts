@@ -29,14 +29,14 @@ describe('no args', () => {
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser {
           id
           name
           email
           personaId
         }
-      }"
+      }
     `)
   })
   test('findMany', () => {
@@ -55,7 +55,7 @@ describe('no args', () => {
       document.validate(select, false, 'user', 'colorless'),
     ).toThrowErrorMatchingSnapshot()
     expect(String(document)).toMatchInlineSnapshot(`
-      "query {
+      query {
         findManyUser(where: {
           likedArticles: null
         }) {
@@ -64,7 +64,7 @@ describe('no args', () => {
           email
           personaId
         }
-      }"
+      }
     `)
   })
   test('createOne', () => {
@@ -87,11 +87,11 @@ describe('no args', () => {
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchInlineSnapshot(`
-      "mutation {
+      mutation {
         deleteManyUser {
           count
         }
-      }"
+      }
     `)
   })
   test('deleteOne', () => {

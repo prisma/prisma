@@ -1,11 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`at least one validation valid or query 1`] = `
-"query {
+query {
   findManyUser(where: {
     OR: [
       {
-        email: \\"\\"
+        email: ""
       }
     ]
   }) {
@@ -19,5 +19,5 @@ exports[`at least one validation valid or query 1`] = `
     locationId
     someFloats
   }
-}"
+}
 `;

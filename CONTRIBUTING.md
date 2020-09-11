@@ -13,11 +13,15 @@ pnpm run setup
 
 Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org/)
 
-### General prerequisites
+### General Prerequisites
 
 1. Install [`pnpm@5.1.7`](https://pnpm.js.org/) (for installing npm dependencies)
 1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing test databases)
 1. Install [`ts-node`](https://github.com/TypeStrong/ts-node) (for running Node scripts written in TypeScript)
+
+### Tips
+
+1. Use [TablePlus](https://tableplus.com/) for managing sqlite database fixtures.
 
 ### Developing Prisma Client JS
 
