@@ -30,7 +30,7 @@ type BaseContext = {
 /**
  * Create test context to use in tests. Provides the following:
  *
- * - A temporary diectory
+ * - A temporary directory
  * - an fs-jetpack instance bound to the temporary directory
  * - Mocked process.cwd via Node process.chdir
  * - Fixture loader for boostrapping the temporary directory with content
