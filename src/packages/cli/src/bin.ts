@@ -105,6 +105,7 @@ if (process.argv.length > 2) {
       fs.existsSync(schemaPath) &&
       fs.existsSync(dotenvFilepath)
     ) {
+      // needed for Windows
       const relative = path.relative('.', dotenvFilepath)
 
       dotenvResult = dotenv.config({ path: dotenvFilepath })
