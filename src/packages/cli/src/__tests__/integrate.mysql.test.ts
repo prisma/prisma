@@ -2216,7 +2216,7 @@ CREATE TABLE foo (
         drop table if exists foo cascade;
       `,
       do: async (client) => {
-        const bar = prisma.foo.create({
+        const bar = client.foo.create({
           data: {
             p1_cuid: 'thisisastringwith30characters!',
           }
