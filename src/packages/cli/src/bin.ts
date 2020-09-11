@@ -2,6 +2,7 @@
 import fs from 'fs'
 import path from 'path'
 import dotenv from 'dotenv'
+import dotenvExpand from 'dotenv-expand'
 import chalk from 'chalk'
 
 import {
@@ -80,7 +81,7 @@ if (process.argv.length > 2) {
     const dotenvFilepath = path.join(path.dirname(args['--schema']), '.env')
 
     if (fs.existsSync(args['--schema']) && fs.existsSync(dotenvFilepath)) {
-      dotenvResult = dotenv.config({ path: dotenvFilepath })
+      dotenvResult = dotenvExpand(dotenv.config({ path: dotenvFilepath }))
       message = chalk.dim(
         'Environment variables loaded from provided --schema directory',
       )
@@ -93,19 +94,19 @@ if (process.argv.length > 2) {
     fs.existsSync('prisma/schema.prisma') &&
     fs.existsSync('prisma/.env')
   ) {
-    dotenvResult = dotenv.config({ path: 'prisma/.env' })
+    dotenvResult = dotenvExpand(dotenv.config({ path: 'prisma/.env' }))
     // needed for Windows
     const relative = path.relative('.', './prisma/.env')
     message = chalk.dim(`Environment variables loaded from ${relative}`)
   }
   // 3 - Check current directory for schema.prisma
   else if (fs.existsSync('schema.prisma') && fs.existsSync('.env')) {
-    dotenvResult = dotenv.config()
+    dotenvResult = dotenvExpand(dotenv.config())
     message = chalk.dim('Environment variables loaded from current directory')
   }
   // 4 - Check if ./prisma/.env exist and load it (we could not find a schema.prisma)
   else if (fs.existsSync('prisma/.env')) {
-    dotenvResult = dotenv.config({ path: 'prisma/.env' })
+    dotenvResult = dotenvExpand(dotenv.config({ path: 'prisma/.env' }))
     // needed for Windows
     const relative = path.relative('.', './prisma/.env')
     message = chalk.dim(`Environment variables loaded from ${relative}`)
