@@ -1,6 +1,6 @@
 {
   "name": "@prisma/migrate",
-  "version": "2.7.0-dev.61",
+  "version": "2.7.0-dev.64",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/migrate.git",
@@ -54,8 +54,8 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/ink-components": "workspace:*",
-    "@prisma/studio-server": "0.284.0",
-    "@prisma/studio-types": "0.284.0",
+    "@prisma/studio-server": "0.285.0",
+    "@prisma/studio-types": "0.285.0",
     "ansi-escapes": "^4.3.1",
     "cli-cursor": "3.1.0",
     "dashify": "2.0.0",
