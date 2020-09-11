@@ -1,25 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`doctor should succeed when schema and db do match 1`] = `
-Array [
-  Array [
-    👩‍⚕️🏥 Prisma Doctor checking the database...,
-  ],
-]
-`;
+exports[`should fail when schema and db do not match: 
 
-exports[`should fail when db is empty 1`] = `
-P4001
 
-The introspected database was empty: file:dev.db
+                    NewPost
+                    ↪ Model is missing in database
 
-`;
 
-exports[`should fail when db is missing 1`] = `P1003: SQLite database file doesn't exist`;
+                    User
+                    ↪ Field newName is missing in database
+                    ↪ Field newPosts is missing in database
 
-exports[`should fail when prisma schema is missing 1`] = `Either provide --schema or make sure that you are in a folder with a schema.prisma file.`;
-
-exports[`should fail when schema and db do not match 1`] = `
+                 1`] = `
 
 
 NewPost
