@@ -2208,7 +2208,7 @@ function tests(): Test[] {
       name: 'reproductions https://github.com/prisma/prisma/issues/1826 #1 - 30 character value into varchar(25)',
       up: `
 CREATE TABLE foo (
-  p1_cuid varchar(25) NOT NULL AUTO_INCREMENT,
+  p1_cuid varchar(25) NOT NULL,
   PRIMARY KEY (p1_cuid)
 );
         `,
