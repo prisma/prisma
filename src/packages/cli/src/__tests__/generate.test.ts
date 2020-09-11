@@ -1,7 +1,7 @@
 import 'ts-node/register'
 import { consoleContext, Context } from './__helpers__/context'
 
-const ctx = Context.new().add(consoleContext).assemble()
+const ctx = Context.new().add(consoleContext()).assemble()
 
 it('should work with a custom output dir', async () => {
   ctx.fixture('example-project')
@@ -14,7 +14,7 @@ it('should work with a custom output dir', async () => {
   const { main } = await import(ctx.fs.path('main.ts'))
   expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   await expect(main()).resolves.toMatchSnapshot()
-})
+}, 10000)
 
 it('should error with exit code 1 with incorrect schema', async () => {
   ctx.fixture('broken-example-project')

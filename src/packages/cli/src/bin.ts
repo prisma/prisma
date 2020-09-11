@@ -1,24 +1,49 @@
 #!/usr/bin/env ts-node
-import fs from 'fs'
-import path from 'path'
-import dotenv from 'dotenv'
-import dotenvExpand from 'dotenv-expand'
-import chalk from 'chalk'
-
+import { Init, Introspect } from '@prisma/introspection'
+import {
+  handlePanic,
+  MigrateCommand,
+  MigrateDown,
+  MigrateSave,
+  MigrateTmpPrepare,
+  MigrateUp,
+} from '@prisma/migrate'
 import {
   arg,
   drawBox,
   getCLIPathHash,
+  getConfig,
   getProjectHash,
   getSchema,
-  getConfig,
+  HelpError,
+  isCurrentBinInstalledGlobally,
+  isError,
+  ProviderAliases,
 } from '@prisma/sdk'
+import chalk from 'chalk'
+/**
+ * Dependencies
+ */
+import * as checkpoint from 'checkpoint-client'
+// do this before facebook's yoga
+import debugLib from 'debug'
+import dotenv from 'dotenv'
+import dotenvExpand from 'dotenv-expand'
+import fs from 'fs'
+import path from 'path'
+import { CLI } from './CLI'
+import { Dev } from './Dev'
+import { Doctor } from './Doctor'
+import { Format } from './Format'
+import { Generate } from './Generate'
+import { Studio } from './Studio'
+import { Telemetry } from './Telemetry'
+import { Validate } from './Validate'
+import { Version } from './Version'
+
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 export { byline } from '@prisma/migrate'
-
-// do this before facebook's yoga
-import debugLib from 'debug'
 
 const debug = debugLib('prisma')
 process.on('uncaughtException', (e) => {
@@ -124,31 +149,6 @@ if (process.argv.length > 2) {
     console.error(message)
   }
 }
-
-/**
- * Dependencies
- */
-import * as checkpoint from 'checkpoint-client'
-import { isError, HelpError } from '@prisma/sdk'
-import {
-  MigrateCommand,
-  MigrateSave,
-  MigrateUp,
-  MigrateDown,
-  MigrateTmpPrepare,
-  handlePanic,
-} from '@prisma/migrate'
-import { CLI } from './CLI'
-import { Introspect, Init } from '@prisma/introspection'
-import { Dev } from './Dev'
-import { Version } from './Version'
-import { Generate } from './Generate'
-import { ProviderAliases, isCurrentBinInstalledGlobally } from '@prisma/sdk'
-import { Validate } from './Validate'
-import { Format } from './Format'
-import { Doctor } from './Doctor'
-import { Studio } from './Studio'
-import { Telemetry } from './Telemetry'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
 // as they have to ship their own version of @prisma/client

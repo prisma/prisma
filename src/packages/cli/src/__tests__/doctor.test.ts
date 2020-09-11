@@ -1,7 +1,7 @@
 import { Doctor } from '../Doctor'
 import { consoleContext, Context } from './__helpers__/context'
 
-const ctx = Context.new().add(consoleContext).assemble()
+const ctx = Context.new().add(consoleContext()).assemble()
 
 it('doctor should succeed when schema and db do match', async () => {
   ctx.fixture('example-project/prisma')

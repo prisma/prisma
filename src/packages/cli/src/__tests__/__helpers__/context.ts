@@ -71,6 +71,17 @@ export const Context = {
 }
 
 /**
+ * Factory for creating a context contributor possibly configured in some special way.
+ */
+type ContextContributorFactory<
+  Settings,
+  Context,
+  NewContext
+> = Settings extends {}
+  ? () => ContextContributor<Context, NewContext>
+  : (settings: Settings) => ContextContributor<Context, NewContext>
+
+/**
  * A function that provides additonal test context.
  */
 type ContextContributor<Context, NewContext> = (ctx: Context) => NewContext
@@ -95,18 +106,28 @@ function factory<Context>(ctx: Context) {
 /**
  * Test context contributor. Mocks console.error with a Jest spy before each test.
  */
-export const consoleContext: ContextContributor<
+export const consoleContext: ContextContributorFactory<
+  {},
   BaseContext,
-  { mocked: { 'console.error': jest.SpyInstance } }
-> = (ctx) => {
+  {
+    mocked: {
+      'console.error': jest.SpyInstance
+      'console.log': jest.SpyInstance
+    }
+  }
+> = () => (ctx) => {
   beforeEach(() => {
     ctx.mocked['console.error'] = jest
       .spyOn(console, 'error')
+      .mockImplementation(() => {})
+    ctx.mocked['console.log'] = jest
+      .spyOn(console, 'log')
       .mockImplementation(() => {})
   })
 
   afterEach(() => {
     ctx.mocked['console.error'].mockRestore()
+    ctx.mocked['console.log'].mockRestore()
   })
 
   return null as any

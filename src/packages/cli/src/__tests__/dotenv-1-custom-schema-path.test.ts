@@ -1,6 +1,6 @@
 import { consoleContext, Context } from './__helpers__/context'
 
-const ctx = Context.new().add(consoleContext).assemble()
+const ctx = Context.new().add(consoleContext()).assemble()
 
 it('should NOT read .env file in root folder, only prisma/.env', async () => {
   process.argv.push('--version')
