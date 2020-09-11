@@ -14,7 +14,7 @@ it('should work with a custom output dir', async () => {
   const { main } = await import(ctx.fs.path('main.ts'))
   expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   await expect(main()).resolves.toMatchSnapshot()
-}, 1000)
+}, 10000)
 
 it('should error with exit code 1 with incorrect schema', async () => {
   ctx.fixture('broken-example-project')
