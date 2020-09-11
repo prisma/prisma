@@ -72,7 +72,11 @@ const {
   PrismaClientValidationError,
   getPrismaClient,
   debugLib,
-  sqltag
+  sqltag,
+  sql,
+  empty,
+  join,
+  raw
 } = require('${runtimePath}')
 
 const path = require('path')
