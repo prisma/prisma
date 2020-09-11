@@ -1,6 +1,6 @@
 {
   "name": "@prisma/client",
-  "version": "2.7.0-dev.50",
+  "version": "2.7.0-dev.60",
   "description": "Prisma Client is an auto-generated and type-safe query builder for Node.js & TypeScript that's tailored to your data.",
   "keywords": [
     "prisma2",
@@ -84,6 +84,7 @@
     "chalk": "4.1.0",
     "del": "5.1.0",
     "dotenv": "8.2.0",
+    "dotenv-expand": "5.1.0",
     "escape-string-regexp": "^4.0.0",
     "eslint": "7.8.1",
     "eslint-config-prettier": "6.11.0",
