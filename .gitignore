@@ -10,8 +10,7 @@ sandbox
 .DS_Store
 query-engine*
 
-*.db
-
+*tmp.db
 dist/
 
 *.tsbuildinfo

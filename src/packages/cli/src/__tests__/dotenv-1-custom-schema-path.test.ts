@@ -1,44 +1,18 @@
-import path from 'path'
-import assert from 'assert'
-import stripAnsi from 'strip-ansi'
+import { consoleContext, Context } from './__helpers__/context'
+
+const ctx = Context.new().add(consoleContext()).assemble()
 
 it('should NOT read .env file in root folder, only prisma/.env', async () => {
   process.argv.push('--version')
-
-  const oldConsoleLog = console.error
-  const logs: string[] = []
-  console.error = (...args) => {
-    logs.push(...args)
-  }
-
-  const cwd = process.cwd()
-  process.chdir(path.join(__dirname, './fixtures/dotenv-1-custom-schema-path'))
   process.argv.push('--schema=./custom-path/schema.prisma')
+  ctx.fixture('dotenv-1-custom-schema-path')
   await import('../bin')
-  console.error = oldConsoleLog
-
-  assert.equal(
-    stripAnsi(logs.join()),
-    'Environment variables loaded from provided --schema directory',
-  )
-
-  assert.equal(
-    process.env.DOTENV_PRISMA_WHEN_CUSTOM_SCHEMA_PATH_SHOULD_WORK,
+  expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  expect(process.env.DOTENV_PRISMA_WHEN_CUSTOM_SCHEMA_PATH_SHOULD_WORK).toEqual(
     'file:dev.db',
-    'process.env.DOTENV_PRISMA_WHEN_CUSTOM_SCHEMA_PATH_SHOULD_WORK',
   )
-
-  assert.equal(
-    process.env.DOTENV_ROOT_SHOULD_BE_UNDEFINED,
-    undefined,
-    'process.env.DOTENV_ROOT_SHOULD_BE_UNDEFINED',
-  )
-
-  assert.equal(
+  expect(process.env.DOTENV_ROOT_SHOULD_BE_UNDEFINED).toEqual(undefined)
+  expect(
     process.env.DOTENV_PRISMA_WHEN_CUSTOM_SCHEMA_PATH_SHOULD_BE_UNDEFINED,
-    undefined,
-    'process.env.DOTENV_PRISMA_WHEN_CUSTOM_SCHEMA_PATH_SHOULD_BE_UNDEFINED',
-  )
-
-  process.chdir(cwd)
+  ).toEqual(undefined)
 })

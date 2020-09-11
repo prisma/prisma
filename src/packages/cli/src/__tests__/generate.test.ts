@@ -1,67 +1,24 @@
-import tempy from 'tempy'
-import path from 'path'
-import copy from '@apexearth/copy'
-import execa from 'execa'
-import snapshot from 'snap-shot-it'
-import assert from 'assert'
 import 'ts-node/register'
+import { consoleContext, Context } from './__helpers__/context'
 
-describe('generate', () => {
-  it('should work with a custom output dir', async () => {
-    // get temp dir
-    const target = tempy.directory()
-    // copy example into temp dir
-    // why a tmp dir? To make sure, we're outside of this workspace
-    await copy({
-      from: path.join(__dirname, './fixtures/example-project'),
-      to: target,
-      recursive: true,
-    })
-    // generate into temp dir
-    const data = await execa.node(
-      path.join(__dirname, '../../build/index.js'),
-      ['generate'],
-      {
-        cwd: target,
-        stdio: 'pipe',
-      },
-    )
+const ctx = Context.new().add(consoleContext()).assemble()
 
-    if (typeof data.signal === 'number' && data.signal !== 0) {
-      throw new Error(data.stderr + data.stdout)
-    }
+it('should work with a custom output dir', async () => {
+  ctx.fixture('example-project')
+  const data = await ctx.cli('generate')
 
-    // run code
-    const { main } = await import(path.join(target, 'main.ts'))
-    const result = await main()
-    snapshot(cleanSnapshot(data.stdout))
-    snapshot(result)
-  })
+  if (typeof data.signal === 'number' && data.signal !== 0) {
+    throw new Error(data.stderr + data.stdout)
+  }
 
-  it('should error with exit code 1 with incorrect schema', async () => {
-    // get temp dir
-    const target = tempy.directory()
-    // copy example into temp dir
-    // why a tmp dir? To make sure, we're outside of this workspace
-    await copy({
-      from: path.join(__dirname, './fixtures/broken-example-project'),
-      to: target,
-      recursive: true,
-    })
-    // generate into temp dir
-    try {
-      const data = await execa.node(
-        path.join(__dirname, '../../build/index.js'),
-        ['generate'],
-        {
-          cwd: target,
-          stdio: 'pipe',
-        },
-      )
-    } catch (e) {
-      assert.equal(e.exitCode, 1)
-    }
-  })
+  const { main } = await import(ctx.fs.path('main.ts'))
+  expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
+  await expect(main()).resolves.toMatchSnapshot()
+}, 10000)
+
+it('should error with exit code 1 with incorrect schema', async () => {
+  ctx.fixture('broken-example-project')
+  await expect(ctx.cli('generate').catch((e) => e.exitCode)).resolves.toEqual(1)
 })
 
 function cleanSnapshot(str: string): string {
