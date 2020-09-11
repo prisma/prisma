@@ -2221,6 +2221,7 @@ CREATE TABLE foo (
             p1_cuid: 'thisisastringwith30characters!',
           }
         })
+        return bar
       },
       expect: {
         p1_cuid: 'thisisastringwith30characters!',
@@ -2243,6 +2244,7 @@ CREATE TABLE foo (
             tinyint_4: 999,
           }
         })
+        return bar
       },
       expect: {
         tinyint_4: 999,
@@ -2265,6 +2267,7 @@ CREATE TABLE foo (
             tinyint_4: -999,
           }
         })
+        return bar
       },
       expect: {
         tinyint_4: -999,
