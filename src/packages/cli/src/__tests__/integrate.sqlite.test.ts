@@ -1810,6 +1810,12 @@ const testKases: TestKase[] = [
   },
 ]
 
+/**
+ * it.concurrent.each (https://jestjs.io/docs/en/api#testconcurrenteachtablename-fn-timeout)
+ * does not seem to work. Snapshots keep getting errors. And each runs leads to different
+ * snapshot errors. Might be related to https://github.com/facebook/jest/issues/2180 but we're
+ * explicitly naming our snapshots here so...?
+ */
 it.each(prepareTestKases(testKases))('%s', async (name, kase) => {
   const tmpDirPath = getKaseDir(name)
   const sqlitePath = Path.join(tmpDirPath, 'sqlite.db')
