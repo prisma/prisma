@@ -72,9 +72,9 @@ export async function getSchemaPathFromPackageJson(
 
   if (typeof schemaPathFromPkgJson !== 'string') {
     throw new Error(
-      `Provided schema path configuration \`prisma.schema\` at ./${path.relative(
+      `Provided schema path configuration \`${schemaPathFromPkgJson}\` at ./${path.relative(
         cwd,
-        schemaPathFromPkgJson,
+        pkgJson.path,
       )} must be of type string`,
     )
   }
@@ -277,9 +277,9 @@ export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
 
   if (typeof schemaPathFromPkgJson !== 'string') {
     throw new Error(
-      `Provided schema path configuration \`prisma.schema\` at ./${path.relative(
+      `Provided schema path configuration \`${schemaPathFromPkgJson}\` at ./${path.relative(
         cwd,
-        schemaPathFromPkgJson,
+        pkgJson.path,
       )} must be of type string`,
     )
   }

@@ -107,6 +107,17 @@ it('reads schema path from the nearest package.json and throws if path does not 
   `)
 })
 
+it('reads schema path from the nearest package.json and throws if path is not of type string', async () => {
+  const res = await testSchemaPath('pkg-json-invalid-path-not-string')
+
+  expect(res).toMatchInlineSnapshot(`
+    Object {
+      "async": [Error: Provided schema path configuration \`123\` at ./package.json must be of type string],
+      "sync": [Error: Provided schema path configuration \`123\` at ./package.json must be of type string],
+    }
+  `)
+})
+
 it('reads from the nearest package.json of the cwd', async () => {
   const res = await testSchemaPath('pkg-json-nearest/packages/a')
 
