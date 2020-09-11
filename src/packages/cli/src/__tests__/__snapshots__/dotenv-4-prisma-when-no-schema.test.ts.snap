@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should read .env file in prisma folder when there is no schema 1`] = `
+Array [
+  Array [
+    Environment variables loaded from prisma/.env,
+  ],
+]
+`;

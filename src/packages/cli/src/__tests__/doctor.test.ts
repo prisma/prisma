@@ -1,21 +1,7 @@
 import { Doctor } from '../Doctor'
-import { Context } from './__helpers__/context'
+import { consoleContext, Context } from './__helpers__/context'
 
-const ctx = Context.new<{
-  mocked: {
-    'console.error': jest.SpyInstance
-  }
-}>()
-
-beforeEach(() => {
-  ctx.mocked['console.error'] = jest
-    .spyOn(console, 'error')
-    .mockImplementation(() => {})
-})
-
-afterEach(() => {
-  ctx.mocked['console.error'].mockRestore()
-})
+const ctx = Context.new().add(consoleContext()).assemble()
 
 it('doctor should succeed when schema and db do match', async () => {
   ctx.fixture('example-project/prisma')
@@ -61,16 +47,16 @@ it('should fail when db is empty', async () => {
 it('should fail when schema and db do not match', async () => {
   ctx.fixture('schema-db-out-of-sync')
   const result = Doctor.new().parse([])
-  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+  await expect(result).rejects.toThrowErrorMatchingSnapshot(`
 
 
-          NewPost
-          ↪ Model is missing in database
+                    NewPost
+                    ↪ Model is missing in database
 
 
-          User
-          ↪ Field newName is missing in database
-          ↪ Field newPosts is missing in database
+                    User
+                    ↪ Field newName is missing in database
+                    ↪ Field newPosts is missing in database
 
-        `)
+                `)
 })
