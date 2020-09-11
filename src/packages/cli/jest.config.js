@@ -4,11 +4,7 @@ module.exports = {
   testMatch: [
     '**/src/__tests__/doctor*',
     '**/src/__tests__/format*',
-    '**/src/__tests__/dotenv-1*',
-    '**/src/__tests__/dotenv-2*',
-    '**/src/__tests__/dotenv-3*',
-    '**/src/__tests__/dotenv-4*',
-    '**/src/__tests__/dotenv-5*',
+    '**/src/__tests__/dotenv*',
     '**/src/__tests__/generate*',
     '**/src/__tests__/studio*',
   ],
