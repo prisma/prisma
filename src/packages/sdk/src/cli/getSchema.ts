@@ -66,24 +66,33 @@ export async function getSchemaPathFromPackageJson(
   const schemaPathFromPkgJson: string | undefined =
     pkgJson?.packageJson?.prisma?.schema
 
-  if (pkgJson && schemaPathFromPkgJson) {
-    const absoluteSchemaPath = path.isAbsolute(schemaPathFromPkgJson)
-      ? schemaPathFromPkgJson
-      : path.resolve(path.dirname(pkgJson.path), schemaPathFromPkgJson)
-
-    if ((await exists(absoluteSchemaPath)) === false) {
-      throw new Error(
-        `Provided schema path at ./${path.relative(
-          cwd,
-          absoluteSchemaPath,
-        )} from ./${path.relative(cwd, pkgJson.path)} doesn't exist.`,
-      )
-    }
-
-    return absoluteSchemaPath
+  if (!schemaPathFromPkgJson || !pkgJson) {
+    return null
   }
 
-  return null
+  if (typeof schemaPathFromPkgJson !== 'string') {
+    throw new Error(
+      `Provided schema path configuration \`prisma.schema\` at ./${path.relative(
+        cwd,
+        schemaPathFromPkgJson,
+      )} must be of type string`,
+    )
+  }
+
+  const absoluteSchemaPath = path.isAbsolute(schemaPathFromPkgJson)
+    ? schemaPathFromPkgJson
+    : path.resolve(path.dirname(pkgJson.path), schemaPathFromPkgJson)
+
+  if ((await exists(absoluteSchemaPath)) === false) {
+    throw new Error(
+      `Provided schema path at ./${path.relative(
+        cwd,
+        absoluteSchemaPath,
+      )} from ./${path.relative(cwd, pkgJson.path)} doesn't exist.`,
+    )
+  }
+
+  return absoluteSchemaPath
 }
 
 async function resolveYarnSchema(cwd: string): Promise<null | string> {
@@ -262,24 +271,33 @@ export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
   const schemaPathFromPkgJson: string | undefined =
     pkgJson?.packageJson?.prisma?.schema
 
-  if (pkgJson && schemaPathFromPkgJson) {
-    const absoluteSchemaPath = path.isAbsolute(schemaPathFromPkgJson)
-      ? schemaPathFromPkgJson
-      : path.resolve(path.dirname(pkgJson.path), schemaPathFromPkgJson)
-
-    if (fs.existsSync(absoluteSchemaPath) === false) {
-      throw new Error(
-        `Provided schema path at ./${path.relative(
-          cwd,
-          absoluteSchemaPath,
-        )} from ./${path.relative(cwd, pkgJson.path)} doesn't exist.`,
-      )
-    }
-
-    return absoluteSchemaPath
+  if (!schemaPathFromPkgJson || !pkgJson) {
+    return null
   }
 
-  return null
+  if (typeof schemaPathFromPkgJson !== 'string') {
+    throw new Error(
+      `Provided schema path configuration \`prisma.schema\` at ./${path.relative(
+        cwd,
+        schemaPathFromPkgJson,
+      )} must be of type string`,
+    )
+  }
+
+  const absoluteSchemaPath = path.isAbsolute(schemaPathFromPkgJson)
+    ? schemaPathFromPkgJson
+    : path.resolve(path.dirname(pkgJson.path), schemaPathFromPkgJson)
+
+  if (fs.existsSync(absoluteSchemaPath) === false) {
+    throw new Error(
+      `Provided schema path at ./${path.relative(
+        cwd,
+        absoluteSchemaPath,
+      )} from ./${path.relative(cwd, pkgJson.path)} doesn't exist.`,
+    )
+  }
+
+  return absoluteSchemaPath
 }
 
 function getAbsoluteSchemaPathSync(schemaPath: string): string | null {
