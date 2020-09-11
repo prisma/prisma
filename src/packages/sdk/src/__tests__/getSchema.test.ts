@@ -1,9 +1,10 @@
-import * as fs from 'fs'
-import * as path from 'path'
+import path from 'path'
 import {
   getSchemaPathInternal,
   getSchemaPathSyncInternal,
 } from '../cli/getSchema'
+
+process.env.npm_config_user_agent = 'yarn/1.22.4 npm/? node/v12.18.3 darwin x64'
 
 const FIXTURE_CWD = path.resolve(__dirname, 'fixtures', 'getSchema')
 
@@ -21,7 +22,7 @@ async function testSchemaPath(
       cwd,
     })
   } catch (e) {
-    syncResult = e
+    syncResult = e as Error
   }
 
   try {
@@ -29,7 +30,7 @@ async function testSchemaPath(
       cwd,
     })
   } catch (e) {
-    asyncResult = e
+    asyncResult = e as Error
   }
 
   /**
@@ -56,6 +57,17 @@ async function testSchemaPath(
     async: asyncResult,
   }
 }
+
+it('returns null if no schema is found', async () => {
+  const res = await testSchemaPath('no-schema')
+
+  expect(res).toMatchInlineSnapshot(`
+    Object {
+      "async": null,
+      "sync": null,
+    }
+  `)
+})
 
 it('reads from --schema args first even if package.json is provided', async () => {
   const res = await testSchemaPath(
@@ -140,56 +152,24 @@ it('finds the conventional prisma/schema path without configuration', async () =
   `)
 })
 
-it('finds the conventional schema path using INIT_CWD as fallback', async () => {
-  process.env.INIT_CWD = path.resolve(FIXTURE_CWD, 'init-cwd')
-
-  const res = await testSchemaPath('wrong_cwd')
-
-  delete process.env.INIT_CWD
+it('finds the schema path in the root package.json of a yarn workspace from a child package', async () => {
+  const res = await testSchemaPath('pkg-json-workspace-parent/packages/a')
 
   expect(res).toMatchInlineSnapshot(`
     Object {
-      "async": "src/__tests__/fixtures/getSchema/init-cwd/schema.prisma",
-      "sync": "src/__tests__/fixtures/getSchema/init-cwd/schema.prisma",
+      "async": "src/__tests__/fixtures/getSchema/pkg-json-workspace-parent/db/prisma.schema",
+      "sync": "src/__tests__/fixtures/getSchema/pkg-json-workspace-parent/db/prisma.schema",
     }
   `)
 })
 
-it('finds the conventional schema path with yarn workspaces and INIT_CWD as fallback', async () => {
-  process.env.INIT_CWD = path.resolve(
-    FIXTURE_CWD,
-    'conventional-path-workspaces',
-  )
-  process.env.npm_config_user_agent =
-    'yarn/1.22.4 npm/? node/v12.18.3 darwin x64'
-
-  const res = await testSchemaPath('wrong_cwd')
-
-  delete process.env.INIT_CWD
-  delete process.env.npm_config_user_agent
+it('finds the conventional schema path with yarn workspaces', async () => {
+  const res = await testSchemaPath('conventional-path-workspaces')
 
   expect(res).toMatchInlineSnapshot(`
     Object {
       "async": "src/__tests__/fixtures/getSchema/conventional-path-workspaces/packages/b/schema.prisma",
       "sync": "src/__tests__/fixtures/getSchema/conventional-path-workspaces/packages/b/schema.prisma",
-    }
-  `)
-})
-
-it('finds the package.json custom schema path with yarn workspaces and INIT_CWD as fallback', async () => {
-  process.env.INIT_CWD = path.resolve(FIXTURE_CWD, 'pkg-json-workspaces')
-  process.env.npm_config_user_agent =
-    'yarn/1.22.4 npm/? node/v12.18.3 darwin x64'
-
-  const res = await testSchemaPath('wrong_cwd')
-
-  delete process.env.INIT_CWD
-  delete process.env.npm_config_user_agent
-
-  expect(res).toMatchInlineSnapshot(`
-    Object {
-      "async": "src/__tests__/fixtures/getSchema/pkg-json-workspaces/packages/b/db/schema.prisma",
-      "sync": "src/__tests__/fixtures/getSchema/pkg-json-workspaces/packages/b/db/schema.prisma",
     }
   `)
 })
