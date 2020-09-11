@@ -206,7 +206,7 @@ export async function getSchemaDir(
   return null
 }
 
-export async function getSchema(schemaPathFromArgs?): Promise<string> {
+export async function getSchema(schemaPathFromArgs?: string): Promise<string> {
   const schemaPath = await getSchemaPath(schemaPathFromArgs)
 
   if (!schemaPath) {
@@ -329,7 +329,7 @@ function getRelativeSchemaPathSync(cwd: string): string | null {
 /**
  * Sync version of the small helper that returns the directory which contains the `schema.prisma` file
  */
-export function getSchemaDirSync(schemaPathFromArgs?): string | null {
+export function getSchemaDirSync(schemaPathFromArgs?: string): string | null {
   if (schemaPathFromArgs) {
     return path.resolve(path.dirname(schemaPathFromArgs))
   }
@@ -342,7 +342,7 @@ export function getSchemaDirSync(schemaPathFromArgs?): string | null {
   return null
 }
 
-export function getSchemaSync(schemaPathFromArgs?): string {
+export function getSchemaSync(schemaPathFromArgs?: string): string {
   const schemaPath = getSchemaPathSync(schemaPathFromArgs)
 
   if (!schemaPath) {
