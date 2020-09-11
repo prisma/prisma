@@ -59,7 +59,7 @@
     "globby": "^11.0.0",
     "has-yarn": "^2.1.0",
     "make-dir": "^3.0.2",
-    "node-fetch": "2.6.0",
+    "node-fetch": "2.6.1",
     "p-map": "^4.0.0",
     "read-pkg-up": "^7.0.1",
     "resolve-pkg": "^2.0.0",
