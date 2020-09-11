@@ -10,7 +10,6 @@ build
 download-build
 runtime
 examples
-!sqlite.test.db
 tmp
 tmp-sqlite
 tmp-mysql
