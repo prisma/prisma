@@ -6,7 +6,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/debug": "4.1.5",
-    "@types/node": "13.13.16",
+    "@types/node": "13.13.19",
     "@types/redis": "2.8.27",
     "arg": "4.1.3",
     "batching-toposort": "1.2.0",
