@@ -2204,6 +2204,51 @@ function tests(): Test[] {
         data: ['some', 'array', 1, 2, 3, { object: 'value' }],
       },
     },
+    {
+      name: 'reproductions https://github.com/prisma/prisma/issues/1826 #1',
+      up: `
+CREATE TABLE foo (
+  p1_cuid varchar(25) unsigned NOT NULL AUTO_INCREMENT,
+  tinyint_4 tinyint(4) NOT NULL DEFAULT '1',
+  PRIMARY KEY (p1_cuid)
+);
+        `,
+      down: `
+        drop table if exists foo cascade;
+      `,
+      do: async (client) => {
+        const bar = prisma.foo.create({
+          data: {
+            p1_cuid: 'thisisastringwith30characters!',
+          }
+        })
+      },
+      expect: {
+        p1_cuid: 'thisisastringwith30characters!',
+      },
+    },
+    {
+      name: 'reproductions https://github.com/prisma/prisma/issues/1826 #2',
+      up: `
+CREATE TABLE foo (
+  tinyint_4 tinyint(4) NOT NULL DEFAULT '1',
+  PRIMARY KEY (tinyint_4)
+);
+        `,
+      down: `
+        drop table if exists foo cascade;
+      `,
+      do: async (client) => {
+        const bar = prisma.foo.create({
+          data: {
+            tinyint_4: -999,
+          }
+        })
+      },
+      expect: {
+        tinyint_4: -999,
+      },
+    },
   ]
 }
 
