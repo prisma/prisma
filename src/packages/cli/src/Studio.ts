@@ -7,7 +7,6 @@ import open from 'open'
 
 import { ProviderAliases, getSchemaPathSync } from '@prisma/sdk'
 import { getPlatform } from '@prisma/get-platform'
-import { ExperimentalFlagError } from './utils/experimental'
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
@@ -87,8 +86,12 @@ export class Studio implements Command {
       return this.help()
     }
 
-    if (!args['--experimental']) {
-      throw new ExperimentalFlagError()
+    if (args['--experimental']) {
+      console.warn(
+        `${chalk.yellow(
+          'warn',
+        )} --experimental is no longer required for this command`,
+      )
     }
 
     const schemaPath = getSchemaPathSync(args['--schema'])
@@ -146,7 +149,7 @@ export class Studio implements Command {
 
     this.instance = studio
 
-    return `Studio started at ${serverUrl}`
+    return `Prisma Studio is up on ${serverUrl}`
   }
 
   // help message
