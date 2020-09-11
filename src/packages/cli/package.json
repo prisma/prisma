@@ -131,6 +131,7 @@
     "test:dotenv:4": "./node_modules/.bin/mocha src/__tests__/dotenv-4-prisma-when-no-schema.test.ts --require ts-mocha src/__tests__/dotenv-4-prisma-when-no-schema.test.ts --timeout 2s",
     "test:dotenv:5": "./node_modules/.bin/mocha src/__tests__/dotenv-5-not-loaded.test.ts --require ts-mocha src/__tests__/dotenv-5-not-loaded.test.ts --timeout 2s",
     "test:dotenv:6": "./node_modules/.bin/mocha src/__tests__/dotenv-6-expand.test.ts --require ts-mocha src/__tests__/dotenv-6-expand.test.ts --timeout 2s",
+    "test:introspect": "jest introspect",
     "test:format": "jest format",
     "test:doctor": "jest doctor",
     "test:studio": "./node_modules/.bin/mocha src/__tests__/studio.test.ts --require ts-mocha src/__tests__/studio.test.ts --timeout 10s",

@@ -4,6 +4,7 @@ module.exports = {
   testMatch: [
     '**/src/__tests__/doctor.test.ts',
     '**/src/__tests__/format.test.ts',
+    '**/src/__tests__/introspect.test.ts',
   ],
   // todo duplicated serializer from client package, should share
   snapshotSerializers: ['./src/__tests__/__helpers__/snapshotSerializer.ts'],
