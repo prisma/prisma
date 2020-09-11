@@ -47,8 +47,8 @@ importers:
       '@prisma/introspection': 'link:../introspection'
       '@prisma/migrate': 'link:../migrate'
       '@prisma/sdk': 'link:../sdk'
-      '@prisma/studio': 0.282.0
-      '@prisma/studio-server': 0.282.0
+      '@prisma/studio': 0.284.0
+      '@prisma/studio-server': 0.284.0
       '@types/debug': 4.1.5
       '@types/jest': 26.0.13
       '@types/mocha': 8.0.3
@@ -110,8 +110,8 @@ importers:
       '@prisma/introspection': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio': 0.282.0
-      '@prisma/studio-server': 0.282.0
+      '@prisma/studio': 0.284.0
+      '@prisma/studio-server': 0.284.0
       '@types/debug': 4.1.5
       '@types/jest': ^26.0.13
       '@types/mocha': 8.0.3
@@ -649,8 +649,8 @@ importers:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/get-platform': 'link:../get-platform'
       '@prisma/ink-components': 'link:../ink-components'
-      '@prisma/studio-server': 0.282.0
-      '@prisma/studio-types': 0.282.0
+      '@prisma/studio-server': 0.284.0
+      '@prisma/studio-types': 0.284.0
       ansi-escapes: 4.3.1
       cli-cursor: 3.1.0
       dashify: 2.0.0
@@ -719,8 +719,8 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@prisma/ink-components': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio-server': 0.282.0
-      '@prisma/studio-types': 0.282.0
+      '@prisma/studio-server': 0.284.0
+      '@prisma/studio-types': 0.284.0
       '@types/charm': 1.0.2
       '@types/debug': 4.1.5
       '@types/diff': 4.0.2
@@ -1456,7 +1456,7 @@ packages:
       '@prisma/debug': 2.6.2
       '@prisma/get-platform': 2.6.2
       chalk: 4.1.0
-      execa: 4.0.3
+      execa: 4.0.2
       find-cache-dir: 3.3.1
       hasha: 5.2.0
       http-proxy-agent: 4.0.1
@@ -1522,31 +1522,31 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-sYeaC3o31aVf9u+uaBbVespLF7A6gGdylRtH5/9NbPoI1W52XpkiT45JQgvKIRuS6hlnLX6Um7w345Aebeo4NA==
-  /@prisma/studio-server/0.282.0:
+  /@prisma/studio-server/0.284.0:
     dependencies:
       '@prisma/get-platform': 2.6.2
       '@prisma/sdk': 2.6.2
-      '@prisma/studio': 0.282.0
-      '@prisma/studio-transports': 0.282.0
-      '@prisma/studio-types': 0.282.0
+      '@prisma/studio': 0.284.0
+      '@prisma/studio-transports': 0.284.0
+      '@prisma/studio-types': 0.284.0
       '@sentry/node': 5.15.5
       express: 4.17.1
       ws: 7.3.1
     resolution:
-      integrity: sha512-0eTM8PPNoHjAF0cB6001UinoHz5+YsKh6N++orv72ZN9OmZ/TNB5Qqz7nfJIbU3nEJNrVxD9rfLFl1xFKR1WgQ==
-  /@prisma/studio-transports/0.282.0:
+      integrity: sha512-s+2kQTgMZYY88I/U6/2EuyCH9Q7K5bDLOycmpw2iME0BwOcdX6/+nk8YI9bsWDfkHNTvIAbETTdFZcSx7cS72A==
+  /@prisma/studio-transports/0.284.0:
     dependencies:
       '@prisma/sdk': 2.6.2
-      '@prisma/studio-types': 0.282.0
+      '@prisma/studio-types': 0.284.0
       '@sentry/node': 5.15.5
     resolution:
-      integrity: sha512-oMizKPpmxEGqsmH9L7yQRWw7t2oDtSPgANz7LB25PtQvFwCOLtukt02ppdwIwiJKm31NZ8x6j5loN31mgtD0Rw==
-  /@prisma/studio-types/0.282.0:
+      integrity: sha512-zCmyFUo8zW5PiewCj3DjNFzBibkPbeyhxJnCyfNOCrJz2EXNthvMp/n6a8SBwVm/koBLYrPHVBJw1dQUdX78jA==
+  /@prisma/studio-types/0.284.0:
     resolution:
-      integrity: sha512-9qrN7R34XtpS7knrwUAZWXTHOLejzoLm0SagfQ2vC0Tg9YsWGc1OK3zqhzthMhGY89Ji6PdRZNxhgEQb8IKgrA==
-  /@prisma/studio/0.282.0:
+      integrity: sha512-hACvoh5WLRsiUjLAn6HW3VItYZTbrRTIE3jtcKd14MAT8GyVovPgYDrTXbywTg5w830pR1YRCjKLOqSUSdLi/Q==
+  /@prisma/studio/0.284.0:
     resolution:
-      integrity: sha512-nAlCs08Ro3IeqFLVRf4owfLlbIjvZvSAUPT5Oktzk7ZL1pSI46PUZKFkKzdcHpdStY8/ifJxP9JVENmxApXm9g==
+      integrity: sha512-ksUUVvbmHxrzF1NLXWJGaIIgPfKwNjc4IlZ1dq4azOUpJ2zx4OmSxB6wTdxfp2Rrxk2zuH5iXQ3scpyh6I1Ecw==
   /@sentry/apm/5.15.5:
     dependencies:
       '@sentry/browser': 5.15.5
