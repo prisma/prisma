@@ -2205,11 +2205,10 @@ function tests(): Test[] {
       },
     },
     {
-      name: 'reproductions https://github.com/prisma/prisma/issues/1826 #1',
+      name: 'reproductions https://github.com/prisma/prisma/issues/1826 #1 - 30 character value into varchar(25)',
       up: `
 CREATE TABLE foo (
-  p1_cuid varchar(25) unsigned NOT NULL AUTO_INCREMENT,
-  tinyint_4 tinyint(4) NOT NULL DEFAULT '1',
+  p1_cuid varchar(25) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (p1_cuid)
 );
         `,
@@ -2228,7 +2227,7 @@ CREATE TABLE foo (
       },
     },
     {
-      name: 'reproductions https://github.com/prisma/prisma/issues/1826 #2',
+      name: 'reproductions https://github.com/prisma/prisma/issues/1826 #2 - too big value into tinyint(4)',
       up: `
 CREATE TABLE foo (
   tinyint_4 tinyint(4) NOT NULL DEFAULT '1',
@@ -2239,7 +2238,29 @@ CREATE TABLE foo (
         drop table if exists foo cascade;
       `,
       do: async (client) => {
-        const bar = prisma.foo.create({
+        const bar = client.foo.create({
+          data: {
+            tinyint_4: 999,
+          }
+        })
+      },
+      expect: {
+        tinyint_4: 999,
+      },
+    },
+    {
+      name: 'reproductions https://github.com/prisma/prisma/issues/1826 #3 - too big negative value into unsigned tinyint(4)',
+      up: `
+CREATE TABLE foo (
+  tinyint_4 tinyint(4) unsigned NOT NULL DEFAULT '1',
+  PRIMARY KEY (tinyint_4)
+);
+        `,
+      down: `
+        drop table if exists foo cascade;
+      `,
+      do: async (client) => {
+        const bar = client.foo.create({
           data: {
             tinyint_4: -999,
           }
