@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:db.sqlite"
+  url      = "file:dev.db"
 }
 
 model NewPost {
