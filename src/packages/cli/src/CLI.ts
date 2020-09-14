@@ -155,7 +155,7 @@ export class CLI implements Command {
           introspect   Get the datamodel of your database
             generate   Generate artifacts (e.g. Prisma Client)
              migrate   Migrate your schema ${chalk.dim('(experimental)')}
-              studio   Run Prisma Studio ${chalk.dim('(experimental)')}
+              studio   Run Prisma Studio
               format   Formats your schema
 
     ${chalk.bold('Flags')}
@@ -175,5 +175,8 @@ export class CLI implements Command {
 
       Save your changes into a migration
       ${chalk.dim('$')} prisma migrate save --experimental
+
+      Browse your data
+      ${chalk.dim('$')} prisma studio
   `)
 }
