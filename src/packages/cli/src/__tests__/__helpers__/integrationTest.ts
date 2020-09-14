@@ -12,15 +12,15 @@ const pkgDir = pkgup.sync() || __dirname
 const engine = new IntrospectionEngine()
 
 beforeAll(() => {
-  fs.remove(getKaseDir(''))
+  fs.remove(getScenarioDir(''))
 })
 
 afterAll(() => {
   engine.stop()
-  fs.remove(getKaseDir(''))
+  fs.remove(getScenarioDir(''))
 })
 
-type TestKase = {
+type TestScenario = {
   /**
    * Only run this test case (and any others with only set).
    */
@@ -39,22 +39,22 @@ type TestKase = {
   expect: any
 }
 
-export function integrationTest(testKases: TestKase[]) {
+export function integrationTest(testScenarios: TestScenario[]) {
   /**
    * it.concurrent.each (https://jestjs.io/docs/en/api#testconcurrenteachtablename-fn-timeout)
    * does not seem to work. Snapshots keep getting errors. And each runs leads to different
    * snapshot errors. Might be related to https://github.com/facebook/jest/issues/2180 but we're
    * explicitly naming our snapshots here so...?
    */
-  it.each(prepareTestKases(testKases))(`%s`, async (name, kase) => {
-    const tmpDirPath = getKaseDir(name)
+  it.each(prepareTestScenarios(testScenarios))(`%s`, async (name, scenario) => {
+    const tmpDirPath = getScenarioDir(name)
     const sqlitePath = Path.join(tmpDirPath, 'sqlite.db')
     const schemaPath = Path.join(tmpDirPath, 'schema.prisma')
     const connectionString = `file:${sqlitePath}`
     await fs.dirAsync(tmpDirPath)
 
     const db = await Database.open(sqlitePath)
-    await db.exec(kase.up)
+    await db.exec(scenario.up)
 
     try {
       const schema = `
@@ -81,8 +81,8 @@ export function integrationTest(testKases: TestKase[]) {
       const prisma = new PrismaClient()
       await prisma.$connect()
       try {
-        const result = await kase.do(prisma)
-        expect(result).toEqual(kase.expect)
+        const result = await scenario.do(prisma)
+        expect(result).toEqual(scenario.expect)
       } catch (err) {
         throw err
       } finally {
@@ -99,19 +99,21 @@ export function integrationTest(testKases: TestKase[]) {
   })
 }
 
-function prepareTestKases(kases: TestKase[]): [string, TestKase][] {
-  const onlys = kases.filter((kase) => kase.only)
+function prepareTestScenarios(
+  scenarios: TestScenario[],
+): [string, TestScenario][] {
+  const onlys = scenarios.filter((scenario) => scenario.only)
 
   if (onlys.length) {
-    return onlys.map((kase) => [kase.name, kase])
+    return onlys.map((scenario) => [scenario.name, scenario])
   }
 
-  return kases
-    .filter((kase) => kase.todo !== true)
-    .map((kase) => [kase.name, kase])
+  return scenarios
+    .filter((scenario) => scenario.todo !== true)
+    .map((scenario) => [scenario.name, scenario])
 }
 
-function getKaseDir(name: string) {
+function getScenarioDir(name: string) {
   return Path.join(Path.dirname(pkgDir), 'tmp-sqlite', name)
 }
 
