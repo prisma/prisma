@@ -183,7 +183,6 @@ importers:
       '@types/pg': 7.14.4
       '@typescript-eslint/eslint-plugin': 4.1.0_b6bc46430148c1bc3b139457a4312fe7
       '@typescript-eslint/parser': 4.1.0_eslint@7.8.1+typescript@4.0.2
-      '@zeit/ncc': 0.22.3
       arg: 4.1.3
       benchmark: 2.1.4
       chalk: 4.1.0
@@ -251,7 +250,6 @@ importers:
       '@types/pg': 7.14.4
       '@typescript-eslint/eslint-plugin': 4.1.0
       '@typescript-eslint/parser': 4.1.0
-      '@zeit/ncc': 0.22.3
       arg: 4.1.3
       benchmark: 2.1.4
       chalk: 4.1.0
@@ -3714,7 +3712,6 @@ packages:
       onetime: 5.1.0
       signal-exit: 3.0.3
       strip-final-newline: 2.0.0
-    dev: false
     engines:
       node: '>=10'
     resolution:
@@ -4209,7 +4206,6 @@ packages:
   /get-stream/5.1.0:
     dependencies:
       pump: 3.0.0
-    dev: false
     engines:
       node: '>=8'
     resolution:

@@ -74,7 +74,6 @@
     "@types/pg": "7.14.4",
     "@typescript-eslint/eslint-plugin": "4.1.0",
     "@typescript-eslint/parser": "4.1.0",
-    "@zeit/ncc": "0.22.3",
     "arg": "4.1.3",
     "benchmark": "2.1.4",
     "chalk": "4.1.0",
