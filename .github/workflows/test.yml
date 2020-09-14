@@ -388,231 +388,6 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
   #
-  # DEBUG
-  #
-  debug:
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-        node: [12]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - uses: actions/setup-node@v2-beta
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm run test
-        working-directory: src/packages/debug
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-  #
-  # ENGINE-CORE
-  #
-  engine-core:
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-        node: [12]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - uses: actions/setup-node@v2-beta
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm run test
-        working-directory: src/packages/engine-core
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-  #
-  # FETCH-ENGINE
-  #
-  fetch-engine:
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-        node: [12]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - uses: actions/setup-node@v2-beta
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm run test
-        working-directory: src/packages/fetch-engine
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-  #
-  # GENERATOR-HELPER
-  #
-  generator-helper:
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-        node: [12]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - uses: actions/setup-node@v2-beta
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm run test
-        working-directory: src/packages/generator-helper
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-  #
-  # GET-PLATFORM
-  #
-  get-platform:
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-        node: [12]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - uses: actions/setup-node@v2-beta
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm run test
-        working-directory: src/packages/get-platform
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-  #
   # MIGRATE
   #
   migrate:
@@ -715,3 +490,76 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/postgres
+
+  #
+  # REST
+  #
+  rest:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        node: [12]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test
+        working-directory: src/packages/debug
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test
+        working-directory: src/packages/engine-core
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test
+        working-directory: src/packages/fetch-engine
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test
+        working-directory: src/packages/generator-helper
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test
+        working-directory: src/packages/get-platform
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
