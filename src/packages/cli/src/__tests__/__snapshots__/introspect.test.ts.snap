@@ -46,24 +46,7 @@ model AwesomeProfile {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`should succeed when schema is invalid and using --force 1`] = `
-generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/client"
-}
-
-datasource db {
-  provider = "sqlite"
-  url      = "file:dev.db"
-}
-
-model something {
-  id Int
-}
-
-`;
-
-exports[`should succeed when schema is invalid and using --force 4`] = `
+exports[`should succeed when schema is invalid and using --force 3`] = `
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"

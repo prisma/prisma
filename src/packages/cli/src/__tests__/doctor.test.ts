@@ -4,10 +4,11 @@ import { consoleContext, Context } from './__helpers__/context'
 const ctx = Context.new().add(consoleContext()).assemble()
 
 it('doctor should succeed when schema and db do match', async () => {
-  ctx.fixture('example-project/prisma')
+  ctx.fixture('example-project')
   const result = Doctor.new().parse([])
   await expect(result).resolves.toEqual('Everything in sync 🔄')
-  expect(ctx.mocked['console.error'].mock.calls).toMatchInlineSnapshot(`
+  expect(ctx.mocked['console.error'].mock.calls.join('\n'))
+    .toMatchInlineSnapshot(`
     Array [
       Array [
         👩‍⚕️🏥 Prisma Doctor checking the database...,

@@ -4,7 +4,7 @@ import { consoleContext, Context } from './__helpers__/context'
 const ctx = Context.new().add(consoleContext()).assemble()
 
 it('should succeed when schema and db do match', async () => {
-  ctx.fixture('example-project/prisma')
+  ctx.fixture('introspect/prisma')
   const result = Introspect.new().parse([])
   await expect(result).resolves.toMatchInlineSnapshot(``)
 
@@ -16,17 +16,17 @@ it('should succeed when schema and db do match', async () => {
       .replace(/\d{2,3}ms/, 'XXms'),
   ).toMatchInlineSnapshot(`
 
-    Introspecting based on datasource defined in schema.prisma …
+        Introspecting based on datasource defined in schema.prisma …
 
-    ✔ Introspected 3 models and wrote them into schema.prisma in XXms
-          
-    Run prisma generate to generate Prisma Client.
+        ✔ Introspected 3 models and wrote them into schema.prisma in XXms
+              
+        Run prisma generate to generate Prisma Client.
 
-  `)
+    `)
 })
 
 it('should succeed when schema and db do match using --url', async () => {
-  ctx.fixture('example-project/prisma')
+  ctx.fixture('introspect/prisma')
   const result = Introspect.new().parse(['--url=file:./dev.db'])
   await expect(result).resolves.toMatchInlineSnapshot(``)
 
@@ -38,17 +38,17 @@ it('should succeed when schema and db do match using --url', async () => {
       .replace(/\d{2,3}ms/, 'XXms'),
   ).toMatchInlineSnapshot(`
 
-    Introspecting …
+        Introspecting …
 
-    ✔ Introspected 3 models and wrote them into schema.prisma in XXms
-          
-    Run prisma generate to generate Prisma Client.
+        ✔ Introspected 3 models and wrote them into schema.prisma in XXms
+              
+        Run prisma generate to generate Prisma Client.
 
-  `)
+    `)
 })
 
 it('should succeed and keep changes to valid schema and output warnings', async () => {
-  ctx.fixture('introspect-force')
+  ctx.fixture('introspect')
   const originalSchema = ctx.fs.read('prisma/reintrospection.prisma')
   const result = Introspect.new().parse([
     '--schema=./prisma/reintrospection.prisma',
@@ -61,19 +61,19 @@ it('should succeed and keep changes to valid schema and output warnings', async 
       .replace(/\d{2,3}ms/, 'in XXms'),
   ).toMatchInlineSnapshot(`
 
-    Introspecting based on datasource defined in prisma/reintrospection.prisma …
+        Introspecting based on datasource defined in prisma/reintrospection.prisma …
 
-    ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in in XXms
-          
-    *** WARNING ***
+        ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in in XXms
+              
+        *** WARNING ***
 
-    These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-    - Model "AwesomeNewPost"
-    - Model "AwesomeProfile"
-    - Model "AwesomeUser"
+        These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+        - Model "AwesomeNewPost"
+        - Model "AwesomeProfile"
+        - Model "AwesomeUser"
 
-    Run prisma generate to generate Prisma Client.
-  `)
+        Run prisma generate to generate Prisma Client.
+    `)
 
   expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(
     ``,
@@ -85,7 +85,7 @@ it('should succeed and keep changes to valid schema and output warnings', async 
 })
 
 it('should succeed and keep changes to valid schema and output warnings when using --print', async () => {
-  ctx.fixture('introspect-force')
+  ctx.fixture('introspect')
   const originalSchema = ctx.fs.read('prisma/reintrospection.prisma')
   const result = Introspect.new().parse([
     '--print',
@@ -102,14 +102,14 @@ it('should succeed and keep changes to valid schema and output warnings when usi
   expect(ctx.mocked['console.error'].mock.calls.join('\n'))
     .toMatchInlineSnapshot(`
 
-                *** WARNING ***
+                    *** WARNING ***
 
-                These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                - Model "AwesomeNewPost"
-                - Model "AwesomeProfile"
-                - Model "AwesomeUser"
+                    These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                    - Model "AwesomeNewPost"
+                    - Model "AwesomeProfile"
+                    - Model "AwesomeUser"
 
-        `)
+          `)
 
   expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(
     originalSchema,
@@ -127,12 +127,12 @@ it('should succeed when schema and db do not match', async () => {
       .replace(/\d{2,3}ms/, 'in XXms'),
   ).toMatchInlineSnapshot(`
 
-    Introspecting based on datasource defined in schema.prisma …
+        Introspecting based on datasource defined in schema.prisma …
 
-    ✔ Introspected 3 models and wrote them into schema.prisma in in XXms
-          
-    Run prisma generate to generate Prisma Client.
-  `)
+        ✔ Introspected 3 models and wrote them into schema.prisma in in XXms
+              
+        Run prisma generate to generate Prisma Client.
+    `)
 })
 
 it('should fail when db is missing', async () => {
@@ -183,8 +183,8 @@ it('should fail when prisma schema is missing', async () => {
 })
 
 it('should fail when schema is invalid', async () => {
-  ctx.fixture('introspect-force')
-  const result = Introspect.new().parse([])
+  ctx.fixture('introspect')
+  const result = Introspect.new().parse(['--schema=./prisma/invalid.prisma'])
   await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
           P1012 Introspection failed as your current Prisma schema file is invalid
 
@@ -195,11 +195,12 @@ it('should fail when schema is invalid', async () => {
 })
 
 it('should succeed when schema is invalid and using --force', async () => {
-  ctx.fixture('introspect-force')
+  ctx.fixture('introspect')
 
-  expect(ctx.fs.read('prisma/schema.prisma')).toMatchSnapshot()
-
-  const result = Introspect.new().parse(['--force'])
+  const result = Introspect.new().parse([
+    '--schema=./prisma/invalid.prisma',
+    '--force',
+  ])
   await expect(result).resolves.toMatchInlineSnapshot(``)
 
   expect(
@@ -208,12 +209,12 @@ it('should succeed when schema is invalid and using --force', async () => {
       .replace(/\d{2,3}ms/, 'in XXms'),
   ).toMatchInlineSnapshot(`
 
-    Introspecting based on datasource defined in prisma/schema.prisma …
+    Introspecting based on datasource defined in prisma/invalid.prisma …
 
-    ✔ Introspected 3 models and wrote them into prisma/schema.prisma in in XXms
+    ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in in XXms
           
     Run prisma generate to generate Prisma Client.
   `)
 
-  expect(ctx.fs.read('prisma/schema.prisma')).toMatchSnapshot()
+  expect(ctx.fs.read('prisma/invalid.prisma')).toMatchSnapshot()
 })
