@@ -1,4 +1,3 @@
-import { getLatestTag } from '@prisma/fetch-engine'
 import { Client } from 'pg'
 import { integrationTest } from './__helpers__/integrationTest'
 
@@ -7,7 +6,7 @@ const connectionString =
 
 integrationTest<Client>({
   settings: {
-    engineVersion: getLatestTag(),
+    // engineVersion: getLatestTag(),
     timeout: 15_000,
   },
   database: {
