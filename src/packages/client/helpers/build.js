@@ -54,4 +54,7 @@ function run(command, preferLocal = true) {
   return execa.command(command, { stdio: 'inherit', preferLocal })
 }
 
-main().catch((e) => console.error(e))
+main().catch((e) => {
+  console.error(e)
+  throw e
+})
