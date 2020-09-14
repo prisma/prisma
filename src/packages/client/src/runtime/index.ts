@@ -16,11 +16,6 @@ export {
   PrismaClientRustPanicError,
 } from '@prisma/engine-core'
 export { getPrismaClient } from './getPrismaClient'
-// export * as sqltag from 'sql-template-tag'
-
-// import * as sqltag from 'sql-template-tag'
-
-// export { sqltag }
 
 export {
   RawValue,
@@ -29,7 +24,5 @@ export {
   empty,
   join,
   raw,
-  sqltag
+  sqltag,
 } from 'sql-template-tag'
-
-
