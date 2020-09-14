@@ -2,7 +2,7 @@ importers:
   .:
     devDependencies:
       '@types/debug': 4.1.5
-      '@types/node': 13.13.16
+      '@types/node': 13.13.19
       '@types/redis': 2.8.27
       arg: 4.1.3
       batching-toposort: 1.2.0
@@ -16,11 +16,11 @@ importers:
       redis: 3.0.2
       redis-lock: 0.1.4
       semver: 7.3.2
-      ts-node: 8.10.2_typescript@4.0.2
+      ts-node: 9.0.0_typescript@4.0.2
       typescript: 4.0.2
     specifiers:
       '@types/debug': 4.1.5
-      '@types/node': 13.13.16
+      '@types/node': 13.13.19
       '@types/redis': 2.8.27
       arg: 4.1.3
       batching-toposort: 1.2.0
@@ -34,7 +34,7 @@ importers:
       redis: 3.0.2
       redis-lock: 0.1.4
       semver: 7.3.2
-      ts-node: 8.10.2
+      ts-node: 9.0.0
       typescript: 4.0.2
   packages/cli:
     devDependencies:
@@ -47,28 +47,31 @@ importers:
       '@prisma/introspection': 'link:../introspection'
       '@prisma/migrate': 'link:../migrate'
       '@prisma/sdk': 'link:../sdk'
-      '@prisma/studio': 0.278.0
-      '@prisma/studio-server': 0.278.0
+      '@prisma/studio': 0.286.0
+      '@prisma/studio-server': 0.286.0
       '@types/debug': 4.1.5
+      '@types/jest': 26.0.13
       '@types/mocha': 8.0.3
       '@types/pg': 7.14.4
       '@types/sqlite3': 3.1.6
       '@types/ws': 7.2.6
-      '@typescript-eslint/eslint-plugin': 4.0.1_114ad8351e9494f5a04234998358ee7f
-      '@typescript-eslint/parser': 4.0.1_eslint@7.8.1+typescript@4.0.2
+      '@typescript-eslint/eslint-plugin': 4.1.0_b6bc46430148c1bc3b139457a4312fe7
+      '@typescript-eslint/parser': 4.1.0_eslint@7.8.1+typescript@4.0.2
       '@zeit/ncc': 0.22.3
       checkpoint-client: 1.1.11
       dotenv: 8.2.0
+      dotenv-expand: 5.1.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0_eslint@7.8.1
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
       eslint-plugin-jest: 24.0.0_eslint@7.8.1+typescript@4.0.2
-      eslint-plugin-prettier: 3.1.4_eslint@7.8.1
+      eslint-plugin-prettier: 3.1.4_eslint@7.8.1+prettier@2.1.1
       execa: 4.0.3
       fast-deep-equal: 3.1.3
+      fs-jetpack: 3.1.0
       get-port: 5.1.1
       global-dirs: 2.0.1
-      husky: 4.2.5
+      husky: 4.3.0
       is-installed-globally: 0.3.2
       jest: 26.4.2
       lint-staged: 10.3.0
@@ -82,6 +85,8 @@ importers:
       pg: 8.3.3_pg@8.3.3
       pkg: 4.4.9
       pkg-up: 3.1.0
+      prettier: 2.1.1
+      replace-string: 3.1.0
       resolve-pkg: 2.0.0
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
@@ -105,18 +110,20 @@ importers:
       '@prisma/introspection': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio': 0.278.0
-      '@prisma/studio-server': 0.278.0
+      '@prisma/studio': 0.286.0
+      '@prisma/studio-server': 0.286.0
       '@types/debug': 4.1.5
+      '@types/jest': 26.0.13
       '@types/mocha': 8.0.3
       '@types/pg': 7.14.4
       '@types/sqlite3': 3.1.6
       '@types/ws': 7.2.6
-      '@typescript-eslint/eslint-plugin': 4.0.1
-      '@typescript-eslint/parser': 4.0.1
+      '@typescript-eslint/eslint-plugin': 4.1.0
+      '@typescript-eslint/parser': 4.1.0
       '@zeit/ncc': 0.22.3
       checkpoint-client: 1.1.11
       dotenv: 8.2.0
+      dotenv-expand: 5.1.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -124,9 +131,10 @@ importers:
       eslint-plugin-prettier: 3.1.4
       execa: 4.0.3
       fast-deep-equal: 3.1.3
+      fs-jetpack: 3.1.0
       get-port: 5.1.1
       global-dirs: 2.0.1
-      husky: 4.2.5
+      husky: 4.3.0
       is-installed-globally: 0.3.2
       jest: 26.4.2
       lint-staged: 10.3.0
@@ -140,6 +148,8 @@ importers:
       pg: 8.3.3
       pkg: 4.4.9
       pkg-up: 3.1.0
+      prettier: 2.1.1
+      replace-string: 3.1.0
       resolve-pkg: 2.0.0
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
@@ -168,17 +178,18 @@ importers:
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.13
       '@types/js-levenshtein': 1.1.0
-      '@types/node': 12.12.55
+      '@types/node': 12.12.58
       '@types/node-fetch': 2.5.7
       '@types/pg': 7.14.4
-      '@typescript-eslint/eslint-plugin': 4.0.1_114ad8351e9494f5a04234998358ee7f
-      '@typescript-eslint/parser': 4.0.1_eslint@7.8.1+typescript@4.0.2
+      '@typescript-eslint/eslint-plugin': 4.1.0_b6bc46430148c1bc3b139457a4312fe7
+      '@typescript-eslint/parser': 4.1.0_eslint@7.8.1+typescript@4.0.2
       '@zeit/ncc': 0.22.3
       arg: 4.1.3
       benchmark: 2.1.4
       chalk: 4.1.0
       del: 5.1.0
       dotenv: 8.2.0
+      dotenv-expand: 5.1.0
       esbuild: 0.6.34
       escape-string-regexp: 4.0.0
       eslint: 7.8.1
@@ -193,7 +204,7 @@ importers:
       fs-monkey: 1.0.1
       get-own-enumerable-property-symbols: 3.0.2
       get-port: 5.1.1
-      husky: 4.2.5
+      husky: 4.3.0
       indent-string: 4.0.0
       is-obj: 2.0.0
       is-regexp: 2.1.0
@@ -221,7 +232,7 @@ importers:
       strip-indent: 3.0.0
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
       ts-loader: 8.0.3_typescript@4.0.2
-      ts-node: 8.10.2_typescript@4.0.2
+      ts-node: 9.0.0_typescript@4.0.2
       typescript: 4.0.2
     specifiers:
       '@prisma/debug': 'workspace:*'
@@ -235,17 +246,18 @@ importers:
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.13
       '@types/js-levenshtein': 1.1.0
-      '@types/node': 12.12.55
+      '@types/node': 12.12.58
       '@types/node-fetch': 2.5.7
       '@types/pg': 7.14.4
-      '@typescript-eslint/eslint-plugin': 4.0.1
-      '@typescript-eslint/parser': 4.0.1
+      '@typescript-eslint/eslint-plugin': 4.1.0
+      '@typescript-eslint/parser': 4.1.0
       '@zeit/ncc': 0.22.3
       arg: 4.1.3
       benchmark: 2.1.4
       chalk: 4.1.0
       del: 5.1.0
       dotenv: 8.2.0
+      dotenv-expand: 5.1.0
       esbuild: ^0.6.34
       escape-string-regexp: ^4.0.0
       eslint: 7.8.1
@@ -260,7 +272,7 @@ importers:
       fs-monkey: 1.0.1
       get-own-enumerable-property-symbols: 3.0.2
       get-port: 5.1.1
-      husky: 4.2.5
+      husky: 4.3.0
       indent-string: 4.0.0
       is-obj: 2.0.0
       is-regexp: 2.1.0
@@ -278,7 +290,7 @@ importers:
       pkg-up: ^3.1.0
       pluralize: 8.0.0
       prettier: 2.1.1
-      replace-string: ^3.1.0
+      replace-string: 3.1.0
       rimraf: 3.0.2
       rollup-plugin-dts: ^1.4.13
       set-value: 3.0.2
@@ -289,41 +301,43 @@ importers:
       strip-indent: 3.0.0
       ts-jest: 26.3.0
       ts-loader: 8.0.3
-      ts-node: 8.10.2
+      ts-node: 9.0.0
       typescript: 4.0.2
   packages/debug:
     dependencies:
       debug: 4.1.1
     devDependencies:
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
-      '@typescript-eslint/eslint-plugin': 4.0.1_114ad8351e9494f5a04234998358ee7f
-      '@typescript-eslint/parser': 4.0.1_eslint@7.8.1+typescript@4.0.2
+      '@types/node': 12.12.58
+      '@typescript-eslint/eslint-plugin': 4.1.0_b6bc46430148c1bc3b139457a4312fe7
+      '@typescript-eslint/parser': 4.1.0_eslint@7.8.1+typescript@4.0.2
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0_eslint@7.8.1
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
       eslint-plugin-jest: 24.0.0_eslint@7.8.1+typescript@4.0.2
-      eslint-plugin-prettier: 3.1.4_eslint@7.8.1
-      husky: 4.2.5
+      eslint-plugin-prettier: 3.1.4_eslint@7.8.1+prettier@2.1.1
+      husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.3.0
+      prettier: 2.1.1
       strip-ansi: 6.0.0
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
       typescript: 4.0.2
     specifiers:
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
-      '@typescript-eslint/eslint-plugin': 4.0.1
-      '@typescript-eslint/parser': 4.0.1
+      '@types/node': 12.12.58
+      '@typescript-eslint/eslint-plugin': 4.1.0
+      '@typescript-eslint/parser': 4.1.0
       debug: ^4.1.1
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.0.0
       eslint-plugin-prettier: 3.1.4
-      husky: 4.2.5
+      husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.3.0
+      prettier: 2.1.1
       strip-ansi: 6.0.0
       ts-jest: 26.3.0
       typescript: 4.0.2
@@ -344,18 +358,19 @@ importers:
     devDependencies:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
-      '@typescript-eslint/eslint-plugin': 4.0.1_114ad8351e9494f5a04234998358ee7f
-      '@typescript-eslint/parser': 4.0.1_eslint@7.8.1+typescript@4.0.2
+      '@types/node': 12.12.58
+      '@typescript-eslint/eslint-plugin': 4.1.0_b6bc46430148c1bc3b139457a4312fe7
+      '@typescript-eslint/parser': 4.1.0_eslint@7.8.1+typescript@4.0.2
       del-cli: 3.0.1
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0_eslint@7.8.1
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
       eslint-plugin-jest: 24.0.0_eslint@7.8.1+typescript@4.0.2
-      eslint-plugin-prettier: 3.1.4_eslint@7.8.1
-      husky: 4.2.5
+      eslint-plugin-prettier: 3.1.4_eslint@7.8.1+prettier@2.1.1
+      husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.3.0
+      prettier: 2.1.1
       strip-ansi: 6.0.0
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
       typescript: 4.0.2
@@ -365,9 +380,9 @@ importers:
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
-      '@typescript-eslint/eslint-plugin': 4.0.1
-      '@typescript-eslint/parser': 4.0.1
+      '@types/node': 12.12.58
+      '@typescript-eslint/eslint-plugin': 4.1.0
+      '@typescript-eslint/parser': 4.1.0
       chalk: ^4.0.0
       cross-fetch: ^3.0.4
       del-cli: 3.0.1
@@ -378,12 +393,13 @@ importers:
       eslint-plugin-prettier: 3.1.4
       execa: ^4.0.2
       get-stream: ^5.1.0
-      husky: 4.2.5
+      husky: 4.3.0
       indent-string: ^4.0.0
       jest: 26.4.2
       lint-staged: 10.3.0
       new-github-issue-url: ^0.2.1
       p-retry: ^4.2.0
+      prettier: 2.1.1
       strip-ansi: 6.0.0
       terminal-link: ^2.1.1
       ts-jest: 26.3.0
@@ -412,18 +428,18 @@ importers:
     devDependencies:
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
+      '@types/node': 12.12.58
       '@types/node-fetch': 2.5.7
       '@types/progress': 2.0.3
-      '@typescript-eslint/eslint-plugin': 4.0.1_114ad8351e9494f5a04234998358ee7f
-      '@typescript-eslint/parser': 4.0.1_eslint@7.8.1+typescript@4.0.2
+      '@typescript-eslint/eslint-plugin': 4.1.0_b6bc46430148c1bc3b139457a4312fe7
+      '@typescript-eslint/parser': 4.1.0_eslint@7.8.1+typescript@4.0.2
       del: 5.1.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0_eslint@7.8.1
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
       eslint-plugin-jest: 24.0.0_eslint@7.8.1+typescript@4.0.2
       eslint-plugin-prettier: 3.1.4_eslint@7.8.1+prettier@2.1.1
-      husky: 4.2.5
+      husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.3.0
       prettier: 2.1.1
@@ -434,11 +450,11 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
+      '@types/node': 12.12.58
       '@types/node-fetch': 2.5.7
       '@types/progress': 2.0.3
-      '@typescript-eslint/eslint-plugin': 4.0.1
-      '@typescript-eslint/parser': 4.0.1
+      '@typescript-eslint/eslint-plugin': 4.1.0
+      '@typescript-eslint/parser': 4.1.0
       chalk: ^4.0.0
       del: 5.1.0
       eslint: 7.8.1
@@ -451,7 +467,7 @@ importers:
       hasha: ^5.2.0
       http-proxy-agent: ^4.0.1
       https-proxy-agent: ^5.0.0
-      husky: 4.2.5
+      husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.3.0
       make-dir: ^3.0.2
@@ -475,28 +491,28 @@ importers:
       cross-spawn: 7.0.3
     devDependencies:
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
-      '@typescript-eslint/eslint-plugin': 4.0.1_114ad8351e9494f5a04234998358ee7f
-      '@typescript-eslint/parser': 4.0.1_eslint@7.8.1+typescript@4.0.2
+      '@types/node': 12.12.58
+      '@typescript-eslint/eslint-plugin': 4.1.0_b6bc46430148c1bc3b139457a4312fe7
+      '@typescript-eslint/parser': 4.1.0_eslint@7.8.1+typescript@4.0.2
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0_eslint@7.8.1
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
       eslint-plugin-jest: 24.0.0_eslint@7.8.1+typescript@4.0.2
       eslint-plugin-prettier: 3.1.4_eslint@7.8.1+prettier@2.1.1
-      husky: 4.2.5
+      husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.3.0
       prettier: 2.1.1
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
-      ts-node: 8.10.2_typescript@4.0.2
+      ts-node: 9.0.0_typescript@4.0.2
       typescript: 4.0.2
     specifiers:
       '@prisma/debug': 'workspace:*'
       '@types/cross-spawn': ^6.0.1
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
-      '@typescript-eslint/eslint-plugin': 4.0.1
-      '@typescript-eslint/parser': 4.0.1
+      '@types/node': 12.12.58
+      '@typescript-eslint/eslint-plugin': 4.1.0
+      '@typescript-eslint/parser': 4.1.0
       chalk: ^4.0.0
       cross-spawn: ^7.0.2
       eslint: 7.8.1
@@ -504,45 +520,47 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.0.0
       eslint-plugin-prettier: 3.1.4
-      husky: 4.2.5
+      husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.3.0
       prettier: 2.1.1
       ts-jest: 26.3.0
-      ts-node: 8.10.2
+      ts-node: 9.0.0
       typescript: 4.0.2
   packages/get-platform:
     dependencies:
       '@prisma/debug': 'link:../debug'
     devDependencies:
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
-      '@typescript-eslint/eslint-plugin': 4.0.1_114ad8351e9494f5a04234998358ee7f
-      '@typescript-eslint/parser': 4.0.1_eslint@7.8.1+typescript@4.0.2
+      '@types/node': 12.12.58
+      '@typescript-eslint/eslint-plugin': 4.1.0_b6bc46430148c1bc3b139457a4312fe7
+      '@typescript-eslint/parser': 4.1.0_eslint@7.8.1+typescript@4.0.2
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0_eslint@7.8.1
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
       eslint-plugin-jest: 24.0.0_eslint@7.8.1+typescript@4.0.2
-      eslint-plugin-prettier: 3.1.4_eslint@7.8.1
-      husky: 4.2.5
+      eslint-plugin-prettier: 3.1.4_eslint@7.8.1+prettier@2.1.1
+      husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.3.0
+      prettier: 2.1.1
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
       typescript: 4.0.2
     specifiers:
       '@prisma/debug': 'workspace:*'
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
-      '@typescript-eslint/eslint-plugin': 4.0.1
-      '@typescript-eslint/parser': 4.0.1
+      '@types/node': 12.12.58
+      '@typescript-eslint/eslint-plugin': 4.1.0
+      '@typescript-eslint/parser': 4.1.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.0.0
       eslint-plugin-prettier: 3.1.4
-      husky: 4.2.5
+      husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.3.0
+      prettier: 2.1.1
       ts-jest: 26.3.0
       typescript: 4.0.2
   packages/ink-components:
@@ -555,14 +573,14 @@ importers:
       string-width: 4.2.0
       terminal-link: 2.1.1
     devDependencies:
-      '@types/node': 12.12.55
+      '@types/node': 12.12.58
       '@types/react': 16.9.11
       ink: 2.7.1_25417382793f8b9d506bef5a668275ff
       react: 16.11.0
       typescript: 4.0.2
     specifiers:
       '@prisma/debug': 'workspace:*'
-      '@types/node': 12.12.55
+      '@types/node': 12.12.58
       '@types/react': 16.9.11
       chalk: ^4.0.0
       cli-truncate: 2.1.0
@@ -584,15 +602,15 @@ importers:
       '@prisma/migrate': 'link:../migrate'
       '@prisma/sdk': 'link:../sdk'
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
-      '@typescript-eslint/eslint-plugin': 4.0.1_114ad8351e9494f5a04234998358ee7f
-      '@typescript-eslint/parser': 4.0.1_eslint@7.8.1+typescript@4.0.2
+      '@types/node': 12.12.58
+      '@typescript-eslint/eslint-plugin': 4.1.0_b6bc46430148c1bc3b139457a4312fe7
+      '@typescript-eslint/parser': 4.1.0_eslint@7.8.1+typescript@4.0.2
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0_eslint@7.8.1
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
       eslint-plugin-jest: 24.0.0_eslint@7.8.1+typescript@4.0.2
       eslint-plugin-prettier: 3.1.4_eslint@7.8.1+prettier@2.1.1
-      husky: 4.2.5
+      husky: 4.3.0
       indent-string: 4.0.0
       jest: 26.4.2
       lint-staged: 10.3.0
@@ -600,16 +618,16 @@ importers:
       rimraf: 3.0.2
       tempy: 0.6.0
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
-      ts-node: 8.10.2_typescript@4.0.2
+      ts-node: 9.0.0_typescript@4.0.2
       typescript: 4.0.2
     specifiers:
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
-      '@typescript-eslint/eslint-plugin': 4.0.1
-      '@typescript-eslint/parser': 4.0.1
+      '@types/node': 12.12.58
+      '@typescript-eslint/eslint-plugin': 4.1.0
+      '@typescript-eslint/parser': 4.1.0
       chalk: ^4.0.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0
@@ -617,7 +635,7 @@ importers:
       eslint-plugin-jest: 24.0.0
       eslint-plugin-prettier: 3.1.4
       execa: ^4.0.0
-      husky: 4.2.5
+      husky: 4.3.0
       indent-string: 4.0.0
       jest: 26.4.2
       lint-staged: 10.3.0
@@ -627,7 +645,7 @@ importers:
       strip-ansi: ^6.0.0
       tempy: 0.6.0
       ts-jest: 26.3.0
-      ts-node: 8.10.2
+      ts-node: 9.0.0
       typescript: 4.0.2
   packages/migrate:
     dependencies:
@@ -635,8 +653,8 @@ importers:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/get-platform': 'link:../get-platform'
       '@prisma/ink-components': 'link:../ink-components'
-      '@prisma/studio-server': 0.278.0
-      '@prisma/studio-types': 0.278.0
+      '@prisma/studio-server': 0.286.0
+      '@prisma/studio-types': 0.286.0
       ansi-escapes: 4.3.1
       cli-cursor: 3.1.0
       dashify: 2.0.0
@@ -671,12 +689,12 @@ importers:
       '@types/diff': 4.0.2
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
+      '@types/node': 12.12.58
       '@types/prompts': 2.0.8
       '@types/react': 16.9.11
       '@types/sqlite3': 3.1.6
-      '@typescript-eslint/eslint-plugin': 4.0.1_114ad8351e9494f5a04234998358ee7f
-      '@typescript-eslint/parser': 4.0.1_eslint@7.8.1+typescript@4.0.2
+      '@typescript-eslint/eslint-plugin': 4.1.0_b6bc46430148c1bc3b139457a4312fe7
+      '@typescript-eslint/parser': 4.1.0_eslint@7.8.1+typescript@4.0.2
       '@zeit/ncc': 0.22.3
       chalk: 4.1.0
       del: 5.1.0
@@ -685,7 +703,7 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
       eslint-plugin-jest: 24.0.0_eslint@7.8.1+typescript@4.0.2
       eslint-plugin-prettier: 3.1.4_eslint@7.8.1+prettier@2.1.1
-      husky: 4.2.5
+      husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.3.0
       make-dir: 3.1.0
@@ -705,19 +723,19 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@prisma/ink-components': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio-server': 0.278.0
-      '@prisma/studio-types': 0.278.0
+      '@prisma/studio-server': 0.286.0
+      '@prisma/studio-types': 0.286.0
       '@types/charm': 1.0.2
       '@types/debug': 4.1.5
       '@types/diff': 4.0.2
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
+      '@types/node': 12.12.58
       '@types/prompts': 2.0.8
       '@types/react': 16.9.11
       '@types/sqlite3': 3.1.6
-      '@typescript-eslint/eslint-plugin': 4.0.1
-      '@typescript-eslint/parser': 4.0.1
+      '@typescript-eslint/eslint-plugin': 4.1.0
+      '@typescript-eslint/parser': 4.1.0
       '@zeit/ncc': 0.22.3
       ansi-escapes: ^4.3.1
       chalk: 4.1.0
@@ -737,7 +755,7 @@ importers:
       globby: ^11.0.0
       http-proxy-agent: ^4.0.1
       https-proxy-agent: ^5.0.0
-      husky: 4.2.5
+      husky: 4.3.0
       indent-string: ^4.0.0
       ink: 2.7.1
       ink-link: 1.1.0
@@ -781,7 +799,7 @@ importers:
       globby: 11.0.1
       has-yarn: 2.1.0
       make-dir: 3.1.0
-      node-fetch: 2.6.0
+      node-fetch: 2.6.1
       p-map: 4.0.0
       read-pkg-up: 7.0.1
       resolve-pkg: 2.0.0
@@ -798,21 +816,21 @@ importers:
       url-parse: 1.4.7
     devDependencies:
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
+      '@types/node': 12.12.58
       '@types/tar': 4.0.3
-      '@typescript-eslint/eslint-plugin': 4.0.1_114ad8351e9494f5a04234998358ee7f
-      '@typescript-eslint/parser': 4.0.1_eslint@7.8.1+typescript@4.0.2
+      '@typescript-eslint/eslint-plugin': 4.1.0_b6bc46430148c1bc3b139457a4312fe7
+      '@typescript-eslint/parser': 4.1.0_eslint@7.8.1+typescript@4.0.2
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0_eslint@7.8.1
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
       eslint-plugin-jest: 24.0.0_eslint@7.8.1+typescript@4.0.2
       eslint-plugin-prettier: 3.1.4_eslint@7.8.1+prettier@2.1.1
-      husky: 4.2.5
+      husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.3.0
       prettier: 2.1.1
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
-      ts-node: 8.10.2_typescript@4.0.2
+      ts-node: 9.0.0_typescript@4.0.2
       typescript: 4.0.2
     specifiers:
       '@prisma/debug': 'workspace:*'
@@ -822,10 +840,10 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@timsuchanek/copy': ^1.4.5
       '@types/jest': 26.0.13
-      '@types/node': 12.12.55
+      '@types/node': 12.12.58
       '@types/tar': 4.0.3
-      '@typescript-eslint/eslint-plugin': 4.0.1
-      '@typescript-eslint/parser': 4.0.1
+      '@typescript-eslint/eslint-plugin': 4.1.0
+      '@typescript-eslint/parser': 4.1.0
       archiver: ^4.0.0
       arg: ^4.1.3
       chalk: 4.1.0
@@ -840,11 +858,11 @@ importers:
       global-dirs: ^2.0.1
       globby: ^11.0.0
       has-yarn: ^2.1.0
-      husky: 4.2.5
+      husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.3.0
       make-dir: ^3.0.2
-      node-fetch: 2.6.0
+      node-fetch: 2.6.1
       p-map: ^4.0.0
       prettier: 2.1.1
       read-pkg-up: ^7.0.1
@@ -860,7 +878,7 @@ importers:
       terminal-link: ^2.1.1
       tmp: 0.2.1
       ts-jest: 26.3.0
-      ts-node: 8.10.2
+      ts-node: 9.0.0
       typescript: 4.0.2
       url-parse: ^1.4.7
 lockfileVersion: 5.1
@@ -1448,7 +1466,7 @@ packages:
       http-proxy-agent: 4.0.1
       https-proxy-agent: 5.0.0
       make-dir: 3.1.0
-      node-fetch: 2.6.0
+      node-fetch: 2.6.1
       p-filter: 2.1.0
       p-map: 4.0.0
       p-queue: 6.6.1
@@ -1485,7 +1503,7 @@ packages:
       chalk: 4.1.0
       checkpoint-client: 1.1.11
       cli-truncate: 2.1.0
-      execa: 4.0.2
+      execa: 4.0.3
       global-dirs: 2.0.1
       globby: 11.0.1
       has-yarn: 2.1.0
@@ -1508,31 +1526,31 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-sYeaC3o31aVf9u+uaBbVespLF7A6gGdylRtH5/9NbPoI1W52XpkiT45JQgvKIRuS6hlnLX6Um7w345Aebeo4NA==
-  /@prisma/studio-server/0.278.0:
+  /@prisma/studio-server/0.286.0:
     dependencies:
       '@prisma/get-platform': 2.6.2
       '@prisma/sdk': 2.6.2
-      '@prisma/studio': 0.278.0
-      '@prisma/studio-transports': 0.278.0
-      '@prisma/studio-types': 0.278.0
+      '@prisma/studio': 0.286.0
+      '@prisma/studio-transports': 0.286.0
+      '@prisma/studio-types': 0.286.0
       '@sentry/node': 5.15.5
       express: 4.17.1
-      express-ws: 4.0.0_express@4.17.1
+      ws: 7.3.1
     resolution:
-      integrity: sha512-JArQ2xEAWOSWNFEUQiET4cfo17xLHxZHFxcCnJo91OnVra+4D/c8WwsvleRSNMy8T1jTE5OKyVP5qZaDmz3tdQ==
-  /@prisma/studio-transports/0.278.0:
+      integrity: sha512-JI9PLVzyvYwkt35NX2xvlqxpf29erV05vpsmobJ3Yf9GzS/zffu6a2JbOWJ4/P8rkSwp8nB3587Wm9PcziPZpg==
+  /@prisma/studio-transports/0.286.0:
     dependencies:
       '@prisma/sdk': 2.6.2
-      '@prisma/studio-types': 0.278.0
+      '@prisma/studio-types': 0.286.0
       '@sentry/node': 5.15.5
     resolution:
-      integrity: sha512-kjVh5lR2eC80NpYddXaSUcw4ITDHK5cmTAdvYKSCsSI5bwQablh1iKWHcSh/d+E/kCK99xT12GsQ92l8q/5G4w==
-  /@prisma/studio-types/0.278.0:
+      integrity: sha512-pBgJuse4BYdIhxdOyTs/7wmvhHs+6CFR/kxfNcMg40d6Ynw7VDWgg/7sHflJGGSh6+YSDSrNRfCXC/6LQG54hw==
+  /@prisma/studio-types/0.286.0:
     resolution:
-      integrity: sha512-TjGvrZLL5O+0k1gRFxPhMRKdkKHpwgH0O/KSyeA1hmecq5pXjCwKZ+PzqDJFgLswVQg4o1bRcDfCLP21PbCBXA==
-  /@prisma/studio/0.278.0:
+      integrity: sha512-x6hcC/DFaAgrDd/XAMqfiiWHgNhqnpQIguvZngcVI4jmIdDBV6sx1d18jbt5CASuqil6BgrN1xSWW+XYkrWLag==
+  /@prisma/studio/0.286.0:
     resolution:
-      integrity: sha512-TAgGO439W/mhnI/3b9SF59KwSfsVm7+/PQ3mTVOulfjRE4/TVHIaxkhkjkMrNoJ3iC4cGg4N5JdD9DLRkfeLjg==
+      integrity: sha512-SYHSMGbG1Gx0aeH78NZDLasjKI+MKd+3fhHiGFU4ns37nY+mYaAzlP9adf5riwB9Inf4nk11EEeHIPuxofEt/A==
   /@sentry/apm/5.15.5:
     dependencies:
       '@sentry/browser': 5.15.5
@@ -1794,18 +1812,18 @@ packages:
     dev: true
     resolution:
       integrity: sha512-yzBInQFhdY8kaZmqoL2+3U5dSTMrKaYcb561VU+lDzAYvqt+2lojvBEy+hmpSNuXnPTx7m9+04CzWYOUqWME2A==
-  /@types/node/12.12.55:
+  /@types/node/12.12.58:
     dev: true
     resolution:
-      integrity: sha512-Vd6xQUVvPCTm7Nx1N7XHcpX6t047ltm7TgcsOr4gFHjeYgwZevo+V7I1lfzHnj5BT5frztZ42+RTG4MwYw63dw==
+      integrity: sha512-Be46CNIHWAagEfINOjmriSxuv7IVcqbGe+sDSg2SYCEz/0CRBy7LRASGfRbD8KZkqoePU73Wsx3UvOSFcq/9hA==
   /@types/node/13.13.15:
     dev: true
     resolution:
       integrity: sha512-kwbcs0jySLxzLsa2nWUAGOd/s21WU1jebrEdtzhsj1D4Yps1EOuyI1Qcu+FD56dL7NRNIJtDDjcqIG22NwkgLw==
-  /@types/node/13.13.16:
+  /@types/node/13.13.19:
     dev: true
     resolution:
-      integrity: sha512-dJ9vXxJ8MEwzNn4GkoAGauejhXoKuJyYKegsA6Af25ZpEDXomeVXt5HUWUNVHk5UN7+U0f6ghC6otwt+7PdSDg==
+      integrity: sha512-IVsULCpTdafcHhBDLYEPnV5l15xV0q065zvOHC1ZmzFYaBCMzku078eXnazoSG8907vZjRgEN/EQjku7GwwFyQ==
   /@types/node/14.0.13:
     dev: true
     resolution:
@@ -1901,11 +1919,11 @@ packages:
   /@types/yoga-layout/1.9.2:
     resolution:
       integrity: sha512-S9q47ByT2pPvD65IvrWp7qppVMpk9WGMbVq9wbWZOHg6tnXSD4vyhao6nOSBwwfDdV2p3Kx9evA9vI+XWTfDvw==
-  /@typescript-eslint/eslint-plugin/4.0.1_114ad8351e9494f5a04234998358ee7f:
+  /@typescript-eslint/eslint-plugin/4.1.0_b6bc46430148c1bc3b139457a4312fe7:
     dependencies:
-      '@typescript-eslint/experimental-utils': 4.0.1_eslint@7.8.1+typescript@4.0.2
-      '@typescript-eslint/parser': 4.0.1_eslint@7.8.1+typescript@4.0.2
-      '@typescript-eslint/scope-manager': 4.0.1
+      '@typescript-eslint/experimental-utils': 4.1.0_eslint@7.8.1+typescript@4.0.2
+      '@typescript-eslint/parser': 4.1.0_eslint@7.8.1+typescript@4.0.2
+      '@typescript-eslint/scope-manager': 4.1.0
       debug: 4.1.1
       eslint: 7.8.1
       functional-red-black-tree: 1.0.1
@@ -1924,7 +1942,7 @@ packages:
       typescript:
         optional: true
     resolution:
-      integrity: sha512-pQZtXupCn11O4AwpYVUX4PDFfmIJl90ZgrEBg0CEcqlwvPiG0uY81fimr1oMFblZnpKAq6prrT9a59pj1x58rw==
+      integrity: sha512-U+nRJx8XDUqJxYF0FCXbpmD9nWt/xHDDG0zsw1vrVYAmEAuD/r49iowfurjSL2uTA2JsgtpsyG7mjO7PHf2dYw==
   /@typescript-eslint/experimental-utils/4.0.1_eslint@7.8.1+typescript@4.0.2:
     dependencies:
       '@types/json-schema': 7.0.5
@@ -1942,11 +1960,28 @@ packages:
       typescript: '*'
     resolution:
       integrity: sha512-gAqOjLiHoED79iYTt3F4uSHrYmg/GPz/zGezdB0jAdr6S6gwNiR/j7cTZ8nREKVzMVKLd9G3xbg1sV9GClW3sw==
-  /@typescript-eslint/parser/4.0.1_eslint@7.8.1+typescript@4.0.2:
+  /@typescript-eslint/experimental-utils/4.1.0_eslint@7.8.1+typescript@4.0.2:
     dependencies:
-      '@typescript-eslint/scope-manager': 4.0.1
-      '@typescript-eslint/types': 4.0.1
-      '@typescript-eslint/typescript-estree': 4.0.1_typescript@4.0.2
+      '@types/json-schema': 7.0.5
+      '@typescript-eslint/scope-manager': 4.1.0
+      '@typescript-eslint/types': 4.1.0
+      '@typescript-eslint/typescript-estree': 4.1.0_typescript@4.0.2
+      eslint: 7.8.1
+      eslint-scope: 5.1.0
+      eslint-utils: 2.1.0
+    dev: true
+    engines:
+      node: ^10.12.0 || >=12.0.0
+    peerDependencies:
+      eslint: '*'
+      typescript: '*'
+    resolution:
+      integrity: sha512-paEYLA37iqRIDPeQwAmoYSiZ3PiHsaAc3igFeBTeqRHgPnHjHLJ9OGdmP6nwAkF65p2QzEsEBtpjNUBWByNWzA==
+  /@typescript-eslint/parser/4.1.0_eslint@7.8.1+typescript@4.0.2:
+    dependencies:
+      '@typescript-eslint/scope-manager': 4.1.0
+      '@typescript-eslint/types': 4.1.0
+      '@typescript-eslint/typescript-estree': 4.1.0_typescript@4.0.2
       debug: 4.1.1
       eslint: 7.8.1
       typescript: 4.0.2
@@ -1960,7 +1995,7 @@ packages:
       typescript:
         optional: true
     resolution:
-      integrity: sha512-1+qLmXHNAWSQ7RB6fdSQszAiA7JTwzakj5cNYjBTUmpH2cqilxMZEIV+DRKjVZs8NzP3ALmKexB0w/ExjcK9Iw==
+      integrity: sha512-hM/WNCQTzDHgS0Ke3cR9zPndL3OTKr9OoN9CL3UqulsAjYDrglSwIIgswSmHBcSbOzLmgaMARwrQEbIumIglvQ==
   /@typescript-eslint/scope-manager/4.0.1:
     dependencies:
       '@typescript-eslint/types': 4.0.1
@@ -1970,12 +2005,27 @@ packages:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
     resolution:
       integrity: sha512-u3YEXVJ8jsj7QCJk3om0Y457fy2euEOkkzxIB/LKU3MdyI+FJ2gI0M4aKEaXzwCSfNDiZ13a3lDo5DVozc+XLQ==
+  /@typescript-eslint/scope-manager/4.1.0:
+    dependencies:
+      '@typescript-eslint/types': 4.1.0
+      '@typescript-eslint/visitor-keys': 4.1.0
+    dev: true
+    engines:
+      node: ^8.10.0 || ^10.13.0 || >=11.10.1
+    resolution:
+      integrity: sha512-HD1/u8vFNnxwiHqlWKC/Pigdn0Mvxi84Y6GzbZ5f5sbLrFKu0al02573Er+D63Sw67IffVUXR0uR8rpdfdk+vA==
   /@typescript-eslint/types/4.0.1:
     dev: true
     engines:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
     resolution:
       integrity: sha512-S+gD3fgbkZYW2rnbjugNMqibm9HpEjqZBZkTiI3PwbbNGWmAcxolWIUwZ0SKeG4Dy2ktpKKaI/6+HGYVH8Qrlg==
+  /@typescript-eslint/types/4.1.0:
+    dev: true
+    engines:
+      node: ^8.10.0 || ^10.13.0 || >=11.10.1
+    resolution:
+      integrity: sha512-rkBqWsO7m01XckP9R2YHVN8mySOKKY2cophGM8K5uDK89ArCgahItQYdbg/3n8xMxzu2elss+an1TphlUpDuJw==
   /@typescript-eslint/typescript-estree/4.0.1_typescript@4.0.2:
     dependencies:
       '@typescript-eslint/types': 4.0.1
@@ -1997,6 +2047,27 @@ packages:
         optional: true
     resolution:
       integrity: sha512-zGzleORFXrRWRJAMLTB2iJD1IZbCPkg4hsI8mGdpYlKaqzvKYSEWVAYh14eauaR+qIoZVWrXgYSXqLtTlxotiw==
+  /@typescript-eslint/typescript-estree/4.1.0_typescript@4.0.2:
+    dependencies:
+      '@typescript-eslint/types': 4.1.0
+      '@typescript-eslint/visitor-keys': 4.1.0
+      debug: 4.1.1
+      globby: 11.0.1
+      is-glob: 4.0.1
+      lodash: 4.17.19
+      semver: 7.3.2
+      tsutils: 3.17.1_typescript@4.0.2
+      typescript: 4.0.2
+    dev: true
+    engines:
+      node: ^10.12.0 || >=12.0.0
+    peerDependencies:
+      typescript: '*'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    resolution:
+      integrity: sha512-r6et57qqKAWU173nWyw31x7OfgmKfMEcjJl9vlJEzS+kf9uKNRr4AVTRXfTCwebr7bdiVEkfRY5xGnpPaNPe4Q==
   /@typescript-eslint/visitor-keys/4.0.1:
     dependencies:
       '@typescript-eslint/types': 4.0.1
@@ -2006,6 +2077,15 @@ packages:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
     resolution:
       integrity: sha512-yBSqd6FjnTzbg5RUy9J+9kJEyQjTI34JdGMJz+9ttlJzLCnGkBikxw+N5n2VDcc3CesbIEJ0MnZc5uRYnrEnCw==
+  /@typescript-eslint/visitor-keys/4.1.0:
+    dependencies:
+      '@typescript-eslint/types': 4.1.0
+      eslint-visitor-keys: 2.0.0
+    dev: true
+    engines:
+      node: ^8.10.0 || ^10.13.0 || >=11.10.1
+    resolution:
+      integrity: sha512-+taO0IZGCtCEsuNTTF2Q/5o8+fHrlml8i9YsZt2AiDCdYEJzYlsmRY991l/6f3jNXFyAWepdQj7n8Na6URiDRQ==
   /@zeit/ncc/0.22.3:
     dev: true
     hasBin: true
@@ -2315,9 +2395,6 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==
-  /async-limiter/1.0.1:
-    resolution:
-      integrity: sha512-csOlWGAcRFJaI6m+F2WKdnMKr4HhdhFVBk0H/QbJFMCr+uO2kwohwXQPxw/9OCxp05r5ghVBFSyioixx3gfkNQ==
   /async/2.6.3:
     dependencies:
       lodash: 4.17.15
@@ -2926,18 +3003,6 @@ packages:
   /core-util-is/1.0.2:
     resolution:
       integrity: sha1-tf1UIgqivFq1eqtxQMlAdUUDwac=
-  /cosmiconfig/6.0.0:
-    dependencies:
-      '@types/parse-json': 4.0.0
-      import-fresh: 3.2.1
-      parse-json: 5.0.0
-      path-type: 4.0.0
-      yaml: 1.10.0
-    dev: true
-    engines:
-      node: '>=8'
-    resolution:
-      integrity: sha512-xb3ZL6+L8b9JLLCx3ZdoZy4+2ECphCMo2PwqgP1tlfVq6M6YReyzBJtvWWtbDSpNr9hn96pkCiZqUcFEc+54Qg==
   /cosmiconfig/7.0.0:
     dependencies:
       '@types/parse-json': 4.0.0
@@ -3253,6 +3318,10 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-yxJ2mFy/sibVQlu5qHjOkf9J3K6zgmCxgJ94u2EdvDOV09H+32LtRswEcUsmUWN72pVLOEnTSRaIVVzVQgS0dg==
+  /dotenv-expand/5.1.0:
+    dev: true
+    resolution:
+      integrity: sha512-YXQl1DSa4/PQyRfgrv6aoNjhasp/p4qs9FjJ4q4cQk+8m4r6k4ZSiEyytKG8f8W9gi8WsQtIObNmKd+tMzNTmA==
   /dotenv/8.2.0:
     dev: true
     engines:
@@ -3460,18 +3529,6 @@ packages:
       typescript: '*'
     resolution:
       integrity: sha512-a0G7hSDbuBCW4PNT6MVpAyfnGbUDOqxzOyhR6wT2BIBnR7MhvfAqd6KKfsTjX+Z3gxzIHiEsihzdClU4cSc6qQ==
-  /eslint-plugin-prettier/3.1.4_eslint@7.8.1:
-    dependencies:
-      eslint: 7.8.1
-      prettier-linter-helpers: 1.0.0
-    dev: true
-    engines:
-      node: '>=6.0.0'
-    peerDependencies:
-      eslint: '>=5.0.0'
-      prettier: '>=1.13.0'
-    resolution:
-      integrity: sha512-jZDa8z76klRqo+TdGDTFJSavwbnWK2ZpqGKNZ+VvweMW516pDUMmQ2koXvxEE4JhzNvTv+radye/bWGBmA6jmg==
   /eslint-plugin-prettier/3.1.4_eslint@7.8.1+prettier@2.1.1:
     dependencies:
       eslint: 7.8.1
@@ -3663,6 +3720,7 @@ packages:
       onetime: 5.1.0
       signal-exit: 3.0.3
       strip-final-newline: 2.0.0
+    dev: false
     engines:
       node: '>=10'
     resolution:
@@ -3721,16 +3779,6 @@ packages:
       node: '>= 10.14.2'
     resolution:
       integrity: sha512-IlJ3X52Z0lDHm7gjEp+m76uX46ldH5VpqmU0006vqDju/285twh7zaWMRhs67VpQhBwjjMchk+p5aA0VkERCAA==
-  /express-ws/4.0.0_express@4.17.1:
-    dependencies:
-      express: 4.17.1
-      ws: 5.2.2
-    engines:
-      node: '>=4.5.0'
-    peerDependencies:
-      express: ^4.0.0 || ^5.0.0-alpha.1
-    resolution:
-      integrity: sha512-KEyUw8AwRET2iFjFsI1EJQrJ/fHeGiJtgpYgEWG3yDv4l/To/m3a2GaYfeGyB3lsWdvbesjF5XCMx+SVBgAAYw==
   /express/4.17.1:
     dependencies:
       accepts: 1.3.7
@@ -4053,6 +4101,13 @@ packages:
       node: '>=6 <7 || >=8'
     resolution:
       integrity: sha512-yhlQgA6mnOJUKOsRUFsgJdQCvkKhcz8tlZG5HBQfReYZy46OwLcY+Zia0mtdHsOo9y/hP+CxMN0TU9QxoOtG4g==
+  /fs-jetpack/3.1.0:
+    dependencies:
+      minimatch: 3.0.4
+      rimraf: 2.7.1
+    dev: true
+    resolution:
+      integrity: sha512-PZFMZKhW1AfTUHwWrSfn5rAW4a82d9a9UnfOT0pbJilm+6PWww/YAZkgBiELFaNLxxLe+NG72oqGge1RHCgIKA==
   /fs-minipass/1.2.7:
     dependencies:
       minipass: 2.9.0
@@ -4160,6 +4215,7 @@ packages:
   /get-stream/5.1.0:
     dependencies:
       pump: 3.0.0
+    dev: false
     engines:
       node: '>=8'
     resolution:
@@ -4495,12 +4551,12 @@ packages:
       node: '>=8.12.0'
     resolution:
       integrity: sha512-SEQu7vl8KjNL2eoGBLF3+wAjpsNfA9XMlXAYj/3EdaNfAlxKthD1xjEQfGOUhllCGGJVNY34bRr6lPINhNjyZw==
-  /husky/4.2.5:
+  /husky/4.3.0:
     dependencies:
       chalk: 4.1.0
       ci-info: 2.0.0
       compare-versions: 3.6.0
-      cosmiconfig: 6.0.0
+      cosmiconfig: 7.0.0
       find-versions: 3.2.0
       opencollective-postinstall: 2.0.3
       pkg-dir: 4.2.0
@@ -4513,7 +4569,7 @@ packages:
     hasBin: true
     requiresBuild: true
     resolution:
-      integrity: sha512-SYZ95AjKcX7goYVZtVZF2i6XiZcHknw50iXvY7b0MiGoj5RwdgRQNEHdb+gPDPCXKlzwrybjFjkL6FOj8uRhZQ==
+      integrity: sha512-tTMeLCLqSBqnflBZnlVDhpaIMucSGaYyX6855jM4AguGeWCeSzNdb1mfyWduTZ3pe3SJVvVWGL0jO1iKZVPfTA==
   /iconv-lite/0.4.24:
     dependencies:
       safer-buffer: 2.1.2
@@ -5557,10 +5613,6 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-OYu7XEzjkCQ3C5Ps3QIZsQfNpqoJyZZA99wd9aWd05NCtC5pWOkShK2mkL6HXQR6/Cy2lbNdPlZBpuQHXE63gA==
-  /json-parse-better-errors/1.0.2:
-    dev: true
-    resolution:
-      integrity: sha512-mrqyZKfX5EhL7hvqcV6WG1yYjnjeuYDzDhhcAAUrq8Po85NBQBJP+ZDUT75qZQ98IkUoBqdkExkukOU7Ts2wrw==
   /json-parse-even-better-errors/2.3.1:
     resolution:
       integrity: sha512-xyFwyhro/JEof6Ghe2iz2NcXoj2sloNsWr/XsERDK/oiPCfaNhl5ONfp+jQdAZRQQ0IJWNzH9zIZF7li91kh2w==
@@ -6229,7 +6281,6 @@ packages:
     resolution:
       integrity: sha512-8dG4H5ujfvFiqDmVu9fQ5bOHUC15JMjMY/Zumv26oOvvVJjM67KF8koCWIabKQ1GJIa9r2mMZscBq/TbdOcmNA==
   /node-fetch/2.6.1:
-    dev: true
     engines:
       node: 4.x || >=6.0.0
     resolution:
@@ -6698,17 +6749,6 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-06mYQxcTL1c5hxK7pDjhKVkN34w=
-  /parse-json/5.0.0:
-    dependencies:
-      '@babel/code-frame': 7.10.4
-      error-ex: 1.3.2
-      json-parse-better-errors: 1.0.2
-      lines-and-columns: 1.1.6
-    dev: true
-    engines:
-      node: '>=8'
-    resolution:
-      integrity: sha512-OOY5b7PAEFV0E2Fir1KOkxchnZNCdowAJgQ5NuxjpBKTRP3pQhwkrkxqQjeoKJ+fO7bCpmIZaogI4eZGDMEGOw==
   /parse-json/5.1.0:
     dependencies:
       '@babel/code-frame': 7.10.4
@@ -8504,7 +8544,7 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-BVwVbPJRspzNh2yfslyT1PSbl5uIk03EZlb493RKHN4qej/D06n1cEhjlOJG69oFsE7OT8XjpTUcYf6pKTLMhw==
-  /ts-node/8.10.2_typescript@4.0.2:
+  /ts-node/9.0.0_typescript@4.0.2:
     dependencies:
       arg: 4.1.3
       diff: 4.0.2
@@ -8514,12 +8554,12 @@ packages:
       yn: 3.1.1
     dev: true
     engines:
-      node: '>=6.0.0'
+      node: '>=10.0.0'
     hasBin: true
     peerDependencies:
       typescript: '>=2.7'
     resolution:
-      integrity: sha512-ISJJGgkIpDdBhWVu3jufsWpK3Rzo7bdiIXJjQc0ynKxVOVcg2oIrf2H2cejminGrptVc6q6/uynAHNCuWGbpVA==
+      integrity: sha512-/TqB4SnererCDR/vb4S/QvSZvzQMJN8daAslg7MeaiHvD8rDZsSfXmNeNumyZZzMned72Xoq/isQljYSt8Ynfg==
   /tsconfig-paths/3.9.0:
     dependencies:
       '@types/json5': 0.0.29
@@ -8904,13 +8944,7 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha512-/lg70HAjtkUgWPVZhZcm+T4hkL8Zbtp1nFNOn3lRrxnlv50SRBv7cR7RqR+GMsd3hUXy9hWBo4CHTbFTcOYwig==
-  /ws/5.2.2:
-    dependencies:
-      async-limiter: 1.0.1
-    resolution:
-      integrity: sha512-jaHFD6PFv6UgoIVda6qZllptQsMlDEJkTQcybzzXDYM1XO9Y8em691FGMPmM46WGyLU4z9KMgQN+qrux/nhlHA==
   /ws/7.3.1:
-    dev: true
     engines:
       node: '>=8.3.0'
     peerDependencies:

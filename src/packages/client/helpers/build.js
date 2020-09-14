@@ -1,6 +1,8 @@
 const execa = require('execa')
 const fs = require('fs')
+// const path = require('path')
 const chalk = require('chalk')
+// const makeDir = require('make-dir')
 const { promisify } = require('util')
 
 const copyFile = promisify(fs.copyFile)
@@ -12,18 +14,21 @@ async function main() {
   const copyPromises = [
     copyFile('./scripts/backup-index.js', 'index.js'),
     copyFile('./scripts/backup-index.d.ts', 'index.d.ts'),
+    // makeDir(path.join(__dirname, '../runtime')),
   ]
   await Promise.all([
     run('tsc --build tsconfig.runtime.json'),
     run(
       // 'esbuild dist/generator.js --outfile=generator-build/index.js --bundle --platform=node --define:sleep-promise=@timsuchanek/sleep-promise',
       'esbuild src/generator.ts --outfile=generator-build/index.js --bundle --platform=node --target=node10',
+      false,
     ),
   ])
   await Promise.all([
     run('rollup -c'),
     run(
       'esbuild src/runtime/index.ts --outdir=runtime --bundle --platform=node --sourcemap --minify --target=node10',
+      false,
     ),
   ])
 
@@ -44,9 +49,9 @@ async function main() {
   )
 }
 
-function run(command) {
+function run(command, preferLocal = true) {
   console.log(chalk.bold.green(command))
-  return execa.command(command, { stdio: 'inherit', preferLocal: true })
+  return execa.command(command, { stdio: 'inherit', preferLocal })
 }
 
 main().catch((e) => console.error(e))
