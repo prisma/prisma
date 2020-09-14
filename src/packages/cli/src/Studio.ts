@@ -20,16 +20,9 @@ export class Studio implements Command {
   private static help = format(`
     Browse your data with Studio
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's studio functionality is currently in an experimental state.",
-  )}
-    ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
-    )}
-
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma studio --experimental
+      ${chalk.dim('$')} prisma studio
 
     ${chalk.bold('Options')}
 
@@ -40,20 +33,18 @@ export class Studio implements Command {
     ${chalk.bold('Examples')}
 
       Start Studio on the default port
-      ${chalk.dim('$')} prisma studio --experimental
+      ${chalk.dim('$')} prisma studio
 
       Start Studio on a custom port
-      ${chalk.dim('$')} prisma studio --port 5555 --experimental
+      ${chalk.dim('$')} prisma studio --port 5555
 
       Start Studio in a specific browser
-      ${chalk.dim(
-        '$',
-      )} prisma studio --port 5555 --browser firefox --experimental
-      ${chalk.dim('$')} BROWSER=firefox prisma studio --port 5555 --experimental
+      ${chalk.dim('$')} prisma studio --port 5555 --browser firefox
+      ${chalk.dim('$')} BROWSER=firefox prisma studio --port 5555
 
       Start Studio without opening in a browser
-      ${chalk.dim('$')} prisma studio --port 5555 --browser none --experimental
-      ${chalk.dim('$')} BROWSER=none prisma studio --port 5555 --experimental
+      ${chalk.dim('$')} prisma studio --port 5555 --browser none
+      ${chalk.dim('$')} BROWSER=none prisma studio --port 5555
   `)
 
   private constructor(private readonly providerAliases: ProviderAliases) {

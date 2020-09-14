@@ -85,7 +85,6 @@ describe('Studio', () => {
     })
 
     await studio.parse([
-      '--experimental',
       '--schema',
       path.resolve(
         './src/__tests__/fixtures/studio-test-project/schema.prisma',
@@ -100,7 +99,7 @@ describe('Studio', () => {
   })
 
   afterEach(async () => {
-    await studio.instance.stop()
+    await studio.instance?.stop()
     ws.close()
   })
 
