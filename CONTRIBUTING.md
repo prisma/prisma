@@ -5,8 +5,8 @@ To setup and build the packages, follow these steps:
 
 ```bash
 git clone https://github.com/prisma/prisma.git
-cd prisma/src
 npm i -g pnpm@5.1.7
+cd prisma/src
 pnpm i --ignore-scripts
 pnpm run setup
 ```

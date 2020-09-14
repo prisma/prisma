@@ -7,7 +7,6 @@ import open from 'open'
 
 import { ProviderAliases, getSchemaPathSync } from '@prisma/sdk'
 import { getPlatform } from '@prisma/get-platform'
-import { ExperimentalFlagError } from './utils/experimental'
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
@@ -21,16 +20,9 @@ export class Studio implements Command {
   private static help = format(`
     Browse your data with Studio
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's studio functionality is currently in an experimental state.",
-  )}
-    ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
-    )}
-
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma studio --experimental
+      ${chalk.dim('$')} prisma studio
 
     ${chalk.bold('Options')}
 
@@ -41,20 +33,18 @@ export class Studio implements Command {
     ${chalk.bold('Examples')}
 
       Start Studio on the default port
-      ${chalk.dim('$')} prisma studio --experimental
+      ${chalk.dim('$')} prisma studio
 
       Start Studio on a custom port
-      ${chalk.dim('$')} prisma studio --port 5555 --experimental
+      ${chalk.dim('$')} prisma studio --port 5555
 
       Start Studio in a specific browser
-      ${chalk.dim(
-        '$',
-      )} prisma studio --port 5555 --browser firefox --experimental
-      ${chalk.dim('$')} BROWSER=firefox prisma studio --port 5555 --experimental
+      ${chalk.dim('$')} prisma studio --port 5555 --browser firefox
+      ${chalk.dim('$')} BROWSER=firefox prisma studio --port 5555
 
       Start Studio without opening in a browser
-      ${chalk.dim('$')} prisma studio --port 5555 --browser none --experimental
-      ${chalk.dim('$')} BROWSER=none prisma studio --port 5555 --experimental
+      ${chalk.dim('$')} prisma studio --port 5555 --browser none
+      ${chalk.dim('$')} BROWSER=none prisma studio --port 5555
   `)
 
   private constructor(private readonly providerAliases: ProviderAliases) {
@@ -87,8 +77,12 @@ export class Studio implements Command {
       return this.help()
     }
 
-    if (!args['--experimental']) {
-      throw new ExperimentalFlagError()
+    if (args['--experimental']) {
+      console.warn(
+        `${chalk.yellow(
+          'warn',
+        )} --experimental is no longer required for this command`,
+      )
     }
 
     const schemaPath = getSchemaPathSync(args['--schema'])
@@ -146,7 +140,7 @@ export class Studio implements Command {
 
     this.instance = studio
 
-    return `Studio started at ${serverUrl}`
+    return `Prisma Studio is up on ${serverUrl}`
   }
 
   // help message
