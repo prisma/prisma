@@ -39,25 +39,9 @@ test('missing-binary', async () => {
 
           Files in /client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/client/runtime:
 
-            Dataloader.d.ts
-            browser-chalk.d.ts
-            browser-terminal-link.d.ts
-            browser.d.ts
-            dmmf-types.d.ts
-            dmmf.d.ts
-            error-types.d.ts
-            externalToInternalDmmf.d.ts
-            getLogLevel.d.ts
-            getPrismaClient.d.ts
-            highlight
             index.d.ts
             index.js
             index.js.map
-            mergeBy.d.ts
-            query.d.ts
-            transformDmmf.d.ts
-            utils
-            visit.d.ts
 
 
           To solve this problem, add the platform "TEST_PLATFORM" to the "generator" block in the "schema.prisma" file:
