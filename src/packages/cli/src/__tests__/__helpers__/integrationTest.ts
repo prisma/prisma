@@ -4,7 +4,14 @@ import { FSJetpack } from 'fs-jetpack/types'
 import * as Path from 'path'
 import pkgup from 'pkg-up'
 
-const engineVersion = require('../../../package.json').prisma.version
+/**
+ * A potentially async value
+ */
+type MaybePromise<T> = Promise<T> | T
+
+type SideEffector<Args extends Array<any>> = (
+  ...args: Args
+) => Promise<any> | any
 
 process.env.SKIP_GENERATE = 'true'
 
@@ -34,29 +41,62 @@ type Context = {
   fs: FSJetpack
 }
 
-type SideEffector<Args extends Array<any>> = (
-  ...args: Args
-) => Promise<any> | any
-
-type Input = {
-  database: {
-    name: string
-    open?: SideEffector<[ctx: Context]>
-    up: SideEffector<[db: any, sql: string]>
-    close?: SideEffector<[db: any, ctx: Context]>
-    datasourceBlock: (ctx: Context) => string
+/**
+ * Integration test keyword arguments
+ */
+type Input<Client> = {
+  /**
+   * Settings to control things like test timeout and Prisma engine version.
+   */
+  settings?: {
+    /**
+     * How long each test case should have to run to completion.
+     *
+     * @default 10_000
+     */
+    timeout?: number
+    /**
+     * The version of Prisma Engine to use.
+     *
+     * @dynamicDefault The `prisma.version` value in this package's package.json
+     */
+    engineVersion?: MaybePromise<string>
   }
-  setup?: {
-    database?: SideEffector<[ctx: Context]>
+  database: {
+    /**
+     * Name of the database being worked with.
+     */
+    name: string
+    /**
+     * Create a client connection to the database.
+     */
+    connect: (ctx: Context) => MaybePromise<Client>
+    /**
+     * At the beginning of _each_ test run logic to prepare the database
+     */
+    up: SideEffector<[client: Client, sql: string]>
+    /**
+     * At the end of _each_ tests run logic to bring down databases changes for test
+     */
+    down: SideEffector<[client: Client, sql: string]>
+    /**
+     * At the end of _all_ tests run logic to close the database connection.
+     */
+    close?: SideEffector<[client: Client, ctx: Context]>
+    /**
+     * Construct a source snippet of the Prisma Schema file datasource for this database.
+     */
+    datasourceBlock: (ctx: Context) => string
   }
   scenarios: Scenario[]
 }
 
-export function integrationTest(input: Input) {
+export function integrationTest<Client>(input: Input<Client>) {
   type ScenarioState = {
+    scenario: Scenario
     ctx: Context
-    database: Input['database']
-    db: any
+    database: Input<Client>['database']
+    db: Client
     prisma: any
   }
 
@@ -66,15 +106,17 @@ export function integrationTest(input: Input) {
     fs.remove(getScenarioDir(input.database.name, ''))
   })
 
+  afterEach(async () => {
+    // props might be missing if test errors out before they are set.
+    if (state.db) {
+      await input.database.down?.(state.db, state.scenario.down)
+    }
+    await state.prisma?.$disconnect()
+  })
+
   afterAll(() => {
     engine.stop()
     fs.remove(getScenarioDir(input.database.name, ''))
-  })
-
-  afterEach(async () => {
-    // props might be missing if test errors out before they are set.
-    await input.database.close?.(state.db, state.ctx)
-    await state.prisma?.$disconnect()
   })
 
   /**
@@ -89,17 +131,21 @@ export function integrationTest(input: Input) {
   it.each(prepareTestScenarios(input.scenarios))(
     `%s`,
     async (scenarioName, scenario) => {
+      const engineVersion = input.settings?.engineVersion
+        ? await input.settings.engineVersion
+        : require('../../../package.json').prisma.version
       const ctx: Context = {} as any
       ctx.fs = fs.cwd(getScenarioDir(input.database.name, scenarioName))
       state.ctx = ctx
+      state.scenario = scenario
 
       await ctx.fs.dirAsync('.')
 
-      const db = await input.database?.open?.(ctx)
+      const dbClient = await input.database.connect(ctx)
 
-      state.db = db
+      state.db = dbClient
 
-      await input.database?.up(db, scenario.up)
+      await input.database.up(dbClient, scenario.up)
 
       const schema = `
         generator client {
@@ -113,11 +159,20 @@ export function integrationTest(input: Input) {
       const introspectionResult = await engine.introspect(schema)
       const introspectionSchema = introspectionResult.datamodel
 
-      await generate(ctx.fs.path('schema.prisma'), introspectionSchema)
-
-      const { PrismaClient, prismaVersion } = await import(
-        ctx.fs.path('index.js')
+      await generate(
+        ctx.fs.path('schema.prisma'),
+        introspectionSchema,
+        engineVersion,
       )
+
+      const prismaClientPath = ctx.fs.path('index.js')
+      const prismaClientDeclarationPath = ctx.fs.path('index.d.ts')
+
+      expect(await fs.existsAsync(prismaClientPath)).toBeTruthy()
+      expect(await fs.existsAsync(prismaClientDeclarationPath)).toBeTruthy()
+
+      const { PrismaClient, prismaVersion } = await import(prismaClientPath)
+
       expect(prismaVersion.client).toMatch(/^2.+/)
       expect(prismaVersion.engine).toEqual(engineVersion)
 
@@ -130,7 +185,7 @@ export function integrationTest(input: Input) {
       expect(maskSchema(introspectionSchema)).toMatchSnapshot(`datamodel`)
       expect(introspectionResult.warnings).toMatchSnapshot(`warnings`)
     },
-    10_000,
+    input.settings?.timeout ?? 10_000,
   )
 }
 
@@ -150,7 +205,11 @@ function getScenarioDir(databaseName: string, scenarioName: string) {
   return Path.join(Path.dirname(pkgDir), databaseName, scenarioName)
 }
 
-async function generate(schemaPath: string, datamodel: string) {
+async function generate(
+  schemaPath: string,
+  datamodel: string,
+  engineVersion: string,
+) {
   await fs.writeAsync(schemaPath, datamodel)
 
   const generator = await getGenerator({

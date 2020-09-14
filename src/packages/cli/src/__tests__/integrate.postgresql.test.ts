@@ -1,138 +1,45 @@
-import { getGenerator, IntrospectionEngine } from '@prisma/sdk'
-import { join, dirname } from 'path'
-import mkdir from 'make-dir'
-import { Client } from 'pg'
-import assert from 'assert'
-import pkgup from 'pkg-up'
-import rimraf from 'rimraf'
-import fs from 'fs'
-import path from 'path'
-import snapshot from 'snap-shot-it'
 import { getLatestTag } from '@prisma/fetch-engine'
+import { Client } from 'pg'
+import { integrationTest } from './__helpers__/integrationTest'
 
 const connectionString =
   process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/'
-process.env.SKIP_GENERATE = 'true'
 
-const db = new Client({
-  connectionString,
-})
-
-const pkg = pkgup.sync() || __dirname
-const tmp = join(dirname(pkg), 'tmp-postgresql')
-const engine = new IntrospectionEngine()
-const latestDevPromise = getLatestTag()
-
-before((done) => {
-  db.connect((err) => done(err))
-  db.query('drop schema public cascade;')
-  db.query('create schema public;')
-})
-
-beforeEach(async () => {
-  rimraf.sync(tmp)
-  await mkdir(tmp)
-})
-
-after(async () => {
-  await db.end()
-  engine.stop()
-})
-
-tests().map((t: Test) => {
-  const name = t.name
-
-  // if (!t.run) {
-  //   it.skip(name)
-  //   return
-  // }
-
-  if (t.todo) {
-    it.skip(name)
-    return
-  }
-
-  it(name, async () => {
-    try {
-      await runTest(name, t)
-    } catch (err) {
-      throw err
-    } finally {
-      await db.query(t.down)
-    }
-  }).timeout(15000)
-})
-
-async function runTest(name: string, t: Test) {
-  await db.query(t.down)
-  await db.query(t.up)
-  const schema = `
-generator client {
-  provider = "prisma-client-js"
-  output   = "${tmp}"
-}
-
-datasource pg {
-  provider = "postgresql"
-  url = "${connectionString}"
-}`
-  const introspectionResult = await engine.introspect(schema)
-  const introspectionSchema = introspectionResult.datamodel
-
-  await generate(t, introspectionSchema)
-  const prismaClientPath = join(tmp, 'index.js')
-  const prismaClientDeclarationPath = join(tmp, 'index.d.ts')
-
-  assert(fs.existsSync(prismaClientPath))
-  assert(fs.existsSync(prismaClientDeclarationPath))
-
-  // clear the require cache
-  delete require.cache[prismaClientPath]
-  const { PrismaClient } = await import(prismaClientPath)
-  const prisma = new PrismaClient()
-  await prisma.$connect()
-  try {
-    const result = await t.do(prisma)
-    await db.query(t.down)
-    assert.deepEqual(result, t.expect)
-  } catch (err) {
-    throw err
-  } finally {
-    await prisma.$disconnect()
-  }
-
-  snapshot(`${name}_datamodel`, maskSchema(introspectionSchema))
-  snapshot(`${name}_warnings`, introspectionResult.warnings)
-}
-
-async function generate(test: Test, datamodel: string) {
-  const schemaPath = path.join(tmp, 'schema.prisma')
-  fs.writeFileSync(schemaPath, datamodel)
-
-  const generator = await getGenerator({
-    schemaPath,
-    printDownloadProgress: false,
-    baseDir: tmp,
-    version: await latestDevPromise,
-  })
-
-  await generator.generate()
-
-  generator.stop()
-}
-
-type Test = {
-  todo?: boolean
-  run?: boolean
-  name: string
-  up: string
-  down: string
-  do: (client: any) => Promise<any>
-  expect: any
-}
-
-function tests(): Test[] {
-  return [
+integrationTest<Client>({
+  settings: {
+    engineVersion: getLatestTag(),
+    timeout: 15_000,
+  },
+  database: {
+    name: 'postgresql',
+    async connect() {
+      const db = new Client({ connectionString })
+      await new Promise((res, rej) =>
+        db.connect((err) => (err ? rej(err) : res())),
+      )
+      await db.query('drop schema public cascade;')
+      await db.query('create schema public;')
+      return db
+    },
+    async up(db, sql) {
+      await db.query(sql)
+    },
+    async down(db, sql) {
+      await db.query(sql)
+    },
+    async close(db) {
+      await db.end()
+    },
+    datasourceBlock() {
+      return `
+        datasource postgresql {
+          provider = "postgresql"
+          url      = "${connectionString}"
+        }
+      `
+    },
+  },
+  scenarios: [
     {
       name: 'findOne where PK',
       up: `
@@ -1173,7 +1080,9 @@ function tests(): Test[] {
         drop table if exists crons cascade;
       `,
       do: async (client) => {
-        return client.crons.findMany({ where: { job: { in: ['j20', 'j1'] } } })
+        return client.crons.findMany({
+          where: { job: { in: ['j20', 'j1'] } },
+        })
       },
       expect: [
         {
@@ -1241,7 +1150,7 @@ function tests(): Test[] {
           where: { created_at: { lte: new Date() } },
         })
         posts.forEach((post) => {
-          assert.ok(post.created_at instanceof Date)
+          expect(post.created_at).toBeInstanceOf(Date)
           delete post.created_at
         })
         return posts
@@ -1325,7 +1234,7 @@ function tests(): Test[] {
           where: { created_at: { lt: new Date() } },
         })
         posts.forEach((post) => {
-          assert.ok(post.created_at instanceof Date)
+          expect(post.created_at).toBeInstanceOf(Date)
           delete post.created_at
         })
         return posts
@@ -1425,7 +1334,9 @@ function tests(): Test[] {
       `,
       do: async (client) => {
         return client.events.findMany({
-          where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
+          where: {
+            time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) },
+          },
         })
       },
       expect: [
@@ -1468,7 +1379,9 @@ function tests(): Test[] {
       `,
       do: async (client) => {
         return client.events.findMany({
-          where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
+          where: {
+            time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) },
+          },
         })
       },
       expect: [
@@ -1492,7 +1405,9 @@ function tests(): Test[] {
       `,
       do: async (client) => {
         return client.events.findMany({
-          where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
+          where: {
+            time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) },
+          },
         })
       },
       expect: [],
@@ -1614,7 +1529,9 @@ function tests(): Test[] {
         drop table if exists teams cascade;
       `,
       do: async (client) => {
-        return client.teams.findMany({ where: { token: { notIn: [11, 22] } } })
+        return client.teams.findMany({
+          where: { token: { notIn: [11, 22] } },
+        })
       },
       expect: [],
     },
@@ -2301,7 +2218,7 @@ function tests(): Test[] {
         })
         const posts = await client.posts.findMany()
         posts.forEach((post) => {
-          assert.ok(typeof post.data === 'object')
+          expect(typeof post.data).toEqual('object')
         })
         return posts
       },
@@ -2338,7 +2255,7 @@ function tests(): Test[] {
         })
         const posts = await client.posts.findMany()
         posts.forEach((post) => {
-          assert.ok(typeof post.data === 'string')
+          expect(typeof post.data).toEqual('string')
         })
         return posts
       },
@@ -2385,24 +2302,5 @@ function tests(): Test[] {
         data: ['some', 'array', 1, 2, 3, { object: 'value' }],
       },
     },
-  ]
-}
-
-export function maskSchema(schema: string): string {
-  const urlRegex = /url\s*=\s*.+/
-  const outputRegex = /output\s*=\s*.+/
-  return schema
-    .split('\n')
-    .map((line) => {
-      const urlMatch = urlRegex.exec(line)
-      if (urlMatch) {
-        return `${line.slice(0, urlMatch.index)}url = "***"`
-      }
-      const outputMatch = outputRegex.exec(line)
-      if (outputMatch) {
-        return `${line.slice(0, outputMatch.index)}output = "***"`
-      }
-      return line
-    })
-    .join('\n')
-}
+  ],
+})

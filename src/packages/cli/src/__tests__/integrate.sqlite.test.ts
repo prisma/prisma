@@ -1,24 +1,26 @@
 import Database from 'sqlite-async'
 import { integrationTest } from './__helpers__/integrationTest'
 
-integrationTest({
+integrationTest<any>({
   database: {
     name: 'sqlite',
-    open(ctx) {
+    connect(ctx) {
       return Database.open(`${ctx.fs.path()}/sqlite.db`)
     },
     up(db, sql) {
       return db.exec(sql)
     },
-    close(db) {
-      return db.close()
+    down(client) {
+      return client.close()
     },
-    datasourceBlock: (ctx) => `
-    datasource sqlite {
-      provider = "sqlite"
-      url      = "file:${ctx.fs.path()}/sqlite.db"
-    }
-  `,
+    datasourceBlock(ctx) {
+      return `
+        datasource sqlite {
+          provider = "sqlite"
+          url      = "file:${ctx.fs.path()}/sqlite.db"
+        }
+      `
+    },
   },
   scenarios: [
     {
