@@ -75,7 +75,6 @@ beforeEach(async () => {
   })
 
   await studio.parse([
-    '--experimental',
     '--schema',
     path.resolve('./src/__tests__/fixtures/studio-test-project/schema.prisma'),
     '--port',

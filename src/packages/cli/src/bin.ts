@@ -4,6 +4,7 @@ import path from 'path'
 import dotenv from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
 import chalk from 'chalk'
+import pkgUp from 'pkg-up'
 
 import {
   arg,
@@ -71,10 +72,12 @@ const args = arg(
 //
 // Read .env file only if next to schema.prisma
 //
-// if the CLI is called witout any comand like `prisma` we can ignore .env loading
+// if the CLI is called without any command like `prisma` we can ignore .env loading
 if (process.argv.length > 2) {
-  let dotenvResult
-  let message
+  let dotenvResult: dotenv.DotenvConfigOutput | null = null
+  let message: string | null = null
+  let pkgJsonPath: string | null = null
+  let pkgJsonContent: Record<string, any> | null = null
 
   // 1 -Check --schema directory
   if (args && args['--schema']) {
@@ -89,7 +92,34 @@ if (process.argv.length > 2) {
       debug('Environment variables not loaded (--schema was provided)')
     }
   }
-  // 2 - Check ./prisma directory for schema.prisma
+  // 2 - Check package.json for `prisma.schema` configuration
+  else if (
+    (pkgJsonPath = pkgUp.sync({ cwd: process.cwd() })) !== null &&
+    (pkgJsonContent = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'))) &&
+    pkgJsonContent.prisma?.schema !== undefined
+  ) {
+    const schemaPath = pkgJsonContent.prisma.schema
+    const dotenvFilepath = path.join(path.dirname(schemaPath), '.env')
+
+    if (
+      typeof schemaPath === 'string' &&
+      fs.existsSync(schemaPath) &&
+      fs.existsSync(dotenvFilepath)
+    ) {
+      // needed for Windows
+      const relative = path.relative('.', dotenvFilepath)
+
+      dotenvResult = dotenv.config({ path: dotenvFilepath })
+      message = chalk.dim(
+        `Environment variables loaded from package.json configuration at ${relative}`,
+      )
+    } else {
+      debug(
+        'Environment variables not loaded (package.json configuration was provided)',
+      )
+    }
+  }
+  // 3 - Check ./prisma directory for schema.prisma
   else if (
     fs.existsSync('prisma/schema.prisma') &&
     fs.existsSync('prisma/.env')
@@ -99,19 +129,19 @@ if (process.argv.length > 2) {
     const relative = path.relative('.', './prisma/.env')
     message = chalk.dim(`Environment variables loaded from ${relative}`)
   }
-  // 3 - Check current directory for schema.prisma
+  // 4 - Check current directory for schema.prisma
   else if (fs.existsSync('schema.prisma') && fs.existsSync('.env')) {
     dotenvResult = dotenvExpand(dotenv.config())
     message = chalk.dim('Environment variables loaded from current directory')
   }
-  // 4 - Check if ./prisma/.env exist and load it (we could not find a schema.prisma)
+  // 5 - Check if ./prisma/.env exist and load it (we could not find a schema.prisma)
   else if (fs.existsSync('prisma/.env')) {
     dotenvResult = dotenvExpand(dotenv.config({ path: 'prisma/.env' }))
     // needed for Windows
     const relative = path.relative('.', './prisma/.env')
     message = chalk.dim(`Environment variables loaded from ${relative}`)
   }
-  // 5 - We didn't find a .env file next to the prisma.schema file.
+  // 6 - We didn't find a .env file next to the prisma.schema file.
   else {
     debug('Environment variables not loaded')
   }
