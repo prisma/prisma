@@ -16,7 +16,7 @@ importers:
       redis: 3.0.2
       redis-lock: 0.1.4
       semver: 7.3.2
-      ts-node: 8.10.2_typescript@4.0.2
+      ts-node: 9.0.0_typescript@4.0.2
       typescript: 4.0.2
     specifiers:
       '@types/debug': 4.1.5
@@ -34,7 +34,7 @@ importers:
       redis: 3.0.2
       redis-lock: 0.1.4
       semver: 7.3.2
-      ts-node: 8.10.2
+      ts-node: 9.0.0
       typescript: 4.0.2
   packages/cli:
     devDependencies:
@@ -230,7 +230,7 @@ importers:
       strip-indent: 3.0.0
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
       ts-loader: 8.0.3_typescript@4.0.2
-      ts-node: 8.10.2_typescript@4.0.2
+      ts-node: 9.0.0_typescript@4.0.2
       typescript: 4.0.2
     specifiers:
       '@apexearth/copy': 1.4.5
@@ -297,7 +297,7 @@ importers:
       strip-indent: 3.0.0
       ts-jest: 26.3.0
       ts-loader: 8.0.3
-      ts-node: 8.10.2
+      ts-node: 9.0.0
       typescript: 4.0.2
   packages/debug:
     dependencies:
@@ -500,7 +500,7 @@ importers:
       lint-staged: 10.3.0
       prettier: 2.1.1
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
-      ts-node: 8.10.2_typescript@4.0.2
+      ts-node: 9.0.0_typescript@4.0.2
       typescript: 4.0.2
     specifiers:
       '@prisma/debug': 'workspace:*'
@@ -521,7 +521,7 @@ importers:
       lint-staged: 10.3.0
       prettier: 2.1.1
       ts-jest: 26.3.0
-      ts-node: 8.10.2
+      ts-node: 9.0.0
       typescript: 4.0.2
   packages/get-platform:
     dependencies:
@@ -614,7 +614,7 @@ importers:
       rimraf: 3.0.2
       tempy: 0.6.0
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
-      ts-node: 8.10.2_typescript@4.0.2
+      ts-node: 9.0.0_typescript@4.0.2
       typescript: 4.0.2
     specifiers:
       '@prisma/generator-helper': 'workspace:*'
@@ -641,7 +641,7 @@ importers:
       strip-ansi: ^6.0.0
       tempy: 0.6.0
       ts-jest: 26.3.0
-      ts-node: 8.10.2
+      ts-node: 9.0.0
       typescript: 4.0.2
   packages/migrate:
     dependencies:
@@ -826,7 +826,7 @@ importers:
       lint-staged: 10.3.0
       prettier: 2.1.1
       ts-jest: 26.3.0_jest@26.4.2+typescript@4.0.2
-      ts-node: 8.10.2_typescript@4.0.2
+      ts-node: 9.0.0_typescript@4.0.2
       typescript: 4.0.2
     specifiers:
       '@apexearth/copy': ^1.4.5
@@ -874,7 +874,7 @@ importers:
       terminal-link: ^2.1.1
       tmp: 0.2.1
       ts-jest: 26.3.0
-      ts-node: 8.10.2
+      ts-node: 9.0.0
       typescript: 4.0.2
       url-parse: ^1.4.7
 lockfileVersion: 5.1
@@ -8522,7 +8522,7 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-BVwVbPJRspzNh2yfslyT1PSbl5uIk03EZlb493RKHN4qej/D06n1cEhjlOJG69oFsE7OT8XjpTUcYf6pKTLMhw==
-  /ts-node/8.10.2_typescript@4.0.2:
+  /ts-node/9.0.0_typescript@4.0.2:
     dependencies:
       arg: 4.1.3
       diff: 4.0.2
@@ -8532,12 +8532,12 @@ packages:
       yn: 3.1.1
     dev: true
     engines:
-      node: '>=6.0.0'
+      node: '>=10.0.0'
     hasBin: true
     peerDependencies:
       typescript: '>=2.7'
     resolution:
-      integrity: sha512-ISJJGgkIpDdBhWVu3jufsWpK3Rzo7bdiIXJjQc0ynKxVOVcg2oIrf2H2cejminGrptVc6q6/uynAHNCuWGbpVA==
+      integrity: sha512-/TqB4SnererCDR/vb4S/QvSZvzQMJN8daAslg7MeaiHvD8rDZsSfXmNeNumyZZzMned72Xoq/isQljYSt8Ynfg==
   /tsconfig-paths/3.9.0:
     dependencies:
       '@types/json5': 0.0.29
