@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model AwesomeUser {
+  email    String           @unique
+  id       Int              @default(autoincrement()) @id
+  name     String?
+  newPosts AwesomeNewPost[]
+  profile  AwesomeProfile?
+
+  @@map("User")
+}
+
+model AwesomeNewPost {
+  authorId  Int
+  content   String?
+  createdAt DateTime    @default(now())
+  id        Int         @default(autoincrement()) @id
+  published Boolean     @default(false)
+  title     String
+  author    AwesomeUser @relation(fields: [authorId], references: [id])
+
+  @@map("Post")
+}
+
+model AwesomeProfile {
+  bio    String?
+  id     Int         @default(autoincrement()) @id
+  userId Int         @unique
+  user   AwesomeUser @relation(fields: [userId], references: [id])
+
+  @@map("Profile")
+}
