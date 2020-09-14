@@ -60,6 +60,8 @@ export {
   getSchemaPathSync,
   getSchemaSync,
   getSchemaDirSync,
+  getSchemaPathFromPackageJson,
+  getSchemaPathFromPackageJsonSync,
 } from './cli/getSchema'
 
 export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
