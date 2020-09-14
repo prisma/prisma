@@ -129,7 +129,7 @@
     "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate studio",
     "test": "pnpm run test:commands && pnpm run test:postgresql && jest integrate.sqlite && pnpm run test:mysql",
     "test:debug": "./node_modules/.bin/mocha --inspect-brk src/__tests__/integrate.* --require ts-mocha src/__tests__/integrate.* --timeout 10s",
-    "test:mocha": "pnpm run test:sqlite && pnpm run test:postgresql && pnpm run test:mysql",
+    "test:mocha": "pnpm run jest integrate.sqlite && pnpm run test:postgresql && pnpm run test:mysql",
     "test:update-snapshots": "SNAPSHOT_UPDATE=1 pnpm run test:mocha",
     "install": "node download-build/index.js",
     "format": "prettier --write .",
