@@ -23,6 +23,18 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 
 1. Use [TablePlus](https://tableplus.com/) for managing sqlite database fixtures.
 
+1. We use the [Jest test framework](https://jestjs.io/). Its CLI is powerful and removes the need for npm scripts mostly. For most cases this is what you need to know:
+
+   ```
+   yarn jest <fileNamePattern> -t <testNamePattern>
+   ```
+
+1. Some integration tests in these packages use [Jest's `each` feature](https://jestjs.io/docs/en/api#testeachtablename-fn-timeout). If you only want to run a subset of the test cases, simply leverage the `-t` flag on the command line (see above point). For example in `packages/cli` here is how you would run Just the `findOne where PK` cases for sqlite integration:
+
+   ```
+   yarn jest integrate.sqlite -t 'findOne where PK'
+   ```
+
 ### Developing Prisma Client JS
 
 1. `cd src/packages/client`
