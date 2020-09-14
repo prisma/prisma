@@ -37,19 +37,16 @@
     "url": "https://github.com/prisma/prisma-client-js/issues"
   },
   "scripts": {
-    "tsc": "tsc -d",
-    "build": "pnpm run cleanup && pnpm run tsc && pnpm run ncc:runtime && pnpm run ncc:generator && cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts &&  cp scripts/any-index.js runtime/index.d.ts",
+    "build": "node helpers/build.js",
     "test": "jest",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
     "download": "node scripts/download.js",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
-    "ncc:runtime": "node scripts/build-runtime.js",
-    "cleanup": "rm -f index.d.ts && cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts",
-    "ncc:generator": "rm -rf generator-build && ncc build dist/generator.js -o generator-build --minify --source-map && rm -f generator-build/index.js.bak && chmod +x generator-build/index.js",
-    "prepare": "pnpm run cleanup && cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts && node scripts/download.js || echo \"\"",
-    "prepublishOnly": "pnpm run build"
+    "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts && node scripts/download.js || echo \"\"",
+    "prepublishOnly": "pnpm run build",
+    "patch-package": "patch-package"
   },
   "prisma": {
     "version": "latest"
@@ -62,13 +59,13 @@
     "index.d.ts"
   ],
   "devDependencies": {
-    "@apexearth/copy": "1.4.5",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/sdk": "workspace:*",
+    "@timsuchanek/copy": "^1.4.5",
     "@types/debug": "4.1.5",
     "@types/fs-extra": "9.0.1",
     "@types/jest": "26.0.13",
@@ -85,7 +82,7 @@
     "del": "5.1.0",
     "dotenv": "8.2.0",
     "dotenv-expand": "5.1.0",
-    "escape-string-regexp": "4.0.0",
+    "escape-string-regexp": "^4.0.0",
     "eslint": "7.8.1",
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-eslint-comments": "3.2.0",
@@ -117,6 +114,8 @@
     "prettier": "2.1.1",
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
+    "rollup": "^2.26.11",
+    "rollup-plugin-dts": "^1.4.13",
     "set-value": "3.0.2",
     "sql-template-tag": "3.4.0",
     "stacktrace-parser": "0.1.10",
