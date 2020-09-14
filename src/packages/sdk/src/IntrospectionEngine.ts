@@ -200,17 +200,14 @@ export class IntrospectionEngine {
   }
   public introspect(
     schema: string,
-    reintrospect?: Boolean,
-    clean?: Boolean,
+    force?: Boolean,
   ): Promise<{
     datamodel: string
     warnings: IntrospectionWarnings[]
     version: IntrospectionSchemaVersion
   }> {
     this.lastUrl = schema
-    return this.runCommand(
-      this.getRPCPayload('introspect', { schema, reintrospect, clean }),
-    )
+    return this.runCommand(this.getRPCPayload('introspect', { schema, force }))
   }
   public listDatabases(schema: string): Promise<string[]> {
     this.lastUrl = schema

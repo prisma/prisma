@@ -95,7 +95,7 @@ export class Doctor implements Command {
 
     let datamodel
     try {
-      const result = await engine.introspect(schema, true)
+      const result = await engine.introspect(schema)
       datamodel = result.datamodel
     } finally {
       engine.stop()
