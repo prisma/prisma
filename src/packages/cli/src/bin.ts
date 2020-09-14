@@ -233,6 +233,7 @@ async function main(): Promise<number> {
       'generate',
       'validate',
       'format',
+      'doctor',
       'telemetry',
     ],
   )

@@ -1,11 +1,22 @@
 name: Node.js CI
 
-# Run on push only for master, if not it will trigger push & pull_request on PRs
+# Run on push only for master, if not it will trigger push & pull_request on PRs at the same time
 on:
   push:
     branches:
       - master
+    paths-ignore:
+      - "*.md"
+      - ".buildkite/**"
+      - "docs/**"
+      - "scripts/**"
+      - ".prettierrc.yml"
+      - ".dockerignore"
+      - "LICENSE"
   pull_request:
+
+env:
+  PRISMA_TELEMETRY_INFORMATION: "prisma test.yml"
 
 jobs:
   #
