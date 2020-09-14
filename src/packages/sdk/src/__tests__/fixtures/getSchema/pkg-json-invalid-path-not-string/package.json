@@ -1,0 +1,6 @@
+{
+  "name": "pkg-json-valid-path",
+  "prisma": {
+    "schema": 123
+  }
+}

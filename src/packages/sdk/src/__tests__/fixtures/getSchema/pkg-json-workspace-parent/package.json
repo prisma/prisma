@@ -1,0 +1,8 @@
+{
+  "name": "yarn-workspaces-parent",
+  "workspaces": ["packages/*"],
+  "private": true,
+  "prisma": {
+    "schema": "./db/prisma.schema"
+  }
+}
