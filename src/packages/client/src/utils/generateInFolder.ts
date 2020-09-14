@@ -12,7 +12,7 @@ import { generateClient } from '../generation/generateClient'
 import { getPackedPackage } from '@prisma/sdk'
 import Debug from '@prisma/debug'
 const debug = Debug('generateInFolder')
-import copy from '@apexearth/copy'
+import copy from '@timsuchanek/copy'
 
 export interface GenerateInFolderOptions {
   projectDir: string
@@ -91,7 +91,7 @@ export async function generateInFolder({
         [platform]: path.join(
           __dirname,
           `../../query-engine-${platform}${
-            platform === 'windows' ? '.exe' : ''
+          platform === 'windows' ? '.exe' : ''
           }`,
         ),
       },
