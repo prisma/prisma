@@ -114,6 +114,7 @@
     "prettier": "2.1.1",
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
+    "rollup": "^2.26.11",
     "rollup-plugin-dts": "^1.4.13",
     "set-value": "3.0.2",
     "sql-template-tag": "3.4.0",

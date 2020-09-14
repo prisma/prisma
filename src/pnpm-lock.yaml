@@ -222,7 +222,8 @@ importers:
       prettier: 2.1.1
       replace-string: 3.1.0
       rimraf: 3.0.2
-      rollup-plugin-dts: 1.4.13_typescript@4.0.2
+      rollup: 2.26.11
+      rollup-plugin-dts: 1.4.13_rollup@2.26.11+typescript@4.0.2
       set-value: 3.0.2
       sql-template-tag: 3.4.0
       stacktrace-parser: 0.1.10
@@ -290,6 +291,7 @@ importers:
       prettier: 2.1.1
       replace-string: 3.1.0
       rimraf: 3.0.2
+      rollup: ^2.26.11
       rollup-plugin-dts: ^1.4.13
       set-value: 3.0.2
       sql-template-tag: 3.4.0
@@ -7499,8 +7501,9 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==
-  /rollup-plugin-dts/1.4.13_typescript@4.0.2:
+  /rollup-plugin-dts/1.4.13_rollup@2.26.11+typescript@4.0.2:
     dependencies:
+      rollup: 2.26.11
       typescript: 4.0.2
     dev: true
     optionalDependencies:
@@ -7510,6 +7513,15 @@ packages:
       typescript: ^4.0.2
     resolution:
       integrity: sha512-7mxoQ6PcmCkBE5ZhrjGDL4k42XLy8BkSqpiRi1MipwiGs+7lwi4mQkp2afX+OzzLjJp/TGM8llfe8uayIUhPEw==
+  /rollup/2.26.11:
+    dev: true
+    engines:
+      node: '>=10.0.0'
+    hasBin: true
+    optionalDependencies:
+      fsevents: 2.1.3
+    resolution:
+      integrity: sha512-xyfxxhsE6hW57xhfL1I+ixH8l2bdoIMaAecdQiWF3N7IgJEMu99JG+daBiSZQjnBpzFxa0/xZm+3pbCdAQehHw==
   /rsvp/4.8.5:
     dev: true
     engines:
