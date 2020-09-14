@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
@@ -143,7 +143,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
@@ -200,7 +200,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
@@ -442,7 +442,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
@@ -492,9 +492,9 @@ jobs:
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/postgres
 
   #
-  # REST
+  # All the other packages!
   #
-  rest:
+  others:
     runs-on: ubuntu-latest
 
     strategy:
@@ -530,6 +530,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
+        name: "debug"
         working-directory: src/packages/debug
         env:
           CI: true
@@ -537,6 +538,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
+        name: "engine-core"
         working-directory: src/packages/engine-core
         env:
           CI: true
@@ -544,6 +546,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
+        name: "fetch-engine"
         working-directory: src/packages/fetch-engine
         env:
           CI: true
@@ -551,6 +554,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
+        name: "generator-helper"
         working-directory: src/packages/generator-helper
         env:
           CI: true
@@ -558,6 +562,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
+        name: "get-platform"
         working-directory: src/packages/get-platform
         env:
           CI: true
