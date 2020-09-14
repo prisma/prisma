@@ -46,18 +46,20 @@ export function integrationTest(testScenarios: TestScenario[]) {
    * snapshot errors. Might be related to https://github.com/facebook/jest/issues/2180 but we're
    * explicitly naming our snapshots here so...?
    */
-  it.each(prepareTestScenarios(testScenarios))(`%s`, async (name, scenario) => {
-    const tmpDirPath = getScenarioDir(name)
-    const sqlitePath = Path.join(tmpDirPath, 'sqlite.db')
-    const schemaPath = Path.join(tmpDirPath, 'schema.prisma')
-    const connectionString = `file:${sqlitePath}`
-    await fs.dirAsync(tmpDirPath)
+  it.each(prepareTestScenarios(testScenarios))(
+    `%s`,
+    async (name, scenario) => {
+      const tmpDirPath = getScenarioDir(name)
+      const sqlitePath = Path.join(tmpDirPath, 'sqlite.db')
+      const schemaPath = Path.join(tmpDirPath, 'schema.prisma')
+      const connectionString = `file:${sqlitePath}`
+      await fs.dirAsync(tmpDirPath)
 
-    const db = await Database.open(sqlitePath)
-    await db.exec(scenario.up)
+      const db = await Database.open(sqlitePath)
+      await db.exec(scenario.up)
 
-    try {
-      const schema = `
+      try {
+        const schema = `
       generator client {
         provider = "prisma-client-js"
         output   = "${tmpDirPath}"
@@ -68,35 +70,37 @@ export function integrationTest(testScenarios: TestScenario[]) {
         url = "${connectionString}"
       }
     `
-      const introspectionResult = await engine.introspect(schema)
-      const introspectionSchema = introspectionResult.datamodel
+        const introspectionResult = await engine.introspect(schema)
+        const introspectionSchema = introspectionResult.datamodel
 
-      await generate(schemaPath, introspectionSchema)
-      const prismaClientPath = Path.join(tmpDirPath, 'index.js')
+        await generate(schemaPath, introspectionSchema)
+        const prismaClientPath = Path.join(tmpDirPath, 'index.js')
 
-      const { PrismaClient, prismaVersion } = await import(prismaClientPath)
-      expect(prismaVersion.client).toMatch(/^2.+/)
-      expect(prismaVersion.engine).toEqual(engineVersion)
+        const { PrismaClient, prismaVersion } = await import(prismaClientPath)
+        expect(prismaVersion.client).toMatch(/^2.+/)
+        expect(prismaVersion.engine).toEqual(engineVersion)
 
-      const prisma = new PrismaClient()
-      await prisma.$connect()
-      try {
-        const result = await scenario.do(prisma)
-        expect(result).toEqual(scenario.expect)
-      } catch (err) {
-        throw err
+        const prisma = new PrismaClient()
+        await prisma.$connect()
+        try {
+          const result = await scenario.do(prisma)
+          expect(result).toEqual(scenario.expect)
+        } catch (err) {
+          throw err
+        } finally {
+          await prisma.$disconnect()
+        }
+
+        expect(maskSchema(introspectionSchema)).toMatchSnapshot(`datamodel`)
+        expect(introspectionResult.warnings).toMatchSnapshot(`warnings`)
+      } catch (e) {
+        throw e
       } finally {
-        await prisma.$disconnect()
+        await db.close()
       }
-
-      expect(maskSchema(introspectionSchema)).toMatchSnapshot(`datamodel`)
-      expect(introspectionResult.warnings).toMatchSnapshot(`warnings`)
-    } catch (e) {
-      throw e
-    } finally {
-      await db.close()
-    }
-  })
+    },
+    10_000,
+  )
 }
 
 function prepareTestScenarios(
