@@ -190,7 +190,6 @@ importers:
       del: 5.1.0
       dotenv: 8.2.0
       dotenv-expand: 5.1.0
-      esbuild: 0.6.34
       escape-string-regexp: 4.0.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0_eslint@7.8.1
@@ -258,7 +257,6 @@ importers:
       del: 5.1.0
       dotenv: 8.2.0
       dotenv-expand: 5.1.0
-      esbuild: ^0.6.34
       escape-string-regexp: ^4.0.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0
@@ -3449,12 +3447,6 @@ packages:
       node: '>= 0.4'
     resolution:
       integrity: sha512-QCOllgZJtaUo9miYBcLChTUaHNjJF3PYs1VidD7AwiEj1kYxKeQTctLAezAOH5ZKRH0g2IgPn6KwB4IT8iRpvA==
-  /esbuild/0.6.34:
-    dev: true
-    hasBin: true
-    requiresBuild: true
-    resolution:
-      integrity: sha512-InRdL/Q96pUucPqovJzvuLhquZr6jOn81FDVwFjCKz1rYKIm9OdOC+7Fs4vr6x48vKBl5LzKgtjU39BUpO636A==
   /escape-html/1.0.3:
     resolution:
       integrity: sha1-Aljq5NPQwJdN4cFpGI7wBR0dGYg=
