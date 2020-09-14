@@ -1,8 +1,8 @@
 import { getGenerator, IntrospectionEngine } from '@prisma/sdk'
-import * as fs from 'fs-jetpack'
+import fs from 'fs-jetpack'
+import { FSJetpack } from 'fs-jetpack/types'
 import * as Path from 'path'
 import pkgup from 'pkg-up'
-import Database from 'sqlite-async'
 
 const engineVersion = require('../../../package.json').prisma.version
 
@@ -11,16 +11,7 @@ process.env.SKIP_GENERATE = 'true'
 const pkgDir = pkgup.sync() || __dirname
 const engine = new IntrospectionEngine()
 
-beforeAll(() => {
-  fs.remove(getScenarioDir(''))
-})
-
-afterAll(() => {
-  engine.stop()
-  fs.remove(getScenarioDir(''))
-})
-
-type TestScenario = {
+type Scenario = {
   /**
    * Only run this test case (and any others with only set).
    */
@@ -39,73 +30,111 @@ type TestScenario = {
   expect: any
 }
 
-export function integrationTest(testScenarios: TestScenario[]) {
+type Context = {
+  fs: FSJetpack
+}
+
+type SideEffector<Args extends Array<any>> = (
+  ...args: Args
+) => Promise<any> | any
+
+type Input = {
+  database: {
+    name: string
+    open?: SideEffector<[ctx: Context]>
+    up: SideEffector<[db: any, sql: string]>
+    close?: SideEffector<[db: any, ctx: Context]>
+    datasourceBlock: (ctx: Context) => string
+  }
+  setup?: {
+    database?: SideEffector<[ctx: Context]>
+  }
+  scenarios: Scenario[]
+}
+
+export function integrationTest(input: Input) {
+  type ScenarioState = {
+    ctx: Context
+    database: Input['database']
+    db: any
+    prisma: any
+  }
+
+  const state: ScenarioState = {} as any
+
+  beforeAll(() => {
+    fs.remove(getScenarioDir(input.database.name, ''))
+  })
+
+  afterAll(() => {
+    engine.stop()
+    fs.remove(getScenarioDir(input.database.name, ''))
+  })
+
+  afterEach(async () => {
+    // props might be missing if test errors out before they are set.
+    await input.database.close?.(state.db, state.ctx)
+    await state.prisma?.$disconnect()
+  })
+
   /**
    * it.concurrent.each (https://jestjs.io/docs/en/api#testconcurrenteachtablename-fn-timeout)
    * does not seem to work. Snapshots keep getting errors. And each runs leads to different
    * snapshot errors. Might be related to https://github.com/facebook/jest/issues/2180 but we're
    * explicitly naming our snapshots here so...?
+   *
+   * If we ever make use of test.concurrent we will need to rethink our ctx system:
+   * https://github.com/facebook/jest/issues/10513
    */
-  it.each(prepareTestScenarios(testScenarios))(
+  it.each(prepareTestScenarios(input.scenarios))(
     `%s`,
-    async (name, scenario) => {
-      const tmpDirPath = getScenarioDir(name)
-      const sqlitePath = Path.join(tmpDirPath, 'sqlite.db')
-      const schemaPath = Path.join(tmpDirPath, 'schema.prisma')
-      const connectionString = `file:${sqlitePath}`
-      await fs.dirAsync(tmpDirPath)
+    async (scenarioName, scenario) => {
+      const ctx: Context = {} as any
+      ctx.fs = fs.cwd(getScenarioDir(input.database.name, scenarioName))
+      state.ctx = ctx
 
-      const db = await Database.open(sqlitePath)
-      await db.exec(scenario.up)
+      await ctx.fs.dirAsync('.')
 
-      try {
-        const schema = `
-      generator client {
-        provider = "prisma-client-js"
-        output   = "${tmpDirPath}"
-      }
+      const db = await input.database?.open?.(ctx)
 
-      datasource sqlite {
-        provider = "sqlite"
-        url = "${connectionString}"
-      }
-    `
-        const introspectionResult = await engine.introspect(schema)
-        const introspectionSchema = introspectionResult.datamodel
+      state.db = db
 
-        await generate(schemaPath, introspectionSchema)
-        const prismaClientPath = Path.join(tmpDirPath, 'index.js')
+      await input.database?.up(db, scenario.up)
 
-        const { PrismaClient, prismaVersion } = await import(prismaClientPath)
-        expect(prismaVersion.client).toMatch(/^2.+/)
-        expect(prismaVersion.engine).toEqual(engineVersion)
-
-        const prisma = new PrismaClient()
-        await prisma.$connect()
-        try {
-          const result = await scenario.do(prisma)
-          expect(result).toEqual(scenario.expect)
-        } catch (err) {
-          throw err
-        } finally {
-          await prisma.$disconnect()
+      const schema = `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${ctx.fs.path()}"
         }
 
-        expect(maskSchema(introspectionSchema)).toMatchSnapshot(`datamodel`)
-        expect(introspectionResult.warnings).toMatchSnapshot(`warnings`)
-      } catch (e) {
-        throw e
-      } finally {
-        await db.close()
-      }
+        ${input.database.datasourceBlock(ctx)}
+      `
+
+      const introspectionResult = await engine.introspect(schema)
+      const introspectionSchema = introspectionResult.datamodel
+
+      await generate(ctx.fs.path('schema.prisma'), introspectionSchema)
+
+      const { PrismaClient, prismaVersion } = await import(
+        ctx.fs.path('index.js')
+      )
+      expect(prismaVersion.client).toMatch(/^2.+/)
+      expect(prismaVersion.engine).toEqual(engineVersion)
+
+      state.prisma = new PrismaClient()
+      await state.prisma.$connect()
+
+      const result = await scenario.do(state.prisma)
+
+      expect(result).toEqual(scenario.expect)
+      expect(maskSchema(introspectionSchema)).toMatchSnapshot(`datamodel`)
+      expect(introspectionResult.warnings).toMatchSnapshot(`warnings`)
     },
     10_000,
   )
 }
 
-function prepareTestScenarios(
-  scenarios: TestScenario[],
-): [string, TestScenario][] {
+function prepareTestScenarios(scenarios: Scenario[]): [string, Scenario][] {
   const onlys = scenarios.filter((scenario) => scenario.only)
 
   if (onlys.length) {
@@ -117,8 +146,8 @@ function prepareTestScenarios(
     .map((scenario) => [scenario.name, scenario])
 }
 
-function getScenarioDir(name: string) {
-  return Path.join(Path.dirname(pkgDir), 'tmp-sqlite', name)
+function getScenarioDir(databaseName: string, scenarioName: string) {
+  return Path.join(Path.dirname(pkgDir), databaseName, scenarioName)
 }
 
 async function generate(schemaPath: string, datamodel: string) {
