@@ -45,8 +45,7 @@
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts && node scripts/download.js || echo \"\"",
-    "prepublishOnly": "pnpm run build",
-    "patch-package": "patch-package"
+    "prepublishOnly": "pnpm run build"
   },
   "prisma": {
     "version": "latest"
