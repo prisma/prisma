@@ -18,8 +18,13 @@ NewPost
 ↪ Model is missing in database
 
 
+Profile
+↪ Field user is missing in database
+
+
 User
 ↪ Field newName is missing in database
 ↪ Field newPosts is missing in database
+↪ Field profile is missing in database
 
 `;

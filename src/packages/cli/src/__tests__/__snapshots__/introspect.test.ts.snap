@@ -1,0 +1,102 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should succeed and keep changes to valid schema and output warnings when using --print 2`] = `
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model AwesomeUser {
+  email    String           @unique
+  id       Int              @default(autoincrement()) @id
+  name     String?
+  newPosts AwesomeNewPost[]
+  profile  AwesomeProfile?
+
+  @@map("User")
+}
+
+model AwesomeNewPost {
+  authorId  Int
+  content   String?
+  createdAt DateTime    @default(now())
+  id        Int         @default(autoincrement()) @id
+  published Boolean     @default(false)
+  title     String
+  author    AwesomeUser @relation(fields: [authorId], references: [id])
+
+  @@map("Post")
+}
+
+model AwesomeProfile {
+  bio    String?
+  id     Int         @default(autoincrement()) @id
+  userId Int         @unique
+  user   AwesomeUser @relation(fields: [userId], references: [id])
+
+  @@map("Profile")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`should succeed when schema is invalid and using --force 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model something {
+  id Int
+}
+
+`;
+
+exports[`should succeed when schema is invalid and using --force 4`] = `
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @default(autoincrement()) @id
+  published Boolean  @default(false)
+  title     String
+  User      User     @relation(fields: [authorId], references: [id])
+}
+
+model Profile {
+  bio    String?
+  id     Int     @default(autoincrement()) @id
+  userId Int     @unique
+  User   User    @relation(fields: [userId], references: [id])
+}
+
+model User {
+  email   String   @unique
+  id      Int      @default(autoincrement()) @id
+  name    String?
+  Post    Post[]
+  Profile Profile?
+}
+
+`;
