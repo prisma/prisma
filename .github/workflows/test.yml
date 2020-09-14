@@ -5,11 +5,19 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - "*.md"
+      - ".buildkite/**"
+      - "docs/**"
+      - "scripts/**"
+      - ".prettierrc.yml"
+      - ".dockerignore"
+      - "LICENSE"
   pull_request:
 
 env:
   PRISMA_TELEMETRY_INFORMATION: "prisma test.yml"
-  
+
 jobs:
   #
   # CLI-POSTGRESQL
