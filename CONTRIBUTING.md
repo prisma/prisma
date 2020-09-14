@@ -35,6 +35,12 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
    yarn jest integrate.sqlite -t 'findOne where PK'
    ```
 
+   Also you can piggy back flags onto existing npm scripts. For example the above could be rewritten as:
+
+   ```
+   yarn test:sqlite -t 'findOne where PK'
+   ```
+
 ### Developing Prisma Client JS
 
 1. `cd src/packages/client`
