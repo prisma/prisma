@@ -82,12 +82,8 @@
     "del": "5.1.0",
     "dotenv": "8.2.0",
     "dotenv-expand": "5.1.0",
-<<<<<<< HEAD
-    "escape-string-regexp": "4.0.0",
-=======
     "esbuild": "^0.6.34",
     "escape-string-regexp": "^4.0.0",
->>>>>>> chore(client): replace ncc with esbuid
     "eslint": "7.8.1",
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-eslint-comments": "3.2.0",
