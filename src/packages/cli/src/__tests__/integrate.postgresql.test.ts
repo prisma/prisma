@@ -6,7 +6,7 @@ const connectionString =
 
 integrationTest<Client>({
   settings: {
-    // engineVersion: getLatestTag(),
+    engineVersion: require('./../../package.json').prisma.version,
     timeout: 15_000,
   },
   database: {

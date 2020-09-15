@@ -1,3 +1,4 @@
+import { getLatestTag } from '@prisma/fetch-engine'
 import { getGenerator, IntrospectionEngine } from '@prisma/sdk'
 import fs from 'fs-jetpack'
 import { FSJetpack } from 'fs-jetpack/types'
@@ -58,7 +59,7 @@ type Input<Client> = {
     /**
      * The version of Prisma Engine to use.
      *
-     * @dynamicDefault The `prisma.version` value in this package's package.json
+     * @dynamicDefault The result of `@prisma/fetch-engine#getLatestTag`
      */
     engineVersion?: MaybePromise<string>
   }
@@ -82,7 +83,7 @@ type Input<Client> = {
     /**
      * At the end of _all_ tests run logic to close the database connection.
      */
-    close?: SideEffector<[client: Client, ctx: Context]>
+    close?: SideEffector<[client: Client]>
     /**
      * Construct a source snippet of the Prisma Schema file datasource for this database.
      */
@@ -100,10 +101,14 @@ export function integrationTest<Client>(input: Input<Client>) {
     prisma: any
   }
 
+  let engineVersion
   const state: ScenarioState = {} as any
 
-  beforeAll(() => {
+  beforeAll(async () => {
     fs.remove(getScenarioDir(input.database.name, ''))
+    engineVersion = await (input.settings?.engineVersion
+      ? input.settings.engineVersion
+      : getLatestTag())
   })
 
   afterEach(async () => {
@@ -114,8 +119,12 @@ export function integrationTest<Client>(input: Input<Client>) {
     await state.prisma?.$disconnect()
   })
 
-  afterAll(() => {
+  afterAll(async () => {
     engine.stop()
+    // props might be missing if test errors out before they are set.
+    if (state.db) {
+      await input.database.close?.(state.db)
+    }
     fs.remove(getScenarioDir(input.database.name, ''))
   })
 
@@ -131,9 +140,6 @@ export function integrationTest<Client>(input: Input<Client>) {
   it.each(prepareTestScenarios(input.scenarios))(
     `%s`,
     async (scenarioName, scenario) => {
-      const engineVersion = input.settings?.engineVersion
-        ? await input.settings.engineVersion
-        : require('../../../package.json').prisma.version
       const ctx: Context = {} as any
       ctx.fs = fs.cwd(getScenarioDir(input.database.name, scenarioName))
       state.ctx = ctx
