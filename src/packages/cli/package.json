@@ -1,7 +1,7 @@
 {
   "version": "2.7.0-dev.74",
   "name": "@prisma/cli",
-  "description": "Prisma CLI (Command Line Interface) is the primary way to interact with your Prisma project. It can initialize a project, generate Prisma Client type-safe modern ORM for TypeScript/JavaScript, analyze existing database structures through introspection.",
+  "description": "Prisma is an open-source database toolkit. It includes a JavaScript/TypeScript ORM for Node.js, migrations and a modern GUI to view and edit the data in your database. You can use Prisma in new projects or add it to an existing one.",
   "keywords": [
     "typescript",
     "orm",
