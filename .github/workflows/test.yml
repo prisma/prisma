@@ -1,4 +1,4 @@
-name: Node.js CI
+name: CI
 
 # Run on push only for master, if not it will trigger push & pull_request on PRs at the same time
 on:
@@ -19,6 +19,18 @@ env:
   PRISMA_TELEMETRY_INFORMATION: "prisma test.yml"
 
 jobs:
+  # From https://github.com/marketplace/actions/workflow-run-cleanup-action
+  # This action cleans up previously running instances of a workflow on the same branch.
+  # This accomplishes the task of automatically cancelling CI runs on pushes to the same branch,
+  # which is a common feature in most CI systems but currently not possible with GitHub actions.
+  cleanup-runs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: rokroskar/workflow-run-cleanup-action@master
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+    if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
+
   #
   # CLI-POSTGRESQL
   #
