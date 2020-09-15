@@ -168,7 +168,7 @@ export function integrationTest<Client>(input: Input<Client>) {
         )}`,
       )
     }
-  })
+  }, 10_000)
 
   afterAll(async () => {
     engine.stop()
