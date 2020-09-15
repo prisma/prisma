@@ -47,7 +47,7 @@
     "prepublishOnly": "pnpm run build",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
-    "test": "jest"
+    "test": "FORCE_COLOR=0 jest"
   },
   "files": [
     "!**/__tests__",
