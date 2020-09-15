@@ -7,11 +7,11 @@ integrationTest<any>({
     connect(ctx) {
       return Database.open(`${ctx.fs.path()}/sqlite.db`)
     },
-    up(db, sql) {
-      return db.exec(sql)
+    async up(db, sql) {
+      await db.exec(sql)
     },
-    down(client) {
-      return client.close()
+    async down(client) {
+      await client.close()
     },
     datasourceBlock(ctx) {
       return `

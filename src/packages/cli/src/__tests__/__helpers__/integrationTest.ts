@@ -113,17 +113,20 @@ export function integrationTest<Client>(input: Input<Client>) {
 
   afterEach(async () => {
     // props might be missing if test errors out before they are set.
-    if (state.db) {
-      await input.database.down?.(state.db, state.scenario.down)
+    if (state.db && input.database.down) {
+      await input.database.down(state.db, state.scenario.down)
     }
-    await state.prisma?.$disconnect()
+
+    if (state.prisma) {
+      await state.prisma?.$disconnect()
+    }
   })
 
   afterAll(async () => {
     engine.stop()
     // props might be missing if test errors out before they are set.
-    if (state.db) {
-      await input.database.close?.(state.db)
+    if (state.db && input.database.close) {
+      await input.database.close(state.db)
     }
     fs.remove(getScenarioDir(input.database.name, ''))
   })
