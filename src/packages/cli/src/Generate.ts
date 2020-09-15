@@ -128,11 +128,17 @@ If you do not have a Prisma Schema file yet, you can ignore this message.`)
       throw new Error(
         `Either provide ${chalk.greenBright('--schema')} ${chalk.bold(
           'or',
+        )} configure a path in your package.json in a \`prisma.schema\` field ${chalk.bold(
+          'or',
         )} make sure that you are in a folder with a ${chalk.greenBright(
           'schema.prisma',
         )} file.`,
       )
     }
+
+    console.log(
+      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`),
+    )
 
     let isJSClient
     let generators: Generator[] | undefined

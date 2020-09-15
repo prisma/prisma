@@ -1,6 +1,7 @@
-import { Command, format, HelpError } from '@prisma/sdk'
-import chalk from 'chalk'
 import Debug from '@prisma/debug'
+import { Command, format, getSchemaPath, HelpError } from '@prisma/sdk'
+import chalk from 'chalk'
+import path from 'path'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { occupyPath } from '../utils/occupyPath'
@@ -30,9 +31,21 @@ export class MigrateTmpPrepare implements Command {
     await occupyPath(process.cwd())
     debug('occupied path')
 
-    const migrate = new Migrate()
+    const schemaPath = await getSchemaPath()
+
+    if (!schemaPath) {
+      throw new Error('Could not find a `schema.prisma` file')
+    }
+
+    console.log(
+      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`),
+    )
+
+    const migrate = new Migrate(schemaPath)
+
     debug('initialized migrate')
-    await ensureDatabaseExists('dev', true)
+
+    await ensureDatabaseExists('dev', true, schemaPath)
 
     await migrate.up({
       short: true,

@@ -1,5 +1,13 @@
-import { arg, Command, format, HelpError, isError } from '@prisma/sdk'
+import {
+  arg,
+  Command,
+  format,
+  getSchemaPath,
+  HelpError,
+  isError,
+} from '@prisma/sdk'
 import chalk from 'chalk'
+import path from 'path'
 import { DownOptions, Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { ExperimentalFlagError } from '../utils/experimental'
@@ -94,7 +102,17 @@ export class MigrateDown implements Command {
       }
     }
 
-    await ensureDatabaseExists('unapply', undefined, args['--schema'])
+    const schemaPath = await getSchemaPath(args['--schema'])
+
+    if (!schemaPath) {
+      throw new Error(`Could not find ${args['--schema'] || 'schema.prisma'}`)
+    }
+
+    console.log(
+      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`),
+    )
+
+    await ensureDatabaseExists('unapply', undefined, schemaPath)
 
     const result = await migrate.down(options)
     migrate.stop()

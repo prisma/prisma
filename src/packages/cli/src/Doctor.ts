@@ -68,11 +68,17 @@ export class Doctor implements Command {
       throw new Error(
         `Either provide ${chalk.greenBright('--schema')} ${chalk.bold(
           'or',
+        )} configure a path in your package.json in a \`prisma.schema\` field ${chalk.bold(
+          'or',
         )} make sure that you are in a folder with a ${chalk.greenBright(
           'schema.prisma',
         )} file.`,
       )
     }
+
+    console.log(
+      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`),
+    )
 
     const schema = await readFile(schemaPath, 'utf-8')
     const localDmmf = await getDMMF({ datamodel: schema })

@@ -117,9 +117,16 @@ export class Introspect implements Command {
 
     const url: string | undefined = args['--url']
     let schemaPath = await getSchemaPath(args['--schema'])
+
+    if (schemaPath) {
+      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`)
+    }
+
     if (!url && !schemaPath) {
       throw new Error(
         `Either provide ${chalk.greenBright('--schema')} ${chalk.bold(
+          'or',
+        )} configure a path in your package.json in a \`prisma.schema\` field ${chalk.bold(
           'or',
         )} make sure that you are in a folder with a ${chalk.greenBright(
           'schema.prisma',
@@ -127,15 +134,18 @@ export class Introspect implements Command {
       )
     }
 
-    let schema: string | undefined
+    let schema: string | null = null
+
     if (url && schemaPath) {
       schema = this.printUrlAsDatasource(url)
-      const rawSchema = fs.readFileSync(schemaPath!, 'utf-8')
+      const rawSchema = fs.readFileSync(schemaPath, 'utf-8')
       schema += removeDatasource(rawSchema)
     } else if (url) {
       schema = this.printUrlAsDatasource(url)
+    } else if (schemaPath) {
+      schema = fs.readFileSync(schemaPath, 'utf-8')
     } else {
-      schema = fs.readFileSync(schemaPath!, 'utf-8')
+      throw new Error('Could not find a `schema.prisma` file')
     }
 
     const engine = new IntrospectionEngine({

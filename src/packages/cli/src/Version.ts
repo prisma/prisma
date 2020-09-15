@@ -64,7 +64,9 @@ export class Version implements Command {
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
 
-    const featureFlags = await this.getFeatureFlags()
+    const schemaPath = await getSchemaPath()
+    const featureFlags = await this.getFeatureFlags(schemaPath)
+
     if (featureFlags && featureFlags.length > 0) {
       rows.push(['Preview Features', featureFlags.join(', ')])
     }
@@ -72,7 +74,11 @@ export class Version implements Command {
     return this.printTable(rows, args['--json'])
   }
 
-  private async getFeatureFlags(): Promise<string[]> {
+  private async getFeatureFlags(schemaPath: string | null): Promise<string[]> {
+    if (!schemaPath) {
+      return []
+    }
+
     try {
       const datamodel = await getSchema()
       const config = await getConfig({

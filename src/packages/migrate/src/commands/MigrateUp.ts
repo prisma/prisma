@@ -1,5 +1,13 @@
-import { arg, Command, format, HelpError, isError } from '@prisma/sdk'
+import {
+  arg,
+  Command,
+  format,
+  getSchemaPath,
+  HelpError,
+  isError,
+} from '@prisma/sdk'
 import chalk from 'chalk'
+import path from 'path'
 import { Migrate, UpOptions } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { ExperimentalFlagError } from '../utils/experimental'
@@ -90,7 +98,17 @@ export class MigrateUp implements Command {
       throw new ExperimentalFlagError()
     }
 
-    const migrate = new Migrate(args['--schema'])
+    const schemaPath = await getSchemaPath(args['--schema'])
+
+    if (!schemaPath) {
+      throw new Error(`Could not find ${args['--schema'] || 'schema.prisma'}`)
+    }
+
+    console.log(
+      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`),
+    )
+
+    const migrate = new Migrate(schemaPath)
 
     const options: UpOptions = {
       preview: args['--preview'],
@@ -110,7 +128,7 @@ export class MigrateUp implements Command {
       }
     }
 
-    await ensureDatabaseExists('apply', args['--create-db'], args['--schema'])
+    await ensureDatabaseExists('apply', args['--create-db'], schemaPath)
 
     const result = await migrate.up(options)
     migrate.stop()

@@ -1,15 +1,15 @@
 import {
-  Command,
+  arg, Command,
   format,
-  HelpError,
-  getSchemaPath,
-  arg,
   formatSchema,
+  getDMMF,
+  getSchemaPath,
+  HelpError
 } from '@prisma/sdk'
 import chalk from 'chalk'
-import { getDMMF } from '@prisma/sdk'
 import fs from 'fs'
 import os from 'os'
+import path from 'path'
 import { formatms } from './utils/formatms'
 
 /**
@@ -58,11 +58,17 @@ export class Format implements Command {
       throw new Error(
         `Either provide ${chalk.greenBright('--schema')} ${chalk.bold(
           'or',
+        )} configure a path in your package.json in a \`prisma.schema\` field ${chalk.bold(
+          'or',
         )} make sure that you are in a folder with a ${chalk.greenBright(
           'schema.prisma',
         )} file.`,
       )
     }
+
+    console.log(
+      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`),
+    )
 
     const schema = fs.readFileSync(schemaPath, 'utf-8')
 
