@@ -51,7 +51,6 @@ importers:
       '@prisma/studio-server': 0.287.0
       '@types/debug': 4.1.5
       '@types/jest': 26.0.13
-      '@types/mocha': 8.0.3
       '@types/pg': 7.14.4
       '@types/sqlite3': 3.1.6
       '@types/ws': 7.2.6
@@ -112,7 +111,6 @@ importers:
       '@prisma/studio-server': 0.287.0
       '@types/debug': 4.1.5
       '@types/jest': 26.0.13
-      '@types/mocha': 8.0.3
       '@types/pg': 7.14.4
       '@types/sqlite3': 3.1.6
       '@types/ws': 7.2.6
@@ -1786,10 +1784,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-wuzZksN4w4kyfoOv/dlpov4NOunwutLA/q7uc00xU02ZyUY+aoM5PWIXEKBMnm0NHd4a+N71BMjq+x7+2Af1fg==
-  /@types/mocha/8.0.3:
-    dev: true
-    resolution:
-      integrity: sha512-vyxR57nv8NfcU0GZu8EUXZLTbCMupIUwy95LJ6lllN+JRPG25CwMHoB1q5xKh8YKhQnHYRAn4yW2yuHbf/5xgg==
   /@types/node-fetch/2.5.7:
     dependencies:
       '@types/node': 12.12.47
