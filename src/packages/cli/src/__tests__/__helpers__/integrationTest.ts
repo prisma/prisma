@@ -10,14 +10,12 @@ import pkgup from 'pkg-up'
  */
 type MaybePromise<T> = Promise<T> | T
 
+/**
+ * A async function that does not return anything.
+ */
 type SideEffector<Args extends Array<any>> = (
   ...args: Args
-) => Promise<any> | any
-
-process.env.SKIP_GENERATE = 'true'
-
-const pkgDir = pkgup.sync() || __dirname
-const engine = new IntrospectionEngine()
+) => MaybePromise<any>
 
 type Scenario = {
   /**
@@ -38,7 +36,13 @@ type Scenario = {
   expect: any
 }
 
+/**
+ * Contextual data and API attached to each integration test run.
+ */
 type Context = {
+  /**
+   * Jetpack instance bound to the integration test temporary directory.
+   */
   fs: FSJetpack
 }
 
@@ -91,6 +95,10 @@ type Input<Client> = {
   }
   scenarios: Scenario[]
 }
+
+process.env.SKIP_GENERATE = 'true'
+const pkgDir = pkgup.sync() || __dirname
+const engine = new IntrospectionEngine()
 
 export function integrationTest<Client>(input: Input<Client>) {
   type ScenarioState = {
