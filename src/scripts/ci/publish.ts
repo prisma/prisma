@@ -1069,8 +1069,6 @@ async function getBranch(dir: string) {
 async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
   let svgUrl = 'https://github.com/prisma/e2e-tests/workflows/test/badge.svg?branch='
 
-
-
   if (tag === 'patch-dev') {
     svgUrl += tag
   } else {
