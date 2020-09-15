@@ -247,7 +247,7 @@ export function integrationTest<Client>(input: Input<Client>) {
       const result = await scenario.do(state.prisma)
 
       expect(result).toEqual(scenario.expect)
-      expect(maskSchema(datamodel)).toMatchSnapshot(`datamodel`)
+      expect(prepareSchemaForSnapshot(datamodel)).toMatchSnapshot(`datamodel`)
       expect(introspectionResult.warnings).toMatchSnapshot(`warnings`)
     },
     input.settings?.timeout ?? 15_000,
@@ -269,6 +269,9 @@ function prepareTestScenarios(scenarios: Scenario[]): [string, Scenario][] {
     .map((scenario) => [scenario.name, scenario])
 }
 
+/**
+ * Get the temporary directory for the scenario
+ */
 function getScenarioDir(databaseName: string, scenarioName: string) {
   return Path.join(Path.dirname(pkgDir), databaseName, scenarioName)
 }
@@ -289,7 +292,10 @@ async function generate(schemaPath: string, engineVersion: string) {
   generator.stop()
 }
 
-export function maskSchema(schema: string): string {
+/**
+ * Replace dynamic variable bits of Prisma Schema with static strings.
+ */
+export function prepareSchemaForSnapshot(schema: string): string {
   const urlRegex = /url\s*=\s*.+/
   const outputRegex = /output\s*=\s*.+/
   return schema
@@ -308,6 +314,9 @@ export function maskSchema(schema: string): string {
     .join('\n')
 }
 
+/**
+ * Create a Prisma schema datasource block.
+ */
 function makeDatasourceBlock(providerName: string, url: string) {
   return `
     datasource ${providerName} {
