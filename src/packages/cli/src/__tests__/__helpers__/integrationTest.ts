@@ -8,14 +8,7 @@ import pkgup from 'pkg-up'
 /**
  * A potentially async value
  */
-type MaybePromise<T> = Promise<T> | T
-
-/**
- * A async function that does not return anything.
- */
-type SideEffector<Args extends Array<any>> = (
-  ...args: Args
-) => MaybePromise<any>
+type MaybePromise<T = void> = Promise<T> | T
 
 /**
  * Configuration for an integration test.
@@ -33,8 +26,17 @@ type Scenario = {
    * Name of the test case. Influences the temp dir, snapshot, etc.
    */
   name: string
+  /**
+   * SQL to put database into pre-test condition.
+   */
   up: string
+  /**
+   * SQL to teardown pre-test condition.
+   */
   down: string
+  /**
+   * Arbitrary Prisma client logic to test.
+   */
   do: (client: any) => Promise<any>
   /**
    * Value that the "do" operation should result in.
@@ -53,73 +55,80 @@ type Context = {
 }
 
 /**
+ * Integration test database interface.
+ */
+type Database<Client> = {
+  /**
+   * Name of the database being worked with.
+   *
+   * @remarks This is used as the default provider name for the Prisma schema datasource block.
+   */
+  name: string
+  /**
+   * Create a client connection to the database.
+   */
+  connect: (ctx: Context) => MaybePromise<Client>
+  /**
+   * Execute SQL against the database.
+   */
+  send: (db: Client, sql: string) => MaybePromise<any>
+  /**
+   * At the end of _each_ test run logic
+   */
+  afterEach?: (db: Client) => MaybePromise
+  /**
+   * At the end of _all_ tests run logic to close the database connection.
+   */
+  close?: (db: Client) => MaybePromise
+  /**
+   * Give the connection URL for the Prisma schema datasource block or provide your own custom implementation.
+   */
+  datasource:
+    | {
+        /**
+         * Construct the whole datasource block for the Prisma schema
+         */
+        raw: (ctx: Context) => string
+      }
+    | {
+        /**
+         * Supply the connection URL used in the datasource block.
+         */
+        url: string | ((ctx: Context) => string)
+        /**
+         * Supply the provider name used in the datasource block.
+         *
+         * @dynamicDefault The value passed to database.name
+         */
+        provider?: string
+      }
+}
+
+/**
+ * Settings to control things like test timeout and Prisma engine version.
+ */
+type Settings = {
+  /**
+   * How long each test case should have to run to completion.
+   *
+   * @default 15_000
+   */
+  timeout?: number
+  /**
+   * The version of Prisma Engine to use.
+   *
+   * @dynamicDefault The result of `@prisma/fetch-engine#getLatestTag`
+   */
+  engineVersion?: MaybePromise<string>
+}
+
+/**
  * Integration test keyword arguments
  */
 type Input<Client> = {
-  /**
-   * Settings to control things like test timeout and Prisma engine version.
-   */
-  settings?: {
-    /**
-     * How long each test case should have to run to completion.
-     *
-     * @default 15_000
-     */
-    timeout?: number
-    /**
-     * The version of Prisma Engine to use.
-     *
-     * @dynamicDefault The result of `@prisma/fetch-engine#getLatestTag`
-     */
-    engineVersion?: MaybePromise<string>
-  }
-  database: {
-    /**
-     * Name of the database being worked with.
-     *
-     * @remarks This is used as the default provider name for the Prisma schema datasource block.
-     */
-    name: string
-    /**
-     * Create a client connection to the database.
-     */
-    connect: (ctx: Context) => MaybePromise<Client>
-    /**
-     * Execute SQL against the database.
-     */
-    send: SideEffector<[db: Client, sql: string]>
-    /**
-     * At the end of _each_ test run logic
-     */
-    afterEach?: SideEffector<[db: Client]>
-    /**
-     * At the end of _all_ tests run logic to close the database connection.
-     */
-    close?: SideEffector<[db: Client]>
-    /**
-     * Give the connection URL for the Prisma schema datasource block or provide your own custom implementation.
-     */
-    datasource:
-      | {
-          /**
-           * Construct the whole datasource block for the Prisma schema
-           */
-          raw: (ctx: Context) => string
-        }
-      | {
-          /**
-           * Supply the connection URL used in the datasource block.
-           */
-          url: string | ((ctx: Context) => string)
-          /**
-           * Supply the provider name used in the datasource block.
-           *
-           * @dynamicDefault The value passed to database.name
-           */
-          provider?: string
-        }
-  }
+  database: Database<Client>
   scenarios: Scenario[]
+  settings?: Settings
 }
 
 process.env.SKIP_GENERATE = 'true'
@@ -151,8 +160,7 @@ export function integrationTest<Client>(input: Input<Client>) {
 
     // props might be missing if test errors out before they are set.
     if (state.db) {
-      await input.database
-        .send(state.db, state.scenario.down)
+      await Promise.resolve(input.database.send(state.db, state.scenario.down))
         .catch((e) => errors.push(e))
         .then(() => input.database.afterEach?.(state.db))
         .catch((e) => errors.push(e))
