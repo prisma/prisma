@@ -15,6 +15,7 @@ it('should succeed when schema and db do match', async () => {
       .join('\n')
       .replace(/\d{2,3}ms/, 'XXms'),
   ).toMatchInlineSnapshot(`
+    Prisma Schema loaded from ./schema.prisma
 
     Introspecting based on datasource defined in schema.prisma …
 
@@ -37,6 +38,7 @@ it('should succeed when schema and db do match using --url', async () => {
       .join('\n')
       .replace(/\d{2,3}ms/, 'XXms'),
   ).toMatchInlineSnapshot(`
+    Prisma Schema loaded from ./schema.prisma
 
     Introspecting …
 
@@ -60,6 +62,7 @@ it('should succeed and keep changes to valid schema and output warnings', async 
       .join('\n')
       .replace(/\d{2,3}ms/, 'in XXms'),
   ).toMatchInlineSnapshot(`
+    Prisma Schema loaded from ./prisma/reintrospection.prisma
 
     Introspecting based on datasource defined in prisma/reintrospection.prisma …
 
@@ -102,14 +105,14 @@ it('should succeed and keep changes to valid schema and output warnings when usi
   expect(ctx.mocked['console.error'].mock.calls.join('\n'))
     .toMatchInlineSnapshot(`
 
-                            *** WARNING ***
+                                *** WARNING ***
 
-                            These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                            - Model "AwesomeNewPost"
-                            - Model "AwesomeProfile"
-                            - Model "AwesomeUser"
+                                These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                - Model "AwesomeNewPost"
+                                - Model "AwesomeProfile"
+                                - Model "AwesomeUser"
 
-              `)
+                `)
 
   expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(
     originalSchema,
@@ -126,6 +129,7 @@ it('should succeed when schema and db do not match', async () => {
       .join('\n')
       .replace(/\d{2,3}ms/, 'in XXms'),
   ).toMatchInlineSnapshot(`
+    Prisma Schema loaded from ./schema.prisma
 
     Introspecting based on datasource defined in schema.prisma …
 
@@ -208,6 +212,7 @@ it('should succeed when schema is invalid and using --force', async () => {
       .join('\n')
       .replace(/\d{2,3}ms/, 'in XXms'),
   ).toMatchInlineSnapshot(`
+    Prisma Schema loaded from ./prisma/invalid.prisma
 
     Introspecting based on datasource defined in prisma/invalid.prisma …
 
