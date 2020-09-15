@@ -273,7 +273,13 @@ function prepareTestScenarios(scenarios: Scenario[]): [string, Scenario][] {
  * Get the temporary directory for the scenario
  */
 function getScenarioDir(databaseName: string, scenarioName: string) {
-  return Path.join(Path.dirname(pkgDir), databaseName, scenarioName)
+  return Path.join(
+    Path.dirname(pkgDir),
+    'src',
+    '__tests__',
+    `tmp-integration-test-${databaseName}`,
+    scenarioName,
+  )
 }
 
 /**
