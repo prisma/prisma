@@ -1,8 +1,10 @@
 {
   "version": "2.7.0-dev.74",
   "name": "@prisma/cli",
-  "description": "The Prisma command line interface (CLI) is the primary way to interact with your Prisma project from the command line. It can initialize new project assets, generate Prisma Client, and analyze existing database structures through introspection to automatically create your application models.",
+  "description": "Prisma is an open-source database toolkit. It includes a JavaScript/TypeScript ORM for Node.js, migrations and a modern GUI to view and edit the data in your database. You can use Prisma in new projects or add it to an existing one.",
   "keywords": [
+    "typescript",
+    "orm",
     "prisma2",
     "prisma",
     "cli",
@@ -12,8 +14,6 @@
     "mysql",
     "sqlite",
     "mariadb",
-    "typescript",
-    "orm",
     "query-builder"
   ],
   "main": "build/index.js",
@@ -127,7 +127,7 @@
     "test:postgresql": "jest integrate.postgresql",
     "test:mariadb": "./node_modules/.bin/mocha src/__tests__/integrate.mariadb.test.ts --require ts-mocha src/__tests__/integrate.mariadb.test.ts --timeout 10s",
     "test:mysql": "./node_modules/.bin/mocha src/__tests__/integrate.mysql.test.ts --require ts-mocha src/__tests__/integrate.mysql.test.ts --timeout 10s",
-    "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate studio introspect",
+    "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate studio && jest introspect --forceExit",
     "test": "pnpm run test:commands && pnpm run test:postgresql && jest integrate.sqlite && pnpm run test:mysql",
     "test:debug": "./node_modules/.bin/mocha --inspect-brk src/__tests__/integrate.* --require ts-mocha src/__tests__/integrate.* --timeout 10s",
     "test:mocha": "pnpm run test:sqlite && pnpm run test:postgresql && pnpm run test:mysql",

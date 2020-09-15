@@ -772,8 +772,7 @@ function patchVersion(version: string): string | null {
 
   const match = semverRegex.exec(version)
   if (match) {
-    return `${match.groups.major}.${match.groups.minor}.${
-      Number(match.groups.patch) + 1
+    return `${match.groups.major}.${match.groups.minor}.${Number(match.groups.patch) + 1
       }`
   }
 
@@ -783,8 +782,7 @@ function patchVersion(version: string): string | null {
 function increaseMinor(version: string): string | null {
   const match = semverRegex.exec(version)
   if (match) {
-    return `${match.groups.major}.${Number(match.groups.minor) + 1}.${
-      match.groups.patch
+    return `${match.groups.major}.${Number(match.groups.minor) + 1}.${match.groups.patch
       }`
   }
 
@@ -1048,8 +1046,7 @@ async function writeVersion(pkgDir: string, version: string, dryRun?: boolean) {
   const packageJson = JSON.parse(file)
   if (dryRun) {
     console.log(
-      `Would update ${pkgJsonPath} from ${
-      packageJson.version
+      `Would update ${pkgJsonPath} from ${packageJson.version
       } to ${version} now ${chalk.dim('(dry)')}`,
     )
   } else {
@@ -1070,10 +1067,12 @@ async function getBranch(dir: string) {
 }
 
 async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
-  let svgUrl = 'https://github.com/prisma/e2e-tests/workflows/test/badge.svg'
+  let svgUrl = 'https://github.com/prisma/e2e-tests/workflows/test/badge.svg?branch='
 
-  if (tag === 'patch-dev' || tag === 'dev') {
-    svgUrl += `?branch=${tag}`
+  if (tag === 'patch-dev') {
+    svgUrl += tag
+  } else {
+    svgUrl += 'dev'
   }
 
   const res = await fetch(svgUrl).then((r) => r.text())
