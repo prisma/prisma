@@ -11,8 +11,11 @@ const credentials = uriToCredentials(connectionString)
 integrationTest<mariadb.Connection>({
   database: {
     name: 'mysql',
-    async connect() {
-      const db = await mariadb.createConnection({
+    datasource: {
+      url: connectionString,
+    },
+    connect() {
+      return mariadb.createConnection({
         host: credentials.host,
         port: credentials.port,
         database: credentials.database,
@@ -20,20 +23,9 @@ integrationTest<mariadb.Connection>({
         password: credentials.password,
         multipleStatements: true,
       })
-      return db
     },
-    async down(db, sql) {
-      await db.query(sql)
-    },
-    async up(db, sql) {
-      await db.query(sql)
-    },
-    async close(db) {
-      await db.end()
-    },
-    datasource: {
-      url: connectionString,
-    },
+    send: (db, sql) => db.query(sql),
+    close: (db) => db.end(),
   },
   scenarios: [
     {

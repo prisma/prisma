@@ -1,14 +1,17 @@
-import { Client } from 'pg'
+import * as PG from 'pg'
 import { integrationTest } from './__helpers__/integrationTest'
 
 const connectionString =
   process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/'
 
-integrationTest<Client>({
+integrationTest<PG.Client>({
   database: {
     name: 'postgresql',
+    datasource: {
+      url: connectionString,
+    },
     async connect() {
-      const db = new Client({ connectionString })
+      const db = new PG.Client({ connectionString })
       await new Promise((res, rej) =>
         db.connect((err) => (err ? rej(err) : res())),
       )
@@ -16,18 +19,8 @@ integrationTest<Client>({
       await db.query('create schema public;')
       return db
     },
-    async up(db, sql) {
-      await db.query(sql)
-    },
-    async down(db, sql) {
-      await db.query(sql)
-    },
-    async close(db) {
-      await db.end()
-    },
-    datasource: {
-      url: connectionString,
-    },
+    send: (db, sql) => db.query(sql),
+    close: (db) => db.end(),
   },
   scenarios: [
     {

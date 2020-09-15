@@ -123,10 +123,10 @@
     "ws": "7.3.1"
   },
   "scripts": {
-    "test:sqlite": "jest integrate.sqlite",
+    "test:sqlite": "jest integrate.sqlite --forceExit",
     "test:postgresql": "jest integrate.postgresql --forceExit",
     "test:mysql": "jest integrate.mysql --forceExit",
-    "test:mariadb": "./node_modules/.bin/mocha src/__tests__/integrate.mariadb.test.ts --require ts-mocha src/__tests__/integrate.mariadb.test.ts --timeout 10s",
+    "test:mariadb": "jest integrate.mariadb --forceExit",
     "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate studio && jest introspect --forceExit",
     "test": "pnpm run test:commands && pnpm run test:postgresql && jest integrate.sqlite && pnpm run test:mysql",
     "test:debug": "./node_modules/.bin/mocha --inspect-brk src/__tests__/integrate.* --require ts-mocha src/__tests__/integrate.* --timeout 10s",

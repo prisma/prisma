@@ -79,17 +79,17 @@ type Input<Client> = {
      */
     connect: (ctx: Context) => MaybePromise<Client>
     /**
-     * At the beginning of _each_ test run logic to prepare the database
+     * Execute SQL against the database.
      */
-    up: SideEffector<[client: Client, sql: string]>
+    send: SideEffector<[db: Client, sql: string]>
     /**
-     * At the end of _each_ tests run logic to bring down databases changes for test
+     * At the end of _each_ test run logic
      */
-    down: SideEffector<[client: Client, sql: string]>
+    afterEach?: SideEffector<[db: Client]>
     /**
      * At the end of _all_ tests run logic to close the database connection.
      */
-    close?: SideEffector<[client: Client]>
+    close?: SideEffector<[db: Client]>
     /**
      * Give the connection URL for the Prisma schema datasource block or provide your own custom implementation.
      *
@@ -129,6 +129,7 @@ export function integrationTest<Client>(input: Input<Client>) {
   const state: ScenarioState = {} as any
 
   beforeAll(async () => {
+    // Remove old stuff if it is still around for some reason
     fs.remove(getScenarioDir(input.database.name, ''))
     engineVersion = await (input.settings?.engineVersion
       ? input.settings.engineVersion
@@ -136,13 +137,26 @@ export function integrationTest<Client>(input: Input<Client>) {
   })
 
   afterEach(async () => {
+    const errors: any[] = []
+
     // props might be missing if test errors out before they are set.
-    if (state.db && input.database.down) {
-      await input.database.down(state.db, state.scenario.down)
+    if (state.db) {
+      await input.database
+        .send(state.db, state.scenario.down)
+        .catch((e) => errors.push(e))
+        .then(() => input.database.afterEach?.(state.db))
+        .catch((e) => errors.push(e))
+        .then(() => state.prisma?.$disconnect())
+        .catch((e) => errors.push(e))
     }
 
-    if (state.prisma) {
-      await state.prisma?.$disconnect()
+    if (errors.length) {
+      // TODO use an error aggreggator lib like "ono"
+      throw new Error(
+        `Got Errors while running scenario "afterEach" hook: \n-> ${errors.join(
+          '\n ->',
+        )}`,
+      )
     }
   })
 
@@ -178,7 +192,7 @@ export function integrationTest<Client>(input: Input<Client>) {
 
       state.db = dbClient
 
-      await input.database.up(dbClient, scenario.up)
+      await input.database.send(dbClient, scenario.up)
 
       const datasourceBlock =
         'raw' in input.database.datasource
