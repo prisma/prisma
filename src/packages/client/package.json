@@ -1,8 +1,9 @@
 {
   "name": "@prisma/client",
   "version": "2.7.0-dev.74",
-  "description": "Prisma Client is an auto-generated and type-safe query builder for Node.js & TypeScript that's tailored to your data.",
+  "description": "Prisma Client is an auto-generated and type-safe modern JavaScript/TypeScript ORM for Node.js that's tailored to your data. Supports MySQL, PostgreSQL, MariaDB, SQLite databases.",
   "keywords": [
+    "orm",
     "prisma2",
     "prisma",
     "client",
@@ -15,7 +16,6 @@
     "sqlite",
     "mariadb",
     "typescript",
-    "orm",
     "query-builder"
   ],
   "main": "index.js",
