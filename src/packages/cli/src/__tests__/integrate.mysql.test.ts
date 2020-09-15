@@ -1,142 +1,41 @@
-import { getGenerator, IntrospectionEngine } from '@prisma/sdk'
-import { join, dirname } from 'path'
-import mkdir from 'make-dir'
-import assert from 'assert'
-import pkgup from 'pkg-up'
-import rimraf from 'rimraf'
-import fs from 'fs'
-import path from 'path'
-import snapshot from 'snap-shot-it'
-import mariadb from 'mariadb'
-import { getLatestTag } from '@prisma/fetch-engine'
 import { uriToCredentials } from '@prisma/sdk'
+import assert from 'assert'
+import mariadb from 'mariadb'
+import { integrationTest } from './__helpers__/integrationTest'
 
-let connectionString =
+const connectionString =
   process.env.TEST_MYSQL_URI || 'mysql://prisma:prisma@localhost:3306/tests'
+
 const credentials = uriToCredentials(connectionString)
-process.env.SKIP_GENERATE = 'true'
 
-const pkg = pkgup.sync() || __dirname
-const tmp = join(dirname(pkg), 'tmp-mysql')
-const engine = new IntrospectionEngine()
-const latestDevPromise = getLatestTag()
-
-let db: mariadb.Connection
-before(async () => {
-  db = await mariadb.createConnection({
-    host: credentials.host,
-    port: credentials.port,
-    database: credentials.database,
-    user: credentials.user,
-    password: credentials.password,
-    multipleStatements: true,
-  })
-})
-
-beforeEach(async () => {
-  rimraf.sync(tmp)
-  await mkdir(tmp)
-})
-
-after(async () => {
-  await db.end()
-  engine.stop()
-})
-
-tests().map((t: Test) => {
-  const name = t.name
-
-  // if (!t.run) {
-  //   it.skip(name)
-  //   return
-  // }
-
-  if (t.todo) {
-    it.skip(name)
-    return
-  }
-
-  it(name, async () => {
-    try {
-      await runTest(name, t)
-    } catch (err) {
-      throw err
-    } finally {
-      await db.query(t.down)
-    }
-  }).timeout(15000)
-})
-
-async function runTest(name: string, t: Test) {
-  await db.query(t.down)
-  await db.query(t.up)
-  const schema = `
-generator client {
-  provider = "prisma-client-js"
-  output   = "${tmp}"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "${connectionString}"
-}`
-  const introspectionResult = await engine.introspect(schema)
-  const introspectionSchema = introspectionResult.datamodel
-
-  await generate(t, introspectionSchema)
-  const prismaClientPath = join(tmp, 'index.js')
-  const prismaClientDeclarationPath = join(tmp, 'index.d.ts')
-
-  assert(fs.existsSync(prismaClientPath))
-  assert(fs.existsSync(prismaClientDeclarationPath))
-
-  // clear the require cache
-  delete require.cache[prismaClientPath]
-  const { PrismaClient } = await import(prismaClientPath)
-  const prisma = new PrismaClient()
-  await prisma.$connect()
-  try {
-    const result = await t.do(prisma)
-    await db.query(t.down)
-    assert.deepEqual(result, t.expect)
-  } catch (err) {
-    throw err
-  } finally {
-    await prisma.$disconnect()
-  }
-
-  snapshot(`${name}_datamodel`, maskSchema(introspectionSchema))
-  snapshot(`${name}_warnings`, introspectionResult.warnings)
-}
-
-async function generate(test: Test, datamodel: string) {
-  const schemaPath = path.join(tmp, 'schema.prisma')
-  fs.writeFileSync(schemaPath, datamodel)
-
-  const generator = await getGenerator({
-    schemaPath,
-    printDownloadProgress: false,
-    baseDir: tmp,
-    version: await latestDevPromise,
-  })
-
-  await generator.generate()
-
-  generator.stop()
-}
-
-type Test = {
-  todo?: boolean
-  run?: boolean
-  name: string
-  up: string
-  down: string
-  do: (client: any) => Promise<any>
-  expect: any
-}
-
-function tests(): Test[] {
-  return [
+integrationTest<mariadb.Connection>({
+  database: {
+    name: 'mysql',
+    async connect() {
+      const db = await mariadb.createConnection({
+        host: credentials.host,
+        port: credentials.port,
+        database: credentials.database,
+        user: credentials.user,
+        password: credentials.password,
+        multipleStatements: true,
+      })
+      return db
+    },
+    async down(db, sql) {
+      await db.query(sql)
+    },
+    async up(db, sql) {
+      await db.query(sql)
+    },
+    async close(db) {
+      await db.end()
+    },
+    datasource: {
+      url: connectionString,
+    },
+  },
+  scenarios: [
     {
       name: 'findOne where PK',
       up: `
@@ -2204,24 +2103,5 @@ function tests(): Test[] {
         data: ['some', 'array', 1, 2, 3, { object: 'value' }],
       },
     },
-  ]
-}
-
-export function maskSchema(schema: string): string {
-  const urlRegex = /url\s*=\s*.+/
-  const outputRegex = /output\s*=\s*.+/
-  return schema
-    .split('\n')
-    .map((line) => {
-      const urlMatch = urlRegex.exec(line)
-      if (urlMatch) {
-        return `${line.slice(0, urlMatch.index)}url = "***"`
-      }
-      const outputMatch = outputRegex.exec(line)
-      if (outputMatch) {
-        return `${line.slice(0, outputMatch.index)}output = "***"`
-      }
-      return line
-    })
-    .join('\n')
-}
+  ],
+})

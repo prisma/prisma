@@ -57,7 +57,7 @@ type Input<Client> = {
     /**
      * How long each test case should have to run to completion.
      *
-     * @default 10_000
+     * @default 15_000
      */
     timeout?: number
     /**
@@ -70,6 +70,8 @@ type Input<Client> = {
   database: {
     /**
      * Name of the database being worked with.
+     *
+     * @remarks This is used as the default provider name for the Prisma schema datasource block.
      */
     name: string
     /**
@@ -89,9 +91,23 @@ type Input<Client> = {
      */
     close?: SideEffector<[client: Client]>
     /**
-     * Construct a source snippet of the Prisma Schema file datasource for this database.
+     * Give the connection URL for the Prisma schema datasource block or provide your own custom implementation.
+     *
+     * @remarks By default uses the name config as the deafult provider name for the Prisma schema datasource block.
      */
-    datasourceBlock: (ctx: Context) => string
+    datasource:
+      | {
+          /**
+           * Construct the whole datasource block for the Prisma schema
+           */
+          raw: (ctx: Context) => string
+        }
+      | {
+          /**
+           * Supply the connection URL used in the datasource block.
+           */
+          url: string | ((ctx: Context) => string)
+        }
   }
   scenarios: Scenario[]
 }
@@ -164,23 +180,31 @@ export function integrationTest<Client>(input: Input<Client>) {
 
       await input.database.up(dbClient, scenario.up)
 
+      const datasourceBlock =
+        'raw' in input.database.datasource
+          ? input.database.datasource.raw(ctx)
+          : makeDatasourceBlock(
+              input.database.name,
+              typeof input.database.datasource.url === 'function'
+                ? input.database.datasource.url(ctx)
+                : input.database.datasource.url,
+            )
+
       const schema = `
         generator client {
           provider = "prisma-client-js"
           output   = "${ctx.fs.path()}"
         }
 
-        ${input.database.datasourceBlock(ctx)}
+        ${datasourceBlock}
       `
 
       const introspectionResult = await engine.introspect(schema)
-      const introspectionSchema = introspectionResult.datamodel
+      const datamodel = introspectionResult.datamodel
+      const prismaSchemaPath = ctx.fs.path('schema.prisma')
 
-      await generate(
-        ctx.fs.path('schema.prisma'),
-        introspectionSchema,
-        engineVersion,
-      )
+      await fs.writeAsync(prismaSchemaPath, datamodel)
+      await generate(prismaSchemaPath, engineVersion)
 
       const prismaClientPath = ctx.fs.path('index.js')
       const prismaClientDeclarationPath = ctx.fs.path('index.d.ts')
@@ -199,13 +223,16 @@ export function integrationTest<Client>(input: Input<Client>) {
       const result = await scenario.do(state.prisma)
 
       expect(result).toEqual(scenario.expect)
-      expect(maskSchema(introspectionSchema)).toMatchSnapshot(`datamodel`)
+      expect(maskSchema(datamodel)).toMatchSnapshot(`datamodel`)
       expect(introspectionResult.warnings).toMatchSnapshot(`warnings`)
     },
-    input.settings?.timeout ?? 10_000,
+    input.settings?.timeout ?? 15_000,
   )
 }
 
+/**
+ * Convert test scenarios into something jest.each can consume
+ */
 function prepareTestScenarios(scenarios: Scenario[]): [string, Scenario][] {
   const onlys = scenarios.filter((scenario) => scenario.only)
 
@@ -222,13 +249,10 @@ function getScenarioDir(databaseName: string, scenarioName: string) {
   return Path.join(Path.dirname(pkgDir), databaseName, scenarioName)
 }
 
-async function generate(
-  schemaPath: string,
-  datamodel: string,
-  engineVersion: string,
-) {
-  await fs.writeAsync(schemaPath, datamodel)
-
+/**
+ * Run all generators the given Prisma schema
+ */
+async function generate(schemaPath: string, engineVersion: string) {
   const generator = await getGenerator({
     schemaPath,
     printDownloadProgress: false,
@@ -258,4 +282,13 @@ export function maskSchema(schema: string): string {
       return line
     })
     .join('\n')
+}
+
+function makeDatasourceBlock(providerName: string, url: string) {
+  return `
+    datasource ${providerName} {
+      provider = "${providerName}"
+      url      = "${url}"
+    }
+  `
 }

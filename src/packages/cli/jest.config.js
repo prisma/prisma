@@ -9,6 +9,7 @@ module.exports = {
     '**/src/__tests__/studio*',
     '**/src/__tests__/integrate.sqlite*',
     '**/src/__tests__/integrate.postgresql*',
+    '**/src/__tests__/integrate.mysql*',
     '**/src/__tests__/introspect*',
   ],
   // todo duplicated serializer from client package, should share

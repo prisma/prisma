@@ -5,9 +5,6 @@ const connectionString =
   process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/'
 
 integrationTest<Client>({
-  settings: {
-    timeout: 15_000,
-  },
   database: {
     name: 'postgresql',
     async connect() {
@@ -28,13 +25,8 @@ integrationTest<Client>({
     async close(db) {
       await db.end()
     },
-    datasourceBlock() {
-      return `
-        datasource postgresql {
-          provider = "postgresql"
-          url      = "${connectionString}"
-        }
-      `
+    datasource: {
+      url: connectionString,
     },
   },
   scenarios: [

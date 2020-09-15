@@ -13,13 +13,10 @@ integrationTest<any>({
     async down(client) {
       await client.close()
     },
-    datasourceBlock(ctx) {
-      return `
-        datasource sqlite {
-          provider = "sqlite"
-          url      = "file:${ctx.fs.path()}/sqlite.db"
-        }
-      `
+    datasource: {
+      url(ctx) {
+        return `file:${ctx.fs.path()}/sqlite.db`
+      },
     },
   },
   scenarios: [
