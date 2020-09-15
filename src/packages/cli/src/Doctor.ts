@@ -77,7 +77,12 @@ export class Doctor implements Command {
     }
 
     console.log(
-      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`),
+      chalk.dim(
+        `Prisma Schema loaded from ./${path.relative(
+          process.cwd(),
+          schemaPath,
+        )}`,
+      ),
     )
 
     const schema = await readFile(schemaPath, 'utf-8')

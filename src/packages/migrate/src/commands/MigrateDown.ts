@@ -109,7 +109,12 @@ export class MigrateDown implements Command {
     }
 
     console.log(
-      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`),
+      chalk.dim(
+        `Prisma Schema loaded from ./${path.relative(
+          process.cwd(),
+          schemaPath,
+        )}`,
+      ),
     )
 
     await ensureDatabaseExists('unapply', undefined, schemaPath)

@@ -137,7 +137,12 @@ If you do not have a Prisma Schema file yet, you can ignore this message.`)
     }
 
     console.log(
-      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`),
+      chalk.dim(
+        `Prisma Schema loaded from ./${path.relative(
+          process.cwd(),
+          schemaPath,
+        )}`,
+      ),
     )
 
     let isJSClient

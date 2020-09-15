@@ -102,7 +102,12 @@ export class MigrateSave implements Command {
     }
 
     console.log(
-      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`),
+      chalk.dim(
+        `Prisma Schema loaded from ./${path.relative(
+          process.cwd(),
+          schemaPath,
+        )}`,
+      ),
     )
 
     await ensureDatabaseExists('create', args['--create-db'], schemaPath)

@@ -5,7 +5,7 @@ import {
   formatSchema,
   getDMMF,
   getSchemaPath,
-  HelpError
+  HelpError,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -68,7 +68,12 @@ export class Format implements Command {
     }
 
     console.log(
-      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`),
+      chalk.dim(
+        `Prisma Schema loaded from ./${path.relative(
+          process.cwd(),
+          schemaPath,
+        )}`,
+      ),
     )
 
     const schema = fs.readFileSync(schemaPath, 'utf-8')

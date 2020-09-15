@@ -1,5 +1,13 @@
 import { getPlatform } from '@prisma/get-platform'
-import { arg, Command, format, getSchemaPath, HelpError, isError, ProviderAliases } from '@prisma/sdk'
+import {
+  arg,
+  Command,
+  format,
+  getSchemaPath,
+  HelpError,
+  isError,
+  ProviderAliases,
+} from '@prisma/sdk'
 import StudioServer from '@prisma/studio-server'
 import chalk from 'chalk'
 import getPort from 'get-port'
@@ -89,7 +97,14 @@ export class Studio implements Command {
       throw new Error(`Could not find ${args['--schema'] || 'schema.prisma'}`)
     }
 
-    chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`)
+    console.log(
+      chalk.dim(
+        `Prisma Schema loaded from ./${path.relative(
+          process.cwd(),
+          schemaPath,
+        )}`,
+      ),
+    )
 
     const port =
       args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))

@@ -119,7 +119,14 @@ export class Introspect implements Command {
     let schemaPath = await getSchemaPath(args['--schema'])
 
     if (schemaPath) {
-      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`)
+      console.log(
+        chalk.dim(
+          `Prisma Schema loaded from ./${path.relative(
+            process.cwd(),
+            schemaPath,
+          )}`,
+        ),
+      )
     }
 
     if (!url && !schemaPath) {

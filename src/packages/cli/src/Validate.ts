@@ -1,4 +1,12 @@
-import { arg, Command, format, getConfig, getDMMF, getSchemaPath, HelpError } from '@prisma/sdk'
+import {
+  arg,
+  Command,
+  format,
+  getConfig,
+  getDMMF,
+  getSchemaPath,
+  HelpError,
+} from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
@@ -57,7 +65,12 @@ export class Validate implements Command {
     }
 
     console.log(
-      chalk.dim(`Prisma Schema loaded from ${path.relative('.', schemaPath)}`),
+      chalk.dim(
+        `Prisma Schema loaded from ./${path.relative(
+          process.cwd(),
+          schemaPath,
+        )}`,
+      ),
     )
 
     const schema = fs.readFileSync(schemaPath, 'utf-8')
