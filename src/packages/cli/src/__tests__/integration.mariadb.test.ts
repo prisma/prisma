@@ -10,9 +10,10 @@ const credentials = uriToCredentials(connectionString)
 
 integrationTest<mariadb.Connection>({
   database: {
-    name: 'mysql',
+    name: 'mariadb',
     datasource: {
       url: connectionString,
+      provider: 'mysql',
     },
     connect() {
       return mariadb.createConnection({

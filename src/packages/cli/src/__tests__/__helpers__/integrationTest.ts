@@ -17,6 +17,9 @@ type SideEffector<Args extends Array<any>> = (
   ...args: Args
 ) => MaybePromise<any>
 
+/**
+ * Configuration for an integration test.
+ */
 type Scenario = {
   /**
    * Only run this test case (and any others with only set).
@@ -33,6 +36,9 @@ type Scenario = {
   up: string
   down: string
   do: (client: any) => Promise<any>
+  /**
+   * Value that the "do" operation should result in.
+   */
   expect: any
 }
 
@@ -92,8 +98,6 @@ type Input<Client> = {
     close?: SideEffector<[db: Client]>
     /**
      * Give the connection URL for the Prisma schema datasource block or provide your own custom implementation.
-     *
-     * @remarks By default uses the name config as the deafult provider name for the Prisma schema datasource block.
      */
     datasource:
       | {
@@ -107,6 +111,12 @@ type Input<Client> = {
            * Supply the connection URL used in the datasource block.
            */
           url: string | ((ctx: Context) => string)
+          /**
+           * Supply the provider name used in the datasource block.
+           *
+           * @dynamicDefault The value passed to database.name
+           */
+          provider?: string
         }
   }
   scenarios: Scenario[]
@@ -198,7 +208,7 @@ export function integrationTest<Client>(input: Input<Client>) {
         'raw' in input.database.datasource
           ? input.database.datasource.raw(ctx)
           : makeDatasourceBlock(
-              input.database.name,
+              input.database.datasource.provider ?? input.database.name,
               typeof input.database.datasource.url === 'function'
                 ? input.database.datasource.url(ctx)
                 : input.database.datasource.url,
