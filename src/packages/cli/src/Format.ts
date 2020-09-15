@@ -1,5 +1,6 @@
 import {
-  arg, Command,
+  arg,
+  Command,
   format,
   formatSchema,
   getDMMF,
