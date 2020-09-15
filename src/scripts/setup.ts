@@ -65,7 +65,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     await run(
       '.',
       `pnpm i --no-prefer-frozen-lockfile -r --ignore-scripts --reporter=silent`,
-    ).catch((e) => { })
+    ).catch((e) => {})
   }
 
   debug(`Building packages`)
@@ -81,6 +81,11 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
         // we want to build all in build-only to see all errors at once
         if (buildOnly) {
           runPromise.catch(console.error)
+
+          // for sqlite3 native bindings, they need a rebuild after an update
+          if (['@prisma/migrate', '@prisma/cli'].includes(pkgName)) {
+            run(pkgDir, 'pnpm rebuild')
+          }
         }
 
         await runPromise
