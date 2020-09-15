@@ -5,6 +5,8 @@ import { FSJetpack } from 'fs-jetpack/types'
 import * as Path from 'path'
 import pkgup from 'pkg-up'
 
+process.setMaxListeners(100)
+
 /**
  * A potentially async value
  */
