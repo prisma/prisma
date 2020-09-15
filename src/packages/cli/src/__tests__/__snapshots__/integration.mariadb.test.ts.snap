@@ -11,46 +11,13 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model migrate {
   version Int @id
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`create bigint data: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`create bigint data: warnings 1`] = `Array []`;
 
 exports[`create with data: datamodel 1`] = `
 generator client {
@@ -63,47 +30,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`create with data: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`create with data: warnings 1`] = `Array []`;
 
 exports[`create with empty data and SQL default: datamodel 1`] = `
 generator client {
@@ -116,47 +50,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id   Int    @default(autoincrement()) @id
   name String @default("alice")
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`create with empty data and SQL default: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`create with empty data and SQL default: warnings 1`] = `Array []`;
 
 exports[`delete where composite PK: datamodel 1`] = `
 generator client {
@@ -169,13 +70,6 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model variables {
   name  String
   key   String
@@ -185,35 +79,9 @@ model variables {
   @@id([name, key])
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`delete where composite PK: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`delete where composite PK: warnings 1`] = `Array []`;
 
 exports[`delete where composite unique: datamodel 1`] = `
 generator client {
@@ -226,13 +94,6 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model users {
   id    Int    @default(autoincrement()) @id
   email String
@@ -241,35 +102,9 @@ model users {
   @@unique([email, name], name: "users_email_name_key")
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`delete where composite unique: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`delete where composite unique: warnings 1`] = `Array []`;
 
 exports[`deleteMany where enum - check count: datamodel 1`] = `
 generator client {
@@ -282,26 +117,10 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id        Int             @default(autoincrement()) @id
   title     String
   published posts_published @default(DRAFT)
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
 }
 
 enum posts_published {
@@ -311,24 +130,7 @@ enum posts_published {
 
 `;
 
-exports[`deleteMany where enum - check count: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`deleteMany where enum - check count: warnings 1`] = `Array []`;
 
 exports[`deleteMany where enum - check findMany: datamodel 1`] = `
 generator client {
@@ -341,26 +143,10 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id        Int             @default(autoincrement()) @id
   title     String
   published posts_published @default(DRAFT)
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
 }
 
 enum posts_published {
@@ -370,24 +156,7 @@ enum posts_published {
 
 `;
 
-exports[`deleteMany where enum - check findMany: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`deleteMany where enum - check findMany: warnings 1`] = `Array []`;
 
 exports[`findMany - default enum: datamodel 1`] = `
 generator client {
@@ -400,26 +169,10 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id        Int             @default(autoincrement()) @id
   title     String
   published posts_published @default(DRAFT)
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
 }
 
 enum posts_published {
@@ -429,24 +182,7 @@ enum posts_published {
 
 `;
 
-exports[`findMany - default enum: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany - default enum: warnings 1`] = `Array []`;
 
 exports[`findMany - email text: datamodel 1`] = `
 generator client {
@@ -459,47 +195,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model users {
   id    Int     @default(autoincrement()) @id
   email String?
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany - email text: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany - email text: warnings 1`] = `Array []`;
 
 exports[`findMany - email varchar(50) not null unique: datamodel 1`] = `
 generator client {
@@ -512,47 +215,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model users {
   id    Int    @default(autoincrement()) @id
   email String @unique
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany - email varchar(50) not null unique: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany - email varchar(50) not null unique: warnings 1`] = `Array []`;
 
 exports[`findMany on column_name_that_becomes_empty_string: datamodel 1`] = `
 generator client {
@@ -571,13 +241,6 @@ model column_name_that_becomes_empty_string {
   // 12345 Int? @map("12345")
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model invalid_enum_value_name {
   field1       Int                                   @default(autoincrement()) @id
   here_be_enum invalid_enum_value_name_here_be_enum?
@@ -593,15 +256,6 @@ model unsupported_type {
   field1         Int     @default(autoincrement()) @id
   // This type is currently not supported.
   // unsupported binary?
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
 }
 
 enum invalid_enum_value_name_here_be_enum {
@@ -648,14 +302,6 @@ Array [
   Object {
     affected: Array [
       Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-      Object {
         enm: invalid_enum_value_name_here_be_enum,
         value: 123,
       },
@@ -681,48 +327,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id        Int     @default(autoincrement()) @id
   title     String
   published Boolean @default(false)
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany orderBy asc: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany orderBy asc: warnings 1`] = `Array []`;
 
 exports[`findMany orderBy desc: datamodel 1`] = `
 generator client {
@@ -735,48 +348,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id        Int     @default(autoincrement()) @id
   title     String
   published Boolean @default(false)
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany orderBy desc: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany orderBy desc: warnings 1`] = `Array []`;
 
 exports[`findMany where - case insensitive field: datamodel 1`] = `
 generator client {
@@ -789,47 +369,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model users {
   id    Int    @default(autoincrement()) @id
   email String @unique
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where - case insensitive field: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where - case insensitive field: warnings 1`] = `Array []`;
 
 exports[`findMany where OR[contains, contains] : datamodel 1`] = `
 generator client {
@@ -842,48 +389,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id        Int     @default(autoincrement()) @id
   title     String
   published Boolean @default(false)
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where OR[contains, contains] : warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where OR[contains, contains] : warnings 1`] = `Array []`;
 
 exports[`findMany where contains and boolean: datamodel 1`] = `
 generator client {
@@ -896,48 +410,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id        Int     @default(autoincrement()) @id
   title     String
   published Boolean @default(false)
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where contains and boolean: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where contains and boolean: warnings 1`] = `Array []`;
 
 exports[`findMany where contains: datamodel 1`] = `
 generator client {
@@ -956,42 +437,9 @@ model crons {
   frequency String?
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where contains: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where contains: warnings 1`] = `Array []`;
 
 exports[`findMany where datetime exact: datamodel 1`] = `
 generator client {
@@ -1009,42 +457,9 @@ model events {
   time DateTime?
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where datetime exact: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where datetime exact: warnings 1`] = `Array []`;
 
 exports[`findMany where datetime gt: datamodel 1`] = `
 generator client {
@@ -1062,42 +477,9 @@ model events {
   time DateTime?
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where datetime gt: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where datetime gt: warnings 1`] = `Array []`;
 
 exports[`findMany where datetime gte: datamodel 1`] = `
 generator client {
@@ -1115,42 +497,9 @@ model events {
   time DateTime?
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where datetime gte: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where datetime gte: warnings 1`] = `Array []`;
 
 exports[`findMany where datetime lt: datamodel 1`] = `
 generator client {
@@ -1168,42 +517,9 @@ model events {
   time DateTime?
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where datetime lt: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where datetime lt: warnings 1`] = `Array []`;
 
 exports[`findMany where datetime lte - check instanceof Date: datamodel 1`] = `
 generator client {
@@ -1216,48 +532,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id         Int      @default(autoincrement()) @id
   title      String
   created_at DateTime @default(now())
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where datetime lte - check instanceof Date: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where datetime lte - check instanceof Date: warnings 1`] = `Array []`;
 
 exports[`findMany where datetime lte: datamodel 1`] = `
 generator client {
@@ -1275,42 +558,9 @@ model events {
   time DateTime?
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where datetime lte: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where datetime lte: warnings 1`] = `Array []`;
 
 exports[`findMany where datetime not: datamodel 1`] = `
 generator client {
@@ -1328,42 +578,9 @@ model events {
   time DateTime?
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where datetime not: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where datetime not: warnings 1`] = `Array []`;
 
 exports[`findMany where decimal: datamodel 1`] = `
 generator client {
@@ -1381,42 +598,9 @@ model exercises {
   distance Float
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where decimal: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where decimal: warnings 1`] = `Array []`;
 
 exports[`findMany where empty in[]: datamodel 1`] = `
 generator client {
@@ -1429,48 +613,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id    Int    @default(autoincrement()) @id
   token Int    @unique
   name  String
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where empty in[]: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where empty in[]: warnings 1`] = `Array []`;
 
 exports[`findMany where empty notIn[]: datamodel 1`] = `
 generator client {
@@ -1483,48 +634,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id    Int    @default(autoincrement()) @id
   token Int    @unique
   name  String
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where empty notIn[]: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where empty notIn[]: warnings 1`] = `Array []`;
 
 exports[`findMany where endsWith: datamodel 1`] = `
 generator client {
@@ -1543,42 +661,9 @@ model crons {
   frequency String?
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where endsWith: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where endsWith: warnings 1`] = `Array []`;
 
 exports[`findMany where id empty in[] and token in[]: datamodel 1`] = `
 generator client {
@@ -1591,48 +676,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id    Int    @default(autoincrement()) @id
   token Int    @unique
   name  String
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where id empty in[] and token in[]: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where id empty in[] and token in[]: warnings 1`] = `Array []`;
 
 exports[`findMany where in[integer]: datamodel 1`] = `
 generator client {
@@ -1645,48 +697,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id    Int    @default(autoincrement()) @id
   token Int    @unique
   name  String
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where in[integer]: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where in[integer]: warnings 1`] = `Array []`;
 
 exports[`findMany where in[string]: datamodel 1`] = `
 generator client {
@@ -1705,42 +724,9 @@ model crons {
   frequency String?
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where in[string]: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where in[string]: warnings 1`] = `Array []`;
 
 exports[`findMany where notIn[]: datamodel 1`] = `
 generator client {
@@ -1753,48 +739,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id    Int    @default(autoincrement()) @id
   token Int    @unique
   name  String
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where notIn[]: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where notIn[]: warnings 1`] = `Array []`;
 
 exports[`findMany where null: datamodel 1`] = `
 generator client {
@@ -1812,42 +765,9 @@ model events {
   time DateTime?
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where null: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where null: warnings 1`] = `Array []`;
 
 exports[`findMany where startsWith: datamodel 1`] = `
 generator client {
@@ -1866,42 +786,9 @@ model crons {
   frequency String?
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where startsWith: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where startsWith: warnings 1`] = `Array []`;
 
 exports[`findMany where timestamp gt than now: datamodel 1`] = `
 generator client {
@@ -1914,48 +801,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id         Int      @default(autoincrement()) @id
   title      String
   created_at DateTime @default(now())
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where timestamp gt than now: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where timestamp gt than now: warnings 1`] = `Array []`;
 
 exports[`findMany where timestamp gte than now: datamodel 1`] = `
 generator client {
@@ -1968,48 +822,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id         Int      @default(autoincrement()) @id
   title      String
   created_at DateTime @default(now())
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where timestamp gte than now: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where timestamp gte than now: warnings 1`] = `Array []`;
 
 exports[`findMany where timestamp lt than now: datamodel 1`] = `
 generator client {
@@ -2022,48 +843,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id         Int      @default(autoincrement()) @id
   title      String
   created_at DateTime @default(now())
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where timestamp lt than now: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where timestamp lt than now: warnings 1`] = `Array []`;
 
 exports[`findMany where unique: datamodel 1`] = `
 generator client {
@@ -2076,47 +864,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model users {
   id    Int    @default(autoincrement()) @id
   email String @unique
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findMany where unique: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findMany where unique: warnings 1`] = `Array []`;
 
 exports[`findOne where PK with include: datamodel 1`] = `
 generator client {
@@ -2127,13 +882,6 @@ generator client {
 datasource mysql {
   provider = "mysql"
   url = "***"
-}
-
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
 }
 
 model posts {
@@ -2151,35 +899,9 @@ model users {
   posts posts[]
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findOne where PK with include: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findOne where PK with include: warnings 1`] = `Array []`;
 
 exports[`findOne where PK with select: datamodel 1`] = `
 generator client {
@@ -2192,48 +914,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id    Int    @id
   name  String @unique
   email String @unique
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findOne where PK with select: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findOne where PK with select: warnings 1`] = `Array []`;
 
 exports[`findOne where PK: datamodel 1`] = `
 generator client {
@@ -2246,47 +935,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id   Int    @id
   name String @unique
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findOne where PK: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findOne where PK: warnings 1`] = `Array []`;
 
 exports[`findOne where composite PK with foreign key: datamodel 1`] = `
 generator client {
@@ -2316,42 +972,9 @@ model b {
   @@index([one, two], name: "one")
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findOne where composite PK with foreign key: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findOne where composite PK with foreign key: warnings 1`] = `Array []`;
 
 exports[`findOne where composite PK: datamodel 1`] = `
 generator client {
@@ -2364,13 +987,6 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model variables {
   name  String
   key   String
@@ -2380,35 +996,9 @@ model variables {
   @@id([name, key])
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findOne where composite PK: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findOne where composite PK: warnings 1`] = `Array []`;
 
 exports[`findOne where composite unique: datamodel 1`] = `
 generator client {
@@ -2421,13 +1011,6 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model users {
   id    Int    @default(autoincrement()) @id
   email String
@@ -2436,35 +1019,9 @@ model users {
   @@unique([email, name], name: "users_email_name_key")
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findOne where composite unique: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findOne where composite unique: warnings 1`] = `Array []`;
 
 exports[`findOne where decimal: datamodel 1`] = `
 generator client {
@@ -2482,42 +1039,9 @@ model exercises {
   distance Float @unique
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findOne where decimal: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findOne where decimal: warnings 1`] = `Array []`;
 
 exports[`findOne where unique composite (PK is a composite): datamodel 1`] = `
 generator client {
@@ -2530,13 +1054,6 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model variables {
   name  String
   key   String
@@ -2547,35 +1064,9 @@ model variables {
   @@unique([value, email], name: "variables_value_email_key")
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findOne where unique composite (PK is a composite): warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findOne where unique composite (PK is a composite): warnings 1`] = `Array []`;
 
 exports[`findOne where unique composite: datamodel 1`] = `
 generator client {
@@ -2588,13 +1079,6 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model variables {
   id    Int    @default(autoincrement()) @id
   name  String
@@ -2605,35 +1089,9 @@ model variables {
   @@unique([name, key], name: "variables_name_key_key")
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findOne where unique composite: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findOne where unique composite: warnings 1`] = `Array []`;
 
 exports[`findOne where unique with foreign key and unpack: datamodel 1`] = `
 generator client {
@@ -2644,13 +1102,6 @@ generator client {
 datasource mysql {
   provider = "mysql"
   url = "***"
-}
-
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
 }
 
 model posts {
@@ -2668,35 +1119,9 @@ model users {
   posts posts[]
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findOne where unique with foreign key and unpack: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findOne where unique with foreign key and unpack: warnings 1`] = `Array []`;
 
 exports[`findOne where unique: datamodel 1`] = `
 generator client {
@@ -2709,47 +1134,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model users {
   id    Int    @default(autoincrement()) @id
   email String @unique
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`findOne where unique: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`findOne where unique: warnings 1`] = `Array []`;
 
 exports[`update where composite PK: datamodel 1`] = `
 generator client {
@@ -2762,13 +1154,6 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model variables {
   name  String
   key   String
@@ -2778,35 +1163,9 @@ model variables {
   @@id([name, key])
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`update where composite PK: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`update where composite PK: warnings 1`] = `Array []`;
 
 exports[`update where composite unique: datamodel 1`] = `
 generator client {
@@ -2819,13 +1178,6 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model users {
   id    Int    @default(autoincrement()) @id
   email String
@@ -2834,35 +1186,9 @@ model users {
   @@unique([email, name], name: "users_email_name_key")
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`update where composite unique: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`update where composite unique: warnings 1`] = `Array []`;
 
 exports[`update where integer data: datamodel 1`] = `
 generator client {
@@ -2875,47 +1201,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id    Int @default(autoincrement()) @id
   token Int @unique
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`update where integer data: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`update where integer data: warnings 1`] = `Array []`;
 
 exports[`update where with boolean data and select: datamodel 1`] = `
 generator client {
@@ -2928,48 +1221,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id     Int     @default(autoincrement()) @id
   name   String  @unique
   active Boolean @default(true)
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`update where with boolean data and select: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`update where with boolean data and select: warnings 1`] = `Array []`;
 
 exports[`update where with boolean data: datamodel 1`] = `
 generator client {
@@ -2982,48 +1242,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id     Int     @default(autoincrement()) @id
   name   String  @unique
   active Boolean @default(true)
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`update where with boolean data: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`update where with boolean data: warnings 1`] = `Array []`;
 
 exports[`update where with numeric data: datamodel 1`] = `
 generator client {
@@ -3036,47 +1263,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`update where with numeric data: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`update where with numeric data: warnings 1`] = `Array []`;
 
 exports[`update where with string data: datamodel 1`] = `
 generator client {
@@ -3089,47 +1283,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id   Int    @default(autoincrement()) @id
   name String @unique
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`update where with string data: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`update where with string data: warnings 1`] = `Array []`;
 
 exports[`update with data - not null enum - check findMany: datamodel 1`] = `
 generator client {
@@ -3142,26 +1303,10 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id        Int             @default(autoincrement()) @id
   title     String
   published posts_published @default(DRAFT)
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
 }
 
 enum posts_published {
@@ -3171,24 +1316,7 @@ enum posts_published {
 
 `;
 
-exports[`update with data - not null enum - check findMany: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`update with data - not null enum - check findMany: warnings 1`] = `Array []`;
 
 exports[`update with data - not null enum: datamodel 1`] = `
 generator client {
@@ -3201,26 +1329,10 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id        Int             @default(autoincrement()) @id
   title     String
   published posts_published @default(DRAFT)
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
 }
 
 enum posts_published {
@@ -3230,24 +1342,7 @@ enum posts_published {
 
 `;
 
-exports[`update with data - not null enum: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`update with data - not null enum: warnings 1`] = `Array []`;
 
 exports[`updateMany where null - check findMany: datamodel 1`] = `
 generator client {
@@ -3260,47 +1355,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id   Int     @default(autoincrement()) @id
   name String?
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`updateMany where null - check findMany: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`updateMany where null - check findMany: warnings 1`] = `Array []`;
 
 exports[`updateMany where with string data - check findMany: datamodel 1`] = `
 generator client {
@@ -3313,47 +1375,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id   Int    @default(autoincrement()) @id
   name String
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`updateMany where with string data - check findMany: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`updateMany where with string data - check findMany: warnings 1`] = `Array []`;
 
 exports[`updateMany where with string data - check returned count: datamodel 1`] = `
 generator client {
@@ -3366,47 +1395,14 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model teams {
   id   Int    @default(autoincrement()) @id
   name String
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`updateMany where with string data - check returned count: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`updateMany where with string data - check returned count: warnings 1`] = `Array []`;
 
 exports[`updateMany with data - not null enum - check count: datamodel 1`] = `
 generator client {
@@ -3419,26 +1415,10 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id        Int             @default(autoincrement()) @id
   title     String
   published posts_published @default(DRAFT)
-}
-
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
 }
 
 enum posts_published {
@@ -3448,24 +1428,7 @@ enum posts_published {
 
 `;
 
-exports[`updateMany with data - not null enum - check count: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`updateMany with data - not null enum - check count: warnings 1`] = `Array []`;
 
 exports[`upsert (create): datamodel 1`] = `
 generator client {
@@ -3478,48 +1441,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id        Int     @default(autoincrement()) @id
   title     String
   published Boolean @default(false)
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`upsert (create): warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`upsert (create): warnings 1`] = `Array []`;
 
 exports[`upsert (update): datamodel 1`] = `
 generator client {
@@ -3532,48 +1462,15 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model posts {
   id        Int     @default(autoincrement()) @id
   title     String
   published Boolean @default(false)
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`upsert (update): warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`upsert (update): warnings 1`] = `Array []`;
 
 exports[`upsert where composite PK - create: datamodel 1`] = `
 generator client {
@@ -3586,13 +1483,6 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model variables {
   name  String
   key   String
@@ -3602,35 +1492,9 @@ model variables {
   @@id([name, key])
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`upsert where composite PK - create: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`upsert where composite PK - create: warnings 1`] = `Array []`;
 
 exports[`upsert where composite PK - update: datamodel 1`] = `
 generator client {
@@ -3643,13 +1507,6 @@ datasource mysql {
   url = "***"
 }
 
-model inva_lid_enum_value_name {
-  field1       Int                                    @default(autoincrement()) @id
-  here_be_enum inva_lid_enum_value_name_here_be_enum?
-
-  @@map("inva lid_enum_value_name")
-}
-
 model variables {
   name  String
   key   String
@@ -3659,32 +1516,6 @@ model variables {
   @@id([name, key])
 }
 
-enum inva_lid_enum_value_name_here_be_enum {
-  Y
-  N
-  // 123 @map("123")
-  // $§! @map("$§!")
-
-   @@map("inva lid_enum_value_name_here_be_enum")
-}
-
 `;
 
-exports[`upsert where composite PK - update: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: 123,
-      },
-      Object {
-        enm: inva_lid_enum_value_name_here_be_enum,
-        value: $§!,
-      },
-    ],
-    code: 4,
-    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
-  },
-]
-`;
+exports[`upsert where composite PK - update: warnings 1`] = `Array []`;
