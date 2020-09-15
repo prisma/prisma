@@ -2,6 +2,7 @@
 
 exports[`introspect basic introspection 1`] = `
 Array [
+  "[2mPrisma Schema loaded from ./schema.prisma[22m",
   "generator client {
   provider = \\"prisma-client-js\\"
 }
@@ -44,6 +45,7 @@ model User {
 
 exports[`introspect basic introspection with --url 1`] = `
 Array [
+  "[2mPrisma Schema loaded from ./schema.prisma[22m",
   "generator client {
   provider = \\"prisma-client-js\\"
 }
@@ -86,6 +88,7 @@ model User {
 
 exports[`introspect introspection --force 1`] = `
 Array [
+  "[2mPrisma Schema loaded from ./schema.prisma[22m",
   "generator client {
   provider = \\"prisma-client-js\\"
 }
