@@ -66,19 +66,19 @@ export class Doctor implements Command {
 
     if (!schemaPath) {
       throw new Error(
-        `Either provide ${chalk.greenBright('--schema')} ${chalk.bold(
-          'or',
-        )} configure a path in your package.json in a \`prisma.schema\` field ${chalk.bold(
-          'or',
-        )} make sure that you are in a folder with a ${chalk.greenBright(
+        `Could not find a ${chalk.bold(
           'schema.prisma',
-        )} file.`,
+        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
+          '--schema',
+        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
+          './prisma/schema.prisma',
+        )} https://pris.ly/d/prisma-schema-location`,
       )
     }
 
     console.log(
       chalk.dim(
-        `Prisma Schema loaded from ./${path.relative(
+        `Prisma Schema loaded from ${path.relative(
           process.cwd(),
           schemaPath,
         )}`,
@@ -127,7 +127,7 @@ export class Doctor implements Command {
     const getFieldName = (f: DMMF.Field) =>
       f.dbNames && f.dbNames.length > 0 ? f.dbNames[0] : f.name
 
-    let messages: string[] = []
+    const messages: string[] = []
 
     for (const { localModel, remoteModel } of modelPairs) {
       let missingModel = false

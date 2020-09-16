@@ -101,12 +101,20 @@ export class MigrateUp implements Command {
     const schemaPath = await getSchemaPath(args['--schema'])
 
     if (!schemaPath) {
-      throw new Error(`Could not find ${args['--schema'] || 'schema.prisma'}`)
+      throw new Error(
+        `Could not find a ${chalk.bold(
+          'schema.prisma',
+        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
+          '--schema',
+        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
+          './prisma/schema.prisma',
+        )} https://pris.ly/d/prisma-schema-location`,
+      )
     }
 
     console.log(
       chalk.dim(
-        `Prisma Schema loaded from ./${path.relative(
+        `Prisma Schema loaded from ${path.relative(
           process.cwd(),
           schemaPath,
         )}`,

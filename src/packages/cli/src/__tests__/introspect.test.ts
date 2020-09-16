@@ -15,7 +15,7 @@ it('should succeed when schema and db do match', async () => {
       .join('\n')
       .replace(/\d{2,3}ms/, 'XXms'),
   ).toMatchInlineSnapshot(`
-    Prisma Schema loaded from ./schema.prisma
+    Prisma Schema loaded from schema.prisma
 
     Introspecting based on datasource defined in schema.prisma …
 
@@ -38,7 +38,7 @@ it('should succeed when schema and db do match using --url', async () => {
       .join('\n')
       .replace(/\d{2,3}ms/, 'XXms'),
   ).toMatchInlineSnapshot(`
-    Prisma Schema loaded from ./schema.prisma
+    Prisma Schema loaded from schema.prisma
 
     Introspecting …
 
@@ -62,7 +62,7 @@ it('should succeed and keep changes to valid schema and output warnings', async 
       .join('\n')
       .replace(/\d{2,3}ms/, 'in XXms'),
   ).toMatchInlineSnapshot(`
-    Prisma Schema loaded from ./prisma/reintrospection.prisma
+    Prisma Schema loaded from prisma/reintrospection.prisma
 
     Introspecting based on datasource defined in prisma/reintrospection.prisma …
 
@@ -129,7 +129,7 @@ it('should succeed when schema and db do not match', async () => {
       .join('\n')
       .replace(/\d{2,3}ms/, 'in XXms'),
   ).toMatchInlineSnapshot(`
-    Prisma Schema loaded from ./schema.prisma
+    Prisma Schema loaded from schema.prisma
 
     Introspecting based on datasource defined in schema.prisma …
 
@@ -212,7 +212,7 @@ it('should succeed when schema is invalid and using --force', async () => {
       .join('\n')
       .replace(/\d{2,3}ms/, 'in XXms'),
   ).toMatchInlineSnapshot(`
-    Prisma Schema loaded from ./prisma/invalid.prisma
+    Prisma Schema loaded from prisma/invalid.prisma
 
     Introspecting based on datasource defined in prisma/invalid.prisma …
 

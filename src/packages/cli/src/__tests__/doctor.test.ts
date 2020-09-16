@@ -23,9 +23,10 @@ it('should fail when db is missing', async () => {
 
 it('should fail when prisma schema is missing', async () => {
   const result = Doctor.new().parse([])
-  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-    `Either provide --schema or configure a path in your package.json in a \`prisma.schema\` field or make sure that you are in a folder with a schema.prisma file.`,
-  )
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+          Could not find a schema.prisma file that is required for this command.
+          You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+        `)
 })
 
 it('should fail when db is empty', async () => {

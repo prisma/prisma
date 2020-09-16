@@ -113,8 +113,8 @@ it('reads schema path from the nearest package.json and throws if path does not 
 
   expect(res).toMatchInlineSnapshot(`
     Object {
-      "async": [Error: Provided schema path at ./wrong-path from ./package.json doesn't exist.],
-      "sync": [Error: Provided schema path at ./wrong-path from ./package.json doesn't exist.],
+      "async": [Error: Provided schema path at \`wrong-path\` from \`package.json\` doesn't exist.],
+      "sync": [Error: Provided schema path at \`wrong-path\` from \`package.json\` doesn't exist.],
     }
   `)
 })
@@ -124,8 +124,8 @@ it('reads schema path from the nearest package.json and throws if path is not of
 
   expect(res).toMatchInlineSnapshot(`
     Object {
-      "async": [Error: Provided schema path configuration \`123\` at ./package.json must be of type string],
-      "sync": [Error: Provided schema path configuration \`123\` at ./package.json must be of type string],
+      "async": [Error: Provided schema path configuration \`123\` at \`package.json\` must be of type string],
+      "sync": [Error: Provided schema path configuration \`123\` at \`package.json\` must be of type string],
     }
   `)
 })
