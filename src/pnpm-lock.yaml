@@ -60,7 +60,6 @@ importers:
       '@zeit/ncc': 0.22.3
       checkpoint-client: 1.1.11
       dotenv: 8.2.0
-      dotenv-expand: 5.1.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0_eslint@7.8.1
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.8.1
@@ -123,7 +122,6 @@ importers:
       '@zeit/ncc': 0.22.3
       checkpoint-client: 1.1.11
       dotenv: 8.2.0
-      dotenv-expand: 5.1.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -188,7 +186,6 @@ importers:
       chalk: 4.1.0
       del: 5.1.0
       dotenv: 8.2.0
-      dotenv-expand: 5.1.0
       escape-string-regexp: 4.0.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0_eslint@7.8.1
@@ -255,7 +252,6 @@ importers:
       chalk: 4.1.0
       del: 5.1.0
       dotenv: 8.2.0
-      dotenv-expand: 5.1.0
       escape-string-regexp: ^4.0.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0
@@ -792,6 +788,7 @@ importers:
       chalk: 4.1.0
       checkpoint-client: 1.1.11
       cli-truncate: 2.1.0
+      dotenv: 8.2.0
       execa: 4.0.2
       global-dirs: 2.0.1
       globby: 11.0.1
@@ -847,6 +844,7 @@ importers:
       chalk: 4.1.0
       checkpoint-client: 1.1.11
       cli-truncate: ^2.1.0
+      dotenv: ^8.2.0
       eslint: 7.8.1
       eslint-config-prettier: 6.11.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -3331,12 +3329,7 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-yxJ2mFy/sibVQlu5qHjOkf9J3K6zgmCxgJ94u2EdvDOV09H+32LtRswEcUsmUWN72pVLOEnTSRaIVVzVQgS0dg==
-  /dotenv-expand/5.1.0:
-    dev: true
-    resolution:
-      integrity: sha512-YXQl1DSa4/PQyRfgrv6aoNjhasp/p4qs9FjJ4q4cQk+8m4r6k4ZSiEyytKG8f8W9gi8WsQtIObNmKd+tMzNTmA==
   /dotenv/8.2.0:
-    dev: true
     engines:
       node: '>=8'
     resolution:
