@@ -1,9 +1,9 @@
 import { getSchemaPathFromPackageJsonSync } from '@prisma/sdk'
+import { dotenvExpand } from '@prisma/sdk/dist/dotenvExpand'
 import arg from 'arg'
 import chalk from 'chalk'
 import debugLib from 'debug'
 import dotenv from 'dotenv'
-import dotenvExpand from 'dotenv-expand'
 import fs from 'fs'
 import path from 'path'
 
