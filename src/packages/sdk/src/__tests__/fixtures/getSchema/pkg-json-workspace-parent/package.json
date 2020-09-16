@@ -1,5 +1,5 @@
 {
-  "name": "yarn-workspaces-parent",
+  "name": "pkg-json-workspace-parent",
   "workspaces": ["packages/*"],
   "private": true,
   "prisma": {

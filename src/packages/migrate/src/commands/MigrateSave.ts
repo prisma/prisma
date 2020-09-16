@@ -2,11 +2,12 @@ import {
   arg,
   Command,
   format,
+  getCommandWithExecutor,
   getSchema,
   getSchemaDir,
+  getSchemaPath,
   HelpError,
   isError,
-  getCommandWithExecutor,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -15,10 +16,10 @@ import prompt from 'prompts'
 import { promisify } from 'util'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { ExperimentalFlagError } from '../utils/experimental'
 import { printFiles } from '../utils/printFiles'
 import { printMigrationId } from '../utils/printMigrationId'
 import { serializeFileMap } from '../utils/serializeFileMap'
-import { ExperimentalFlagError } from '../utils/experimental'
 
 const writeFile = promisify(fs.writeFile)
 
@@ -94,9 +95,32 @@ export class MigrateSave implements Command {
     }
 
     const preview = args['--preview'] || false
-    await ensureDatabaseExists('create', args['--create-db'], args['--schema'])
+    const schemaPath = await getSchemaPath(args['--schema'])
 
-    const migrate = new Migrate(args['--schema'])
+    if (!schemaPath) {
+      throw new Error(
+        `Could not find a ${chalk.bold(
+          'schema.prisma',
+        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
+          '--schema',
+        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
+          './prisma/schema.prisma',
+        )} https://pris.ly/d/prisma-schema-location`,
+      )
+    }
+
+    console.log(
+      chalk.dim(
+        `Prisma Schema loaded from ${path.relative(
+          process.cwd(),
+          schemaPath,
+        )}`,
+      ),
+    )
+
+    await ensureDatabaseExists('create', args['--create-db'], schemaPath)
+
+    const migrate = new Migrate(schemaPath)
 
     const migration = await migrate.createMigration('DUMMY_NAME')
 
@@ -151,8 +175,8 @@ export class MigrateSave implements Command {
       )} to create the migration\n`
     }
 
-    await getSchema(args['--schema']) // just to leverage on its error handling
-    const schemaDir = (await getSchemaDir(args['--schema']))! // TODO: Probably getSchemaDir() should return Promise<string> instead of Promise<string | null>
+    await getSchema(schemaPath) // just to leverage on its error handling
+    const schemaDir = (await getSchemaDir(schemaPath))! // TODO: Probably getSchemaDir() should return Promise<string> instead of Promise<string | null>
 
     const migrationsDir = path.join(schemaDir, 'migrations', migrationId)
     await serializeFileMap(files, migrationsDir)

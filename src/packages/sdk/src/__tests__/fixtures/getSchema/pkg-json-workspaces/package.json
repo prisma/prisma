@@ -1,5 +1,5 @@
 {
-  "name": "yarn-workspaces",
+  "name": "pkg-json-workspaces",
   "workspaces": ["packages/*"],
   "private": true
 }
