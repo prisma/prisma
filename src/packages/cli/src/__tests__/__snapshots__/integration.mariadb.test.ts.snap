@@ -1,0 +1,1521 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`create bigint data: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model migrate {
+  version Int @id
+}
+
+`;
+
+exports[`create bigint data: warnings 1`] = `Array []`;
+
+exports[`create with data: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String @unique
+}
+
+`;
+
+exports[`create with data: warnings 1`] = `Array []`;
+
+exports[`create with empty data and SQL default: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String @default("alice")
+}
+
+`;
+
+exports[`create with empty data and SQL default: warnings 1`] = `Array []`;
+
+exports[`delete where composite PK: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  name  String
+  key   String
+  value String
+  email String
+
+  @@id([name, key])
+}
+
+`;
+
+exports[`delete where composite PK: warnings 1`] = `Array []`;
+
+exports[`delete where composite unique: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model users {
+  id    Int    @default(autoincrement()) @id
+  email String
+  name  String
+
+  @@unique([email, name], name: "users_email_name_key")
+}
+
+`;
+
+exports[`delete where composite unique: warnings 1`] = `Array []`;
+
+exports[`deleteMany where enum - check count: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id        Int             @default(autoincrement()) @id
+  title     String
+  published posts_published @default(DRAFT)
+}
+
+enum posts_published {
+  DRAFT
+  PUBLISHED
+}
+
+`;
+
+exports[`deleteMany where enum - check count: warnings 1`] = `Array []`;
+
+exports[`deleteMany where enum - check findMany: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id        Int             @default(autoincrement()) @id
+  title     String
+  published posts_published @default(DRAFT)
+}
+
+enum posts_published {
+  DRAFT
+  PUBLISHED
+}
+
+`;
+
+exports[`deleteMany where enum - check findMany: warnings 1`] = `Array []`;
+
+exports[`findMany - default enum: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id        Int             @default(autoincrement()) @id
+  title     String
+  published posts_published @default(DRAFT)
+}
+
+enum posts_published {
+  DRAFT
+  PUBLISHED
+}
+
+`;
+
+exports[`findMany - default enum: warnings 1`] = `Array []`;
+
+exports[`findMany - email text: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model users {
+  id    Int     @default(autoincrement()) @id
+  email String?
+}
+
+`;
+
+exports[`findMany - email text: warnings 1`] = `Array []`;
+
+exports[`findMany - email varchar(50) not null unique: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model users {
+  id    Int    @default(autoincrement()) @id
+  email String @unique
+}
+
+`;
+
+exports[`findMany - email varchar(50) not null unique: warnings 1`] = `Array []`;
+
+exports[`findMany on column_name_that_becomes_empty_string: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model column_name_that_becomes_empty_string {
+  field1   Int  @default(autoincrement()) @id
+  // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  // 12345 Int? @map("12345")
+}
+
+model invalid_enum_value_name {
+  field1       Int                                   @default(autoincrement()) @id
+  here_be_enum invalid_enum_value_name_here_be_enum?
+}
+
+// The underlying table does not contain a valid unique identifier and can therefore currently not be handled.
+// model no_unique_identifier {
+  // field1 Int?
+  // field2 Int?
+// }
+
+model unsupported_type {
+  field1         Int     @default(autoincrement()) @id
+  // This type is currently not supported.
+  // unsupported binary?
+}
+
+enum invalid_enum_value_name_here_be_enum {
+  Y
+  N
+  // 123 @map("123")
+  // $§! @map("$§!")
+}
+
+`;
+
+exports[`findMany on column_name_that_becomes_empty_string: warnings 1`] = `
+Array [
+  Object {
+    affected: Array [
+      Object {
+        model: no_unique_identifier,
+      },
+    ],
+    code: 1,
+    message: The following models were commented out as they do not have a valid unique identifier or id. This is currently not supported by Prisma.,
+  },
+  Object {
+    affected: Array [
+      Object {
+        field: 12345,
+        model: column_name_that_becomes_empty_string,
+      },
+    ],
+    code: 2,
+    message: These fields were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
+  },
+  Object {
+    affected: Array [
+      Object {
+        field: unsupported,
+        model: unsupported_type,
+        tpe: binary,
+      },
+    ],
+    code: 3,
+    message: These fields were commented out because Prisma currently does not support their types.,
+  },
+  Object {
+    affected: Array [
+      Object {
+        enm: invalid_enum_value_name_here_be_enum,
+        value: 123,
+      },
+      Object {
+        enm: invalid_enum_value_name_here_be_enum,
+        value: $§!,
+      },
+    ],
+    code: 4,
+    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` directive.,
+  },
+]
+`;
+
+exports[`findMany orderBy asc: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id        Int     @default(autoincrement()) @id
+  title     String
+  published Boolean @default(false)
+}
+
+`;
+
+exports[`findMany orderBy asc: warnings 1`] = `Array []`;
+
+exports[`findMany orderBy desc: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id        Int     @default(autoincrement()) @id
+  title     String
+  published Boolean @default(false)
+}
+
+`;
+
+exports[`findMany orderBy desc: warnings 1`] = `Array []`;
+
+exports[`findMany where - case insensitive field: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model users {
+  id    Int    @default(autoincrement()) @id
+  email String @unique
+}
+
+`;
+
+exports[`findMany where - case insensitive field: warnings 1`] = `Array []`;
+
+exports[`findMany where OR[contains, contains] : datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id        Int     @default(autoincrement()) @id
+  title     String
+  published Boolean @default(false)
+}
+
+`;
+
+exports[`findMany where OR[contains, contains] : warnings 1`] = `Array []`;
+
+exports[`findMany where contains and boolean: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id        Int     @default(autoincrement()) @id
+  title     String
+  published Boolean @default(false)
+}
+
+`;
+
+exports[`findMany where contains and boolean: warnings 1`] = `Array []`;
+
+exports[`findMany where contains: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model crons {
+  id        Int     @default(autoincrement()) @id
+  job       String  @unique
+  frequency String?
+}
+
+`;
+
+exports[`findMany where contains: warnings 1`] = `Array []`;
+
+exports[`findMany where datetime exact: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+
+`;
+
+exports[`findMany where datetime exact: warnings 1`] = `Array []`;
+
+exports[`findMany where datetime gt: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+
+`;
+
+exports[`findMany where datetime gt: warnings 1`] = `Array []`;
+
+exports[`findMany where datetime gte: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+
+`;
+
+exports[`findMany where datetime gte: warnings 1`] = `Array []`;
+
+exports[`findMany where datetime lt: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+
+`;
+
+exports[`findMany where datetime lt: warnings 1`] = `Array []`;
+
+exports[`findMany where datetime lte - check instanceof Date: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id         Int      @default(autoincrement()) @id
+  title      String
+  created_at DateTime @default(now())
+}
+
+`;
+
+exports[`findMany where datetime lte - check instanceof Date: warnings 1`] = `Array []`;
+
+exports[`findMany where datetime lte: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+
+`;
+
+exports[`findMany where datetime lte: warnings 1`] = `Array []`;
+
+exports[`findMany where datetime not: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+
+`;
+
+exports[`findMany where datetime not: warnings 1`] = `Array []`;
+
+exports[`findMany where decimal: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model exercises {
+  id       Int   @default(autoincrement()) @id
+  distance Float
+}
+
+`;
+
+exports[`findMany where decimal: warnings 1`] = `Array []`;
+
+exports[`findMany where empty in[]: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id    Int    @default(autoincrement()) @id
+  token Int    @unique
+  name  String
+}
+
+`;
+
+exports[`findMany where empty in[]: warnings 1`] = `Array []`;
+
+exports[`findMany where empty notIn[]: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id    Int    @default(autoincrement()) @id
+  token Int    @unique
+  name  String
+}
+
+`;
+
+exports[`findMany where empty notIn[]: warnings 1`] = `Array []`;
+
+exports[`findMany where endsWith: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model crons {
+  id        Int     @default(autoincrement()) @id
+  job       String  @unique
+  frequency String?
+}
+
+`;
+
+exports[`findMany where endsWith: warnings 1`] = `Array []`;
+
+exports[`findMany where id empty in[] and token in[]: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id    Int    @default(autoincrement()) @id
+  token Int    @unique
+  name  String
+}
+
+`;
+
+exports[`findMany where id empty in[] and token in[]: warnings 1`] = `Array []`;
+
+exports[`findMany where in[integer]: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id    Int    @default(autoincrement()) @id
+  token Int    @unique
+  name  String
+}
+
+`;
+
+exports[`findMany where in[integer]: warnings 1`] = `Array []`;
+
+exports[`findMany where in[string]: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model crons {
+  id        Int     @default(autoincrement()) @id
+  job       String  @unique
+  frequency String?
+}
+
+`;
+
+exports[`findMany where in[string]: warnings 1`] = `Array []`;
+
+exports[`findMany where notIn[]: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id    Int    @default(autoincrement()) @id
+  token Int    @unique
+  name  String
+}
+
+`;
+
+exports[`findMany where notIn[]: warnings 1`] = `Array []`;
+
+exports[`findMany where null: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model events {
+  id   Int       @default(autoincrement()) @id
+  time DateTime?
+}
+
+`;
+
+exports[`findMany where null: warnings 1`] = `Array []`;
+
+exports[`findMany where startsWith: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model crons {
+  id        Int     @default(autoincrement()) @id
+  job       String  @unique
+  frequency String?
+}
+
+`;
+
+exports[`findMany where startsWith: warnings 1`] = `Array []`;
+
+exports[`findMany where timestamp gt than now: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id         Int      @default(autoincrement()) @id
+  title      String
+  created_at DateTime @default(now())
+}
+
+`;
+
+exports[`findMany where timestamp gt than now: warnings 1`] = `Array []`;
+
+exports[`findMany where timestamp gte than now: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id         Int      @default(autoincrement()) @id
+  title      String
+  created_at DateTime @default(now())
+}
+
+`;
+
+exports[`findMany where timestamp gte than now: warnings 1`] = `Array []`;
+
+exports[`findMany where timestamp lt than now: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id         Int      @default(autoincrement()) @id
+  title      String
+  created_at DateTime @default(now())
+}
+
+`;
+
+exports[`findMany where timestamp lt than now: warnings 1`] = `Array []`;
+
+exports[`findMany where unique: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model users {
+  id    Int    @default(autoincrement()) @id
+  email String @unique
+}
+
+`;
+
+exports[`findMany where unique: warnings 1`] = `Array []`;
+
+exports[`findOne where PK with include: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id      Int    @default(autoincrement()) @id
+  user_id Int
+  title   String
+  users   users  @relation(fields: [user_id], references: [id])
+
+  @@index([user_id], name: "user_id")
+}
+
+model users {
+  id    Int     @default(autoincrement()) @id
+  email String  @unique
+  posts posts[]
+}
+
+`;
+
+exports[`findOne where PK with include: warnings 1`] = `Array []`;
+
+exports[`findOne where PK with select: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id    Int    @id
+  name  String @unique
+  email String @unique
+}
+
+`;
+
+exports[`findOne where PK with select: warnings 1`] = `Array []`;
+
+exports[`findOne where PK: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @id
+  name String @unique
+}
+
+`;
+
+exports[`findOne where PK: warnings 1`] = `Array []`;
+
+exports[`findOne where composite PK with foreign key: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model a {
+  one Int
+  two Int
+  b   b[]
+
+  @@id([one, two])
+}
+
+model b {
+  id  Int @default(autoincrement()) @id
+  one Int
+  two Int
+  a   a   @relation(fields: [one, two], references: [one, two])
+
+  @@index([one, two], name: "one")
+}
+
+`;
+
+exports[`findOne where composite PK with foreign key: warnings 1`] = `Array []`;
+
+exports[`findOne where composite PK: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  name  String
+  key   String
+  value String
+  email String
+
+  @@id([name, key])
+}
+
+`;
+
+exports[`findOne where composite PK: warnings 1`] = `Array []`;
+
+exports[`findOne where composite unique: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model users {
+  id    Int    @default(autoincrement()) @id
+  email String
+  name  String
+
+  @@unique([email, name], name: "users_email_name_key")
+}
+
+`;
+
+exports[`findOne where composite unique: warnings 1`] = `Array []`;
+
+exports[`findOne where decimal: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model exercises {
+  id       Int   @default(autoincrement()) @id
+  distance Float @unique
+}
+
+`;
+
+exports[`findOne where decimal: warnings 1`] = `Array []`;
+
+exports[`findOne where unique composite (PK is a composite): datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  name  String
+  key   String
+  value String
+  email String
+
+  @@id([name, key])
+  @@unique([value, email], name: "variables_value_email_key")
+}
+
+`;
+
+exports[`findOne where unique composite (PK is a composite): warnings 1`] = `Array []`;
+
+exports[`findOne where unique composite: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  id    Int    @default(autoincrement()) @id
+  name  String
+  key   String
+  value String
+  email String
+
+  @@unique([name, key], name: "variables_name_key_key")
+}
+
+`;
+
+exports[`findOne where unique composite: warnings 1`] = `Array []`;
+
+exports[`findOne where unique with foreign key and unpack: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id      Int    @default(autoincrement()) @id
+  user_id Int
+  title   String
+  users   users  @relation(fields: [user_id], references: [id])
+
+  @@index([user_id], name: "user_id")
+}
+
+model users {
+  id    Int     @default(autoincrement()) @id
+  email String  @unique
+  posts posts[]
+}
+
+`;
+
+exports[`findOne where unique with foreign key and unpack: warnings 1`] = `Array []`;
+
+exports[`findOne where unique: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model users {
+  id    Int    @default(autoincrement()) @id
+  email String @unique
+}
+
+`;
+
+exports[`findOne where unique: warnings 1`] = `Array []`;
+
+exports[`update where composite PK: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  name  String
+  key   String
+  value String
+  email String
+
+  @@id([name, key])
+}
+
+`;
+
+exports[`update where composite PK: warnings 1`] = `Array []`;
+
+exports[`update where composite unique: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model users {
+  id    Int    @default(autoincrement()) @id
+  email String
+  name  String
+
+  @@unique([email, name], name: "users_email_name_key")
+}
+
+`;
+
+exports[`update where composite unique: warnings 1`] = `Array []`;
+
+exports[`update where integer data: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id    Int @default(autoincrement()) @id
+  token Int @unique
+}
+
+`;
+
+exports[`update where integer data: warnings 1`] = `Array []`;
+
+exports[`update where with boolean data and select: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id     Int     @default(autoincrement()) @id
+  name   String  @unique
+  active Boolean @default(true)
+}
+
+`;
+
+exports[`update where with boolean data and select: warnings 1`] = `Array []`;
+
+exports[`update where with boolean data: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id     Int     @default(autoincrement()) @id
+  name   String  @unique
+  active Boolean @default(true)
+}
+
+`;
+
+exports[`update where with boolean data: warnings 1`] = `Array []`;
+
+exports[`update where with numeric data: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String @unique
+}
+
+`;
+
+exports[`update where with numeric data: warnings 1`] = `Array []`;
+
+exports[`update where with string data: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String @unique
+}
+
+`;
+
+exports[`update where with string data: warnings 1`] = `Array []`;
+
+exports[`update with data - not null enum - check findMany: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id        Int             @default(autoincrement()) @id
+  title     String
+  published posts_published @default(DRAFT)
+}
+
+enum posts_published {
+  DRAFT
+  PUBLISHED
+}
+
+`;
+
+exports[`update with data - not null enum - check findMany: warnings 1`] = `Array []`;
+
+exports[`update with data - not null enum: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id        Int             @default(autoincrement()) @id
+  title     String
+  published posts_published @default(DRAFT)
+}
+
+enum posts_published {
+  DRAFT
+  PUBLISHED
+}
+
+`;
+
+exports[`update with data - not null enum: warnings 1`] = `Array []`;
+
+exports[`updateMany where null - check findMany: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id   Int     @default(autoincrement()) @id
+  name String?
+}
+
+`;
+
+exports[`updateMany where null - check findMany: warnings 1`] = `Array []`;
+
+exports[`updateMany where with string data - check findMany: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String
+}
+
+`;
+
+exports[`updateMany where with string data - check findMany: warnings 1`] = `Array []`;
+
+exports[`updateMany where with string data - check returned count: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String
+}
+
+`;
+
+exports[`updateMany where with string data - check returned count: warnings 1`] = `Array []`;
+
+exports[`updateMany with data - not null enum - check count: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id        Int             @default(autoincrement()) @id
+  title     String
+  published posts_published @default(DRAFT)
+}
+
+enum posts_published {
+  DRAFT
+  PUBLISHED
+}
+
+`;
+
+exports[`updateMany with data - not null enum - check count: warnings 1`] = `Array []`;
+
+exports[`upsert (create): datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id        Int     @default(autoincrement()) @id
+  title     String
+  published Boolean @default(false)
+}
+
+`;
+
+exports[`upsert (create): warnings 1`] = `Array []`;
+
+exports[`upsert (update): datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model posts {
+  id        Int     @default(autoincrement()) @id
+  title     String
+  published Boolean @default(false)
+}
+
+`;
+
+exports[`upsert (update): warnings 1`] = `Array []`;
+
+exports[`upsert where composite PK - create: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  name  String
+  key   String
+  value String
+  email String
+
+  @@id([name, key])
+}
+
+`;
+
+exports[`upsert where composite PK - create: warnings 1`] = `Array []`;
+
+exports[`upsert where composite PK - update: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model variables {
+  name  String
+  key   String
+  value String
+  email String
+
+  @@id([name, key])
+}
+
+`;
+
+exports[`upsert where composite PK - update: warnings 1`] = `Array []`;
