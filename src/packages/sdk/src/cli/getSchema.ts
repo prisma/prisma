@@ -1,3 +1,4 @@
+import chalk from 'chalk'
 import execa from 'execa'
 import fs from 'fs'
 import path from 'path'
@@ -66,10 +67,10 @@ export async function getSchemaPathFromPackageJson(
 
   if (typeof schemaPathFromPkgJson !== 'string') {
     throw new Error(
-      `Provided schema path configuration \`${schemaPathFromPkgJson}\` at ./${path.relative(
+      `Provided schema path \`${schemaPathFromPkgJson}\` from \`${path.relative(
         cwd,
         pkgJson.path,
-      )} must be of type string`,
+      )}\` must be of type string`,
     )
   }
 
@@ -79,10 +80,10 @@ export async function getSchemaPathFromPackageJson(
 
   if ((await exists(absoluteSchemaPath)) === false) {
     throw new Error(
-      `Provided schema path at ./${path.relative(
+      `Provided schema path \`${path.relative(
         cwd,
         absoluteSchemaPath,
-      )} from ./${path.relative(cwd, pkgJson.path)} doesn't exist.`,
+      )}\` from \`${path.relative(cwd, pkgJson.path)}\` doesn't exist.`,
     )
   }
 
@@ -223,18 +224,28 @@ export async function getSchemaDir(
   }
 
   const schemaPath = await getSchemaPath(schemaPathFromArgs)
-  if (schemaPath) {
-    return path.dirname(schemaPath)
+
+  if (!schemaPath) {
+    return null
   }
 
-  return null
+  return path.dirname(schemaPath)
 }
 
+// TODO: This should probably return string | null to stay consistent with the other functions
 export async function getSchema(schemaPathFromArgs?: string): Promise<string> {
   const schemaPath = await getSchemaPath(schemaPathFromArgs)
 
   if (!schemaPath) {
-    throw new Error(`Could not find ${schemaPathFromArgs || 'schema.prisma'}`)
+    throw new Error(
+      `Could not find a ${chalk.bold(
+        'schema.prisma',
+      )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
+        '--schema',
+      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
+        './prisma/schema.prisma',
+      )} https://pris.ly/d/prisma-schema-location`,
+    )
   }
 
   return readFile(schemaPath, 'utf-8')
@@ -296,10 +307,10 @@ export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
 
   if (typeof schemaPathFromPkgJson !== 'string') {
     throw new Error(
-      `Provided schema path configuration \`${schemaPathFromPkgJson}\` at ./${path.relative(
+      `Provided schema path \`${schemaPathFromPkgJson}\` from \`${path.relative(
         cwd,
         pkgJson.path,
-      )} must be of type string`,
+      )}\` must be of type string`,
     )
   }
 
@@ -309,10 +320,10 @@ export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
 
   if (fs.existsSync(absoluteSchemaPath) === false) {
     throw new Error(
-      `Provided schema path at ./${path.relative(
+      `Provided schema path \`${path.relative(
         cwd,
         absoluteSchemaPath,
-      )} from ./${path.relative(cwd, pkgJson.path)} doesn't exist.`,
+      )}\` from \`${path.relative(cwd, pkgJson.path)}\` doesn't exist.`,
     )
   }
 
@@ -359,11 +370,20 @@ export function getSchemaDirSync(schemaPathFromArgs?: string): string | null {
   return null
 }
 
+// TODO: This should probably return string | null to stay consistent with the other functions
 export function getSchemaSync(schemaPathFromArgs?: string): string {
   const schemaPath = getSchemaPathSync(schemaPathFromArgs)
 
   if (!schemaPath) {
-    throw new Error(`Could not find ${schemaPath || 'schema.prisma'}`)
+    throw new Error(
+      `Could not find a ${chalk.bold(
+        'schema.prisma',
+      )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
+        '--schema',
+      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
+        './prisma/schema.prisma',
+      )} https://pris.ly/d/prisma-schema-location`,
+    )
   }
 
   return fs.readFileSync(schemaPath, 'utf-8')

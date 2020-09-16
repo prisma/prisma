@@ -1,5 +1,5 @@
 {
-  "name": "pkg-json-valid-path",
+  "name": "pkg-json-relative-path",
   "prisma": {
     "schema": "./db/schema.prisma"
   }

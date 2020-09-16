@@ -1,12 +1,18 @@
-import { arg, Command, format, HelpError, isError } from '@prisma/sdk'
-import chalk from 'chalk'
-import StudioServer from '@prisma/studio-server'
-import getPort from 'get-port'
-import path from 'path'
-import open from 'open'
-
-import { ProviderAliases, getSchemaPathSync } from '@prisma/sdk'
 import { getPlatform } from '@prisma/get-platform'
+import {
+  arg,
+  Command,
+  format,
+  getSchemaPath,
+  HelpError,
+  isError,
+  ProviderAliases,
+} from '@prisma/sdk'
+import StudioServer from '@prisma/studio-server'
+import chalk from 'chalk'
+import getPort from 'get-port'
+import open from 'open'
+import path from 'path'
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
@@ -85,10 +91,28 @@ export class Studio implements Command {
       )
     }
 
-    const schemaPath = getSchemaPathSync(args['--schema'])
+    const schemaPath = await getSchemaPath(args['--schema'])
+
     if (!schemaPath) {
-      throw new Error(`Could not find ${args['--schema'] || 'schema.prisma'}`)
+      throw new Error(
+        `Could not find a ${chalk.bold(
+          'schema.prisma',
+        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
+          '--schema',
+        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
+          './prisma/schema.prisma',
+        )} https://pris.ly/d/prisma-schema-location`,
+      )
     }
+
+    console.log(
+      chalk.dim(
+        `Prisma Schema loaded from ${path.relative(
+          process.cwd(),
+          schemaPath,
+        )}`,
+      ),
+    )
 
     const port =
       args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))

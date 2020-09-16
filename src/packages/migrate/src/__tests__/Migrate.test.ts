@@ -14,12 +14,16 @@ import { MigrateSave } from '../commands/MigrateSave'
 const writeFile = promisify(fs.writeFile)
 const testRootDir = tempy.directory()
 
+const oldProcessCwd = process.cwd
+
 describe('migrate.create', () => {
   beforeEach(async () => {
+    process.cwd = () => testRootDir
     await mkdir(testRootDir)
   })
 
   afterEach(async () => {
+    process.cwd = oldProcessCwd
     await del(testRootDir, { force: true }) // Need force: true because `del` does not delete dirs outside the CWD
   })
 

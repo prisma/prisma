@@ -117,25 +117,42 @@ export class Introspect implements Command {
 
     const url: string | undefined = args['--url']
     let schemaPath = await getSchemaPath(args['--schema'])
-    if (!url && !schemaPath) {
-      throw new Error(
-        `Either provide ${chalk.greenBright('--schema')} ${chalk.bold(
-          'or',
-        )} make sure that you are in a folder with a ${chalk.greenBright(
-          'schema.prisma',
-        )} file.`,
+
+    if (schemaPath) {
+      console.log(
+        chalk.dim(
+          `Prisma Schema loaded from ${path.relative(
+            process.cwd(),
+            schemaPath,
+          )}`,
+        ),
       )
     }
 
-    let schema: string | undefined
+    if (!url && !schemaPath) {
+      throw new Error(
+        `Could not find a ${chalk.bold(
+          'schema.prisma',
+        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
+          '--schema',
+        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
+          './prisma/schema.prisma',
+        )} https://pris.ly/d/prisma-schema-location`,
+      )
+    }
+
+    let schema: string | null = null
+
     if (url && schemaPath) {
       schema = this.printUrlAsDatasource(url)
-      const rawSchema = fs.readFileSync(schemaPath!, 'utf-8')
+      const rawSchema = fs.readFileSync(schemaPath, 'utf-8')
       schema += removeDatasource(rawSchema)
     } else if (url) {
       schema = this.printUrlAsDatasource(url)
+    } else if (schemaPath) {
+      schema = fs.readFileSync(schemaPath, 'utf-8')
     } else {
-      schema = fs.readFileSync(schemaPath!, 'utf-8')
+      throw new Error('Could not find a `schema.prisma` file')
     }
 
     const engine = new IntrospectionEngine({
