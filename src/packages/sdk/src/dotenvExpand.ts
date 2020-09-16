@@ -1,5 +1,10 @@
 import { DotenvConfigOutput } from 'dotenv'
 
+/**
+ * Modified version of https://github.com/motdotla/dotenv-expand
+ * Our version does only expand ${ENV} - curly braces but not without curly braces
+ */
+
 export function dotenvExpand(config: DotenvConfigOutput & { ignoreProcessEnv?: boolean }) {
   // if ignoring process.env, use a blank object
   const environment = config.ignoreProcessEnv ? {} : process.env
