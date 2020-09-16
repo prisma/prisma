@@ -79,7 +79,7 @@
     "@typescript-eslint/eslint-plugin": "4.1.0",
     "@typescript-eslint/parser": "4.1.0",
     "@zeit/ncc": "0.22.3",
-    "checkpoint-client": "1.1.11",
+    "checkpoint-client": "1.1.12",
     "dotenv": "8.2.0",
     "dotenv-expand": "5.1.0",
     "eslint": "7.8.1",
