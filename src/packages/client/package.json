@@ -102,6 +102,7 @@
     "klona": "1.1.2",
     "lint-staged": "10.3.0",
     "make-dir": "3.1.0",
+    "mariadb": "^2.4.2",
     "node-fetch": "2.6.1",
     "node-tcp-proxy": "0.0.15",
     "packwatch": "2.0.0",
