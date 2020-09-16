@@ -67,7 +67,7 @@ export async function getSchemaPathFromPackageJson(
 
   if (typeof schemaPathFromPkgJson !== 'string') {
     throw new Error(
-      `Provided schema path configuration \`${schemaPathFromPkgJson}\` at \`${path.relative(
+      `Provided schema path \`${schemaPathFromPkgJson}\` from \`${path.relative(
         cwd,
         pkgJson.path,
       )}\` must be of type string`,
@@ -80,7 +80,7 @@ export async function getSchemaPathFromPackageJson(
 
   if ((await exists(absoluteSchemaPath)) === false) {
     throw new Error(
-      `Provided schema path at \`${path.relative(
+      `Provided schema path \`${path.relative(
         cwd,
         absoluteSchemaPath,
       )}\` from \`${path.relative(cwd, pkgJson.path)}\` doesn't exist.`,
@@ -238,13 +238,13 @@ export async function getSchema(schemaPathFromArgs?: string): Promise<string> {
 
   if (!schemaPath) {
     throw new Error(
-      `Either provide ${chalk.greenBright('--schema')} ${chalk.bold(
-        'or',
-      )} configure a path in your package.json in a \`prisma.schema\` field ${chalk.bold(
-        'or',
-      )} make sure that you are in a folder with a ${chalk.greenBright(
+      `Could not find a ${chalk.bold(
         'schema.prisma',
-      )} file.`,
+      )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
+        '--schema',
+      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
+        './prisma/schema.prisma',
+      )} https://pris.ly/d/prisma-schema-location`,
     )
   }
 
@@ -307,7 +307,7 @@ export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
 
   if (typeof schemaPathFromPkgJson !== 'string') {
     throw new Error(
-      `Provided schema path configuration \`${schemaPathFromPkgJson}\` at \`${path.relative(
+      `Provided schema path \`${schemaPathFromPkgJson}\` from \`${path.relative(
         cwd,
         pkgJson.path,
       )}\` must be of type string`,
@@ -320,7 +320,7 @@ export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
 
   if (fs.existsSync(absoluteSchemaPath) === false) {
     throw new Error(
-      `Provided schema path at \`${path.relative(
+      `Provided schema path \`${path.relative(
         cwd,
         absoluteSchemaPath,
       )}\` from \`${path.relative(cwd, pkgJson.path)}\` doesn't exist.`,
@@ -376,13 +376,13 @@ export function getSchemaSync(schemaPathFromArgs?: string): string {
 
   if (!schemaPath) {
     throw new Error(
-      `Either provide ${chalk.greenBright('--schema')} ${chalk.bold(
-        'or',
-      )} configure a path in your package.json in a \`prisma.schema\` field ${chalk.bold(
-        'or',
-      )} make sure that you are in a folder with a ${chalk.greenBright(
+      `Could not find a ${chalk.bold(
         'schema.prisma',
-      )} file.`,
+      )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
+        '--schema',
+      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
+        './prisma/schema.prisma',
+      )} https://pris.ly/d/prisma-schema-location`,
     )
   }
 
