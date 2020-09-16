@@ -570,6 +570,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         this.port = await this.getFreePort()
         const env = await this.getEngineEnvVars()
+        debug('env', env)
 
         this.child = spawn(prismaPath, flags, {
           env,

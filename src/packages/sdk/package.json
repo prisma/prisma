@@ -54,6 +54,7 @@
     "chalk": "4.1.0",
     "checkpoint-client": "1.1.11",
     "cli-truncate": "^2.1.0",
+    "dotenv": "^8.2.0",
     "execa": "^4.0.0",
     "global-dirs": "^2.0.1",
     "globby": "^11.0.0",
