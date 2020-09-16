@@ -1,148 +1,34 @@
-import { getGenerator, IntrospectionEngine } from '@prisma/sdk'
-import { join, dirname } from 'path'
-import mkdir from 'make-dir'
-import assert from 'assert'
-import pkgup from 'pkg-up'
-import rimraf from 'rimraf'
-import fs from 'fs'
-import path from 'path'
-import snapshot from 'snap-shot-it'
-import mariadb from 'mariadb'
-import { getLatestTag } from '@prisma/fetch-engine'
-import { uriToCredentials } from '@prisma/sdk'
+import * as PG from 'pg'
+import { integrationTest } from './__helpers__/integrationTest'
 
-let connectionString =
-  process.env.TEST_MYSQL_URI || 'mysql://prisma:prisma@localhost:3306/tests'
-const credentials = uriToCredentials(connectionString)
-process.env.SKIP_GENERATE = 'true'
+const connectionString =
+  process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/'
 
-const pkg = pkgup.sync() || __dirname
-const tmp = join(dirname(pkg), 'tmp-mysql')
-const engine = new IntrospectionEngine()
-const latestDevPromise = getLatestTag()
-
-let db: mariadb.Connection
-before(async () => {
-  db = await mariadb.createConnection({
-    host: credentials.host,
-    port: credentials.port,
-    database: credentials.database,
-    user: credentials.user,
-    password: credentials.password,
-    multipleStatements: true,
-  })
-})
-
-beforeEach(async () => {
-  rimraf.sync(tmp)
-  await mkdir(tmp)
-})
-
-after(async () => {
-  await db.end()
-  engine.stop()
-})
-
-tests().map((t: Test) => {
-  const name = t.name
-
-  // if (!t.run) {
-  //   it.skip(name)
-  //   return
-  // }
-
-  if (t.todo) {
-    it.skip(name)
-    return
-  }
-
-  it(name, async () => {
-    try {
-      await runTest(name, t)
-    } catch (err) {
-      throw err
-    } finally {
-      await db.query(t.down)
-    }
-  }).timeout(15000)
-})
-
-async function runTest(name: string, t: Test) {
-  await db.query(t.down)
-  await db.query(t.up)
-  const schema = `
-generator client {
-  provider = "prisma-client-js"
-  output   = "${tmp}"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "${connectionString}"
-}`
-  const introspectionResult = await engine.introspect(schema)
-  const introspectionSchema = introspectionResult.datamodel
-
-  await generate(t, introspectionSchema)
-  const prismaClientPath = join(tmp, 'index.js')
-  const prismaClientDeclarationPath = join(tmp, 'index.d.ts')
-
-  assert(fs.existsSync(prismaClientPath))
-  assert(fs.existsSync(prismaClientDeclarationPath))
-
-  // clear the require cache
-  delete require.cache[prismaClientPath]
-  const { PrismaClient } = await import(prismaClientPath)
-  const prisma = new PrismaClient()
-  await prisma.$connect()
-  try {
-    const result = await t.do(prisma)
-    await db.query(t.down)
-    assert.deepEqual(result, t.expect)
-  } catch (err) {
-    throw err
-  } finally {
-    await prisma.$disconnect()
-  }
-
-  snapshot(`${name}_datamodel`, maskSchema(introspectionSchema))
-  snapshot(`${name}_warnings`, introspectionResult.warnings)
-}
-
-async function generate(test: Test, datamodel: string) {
-  const schemaPath = path.join(tmp, 'schema.prisma')
-  fs.writeFileSync(schemaPath, datamodel)
-
-  const generator = await getGenerator({
-    schemaPath,
-    printDownloadProgress: false,
-    baseDir: tmp,
-    version: await latestDevPromise,
-  })
-
-  await generator.generate()
-
-  generator.stop()
-}
-
-type Test = {
-  todo?: boolean
-  run?: boolean
-  name: string
-  up: string
-  down: string
-  do: (client: any) => Promise<any>
-  expect: any
-}
-
-function tests(): Test[] {
-  return [
+integrationTest<PG.Client>({
+  database: {
+    name: 'postgresql',
+    datasource: {
+      url: connectionString,
+    },
+    async connect() {
+      const db = new PG.Client({ connectionString })
+      await new Promise((res, rej) =>
+        db.connect((err) => (err ? rej(err) : res())),
+      )
+      await db.query('drop schema public cascade;')
+      await db.query('create schema public;')
+      return db
+    },
+    send: (db, sql) => db.query(sql),
+    close: (db) => db.end(),
+  },
+  scenarios: [
     {
       name: 'findOne where PK',
       up: `
         create table teams (
           id int primary key not null,
-          name varchar(50) not null unique
+          name text not null unique
         );
         insert into teams (id, name) values (1, 'a');
         insert into teams (id, name) values (2, 'b');
@@ -163,8 +49,8 @@ function tests(): Test[] {
       up: `
         create table teams (
           id int primary key not null,
-          name varchar(50) not null unique,
-          email varchar(50) not null unique
+          name text not null unique,
+          email text not null unique
         );
         insert into teams (id, name, email) values (1, 'a', 'a@a');
         insert into teams (id, name, email) values (2, 'b', 'b@b');
@@ -187,19 +73,18 @@ function tests(): Test[] {
       up: `
         create table users (
           id serial primary key not null,
-          email varchar(50) not null unique
+          email text not null unique
         );
         create table posts (
           id serial primary key not null,
-          user_id bigint unsigned not null,
-          title varchar(50) not null
+          user_id int not null references users (id) on update cascade,
+          title text not null
         );
-        ALTER TABLE posts ADD FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE;
-        insert into users (email) values ('ada@prisma.io');
-        insert into users (email) values ('ema@prisma.io');
-        insert into posts (user_id, title) values (1, 'A');
-        insert into posts (user_id, title) values (1, 'B');
-        insert into posts (user_id, title) values (2, 'C');
+        insert into users ("email") values ('ada@prisma.io');
+        insert into users ("email") values ('ema@prisma.io');
+        insert into posts ("user_id", "title") values (1, 'A');
+        insert into posts ("user_id", "title") values (1, 'B');
+        insert into posts ("user_id", "title") values (2, 'C');
       `,
       down: `
         drop table if exists posts cascade;
@@ -233,7 +118,7 @@ function tests(): Test[] {
       up: `
         create table teams (
           id serial primary key not null,
-          name varchar(50) not null unique
+          name text not null unique
         );
       `,
       down: `
@@ -252,7 +137,7 @@ function tests(): Test[] {
       up: `
         create table teams (
           id serial primary key not null,
-          name varchar(50) not null default 'alice'
+          name text not null default 'alice'
         );
       `,
       down: `
@@ -290,9 +175,9 @@ function tests(): Test[] {
       up: `
         create table teams (
           id serial primary key not null,
-          name varchar(50) not null unique
+          name text not null unique
         );
-        insert into teams (name) values ('c');
+        insert into teams ("name") values ('c');
       `,
       down: `
         drop table if exists teams cascade;
@@ -313,10 +198,10 @@ function tests(): Test[] {
       up: `
         create table teams (
           id serial primary key not null,
-          name varchar(50) not null unique,
+          name text not null unique,
           active boolean not null default true
         );
-        insert into teams (name) values ('c');
+        insert into teams ("name") values ('c');
       `,
       down: `
         drop table if exists teams cascade;
@@ -338,10 +223,10 @@ function tests(): Test[] {
       up: `
         create table teams (
           id serial primary key not null,
-          name varchar(50) not null unique,
+          name text not null unique,
           active boolean not null default true
         );
-        insert into teams (name) values ('c');
+        insert into teams ("name") values ('c');
       `,
       down: `
         drop table if exists teams cascade;
@@ -362,9 +247,9 @@ function tests(): Test[] {
       up: `
         create table teams (
           id serial primary key not null,
-          name varchar(50) not null unique
+          name text not null unique
         );
-        insert into teams (name) values ('c');
+        insert into teams ("name") values ('c');
       `,
       down: `
         drop table if exists teams cascade;
@@ -385,10 +270,10 @@ function tests(): Test[] {
       up: `
         create table teams (
           id serial primary key not null,
-          name varchar(50) not null
+          name text not null
         );
-        insert into teams (name) values ('c');
-        insert into teams (name) values ('c');
+        insert into teams ("name") values ('c');
+        insert into teams ("name") values ('c');
       `,
       down: `
         drop table if exists teams cascade;
@@ -408,10 +293,10 @@ function tests(): Test[] {
       up: `
         create table teams (
           id serial primary key not null,
-          name varchar(50) not null
+          name text not null
         );
-        insert into teams (name) values ('c');
-        insert into teams (name) values ('c');
+        insert into teams ("name") values ('c');
+        insert into teams ("name") values ('c');
       `,
       down: `
         drop table if exists teams cascade;
@@ -439,9 +324,9 @@ function tests(): Test[] {
       up: `
         create table users (
           id serial primary key not null,
-          email varchar(50) not null unique
+          email text not null unique
         );
-        insert into users (email) values ('ada@prisma.io');
+        insert into users ("email") values ('ada@prisma.io');
       `,
       down: `
         drop table if exists users cascade;
@@ -459,11 +344,11 @@ function tests(): Test[] {
       up: `
         create table users (
           id serial primary key not null,
-          email varchar(50) not null,
-          name varchar(50) not null,
-          unique key users_email_name_key(email, name)
+          email text not null,
+          name text not null,
+          unique(email, name)
         );
-        insert into users (email, name) values ('ada@prisma.io', 'Ada');
+        insert into users ("email", "name") values ('ada@prisma.io', 'Ada');
       `,
       down: `
         drop table if exists users cascade;
@@ -486,11 +371,11 @@ function tests(): Test[] {
       up: `
         create table users (
           id serial primary key not null,
-          email varchar(50) not null,
-          name varchar(50) not null,
-          unique key users_email_name_key(email, name)
+          email text not null,
+          name text not null,
+          unique(email, name)
         );
-        insert into users (email, name) values ('ada@prisma.io', 'Ada');
+        insert into users ("email", "name") values ('ada@prisma.io', 'Ada');
       `,
       down: `
         drop table if exists users cascade;
@@ -514,11 +399,11 @@ function tests(): Test[] {
       up: `
         create table users (
           id serial primary key not null,
-          email varchar(50) not null,
-          name varchar(50) not null,
-          unique key users_email_name_key(email, name)
+          email text not null,
+          name text not null,
+          unique(email, name)
         );
-        insert into users (email, name) values ('ada@prisma.io', 'Ada');
+        insert into users ("email", "name") values ('ada@prisma.io', 'Ada');
       `,
       down: `
         drop table if exists users cascade;
@@ -543,8 +428,8 @@ function tests(): Test[] {
           id serial primary key not null,
           email text
         );
-        insert into users (email) values ('ada@prisma.io');
-        insert into users (email) values (null);
+        insert into users ("email") values ('ada@prisma.io');
+        insert into users ("email") values (null);
       `,
       down: `
         drop table if exists users cascade;
@@ -568,9 +453,9 @@ function tests(): Test[] {
       up: `
         create table users (
           id serial primary key not null,
-          email varchar(50) not null unique
+          email text not null unique
         );
-        insert into users (email) values ('ada@prisma.io');
+        insert into users ("email") values ('ada@prisma.io');
       `,
       down: `
         drop table if exists users cascade;
@@ -590,10 +475,10 @@ function tests(): Test[] {
       up: `
         create table users (
           id serial primary key not null,
-          email varchar(50) not null unique
+          email text not null unique
         );
-        insert into users (email) values ('ada@prisma.io');
-        insert into users (email) values ('ema@prisma.io');
+        insert into users ("email") values ('ada@prisma.io');
+        insert into users ("email") values ('ema@prisma.io');
       `,
       down: `
         drop table if exists users cascade;
@@ -617,19 +502,18 @@ function tests(): Test[] {
       up: `
         create table users (
           id serial primary key not null,
-          email varchar(50) not null unique
+          email text not null unique
         );
         create table posts (
           id serial primary key not null,
-          user_id bigint unsigned not null,
-          title varchar(50) not null
+          user_id int not null references users (id) on update cascade,
+          title text not null
         );
-        ALTER TABLE posts ADD FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE;
-        insert into users (email) values ('ada@prisma.io');
-        insert into users (email) values ('ema@prisma.io');
-        insert into posts (user_id, title) values (1, 'A');
-        insert into posts (user_id, title) values (1, 'B');
-        insert into posts (user_id, title) values (2, 'C');
+        insert into users ("email") values ('ada@prisma.io');
+        insert into users ("email") values ('ema@prisma.io');
+        insert into posts ("user_id", "title") values (1, 'A');
+        insert into posts ("user_id", "title") values (1, 'B');
+        insert into posts ("user_id", "title") values (2, 'C');
       `,
       down: `
         drop table if exists posts cascade;
@@ -658,12 +542,12 @@ function tests(): Test[] {
       up: `
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
+          title text not null,
           published boolean not null default false
         );
-        insert into posts (title, published) values ('A', true);
-        insert into posts (title, published) values ('B', false);
-        insert into posts (title, published) values ('C', true);
+        insert into posts ("title", "published") values ('A', true);
+        insert into posts ("title", "published") values ('B', false);
+        insert into posts ("title", "published") values ('C', true);
       `,
       down: `
         drop table if exists posts cascade;
@@ -689,12 +573,12 @@ function tests(): Test[] {
       up: `
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
+          title text not null,
           published boolean not null default false
         );
-        insert into posts (title, published) values ('A', true);
-        insert into posts (title, published) values ('B', false);
-        insert into posts (title, published) values ('C', true);
+        insert into posts ("title", "published") values ('A', true);
+        insert into posts ("title", "published") values ('B', false);
+        insert into posts ("title", "published") values ('C', true);
       `,
       down: `
         drop table if exists posts cascade;
@@ -725,12 +609,12 @@ function tests(): Test[] {
       up: `
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
+          title text not null,
           published boolean not null default false
         );
-        insert into posts (title, published) values ('A', true);
-        insert into posts (title, published) values ('B', false);
-        insert into posts (title, published) values ('C', true);
+        insert into posts ("title", "published") values ('A', true);
+        insert into posts ("title", "published") values ('B', false);
+        insert into posts ("title", "published") values ('C', true);
       `,
       down: `
         drop table if exists posts cascade;
@@ -753,12 +637,12 @@ function tests(): Test[] {
       up: `
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
+          title text not null,
           published boolean not null default false
         );
-        insert into posts (title, published) values ('A', true);
-        insert into posts (title, published) values ('B', false);
-        insert into posts (title, published) values ('C', true);
+        insert into posts ("title", "published") values ('A', true);
+        insert into posts ("title", "published") values ('B', false);
+        insert into posts ("title", "published") values ('C', true);
       `,
       down: `
         drop table if exists posts cascade;
@@ -781,12 +665,12 @@ function tests(): Test[] {
       up: `
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
+          title text not null,
           published boolean not null default false
         );
-        insert into posts (title, published) values ('A', true);
-        insert into posts (title, published) values ('B', false);
-        insert into posts (title, published) values ('C', true);
+        insert into posts ("title", "published") values ('A', true);
+        insert into posts ("title", "published") values ('B', false);
+        insert into posts ("title", "published") values ('C', true);
       `,
       down: `
         drop table if exists posts cascade;
@@ -821,12 +705,12 @@ function tests(): Test[] {
       up: `
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
+          title text not null,
           published boolean not null default false
         );
-        insert into posts (title, published) values ('A', true);
-        insert into posts (title, published) values ('B', false);
-        insert into posts (title, published) values ('C', true);
+        insert into posts ("title", "published") values ('A', true);
+        insert into posts ("title", "published") values ('B', false);
+        insert into posts ("title", "published") values ('C', true);
       `,
       down: `
         drop table if exists posts cascade;
@@ -859,17 +743,19 @@ function tests(): Test[] {
     {
       name: 'findMany - default enum',
       up: `
+        create type posts_status as enum ('DRAFT','PUBLISHED');
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
-          published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
+          title text not null,
+          published posts_status not null default 'DRAFT'
         );
-        insert into posts (title) values ('A');
-        insert into posts (title) values ('B');
-        insert into posts (title) values ('C');
+        insert into posts ("title") values ('A');
+        insert into posts ("title") values ('B');
+        insert into posts ("title") values ('C');
       `,
       down: `
         drop table if exists posts cascade;
+        drop type if exists posts_status cascade;
       `,
       do: async (client) => {
         return client.posts.findMany()
@@ -896,17 +782,19 @@ function tests(): Test[] {
       todo: true,
       name: 'create with data - not null enum',
       up: `
+        create type posts_status as enum ('DRAFT','PUBLISHED');
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
-          published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
+          title text not null,
+          published posts_status not null default 'DRAFT'
         );
-        insert into posts (title) values ('A');
-        insert into posts (title) values ('B');
-        insert into posts (title) values ('C');
+        insert into posts ("title") values ('A');
+        insert into posts ("title") values ('B');
+        insert into posts ("title") values ('C');
       `,
       down: `
         drop table if exists posts cascade;
+        drop type if exists posts_status cascade;
       `,
       do: async (client) => {
         return client.posts.create({ data: { title: 'D' } })
@@ -916,17 +804,19 @@ function tests(): Test[] {
     {
       name: 'update with data - not null enum',
       up: `
+        create type posts_status as enum ('DRAFT','PUBLISHED');
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
-          published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
+          title text not null,
+          published posts_status not null default 'DRAFT'
         );
-        insert into posts (title) values ('A');
-        insert into posts (title) values ('B');
-        insert into posts (title) values ('C');
+        insert into posts ("title") values ('A');
+        insert into posts ("title") values ('B');
+        insert into posts ("title") values ('C');
       `,
       down: `
         drop table if exists posts cascade;
+        drop type if exists posts_status cascade;
       `,
       do: async (client) => {
         return client.posts.update({
@@ -943,17 +833,19 @@ function tests(): Test[] {
     {
       name: 'updateMany with data - not null enum - check count',
       up: `
+        create type posts_status as enum ('DRAFT','PUBLISHED');
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
-          published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
+          title text not null,
+          published posts_status not null default 'DRAFT'
         );
-        insert into posts (title) values ('A');
-        insert into posts (title) values ('B');
-        insert into posts (title) values ('C');
+        insert into posts ("title") values ('A');
+        insert into posts ("title") values ('B');
+        insert into posts ("title") values ('C');
       `,
       down: `
         drop table if exists posts cascade;
+        drop type if exists posts_status cascade;
       `,
       do: async (client) => {
         return client.posts.updateMany({
@@ -967,17 +859,19 @@ function tests(): Test[] {
     {
       name: 'update with data - not null enum - check findMany',
       up: `
+        create type posts_status as enum ('DRAFT','PUBLISHED');
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
-          published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
+          title text not null,
+          published posts_status not null default 'DRAFT'
         );
-        insert into posts (title) values ('A');
-        insert into posts (title) values ('B');
-        insert into posts (title) values ('C');
+        insert into posts ("title") values ('A');
+        insert into posts ("title") values ('B');
+        insert into posts ("title") values ('C');
       `,
       down: `
         drop table if exists posts cascade;
+        drop type if exists posts_status cascade;
       `,
       do: async (client) => {
         await client.posts.updateMany({
@@ -1006,17 +900,19 @@ function tests(): Test[] {
     {
       name: 'deleteMany where enum - check count',
       up: `
+        create type posts_status as enum ('DRAFT','PUBLISHED');
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
-          published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
+          title text not null,
+          published posts_status not null default 'DRAFT'
         );
-        insert into posts (title) values ('A');
-        insert into posts (title) values ('B');
-        insert into posts (title, published) values ('C', 'PUBLISHED');
+        insert into posts ("title") values ('A');
+        insert into posts ("title") values ('B');
+        insert into posts ("title","published") values ('C', 'PUBLISHED');
       `,
       down: `
         drop table if exists posts cascade;
+        drop type if exists posts_status cascade;
       `,
       do: async (client) => {
         return await client.posts.deleteMany({
@@ -1030,17 +926,19 @@ function tests(): Test[] {
     {
       name: 'deleteMany where enum - check findMany',
       up: `
+        create type posts_status as enum ('DRAFT','PUBLISHED');
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
-          published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
+          title text not null,
+          published posts_status not null default 'DRAFT'
         );
-        insert into posts (title) values ('A');
-        insert into posts (title) values ('B');
-        insert into posts (title, published) values ('C', 'PUBLISHED');
+        insert into posts ("title") values ('A');
+        insert into posts ("title") values ('B');
+        insert into posts ("title","published") values ('C', 'PUBLISHED');
       `,
       down: `
         drop table if exists posts cascade;
+        drop type if exists posts_status cascade;
       `,
       do: async (client) => {
         await client.posts.deleteMany({
@@ -1061,12 +959,12 @@ function tests(): Test[] {
       up: `
         create table crons (
           id serial not null primary key,
-          job varchar(50) unique not null,
+          "job" text unique not null,
           frequency text
         );
-        insert into crons (job, frequency) values ('j1', '* * * * *');
-        insert into crons (job, frequency) values ('j20', '* * * * 1-5');
-        insert into crons (job, frequency) values ('j21', '* * * * 1-5');
+        insert into crons ("job", "frequency") values ('j1', '* * * * *');
+        insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
+        insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
       down: `
         drop table if exists crons cascade;
@@ -1092,12 +990,12 @@ function tests(): Test[] {
       up: `
         create table crons (
           id serial not null primary key,
-          job varchar(50) unique not null,
+          "job" text unique not null,
           frequency text
         );
-        insert into crons (job, frequency) values ('j1', '* * * * *');
-        insert into crons (job, frequency) values ('j20', '* * * * 1-5');
-        insert into crons (job, frequency) values ('j21', '* * * * 1-5');
+        insert into crons ("job", "frequency") values ('j1', '* * * * *');
+        insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
+        insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
       down: `
         drop table if exists crons cascade;
@@ -1123,12 +1021,12 @@ function tests(): Test[] {
       up: `
         create table crons (
           id serial not null primary key,
-          job varchar(50) unique not null,
+          "job" text unique not null,
           frequency text
         );
-        insert into crons (job, frequency) values ('j1', '* * * * *');
-        insert into crons (job, frequency) values ('j20', '* * * * 1-5');
-        insert into crons (job, frequency) values ('j21', '* * * * 1-5');
+        insert into crons ("job", "frequency") values ('j1', '* * * * *');
+        insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
+        insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
       down: `
         drop table if exists crons cascade;
@@ -1154,18 +1052,20 @@ function tests(): Test[] {
       up: `
         create table crons (
           id serial not null primary key,
-          job varchar(50) unique not null,
+          "job" text unique not null,
           frequency text
         );
-        insert into crons (job, frequency) values ('j1', '* * * * *');
-        insert into crons (job, frequency) values ('j20', '* * * * 1-5');
-        insert into crons (job, frequency) values ('j21', '* * * * 1-5');
+        insert into crons ("job", "frequency") values ('j1', '* * * * *');
+        insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
+        insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
       down: `
         drop table if exists crons cascade;
       `,
       do: async (client) => {
-        return client.crons.findMany({ where: { job: { in: ['j20', 'j1'] } } })
+        return client.crons.findMany({
+          where: { job: { in: ['j20', 'j1'] } },
+        })
       },
       expect: [
         {
@@ -1186,12 +1086,12 @@ function tests(): Test[] {
       up: `
         create table crons (
           id serial not null primary key,
-          job varchar(50) unique not null,
+          "job" text unique not null,
           frequency text
         );
-        insert into crons (job, frequency) values ('j1', '* * * * *');
-        insert into crons (job, frequency) values ('j20', '* * * * 1-5');
-        insert into crons (job, frequency) values ('j21', '* * * * 1-5');
+        insert into crons ("job", "frequency") values ('j1', '* * * * *');
+        insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
+        insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
       down: `
         drop table if exists crons cascade;
@@ -1217,22 +1117,23 @@ function tests(): Test[] {
       up: `
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
-          created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+          title text not null,
+          created_at timestamp not null default now()
         );
-        insert into posts (title, created_at) values ('A', '2020-01-14 11:10:19');
-        insert into posts (title, created_at) values ('B', '2020-01-14 11:10:19');
-        insert into posts (title, created_at) values ('C', '2020-01-14 11:10:19');
+        insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
       down: `
         drop table if exists posts cascade;
       `,
+      // todo: true,
       do: async (client) => {
         const posts = await client.posts.findMany({
           where: { created_at: { lte: new Date() } },
         })
         posts.forEach((post) => {
-          assert.ok(post.created_at instanceof Date)
+          expect(post.created_at).toBeInstanceOf(Date)
           delete post.created_at
         })
         return posts
@@ -1257,12 +1158,12 @@ function tests(): Test[] {
       up: `
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
+          title text not null,
           created_at timestamp not null default now()
         );
-        insert into posts (title, created_at) values ('A', '2020-01-14 11:10:19');
-        insert into posts (title, created_at) values ('B', '2020-01-14 11:10:19');
-        insert into posts (title, created_at) values ('C', '2020-01-14 11:10:19');
+        insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
       down: `
         drop table if exists posts cascade;
@@ -1279,12 +1180,12 @@ function tests(): Test[] {
       up: `
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
+          title text not null,
           created_at timestamp not null default now()
         );
-        insert into posts (title, created_at) values ('A', '2020-01-14 11:10:19');
-        insert into posts (title, created_at) values ('B', '2020-01-14 11:10:19');
-        insert into posts (title, created_at) values ('C', '2020-01-14 11:10:19');
+        insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
       down: `
         drop table if exists posts cascade;
@@ -1301,12 +1202,12 @@ function tests(): Test[] {
       up: `
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
+          title text not null,
           created_at timestamp not null default now()
         );
-        insert into posts (title, created_at) values ('A', '2020-01-14 11:10:19');
-        insert into posts (title, created_at) values ('B', '2020-01-14 11:10:19');
-        insert into posts (title, created_at) values ('C', '2020-01-14 11:10:19');
+        insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
+        insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
       down: `
         drop table if exists posts cascade;
@@ -1316,7 +1217,7 @@ function tests(): Test[] {
           where: { created_at: { lt: new Date() } },
         })
         posts.forEach((post) => {
-          assert.ok(post.created_at instanceof Date)
+          expect(post.created_at).toBeInstanceOf(Date)
           delete post.created_at
         })
         return posts
@@ -1364,9 +1265,9 @@ function tests(): Test[] {
       up: `
         create table events (
           id serial not null primary key,
-          time datetime
+          "time" timestamp with time zone
         );
-        insert into events (time) values ('2018-09-04 00:00:00');
+        insert into events ("time") values ('2018-09-04 00:00:00+00');
       `,
       down: `
         drop table if exists events cascade;
@@ -1388,9 +1289,9 @@ function tests(): Test[] {
       up: `
         create table events (
           id serial not null primary key,
-          time datetime
+          "time" timestamp with time zone
         );
-        insert into events (time) values ('2018-09-04 00:00:00');
+        insert into events ("time") values ('2018-09-04 00:00:00+00');
       `,
       down: `
         drop table if exists events cascade;
@@ -1407,16 +1308,18 @@ function tests(): Test[] {
       up: `
         create table events (
           id serial not null primary key,
-          time datetime
+          "time" timestamp with time zone
         );
-        insert into events (time) values ('2018-09-04 00:00:00');
+        insert into events ("time") values ('2018-09-04 00:00:00+00');
       `,
       down: `
         drop table if exists events cascade;
       `,
       do: async (client) => {
         return client.events.findMany({
-          where: { time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
+          where: {
+            time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) },
+          },
         })
       },
       expect: [
@@ -1431,9 +1334,9 @@ function tests(): Test[] {
       up: `
         create table events (
           id serial not null primary key,
-          time datetime
+          "time" timestamp with time zone
         );
-        insert into events (time) values ('2018-09-04 00:00:00');
+        insert into events ("time") values ('2018-09-04 00:00:00+00');
       `,
       down: `
         drop table if exists events cascade;
@@ -1450,16 +1353,18 @@ function tests(): Test[] {
       up: `
         create table events (
           id serial not null primary key,
-          time datetime
+          "time" timestamp with time zone
         );
-        insert into events (time) values ('2018-09-04 00:00:00');
+        insert into events ("time") values ('2018-09-04 00:00:00+00');
       `,
       down: `
         drop table if exists events cascade;
       `,
       do: async (client) => {
         return client.events.findMany({
-          where: { time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
+          where: {
+            time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) },
+          },
         })
       },
       expect: [
@@ -1474,16 +1379,18 @@ function tests(): Test[] {
       up: `
         create table events (
           id serial not null primary key,
-          time datetime
+          "time" timestamp with time zone
         );
-        insert into events (time) values ('2018-09-04 00:00:00');
+        insert into events ("time") values ('2018-09-04 00:00:00+00');
       `,
       down: `
         drop table if exists events cascade;
       `,
       do: async (client) => {
         return client.events.findMany({
-          where: { time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
+          where: {
+            time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) },
+          },
         })
       },
       expect: [],
@@ -1493,11 +1400,11 @@ function tests(): Test[] {
       up: `
         create table events (
           id serial not null primary key,
-          time datetime
+          "time" timestamp with time zone
         );
-        insert into events (time) values (NULL);
-        insert into events (time) values (NULL);
-        insert into events (time) values (NULL);
+        insert into events ("time") values (NULL);
+        insert into events ("time") values (NULL);
+        insert into events ("time") values (NULL);
       `,
       down: `
         drop table if exists events cascade;
@@ -1526,7 +1433,7 @@ function tests(): Test[] {
         create table teams (
           id serial primary key not null,
           token integer unique not null,
-          name varchar(50) not null
+          name text not null
         );
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
@@ -1545,7 +1452,7 @@ function tests(): Test[] {
         create table teams (
           id serial primary key not null,
           token integer unique not null,
-          name varchar(50) not null
+          name text not null
         );
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
@@ -1566,7 +1473,7 @@ function tests(): Test[] {
         create table teams (
           id serial primary key not null,
           token integer unique not null,
-          name varchar(50) not null
+          name text not null
         );
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
@@ -1596,7 +1503,7 @@ function tests(): Test[] {
         create table teams (
           id serial primary key not null,
           token integer unique not null,
-          name varchar(50) not null
+          name text not null
         );
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
@@ -1605,7 +1512,9 @@ function tests(): Test[] {
         drop table if exists teams cascade;
       `,
       do: async (client) => {
-        return client.teams.findMany({ where: { token: { notIn: [11, 22] } } })
+        return client.teams.findMany({
+          where: { token: { notIn: [11, 22] } },
+        })
       },
       expect: [],
     },
@@ -1615,7 +1524,7 @@ function tests(): Test[] {
         create table teams (
           id serial primary key not null,
           token integer unique not null,
-          name varchar(50) not null
+          name text not null
         );
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
@@ -1646,16 +1555,16 @@ function tests(): Test[] {
         create table teams (
           id serial primary key not null,
           token integer unique not null,
-          name varchar(50) not null
+          name text not null
         );
         create table users (
           id serial primary key not null,
-          email varchar(50) not null unique,
+          email text not null unique,
           team_id int references teams (id)
         );
-        insert into teams (token, name) values (1, 'a');
-        insert into users (email, team_id) values ('a', NULL);
-        insert into users (email, team_id) values ('b', 1);
+        insert into teams ("token", "name") values (1, 'a');
+        insert into users ("email", team_id) values ('a', NULL);
+        insert into users ("email", "team_id") values ('b', 1);
       `,
       down: `
         drop table if exists users cascade;
@@ -1666,6 +1575,7 @@ function tests(): Test[] {
       },
       expect: [
         {
+          id: 1,
           email: 'a',
           team_id: null,
         },
@@ -1674,14 +1584,16 @@ function tests(): Test[] {
     {
       name: 'findMany where - case insensitive field',
       up: `
+        create extension citext;
         create table users (
           id serial primary key not null,
-          email varchar(50) not null unique COLLATE utf8mb4_unicode_ci 
+          email citext not null unique
         );
-        insert into users (email) values ('max@prisma.io');
+        insert into users ("email") values ('max@prisma.io');
       `,
       down: `
         drop table if exists users cascade;
+        drop extension if exists citext cascade;
       `,
       do: async (client) => {
         return client.users.findMany({ where: { email: 'MAX@PRISMA.IO' } })
@@ -1736,8 +1648,6 @@ function tests(): Test[] {
       },
     },
     {
-      todo: true,
-      // null
       name: 'findOne where decimal - default value',
       up: `
         create table exercises (
@@ -1779,13 +1689,13 @@ function tests(): Test[] {
       name: 'findOne where composite PK',
       up: `
         create table variables (
-          name varchar(50) not null,
-          \`key\` varchar(50) not null,
-          value varchar(50) not null,
-          email varchar(50) not null,
-          primary key(name, \`key\`)
+          name text not null,
+          key text not null,
+          value text not null,
+          email text not null,
+          primary key(name, key)
         );
-        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables cascade;
@@ -1806,13 +1716,13 @@ function tests(): Test[] {
       name: 'update where composite PK',
       up: `
         create table variables (
-          name varchar(50) not null,
-          \`key\` varchar(50) not null,
-          value varchar(50) not null,
-          email varchar(50) not null,
-          primary key(name, \`key\`)
+          name text not null,
+          key text not null,
+          value text not null,
+          email text not null,
+          primary key(name, key)
         );
-        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables cascade;
@@ -1834,13 +1744,13 @@ function tests(): Test[] {
       name: 'upsert where composite PK - update',
       up: `
         create table variables (
-          name varchar(50) not null,
-          \`key\` varchar(50) not null,
-          value varchar(50) not null,
-          email varchar(50) not null,
-          primary key(name, \`key\`)
+          name text not null,
+          key text not null,
+          value text not null,
+          email text not null,
+          primary key(name, key)
         );
-        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables cascade;
@@ -1863,13 +1773,13 @@ function tests(): Test[] {
       name: 'upsert where composite PK - create',
       up: `
         create table variables (
-          name varchar(50) not null,
-          \`key\` varchar(50) not null,
-          value varchar(50) not null,
-          email varchar(50) not null,
-          primary key(name, \`key\`)
+          name text not null,
+          key text not null,
+          value text not null,
+          email text not null,
+          primary key(name, key)
         );
-        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables cascade;
@@ -1892,13 +1802,13 @@ function tests(): Test[] {
       name: 'delete where composite PK',
       up: `
         create table variables (
-          name varchar(50) not null,
-          \`key\` varchar(50) not null,
-          value varchar(50) not null,
-          email varchar(50) not null,
-          primary key(name, \`key\`)
+          name text not null,
+          key text not null,
+          value text not null,
+          email text not null,
+          primary key(name, key)
         );
-        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables cascade;
@@ -1920,13 +1830,13 @@ function tests(): Test[] {
       up: `
         create table variables (
           id serial primary key not null,
-          name varchar(50) not null,
-          \`key\` varchar(50) not null,
-          value varchar(50) not null,
-          email varchar(50) not null,
-          unique key variables_name_key_key(name, \`key\`)
+          name text not null,
+          key text not null,
+          value text not null,
+          email text not null,
+          unique(name, key)
         );
-        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables cascade;
@@ -1948,14 +1858,14 @@ function tests(): Test[] {
       name: 'findOne where unique composite (PK is a composite)',
       up: `
         create table variables (
-          name varchar(50) not null,
-          \`key\` varchar(50) not null,
-          value varchar(50) not null,
-          email varchar(50) not null,
-          primary key(name, \`key\`),
-          unique key variables_value_email_key(value, email)
+          name text not null,
+          key text not null,
+          value text not null,
+          email text not null,
+          primary key(name, key),
+          unique(value, email)
         );
-        insert into variables (name, \`key\`, value, email) values ('a', 'b', 'c', 'd');
+        insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
       `,
       down: `
         drop table if exists variables cascade;
@@ -1978,20 +1888,20 @@ function tests(): Test[] {
           create table a (
             one integer not null,
             two integer not null,
-            primary key (one, two)
+            primary key ("one", "two")
           );
           create table b (
             id serial primary key not null,
             one integer not null,
-            two integer not null
+            two integer not null,
+            foreign key ("one", "two") references a ("one", "two")
           );
-          ALTER TABLE b ADD FOREIGN KEY (one, two) REFERENCES a(one, two);
-          insert into a (one, two) values (1, 2);
-          insert into b (one, two) values (1, 2);
+          insert into a ("one", "two") values (1, 2);
+          insert into b ("one", "two") values (1, 2);
         `,
       down: `
-        drop table if exists b cascade;
         drop table if exists a cascade;
+        drop table if exists b cascade;
       `,
       do: async (client) => {
         return client.a.findOne({ where: { one_two: { one: 1, two: 2 } } })
@@ -2008,7 +1918,178 @@ function tests(): Test[] {
         create table crazy (
           c1 bigint,
           c2 int8,
-          ...
+          c3 bigserial,
+          c4 serial8,
+          c5 bit,
+          c6 bit(1),
+          c7 bit(10),
+          c8 bit varying,
+          c9 bit varying(1),
+          c10 bit varying(10),
+          c11 varbit,
+          c12 varbit(1),
+          c13 varbit(10),
+          c14 boolean,
+          c15 bool,
+          c16 box,
+          c17 bytea,
+          c18 character,
+          c19 character(1),
+          c20 character(10),
+          c21 char,
+          c22 char(1),
+          c23 char(10),
+          c24 character varying,
+          c25 character varying(1),
+          c26 character varying(110),
+          c27 varchar,
+          c28 varchar(1),
+          c29 varchar(110),
+          c30 cidr,
+          c31 circle,
+          c32 date,
+          c33 double precision,
+          c34 float8,
+          c35 inet,
+          c36 integer,
+          c37 int,
+          c38 int4,
+          c39 interval,
+          c40 interval year,
+          c41 interval day to hour,
+          c42 interval day to second,
+          c43 interval day to second(0),
+          c44 interval day to second(6),
+          c45 interval(0),
+          c46 interval(6),
+          c47 json,
+          c48 jsonb,
+          c49 line,
+          c50 lseg,
+          c51 macaddr,
+          c52 money,
+          c53 numeric(7,5),
+          c54 numeric(10,5),
+          c55 decimal,
+          c56 decimal(7,5),
+          c57 decimal(10,5),
+          c63 path,
+          c64 pg_lsn,
+          c65 point,
+          c66 polygon,
+          c67 real,
+          c68 float4,
+          c69 smallint,
+          c70 int2,
+          c71 smallserial,
+          c72 serial2,
+          c73 serial,
+          c74 serial4,
+          c75 text,
+          c76 time,
+          c77 time(10),
+          c78 time(1),
+          c79 time without time zone,
+          c80 time (10) without time zone,
+          c81 time (1) without time zone,
+          c82 time with time zone,
+          c83 time (10) with time zone,
+          c84 time (1) with time zone,
+          c85 timestamp without time zone,
+          c86 timestamp (10) without time zone,
+          c87 timestamp (1) without time zone,
+          c88 timestamp with time zone,
+          c89 timestamp (10) with time zone,
+          c90 timestamp (1) with time zone,
+          c91 tsquery,
+          c92 tsvector,
+          c93 txid_snapshot,
+          c94 uuid,
+          c95 xml,
+          c96 bigint[],
+          c97 int8[],
+          c100 bit[],
+          c101 bit(1)[],
+          c102 bit(10)[],
+          c103 bit varying[],
+          c104 bit varying(1)[],
+          c105 bit varying(10)[],
+          c106 varbit[],
+          c107 varbit(1)[],
+          c108 varbit(10)[],
+          c109 boolean[],
+          c110 bool[],
+          c111 box[],
+          c112 bytea[],
+          c113 character[],
+          c114 character(1)[],
+          c115 character(10)[],
+          c116 char[],
+          c117 char(1)[],
+          c118 char(10)[],
+          c119 character varying[],
+          c120 character varying(1)[],
+          c121 character varying(110)[],
+          c122 varchar[],
+          c123 varchar(1)[],
+          c124 varchar(110)[],
+          c125 cidr[],
+          c126 circle[],
+          c127 date[],
+          c128 double precision[],
+          c129 float8[],
+          c130 inet[],
+          c131 integer[],
+          c132 int[],
+          c133 int4[],
+          c134 interval[],
+          c135 interval year[],
+          c136 interval day to hour[],
+          c137 interval day to second[],
+          c138 interval day to second(0)[],
+          c139 interval day to second(6)[],
+          c140 interval(0)[],
+          c141 interval(6)[],
+          c142 json[],
+          c143 jsonb[],
+          c144 line[],
+          c145 lseg[],
+          c146 macaddr[],
+          c147 money[],
+          c148 numeric(7,5)[],
+          c149 numeric(10,5)[],
+          c150 decimal[],
+          c151 decimal(7,5)[],
+          c152 decimal(10,5)[],
+          c158 path[],
+          c159 pg_lsn[],
+          c160 point[],
+          c161 polygon[],
+          c162 real[],
+          c163 float4[],
+          c164 smallint[],
+          c165 int2[],
+          c170 text[],
+          c171 time[],
+          c172 time(10)[],
+          c173 time(1)[],
+          c174 time without time zone[],
+          c175 time (10) without time zone[],
+          c176 time (1) without time zone[],
+          c177 time with time zone[],
+          c178 time (10) with time zone[],
+          c179 time (1) with time zone[],
+          c180 timestamp without time zone[],
+          c181 timestamp (10) without time zone[],
+          c182 timestamp (1) without time zone[],
+          c183 timestamp with time zone[],
+          c184 timestamp (10) with time zone[],
+          c185 timestamp (1) with time zone[],
+          c186 tsquery[],
+          c187 tsvector[],
+          c188 txid_snapshot[],
+          c189 uuid[],
+          c190 xml[]
         );
       `,
       down: `
@@ -2062,34 +2143,34 @@ function tests(): Test[] {
     {
       name: 'findMany on column_name_that_becomes_empty_string',
       up: `
-        CREATE TABLE \`column_name_that_becomes_empty_string\` (
-          \`field1\` int(11) NOT NULL AUTO_INCREMENT,
-          \`12345\` int(11) DEFAULT NULL,
-          PRIMARY KEY (\`field1\`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+        CREATE TABLE column_name_that_becomes_empty_string (
+          field1 serial primary key not null,
+          "12345" int DEFAULT NULL
+        );
         
-        CREATE TABLE \`invalid_enum_value_name\` (
-          \`field1\` int(11) NOT NULL AUTO_INCREMENT,
-          \`here_be_enum\` enum('Y','N','123','$§!') DEFAULT NULL,
-          PRIMARY KEY (\`field1\`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-        
-        CREATE TABLE \`no_unique_identifier\` (
-          \`field1\` int(11) DEFAULT NULL,
-          \`field2\` int(11) DEFAULT NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+        create type invalid_enum as enum ('Y','N','123','$§!');
 
-        CREATE TABLE \`unsupported_type\` (
-          \`field1\` int(11) NOT NULL AUTO_INCREMENT,
-          \`unsupported\` binary(50) DEFAULT NULL,
-          PRIMARY KEY (\`field1\`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+        CREATE TABLE invalid_enum_value_name (
+          field1 serial primary key not null,
+          here_be_enum invalid_enum DEFAULT NULL
+        );
+        
+        CREATE TABLE no_unique_identifier (
+          field1 int DEFAULT NULL,
+          field2 int DEFAULT NULL
+        );
+
+        CREATE TABLE unsupported_type (
+          field1 serial primary key not null,
+          unsupported polygon DEFAULT NULL
+        );
       `,
       down: `
         drop table if exists column_name_that_becomes_empty_string cascade;
         drop table if exists invalid_enum_value_name cascade;
         drop table if exists no_unique_identifier cascade;
         drop table if exists unsupported_type cascade;
+        drop type if exists invalid_enum; 
       `,
       do: async (client) => {
         return await client.column_name_that_becomes_empty_string.findMany({})
@@ -2101,8 +2182,8 @@ function tests(): Test[] {
       up: `
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
-          data JSON
+          title text not null,
+          data jsonb
         );
       `,
       down: `
@@ -2120,7 +2201,7 @@ function tests(): Test[] {
         })
         const posts = await client.posts.findMany()
         posts.forEach((post) => {
-          assert.ok(typeof post.data === 'object')
+          expect(typeof post.data).toEqual('object')
         })
         return posts
       },
@@ -2140,10 +2221,10 @@ function tests(): Test[] {
       up: `
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
-          data JSON 
+          title text not null,
+          data jsonb
         );
-        insert into posts (title, data) values ('A', '"2020-01-14T11:10:19.573Z"');
+        insert into posts ("title", "data") values ('A', '"2020-01-14T11:10:19.573Z"');
       `,
       down: `
         drop table if exists posts cascade;
@@ -2157,7 +2238,7 @@ function tests(): Test[] {
         })
         const posts = await client.posts.findMany()
         posts.forEach((post) => {
-          assert.ok(typeof post.data === 'string')
+          expect(typeof post.data).toEqual('string')
         })
         return posts
       },
@@ -2179,15 +2260,15 @@ function tests(): Test[] {
       up: `
         create table posts (
           id serial primary key not null,
-          title varchar(50) not null,
-          data JSON not null
+          title text not null,
+          data jsonb not null
         );
         `,
       down: `
         drop table if exists posts cascade;
       `,
       do: async (client) => {
-        const result = await client.posts.create({
+        await client.posts.create({
           data: {
             title: 'Hello',
             data: ['some', 'array', 1, 2, 3, { object: 'value' }],
@@ -2204,24 +2285,5 @@ function tests(): Test[] {
         data: ['some', 'array', 1, 2, 3, { object: 'value' }],
       },
     },
-  ]
-}
-
-export function maskSchema(schema: string): string {
-  const urlRegex = /url\s*=\s*.+/
-  const outputRegex = /output\s*=\s*.+/
-  return schema
-    .split('\n')
-    .map((line) => {
-      const urlMatch = urlRegex.exec(line)
-      if (urlMatch) {
-        return `${line.slice(0, urlMatch.index)}url = "***"`
-      }
-      const outputMatch = outputRegex.exec(line)
-      if (outputMatch) {
-        return `${line.slice(0, outputMatch.index)}output = "***"`
-      }
-      return line
-    })
-    .join('\n')
-}
+  ],
+})
