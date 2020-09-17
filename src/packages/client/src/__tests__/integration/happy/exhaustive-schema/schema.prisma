@@ -1,0 +1,150 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["insensitiveFilters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id        Int      @default(autoincrement()) @id
+  createdAt DateTime @default(now())
+  title     String
+  content   String?
+  published Boolean  @default(false)
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  Int
+}
+
+model User {
+  id              Int             @default(autoincrement()) @id
+  email           String          @unique
+  int             Int
+  optionalInt     Int?
+  float           Float
+  optionalFloat   Float?
+  string          String
+  optionalString  String?
+  json            Json
+  optionalJson    Json?
+  enum            ABeautifulEnum
+  optionalEnum    ABeautifulEnum?
+  boolean         Boolean
+  optionalBoolean Boolean?
+  posts           Post[]
+}
+
+model M {
+  id              Int             @default(autoincrement()) @id
+  n               N[]
+  int             Int
+  optionalInt     Int?
+  float           Float
+  optionalFloat   Float?
+  string          String
+  optionalString  String?
+  json            Json
+  optionalJson    Json?
+  enum            ABeautifulEnum
+  optionalEnum    ABeautifulEnum?
+  boolean         Boolean
+  optionalBoolean Boolean?
+}
+
+model N {
+  id              Int             @default(autoincrement()) @id
+  m               M[]
+  int             Int
+  optionalInt     Int?
+  float           Float
+  optionalFloat   Float?
+  string          String
+  optionalString  String?
+  json            Json
+  optionalJson    Json?
+  enum            ABeautifulEnum
+  optionalEnum    ABeautifulEnum?
+  boolean         Boolean
+  optionalBoolean Boolean?
+}
+
+model OneOptional {
+  id              Int             @default(autoincrement()) @id
+  many            ManyRequired[]
+  int             Int
+  optionalInt     Int?
+  float           Float
+  optionalFloat   Float?
+  string          String
+  optionalString  String?
+  json            Json
+  optionalJson    Json?
+  enum            ABeautifulEnum
+  optionalEnum    ABeautifulEnum?
+  boolean         Boolean
+  optionalBoolean Boolean?
+}
+
+model ManyRequired {
+  id  Int          @default(autoincrement()) @id
+  one OneOptional? @relation(fields: [oneOptionalId], references: [id])
+
+  oneOptionalId   Int?
+  int             Int
+  optionalInt     Int?
+  float           Float
+  optionalFloat   Float?
+  string          String
+  optionalString  String?
+  json            Json
+  optionalJson    Json?
+  enum            ABeautifulEnum
+  optionalEnum    ABeautifulEnum?
+  boolean         Boolean
+  optionalBoolean Boolean?
+}
+
+model OptionalSide1 {
+  id   Int            @default(autoincrement()) @id
+  opti OptionalSide2? @relation(fields: [optionalSide2Id], references: [id])
+
+  optionalSide2Id Int?
+  int             Int
+  optionalInt     Int?
+  float           Float
+  optionalFloat   Float?
+  string          String
+  optionalString  String?
+  json            Json
+  optionalJson    Json?
+  enum            ABeautifulEnum
+  optionalEnum    ABeautifulEnum?
+  boolean         Boolean
+  optionalBoolean Boolean?
+}
+
+model OptionalSide2 {
+  id              Int             @default(autoincrement()) @id
+  opti            OptionalSide1?
+  int             Int
+  optionalInt     Int?
+  float           Float
+  optionalFloat   Float?
+  string          String
+  optionalString  String?
+  json            Json
+  optionalJson    Json?
+  enum            ABeautifulEnum
+  optionalEnum    ABeautifulEnum?
+  boolean         Boolean
+  optionalBoolean Boolean?
+
+}
+
+enum ABeautifulEnum {
+  A
+  B
+  C
+}
