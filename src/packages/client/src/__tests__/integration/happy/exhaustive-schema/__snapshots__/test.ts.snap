@@ -1,0 +1,6462 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`exhaustive-schema 1`] = `
+import {
+  DMMF,
+  DMMFClass,
+  Engine,
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientInitializationError,
+  PrismaClientValidationError,
+  sqltag as sql,
+  empty,
+  join,
+  raw,
+} from '@prisma/client/runtime';
+
+export { PrismaClientKnownRequestError }
+export { PrismaClientUnknownRequestError }
+export { PrismaClientRustPanicError }
+export { PrismaClientInitializationError }
+export { PrismaClientValidationError }
+
+/**
+ * Re-export of sql-template-tag
+ */
+export { sql, empty, join, raw }
+
+/**
+ * Prisma Client JS version: local
+ * Query Engine version: local
+ */
+export declare type PrismaVersion = {
+  client: string
+}
+
+export declare const prismaVersion: PrismaVersion 
+
+/**
+ * Utility Types
+ */
+
+/**
+ * From https://github.com/sindresorhus/type-fest/
+ * Matches a JSON object.
+ * This type can be useful to enforce some input to be JSON-compatible or as a super-type to be extended from. 
+ */
+export declare type JsonObject = {[Key in string]?: JsonValue}
+ 
+/**
+ * From https://github.com/sindresorhus/type-fest/
+ * Matches a JSON array.
+ */
+export declare interface JsonArray extends Array<JsonValue> {}
+ 
+/**
+ * From https://github.com/sindresorhus/type-fest/
+ * Matches any valid JSON value.
+ */
+export declare type JsonValue = string | number | boolean | null | JsonObject | JsonArray
+
+/**
+ * Same as JsonObject, but allows undefined
+ */
+export declare type InputJsonObject = {[Key in string]?: JsonValue}
+ 
+export declare interface InputJsonArray extends Array<JsonValue> {}
+ 
+export declare type InputJsonValue = undefined |  string | number | boolean | null | InputJsonObject | InputJsonArray
+
+declare type SelectAndInclude = {
+  select: any
+  include: any
+}
+
+declare type HasSelect = {
+  select: any
+}
+
+declare type HasInclude = {
+  include: any
+}
+
+declare type CheckSelect<T, S, U> = T extends SelectAndInclude
+  ? 'Please either choose \`select\` or \`include\`'
+  : T extends HasSelect
+  ? U
+  : T extends HasInclude
+  ? U
+  : S
+
+/**
+ * Get the type of the value, that the Promise holds.
+ */
+export declare type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infer U> ? U : T;
+
+/**
+ * Get the return type of a function which returns a Promise.
+ */
+export declare type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
+
+
+export declare type Enumerable<T> = T | Array<T>;
+
+export type RequiredKeys<T> = {
+  [K in keyof T]-?: {} extends Pick<T, K> ? never : K
+}[keyof T]
+
+export declare type TruthyKeys<T> = {
+  [key in keyof T]: T[key] extends false | undefined | null ? never : key
+}[keyof T]
+
+export declare type TrueKeys<T> = TruthyKeys<Pick<T, RequiredKeys<T>>>
+
+/**
+ * Subset
+ * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
+ */
+export declare type Subset<T, U> = {
+  [key in keyof T]: key extends keyof U ? T[key] : never;
+};
+declare class PrismaClientFetcher {
+  private readonly prisma;
+  private readonly debug;
+  private readonly hooks?;
+  constructor(prisma: PrismaClient<any, any>, debug?: boolean, hooks?: Hooks | undefined);
+  request<T>(document: any, dataPath?: string[], rootField?: string, typeName?: string, isList?: boolean, callsite?: string): Promise<T>;
+  sanitizeMessage(message: string): string;
+  protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean): any;
+}
+
+
+/**
+ * Client
+**/
+
+export declare type Datasource = {
+  url?: string
+}
+
+export type Datasources = {
+  db?: Datasource
+}
+
+export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
+
+export interface PrismaClientOptions {
+  /**
+   * Overwrites the datasource url from your prisma.schema file
+   */
+  datasources?: Datasources
+
+  /**
+   * @default "colorless"
+   */
+  errorFormat?: ErrorFormat
+
+  /**
+   * @example
+   * \`\`\`
+   * // Defaults to stdout
+   * log: ['query', 'info', 'warn', 'error']
+   * 
+   * // Emit as events
+   * log: [
+   *  { emit: 'stdout', level: 'query' },
+   *  { emit: 'stdout', level: 'info' },
+   *  { emit: 'stdout', level: 'warn' }
+   *  { emit: 'stdout', level: 'error' }
+   * ]
+   * \`\`\`
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+   */
+  log?: Array<LogLevel | LogDefinition>
+}
+
+export type Hooks = {
+  beforeRequest?: (options: {query: string, path: string[], rootField?: string, typeName?: string, document: any}) => any
+}
+
+/* Types for Logging */
+export type LogLevel = 'info' | 'query' | 'warn' | 'error'
+export type LogDefinition = {
+  level: LogLevel
+  emit: 'stdout' | 'event'
+}
+
+export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
+export type GetEvents<T extends any> = T extends Array<LogLevel | LogDefinition> ?
+  GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]>
+  : never
+
+export type QueryEvent = {
+  timestamp: Date
+  query: string
+  params: string
+  duration: number
+  target: string
+}
+
+export type LogEvent = {
+  timestamp: Date
+  message: string
+  target: string
+}
+/* End Types for Logging */
+
+
+export type PrismaAction =
+  | 'findOne'
+  | 'findMany'
+  | 'create'
+  | 'update'
+  | 'updateMany'
+  | 'upsert'
+  | 'delete'
+  | 'deleteMany'
+  | 'executeRaw'
+  | 'queryRaw'
+  | 'aggregate'
+
+/**
+ * These options are being passed in to the middleware as "params"
+ */
+export type MiddlewareParams = {
+  model?: string
+  action: PrismaAction
+  args: any
+  dataPath: string[]
+  runInTransaction: boolean
+}
+
+/**
+ * The \`T\` type makes sure, that the \`return proceed\` is not forgotten in the middleware implementation
+ */
+export type Middleware<T = any> = (
+  params: MiddlewareParams,
+  next: (params: MiddlewareParams) => Promise<T>,
+) => Promise<T>
+
+// tested in getLogLevel.test.ts
+export declare function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
+
+/**
+ * ##  Prisma Client ʲˢ
+ * 
+ * Type-safe database client for TypeScript & Node.js (ORM replacement)
+ * @example
+ * \`\`\`
+ * const prisma = new PrismaClient()
+ * // Fetch zero or more Posts
+ * const posts = await prisma.post.findMany()
+ * \`\`\`
+ *
+ * 
+ * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
+ */
+export declare class PrismaClient<
+  T extends PrismaClientOptions = PrismaClientOptions,
+  U = 'log' extends keyof T ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never
+> {
+  /**
+   * @private
+   */
+  private fetcher;
+  /**
+   * @private
+   */
+  private readonly dmmf;
+  /**
+   * @private
+   */
+  private connectionPromise?;
+  /**
+   * @private
+   */
+  private disconnectionPromise?;
+  /**
+   * @private
+   */
+  private readonly engineConfig;
+  /**
+   * @private
+   */
+  private readonly measurePerformance;
+  /**
+   * @private
+   */
+  private engine: Engine;
+  /**
+   * @private
+   */
+  private errorFormat: ErrorFormat;
+
+  /**
+   * ##  Prisma Client ʲˢ
+   * 
+   * Type-safe database client for TypeScript & Node.js (ORM replacement)
+   * @example
+   * \`\`\`
+   * const prisma = new PrismaClient()
+   * // Fetch zero or more Posts
+   * const posts = await prisma.post.findMany()
+   * \`\`\`
+   *
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
+   */
+  constructor(optionsArg?: T);
+  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? QueryEvent : LogEvent) => void): void;
+  /**
+   * @deprecated renamed to \`$on\`
+   */
+  on<V extends U>(eventType: V, callback: (event: V extends 'query' ? QueryEvent : LogEvent) => void): void;
+  /**
+   * Connect with the database
+   */
+  $connect(): Promise<void>;
+  /**
+   * @deprecated renamed to \`$connect\`
+   */
+  connect(): Promise<void>;
+
+  /**
+   * Disconnect from the database
+   */
+  $disconnect(): Promise<any>;
+  /**
+   * @deprecated renamed to \`$disconnect\`
+   */
+  disconnect(): Promise<any>;
+
+  /**
+   * Add a middleware
+   */
+  $use(cb: Middleware): void
+
+  /**
+   * Executes a raw query and returns the number of affected rows
+   * @example
+   * \`\`\`
+   * // With parameters use prisma.executeRaw\`\`, values will be escaped automatically
+   * const result = await prisma.executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
+   * // Or
+   * const result = await prisma.executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
+  * \`\`\`
+  * 
+  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+  */
+  $executeRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<number>;
+
+  /**
+   * @deprecated renamed to \`$executeRaw\`
+   */
+  executeRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<number>;
+
+  /**
+   * Performs a raw query and returns the SELECT data
+   * @example
+   * \`\`\`
+   * // With parameters use prisma.queryRaw\`\`, values will be escaped automatically
+   * const result = await prisma.queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
+   * // Or
+   * const result = await prisma.queryRaw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
+  * \`\`\`
+  * 
+  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+  */
+  $queryRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<T>;
+ 
+  /**
+   * @deprecated renamed to \`$queryRaw\`
+   */
+  queryRaw<T = any>(query: string | TemplateStringsArray, ...values: any[]): Promise<T>;
+
+  /**
+   * \`prisma.post\`: Exposes CRUD operations for the **Post** model.
+    * Example usage:
+    * \`\`\`ts
+    * // Fetch zero or more Posts
+    * const posts = await prisma.post.findMany()
+    * \`\`\`
+    */
+  get post(): PostDelegate;
+
+  /**
+   * \`prisma.user\`: Exposes CRUD operations for the **User** model.
+    * Example usage:
+    * \`\`\`ts
+    * // Fetch zero or more Users
+    * const users = await prisma.user.findMany()
+    * \`\`\`
+    */
+  get user(): UserDelegate;
+
+  /**
+   * \`prisma.m\`: Exposes CRUD operations for the **M** model.
+    * Example usage:
+    * \`\`\`ts
+    * // Fetch zero or more Ms
+    * const ms = await prisma.m.findMany()
+    * \`\`\`
+    */
+  get m(): MDelegate;
+
+  /**
+   * \`prisma.n\`: Exposes CRUD operations for the **N** model.
+    * Example usage:
+    * \`\`\`ts
+    * // Fetch zero or more Ns
+    * const ns = await prisma.n.findMany()
+    * \`\`\`
+    */
+  get n(): NDelegate;
+
+  /**
+   * \`prisma.oneOptional\`: Exposes CRUD operations for the **OneOptional** model.
+    * Example usage:
+    * \`\`\`ts
+    * // Fetch zero or more OneOptionals
+    * const oneOptionals = await prisma.oneOptional.findMany()
+    * \`\`\`
+    */
+  get oneOptional(): OneOptionalDelegate;
+
+  /**
+   * \`prisma.manyRequired\`: Exposes CRUD operations for the **ManyRequired** model.
+    * Example usage:
+    * \`\`\`ts
+    * // Fetch zero or more ManyRequireds
+    * const manyRequireds = await prisma.manyRequired.findMany()
+    * \`\`\`
+    */
+  get manyRequired(): ManyRequiredDelegate;
+
+  /**
+   * \`prisma.optionalSide1\`: Exposes CRUD operations for the **OptionalSide1** model.
+    * Example usage:
+    * \`\`\`ts
+    * // Fetch zero or more OptionalSide1s
+    * const optionalSide1s = await prisma.optionalSide1.findMany()
+    * \`\`\`
+    */
+  get optionalSide1(): OptionalSide1Delegate;
+
+  /**
+   * \`prisma.optionalSide2\`: Exposes CRUD operations for the **OptionalSide2** model.
+    * Example usage:
+    * \`\`\`ts
+    * // Fetch zero or more OptionalSide2s
+    * const optionalSide2s = await prisma.optionalSide2.findMany()
+    * \`\`\`
+    */
+  get optionalSide2(): OptionalSide2Delegate;
+}
+
+
+
+/**
+ * Enums
+ */
+
+// Based on
+// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
+
+export declare const PostDistinctFieldEnum: {
+  id: 'id',
+  createdAt: 'createdAt',
+  title: 'title',
+  content: 'content',
+  published: 'published',
+  authorId: 'authorId'
+};
+
+export declare type PostDistinctFieldEnum = (typeof PostDistinctFieldEnum)[keyof typeof PostDistinctFieldEnum]
+
+
+export declare const UserDistinctFieldEnum: {
+  id: 'id',
+  email: 'email',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+};
+
+export declare type UserDistinctFieldEnum = (typeof UserDistinctFieldEnum)[keyof typeof UserDistinctFieldEnum]
+
+
+export declare const MDistinctFieldEnum: {
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+};
+
+export declare type MDistinctFieldEnum = (typeof MDistinctFieldEnum)[keyof typeof MDistinctFieldEnum]
+
+
+export declare const NDistinctFieldEnum: {
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+};
+
+export declare type NDistinctFieldEnum = (typeof NDistinctFieldEnum)[keyof typeof NDistinctFieldEnum]
+
+
+export declare const OneOptionalDistinctFieldEnum: {
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+};
+
+export declare type OneOptionalDistinctFieldEnum = (typeof OneOptionalDistinctFieldEnum)[keyof typeof OneOptionalDistinctFieldEnum]
+
+
+export declare const ManyRequiredDistinctFieldEnum: {
+  id: 'id',
+  oneOptionalId: 'oneOptionalId',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+};
+
+export declare type ManyRequiredDistinctFieldEnum = (typeof ManyRequiredDistinctFieldEnum)[keyof typeof ManyRequiredDistinctFieldEnum]
+
+
+export declare const OptionalSide1DistinctFieldEnum: {
+  id: 'id',
+  optionalSide2Id: 'optionalSide2Id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+};
+
+export declare type OptionalSide1DistinctFieldEnum = (typeof OptionalSide1DistinctFieldEnum)[keyof typeof OptionalSide1DistinctFieldEnum]
+
+
+export declare const OptionalSide2DistinctFieldEnum: {
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+};
+
+export declare type OptionalSide2DistinctFieldEnum = (typeof OptionalSide2DistinctFieldEnum)[keyof typeof OptionalSide2DistinctFieldEnum]
+
+
+export declare const SortOrder: {
+  asc: 'asc',
+  desc: 'desc'
+};
+
+export declare type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export declare const ABeautifulEnum: {
+  A: 'A',
+  B: 'B',
+  C: 'C'
+};
+
+export declare type ABeautifulEnum = (typeof ABeautifulEnum)[keyof typeof ABeautifulEnum]
+
+
+export declare const QueryMode: {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
+export declare type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+
+/**
+ * Model Post
+ */
+
+export type Post = {
+  id: number
+  createdAt: Date
+  title: string
+  content: string | null
+  published: boolean
+  authorId: number
+}
+
+
+export type AggregatePost = {
+  count: number
+  avg: PostAvgAggregateOutputType | null
+  sum: PostSumAggregateOutputType | null
+  min: PostMinAggregateOutputType | null
+  max: PostMaxAggregateOutputType | null
+}
+
+export type PostAvgAggregateOutputType = {
+  id: number
+  authorId: number
+}
+
+export type PostSumAggregateOutputType = {
+  id: number
+  authorId: number
+}
+
+export type PostMinAggregateOutputType = {
+  id: number
+  authorId: number
+}
+
+export type PostMaxAggregateOutputType = {
+  id: number
+  authorId: number
+}
+
+
+export type PostAvgAggregateInputType = {
+  id?: true
+  authorId?: true
+}
+
+export type PostSumAggregateInputType = {
+  id?: true
+  authorId?: true
+}
+
+export type PostMinAggregateInputType = {
+  id?: true
+  authorId?: true
+}
+
+export type PostMaxAggregateInputType = {
+  id?: true
+  authorId?: true
+}
+
+export type AggregatePostArgs = {
+  where?: PostWhereInput
+  orderBy?: Enumerable<PostOrderByInput>
+  cursor?: PostWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<PostDistinctFieldEnum>
+  count?: true
+  avg?: PostAvgAggregateInputType
+  sum?: PostSumAggregateInputType
+  min?: PostMinAggregateInputType
+  max?: PostMaxAggregateInputType
+}
+
+export type GetPostAggregateType<T extends AggregatePostArgs> = {
+  [P in keyof T]: P extends 'count' ? number : GetPostAggregateScalarType<T[P]>
+}
+
+export type GetPostAggregateScalarType<T extends any> = {
+  [P in keyof T]: P extends keyof PostAvgAggregateOutputType ? PostAvgAggregateOutputType[P] : never
+}
+    
+    
+
+export type PostSelect = {
+  id?: boolean
+  createdAt?: boolean
+  title?: boolean
+  content?: boolean
+  published?: boolean
+  author?: boolean | UserArgs
+  authorId?: boolean
+}
+
+export type PostInclude = {
+  author?: boolean | UserArgs
+}
+
+export type PostGetPayload<
+  S extends boolean | null | undefined | PostArgs,
+  U = keyof S
+> = S extends true
+  ? Post
+  : S extends undefined
+  ? never
+  : S extends PostArgs | FindManyPostArgs
+  ? 'include' extends U
+    ? Post  & {
+      [P in TrueKeys<S['include']>]:
+      P extends 'author'
+      ? UserGetPayload<S['include'][P]> : never
+    }
+  : 'select' extends U
+    ? {
+      [P in TrueKeys<S['select']>]:P extends keyof Post ? Post[P]
+: 
+      P extends 'author'
+      ? UserGetPayload<S['select'][P]> : never
+    }
+  : Post
+: Post
+
+
+export interface PostDelegate {
+  /**
+   * Find zero or one Post.
+   * @param {FindOnePostArgs} args - Arguments to find a Post
+   * @example
+   * // Get one Post
+   * const post = await prisma.post.findOne({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findOne<T extends FindOnePostArgs>(
+    args: Subset<T, FindOnePostArgs>
+  ): CheckSelect<T, Prisma__PostClient<Post | null>, Prisma__PostClient<PostGetPayload<T> | null>>
+  /**
+   * Find zero or more Posts.
+   * @param {FindManyPostArgs=} args - Arguments to filter and select certain fields only.
+   * @example
+   * // Get all Posts
+   * const posts = await prisma.post.findMany()
+   * 
+   * // Get first 10 Posts
+   * const posts = await prisma.post.findMany({ take: 10 })
+   * 
+   * // Only select the \`id\`
+   * const postWithIdOnly = await prisma.post.findMany({ select: { id: true } })
+   * 
+  **/
+  findMany<T extends FindManyPostArgs>(
+    args?: Subset<T, FindManyPostArgs>
+  ): CheckSelect<T, Promise<Array<Post>>, Promise<Array<PostGetPayload<T>>>>
+  /**
+   * Create a Post.
+   * @param {PostCreateArgs} args - Arguments to create a Post.
+   * @example
+   * // Create one Post
+   * const Post = await prisma.post.create({
+   *   data: {
+   *     // ... data to create a Post
+   *   }
+   * })
+   * 
+  **/
+  create<T extends PostCreateArgs>(
+    args: Subset<T, PostCreateArgs>
+  ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+  /**
+   * Delete a Post.
+   * @param {PostDeleteArgs} args - Arguments to delete one Post.
+   * @example
+   * // Delete one Post
+   * const Post = await prisma.post.delete({
+   *   where: {
+   *     // ... filter to delete one Post
+   *   }
+   * })
+   * 
+  **/
+  delete<T extends PostDeleteArgs>(
+    args: Subset<T, PostDeleteArgs>
+  ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+  /**
+   * Update one Post.
+   * @param {PostUpdateArgs} args - Arguments to update one Post.
+   * @example
+   * // Update one Post
+   * const post = await prisma.post.update({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  update<T extends PostUpdateArgs>(
+    args: Subset<T, PostUpdateArgs>
+  ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+  /**
+   * Delete zero or more Posts.
+   * @param {PostDeleteManyArgs} args - Arguments to filter Posts to delete.
+   * @example
+   * // Delete a few Posts
+   * const { count } = await prisma.post.deleteMany({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+   * 
+  **/
+  deleteMany<T extends PostDeleteManyArgs>(
+    args: Subset<T, PostDeleteManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Update zero or more Posts.
+   * @param {PostUpdateManyArgs} args - Arguments to update one or more rows.
+   * @example
+   * // Update many Posts
+   * const post = await prisma.post.updateMany({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  updateMany<T extends PostUpdateManyArgs>(
+    args: Subset<T, PostUpdateManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Create or update one Post.
+   * @param {PostUpsertArgs} args - Arguments to update or create a Post.
+   * @example
+   * // Update or create a Post
+   * const post = await prisma.post.upsert({
+   *   create: {
+   *     // ... data to create a Post
+   *   },
+   *   update: {
+   *     // ... in case it already exists, update
+   *   },
+   *   where: {
+   *     // ... the filter for the Post we want to update
+   *   }
+   * })
+  **/
+  upsert<T extends PostUpsertArgs>(
+    args: Subset<T, PostUpsertArgs>
+  ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+  /**
+   * Count
+   */
+  count(args?: Omit<FindManyPostArgs, 'select' | 'include'>): Promise<number>
+
+  /**
+   * Aggregate
+   */
+  aggregate<T extends AggregatePostArgs>(args: Subset<T, AggregatePostArgs>): Promise<GetPostAggregateType<T>>
+}
+
+/**
+ * The delegate class that acts as a "Promise-like" for Post.
+ * Why is this prefixed with \`Prisma__\`?
+ * Because we want to prevent naming conflicts as mentioned in 
+ * TEST_GITHUB_LINK
+ */
+export declare class Prisma__PostClient<T> implements Promise<T> {
+  private readonly _dmmf;
+  private readonly _fetcher;
+  private readonly _queryType;
+  private readonly _rootField;
+  private readonly _clientMethod;
+  private readonly _args;
+  private readonly _dataPath;
+  private readonly _errorFormat;
+  private readonly _measurePerformance?;
+  private _isList;
+  private _callsite;
+  private _requestPromise?;
+  constructor(_dmmf: DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+  readonly [Symbol.toStringTag]: 'PrismaClientPromise';
+
+  author<T extends UserArgs = {}>(args?: Subset<T, UserArgs>): CheckSelect<T, Prisma__UserClient<User | null>, Prisma__UserClient<UserGetPayload<T> | null>>;
+
+  private get _document();
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+  /**
+   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+   * resolved value cannot be modified from the callback.
+   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+   * @returns A Promise for the completion of the callback.
+   */
+  finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+}
+
+// Custom InputTypes
+
+/**
+ * Post findOne
+ */
+export type FindOnePostArgs = {
+  /**
+   * Select specific fields to fetch from the Post
+  **/
+  select?: PostSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: PostInclude | null
+  /**
+   * Filter, which Post to fetch.
+  **/
+  where: PostWhereUniqueInput
+}
+
+
+/**
+ * Post findMany
+ */
+export type FindManyPostArgs = {
+  /**
+   * Select specific fields to fetch from the Post
+  **/
+  select?: PostSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: PostInclude | null
+  /**
+   * Filter, which Posts to fetch.
+  **/
+  where?: PostWhereInput
+  /**
+   * Determine the order of the Posts to fetch.
+  **/
+  orderBy?: Enumerable<PostOrderByInput>
+  /**
+   * Sets the position for listing Posts.
+  **/
+  cursor?: PostWhereUniqueInput
+  /**
+   * The number of Posts to fetch. If negative number, it will take Posts before the \`cursor\`.
+  **/
+  take?: number
+  /**
+   * Skip the first \`n\` Posts.
+  **/
+  skip?: number
+  distinct?: Enumerable<PostDistinctFieldEnum>
+}
+
+
+/**
+ * Post create
+ */
+export type PostCreateArgs = {
+  /**
+   * Select specific fields to fetch from the Post
+  **/
+  select?: PostSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: PostInclude | null
+  /**
+   * The data needed to create a Post.
+  **/
+  data: PostCreateInput
+}
+
+
+/**
+ * Post update
+ */
+export type PostUpdateArgs = {
+  /**
+   * Select specific fields to fetch from the Post
+  **/
+  select?: PostSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: PostInclude | null
+  /**
+   * The data needed to update a Post.
+  **/
+  data: PostUpdateInput
+  /**
+   * Choose, which Post to update.
+  **/
+  where: PostWhereUniqueInput
+}
+
+
+/**
+ * Post updateMany
+ */
+export type PostUpdateManyArgs = {
+  data: PostUpdateManyMutationInput
+  where?: PostWhereInput
+}
+
+
+/**
+ * Post upsert
+ */
+export type PostUpsertArgs = {
+  /**
+   * Select specific fields to fetch from the Post
+  **/
+  select?: PostSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: PostInclude | null
+  /**
+   * The filter to search for the Post to update in case it exists.
+  **/
+  where: PostWhereUniqueInput
+  /**
+   * In case the Post found by the \`where\` argument doesn't exist, create a new Post with this data.
+  **/
+  create: PostCreateInput
+  /**
+   * In case the Post was found with the provided \`where\` argument, update it with this data.
+  **/
+  update: PostUpdateInput
+}
+
+
+/**
+ * Post delete
+ */
+export type PostDeleteArgs = {
+  /**
+   * Select specific fields to fetch from the Post
+  **/
+  select?: PostSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: PostInclude | null
+  /**
+   * Filter which Post to delete.
+  **/
+  where: PostWhereUniqueInput
+}
+
+
+/**
+ * Post deleteMany
+ */
+export type PostDeleteManyArgs = {
+  where?: PostWhereInput
+}
+
+
+/**
+ * Post without action
+ */
+export type PostArgs = {
+  /**
+   * Select specific fields to fetch from the Post
+  **/
+  select?: PostSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: PostInclude | null
+}
+
+
+
+/**
+ * Model User
+ */
+
+export type User = {
+  id: number
+  email: string
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+  string: string
+  optionalString: string | null
+  json: JsonValue
+  optionalJson: JsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean: boolean | null
+}
+
+
+export type AggregateUser = {
+  count: number
+  avg: UserAvgAggregateOutputType | null
+  sum: UserSumAggregateOutputType | null
+  min: UserMinAggregateOutputType | null
+  max: UserMaxAggregateOutputType | null
+}
+
+export type UserAvgAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number
+  float: number
+  optionalFloat: number
+}
+
+export type UserSumAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type UserMinAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type UserMaxAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+
+export type UserAvgAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type UserSumAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type UserMinAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type UserMaxAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type AggregateUserArgs = {
+  where?: UserWhereInput
+  orderBy?: Enumerable<UserOrderByInput>
+  cursor?: UserWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<UserDistinctFieldEnum>
+  count?: true
+  avg?: UserAvgAggregateInputType
+  sum?: UserSumAggregateInputType
+  min?: UserMinAggregateInputType
+  max?: UserMaxAggregateInputType
+}
+
+export type GetUserAggregateType<T extends AggregateUserArgs> = {
+  [P in keyof T]: P extends 'count' ? number : GetUserAggregateScalarType<T[P]>
+}
+
+export type GetUserAggregateScalarType<T extends any> = {
+  [P in keyof T]: P extends keyof UserAvgAggregateOutputType ? UserAvgAggregateOutputType[P] : never
+}
+    
+    
+
+export type UserSelect = {
+  id?: boolean
+  email?: boolean
+  int?: boolean
+  optionalInt?: boolean
+  float?: boolean
+  optionalFloat?: boolean
+  string?: boolean
+  optionalString?: boolean
+  json?: boolean
+  optionalJson?: boolean
+  enum?: boolean
+  optionalEnum?: boolean
+  boolean?: boolean
+  optionalBoolean?: boolean
+  posts?: boolean | FindManyPostArgs
+}
+
+export type UserInclude = {
+  posts?: boolean | FindManyPostArgs
+}
+
+export type UserGetPayload<
+  S extends boolean | null | undefined | UserArgs,
+  U = keyof S
+> = S extends true
+  ? User
+  : S extends undefined
+  ? never
+  : S extends UserArgs | FindManyUserArgs
+  ? 'include' extends U
+    ? User  & {
+      [P in TrueKeys<S['include']>]:
+      P extends 'posts'
+      ? Array<PostGetPayload<S['include'][P]>> : never
+    }
+  : 'select' extends U
+    ? {
+      [P in TrueKeys<S['select']>]:P extends keyof User ? User[P]
+: 
+      P extends 'posts'
+      ? Array<PostGetPayload<S['select'][P]>> : never
+    }
+  : User
+: User
+
+
+export interface UserDelegate {
+  /**
+   * Find zero or one User.
+   * @param {FindOneUserArgs} args - Arguments to find a User
+   * @example
+   * // Get one User
+   * const user = await prisma.user.findOne({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findOne<T extends FindOneUserArgs>(
+    args: Subset<T, FindOneUserArgs>
+  ): CheckSelect<T, Prisma__UserClient<User | null>, Prisma__UserClient<UserGetPayload<T> | null>>
+  /**
+   * Find zero or more Users.
+   * @param {FindManyUserArgs=} args - Arguments to filter and select certain fields only.
+   * @example
+   * // Get all Users
+   * const users = await prisma.user.findMany()
+   * 
+   * // Get first 10 Users
+   * const users = await prisma.user.findMany({ take: 10 })
+   * 
+   * // Only select the \`id\`
+   * const userWithIdOnly = await prisma.user.findMany({ select: { id: true } })
+   * 
+  **/
+  findMany<T extends FindManyUserArgs>(
+    args?: Subset<T, FindManyUserArgs>
+  ): CheckSelect<T, Promise<Array<User>>, Promise<Array<UserGetPayload<T>>>>
+  /**
+   * Create a User.
+   * @param {UserCreateArgs} args - Arguments to create a User.
+   * @example
+   * // Create one User
+   * const User = await prisma.user.create({
+   *   data: {
+   *     // ... data to create a User
+   *   }
+   * })
+   * 
+  **/
+  create<T extends UserCreateArgs>(
+    args: Subset<T, UserCreateArgs>
+  ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+  /**
+   * Delete a User.
+   * @param {UserDeleteArgs} args - Arguments to delete one User.
+   * @example
+   * // Delete one User
+   * const User = await prisma.user.delete({
+   *   where: {
+   *     // ... filter to delete one User
+   *   }
+   * })
+   * 
+  **/
+  delete<T extends UserDeleteArgs>(
+    args: Subset<T, UserDeleteArgs>
+  ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+  /**
+   * Update one User.
+   * @param {UserUpdateArgs} args - Arguments to update one User.
+   * @example
+   * // Update one User
+   * const user = await prisma.user.update({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  update<T extends UserUpdateArgs>(
+    args: Subset<T, UserUpdateArgs>
+  ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+  /**
+   * Delete zero or more Users.
+   * @param {UserDeleteManyArgs} args - Arguments to filter Users to delete.
+   * @example
+   * // Delete a few Users
+   * const { count } = await prisma.user.deleteMany({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+   * 
+  **/
+  deleteMany<T extends UserDeleteManyArgs>(
+    args: Subset<T, UserDeleteManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Update zero or more Users.
+   * @param {UserUpdateManyArgs} args - Arguments to update one or more rows.
+   * @example
+   * // Update many Users
+   * const user = await prisma.user.updateMany({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  updateMany<T extends UserUpdateManyArgs>(
+    args: Subset<T, UserUpdateManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Create or update one User.
+   * @param {UserUpsertArgs} args - Arguments to update or create a User.
+   * @example
+   * // Update or create a User
+   * const user = await prisma.user.upsert({
+   *   create: {
+   *     // ... data to create a User
+   *   },
+   *   update: {
+   *     // ... in case it already exists, update
+   *   },
+   *   where: {
+   *     // ... the filter for the User we want to update
+   *   }
+   * })
+  **/
+  upsert<T extends UserUpsertArgs>(
+    args: Subset<T, UserUpsertArgs>
+  ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+  /**
+   * Count
+   */
+  count(args?: Omit<FindManyUserArgs, 'select' | 'include'>): Promise<number>
+
+  /**
+   * Aggregate
+   */
+  aggregate<T extends AggregateUserArgs>(args: Subset<T, AggregateUserArgs>): Promise<GetUserAggregateType<T>>
+}
+
+/**
+ * The delegate class that acts as a "Promise-like" for User.
+ * Why is this prefixed with \`Prisma__\`?
+ * Because we want to prevent naming conflicts as mentioned in 
+ * https://github.com/prisma/prisma-client-js/issues/707
+ */
+export declare class Prisma__UserClient<T> implements Promise<T> {
+  private readonly _dmmf;
+  private readonly _fetcher;
+  private readonly _queryType;
+  private readonly _rootField;
+  private readonly _clientMethod;
+  private readonly _args;
+  private readonly _dataPath;
+  private readonly _errorFormat;
+  private readonly _measurePerformance?;
+  private _isList;
+  private _callsite;
+  private _requestPromise?;
+  constructor(_dmmf: DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+  readonly [Symbol.toStringTag]: 'PrismaClientPromise';
+
+  posts<T extends FindManyPostArgs = {}>(args?: Subset<T, FindManyPostArgs>): CheckSelect<T, Promise<Array<Post>>, Promise<Array<PostGetPayload<T>>>>;
+
+  private get _document();
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+  /**
+   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+   * resolved value cannot be modified from the callback.
+   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+   * @returns A Promise for the completion of the callback.
+   */
+  finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+}
+
+// Custom InputTypes
+
+/**
+ * User findOne
+ */
+export type FindOneUserArgs = {
+  /**
+   * Select specific fields to fetch from the User
+  **/
+  select?: UserSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: UserInclude | null
+  /**
+   * Filter, which User to fetch.
+  **/
+  where: UserWhereUniqueInput
+}
+
+
+/**
+ * User findMany
+ */
+export type FindManyUserArgs = {
+  /**
+   * Select specific fields to fetch from the User
+  **/
+  select?: UserSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: UserInclude | null
+  /**
+   * Filter, which Users to fetch.
+  **/
+  where?: UserWhereInput
+  /**
+   * Determine the order of the Users to fetch.
+  **/
+  orderBy?: Enumerable<UserOrderByInput>
+  /**
+   * Sets the position for listing Users.
+  **/
+  cursor?: UserWhereUniqueInput
+  /**
+   * The number of Users to fetch. If negative number, it will take Users before the \`cursor\`.
+  **/
+  take?: number
+  /**
+   * Skip the first \`n\` Users.
+  **/
+  skip?: number
+  distinct?: Enumerable<UserDistinctFieldEnum>
+}
+
+
+/**
+ * User create
+ */
+export type UserCreateArgs = {
+  /**
+   * Select specific fields to fetch from the User
+  **/
+  select?: UserSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: UserInclude | null
+  /**
+   * The data needed to create a User.
+  **/
+  data: UserCreateInput
+}
+
+
+/**
+ * User update
+ */
+export type UserUpdateArgs = {
+  /**
+   * Select specific fields to fetch from the User
+  **/
+  select?: UserSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: UserInclude | null
+  /**
+   * The data needed to update a User.
+  **/
+  data: UserUpdateInput
+  /**
+   * Choose, which User to update.
+  **/
+  where: UserWhereUniqueInput
+}
+
+
+/**
+ * User updateMany
+ */
+export type UserUpdateManyArgs = {
+  data: UserUpdateManyMutationInput
+  where?: UserWhereInput
+}
+
+
+/**
+ * User upsert
+ */
+export type UserUpsertArgs = {
+  /**
+   * Select specific fields to fetch from the User
+  **/
+  select?: UserSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: UserInclude | null
+  /**
+   * The filter to search for the User to update in case it exists.
+  **/
+  where: UserWhereUniqueInput
+  /**
+   * In case the User found by the \`where\` argument doesn't exist, create a new User with this data.
+  **/
+  create: UserCreateInput
+  /**
+   * In case the User was found with the provided \`where\` argument, update it with this data.
+  **/
+  update: UserUpdateInput
+}
+
+
+/**
+ * User delete
+ */
+export type UserDeleteArgs = {
+  /**
+   * Select specific fields to fetch from the User
+  **/
+  select?: UserSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: UserInclude | null
+  /**
+   * Filter which User to delete.
+  **/
+  where: UserWhereUniqueInput
+}
+
+
+/**
+ * User deleteMany
+ */
+export type UserDeleteManyArgs = {
+  where?: UserWhereInput
+}
+
+
+/**
+ * User without action
+ */
+export type UserArgs = {
+  /**
+   * Select specific fields to fetch from the User
+  **/
+  select?: UserSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: UserInclude | null
+}
+
+
+
+/**
+ * Model M
+ */
+
+export type M = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+  string: string
+  optionalString: string | null
+  json: JsonValue
+  optionalJson: JsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean: boolean | null
+}
+
+
+export type AggregateM = {
+  count: number
+  avg: MAvgAggregateOutputType | null
+  sum: MSumAggregateOutputType | null
+  min: MMinAggregateOutputType | null
+  max: MMaxAggregateOutputType | null
+}
+
+export type MAvgAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number
+  float: number
+  optionalFloat: number
+}
+
+export type MSumAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type MMinAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type MMaxAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+
+export type MAvgAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type MSumAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type MMinAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type MMaxAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type AggregateMArgs = {
+  where?: MWhereInput
+  orderBy?: Enumerable<MOrderByInput>
+  cursor?: MWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<MDistinctFieldEnum>
+  count?: true
+  avg?: MAvgAggregateInputType
+  sum?: MSumAggregateInputType
+  min?: MMinAggregateInputType
+  max?: MMaxAggregateInputType
+}
+
+export type GetMAggregateType<T extends AggregateMArgs> = {
+  [P in keyof T]: P extends 'count' ? number : GetMAggregateScalarType<T[P]>
+}
+
+export type GetMAggregateScalarType<T extends any> = {
+  [P in keyof T]: P extends keyof MAvgAggregateOutputType ? MAvgAggregateOutputType[P] : never
+}
+    
+    
+
+export type MSelect = {
+  id?: boolean
+  n?: boolean | FindManyNArgs
+  int?: boolean
+  optionalInt?: boolean
+  float?: boolean
+  optionalFloat?: boolean
+  string?: boolean
+  optionalString?: boolean
+  json?: boolean
+  optionalJson?: boolean
+  enum?: boolean
+  optionalEnum?: boolean
+  boolean?: boolean
+  optionalBoolean?: boolean
+}
+
+export type MInclude = {
+  n?: boolean | FindManyNArgs
+}
+
+export type MGetPayload<
+  S extends boolean | null | undefined | MArgs,
+  U = keyof S
+> = S extends true
+  ? M
+  : S extends undefined
+  ? never
+  : S extends MArgs | FindManyMArgs
+  ? 'include' extends U
+    ? M  & {
+      [P in TrueKeys<S['include']>]:
+      P extends 'n'
+      ? Array<NGetPayload<S['include'][P]>> : never
+    }
+  : 'select' extends U
+    ? {
+      [P in TrueKeys<S['select']>]:P extends keyof M ? M[P]
+: 
+      P extends 'n'
+      ? Array<NGetPayload<S['select'][P]>> : never
+    }
+  : M
+: M
+
+
+export interface MDelegate {
+  /**
+   * Find zero or one M.
+   * @param {FindOneMArgs} args - Arguments to find a M
+   * @example
+   * // Get one M
+   * const m = await prisma.m.findOne({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findOne<T extends FindOneMArgs>(
+    args: Subset<T, FindOneMArgs>
+  ): CheckSelect<T, Prisma__MClient<M | null>, Prisma__MClient<MGetPayload<T> | null>>
+  /**
+   * Find zero or more Ms.
+   * @param {FindManyMArgs=} args - Arguments to filter and select certain fields only.
+   * @example
+   * // Get all Ms
+   * const ms = await prisma.m.findMany()
+   * 
+   * // Get first 10 Ms
+   * const ms = await prisma.m.findMany({ take: 10 })
+   * 
+   * // Only select the \`id\`
+   * const mWithIdOnly = await prisma.m.findMany({ select: { id: true } })
+   * 
+  **/
+  findMany<T extends FindManyMArgs>(
+    args?: Subset<T, FindManyMArgs>
+  ): CheckSelect<T, Promise<Array<M>>, Promise<Array<MGetPayload<T>>>>
+  /**
+   * Create a M.
+   * @param {MCreateArgs} args - Arguments to create a M.
+   * @example
+   * // Create one M
+   * const M = await prisma.m.create({
+   *   data: {
+   *     // ... data to create a M
+   *   }
+   * })
+   * 
+  **/
+  create<T extends MCreateArgs>(
+    args: Subset<T, MCreateArgs>
+  ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+  /**
+   * Delete a M.
+   * @param {MDeleteArgs} args - Arguments to delete one M.
+   * @example
+   * // Delete one M
+   * const M = await prisma.m.delete({
+   *   where: {
+   *     // ... filter to delete one M
+   *   }
+   * })
+   * 
+  **/
+  delete<T extends MDeleteArgs>(
+    args: Subset<T, MDeleteArgs>
+  ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+  /**
+   * Update one M.
+   * @param {MUpdateArgs} args - Arguments to update one M.
+   * @example
+   * // Update one M
+   * const m = await prisma.m.update({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  update<T extends MUpdateArgs>(
+    args: Subset<T, MUpdateArgs>
+  ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+  /**
+   * Delete zero or more Ms.
+   * @param {MDeleteManyArgs} args - Arguments to filter Ms to delete.
+   * @example
+   * // Delete a few Ms
+   * const { count } = await prisma.m.deleteMany({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+   * 
+  **/
+  deleteMany<T extends MDeleteManyArgs>(
+    args: Subset<T, MDeleteManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Update zero or more Ms.
+   * @param {MUpdateManyArgs} args - Arguments to update one or more rows.
+   * @example
+   * // Update many Ms
+   * const m = await prisma.m.updateMany({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  updateMany<T extends MUpdateManyArgs>(
+    args: Subset<T, MUpdateManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Create or update one M.
+   * @param {MUpsertArgs} args - Arguments to update or create a M.
+   * @example
+   * // Update or create a M
+   * const m = await prisma.m.upsert({
+   *   create: {
+   *     // ... data to create a M
+   *   },
+   *   update: {
+   *     // ... in case it already exists, update
+   *   },
+   *   where: {
+   *     // ... the filter for the M we want to update
+   *   }
+   * })
+  **/
+  upsert<T extends MUpsertArgs>(
+    args: Subset<T, MUpsertArgs>
+  ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+  /**
+   * Count
+   */
+  count(args?: Omit<FindManyMArgs, 'select' | 'include'>): Promise<number>
+
+  /**
+   * Aggregate
+   */
+  aggregate<T extends AggregateMArgs>(args: Subset<T, AggregateMArgs>): Promise<GetMAggregateType<T>>
+}
+
+/**
+ * The delegate class that acts as a "Promise-like" for M.
+ * Why is this prefixed with \`Prisma__\`?
+ * Because we want to prevent naming conflicts as mentioned in 
+ * https://github.com/prisma/prisma-client-js/issues/707
+ */
+export declare class Prisma__MClient<T> implements Promise<T> {
+  private readonly _dmmf;
+  private readonly _fetcher;
+  private readonly _queryType;
+  private readonly _rootField;
+  private readonly _clientMethod;
+  private readonly _args;
+  private readonly _dataPath;
+  private readonly _errorFormat;
+  private readonly _measurePerformance?;
+  private _isList;
+  private _callsite;
+  private _requestPromise?;
+  constructor(_dmmf: DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+  readonly [Symbol.toStringTag]: 'PrismaClientPromise';
+
+  n<T extends FindManyNArgs = {}>(args?: Subset<T, FindManyNArgs>): CheckSelect<T, Promise<Array<N>>, Promise<Array<NGetPayload<T>>>>;
+
+  private get _document();
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+  /**
+   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+   * resolved value cannot be modified from the callback.
+   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+   * @returns A Promise for the completion of the callback.
+   */
+  finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+}
+
+// Custom InputTypes
+
+/**
+ * M findOne
+ */
+export type FindOneMArgs = {
+  /**
+   * Select specific fields to fetch from the M
+  **/
+  select?: MSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: MInclude | null
+  /**
+   * Filter, which M to fetch.
+  **/
+  where: MWhereUniqueInput
+}
+
+
+/**
+ * M findMany
+ */
+export type FindManyMArgs = {
+  /**
+   * Select specific fields to fetch from the M
+  **/
+  select?: MSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: MInclude | null
+  /**
+   * Filter, which MS to fetch.
+  **/
+  where?: MWhereInput
+  /**
+   * Determine the order of the MS to fetch.
+  **/
+  orderBy?: Enumerable<MOrderByInput>
+  /**
+   * Sets the position for listing MS.
+  **/
+  cursor?: MWhereUniqueInput
+  /**
+   * The number of MS to fetch. If negative number, it will take MS before the \`cursor\`.
+  **/
+  take?: number
+  /**
+   * Skip the first \`n\` MS.
+  **/
+  skip?: number
+  distinct?: Enumerable<MDistinctFieldEnum>
+}
+
+
+/**
+ * M create
+ */
+export type MCreateArgs = {
+  /**
+   * Select specific fields to fetch from the M
+  **/
+  select?: MSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: MInclude | null
+  /**
+   * The data needed to create a M.
+  **/
+  data: MCreateInput
+}
+
+
+/**
+ * M update
+ */
+export type MUpdateArgs = {
+  /**
+   * Select specific fields to fetch from the M
+  **/
+  select?: MSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: MInclude | null
+  /**
+   * The data needed to update a M.
+  **/
+  data: MUpdateInput
+  /**
+   * Choose, which M to update.
+  **/
+  where: MWhereUniqueInput
+}
+
+
+/**
+ * M updateMany
+ */
+export type MUpdateManyArgs = {
+  data: MUpdateManyMutationInput
+  where?: MWhereInput
+}
+
+
+/**
+ * M upsert
+ */
+export type MUpsertArgs = {
+  /**
+   * Select specific fields to fetch from the M
+  **/
+  select?: MSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: MInclude | null
+  /**
+   * The filter to search for the M to update in case it exists.
+  **/
+  where: MWhereUniqueInput
+  /**
+   * In case the M found by the \`where\` argument doesn't exist, create a new M with this data.
+  **/
+  create: MCreateInput
+  /**
+   * In case the M was found with the provided \`where\` argument, update it with this data.
+  **/
+  update: MUpdateInput
+}
+
+
+/**
+ * M delete
+ */
+export type MDeleteArgs = {
+  /**
+   * Select specific fields to fetch from the M
+  **/
+  select?: MSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: MInclude | null
+  /**
+   * Filter which M to delete.
+  **/
+  where: MWhereUniqueInput
+}
+
+
+/**
+ * M deleteMany
+ */
+export type MDeleteManyArgs = {
+  where?: MWhereInput
+}
+
+
+/**
+ * M without action
+ */
+export type MArgs = {
+  /**
+   * Select specific fields to fetch from the M
+  **/
+  select?: MSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: MInclude | null
+}
+
+
+
+/**
+ * Model N
+ */
+
+export type N = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+  string: string
+  optionalString: string | null
+  json: JsonValue
+  optionalJson: JsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean: boolean | null
+}
+
+
+export type AggregateN = {
+  count: number
+  avg: NAvgAggregateOutputType | null
+  sum: NSumAggregateOutputType | null
+  min: NMinAggregateOutputType | null
+  max: NMaxAggregateOutputType | null
+}
+
+export type NAvgAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number
+  float: number
+  optionalFloat: number
+}
+
+export type NSumAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type NMinAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type NMaxAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+
+export type NAvgAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type NSumAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type NMinAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type NMaxAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type AggregateNArgs = {
+  where?: NWhereInput
+  orderBy?: Enumerable<NOrderByInput>
+  cursor?: NWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<NDistinctFieldEnum>
+  count?: true
+  avg?: NAvgAggregateInputType
+  sum?: NSumAggregateInputType
+  min?: NMinAggregateInputType
+  max?: NMaxAggregateInputType
+}
+
+export type GetNAggregateType<T extends AggregateNArgs> = {
+  [P in keyof T]: P extends 'count' ? number : GetNAggregateScalarType<T[P]>
+}
+
+export type GetNAggregateScalarType<T extends any> = {
+  [P in keyof T]: P extends keyof NAvgAggregateOutputType ? NAvgAggregateOutputType[P] : never
+}
+    
+    
+
+export type NSelect = {
+  id?: boolean
+  m?: boolean | FindManyMArgs
+  int?: boolean
+  optionalInt?: boolean
+  float?: boolean
+  optionalFloat?: boolean
+  string?: boolean
+  optionalString?: boolean
+  json?: boolean
+  optionalJson?: boolean
+  enum?: boolean
+  optionalEnum?: boolean
+  boolean?: boolean
+  optionalBoolean?: boolean
+}
+
+export type NInclude = {
+  m?: boolean | FindManyMArgs
+}
+
+export type NGetPayload<
+  S extends boolean | null | undefined | NArgs,
+  U = keyof S
+> = S extends true
+  ? N
+  : S extends undefined
+  ? never
+  : S extends NArgs | FindManyNArgs
+  ? 'include' extends U
+    ? N  & {
+      [P in TrueKeys<S['include']>]:
+      P extends 'm'
+      ? Array<MGetPayload<S['include'][P]>> : never
+    }
+  : 'select' extends U
+    ? {
+      [P in TrueKeys<S['select']>]:P extends keyof N ? N[P]
+: 
+      P extends 'm'
+      ? Array<MGetPayload<S['select'][P]>> : never
+    }
+  : N
+: N
+
+
+export interface NDelegate {
+  /**
+   * Find zero or one N.
+   * @param {FindOneNArgs} args - Arguments to find a N
+   * @example
+   * // Get one N
+   * const n = await prisma.n.findOne({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findOne<T extends FindOneNArgs>(
+    args: Subset<T, FindOneNArgs>
+  ): CheckSelect<T, Prisma__NClient<N | null>, Prisma__NClient<NGetPayload<T> | null>>
+  /**
+   * Find zero or more Ns.
+   * @param {FindManyNArgs=} args - Arguments to filter and select certain fields only.
+   * @example
+   * // Get all Ns
+   * const ns = await prisma.n.findMany()
+   * 
+   * // Get first 10 Ns
+   * const ns = await prisma.n.findMany({ take: 10 })
+   * 
+   * // Only select the \`id\`
+   * const nWithIdOnly = await prisma.n.findMany({ select: { id: true } })
+   * 
+  **/
+  findMany<T extends FindManyNArgs>(
+    args?: Subset<T, FindManyNArgs>
+  ): CheckSelect<T, Promise<Array<N>>, Promise<Array<NGetPayload<T>>>>
+  /**
+   * Create a N.
+   * @param {NCreateArgs} args - Arguments to create a N.
+   * @example
+   * // Create one N
+   * const N = await prisma.n.create({
+   *   data: {
+   *     // ... data to create a N
+   *   }
+   * })
+   * 
+  **/
+  create<T extends NCreateArgs>(
+    args: Subset<T, NCreateArgs>
+  ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+  /**
+   * Delete a N.
+   * @param {NDeleteArgs} args - Arguments to delete one N.
+   * @example
+   * // Delete one N
+   * const N = await prisma.n.delete({
+   *   where: {
+   *     // ... filter to delete one N
+   *   }
+   * })
+   * 
+  **/
+  delete<T extends NDeleteArgs>(
+    args: Subset<T, NDeleteArgs>
+  ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+  /**
+   * Update one N.
+   * @param {NUpdateArgs} args - Arguments to update one N.
+   * @example
+   * // Update one N
+   * const n = await prisma.n.update({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  update<T extends NUpdateArgs>(
+    args: Subset<T, NUpdateArgs>
+  ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+  /**
+   * Delete zero or more Ns.
+   * @param {NDeleteManyArgs} args - Arguments to filter Ns to delete.
+   * @example
+   * // Delete a few Ns
+   * const { count } = await prisma.n.deleteMany({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+   * 
+  **/
+  deleteMany<T extends NDeleteManyArgs>(
+    args: Subset<T, NDeleteManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Update zero or more Ns.
+   * @param {NUpdateManyArgs} args - Arguments to update one or more rows.
+   * @example
+   * // Update many Ns
+   * const n = await prisma.n.updateMany({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  updateMany<T extends NUpdateManyArgs>(
+    args: Subset<T, NUpdateManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Create or update one N.
+   * @param {NUpsertArgs} args - Arguments to update or create a N.
+   * @example
+   * // Update or create a N
+   * const n = await prisma.n.upsert({
+   *   create: {
+   *     // ... data to create a N
+   *   },
+   *   update: {
+   *     // ... in case it already exists, update
+   *   },
+   *   where: {
+   *     // ... the filter for the N we want to update
+   *   }
+   * })
+  **/
+  upsert<T extends NUpsertArgs>(
+    args: Subset<T, NUpsertArgs>
+  ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+  /**
+   * Count
+   */
+  count(args?: Omit<FindManyNArgs, 'select' | 'include'>): Promise<number>
+
+  /**
+   * Aggregate
+   */
+  aggregate<T extends AggregateNArgs>(args: Subset<T, AggregateNArgs>): Promise<GetNAggregateType<T>>
+}
+
+/**
+ * The delegate class that acts as a "Promise-like" for N.
+ * Why is this prefixed with \`Prisma__\`?
+ * Because we want to prevent naming conflicts as mentioned in 
+ * https://github.com/prisma/prisma-client-js/issues/707
+ */
+export declare class Prisma__NClient<T> implements Promise<T> {
+  private readonly _dmmf;
+  private readonly _fetcher;
+  private readonly _queryType;
+  private readonly _rootField;
+  private readonly _clientMethod;
+  private readonly _args;
+  private readonly _dataPath;
+  private readonly _errorFormat;
+  private readonly _measurePerformance?;
+  private _isList;
+  private _callsite;
+  private _requestPromise?;
+  constructor(_dmmf: DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+  readonly [Symbol.toStringTag]: 'PrismaClientPromise';
+
+  m<T extends FindManyMArgs = {}>(args?: Subset<T, FindManyMArgs>): CheckSelect<T, Promise<Array<M>>, Promise<Array<MGetPayload<T>>>>;
+
+  private get _document();
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+  /**
+   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+   * resolved value cannot be modified from the callback.
+   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+   * @returns A Promise for the completion of the callback.
+   */
+  finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+}
+
+// Custom InputTypes
+
+/**
+ * N findOne
+ */
+export type FindOneNArgs = {
+  /**
+   * Select specific fields to fetch from the N
+  **/
+  select?: NSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: NInclude | null
+  /**
+   * Filter, which N to fetch.
+  **/
+  where: NWhereUniqueInput
+}
+
+
+/**
+ * N findMany
+ */
+export type FindManyNArgs = {
+  /**
+   * Select specific fields to fetch from the N
+  **/
+  select?: NSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: NInclude | null
+  /**
+   * Filter, which NS to fetch.
+  **/
+  where?: NWhereInput
+  /**
+   * Determine the order of the NS to fetch.
+  **/
+  orderBy?: Enumerable<NOrderByInput>
+  /**
+   * Sets the position for listing NS.
+  **/
+  cursor?: NWhereUniqueInput
+  /**
+   * The number of NS to fetch. If negative number, it will take NS before the \`cursor\`.
+  **/
+  take?: number
+  /**
+   * Skip the first \`n\` NS.
+  **/
+  skip?: number
+  distinct?: Enumerable<NDistinctFieldEnum>
+}
+
+
+/**
+ * N create
+ */
+export type NCreateArgs = {
+  /**
+   * Select specific fields to fetch from the N
+  **/
+  select?: NSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: NInclude | null
+  /**
+   * The data needed to create a N.
+  **/
+  data: NCreateInput
+}
+
+
+/**
+ * N update
+ */
+export type NUpdateArgs = {
+  /**
+   * Select specific fields to fetch from the N
+  **/
+  select?: NSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: NInclude | null
+  /**
+   * The data needed to update a N.
+  **/
+  data: NUpdateInput
+  /**
+   * Choose, which N to update.
+  **/
+  where: NWhereUniqueInput
+}
+
+
+/**
+ * N updateMany
+ */
+export type NUpdateManyArgs = {
+  data: NUpdateManyMutationInput
+  where?: NWhereInput
+}
+
+
+/**
+ * N upsert
+ */
+export type NUpsertArgs = {
+  /**
+   * Select specific fields to fetch from the N
+  **/
+  select?: NSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: NInclude | null
+  /**
+   * The filter to search for the N to update in case it exists.
+  **/
+  where: NWhereUniqueInput
+  /**
+   * In case the N found by the \`where\` argument doesn't exist, create a new N with this data.
+  **/
+  create: NCreateInput
+  /**
+   * In case the N was found with the provided \`where\` argument, update it with this data.
+  **/
+  update: NUpdateInput
+}
+
+
+/**
+ * N delete
+ */
+export type NDeleteArgs = {
+  /**
+   * Select specific fields to fetch from the N
+  **/
+  select?: NSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: NInclude | null
+  /**
+   * Filter which N to delete.
+  **/
+  where: NWhereUniqueInput
+}
+
+
+/**
+ * N deleteMany
+ */
+export type NDeleteManyArgs = {
+  where?: NWhereInput
+}
+
+
+/**
+ * N without action
+ */
+export type NArgs = {
+  /**
+   * Select specific fields to fetch from the N
+  **/
+  select?: NSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: NInclude | null
+}
+
+
+
+/**
+ * Model OneOptional
+ */
+
+export type OneOptional = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+  string: string
+  optionalString: string | null
+  json: JsonValue
+  optionalJson: JsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean: boolean | null
+}
+
+
+export type AggregateOneOptional = {
+  count: number
+  avg: OneOptionalAvgAggregateOutputType | null
+  sum: OneOptionalSumAggregateOutputType | null
+  min: OneOptionalMinAggregateOutputType | null
+  max: OneOptionalMaxAggregateOutputType | null
+}
+
+export type OneOptionalAvgAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number
+  float: number
+  optionalFloat: number
+}
+
+export type OneOptionalSumAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type OneOptionalMinAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type OneOptionalMaxAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+
+export type OneOptionalAvgAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type OneOptionalSumAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type OneOptionalMinAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type OneOptionalMaxAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type AggregateOneOptionalArgs = {
+  where?: OneOptionalWhereInput
+  orderBy?: Enumerable<OneOptionalOrderByInput>
+  cursor?: OneOptionalWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<OneOptionalDistinctFieldEnum>
+  count?: true
+  avg?: OneOptionalAvgAggregateInputType
+  sum?: OneOptionalSumAggregateInputType
+  min?: OneOptionalMinAggregateInputType
+  max?: OneOptionalMaxAggregateInputType
+}
+
+export type GetOneOptionalAggregateType<T extends AggregateOneOptionalArgs> = {
+  [P in keyof T]: P extends 'count' ? number : GetOneOptionalAggregateScalarType<T[P]>
+}
+
+export type GetOneOptionalAggregateScalarType<T extends any> = {
+  [P in keyof T]: P extends keyof OneOptionalAvgAggregateOutputType ? OneOptionalAvgAggregateOutputType[P] : never
+}
+    
+    
+
+export type OneOptionalSelect = {
+  id?: boolean
+  many?: boolean | FindManyManyRequiredArgs
+  int?: boolean
+  optionalInt?: boolean
+  float?: boolean
+  optionalFloat?: boolean
+  string?: boolean
+  optionalString?: boolean
+  json?: boolean
+  optionalJson?: boolean
+  enum?: boolean
+  optionalEnum?: boolean
+  boolean?: boolean
+  optionalBoolean?: boolean
+}
+
+export type OneOptionalInclude = {
+  many?: boolean | FindManyManyRequiredArgs
+}
+
+export type OneOptionalGetPayload<
+  S extends boolean | null | undefined | OneOptionalArgs,
+  U = keyof S
+> = S extends true
+  ? OneOptional
+  : S extends undefined
+  ? never
+  : S extends OneOptionalArgs | FindManyOneOptionalArgs
+  ? 'include' extends U
+    ? OneOptional  & {
+      [P in TrueKeys<S['include']>]:
+      P extends 'many'
+      ? Array<ManyRequiredGetPayload<S['include'][P]>> : never
+    }
+  : 'select' extends U
+    ? {
+      [P in TrueKeys<S['select']>]:P extends keyof OneOptional ? OneOptional[P]
+: 
+      P extends 'many'
+      ? Array<ManyRequiredGetPayload<S['select'][P]>> : never
+    }
+  : OneOptional
+: OneOptional
+
+
+export interface OneOptionalDelegate {
+  /**
+   * Find zero or one OneOptional.
+   * @param {FindOneOneOptionalArgs} args - Arguments to find a OneOptional
+   * @example
+   * // Get one OneOptional
+   * const oneOptional = await prisma.oneOptional.findOne({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findOne<T extends FindOneOneOptionalArgs>(
+    args: Subset<T, FindOneOneOptionalArgs>
+  ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null>>
+  /**
+   * Find zero or more OneOptionals.
+   * @param {FindManyOneOptionalArgs=} args - Arguments to filter and select certain fields only.
+   * @example
+   * // Get all OneOptionals
+   * const oneOptionals = await prisma.oneOptional.findMany()
+   * 
+   * // Get first 10 OneOptionals
+   * const oneOptionals = await prisma.oneOptional.findMany({ take: 10 })
+   * 
+   * // Only select the \`id\`
+   * const oneOptionalWithIdOnly = await prisma.oneOptional.findMany({ select: { id: true } })
+   * 
+  **/
+  findMany<T extends FindManyOneOptionalArgs>(
+    args?: Subset<T, FindManyOneOptionalArgs>
+  ): CheckSelect<T, Promise<Array<OneOptional>>, Promise<Array<OneOptionalGetPayload<T>>>>
+  /**
+   * Create a OneOptional.
+   * @param {OneOptionalCreateArgs} args - Arguments to create a OneOptional.
+   * @example
+   * // Create one OneOptional
+   * const OneOptional = await prisma.oneOptional.create({
+   *   data: {
+   *     // ... data to create a OneOptional
+   *   }
+   * })
+   * 
+  **/
+  create<T extends OneOptionalCreateArgs>(
+    args: Subset<T, OneOptionalCreateArgs>
+  ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+  /**
+   * Delete a OneOptional.
+   * @param {OneOptionalDeleteArgs} args - Arguments to delete one OneOptional.
+   * @example
+   * // Delete one OneOptional
+   * const OneOptional = await prisma.oneOptional.delete({
+   *   where: {
+   *     // ... filter to delete one OneOptional
+   *   }
+   * })
+   * 
+  **/
+  delete<T extends OneOptionalDeleteArgs>(
+    args: Subset<T, OneOptionalDeleteArgs>
+  ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+  /**
+   * Update one OneOptional.
+   * @param {OneOptionalUpdateArgs} args - Arguments to update one OneOptional.
+   * @example
+   * // Update one OneOptional
+   * const oneOptional = await prisma.oneOptional.update({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  update<T extends OneOptionalUpdateArgs>(
+    args: Subset<T, OneOptionalUpdateArgs>
+  ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+  /**
+   * Delete zero or more OneOptionals.
+   * @param {OneOptionalDeleteManyArgs} args - Arguments to filter OneOptionals to delete.
+   * @example
+   * // Delete a few OneOptionals
+   * const { count } = await prisma.oneOptional.deleteMany({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+   * 
+  **/
+  deleteMany<T extends OneOptionalDeleteManyArgs>(
+    args: Subset<T, OneOptionalDeleteManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Update zero or more OneOptionals.
+   * @param {OneOptionalUpdateManyArgs} args - Arguments to update one or more rows.
+   * @example
+   * // Update many OneOptionals
+   * const oneOptional = await prisma.oneOptional.updateMany({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  updateMany<T extends OneOptionalUpdateManyArgs>(
+    args: Subset<T, OneOptionalUpdateManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Create or update one OneOptional.
+   * @param {OneOptionalUpsertArgs} args - Arguments to update or create a OneOptional.
+   * @example
+   * // Update or create a OneOptional
+   * const oneOptional = await prisma.oneOptional.upsert({
+   *   create: {
+   *     // ... data to create a OneOptional
+   *   },
+   *   update: {
+   *     // ... in case it already exists, update
+   *   },
+   *   where: {
+   *     // ... the filter for the OneOptional we want to update
+   *   }
+   * })
+  **/
+  upsert<T extends OneOptionalUpsertArgs>(
+    args: Subset<T, OneOptionalUpsertArgs>
+  ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+  /**
+   * Count
+   */
+  count(args?: Omit<FindManyOneOptionalArgs, 'select' | 'include'>): Promise<number>
+
+  /**
+   * Aggregate
+   */
+  aggregate<T extends AggregateOneOptionalArgs>(args: Subset<T, AggregateOneOptionalArgs>): Promise<GetOneOptionalAggregateType<T>>
+}
+
+/**
+ * The delegate class that acts as a "Promise-like" for OneOptional.
+ * Why is this prefixed with \`Prisma__\`?
+ * Because we want to prevent naming conflicts as mentioned in 
+ * https://github.com/prisma/prisma-client-js/issues/707
+ */
+export declare class Prisma__OneOptionalClient<T> implements Promise<T> {
+  private readonly _dmmf;
+  private readonly _fetcher;
+  private readonly _queryType;
+  private readonly _rootField;
+  private readonly _clientMethod;
+  private readonly _args;
+  private readonly _dataPath;
+  private readonly _errorFormat;
+  private readonly _measurePerformance?;
+  private _isList;
+  private _callsite;
+  private _requestPromise?;
+  constructor(_dmmf: DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+  readonly [Symbol.toStringTag]: 'PrismaClientPromise';
+
+  many<T extends FindManyManyRequiredArgs = {}>(args?: Subset<T, FindManyManyRequiredArgs>): CheckSelect<T, Promise<Array<ManyRequired>>, Promise<Array<ManyRequiredGetPayload<T>>>>;
+
+  private get _document();
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+  /**
+   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+   * resolved value cannot be modified from the callback.
+   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+   * @returns A Promise for the completion of the callback.
+   */
+  finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+}
+
+// Custom InputTypes
+
+/**
+ * OneOptional findOne
+ */
+export type FindOneOneOptionalArgs = {
+  /**
+   * Select specific fields to fetch from the OneOptional
+  **/
+  select?: OneOptionalSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OneOptionalInclude | null
+  /**
+   * Filter, which OneOptional to fetch.
+  **/
+  where: OneOptionalWhereUniqueInput
+}
+
+
+/**
+ * OneOptional findMany
+ */
+export type FindManyOneOptionalArgs = {
+  /**
+   * Select specific fields to fetch from the OneOptional
+  **/
+  select?: OneOptionalSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OneOptionalInclude | null
+  /**
+   * Filter, which OneOptionals to fetch.
+  **/
+  where?: OneOptionalWhereInput
+  /**
+   * Determine the order of the OneOptionals to fetch.
+  **/
+  orderBy?: Enumerable<OneOptionalOrderByInput>
+  /**
+   * Sets the position for listing OneOptionals.
+  **/
+  cursor?: OneOptionalWhereUniqueInput
+  /**
+   * The number of OneOptionals to fetch. If negative number, it will take OneOptionals before the \`cursor\`.
+  **/
+  take?: number
+  /**
+   * Skip the first \`n\` OneOptionals.
+  **/
+  skip?: number
+  distinct?: Enumerable<OneOptionalDistinctFieldEnum>
+}
+
+
+/**
+ * OneOptional create
+ */
+export type OneOptionalCreateArgs = {
+  /**
+   * Select specific fields to fetch from the OneOptional
+  **/
+  select?: OneOptionalSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OneOptionalInclude | null
+  /**
+   * The data needed to create a OneOptional.
+  **/
+  data: OneOptionalCreateInput
+}
+
+
+/**
+ * OneOptional update
+ */
+export type OneOptionalUpdateArgs = {
+  /**
+   * Select specific fields to fetch from the OneOptional
+  **/
+  select?: OneOptionalSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OneOptionalInclude | null
+  /**
+   * The data needed to update a OneOptional.
+  **/
+  data: OneOptionalUpdateInput
+  /**
+   * Choose, which OneOptional to update.
+  **/
+  where: OneOptionalWhereUniqueInput
+}
+
+
+/**
+ * OneOptional updateMany
+ */
+export type OneOptionalUpdateManyArgs = {
+  data: OneOptionalUpdateManyMutationInput
+  where?: OneOptionalWhereInput
+}
+
+
+/**
+ * OneOptional upsert
+ */
+export type OneOptionalUpsertArgs = {
+  /**
+   * Select specific fields to fetch from the OneOptional
+  **/
+  select?: OneOptionalSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OneOptionalInclude | null
+  /**
+   * The filter to search for the OneOptional to update in case it exists.
+  **/
+  where: OneOptionalWhereUniqueInput
+  /**
+   * In case the OneOptional found by the \`where\` argument doesn't exist, create a new OneOptional with this data.
+  **/
+  create: OneOptionalCreateInput
+  /**
+   * In case the OneOptional was found with the provided \`where\` argument, update it with this data.
+  **/
+  update: OneOptionalUpdateInput
+}
+
+
+/**
+ * OneOptional delete
+ */
+export type OneOptionalDeleteArgs = {
+  /**
+   * Select specific fields to fetch from the OneOptional
+  **/
+  select?: OneOptionalSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OneOptionalInclude | null
+  /**
+   * Filter which OneOptional to delete.
+  **/
+  where: OneOptionalWhereUniqueInput
+}
+
+
+/**
+ * OneOptional deleteMany
+ */
+export type OneOptionalDeleteManyArgs = {
+  where?: OneOptionalWhereInput
+}
+
+
+/**
+ * OneOptional without action
+ */
+export type OneOptionalArgs = {
+  /**
+   * Select specific fields to fetch from the OneOptional
+  **/
+  select?: OneOptionalSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OneOptionalInclude | null
+}
+
+
+
+/**
+ * Model ManyRequired
+ */
+
+export type ManyRequired = {
+  id: number
+  oneOptionalId: number | null
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+  string: string
+  optionalString: string | null
+  json: JsonValue
+  optionalJson: JsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean: boolean | null
+}
+
+
+export type AggregateManyRequired = {
+  count: number
+  avg: ManyRequiredAvgAggregateOutputType | null
+  sum: ManyRequiredSumAggregateOutputType | null
+  min: ManyRequiredMinAggregateOutputType | null
+  max: ManyRequiredMaxAggregateOutputType | null
+}
+
+export type ManyRequiredAvgAggregateOutputType = {
+  id: number
+  oneOptionalId: number
+  int: number
+  optionalInt: number
+  float: number
+  optionalFloat: number
+}
+
+export type ManyRequiredSumAggregateOutputType = {
+  id: number
+  oneOptionalId: number | null
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type ManyRequiredMinAggregateOutputType = {
+  id: number
+  oneOptionalId: number | null
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type ManyRequiredMaxAggregateOutputType = {
+  id: number
+  oneOptionalId: number | null
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+
+export type ManyRequiredAvgAggregateInputType = {
+  id?: true
+  oneOptionalId?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type ManyRequiredSumAggregateInputType = {
+  id?: true
+  oneOptionalId?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type ManyRequiredMinAggregateInputType = {
+  id?: true
+  oneOptionalId?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type ManyRequiredMaxAggregateInputType = {
+  id?: true
+  oneOptionalId?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type AggregateManyRequiredArgs = {
+  where?: ManyRequiredWhereInput
+  orderBy?: Enumerable<ManyRequiredOrderByInput>
+  cursor?: ManyRequiredWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<ManyRequiredDistinctFieldEnum>
+  count?: true
+  avg?: ManyRequiredAvgAggregateInputType
+  sum?: ManyRequiredSumAggregateInputType
+  min?: ManyRequiredMinAggregateInputType
+  max?: ManyRequiredMaxAggregateInputType
+}
+
+export type GetManyRequiredAggregateType<T extends AggregateManyRequiredArgs> = {
+  [P in keyof T]: P extends 'count' ? number : GetManyRequiredAggregateScalarType<T[P]>
+}
+
+export type GetManyRequiredAggregateScalarType<T extends any> = {
+  [P in keyof T]: P extends keyof ManyRequiredAvgAggregateOutputType ? ManyRequiredAvgAggregateOutputType[P] : never
+}
+    
+    
+
+export type ManyRequiredSelect = {
+  id?: boolean
+  one?: boolean | OneOptionalArgs
+  oneOptionalId?: boolean
+  int?: boolean
+  optionalInt?: boolean
+  float?: boolean
+  optionalFloat?: boolean
+  string?: boolean
+  optionalString?: boolean
+  json?: boolean
+  optionalJson?: boolean
+  enum?: boolean
+  optionalEnum?: boolean
+  boolean?: boolean
+  optionalBoolean?: boolean
+}
+
+export type ManyRequiredInclude = {
+  one?: boolean | OneOptionalArgs
+}
+
+export type ManyRequiredGetPayload<
+  S extends boolean | null | undefined | ManyRequiredArgs,
+  U = keyof S
+> = S extends true
+  ? ManyRequired
+  : S extends undefined
+  ? never
+  : S extends ManyRequiredArgs | FindManyManyRequiredArgs
+  ? 'include' extends U
+    ? ManyRequired  & {
+      [P in TrueKeys<S['include']>]:
+      P extends 'one'
+      ? OneOptionalGetPayload<S['include'][P]> | null : never
+    }
+  : 'select' extends U
+    ? {
+      [P in TrueKeys<S['select']>]:P extends keyof ManyRequired ? ManyRequired[P]
+: 
+      P extends 'one'
+      ? OneOptionalGetPayload<S['select'][P]> | null : never
+    }
+  : ManyRequired
+: ManyRequired
+
+
+export interface ManyRequiredDelegate {
+  /**
+   * Find zero or one ManyRequired.
+   * @param {FindOneManyRequiredArgs} args - Arguments to find a ManyRequired
+   * @example
+   * // Get one ManyRequired
+   * const manyRequired = await prisma.manyRequired.findOne({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findOne<T extends FindOneManyRequiredArgs>(
+    args: Subset<T, FindOneManyRequiredArgs>
+  ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null>>
+  /**
+   * Find zero or more ManyRequireds.
+   * @param {FindManyManyRequiredArgs=} args - Arguments to filter and select certain fields only.
+   * @example
+   * // Get all ManyRequireds
+   * const manyRequireds = await prisma.manyRequired.findMany()
+   * 
+   * // Get first 10 ManyRequireds
+   * const manyRequireds = await prisma.manyRequired.findMany({ take: 10 })
+   * 
+   * // Only select the \`id\`
+   * const manyRequiredWithIdOnly = await prisma.manyRequired.findMany({ select: { id: true } })
+   * 
+  **/
+  findMany<T extends FindManyManyRequiredArgs>(
+    args?: Subset<T, FindManyManyRequiredArgs>
+  ): CheckSelect<T, Promise<Array<ManyRequired>>, Promise<Array<ManyRequiredGetPayload<T>>>>
+  /**
+   * Create a ManyRequired.
+   * @param {ManyRequiredCreateArgs} args - Arguments to create a ManyRequired.
+   * @example
+   * // Create one ManyRequired
+   * const ManyRequired = await prisma.manyRequired.create({
+   *   data: {
+   *     // ... data to create a ManyRequired
+   *   }
+   * })
+   * 
+  **/
+  create<T extends ManyRequiredCreateArgs>(
+    args: Subset<T, ManyRequiredCreateArgs>
+  ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+  /**
+   * Delete a ManyRequired.
+   * @param {ManyRequiredDeleteArgs} args - Arguments to delete one ManyRequired.
+   * @example
+   * // Delete one ManyRequired
+   * const ManyRequired = await prisma.manyRequired.delete({
+   *   where: {
+   *     // ... filter to delete one ManyRequired
+   *   }
+   * })
+   * 
+  **/
+  delete<T extends ManyRequiredDeleteArgs>(
+    args: Subset<T, ManyRequiredDeleteArgs>
+  ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+  /**
+   * Update one ManyRequired.
+   * @param {ManyRequiredUpdateArgs} args - Arguments to update one ManyRequired.
+   * @example
+   * // Update one ManyRequired
+   * const manyRequired = await prisma.manyRequired.update({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  update<T extends ManyRequiredUpdateArgs>(
+    args: Subset<T, ManyRequiredUpdateArgs>
+  ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+  /**
+   * Delete zero or more ManyRequireds.
+   * @param {ManyRequiredDeleteManyArgs} args - Arguments to filter ManyRequireds to delete.
+   * @example
+   * // Delete a few ManyRequireds
+   * const { count } = await prisma.manyRequired.deleteMany({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+   * 
+  **/
+  deleteMany<T extends ManyRequiredDeleteManyArgs>(
+    args: Subset<T, ManyRequiredDeleteManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Update zero or more ManyRequireds.
+   * @param {ManyRequiredUpdateManyArgs} args - Arguments to update one or more rows.
+   * @example
+   * // Update many ManyRequireds
+   * const manyRequired = await prisma.manyRequired.updateMany({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  updateMany<T extends ManyRequiredUpdateManyArgs>(
+    args: Subset<T, ManyRequiredUpdateManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Create or update one ManyRequired.
+   * @param {ManyRequiredUpsertArgs} args - Arguments to update or create a ManyRequired.
+   * @example
+   * // Update or create a ManyRequired
+   * const manyRequired = await prisma.manyRequired.upsert({
+   *   create: {
+   *     // ... data to create a ManyRequired
+   *   },
+   *   update: {
+   *     // ... in case it already exists, update
+   *   },
+   *   where: {
+   *     // ... the filter for the ManyRequired we want to update
+   *   }
+   * })
+  **/
+  upsert<T extends ManyRequiredUpsertArgs>(
+    args: Subset<T, ManyRequiredUpsertArgs>
+  ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+  /**
+   * Count
+   */
+  count(args?: Omit<FindManyManyRequiredArgs, 'select' | 'include'>): Promise<number>
+
+  /**
+   * Aggregate
+   */
+  aggregate<T extends AggregateManyRequiredArgs>(args: Subset<T, AggregateManyRequiredArgs>): Promise<GetManyRequiredAggregateType<T>>
+}
+
+/**
+ * The delegate class that acts as a "Promise-like" for ManyRequired.
+ * Why is this prefixed with \`Prisma__\`?
+ * Because we want to prevent naming conflicts as mentioned in 
+ * https://github.com/prisma/prisma-client-js/issues/707
+ */
+export declare class Prisma__ManyRequiredClient<T> implements Promise<T> {
+  private readonly _dmmf;
+  private readonly _fetcher;
+  private readonly _queryType;
+  private readonly _rootField;
+  private readonly _clientMethod;
+  private readonly _args;
+  private readonly _dataPath;
+  private readonly _errorFormat;
+  private readonly _measurePerformance?;
+  private _isList;
+  private _callsite;
+  private _requestPromise?;
+  constructor(_dmmf: DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+  readonly [Symbol.toStringTag]: 'PrismaClientPromise';
+
+  one<T extends OneOptionalArgs = {}>(args?: Subset<T, OneOptionalArgs>): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null>>;
+
+  private get _document();
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+  /**
+   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+   * resolved value cannot be modified from the callback.
+   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+   * @returns A Promise for the completion of the callback.
+   */
+  finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+}
+
+// Custom InputTypes
+
+/**
+ * ManyRequired findOne
+ */
+export type FindOneManyRequiredArgs = {
+  /**
+   * Select specific fields to fetch from the ManyRequired
+  **/
+  select?: ManyRequiredSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: ManyRequiredInclude | null
+  /**
+   * Filter, which ManyRequired to fetch.
+  **/
+  where: ManyRequiredWhereUniqueInput
+}
+
+
+/**
+ * ManyRequired findMany
+ */
+export type FindManyManyRequiredArgs = {
+  /**
+   * Select specific fields to fetch from the ManyRequired
+  **/
+  select?: ManyRequiredSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: ManyRequiredInclude | null
+  /**
+   * Filter, which ManyRequireds to fetch.
+  **/
+  where?: ManyRequiredWhereInput
+  /**
+   * Determine the order of the ManyRequireds to fetch.
+  **/
+  orderBy?: Enumerable<ManyRequiredOrderByInput>
+  /**
+   * Sets the position for listing ManyRequireds.
+  **/
+  cursor?: ManyRequiredWhereUniqueInput
+  /**
+   * The number of ManyRequireds to fetch. If negative number, it will take ManyRequireds before the \`cursor\`.
+  **/
+  take?: number
+  /**
+   * Skip the first \`n\` ManyRequireds.
+  **/
+  skip?: number
+  distinct?: Enumerable<ManyRequiredDistinctFieldEnum>
+}
+
+
+/**
+ * ManyRequired create
+ */
+export type ManyRequiredCreateArgs = {
+  /**
+   * Select specific fields to fetch from the ManyRequired
+  **/
+  select?: ManyRequiredSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: ManyRequiredInclude | null
+  /**
+   * The data needed to create a ManyRequired.
+  **/
+  data: ManyRequiredCreateInput
+}
+
+
+/**
+ * ManyRequired update
+ */
+export type ManyRequiredUpdateArgs = {
+  /**
+   * Select specific fields to fetch from the ManyRequired
+  **/
+  select?: ManyRequiredSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: ManyRequiredInclude | null
+  /**
+   * The data needed to update a ManyRequired.
+  **/
+  data: ManyRequiredUpdateInput
+  /**
+   * Choose, which ManyRequired to update.
+  **/
+  where: ManyRequiredWhereUniqueInput
+}
+
+
+/**
+ * ManyRequired updateMany
+ */
+export type ManyRequiredUpdateManyArgs = {
+  data: ManyRequiredUpdateManyMutationInput
+  where?: ManyRequiredWhereInput
+}
+
+
+/**
+ * ManyRequired upsert
+ */
+export type ManyRequiredUpsertArgs = {
+  /**
+   * Select specific fields to fetch from the ManyRequired
+  **/
+  select?: ManyRequiredSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: ManyRequiredInclude | null
+  /**
+   * The filter to search for the ManyRequired to update in case it exists.
+  **/
+  where: ManyRequiredWhereUniqueInput
+  /**
+   * In case the ManyRequired found by the \`where\` argument doesn't exist, create a new ManyRequired with this data.
+  **/
+  create: ManyRequiredCreateInput
+  /**
+   * In case the ManyRequired was found with the provided \`where\` argument, update it with this data.
+  **/
+  update: ManyRequiredUpdateInput
+}
+
+
+/**
+ * ManyRequired delete
+ */
+export type ManyRequiredDeleteArgs = {
+  /**
+   * Select specific fields to fetch from the ManyRequired
+  **/
+  select?: ManyRequiredSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: ManyRequiredInclude | null
+  /**
+   * Filter which ManyRequired to delete.
+  **/
+  where: ManyRequiredWhereUniqueInput
+}
+
+
+/**
+ * ManyRequired deleteMany
+ */
+export type ManyRequiredDeleteManyArgs = {
+  where?: ManyRequiredWhereInput
+}
+
+
+/**
+ * ManyRequired without action
+ */
+export type ManyRequiredArgs = {
+  /**
+   * Select specific fields to fetch from the ManyRequired
+  **/
+  select?: ManyRequiredSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: ManyRequiredInclude | null
+}
+
+
+
+/**
+ * Model OptionalSide1
+ */
+
+export type OptionalSide1 = {
+  id: number
+  optionalSide2Id: number | null
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+  string: string
+  optionalString: string | null
+  json: JsonValue
+  optionalJson: JsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean: boolean | null
+}
+
+
+export type AggregateOptionalSide1 = {
+  count: number
+  avg: OptionalSide1AvgAggregateOutputType | null
+  sum: OptionalSide1SumAggregateOutputType | null
+  min: OptionalSide1MinAggregateOutputType | null
+  max: OptionalSide1MaxAggregateOutputType | null
+}
+
+export type OptionalSide1AvgAggregateOutputType = {
+  id: number
+  optionalSide2Id: number
+  int: number
+  optionalInt: number
+  float: number
+  optionalFloat: number
+}
+
+export type OptionalSide1SumAggregateOutputType = {
+  id: number
+  optionalSide2Id: number | null
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type OptionalSide1MinAggregateOutputType = {
+  id: number
+  optionalSide2Id: number | null
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type OptionalSide1MaxAggregateOutputType = {
+  id: number
+  optionalSide2Id: number | null
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+
+export type OptionalSide1AvgAggregateInputType = {
+  id?: true
+  optionalSide2Id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type OptionalSide1SumAggregateInputType = {
+  id?: true
+  optionalSide2Id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type OptionalSide1MinAggregateInputType = {
+  id?: true
+  optionalSide2Id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type OptionalSide1MaxAggregateInputType = {
+  id?: true
+  optionalSide2Id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type AggregateOptionalSide1Args = {
+  where?: OptionalSide1WhereInput
+  orderBy?: Enumerable<OptionalSide1OrderByInput>
+  cursor?: OptionalSide1WhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<OptionalSide1DistinctFieldEnum>
+  count?: true
+  avg?: OptionalSide1AvgAggregateInputType
+  sum?: OptionalSide1SumAggregateInputType
+  min?: OptionalSide1MinAggregateInputType
+  max?: OptionalSide1MaxAggregateInputType
+}
+
+export type GetOptionalSide1AggregateType<T extends AggregateOptionalSide1Args> = {
+  [P in keyof T]: P extends 'count' ? number : GetOptionalSide1AggregateScalarType<T[P]>
+}
+
+export type GetOptionalSide1AggregateScalarType<T extends any> = {
+  [P in keyof T]: P extends keyof OptionalSide1AvgAggregateOutputType ? OptionalSide1AvgAggregateOutputType[P] : never
+}
+    
+    
+
+export type OptionalSide1Select = {
+  id?: boolean
+  opti?: boolean | OptionalSide2Args
+  optionalSide2Id?: boolean
+  int?: boolean
+  optionalInt?: boolean
+  float?: boolean
+  optionalFloat?: boolean
+  string?: boolean
+  optionalString?: boolean
+  json?: boolean
+  optionalJson?: boolean
+  enum?: boolean
+  optionalEnum?: boolean
+  boolean?: boolean
+  optionalBoolean?: boolean
+}
+
+export type OptionalSide1Include = {
+  opti?: boolean | OptionalSide2Args
+}
+
+export type OptionalSide1GetPayload<
+  S extends boolean | null | undefined | OptionalSide1Args,
+  U = keyof S
+> = S extends true
+  ? OptionalSide1
+  : S extends undefined
+  ? never
+  : S extends OptionalSide1Args | FindManyOptionalSide1Args
+  ? 'include' extends U
+    ? OptionalSide1  & {
+      [P in TrueKeys<S['include']>]:
+      P extends 'opti'
+      ? OptionalSide2GetPayload<S['include'][P]> | null : never
+    }
+  : 'select' extends U
+    ? {
+      [P in TrueKeys<S['select']>]:P extends keyof OptionalSide1 ? OptionalSide1[P]
+: 
+      P extends 'opti'
+      ? OptionalSide2GetPayload<S['select'][P]> | null : never
+    }
+  : OptionalSide1
+: OptionalSide1
+
+
+export interface OptionalSide1Delegate {
+  /**
+   * Find zero or one OptionalSide1.
+   * @param {FindOneOptionalSide1Args} args - Arguments to find a OptionalSide1
+   * @example
+   * // Get one OptionalSide1
+   * const optionalSide1 = await prisma.optionalSide1.findOne({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findOne<T extends FindOneOptionalSide1Args>(
+    args: Subset<T, FindOneOptionalSide1Args>
+  ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null>>
+  /**
+   * Find zero or more OptionalSide1s.
+   * @param {FindManyOptionalSide1Args=} args - Arguments to filter and select certain fields only.
+   * @example
+   * // Get all OptionalSide1s
+   * const optionalSide1s = await prisma.optionalSide1.findMany()
+   * 
+   * // Get first 10 OptionalSide1s
+   * const optionalSide1s = await prisma.optionalSide1.findMany({ take: 10 })
+   * 
+   * // Only select the \`id\`
+   * const optionalSide1WithIdOnly = await prisma.optionalSide1.findMany({ select: { id: true } })
+   * 
+  **/
+  findMany<T extends FindManyOptionalSide1Args>(
+    args?: Subset<T, FindManyOptionalSide1Args>
+  ): CheckSelect<T, Promise<Array<OptionalSide1>>, Promise<Array<OptionalSide1GetPayload<T>>>>
+  /**
+   * Create a OptionalSide1.
+   * @param {OptionalSide1CreateArgs} args - Arguments to create a OptionalSide1.
+   * @example
+   * // Create one OptionalSide1
+   * const OptionalSide1 = await prisma.optionalSide1.create({
+   *   data: {
+   *     // ... data to create a OptionalSide1
+   *   }
+   * })
+   * 
+  **/
+  create<T extends OptionalSide1CreateArgs>(
+    args: Subset<T, OptionalSide1CreateArgs>
+  ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+  /**
+   * Delete a OptionalSide1.
+   * @param {OptionalSide1DeleteArgs} args - Arguments to delete one OptionalSide1.
+   * @example
+   * // Delete one OptionalSide1
+   * const OptionalSide1 = await prisma.optionalSide1.delete({
+   *   where: {
+   *     // ... filter to delete one OptionalSide1
+   *   }
+   * })
+   * 
+  **/
+  delete<T extends OptionalSide1DeleteArgs>(
+    args: Subset<T, OptionalSide1DeleteArgs>
+  ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+  /**
+   * Update one OptionalSide1.
+   * @param {OptionalSide1UpdateArgs} args - Arguments to update one OptionalSide1.
+   * @example
+   * // Update one OptionalSide1
+   * const optionalSide1 = await prisma.optionalSide1.update({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  update<T extends OptionalSide1UpdateArgs>(
+    args: Subset<T, OptionalSide1UpdateArgs>
+  ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+  /**
+   * Delete zero or more OptionalSide1s.
+   * @param {OptionalSide1DeleteManyArgs} args - Arguments to filter OptionalSide1s to delete.
+   * @example
+   * // Delete a few OptionalSide1s
+   * const { count } = await prisma.optionalSide1.deleteMany({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+   * 
+  **/
+  deleteMany<T extends OptionalSide1DeleteManyArgs>(
+    args: Subset<T, OptionalSide1DeleteManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Update zero or more OptionalSide1s.
+   * @param {OptionalSide1UpdateManyArgs} args - Arguments to update one or more rows.
+   * @example
+   * // Update many OptionalSide1s
+   * const optionalSide1 = await prisma.optionalSide1.updateMany({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  updateMany<T extends OptionalSide1UpdateManyArgs>(
+    args: Subset<T, OptionalSide1UpdateManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Create or update one OptionalSide1.
+   * @param {OptionalSide1UpsertArgs} args - Arguments to update or create a OptionalSide1.
+   * @example
+   * // Update or create a OptionalSide1
+   * const optionalSide1 = await prisma.optionalSide1.upsert({
+   *   create: {
+   *     // ... data to create a OptionalSide1
+   *   },
+   *   update: {
+   *     // ... in case it already exists, update
+   *   },
+   *   where: {
+   *     // ... the filter for the OptionalSide1 we want to update
+   *   }
+   * })
+  **/
+  upsert<T extends OptionalSide1UpsertArgs>(
+    args: Subset<T, OptionalSide1UpsertArgs>
+  ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+  /**
+   * Count
+   */
+  count(args?: Omit<FindManyOptionalSide1Args, 'select' | 'include'>): Promise<number>
+
+  /**
+   * Aggregate
+   */
+  aggregate<T extends AggregateOptionalSide1Args>(args: Subset<T, AggregateOptionalSide1Args>): Promise<GetOptionalSide1AggregateType<T>>
+}
+
+/**
+ * The delegate class that acts as a "Promise-like" for OptionalSide1.
+ * Why is this prefixed with \`Prisma__\`?
+ * Because we want to prevent naming conflicts as mentioned in 
+ * https://github.com/prisma/prisma-client-js/issues/707
+ */
+export declare class Prisma__OptionalSide1Client<T> implements Promise<T> {
+  private readonly _dmmf;
+  private readonly _fetcher;
+  private readonly _queryType;
+  private readonly _rootField;
+  private readonly _clientMethod;
+  private readonly _args;
+  private readonly _dataPath;
+  private readonly _errorFormat;
+  private readonly _measurePerformance?;
+  private _isList;
+  private _callsite;
+  private _requestPromise?;
+  constructor(_dmmf: DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+  readonly [Symbol.toStringTag]: 'PrismaClientPromise';
+
+  opti<T extends OptionalSide2Args = {}>(args?: Subset<T, OptionalSide2Args>): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null>>;
+
+  private get _document();
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+  /**
+   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+   * resolved value cannot be modified from the callback.
+   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+   * @returns A Promise for the completion of the callback.
+   */
+  finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+}
+
+// Custom InputTypes
+
+/**
+ * OptionalSide1 findOne
+ */
+export type FindOneOptionalSide1Args = {
+  /**
+   * Select specific fields to fetch from the OptionalSide1
+  **/
+  select?: OptionalSide1Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide1Include | null
+  /**
+   * Filter, which OptionalSide1 to fetch.
+  **/
+  where: OptionalSide1WhereUniqueInput
+}
+
+
+/**
+ * OptionalSide1 findMany
+ */
+export type FindManyOptionalSide1Args = {
+  /**
+   * Select specific fields to fetch from the OptionalSide1
+  **/
+  select?: OptionalSide1Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide1Include | null
+  /**
+   * Filter, which OptionalSide1s to fetch.
+  **/
+  where?: OptionalSide1WhereInput
+  /**
+   * Determine the order of the OptionalSide1s to fetch.
+  **/
+  orderBy?: Enumerable<OptionalSide1OrderByInput>
+  /**
+   * Sets the position for listing OptionalSide1s.
+  **/
+  cursor?: OptionalSide1WhereUniqueInput
+  /**
+   * The number of OptionalSide1s to fetch. If negative number, it will take OptionalSide1s before the \`cursor\`.
+  **/
+  take?: number
+  /**
+   * Skip the first \`n\` OptionalSide1s.
+  **/
+  skip?: number
+  distinct?: Enumerable<OptionalSide1DistinctFieldEnum>
+}
+
+
+/**
+ * OptionalSide1 create
+ */
+export type OptionalSide1CreateArgs = {
+  /**
+   * Select specific fields to fetch from the OptionalSide1
+  **/
+  select?: OptionalSide1Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide1Include | null
+  /**
+   * The data needed to create a OptionalSide1.
+  **/
+  data: OptionalSide1CreateInput
+}
+
+
+/**
+ * OptionalSide1 update
+ */
+export type OptionalSide1UpdateArgs = {
+  /**
+   * Select specific fields to fetch from the OptionalSide1
+  **/
+  select?: OptionalSide1Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide1Include | null
+  /**
+   * The data needed to update a OptionalSide1.
+  **/
+  data: OptionalSide1UpdateInput
+  /**
+   * Choose, which OptionalSide1 to update.
+  **/
+  where: OptionalSide1WhereUniqueInput
+}
+
+
+/**
+ * OptionalSide1 updateMany
+ */
+export type OptionalSide1UpdateManyArgs = {
+  data: OptionalSide1UpdateManyMutationInput
+  where?: OptionalSide1WhereInput
+}
+
+
+/**
+ * OptionalSide1 upsert
+ */
+export type OptionalSide1UpsertArgs = {
+  /**
+   * Select specific fields to fetch from the OptionalSide1
+  **/
+  select?: OptionalSide1Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide1Include | null
+  /**
+   * The filter to search for the OptionalSide1 to update in case it exists.
+  **/
+  where: OptionalSide1WhereUniqueInput
+  /**
+   * In case the OptionalSide1 found by the \`where\` argument doesn't exist, create a new OptionalSide1 with this data.
+  **/
+  create: OptionalSide1CreateInput
+  /**
+   * In case the OptionalSide1 was found with the provided \`where\` argument, update it with this data.
+  **/
+  update: OptionalSide1UpdateInput
+}
+
+
+/**
+ * OptionalSide1 delete
+ */
+export type OptionalSide1DeleteArgs = {
+  /**
+   * Select specific fields to fetch from the OptionalSide1
+  **/
+  select?: OptionalSide1Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide1Include | null
+  /**
+   * Filter which OptionalSide1 to delete.
+  **/
+  where: OptionalSide1WhereUniqueInput
+}
+
+
+/**
+ * OptionalSide1 deleteMany
+ */
+export type OptionalSide1DeleteManyArgs = {
+  where?: OptionalSide1WhereInput
+}
+
+
+/**
+ * OptionalSide1 without action
+ */
+export type OptionalSide1Args = {
+  /**
+   * Select specific fields to fetch from the OptionalSide1
+  **/
+  select?: OptionalSide1Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide1Include | null
+}
+
+
+
+/**
+ * Model OptionalSide2
+ */
+
+export type OptionalSide2 = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+  string: string
+  optionalString: string | null
+  json: JsonValue
+  optionalJson: JsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean: boolean | null
+}
+
+
+export type AggregateOptionalSide2 = {
+  count: number
+  avg: OptionalSide2AvgAggregateOutputType | null
+  sum: OptionalSide2SumAggregateOutputType | null
+  min: OptionalSide2MinAggregateOutputType | null
+  max: OptionalSide2MaxAggregateOutputType | null
+}
+
+export type OptionalSide2AvgAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number
+  float: number
+  optionalFloat: number
+}
+
+export type OptionalSide2SumAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type OptionalSide2MinAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+export type OptionalSide2MaxAggregateOutputType = {
+  id: number
+  int: number
+  optionalInt: number | null
+  float: number
+  optionalFloat: number | null
+}
+
+
+export type OptionalSide2AvgAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type OptionalSide2SumAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type OptionalSide2MinAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type OptionalSide2MaxAggregateInputType = {
+  id?: true
+  int?: true
+  optionalInt?: true
+  float?: true
+  optionalFloat?: true
+}
+
+export type AggregateOptionalSide2Args = {
+  where?: OptionalSide2WhereInput
+  orderBy?: Enumerable<OptionalSide2OrderByInput>
+  cursor?: OptionalSide2WhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<OptionalSide2DistinctFieldEnum>
+  count?: true
+  avg?: OptionalSide2AvgAggregateInputType
+  sum?: OptionalSide2SumAggregateInputType
+  min?: OptionalSide2MinAggregateInputType
+  max?: OptionalSide2MaxAggregateInputType
+}
+
+export type GetOptionalSide2AggregateType<T extends AggregateOptionalSide2Args> = {
+  [P in keyof T]: P extends 'count' ? number : GetOptionalSide2AggregateScalarType<T[P]>
+}
+
+export type GetOptionalSide2AggregateScalarType<T extends any> = {
+  [P in keyof T]: P extends keyof OptionalSide2AvgAggregateOutputType ? OptionalSide2AvgAggregateOutputType[P] : never
+}
+    
+    
+
+export type OptionalSide2Select = {
+  id?: boolean
+  opti?: boolean | OptionalSide1Args
+  int?: boolean
+  optionalInt?: boolean
+  float?: boolean
+  optionalFloat?: boolean
+  string?: boolean
+  optionalString?: boolean
+  json?: boolean
+  optionalJson?: boolean
+  enum?: boolean
+  optionalEnum?: boolean
+  boolean?: boolean
+  optionalBoolean?: boolean
+}
+
+export type OptionalSide2Include = {
+  opti?: boolean | OptionalSide1Args
+}
+
+export type OptionalSide2GetPayload<
+  S extends boolean | null | undefined | OptionalSide2Args,
+  U = keyof S
+> = S extends true
+  ? OptionalSide2
+  : S extends undefined
+  ? never
+  : S extends OptionalSide2Args | FindManyOptionalSide2Args
+  ? 'include' extends U
+    ? OptionalSide2  & {
+      [P in TrueKeys<S['include']>]:
+      P extends 'opti'
+      ? OptionalSide1GetPayload<S['include'][P]> | null : never
+    }
+  : 'select' extends U
+    ? {
+      [P in TrueKeys<S['select']>]:P extends keyof OptionalSide2 ? OptionalSide2[P]
+: 
+      P extends 'opti'
+      ? OptionalSide1GetPayload<S['select'][P]> | null : never
+    }
+  : OptionalSide2
+: OptionalSide2
+
+
+export interface OptionalSide2Delegate {
+  /**
+   * Find zero or one OptionalSide2.
+   * @param {FindOneOptionalSide2Args} args - Arguments to find a OptionalSide2
+   * @example
+   * // Get one OptionalSide2
+   * const optionalSide2 = await prisma.optionalSide2.findOne({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findOne<T extends FindOneOptionalSide2Args>(
+    args: Subset<T, FindOneOptionalSide2Args>
+  ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null>>
+  /**
+   * Find zero or more OptionalSide2s.
+   * @param {FindManyOptionalSide2Args=} args - Arguments to filter and select certain fields only.
+   * @example
+   * // Get all OptionalSide2s
+   * const optionalSide2s = await prisma.optionalSide2.findMany()
+   * 
+   * // Get first 10 OptionalSide2s
+   * const optionalSide2s = await prisma.optionalSide2.findMany({ take: 10 })
+   * 
+   * // Only select the \`id\`
+   * const optionalSide2WithIdOnly = await prisma.optionalSide2.findMany({ select: { id: true } })
+   * 
+  **/
+  findMany<T extends FindManyOptionalSide2Args>(
+    args?: Subset<T, FindManyOptionalSide2Args>
+  ): CheckSelect<T, Promise<Array<OptionalSide2>>, Promise<Array<OptionalSide2GetPayload<T>>>>
+  /**
+   * Create a OptionalSide2.
+   * @param {OptionalSide2CreateArgs} args - Arguments to create a OptionalSide2.
+   * @example
+   * // Create one OptionalSide2
+   * const OptionalSide2 = await prisma.optionalSide2.create({
+   *   data: {
+   *     // ... data to create a OptionalSide2
+   *   }
+   * })
+   * 
+  **/
+  create<T extends OptionalSide2CreateArgs>(
+    args: Subset<T, OptionalSide2CreateArgs>
+  ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+  /**
+   * Delete a OptionalSide2.
+   * @param {OptionalSide2DeleteArgs} args - Arguments to delete one OptionalSide2.
+   * @example
+   * // Delete one OptionalSide2
+   * const OptionalSide2 = await prisma.optionalSide2.delete({
+   *   where: {
+   *     // ... filter to delete one OptionalSide2
+   *   }
+   * })
+   * 
+  **/
+  delete<T extends OptionalSide2DeleteArgs>(
+    args: Subset<T, OptionalSide2DeleteArgs>
+  ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+  /**
+   * Update one OptionalSide2.
+   * @param {OptionalSide2UpdateArgs} args - Arguments to update one OptionalSide2.
+   * @example
+   * // Update one OptionalSide2
+   * const optionalSide2 = await prisma.optionalSide2.update({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  update<T extends OptionalSide2UpdateArgs>(
+    args: Subset<T, OptionalSide2UpdateArgs>
+  ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+  /**
+   * Delete zero or more OptionalSide2s.
+   * @param {OptionalSide2DeleteManyArgs} args - Arguments to filter OptionalSide2s to delete.
+   * @example
+   * // Delete a few OptionalSide2s
+   * const { count } = await prisma.optionalSide2.deleteMany({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+   * 
+  **/
+  deleteMany<T extends OptionalSide2DeleteManyArgs>(
+    args: Subset<T, OptionalSide2DeleteManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Update zero or more OptionalSide2s.
+   * @param {OptionalSide2UpdateManyArgs} args - Arguments to update one or more rows.
+   * @example
+   * // Update many OptionalSide2s
+   * const optionalSide2 = await prisma.optionalSide2.updateMany({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: {
+   *     // ... provide data here
+   *   }
+   * })
+   * 
+  **/
+  updateMany<T extends OptionalSide2UpdateManyArgs>(
+    args: Subset<T, OptionalSide2UpdateManyArgs>
+  ): Promise<BatchPayload>
+  /**
+   * Create or update one OptionalSide2.
+   * @param {OptionalSide2UpsertArgs} args - Arguments to update or create a OptionalSide2.
+   * @example
+   * // Update or create a OptionalSide2
+   * const optionalSide2 = await prisma.optionalSide2.upsert({
+   *   create: {
+   *     // ... data to create a OptionalSide2
+   *   },
+   *   update: {
+   *     // ... in case it already exists, update
+   *   },
+   *   where: {
+   *     // ... the filter for the OptionalSide2 we want to update
+   *   }
+   * })
+  **/
+  upsert<T extends OptionalSide2UpsertArgs>(
+    args: Subset<T, OptionalSide2UpsertArgs>
+  ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+  /**
+   * Count
+   */
+  count(args?: Omit<FindManyOptionalSide2Args, 'select' | 'include'>): Promise<number>
+
+  /**
+   * Aggregate
+   */
+  aggregate<T extends AggregateOptionalSide2Args>(args: Subset<T, AggregateOptionalSide2Args>): Promise<GetOptionalSide2AggregateType<T>>
+}
+
+/**
+ * The delegate class that acts as a "Promise-like" for OptionalSide2.
+ * Why is this prefixed with \`Prisma__\`?
+ * Because we want to prevent naming conflicts as mentioned in 
+ * https://github.com/prisma/prisma-client-js/issues/707
+ */
+export declare class Prisma__OptionalSide2Client<T> implements Promise<T> {
+  private readonly _dmmf;
+  private readonly _fetcher;
+  private readonly _queryType;
+  private readonly _rootField;
+  private readonly _clientMethod;
+  private readonly _args;
+  private readonly _dataPath;
+  private readonly _errorFormat;
+  private readonly _measurePerformance?;
+  private _isList;
+  private _callsite;
+  private _requestPromise?;
+  constructor(_dmmf: DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+  readonly [Symbol.toStringTag]: 'PrismaClientPromise';
+
+  opti<T extends OptionalSide1Args = {}>(args?: Subset<T, OptionalSide1Args>): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null>>;
+
+  private get _document();
+  /**
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+  /**
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+  /**
+   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+   * resolved value cannot be modified from the callback.
+   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+   * @returns A Promise for the completion of the callback.
+   */
+  finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+}
+
+// Custom InputTypes
+
+/**
+ * OptionalSide2 findOne
+ */
+export type FindOneOptionalSide2Args = {
+  /**
+   * Select specific fields to fetch from the OptionalSide2
+  **/
+  select?: OptionalSide2Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide2Include | null
+  /**
+   * Filter, which OptionalSide2 to fetch.
+  **/
+  where: OptionalSide2WhereUniqueInput
+}
+
+
+/**
+ * OptionalSide2 findMany
+ */
+export type FindManyOptionalSide2Args = {
+  /**
+   * Select specific fields to fetch from the OptionalSide2
+  **/
+  select?: OptionalSide2Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide2Include | null
+  /**
+   * Filter, which OptionalSide2s to fetch.
+  **/
+  where?: OptionalSide2WhereInput
+  /**
+   * Determine the order of the OptionalSide2s to fetch.
+  **/
+  orderBy?: Enumerable<OptionalSide2OrderByInput>
+  /**
+   * Sets the position for listing OptionalSide2s.
+  **/
+  cursor?: OptionalSide2WhereUniqueInput
+  /**
+   * The number of OptionalSide2s to fetch. If negative number, it will take OptionalSide2s before the \`cursor\`.
+  **/
+  take?: number
+  /**
+   * Skip the first \`n\` OptionalSide2s.
+  **/
+  skip?: number
+  distinct?: Enumerable<OptionalSide2DistinctFieldEnum>
+}
+
+
+/**
+ * OptionalSide2 create
+ */
+export type OptionalSide2CreateArgs = {
+  /**
+   * Select specific fields to fetch from the OptionalSide2
+  **/
+  select?: OptionalSide2Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide2Include | null
+  /**
+   * The data needed to create a OptionalSide2.
+  **/
+  data: OptionalSide2CreateInput
+}
+
+
+/**
+ * OptionalSide2 update
+ */
+export type OptionalSide2UpdateArgs = {
+  /**
+   * Select specific fields to fetch from the OptionalSide2
+  **/
+  select?: OptionalSide2Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide2Include | null
+  /**
+   * The data needed to update a OptionalSide2.
+  **/
+  data: OptionalSide2UpdateInput
+  /**
+   * Choose, which OptionalSide2 to update.
+  **/
+  where: OptionalSide2WhereUniqueInput
+}
+
+
+/**
+ * OptionalSide2 updateMany
+ */
+export type OptionalSide2UpdateManyArgs = {
+  data: OptionalSide2UpdateManyMutationInput
+  where?: OptionalSide2WhereInput
+}
+
+
+/**
+ * OptionalSide2 upsert
+ */
+export type OptionalSide2UpsertArgs = {
+  /**
+   * Select specific fields to fetch from the OptionalSide2
+  **/
+  select?: OptionalSide2Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide2Include | null
+  /**
+   * The filter to search for the OptionalSide2 to update in case it exists.
+  **/
+  where: OptionalSide2WhereUniqueInput
+  /**
+   * In case the OptionalSide2 found by the \`where\` argument doesn't exist, create a new OptionalSide2 with this data.
+  **/
+  create: OptionalSide2CreateInput
+  /**
+   * In case the OptionalSide2 was found with the provided \`where\` argument, update it with this data.
+  **/
+  update: OptionalSide2UpdateInput
+}
+
+
+/**
+ * OptionalSide2 delete
+ */
+export type OptionalSide2DeleteArgs = {
+  /**
+   * Select specific fields to fetch from the OptionalSide2
+  **/
+  select?: OptionalSide2Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide2Include | null
+  /**
+   * Filter which OptionalSide2 to delete.
+  **/
+  where: OptionalSide2WhereUniqueInput
+}
+
+
+/**
+ * OptionalSide2 deleteMany
+ */
+export type OptionalSide2DeleteManyArgs = {
+  where?: OptionalSide2WhereInput
+}
+
+
+/**
+ * OptionalSide2 without action
+ */
+export type OptionalSide2Args = {
+  /**
+   * Select specific fields to fetch from the OptionalSide2
+  **/
+  select?: OptionalSide2Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide2Include | null
+}
+
+
+
+/**
+ * Deep Input Types
+ */
+
+
+export type PostWhereInput = {
+  AND?: Enumerable<PostWhereInput>
+  OR?: Array<PostWhereInput>
+  NOT?: Enumerable<PostWhereInput>
+  id?: number | IntFilter
+  createdAt?: Date | string | DateTimeFilter
+  title?: string | StringFilter
+  content?: string | StringNullableFilter | null
+  published?: boolean | BoolFilter
+  author?: UserWhereInput | null
+  authorId?: number | IntFilter
+}
+
+export type PostOrderByInput = {
+  id?: SortOrder
+  createdAt?: SortOrder
+  title?: SortOrder
+  content?: SortOrder
+  published?: SortOrder
+  authorId?: SortOrder
+}
+
+export type PostWhereUniqueInput = {
+  id?: number
+}
+
+export type UserWhereInput = {
+  AND?: Enumerable<UserWhereInput>
+  OR?: Array<UserWhereInput>
+  NOT?: Enumerable<UserWhereInput>
+  id?: number | IntFilter
+  email?: string | StringFilter
+  int?: number | IntFilter
+  optionalInt?: number | IntNullableFilter | null
+  float?: number | FloatFilter
+  optionalFloat?: number | FloatNullableFilter | null
+  string?: string | StringFilter
+  optionalString?: string | StringNullableFilter | null
+  json?: JsonFilter
+  optionalJson?: JsonNullableFilter | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
+  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
+  boolean?: boolean | BoolFilter
+  optionalBoolean?: boolean | BoolNullableFilter | null
+  posts?: PostListRelationFilter
+}
+
+export type UserOrderByInput = {
+  id?: SortOrder
+  email?: SortOrder
+  int?: SortOrder
+  optionalInt?: SortOrder
+  float?: SortOrder
+  optionalFloat?: SortOrder
+  string?: SortOrder
+  optionalString?: SortOrder
+  json?: SortOrder
+  optionalJson?: SortOrder
+  enum?: SortOrder
+  optionalEnum?: SortOrder
+  boolean?: SortOrder
+  optionalBoolean?: SortOrder
+}
+
+export type UserWhereUniqueInput = {
+  id?: number
+  email?: string
+}
+
+export type MWhereInput = {
+  AND?: Enumerable<MWhereInput>
+  OR?: Array<MWhereInput>
+  NOT?: Enumerable<MWhereInput>
+  id?: number | IntFilter
+  n?: NListRelationFilter
+  int?: number | IntFilter
+  optionalInt?: number | IntNullableFilter | null
+  float?: number | FloatFilter
+  optionalFloat?: number | FloatNullableFilter | null
+  string?: string | StringFilter
+  optionalString?: string | StringNullableFilter | null
+  json?: JsonFilter
+  optionalJson?: JsonNullableFilter | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
+  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
+  boolean?: boolean | BoolFilter
+  optionalBoolean?: boolean | BoolNullableFilter | null
+}
+
+export type MOrderByInput = {
+  id?: SortOrder
+  int?: SortOrder
+  optionalInt?: SortOrder
+  float?: SortOrder
+  optionalFloat?: SortOrder
+  string?: SortOrder
+  optionalString?: SortOrder
+  json?: SortOrder
+  optionalJson?: SortOrder
+  enum?: SortOrder
+  optionalEnum?: SortOrder
+  boolean?: SortOrder
+  optionalBoolean?: SortOrder
+}
+
+export type MWhereUniqueInput = {
+  id?: number
+}
+
+export type NWhereInput = {
+  AND?: Enumerable<NWhereInput>
+  OR?: Array<NWhereInput>
+  NOT?: Enumerable<NWhereInput>
+  id?: number | IntFilter
+  m?: MListRelationFilter
+  int?: number | IntFilter
+  optionalInt?: number | IntNullableFilter | null
+  float?: number | FloatFilter
+  optionalFloat?: number | FloatNullableFilter | null
+  string?: string | StringFilter
+  optionalString?: string | StringNullableFilter | null
+  json?: JsonFilter
+  optionalJson?: JsonNullableFilter | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
+  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
+  boolean?: boolean | BoolFilter
+  optionalBoolean?: boolean | BoolNullableFilter | null
+}
+
+export type NOrderByInput = {
+  id?: SortOrder
+  int?: SortOrder
+  optionalInt?: SortOrder
+  float?: SortOrder
+  optionalFloat?: SortOrder
+  string?: SortOrder
+  optionalString?: SortOrder
+  json?: SortOrder
+  optionalJson?: SortOrder
+  enum?: SortOrder
+  optionalEnum?: SortOrder
+  boolean?: SortOrder
+  optionalBoolean?: SortOrder
+}
+
+export type NWhereUniqueInput = {
+  id?: number
+}
+
+export type OneOptionalWhereInput = {
+  AND?: Enumerable<OneOptionalWhereInput>
+  OR?: Array<OneOptionalWhereInput>
+  NOT?: Enumerable<OneOptionalWhereInput>
+  id?: number | IntFilter
+  many?: ManyRequiredListRelationFilter
+  int?: number | IntFilter
+  optionalInt?: number | IntNullableFilter | null
+  float?: number | FloatFilter
+  optionalFloat?: number | FloatNullableFilter | null
+  string?: string | StringFilter
+  optionalString?: string | StringNullableFilter | null
+  json?: JsonFilter
+  optionalJson?: JsonNullableFilter | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
+  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
+  boolean?: boolean | BoolFilter
+  optionalBoolean?: boolean | BoolNullableFilter | null
+}
+
+export type OneOptionalOrderByInput = {
+  id?: SortOrder
+  int?: SortOrder
+  optionalInt?: SortOrder
+  float?: SortOrder
+  optionalFloat?: SortOrder
+  string?: SortOrder
+  optionalString?: SortOrder
+  json?: SortOrder
+  optionalJson?: SortOrder
+  enum?: SortOrder
+  optionalEnum?: SortOrder
+  boolean?: SortOrder
+  optionalBoolean?: SortOrder
+}
+
+export type OneOptionalWhereUniqueInput = {
+  id?: number
+}
+
+export type ManyRequiredWhereInput = {
+  AND?: Enumerable<ManyRequiredWhereInput>
+  OR?: Array<ManyRequiredWhereInput>
+  NOT?: Enumerable<ManyRequiredWhereInput>
+  id?: number | IntFilter
+  one?: OneOptionalWhereInput | null
+  oneOptionalId?: number | IntNullableFilter | null
+  int?: number | IntFilter
+  optionalInt?: number | IntNullableFilter | null
+  float?: number | FloatFilter
+  optionalFloat?: number | FloatNullableFilter | null
+  string?: string | StringFilter
+  optionalString?: string | StringNullableFilter | null
+  json?: JsonFilter
+  optionalJson?: JsonNullableFilter | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
+  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
+  boolean?: boolean | BoolFilter
+  optionalBoolean?: boolean | BoolNullableFilter | null
+}
+
+export type ManyRequiredOrderByInput = {
+  id?: SortOrder
+  oneOptionalId?: SortOrder
+  int?: SortOrder
+  optionalInt?: SortOrder
+  float?: SortOrder
+  optionalFloat?: SortOrder
+  string?: SortOrder
+  optionalString?: SortOrder
+  json?: SortOrder
+  optionalJson?: SortOrder
+  enum?: SortOrder
+  optionalEnum?: SortOrder
+  boolean?: SortOrder
+  optionalBoolean?: SortOrder
+}
+
+export type ManyRequiredWhereUniqueInput = {
+  id?: number
+}
+
+export type OptionalSide1WhereInput = {
+  AND?: Enumerable<OptionalSide1WhereInput>
+  OR?: Array<OptionalSide1WhereInput>
+  NOT?: Enumerable<OptionalSide1WhereInput>
+  id?: number | IntFilter
+  opti?: OptionalSide2WhereInput | null
+  optionalSide2Id?: number | IntNullableFilter | null
+  int?: number | IntFilter
+  optionalInt?: number | IntNullableFilter | null
+  float?: number | FloatFilter
+  optionalFloat?: number | FloatNullableFilter | null
+  string?: string | StringFilter
+  optionalString?: string | StringNullableFilter | null
+  json?: JsonFilter
+  optionalJson?: JsonNullableFilter | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
+  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
+  boolean?: boolean | BoolFilter
+  optionalBoolean?: boolean | BoolNullableFilter | null
+}
+
+export type OptionalSide1OrderByInput = {
+  id?: SortOrder
+  optionalSide2Id?: SortOrder
+  int?: SortOrder
+  optionalInt?: SortOrder
+  float?: SortOrder
+  optionalFloat?: SortOrder
+  string?: SortOrder
+  optionalString?: SortOrder
+  json?: SortOrder
+  optionalJson?: SortOrder
+  enum?: SortOrder
+  optionalEnum?: SortOrder
+  boolean?: SortOrder
+  optionalBoolean?: SortOrder
+}
+
+export type OptionalSide1WhereUniqueInput = {
+  id?: number
+}
+
+export type OptionalSide2WhereInput = {
+  AND?: Enumerable<OptionalSide2WhereInput>
+  OR?: Array<OptionalSide2WhereInput>
+  NOT?: Enumerable<OptionalSide2WhereInput>
+  id?: number | IntFilter
+  opti?: OptionalSide1WhereInput | null
+  int?: number | IntFilter
+  optionalInt?: number | IntNullableFilter | null
+  float?: number | FloatFilter
+  optionalFloat?: number | FloatNullableFilter | null
+  string?: string | StringFilter
+  optionalString?: string | StringNullableFilter | null
+  json?: JsonFilter
+  optionalJson?: JsonNullableFilter | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
+  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
+  boolean?: boolean | BoolFilter
+  optionalBoolean?: boolean | BoolNullableFilter | null
+}
+
+export type OptionalSide2OrderByInput = {
+  id?: SortOrder
+  int?: SortOrder
+  optionalInt?: SortOrder
+  float?: SortOrder
+  optionalFloat?: SortOrder
+  string?: SortOrder
+  optionalString?: SortOrder
+  json?: SortOrder
+  optionalJson?: SortOrder
+  enum?: SortOrder
+  optionalEnum?: SortOrder
+  boolean?: SortOrder
+  optionalBoolean?: SortOrder
+}
+
+export type OptionalSide2WhereUniqueInput = {
+  id?: number
+}
+
+export type PostCreateInput = {
+  createdAt?: Date | string
+  title: string
+  content?: string | null
+  published?: boolean
+  author: UserCreateOneWithoutPostsInput
+}
+
+export type PostUpdateInput = {
+  createdAt?: Date | string | DateTimeFieldUpdateOperationsInput
+  title?: string | StringFieldUpdateOperationsInput
+  content?: string | NullableStringFieldUpdateOperationsInput | null
+  published?: boolean | BoolFieldUpdateOperationsInput
+  author?: UserUpdateOneRequiredWithoutPostsInput
+}
+
+export type PostUpdateManyMutationInput = {
+  createdAt?: Date | string | DateTimeFieldUpdateOperationsInput
+  title?: string | StringFieldUpdateOperationsInput
+  content?: string | NullableStringFieldUpdateOperationsInput | null
+  published?: boolean | BoolFieldUpdateOperationsInput
+}
+
+export type UserCreateInput = {
+  email: string
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+  posts?: PostCreateManyWithoutAuthorInput
+}
+
+export type UserUpdateInput = {
+  email?: string | StringFieldUpdateOperationsInput
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+  posts?: PostUpdateManyWithoutAuthorInput
+}
+
+export type UserUpdateManyMutationInput = {
+  email?: string | StringFieldUpdateOperationsInput
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type MCreateInput = {
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+  n?: NCreateManyWithoutMInput
+}
+
+export type MUpdateInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+  n?: NUpdateManyWithoutMInput
+}
+
+export type MUpdateManyMutationInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type NCreateInput = {
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+  m?: MCreateManyWithoutNInput
+}
+
+export type NUpdateInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+  m?: MUpdateManyWithoutNInput
+}
+
+export type NUpdateManyMutationInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type OneOptionalCreateInput = {
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+  many?: ManyRequiredCreateManyWithoutOneInput
+}
+
+export type OneOptionalUpdateInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+  many?: ManyRequiredUpdateManyWithoutOneInput
+}
+
+export type OneOptionalUpdateManyMutationInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type ManyRequiredCreateInput = {
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+  one?: OneOptionalCreateOneWithoutManyInput
+}
+
+export type ManyRequiredUpdateInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+  one?: OneOptionalUpdateOneWithoutManyInput
+}
+
+export type ManyRequiredUpdateManyMutationInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type OptionalSide1CreateInput = {
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+  opti?: OptionalSide2CreateOneWithoutOptiInput
+}
+
+export type OptionalSide1UpdateInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+  opti?: OptionalSide2UpdateOneWithoutOptiInput
+}
+
+export type OptionalSide1UpdateManyMutationInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type OptionalSide2CreateInput = {
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+  opti?: OptionalSide1CreateOneWithoutOptiInput
+}
+
+export type OptionalSide2UpdateInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+  opti?: OptionalSide1UpdateOneWithoutOptiInput
+}
+
+export type OptionalSide2UpdateManyMutationInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type IntFilter = {
+  equals?: number
+  in?: Enumerable<number>
+  notIn?: Enumerable<number>
+  lt?: number
+  lte?: number
+  gt?: number
+  gte?: number
+  not?: number | NestedIntFilter
+}
+
+export type DateTimeFilter = {
+  equals?: Date | string
+  in?: Enumerable<Date | string>
+  notIn?: Enumerable<Date | string>
+  lt?: Date | string
+  lte?: Date | string
+  gt?: Date | string
+  gte?: Date | string
+  not?: Date | string | NestedDateTimeFilter
+}
+
+export type StringFilter = {
+  equals?: string
+  in?: Enumerable<string>
+  notIn?: Enumerable<string>
+  lt?: string
+  lte?: string
+  gt?: string
+  gte?: string
+  contains?: string
+  startsWith?: string
+  endsWith?: string
+  mode?: QueryMode
+  not?: string | NestedStringFilter
+}
+
+export type StringNullableFilter = {
+  equals?: string | null
+  in?: Enumerable<string> | null
+  notIn?: Enumerable<string> | null
+  lt?: string | null
+  lte?: string | null
+  gt?: string | null
+  gte?: string | null
+  contains?: string | null
+  startsWith?: string | null
+  endsWith?: string | null
+  mode?: QueryMode
+  not?: string | NestedStringNullableFilter | null
+}
+
+export type BoolFilter = {
+  equals?: boolean
+  not?: boolean | NestedBoolFilter
+}
+
+export type UserRelationFilter = {
+  is?: UserWhereInput | null
+  isNot?: UserWhereInput | null
+}
+
+export type IntNullableFilter = {
+  equals?: number | null
+  in?: Enumerable<number> | null
+  notIn?: Enumerable<number> | null
+  lt?: number | null
+  lte?: number | null
+  gt?: number | null
+  gte?: number | null
+  not?: number | NestedIntNullableFilter | null
+}
+
+export type FloatFilter = {
+  equals?: number
+  in?: Enumerable<number>
+  notIn?: Enumerable<number>
+  lt?: number
+  lte?: number
+  gt?: number
+  gte?: number
+  not?: number | NestedFloatFilter
+}
+
+export type FloatNullableFilter = {
+  equals?: number | null
+  in?: Enumerable<number> | null
+  notIn?: Enumerable<number> | null
+  lt?: number | null
+  lte?: number | null
+  gt?: number | null
+  gte?: number | null
+  not?: number | NestedFloatNullableFilter | null
+}
+
+export type JsonFilter = {
+  equals?: InputJsonValue
+  not?: InputJsonValue | NestedJsonFilter
+}
+
+export type JsonNullableFilter = {
+  equals?: InputJsonValue | null
+  not?: InputJsonValue | null
+}
+
+export type EnumABeautifulEnumFilter = {
+  equals?: ABeautifulEnum
+  in?: Enumerable<ABeautifulEnum>
+  notIn?: Enumerable<ABeautifulEnum>
+  not?: ABeautifulEnum | NestedEnumABeautifulEnumFilter
+}
+
+export type EnumABeautifulEnumNullableFilter = {
+  equals?: ABeautifulEnum | null
+  in?: Enumerable<ABeautifulEnum> | null
+  notIn?: Enumerable<ABeautifulEnum> | null
+  not?: ABeautifulEnum | NestedEnumABeautifulEnumNullableFilter | null
+}
+
+export type BoolNullableFilter = {
+  equals?: boolean | null
+  not?: boolean | NestedBoolNullableFilter | null
+}
+
+export type PostListRelationFilter = {
+  every?: PostWhereInput
+  some?: PostWhereInput
+  none?: PostWhereInput
+}
+
+export type NListRelationFilter = {
+  every?: NWhereInput
+  some?: NWhereInput
+  none?: NWhereInput
+}
+
+export type MListRelationFilter = {
+  every?: MWhereInput
+  some?: MWhereInput
+  none?: MWhereInput
+}
+
+export type ManyRequiredListRelationFilter = {
+  every?: ManyRequiredWhereInput
+  some?: ManyRequiredWhereInput
+  none?: ManyRequiredWhereInput
+}
+
+export type OneOptionalRelationFilter = {
+  is?: OneOptionalWhereInput | null
+  isNot?: OneOptionalWhereInput | null
+}
+
+export type OptionalSide2RelationFilter = {
+  is?: OptionalSide2WhereInput | null
+  isNot?: OptionalSide2WhereInput | null
+}
+
+export type OptionalSide1RelationFilter = {
+  is?: OptionalSide1WhereInput | null
+  isNot?: OptionalSide1WhereInput | null
+}
+
+export type UserCreateOneWithoutPostsInput = {
+  create?: UserCreateWithoutPostsInput
+  connect?: UserWhereUniqueInput
+}
+
+export type DateTimeFieldUpdateOperationsInput = {
+  set?: Date | string
+}
+
+export type StringFieldUpdateOperationsInput = {
+  set?: string
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
+export type UserUpdateOneRequiredWithoutPostsInput = {
+  create?: UserCreateWithoutPostsInput
+  connect?: UserWhereUniqueInput
+  update?: UserUpdateWithoutPostsDataInput
+  upsert?: UserUpsertWithoutPostsInput
+}
+
+export type PostCreateManyWithoutAuthorInput = {
+  create?: Enumerable<PostCreateWithoutAuthorInput>
+  connect?: Enumerable<PostWhereUniqueInput>
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+}
+
+export type FloatFieldUpdateOperationsInput = {
+  set?: number
+}
+
+export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+}
+
+export type JsonFieldUpdateOperationsInput = {
+  set?: InputJsonValue
+}
+
+export type NullableJsonFieldUpdateOperationsInput = {
+  set?: InputJsonValue | null
+}
+
+export type EnumABeautifulEnumFieldUpdateOperationsInput = {
+  set?: ABeautifulEnum
+}
+
+export type NullableEnumABeautifulEnumFieldUpdateOperationsInput = {
+  set?: ABeautifulEnum | null
+}
+
+export type NullableBoolFieldUpdateOperationsInput = {
+  set?: boolean | null
+}
+
+export type PostUpdateManyWithoutAuthorInput = {
+  create?: Enumerable<PostCreateWithoutAuthorInput>
+  connect?: Enumerable<PostWhereUniqueInput>
+  set?: Enumerable<PostWhereUniqueInput>
+  disconnect?: Enumerable<PostWhereUniqueInput>
+  delete?: Enumerable<PostWhereUniqueInput>
+  update?: Enumerable<PostUpdateWithWhereUniqueWithoutAuthorInput>
+  updateMany?: Enumerable<PostUpdateManyWithWhereNestedInput> | null
+  deleteMany?: Enumerable<PostScalarWhereInput>
+  upsert?: Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
+}
+
+export type NCreateManyWithoutMInput = {
+  create?: Enumerable<NCreateWithoutMInput>
+  connect?: Enumerable<NWhereUniqueInput>
+}
+
+export type NUpdateManyWithoutMInput = {
+  create?: Enumerable<NCreateWithoutMInput>
+  connect?: Enumerable<NWhereUniqueInput>
+  set?: Enumerable<NWhereUniqueInput>
+  disconnect?: Enumerable<NWhereUniqueInput>
+  delete?: Enumerable<NWhereUniqueInput>
+  update?: Enumerable<NUpdateWithWhereUniqueWithoutMInput>
+  updateMany?: Enumerable<NUpdateManyWithWhereNestedInput> | null
+  deleteMany?: Enumerable<NScalarWhereInput>
+  upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
+}
+
+export type MCreateManyWithoutNInput = {
+  create?: Enumerable<MCreateWithoutNInput>
+  connect?: Enumerable<MWhereUniqueInput>
+}
+
+export type MUpdateManyWithoutNInput = {
+  create?: Enumerable<MCreateWithoutNInput>
+  connect?: Enumerable<MWhereUniqueInput>
+  set?: Enumerable<MWhereUniqueInput>
+  disconnect?: Enumerable<MWhereUniqueInput>
+  delete?: Enumerable<MWhereUniqueInput>
+  update?: Enumerable<MUpdateWithWhereUniqueWithoutNInput>
+  updateMany?: Enumerable<MUpdateManyWithWhereNestedInput> | null
+  deleteMany?: Enumerable<MScalarWhereInput>
+  upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
+}
+
+export type ManyRequiredCreateManyWithoutOneInput = {
+  create?: Enumerable<ManyRequiredCreateWithoutOneInput>
+  connect?: Enumerable<ManyRequiredWhereUniqueInput>
+}
+
+export type ManyRequiredUpdateManyWithoutOneInput = {
+  create?: Enumerable<ManyRequiredCreateWithoutOneInput>
+  connect?: Enumerable<ManyRequiredWhereUniqueInput>
+  set?: Enumerable<ManyRequiredWhereUniqueInput>
+  disconnect?: Enumerable<ManyRequiredWhereUniqueInput>
+  delete?: Enumerable<ManyRequiredWhereUniqueInput>
+  update?: Enumerable<ManyRequiredUpdateWithWhereUniqueWithoutOneInput>
+  updateMany?: Enumerable<ManyRequiredUpdateManyWithWhereNestedInput> | null
+  deleteMany?: Enumerable<ManyRequiredScalarWhereInput>
+  upsert?: Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
+}
+
+export type OneOptionalCreateOneWithoutManyInput = {
+  create?: OneOptionalCreateWithoutManyInput
+  connect?: OneOptionalWhereUniqueInput
+}
+
+export type OneOptionalUpdateOneWithoutManyInput = {
+  create?: OneOptionalCreateWithoutManyInput
+  connect?: OneOptionalWhereUniqueInput
+  disconnect?: boolean
+  delete?: boolean
+  update?: OneOptionalUpdateWithoutManyDataInput
+  upsert?: OneOptionalUpsertWithoutManyInput
+}
+
+export type OptionalSide2CreateOneWithoutOptiInput = {
+  create?: OptionalSide2CreateWithoutOptiInput
+  connect?: OptionalSide2WhereUniqueInput
+}
+
+export type OptionalSide2UpdateOneWithoutOptiInput = {
+  create?: OptionalSide2CreateWithoutOptiInput
+  connect?: OptionalSide2WhereUniqueInput
+  disconnect?: boolean
+  delete?: boolean
+  update?: OptionalSide2UpdateWithoutOptiDataInput
+  upsert?: OptionalSide2UpsertWithoutOptiInput
+}
+
+export type OptionalSide1CreateOneWithoutOptiInput = {
+  create?: OptionalSide1CreateWithoutOptiInput
+  connect?: OptionalSide1WhereUniqueInput
+}
+
+export type OptionalSide1UpdateOneWithoutOptiInput = {
+  create?: OptionalSide1CreateWithoutOptiInput
+  connect?: OptionalSide1WhereUniqueInput
+  disconnect?: boolean
+  delete?: boolean
+  update?: OptionalSide1UpdateWithoutOptiDataInput
+  upsert?: OptionalSide1UpsertWithoutOptiInput
+}
+
+export type NestedIntFilter = {
+  equals?: number
+  in?: Enumerable<number>
+  notIn?: Enumerable<number>
+  lt?: number
+  lte?: number
+  gt?: number
+  gte?: number
+  not?: NestedIntFilter | null
+}
+
+export type NestedDateTimeFilter = {
+  equals?: Date | string
+  in?: Enumerable<Date | string>
+  notIn?: Enumerable<Date | string>
+  lt?: Date | string
+  lte?: Date | string
+  gt?: Date | string
+  gte?: Date | string
+  not?: NestedDateTimeFilter | null
+}
+
+export type NestedStringFilter = {
+  equals?: string
+  in?: Enumerable<string>
+  notIn?: Enumerable<string>
+  lt?: string
+  lte?: string
+  gt?: string
+  gte?: string
+  contains?: string
+  startsWith?: string
+  endsWith?: string
+  not?: NestedStringFilter | null
+}
+
+export type NestedStringNullableFilter = {
+  equals?: string | null
+  in?: Enumerable<string> | null
+  notIn?: Enumerable<string> | null
+  lt?: string | null
+  lte?: string | null
+  gt?: string | null
+  gte?: string | null
+  contains?: string | null
+  startsWith?: string | null
+  endsWith?: string | null
+  not?: NestedStringNullableFilter | null
+}
+
+export type NestedBoolFilter = {
+  equals?: boolean
+  not?: NestedBoolFilter | null
+}
+
+export type NestedIntNullableFilter = {
+  equals?: number | null
+  in?: Enumerable<number> | null
+  notIn?: Enumerable<number> | null
+  lt?: number | null
+  lte?: number | null
+  gt?: number | null
+  gte?: number | null
+  not?: NestedIntNullableFilter | null
+}
+
+export type NestedFloatFilter = {
+  equals?: number
+  in?: Enumerable<number>
+  notIn?: Enumerable<number>
+  lt?: number
+  lte?: number
+  gt?: number
+  gte?: number
+  not?: NestedFloatFilter | null
+}
+
+export type NestedFloatNullableFilter = {
+  equals?: number | null
+  in?: Enumerable<number> | null
+  notIn?: Enumerable<number> | null
+  lt?: number | null
+  lte?: number | null
+  gt?: number | null
+  gte?: number | null
+  not?: NestedFloatNullableFilter | null
+}
+
+export type NestedJsonFilter = {
+  equals?: InputJsonValue
+  not?: NestedJsonFilter | null
+}
+
+export type NestedJsonNullableFilter = {
+  equals?: InputJsonValue | null
+  not?: NestedJsonNullableFilter | null
+}
+
+export type NestedEnumABeautifulEnumFilter = {
+  equals?: ABeautifulEnum
+  in?: Enumerable<ABeautifulEnum>
+  notIn?: Enumerable<ABeautifulEnum>
+  not?: NestedEnumABeautifulEnumFilter | null
+}
+
+export type NestedEnumABeautifulEnumNullableFilter = {
+  equals?: ABeautifulEnum | null
+  in?: Enumerable<ABeautifulEnum> | null
+  notIn?: Enumerable<ABeautifulEnum> | null
+  not?: NestedEnumABeautifulEnumNullableFilter | null
+}
+
+export type NestedBoolNullableFilter = {
+  equals?: boolean | null
+  not?: NestedBoolNullableFilter | null
+}
+
+export type UserCreateWithoutPostsInput = {
+  email: string
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+}
+
+export type UserUpdateWithoutPostsDataInput = {
+  email?: string | StringFieldUpdateOperationsInput
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type UserUpsertWithoutPostsInput = {
+  update: UserUpdateWithoutPostsDataInput
+  create: UserCreateWithoutPostsInput
+}
+
+export type PostCreateWithoutAuthorInput = {
+  createdAt?: Date | string
+  title: string
+  content?: string | null
+  published?: boolean
+}
+
+export type PostUpdateWithWhereUniqueWithoutAuthorInput = {
+  where: PostWhereUniqueInput
+  data: PostUpdateWithoutAuthorDataInput
+}
+
+export type PostUpdateManyWithWhereNestedInput = {
+  where: PostScalarWhereInput
+  data: PostUpdateManyDataInput
+}
+
+export type PostScalarWhereInput = {
+  AND?: Enumerable<PostScalarWhereInput>
+  OR?: Array<PostScalarWhereInput>
+  NOT?: Enumerable<PostScalarWhereInput>
+  id?: number | IntFilter
+  createdAt?: Date | string | DateTimeFilter
+  title?: string | StringFilter
+  content?: string | StringNullableFilter | null
+  published?: boolean | BoolFilter
+  authorId?: number | IntFilter
+}
+
+export type PostUpsertWithWhereUniqueWithoutAuthorInput = {
+  where: PostWhereUniqueInput
+  update: PostUpdateWithoutAuthorDataInput
+  create: PostCreateWithoutAuthorInput
+}
+
+export type NCreateWithoutMInput = {
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+}
+
+export type NUpdateWithWhereUniqueWithoutMInput = {
+  where: NWhereUniqueInput
+  data: NUpdateWithoutMDataInput
+}
+
+export type NUpdateManyWithWhereNestedInput = {
+  where: NScalarWhereInput
+  data: NUpdateManyDataInput
+}
+
+export type NScalarWhereInput = {
+  AND?: Enumerable<NScalarWhereInput>
+  OR?: Array<NScalarWhereInput>
+  NOT?: Enumerable<NScalarWhereInput>
+  id?: number | IntFilter
+  int?: number | IntFilter
+  optionalInt?: number | IntNullableFilter | null
+  float?: number | FloatFilter
+  optionalFloat?: number | FloatNullableFilter | null
+  string?: string | StringFilter
+  optionalString?: string | StringNullableFilter | null
+  json?: JsonFilter
+  optionalJson?: JsonNullableFilter | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
+  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
+  boolean?: boolean | BoolFilter
+  optionalBoolean?: boolean | BoolNullableFilter | null
+}
+
+export type NUpsertWithWhereUniqueWithoutMInput = {
+  where: NWhereUniqueInput
+  update: NUpdateWithoutMDataInput
+  create: NCreateWithoutMInput
+}
+
+export type MCreateWithoutNInput = {
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+}
+
+export type MUpdateWithWhereUniqueWithoutNInput = {
+  where: MWhereUniqueInput
+  data: MUpdateWithoutNDataInput
+}
+
+export type MUpdateManyWithWhereNestedInput = {
+  where: MScalarWhereInput
+  data: MUpdateManyDataInput
+}
+
+export type MScalarWhereInput = {
+  AND?: Enumerable<MScalarWhereInput>
+  OR?: Array<MScalarWhereInput>
+  NOT?: Enumerable<MScalarWhereInput>
+  id?: number | IntFilter
+  int?: number | IntFilter
+  optionalInt?: number | IntNullableFilter | null
+  float?: number | FloatFilter
+  optionalFloat?: number | FloatNullableFilter | null
+  string?: string | StringFilter
+  optionalString?: string | StringNullableFilter | null
+  json?: JsonFilter
+  optionalJson?: JsonNullableFilter | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
+  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
+  boolean?: boolean | BoolFilter
+  optionalBoolean?: boolean | BoolNullableFilter | null
+}
+
+export type MUpsertWithWhereUniqueWithoutNInput = {
+  where: MWhereUniqueInput
+  update: MUpdateWithoutNDataInput
+  create: MCreateWithoutNInput
+}
+
+export type ManyRequiredCreateWithoutOneInput = {
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+}
+
+export type ManyRequiredUpdateWithWhereUniqueWithoutOneInput = {
+  where: ManyRequiredWhereUniqueInput
+  data: ManyRequiredUpdateWithoutOneDataInput
+}
+
+export type ManyRequiredUpdateManyWithWhereNestedInput = {
+  where: ManyRequiredScalarWhereInput
+  data: ManyRequiredUpdateManyDataInput
+}
+
+export type ManyRequiredScalarWhereInput = {
+  AND?: Enumerable<ManyRequiredScalarWhereInput>
+  OR?: Array<ManyRequiredScalarWhereInput>
+  NOT?: Enumerable<ManyRequiredScalarWhereInput>
+  id?: number | IntFilter
+  oneOptionalId?: number | IntNullableFilter | null
+  int?: number | IntFilter
+  optionalInt?: number | IntNullableFilter | null
+  float?: number | FloatFilter
+  optionalFloat?: number | FloatNullableFilter | null
+  string?: string | StringFilter
+  optionalString?: string | StringNullableFilter | null
+  json?: JsonFilter
+  optionalJson?: JsonNullableFilter | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
+  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
+  boolean?: boolean | BoolFilter
+  optionalBoolean?: boolean | BoolNullableFilter | null
+}
+
+export type ManyRequiredUpsertWithWhereUniqueWithoutOneInput = {
+  where: ManyRequiredWhereUniqueInput
+  update: ManyRequiredUpdateWithoutOneDataInput
+  create: ManyRequiredCreateWithoutOneInput
+}
+
+export type OneOptionalCreateWithoutManyInput = {
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+}
+
+export type OneOptionalUpdateWithoutManyDataInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type OneOptionalUpsertWithoutManyInput = {
+  update: OneOptionalUpdateWithoutManyDataInput
+  create: OneOptionalCreateWithoutManyInput
+}
+
+export type OptionalSide2CreateWithoutOptiInput = {
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+}
+
+export type OptionalSide2UpdateWithoutOptiDataInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type OptionalSide2UpsertWithoutOptiInput = {
+  update: OptionalSide2UpdateWithoutOptiDataInput
+  create: OptionalSide2CreateWithoutOptiInput
+}
+
+export type OptionalSide1CreateWithoutOptiInput = {
+  int: number
+  optionalInt?: number | null
+  float: number
+  optionalFloat?: number | null
+  string: string
+  optionalString?: string | null
+  json: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum: ABeautifulEnum
+  optionalEnum?: ABeautifulEnum | null
+  boolean: boolean
+  optionalBoolean?: boolean | null
+}
+
+export type OptionalSide1UpdateWithoutOptiDataInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type OptionalSide1UpsertWithoutOptiInput = {
+  update: OptionalSide1UpdateWithoutOptiDataInput
+  create: OptionalSide1CreateWithoutOptiInput
+}
+
+export type PostUpdateWithoutAuthorDataInput = {
+  createdAt?: Date | string | DateTimeFieldUpdateOperationsInput
+  title?: string | StringFieldUpdateOperationsInput
+  content?: string | NullableStringFieldUpdateOperationsInput | null
+  published?: boolean | BoolFieldUpdateOperationsInput
+}
+
+export type PostUpdateManyDataInput = {
+  createdAt?: Date | string | DateTimeFieldUpdateOperationsInput
+  title?: string | StringFieldUpdateOperationsInput
+  content?: string | NullableStringFieldUpdateOperationsInput | null
+  published?: boolean | BoolFieldUpdateOperationsInput
+}
+
+export type NUpdateWithoutMDataInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type NUpdateManyDataInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type MUpdateWithoutNDataInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type MUpdateManyDataInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type ManyRequiredUpdateWithoutOneDataInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type ManyRequiredUpdateManyDataInput = {
+  int?: number | IntFieldUpdateOperationsInput
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: number | FloatFieldUpdateOperationsInput
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: string | StringFieldUpdateOperationsInput
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: InputJsonValue | null
+  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: boolean | BoolFieldUpdateOperationsInput
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+/**
+ * Batch Payload for updateMany & deleteMany
+ */
+
+export type BatchPayload = {
+  count: number
+}
+
+/**
+ * DMMF
+ */
+export declare const dmmf: DMMF.Document;
+export {};
+
+`;
