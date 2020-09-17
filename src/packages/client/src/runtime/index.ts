@@ -15,7 +15,7 @@ export {
   PrismaClientInitializationError,
   PrismaClientRustPanicError,
 } from '@prisma/engine-core'
-export { getPrismaClient } from './getPrismaClient'
+export { getPrismaClient, PrismaClientOptions } from './getPrismaClient'
 
 export {
   RawValue,
