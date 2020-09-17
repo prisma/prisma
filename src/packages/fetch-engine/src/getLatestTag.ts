@@ -15,23 +15,21 @@ export async function getLatestTag(): Promise<any> {
   }
 
   let branch = await getBranch()
-  if (branch !== 'master' && !isPatchBranch(branch)) {
+  // remove the "integration/" part
+  branch = branch.replace(/^integration\//, '')
+
+  // first try to get the branch as it is
+  // if it doesn't have an equivalent in the engines repo
+  // default back to master
+  let commits = await getCommits(branch)
+  if (!commits && branch !== 'master' && !isPatchBranch(branch)) {
     console.log(
       `Overwriting branch "${branch}" with "master" as it's not a branch we have binaries for`,
     )
     branch = 'master'
+    commits = await getCommits(branch)
   }
 
-  const url = `https://api.github.com/repos/prisma/prisma-engines/commits?sha=${branch}`
-  const result = await fetch(url, {
-    agent: getProxyAgent(url),
-  } as any).then((res) => res.json())
-
-  if (!Array.isArray(result)) {
-    throw new Error(`Result is not an array for ${url}`)
-  }
-
-  const commits = result.map((r) => r.sha)
   const commit = await getFirstExistingCommit(commits)
   const queue = new PQueue({ concurrency: 30 })
   const promises = []
@@ -185,4 +183,18 @@ async function getVersionHashes(
       engines: pkg.prisma.version,
       prisma: pkg.prisma.prismaCommit,
     }))
+}
+
+async function getCommits(branch: string): Promise<string[] | null> {
+  const url = `https://api.github.com/repos/prisma/prisma-engines/commits?sha=${branch}`
+  const result = await fetch(url, {
+    agent: getProxyAgent(url),
+  } as any).then((res) => res.json())
+
+  if (!Array.isArray(result)) {
+    return null
+  }
+
+  const commits = result.map((r) => r.sha)
+  return commits
 }
