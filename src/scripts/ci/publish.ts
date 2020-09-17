@@ -1143,3 +1143,4 @@ function getPatchBranch(): string | null {
 
   return null
 }
+
